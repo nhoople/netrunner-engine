@@ -5,14 +5,17 @@
 import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { evalEffect } from "../effects/eval.js";
-import { withCostCheckpoint } from "../legality/checkpoints.js";
+import {
+  checkpointAfterInstruction,
+  withCostCheckpoint,
+} from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { onCardAdvanced } from "../state/cardDeclarations.js";
+import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import {
   fireFirstAdvancementOnServer,
-  fireInlineConditional,
   fireStoredConditionals,
   fireWouldTakeBadPublicity,
   type StoredConditionalMark,
@@ -130,14 +133,17 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
   if (firstOnThisServer) fireFirstAdvancementOnServer(state, serverId);
   if (card.creditsOnFirstAdvanceThisTurn && firstAdvanceThisTurn) {
     const n = card.creditsOnFirstAdvanceThisTurn;
-    fireInlineConditional(
-      state,
+    noteInlineConditional(state, {
       cardId,
-      { op: "do", action: { kind: "gain_credits", side: "corp", amount: n } },
-      "credits-on-first-advance-this-turn",
-      `${card.title} becomes pending — first advance this turn (gain ${n}¢).`,
-      "corp",
-    );
+      abilityKey: "credits-on-first-advance-this-turn",
+      controller: "corp",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: n },
+      },
+      logLine: `${card.title} becomes pending — first advance this turn (gain ${n}¢).`,
+    });
   }
   if (card.creditsOnAdvance) {
     const nextAdvancementCounters = card.advancementCounters ?? 0;
@@ -146,14 +152,17 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
-    fireInlineConditional(
-      state,
+    noteInlineConditional(state, {
       cardId,
-      { op: "do", action: { kind: "gain_credits", side: "corp", amount: gain } },
-      "credits-on-advance",
-      `${card.title} becomes pending — advanced (gain ${gain}¢).`,
-      "corp",
-    );
+      abilityKey: "credits-on-advance",
+      controller: "corp",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: gain },
+      },
+      logLine: `${card.title} becomes pending — advanced (gain ${gain}¢).`,
+    });
   }
   if (card.trashTopOfStackOnAdvance) {
     const nextAdvancementCounters = card.advancementCounters ?? 0;
@@ -162,22 +171,23 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
-    fireInlineConditional(
-      state,
+    noteInlineConditional(state, {
       cardId,
-      n <= 1
-        ? { op: "do", action: { kind: "trash_top_of_stack" } }
-        : {
-            op: "seq",
-            effects: Array.from({ length: n }, () => ({
-              op: "do" as const,
-              action: { kind: "trash_top_of_stack" as const },
-            })),
-          },
-      "trash-top-of-stack-on-advance",
-      `${card.title} becomes pending — advanced (trash top ${n} of Runner stack).`,
-      "corp",
-    );
+      abilityKey: "trash-top-of-stack-on-advance",
+      controller: "corp",
+      mandatory: true,
+      effect:
+        n <= 1
+          ? { op: "do", action: { kind: "trash_top_of_stack" } }
+          : {
+              op: "seq",
+              effects: Array.from({ length: n }, () => ({
+                op: "do" as const,
+                action: { kind: "trash_top_of_stack" as const },
+              })),
+            },
+      logLine: `${card.title} becomes pending — advanced (trash top ${n} of Runner stack).`,
+    });
   }
   if (card.placeAdvancementOnAnotherOnAdvance) {
     const nextAdvancementCounters = card.advancementCounters ?? 0;
@@ -186,20 +196,20 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
         ? spec.bonus ?? spec.default
         : spec.default;
-    fireInlineConditional(
-      state,
+    noteInlineConditional(state, {
       cardId,
-      {
+      abilityKey: "place-advancement-on-another-on-advance",
+      controller: "corp",
+      mandatory: true,
+      effect: {
         op: "do",
         action: {
           kind: "place_advancement_on_another_on_advance",
           amount,
         },
       },
-      "place-advancement-on-another-on-advance",
-      `${card.title} becomes pending — advanced (may place advancement on another).`,
-      "corp",
-    );
+      logLine: `${card.title} becomes pending — advanced (may place advancement on another).`,
+    });
   }
   const advanceItems: StoredConditionalMark[] = [];
   if (card.onAdvance) {
@@ -273,32 +283,85 @@ export function fireScoreOrStealSideEffects(
   fireFirstAgendaScoredOrStolenThisTurn(state);
   if (state.pendingChoice || state.pendingSabotage) return ok(state);
 
-  // Jinteki: Personal Evolution
+  // Score/steal flag inlines — note for 10.3.1a (phase 3).
   const corpId = state.cards[state.corp.identityId];
   if (corpId?.netDamageOnAgendaScoredOrStolen) {
-    fireInlineConditional(
-      state,
-      corpId.id,
-      fx.netDamage(corpId.netDamageOnAgendaScoredOrStolen),
-      "net-damage-on-agenda-scored-or-stolen",
-      `${corpId.title} becomes pending — agenda scored or stolen (net damage).`,
-      "corp",
-    );
-    if (state.pendingChoice || state.pendingDamage) return ok(state);
+    noteInlineConditional(state, {
+      cardId: corpId.id,
+      abilityKey: "net-damage-on-agenda-scored-or-stolen",
+      controller: "corp",
+      mandatory: true,
+      effect: fx.netDamage(corpId.netDamageOnAgendaScoredOrStolen),
+      logLine: `${corpId.title} becomes pending — agenda scored or stolen (net damage).`,
+    });
   }
 
-  // Pantograph may-install
   for (const id of state.runner.installed) {
     const card = state.cards[id];
     if (!card?.mayInstallOnScoreOrSteal) continue;
-    fireInlineConditional(
-      state,
-      id,
-      fx.mayInstallFromGrip(),
-      "may-install-on-score-or-steal",
-      `${card.title} becomes pending — agenda scored or stolen (may install).`,
-    );
-    if (state.pendingChoice) return ok(state);
+    noteInlineConditional(state, {
+      cardId: id,
+      abilityKey: "may-install-on-score-or-steal",
+      controller: "runner",
+      mandatory: true,
+      effect: fx.mayInstallFromGrip(),
+      logLine: `${card.title} becomes pending — agenda scored or stolen (may install).`,
+    });
+  }
+
+  const agenda = state.cards[scoredOrStolenId];
+  if (
+    agenda.mayRezIceIgnoringCostsOnScoreOrSteal &&
+    !abilitiesSuppressed(state, scoredOrStolenId)
+  ) {
+    noteInlineConditional(state, {
+      cardId: scoredOrStolenId,
+      abilityKey: "may-rez-ice-ignoring-costs-on-score-or-steal",
+      controller: "corp",
+      mandatory: true,
+      effect: fx.rezIceIgnoringCosts(),
+      logLine: `${agenda.title} becomes pending — agenda scored or stolen (may rez ice).`,
+    });
+  }
+
+  const runnerId = state.cards[state.runner.identityId];
+  if (
+    runnerId?.maySwapIceOnAgendaScoredOrStolen &&
+    !abilitiesSuppressed(state, state.runner.identityId)
+  ) {
+    noteInlineConditional(state, {
+      cardId: runnerId.id,
+      abilityKey: "may-swap-ice-on-agenda-scored-or-stolen",
+      controller: "runner",
+      mandatory: true,
+      effect: fx.swapTwoIce(),
+      logLine: `${runnerId.title} becomes pending — agenda scored or stolen (may swap ice).`,
+    });
+  }
+
+  if (kind === "score" && serverIdBefore) {
+    const server = state.servers[serverIdBefore as ServerId];
+    if (server) {
+      for (const id of server.root) {
+        const up = state.cards[id];
+        if (!up?.rezzed || !up.searchRdNonAgendaOnScoreFromServer) continue;
+        noteInlineConditional(state, {
+          cardId: id,
+          abilityKey: "search-rd-non-agenda-on-score-from-server",
+          controller: "corp",
+          mandatory: true,
+          effect: fx.searchRdNonAgenda(),
+          logLine: `${up.title} becomes pending — agenda scored from this server (search R&D).`,
+        });
+      }
+    }
+  }
+
+  if ((state.turn.inlineConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "scoreOrSteal.sideEffects");
+  }
+  if (state.pendingChoice || state.pendingDamage || state.pendingSabotage) {
+    return ok(state);
   }
 
   // Daeg-class / Leela-class: on agenda scored or stolen (rig + Runner identity)
@@ -340,59 +403,6 @@ export function fireScoreOrStealSideEffects(
     }
     fireOnAgendaScoredOrStolen(state, veraIds);
     if (state.pendingChoice) return ok(state);
-  }
-
-  // Send a Message (on the agenda itself)
-  const agenda = state.cards[scoredOrStolenId];
-  if (
-    agenda.mayRezIceIgnoringCostsOnScoreOrSteal &&
-    !abilitiesSuppressed(state, scoredOrStolenId)
-  ) {
-    fireInlineConditional(
-      state,
-      scoredOrStolenId,
-      fx.rezIceIgnoringCosts(),
-      "may-rez-ice-ignoring-costs-on-score-or-steal",
-      `${agenda.title} becomes pending — agenda scored or stolen (may rez ice).`,
-      "corp",
-    );
-    if (state.pendingChoice) return ok(state);
-  }
-
-  // Tāo Salonga ice swap
-  const runnerId = state.cards[state.runner.identityId];
-  if (
-    runnerId?.maySwapIceOnAgendaScoredOrStolen &&
-    !abilitiesSuppressed(state, state.runner.identityId)
-  ) {
-    fireInlineConditional(
-      state,
-      runnerId.id,
-      fx.swapTwoIce(),
-      "may-swap-ice-on-agenda-scored-or-stolen",
-      `${runnerId.title} becomes pending — agenda scored or stolen (may swap ice).`,
-    );
-    if (state.pendingChoice) return ok(state);
-  }
-
-  // Malapert: search R&D when scoring from its server
-  if (kind === "score" && serverIdBefore) {
-    const server = state.servers[serverIdBefore as ServerId];
-    if (server) {
-      for (const id of server.root) {
-        const up = state.cards[id];
-        if (!up?.rezzed || !up.searchRdNonAgendaOnScoreFromServer) continue;
-        fireInlineConditional(
-          state,
-          id,
-          fx.searchRdNonAgenda(),
-          "search-rd-non-agenda-on-score-from-server",
-          `${up.title} becomes pending — agenda scored from this server (search R&D).`,
-          "corp",
-        );
-        if (state.pendingChoice) return ok(state);
-      }
-    }
   }
 
   return ok(state);
