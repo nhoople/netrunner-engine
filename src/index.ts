@@ -161,6 +161,7 @@ export {
   PREDICATE_CORP_TURN_END,
   PREDICATE_RUNNER_TURN_END,
   PREDICATE_CORP_TURN_BEGIN,
+  PREDICATE_RUNNER_TURN_BEGIN,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
