@@ -263,6 +263,14 @@ export type TriggerPredicate =
        * from run.begin, marked at 10.3.1a).
        */
       kind: "daredevil_first_run_ice_gte";
+    }
+  | {
+      /** Baklan: first actual ice encounter this run. */
+      kind: "first_encounter_each_run";
+    }
+  | {
+      /** Khan: first ice passed this turn. */
+      kind: "first_pass_ice";
     };
 
 export type TriggerPredicateMatch =
@@ -431,6 +439,14 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "daredevil_first_run_ice_gte";
+      matched: boolean;
+    }
+  | {
+      kind: "first_encounter_each_run";
+      matched: boolean;
+    }
+  | {
+      kind: "first_pass_ice";
       matched: boolean;
     };
 
@@ -727,6 +743,18 @@ export function evaluateTriggerPredicate(
         !state.turn.daredevilDrawUsedThisTurn;
       return { kind: "daredevil_first_run_ice_gte", matched };
     }
+    case "first_encounter_each_run": {
+      void diff;
+      const matched = Boolean(state.run?.firstEncounterEachRunMetPending);
+      return { kind: "first_encounter_each_run", matched };
+    }
+    case "first_pass_ice": {
+      void diff;
+      const matched =
+        state.turn.firstPassIceMetPending &&
+        !state.turn.bmFirstPassIceUsedThisTurn;
+      return { kind: "first_pass_ice", matched };
+    }
   }
 }
 
@@ -968,4 +996,12 @@ export const PREDICATE_FIRST_SUCCESSFUL_MARK_RUN: TriggerPredicate = {
 
 export const PREDICATE_DAREDEVIL_FIRST_RUN_ICE_GTE: TriggerPredicate = {
   kind: "daredevil_first_run_ice_gte",
+};
+
+export const PREDICATE_FIRST_ENCOUNTER_EACH_RUN: TriggerPredicate = {
+  kind: "first_encounter_each_run",
+};
+
+export const PREDICATE_FIRST_PASS_ICE: TriggerPredicate = {
+  kind: "first_pass_ice",
 };

@@ -2911,6 +2911,12 @@ export interface TurnBookkeeping {
   /** Runner's revealed secret spend from the most recent psi resolution. */
   lastRevealedRunnerSecretSpend?: number;
   /** Khan: first pass ice each turn already used. */
+  /**
+   * Khan: first ice passed this turn met since previous checkpoint; marked
+   * pending at the next 10.3.1a (phase 3).
+   */
+  firstPassIceMetPending: boolean;
+  /** Khan: first pass ice each turn already marked. */
   bmFirstPassIceUsedThisTurn: boolean;
   /** Weyland Builder of Nations: first advanced-ice encounter-end meat used. */
   bmFirstAdvancedIceEncounterEndMeatUsed: boolean;
@@ -4341,8 +4347,13 @@ export interface RunState {
   bypassFirstEncounterForClicks?: number;
   /** Ice encounters begun this run (S-Dobrado second-encounter gate). */
   iceEncounteredCount?: number;
-  /** Baklan: onFirstEncounterEachRun already fired this run. */
+  /** Baklan: onFirstEncounterEachRun already noted this run. */
   onFirstEncounterEachRunFired?: boolean;
+  /**
+   * Baklan: first encounter this run met since previous checkpoint; marked
+   * pending at the next 10.3.1a (phase 3).
+   */
+  firstEncounterEachRunMetPending?: boolean;
   /** Ice derezzed by Window of Opportunity at run begin. */
   eventDerezzedIceId?: string;
   mayRezEventDerezzedIceOnRunEndIgnoreCosts?: boolean;

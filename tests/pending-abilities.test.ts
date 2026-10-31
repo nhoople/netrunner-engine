@@ -637,6 +637,80 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.runner.credits).toBe(4);
   });
 
+  it("marks first encounter each run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstEncounterEachRun } = await import(
+      "../src/state/firstEncounterPassHooks.js"
+    );
+    const s = createInitialState();
+    const bak = instantiateCard("baklan-bochkin", "bak-1", "runner:installed");
+    s.cards["bak-1"] = bak;
+    s.runner.installed = ["bak-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "ice-1", broken: [false] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+    };
+    noteFirstEncounterEachRun(s);
+    expect(s.run!.firstEncounterEachRunMetPending).toBe(true);
+    expect(s.run!.onFirstEncounterEachRunFired).toBe(true);
+    expect(bak.powerCounters ?? 0).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first encounter each run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.run!.firstEncounterEachRunMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first encounter this run"),
+      ),
+    ).toBe(true);
+    expect(s.cards["bak-1"]!.powerCounters).toBe(1);
+  });
+
+  it("marks first pass ice at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstPassIce } = await import(
+      "../src/state/firstEncounterPassHooks.js"
+    );
+    const s = createInitialState();
+    const khan = instantiateCard(
+      "khan-savvy-skiptracer",
+      "khan-1",
+      "runner:identity",
+    );
+    s.cards["khan-1"] = khan;
+    s.runner.identityId = "khan-1";
+    noteFirstPassIce(s);
+    expect(s.turn.firstPassIceMetPending).toBe(true);
+    expect(s.turn.bmFirstPassIceUsedThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first pass ice",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstPassIceMetPending).toBe(false);
+    expect(s.turn.bmFirstPassIceUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first ice passed this turn"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Daredevil first-run ice-gte at 10.3.1a (phase 3 scanner)", async () => {
     const { noteDaredevilFirstRun } = await import(
       "../src/state/runBeginHooks.js"

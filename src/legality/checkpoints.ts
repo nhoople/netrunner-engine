@@ -79,7 +79,10 @@ import {
   PREDICATE_FIRST_SUCCESSFUL_CENTRAL_RUN,
   PREDICATE_FIRST_SUCCESSFUL_MARK_RUN,
   PREDICATE_DAREDEVIL_FIRST_RUN_ICE_GTE,
+  PREDICATE_FIRST_ENCOUNTER_EACH_RUN,
+  PREDICATE_FIRST_PASS_ICE,
 } from "../state/triggerPredicates.js";
+import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
   cancelPendingIfSourceInactive,
   completePendingAbility,
@@ -1442,6 +1445,75 @@ function markFirstSuccessfulMarkRun(
   });
 }
 
+/** Baklan: first actual encounter this run (phase 3). */
+function markFirstEncounterEachRun(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_ENCOUNTER_EACH_RUN,
+  );
+  if (match.kind !== "first_encounter_each_run" || !match.matched) {
+    if (state.run) state.run.firstEncounterEachRunMetPending = false;
+    return;
+  }
+  if (state.run) state.run.firstEncounterEachRunMetPending = false;
+  for (const id of firstEncounterEachRunSourceIds(state)) {
+    const card = state.cards[id];
+    if (!card?.onFirstEncounterEachRun) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-encounter-each-run",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstEncounterEachRun",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first encounter this run.`,
+    );
+  }
+}
+
+/** Khan: first ice passed this turn (phase 3). */
+function markFirstPassIce(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_PASS_ICE,
+  );
+  if (match.kind !== "first_pass_ice" || !match.matched) {
+    state.turn.firstPassIceMetPending = false;
+    return;
+  }
+  state.turn.firstPassIceMetPending = false;
+  const khan = state.cards[state.runner.identityId];
+  if (
+    !khan?.onFirstPassIceEachTurn ||
+    abilitiesSuppressed(state, khan.id)
+  ) {
+    return;
+  }
+  state.turn.bmFirstPassIceUsedThisTurn = true;
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-pass-ice-each-turn",
+    sourceId: khan.id,
+    controller: "runner",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstPassIceEachTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${khan.title} becomes pending — first ice passed this turn.`,
+  );
+}
+
 /**
  * Daredevil: first run this turn on a server with ≥N ice (phase 3 — marked
  * at 10.3.1a from MetPending).
@@ -2011,6 +2083,8 @@ function markConditionalAbilities(state: GameState): void {
   markFirstRdRunBegin(state, diff);
   markFirstArchivesRunBegin(state, diff);
   markDaredevilFirstRun(state, diff);
+  markFirstEncounterEachRun(state, diff);
+  markFirstPassIce(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

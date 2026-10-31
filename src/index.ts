@@ -133,6 +133,8 @@ export {
   PREDICATE_FIRST_SUCCESSFUL_CENTRAL_RUN,
   PREDICATE_FIRST_SUCCESSFUL_MARK_RUN,
   PREDICATE_DAREDEVIL_FIRST_RUN_ICE_GTE,
+  PREDICATE_FIRST_ENCOUNTER_EACH_RUN,
+  PREDICATE_FIRST_PASS_ICE,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
