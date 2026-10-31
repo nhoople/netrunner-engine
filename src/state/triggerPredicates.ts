@@ -331,6 +331,14 @@ export type TriggerPredicate =
   | {
       /** Ice/Runner onBypass since previous checkpoint (source ids). */
       kind: "bypass";
+    }
+  | {
+      /** Root onApproachIce since previous checkpoint (card ids). */
+      kind: "approach_ice";
+    }
+  | {
+      /** First successful R&D run end this turn (Psych Mike). */
+      kind: "first_successful_rd_run_end";
     };
 
 export type TriggerPredicateMatch =
@@ -568,6 +576,14 @@ export type TriggerPredicateMatch =
   | {
       kind: "bypass";
       sourceIds: string[];
+    }
+  | {
+      kind: "approach_ice";
+      cardIds: string[];
+    }
+  | {
+      kind: "first_successful_rd_run_end";
+      matched: boolean;
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -980,6 +996,22 @@ export function evaluateTriggerPredicate(
         sourceIds: [...(state.turn.bypassPendingSourceIds ?? [])],
       };
     }
+    case "approach_ice": {
+      void diff;
+      return {
+        kind: "approach_ice",
+        cardIds: [...(state.turn.approachIcePendingIds ?? [])],
+      };
+    }
+    case "first_successful_rd_run_end": {
+      void diff;
+      return {
+        kind: "first_successful_rd_run_end",
+        matched:
+          state.turn.firstSuccessfulRdRunEndMetPending &&
+          !state.turn.firstSuccessfulRdRunEndUsedThisTurn,
+      };
+    }
   }
 }
 
@@ -1291,4 +1323,12 @@ export const PREDICATE_PASS_ALL_ICE_PROTECTING_SERVER: TriggerPredicate = {
 
 export const PREDICATE_BYPASS: TriggerPredicate = {
   kind: "bypass",
+};
+
+export const PREDICATE_APPROACH_ICE: TriggerPredicate = {
+  kind: "approach_ice",
+};
+
+export const PREDICATE_FIRST_SUCCESSFUL_RD_RUN_END: TriggerPredicate = {
+  kind: "first_successful_rd_run_end",
 };

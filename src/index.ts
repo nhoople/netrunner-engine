@@ -150,6 +150,8 @@ export {
   PREDICATE_APPROACH_SERVER,
   PREDICATE_PASS_ALL_ICE_PROTECTING_SERVER,
   PREDICATE_BYPASS,
+  PREDICATE_APPROACH_ICE,
+  PREDICATE_FIRST_SUCCESSFUL_RD_RUN_END,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
