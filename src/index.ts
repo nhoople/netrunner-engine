@@ -172,6 +172,7 @@ export {
   PREDICATE_OUTSIDE_POOL_SPEND,
   PREDICATE_BEFORE_FIRST_TURN,
   PREDICATE_ICE_REZ_ABILITY,
+  PREDICATE_INLINE_CONDITIONAL,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

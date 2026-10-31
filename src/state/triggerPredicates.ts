@@ -419,6 +419,10 @@ export type TriggerPredicate =
   | {
       /** Host / any-ice / protecting-server rez conditionals. */
       kind: "ice_rez_ability";
+    }
+  | {
+      /** Synthesized inline Effect conditionals since previous checkpoint. */
+      kind: "inline_conditional";
     };
 
 export type TriggerPredicateMatch =
@@ -803,6 +807,18 @@ export type TriggerPredicateMatch =
         controller: "corp" | "runner";
         mandatory: boolean;
         logLine: string;
+      }>;
+    }
+  | {
+      kind: "inline_conditional";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        controller: "corp" | "runner";
+        mandatory: boolean;
+        effect: import("../effects/ir.js").Effect;
+        logLine: string;
+        independentOfSource?: boolean;
       }>;
     };
 
@@ -1372,6 +1388,13 @@ export function evaluateTriggerPredicate(
         marks: [...(state.turn.iceRezAbilityPending ?? [])],
       };
     }
+    case "inline_conditional": {
+      void diff;
+      return {
+        kind: "inline_conditional",
+        marks: [...(state.turn.inlineConditionalPending ?? [])],
+      };
+    }
   }
 }
 
@@ -1771,4 +1794,8 @@ export const PREDICATE_BEFORE_FIRST_TURN: TriggerPredicate = {
 
 export const PREDICATE_ICE_REZ_ABILITY: TriggerPredicate = {
   kind: "ice_rez_ability",
+};
+
+export const PREDICATE_INLINE_CONDITIONAL: TriggerPredicate = {
+  kind: "inline_conditional",
 };

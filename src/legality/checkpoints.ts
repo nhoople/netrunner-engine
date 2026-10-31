@@ -118,6 +118,7 @@ import {
   PREDICATE_OUTSIDE_POOL_SPEND,
   PREDICATE_BEFORE_FIRST_TURN,
   PREDICATE_ICE_REZ_ABILITY,
+  PREDICATE_INLINE_CONDITIONAL,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2357,6 +2358,42 @@ function markSuccessfulRunServer(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Synthesized inline Effect conditionals (phase 3). */
+function markInlineConditional(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_INLINE_CONDITIONAL,
+  );
+  if (match.kind !== "inline_conditional" || match.marks.length === 0) {
+    state.turn.inlineConditionalPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.inlineConditionalPending = [];
+  for (const m of marks) {
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    // Delayed abilities that outlive the source skip the active-source gate
+    // (CR 9.6.13c). Other inlines still require an unblanked source.
+    if (!m.independentOfSource && abilitiesSuppressed(state, m.cardId)) {
+      continue;
+    }
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: m.controller,
+      mandatory: m.mandatory,
+      independentOfSource: m.independentOfSource,
+      payload: {
+        kind: "inline_conditional",
+        effect: m.effect,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
 /** Host / any-ice / protecting-server rez conditionals (phase 3). */
 function markIceRezAbility(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -3374,6 +3411,7 @@ function markConditionalAbilities(state: GameState): void {
   markOutsidePoolSpend(state, diff);
   markBeforeFirstTurn(state, diff);
   markIceRezAbility(state, diff);
+  markInlineConditional(state, diff);
   markRunBegin(state, diff);
   markCorpTurnEnd(state, diff);
   markScoreTurnEnd(state, diff);

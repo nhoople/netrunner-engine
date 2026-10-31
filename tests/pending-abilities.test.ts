@@ -978,6 +978,43 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Runner turn-end inline conditionals at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } = await import(
+      "../src/state/inlineConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const alg = instantiateCard("algernon", "alg-1", "runner:installed");
+    s.cards["alg-1"] = alg;
+    s.runner.installed = ["alg-1"];
+    noteInlineConditional(s, {
+      cardId: "alg-1",
+      abilityKey: "trash-at-turn-end-unless-successful-run",
+      controller: "runner",
+      mandatory: true,
+      effect: { op: "do", action: { kind: "trash_self" } },
+      logLine: `${alg.title} becomes pending — turn end (trash unless successful run).`,
+    });
+    expect(s.turn.inlineConditionalPending).toEqual([
+      expect.objectContaining({
+        cardId: "alg-1",
+        abilityKey: "trash-at-turn-end-unless-successful-run",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner turn end inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — turn end (trash unless successful run)"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks host-rez-state at 10.3.1a (phase 3 scanner)", async () => {
     const { noteHostRezStateTriggers } = await import(
       "../src/state/iceRezHooks.js"

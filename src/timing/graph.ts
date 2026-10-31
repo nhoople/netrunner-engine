@@ -89,6 +89,7 @@ import {
   fireInlineConditional,
   resolveStoredConditionalPendings,
 } from "../state/storedTriggers.js";
+import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import {
   noteCompileFirstEncounter,
   noteEncounterAnyIceOncePerTurn,
@@ -1444,13 +1445,14 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (!card?.trashAtTurnEndUnlessSuccessfulRun) continue;
           card.trashAtTurnEndUnlessSuccessfulRun = false;
           if (s.turn.successfulRunThisTurn) continue;
-          fireInlineConditional(
-            s,
-            id,
-            { op: "do", action: { kind: "trash_self" } },
-            "trash-at-turn-end-unless-successful-run",
-            `${card.title} becomes pending — turn end (trash unless successful run).`,
-          );
+          noteInlineConditional(s, {
+            cardId: id,
+            abilityKey: "trash-at-turn-end-unless-successful-run",
+            controller: "runner",
+            mandatory: true,
+            effect: { op: "do", action: { kind: "trash_self" } },
+            logLine: `${card.title} becomes pending — turn end (trash unless successful run).`,
+          });
         }
         // London Library: trash all programs hosted when Runner turn ends.
         for (const id of [...s.runner.installed]) {
@@ -1469,20 +1471,20 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        
+
         // Bug-Out Bag: if grip empty at turn end, draw per power then trash.
         for (const rid of [...s.runner.installed]) {
           const card = s.cards[rid];
           if (!card?.onTurnEndIfGripEmptyDrawPerPowerThenTrash) continue;
           if (s.runner.hand.length > 0) continue;
-          fireInlineConditional(
-            s,
-            rid,
-            { op: "do", action: { kind: "draw_per_power_then_trash" } },
-            "bug-out-bag-draw-per-power-then-trash",
-            `${card.title} becomes pending — turn end with empty grip (draw then trash).`,
-          );
-          if (s.pendingChoice) break;
+          noteInlineConditional(s, {
+            cardId: rid,
+            abilityKey: "bug-out-bag-draw-per-power-then-trash",
+            controller: "runner",
+            mandatory: true,
+            effect: { op: "do", action: { kind: "draw_per_power_then_trash" } },
+            logLine: `${card.title} becomes pending — turn end with empty grip (draw then trash).`,
+          });
         }
 
         // Joshua B.-class: take 1 tag at turn end. The delayed ability
@@ -1493,13 +1495,16 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `${pending.title}'s delayed ability resolves; take 1 tag (CR ${CR.delayedAbilityOnce.number}).`,
           );
-          fireInlineConditional(
-            s,
-            pending.sourceId,
-            { op: "do", action: { kind: "give_tags", amount: 1 } },
-            "delayed-turn-end-tag",
-            `${pending.title} becomes pending — delayed turn-end tag resolves.`,
-          );
+          noteInlineConditional(s, {
+            cardId: pending.sourceId,
+            abilityKey: "delayed-turn-end-tag",
+            controller: "runner",
+            mandatory: true,
+            effect: { op: "do", action: { kind: "give_tags", amount: 1 } },
+            logLine: `${pending.title} becomes pending — delayed turn-end tag resolves.`,
+            // CR 9.6.13c — delayed ability outlives the source card.
+            independentOfSource: true,
+          });
         }
         // Lightning Laboratory: delayed derez at end of the turn the ability was used
         // (runs are on the Runner turn → runner.turnEnds).
@@ -1513,10 +1518,12 @@ export const STEPS: Record<string, TimingStepDef> = {
                 c?.onCorpTurnEndDerezUpToIceProtectingLightningServer,
               );
             }) ?? s.corp.identityId;
-          fireInlineConditional(
-            s,
-            src,
-            {
+          noteInlineConditional(s, {
+            cardId: src,
+            abilityKey: "lightning-lab-end-of-turn-derez",
+            controller: "corp",
+            mandatory: true,
+            effect: {
               op: "do",
               action: {
                 kind: "derez_up_to_ice_protecting_server",
@@ -1524,10 +1531,11 @@ export const STEPS: Record<string, TimingStepDef> = {
                 maxIce: pending.maxIce,
               },
             },
-            "lightning-lab-end-of-turn-derez",
-            `${s.cards[src]?.title ?? "Lightning Laboratory"} becomes pending — turn end (derez ice).`,
-            "corp",
-          );
+            logLine: `${s.cards[src]?.title ?? "Lightning Laboratory"} becomes pending — turn end (derez ice).`,
+          });
+        }
+        if ((s.turn.inlineConditionalPending ?? []).length > 0) {
+          checkpointAfterInstruction(s, "runner.turnEnds");
         }
         // Sensor Net Activation: derez bioroids rezzed via agenda counter.
         const sensorPending = [...(s.turn.sensorNetPendingDerezIds ?? [])];

@@ -3289,6 +3289,20 @@ export interface TurnBookkeeping {
     logLine: string;
   }>;
   /**
+   * Synthesized inline Effect conditionals met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  inlineConditionalPending: Array<{
+    cardId: string;
+    abilityKey: string;
+    controller: "corp" | "runner";
+    mandatory: boolean;
+    effect: Effect;
+    logLine: string;
+    /** Delayed / persistent abilities that outlive the source (CR 9.6.13c). */
+    independentOfSource?: boolean;
+  }>;
+  /**
    * Card ids whose onRunBegin met since previous checkpoint; marked pending
    * at the next 10.3.1a (phase 3).
    */
