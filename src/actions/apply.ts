@@ -22,10 +22,12 @@ import {
   runnerCannotTrashWhileRezzed,
 } from "../state/cardDeclarations.js";
 import {
+  checkpointAfterInstruction,
   declareRootEntry,
   resolveRestrictionChoice,
   withCostCheckpoint,
 } from "../legality/checkpoints.js";
+import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import { nestPriorityAfterAbility } from "../legality/priority.js";
 import { legalActions as queryLegalActions } from "../legality/query.js";
 import {
@@ -124,7 +126,6 @@ import {
   resumeRunnerTurnBeginAbilities,
 } from "../timing/graph.js";
 import {
-  fireInlineConditional,
   resumePendingOnCorpDrawCard,
   resumePendingStoredConditionals,
 } from "../state/storedTriggers.js";
@@ -2642,13 +2643,14 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           typeof named === "number" &&
           (rez === named || play === named || adv === named);
         if (match && sourceId) {
-          fireInlineConditional(
-            next,
-            sourceId,
-            { op: "do", action: { kind: "dtwn_rng_key_reward" } },
-            "rng-key-reward-on-access-match",
-            `${next.cards[sourceId]?.title ?? "RNG Key"} becomes pending — access match (reward).`,
-          );
+          noteInlineConditional(next, {
+            cardId: sourceId,
+            abilityKey: "rng-key-reward-on-access-match",
+            controller: "runner",
+            mandatory: true,
+            effect: { op: "do", action: { kind: "dtwn_rng_key_reward" } },
+            logLine: `${next.cards[sourceId]?.title ?? "RNG Key"} becomes pending — access match (reward).`,
+          });
         }
       }
       // Franchise City: agendas accessed from R&D must be revealed.
@@ -2692,22 +2694,25 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
               continue;
             }
             const pts = asset.addSelfToCorpScoreOnAgendaAccess.agendaPoints;
-            fireInlineConditional(
-              next,
-              id,
-              {
+            noteInlineConditional(next, {
+              cardId: id,
+              abilityKey: "add-self-to-corp-score-on-agenda-access",
+              controller: "corp",
+              mandatory: true,
+              effect: {
                 op: "do",
                 action: {
                   kind: "add_to_corp_score_as_agenda",
                   agendaPoints: pts,
                 },
               },
-              "add-self-to-corp-score-on-agenda-access",
-              `${asset.title} becomes pending — agenda accessed (add self to Corp score).`,
-              "corp",
-            );
+              logLine: `${asset.title} becomes pending — agenda accessed (add self to Corp score).`,
+            });
           }
         }
+      }
+      if ((next.turn.inlineConditionalPending ?? []).length > 0) {
+        checkpointAfterInstruction(next, "access.cardAccessed");
       }
       log(
         next,

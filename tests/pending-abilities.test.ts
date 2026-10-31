@@ -1177,6 +1177,66 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks score/steal and advance inlines at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } = await import(
+      "../src/state/inlineConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const pe = instantiateCard(
+      "jinteki-personal-evolution",
+      "pe-1",
+      "corp:identity",
+    );
+    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    s.cards["pe-1"] = pe;
+    s.cards["pad-1"] = pad;
+    s.corp.identityId = "pe-1";
+    s.servers.remote1 = {
+      id: "remote1",
+      ice: [],
+      root: ["pad-1"],
+    } as (typeof s.servers)["hq"];
+
+    noteInlineConditional(s, {
+      cardId: "pe-1",
+      abilityKey: "net-damage-on-agenda-scored-or-stolen",
+      controller: "corp",
+      mandatory: true,
+      effect: { op: "do", action: { kind: "net_damage", amount: 1 } },
+      logLine: `${pe.title} becomes pending — agenda scored or stolen (net damage).`,
+    });
+    noteInlineConditional(s, {
+      cardId: "pad-1",
+      abilityKey: "credits-on-advance",
+      controller: "corp",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: 1 },
+      },
+      logLine: `${pad.title} becomes pending — advanced (gain 1¢).`,
+    });
+    expect(s.turn.inlineConditionalPending).toHaveLength(2);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "score/advance inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — agenda scored or stolen (net damage)"),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — advanced (gain 1¢)"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks successful-run / run-end / access inlines at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } = await import(
       "../src/state/inlineConditionalHooks.js"
