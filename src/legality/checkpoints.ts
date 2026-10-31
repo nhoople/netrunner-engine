@@ -82,6 +82,11 @@ import {
   PREDICATE_FIRST_ENCOUNTER_EACH_RUN,
   PREDICATE_FIRST_PASS_ICE,
   PREDICATE_SISYPHUS_FIRST_PASS_REZZED_CG_OR_SENTRY,
+  PREDICATE_PASS_UNREZZED_ICE,
+  PREDICATE_PASS_REZZED_ICE,
+  PREDICATE_ICE_ON_PASS,
+  PREDICATE_PASS_HOST,
+  PREDICATE_PASS_REZZED_ICE_PROTECTING_SERVER,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -1515,6 +1520,166 @@ function markFirstPassIce(state: GameState, diff: CheckpointDiff): void {
   );
 }
 
+/** Runner onPassUnrezzedIce (phase 3). */
+function markPassUnrezzedIce(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_PASS_UNREZZED_ICE,
+  );
+  if (match.kind !== "pass_unrezzed_ice" || !match.matched) {
+    state.turn.passUnrezzedIceMetPending = false;
+    return;
+  }
+  state.turn.passUnrezzedIceMetPending = false;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onPassUnrezzedIce) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-pass-unrezzed-ice",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onPassUnrezzedIce",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(`${card.title} becomes pending — unrezzed ice passed.`);
+  }
+}
+
+/** Runner onPassRezzedIce (phase 3). */
+function markPassRezzedIce(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_PASS_REZZED_ICE,
+  );
+  if (match.kind !== "pass_rezzed_ice" || !match.matched) {
+    state.turn.passRezzedIceMetPending = false;
+    return;
+  }
+  state.turn.passRezzedIceMetPending = false;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onPassRezzedIce) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-pass-rezzed-ice",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onPassRezzedIce",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(`${card.title} becomes pending — rezzed ice passed.`);
+  }
+}
+
+/** Ice onPass (phase 3). */
+function markIceOnPass(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_ICE_ON_PASS);
+  if (match.kind !== "ice_on_pass" || match.iceIds.length === 0) {
+    state.turn.passIceOnPassPendingIds = [];
+    return;
+  }
+  const iceIds = match.iceIds;
+  state.turn.passIceOnPassPendingIds = [];
+  for (const iceId of iceIds) {
+    if (abilitiesSuppressed(state, iceId)) continue;
+    const ice = state.cards[iceId];
+    if (!ice?.onPass || !ice.rezzed) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-pass",
+      sourceId: ice.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onPass",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(`${ice.title} becomes pending — passed.`);
+  }
+}
+
+/** Hosted onPassHost (phase 3). */
+function markPassHost(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_PASS_HOST);
+  if (match.kind !== "pass_host" || match.iceIds.length === 0) {
+    state.turn.passHostPendingIceIds = [];
+    return;
+  }
+  const iceIds = match.iceIds;
+  state.turn.passHostPendingIceIds = [];
+  for (const iceId of iceIds) {
+    for (const hid of state.runner.installed) {
+      if (abilitiesSuppressed(state, hid)) continue;
+      const hostee = state.cards[hid];
+      if (!hostee?.onPassHost || hostee.hostId !== iceId) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-pass-host",
+        sourceId: hostee.id,
+        controller: "runner",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onPassHost",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${hostee.title} becomes pending — host ice passed.`,
+      );
+    }
+  }
+}
+
+/** Upgrade onPassRezzedIceProtectingThisServer (phase 3). */
+function markPassRezzedIceProtectingServer(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_PASS_REZZED_ICE_PROTECTING_SERVER,
+  );
+  if (
+    match.kind !== "pass_rezzed_ice_protecting_server" ||
+    match.serverIds.length === 0
+  ) {
+    state.turn.passProtectingServerPendingIds = [];
+    return;
+  }
+  const serverIds = match.serverIds;
+  state.turn.passProtectingServerPendingIds = [];
+  for (const serverId of serverIds) {
+    const server = state.servers[serverId as keyof typeof state.servers];
+    for (const upId of server?.root ?? []) {
+      if (abilitiesSuppressed(state, upId)) continue;
+      const up = state.cards[upId];
+      if (!up?.rezzed || !up.onPassRezzedIceProtectingThisServer) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-pass-rezzed-ice-protecting-this-server",
+        sourceId: up.id,
+        controller: "corp",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onPassRezzedIceProtectingThisServer",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${up.title} becomes pending — rezzed ice protecting this server passed.`,
+      );
+    }
+  }
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -2124,6 +2289,11 @@ function markConditionalAbilities(state: GameState): void {
   markFirstEncounterEachRun(state, diff);
   markFirstPassIce(state, diff);
   markSisyphusFirstPass(state, diff);
+  markPassUnrezzedIce(state, diff);
+  markPassRezzedIce(state, diff);
+  markIceOnPass(state, diff);
+  markPassHost(state, diff);
+  markPassRezzedIceProtectingServer(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

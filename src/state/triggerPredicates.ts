@@ -275,6 +275,26 @@ export type TriggerPredicate =
   | {
       /** Sisyphus: first pass of rezzed code gate or sentry this turn. */
       kind: "sisyphus_first_pass_rezzed_cg_or_sentry";
+    }
+  | {
+      /** Runner onPassUnrezzedIce since previous checkpoint. */
+      kind: "pass_unrezzed_ice";
+    }
+  | {
+      /** Runner onPassRezzedIce since previous checkpoint. */
+      kind: "pass_rezzed_ice";
+    }
+  | {
+      /** Ice onPass since previous checkpoint (ice ids queued). */
+      kind: "ice_on_pass";
+    }
+  | {
+      /** Hosted onPassHost since previous checkpoint (host ice ids queued). */
+      kind: "pass_host";
+    }
+  | {
+      /** Upgrade onPassRezzedIceProtectingThisServer (server ids queued). */
+      kind: "pass_rezzed_ice_protecting_server";
     };
 
 export type TriggerPredicateMatch =
@@ -456,6 +476,26 @@ export type TriggerPredicateMatch =
   | {
       kind: "sisyphus_first_pass_rezzed_cg_or_sentry";
       matched: boolean;
+    }
+  | {
+      kind: "pass_unrezzed_ice";
+      matched: boolean;
+    }
+  | {
+      kind: "pass_rezzed_ice";
+      matched: boolean;
+    }
+  | {
+      kind: "ice_on_pass";
+      iceIds: string[];
+    }
+  | {
+      kind: "pass_host";
+      iceIds: string[];
+    }
+  | {
+      kind: "pass_rezzed_ice_protecting_server";
+      serverIds: string[];
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -770,6 +810,41 @@ export function evaluateTriggerPredicate(
         !state.turn.sisyphusPassUsedThisTurn;
       return { kind: "sisyphus_first_pass_rezzed_cg_or_sentry", matched };
     }
+    case "pass_unrezzed_ice": {
+      void diff;
+      return {
+        kind: "pass_unrezzed_ice",
+        matched: state.turn.passUnrezzedIceMetPending,
+      };
+    }
+    case "pass_rezzed_ice": {
+      void diff;
+      return {
+        kind: "pass_rezzed_ice",
+        matched: state.turn.passRezzedIceMetPending,
+      };
+    }
+    case "ice_on_pass": {
+      void diff;
+      return {
+        kind: "ice_on_pass",
+        iceIds: [...(state.turn.passIceOnPassPendingIds ?? [])],
+      };
+    }
+    case "pass_host": {
+      void diff;
+      return {
+        kind: "pass_host",
+        iceIds: [...(state.turn.passHostPendingIceIds ?? [])],
+      };
+    }
+    case "pass_rezzed_ice_protecting_server": {
+      void diff;
+      return {
+        kind: "pass_rezzed_ice_protecting_server",
+        serverIds: [...(state.turn.passProtectingServerPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1025,3 +1100,23 @@ export const PREDICATE_SISYPHUS_FIRST_PASS_REZZED_CG_OR_SENTRY: TriggerPredicate
   {
     kind: "sisyphus_first_pass_rezzed_cg_or_sentry",
   };
+
+export const PREDICATE_PASS_UNREZZED_ICE: TriggerPredicate = {
+  kind: "pass_unrezzed_ice",
+};
+
+export const PREDICATE_PASS_REZZED_ICE: TriggerPredicate = {
+  kind: "pass_rezzed_ice",
+};
+
+export const PREDICATE_ICE_ON_PASS: TriggerPredicate = {
+  kind: "ice_on_pass",
+};
+
+export const PREDICATE_PASS_HOST: TriggerPredicate = {
+  kind: "pass_host",
+};
+
+export const PREDICATE_PASS_REZZED_ICE_PROTECTING_SERVER: TriggerPredicate = {
+  kind: "pass_rezzed_ice_protecting_server",
+};

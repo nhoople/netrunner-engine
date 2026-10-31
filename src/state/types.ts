@@ -3088,6 +3088,31 @@ export interface TurnBookkeeping {
   sisyphusPassMetPending: boolean;
   /** Sisyphus: first pass CG/sentry offer used this turn. */
   sisyphusPassUsedThisTurn: boolean;
+  /**
+   * Pass unrezzed ice since previous checkpoint (Runner onPassUnrezzedIce);
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  passUnrezzedIceMetPending: boolean;
+  /**
+   * Pass rezzed ice since previous checkpoint (Runner onPassRezzedIce);
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  passRezzedIceMetPending: boolean;
+  /**
+   * Ice ids that were passed with onPass since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  passIceOnPassPendingIds: string[];
+  /**
+   * Host ice ids whose hosted onPassHost met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  passHostPendingIceIds: string[];
+  /**
+   * Server ids where rezzed ice protecting them was passed since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  passProtectingServerPendingIds: string[];
   /** Nuvem: first R&D trash credit gain used this turn. */
   nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */
