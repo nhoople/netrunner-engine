@@ -20,7 +20,14 @@ function noteAndCheckpointStored(
   noteStoredConditionals(state, items);
   if ((state.turn.storedConditionalPending ?? []).length === 0) return false;
   checkpointAfterInstruction(state, openedBy);
-  return Boolean(state.pendingChoice);
+  return Boolean(
+    state.pendingChoice ||
+      state.pendingTags ||
+      state.pendingDamage ||
+      state.psi ||
+      state.trace ||
+      state.done,
+  );
 }
 
 /** Fire a card's onInstall when present. */

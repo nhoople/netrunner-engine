@@ -26,6 +26,8 @@ import {
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
 } from "./pendingAbilities.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 export type StoredEffectKey = StoredConditionalEffectKey;
 
@@ -335,7 +337,10 @@ export function fireWouldTakeBadPublicity(state: GameState): boolean {
       });
     }
   }
-  return fireStoredConditionals(state, items);
+  noteStoredConditionals(state, items);
+  if ((state.turn.storedConditionalPending ?? []).length === 0) return false;
+  checkpointAfterInstruction(state, "badPublicity.wouldTake");
+  return interruptOpen(state);
 }
 
 /**
@@ -453,7 +458,7 @@ export function fireExposeWhileInstalled(state: GameState, cardId: string): void
   const installed =
     card.zone.includes(":root") || card.zone.includes(":ice");
   if (!installed) return;
-  fireStoredConditionals(state, [
+  noteStoredConditionals(state, [
     {
       abilityKey: "on-expose-while-installed",
       sourceId: cardId,
@@ -463,6 +468,9 @@ export function fireExposeWhileInstalled(state: GameState, cardId: string): void
       logLine: `${card.title} becomes pending — exposed while installed (CR ${CR.expose.number}).`,
     },
   ]);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "expose.whileInstalled");
+  }
 }
 
 export function fireFirstAdvancementOnServer(
@@ -484,13 +492,16 @@ export function fireFirstAdvancementOnServer(
       logLine: `${card.title} becomes pending — first advancement on this server this turn (CR ${CR.advancing.number}).`,
     });
   }
-  fireStoredConditionals(state, items);
+  noteStoredConditionals(state, items);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "advance.firstOnServer");
+  }
 }
 
 export function firePsiCreditsRevealed(state: GameState): void {
   const identity = state.cards[state.corp.identityId];
   if (!identity?.onPsiCreditsRevealed) return;
-  fireStoredConditionals(state, [
+  noteStoredConditionals(state, [
     {
       abilityKey: "on-psi-credits-revealed",
       sourceId: identity.id,
@@ -500,4 +511,7 @@ export function firePsiCreditsRevealed(state: GameState): void {
       logLine: `${identity.title} becomes pending — psi credits are revealed (CR ${CR.psiRevealSpend.number}).`,
     },
   ]);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "psi.creditsRevealed");
+  }
 }
