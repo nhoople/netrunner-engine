@@ -85,10 +85,7 @@ import {
   noteCorpActionPhaseEnd,
   noteRunnerActionPhaseEnd,
 } from "../state/phaseEndHooks.js";
-import {
-  fireInlineConditional,
-  resolveStoredConditionalPendings,
-} from "../state/storedTriggers.js";
+import { resolveStoredConditionalPendings } from "../state/storedTriggers.js";
 import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import {
   noteCompileFirstEncounter,
@@ -4184,14 +4181,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               for (const id of server.root) {
                 const up = s.cards[id];
                 if (up?.trashSelfOnCorpSuccessfulHqRun && up.rezzed) {
-                  fireInlineConditional(
-                    s,
-                    id,
-                    { op: "do", action: { kind: "trash_self" } },
-                    "trash-self-on-corp-successful-hq-run",
-                    `${up.title} becomes pending — Corp successful HQ run (trash self).`,
-                    "corp",
-                  );
+                  noteInlineConditional(s, {
+                    cardId: id,
+                    abilityKey: "trash-self-on-corp-successful-hq-run",
+                    controller: "corp",
+                    mandatory: true,
+                    effect: { op: "do", action: { kind: "trash_self" } },
+                    logLine: `${up.title} becomes pending — Corp successful HQ run (trash self).`,
+                  });
                 }
               }
             }
@@ -4218,14 +4215,14 @@ export const STEPS: Record<string, TimingStepDef> = {
                 s.run!.attackedServerId === "rd" ||
                 s.run!.attackedServerId === "archives")
             ) {
-              fireInlineConditional(
-                s,
-                s.corp.identityId,
-                { op: "do", action: { kind: "flip_identity" } },
-                "flip-identity-on-successful-central-run",
-                `${corpId.title} becomes pending — successful central run (flip identity).`,
-                "corp",
-              );
+              noteInlineConditional(s, {
+                cardId: s.corp.identityId,
+                abilityKey: "flip-identity-on-successful-central-run",
+                controller: "corp",
+                mandatory: true,
+                effect: { op: "do", action: { kind: "flip_identity" } },
+                logLine: `${corpId.title} becomes pending — successful central run (flip identity).`,
+              });
             }
           }
           if (s.run!.attackedServerId === "archives") {
@@ -4414,19 +4411,19 @@ export const STEPS: Record<string, TimingStepDef> = {
             checkpointAfterInstruction(s, "run.success");
           }
           for (const id of s.runner.installed) {
-            if (s.pendingChoice) break;
             const card = s.cards[id];
             if (!card?.caissaAdvanceOnSuccessfulRun || !card.hostId) continue;
-            fireInlineConditional(
-              s,
-              id,
-              {
+            noteInlineConditional(s, {
+              cardId: id,
+              abilityKey: "caissa-advance-on-successful-run",
+              controller: "runner",
+              mandatory: true,
+              effect: {
                 op: "do",
                 action: { kind: "advance_caissa_host_inward_or_install" },
               },
-              "caissa-advance-on-successful-run",
-              `${card.title} becomes pending — successful run (Caïssa advance).`,
-            );
+              logLine: `${card.title} becomes pending — successful run (Caïssa advance).`,
+            });
           }
           // Chakana: successful run on R&D — note for 10.3.1a.
           if (s.run!.attackedServerId === "rd") {
@@ -4439,7 +4436,6 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
           // Mu Safecracker-class: may pay for bonus access on successful HQ/R&D.
           for (const id of s.runner.installed) {
-            if (s.pendingChoice) break;
             const card = s.cards[id];
             if (!card) continue;
             const attackedSid = s.run!.attackedServerId;
@@ -4502,13 +4498,14 @@ export const STEPS: Record<string, TimingStepDef> = {
                 },
               });
             }
-            fireInlineConditional(
-              s,
-              id,
-              { op: "choose", chooser: "runner", options },
-              "may-pay-for-bonus-access-on-successful-central",
-              `${card.title} becomes pending — successful ${attackedSid} run (may pay for bonus access).`,
-            );
+            noteInlineConditional(s, {
+              cardId: id,
+              abilityKey: "may-pay-for-bonus-access-on-successful-central",
+              controller: "runner",
+              mandatory: true,
+              effect: { op: "choose", chooser: "runner", options },
+              logLine: `${card.title} becomes pending — successful ${attackedSid} run (may pay for bonus access).`,
+            });
           }
           // Hosted Runner cards on ice protecting the attacked server (Stowaway).
           for (const iceId of server.ice) {
@@ -4545,17 +4542,17 @@ export const STEPS: Record<string, TimingStepDef> = {
             const card = s.cards[id];
             if (!card?.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced) continue;
             if (abilitiesSuppressed(s, id)) continue;
-            fireInlineConditional(
-              s,
-              id,
-              {
+            noteInlineConditional(s, {
+              cardId: id,
+              abilityKey: "puppet-master-place-advancement-on-successful-run",
+              controller: "corp",
+              mandatory: true,
+              effect: {
                 op: "do",
                 action: { kind: "tlm_puppet_master_place_advancement" },
               },
-              "puppet-master-place-advancement-on-successful-run",
-              `${card.title} becomes pending — successful run (may place advancement).`,
-              "corp",
-            );
+              logLine: `${card.title} becomes pending — successful run (may place advancement).`,
+            });
           }
           // Dedicated Neural Net: first successful HQ each turn → psi; Corp chooses access.
           if (
@@ -4568,10 +4565,12 @@ export const STEPS: Record<string, TimingStepDef> = {
               if (abilitiesSuppressed(s, id)) continue;
               s.turn.tlmDedicatedNeuralNetUsedThisTurn = true;
               s.run!.tlmCorpChoosesHqAccess = true;
-              fireInlineConditional(
-                s,
-                id,
-                {
+              noteInlineConditional(s, {
+                cardId: id,
+                abilityKey: "dedicated-neural-net-psi-on-first-successful-hq",
+                controller: "corp",
+                mandatory: true,
+                effect: {
                   op: "do",
                   action: {
                     kind: "play_psi_game",
@@ -4586,10 +4585,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                     },
                   },
                 },
-                "dedicated-neural-net-psi-on-first-successful-hq",
-                `${card.title} becomes pending — first successful HQ (psi; Corp may choose access).`,
-                "corp",
-              );
+                logLine: `${card.title} becomes pending — first successful HQ (psi; Corp may choose access).`,
+              });
               break;
             }
           }
@@ -4643,16 +4640,17 @@ export const STEPS: Record<string, TimingStepDef> = {
             src
           ) {
             s.turn.ccAnalogDreamersRun = false;
-            fireInlineConditional(
-              s,
-              src,
-              {
+            noteInlineConditional(s, {
+              cardId: src,
+              abilityKey: "analog-dreamers-may-instead-of-breach",
+              controller: "runner",
+              mandatory: true,
+              effect: {
                 op: "do",
                 action: { kind: "may_breach_instead_analog_dreamers" },
               },
-              "analog-dreamers-may-instead-of-breach",
-              `${s.cards[src]?.title ?? "Analog Dreamers"} becomes pending — successful R&D run (may instead of breach).`,
-            );
+              logLine: `${s.cards[src]?.title ?? "Analog Dreamers"} becomes pending — successful R&D run (may instead of breach).`,
+            });
           }
 
           // Top Hat: may access 1 of top N instead of breaching R&D.
@@ -4661,16 +4659,17 @@ export const STEPS: Record<string, TimingStepDef> = {
               const hat = s.cards[rid];
               const n = hat?.mayInsteadOfBreachRdAccessOneOfTopN;
               if (!n) continue;
-              fireInlineConditional(
-                s,
-                rid,
-                {
+              noteInlineConditional(s, {
+                cardId: rid,
+                abilityKey: "top-hat-may-instead-of-breach",
+                controller: "runner",
+                mandatory: true,
+                effect: {
                   op: "do",
                   action: { kind: "top_hat_may_instead_of_breach", n },
                 },
-                "top-hat-may-instead-of-breach",
-                `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
-              );
+                logLine: `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
+              });
               break;
             }
           }
@@ -4902,16 +4901,18 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts = false;
           runState.endedTheRun = true;
           const src = runState.runSourceId ?? iceId;
-          fireInlineConditional(
-            s,
-            src,
-            {
+          noteInlineConditional(s, {
+            cardId: src,
+            abilityKey: "window-may-rez-event-derezzed-ice-on-run-end",
+            controller: "runner",
+            mandatory: true,
+            effect: {
               op: "do",
               action: { kind: "may_rez_event_derezzed_ice_ignore_costs" },
             },
-            "window-may-rez-event-derezzed-ice-on-run-end",
-            `${s.cards[src]?.title ?? "Window of Opportunity"} becomes pending — run end (may rez derezzed ice).`,
-          );
+            logLine: `${s.cards[src]?.title ?? "Window of Opportunity"} becomes pending — run end (may rez derezzed ice).`,
+          });
+          checkpointAfterInstruction(s, "run.ends");
           if (s.pendingChoice) return;
         }
         // Boomerang-class: delayed conditional — may shuffle title from heap
@@ -4925,23 +4926,28 @@ export const STEPS: Record<string, TimingStepDef> = {
           ];
           runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd = [];
           for (const title of titles) {
-            if (s.pendingChoice) break;
             const src =
               s.runner.discardPile.find((id) => s.cards[id]?.title === title) ??
               s.runner.identityId;
-            fireInlineConditional(
-              s,
-              src,
-              {
+            noteInlineConditional(s, {
+              cardId: src,
+              abilityKey: "may-shuffle-title-from-heap-on-successful-run-end",
+              controller: "runner",
+              mandatory: true,
+              effect: {
                 op: "do",
                 action: {
                   kind: "may_shuffle_title_from_heap_into_stack",
                   title,
                 },
               },
-              "may-shuffle-title-from-heap-on-successful-run-end",
-              `${s.cards[src]?.title ?? title} becomes pending — successful run end (may shuffle from heap).`,
-            );
+              logLine: `${s.cards[src]?.title ?? title} becomes pending — successful run end (may shuffle from heap).`,
+              // Heap may outlives the source (CR 9.6.13c / 9.10 lingering).
+              independentOfSource: true,
+            });
+          }
+          if ((s.turn.inlineConditionalPending ?? []).length > 0) {
+            checkpointAfterInstruction(s, "run.ends");
           }
           if (s.pendingChoice) return;
         }
@@ -5557,20 +5563,23 @@ export const STEPS: Record<string, TimingStepDef> = {
             for (const rid of [...s.runner.installed]) {
               const info = s.cards[rid];
               if (!info?.aeneasInformantRevealGainOnAccessWithoutTrash) continue;
-              fireInlineConditional(
-                s,
-                rid,
-                {
+              noteInlineConditional(s, {
+                cardId: rid,
+                abilityKey: "aeneas-may-reveal-gain-on-access-without-trash",
+                controller: "runner",
+                mandatory: true,
+                effect: {
                   op: "do",
                   action: {
                     kind: "may_reveal_aeneas_gain_one",
                     cardId: accessedId,
                   },
                 },
-                "aeneas-may-reveal-gain-on-access-without-trash",
-                `${info.title} becomes pending — access without trash (may reveal and gain).`,
-              );
-              if (s.pendingChoice) break;
+                logLine: `${info.title} becomes pending — access without trash (may reveal and gain).`,
+              });
+            }
+            if ((s.turn.inlineConditionalPending ?? []).length > 0) {
+              checkpointAfterInstruction(s, "access.complete");
             }
           }
         }
