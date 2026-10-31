@@ -39,6 +39,10 @@ import {
   noteFirstRdRunBegin,
   noteFirstRunBegin,
 } from "../state/runBeginHooks.js";
+import {
+  noteFirstEncounterEachRun,
+  noteFirstPassIce,
+} from "../state/firstEncounterPassHooks.js";
 import { noteFirstUnsuccessfulRun } from "../state/unsuccessfulRunHooks.js";
 import {
   noteFirstSuccessfulCentralRun,
@@ -94,8 +98,6 @@ import {
   fireOnEncounterEndIfRezzed,
   fireOnEncounterEndIfRezzedThisTurn,
   fireOnEncounterRezzedAfterApproach,
-  fireOnFirstEncounterEachRun,
-  fireOnFirstPassIceEachTurn,
   fireOnFirstPassRezzedCodeGateOrSentryThisTurn,
   fireOnFirstSuccessfulRunOnRdEndsThisTurn,
   fireOnHostEncounter,
@@ -2951,13 +2953,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             resolvePendingOnEncounter(s);
           }
         }
-        // Baklan: first actual encounter each run → onFirstEncounterEachRun.
-        if (
-          !runState.onFirstEncounterEachRunFired &&
-          !(runState.bypassedIceIds ?? []).includes(iceId)
-        ) {
-          runState.onFirstEncounterEachRunFired = true;
-          fireOnFirstEncounterEachRun(s);
+        // Baklan: first actual encounter each run — queue for 10.3.1a.
+        if (!(runState.bypassedIceIds ?? []).includes(iceId)) {
+          noteFirstEncounterEachRun(s);
         }
         // Chisel-class trojans + Eavesdrop-class conditions: onHostEncounter.
         if (
@@ -3130,6 +3128,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
+        checkpointAfterInstruction(s, "run.encounter");
       },
     },
   ),
@@ -3409,14 +3408,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                 iceId,
               ];
             }
-            // Khan: first pass ice each turn → may install icebreaker.
-            if (!s.turn.bmFirstPassIceUsedThisTurn) {
-              const khan = s.cards[s.runner.identityId];
-              if (khan?.onFirstPassIceEachTurn) {
-                s.turn.bmFirstPassIceUsedThisTurn = true;
-                fireOnFirstPassIceEachTurn(s);
-              }
-            }
+            // Khan: first pass ice each turn — queue for 10.3.1a.
+            noteFirstPassIce(s);
             const ice = s.cards[iceId];
             if (!ice.rezzed) {
               s.turn.currentRunPassedUnrezzedIceIds = [
@@ -3888,6 +3881,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.run!.encounterStrengthBoosts = {};
         s.run!.iceStrengthBoosts = {};
         s.log.push(`Pass ice / move inward (appendix 11.4_4).`);
+        checkpointAfterInstruction(s, "run.movement");
       },
     },
   ),
