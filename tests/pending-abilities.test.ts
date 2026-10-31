@@ -978,6 +978,66 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks encounter-begin heap-install inline at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } = await import(
+      "../src/state/inlineConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const paper = instantiateCard("paperclip", "pc-1", "runner:heap");
+    s.cards["pc-1"] = paper;
+    s.runner.discardPile = ["pc-1"];
+    noteInlineConditional(s, {
+      cardId: "pc-1",
+      abilityKey: "paperclip-heap-install-on-encounter-barrier",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "install",
+            label: "Install",
+            effect: {
+              op: "do",
+              action: { kind: "install_heap_card", cardId: "pc-1", discount: 0 },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      logLine: `${paper.title} becomes pending — encounter (may install from heap).`,
+      independentOfSource: true,
+    });
+    expect(s.turn.inlineConditionalPending).toEqual([
+      expect.objectContaining({
+        cardId: "pc-1",
+        abilityKey: "paperclip-heap-install-on-encounter-barrier",
+        independentOfSource: true,
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter begin inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — encounter (may install from heap)"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Runner turn-end inline conditionals at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } = await import(
       "../src/state/inlineConditionalHooks.js"
