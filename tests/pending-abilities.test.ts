@@ -680,6 +680,60 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.cards["bak-1"]!.powerCounters).toBe(1);
   });
 
+  it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSisyphusFirstPass } = await import(
+      "../src/state/firstEncounterPassHooks.js"
+    );
+    const s = createInitialState();
+    const sp = instantiateCard(
+      "sisyphus-protocol",
+      "sp-1",
+      "corp:score",
+    );
+    s.cards["sp-1"] = sp;
+    s.corp.scoreArea = ["sp-1"];
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    ice.rezzed = true;
+    ice.subtypes = ["barrier", "code gate"];
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "movement",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+    };
+    noteSisyphusFirstPass(s, "ice-1");
+    expect(s.turn.sisyphusPassMetPending).toBe(true);
+    expect(s.run!.pendingReencounterIceId).toBe("ice-1");
+    expect(s.turn.sisyphusPassUsedThisTurn).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "sisyphus first pass",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.sisyphusPassMetPending).toBe(false);
+    expect(s.turn.sisyphusPassUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first pass of rezzed code gate or sentry this turn",
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it("marks first pass ice at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstPassIce } = await import(
       "../src/state/firstEncounterPassHooks.js"

@@ -271,6 +271,10 @@ export type TriggerPredicate =
   | {
       /** Khan: first ice passed this turn. */
       kind: "first_pass_ice";
+    }
+  | {
+      /** Sisyphus: first pass of rezzed code gate or sentry this turn. */
+      kind: "sisyphus_first_pass_rezzed_cg_or_sentry";
     };
 
 export type TriggerPredicateMatch =
@@ -447,6 +451,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_pass_ice";
+      matched: boolean;
+    }
+  | {
+      kind: "sisyphus_first_pass_rezzed_cg_or_sentry";
       matched: boolean;
     };
 
@@ -755,6 +763,13 @@ export function evaluateTriggerPredicate(
         !state.turn.bmFirstPassIceUsedThisTurn;
       return { kind: "first_pass_ice", matched };
     }
+    case "sisyphus_first_pass_rezzed_cg_or_sentry": {
+      void diff;
+      const matched =
+        state.turn.sisyphusPassMetPending &&
+        !state.turn.sisyphusPassUsedThisTurn;
+      return { kind: "sisyphus_first_pass_rezzed_cg_or_sentry", matched };
+    }
   }
 }
 
@@ -1005,3 +1020,8 @@ export const PREDICATE_FIRST_ENCOUNTER_EACH_RUN: TriggerPredicate = {
 export const PREDICATE_FIRST_PASS_ICE: TriggerPredicate = {
   kind: "first_pass_ice",
 };
+
+export const PREDICATE_SISYPHUS_FIRST_PASS_REZZED_CG_OR_SENTRY: TriggerPredicate =
+  {
+    kind: "sisyphus_first_pass_rezzed_cg_or_sentry",
+  };

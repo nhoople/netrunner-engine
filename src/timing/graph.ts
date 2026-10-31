@@ -42,6 +42,7 @@ import {
 import {
   noteFirstEncounterEachRun,
   noteFirstPassIce,
+  noteSisyphusFirstPass,
 } from "../state/firstEncounterPassHooks.js";
 import { noteFirstUnsuccessfulRun } from "../state/unsuccessfulRunHooks.js";
 import {
@@ -98,7 +99,6 @@ import {
   fireOnEncounterEndIfRezzed,
   fireOnEncounterEndIfRezzedThisTurn,
   fireOnEncounterRezzedAfterApproach,
-  fireOnFirstPassRezzedCodeGateOrSentryThisTurn,
   fireOnFirstSuccessfulRunOnRdEndsThisTurn,
   fireOnHostEncounter,
   fireOnPassAllIceProtectingServer,
@@ -3832,24 +3832,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                 }
               }
             }
-            // Sisyphus: first pass of rezzed code gate or sentry each turn.
-            if (
-              ice.rezzed &&
-              !s.turn.sisyphusPassUsedThisTurn &&
-              ((ice.subtypes ?? []).includes("code gate") ||
-                (ice.subtypes ?? []).includes("sentry"))
-            ) {
-              for (const sid of s.corp.scoreArea) {
-                const scored = s.cards[sid];
-                if (!scored?.onFirstPassRezzedCodeGateOrSentryThisTurn) {
-                  continue;
-                }
-                s.turn.sisyphusPassUsedThisTurn = true;
-                runState.pendingReencounterIceId = iceId;
-                fireOnFirstPassRezzedCodeGateOrSentryThisTurn(s, sid);
-                break;
-              }
-            }
+            // Sisyphus: first pass of rezzed code gate or sentry — 10.3.1a.
+            noteSisyphusFirstPass(s, iceId);
             // Code Replicator / The Twins: pass rezzed ice protecting this server.
             if (ice.rezzed && !runState.passReplacedByEncounterEnd) {
               s.turn.cotcLastPassedIceId = iceId;
