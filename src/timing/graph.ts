@@ -1196,13 +1196,14 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
           if (typeof card.patronChooseServerDrawInsteadOfBreach === "number") {
-            fireInlineConditional(
-              s,
-              id,
-              { op: "do", action: { kind: "choose_patron_server" } },
-              "patron-choose-server",
-              `${card.title} becomes pending — turn begin (choose server).`,
-            );
+            noteInlineConditional(s, {
+              cardId: id,
+              abilityKey: "patron-choose-server",
+              controller: "runner",
+              mandatory: true,
+              effect: { op: "do", action: { kind: "choose_patron_server" } },
+              logLine: `${card.title} becomes pending — turn begin (choose server).`,
+            });
           }
         }
         // Runner turn-begin conditionals — note for 10.3.1a.
@@ -1214,10 +1215,12 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const id of [...s.runner.discardPile]) {
           const card = s.cards[id];
           if (!card?.heapOnTurnBeginMayRfgSelfToMakeRun) continue;
-          fireInlineConditional(
-            s,
-            id,
-            {
+          noteInlineConditional(s, {
+            cardId: id,
+            abilityKey: "heap-on-turn-begin-may-rfg-self-to-make-run",
+            controller: "runner",
+            mandatory: true,
+            effect: {
               op: "choose",
               chooser: "runner",
               options: [
@@ -1239,10 +1242,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                 },
               ],
             },
-            "heap-on-turn-begin-may-rfg-self-to-make-run",
-            `${card.title} becomes pending — Runner turn begin (may RFG self to make a run).`,
-          );
-          if (s.pendingChoice) break;
+            logLine: `${card.title} becomes pending — Runner turn begin (may RFG self to make a run).`,
+            independentOfSource: true,
+          });
         }
         for (const server of Object.values(s.servers)) {
           for (const id of server.root) {
@@ -1262,7 +1264,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const id of s.runner.scoreArea) {
           noteRunnerScoreOnTurnBegin(s, id);
         }
-        if ((s.turn.runnerTurnBeginPending ?? []).length > 0) {
+        if (
+          (s.turn.runnerTurnBeginPending ?? []).length > 0 ||
+          (s.turn.inlineConditionalPending ?? []).length > 0
+        ) {
           checkpointAfterInstruction(s, "runner.turnBegins");
           noteOpenTurnBeginWaiting(s);
         }
