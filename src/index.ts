@@ -171,6 +171,7 @@ export {
   PREDICATE_ENCOUNTER_ABILITY,
   PREDICATE_OUTSIDE_POOL_SPEND,
   PREDICATE_BEFORE_FIRST_TURN,
+  PREDICATE_ICE_REZ_ABILITY,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

@@ -3277,6 +3277,18 @@ export interface TurnBookkeeping {
     logLine: string;
   }>;
   /**
+   * Host-rez / any-ice-rez / protecting-server conditionals met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  iceRezAbilityPending: Array<{
+    cardId: string;
+    abilityKey: string;
+    effectKey: StoredConditionalEffectKey;
+    controller: "corp" | "runner";
+    mandatory: boolean;
+    logLine: string;
+  }>;
+  /**
    * Card ids whose onRunBegin met since previous checkpoint; marked pending
    * at the next 10.3.1a (phase 3).
    */

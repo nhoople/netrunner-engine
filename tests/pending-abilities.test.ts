@@ -978,6 +978,75 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks host-rez-state at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteHostRezStateTriggers } = await import(
+      "../src/state/iceRezHooks.js"
+    );
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    const saci = instantiateCard("saci", "saci-1", "runner:installed");
+    saci.hostId = "iw-1";
+    s.cards["iw-1"] = ice;
+    s.cards["saci-1"] = saci;
+    s.servers.hq.ice = ["iw-1"];
+    s.runner.installed = ["saci-1"];
+    noteHostRezStateTriggers(s, "iw-1", "rez");
+    expect(s.turn.iceRezAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "saci-1",
+        effectKey: "onHostRezzed",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "host rez",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.iceRezAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — host ice rezzed"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks any-ice-rez at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnAnyIceRez } = await import("../src/state/iceRezHooks.js");
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
+    ice.rezzed = true;
+    const emp = instantiateCard(
+      "compromised-employee",
+      "emp-1",
+      "runner:installed",
+    );
+    s.cards["iw-1"] = ice;
+    s.cards["emp-1"] = emp;
+    s.servers.hq.ice = ["iw-1"];
+    s.runner.installed = ["emp-1"];
+    noteOnAnyIceRez(s, "iw-1");
+    expect(s.turn.iceRezAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "emp-1",
+        effectKey: "onAnyIceRez",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "any ice rez",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.iceRezAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — any ice rezzed")),
+    ).toBe(true);
+  });
+
   it("marks before-first-turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnBeforeFirstTurn } = await import(
       "../src/state/beforeFirstTurnHooks.js"
