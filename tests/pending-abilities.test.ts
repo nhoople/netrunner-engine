@@ -785,6 +785,35 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks bypass at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteBypassTriggers } = await import(
+      "../src/state/bypassHooks.js"
+    );
+    const s = createInitialState();
+    const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["ice-1"] = ice;
+    s.servers.hq.ice = ["ice-1"];
+    const capy = instantiateCard("capybara", "cap-1", "runner:installed");
+    s.cards["cap-1"] = capy;
+    s.runner.installed = ["cap-1"];
+    noteBypassTriggers(s, "ice-1");
+    expect(s.turn.bypassPendingSourceIds).toEqual(["cap-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "bypass",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.bypassPendingSourceIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — ice bypassed"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"
@@ -2866,6 +2895,13 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
     expect(s.runner.credits).toBe(1);
 
     fireOnBypassTriggers(s, "pad-1");
+    occurCheckpoint(
+      s,
+      "instruction",
+      "bypass",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     expect(
       s.log.some((line) => line.includes("PAD Campaign becomes pending — bypassed")),
     ).toBe(true);

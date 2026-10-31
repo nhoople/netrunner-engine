@@ -95,6 +95,7 @@ import {
   PREDICATE_ENCOUNTER_REZZED_AFTER_APPROACH,
   PREDICATE_APPROACH_SERVER,
   PREDICATE_PASS_ALL_ICE_PROTECTING_SERVER,
+  PREDICATE_BYPASS,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -1983,6 +1984,40 @@ function markPassAllIceProtectingServer(
   }
 }
 
+/** Ice / Runner onBypass (phase 3). */
+function markBypass(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_BYPASS);
+  if (match.kind !== "bypass" || match.sourceIds.length === 0) {
+    state.turn.bypassPendingSourceIds = [];
+    return;
+  }
+  const sourceIds = match.sourceIds;
+  state.turn.bypassPendingSourceIds = [];
+  for (const id of sourceIds) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onBypass) continue;
+    const isCorpIce =
+      card.side === "corp" ||
+      (card.type === "ice" && !state.runner.installed.includes(id));
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-bypass",
+      sourceId: card.id,
+      controller: isCorpIce ? "corp" : "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onBypass",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      isCorpIce
+        ? `${card.title} becomes pending — bypassed.`
+        : `${card.title} becomes pending — ice bypassed.`,
+    );
+  }
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -2605,6 +2640,7 @@ function markConditionalAbilities(state: GameState): void {
   markEncounterRezzedAfterApproach(state, diff);
   markApproachServer(state, diff);
   markPassAllIceProtectingServer(state, diff);
+  markBypass(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

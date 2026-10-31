@@ -149,6 +149,7 @@ export {
   PREDICATE_ENCOUNTER_REZZED_AFTER_APPROACH,
   PREDICATE_APPROACH_SERVER,
   PREDICATE_PASS_ALL_ICE_PROTECTING_SERVER,
+  PREDICATE_BYPASS,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

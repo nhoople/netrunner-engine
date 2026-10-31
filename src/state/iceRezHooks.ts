@@ -11,36 +11,14 @@ import {
   type StoredConditionalMark,
 } from "./storedTriggers.js";
 import { syncMauiRecurringCredits } from "../effects/redsandBawPrimitives.js";
+import { noteBypassTriggers } from "./bypassHooks.js";
 
-/** Fire ice + Runner-installed onBypass triggers after a piece of ice is bypassed. */
+/**
+ * Note ice + Runner-installed onBypass for 10.3.1a, then offer Jeitinho-class
+ * heap install mid-hook when Threat is met (not a stored conditional).
+ */
 export function fireOnBypassTriggers(state: GameState, iceId: string): void {
-  const items: StoredConditionalMark[] = [];
-  const bypassed = state.cards[iceId];
-  // CR 9.12.1d — blanked ice does not fire continuous on-bypass abilities.
-  if (bypassed?.onBypass && !abilitiesSuppressed(state, iceId)) {
-    items.push({
-      abilityKey: "on-bypass",
-      sourceId: iceId,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onBypass",
-      logLine: `${bypassed.title} becomes pending — bypassed.`,
-    });
-  }
-  for (const id of [...state.runner.installed]) {
-    if (abilitiesSuppressed(state, id)) continue;
-    const card = state.cards[id];
-    if (!card?.onBypass) continue;
-    items.push({
-      abilityKey: "on-bypass",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onBypass",
-      logLine: `${card.title} becomes pending — ice bypassed.`,
-    });
-  }
-  fireStoredConditionals(state, items);
+  noteBypassTriggers(state, iceId);
   if (state.pendingChoice) return;
   // Jeitinho-class: heap cards may install on bypass when Threat met.
   for (const id of [...state.runner.discardPile]) {
