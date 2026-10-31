@@ -3210,6 +3210,17 @@ export interface TurnBookkeeping {
    * pending at the next 10.3.1a (phase 3).
    */
   runnerTurnEndPendingIds: string[];
+  /**
+   * Corp turn-begin conditionals met since previous checkpoint; marked
+   * pending at the next 10.3.1a (phase 3).
+   */
+  corpTurnBeginPending: Array<{
+    cardId: string;
+    abilityKey: string;
+    effectKey: StoredConditionalEffectKey;
+    controller: "corp" | "runner";
+    logLine: string;
+  }>;
   /** Nuvem: first R&D trash credit gain used this turn. */
   nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */

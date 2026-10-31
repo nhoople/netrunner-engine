@@ -948,6 +948,36 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnCorpTurnBegin } = await import(
+      "../src/state/corpTurnBeginHooks.js"
+    );
+    const s = createInitialState();
+    const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
+    s.cards["dd-1"] = dealer;
+    s.runner.installed = ["dd-1"];
+    noteOnCorpTurnBegin(s, "dd-1");
+    expect(s.turn.corpTurnBeginPending).toEqual([
+      expect.objectContaining({
+        cardId: "dd-1",
+        effectKey: "onCorpTurnBegin",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp turn begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpTurnBeginPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Corp turn begin"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Runner turn-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnRunnerTurnEnd } = await import(
       "../src/state/runnerTurnEndHooks.js"
