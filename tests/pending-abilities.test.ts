@@ -814,6 +814,60 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks approach-ice at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnApproachIce } = await import(
+      "../src/state/approachIceHooks.js"
+    );
+    const s = createInitialState();
+    const midori = instantiateCard("midori", "mid-1", "server:hq:root");
+    midori.rezzed = true;
+    s.cards["mid-1"] = midori;
+    s.servers.hq.root = ["mid-1"];
+    noteOnApproachIce(s, "mid-1");
+    expect(s.turn.approachIcePendingIds).toEqual(["mid-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "approach ice",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.approachIcePendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — ice approached"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks first successful R&D run end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstSuccessfulRunOnRdEnds } = await import(
+      "../src/state/approachIceHooks.js"
+    );
+    const s = createInitialState();
+    const mike = instantiateCard("psych-mike", "pm-1", "runner:installed");
+    s.cards["pm-1"] = mike;
+    s.runner.installed = ["pm-1"];
+    noteFirstSuccessfulRunOnRdEnds(s);
+    expect(s.turn.firstSuccessfulRdRunEndMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "rd run end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstSuccessfulRdRunEndMetPending).toBe(false);
+    expect(s.turn.firstSuccessfulRdRunEndUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first successful R&D run ends this turn",
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"

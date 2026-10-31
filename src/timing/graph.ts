@@ -100,9 +100,6 @@ import {
   type StoredConditionalMark,
 } from "../state/storedTriggers.js";
 import {
-  fireOnFirstSuccessfulRunOnRdEndsThisTurn,
-} from "../state/runTimingHooks.js";
-import {
   noteEncounterEndIfNotFullyBroken,
   noteEncounterEndIfPrintedSubroutineBroken,
   noteEncounterEndIfRezzed,
@@ -116,6 +113,10 @@ import {
   noteApproachServer,
   notePassAllIceProtectingServer,
 } from "../state/approachServerHooks.js";
+import {
+  noteFirstSuccessfulRunOnRdEnds,
+  noteOnApproachIce,
+} from "../state/approachIceHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -1990,33 +1991,26 @@ export const STEPS: Record<string, TimingStepDef> = {
         );
         noteApproachIce(s, iceId);
         const server = s.servers[runState.attackedServerId];
-        if (!s.pendingChoice) {
-          const approachItems: StoredConditionalMark[] = [];
-          for (const id of server.root) {
-            const card = s.cards[id];
-            if (!card?.rezzed || !card.onApproachIce) continue;
-            if (abilitiesSuppressed(s, id)) continue;
-            if (card.onApproachIceOncePerRun) {
-              const fired = s.run?.approachIceTriggersFiredIds ?? [];
-              if (fired.includes(id)) continue;
-            }
-            if (card.onApproachIceOncePerRun && s.run) {
-              s.run.approachIceTriggersFiredIds = [
-                ...(s.run.approachIceTriggersFiredIds ?? []),
-                id,
-              ];
-            }
-            approachItems.push({
-              abilityKey: "on-approach-ice",
-              sourceId: id,
-              controller: "corp",
-              mandatory: true,
-              effectKey: "onApproachIce",
-              logLine: `${card.title} becomes pending — ice approached.`,
-            });
+        // Midori / Mitra Aman-class: rezzed root onApproachIce — note for 10.3.1a.
+        // Note even when a later Snitch choice may open; the checkpoint marks,
+        // and the reaction window waits on any open choice (CR 10.3.2).
+        for (const id of server.root) {
+          const card = s.cards[id];
+          if (!card?.rezzed || !card.onApproachIce) continue;
+          if (abilitiesSuppressed(s, id)) continue;
+          if (card.onApproachIceOncePerRun) {
+            const fired = s.run?.approachIceTriggersFiredIds ?? [];
+            if (fired.includes(id)) continue;
           }
-          fireStoredConditionals(s, approachItems);
+          noteOnApproachIce(s, id);
+          if (card.onApproachIceOncePerRun && s.run) {
+            s.run.approachIceTriggersFiredIds = [
+              ...(s.run.approachIceTriggersFiredIds ?? []),
+              id,
+            ];
+          }
         }
+        checkpointAfterInstruction(s, "run.approachIce");
         // Snitch: once per run, approaching unrezzed ice → may expose then jack out.
         if (
           !s.pendingChoice &&
@@ -5173,14 +5167,13 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
-        // Psych Mike: first successful R&D run end each turn.
-        if (
-          sid === "rd" &&
-          runState.successful &&
-          !s.turn.firstSuccessfulRdRunEndUsedThisTurn
-        ) {
-          s.turn.firstSuccessfulRdRunEndUsedThisTurn = true;
-          fireOnFirstSuccessfulRunOnRdEndsThisTurn(s);
+        // Psych Mike: first successful R&D run end each turn — note for 10.3.1a.
+        // Checkpoint here while run.accessedCardIds still exist (effect reads them).
+        if (sid === "rd" && runState.successful) {
+          noteFirstSuccessfulRunOnRdEnds(s);
+          if (s.turn.firstSuccessfulRdRunEndMetPending) {
+            checkpointAfterInstruction(s, "run.ends");
+          }
         }
         // Amelia Earhart: HQ/R&D run end, if accessed ≥ min, place power.
         if (sid === "hq" || sid === "rd") {
