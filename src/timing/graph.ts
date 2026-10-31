@@ -1994,13 +1994,14 @@ export const STEPS: Record<string, TimingStepDef> = {
         ) {
           runState.reconJackOutOffered = true;
           const reconSrc = runState.runSourceId ?? iceId;
-          fireInlineConditional(
-            s,
-            reconSrc,
-            { op: "do", action: { kind: "offer_jack_out" } },
-            "recon-may-jack-out-on-first-ice",
-            `${s.cards[reconSrc]?.title ?? "Recon"} becomes pending — first ice encounter (may jack out).`,
-          );
+          noteInlineConditional(s, {
+            cardId: reconSrc,
+            abilityKey: "recon-may-jack-out-on-first-ice",
+            controller: "runner",
+            mandatory: true,
+            effect: { op: "do", action: { kind: "offer_jack_out" } },
+            logLine: `${s.cards[reconSrc]?.title ?? "Recon"} becomes pending — first ice encounter (may jack out).`,
+          });
         }
         // Nero Severn: once per turn when encountering a sentry, may jack out.
         {
@@ -2009,31 +2010,30 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (
             idCard?.mayJackOutOnEncounterSentryOncePerTurn &&
             !s.turn.dagNeroSentryJackOutUsedThisTurn &&
-            iceSubs.includes("sentry") &&
-            !s.pendingChoice
+            iceSubs.includes("sentry")
           ) {
             s.turn.dagNeroSentryJackOutUsedThisTurn = true;
-            fireInlineConditional(
-              s,
-              idCard.id,
-              { op: "do", action: { kind: "offer_jack_out" } },
-              "nero-may-jack-out-on-encounter-sentry",
-              `${idCard.title} becomes pending — encounter sentry (may jack out).`,
-            );
+            noteInlineConditional(s, {
+              cardId: idCard.id,
+              abilityKey: "nero-may-jack-out-on-encounter-sentry",
+              controller: "runner",
+              mandatory: true,
+              effect: { op: "do", action: { kind: "offer_jack_out" } },
+              logLine: `${idCard.title} becomes pending — encounter sentry (may jack out).`,
+            });
           }
         }
         // Paperclip: when encountering a barrier, may install self from heap.
-        if (
-          (ice.subtypes ?? []).includes("barrier") &&
-          !s.pendingChoice
-        ) {
+        if ((ice.subtypes ?? []).includes("barrier")) {
           for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterBarrier) continue;
-            fireInlineConditional(
-              s,
-              heapId,
-              {
+            noteInlineConditional(s, {
+              cardId: heapId,
+              abilityKey: "paperclip-heap-install-on-encounter-barrier",
+              controller: "runner",
+              mandatory: true,
+              effect: {
                 op: "choose",
                 chooser: "runner",
                 options: [
@@ -2063,24 +2063,24 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 ],
               },
-              "paperclip-heap-install-on-encounter-barrier",
-              `${c.title} becomes pending — encounter (may install from heap).`,
-            );
+              logLine: `${c.title} becomes pending — encounter (may install from heap).`,
+              // Heap may-install fires from an inactive zone (CR 9.6.10 exception).
+              independentOfSource: true,
+            });
             break;
           }
         }
         // Black Orchestra: when encountering a code gate, may install self from heap.
-        if (
-          (ice.subtypes ?? []).includes("code gate") &&
-          !s.pendingChoice
-        ) {
+        if ((ice.subtypes ?? []).includes("code gate")) {
           for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterCodeGate) continue;
-            fireInlineConditional(
-              s,
-              heapId,
-              {
+            noteInlineConditional(s, {
+              cardId: heapId,
+              abilityKey: "black-orchestra-heap-install-on-encounter-code-gate",
+              controller: "runner",
+              mandatory: true,
+              effect: {
                 op: "choose",
                 chooser: "runner",
                 options: [
@@ -2110,21 +2110,23 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 ],
               },
-              "black-orchestra-heap-install-on-encounter-code-gate",
-              `${c.title} becomes pending — encounter (may install from heap).`,
-            );
+              logLine: `${c.title} becomes pending — encounter (may install from heap).`,
+              independentOfSource: true,
+            });
             break;
           }
         }
         // MKUltra: when encountering a sentry, may install self from heap.
-        if ((ice.subtypes ?? []).includes("sentry") && !s.pendingChoice) {
+        if ((ice.subtypes ?? []).includes("sentry")) {
           for (const heapId of [...s.runner.discardPile]) {
             const c = s.cards[heapId];
             if (!c?.mayInstallSelfFromHeapOnEncounterSentry) continue;
-            fireInlineConditional(
-              s,
-              heapId,
-              {
+            noteInlineConditional(s, {
+              cardId: heapId,
+              abilityKey: "mkultra-heap-install-on-encounter-sentry",
+              controller: "runner",
+              mandatory: true,
+              effect: {
                 op: "choose",
                 chooser: "runner",
                 options: [
@@ -2154,26 +2156,24 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 ],
               },
-              "mkultra-heap-install-on-encounter-sentry",
-              `${c.title} becomes pending — encounter (may install from heap).`,
-            );
+              logLine: `${c.title} becomes pending — encounter (may install from heap).`,
+              independentOfSource: true,
+            });
             break;
           }
         }
         // Şifr: once/turn may −1 hand size to set encounter ice strength to 0.
         // Lotus Field-class cannot have strength lowered (UFAQ / CR 9.12.1a).
-        if (
-          !s.pendingChoice &&
-          !s.turn.sifrUsedThisTurn &&
-          !ice.strengthCannotBeLowered
-        ) {
+        if (!s.turn.sifrUsedThisTurn && !ice.strengthCannotBeLowered) {
           for (const rid of s.runner.installed) {
             const c = s.cards[rid];
             if (!c?.sifrMayZeroEncounterIceStrengthOncePerTurn) continue;
-            fireInlineConditional(
-              s,
-              rid,
-              {
+            noteInlineConditional(s, {
+              cardId: rid,
+              abilityKey: "sifr-may-zero-encounter-ice-strength",
+              controller: "runner",
+              mandatory: true,
+              effect: {
                 op: "choose",
                 chooser: "runner",
                 options: [
@@ -2199,9 +2199,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 ],
               },
-              "sifr-may-zero-encounter-ice-strength",
-              `${c.title} becomes pending — encounter (may zero ice strength).`,
-            );
+              logLine: `${c.title} becomes pending — encounter (may zero ice strength).`,
+            });
             break;
           }
         }
@@ -2315,7 +2314,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           noteEncounterAnyIceOncePerTurn(s);
           if (s.run?.encounter?.iceId) noteEncounterIce(s, s.run.encounter.iceId);
           noteCompileFirstEncounter(s);
-          if ((s.turn.encounterAbilityPending ?? []).length > 0) {
+          if (
+            (s.turn.encounterAbilityPending ?? []).length > 0 ||
+            (s.turn.inlineConditionalPending ?? []).length > 0
+          ) {
             checkpointAfterInstruction(s, "run.encounter");
           }
           if (runState.markerExtraEtrNextIce) {
