@@ -978,6 +978,65 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Out of the Ashes turn-begin inline at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } = await import(
+      "../src/state/inlineConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const ashes = instantiateCard("out-of-the-ashes", "ash-1", "runner:heap");
+    s.cards["ash-1"] = ashes;
+    s.runner.discardPile = ["ash-1"];
+    noteInlineConditional(s, {
+      cardId: "ash-1",
+      abilityKey: "heap-on-turn-begin-may-rfg-self-to-make-run",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "accept",
+            label: "RFG",
+            effect: {
+              op: "do",
+              action: { kind: "tlm_out_of_ashes_rfg_and_run" },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      logLine: `${ashes.title} becomes pending — Runner turn begin (may RFG self to make a run).`,
+      independentOfSource: true,
+    });
+    expect(s.turn.inlineConditionalPending).toEqual([
+      expect.objectContaining({
+        cardId: "ash-1",
+        abilityKey: "heap-on-turn-begin-may-rfg-self-to-make-run",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner turn begin inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Runner turn begin (may RFG self"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks encounter-begin heap-install inline at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } = await import(
       "../src/state/inlineConditionalHooks.js"
