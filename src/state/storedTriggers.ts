@@ -88,7 +88,11 @@ export type InlineConditionalMark = {
   logLine: string;
 };
 
-/** Mark and resolve a single card-field conditional (CR 9.6.2). */
+/**
+ * Note a single card-field conditional for 10.3.1a, then open an instruction
+ * checkpoint so it marks and resolves (CR 9.6.2 / 10.3.1a). Play abilities use
+ * fireOnPlay / noteCheckpointAndResolvePlay instead (CR 8.6.7e–f).
+ */
 export function fireCardConditional(
   state: GameState,
   sourceId: string,
@@ -99,7 +103,9 @@ export function fireCardConditional(
 ): boolean {
   const card = state.cards[sourceId];
   if (!card) return false;
-  return fireStoredConditionals(state, [
+  if (abilitiesSuppressed(state, sourceId)) return false;
+  if (!effectFromKey(card, effectKey)) return false;
+  noteStoredConditionals(state, [
     {
       abilityKey,
       sourceId,
@@ -109,6 +115,9 @@ export function fireCardConditional(
       logLine,
     },
   ]);
+  if ((state.turn.storedConditionalPending ?? []).length === 0) return false;
+  checkpointAfterInstruction(state, `cardConditional.${abilityKey}`);
+  return interruptOpen(state);
 }
 
 /**
