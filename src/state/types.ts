@@ -3184,6 +3184,12 @@ export interface TurnBookkeeping {
    * (phase 3).
    */
   successfulRunEndPendingIds: string[];
+  /**
+   * Root card ids whose onSuccessfulRunOtherServerOncePerTurn met since
+   * previous checkpoint (Sacrifice Zone); marked pending at the next 10.3.1a
+   * (phase 3).
+   */
+  otherServerSuccessPendingIds: string[];
   /** Nuvem: first R&D trash credit gain used this turn. */
   nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */

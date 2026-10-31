@@ -122,6 +122,7 @@ import {
   noteSuccessfulRunEnd,
   noteSuccessfulRunEndOncePerTurn,
 } from "../state/successfulRunEndHooks.js";
+import { noteSuccessfulRunOtherServer } from "../state/otherServerSuccessHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -4725,30 +4726,22 @@ export const STEPS: Record<string, TimingStepDef> = {
               break;
             }
           }
-          // Sacrifice Zone: faceup agendas on other servers.
+          // Sacrifice Zone: faceup agendas on other servers — note for 10.3.1a.
           const attacked = s.run!.attackedServerId;
-          const otherServerItems: StoredConditionalMark[] = [];
           for (const [sid, srv] of Object.entries(s.servers)) {
             if (sid === attacked) continue;
             for (const id of srv.root) {
-              const card = s.cards[id];
-              if (!card?.onSuccessfulRunOtherServerOncePerTurn) continue;
               if (s.turn.otherServerSuccessAbilityUsedIds.includes(id)) continue;
-              if (abilitiesSuppressed(s, id)) continue;
-              // Public faceup agendas are neither rezzed nor unrezzed.
-              if (!card.faceup && !card.rezzed) continue;
-              s.turn.otherServerSuccessAbilityUsedIds.push(id);
-              otherServerItems.push({
-                abilityKey: "on-successful-run-other-server",
-                sourceId: id,
-                controller: "corp",
-                mandatory: true,
-                effectKey: "onSuccessfulRunOtherServerOncePerTurn",
-                logLine: `${card.title} becomes pending — successful run on another server.`,
-              });
+              const before = (s.turn.otherServerSuccessPendingIds ?? []).length;
+              noteSuccessfulRunOtherServer(s, id);
+              if ((s.turn.otherServerSuccessPendingIds ?? []).length > before) {
+                s.turn.otherServerSuccessAbilityUsedIds.push(id);
+              }
             }
           }
-          fireStoredConditionals(s, otherServerItems);
+          if ((s.turn.otherServerSuccessPendingIds ?? []).length > 0) {
+            checkpointAfterInstruction(s, "run.success");
+          }
           const src = s.run!.runSourceId;
           const fxRun = s.run!.onSuccessfulRunEffect;
           const tied = s.run!.successTiedToServers;
