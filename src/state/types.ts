@@ -3224,6 +3224,28 @@ export interface TurnBookkeeping {
     logLine: string;
   }>;
   /**
+   * Corp action-phase-end conditionals met since previous checkpoint; marked
+   * pending at the next 10.3.1a (phase 3).
+   */
+  corpActionPhaseEndPending: Array<{
+    cardId: string;
+    abilityKey: string;
+    effectKey: StoredConditionalEffectKey;
+    controller: "corp" | "runner";
+    logLine: string;
+  }>;
+  /**
+   * Runner action-phase-end conditionals met since previous checkpoint; marked
+   * pending at the next 10.3.1a (phase 3).
+   */
+  runnerActionPhaseEndPending: Array<{
+    cardId: string;
+    abilityKey: string;
+    effectKey: StoredConditionalEffectKey;
+    controller: "corp" | "runner";
+    logLine: string;
+  }>;
+  /**
    * Card ids whose onRunBegin met since previous checkpoint; marked pending
    * at the next 10.3.1a (phase 3).
    */

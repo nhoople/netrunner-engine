@@ -166,6 +166,8 @@ export {
   PREDICATE_SUCCESSFUL_RUN_SERVER,
   PREDICATE_UNSUCCESSFUL_RUN_SERVER,
   PREDICATE_ACCESS_ABILITY,
+  PREDICATE_CORP_ACTION_PHASE_END,
+  PREDICATE_RUNNER_ACTION_PHASE_END,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

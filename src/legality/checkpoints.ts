@@ -112,6 +112,8 @@ import {
   PREDICATE_SUCCESSFUL_RUN_SERVER,
   PREDICATE_UNSUCCESSFUL_RUN_SERVER,
   PREDICATE_ACCESS_ABILITY,
+  PREDICATE_CORP_ACTION_PHASE_END,
+  PREDICATE_RUNNER_ACTION_PHASE_END,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2351,6 +2353,71 @@ function markSuccessfulRunServer(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Corp action-phase end (phase 3). */
+function markCorpActionPhaseEnd(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_CORP_ACTION_PHASE_END,
+  );
+  if (match.kind !== "corp_action_phase_end" || match.marks.length === 0) {
+    state.turn.corpActionPhaseEndPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.corpActionPhaseEndPending = [];
+  for (const m of marks) {
+    if (abilitiesSuppressed(state, m.cardId)) continue;
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: m.controller,
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: m.effectKey as StoredConditionalEffectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
+/** Runner action-phase end (phase 3). */
+function markRunnerActionPhaseEnd(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_RUNNER_ACTION_PHASE_END,
+  );
+  if (match.kind !== "runner_action_phase_end" || match.marks.length === 0) {
+    state.turn.runnerActionPhaseEndPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.runnerActionPhaseEndPending = [];
+  for (const m of marks) {
+    if (abilitiesSuppressed(state, m.cardId)) continue;
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: m.controller,
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: m.effectKey as StoredConditionalEffectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
 /** Access-step conditionals (phase 3). */
 function markAccessAbility(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -3173,6 +3240,8 @@ function markConditionalAbilities(state: GameState): void {
   markSuccessfulRunServer(state, diff);
   markUnsuccessfulRunServer(state, diff);
   markAccessAbility(state, diff);
+  markCorpActionPhaseEnd(state, diff);
+  markRunnerActionPhaseEnd(state, diff);
   markRunBegin(state, diff);
   markCorpTurnEnd(state, diff);
   markScoreTurnEnd(state, diff);

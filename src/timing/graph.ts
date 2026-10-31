@@ -82,8 +82,8 @@ import {
   runnerHasWhenEncounteredInterrupt,
 } from "../state/onEncounter.js";
 import {
-  fireCorpActionPhaseEnd,
-  fireRunnerActionPhaseEnd,
+  noteCorpActionPhaseEnd,
+  noteRunnerActionPhaseEnd,
 } from "../state/phaseEndHooks.js";
 import {
   fireCompileFirstEncounter,
@@ -967,7 +967,10 @@ export const STEPS: Record<string, TimingStepDef> = {
     "corp.discard",
     {
       onResolve: (s) => {
-        fireCorpActionPhaseEnd(s);
+        noteCorpActionPhaseEnd(s);
+        if ((s.turn.corpActionPhaseEndPending ?? []).length > 0) {
+          checkpointAfterInstruction(s, "corp.actionPhaseEnd");
+        }
       },
     },
   ),
@@ -1309,7 +1312,10 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.discard",
     {
       onResolve: (s) => {
-        fireRunnerActionPhaseEnd(s);
+        noteRunnerActionPhaseEnd(s);
+        if ((s.turn.runnerActionPhaseEndPending ?? []).length > 0) {
+          checkpointAfterInstruction(s, "runner.actionPhaseEnd");
+        }
       },
     },
   ),
