@@ -240,6 +240,22 @@ export type TriggerPredicate =
   | {
       /** First unsuccessful run this turn (John Masanori). */
       kind: "first_unsuccessful_run";
+    }
+  | {
+      /** First successful HQ run this turn (PAN-Weave). */
+      kind: "first_successful_hq_run";
+    }
+  | {
+      /** First successful HQ or R&D run this turn (RNG Key). */
+      kind: "first_successful_hq_or_rd_run";
+    }
+  | {
+      /** First successful central run this turn (Zenit). */
+      kind: "first_successful_central_run";
+    }
+  | {
+      /** First successful mark run this turn (Virtuoso). */
+      kind: "first_successful_mark_run";
     };
 
 export type TriggerPredicateMatch =
@@ -388,6 +404,22 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_unsuccessful_run";
+      matched: boolean;
+    }
+  | {
+      kind: "first_successful_hq_run";
+      matched: boolean;
+    }
+  | {
+      kind: "first_successful_hq_or_rd_run";
+      matched: boolean;
+    }
+  | {
+      kind: "first_successful_central_run";
+      matched: boolean;
+    }
+  | {
+      kind: "first_successful_mark_run";
       matched: boolean;
     };
 
@@ -657,6 +689,26 @@ export function evaluateTriggerPredicate(
       const matched = state.turn.firstUnsuccessfulRunMetPending;
       return { kind: "first_unsuccessful_run", matched };
     }
+    case "first_successful_hq_run": {
+      void diff;
+      const matched = state.turn.firstSuccessfulHqRunMetPending;
+      return { kind: "first_successful_hq_run", matched };
+    }
+    case "first_successful_hq_or_rd_run": {
+      void diff;
+      const matched = state.turn.firstSuccessfulHqOrRdRunMetPending;
+      return { kind: "first_successful_hq_or_rd_run", matched };
+    }
+    case "first_successful_central_run": {
+      void diff;
+      const matched = state.turn.firstSuccessfulCentralRunMetPending;
+      return { kind: "first_successful_central_run", matched };
+    }
+    case "first_successful_mark_run": {
+      void diff;
+      const matched = state.turn.firstSuccessfulMarkRunMetPending;
+      return { kind: "first_successful_mark_run", matched };
+    }
   }
 }
 
@@ -878,4 +930,20 @@ export const PREDICATE_FIRST_ARCHIVES_RUN_BEGIN: TriggerPredicate = {
 
 export const PREDICATE_FIRST_UNSUCCESSFUL_RUN: TriggerPredicate = {
   kind: "first_unsuccessful_run",
+};
+
+export const PREDICATE_FIRST_SUCCESSFUL_HQ_RUN: TriggerPredicate = {
+  kind: "first_successful_hq_run",
+};
+
+export const PREDICATE_FIRST_SUCCESSFUL_HQ_OR_RD_RUN: TriggerPredicate = {
+  kind: "first_successful_hq_or_rd_run",
+};
+
+export const PREDICATE_FIRST_SUCCESSFUL_CENTRAL_RUN: TriggerPredicate = {
+  kind: "first_successful_central_run",
+};
+
+export const PREDICATE_FIRST_SUCCESSFUL_MARK_RUN: TriggerPredicate = {
+  kind: "first_successful_mark_run",
 };
