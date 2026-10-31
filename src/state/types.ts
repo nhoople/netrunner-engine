@@ -3438,6 +3438,11 @@ export interface TurnBookkeeping {
    * Company); marked pending at the next 10.3.1a (phase 3).
    */
   firstArchivesRunBeginMetPending: boolean;
+  /**
+   * First unsuccessful run this turn met since previous checkpoint (John
+   * Masanori); marked pending at the next 10.3.1a (phase 3).
+   */
+  firstUnsuccessfulRunMetPending: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
   /** Neutralize All Threats already checked the first trash-cost access this turn. */
