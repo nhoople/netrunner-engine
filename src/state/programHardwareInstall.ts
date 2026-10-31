@@ -12,10 +12,8 @@ import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { onRunnerInstalledProgramOrHardware } from "./staticFlags.js";
 import { noteTargetedMarketing } from "./currents.js";
-import {
-  fireStoredConditionals,
-  type StoredConditionalMark,
-} from "./storedTriggers.js";
+import { noteStoredConditional } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 /**
  * Azmari EdTech: the first time each turn the Runner plays or installs a
@@ -170,17 +168,16 @@ export function noteProgramOrHardwareInstalled(
   onRunnerInstalledProgramOrHardware(state);
   if (state.done) return;
 
-  const items: StoredConditionalMark[] = [];
   const consider = (sourceId: string): void => {
     if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
     if (!card?.onProgramOrHardwareInstall) return;
-    items.push({
+    noteStoredConditional(state, {
+      cardId: sourceId,
       abilityKey: "on-program-or-hardware-install",
-      sourceId,
+      effectKey: "onProgramOrHardwareInstall",
       controller: "runner",
       mandatory: true,
-      effectKey: "onProgramOrHardwareInstall",
       logLine: `${card.title} becomes pending — program/hardware install.`,
     });
   };
@@ -190,7 +187,6 @@ export function noteProgramOrHardwareInstalled(
     consider(id);
   }
   consider(state.runner.identityId);
-  fireStoredConditionals(state, items);
 
   if (installed.type === "hardware") {
     state.turn.hardwareInstalledThisTurn += 1;
@@ -208,6 +204,10 @@ export function noteProgramOrHardwareInstalled(
     state.turn.programsInstalledThisTurn === 1
   ) {
     noteFirstProgramInstall(state);
+  }
+
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "programOrHardware.install");
   }
 }
 
@@ -248,46 +248,47 @@ function anyRunnerSourceHas(
 }
 
 
-/** Fire identity/rig `onHardwareInstall` (Replicator; install only, incl. self). */
+/** Note identity/rig `onHardwareInstall` (Replicator; install only, incl. self). */
 export function fireOnHardwareInstall(state: GameState): void {
   if (state.done) return;
-  const items: StoredConditionalMark[] = [];
   const consider = (sourceId: string): void => {
     if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
     if (!card?.onHardwareInstall) return;
-    items.push({
+    noteStoredConditional(state, {
+      cardId: sourceId,
       abilityKey: "on-hardware-install",
-      sourceId,
+      effectKey: "onHardwareInstall",
       controller: "runner",
       mandatory: true,
-      effectKey: "onHardwareInstall",
       logLine: `${card.title} becomes pending — hardware install.`,
     });
   };
   consider(state.runner.identityId);
   for (const id of state.runner.installed) consider(id);
-  fireStoredConditionals(state, items);
 }
 
-/** Fire identity/rig `onHardwareInstallOrTrash` (Hiram). */
+/** Note identity/rig `onHardwareInstallOrTrash` (Hiram). */
 export function fireHardwareInstallOrTrash(state: GameState): void {
   if (state.done) return;
-  const items: StoredConditionalMark[] = [];
   const consider = (sourceId: string): void => {
     if (abilitiesSuppressed(state, sourceId)) return;
     const card = state.cards[sourceId];
     if (!card?.onHardwareInstallOrTrash) return;
-    items.push({
+    noteStoredConditional(state, {
+      cardId: sourceId,
       abilityKey: "on-hardware-install-or-trash",
-      sourceId,
+      effectKey: "onHardwareInstallOrTrash",
       controller: "runner",
       mandatory: true,
-      effectKey: "onHardwareInstallOrTrash",
       logLine: `${card.title} becomes pending — hardware install/trash.`,
     });
   };
   consider(state.runner.identityId);
   for (const id of state.runner.installed) consider(id);
-  fireStoredConditionals(state, items);
+  // Trash path callers do not always reach afterBasicAction; checkpoint here.
+  // Install path may have earlier sibling notes in the same queue — marked together.
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "hardware.installOrTrash");
+  }
 }
