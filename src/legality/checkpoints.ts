@@ -117,6 +117,7 @@ import {
   PREDICATE_ENCOUNTER_ABILITY,
   PREDICATE_OUTSIDE_POOL_SPEND,
   PREDICATE_BEFORE_FIRST_TURN,
+  PREDICATE_ICE_REZ_ABILITY,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2356,6 +2357,37 @@ function markSuccessfulRunServer(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Host / any-ice / protecting-server rez conditionals (phase 3). */
+function markIceRezAbility(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ICE_REZ_ABILITY,
+  );
+  if (match.kind !== "ice_rez_ability" || match.marks.length === 0) {
+    state.turn.iceRezAbilityPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.iceRezAbilityPending = [];
+  for (const m of marks) {
+    if (abilitiesSuppressed(state, m.cardId)) continue;
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: m.controller,
+      mandatory: m.mandatory,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: m.effectKey as StoredConditionalEffectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
 /** Corp identity before-first-turn (phase 3; CR 1.6.7a). */
 function markBeforeFirstTurn(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -3341,6 +3373,7 @@ function markConditionalAbilities(state: GameState): void {
   markEncounterAbility(state, diff);
   markOutsidePoolSpend(state, diff);
   markBeforeFirstTurn(state, diff);
+  markIceRezAbility(state, diff);
   markRunBegin(state, diff);
   markCorpTurnEnd(state, diff);
   markScoreTurnEnd(state, diff);

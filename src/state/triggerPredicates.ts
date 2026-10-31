@@ -415,6 +415,10 @@ export type TriggerPredicate =
   | {
       /** Corp identity before-first-turn since previous checkpoint. */
       kind: "before_first_turn";
+    }
+  | {
+      /** Host / any-ice / protecting-server rez conditionals. */
+      kind: "ice_rez_ability";
     };
 
 export type TriggerPredicateMatch =
@@ -787,6 +791,17 @@ export type TriggerPredicateMatch =
         cardId: string;
         abilityKey: string;
         effectKey: string;
+        logLine: string;
+      }>;
+    }
+  | {
+      kind: "ice_rez_ability";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
+        controller: "corp" | "runner";
+        mandatory: boolean;
         logLine: string;
       }>;
     };
@@ -1350,6 +1365,13 @@ export function evaluateTriggerPredicate(
         marks: [...(state.turn.beforeFirstTurnPending ?? [])],
       };
     }
+    case "ice_rez_ability": {
+      void diff;
+      return {
+        kind: "ice_rez_ability",
+        marks: [...(state.turn.iceRezAbilityPending ?? [])],
+      };
+    }
   }
 }
 
@@ -1745,4 +1767,8 @@ export const PREDICATE_OUTSIDE_POOL_SPEND: TriggerPredicate = {
 
 export const PREDICATE_BEFORE_FIRST_TURN: TriggerPredicate = {
   kind: "before_first_turn",
+};
+
+export const PREDICATE_ICE_REZ_ABILITY: TriggerPredicate = {
+  kind: "ice_rez_ability",
 };
