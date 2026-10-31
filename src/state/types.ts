@@ -3421,8 +3421,23 @@ export interface TurnBookkeeping {
    * effects that exclude installing into that server's root — Vaporframe).
    */
   onTrashSourceServerId: ServerId | null;
-  /** Stegodon: first run begin this turn already fired. */
+  /**
+   * First run begin this turn met since previous checkpoint (Stegodon /
+   * Tributary / Prognostic); marked pending at the next 10.3.1a (phase 3).
+   */
+  firstRunBeginMetPending: boolean;
+  /** Stegodon: first run begin this turn already marked. */
   runBeginThisTurnUsed: boolean;
+  /**
+   * First R&D run begin this turn met since previous checkpoint (Padma);
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  firstRdRunBeginMetPending: boolean;
+  /**
+   * First Archives run begin this turn met since previous checkpoint (Front
+   * Company); marked pending at the next 10.3.1a (phase 3).
+   */
+  firstArchivesRunBeginMetPending: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
   /** Neutralize All Threats already checked the first trash-cost access this turn. */

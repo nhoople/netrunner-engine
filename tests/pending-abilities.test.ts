@@ -543,6 +543,40 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.corp.credits).toBe(1);
   });
 
+  it("marks first run begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstRunBegin } = await import(
+      "../src/state/runBeginHooks.js"
+    );
+    const s = createInitialState();
+    const tiered = instantiateCard(
+      "tiered-subscription",
+      "ts-1",
+      "server:hq:root",
+    );
+    tiered.rezzed = true;
+    s.cards["ts-1"] = tiered;
+    s.servers.hq.root = ["ts-1"];
+    s.corp.credits = 0;
+    noteFirstRunBegin(s);
+    expect(s.turn.firstRunBeginMetPending).toBe(true);
+    expect(s.turn.runBeginThisTurnUsed).toBe(false);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first run begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstRunBeginMetPending).toBe(false);
+    expect(s.turn.runBeginThisTurnUsed).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first run begin this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+  });
+
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } = await import(
       "../src/state/storedTriggers.js"

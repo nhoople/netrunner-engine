@@ -33,6 +33,11 @@ import { agendaPointsFor } from "../state/scoring.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { noteValSuccessfulRunTrigger } from "../effects/sansanValHooks.js";
+import {
+  noteFirstArchivesRunBegin,
+  noteFirstRdRunBegin,
+  noteFirstRunBegin,
+} from "../state/runBeginHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import { log } from "../state/createGame.js";
 import {
@@ -1761,92 +1766,15 @@ export const STEPS: Record<string, TimingStepDef> = {
           });
         }
         fireStoredConditionals(s, runBegin);
-        // First R&D run begin this turn → Runner identity trigger (Padma).
-        if (s.run?.attackedServerId === "rd" && !s.turn.rdRunBegunThisTurn) {
-          s.turn.rdRunBegunThisTurn = true;
-          const idCard = s.cards[s.runner.identityId];
-          if (idCard?.onFirstRdRunBeginThisTurn) {
-            fireStoredConditionals(s, [
-              {
-                abilityKey: "on-first-rd-run-begin",
-                sourceId: idCard.id,
-                controller: "runner",
-                mandatory: true,
-                effectKey: "onFirstRdRunBeginThisTurn",
-                logLine: `${idCard.title} becomes pending — first R&D run begin this turn.`,
-              },
-            ]);
-          }
+        // First-* run begin this turn — queue for 10.3.1a (phase 3).
+        if (s.run?.attackedServerId === "rd") {
+          noteFirstRdRunBegin(s);
         }
-        // First run begin this turn → scored agendas (Stegodon) + rezzed
-        // installed cards (Tributary) + Runner rig (Prognostic Q-Loop).
-        if (!s.turn.runBeginThisTurnUsed) {
-          s.turn.runBeginThisTurnUsed = true;
-          const firstRun: StoredConditionalMark[] = [];
-          for (const id of s.corp.scoreArea) {
-            const card = s.cards[id];
-            if (!card?.onFirstRunBeginThisTurn) continue;
-            firstRun.push({
-              abilityKey: "on-first-run-begin",
-              sourceId: id,
-              controller: "corp",
-              mandatory: true,
-              effectKey: "onFirstRunBeginThisTurn",
-              logLine: `${card.title} becomes pending — first run begin this turn.`,
-            });
-          }
-          for (const server of Object.values(s.servers)) {
-            for (const id of [...server.ice, ...server.root]) {
-              const card = s.cards[id];
-              if (!card?.rezzed || !card.onFirstRunBeginThisTurn) continue;
-              firstRun.push({
-                abilityKey: "on-first-run-begin",
-                sourceId: id,
-                controller: "corp",
-                mandatory: true,
-                effectKey: "onFirstRunBeginThisTurn",
-                logLine: `${card.title} becomes pending — first run begin this turn.`,
-              });
-            }
-          }
-          for (const id of s.runner.installed) {
-            const card = s.cards[id];
-            if (!card?.onFirstRunBeginThisTurn) continue;
-            firstRun.push({
-              abilityKey: "on-first-run-begin",
-              sourceId: id,
-              controller: "runner",
-              mandatory: true,
-              effectKey: "onFirstRunBeginThisTurn",
-              logLine: `${card.title} becomes pending — first run begin this turn.`,
-            });
-          }
-          fireStoredConditionals(s, firstRun);
-        }
-        // First Archives run begin → rezzed root cards (Front Company).
+        noteFirstRunBegin(s);
         if (s.run?.attackedServerId === "archives") {
-          if (!s.turn.archivesRunBegunThisTurn) {
-            s.turn.archivesRunBegunThisTurn = true;
-            const archivesRun: StoredConditionalMark[] = [];
-            for (const server of Object.values(s.servers)) {
-              for (const id of server.root) {
-                const card = s.cards[id];
-                if (!card?.rezzed || !card.onFirstArchivesRunBeginThisTurn) {
-                  continue;
-                }
-                archivesRun.push({
-                  abilityKey: "on-first-archives-run-begin",
-                  sourceId: id,
-                  controller: "corp",
-                  mandatory: true,
-                  effectKey: "onFirstArchivesRunBeginThisTurn",
-                  logLine: `${card.title} becomes pending — first Archives run begin this turn.`,
-                });
-              }
-            }
-            fireStoredConditionals(s, archivesRun);
-          }
+          noteFirstArchivesRunBegin(s);
         }
+        checkpointAfterInstruction(s, "run.begin");
         // Daredevil: first run each turn on server with ≥N ice → draw.
         if (!s.turn.daredevilDrawUsedThisTurn && s.run) {
           const server = s.servers[s.run.attackedServerId];
