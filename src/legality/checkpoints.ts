@@ -98,6 +98,7 @@ import {
   PREDICATE_BYPASS,
   PREDICATE_APPROACH_ICE,
   PREDICATE_FIRST_SUCCESSFUL_RD_RUN_END,
+  PREDICATE_SUCCESSFUL_RUN_ON_RD,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2085,6 +2086,39 @@ function markFirstSuccessfulRdRunEnd(
   }
 }
 
+/** Runner onSuccessfulRunOnRd (phase 3). */
+function markSuccessfulRunOnRd(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_SUCCESSFUL_RUN_ON_RD,
+  );
+  if (match.kind !== "successful_run_on_rd" || match.cardIds.length === 0) {
+    state.turn.successfulRunOnRdPendingIds = [];
+    return;
+  }
+  const cardIds = match.cardIds;
+  state.turn.successfulRunOnRdPendingIds = [];
+  for (const cardId of cardIds) {
+    if (abilitiesSuppressed(state, cardId)) continue;
+    const card = state.cards[cardId];
+    if (!card?.onSuccessfulRunOnRd) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-successful-run-on-rd",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onSuccessfulRunOnRd",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — successful run on R&D.`,
+    );
+  }
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -2710,6 +2744,7 @@ function markConditionalAbilities(state: GameState): void {
   markBypass(state, diff);
   markApproachIce(state, diff);
   markFirstSuccessfulRdRunEnd(state, diff);
+  markSuccessfulRunOnRd(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

@@ -117,6 +117,7 @@ import {
   noteFirstSuccessfulRunOnRdEnds,
   noteOnApproachIce,
 } from "../state/approachIceHooks.js";
+import { noteSuccessfulRunOnRd } from "../state/successfulRunOnRdHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -4556,22 +4557,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               `${card.title} becomes pending — successful run (Caïssa advance).`,
             );
           }
-          // Chakana: fire whenever the successful run was on R&D specifically.
+          // Chakana: successful run on R&D — note for 10.3.1a.
           if (s.run!.attackedServerId === "rd") {
-            const rdItems: StoredConditionalMark[] = [];
             for (const id of s.runner.installed) {
-              const card = s.cards[id];
-              if (!card?.onSuccessfulRunOnRd) continue;
-              rdItems.push({
-                abilityKey: "on-successful-run-on-rd",
-                sourceId: id,
-                controller: "runner",
-                mandatory: true,
-                effectKey: "onSuccessfulRunOnRd",
-                logLine: `${card.title} becomes pending — successful run on R&D.`,
-              });
+              noteSuccessfulRunOnRd(s, id);
             }
-            fireStoredConditionals(s, rdItems);
+            if ((s.turn.successfulRunOnRdPendingIds ?? []).length > 0) {
+              checkpointAfterInstruction(s, "run.success");
+            }
           }
           // Mu Safecracker-class: may pay for bonus access on successful HQ/R&D.
           for (const id of s.runner.installed) {
