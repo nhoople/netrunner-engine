@@ -1177,6 +1177,83 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks successful-run / run-end / access inlines at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } = await import(
+      "../src/state/inlineConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const hat = instantiateCard("top-hat", "th-1", "runner:installed");
+    const boom = instantiateCard("boomerang", "boom-1", "runner:heap");
+    const aeneas = instantiateCard("aeneas-informant", "ae-1", "runner:installed");
+    s.cards["th-1"] = hat;
+    s.cards["boom-1"] = boom;
+    s.cards["ae-1"] = aeneas;
+    s.runner.installed = ["th-1", "ae-1"];
+    s.runner.discardPile = ["boom-1"];
+
+    noteInlineConditional(s, {
+      cardId: "th-1",
+      abilityKey: "top-hat-may-instead-of-breach",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: { kind: "top_hat_may_instead_of_breach", n: 5 },
+      },
+      logLine: `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
+    });
+    noteInlineConditional(s, {
+      cardId: "boom-1",
+      abilityKey: "may-shuffle-title-from-heap-on-successful-run-end",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: {
+          kind: "may_shuffle_title_from_heap_into_stack",
+          title: "Boomerang",
+        },
+      },
+      logLine: `${boom.title} becomes pending — successful run end (may shuffle from heap).`,
+      independentOfSource: true,
+    });
+    noteInlineConditional(s, {
+      cardId: "ae-1",
+      abilityKey: "aeneas-may-reveal-gain-on-access-without-trash",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: { kind: "may_reveal_aeneas_gain_one", cardId: "x-1" },
+      },
+      logLine: `${aeneas.title} becomes pending — access without trash (may reveal and gain).`,
+    });
+    expect(s.turn.inlineConditionalPending).toHaveLength(3);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "run success/end/access inline",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful R&D run (may instead of breach)"),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run end (may shuffle from heap)"),
+      ),
+    ).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — access without trash (may reveal and gain)"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks host-rez-state at 10.3.1a (phase 3 scanner)", async () => {
     const { noteHostRezStateTriggers } = await import(
       "../src/state/iceRezHooks.js"
