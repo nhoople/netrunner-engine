@@ -423,6 +423,10 @@ export type TriggerPredicate =
   | {
       /** Synthesized inline Effect conditionals since previous checkpoint. */
       kind: "inline_conditional";
+    }
+  | {
+      /** Off-graph stored Effect-key conditionals since previous checkpoint. */
+      kind: "stored_conditional_note";
     };
 
 export type TriggerPredicateMatch =
@@ -819,6 +823,17 @@ export type TriggerPredicateMatch =
         effect: import("../effects/ir.js").Effect;
         logLine: string;
         independentOfSource?: boolean;
+      }>;
+    }
+  | {
+      kind: "stored_conditional_note";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
+        controller: "corp" | "runner";
+        mandatory: boolean;
+        logLine: string;
       }>;
     };
 
@@ -1395,6 +1410,13 @@ export function evaluateTriggerPredicate(
         marks: [...(state.turn.inlineConditionalPending ?? [])],
       };
     }
+    case "stored_conditional_note": {
+      void diff;
+      return {
+        kind: "stored_conditional_note",
+        marks: [...(state.turn.storedConditionalPending ?? [])],
+      };
+    }
   }
 }
 
@@ -1798,4 +1820,8 @@ export const PREDICATE_ICE_REZ_ABILITY: TriggerPredicate = {
 
 export const PREDICATE_INLINE_CONDITIONAL: TriggerPredicate = {
   kind: "inline_conditional",
+};
+
+export const PREDICATE_STORED_CONDITIONAL_NOTE: TriggerPredicate = {
+  kind: "stored_conditional_note",
 };

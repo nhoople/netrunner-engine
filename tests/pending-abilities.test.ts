@@ -1177,6 +1177,59 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks stored on-advance / on-score notes at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteStoredConditional } = await import(
+      "../src/state/storedConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "pr-1",
+      "corp:score-area",
+    );
+    s.cards["pad-1"] = pad;
+    s.cards["pr-1"] = agenda;
+    s.corp.scoreArea = ["pr-1"];
+    s.servers.remote1 = {
+      id: "remote1",
+      ice: [],
+      root: ["pad-1"],
+    } as (typeof s.servers)["hq"];
+
+    noteStoredConditional(s, {
+      cardId: "pad-1",
+      abilityKey: "on-advance",
+      effectKey: "onAdvance",
+      controller: "corp",
+      mandatory: true,
+      logLine: `${pad.title} becomes pending — advanced.`,
+    });
+    noteStoredConditional(s, {
+      cardId: "pr-1",
+      abilityKey: "on-score",
+      effectKey: "onScore",
+      controller: "corp",
+      mandatory: true,
+      logLine: `${agenda.title} becomes pending — scored.`,
+    });
+    expect(s.turn.storedConditionalPending).toHaveLength(2);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "stored score/advance",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.storedConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — advanced.")),
+    ).toBe(true);
+    expect(
+      s.log.some((line) => line.includes("becomes pending — scored.")),
+    ).toBe(true);
+  });
+
   it("marks score/steal and advance inlines at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } = await import(
       "../src/state/inlineConditionalHooks.js"

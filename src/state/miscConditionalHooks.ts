@@ -9,6 +9,7 @@ import {
   fireStoredConditionals,
   type StoredConditionalMark,
 } from "./storedTriggers.js";
+import { noteStoredConditional } from "./storedConditionalHooks.js";
 
 function fire(
   state: GameState,
@@ -257,24 +258,26 @@ export function fireOnCorpBasicClickForCreditOrDraw(
   );
 }
 
+/** Note onAgendaScoredOrStolen for 10.3.1a (phase 3). Returns true if any noted. */
 export function fireOnAgendaScoredOrStolen(
   state: GameState,
   sourceIds: string[],
 ): boolean {
-  const items: StoredConditionalMark[] = [];
+  let noted = false;
   for (const id of sourceIds) {
     const card = state.cards[id];
     if (!card?.onAgendaScoredOrStolen) continue;
-    items.push({
+    noteStoredConditional(state, {
+      cardId: id,
       abilityKey: "on-agenda-scored-or-stolen",
-      sourceId: id,
+      effectKey: "onAgendaScoredOrStolen",
       controller: card.side === "corp" ? "corp" : "runner",
       mandatory: true,
-      effectKey: "onAgendaScoredOrStolen",
       logLine: `${card.title} becomes pending — agenda scored or stolen.`,
     });
+    noted = true;
   }
-  return fireStoredConditionals(state, items);
+  return noted;
 }
 
 export function fireOnAgendaScoredFromThisServer(

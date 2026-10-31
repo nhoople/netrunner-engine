@@ -119,6 +119,7 @@ import {
   PREDICATE_BEFORE_FIRST_TURN,
   PREDICATE_ICE_REZ_ABILITY,
   PREDICATE_INLINE_CONDITIONAL,
+  PREDICATE_STORED_CONDITIONAL_NOTE,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2394,6 +2395,37 @@ function markInlineConditional(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Off-graph stored Effect-key conditionals (phase 3). */
+function markStoredConditionalNote(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_STORED_CONDITIONAL_NOTE,
+  );
+  if (match.kind !== "stored_conditional_note" || match.marks.length === 0) {
+    state.turn.storedConditionalPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.storedConditionalPending = [];
+  for (const m of marks) {
+    if (abilitiesSuppressed(state, m.cardId)) continue;
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: m.controller,
+      mandatory: m.mandatory,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: m.effectKey as StoredConditionalEffectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
 /** Host / any-ice / protecting-server rez conditionals (phase 3). */
 function markIceRezAbility(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -3412,6 +3444,7 @@ function markConditionalAbilities(state: GameState): void {
   markBeforeFirstTurn(state, diff);
   markIceRezAbility(state, diff);
   markInlineConditional(state, diff);
+  markStoredConditionalNote(state, diff);
   markRunBegin(state, diff);
   markCorpTurnEnd(state, diff);
   markScoreTurnEnd(state, diff);
