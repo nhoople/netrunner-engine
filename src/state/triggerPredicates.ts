@@ -311,6 +311,14 @@ export type TriggerPredicate =
   | {
       /** Ice onEncounterEndIfPrintedSubroutineBroken (ice ids queued). */
       kind: "encounter_end_printed_subroutine_broken";
+    }
+  | {
+      /** Hosted onHostEncounter since previous checkpoint (host ice ids). */
+      kind: "host_encounter";
+    }
+  | {
+      /** Runner identity onEncounterRezzedAfterApproach. */
+      kind: "encounter_rezzed_after_approach";
     };
 
 export type TriggerPredicateMatch =
@@ -528,6 +536,14 @@ export type TriggerPredicateMatch =
   | {
       kind: "encounter_end_printed_subroutine_broken";
       iceIds: string[];
+    }
+  | {
+      kind: "host_encounter";
+      iceIds: string[];
+    }
+  | {
+      kind: "encounter_rezzed_after_approach";
+      matched: boolean;
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -905,6 +921,20 @@ export function evaluateTriggerPredicate(
         iceIds: [...(state.turn.encounterEndPrintedSubBrokenPendingIds ?? [])],
       };
     }
+    case "host_encounter": {
+      void diff;
+      return {
+        kind: "host_encounter",
+        iceIds: [...(state.turn.hostEncounterPendingIceIds ?? [])],
+      };
+    }
+    case "encounter_rezzed_after_approach": {
+      void diff;
+      return {
+        kind: "encounter_rezzed_after_approach",
+        matched: state.turn.encounterRezzedAfterApproachMetPending,
+      };
+    }
   }
 }
 
@@ -1197,3 +1227,11 @@ export const PREDICATE_ENCOUNTER_END_PRINTED_SUBROUTINE_BROKEN: TriggerPredicate
   {
     kind: "encounter_end_printed_subroutine_broken",
   };
+
+export const PREDICATE_HOST_ENCOUNTER: TriggerPredicate = {
+  kind: "host_encounter",
+};
+
+export const PREDICATE_ENCOUNTER_REZZED_AFTER_APPROACH: TriggerPredicate = {
+  kind: "encounter_rezzed_after_approach",
+};

@@ -101,9 +101,7 @@ import {
 } from "../state/storedTriggers.js";
 import {
   fireOnApproachServer,
-  fireOnEncounterRezzedAfterApproach,
   fireOnFirstSuccessfulRunOnRdEndsThisTurn,
-  fireOnHostEncounter,
   fireOnPassAllIceProtectingServer,
 } from "../state/runTimingHooks.js";
 import {
@@ -112,6 +110,10 @@ import {
   noteEncounterEndIfRezzed,
   noteEncounterEndIfRezzedThisTurn,
 } from "../state/encounterEndHooks.js";
+import {
+  noteEncounterRezzedAfterApproach,
+  noteHostEncounter,
+} from "../state/hostEncounterHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -2455,7 +2457,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.run?.iceRezzedDuringApproachId === iceId &&
             s.cards[s.runner.identityId]?.onEncounterRezzedAfterApproach
           ) {
-            fireOnEncounterRezzedAfterApproach(s);
+            noteEncounterRezzedAfterApproach(s);
           }
           grantTldrSubroutineCopies(s, iceId);
           runState.encounter = {
@@ -2968,7 +2970,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !s.pendingChoice &&
           !(runState.bypassedIceIds ?? []).includes(iceId)
         ) {
-          fireOnHostEncounter(s, iceId);
+          noteHostEncounter(s, iceId);
         }
         if (runState.skipOnEncounterOnce) {
           runState.skipOnEncounterOnce = false;
