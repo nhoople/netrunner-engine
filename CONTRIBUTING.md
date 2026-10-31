@@ -29,4 +29,4 @@ Setup: `npm ci && npm run prepare-data && npm run lint && npm run typecheck && n
 
 Development hosts (library API only — no UI/network): `npm run demo:library`, `npm run demo`, `npm run cli:help`.
 
-**Pins today:** CR `v26.03`; cards-data **`v1.147.13`** ↔ engine **`v1.147.214`** (cards stored by side and type; deck limits, printings, verified rulings, and format lists). Title corpus unchanged from `v1.147.6`. Idle until next NSG pack after VP or a CR bump.
+**Pins today:** CR `v26.03`; cards-data **`v1.147.13`** ↔ engine **`v1.147.215`** (cards stored by side and type; deck limits, printings, verified rulings, and format lists). Title corpus unchanged from `v1.147.6`. Idle until next NSG pack after VP or a CR bump.
