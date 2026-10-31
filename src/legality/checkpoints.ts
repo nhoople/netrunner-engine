@@ -111,6 +111,7 @@ import {
   PREDICATE_SCORE_TURN_END,
   PREDICATE_SUCCESSFUL_RUN_SERVER,
   PREDICATE_UNSUCCESSFUL_RUN_SERVER,
+  PREDICATE_ACCESS_ABILITY,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2350,6 +2351,37 @@ function markSuccessfulRunServer(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Access-step conditionals (phase 3). */
+function markAccessAbility(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ACCESS_ABILITY,
+  );
+  if (match.kind !== "access_ability" || match.marks.length === 0) {
+    state.turn.accessAbilityPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.accessAbilityPending = [];
+  for (const m of marks) {
+    if (abilitiesSuppressed(state, m.cardId)) continue;
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: m.controller,
+      mandatory: m.mandatory,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: m.effectKey as StoredConditionalEffectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
 /** onUnsuccessfulRunOnThisServer (phase 3). */
 function markUnsuccessfulRunServer(
   state: GameState,
@@ -3140,6 +3172,7 @@ function markConditionalAbilities(state: GameState): void {
   markSuccessfulRun(state, diff);
   markSuccessfulRunServer(state, diff);
   markUnsuccessfulRunServer(state, diff);
+  markAccessAbility(state, diff);
   markRunBegin(state, diff);
   markCorpTurnEnd(state, diff);
   markScoreTurnEnd(state, diff);

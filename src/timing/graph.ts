@@ -86,13 +86,15 @@ import {
   fireRunnerActionPhaseEnd,
 } from "../state/phaseEndHooks.js";
 import {
-  fireAccessedCardAbilities,
   fireCompileFirstEncounter,
   fireEncounterAnyIceOncePerTurn,
-  fireFinishAccessRdOncePerTurn,
   fireInlineConditional,
   resolveStoredConditionalPendings,
 } from "../state/storedTriggers.js";
+import {
+  noteAccessedCardAbilities,
+  noteFinishAccessRdOncePerTurn,
+} from "../state/accessAbilityHooks.js";
 import { noteSuccessfulRunServerAbilities } from "../state/successfulRunServerHooks.js";
 import { noteUnsuccessfulRunServerAbilities } from "../state/unsuccessfulRunServerHooks.js";
 import {
@@ -5452,7 +5454,10 @@ export const STEPS: Record<string, TimingStepDef> = {
             `${accessed.title} — Runner takes ${n} tag(s) on access → ${s.runner.tags}.`,
           );
         }
-        fireAccessedCardAbilities(s);
+        noteAccessedCardAbilities(s);
+        if ((s.turn.accessAbilityPending ?? []).length > 0) {
+          checkpointAfterInstruction(s, "access.cardAccessed");
+        }
       },
     },
   ),
@@ -5495,7 +5500,10 @@ export const STEPS: Record<string, TimingStepDef> = {
     "breach.access",
     {
       onResolve: (s) => {
-        fireFinishAccessRdOncePerTurn(s);
+        noteFinishAccessRdOncePerTurn(s);
+        if ((s.turn.accessAbilityPending ?? []).length > 0) {
+          checkpointAfterInstruction(s, "access.complete");
+        }
         const accessedId = s.run?.accessingCardId;
         if (accessedId) {
           const accessed = s.cards[accessedId];

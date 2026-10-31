@@ -120,6 +120,12 @@ export function pendingAbilitySourceStillActive(
     inst.sourceId === state.corp.identityId ||
     inst.sourceId === state.runner.identityId ||
     card.type === "identity";
+  // The card currently being accessed may fire its access abilities from HQ,
+  // R&D, or Archives (CR 7.1 / 11.6) even though those zones are otherwise
+  // inactive for pending sources (CR 9.6.10).
+  if (state.run?.accessingCardId === inst.sourceId) {
+    return !abilitiesSuppressed(state, inst.sourceId);
+  }
   if (!isIdentity) {
     const z = card.zone ?? "";
     if (
