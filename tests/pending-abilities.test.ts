@@ -978,6 +978,102 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks encounter-any-ice once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteEncounterAnyIceOncePerTurn } = await import(
+      "../src/state/encounterAbilityHooks.js"
+    );
+    const s = createInitialState();
+    const pancha = instantiateCard("panchatantra", "pan-1", "runner:installed");
+    s.cards["pan-1"] = pancha;
+    s.runner.installed = ["pan-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "iw-1", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    noteEncounterAnyIceOncePerTurn(s);
+    expect(s.turn.encounterAnyIceHookFiredThisTurn).toBe(true);
+    expect(s.run?.firstEncounteredIceId).toBe("iw-1");
+    expect(s.turn.encounterAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "pan-1",
+        effectKey: "onEncounterAnyIceOncePerTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.encounterAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — encounter ice, once this turn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Compile first-encounter at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteCompileFirstEncounter } = await import(
+      "../src/state/encounterAbilityHooks.js"
+    );
+    const s = createInitialState();
+    const compile = instantiateCard("compile", "cmp-1", "runner:play-area");
+    s.cards["cmp-1"] = compile;
+    s.playedRunEventId = "cmp-1";
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "iw-1", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      compileFirstEncounterFired: false,
+    };
+    noteCompileFirstEncounter(s);
+    expect(s.run?.compileFirstEncounterFired).toBe(true);
+    expect(s.turn.encounterAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "cmp-1",
+        effectKey: "runEvent.onFirstEncounterThisRun",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.encounterAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first encounter this run"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Corp action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteCorpActionPhaseEnd } = await import(
       "../src/state/phaseEndHooks.js"

@@ -168,6 +168,7 @@ export {
   PREDICATE_ACCESS_ABILITY,
   PREDICATE_CORP_ACTION_PHASE_END,
   PREDICATE_RUNNER_ACTION_PHASE_END,
+  PREDICATE_ENCOUNTER_ABILITY,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
