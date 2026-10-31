@@ -101,15 +101,17 @@ import {
 } from "../state/storedTriggers.js";
 import {
   fireOnApproachServer,
-  fireOnEncounterEndIfNotFullyBroken,
-  fireOnEncounterEndIfPrintedSubroutineBroken,
-  fireOnEncounterEndIfRezzed,
-  fireOnEncounterEndIfRezzedThisTurn,
   fireOnEncounterRezzedAfterApproach,
   fireOnFirstSuccessfulRunOnRdEndsThisTurn,
   fireOnHostEncounter,
   fireOnPassAllIceProtectingServer,
 } from "../state/runTimingHooks.js";
+import {
+  noteEncounterEndIfNotFullyBroken,
+  noteEncounterEndIfPrintedSubroutineBroken,
+  noteEncounterEndIfRezzed,
+  noteEncounterEndIfRezzedThisTurn,
+} from "../state/encounterEndHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -2372,7 +2374,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? []).map(() => true),
           };
           fireOnBypassTriggers(s, iceId);
-          fireOnEncounterEndIfRezzed(s, iceId);
+          noteEncounterEndIfRezzed(s, iceId);
         }
         // Inside Job / S-Dobrado: bypass first encounter
         if (runState.bypassFirstEncounter && !iceBypassBlockedByServerUpgrade(s, iceId)) {
@@ -2387,7 +2389,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? []).map(() => true),
           };
           fireOnBypassTriggers(s, iceId);
-          fireOnEncounterEndIfRezzed(s, iceId);
+          noteEncounterEndIfRezzed(s, iceId);
         }
         // Spear Phishing: bypass the innermost ice protecting the server.
         if (runState.bypassInnermostEncounter) {
@@ -2411,7 +2413,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 broken: (ice.subroutines ?? []).map(() => true),
               };
               fireOnBypassTriggers(s, iceId);
-              fireOnEncounterEndIfRezzed(s, iceId);
+              noteEncounterEndIfRezzed(s, iceId);
             }
           }
         }
@@ -3498,23 +3500,23 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
               notePassHost(s, iceId);
             }
-            // Cloud Eater: encounter end if rezzed this turn.
+            // Cloud Eater: encounter end if rezzed this turn — queue for 10.3.1a.
             if (
               ice.onEncounterEndIfRezzedThisTurn &&
               (s.turn.rezzedThisTurnIds ?? []).includes(iceId) &&
               !(runState.bypassedIceIds ?? []).includes(iceId)
             ) {
-              fireOnEncounterEndIfRezzedThisTurn(s, iceId);
+              noteEncounterEndIfRezzedThisTurn(s, iceId);
             }
             // Knowledge Seeker: whenever an encounter with this ice ends.
-            fireOnEncounterEndIfRezzed(s, iceId);
+            noteEncounterEndIfRezzed(s, iceId);
             // Anansi: encounter ends without full break → net damage.
             if (
               ice.onEncounterEndIfNotFullyBroken &&
               ice.rezzed &&
               !runState.encounter?.fullyBrokenByRunner
             ) {
-              fireOnEncounterEndIfNotFullyBroken(s, iceId);
+              noteEncounterEndIfNotFullyBroken(s, iceId);
             }
             // Mirāju: if Runner broke printed subroutine, redirect to Archives.
             if (
@@ -3532,7 +3534,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               // Simpler: any broken sub counts as printed for Mirāju (single printed sub).
               const anyBroken = broken.some(Boolean);
               if (printedBroken || anyBroken) {
-                fireOnEncounterEndIfPrintedSubroutineBroken(s, iceId);
+                noteEncounterEndIfPrintedSubroutineBroken(s, iceId);
               }
             }
             // Weyland Builder of Nations: first advanced-ice encounter end → 1 meat.

@@ -703,6 +703,32 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks encounter-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteEncounterEndIfRezzed } = await import(
+      "../src/state/encounterEndHooks.js"
+    );
+    const s = createInitialState();
+    const ice = instantiateCard("knowledge-seeker", "ks-1", "server:hq:ice");
+    ice.rezzed = true;
+    s.cards["ks-1"] = ice;
+    s.servers.hq.ice = ["ks-1"];
+    noteEncounterEndIfRezzed(s, "ks-1");
+    expect(s.turn.encounterEndPendingIds).toEqual(["ks-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.encounterEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — encounter ends"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"

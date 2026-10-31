@@ -295,6 +295,22 @@ export type TriggerPredicate =
   | {
       /** Upgrade onPassRezzedIceProtectingThisServer (server ids queued). */
       kind: "pass_rezzed_ice_protecting_server";
+    }
+  | {
+      /** Ice onEncounterEnd since previous checkpoint (ice ids queued). */
+      kind: "encounter_end";
+    }
+  | {
+      /** Ice onEncounterEndIfRezzedThisTurn (ice ids queued). */
+      kind: "encounter_end_rezzed_this_turn";
+    }
+  | {
+      /** Ice onEncounterEndIfNotFullyBroken (ice ids queued). */
+      kind: "encounter_end_not_fully_broken";
+    }
+  | {
+      /** Ice onEncounterEndIfPrintedSubroutineBroken (ice ids queued). */
+      kind: "encounter_end_printed_subroutine_broken";
     };
 
 export type TriggerPredicateMatch =
@@ -496,6 +512,22 @@ export type TriggerPredicateMatch =
   | {
       kind: "pass_rezzed_ice_protecting_server";
       serverIds: string[];
+    }
+  | {
+      kind: "encounter_end";
+      iceIds: string[];
+    }
+  | {
+      kind: "encounter_end_rezzed_this_turn";
+      iceIds: string[];
+    }
+  | {
+      kind: "encounter_end_not_fully_broken";
+      iceIds: string[];
+    }
+  | {
+      kind: "encounter_end_printed_subroutine_broken";
+      iceIds: string[];
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -845,6 +877,34 @@ export function evaluateTriggerPredicate(
         serverIds: [...(state.turn.passProtectingServerPendingIds ?? [])],
       };
     }
+    case "encounter_end": {
+      void diff;
+      return {
+        kind: "encounter_end",
+        iceIds: [...(state.turn.encounterEndPendingIds ?? [])],
+      };
+    }
+    case "encounter_end_rezzed_this_turn": {
+      void diff;
+      return {
+        kind: "encounter_end_rezzed_this_turn",
+        iceIds: [...(state.turn.encounterEndRezzedThisTurnPendingIds ?? [])],
+      };
+    }
+    case "encounter_end_not_fully_broken": {
+      void diff;
+      return {
+        kind: "encounter_end_not_fully_broken",
+        iceIds: [...(state.turn.encounterEndNotFullyBrokenPendingIds ?? [])],
+      };
+    }
+    case "encounter_end_printed_subroutine_broken": {
+      void diff;
+      return {
+        kind: "encounter_end_printed_subroutine_broken",
+        iceIds: [...(state.turn.encounterEndPrintedSubBrokenPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1120,3 +1180,20 @@ export const PREDICATE_PASS_HOST: TriggerPredicate = {
 export const PREDICATE_PASS_REZZED_ICE_PROTECTING_SERVER: TriggerPredicate = {
   kind: "pass_rezzed_ice_protecting_server",
 };
+
+export const PREDICATE_ENCOUNTER_END: TriggerPredicate = {
+  kind: "encounter_end",
+};
+
+export const PREDICATE_ENCOUNTER_END_REZZED_THIS_TURN: TriggerPredicate = {
+  kind: "encounter_end_rezzed_this_turn",
+};
+
+export const PREDICATE_ENCOUNTER_END_NOT_FULLY_BROKEN: TriggerPredicate = {
+  kind: "encounter_end_not_fully_broken",
+};
+
+export const PREDICATE_ENCOUNTER_END_PRINTED_SUBROUTINE_BROKEN: TriggerPredicate =
+  {
+    kind: "encounter_end_printed_subroutine_broken",
+  };
