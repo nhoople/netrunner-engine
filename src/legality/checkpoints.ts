@@ -93,6 +93,8 @@ import {
   PREDICATE_ENCOUNTER_END_PRINTED_SUBROUTINE_BROKEN,
   PREDICATE_HOST_ENCOUNTER,
   PREDICATE_ENCOUNTER_REZZED_AFTER_APPROACH,
+  PREDICATE_APPROACH_SERVER,
+  PREDICATE_PASS_ALL_ICE_PROTECTING_SERVER,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -1906,6 +1908,81 @@ function markEncounterRezzedAfterApproach(
   );
 }
 
+/** Root onApproachServer (phase 3). */
+function markApproachServer(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_APPROACH_SERVER,
+  );
+  if (match.kind !== "approach_server" || match.cardIds.length === 0) {
+    state.turn.approachServerPendingIds = [];
+    return;
+  }
+  const cardIds = match.cardIds;
+  state.turn.approachServerPendingIds = [];
+  for (const cardId of cardIds) {
+    if (abilitiesSuppressed(state, cardId)) continue;
+    const card = state.cards[cardId];
+    if (!card?.rezzed || !card.onApproachServer) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-approach-server",
+      sourceId: card.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onApproachServer",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — server approached.`,
+    );
+  }
+}
+
+/** Root onPassAllIceProtectingServer (phase 3). */
+function markPassAllIceProtectingServer(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_PASS_ALL_ICE_PROTECTING_SERVER,
+  );
+  if (
+    match.kind !== "pass_all_ice_protecting_server" ||
+    match.serverIds.length === 0
+  ) {
+    state.turn.passAllIceProtectingServerPendingIds = [];
+    return;
+  }
+  const serverIds = match.serverIds;
+  state.turn.passAllIceProtectingServerPendingIds = [];
+  for (const serverId of serverIds) {
+    const server = state.servers[serverId as keyof typeof state.servers];
+    for (const id of server?.root ?? []) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.onPassAllIceProtectingServer) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-pass-all-ice-protecting-server",
+        sourceId: card.id,
+        controller: "corp",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onPassAllIceProtectingServer",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${card.title} becomes pending — all ice protecting this server passed.`,
+      );
+    }
+  }
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -2526,6 +2603,8 @@ function markConditionalAbilities(state: GameState): void {
   markEncounterEndPrintedSubroutineBroken(state, diff);
   markHostEncounter(state, diff);
   markEncounterRezzedAfterApproach(state, diff);
+  markApproachServer(state, diff);
+  markPassAllIceProtectingServer(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

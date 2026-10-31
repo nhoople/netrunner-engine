@@ -319,6 +319,14 @@ export type TriggerPredicate =
   | {
       /** Runner identity onEncounterRezzedAfterApproach. */
       kind: "encounter_rezzed_after_approach";
+    }
+  | {
+      /** Root onApproachServer since previous checkpoint (card ids). */
+      kind: "approach_server";
+    }
+  | {
+      /** Root onPassAllIceProtectingServer (server ids). */
+      kind: "pass_all_ice_protecting_server";
     };
 
 export type TriggerPredicateMatch =
@@ -544,6 +552,14 @@ export type TriggerPredicateMatch =
   | {
       kind: "encounter_rezzed_after_approach";
       matched: boolean;
+    }
+  | {
+      kind: "approach_server";
+      cardIds: string[];
+    }
+  | {
+      kind: "pass_all_ice_protecting_server";
+      serverIds: string[];
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -935,6 +951,20 @@ export function evaluateTriggerPredicate(
         matched: state.turn.encounterRezzedAfterApproachMetPending,
       };
     }
+    case "approach_server": {
+      void diff;
+      return {
+        kind: "approach_server",
+        cardIds: [...(state.turn.approachServerPendingIds ?? [])],
+      };
+    }
+    case "pass_all_ice_protecting_server": {
+      void diff;
+      return {
+        kind: "pass_all_ice_protecting_server",
+        serverIds: [...(state.turn.passAllIceProtectingServerPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1234,4 +1264,12 @@ export const PREDICATE_HOST_ENCOUNTER: TriggerPredicate = {
 
 export const PREDICATE_ENCOUNTER_REZZED_AFTER_APPROACH: TriggerPredicate = {
   kind: "encounter_rezzed_after_approach",
+};
+
+export const PREDICATE_APPROACH_SERVER: TriggerPredicate = {
+  kind: "approach_server",
+};
+
+export const PREDICATE_PASS_ALL_ICE_PROTECTING_SERVER: TriggerPredicate = {
+  kind: "pass_all_ice_protecting_server",
 };
