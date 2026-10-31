@@ -3443,6 +3443,26 @@ export interface TurnBookkeeping {
    * Masanori); marked pending at the next 10.3.1a (phase 3).
    */
   firstUnsuccessfulRunMetPending: boolean;
+  /**
+   * First successful HQ run this turn met since previous checkpoint
+   * (PAN-Weave); marked pending at the next 10.3.1a (phase 3).
+   */
+  firstSuccessfulHqRunMetPending: boolean;
+  /**
+   * First successful HQ or R&D run this turn met since previous checkpoint
+   * (RNG Key); marked pending at the next 10.3.1a (phase 3).
+   */
+  firstSuccessfulHqOrRdRunMetPending: boolean;
+  /**
+   * First successful central run this turn met since previous checkpoint
+   * (Zenit); marked pending at the next 10.3.1a (phase 3).
+   */
+  firstSuccessfulCentralRunMetPending: boolean;
+  /**
+   * First successful mark run this turn met since previous checkpoint
+   * (Virtuoso); marked pending at the next 10.3.1a (phase 3).
+   */
+  firstSuccessfulMarkRunMetPending: boolean;
   /** Carnivore once-per-turn access trash used. */
   carnivoreAccessTrashUsed: boolean;
   /** Neutralize All Threats already checked the first trash-cost access this turn. */

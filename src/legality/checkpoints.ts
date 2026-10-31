@@ -8,6 +8,7 @@ import type {
   RuleCite,
   ServerId,
   Side,
+  StoredConditionalEffectKey,
 } from "../state/types.js";
 import { memoryLimit, programMemoryCosts, usedMemory } from "../state/turn.js";
 import { CR } from "../timing/labels.js";
@@ -19,6 +20,7 @@ import {
   type ValRunnerTriggerFamily,
 } from "../effects/sansanValHooks.js";
 import { firstUnsuccessfulRunSourceIds } from "../state/unsuccessfulRunHooks.js";
+import { firstSuccessfulRunSourceIds } from "../state/firstSuccessfulRunHooks.js";
 import {
   agendaPointsFor,
   checkWinConditions,
@@ -72,6 +74,10 @@ import {
   PREDICATE_FIRST_RD_RUN_BEGIN,
   PREDICATE_FIRST_ARCHIVES_RUN_BEGIN,
   PREDICATE_FIRST_UNSUCCESSFUL_RUN,
+  PREDICATE_FIRST_SUCCESSFUL_HQ_RUN,
+  PREDICATE_FIRST_SUCCESSFUL_HQ_OR_RD_RUN,
+  PREDICATE_FIRST_SUCCESSFUL_CENTRAL_RUN,
+  PREDICATE_FIRST_SUCCESSFUL_MARK_RUN,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -1335,6 +1341,106 @@ function markFirstUnsuccessfulRun(
   }
 }
 
+function markFirstSuccessfulRunFamily(
+  state: GameState,
+  diff: CheckpointDiff,
+  args: {
+    predicate:
+      | typeof PREDICATE_FIRST_SUCCESSFUL_HQ_RUN
+      | typeof PREDICATE_FIRST_SUCCESSFUL_HQ_OR_RD_RUN
+      | typeof PREDICATE_FIRST_SUCCESSFUL_CENTRAL_RUN
+      | typeof PREDICATE_FIRST_SUCCESSFUL_MARK_RUN;
+    metPendingKey:
+      | "firstSuccessfulHqRunMetPending"
+      | "firstSuccessfulHqOrRdRunMetPending"
+      | "firstSuccessfulCentralRunMetPending"
+      | "firstSuccessfulMarkRunMetPending";
+    effectKey: StoredConditionalEffectKey;
+    abilityKey: string;
+    logSuffix: string;
+  },
+): void {
+  const match = evaluateTriggerPredicate(state, diff, args.predicate);
+  if (match.kind !== args.predicate.kind || !("matched" in match) || !match.matched) {
+    state.turn[args.metPendingKey] = false;
+    return;
+  }
+  state.turn[args.metPendingKey] = false;
+  for (const id of firstSuccessfulRunSourceIds(state, args.effectKey)) {
+    const card = state.cards[id];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: args.abilityKey,
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: args.effectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — ${args.logSuffix}.`,
+    );
+  }
+}
+
+/** PAN-Weave: first successful HQ run this turn (phase 3). */
+function markFirstSuccessfulHqRun(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  markFirstSuccessfulRunFamily(state, diff, {
+    predicate: PREDICATE_FIRST_SUCCESSFUL_HQ_RUN,
+    metPendingKey: "firstSuccessfulHqRunMetPending",
+    effectKey: "onFirstSuccessfulHqRunThisTurn",
+    abilityKey: "on-first-successful-hq-run-this-turn",
+    logSuffix: "first successful HQ run this turn",
+  });
+}
+
+/** RNG Key: first successful HQ or R&D run this turn (phase 3). */
+function markFirstSuccessfulHqOrRdRun(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  markFirstSuccessfulRunFamily(state, diff, {
+    predicate: PREDICATE_FIRST_SUCCESSFUL_HQ_OR_RD_RUN,
+    metPendingKey: "firstSuccessfulHqOrRdRunMetPending",
+    effectKey: "onFirstSuccessfulHqOrRdRunThisTurn",
+    abilityKey: "on-first-successful-hq-or-rd-run-this-turn",
+    logSuffix: "first successful HQ or R&D run this turn",
+  });
+}
+
+/** Zenit: first successful central run this turn (phase 3). */
+function markFirstSuccessfulCentralRun(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  markFirstSuccessfulRunFamily(state, diff, {
+    predicate: PREDICATE_FIRST_SUCCESSFUL_CENTRAL_RUN,
+    metPendingKey: "firstSuccessfulCentralRunMetPending",
+    effectKey: "onFirstSuccessfulCentralRunThisTurn",
+    abilityKey: "on-first-successful-central-run-this-turn",
+    logSuffix: "first successful central run this turn",
+  });
+}
+
+/** Virtuoso: first successful mark run this turn (phase 3). */
+function markFirstSuccessfulMarkRun(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  markFirstSuccessfulRunFamily(state, diff, {
+    predicate: PREDICATE_FIRST_SUCCESSFUL_MARK_RUN,
+    metPendingKey: "firstSuccessfulMarkRunMetPending",
+    effectKey: "onFirstSuccessfulMarkRunThisTurn",
+    abilityKey: "on-first-successful-mark-run-this-turn",
+    logSuffix: "first successful run on the mark this turn",
+  });
+}
+
 /**
  * Pravdivost / DreamNet / Enhanced Vision: Valley successful-run ordinals
  * (phase 3 — marked at 10.3.1a). Sources include Corp identity and rezzed
@@ -1853,6 +1959,10 @@ function markConditionalAbilities(state: GameState): void {
   markFirstProgramInstall(state, diff);
   markFirstVirusInstall(state, diff);
   markValSuccessfulRunTriggers(state, diff);
+  markFirstSuccessfulMarkRun(state, diff);
+  markFirstSuccessfulHqRun(state, diff);
+  markFirstSuccessfulHqOrRdRun(state, diff);
+  markFirstSuccessfulCentralRun(state, diff);
   markFirstRunBegin(state, diff);
   markFirstRdRunBegin(state, diff);
   markFirstArchivesRunBegin(state, diff);

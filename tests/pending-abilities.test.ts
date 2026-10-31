@@ -608,6 +608,35 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.runner.tags).toBe(1);
   });
 
+  it("marks first successful HQ run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstSuccessfulHqRun } = await import(
+      "../src/state/firstSuccessfulRunHooks.js"
+    );
+    const s = createInitialState();
+    const pw = instantiateCard("pan-weave", "pw-1", "runner:installed");
+    s.cards["pw-1"] = pw;
+    s.runner.installed = ["pw-1"];
+    s.corp.credits = 5;
+    s.runner.credits = 3;
+    noteFirstSuccessfulHqRun(s);
+    expect(s.turn.firstSuccessfulHqRunMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first successful HQ run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstSuccessfulHqRunMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first successful HQ run this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(4);
+    expect(s.runner.credits).toBe(4);
+  });
+
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } = await import(
       "../src/state/storedTriggers.js"

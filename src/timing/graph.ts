@@ -39,6 +39,12 @@ import {
   noteFirstRunBegin,
 } from "../state/runBeginHooks.js";
 import { noteFirstUnsuccessfulRun } from "../state/unsuccessfulRunHooks.js";
+import {
+  noteFirstSuccessfulCentralRun,
+  noteFirstSuccessfulHqOrRdRun,
+  noteFirstSuccessfulHqRun,
+  noteFirstSuccessfulMarkRun,
+} from "../state/firstSuccessfulRunHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import { log } from "../state/createGame.js";
 import {
@@ -90,10 +96,6 @@ import {
   fireOnFirstEncounterEachRun,
   fireOnFirstPassIceEachTurn,
   fireOnFirstPassRezzedCodeGateOrSentryThisTurn,
-  fireOnFirstSuccessfulCentralRunThisTurn,
-  fireOnFirstSuccessfulHqOrRdRunThisTurn,
-  fireOnFirstSuccessfulHqRunThisTurn,
-  fireOnFirstSuccessfulMarkRunThisTurn,
   fireOnFirstSuccessfulRunOnRdEndsThisTurn,
   fireOnHostEncounter,
   fireOnPassAllIceProtectingServer,
@@ -4884,12 +4886,12 @@ export const STEPS: Record<string, TimingStepDef> = {
             !s.turn.successfulMarkRunThisTurn
           ) {
             s.turn.successfulMarkRunThisTurn = true;
-            fireOnFirstSuccessfulMarkRunThisTurn(s);
+            noteFirstSuccessfulMarkRun(s);
           }
 
           // First successful HQ run this turn (PAN-Weave-class).
           if (firstSuccessfulHq) {
-            fireOnFirstSuccessfulHqRunThisTurn(s);
+            noteFirstSuccessfulHqRun(s);
           }
 
           // First successful HQ or R&D run this turn (RNG Key-class).
@@ -4899,18 +4901,19 @@ export const STEPS: Record<string, TimingStepDef> = {
             !s.turn.dtwnFirstSuccessfulHqOrRdFired
           ) {
             s.turn.dtwnFirstSuccessfulHqOrRdFired = true;
-            fireOnFirstSuccessfulHqOrRdRunThisTurn(s);
+            noteFirstSuccessfulHqOrRdRun(s);
           }
 
           // First successful central run this turn (Zenit-class).
           if (firstSuccessfulCentral) {
-            fireOnFirstSuccessfulCentralRunThisTurn(s);
+            noteFirstSuccessfulCentralRun(s);
           }
 
           // First/second successful run this turn (Pravdivost / John / DreamNet /
-          // Enhanced Vision genetics via Gene Conditioning Shoppe). Queue for
-          // 10.3.1a; checkpoint after this instruction marks pending (phase 3)
-          // and may cease an empty remote before breach (CR 10.3.1h).
+          // Enhanced Vision genetics via Gene Conditioning Shoppe) plus
+          // HQ / HQ-or-R&D / central / mark first-* above. Queue for 10.3.1a;
+          // checkpoint after this instruction marks pending (phase 3) and may
+          // cease an empty remote before breach (CR 10.3.1h).
           noteValSuccessfulRunTrigger(s);
           checkpointAfterInstruction(s, "run.success");
           if (s.run!.deferBreachReplacement && !s.pendingChoice) {
