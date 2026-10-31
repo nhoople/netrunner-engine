@@ -978,6 +978,60 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks outside-pool spend at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOutsidePoolSpendTriggers } = await import(
+      "../src/state/outsidePoolSpend.js"
+    );
+    const s = createInitialState();
+    const grid = instantiateCard(
+      "shackleton-grid",
+      "sg-1",
+      "server:hq:root",
+    );
+    grid.rezzed = true;
+    s.cards["sg-1"] = grid;
+    s.servers.hq.root = ["sg-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "encounter",
+      position: 0,
+      successful: null,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: { iceId: "iw-1", broken: [] },
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+      outsidePoolCreditSpendThisRun: true,
+    };
+    noteOutsidePoolSpendTriggers(s);
+    expect(s.run?.outsidePoolCreditSpendThisRun).toBe(false);
+    expect(s.turn.outsidePoolSpendAbilityUsedIds).toContain("sg-1");
+    expect(s.turn.outsidePoolSpendPending).toEqual([
+      expect.objectContaining({
+        cardId: "sg-1",
+        effectKey: "onSpendCreditsOutsidePoolDuringRunOncePerTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter paw",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.outsidePoolSpendPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — spent credits outside the pool"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks encounter-any-ice once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteEncounterAnyIceOncePerTurn } = await import(
       "../src/state/encounterAbilityHooks.js"

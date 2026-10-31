@@ -158,7 +158,7 @@ import {
 import {
   fireCorpIdentityFlippedSuccessfulHqOrRdRun,
 } from "../state/identityFlipHooks.js";
-import { fireOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
+import { noteOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
 import {
   activeLockdownIds,
   trashActiveLockdownsAtCorpTurnBegin,
@@ -2990,7 +2990,10 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       allows: ["break_subroutine", "break_bioroid_subroutine", "use_paid_ability", "pass_window"],
       onResolve: (s) => {
-        fireOutsidePoolSpendTriggers(s);
+        noteOutsidePoolSpendTriggers(s);
+        if ((s.turn.outsidePoolSpendPending ?? []).length > 0) {
+          checkpointAfterInstruction(s, "run.encounterPaw");
+        }
       },
     },
   ),
