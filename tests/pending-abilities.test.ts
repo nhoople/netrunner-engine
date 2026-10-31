@@ -948,6 +948,31 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks run-begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnRunBegin } = await import(
+      "../src/state/runBeginEffectHooks.js"
+    );
+    const s = createInitialState();
+    const card = instantiateCard("methuselah", "meth-1", "runner:installed");
+    s.cards["meth-1"] = card;
+    s.runner.installed = ["meth-1"];
+    noteOnRunBegin(s, "meth-1");
+    expect(s.turn.runBeginPendingIds).toEqual(["meth-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "run begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runBeginPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — run begins"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks successful-run at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnSuccessfulRun } = await import(
       "../src/state/successfulRunHooks.js"

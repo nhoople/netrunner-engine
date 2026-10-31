@@ -124,6 +124,7 @@ import {
 } from "../state/successfulRunEndHooks.js";
 import { noteSuccessfulRunOtherServer } from "../state/otherServerSuccessHooks.js";
 import { noteOnSuccessfulRun } from "../state/successfulRunHooks.js";
+import { noteOnRunBegin } from "../state/runBeginEffectHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -1763,33 +1764,14 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.initiatePaw",
     {
       onResolve: (s) => {
-        const runBegin: StoredConditionalMark[] = [];
+        // onRunBegin (rig + lockdowns) — note for 10.3.1a with first-* below.
         for (const id of s.runner.installed) {
-          const card = s.cards[id];
-          if (!card?.onRunBegin) continue;
-          runBegin.push({
-            abilityKey: "on-run-begin",
-            sourceId: id,
-            controller: "runner",
-            mandatory: true,
-            effectKey: "onRunBegin",
-            logLine: `${card.title} becomes pending — run begins.`,
-          });
+          noteOnRunBegin(s, id);
         }
         // Active lockdowns in corp:play-area (SYNC Rerouting).
         for (const id of activeLockdownIds(s)) {
-          const card = s.cards[id];
-          if (!card?.onRunBegin) continue;
-          runBegin.push({
-            abilityKey: "on-run-begin",
-            sourceId: id,
-            controller: "corp",
-            mandatory: true,
-            effectKey: "onRunBegin",
-            logLine: `${card.title} becomes pending — run begins.`,
-          });
+          noteOnRunBegin(s, id);
         }
-        fireStoredConditionals(s, runBegin);
         // First-* run begin this turn — queue for 10.3.1a (phase 3).
         if (s.run?.attackedServerId === "rd") {
           noteFirstRdRunBegin(s);
