@@ -143,7 +143,7 @@ import {
   noteRunnerRigTurnBegin,
   noteRunnerScoreOnTurnBegin,
 } from "../state/runnerTurnBeginHooks.js";
-import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
+import { noteOnBeforeFirstTurn } from "../state/beforeFirstTurnHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
   noteApproachIce,
@@ -730,7 +730,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           s,
           `${identity.title} resolves before the Corp's first turn (CR ${CR.beforeFirstTurn.number}).`,
         );
-        fireOnBeforeFirstTurn(s, identity.id);
+        noteOnBeforeFirstTurn(s, identity.id);
+        if ((s.turn.beforeFirstTurnPending ?? []).length > 0) {
+          checkpointAfterInstruction(s, "opening.beforeFirstTurn");
+        }
       },
     },
   ),

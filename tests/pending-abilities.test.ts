@@ -978,6 +978,44 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks before-first-turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnBeforeFirstTurn } = await import(
+      "../src/state/beforeFirstTurnHooks.js"
+    );
+    const s = createInitialState();
+    const seidr = instantiateCard(
+      "seidr-laboratories-destiny-defined",
+      "seidr-1",
+      "corp:identity",
+    );
+    seidr.onBeforeFirstTurn = {
+      op: "do",
+      action: { kind: "gain_credits", side: "corp", amount: 1 },
+    };
+    s.cards["seidr-1"] = seidr;
+    s.corp.identityId = "seidr-1";
+    noteOnBeforeFirstTurn(s, "seidr-1");
+    expect(s.turn.beforeFirstTurnPending).toEqual([
+      expect.objectContaining({
+        cardId: "seidr-1",
+        effectKey: "onBeforeFirstTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "before first turn",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.beforeFirstTurnPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — before first turn"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks outside-pool spend at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOutsidePoolSpendTriggers } = await import(
       "../src/state/outsidePoolSpend.js"
@@ -4218,10 +4256,12 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
   it("marks leftover timed Effect conditionals pending", async () => {
     const {
       fireAfterMandatoryDraw,
-      fireOnBeforeFirstTurn,
       fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun,
       fireOnFirstHardwareUseDuringRunEachTurn,
     } = await import("../src/state/miscConditionalHooks.js");
+    const { noteOnBeforeFirstTurn } = await import(
+      "../src/state/beforeFirstTurnHooks.js"
+    );
     const { maybeFireSeidrOnClickSpendOrLose } = await import(
       "../src/state/clickHooks.js"
     );
@@ -4282,7 +4322,14 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     ).toBe(true);
     expect(s.corp.credits).toBe(1);
 
-    fireOnBeforeFirstTurn(s, "seidr-1");
+    noteOnBeforeFirstTurn(s, "seidr-1");
+    occurCheckpoint(
+      s,
+      "instruction",
+      "before first turn",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     expect(
       s.log.some((line) =>
         line.includes(

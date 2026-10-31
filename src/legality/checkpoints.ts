@@ -116,6 +116,7 @@ import {
   PREDICATE_RUNNER_ACTION_PHASE_END,
   PREDICATE_ENCOUNTER_ABILITY,
   PREDICATE_OUTSIDE_POOL_SPEND,
+  PREDICATE_BEFORE_FIRST_TURN,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2355,6 +2356,37 @@ function markSuccessfulRunServer(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Corp identity before-first-turn (phase 3; CR 1.6.7a). */
+function markBeforeFirstTurn(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_BEFORE_FIRST_TURN,
+  );
+  if (match.kind !== "before_first_turn" || match.marks.length === 0) {
+    state.turn.beforeFirstTurnPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.beforeFirstTurnPending = [];
+  for (const m of marks) {
+    if (abilitiesSuppressed(state, m.cardId)) continue;
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: m.effectKey as StoredConditionalEffectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
 /** Outside-pool spend conditionals (phase 3). */
 function markOutsidePoolSpend(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -3308,6 +3340,7 @@ function markConditionalAbilities(state: GameState): void {
   markRunnerActionPhaseEnd(state, diff);
   markEncounterAbility(state, diff);
   markOutsidePoolSpend(state, diff);
+  markBeforeFirstTurn(state, diff);
   markRunBegin(state, diff);
   markCorpTurnEnd(state, diff);
   markScoreTurnEnd(state, diff);
