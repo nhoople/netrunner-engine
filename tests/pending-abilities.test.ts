@@ -637,6 +637,57 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.runner.credits).toBe(4);
   });
 
+  it("marks Daredevil first-run ice-gte at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteDaredevilFirstRun } = await import(
+      "../src/state/runBeginHooks.js"
+    );
+    const s = createInitialState();
+    const dd = instantiateCard("daredevil", "dd-1", "runner:installed");
+    s.cards["dd-1"] = dd;
+    s.runner.installed = ["dd-1"];
+    for (let i = 0; i < 3; i++) {
+      const id = `stk-dd-${i}`;
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:stack");
+      s.runner.deck.push(id);
+    }
+    const iceA = instantiateCard("ice-wall", "ice-a", "corp:remote-1:ice");
+    const iceB = instantiateCard("ice-wall", "ice-b", "corp:remote-1:ice");
+    s.cards["ice-a"] = iceA;
+    s.cards["ice-b"] = iceB;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["ice-a", "ice-b"],
+      root: [],
+    };
+    s.run = {
+      attackedServerId: "remote-1",
+      position: "approach",
+      successful: null,
+    } as never;
+    const grip0 = s.runner.hand.length;
+    noteDaredevilFirstRun(s);
+    expect(s.turn.daredevilDrawMetPending).toBe(true);
+    expect(s.turn.daredevilDrawUsedThisTurn).toBeFalsy();
+    occurCheckpoint(
+      s,
+      "instruction",
+      "daredevil first run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.daredevilDrawMetPending).toBe(false);
+    expect(s.turn.daredevilDrawUsedThisTurn).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first run on server with 2 ice (draw 2)",
+        ),
+      ),
+    ).toBe(true);
+    expect(s.runner.hand.length).toBe(grip0 + 2);
+  });
+
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } = await import(
       "../src/state/storedTriggers.js"

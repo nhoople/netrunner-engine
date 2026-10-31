@@ -78,6 +78,7 @@ import {
   PREDICATE_FIRST_SUCCESSFUL_HQ_OR_RD_RUN,
   PREDICATE_FIRST_SUCCESSFUL_CENTRAL_RUN,
   PREDICATE_FIRST_SUCCESSFUL_MARK_RUN,
+  PREDICATE_DAREDEVIL_FIRST_RUN_ICE_GTE,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -1442,6 +1443,49 @@ function markFirstSuccessfulMarkRun(
 }
 
 /**
+ * Daredevil: first run this turn on a server with ≥N ice (phase 3 — marked
+ * at 10.3.1a from MetPending).
+ */
+function markDaredevilFirstRun(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_DAREDEVIL_FIRST_RUN_ICE_GTE,
+  );
+  if (match.kind !== "daredevil_first_run_ice_gte" || !match.matched) {
+    state.turn.daredevilDrawMetPending = false;
+    return;
+  }
+  state.turn.daredevilDrawMetPending = false;
+  if (!state.run || state.turn.daredevilDrawUsedThisTurn) return;
+  const iceCount = state.servers[state.run.attackedServerId]?.ice.length ?? 0;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    const spec = card?.drawOnFirstRunEachTurnIfServerIceGte;
+    if (!card || !spec || iceCount < spec.ice) continue;
+    state.turn.daredevilDrawUsedThisTurn = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "daredevil-draw-on-first-run-ice-gte",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "inline_conditional",
+        effect: {
+          op: "do",
+          action: { kind: "draw", side: "runner", amount: spec.draw },
+        },
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first run on server with ${iceCount} ice (draw ${spec.draw}).`,
+    );
+    break;
+  }
+}
+
+/**
  * Pravdivost / DreamNet / Enhanced Vision: Valley successful-run ordinals
  * (phase 3 — marked at 10.3.1a). Sources include Corp identity and rezzed
  * root/ice as well as the Runner rig.
@@ -1966,6 +2010,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstRunBegin(state, diff);
   markFirstRdRunBegin(state, diff);
   markFirstArchivesRunBegin(state, diff);
+  markDaredevilFirstRun(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

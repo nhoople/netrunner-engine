@@ -3481,6 +3481,11 @@ export interface TurnBookkeeping {
   bioroidWorkCrewWindowArmed?: boolean;
   /** Keros Mcintyre: first ice derez credit gain used this turn. */
   kerosMcintyreDerezGainUsedThisTurn?: boolean;
+  /**
+   * Daredevil: first run on a server with ≥N ice met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  daredevilDrawMetPending: boolean;
   /** Daredevil: first run draw used this turn. */
   daredevilDrawUsedThisTurn?: boolean;
   /** Mass-Driver: next encounter first N subs do not resolve. */

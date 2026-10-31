@@ -1,6 +1,6 @@
 /**
  * First-run-begin conditionals (Stegodon / Tributary / Prognostic Q-Loop /
- * Padma / Front Company). Notes MetPending for 10.3.1a (phase 3).
+ * Padma / Front Company / Daredevil). Notes MetPending for 10.3.1a (phase 3).
  */
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
@@ -61,4 +61,22 @@ function anyFirstRunBeginSource(state: GameState): boolean {
     if (state.cards[id]?.onFirstRunBeginThisTurn) return true;
   }
   return false;
+}
+
+/**
+ * Daredevil: first run each turn on a server with ≥N ice. Does not mark
+ * pending; `markConditionalAbilities` owns that (CR 10.3.1a).
+ */
+export function noteDaredevilFirstRun(state: GameState): void {
+  if (state.turn.daredevilDrawUsedThisTurn) return;
+  if (state.turn.daredevilDrawMetPending) return;
+  if (!state.run) return;
+  const iceCount = state.servers[state.run.attackedServerId]?.ice.length ?? 0;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const spec = state.cards[id]?.drawOnFirstRunEachTurnIfServerIceGte;
+    if (!spec || iceCount < spec.ice) continue;
+    state.turn.daredevilDrawMetPending = true;
+    return;
+  }
 }
