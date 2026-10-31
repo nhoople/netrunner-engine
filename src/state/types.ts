@@ -3306,6 +3306,11 @@ export interface TurnBookkeeping {
    * the previous checkpoint. Marked at 10.3.1a (phase 3).
    */
   valBasicClickDrawTriggerPendingCounts: number[];
+  /**
+   * Pravdivost / DreamNet / Enhanced Vision: ordinals of successful runs since
+   * the previous checkpoint. Marked at 10.3.1a (phase 3).
+   */
+  valSuccessfulRunTriggerPendingCounts: number[];
   /** Lethal damage is already resolving, so grip-trash abilities do not (CR 10.4.3). */
   lethalDamageSkippingTrashTriggers?: boolean;
   /** Salvaged Vanadis: next PAW after damage is armed. */

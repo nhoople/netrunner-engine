@@ -123,6 +123,7 @@ export {
   PREDICATE_FIRST_HARDWARE_INSTALL,
   PREDICATE_FIRST_PROGRAM_INSTALL,
   PREDICATE_FIRST_VIRUS_INSTALL,
+  PREDICATE_VAL_SUCCESSFUL_RUN_TRIGGERS,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

@@ -32,6 +32,8 @@ import {
 import { agendaPointsFor } from "../state/scoring.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import { noteValSuccessfulRunTrigger } from "../effects/sansanValHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import { log } from "../state/createGame.js";
 import {
   addBreakerStrengthBoostThisEncounter,
@@ -87,7 +89,6 @@ import {
   fireOnFirstSuccessfulHqRunThisTurn,
   fireOnFirstSuccessfulMarkRunThisTurn,
   fireOnFirstSuccessfulRunOnRdEndsThisTurn,
-  fireOnFirstSuccessfulRunThisTurn,
   fireOnHostEncounter,
   fireOnPassAllIceProtectingServer,
   fireOnPassRezzedIce,
@@ -4311,6 +4312,9 @@ export const STEPS: Record<string, TimingStepDef> = {
       // Breach only after a declared successful run. Blocked success
       // (Crisium/Flagship) leaves successful === null — still skip breach
       // without declaring the run unsuccessful (CR 6.8.4a).
+      // Remote cease at the post-success checkpoint ends the run (CR 4.6.8e /
+      // 10.3.1h) before breach.
+      if (s.run?.endedTheRun) return "run.closePriorityWindows";
       if (s.run?.successful !== true) return "run.closePriorityWindows";
       if (s.run?.skipBreach) return "run.closePriorityWindows";
       return "run.breachLink";
@@ -4321,8 +4325,6 @@ export const STEPS: Record<string, TimingStepDef> = {
         let firstSuccessfulHq = false;
         // Track first successful central before HQ/RD/Archives flags (Zenit-class).
         let firstSuccessfulCentral = false;
-        // Track first successful run of any server (Pravdivost-class).
-        let firstSuccessfulRun = false;
         // Sneakdoor: redirect attacked server before declaring success.
         if (s.run?.redirectSuccessChooseHqOrRd && !s.pendingChoice) {
           s.run.redirectSuccessChooseHqOrRd = false;
@@ -4378,7 +4380,6 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Run reached Success Phase but cannot be declared successful (CR 6.8.4a).`,
           );
         } else {
-          firstSuccessfulRun = !s.turn.successfulRunThisTurn;
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
           fireSuccessfulRunServerAbilities(s);
@@ -4978,46 +4979,11 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
 
           // First/second successful run this turn (Pravdivost / John / DreamNet /
-          // Enhanced Vision genetics via Gene Conditioning Shoppe).
-          {
-            const count = (s.turn.valSuccessfulRunTriggerCount ?? 0) + 1;
-            s.turn.valSuccessfulRunTriggerCount = count;
-            let geneticsThreshold = 1;
-            for (const id of s.runner.installed) {
-              // Gene Conditioning Shoppe-class (CR 9.12.1d when blanked).
-              if (abilitiesSuppressed(s, id)) continue;
-              if (s.cards[id]?.geneticsAlsoTriggerSecondTime) {
-                geneticsThreshold = 2;
-                break;
-              }
-            }
-            if (firstSuccessfulRun || count <= geneticsThreshold) {
-              const eligible: string[] = [];
-              const consider = (cardId: string): void => {
-                const card = s.cards[cardId];
-                if (!card?.onFirstSuccessfulRunThisTurn) return;
-                const isGenetics = (card.subtypes ?? []).includes("genetics");
-                const lim = isGenetics ? geneticsThreshold : 1;
-                if (count > lim) return;
-                eligible.push(cardId);
-              };
-              consider(s.corp.identityId);
-              for (const server of Object.values(s.servers)) {
-                for (const id of [...server.root, ...server.ice]) {
-                  const card = s.cards[id];
-                  if (!card?.rezzed || !card.onFirstSuccessfulRunThisTurn) continue;
-                  if (abilitiesSuppressed(s, id)) continue;
-                  consider(id);
-                }
-              }
-              for (const id of s.runner.installed) {
-                if (abilitiesSuppressed(s, id)) continue;
-                consider(id);
-              }
-              consider(s.runner.identityId);
-              fireOnFirstSuccessfulRunThisTurn(s, eligible);
-            }
-          }
+          // Enhanced Vision genetics via Gene Conditioning Shoppe). Queue for
+          // 10.3.1a; checkpoint after this instruction marks pending (phase 3)
+          // and may cease an empty remote before breach (CR 10.3.1h).
+          noteValSuccessfulRunTrigger(s);
+          checkpointAfterInstruction(s, "run.success");
           if (s.run!.deferBreachReplacement && !s.pendingChoice) {
             openBreachReplacementChoice(s);
           }

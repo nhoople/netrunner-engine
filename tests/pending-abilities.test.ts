@@ -516,6 +516,33 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Valley first successful run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteValSuccessfulRunTrigger } = await import(
+      "../src/effects/sansanValHooks.js"
+    );
+    const s = createInitialState();
+    const id = s.cards[s.corp.identityId];
+    id.onFirstSuccessfulRunThisTurn = fx.gainCredits("corp", 1);
+    s.corp.credits = 0;
+    noteValSuccessfulRunTrigger(s);
+    expect(s.turn.valSuccessfulRunTriggerCount).toBe(1);
+    expect(s.turn.valSuccessfulRunTriggerPendingCounts).toEqual([1]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Valley first successful run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.valSuccessfulRunTriggerPendingCounts).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first successful run this turn"),
+      ),
+    ).toBe(true);
+    expect(s.corp.credits).toBe(1);
+  });
+
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } = await import(
       "../src/state/storedTriggers.js"

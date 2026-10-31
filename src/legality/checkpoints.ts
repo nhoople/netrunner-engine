@@ -15,6 +15,7 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import {
   geneticsTriggerThreshold,
   VAL_RUNNER_TRIGGER_CONFIG,
+  valSuccessfulRunSourceIds,
   type ValRunnerTriggerFamily,
 } from "../effects/sansanValHooks.js";
 import {
@@ -65,6 +66,7 @@ import {
   PREDICATE_FIRST_HARDWARE_INSTALL,
   PREDICATE_FIRST_PROGRAM_INSTALL,
   PREDICATE_FIRST_VIRUS_INSTALL,
+  PREDICATE_VAL_SUCCESSFUL_RUN_TRIGGERS,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -1147,6 +1149,49 @@ function markFirstVirusInstall(state: GameState, diff: CheckpointDiff): void {
   );
 }
 
+/**
+ * Pravdivost / DreamNet / Enhanced Vision: Valley successful-run ordinals
+ * (phase 3 — marked at 10.3.1a). Sources include Corp identity and rezzed
+ * root/ice as well as the Runner rig.
+ */
+function markValSuccessfulRunTriggers(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_VAL_SUCCESSFUL_RUN_TRIGGERS,
+  );
+  if (
+    match.kind !== "val_successful_run_triggers" ||
+    match.ordinals.length === 0
+  ) {
+    state.turn.valSuccessfulRunTriggerPendingCounts = [];
+    return;
+  }
+  for (const ordinal of match.ordinals) {
+    for (const id of valSuccessfulRunSourceIds(state, ordinal)) {
+      const card = state.cards[id];
+      if (!card?.onFirstSuccessfulRunThisTurn) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-first-successful-run-this-turn",
+        sourceId: card.id,
+        controller: card.side === "corp" ? "corp" : "runner",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onFirstSuccessfulRunThisTurn",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${card.title} becomes pending — first successful run this turn.`,
+      );
+    }
+  }
+  state.turn.valSuccessfulRunTriggerPendingCounts = [];
+}
+
 function markRunnerStoredConditionals(
   state: GameState,
   abilityKey: string,
@@ -1621,6 +1666,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstHardwareInstall(state, diff);
   markFirstProgramInstall(state, diff);
   markFirstVirusInstall(state, diff);
+  markValSuccessfulRunTriggers(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
