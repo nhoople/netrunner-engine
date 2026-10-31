@@ -109,6 +109,8 @@ import {
   PREDICATE_CORP_TURN_BEGIN,
   PREDICATE_RUNNER_TURN_BEGIN,
   PREDICATE_SCORE_TURN_END,
+  PREDICATE_SUCCESSFUL_RUN_SERVER,
+  PREDICATE_UNSUCCESSFUL_RUN_SERVER,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2317,6 +2319,73 @@ function markCorpTurnEnd(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Corp root successful-run server abilities (phase 3). */
+function markSuccessfulRunServer(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_SUCCESSFUL_RUN_SERVER,
+  );
+  if (match.kind !== "successful_run_server" || match.marks.length === 0) {
+    state.turn.successfulRunServerPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.successfulRunServerPending = [];
+  for (const m of marks) {
+    if (abilitiesSuppressed(state, m.cardId)) continue;
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: "corp",
+      mandatory: m.mandatory,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: m.effectKey as StoredConditionalEffectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
+/** onUnsuccessfulRunOnThisServer (phase 3). */
+function markUnsuccessfulRunServer(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_UNSUCCESSFUL_RUN_SERVER,
+  );
+  if (match.kind !== "unsuccessful_run_server" || match.cardIds.length === 0) {
+    state.turn.unsuccessfulRunServerPendingIds = [];
+    return;
+  }
+  const cardIds = match.cardIds;
+  state.turn.unsuccessfulRunServerPendingIds = [];
+  for (const cardId of cardIds) {
+    if (abilitiesSuppressed(state, cardId)) continue;
+    const card = state.cards[cardId];
+    if (!card?.rezzed || !card.onUnsuccessfulRunOnThisServer) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-unsuccessful-run-on-this-server",
+      sourceId: card.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onUnsuccessfulRunOnThisServer",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — unsuccessful run on this server (CR ${CR.unsuccessfulRun.number}).`,
+    );
+  }
+}
+
 /** onScoreTurnEnd (phase 3). */
 function markScoreTurnEnd(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(state, diff, PREDICATE_SCORE_TURN_END);
@@ -3069,6 +3138,8 @@ function markConditionalAbilities(state: GameState): void {
   markSuccessfulRunEnd(state, diff);
   markOtherServerSuccess(state, diff);
   markSuccessfulRun(state, diff);
+  markSuccessfulRunServer(state, diff);
+  markUnsuccessfulRunServer(state, diff);
   markRunBegin(state, diff);
   markCorpTurnEnd(state, diff);
   markScoreTurnEnd(state, diff);

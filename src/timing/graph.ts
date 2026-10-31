@@ -91,10 +91,10 @@ import {
   fireEncounterAnyIceOncePerTurn,
   fireFinishAccessRdOncePerTurn,
   fireInlineConditional,
-  fireSuccessfulRunServerAbilities,
-  fireUnsuccessfulRunServerAbilities,
   resolveStoredConditionalPendings,
 } from "../state/storedTriggers.js";
+import { noteSuccessfulRunServerAbilities } from "../state/successfulRunServerHooks.js";
+import { noteUnsuccessfulRunServerAbilities } from "../state/unsuccessfulRunServerHooks.js";
 import {
   noteEncounterEndIfNotFullyBroken,
   noteEncounterEndIfPrintedSubroutineBroken,
@@ -4084,7 +4084,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         } else {
           s.run!.successful = true;
           s.turn.successfulRunThisTurn = true;
-          fireSuccessfulRunServerAbilities(s);
+          noteSuccessfulRunServerAbilities(s);
+          if ((s.turn.successfulRunServerPending ?? []).length > 0) {
+            checkpointAfterInstruction(s, "run.success");
+          }
           onSuccessfulRunEnded(s);
           s.turn.successfulRunCountThisTurn =
             (s.turn.successfulRunCountThisTurn ?? 0) + 1;
@@ -4809,7 +4812,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Run declared unsuccessful (CR 6.8.4 / appendix 11.4_6_c).`,
         );
-        fireUnsuccessfulRunServerAbilities(s);
+        noteUnsuccessfulRunServerAbilities(s);
         // First unsuccessful run this turn (John Masanori-class). Trash-self
         // remains mid-hook; onFirstUnsuccessfulRunThisTurn marks at 10.3.1a.
         const firstUnsuccessful = !s.turn.unsuccessfulRunThisTurn;
@@ -4824,6 +4827,11 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
           noteFirstUnsuccessfulRun(s);
+        }
+        if (
+          firstUnsuccessful ||
+          (s.turn.unsuccessfulRunServerPendingIds ?? []).length > 0
+        ) {
           checkpointAfterInstruction(s, "run.declareUnsuccessful");
         }
       },

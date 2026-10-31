@@ -978,6 +978,95 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks successful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunServerAbilities } = await import(
+      "../src/state/successfulRunServerHooks.js"
+    );
+    const s = createInitialState();
+    const wisp = instantiateCard("will-o-the-wisp", "wisp-1", "server:hq:root");
+    wisp.rezzed = true;
+    s.cards["wisp-1"] = wisp;
+    s.servers.hq.root = ["wisp-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: 0,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    noteSuccessfulRunServerAbilities(s);
+    expect(s.turn.successfulRunServerPending).toEqual([
+      expect.objectContaining({
+        cardId: "wisp-1",
+        effectKey: "onSuccessfulRunOnThisServer",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "run success",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunServerPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run on this server"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks unsuccessful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteUnsuccessfulRunServerAbilities } = await import(
+      "../src/state/unsuccessfulRunServerHooks.js"
+    );
+    const s = createInitialState();
+    const georgia = instantiateCard("georgia-emelyov", "ga-1", "server:hq:root");
+    georgia.rezzed = true;
+    s.cards["ga-1"] = georgia;
+    s.servers.hq.root = ["ga-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "approach",
+      position: 0,
+      successful: false,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    noteUnsuccessfulRunServerAbilities(s);
+    expect(s.turn.unsuccessfulRunServerPendingIds).toEqual(["ga-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "run unsuccessful",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.unsuccessfulRunServerPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — unsuccessful run on this server"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Tennin Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
     const { noteCorpTenninTurnBegin } = await import(
       "../src/state/corpTurnBeginHooks.js"
