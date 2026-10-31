@@ -232,8 +232,8 @@ function finishCheckpointAfterRestrictions(state: GameState, frameId: string): v
   checkCardsEnteringRootDuringBreach(state);
   checkDiscardPileCards(state);
   checkDiscardPileCounters(state);
-  popCheckpoint(state, frameId);
-  closeCheckpointReactionWindow(state);
+  const closed = popCheckpoint(state, frameId);
+  closeCheckpointReactionWindow(state, closed?.kind);
 }
 
 /**
@@ -3479,7 +3479,10 @@ function markConditionalAbilities(state: GameState): void {
  * (CR 9.2.8a), then closes. Leftover pending from earlier windows stay on
  * the bag until their own window (e.g. Amaze at run.ends).
  */
-function closeCheckpointReactionWindow(state: GameState): void {
+function closeCheckpointReactionWindow(
+  state: GameState,
+  checkpointKind?: CheckpointKind,
+): void {
   // Blanked / left-play sources lose pending before the window opens (CR 9.6.10).
   cancelPendingIfSourceInactive(state);
   const newlyMarkedIds = state.turn.checkpointNewlyMarkedPendingIds ?? [];
@@ -3545,6 +3548,14 @@ function closeCheckpointReactionWindow(state: GameState): void {
       continue;
     }
     // Effect-bearing conditionals marked at 10.3.1a (Built to Last, etc.).
+    // Play abilities mark at 8.6.7e but resolve at 8.6.7f after this window.
+    if (
+      checkpointKind === "play" &&
+      inst.payload?.kind === "stored_conditional" &&
+      inst.abilityKey === "on-play"
+    ) {
+      continue;
+    }
     if (
       inst.payload?.kind === "inline_conditional" ||
       inst.payload?.kind === "stored_conditional"

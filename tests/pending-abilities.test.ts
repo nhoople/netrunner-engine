@@ -4156,7 +4156,10 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
     ).toBe(true);
     expect(s.corp.credits).toBe(2);
 
-    fireOnPlay(s, "pad-1");
+    const { noteCheckpointAndResolvePlay } = await import(
+      "../src/state/cardLifecycleHooks.js"
+    );
+    noteCheckpointAndResolvePlay(s, "pad-1", "test.play");
     expect(
       s.log.some((line) => line.includes("PAD Campaign becomes pending — played")),
     ).toBe(true);

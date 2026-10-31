@@ -234,6 +234,7 @@ import {
   fireOnInstall,
   fireOnMovedToServerRoot,
   fireOnPlay,
+  noteCheckpointAndResolvePlay,
   fireOnRez,
 } from "../state/cardLifecycleHooks.js";
 export {
@@ -247,6 +248,7 @@ export {
   fireOnInstall,
   fireOnMovedToServerRoot,
   fireOnPlay,
+  noteCheckpointAndResolvePlay,
   fireOnRez,
 };
 
@@ -7099,7 +7101,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       card.faceup = true;
       noteCorpCardAddedToArchives(state);
       log(state, `Corp plays ${card.title} from HQ for ${cost}¢.`);
-      fireOnPlay(state, cardId);
+      noteCheckpointAndResolvePlay(state, cardId, "effect.play");
       return { ok: true };
     }
     case "add_from_heap_to_grip": {
@@ -8368,7 +8370,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       subtractRunnerCreditPool(state, cost);
       log(state, `Runner plays ${card.title} from heap for ${cost}¢ (CR ${CR.playEvent.number}).`);
-      fireOnPlay(state, cardId);
+      noteCheckpointAndResolvePlay(state, cardId, "effect.play");
       return { ok: true };
     }
     case "may_trash_one_from_grip": {
@@ -12624,7 +12626,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       state.turn.corpActionTypeCounts.play_operation =
         (state.turn.corpActionTypeCounts.play_operation ?? 0) + 1;
       log(state, `Corp plays ${card.title} from Archives for ${cost}¢ (Plutus).`);
-      fireOnPlay(state, cardId);
+      noteCheckpointAndResolvePlay(state, cardId, "effect.play");
       removeCardFromCurrentZone(state, cardId);
       card.zone = "removed-from-game";
       card.faceup = true;
@@ -14554,7 +14556,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Corp plays ${source.title} from Archives for ${cost}¢.`,
       );
-      fireOnPlay(state, sourceId);
+      noteCheckpointAndResolvePlay(state, sourceId, "effect.play");
       state.turn.operationPlayedFromNonHq = false;
       log(
         state,
@@ -18344,7 +18346,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state,
         `Corp plays ${card.title} for ${cost}¢ (from ${source.title}).`,
       );
-      fireOnPlay(state, cardId);
+      noteCheckpointAndResolvePlay(state, cardId, "effect.play");
       return { ok: true };
     }
     case "add_installed_resource_to_stack_top": {
