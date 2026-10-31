@@ -10,6 +10,7 @@ import {
 } from "../effects/eval.js";
 import { hasPlayEffect } from "../effects/abilityRecord.js";
 import { fireOnPlay } from "../state/cardLifecycleHooks.js";
+import { resumePendingStoredConditionals } from "../state/storedTriggers.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
 import {
@@ -124,6 +125,8 @@ function noteResolvePlayAbilities(state: GameState, cardId: string): void {
     state,
     `Resolve play abilities of ${card.title} (CR ${CR.playAbilities.number}).`,
   );
+  // on-play was marked at 8.6.7e and deferred past that reaction window.
+  resumePendingStoredConditionals(state);
 }
 
 /** CR 8.6.7a. The played operation enters the play area before its play cost. */
@@ -776,25 +779,24 @@ export function continuePlayedOperation(
         );
       }
     }
+    if (hasPlayEffect(card) && isFirstSubliminal) {
+      fireOnPlay(state, cardId);
+    }
     notePlayCheckpoint(state, "play_operation");
     noteResolvePlayAbilities(state, cardId);
-    if (hasPlayEffect(card)) {
-      if (isFirstSubliminal) {
-        fireOnPlay(state, cardId);
-      } else {
-        const r = evalEffect(
-          { state, sourceId: cardId },
-          {
-            op: "do",
-            action: {
-              kind: "gain_credits",
-              side: "corp",
-              amount: 1,
-            },
+    if (hasPlayEffect(card) && !isFirstSubliminal) {
+      const r = evalEffect(
+        { state, sourceId: cardId },
+        {
+          op: "do",
+          action: {
+            kind: "gain_credits",
+            side: "corp",
+            amount: 1,
           },
-        );
-        if (!r.ok) return fail(r.error, r.cites);
-      }
+        },
+      );
+      if (!r.ok) return fail(r.error, r.cites);
     }
     trashPlayedOperation(state, cardId);
     noteQuietAfterOperationResolve(state, cardId);
@@ -823,9 +825,11 @@ export function continuePlayedOperation(
       );
     }
   }
+  if (hasPlayEffect(card)) {
+    fireOnPlay(state, cardId);
+  }
   notePlayCheckpoint(state, "play_operation");
   noteResolvePlayAbilities(state, cardId);
-  fireOnPlay(state, cardId);
   trashPlayedOperation(state, cardId);
   noteQuietAfterOperationResolve(state, cardId);
   fireSiAfterCorpRezOrPlay(state, cardId);
@@ -1247,8 +1251,9 @@ export function playEvent(
         return fail("Run event requires a target server.", [CR.playEvent]);
       }
       // Optional run declined: resolve onPlay only (Reprise).
-      notePlayCheckpoint(state, "play_event");
       fireOnPlay(state, cardId);
+      notePlayCheckpoint(state, "play_event");
+      noteResolvePlayAbilities(state, cardId);
       trashPlayedEvent(state, cardId);
       if (card.endsActionPhase) {
         state.runner.clicks = 0;
@@ -1267,9 +1272,12 @@ export function playEvent(
     if (!isServerAllowedForSpec(state, card.runEvent, serverId)) {
       return fail("Illegal run target for this event.", [CR.playEvent]);
     }
-    notePlayCheckpoint(state, "play_event");
     if (hasPlayEffect(card)) {
       fireOnPlay(state, cardId);
+    }
+    notePlayCheckpoint(state, "play_event");
+    noteResolvePlayAbilities(state, cardId);
+    if (hasPlayEffect(card)) {
       state.turn.clicksWhenEventPlayBegan = undefined;
       if (state.pendingChoice) {
         state.pendingRunEventStart = { sourceId: cardId, serverId };
@@ -1303,10 +1311,12 @@ export function playEvent(
     finishRunReturnToAction(walked.state);
     return walked;
   }
+  if (hasPlayEffect(card)) {
+    fireOnPlay(state, cardId);
+  }
   notePlayCheckpoint(state, "play_event");
   noteResolvePlayAbilities(state, cardId);
   if (hasPlayEffect(card)) {
-    fireOnPlay(state, cardId);
     state.turn.clicksWhenEventPlayBegan = undefined;
   }
   if (state.pendingChoice) {

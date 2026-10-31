@@ -7,10 +7,19 @@ import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import {
   fireCardConditional,
+  resumePendingStoredConditionals,
   type StoredConditionalMark,
 } from "./storedTriggers.js";
-import { noteStoredConditionals } from "./storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import {
+  noteStoredConditional,
+  noteStoredConditionals,
+} from "./storedConditionalHooks.js";
+import {
+  checkpointAfterInstruction,
+  occurCheckpoint,
+} from "../legality/checkpoints.js";
+import { log } from "./createGame.js";
+import { CR } from "../timing/labels.js";
 
 function noteAndCheckpointStored(
   state: GameState,
@@ -57,10 +66,11 @@ export function fireOnRez(state: GameState, cardId: string): boolean {
 }
 
 /**
- * Fire a card's play ability (CR 9.3.7d).
+ * Note a card's play ability for the CR 8.6.7e play checkpoint (CR 9.3.7d /
+ * 10.3.1a). Caller must open that checkpoint next; on-play marks there and
+ * resolves at 8.6.7f (see resolveNotedPlayAbilities / play.ts).
  * Records on the instance are the source of truth; sync `onPlay` so the
- * existing stored_conditional resume path keeps working until phase 1
- * finishes cutting that key.
+ * stored_conditional resume path keeps working until phase 1 cuts that key.
  */
 export function fireOnPlay(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
@@ -68,13 +78,46 @@ export function fireOnPlay(state: GameState, cardId: string): boolean {
   const effect = playEffectFromCard(card);
   if (!effect) return false;
   card.onPlay = effect;
-  return fireCardConditional(
-    state,
+  // Play abilities may resolve after the card is trashed (8.6.7g) or from
+  // effect-path shortcuts that archive first — keep the mark (CR 9.6.13c).
+  noteStoredConditional(state, {
     cardId,
-    "onPlay",
-    "on-play",
-    `${card.title} becomes pending — played.`,
+    abilityKey: "on-play",
+    effectKey: "onPlay",
+    controller: card.side === "corp" ? "corp" : "runner",
+    mandatory: true,
+    logLine: `${card.title} becomes pending — played.`,
+    independentOfSource: true,
+  });
+  return true;
+}
+
+/**
+ * Nested / effect-path plays (e.g. Accelerated Diagnostics): note onPlay,
+ * open the 8.6.7e play checkpoint, then resolve at 8.6.7f.
+ */
+export function noteCheckpointAndResolvePlay(
+  state: GameState,
+  cardId: string,
+  openedBy: string,
+): boolean {
+  const noted = fireOnPlay(state, cardId);
+  occurCheckpoint(
+    state,
+    "play",
+    "Play checkpoint",
+    [CR.playCheckpoint, CR.playPause],
+    openedBy,
   );
+  const card = state.cards[cardId];
+  if (card) {
+    log(
+      state,
+      `Resolve play abilities of ${card.title} (CR ${CR.playAbilities.number}).`,
+    );
+  }
+  resumePendingStoredConditionals(state);
+  return noted;
 }
 
 /** Fire a card's onAccess when present (caller applies skip guards). */
