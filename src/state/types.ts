@@ -3196,6 +3196,22 @@ export interface TurnBookkeeping {
    */
   successfulRunPendingIds: string[];
   /**
+   * Corp root successful-run server abilities met since previous checkpoint;
+   * marked pending at the next 10.3.1a (phase 3).
+   */
+  successfulRunServerPending: Array<{
+    cardId: string;
+    abilityKey: string;
+    effectKey: StoredConditionalEffectKey;
+    mandatory: boolean;
+    logLine: string;
+  }>;
+  /**
+   * Card ids whose onUnsuccessfulRunOnThisServer met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  unsuccessfulRunServerPendingIds: string[];
+  /**
    * Card ids whose onRunBegin met since previous checkpoint; marked pending
    * at the next 10.3.1a (phase 3).
    */

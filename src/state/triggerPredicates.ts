@@ -383,6 +383,14 @@ export type TriggerPredicate =
   | {
       /** onScoreTurnEnd since previous checkpoint (card ids). */
       kind: "score_turn_end";
+    }
+  | {
+      /** Corp root successful-run server abilities since previous checkpoint. */
+      kind: "successful_run_server";
+    }
+  | {
+      /** onUnsuccessfulRunOnThisServer since previous checkpoint (card ids). */
+      kind: "unsuccessful_run_server";
     };
 
 export type TriggerPredicateMatch =
@@ -683,6 +691,20 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "score_turn_end";
+      cardIds: string[];
+    }
+  | {
+      kind: "successful_run_server";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
+        mandatory: boolean;
+        logLine: string;
+      }>;
+    }
+  | {
+      kind: "unsuccessful_run_server";
       cardIds: string[];
     };
 
@@ -1189,6 +1211,20 @@ export function evaluateTriggerPredicate(
         cardIds: [...(state.turn.scoreTurnEndPendingIds ?? [])],
       };
     }
+    case "successful_run_server": {
+      void diff;
+      return {
+        kind: "successful_run_server",
+        marks: [...(state.turn.successfulRunServerPending ?? [])],
+      };
+    }
+    case "unsuccessful_run_server": {
+      void diff;
+      return {
+        kind: "unsuccessful_run_server",
+        cardIds: [...(state.turn.unsuccessfulRunServerPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1552,4 +1588,12 @@ export const PREDICATE_RUNNER_TURN_BEGIN: TriggerPredicate = {
 
 export const PREDICATE_SCORE_TURN_END: TriggerPredicate = {
   kind: "score_turn_end",
+};
+
+export const PREDICATE_SUCCESSFUL_RUN_SERVER: TriggerPredicate = {
+  kind: "successful_run_server",
+};
+
+export const PREDICATE_UNSUCCESSFUL_RUN_SERVER: TriggerPredicate = {
+  kind: "unsuccessful_run_server",
 };

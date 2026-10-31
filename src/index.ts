@@ -163,6 +163,8 @@ export {
   PREDICATE_CORP_TURN_BEGIN,
   PREDICATE_RUNNER_TURN_BEGIN,
   PREDICATE_SCORE_TURN_END,
+  PREDICATE_SUCCESSFUL_RUN_SERVER,
+  PREDICATE_UNSUCCESSFUL_RUN_SERVER,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
