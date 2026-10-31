@@ -3313,6 +3313,8 @@ export interface TurnBookkeeping {
     controller: "corp" | "runner";
     mandatory: boolean;
     logLine: string;
+    /** Trash / delayed abilities that outlive the source (CR 9.6.13c). */
+    independentOfSource?: boolean;
   }>;
   /**
    * Card ids whose onRunBegin met since previous checkpoint; marked pending

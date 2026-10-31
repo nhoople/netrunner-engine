@@ -2409,14 +2409,19 @@ function markStoredConditionalNote(state: GameState, diff: CheckpointDiff): void
   const marks = match.marks;
   state.turn.storedConditionalPending = [];
   for (const m of marks) {
-    if (abilitiesSuppressed(state, m.cardId)) continue;
     const card = state.cards[m.cardId];
     if (!card) continue;
+    // Trash / delayed abilities that outlive the source skip the active-source
+    // and blanking gates here (CR 9.6.13c); blanking still checked at resolve.
+    if (!m.independentOfSource && abilitiesSuppressed(state, m.cardId)) {
+      continue;
+    }
     createPendingAbilityInstance(state, {
       abilityKey: m.abilityKey,
       sourceId: card.id,
       controller: m.controller,
       mandatory: m.mandatory,
+      independentOfSource: m.independentOfSource,
       payload: {
         kind: "stored_conditional",
         effectKey: m.effectKey as StoredConditionalEffectKey,
