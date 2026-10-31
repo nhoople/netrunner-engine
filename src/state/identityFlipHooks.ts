@@ -1,7 +1,8 @@
 /** Dual-sided Corp identity hooks (Nebula Talent Management). */
 
 import type { GameState, ServerId } from "./types.js";
-import { fireStoredConditionals } from "./storedTriggers.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 /**
  * Nebula-class: first operation play while flipped this turn. Records the
@@ -35,7 +36,7 @@ export function fireCorpIdentityFlippedSuccessfulHqOrRdRun(
     ? idCard.identityFlippedHooks.onSuccessfulHqRun
     : idCard.identityFlippedHooks.onSuccessfulHqOrRdRun;
   if (!fx) return;
-  fireStoredConditionals(state, [
+  noteStoredConditionals(state, [
     {
       abilityKey: "identity-flipped-successful-central",
       sourceId: idCard.id,
@@ -45,4 +46,7 @@ export function fireCorpIdentityFlippedSuccessfulHqOrRdRun(
       logLine: `${idCard.title} becomes pending — successful ${serverId.toUpperCase()} run while flipped.`,
     },
   ]);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "identity.flipped.successfulCentral");
+  }
 }

@@ -24,7 +24,8 @@ import {
 import { evalEffect } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
 import { cancelPendingIfSourceInactive } from "../state/pendingAbilities.js";
-import { fireStoredConditionals } from "../state/storedTriggers.js";
+import { noteStoredConditionals } from "../state/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import {
   fireOnRezzedCardTrashed,
   fireOnRunnerTrashFromThisServerRootOrProtecting,
@@ -161,16 +162,23 @@ export function trashCorpCardToArchives(
   // Director Haas: while trashed and being accessed by the Runner, add to
   // the Runner's score area as an agenda instead of moving to Archives.
   if (card.onTrashWhileAccessed && state.run?.accessingCardId === cardId) {
-    fireStoredConditionals(state, [
-      {
-        abilityKey: "on-trash-while-accessed",
-        sourceId: cardId,
-        controller: "corp",
-        mandatory: true,
-        effectKey: "onTrashWhileAccessed",
-        logLine: `${card.title} becomes pending — trashed while accessed.`,
-      },
-    ]);
+    noteStoredConditionals(
+      state,
+      [
+        {
+          abilityKey: "on-trash-while-accessed",
+          sourceId: cardId,
+          controller: "corp",
+          mandatory: true,
+          effectKey: "onTrashWhileAccessed",
+          logLine: `${card.title} becomes pending — trashed while accessed.`,
+        },
+      ],
+      { independentOfSource: true },
+    );
+    if ((state.turn.storedConditionalPending ?? []).length > 0) {
+      checkpointAfterInstruction(state, "corp.trash.whileAccessed");
+    }
     return;
   }
   removeCardFromCurrentZone(state, cardId);

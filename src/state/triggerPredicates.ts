@@ -834,6 +834,7 @@ export type TriggerPredicateMatch =
         controller: "corp" | "runner";
         mandatory: boolean;
         logLine: string;
+        independentOfSource?: boolean;
       }>;
     };
 

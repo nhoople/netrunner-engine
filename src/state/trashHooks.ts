@@ -17,9 +17,22 @@ import {
 } from "./pendingAbilities.js";
 import { onInstalledProgramTrashed } from "./staticFlags.js";
 import {
-  fireStoredConditionals,
   type StoredConditionalMark,
 } from "./storedTriggers.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+
+function noteAndCheckpointStored(
+  state: GameState,
+  items: StoredConditionalMark[],
+  openedBy: string,
+  options?: { independentOfSource?: boolean },
+): void {
+  noteStoredConditionals(state, items, options);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, openedBy);
+  }
+}
 
 /** Mr. Stone: taking tags makes its meat damage imminent. */
 export function fireMeatDamageWhenRunnerTakesTags(state: GameState): void {
@@ -50,7 +63,7 @@ export function fireOnAgendaAddedToRunnerScore(state: GameState): void {
       logLine: `${card.title} becomes pending — an agenda was added to the Runner's score area (CR ${CR.stealingAgenda.number}).`,
     });
   }
-  fireStoredConditionals(state, items);
+  noteAndCheckpointStored(state, items, "agenda.addedToRunnerScore");
 }
 
 /**
@@ -234,18 +247,23 @@ function arriveRunnerCardInHeap(
   card.zone = "runner:heap";
   card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
-  // Tri-maf / Rolodex-class: fire onTrash when Runner card hits heap.
+  // Tri-maf / Rolodex-class: onTrash when Runner card hits heap — note for 10.3.1a.
   if (card.onTrash) {
-    fireStoredConditionals(state, [
-      {
-        abilityKey: "on-trash",
-        sourceId: cardId,
-        controller: "runner",
-        mandatory: true,
-        effectKey: "onTrash",
-        logLine: `${card.title} becomes pending — trashed.`,
-      },
-    ]);
+    noteAndCheckpointStored(
+      state,
+      [
+        {
+          abilityKey: "on-trash",
+          sourceId: cardId,
+          controller: "runner",
+          mandatory: true,
+          effectKey: "onTrash",
+          logLine: `${card.title} becomes pending — trashed.`,
+        },
+      ],
+      "runner.trash.onTrash",
+      { independentOfSource: true },
+    );
   }
   noteGripOrStackTrashForBufferDrive(state, cardId, fromZone);
   noteFirstProgramOrHardwareTrashEachTurn(state, cardId);
@@ -335,7 +353,7 @@ export function noteFirstInstallInServerRootThisTurn(
       logLine: `${card.title} becomes pending — first install in this server's root this turn.`,
     });
   }
-  fireStoredConditionals(state, items);
+  noteAndCheckpointStored(state, items, "install.firstInServerRoot");
 }
 
 
@@ -428,30 +446,39 @@ function fireOnTrashFromGripOrStack(
     state,
     `${card.title} — trashed from ${fromZone === "runner:grip" ? "grip" : "stack"} (CR ${CR.trashing.number}).`,
   );
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "on-trash-from-grip-or-stack",
-      sourceId: card.id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onTrashFromGripOrStack",
-      logLine: `${card.title} becomes pending — trashed from grip/stack.`,
-    },
-  ]);
+  noteAndCheckpointStored(
+    state,
+    [
+      {
+        abilityKey: "on-trash-from-grip-or-stack",
+        sourceId: card.id,
+        controller: "runner",
+        mandatory: true,
+        effectKey: "onTrashFromGripOrStack",
+        logLine: `${card.title} becomes pending — trashed from grip/stack.`,
+      },
+    ],
+    "runner.trash.fromGripOrStack",
+    { independentOfSource: true },
+  );
 }
 
 function fireOnUninstall(state: GameState, card: CardInstance): void {
   if (!card.onUninstall) return;
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "on-uninstall",
-      sourceId: card.id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onUninstall",
-      logLine: `${card.title} becomes pending — uninstalled.`,
-    },
-  ]);
+  noteAndCheckpointStored(
+    state,
+    [
+      {
+        abilityKey: "on-uninstall",
+        sourceId: card.id,
+        controller: "runner",
+        mandatory: true,
+        effectKey: "onUninstall",
+        logLine: `${card.title} becomes pending — uninstalled.`,
+      },
+    ],
+    "runner.uninstall",
+  );
 }
 
 /** Begin a simultaneous grip/stack trash batch (damage multi-trash). */
@@ -605,7 +632,7 @@ export function noteAccessTrash(
       logLine: `${card.title} becomes pending — access trash.`,
     });
   }
-  fireStoredConditionals(state, items);
+  noteAndCheckpointStored(state, items, "access.trash");
 }
 
 /**
@@ -726,16 +753,21 @@ export function noteTrashMatchingRunnerIdentityFaction(
 export function fireCorpOnTrash(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card?.onTrash) return;
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "on-trash",
-      sourceId: cardId,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onTrash",
-      logLine: `${card.title} becomes pending — trashed.`,
-    },
-  ]);
+  noteAndCheckpointStored(
+    state,
+    [
+      {
+        abilityKey: "on-trash",
+        sourceId: cardId,
+        controller: "corp",
+        mandatory: true,
+        effectKey: "onTrash",
+        logLine: `${card.title} becomes pending — trashed.`,
+      },
+    ],
+    "corp.trash.onTrash",
+    { independentOfSource: true },
+  );
 }
 
 /** Ronald Five: whenever Runner trashes a Corp card, they lose [click]. */
@@ -852,9 +884,9 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
       if (state.turn.onVirusPurgeOncePerTurnFiredIds.includes(id)) continue;
       state.turn.onVirusPurgeOncePerTurnFiredIds.push(id);
     }
-    // Resolve one at a time so a prior onVirusPurge that trashes
-    // another can still skip it (re-check above on the next pass).
-    fireStoredConditionals(state, [
+    // Note each still-installed source; inactive sources drop at mark /
+    // resolve (CR 9.6.10) if an earlier purge ability trashed them.
+    noteStoredConditionals(state, [
       {
         abilityKey: "on-virus-purge",
         sourceId: id,
@@ -864,6 +896,9 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
         logLine: `${card.title} becomes pending — virus counters purged.`,
       },
     ]);
+  }
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "virus.purge");
   }
   for (const id of toTrash) {
     const card = state.cards[id];
@@ -927,9 +962,12 @@ export function fireOnRemoveTags(
       });
     }
   }
-  fireStoredConditionals(state, items);
+  noteStoredConditionals(state, items);
   const avoidOrRemove = fireOnFirstAvoidOrRemoveTagThisTurn(state);
   if (!avoidOrRemove.ok) return avoidOrRemove;
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, "tags.removed");
+  }
   return { ok: true };
 }
 
@@ -958,6 +996,6 @@ export function fireOnFirstAvoidOrRemoveTagThisTurn(
       logLine: `${card.title} becomes pending — first avoid/remove tag this turn.`,
     });
   }
-  fireStoredConditionals(state, items);
+  noteAndCheckpointStored(state, items, "tags.firstAvoidOrRemove");
   return { ok: true };
 }
