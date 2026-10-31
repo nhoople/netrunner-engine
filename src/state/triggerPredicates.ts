@@ -217,6 +217,13 @@ export type TriggerPredicate =
   | {
       /** First virus program install this turn (Avgustina; phase 3 MetPending). */
       kind: "first_virus_install";
+    }
+  | {
+      /**
+       * Valley successful-run triggers this interval (Pravdivost / DreamNet /
+       * Enhanced Vision; ordinals queued by run.success, marked at 10.3.1a).
+       */
+      kind: "val_successful_run_triggers";
     };
 
 export type TriggerPredicateMatch =
@@ -346,6 +353,10 @@ export type TriggerPredicateMatch =
   | {
       kind: "first_virus_install";
       matched: boolean;
+    }
+  | {
+      kind: "val_successful_run_triggers";
+      ordinals: number[];
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -585,6 +596,13 @@ export function evaluateTriggerPredicate(
         !state.turn.firstVirusInstallUsedThisTurn;
       return { kind: "first_virus_install", matched };
     }
+    case "val_successful_run_triggers": {
+      void diff;
+      return {
+        kind: "val_successful_run_triggers",
+        ordinals: [...(state.turn.valSuccessfulRunTriggerPendingCounts ?? [])],
+      };
+    }
   }
 }
 
@@ -786,4 +804,8 @@ export const PREDICATE_FIRST_PROGRAM_INSTALL: TriggerPredicate = {
 
 export const PREDICATE_FIRST_VIRUS_INSTALL: TriggerPredicate = {
   kind: "first_virus_install",
+};
+
+export const PREDICATE_VAL_SUCCESSFUL_RUN_TRIGGERS: TriggerPredicate = {
+  kind: "val_successful_run_triggers",
 };

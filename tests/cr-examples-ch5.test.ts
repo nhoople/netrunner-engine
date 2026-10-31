@@ -112,11 +112,16 @@ describe("CR examples, chapter 5", () => {
     const damage = at(s.log, "core damage 1:");
     const trashed = at(s.log, "Stimhack trashed");
     const complete = at(s.log, "Play effect complete");
-    const instruction = at(s.log, "Checkpoint open [instruction]");
     expect(damage).toBeLessThan(trashed);
     expect(trashed).toBeLessThan(complete);
-    expect(complete).toBeLessThan(instruction);
     expect(s.log[complete]).toContain(CR.playComplete.number);
+    // Instruction checkpoints also occur during the run (e.g. after
+    // successful-run declaration at 10.3.1a); play still finishes afterward.
+    const instructionAfter = s.log.findIndex(
+      (line, i) =>
+        i > complete && line.includes("Checkpoint open [instruction]"),
+    );
+    expect(instructionAfter).toBeGreaterThan(complete);
     expect(s.cards["sh-1"]?.zone).toBe("runner:heap");
     expect(s.run).toBeNull();
     expect(s.checkpoints).toHaveLength(0);

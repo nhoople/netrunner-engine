@@ -157,3 +157,52 @@ export function fireRunnerValTrigger(
 ): void {
   noteValRunnerTrigger(state, COUNT_KEY_TO_FAMILY[countKey]);
 }
+
+/**
+ * Sources that may mark for first/second successful run this turn (Pravdivost /
+ * DreamNet / Enhanced Vision; Corp identity, rezzed root/ice, Runner rig).
+ */
+export function valSuccessfulRunSourceIds(
+  state: GameState,
+  ordinal: number,
+): string[] {
+  const threshold = geneticsTriggerThreshold(state);
+  const eligible: string[] = [];
+  const consider = (cardId: string): void => {
+    if (abilitiesSuppressed(state, cardId)) return;
+    const card = state.cards[cardId];
+    if (!card?.onFirstSuccessfulRunThisTurn) return;
+    const lim = isGenetics(card) ? threshold : 1;
+    if (ordinal > lim) return;
+    eligible.push(cardId);
+  };
+  consider(state.corp.identityId);
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.root, ...server.ice]) {
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.onFirstSuccessfulRunThisTurn) continue;
+      consider(id);
+    }
+  }
+  for (const id of state.runner.installed) {
+    consider(id);
+  }
+  consider(state.runner.identityId);
+  return eligible;
+}
+
+/**
+ * First(/second with Gene Conditioning Shoppe) successful run this turn.
+ * Records ordinals for the next 10.3.1a scanner pass (phase 3).
+ */
+export function noteValSuccessfulRunTrigger(state: GameState): void {
+  const next = (state.turn.valSuccessfulRunTriggerCount ?? 0) + 1;
+  state.turn.valSuccessfulRunTriggerCount = next;
+  // Genetics may fire through Gene Conditioning Shoppe threshold; others only
+  // when valSuccessfulRunSourceIds returns them for this ordinal.
+  if (valSuccessfulRunSourceIds(state, next).length === 0) return;
+  if (!state.turn.valSuccessfulRunTriggerPendingCounts) {
+    state.turn.valSuccessfulRunTriggerPendingCounts = [];
+  }
+  state.turn.valSuccessfulRunTriggerPendingCounts.push(next);
+}
