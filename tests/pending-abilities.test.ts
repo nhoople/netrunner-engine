@@ -948,6 +948,31 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks successful-run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnSuccessfulRun } = await import(
+      "../src/state/successfulRunHooks.js"
+    );
+    const s = createInitialState();
+    const card = instantiateCard("paragon", "pg-1", "runner:installed");
+    s.cards["pg-1"] = card;
+    s.runner.installed = ["pg-1"];
+    noteOnSuccessfulRun(s, "pg-1");
+    expect(s.turn.successfulRunPendingIds).toEqual(["pg-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "successful run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run."),
+      ),
+    ).toBe(true);
+  });
+
   it("marks other-server success at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSuccessfulRunOtherServer } = await import(
       "../src/state/otherServerSuccessHooks.js"

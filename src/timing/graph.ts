@@ -123,6 +123,7 @@ import {
   noteSuccessfulRunEndOncePerTurn,
 } from "../state/successfulRunEndHooks.js";
 import { noteSuccessfulRunOtherServer } from "../state/otherServerSuccessHooks.js";
+import { noteOnSuccessfulRun } from "../state/successfulRunHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -4514,10 +4515,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
         }
-        // Fire onSuccessfulRun only when actually successful.
+        // onSuccessfulRun — note for 10.3.1a when actually successful.
         if (s.run!.successful) {
-          const successfulRunItems: StoredConditionalMark[] = [];
-          const noteSuccessfulRun = (cardId: string): void => {
+          const queueSuccessfulRun = (cardId: string): void => {
             const card = s.cards[cardId];
             if (!card?.onSuccessfulRun) return;
             if (
@@ -4526,27 +4526,25 @@ export const STEPS: Record<string, TimingStepDef> = {
             ) {
               return;
             }
-            if (card.onSuccessfulRunOncePerTurn) {
+            const before = (s.turn.successfulRunPendingIds ?? []).length;
+            noteOnSuccessfulRun(s, cardId);
+            if (
+              card.onSuccessfulRunOncePerTurn &&
+              (s.turn.successfulRunPendingIds ?? []).length > before
+            ) {
               s.turn.onSuccessfulRunFiredIds.push(cardId);
             }
-            successfulRunItems.push({
-              abilityKey: "on-successful-run",
-              sourceId: cardId,
-              controller: card.side === "corp" ? "corp" : "runner",
-              mandatory: true,
-              effectKey: "onSuccessfulRun",
-              logLine: `${card.title} becomes pending — successful run.`,
-            });
           };
 
           // Runner identity (Nyusha-class mark success triggers).
-          noteSuccessfulRun(s.runner.identityId);
+          queueSuccessfulRun(s.runner.identityId);
 
           for (const id of s.runner.installed) {
-            noteSuccessfulRun(id);
+            queueSuccessfulRun(id);
           }
-          fireStoredConditionals(s, successfulRunItems);
-          successfulRunItems.length = 0;
+          if ((s.turn.successfulRunPendingIds ?? []).length > 0) {
+            checkpointAfterInstruction(s, "run.success");
+          }
           for (const id of s.runner.installed) {
             if (s.pendingChoice) break;
             const card = s.cards[id];
@@ -4652,27 +4650,28 @@ export const STEPS: Record<string, TimingStepDef> = {
                 card.side === "runner" &&
                 card.onSuccessfulRun
               ) {
-                noteSuccessfulRun(cardId);
+                queueSuccessfulRun(cardId);
               }
             }
           }
           for (const id of [...server.root, ...server.ice]) {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onSuccessfulRun) continue;
-            if (abilitiesSuppressed(s, id)) continue;
-            noteSuccessfulRun(id);
+            queueSuccessfulRun(id);
           }
           // Active lockdowns in corp:play-area (Argus / Hyoubu).
           for (const id of activeLockdownIds(s)) {
-            noteSuccessfulRun(id);
+            queueSuccessfulRun(id);
           }
           for (const id of activeCorpCurrentIds(s)) {
-            noteSuccessfulRun(id);
+            queueSuccessfulRun(id);
           }
           for (const id of activeRunnerCurrentIds(s)) {
-            noteSuccessfulRun(id);
+            queueSuccessfulRun(id);
           }
-          fireStoredConditionals(s, successfulRunItems);
+          if ((s.turn.successfulRunPendingIds ?? []).length > 0) {
+            checkpointAfterInstruction(s, "run.success");
+          }
           // Puppet Master: may place 1 advancement on a card that can be advanced.
           for (const id of s.corp.scoreArea) {
             const card = s.cards[id];
