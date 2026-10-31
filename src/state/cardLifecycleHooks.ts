@@ -7,9 +7,21 @@ import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import {
   fireCardConditional,
-  fireStoredConditionals,
   type StoredConditionalMark,
 } from "./storedTriggers.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+
+function noteAndCheckpointStored(
+  state: GameState,
+  items: StoredConditionalMark[],
+  openedBy: string,
+): boolean {
+  noteStoredConditionals(state, items);
+  if ((state.turn.storedConditionalPending ?? []).length === 0) return false;
+  checkpointAfterInstruction(state, openedBy);
+  return Boolean(state.pendingChoice);
+}
 
 /** Fire a card's onInstall when present. */
 export function fireOnInstall(state: GameState, cardId: string): boolean {
@@ -100,7 +112,7 @@ export function fireOnBreakSubroutineTriggers(state: GameState): boolean {
       logLine: `${card.title} becomes pending — subroutine broken.`,
     });
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "lifecycle.breakSubroutine");
 }
 
 /** Fire a card's onSteal when present. */
@@ -227,5 +239,5 @@ export function fireAfterAgendaStolenHooks(
       logLine: `${card.title} becomes pending — other agenda stolen.`,
     });
   }
-  return fireStoredConditionals(state, items);
+  return noteAndCheckpointStored(state, items, "lifecycle.afterAgendaStolen");
 }
