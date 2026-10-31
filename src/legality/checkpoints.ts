@@ -99,6 +99,8 @@ import {
   PREDICATE_APPROACH_ICE,
   PREDICATE_FIRST_SUCCESSFUL_RD_RUN_END,
   PREDICATE_SUCCESSFUL_RUN_ON_RD,
+  PREDICATE_SUCCESSFUL_RUN_END_ONCE,
+  PREDICATE_SUCCESSFUL_RUN_END,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2119,6 +2121,75 @@ function markSuccessfulRunOnRd(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Runner onSuccessfulRunEndOncePerTurn (phase 3). */
+function markSuccessfulRunEndOnce(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_SUCCESSFUL_RUN_END_ONCE,
+  );
+  if (match.kind !== "successful_run_end_once" || match.cardIds.length === 0) {
+    state.turn.successfulRunEndOncePendingIds = [];
+    return;
+  }
+  const cardIds = match.cardIds;
+  state.turn.successfulRunEndOncePendingIds = [];
+  for (const cardId of cardIds) {
+    if (abilitiesSuppressed(state, cardId)) continue;
+    const card = state.cards[cardId];
+    if (!card?.onSuccessfulRunEndOncePerTurn) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-successful-run-end-once",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onSuccessfulRunEndOncePerTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — successful run ends.`,
+    );
+  }
+}
+
+/** Corp onSuccessfulRunEnd (phase 3). */
+function markSuccessfulRunEnd(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_SUCCESSFUL_RUN_END,
+  );
+  if (match.kind !== "successful_run_end" || match.cardIds.length === 0) {
+    state.turn.successfulRunEndPendingIds = [];
+    return;
+  }
+  const cardIds = match.cardIds;
+  state.turn.successfulRunEndPendingIds = [];
+  for (const cardId of cardIds) {
+    if (abilitiesSuppressed(state, cardId)) continue;
+    const card = state.cards[cardId];
+    if (!card?.rezzed || !card.onSuccessfulRunEnd) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-successful-run-end",
+      sourceId: card.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onSuccessfulRunEnd",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — successful run ends.`,
+    );
+  }
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -2745,6 +2816,8 @@ function markConditionalAbilities(state: GameState): void {
   markApproachIce(state, diff);
   markFirstSuccessfulRdRunEnd(state, diff);
   markSuccessfulRunOnRd(state, diff);
+  markSuccessfulRunEndOnce(state, diff);
+  markSuccessfulRunEnd(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

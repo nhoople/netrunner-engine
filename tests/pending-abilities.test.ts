@@ -893,6 +893,61 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks successful-run-end-once at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunEndOncePerTurn } = await import(
+      "../src/state/successfulRunEndHooks.js"
+    );
+    const s = createInitialState();
+    const dop = instantiateCard("doppelganger", "dop-1", "runner:installed");
+    s.cards["dop-1"] = dop;
+    s.runner.installed = ["dop-1"];
+    noteSuccessfulRunEndOncePerTurn(s, "dop-1");
+    expect(s.turn.successfulRunEndOncePendingIds).toEqual(["dop-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "successful run end once",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunEndOncePendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run ends"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks successful-run-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunEnd } = await import(
+      "../src/state/successfulRunEndHooks.js"
+    );
+    const s = createInitialState();
+    const drt = instantiateCard(
+      "dedicated-response-team",
+      "drt-1",
+      "server:hq:root",
+    );
+    drt.rezzed = true;
+    s.cards["drt-1"] = drt;
+    s.servers.hq.root = ["drt-1"];
+    noteSuccessfulRunEnd(s, "drt-1");
+    expect(s.turn.successfulRunEndPendingIds).toEqual(["drt-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "successful run end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run ends"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"

@@ -343,6 +343,14 @@ export type TriggerPredicate =
   | {
       /** Runner onSuccessfulRunOnRd since previous checkpoint (card ids). */
       kind: "successful_run_on_rd";
+    }
+  | {
+      /** Runner onSuccessfulRunEndOncePerTurn since previous checkpoint. */
+      kind: "successful_run_end_once";
+    }
+  | {
+      /** Corp onSuccessfulRunEnd since previous checkpoint. */
+      kind: "successful_run_end";
     };
 
 export type TriggerPredicateMatch =
@@ -591,6 +599,14 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "successful_run_on_rd";
+      cardIds: string[];
+    }
+  | {
+      kind: "successful_run_end_once";
+      cardIds: string[];
+    }
+  | {
+      kind: "successful_run_end";
       cardIds: string[];
     };
 
@@ -1027,6 +1043,20 @@ export function evaluateTriggerPredicate(
         cardIds: [...(state.turn.successfulRunOnRdPendingIds ?? [])],
       };
     }
+    case "successful_run_end_once": {
+      void diff;
+      return {
+        kind: "successful_run_end_once",
+        cardIds: [...(state.turn.successfulRunEndOncePendingIds ?? [])],
+      };
+    }
+    case "successful_run_end": {
+      void diff;
+      return {
+        kind: "successful_run_end",
+        cardIds: [...(state.turn.successfulRunEndPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1350,4 +1380,12 @@ export const PREDICATE_FIRST_SUCCESSFUL_RD_RUN_END: TriggerPredicate = {
 
 export const PREDICATE_SUCCESSFUL_RUN_ON_RD: TriggerPredicate = {
   kind: "successful_run_on_rd",
+};
+
+export const PREDICATE_SUCCESSFUL_RUN_END_ONCE: TriggerPredicate = {
+  kind: "successful_run_end_once",
+};
+
+export const PREDICATE_SUCCESSFUL_RUN_END: TriggerPredicate = {
+  kind: "successful_run_end",
 };
