@@ -355,6 +355,10 @@ export type TriggerPredicate =
   | {
       /** Root onSuccessfulRunOtherServerOncePerTurn since previous checkpoint. */
       kind: "other_server_success";
+    }
+  | {
+      /** onSuccessfulRun since previous checkpoint (card ids). */
+      kind: "successful_run";
     };
 
 export type TriggerPredicateMatch =
@@ -615,6 +619,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "other_server_success";
+      cardIds: string[];
+    }
+  | {
+      kind: "successful_run";
       cardIds: string[];
     };
 
@@ -1072,6 +1080,13 @@ export function evaluateTriggerPredicate(
         cardIds: [...(state.turn.otherServerSuccessPendingIds ?? [])],
       };
     }
+    case "successful_run": {
+      void diff;
+      return {
+        kind: "successful_run",
+        cardIds: [...(state.turn.successfulRunPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1407,4 +1422,8 @@ export const PREDICATE_SUCCESSFUL_RUN_END: TriggerPredicate = {
 
 export const PREDICATE_OTHER_SERVER_SUCCESS: TriggerPredicate = {
   kind: "other_server_success",
+};
+
+export const PREDICATE_SUCCESSFUL_RUN: TriggerPredicate = {
+  kind: "successful_run",
 };
