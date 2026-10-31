@@ -92,12 +92,10 @@ import {
   fireFinishAccessRdOncePerTurn,
   fireInlineConditional,
   fireScoreTurnEnd,
-  fireStoredConditionals,
   fireSuccessfulRunServerAbilities,
   fireTenninTurnBegin,
   fireUnsuccessfulRunServerAbilities,
   resolveStoredConditionalPendings,
-  type StoredConditionalMark,
 } from "../state/storedTriggers.js";
 import {
   noteEncounterEndIfNotFullyBroken,
@@ -133,6 +131,12 @@ import {
   noteOnCorpTurnBegin,
   noteOnCorpTurnBeginIfRunnerUntagged,
 } from "../state/corpTurnBeginHooks.js";
+import {
+  noteOnRunnerTurnBegin,
+  noteRunnerIdentityOnTurnBegin,
+  noteRunnerRigTurnBegin,
+  noteRunnerScoreOnTurnBegin,
+} from "../state/runnerTurnBeginHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -356,11 +360,6 @@ export function resumeRunnerTurnBeginAbilities(state: GameState): void {
   noteOpenTurnBeginWaiting(state);
 }
 
-function runnerTurnBeginInactive(state: GameState, id: string): boolean {
-  if (!state.runner.installed.includes(id)) return true;
-  return abilitiesSuppressed(state, id);
-}
-
 function isRunnerTurnBeginPendingKey(abilityKey: string): boolean {
   return (
     abilityKey === "on-turn-begin" ||
@@ -391,53 +390,6 @@ function noteOpenTurnBeginWaiting(state: GameState): void {
   state.log.push(
     `${title}'s turn-begin ability is open; ${waiting} later turn-begin ${noun} (CR ${CR.conditionCheckedWhenResolving.number}).`,
   );
-}
-
-/**
- * Mark every eligible Runner-rig turn-begin ability pending at once, then
- * resolve them in one reaction window (CR 9.6.5d.ex1 / 9.2.8a). Leftovers
- * stay on the bag across interrupts; resumeRunnerTurnBeginAbilities continues.
- */
-function fireRunnerRigTurnBegin(state: GameState, ids: string[]): void {
-  const marks: StoredConditionalMark[] = [];
-  for (const id of ids) {
-    const card = state.cards[id];
-    if (
-      card &&
-      (card.onTurnBegin || card.onTurnBeginIfCorpNoBadPublicity) &&
-      runnerTurnBeginInactive(state, id)
-    ) {
-      state.log.push(
-        `${card.title}'s pending turn-begin ability ends (CR ${CR.pendingAbilityInactive.number}).`,
-      );
-      continue;
-    }
-    if (
-      card?.onTurnBeginIfCorpNoBadPublicity &&
-      (state.corp.badPublicity ?? 0) === 0
-    ) {
-      marks.push({
-        abilityKey: "on-turn-begin-if-corp-no-bp",
-        sourceId: id,
-        controller: "runner",
-        mandatory: true,
-        effectKey: "onTurnBeginIfCorpNoBadPublicity",
-        logLine: `${card.title} becomes pending — Runner turn begin (Corp has no bad publicity).`,
-      });
-    }
-    if (!card?.onTurnBegin) continue;
-    marks.push({
-      abilityKey: "on-turn-begin",
-      sourceId: id,
-      controller: "runner",
-      mandatory: true,
-      effectKey: "onTurnBegin",
-      logLine: `${card.title} becomes pending — Runner turn begin.`,
-    });
-  }
-  if (marks.length === 0) return;
-  fireStoredConditionals(state, marks);
-  noteOpenTurnBeginWaiting(state);
 }
 
 function iceBypassBlockedByServerUpgrade(
@@ -1235,20 +1187,11 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        const runnerIdCard = s.cards[s.runner.identityId];
-        if (runnerIdCard?.onTurnBegin) {
-          fireStoredConditionals(s, [
-            {
-              abilityKey: "on-turn-begin",
-              sourceId: runnerIdCard.id,
-              controller: "runner",
-              mandatory: true,
-              effectKey: "onTurnBegin",
-              logLine: `${runnerIdCard.title} becomes pending — Runner turn begin.`,
-            },
-          ]);
+        // Runner turn-begin conditionals — note for 10.3.1a.
+        noteRunnerIdentityOnTurnBegin(s, s.runner.identityId);
+        for (const id of s.runner.installed) {
+          noteRunnerRigTurnBegin(s, id);
         }
-        fireRunnerRigTurnBegin(s, [...s.runner.installed]);
         // Out of the Ashes: heap may RFG self to make a run.
         for (const id of [...s.runner.discardPile]) {
           const card = s.cards[id];
@@ -1283,66 +1226,28 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
           if (s.pendingChoice) break;
         }
-        const runnerTurnBegin: StoredConditionalMark[] = [];
         for (const server of Object.values(s.servers)) {
           for (const id of server.root) {
             const card = s.cards[id];
             if (!card?.rezzed || !card.onRunnerTurnBegin) continue;
-            runnerTurnBegin.push({
-              abilityKey: "on-runner-turn-begin",
-              sourceId: id,
-              controller: "corp",
-              mandatory: true,
-              effectKey: "onRunnerTurnBegin",
-              logLine: `${card.title} becomes pending — Runner turn begin.`,
-            });
+            noteOnRunnerTurnBegin(s, id);
           }
         }
         for (const id of s.corp.scoreArea) {
-          const card = s.cards[id];
-          if (!card?.onRunnerTurnBegin) continue;
-          runnerTurnBegin.push({
-            abilityKey: "on-runner-turn-begin",
-            sourceId: id,
-            controller: "corp",
-            mandatory: true,
-            effectKey: "onRunnerTurnBegin",
-            logLine: `${card.title} becomes pending — Runner turn begin.`,
-          });
+          noteOnRunnerTurnBegin(s, id);
         }
         // Door to Door-class: currents in corp lingering play-area.
         for (const cid of lingeringPlayAreaIds(s, "corp")) {
-          const card = s.cards[cid];
-          if (!card?.onRunnerTurnBegin) continue;
-          runnerTurnBegin.push({
-            abilityKey: "on-runner-turn-begin",
-            sourceId: cid,
-            controller: "corp",
-            mandatory: true,
-            effectKey: "onRunnerTurnBegin",
-            logLine: `${card.title} becomes pending — Runner turn begin.`,
-          });
+          noteOnRunnerTurnBegin(s, cid);
         }
         // Project Vacheron et al.: agendas in Runner score with onTurnBegin.
         for (const id of s.runner.scoreArea) {
-          const card = s.cards[id];
-          if (!card?.onTurnBegin) continue;
-          if (
-            card.worthZeroAgendaPointsWhileHasAgendaCounters &&
-            (card.agendaCounters ?? 0) < 1
-          ) {
-            continue;
-          }
-          runnerTurnBegin.push({
-            abilityKey: "on-turn-begin",
-            sourceId: id,
-            controller: "runner",
-            mandatory: true,
-            effectKey: "onTurnBegin",
-            logLine: `${card.title} becomes pending — Runner turn begin.`,
-          });
+          noteRunnerScoreOnTurnBegin(s, id);
         }
-        fireStoredConditionals(s, runnerTurnBegin);
+        if ((s.turn.runnerTurnBeginPending ?? []).length > 0) {
+          checkpointAfterInstruction(s, "runner.turnBegins");
+          noteOpenTurnBeginWaiting(s);
+        }
       },
     },
   ),

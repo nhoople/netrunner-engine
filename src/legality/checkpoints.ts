@@ -107,6 +107,7 @@ import {
   PREDICATE_CORP_TURN_END,
   PREDICATE_RUNNER_TURN_END,
   PREDICATE_CORP_TURN_BEGIN,
+  PREDICATE_RUNNER_TURN_BEGIN,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2377,6 +2378,37 @@ function markCorpTurnBegin(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Runner turn-begin family (phase 3). */
+function markRunnerTurnBegin(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_RUNNER_TURN_BEGIN,
+  );
+  if (match.kind !== "runner_turn_begin" || match.marks.length === 0) {
+    state.turn.runnerTurnBeginPending = [];
+    return;
+  }
+  const marks = match.marks;
+  state.turn.runnerTurnBeginPending = [];
+  for (const m of marks) {
+    if (abilitiesSuppressed(state, m.cardId)) continue;
+    const card = state.cards[m.cardId];
+    if (!card) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: m.abilityKey,
+      sourceId: card.id,
+      controller: m.controller,
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: m.effectKey as StoredConditionalEffectKey,
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(m.logLine);
+  }
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -3011,6 +3043,7 @@ function markConditionalAbilities(state: GameState): void {
   markCorpTurnEnd(state, diff);
   markRunnerTurnEnd(state, diff);
   markCorpTurnBegin(state, diff);
+  markRunnerTurnBegin(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))

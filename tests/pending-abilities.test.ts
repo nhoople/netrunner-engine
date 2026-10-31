@@ -978,6 +978,36 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Runner turn-begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteRunnerRigTurnBegin } = await import(
+      "../src/state/runnerTurnBeginHooks.js"
+    );
+    const s = createInitialState();
+    const aesop = instantiateCard("aesops-pawnshop", "aesop-1", "runner:installed");
+    s.cards["aesop-1"] = aesop;
+    s.runner.installed = ["aesop-1"];
+    noteRunnerRigTurnBegin(s, "aesop-1");
+    expect(s.turn.runnerTurnBeginPending).toEqual([
+      expect.objectContaining({
+        cardId: "aesop-1",
+        effectKey: "onTurnBegin",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner turn begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runnerTurnBeginPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Runner turn begin"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Runner turn-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnRunnerTurnEnd } = await import(
       "../src/state/runnerTurnEndHooks.js"
