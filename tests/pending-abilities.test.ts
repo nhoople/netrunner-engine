@@ -868,6 +868,31 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks successful-run-on-RD at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunOnRd } = await import(
+      "../src/state/successfulRunOnRdHooks.js"
+    );
+    const s = createInitialState();
+    const chakana = instantiateCard("chakana", "ch-1", "runner:installed");
+    s.cards["ch-1"] = chakana;
+    s.runner.installed = ["ch-1"];
+    noteSuccessfulRunOnRd(s, "ch-1");
+    expect(s.turn.successfulRunOnRdPendingIds).toEqual(["ch-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "successful run on rd",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.successfulRunOnRdPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — successful run on R&D"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"

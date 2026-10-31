@@ -152,6 +152,7 @@ export {
   PREDICATE_BYPASS,
   PREDICATE_APPROACH_ICE,
   PREDICATE_FIRST_SUCCESSFUL_RD_RUN_END,
+  PREDICATE_SUCCESSFUL_RUN_ON_RD,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

@@ -339,6 +339,10 @@ export type TriggerPredicate =
   | {
       /** First successful R&D run end this turn (Psych Mike). */
       kind: "first_successful_rd_run_end";
+    }
+  | {
+      /** Runner onSuccessfulRunOnRd since previous checkpoint (card ids). */
+      kind: "successful_run_on_rd";
     };
 
 export type TriggerPredicateMatch =
@@ -584,6 +588,10 @@ export type TriggerPredicateMatch =
   | {
       kind: "first_successful_rd_run_end";
       matched: boolean;
+    }
+  | {
+      kind: "successful_run_on_rd";
+      cardIds: string[];
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -1012,6 +1020,13 @@ export function evaluateTriggerPredicate(
           !state.turn.firstSuccessfulRdRunEndUsedThisTurn,
       };
     }
+    case "successful_run_on_rd": {
+      void diff;
+      return {
+        kind: "successful_run_on_rd",
+        cardIds: [...(state.turn.successfulRunOnRdPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1331,4 +1346,8 @@ export const PREDICATE_APPROACH_ICE: TriggerPredicate = {
 
 export const PREDICATE_FIRST_SUCCESSFUL_RD_RUN_END: TriggerPredicate = {
   kind: "first_successful_rd_run_end",
+};
+
+export const PREDICATE_SUCCESSFUL_RUN_ON_RD: TriggerPredicate = {
+  kind: "successful_run_on_rd",
 };
