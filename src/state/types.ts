@@ -3195,6 +3195,11 @@ export interface TurnBookkeeping {
    * pending at the next 10.3.1a (phase 3).
    */
   successfulRunPendingIds: string[];
+  /**
+   * Card ids whose onRunBegin met since previous checkpoint; marked pending
+   * at the next 10.3.1a (phase 3).
+   */
+  runBeginPendingIds: string[];
   /** Nuvem: first R&D trash credit gain used this turn. */
   nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */

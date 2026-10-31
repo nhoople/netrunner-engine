@@ -157,6 +157,7 @@ export {
   PREDICATE_SUCCESSFUL_RUN_END,
   PREDICATE_OTHER_SERVER_SUCCESS,
   PREDICATE_SUCCESSFUL_RUN,
+  PREDICATE_RUN_BEGIN,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";
