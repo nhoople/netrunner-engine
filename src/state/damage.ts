@@ -10,7 +10,20 @@ import { scoredAgendaMeatDamageIncrease } from "./breakerMods.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { pickRandomSubset } from "./rng.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
-import { fireStoredConditionals } from "./storedTriggers.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import type { StoredConditionalMark } from "./storedTriggers.js";
+
+function noteAndCheckpointStored(
+  state: GameState,
+  items: StoredConditionalMark[],
+  openedBy: string,
+): void {
+  noteStoredConditionals(state, items);
+  if ((state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, openedBy);
+  }
+}
 
 function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -591,7 +604,7 @@ export function resolveDamage(
   // Sentinel Defense Program: continuous while scored — whenever the Runner
   // suffers core damage, fire the scored agenda's effect.
   if (core && amount > 0 && !state.done) {
-    const items = [];
+    const items: StoredConditionalMark[] = [];
     for (const id of [...state.corp.scoreArea]) {
       const scored = state.cards[id];
       // CR 9.12.1d — blanked scored agendas do not fire continuous abilities.
@@ -606,23 +619,27 @@ export function resolveDamage(
         logLine: `${scored.title} becomes pending — Runner suffered core damage.`,
       });
     }
-    fireStoredConditionals(state, items);
+    noteAndCheckpointStored(state, items, "damage.sufferCore");
   }
 
   // First core damage this turn → Runner identity trigger (Esâ).
   if (core && beforeCore === 0 && amount > 0 && !state.done) {
     const idCard = state.cards[state.runner.identityId];
     if (idCard?.onFirstCoreDamageThisTurn) {
-      fireStoredConditionals(state, [
-        {
-          abilityKey: "on-first-core-damage",
-          sourceId: idCard.id,
-          controller: "runner",
-          mandatory: true,
-          effectKey: "onFirstCoreDamageThisTurn",
-          logLine: `${idCard.title} becomes pending — first core damage this turn.`,
-        },
-      ]);
+      noteAndCheckpointStored(
+        state,
+        [
+          {
+            abilityKey: "on-first-core-damage",
+            sourceId: idCard.id,
+            controller: "runner",
+            mandatory: true,
+            effectKey: "onFirstCoreDamageThisTurn",
+            logLine: `${idCard.title} becomes pending — first core damage this turn.`,
+          },
+        ],
+        "damage.firstCore",
+      );
     }
   }
 
@@ -791,7 +808,7 @@ export function maybeFireFirstEmptyGripTriggers(state: GameState): void {
   if (state.runner.hand.length > 0) return;
   if (state.turn.respirocytesEmptyGripFiredThisTurn) return;
   state.turn.respirocytesEmptyGripFiredThisTurn = true;
-  const items = [];
+  const items: StoredConditionalMark[] = [];
   for (const rid of [...state.runner.installed]) {
     const card = state.cards[rid];
     // CR 9.12.1d — blanked hardware does not fire continuous empty-grip triggers.
@@ -806,5 +823,5 @@ export function maybeFireFirstEmptyGripTriggers(state: GameState): void {
       logLine: `${card.title} becomes pending — first empty grip this turn.`,
     });
   }
-  fireStoredConditionals(state, items);
+  noteAndCheckpointStored(state, items, "damage.firstEmptyGrip");
 }
