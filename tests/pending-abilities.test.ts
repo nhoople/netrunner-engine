@@ -978,6 +978,49 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Builder of Nations encounter-end meat inline at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteInlineConditional } = await import(
+      "../src/state/inlineConditionalHooks.js"
+    );
+    const s = createInitialState();
+    const id = instantiateCard(
+      "weyland-consortium-builder-of-nations",
+      "bm-1",
+      "corp:identity",
+    );
+    s.cards["bm-1"] = id;
+    s.corp.identityId = "bm-1";
+    noteInlineConditional(s, {
+      cardId: "bm-1",
+      abilityKey: "first-advanced-ice-encounter-end-meat",
+      controller: "corp",
+      mandatory: true,
+      effect: { op: "do", action: { kind: "meat_damage", amount: 1 } },
+      logLine: `${id.title} becomes pending — first advanced ice encounter ends (meat damage).`,
+    });
+    expect(s.turn.inlineConditionalPending).toEqual([
+      expect.objectContaining({
+        cardId: "bm-1",
+        abilityKey: "first-advanced-ice-encounter-end-meat",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "encounter end meat",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.inlineConditionalPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — first advanced ice encounter ends (meat damage)",
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Out of the Ashes turn-begin inline at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } = await import(
       "../src/state/inlineConditionalHooks.js"

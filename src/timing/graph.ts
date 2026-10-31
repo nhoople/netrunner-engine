@@ -1656,16 +1656,18 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.run.derezProtectingIceOnRunBegin = false;
           const src = s.run.runSourceId;
           if (src) {
-            fireInlineConditional(
-              s,
-              src,
-              {
+            noteInlineConditional(s, {
+              cardId: src,
+              abilityKey: "window-derez-protecting-ice-on-run-begin",
+              controller: "runner",
+              mandatory: true,
+              effect: {
                 op: "do",
                 action: { kind: "may_derez_protecting_attacked_ice" },
               },
-              "window-derez-protecting-ice-on-run-begin",
-              `${s.cards[src]?.title ?? "Window of Opportunity"} becomes pending — run begin (may derez protecting ice).`,
-            );
+              logLine: `${s.cards[src]?.title ?? "Window of Opportunity"} becomes pending — run begin (may derez protecting ice).`,
+            });
+            checkpointAfterInstruction(s, "run.begin");
           }
         }
         // Lightning Laboratory: may spend agenda counter to rez up to N ice.
@@ -2358,20 +2360,22 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Diana's Hunt: may install a program from grip ignoring costs.
         if (
           runState.onEncounterMayInstallProgramFromGripIgnoringCosts &&
-          !s.pendingChoice &&
           s.runner.hand.some((id) => s.cards[id]?.type === "program")
         ) {
           const dianaSrc = runState.runSourceId ?? iceId;
-          fireInlineConditional(
-            s,
-            dianaSrc,
-            {
+          noteInlineConditional(s, {
+            cardId: dianaSrc,
+            abilityKey: "dianas-hunt-may-install-program-on-encounter",
+            controller: "runner",
+            mandatory: true,
+            effect: {
               op: "do",
-              action: { kind: "may_install_diana_program_from_grip_ignoring_costs" },
+              action: {
+                kind: "may_install_diana_program_from_grip_ignoring_costs",
+              },
             },
-            "dianas-hunt-may-install-program-on-encounter",
-            `${s.cards[dianaSrc]?.title ?? "Diana's Hunt"} becomes pending — encounter (may install program from grip).`,
-          );
+            logLine: `${s.cards[dianaSrc]?.title ?? "Diana's Hunt"} becomes pending — encounter (may install program from grip).`,
+          });
         }
         // Chum: apply pending next-ice strength bonus at encounter begin.
         if (runState.chumNextIce) {
@@ -3318,20 +3322,21 @@ export const STEPS: Record<string, TimingStepDef> = {
                   }
                   if (abilitiesSuppressed(s, rid)) continue;
                   s.turn.inversificatorSwapUsedThisTurn = true;
-                  fireInlineConditional(
-                    s,
-                    rid,
-                    {
+                  noteInlineConditional(s, {
+                    cardId: rid,
+                    abilityKey: "inversificator-may-swap-passed-ice",
+                    controller: "runner",
+                    mandatory: true,
+                    effect: {
                       op: "do",
                       action: {
                         kind: "may_swap_passed_ice",
                         iceId,
                       },
                     },
-                    "inversificator-may-swap-passed-ice",
-                    `${br.title} becomes pending — fully broke ice (may swap).`,
-                  );
-                  if (s.pendingChoice) break;
+                    logLine: `${br.title} becomes pending — fully broke ice (may swap).`,
+                  });
+                  break;
                 }
               }
             }
@@ -3408,14 +3413,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               const idCard = s.cards[s.corp.identityId];
               if (idCard?.firstAdvancedIceEncounterEndMeatDamageEachTurn) {
                 s.turn.bmFirstAdvancedIceEncounterEndMeatUsed = true;
-                fireInlineConditional(
-                  s,
-                  idCard.id,
-                  { op: "do", action: { kind: "meat_damage", amount: 1 } },
-                  "first-advanced-ice-encounter-end-meat",
-                  `${idCard.title} becomes pending — first advanced ice encounter ends (meat damage).`,
-                  "corp",
-                );
+                noteInlineConditional(s, {
+                  cardId: idCard.id,
+                  abilityKey: "first-advanced-ice-encounter-end-meat",
+                  controller: "corp",
+                  mandatory: true,
+                  effect: { op: "do", action: { kind: "meat_damage", amount: 1 } },
+                  logLine: `${idCard.title} becomes pending — first advanced ice encounter ends (meat damage).`,
+                });
               }
             }
             // Chum: if that boosted encounter ended without fully breaking → net.
@@ -3502,16 +3507,17 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
               if (br.addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke) {
-                fireInlineConditional(
-                  s,
-                  bid,
-                  {
+                noteInlineConditional(s, {
+                  cardId: bid,
+                  abilityKey: "brahman-add-nonvirus-to-stack-top-on-encounter-end",
+                  controller: "runner",
+                  mandatory: true,
+                  effect: {
                     op: "do",
                     action: { kind: "add_nonvirus_program_to_stack_top" },
                   },
-                  "brahman-add-nonvirus-to-stack-top-on-encounter-end",
-                  `${br.title} becomes pending — encounter end after break (add non-virus to stack).`,
-                );
+                  logLine: `${br.title} becomes pending — encounter end after break (add non-virus to stack).`,
+                });
               }
               if (!br.removeVirusOrTrashOnEncounterEndIfBroke) continue;
               if ((br.virusCounters ?? 0) >= 1) {
@@ -3612,16 +3618,17 @@ export const STEPS: Record<string, TimingStepDef> = {
                   continue;
                 }
                 s.turn.sipaSwapUsedThisTurn = true;
-                fireInlineConditional(
-                  s,
-                  rid,
-                  {
+                noteInlineConditional(s, {
+                  cardId: rid,
+                  abilityKey: "sipa-may-swap-outermost-ice-on-pass",
+                  controller: "runner",
+                  mandatory: true,
+                  effect: {
                     op: "do",
                     action: { kind: "may_swap_ice_with_other_installed" },
                   },
-                  "sipa-may-swap-outermost-ice-on-pass",
-                  `${sipa.title} becomes pending — pass outermost after full break (may swap).`,
-                );
+                  logLine: `${sipa.title} becomes pending — pass outermost after full break (may swap).`,
+                });
                 break;
               }
             }
