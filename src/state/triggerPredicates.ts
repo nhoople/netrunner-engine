@@ -411,6 +411,10 @@ export type TriggerPredicate =
   | {
       /** Outside-pool spend conditionals since previous checkpoint. */
       kind: "outside_pool_spend";
+    }
+  | {
+      /** Corp identity before-first-turn since previous checkpoint. */
+      kind: "before_first_turn";
     };
 
 export type TriggerPredicateMatch =
@@ -770,6 +774,15 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "outside_pool_spend";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
+        logLine: string;
+      }>;
+    }
+  | {
+      kind: "before_first_turn";
       marks: Array<{
         cardId: string;
         abilityKey: string;
@@ -1330,6 +1343,13 @@ export function evaluateTriggerPredicate(
         marks: [...(state.turn.outsidePoolSpendPending ?? [])],
       };
     }
+    case "before_first_turn": {
+      void diff;
+      return {
+        kind: "before_first_turn",
+        marks: [...(state.turn.beforeFirstTurnPending ?? [])],
+      };
+    }
   }
 }
 
@@ -1721,4 +1741,8 @@ export const PREDICATE_ENCOUNTER_ABILITY: TriggerPredicate = {
 
 export const PREDICATE_OUTSIDE_POOL_SPEND: TriggerPredicate = {
   kind: "outside_pool_spend",
+};
+
+export const PREDICATE_BEFORE_FIRST_TURN: TriggerPredicate = {
+  kind: "before_first_turn",
 };

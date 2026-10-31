@@ -3267,6 +3267,16 @@ export interface TurnBookkeeping {
     logLine: string;
   }>;
   /**
+   * Corp identity onBeforeFirstTurn met since previous checkpoint; marked
+   * pending at the next 10.3.1a (phase 3).
+   */
+  beforeFirstTurnPending: Array<{
+    cardId: string;
+    abilityKey: string;
+    effectKey: StoredConditionalEffectKey;
+    logLine: string;
+  }>;
+  /**
    * Card ids whose onRunBegin met since previous checkpoint; marked pending
    * at the next 10.3.1a (phase 3).
    */
