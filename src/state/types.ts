@@ -3153,6 +3153,11 @@ export interface TurnBookkeeping {
    * marked pending at the next 10.3.1a (phase 3).
    */
   passAllIceProtectingServerPendingIds: string[];
+  /**
+   * Source ids (ice and/or Runner) whose onBypass met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  bypassPendingSourceIds: string[];
   /** Nuvem: first R&D trash credit gain used this turn. */
   nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */

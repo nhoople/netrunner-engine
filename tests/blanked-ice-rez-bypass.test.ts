@@ -9,7 +9,9 @@ import {
   createInitialState,
   crDataPresent,
   instantiateCard,
+  occurCheckpoint,
 } from "../src/index.js";
+import { CR } from "../src/timing/labels.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { fireOnBypassTriggers } from "../src/state/iceRezHooks.js";
 
@@ -30,6 +32,13 @@ describe("blanked ice rez / bypass (CR 9.12.1d)", () => {
     s.servers.hq.ice = ["lethe-1"];
 
     fireOnBypassTriggers(s, "lethe-1");
+    occurCheckpoint(
+      s,
+      "instruction",
+      "bypass",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     expect(
       s.log.some(
         (line) => line.includes("Lethe") && line.includes("becomes pending"),
@@ -45,6 +54,13 @@ describe("blanked ice rez / bypass (CR 9.12.1d)", () => {
     s.servers.hq.ice = ["lethe-2"];
     expect(abilitiesSuppressed(s, "lethe-2")).toBe(true);
     fireOnBypassTriggers(s, "lethe-2");
+    occurCheckpoint(
+      s,
+      "instruction",
+      "bypass blanked",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
     expect(
       s.log.some(
         (line) => line.includes("Lethe") && line.includes("becomes pending"),

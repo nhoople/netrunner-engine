@@ -327,6 +327,10 @@ export type TriggerPredicate =
   | {
       /** Root onPassAllIceProtectingServer (server ids). */
       kind: "pass_all_ice_protecting_server";
+    }
+  | {
+      /** Ice/Runner onBypass since previous checkpoint (source ids). */
+      kind: "bypass";
     };
 
 export type TriggerPredicateMatch =
@@ -560,6 +564,10 @@ export type TriggerPredicateMatch =
   | {
       kind: "pass_all_ice_protecting_server";
       serverIds: string[];
+    }
+  | {
+      kind: "bypass";
+      sourceIds: string[];
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -965,6 +973,13 @@ export function evaluateTriggerPredicate(
         serverIds: [...(state.turn.passAllIceProtectingServerPendingIds ?? [])],
       };
     }
+    case "bypass": {
+      void diff;
+      return {
+        kind: "bypass",
+        sourceIds: [...(state.turn.bypassPendingSourceIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1272,4 +1287,8 @@ export const PREDICATE_APPROACH_SERVER: TriggerPredicate = {
 
 export const PREDICATE_PASS_ALL_ICE_PROTECTING_SERVER: TriggerPredicate = {
   kind: "pass_all_ice_protecting_server",
+};
+
+export const PREDICATE_BYPASS: TriggerPredicate = {
+  kind: "bypass",
 };
