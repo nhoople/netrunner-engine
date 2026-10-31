@@ -153,6 +153,8 @@ export {
   PREDICATE_APPROACH_ICE,
   PREDICATE_FIRST_SUCCESSFUL_RD_RUN_END,
   PREDICATE_SUCCESSFUL_RUN_ON_RD,
+  PREDICATE_SUCCESSFUL_RUN_END_ONCE,
+  PREDICATE_SUCCESSFUL_RUN_END,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

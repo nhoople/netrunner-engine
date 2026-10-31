@@ -118,6 +118,10 @@ import {
   noteOnApproachIce,
 } from "../state/approachIceHooks.js";
 import { noteSuccessfulRunOnRd } from "../state/successfulRunOnRdHooks.js";
+import {
+  noteSuccessfulRunEnd,
+  noteSuccessfulRunEndOncePerTurn,
+} from "../state/successfulRunEndHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -5230,24 +5234,20 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        // Doppelgänger: once per turn when a successful run ends (may_start_run).
-        if (runState.successful === true && !s.pendingChoice) {
-          const runEndOnce: StoredConditionalMark[] = [];
+        // Doppelgänger: once per turn when a successful run ends — note for 10.3.1a.
+        // Note even if a choice is open; checkpoint marks, reaction waits (CR 10.3.2).
+        if (runState.successful === true) {
           for (const rid of s.runner.installed) {
-            const card = s.cards[rid];
-            if (!card?.onSuccessfulRunEndOncePerTurn) continue;
             if (s.turn.onSuccessfulRunEndFiredIds.includes(rid)) continue;
-            s.turn.onSuccessfulRunEndFiredIds.push(rid);
-            runEndOnce.push({
-              abilityKey: "on-successful-run-end-once",
-              sourceId: rid,
-              controller: "runner",
-              mandatory: true,
-              effectKey: "onSuccessfulRunEndOncePerTurn",
-              logLine: `${card.title} becomes pending — successful run ends.`,
-            });
+            const before = (s.turn.successfulRunEndOncePendingIds ?? []).length;
+            noteSuccessfulRunEndOncePerTurn(s, rid);
+            if ((s.turn.successfulRunEndOncePendingIds ?? []).length > before) {
+              s.turn.onSuccessfulRunEndFiredIds.push(rid);
+            }
           }
-          fireStoredConditionals(s, runEndOnce);
+          if ((s.turn.successfulRunEndOncePendingIds ?? []).length > 0) {
+            checkpointAfterInstruction(s, "run.ends");
+          }
         }
         {
           // Drop still-pending Chum whose source went inactive (CR 9.6.10).
@@ -5292,25 +5292,16 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Prevent-all-damage expires as the run completes (CR ${CR.runEndsCondition.number}).`,
           );
         }
-        // Dedicated Response Team: whenever a successful run ends (rezzed Corp).
-        if (runState.successful === true && !s.pendingChoice) {
-          const runEnd: StoredConditionalMark[] = [];
+        // Dedicated Response Team: successful run ends — note for 10.3.1a.
+        if (runState.successful === true) {
           for (const server of Object.values(s.servers)) {
             for (const id of [...server.root, ...server.ice]) {
-              const card = s.cards[id];
-              if (!card?.rezzed || !card.onSuccessfulRunEnd) continue;
-              if (abilitiesSuppressed(s, id)) continue;
-              runEnd.push({
-                abilityKey: "on-successful-run-end",
-                sourceId: id,
-                controller: "corp",
-                mandatory: true,
-                effectKey: "onSuccessfulRunEnd",
-                logLine: `${card.title} becomes pending — successful run ends.`,
-              });
+              noteSuccessfulRunEnd(s, id);
             }
           }
-          fireStoredConditionals(s, runEnd);
+          if ((s.turn.successfulRunEndPendingIds ?? []).length > 0) {
+            checkpointAfterInstruction(s, "run.ends");
+          }
         }
         // Arissana: trash identity-installed program if not subtype.
         const arissanaId = runState.identityInstalledProgramId;
@@ -5453,10 +5444,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           (runState.persistentTagsIfAgendaStolen ?? 0) > 0
         ) {
           const sid = runState.attackedServerId;
+          // Server may already have ceased at a prior 10.3.1a in this step
+          // (empty remote; CR 10.3.1h) — AMAZE still persists (CR 9.12.5).
           const sourceId =
             runState.persistentAmazeSourceId ??
             (sid
-              ? s.servers[sid].root.find((id) => {
+              ? s.servers[sid]?.root.find((id) => {
                   const card = s.cards[id];
                   return (
                     card?.rezzed && (card.tagsIfAgendaStolenThisRun ?? 0) > 0
@@ -5467,7 +5460,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             const tags = runState.persistentTagsIfAgendaStolen!;
             const stillThere = Boolean(
               sid &&
-                s.servers[sid].root.includes(sourceId) &&
+                s.servers[sid]?.root.includes(sourceId) &&
                 s.cards[sourceId]?.rezzed,
             );
             if (!stillThere) {
