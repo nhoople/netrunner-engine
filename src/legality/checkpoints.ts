@@ -108,6 +108,7 @@ import {
   PREDICATE_RUNNER_TURN_END,
   PREDICATE_CORP_TURN_BEGIN,
   PREDICATE_RUNNER_TURN_BEGIN,
+  PREDICATE_SCORE_TURN_END,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2316,6 +2317,35 @@ function markCorpTurnEnd(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** onScoreTurnEnd (phase 3). */
+function markScoreTurnEnd(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_SCORE_TURN_END);
+  if (match.kind !== "score_turn_end" || match.cardIds.length === 0) {
+    state.turn.scoreTurnEndPendingIds = [];
+    return;
+  }
+  const cardIds = match.cardIds;
+  state.turn.scoreTurnEndPendingIds = [];
+  for (const cardId of cardIds) {
+    if (abilitiesSuppressed(state, cardId)) continue;
+    const card = state.cards[cardId];
+    if (!card?.onScoreTurnEnd) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-score-turn-end",
+      sourceId: card.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onScoreTurnEnd",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — the turn it was scored ends (CR 11.2_3_d).`,
+    );
+  }
+}
+
 /** onRunnerTurnEnd (phase 3). */
 function markRunnerTurnEnd(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -3041,6 +3071,7 @@ function markConditionalAbilities(state: GameState): void {
   markSuccessfulRun(state, diff);
   markRunBegin(state, diff);
   markCorpTurnEnd(state, diff);
+  markScoreTurnEnd(state, diff);
   markRunnerTurnEnd(state, diff);
   markCorpTurnBegin(state, diff);
   markRunnerTurnBegin(state, diff);

@@ -318,24 +318,6 @@ export function resumePendingStoredConditionals(state: GameState): void {
   );
 }
 
-export function fireScoreTurnEnd(state: GameState): void {
-  const items: StoredConditionalMark[] = [];
-  for (const id of [...state.corp.scoreArea]) {
-    const card = state.cards[id];
-    if (!card?.scoredThisTurn || !card.onScoreTurnEnd) continue;
-    card.scoredThisTurn = false;
-    items.push({
-      abilityKey: "on-score-turn-end",
-      sourceId: id,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onScoreTurnEnd",
-      logLine: `${card.title} becomes pending — the turn it was scored ends (CR 11.2_3_d).`,
-    });
-  }
-  fireStoredConditionals(state, items);
-}
-
 /** True when a replacement for taking bad publicity is now pending. */
 export function fireWouldTakeBadPublicity(state: GameState): boolean {
   const items: StoredConditionalMark[] = [];
@@ -676,22 +658,6 @@ export function fireFinishAccessRdOncePerTurn(state: GameState): void {
   if (items.length === 0) return;
   state.turn.finishAccessRdHookFiredThisTurn = true;
   fireStoredConditionals(state, items);
-}
-
-export function fireTenninTurnBegin(state: GameState): void {
-  if (state.turn.successfulRunLastTurn) return;
-  const identity = state.cards[state.corp.identityId];
-  if (!identity?.onTurnBeginIfNoRunnerSuccessfulRunLastTurn) return;
-  fireStoredConditionals(state, [
-    {
-      abilityKey: "on-turn-begin-no-successful-run",
-      sourceId: identity.id,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onTurnBeginIfNoRunnerSuccessfulRunLastTurn",
-      logLine: `${identity.title} becomes pending — the Runner made no successful run last turn (CR 5.1.2).`,
-    },
-  ]);
 }
 
 export function firePsiCreditsRevealed(state: GameState): void {

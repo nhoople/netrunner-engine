@@ -3211,6 +3211,11 @@ export interface TurnBookkeeping {
    */
   runnerTurnEndPendingIds: string[];
   /**
+   * Card ids whose onScoreTurnEnd met since previous checkpoint; marked
+   * pending at the next 10.3.1a (phase 3).
+   */
+  scoreTurnEndPendingIds: string[];
+  /**
    * Corp turn-begin conditionals met since previous checkpoint; marked
    * pending at the next 10.3.1a (phase 3).
    */

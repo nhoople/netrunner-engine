@@ -101,3 +101,20 @@ export function noteOnCorpTurnBegin(state: GameState, cardId: string): void {
     logLine: `${card.title} becomes pending — Corp turn begin.`,
   });
 }
+
+/**
+ * Queue Tennin onTurnBeginIfNoRunnerSuccessfulRunLastTurn (Corp identity).
+ */
+export function noteCorpTenninTurnBegin(state: GameState): void {
+  if (state.turn.successfulRunLastTurn) return;
+  const identity = state.cards[state.corp.identityId];
+  if (!identity?.onTurnBeginIfNoRunnerSuccessfulRunLastTurn) return;
+  if (abilitiesSuppressed(state, identity.id)) return;
+  pushMark(state, {
+    cardId: identity.id,
+    abilityKey: "on-turn-begin-no-successful-run",
+    effectKey: "onTurnBeginIfNoRunnerSuccessfulRunLastTurn",
+    controller: "corp",
+    logLine: `${identity.title} becomes pending — the Runner made no successful run last turn (CR 5.1.2).`,
+  });
+}

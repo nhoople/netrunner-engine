@@ -978,6 +978,68 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Tennin Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteCorpTenninTurnBegin } = await import(
+      "../src/state/corpTurnBeginHooks.js"
+    );
+    const s = createInitialState();
+    const id = instantiateCard(
+      "tennin-institute-the-secrets-within",
+      "tennin-1",
+      "corp:identity",
+    );
+    s.cards["tennin-1"] = id;
+    s.corp.identityId = "tennin-1";
+    s.turn.successfulRunLastTurn = false;
+    noteCorpTenninTurnBegin(s);
+    expect(s.turn.corpTurnBeginPending).toEqual([
+      expect.objectContaining({
+        cardId: "tennin-1",
+        effectKey: "onTurnBeginIfNoRunnerSuccessfulRunLastTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp turn begin",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpTurnBeginPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — the Runner made no successful run last turn"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks onScoreTurnEnd at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnScoreTurnEnd } = await import(
+      "../src/state/corpTurnEndHooks.js"
+    );
+    const s = createInitialState();
+    const agenda = instantiateCard("viral-weaponization", "vw-1", "corp:score");
+    agenda.scoredThisTurn = true;
+    s.cards["vw-1"] = agenda;
+    s.corp.scoreArea = ["vw-1"];
+    noteOnScoreTurnEnd(s, "vw-1");
+    expect(agenda.scoredThisTurn).toBe(false);
+    expect(s.turn.scoreTurnEndPendingIds).toEqual(["vw-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp turn end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.scoreTurnEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — the turn it was scored ends"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Runner turn-begin at 10.3.1a (phase 3 scanner)", async () => {
     const { noteRunnerRigTurnBegin } = await import(
       "../src/state/runnerTurnBeginHooks.js"

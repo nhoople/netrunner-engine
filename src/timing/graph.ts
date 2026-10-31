@@ -91,9 +91,7 @@ import {
   fireEncounterAnyIceOncePerTurn,
   fireFinishAccessRdOncePerTurn,
   fireInlineConditional,
-  fireScoreTurnEnd,
   fireSuccessfulRunServerAbilities,
-  fireTenninTurnBegin,
   fireUnsuccessfulRunServerAbilities,
   resolveStoredConditionalPendings,
 } from "../state/storedTriggers.js";
@@ -123,11 +121,15 @@ import {
 import { noteSuccessfulRunOtherServer } from "../state/otherServerSuccessHooks.js";
 import { noteOnSuccessfulRun } from "../state/successfulRunHooks.js";
 import { noteOnRunBegin } from "../state/runBeginEffectHooks.js";
-import { noteOnCorpTurnEnd } from "../state/corpTurnEndHooks.js";
+import {
+  noteOnCorpTurnEnd,
+  noteOnScoreTurnEnd,
+} from "../state/corpTurnEndHooks.js";
 import { noteOnRunnerTurnEnd } from "../state/runnerTurnEndHooks.js";
 import {
   noteCorpOnTurnBegin,
   noteCorpOnTurnBeginIfRunnerTagged,
+  noteCorpTenninTurnBegin,
   noteOnCorpTurnBegin,
   noteOnCorpTurnBeginIfRunnerUntagged,
 } from "../state/corpTurnBeginHooks.js";
@@ -800,7 +802,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
-        fireTenninTurnBegin(s);
+        noteCorpTenninTurnBegin(s);
         if (s.corpCannotAdvanceCardsNextTurn) {
           s.turn.cannotAdvanceCards = true;
           s.corpCannotAdvanceCardsNextTurn = false;
@@ -1010,7 +1012,6 @@ export const STEPS: Record<string, TimingStepDef> = {
     "corp.turnComplete",
     {
       onResolve: (s) => {
-        fireScoreTurnEnd(s);
         // Jinteki: Restoring Humanity — facedown Archives → gain 1¢
         const idCard = s.cards[s.corp.identityId];
         if (idCard?.defId === "jinteki-restoring-humanity") {
@@ -1023,7 +1024,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Klevetnik, the mark, and temporary subtypes expire at the next
         // checkpoint (CR 9.10.1 / 10.3.1b / 10.11.4).
         s.turn.turnDurationsPassed = "corp";
-        // onCorpTurnEnd (rezzed roots + scored agendas) — note for 10.3.1a.
+        // onScoreTurnEnd / onCorpTurnEnd — note for 10.3.1a.
+        for (const id of s.corp.scoreArea) {
+          noteOnScoreTurnEnd(s, id);
+        }
         for (const card of Object.values(s.cards)) {
           if (!card.onCorpTurnEnd || !card.rezzed) continue;
           if (!card.zone.endsWith(":root")) continue;
@@ -1033,7 +1037,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const id of s.corp.scoreArea) {
           noteOnCorpTurnEnd(s, id);
         }
-        if ((s.turn.corpTurnEndPendingIds ?? []).length > 0) {
+        if (
+          (s.turn.corpTurnEndPendingIds ?? []).length > 0 ||
+          (s.turn.scoreTurnEndPendingIds ?? []).length > 0
+        ) {
           checkpointAfterInstruction(s, "corp.turnEnds");
         }
         // Sensor Net Activation: derez bioroids rezzed via agenda counter.
