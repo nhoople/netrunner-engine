@@ -3081,6 +3081,11 @@ export interface TurnBookkeeping {
   firstCorpCardInstallMetPending: boolean;
   /** Ice instance ids that were rezzed this turn (Cloud Eater). */
   rezzedThisTurnIds: string[];
+  /**
+   * Sisyphus: first pass of rezzed code gate/sentry met since previous
+   * checkpoint; marked pending at the next 10.3.1a (phase 3).
+   */
+  sisyphusPassMetPending: boolean;
   /** Sisyphus: first pass CG/sentry offer used this turn. */
   sisyphusPassUsedThisTurn: boolean;
   /** Nuvem: first R&D trash credit gain used this turn. */

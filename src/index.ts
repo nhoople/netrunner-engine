@@ -135,6 +135,7 @@ export {
   PREDICATE_DAREDEVIL_FIRST_RUN_ICE_GTE,
   PREDICATE_FIRST_ENCOUNTER_EACH_RUN,
   PREDICATE_FIRST_PASS_ICE,
+  PREDICATE_SISYPHUS_FIRST_PASS_REZZED_CG_OR_SENTRY,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

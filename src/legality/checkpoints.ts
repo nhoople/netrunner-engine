@@ -81,6 +81,7 @@ import {
   PREDICATE_DAREDEVIL_FIRST_RUN_ICE_GTE,
   PREDICATE_FIRST_ENCOUNTER_EACH_RUN,
   PREDICATE_FIRST_PASS_ICE,
+  PREDICATE_SISYPHUS_FIRST_PASS_REZZED_CG_OR_SENTRY,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -1514,6 +1515,43 @@ function markFirstPassIce(state: GameState, diff: CheckpointDiff): void {
   );
 }
 
+/** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
+function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_SISYPHUS_FIRST_PASS_REZZED_CG_OR_SENTRY,
+  );
+  if (
+    match.kind !== "sisyphus_first_pass_rezzed_cg_or_sentry" ||
+    !match.matched
+  ) {
+    state.turn.sisyphusPassMetPending = false;
+    return;
+  }
+  state.turn.sisyphusPassMetPending = false;
+  for (const sid of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, sid)) continue;
+    const scored = state.cards[sid];
+    if (!scored?.onFirstPassRezzedCodeGateOrSentryThisTurn) continue;
+    state.turn.sisyphusPassUsedThisTurn = true;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-pass-rezzed-code-gate-or-sentry-this-turn",
+      sourceId: scored.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstPassRezzedCodeGateOrSentryThisTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${scored.title} becomes pending — first pass of rezzed code gate or sentry this turn.`,
+    );
+    break;
+  }
+}
+
 /**
  * Daredevil: first run this turn on a server with ≥N ice (phase 3 — marked
  * at 10.3.1a from MetPending).
@@ -2085,6 +2123,7 @@ function markConditionalAbilities(state: GameState): void {
   markDaredevilFirstRun(state, diff);
   markFirstEncounterEachRun(state, diff);
   markFirstPassIce(state, diff);
+  markSisyphusFirstPass(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
