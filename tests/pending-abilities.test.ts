@@ -978,6 +978,66 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Corp action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteCorpActionPhaseEnd } = await import(
+      "../src/state/phaseEndHooks.js"
+    );
+    const s = createInitialState();
+    const mercia = instantiateCard("mercia-b4ll4rd", "mer-1", "corp:identity");
+    s.cards["mer-1"] = mercia;
+    s.corp.identityId = "mer-1";
+    noteCorpActionPhaseEnd(s);
+    expect(s.turn.corpActionPhaseEndPending).toEqual([
+      expect.objectContaining({
+        cardId: "mer-1",
+        effectKey: "onCorpActionPhaseEnd",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp action phase end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpActionPhaseEndPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Corp action phase ends"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks Runner action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteRunnerActionPhaseEnd } = await import(
+      "../src/state/phaseEndHooks.js"
+    );
+    const s = createInitialState();
+    const cacophony = instantiateCard("cacophony", "cac-1", "runner:installed");
+    s.cards["cac-1"] = cacophony;
+    s.runner.installed = ["cac-1"];
+    noteRunnerActionPhaseEnd(s);
+    expect(s.turn.runnerActionPhaseEndPending).toEqual([
+      expect.objectContaining({
+        cardId: "cac-1",
+        effectKey: "onRunnerActionPhaseEnd",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner action phase end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runnerActionPhaseEndPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Runner action phase ends"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks accessed-card abilities at 10.3.1a (phase 3 scanner)", async () => {
     const { noteAccessedCardAbilities } = await import(
       "../src/state/accessAbilityHooks.js"

@@ -395,6 +395,14 @@ export type TriggerPredicate =
   | {
       /** Access-step conditionals since previous checkpoint. */
       kind: "access_ability";
+    }
+  | {
+      /** Corp action-phase-end since previous checkpoint. */
+      kind: "corp_action_phase_end";
+    }
+  | {
+      /** Runner action-phase-end since previous checkpoint. */
+      kind: "runner_action_phase_end";
     };
 
 export type TriggerPredicateMatch =
@@ -719,6 +727,26 @@ export type TriggerPredicateMatch =
         effectKey: string;
         controller: "corp" | "runner";
         mandatory: boolean;
+        logLine: string;
+      }>;
+    }
+  | {
+      kind: "corp_action_phase_end";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
+        controller: "corp" | "runner";
+        logLine: string;
+      }>;
+    }
+  | {
+      kind: "runner_action_phase_end";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
+        controller: "corp" | "runner";
         logLine: string;
       }>;
     };
@@ -1247,6 +1275,20 @@ export function evaluateTriggerPredicate(
         marks: [...(state.turn.accessAbilityPending ?? [])],
       };
     }
+    case "corp_action_phase_end": {
+      void diff;
+      return {
+        kind: "corp_action_phase_end",
+        marks: [...(state.turn.corpActionPhaseEndPending ?? [])],
+      };
+    }
+    case "runner_action_phase_end": {
+      void diff;
+      return {
+        kind: "runner_action_phase_end",
+        marks: [...(state.turn.runnerActionPhaseEndPending ?? [])],
+      };
+    }
   }
 }
 
@@ -1622,4 +1664,12 @@ export const PREDICATE_UNSUCCESSFUL_RUN_SERVER: TriggerPredicate = {
 
 export const PREDICATE_ACCESS_ABILITY: TriggerPredicate = {
   kind: "access_ability",
+};
+
+export const PREDICATE_CORP_ACTION_PHASE_END: TriggerPredicate = {
+  kind: "corp_action_phase_end",
+};
+
+export const PREDICATE_RUNNER_ACTION_PHASE_END: TriggerPredicate = {
+  kind: "runner_action_phase_end",
 };
