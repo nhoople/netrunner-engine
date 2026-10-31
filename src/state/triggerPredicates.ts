@@ -363,6 +363,10 @@ export type TriggerPredicate =
   | {
       /** onRunBegin since previous checkpoint (card ids). */
       kind: "run_begin";
+    }
+  | {
+      /** onCorpTurnEnd since previous checkpoint (card ids). */
+      kind: "corp_turn_end";
     };
 
 export type TriggerPredicateMatch =
@@ -631,6 +635,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "run_begin";
+      cardIds: string[];
+    }
+  | {
+      kind: "corp_turn_end";
       cardIds: string[];
     };
 
@@ -1102,6 +1110,13 @@ export function evaluateTriggerPredicate(
         cardIds: [...(state.turn.runBeginPendingIds ?? [])],
       };
     }
+    case "corp_turn_end": {
+      void diff;
+      return {
+        kind: "corp_turn_end",
+        cardIds: [...(state.turn.corpTurnEndPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1445,4 +1460,8 @@ export const PREDICATE_SUCCESSFUL_RUN: TriggerPredicate = {
 
 export const PREDICATE_RUN_BEGIN: TriggerPredicate = {
   kind: "run_begin",
+};
+
+export const PREDICATE_CORP_TURN_END: TriggerPredicate = {
+  kind: "corp_turn_end",
 };

@@ -125,6 +125,7 @@ import {
 import { noteSuccessfulRunOtherServer } from "../state/otherServerSuccessHooks.js";
 import { noteOnSuccessfulRun } from "../state/successfulRunHooks.js";
 import { noteOnRunBegin } from "../state/runBeginEffectHooks.js";
+import { noteOnCorpTurnEnd } from "../state/corpTurnEndHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -1099,33 +1100,19 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Klevetnik, the mark, and temporary subtypes expire at the next
         // checkpoint (CR 9.10.1 / 10.3.1b / 10.11.4).
         s.turn.turnDurationsPassed = "corp";
-        const corpTurnEnd: StoredConditionalMark[] = [];
+        // onCorpTurnEnd (rezzed roots + scored agendas) — note for 10.3.1a.
         for (const card of Object.values(s.cards)) {
           if (!card.onCorpTurnEnd || !card.rezzed) continue;
           if (!card.zone.endsWith(":root")) continue;
-          corpTurnEnd.push({
-            abilityKey: "on-corp-turn-end",
-            sourceId: card.id,
-            controller: "corp",
-            mandatory: true,
-            effectKey: "onCorpTurnEnd",
-            logLine: `${card.title} becomes pending — Corp turn end.`,
-          });
+          noteOnCorpTurnEnd(s, card.id);
         }
         // Scored agendas (Jumon): onCorpTurnEnd while in Corp score area.
         for (const id of s.corp.scoreArea) {
-          const card = s.cards[id];
-          if (!card?.onCorpTurnEnd) continue;
-          corpTurnEnd.push({
-            abilityKey: "on-corp-turn-end",
-            sourceId: id,
-            controller: "corp",
-            mandatory: true,
-            effectKey: "onCorpTurnEnd",
-            logLine: `${card.title} becomes pending — Corp turn end.`,
-          });
+          noteOnCorpTurnEnd(s, id);
         }
-        fireStoredConditionals(s, corpTurnEnd);
+        if ((s.turn.corpTurnEndPendingIds ?? []).length > 0) {
+          checkpointAfterInstruction(s, "corp.turnEnds");
+        }
         // Sensor Net Activation: derez bioroids rezzed via agenda counter.
         const sensorPendingCorp = [...(s.turn.sensorNetPendingDerezIds ?? [])];
         s.turn.sensorNetPendingDerezIds = [];
