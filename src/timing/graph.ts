@@ -126,6 +126,7 @@ import { noteSuccessfulRunOtherServer } from "../state/otherServerSuccessHooks.j
 import { noteOnSuccessfulRun } from "../state/successfulRunHooks.js";
 import { noteOnRunBegin } from "../state/runBeginEffectHooks.js";
 import { noteOnCorpTurnEnd } from "../state/corpTurnEndHooks.js";
+import { noteOnRunnerTurnEnd } from "../state/runnerTurnEndHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
 import {
@@ -1530,46 +1531,18 @@ export const STEPS: Record<string, TimingStepDef> = {
             );
           }
         }
-        // Hoshiko-class: Runner identity onRunnerTurnEnd before rig cards.
-        const runnerTurnEnd: StoredConditionalMark[] = [];
-        const runnerIdCard = s.cards[s.runner.identityId];
-        if (runnerIdCard?.onRunnerTurnEnd) {
-          runnerTurnEnd.push({
-            abilityKey: "on-runner-turn-end",
-            sourceId: runnerIdCard.id,
-            controller: "runner",
-            mandatory: true,
-            effectKey: "onRunnerTurnEnd",
-            logLine: `${runnerIdCard.title} becomes pending — Runner turn end.`,
-          });
-        }
-        // Amanuensis-class: installed Runner cards' onRunnerTurnEnd.
+        // onRunnerTurnEnd (identity, rig, heap) — note for 10.3.1a.
+        noteOnRunnerTurnEnd(s, s.runner.identityId);
         for (const id of [...s.runner.installed]) {
-          const card = s.cards[id];
-          if (!card?.onRunnerTurnEnd) continue;
-          runnerTurnEnd.push({
-            abilityKey: "on-runner-turn-end",
-            sourceId: id,
-            controller: "runner",
-            mandatory: true,
-            effectKey: "onRunnerTurnEnd",
-            logLine: `${card.title} becomes pending — Runner turn end.`,
-          });
+          noteOnRunnerTurnEnd(s, id);
         }
         // Crowdfunding-class: heap cards with onRunnerTurnEnd.
         for (const id of [...s.runner.discardPile]) {
-          const card = s.cards[id];
-          if (!card?.onRunnerTurnEnd) continue;
-          runnerTurnEnd.push({
-            abilityKey: "on-runner-turn-end",
-            sourceId: id,
-            controller: "runner",
-            mandatory: true,
-            effectKey: "onRunnerTurnEnd",
-            logLine: `${card.title} becomes pending — Runner turn end.`,
-          });
+          noteOnRunnerTurnEnd(s, id);
         }
-        fireStoredConditionals(s, runnerTurnEnd);
+        if ((s.turn.runnerTurnEndPendingIds ?? []).length > 0) {
+          checkpointAfterInstruction(s, "runner.turnEnds");
+        }
         // Algernon-class: trash if click-gain was taken and no successful run.
         for (const id of [...s.runner.installed]) {
           const card = s.cards[id];

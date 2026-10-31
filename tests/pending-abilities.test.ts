@@ -948,6 +948,31 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Runner turn-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnRunnerTurnEnd } = await import(
+      "../src/state/runnerTurnEndHooks.js"
+    );
+    const s = createInitialState();
+    const crowd = instantiateCard("crowdfunding", "cf-1", "runner:heap");
+    s.cards["cf-1"] = crowd;
+    s.runner.discardPile = ["cf-1"];
+    noteOnRunnerTurnEnd(s, "cf-1");
+    expect(s.turn.runnerTurnEndPendingIds).toEqual(["cf-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "runner turn end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.runnerTurnEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Runner turn end"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Corp turn-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnCorpTurnEnd } = await import(
       "../src/state/corpTurnEndHooks.js"
