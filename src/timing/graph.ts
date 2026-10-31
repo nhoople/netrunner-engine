@@ -44,6 +44,13 @@ import {
   noteFirstPassIce,
   noteSisyphusFirstPass,
 } from "../state/firstEncounterPassHooks.js";
+import {
+  noteIceOnPass,
+  notePassHost,
+  notePassRezzedIce,
+  notePassRezzedIceProtectingServer,
+  notePassUnrezzedIce,
+} from "../state/passIceHooks.js";
 import { noteFirstUnsuccessfulRun } from "../state/unsuccessfulRunHooks.js";
 import {
   noteFirstSuccessfulCentralRun,
@@ -102,9 +109,6 @@ import {
   fireOnFirstSuccessfulRunOnRdEndsThisTurn,
   fireOnHostEncounter,
   fireOnPassAllIceProtectingServer,
-  fireOnPassRezzedIce,
-  fireOnPassRezzedIceProtectingThisServer,
-  fireOnPassUnrezzedIce,
 } from "../state/runTimingHooks.js";
 import { fireOnBeforeFirstTurn } from "../state/miscConditionalHooks.js";
 import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
@@ -3417,10 +3421,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                 iceId,
               ];
               runState.lastPassedUnrezzedIceId = iceId;
-              fireOnPassUnrezzedIce(s);
+              notePassUnrezzedIce(s);
             } else if (ice.rezzed && !passReplaced) {
               runState.lastPassedRezzedIceId = iceId;
-              fireOnPassRezzedIce(s);
+              notePassRezzedIce(s);
               // Mass-Driver: fully break → next encounter first N subs do not resolve.
               if (runState.encounter?.fullyBrokenByRunner) {
                 for (const rid of [...s.runner.installed]) {
@@ -3484,44 +3488,15 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
             }
-            // Phoneutria-class onPass (fire while ice id is known).
-            if (
-              ice.onPass &&
-              ice.rezzed &&
-              !abilitiesSuppressed(s, iceId) &&
-              !(runState.bypassedIceIds ?? []).includes(iceId)
-            ) {
-              fireStoredConditionals(s, [
-                {
-                  abilityKey: "on-pass",
-                  sourceId: iceId,
-                  controller: "corp",
-                  mandatory: true,
-                  effectKey: "onPass",
-                  logLine: `${ice.title} becomes pending — passed.`,
-                },
-              ]);
-            }
-            // Pichação-class: hosted trojans' onPassHost.
+            // Phoneutria-class onPass / Pichação onPassHost — queue for 10.3.1a.
             if (
               ice.rezzed &&
               !(runState.bypassedIceIds ?? []).includes(iceId)
             ) {
-              const passHost: StoredConditionalMark[] = [];
-              for (const hid of [...s.runner.installed]) {
-                const hostee = s.cards[hid];
-                if (!hostee?.onPassHost || hostee.hostId !== iceId) continue;
-                if (abilitiesSuppressed(s, hid)) continue;
-                passHost.push({
-                  abilityKey: "on-pass-host",
-                  sourceId: hid,
-                  controller: "runner",
-                  mandatory: true,
-                  effectKey: "onPassHost",
-                  logLine: `${hostee.title} becomes pending — host ice passed.`,
-                });
+              if (ice.onPass && !abilitiesSuppressed(s, iceId)) {
+                noteIceOnPass(s, iceId);
               }
-              fireStoredConditionals(s, passHost);
+              notePassHost(s, iceId);
             }
             // Cloud Eater: encounter end if rezzed this turn.
             if (
@@ -3837,14 +3812,14 @@ export const STEPS: Record<string, TimingStepDef> = {
             // Code Replicator / The Twins: pass rezzed ice protecting this server.
             if (ice.rezzed && !runState.passReplacedByEncounterEnd) {
               s.turn.cotcLastPassedIceId = iceId;
-              fireOnPassRezzedIceProtectingThisServer(
-                s,
-                runState.attackedServerId,
-              );
+              notePassRezzedIceProtectingServer(s, runState.attackedServerId);
             }
           }
         }
         s.run!.phase = "movement";
+        // Checkpoint while encounter facts still hold (Persephone reads
+        // subroutinesResolved / ice subtypes from run.encounter — CR 10.3.1a).
+        checkpointAfterInstruction(s, "run.movement");
         // Anvil: clear encounter-scoped break forbid (not Trieste lasting forbid).
         if (
           pos !== null &&
@@ -3865,7 +3840,6 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.run!.encounterStrengthBoosts = {};
         s.run!.iceStrengthBoosts = {};
         s.log.push(`Pass ice / move inward (appendix 11.4_4).`);
-        checkpointAfterInstruction(s, "run.movement");
       },
     },
   ),

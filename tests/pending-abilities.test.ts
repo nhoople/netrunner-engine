@@ -680,6 +680,29 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.cards["bak-1"]!.powerCounters).toBe(1);
   });
 
+  it("marks pass rezzed ice at 10.3.1a (phase 3 scanner)", async () => {
+    const { notePassRezzedIce } = await import("../src/state/passIceHooks.js");
+    const s = createInitialState();
+    const slip = instantiateCard("slipstream", "ss-1", "runner:installed");
+    s.cards["ss-1"] = slip;
+    s.runner.installed = ["ss-1"];
+    notePassRezzedIce(s);
+    expect(s.turn.passRezzedIceMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "pass rezzed ice",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.passRezzedIceMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — rezzed ice passed"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"
