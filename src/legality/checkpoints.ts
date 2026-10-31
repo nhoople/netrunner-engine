@@ -87,6 +87,10 @@ import {
   PREDICATE_ICE_ON_PASS,
   PREDICATE_PASS_HOST,
   PREDICATE_PASS_REZZED_ICE_PROTECTING_SERVER,
+  PREDICATE_ENCOUNTER_END,
+  PREDICATE_ENCOUNTER_END_REZZED_THIS_TURN,
+  PREDICATE_ENCOUNTER_END_NOT_FULLY_BROKEN,
+  PREDICATE_ENCOUNTER_END_PRINTED_SUBROUTINE_BROKEN,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -1680,6 +1684,150 @@ function markPassRezzedIceProtectingServer(
   }
 }
 
+/** Ice onEncounterEnd (phase 3). */
+function markEncounterEnd(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_ENCOUNTER_END);
+  if (match.kind !== "encounter_end" || match.iceIds.length === 0) {
+    state.turn.encounterEndPendingIds = [];
+    return;
+  }
+  const iceIds = match.iceIds;
+  state.turn.encounterEndPendingIds = [];
+  for (const iceId of iceIds) {
+    if (abilitiesSuppressed(state, iceId)) continue;
+    const ice = state.cards[iceId];
+    if (!ice?.onEncounterEnd || !ice.rezzed) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-encounter-end",
+      sourceId: ice.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onEncounterEnd",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(`${ice.title} becomes pending — encounter ends.`);
+  }
+}
+
+/** Ice onEncounterEndIfRezzedThisTurn (phase 3). */
+function markEncounterEndRezzedThisTurn(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ENCOUNTER_END_REZZED_THIS_TURN,
+  );
+  if (
+    match.kind !== "encounter_end_rezzed_this_turn" ||
+    match.iceIds.length === 0
+  ) {
+    state.turn.encounterEndRezzedThisTurnPendingIds = [];
+    return;
+  }
+  const iceIds = match.iceIds;
+  state.turn.encounterEndRezzedThisTurnPendingIds = [];
+  for (const iceId of iceIds) {
+    if (abilitiesSuppressed(state, iceId)) continue;
+    const ice = state.cards[iceId];
+    if (!ice?.onEncounterEndIfRezzedThisTurn) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-encounter-end-if-rezzed-this-turn",
+      sourceId: ice.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onEncounterEndIfRezzedThisTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${ice.title} becomes pending — encounter ends (rezzed this turn).`,
+    );
+  }
+}
+
+/** Ice onEncounterEndIfNotFullyBroken (phase 3). */
+function markEncounterEndNotFullyBroken(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ENCOUNTER_END_NOT_FULLY_BROKEN,
+  );
+  if (
+    match.kind !== "encounter_end_not_fully_broken" ||
+    match.iceIds.length === 0
+  ) {
+    state.turn.encounterEndNotFullyBrokenPendingIds = [];
+    return;
+  }
+  const iceIds = match.iceIds;
+  state.turn.encounterEndNotFullyBrokenPendingIds = [];
+  for (const iceId of iceIds) {
+    if (abilitiesSuppressed(state, iceId)) continue;
+    const ice = state.cards[iceId];
+    if (!ice?.onEncounterEndIfNotFullyBroken) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-encounter-end-if-not-fully-broken",
+      sourceId: ice.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onEncounterEndIfNotFullyBroken",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${ice.title} becomes pending — encounter ends without full break.`,
+    );
+  }
+}
+
+/** Ice onEncounterEndIfPrintedSubroutineBroken (phase 3). */
+function markEncounterEndPrintedSubroutineBroken(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_ENCOUNTER_END_PRINTED_SUBROUTINE_BROKEN,
+  );
+  if (
+    match.kind !== "encounter_end_printed_subroutine_broken" ||
+    match.iceIds.length === 0
+  ) {
+    state.turn.encounterEndPrintedSubBrokenPendingIds = [];
+    return;
+  }
+  const iceIds = match.iceIds;
+  state.turn.encounterEndPrintedSubBrokenPendingIds = [];
+  for (const iceId of iceIds) {
+    if (abilitiesSuppressed(state, iceId)) continue;
+    const ice = state.cards[iceId];
+    if (!ice?.onEncounterEndIfPrintedSubroutineBroken) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-encounter-end-if-printed-subroutine-broken",
+      sourceId: ice.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onEncounterEndIfPrintedSubroutineBroken",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${ice.title} becomes pending — printed subroutine broken this encounter.`,
+    );
+  }
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -2294,6 +2442,10 @@ function markConditionalAbilities(state: GameState): void {
   markIceOnPass(state, diff);
   markPassHost(state, diff);
   markPassRezzedIceProtectingServer(state, diff);
+  markEncounterEnd(state, diff);
+  markEncounterEndRezzedThisTurn(state, diff);
+  markEncounterEndNotFullyBroken(state, diff);
+  markEncounterEndPrintedSubroutineBroken(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
