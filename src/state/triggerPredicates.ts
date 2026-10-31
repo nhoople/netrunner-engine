@@ -224,6 +224,18 @@ export type TriggerPredicate =
        * Enhanced Vision; ordinals queued by run.success, marked at 10.3.1a).
        */
       kind: "val_successful_run_triggers";
+    }
+  | {
+      /** First run begin this turn (Stegodon / Tributary / Prognostic). */
+      kind: "first_run_begin";
+    }
+  | {
+      /** First R&D run begin this turn (Padma). */
+      kind: "first_rd_run_begin";
+    }
+  | {
+      /** First Archives run begin this turn (Front Company). */
+      kind: "first_archives_run_begin";
     };
 
 export type TriggerPredicateMatch =
@@ -357,6 +369,18 @@ export type TriggerPredicateMatch =
   | {
       kind: "val_successful_run_triggers";
       ordinals: number[];
+    }
+  | {
+      kind: "first_run_begin";
+      matched: boolean;
+    }
+  | {
+      kind: "first_rd_run_begin";
+      matched: boolean;
+    }
+  | {
+      kind: "first_archives_run_begin";
+      matched: boolean;
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -603,6 +627,23 @@ export function evaluateTriggerPredicate(
         ordinals: [...(state.turn.valSuccessfulRunTriggerPendingCounts ?? [])],
       };
     }
+    case "first_run_begin": {
+      void diff;
+      const matched =
+        state.turn.firstRunBeginMetPending &&
+        !state.turn.runBeginThisTurnUsed;
+      return { kind: "first_run_begin", matched };
+    }
+    case "first_rd_run_begin": {
+      void diff;
+      const matched = state.turn.firstRdRunBeginMetPending;
+      return { kind: "first_rd_run_begin", matched };
+    }
+    case "first_archives_run_begin": {
+      void diff;
+      const matched = state.turn.firstArchivesRunBeginMetPending;
+      return { kind: "first_archives_run_begin", matched };
+    }
   }
 }
 
@@ -808,4 +849,16 @@ export const PREDICATE_FIRST_VIRUS_INSTALL: TriggerPredicate = {
 
 export const PREDICATE_VAL_SUCCESSFUL_RUN_TRIGGERS: TriggerPredicate = {
   kind: "val_successful_run_triggers",
+};
+
+export const PREDICATE_FIRST_RUN_BEGIN: TriggerPredicate = {
+  kind: "first_run_begin",
+};
+
+export const PREDICATE_FIRST_RD_RUN_BEGIN: TriggerPredicate = {
+  kind: "first_rd_run_begin",
+};
+
+export const PREDICATE_FIRST_ARCHIVES_RUN_BEGIN: TriggerPredicate = {
+  kind: "first_archives_run_begin",
 };

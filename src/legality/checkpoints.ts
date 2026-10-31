@@ -67,6 +67,9 @@ import {
   PREDICATE_FIRST_PROGRAM_INSTALL,
   PREDICATE_FIRST_VIRUS_INSTALL,
   PREDICATE_VAL_SUCCESSFUL_RUN_TRIGGERS,
+  PREDICATE_FIRST_RUN_BEGIN,
+  PREDICATE_FIRST_RD_RUN_BEGIN,
+  PREDICATE_FIRST_ARCHIVES_RUN_BEGIN,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -1150,6 +1153,150 @@ function markFirstVirusInstall(state: GameState, diff: CheckpointDiff): void {
 }
 
 /**
+ * Stegodon / Tributary / Prognostic: first run begin this turn (phase 3).
+ */
+function markFirstRunBegin(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_RUN_BEGIN,
+  );
+  if (match.kind !== "first_run_begin" || !match.matched) {
+    state.turn.firstRunBeginMetPending = false;
+    return;
+  }
+  state.turn.firstRunBeginMetPending = false;
+  state.turn.runBeginThisTurnUsed = true;
+  for (const id of state.corp.scoreArea) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstRunBeginThisTurn) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-run-begin",
+      sourceId: card.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstRunBeginThisTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first run begin this turn.`,
+    );
+  }
+  for (const server of Object.values(state.servers)) {
+    for (const id of [...server.ice, ...server.root]) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.onFirstRunBeginThisTurn) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-first-run-begin",
+        sourceId: card.id,
+        controller: "corp",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onFirstRunBeginThisTurn",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${card.title} becomes pending — first run begin this turn.`,
+      );
+    }
+  }
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card?.onFirstRunBeginThisTurn) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-run-begin",
+      sourceId: card.id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstRunBeginThisTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first run begin this turn.`,
+    );
+  }
+}
+
+/** Padma: first R&D run begin this turn (phase 3). */
+function markFirstRdRunBegin(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_RD_RUN_BEGIN,
+  );
+  if (match.kind !== "first_rd_run_begin" || !match.matched) {
+    state.turn.firstRdRunBeginMetPending = false;
+    return;
+  }
+  state.turn.firstRdRunBeginMetPending = false;
+  const idCard = state.cards[state.runner.identityId];
+  if (
+    !idCard?.onFirstRdRunBeginThisTurn ||
+    abilitiesSuppressed(state, idCard.id)
+  ) {
+    return;
+  }
+  createPendingAbilityInstance(state, {
+    abilityKey: "on-first-rd-run-begin",
+    sourceId: idCard.id,
+    controller: "runner",
+    mandatory: true,
+    payload: {
+      kind: "stored_conditional",
+      effectKey: "onFirstRdRunBeginThisTurn",
+    } satisfies PendingAbilityPayload,
+  });
+  state.log.push(
+    `${idCard.title} becomes pending — first R&D run begin this turn.`,
+  );
+}
+
+/** Front Company: first Archives run begin this turn (phase 3). */
+function markFirstArchivesRunBegin(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_ARCHIVES_RUN_BEGIN,
+  );
+  if (match.kind !== "first_archives_run_begin" || !match.matched) {
+    state.turn.firstArchivesRunBeginMetPending = false;
+    return;
+  }
+  state.turn.firstArchivesRunBeginMetPending = false;
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) {
+      if (abilitiesSuppressed(state, id)) continue;
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.onFirstArchivesRunBeginThisTurn) continue;
+      createPendingAbilityInstance(state, {
+        abilityKey: "on-first-archives-run-begin",
+        sourceId: card.id,
+        controller: "corp",
+        mandatory: true,
+        payload: {
+          kind: "stored_conditional",
+          effectKey: "onFirstArchivesRunBeginThisTurn",
+        } satisfies PendingAbilityPayload,
+      });
+      state.log.push(
+        `${card.title} becomes pending — first Archives run begin this turn.`,
+      );
+    }
+  }
+}
+
+/**
  * Pravdivost / DreamNet / Enhanced Vision: Valley successful-run ordinals
  * (phase 3 — marked at 10.3.1a). Sources include Corp identity and rezzed
  * root/ice as well as the Runner rig.
@@ -1667,6 +1814,9 @@ function markConditionalAbilities(state: GameState): void {
   markFirstProgramInstall(state, diff);
   markFirstVirusInstall(state, diff);
   markValSuccessfulRunTriggers(state, diff);
+  markFirstRunBegin(state, diff);
+  markFirstRdRunBegin(state, diff);
+  markFirstArchivesRunBegin(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
