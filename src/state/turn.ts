@@ -94,6 +94,7 @@ export function emptyTurnBookkeeping(
     runBeginThisTurnUsed: false,
     firstRdRunBeginMetPending: false,
     firstArchivesRunBeginMetPending: false,
+    firstUnsuccessfulRunMetPending: false,
     installedCardCreditSpendThisTurn: false,
     companionInstallOrSpendCreditsFiredThisTurn: false,
     tagsGivenThisTurn: 0,

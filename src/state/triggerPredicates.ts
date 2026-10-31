@@ -236,6 +236,10 @@ export type TriggerPredicate =
   | {
       /** First Archives run begin this turn (Front Company). */
       kind: "first_archives_run_begin";
+    }
+  | {
+      /** First unsuccessful run this turn (John Masanori). */
+      kind: "first_unsuccessful_run";
     };
 
 export type TriggerPredicateMatch =
@@ -380,6 +384,10 @@ export type TriggerPredicateMatch =
     }
   | {
       kind: "first_archives_run_begin";
+      matched: boolean;
+    }
+  | {
+      kind: "first_unsuccessful_run";
       matched: boolean;
     };
 
@@ -644,6 +652,11 @@ export function evaluateTriggerPredicate(
       const matched = state.turn.firstArchivesRunBeginMetPending;
       return { kind: "first_archives_run_begin", matched };
     }
+    case "first_unsuccessful_run": {
+      void diff;
+      const matched = state.turn.firstUnsuccessfulRunMetPending;
+      return { kind: "first_unsuccessful_run", matched };
+    }
   }
 }
 
@@ -861,4 +874,8 @@ export const PREDICATE_FIRST_RD_RUN_BEGIN: TriggerPredicate = {
 
 export const PREDICATE_FIRST_ARCHIVES_RUN_BEGIN: TriggerPredicate = {
   kind: "first_archives_run_begin",
+};
+
+export const PREDICATE_FIRST_UNSUCCESSFUL_RUN: TriggerPredicate = {
+  kind: "first_unsuccessful_run",
 };

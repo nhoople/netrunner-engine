@@ -127,6 +127,7 @@ export {
   PREDICATE_FIRST_RUN_BEGIN,
   PREDICATE_FIRST_RD_RUN_BEGIN,
   PREDICATE_FIRST_ARCHIVES_RUN_BEGIN,
+  PREDICATE_FIRST_UNSUCCESSFUL_RUN,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
 } from "./state/triggerPredicates.js";

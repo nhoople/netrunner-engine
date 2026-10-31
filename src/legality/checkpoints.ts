@@ -18,6 +18,7 @@ import {
   valSuccessfulRunSourceIds,
   type ValRunnerTriggerFamily,
 } from "../effects/sansanValHooks.js";
+import { firstUnsuccessfulRunSourceIds } from "../state/unsuccessfulRunHooks.js";
 import {
   agendaPointsFor,
   checkWinConditions,
@@ -70,6 +71,7 @@ import {
   PREDICATE_FIRST_RUN_BEGIN,
   PREDICATE_FIRST_RD_RUN_BEGIN,
   PREDICATE_FIRST_ARCHIVES_RUN_BEGIN,
+  PREDICATE_FIRST_UNSUCCESSFUL_RUN,
 } from "../state/triggerPredicates.js";
 import {
   cancelPendingIfSourceInactive,
@@ -1297,6 +1299,43 @@ function markFirstArchivesRunBegin(
 }
 
 /**
+ * John Masanori: first unsuccessful run this turn (phase 3 — marked at
+ * 10.3.1a from MetPending).
+ */
+function markFirstUnsuccessfulRun(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_FIRST_UNSUCCESSFUL_RUN,
+  );
+  if (match.kind !== "first_unsuccessful_run" || !match.matched) {
+    state.turn.firstUnsuccessfulRunMetPending = false;
+    return;
+  }
+  state.turn.firstUnsuccessfulRunMetPending = false;
+  for (const id of firstUnsuccessfulRunSourceIds(state)) {
+    const card = state.cards[id];
+    if (!card?.onFirstUnsuccessfulRunThisTurn) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-first-unsuccessful-run-this-turn",
+      sourceId: card.id,
+      controller: card.side === "corp" ? "corp" : "runner",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onFirstUnsuccessfulRunThisTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — first unsuccessful run this turn.`,
+    );
+  }
+}
+
+/**
  * Pravdivost / DreamNet / Enhanced Vision: Valley successful-run ordinals
  * (phase 3 — marked at 10.3.1a). Sources include Corp identity and rezzed
  * root/ice as well as the Runner rig.
@@ -1817,6 +1856,7 @@ function markConditionalAbilities(state: GameState): void {
   markFirstRunBegin(state, diff);
   markFirstRdRunBegin(state, diff);
   markFirstArchivesRunBegin(state, diff);
+  markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);

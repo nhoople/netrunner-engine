@@ -577,6 +577,37 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.corp.credits).toBe(1);
   });
 
+  it("marks first unsuccessful run at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFirstUnsuccessfulRun } = await import(
+      "../src/state/unsuccessfulRunHooks.js"
+    );
+    const s = createInitialState();
+    const john = instantiateCard(
+      "john-masanori",
+      "jm-1",
+      "runner:installed",
+    );
+    s.cards["jm-1"] = john;
+    s.runner.installed = ["jm-1"];
+    s.runner.tags = 0;
+    noteFirstUnsuccessfulRun(s);
+    expect(s.turn.firstUnsuccessfulRunMetPending).toBe(true);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "first unsuccessful run",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.firstUnsuccessfulRunMetPending).toBe(false);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — first unsuccessful run this turn"),
+      ),
+    ).toBe(true);
+    expect(s.runner.tags).toBe(1);
+  });
+
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } = await import(
       "../src/state/storedTriggers.js"

@@ -38,6 +38,7 @@ import {
   noteFirstRdRunBegin,
   noteFirstRunBegin,
 } from "../state/runBeginHooks.js";
+import { noteFirstUnsuccessfulRun } from "../state/unsuccessfulRunHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import { log } from "../state/createGame.js";
 import {
@@ -5053,45 +5054,21 @@ export const STEPS: Record<string, TimingStepDef> = {
           `Run declared unsuccessful (CR 6.8.4 / appendix 11.4_6_c).`,
         );
         fireUnsuccessfulRunServerAbilities(s);
-        // First unsuccessful run this turn (John Masanori-class).
+        // First unsuccessful run this turn (John Masanori-class). Trash-self
+        // remains mid-hook; onFirstUnsuccessfulRunThisTurn marks at 10.3.1a.
         const firstUnsuccessful = !s.turn.unsuccessfulRunThisTurn;
         s.turn.unsuccessfulRunThisTurn = true;
         if (firstUnsuccessful) {
-          const eligible: string[] = [];
           for (const id of [...s.runner.installed]) {
             if (abilitiesSuppressed(s, id)) continue;
-            eligible.push(id);
             const c = s.cards[id];
             if (c?.trashSelfOnUnsuccessfulRunThisTurn) {
               moveRunnerCardToHeap(s, id);
               s.log.push(`${c.title} — trashed (unsuccessful run).`);
             }
           }
-          eligible.push(s.runner.identityId, s.corp.identityId);
-          for (const server of Object.values(s.servers)) {
-            for (const id of [...server.root, ...server.ice]) {
-              const card = s.cards[id];
-              if (!card?.rezzed || !card.onFirstUnsuccessfulRunThisTurn) continue;
-              if (abilitiesSuppressed(s, id)) continue;
-              eligible.push(id);
-            }
-          }
-          {
-            const items: StoredConditionalMark[] = [];
-            for (const id of eligible) {
-              const card = s.cards[id];
-              if (!card?.onFirstUnsuccessfulRunThisTurn) continue;
-              items.push({
-                abilityKey: "on-first-unsuccessful-run-this-turn",
-                sourceId: id,
-                controller: card.side === "corp" ? "corp" : "runner",
-                mandatory: true,
-                effectKey: "onFirstUnsuccessfulRunThisTurn",
-                logLine: `${card.title} becomes pending — first unsuccessful run this turn.`,
-              });
-            }
-            fireStoredConditionals(s, items);
-          }
+          noteFirstUnsuccessfulRun(s);
+          checkpointAfterInstruction(s, "run.declareUnsuccessful");
         }
       },
     },
