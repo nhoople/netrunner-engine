@@ -6,7 +6,6 @@ import {
   diffAgainstPreviousCheckpoint,
 } from "../state/checkpointSnapshot.js";
 import { dealDamage } from "../state/damage.js";
-import { noteHostDurationReplacement } from "../state/hostDuration.js";
 import { log } from "../state/createGame.js";
 import {
   addBreakerStrengthBoostThisEncounter,
@@ -1781,41 +1780,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             (state.cards[id].subtypes ?? []).includes("icebreaker"),
         ).length;
       }
+      // Requested duration before 9.9.9 replacements (Gebrselassie / System
+      // Seizure / hosted run-extend). Replacements apply inside the add helpers.
       let duration: import("./ir.js").PumpDuration = action.duration ?? "encounter";
-      let hostedTurn = false;
-      let hostedTurnSourceId: string | undefined;
-      let hostedRun = false;
-      for (const mod of Object.values(state.cards)) {
-        if (mod.hostId !== sourceId) continue;
-        if (mod.hostIcebreakerStrengthIncreasesLastRemainderOfTurn) {
-          hostedTurn = true;
-          hostedTurnSourceId = mod.id;
-        }
-        if (mod.extendsHostBreakerPumpToRun) hostedRun = true;
-      }
-      if (hostedTurn) duration = "turn";
-      else if (hostedRun) duration = "run";
-      // System Seizure: first pump each turn → that icebreaker's strength
-      // increases last for the remainder of the run.
-      if (
-        !state.turn.systemSeizureFiredThisTurn &&
-        duration === "encounter"
-      ) {
-        for (const c of Object.values(state.cards)) {
-          if (
-            c?.zone === "runner:play-area" &&
-            c.systemSeizureFirstPumpStrengthLastsRemainderOfRun
-          ) {
-            duration = "run";
-            state.turn.systemSeizureFiredThisTurn = true;
-            log(
-              state,
-              `System Seizure — ${source.title} strength increases last for the remainder of the run.`,
-            );
-            break;
-          }
-        }
-      }
       if (duration === "encounter" && !state.run?.encounter) {
         duration = "checkpoint";
       }
@@ -1826,6 +1793,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.icebreakerStrengthImplicit],
         };
       }
+      const beforeTurn = state.turn.breakerStrengthBoostsThisTurn[sourceId] ?? 0;
+      const beforeRun = state.run?.strengthBoosts[sourceId] ?? 0;
+      const beforeEnc = state.run?.encounterStrengthBoosts[sourceId] ?? 0;
+      const beforeCp = state.turn.checkpointBreakerBoosts?.[sourceId] ?? 0;
       if (duration === "turn") {
         addBreakerStrengthBoostThisTurn(state, {
           createdBy: sourceId,
@@ -1851,19 +1822,21 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           amount,
         });
       }
-      if (hostedTurn && hostedTurnSourceId && (action.duration ?? "encounter") !== "turn") {
-        noteHostDurationReplacement(state, {
-          sourceId: hostedTurnSourceId,
-          breakerId: sourceId,
-          amount,
-          original: action.duration === "run" ? "run" : "encounter",
-        });
-      }
+      const applied: import("./ir.js").PumpDuration =
+        (state.turn.breakerStrengthBoostsThisTurn[sourceId] ?? 0) > beforeTurn
+          ? "turn"
+          : (state.run?.strengthBoosts[sourceId] ?? 0) > beforeRun
+            ? "run"
+            : (state.run?.encounterStrengthBoosts[sourceId] ?? 0) > beforeEnc
+              ? "encounter"
+              : (state.turn.checkpointBreakerBoosts?.[sourceId] ?? 0) > beforeCp
+                ? "checkpoint"
+                : duration;
       const eff = breakerStrength(state, sourceId);
       log(
         state,
-        `Pump ${source.title} +${amount} (${duration}) → strength ${eff} (CR ${
-          duration === "checkpoint"
+        `Pump ${source.title} +${amount} (${applied}) → strength ${eff} (CR ${
+          applied === "checkpoint"
             ? CR.icebreakerStrengthOutsideEncounter.number
             : CR.icebreakerStrengthImplicit.number
         }, ${CR.paidAbility.number}).`,

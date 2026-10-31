@@ -1,0 +1,115 @@
+/**
+ * System Seizure grants a run-duration strength rewrite on the first increase
+ * each turn (CR 9.9.9 printed interrupt → lingering grant).
+ */
+import { beforeAll, describe, expect, it } from "vitest";
+import {
+  assertCardsPinnedTag,
+  assertPinnedTag,
+  cardsDataPresent,
+  createInitialState,
+  crDataPresent,
+  evalEffect,
+  fx,
+  instantiateCard,
+} from "../src/index.js";
+import type { GameState } from "../src/index.js";
+
+beforeAll(() => {
+  if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
+  if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
+  assertPinnedTag("v26.03");
+  assertCardsPinnedTag("v1.147.13");
+});
+
+function encounterRun(s: GameState): void {
+  s.run = {
+    attackedServerId: "hq",
+    phase: "encounter",
+    position: 0,
+    successful: false,
+    accessedCardIds: [],
+    accessCandidates: [],
+    randomAccessLimit: null,
+    encounter: { iceId: "ice-1", broken: [false], subroutinesResolved: [] },
+    endedTheRun: false,
+    cannotJackOut: false,
+    strengthBoosts: {},
+    encounterStrengthBoosts: {},
+    iceStrengthBoosts: {},
+    accessingCardId: null,
+  };
+}
+
+describe("System Seizure duration replacement (CR 9.9.9)", () => {
+  it("rewrites the first pump and later pumps on that breaker to run duration", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    const corr = instantiateCard("corroder", "corr-1", "runner:installed");
+    const seizure = instantiateCard(
+      "system-seizure",
+      "ss-1",
+      "runner:play-area",
+    );
+    s.cards["corr-1"] = corr;
+    s.cards["ss-1"] = seizure;
+    s.runner.installed = ["corr-1"];
+    s.runner.playArea = ["ss-1"];
+    encounterRun(s);
+
+    const first = evalEffect(
+      { state: s, sourceId: "corr-1" },
+      fx.do({ kind: "pump_strength", amount: 1 }),
+    );
+    expect(first.ok).toBe(true);
+    expect(s.turn.systemSeizureFiredThisTurn).toBe(true);
+    expect(s.run?.strengthDurationRunInsteadBreakerIds).toContain("corr-1");
+    expect(s.run?.strengthBoosts["corr-1"]).toBe(1);
+    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBeUndefined();
+
+    const second = evalEffect(
+      { state: s, sourceId: "corr-1" },
+      fx.do({ kind: "pump_strength", amount: 1 }),
+    );
+    expect(second.ok).toBe(true);
+    expect(s.run?.strengthBoosts["corr-1"]).toBe(2);
+    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBeUndefined();
+  });
+
+  it("does not rewrite a second icebreaker's pumps until its own first increase", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    const corr = instantiateCard("corroder", "corr-1", "runner:installed");
+    const yog = instantiateCard("gordian-blade", "gord-1", "runner:installed");
+    const seizure = instantiateCard(
+      "system-seizure",
+      "ss-1",
+      "runner:play-area",
+    );
+    s.cards["corr-1"] = corr;
+    s.cards["gord-1"] = yog;
+    s.cards["ss-1"] = seizure;
+    s.runner.installed = ["corr-1", "gord-1"];
+    s.runner.playArea = ["ss-1"];
+    encounterRun(s);
+
+    expect(
+      evalEffect(
+        { state: s, sourceId: "corr-1" },
+        fx.do({ kind: "pump_strength", amount: 1 }),
+      ).ok,
+    ).toBe(true);
+    expect(s.run?.strengthDurationRunInsteadBreakerIds).toEqual(["corr-1"]);
+
+    // First increase this turn already happened — Gordian does not get the grant.
+    expect(
+      evalEffect(
+        { state: s, sourceId: "gord-1" },
+        fx.do({ kind: "pump_strength", amount: 1 }),
+      ).ok,
+    ).toBe(true);
+    expect(s.run?.strengthDurationRunInsteadBreakerIds).toEqual(["corr-1"]);
+    expect(s.run?.encounterStrengthBoosts["gord-1"]).toBe(1);
+    expect(s.run?.strengthBoosts["gord-1"]).toBeUndefined();
+  });
+});

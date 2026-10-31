@@ -1,8 +1,12 @@
 /**
- * Gebrselassie replaces a host icebreaker's strength-increase duration with
- * "the remainder of the turn." If that card leaves the host, the replacement
- * ends. A duration that has already expired is removed at the next checkpoint
- * (CR 9.9.9a).
+ * Strength-increase duration replacements (CR 9.9.9 / 9.9.9a).
+ *
+ * Gebrselassie-class: while hosted, rewrite shorter durations to "this turn";
+ * when the source leaves the host, the modification ends (9.9.9a).
+ *
+ * System Seizure: first strength increase each turn grants the icebreaker
+ * "increases last for the remainder of the run instead of any shorter
+ * duration" for the rest of that run (lingering; independent of the current).
  */
 
 import { log } from "./createGame.js";
@@ -10,6 +14,154 @@ import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
 export type HostDurationOriginal = "encounter" | "run";
+
+export type StrengthIncreaseDuration =
+  | "encounter"
+  | "run"
+  | "turn"
+  | "checkpoint";
+
+/** Active replacement that stretches strength-increase durations. */
+export type StrengthDurationReplacement = {
+  /** Duration after replacement. */
+  to: "turn" | "run";
+  sourceId: string;
+  /**
+   * When true, track each rewritten boost and revert if the source stops
+   * applying (Gebrselassie static; CR 9.9.9a).
+   */
+  trackWhileSourceActive: boolean;
+};
+
+function hostedTurnStrengthReplacementId(
+  state: GameState,
+  breakerId: string,
+): string | undefined {
+  for (const id of state.runner.installed) {
+    const c = state.cards[id];
+    if (
+      c?.hostId === breakerId &&
+      c.hostIcebreakerStrengthIncreasesLastRemainderOfTurn
+    ) {
+      return id;
+    }
+  }
+  return undefined;
+}
+
+function hostedRunStrengthReplacementId(
+  state: GameState,
+  breakerId: string,
+): string | undefined {
+  for (const id of state.runner.installed) {
+    const c = state.cards[id];
+    if (c?.hostId === breakerId && c.extendsHostBreakerPumpToRun) {
+      return id;
+    }
+  }
+  return undefined;
+}
+
+function systemSeizureInPlay(state: GameState): string | undefined {
+  for (const c of Object.values(state.cards)) {
+    if (
+      c?.zone === "runner:play-area" &&
+      c.systemSeizureFirstPumpStrengthLastsRemainderOfRun
+    ) {
+      return c.id;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Grant System Seizure's run-duration rewrite on the first strength increase
+ * of the turn (printed interrupt → lingering grant for the remainder of the run).
+ */
+export function maybeGrantSystemSeizureRunDuration(
+  state: GameState,
+  breakerId: string,
+): void {
+  if (state.turn.systemSeizureFiredThisTurn) return;
+  if (!state.run) return;
+  const seizureId = systemSeizureInPlay(state);
+  if (!seizureId) return;
+  state.turn.systemSeizureFiredThisTurn = true;
+  const grants = (state.run.strengthDurationRunInsteadBreakerIds ??= []);
+  if (!grants.includes(breakerId)) grants.push(breakerId);
+  const breaker = state.cards[breakerId]?.title ?? breakerId;
+  log(
+    state,
+    `System Seizure — ${breaker} gains strength increases lasting for the remainder of the run (CR ${CR.applyingReplacementEffects.number}).`,
+  );
+}
+
+/** Active duration replacement for this icebreaker, if any (CR 9.9.9). */
+export function activeStrengthDurationReplacement(
+  state: GameState,
+  breakerId: string,
+): StrengthDurationReplacement | undefined {
+  const gebId = hostedTurnStrengthReplacementId(state, breakerId);
+  if (gebId) {
+    return { to: "turn", sourceId: gebId, trackWhileSourceActive: true };
+  }
+  if (state.run?.strengthDurationRunInsteadBreakerIds?.includes(breakerId)) {
+    const seizureId = systemSeizureInPlay(state);
+    return {
+      to: "run",
+      // Grant is lingering for the run; cite the current if still in play.
+      sourceId: seizureId ?? breakerId,
+      trackWhileSourceActive: false,
+    };
+  }
+  const runHostId = hostedRunStrengthReplacementId(state, breakerId);
+  if (runHostId) {
+    return { to: "run", sourceId: runHostId, trackWhileSourceActive: true };
+  }
+  return undefined;
+}
+
+function isShorterThan(
+  requested: StrengthIncreaseDuration,
+  replacementTo: "turn" | "run",
+): boolean {
+  if (replacementTo === "turn") {
+    return requested !== "turn";
+  }
+  // Run replaces only shorter durations (encounter / checkpoint), not turn.
+  return requested === "encounter" || requested === "checkpoint";
+}
+
+/**
+ * Apply an active 9.9.9 duration replacement to a requested strength-increase
+ * duration. Does not grant System Seizure — call maybeGrant first when the
+ * increase is about to happen.
+ */
+export function resolveStrengthIncreaseDuration(
+  state: GameState,
+  breakerId: string,
+  requested: StrengthIncreaseDuration,
+): {
+  duration: StrengthIncreaseDuration;
+  replacement?: StrengthDurationReplacement;
+  original?: HostDurationOriginal;
+} {
+  const replacement = activeStrengthDurationReplacement(state, breakerId);
+  if (!replacement || !isShorterThan(requested, replacement.to)) {
+    return { duration: requested };
+  }
+  const original: HostDurationOriginal | undefined =
+    requested === "run"
+      ? "run"
+      : requested === "encounter" || requested === "checkpoint"
+        ? "encounter"
+        : undefined;
+  return {
+    duration: replacement.to,
+    replacement,
+    original,
+  };
+}
 
 export function noteHostDurationReplacement(
   state: GameState,
