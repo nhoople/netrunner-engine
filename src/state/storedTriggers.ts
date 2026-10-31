@@ -363,49 +363,6 @@ export function noteFirstCreditPoolEmpty(state: GameState): void {
   }
 }
 
-export function fireAccessedCardAbilities(state: GameState): void {
-  const cardId = state.run?.accessingCardId;
-  const card = cardId ? state.cards[cardId] : undefined;
-  if (!cardId || !card) return;
-  const installed =
-    card.zone.includes(":root") ||
-    card.zone.includes(":ice") ||
-    card.zone.startsWith("hosted:");
-  const items: StoredConditionalMark[] = [];
-  if (installed && card.onAccessWhileInstalled) {
-    items.push({
-      abilityKey: "on-access-while-installed",
-      sourceId: cardId,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onAccessWhileInstalled",
-      logLine: `${card.title} becomes pending — accessed while installed (CR 7.1).`,
-    });
-  }
-  if (!installed && card.onAccessWhileUninstalled) {
-    items.push({
-      abilityKey: "on-access-while-uninstalled",
-      sourceId: cardId,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onAccessWhileUninstalled",
-      logLine: `${card.title} becomes pending — accessed while not installed (CR 7.1).`,
-    });
-  }
-  const fromRd = card.zone === "corp:rd" || state.corp.deck.includes(cardId);
-  if (!fromRd && card.onAccessNotFromRd) {
-    items.push({
-      abilityKey: "on-access-not-from-rd",
-      sourceId: cardId,
-      controller: "corp",
-      mandatory: true,
-      effectKey: "onAccessNotFromRd",
-      logLine: `${card.title} becomes pending — accessed from somewhere other than R&D (CR 7.1).`,
-    });
-  }
-  fireStoredConditionals(state, items);
-}
-
 /**
  * Runner onCorpDrawCard conditionals (Bug): one pending instance per drawn
  * card × source (CR 9.6.2 / 8.4.1). Resolve in a nested reaction window;
@@ -573,27 +530,6 @@ export function fireCompileFirstEncounter(state: GameState): void {
       logLine: `${event.title} becomes pending — first encounter this run (CR 6.5).`,
     },
   ]);
-}
-
-export function fireFinishAccessRdOncePerTurn(state: GameState): void {
-  if (state.run?.attackedServerId !== "rd") return;
-  if (state.turn.finishAccessRdHookFiredThisTurn) return;
-  const items: StoredConditionalMark[] = [];
-  for (const id of [...state.runner.installed]) {
-    const card = state.cards[id];
-    if (!card?.onFinishAccessRdOncePerTurn) continue;
-    items.push({
-      abilityKey: "on-finish-access-rd-once",
-      sourceId: id,
-      controller: "runner",
-      mandatory: false,
-      effectKey: "onFinishAccessRdOncePerTurn",
-      logLine: `${card.title} becomes pending — an R&D access finishes, once this turn (CR 7.5).`,
-    });
-  }
-  if (items.length === 0) return;
-  state.turn.finishAccessRdHookFiredThisTurn = true;
-  fireStoredConditionals(state, items);
 }
 
 export function firePsiCreditsRevealed(state: GameState): void {

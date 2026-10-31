@@ -978,6 +978,100 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks accessed-card abilities at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteAccessedCardAbilities } = await import(
+      "../src/state/accessAbilityHooks.js"
+    );
+    const s = createInitialState();
+    const field = instantiateCard("psychic-field", "pf-1", "server:hq:root");
+    field.rezzed = true;
+    s.cards["pf-1"] = field;
+    s.servers.hq.root = ["pf-1"];
+    s.run = {
+      attackedServerId: "hq",
+      phase: "access",
+      position: 0,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: "pf-1",
+    };
+    noteAccessedCardAbilities(s);
+    expect(s.turn.accessAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "pf-1",
+        effectKey: "onAccessWhileInstalled",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "card accessed",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.accessAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — accessed while installed"),
+      ),
+    ).toBe(true);
+  });
+
+  it("marks finish-access-R&D once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteFinishAccessRdOncePerTurn } = await import(
+      "../src/state/accessAbilityHooks.js"
+    );
+    const s = createInitialState();
+    const maya = instantiateCard("maya", "maya-1", "runner:installed");
+    s.cards["maya-1"] = maya;
+    s.runner.installed = ["maya-1"];
+    s.run = {
+      attackedServerId: "rd",
+      phase: "access",
+      position: 0,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
+      iceStrengthBoosts: {},
+      accessingCardId: null,
+    };
+    noteFinishAccessRdOncePerTurn(s);
+    expect(s.turn.finishAccessRdHookFiredThisTurn).toBe(true);
+    expect(s.turn.accessAbilityPending).toEqual([
+      expect.objectContaining({
+        cardId: "maya-1",
+        effectKey: "onFinishAccessRdOncePerTurn",
+      }),
+    ]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "access complete",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.accessAbilityPending).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — an R&D access finishes"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks successful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSuccessfulRunServerAbilities } = await import(
       "../src/state/successfulRunServerHooks.js"

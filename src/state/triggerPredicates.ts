@@ -391,6 +391,10 @@ export type TriggerPredicate =
   | {
       /** onUnsuccessfulRunOnThisServer since previous checkpoint (card ids). */
       kind: "unsuccessful_run_server";
+    }
+  | {
+      /** Access-step conditionals since previous checkpoint. */
+      kind: "access_ability";
     };
 
 export type TriggerPredicateMatch =
@@ -706,6 +710,17 @@ export type TriggerPredicateMatch =
   | {
       kind: "unsuccessful_run_server";
       cardIds: string[];
+    }
+  | {
+      kind: "access_ability";
+      marks: Array<{
+        cardId: string;
+        abilityKey: string;
+        effectKey: string;
+        controller: "corp" | "runner";
+        mandatory: boolean;
+        logLine: string;
+      }>;
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -1225,6 +1240,13 @@ export function evaluateTriggerPredicate(
         cardIds: [...(state.turn.unsuccessfulRunServerPendingIds ?? [])],
       };
     }
+    case "access_ability": {
+      void diff;
+      return {
+        kind: "access_ability",
+        marks: [...(state.turn.accessAbilityPending ?? [])],
+      };
+    }
   }
 }
 
@@ -1596,4 +1618,8 @@ export const PREDICATE_SUCCESSFUL_RUN_SERVER: TriggerPredicate = {
 
 export const PREDICATE_UNSUCCESSFUL_RUN_SERVER: TriggerPredicate = {
   kind: "unsuccessful_run_server",
+};
+
+export const PREDICATE_ACCESS_ABILITY: TriggerPredicate = {
+  kind: "access_ability",
 };
