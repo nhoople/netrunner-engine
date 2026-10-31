@@ -948,6 +948,31 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks Corp turn-end at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteOnCorpTurnEnd } = await import(
+      "../src/state/corpTurnEndHooks.js"
+    );
+    const s = createInitialState();
+    const jumon = instantiateCard("jumon", "jum-1", "corp:score");
+    s.cards["jum-1"] = jumon;
+    s.corp.scoreArea = ["jum-1"];
+    noteOnCorpTurnEnd(s, "jum-1");
+    expect(s.turn.corpTurnEndPendingIds).toEqual(["jum-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "corp turn end",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.corpTurnEndPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes("becomes pending — Corp turn end"),
+      ),
+    ).toBe(true);
+  });
+
   it("marks run-begin at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnRunBegin } = await import(
       "../src/state/runBeginEffectHooks.js"
