@@ -948,6 +948,43 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     ).toBe(true);
   });
 
+  it("marks other-server success at 10.3.1a (phase 3 scanner)", async () => {
+    const { noteSuccessfulRunOtherServer } = await import(
+      "../src/state/otherServerSuccessHooks.js"
+    );
+    const s = createInitialState();
+    const zone = instantiateCard(
+      "sacrifice-zone-expansion",
+      "sze-1",
+      "server:remote-1:root",
+    );
+    zone.faceup = true;
+    s.cards["sze-1"] = zone;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["sze-1"],
+    };
+    noteSuccessfulRunOtherServer(s, "sze-1");
+    expect(s.turn.otherServerSuccessPendingIds).toEqual(["sze-1"]);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "other server success",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.turn.otherServerSuccessPendingIds).toEqual([]);
+    expect(
+      s.log.some((line) =>
+        line.includes(
+          "becomes pending — successful run on another server",
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } = await import(
       "../src/state/firstEncounterPassHooks.js"

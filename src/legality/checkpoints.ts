@@ -101,6 +101,7 @@ import {
   PREDICATE_SUCCESSFUL_RUN_ON_RD,
   PREDICATE_SUCCESSFUL_RUN_END_ONCE,
   PREDICATE_SUCCESSFUL_RUN_END,
+  PREDICATE_OTHER_SERVER_SUCCESS,
 } from "../state/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
@@ -2190,6 +2191,40 @@ function markSuccessfulRunEnd(state: GameState, diff: CheckpointDiff): void {
   }
 }
 
+/** Root onSuccessfulRunOtherServerOncePerTurn (phase 3). */
+function markOtherServerSuccess(state: GameState, diff: CheckpointDiff): void {
+  const match = evaluateTriggerPredicate(
+    state,
+    diff,
+    PREDICATE_OTHER_SERVER_SUCCESS,
+  );
+  if (match.kind !== "other_server_success" || match.cardIds.length === 0) {
+    state.turn.otherServerSuccessPendingIds = [];
+    return;
+  }
+  const cardIds = match.cardIds;
+  state.turn.otherServerSuccessPendingIds = [];
+  for (const cardId of cardIds) {
+    if (abilitiesSuppressed(state, cardId)) continue;
+    const card = state.cards[cardId];
+    if (!card?.onSuccessfulRunOtherServerOncePerTurn) continue;
+    if (!card.faceup && !card.rezzed) continue;
+    createPendingAbilityInstance(state, {
+      abilityKey: "on-successful-run-other-server",
+      sourceId: card.id,
+      controller: "corp",
+      mandatory: true,
+      payload: {
+        kind: "stored_conditional",
+        effectKey: "onSuccessfulRunOtherServerOncePerTurn",
+      } satisfies PendingAbilityPayload,
+    });
+    state.log.push(
+      `${card.title} becomes pending — successful run on another server.`,
+    );
+  }
+}
+
 /** Sisyphus: first pass rezzed code gate/sentry this turn (phase 3). */
 function markSisyphusFirstPass(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
@@ -2818,6 +2853,7 @@ function markConditionalAbilities(state: GameState): void {
   markSuccessfulRunOnRd(state, diff);
   markSuccessfulRunEndOnce(state, diff);
   markSuccessfulRunEnd(state, diff);
+  markOtherServerSuccess(state, diff);
   markFirstUnsuccessfulRun(state, diff);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
