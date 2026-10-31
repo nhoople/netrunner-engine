@@ -379,6 +379,10 @@ export type TriggerPredicate =
   | {
       /** Runner turn-begin family since previous checkpoint. */
       kind: "runner_turn_begin";
+    }
+  | {
+      /** onScoreTurnEnd since previous checkpoint (card ids). */
+      kind: "score_turn_end";
     };
 
 export type TriggerPredicateMatch =
@@ -676,6 +680,10 @@ export type TriggerPredicateMatch =
         controller: "corp" | "runner";
         logLine: string;
       }>;
+    }
+  | {
+      kind: "score_turn_end";
+      cardIds: string[];
     };
 
 /** Evaluate one predicate against the current checkpoint diff (CR 10.3.1a). */
@@ -1174,6 +1182,13 @@ export function evaluateTriggerPredicate(
         marks: [...(state.turn.runnerTurnBeginPending ?? [])],
       };
     }
+    case "score_turn_end": {
+      void diff;
+      return {
+        kind: "score_turn_end",
+        cardIds: [...(state.turn.scoreTurnEndPendingIds ?? [])],
+      };
+    }
   }
 }
 
@@ -1533,4 +1548,8 @@ export const PREDICATE_CORP_TURN_BEGIN: TriggerPredicate = {
 
 export const PREDICATE_RUNNER_TURN_BEGIN: TriggerPredicate = {
   kind: "runner_turn_begin",
+};
+
+export const PREDICATE_SCORE_TURN_END: TriggerPredicate = {
+  kind: "score_turn_end",
 };
