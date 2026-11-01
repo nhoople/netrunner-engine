@@ -2,6 +2,7 @@
 
 import { abilitiesSuppressed } from "./abilities.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
+import { lingeringRunnerMuModifier } from "./lingeringEffects.js";
 import type { GameState, TurnBookkeeping } from "./types.js";
 import { agendaPointMu } from "./staticFlags.js";
 
@@ -711,7 +712,12 @@ export function memoryLimit(state: GameState): number {
     const c = state.cards[id];
     if (c.muBonus && !c.muBonusOnlyForCaissaPrograms) limit += c.muBonus;
   }
-  limit += state.turn.runnerMuModifierUntilTurnEnd ?? 0;
+  const hasMuLingering = state.lingeringEffects.some(
+    (e) => !e.expired && e.kind === "runner_mu",
+  );
+  limit += hasMuLingering
+    ? lingeringRunnerMuModifier(state)
+    : (state.turn.runnerMuModifierUntilTurnEnd ?? 0);
   return limit;
 }
 

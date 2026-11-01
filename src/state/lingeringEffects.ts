@@ -122,6 +122,13 @@ export function hasLingeringBreakerStrength(
   for (const e of state.lingeringEffects) {
     if (e.expired) continue;
     if (!BREAKER_STRENGTH_KINDS.has(e.kind)) continue;
+    if (e.kind === LINGERING_KIND_BREAKER_STRENGTH_RUN && !state.run) continue;
+    if (
+      e.kind === LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER &&
+      !state.run?.encounter
+    ) {
+      continue;
+    }
     const payload = e.payload as { breakerId?: string } | undefined;
     if (payload?.breakerId === breakerId) return true;
   }
@@ -130,8 +137,7 @@ export function hasLingeringBreakerStrength(
 
 /**
  * Temporary breaker strength from the lingering registry (CR 9.10.1).
- * Prefer this when `hasLingeringBreakerStrength` is true; otherwise tests /
- * legacy map writes still apply (S3 migration).
+ * Registry is authoritative after framework migration M2.
  */
 export function lingeringBreakerStrengthBoost(
   state: GameState,
@@ -141,11 +147,59 @@ export function lingeringBreakerStrengthBoost(
   for (const e of state.lingeringEffects) {
     if (e.expired) continue;
     if (!BREAKER_STRENGTH_KINDS.has(e.kind)) continue;
+    // Run/encounter lingerings only apply while that duration is open.
+    if (e.kind === LINGERING_KIND_BREAKER_STRENGTH_RUN && !state.run) continue;
+    if (
+      e.kind === LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER &&
+      !state.run?.encounter
+    ) {
+      continue;
+    }
     const payload = e.payload as
       | { breakerId?: string; amount?: number }
       | undefined;
     if (!payload || payload.breakerId !== breakerId) continue;
     n += payload.amount ?? 0;
+  }
+  return n;
+}
+
+/** Temporary ice strength from turn + encounter lingerings (CR 9.10.1). */
+export function lingeringIceStrengthBoost(
+  state: GameState,
+  iceId: string,
+): number {
+  let n = 0;
+  for (const e of state.lingeringEffects) {
+    if (e.expired) continue;
+    if (
+      e.kind !== LINGERING_KIND_ICE_STRENGTH &&
+      e.kind !== LINGERING_KIND_ICE_STRENGTH_ENCOUNTER
+    ) {
+      continue;
+    }
+    if (
+      e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER &&
+      !state.run?.encounter
+    ) {
+      continue;
+    }
+    const payload = e.payload as
+      | { iceId?: string; amount?: number }
+      | undefined;
+    if (!payload || payload.iceId !== iceId) continue;
+    n += payload.amount ?? 0;
+  }
+  return n;
+}
+
+/** Runner MU modifier from lingerings until Runner turn end (CR 9.10.1). */
+export function lingeringRunnerMuModifier(state: GameState): number {
+  let n = 0;
+  for (const e of state.lingeringEffects) {
+    if (e.expired || e.kind !== LINGERING_KIND_RUNNER_MU) continue;
+    const payload = e.payload as { delta?: number } | undefined;
+    n += payload?.delta ?? 0;
   }
   return n;
 }
@@ -197,6 +251,7 @@ export function addIceStrengthBoostThisTurn(
   args: { createdBy: string; iceId: string; amount: number },
 ): void {
   if (args.amount === 0) return;
+  // Derived map mirror; readers use lingerings (M2).
   state.turn.iceStrengthBoostsThisTurn[args.iceId] =
     (state.turn.iceStrengthBoostsThisTurn[args.iceId] ?? 0) + args.amount;
   addLingeringEffect(state, {

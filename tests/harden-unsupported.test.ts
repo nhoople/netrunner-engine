@@ -56,15 +56,38 @@ describe("harden unsupported cards", () => {
       true,
     );
     expect(evalEffect({ state: s, sourceId: "g1" }, fx.pump(1)).ok).toBe(true);
-    expect(s.run.strengthBoosts["g1"]).toBe(1);
+    // Registry-authoritative (M2): run + until-checkpoint lingerings.
+    const runAmt = s.lingeringEffects
+      .filter(
+        (e) =>
+          !e.expired &&
+          e.kind === "breaker_strength_run" &&
+          (e.payload as { breakerId?: string })?.breakerId === "g1",
+      )
+      .reduce(
+        (n, e) => n + ((e.payload as { amount?: number }).amount ?? 0),
+        0,
+      );
+    const checkpointAmt = s.lingeringEffects
+      .filter(
+        (e) =>
+          !e.expired &&
+          e.kind === "breaker_strength_checkpoint" &&
+          (e.payload as { breakerId?: string })?.breakerId === "g1",
+      )
+      .reduce(
+        (n, e) => n + ((e.payload as { amount?: number }).amount ?? 0),
+        0,
+      );
+    expect(runAmt).toBe(1);
     // No encounter is open, so the implicit duration lasts until the next
     // checkpoint (CR 3.9.5d), not through a later encounter.
-    expect(s.turn.checkpointBreakerBoosts?.["g1"]).toBe(1);
+    expect(checkpointAmt).toBe(1);
     expect(effectiveBreakerStrength(s, "g1")).toBe(4); // 2 printed + 1 run + 1 checkpoint
 
-    s.run.encounterStrengthBoosts = {};
-    expect(effectiveBreakerStrength(s, "g1")).toBe(4);
-    s.turn.checkpointBreakerBoosts = undefined;
+    for (const e of s.lingeringEffects) {
+      if (e.kind === "breaker_strength_checkpoint") e.expired = true;
+    }
     expect(effectiveBreakerStrength(s, "g1")).toBe(3); // run boost remains
   });
 
