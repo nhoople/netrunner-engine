@@ -199,6 +199,7 @@ export {
 export {
   addLingeringEffect,
   lingeringEffectsOfKind,
+  lingeringBreakerStrengthBoost,
   removeLingeringEffectsOfKind,
   expireLingeringEffects,
   addBreakerStrengthBoostThisTurn,
@@ -404,8 +405,28 @@ export {
   orderBlankingEffects,
   resolveBlankedCardIds,
   blankingEffectDependsOn,
+  collectSubtypeGrantEffects,
+  resolveIceSubtypeMap,
+  resolveIceSubtypes,
 } from "./state/continuousEffects.js";
-export type { BlankingEffect } from "./state/continuousEffects.js";
+export type {
+  BlankingEffect,
+  SubtypeGrantEffect,
+} from "./state/continuousEffects.js";
+export {
+  collectFatumaGainedSubs,
+  collectHostedConditionSubsBeforePrinted,
+} from "./state/continuousSubs.js";
+export type { ContinuousGainedSub } from "./state/continuousSubs.js";
+export { openPendingChoose } from "./state/pendingChoice.js";
+export type { PendingChoiceOption } from "./state/pendingChoice.js";
+export {
+  openAdvancement,
+  openFace,
+  openHostedCredits,
+  iceFaceVisible,
+  hostedCardViews,
+} from "./state/seatVisibility.js";
 export {
   serversMatchingSpec,
   isServerAllowedForSpec,

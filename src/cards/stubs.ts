@@ -15,6 +15,7 @@ import type {
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { scoredAgendaIceSubtypeStrengthBonus } from "../state/breakerMods.js";
+import { resolveIceSubtypes } from "../state/continuousEffects.js";
 import { allIceStrengthBonusFromCurrents } from "../state/currents.js";
 import { log } from "../state/createGame.js";
 import { syncHostDurationReplacements } from "../state/hostDuration.js";
@@ -263,7 +264,7 @@ export function effectiveBreakerStrength(
       increases += mod.hostIcebreakerStrengthBonus;
     }
   }
-  // Temporary boosts: split into increase / decrease (CR 9.12.1a).
+  // Temporary boosts: dual-write maps (readers) + lingerings (9.10 expiry / S3).
   const temp =
     (state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0) +
     (state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0) +
@@ -708,63 +709,16 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   return value + increases + tempIncrease - penalty - encounterLower - tempDecrease;
 }
 
-/** Ice subtypes including grants from hosted trojans (Egret). */
+/**
+ * Ice subtypes via the continuous subtype layer (CR 9.12.1d/e): blanking,
+ * Egret/Chromatophores host grants, then Mother Goddess copying layered
+ * subtypes of other rezzed ice (gained→further grant).
+ */
 export function effectiveIceSubtypes(
   state: GameState,
   iceId: string,
 ): string[] {
-  const ice = state.cards[iceId];
-  if (!ice) return [];
-  // CR 2.16.5: each gain and loss is an instance. The card has the subtype
-  // while gains exceed losses.
-  const counts = new Map<string, number>();
-  const gain = (subtype: string) => {
-    counts.set(subtype, (counts.get(subtype) ?? 0) + 1);
-  };
-  const lose = (subtype: string) => {
-    const next = (counts.get(subtype) ?? 0) - 1;
-    if (next > 0) counts.set(subtype, next);
-    else counts.delete(subtype);
-  };
-  for (const subtype of ice.subtypes ?? []) gain(subtype);
-  for (const id of state.runner.installed) {
-    const host = state.cards[id];
-    if (host?.hostId !== iceId || !host.hostGainsAllIceSubtypes) continue;
-    if (abilitiesSuppressed(state, id)) continue;
-    gain("barrier");
-    gain("code gate");
-    gain("sentry");
-  }
-  // Mother Goddess: this rezzed ice gains the printed subtypes of other
-  // rezzed ice. A blanked source is not applied (CR 9.12.1d).
-  if (
-    ice.type === "ice" &&
-    ice.rezzed &&
-    ice.hostGainsAllIceSubtypes &&
-    !abilitiesSuppressed(state, iceId)
-  ) {
-    for (const server of Object.values(state.servers)) {
-      for (const otherId of server.ice) {
-        if (otherId === iceId) continue;
-        const other = state.cards[otherId];
-        if (!other?.rezzed) continue;
-        for (const subtype of other.subtypes ?? []) gain(subtype);
-      }
-    }
-  }
-  const enc = state.run?.encounter;
-  if (enc?.iceId === iceId && enc.grantedSubtypes?.length) {
-    for (const s of enc.grantedSubtypes) gain(s);
-  }
-  if (ice.grantedSubtypesUntilEndOfTurn?.length) {
-    for (const s of ice.grantedSubtypesUntilEndOfTurn) gain(s);
-  }
-  const morph = ice.morphOddAdvancementSubtypeSwap;
-  if (morph && (ice.advancementCounters ?? 0) % 2 === 1) {
-    lose(morph.lose);
-    gain(morph.gain);
-  }
-  return [...counts.keys()];
+  return resolveIceSubtypes(state, iceId);
 }
 
 /**

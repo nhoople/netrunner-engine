@@ -13,8 +13,15 @@
  */
 
 import { log } from "./createGame.js";
+import {
+  addLingeringEffect,
+  LINGERING_KIND_BREAKER_STRENGTH,
+  LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+} from "./lingeringEffects.js";
 import { tryApplyReplacement } from "./replacements.js";
-import type { GameState } from "./types.js";
+import type { GameState, LingeringDuration } from "./types.js";
 import { CR } from "../timing/labels.js";
 
 export type HostDurationOriginal = "encounter" | "run";
@@ -224,6 +231,40 @@ function takeBoost(
   return move;
 }
 
+function rekindBreakerLingering(
+  state: GameState,
+  breakerId: string,
+  amount: number,
+  fromKind: string,
+  toKind: string,
+  toDuration: LingeringDuration,
+): void {
+  let remaining = amount;
+  for (const e of state.lingeringEffects) {
+    if (remaining <= 0) break;
+    if (e.expired || e.kind !== fromKind) continue;
+    const payload = e.payload as
+      | { breakerId?: string; amount?: number }
+      | undefined;
+    if (!payload || payload.breakerId !== breakerId) continue;
+    const have = payload.amount ?? 0;
+    const take = Math.min(have, remaining);
+    if (take <= 0) continue;
+    const left = have - take;
+    if (left <= 0) e.expired = true;
+    else payload.amount = left;
+    remaining -= take;
+  }
+  if (amount - remaining > 0) {
+    addLingeringEffect(state, {
+      createdBy: breakerId,
+      duration: toDuration,
+      kind: toKind,
+      payload: { breakerId, amount: amount - remaining },
+    });
+  }
+}
+
 /** Drop replacements whose source is no longer hosted on that icebreaker. */
 export function syncHostDurationReplacements(state: GameState): void {
   const list = state.turn.hostDurationReplacements;
@@ -242,9 +283,21 @@ export function syncHostDurationReplacements(state: GameState): void {
     const title = state.cards[rec.sourceId]?.title ?? rec.sourceId;
     const breaker = state.cards[rec.breakerId]?.title ?? rec.breakerId;
     if (move <= 0) continue;
+    const fromKind =
+      replacedTo === "run"
+        ? LINGERING_KIND_BREAKER_STRENGTH_RUN
+        : LINGERING_KIND_BREAKER_STRENGTH;
     if (rec.original === "encounter" && state.run?.encounter) {
       const bucket = state.run.encounterStrengthBoosts;
       bucket[rec.breakerId] = (bucket[rec.breakerId] ?? 0) + move;
+      rekindBreakerLingering(
+        state,
+        rec.breakerId,
+        move,
+        fromKind,
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+        { kind: "encounter" },
+      );
       log(
         state,
         `${title} no longer replaces ${breaker}'s strength duration, so it lasts for this encounter (CR ${CR.replacementStaticMustRemainActive.number}).`,
@@ -252,6 +305,14 @@ export function syncHostDurationReplacements(state: GameState): void {
     } else if (rec.original === "run" && state.run) {
       state.run.strengthBoosts[rec.breakerId] =
         (state.run.strengthBoosts[rec.breakerId] ?? 0) + move;
+      rekindBreakerLingering(
+        state,
+        rec.breakerId,
+        move,
+        fromKind,
+        LINGERING_KIND_BREAKER_STRENGTH_RUN,
+        { kind: "run" },
+      );
       log(
         state,
         `${title} no longer replaces ${breaker}'s strength duration, so it lasts for this run (CR ${CR.replacementStaticMustRemainActive.number}).`,
@@ -261,6 +322,14 @@ export function syncHostDurationReplacements(state: GameState): void {
       // checkpoint (CR 9.9.9a.ex1). Hold on the turn bucket.
       state.turn.breakerStrengthBoostsThisTurn[rec.breakerId] =
         (state.turn.breakerStrengthBoostsThisTurn[rec.breakerId] ?? 0) + move;
+      rekindBreakerLingering(
+        state,
+        rec.breakerId,
+        move,
+        fromKind,
+        LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+        { kind: "until_checkpoint" },
+      );
       state.turn.revertedHostDurationBoosts = [
         ...(state.turn.revertedHostDurationBoosts ?? []),
         { breakerId: rec.breakerId, amount: move },
@@ -288,6 +357,23 @@ export function removeRevertedHostDurations(state: GameState): number {
     const left = have - drop;
     if (left <= 0) delete turn[rec.breakerId];
     else turn[rec.breakerId] = left;
+    // Expire matching checkpoint lingerings (S3 registry path).
+    let leftLingering = drop;
+    for (const e of state.lingeringEffects) {
+      if (leftLingering <= 0) break;
+      if (e.expired || e.kind !== LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT) {
+        continue;
+      }
+      const payload = e.payload as
+        | { breakerId?: string; amount?: number }
+        | undefined;
+      if (!payload || payload.breakerId !== rec.breakerId) continue;
+      const take = Math.min(payload.amount ?? 0, leftLingering);
+      const rem = (payload.amount ?? 0) - take;
+      if (rem <= 0) e.expired = true;
+      else payload.amount = rem;
+      leftLingering -= take;
+    }
     removed += 1;
   }
   state.turn.revertedHostDurationBoosts = undefined;

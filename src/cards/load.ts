@@ -3231,6 +3231,11 @@ export function instantiateCard(
     runsCannotBeSuccessful: def.runsCannotBeSuccessful,
     maxAccessOtherThanSelf: def.maxAccessOtherThanSelf,
     hostGainsAllIceSubtypes: def.hostGainsAllIceSubtypes,
+    continuousSubtypeGrants: def.hostGainsAllIceSubtypes
+      ? def.type === "ice"
+        ? [{ kind: "copy_other_rezzed_ice_subtypes" as const }]
+        : [{ kind: "host_grant_bcs" as const }]
+      : undefined,
     recurringSpendFor: def.recurringSpendFor
       ? [...def.recurringSpendFor]
       : undefined,

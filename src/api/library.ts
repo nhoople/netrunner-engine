@@ -5,17 +5,22 @@
 import { applyAction } from "../actions/apply.js";
 import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/createGame.js";
+import { gripRevealed } from "../state/cardDeclarations.js";
 import { agendaPointsFor } from "../state/scoring.js";
+import {
+  hostedCardViews,
+  iceFaceVisible,
+  openAdvancement,
+  openFace,
+  openHostedCredits,
+} from "../state/seatVisibility.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
-import { consideredAdvancement, gripRevealed } from "../state/cardDeclarations.js";
 import type {
   Action,
   ApplyResult,
-  CardInstance,
   GameConfig,
   GameState,
   Intent,
-  PublicHostedCardView,
   PublicPlayAreaCardView,
   PublicSetAsideCardView,
   PublicView,
@@ -59,21 +64,6 @@ export function applyIntent(state: GameState, intent: Intent): ApplyResult {
 
 export { queryLegality };
 
-/** Advancement counters hosted on an installed card. Zero stays unset. */
-function openAdvancement(
-  state: GameState,
-  card: CardInstance,
-): number | null {
-  const count = consideredAdvancement(state, card);
-  return count > 0 ? count : null;
-}
-
-/** Credit counters hosted on an installed card (CR 1.9.5a). Zero stays unset. */
-function openHostedCredits(card: { hostedCredits?: number }): number | null {
-  const count = card.hostedCredits ?? 0;
-  return count > 0 ? count : null;
-}
-
 /** Ice named by these installed cards. Both seats see the same marks (CR 10.2.3b). */
 function openChosenIce(
   state: GameState,
@@ -85,44 +75,6 @@ function openChosenIce(
     if (iceId) marks.push({ cardId, iceId });
   }
   return marks;
-}
-
-/**
- * Face of a card in the play area / set-aside for a viewer (CR 4.6.3 / 4.8.6).
- * Location is always open; the face is open when faceup or the viewer controls it.
- */
-function openFace(
-  card: CardInstance,
-  viewer: Side,
-): { title: string | null; type: CardInstance["type"] | null } {
-  const faceOpen = card.faceup || card.side === viewer;
-  return {
-    title: faceOpen ? card.title : null,
-    type: faceOpen ? card.type : null,
-  };
-}
-
-function hostedCardViews(
-  state: GameState,
-  hostId: string,
-  viewer: Side,
-): PublicHostedCardView[] {
-  const host = state.cards[hostId];
-  if (!host) return [];
-  const out: PublicHostedCardView[] = [];
-  for (const hid of host.hostedCardIds ?? []) {
-    const card = state.cards[hid];
-    if (!card) continue;
-    const face = openFace(card, viewer);
-    out.push({
-      id: hid,
-      title: face.title,
-      type: face.type,
-      faceup: card.faceup,
-      side: card.side,
-    });
-  }
-  return out;
 }
 
 function lingeringPlayAreaViews(
@@ -261,7 +213,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       kind: server.kind,
       ice: server.ice.map((id) => {
         const card = state.cards[id];
-        const visible = card.rezzed || side === "corp";
+        const visible = iceFaceVisible(card, side);
         return {
           id,
           title: visible ? card.title : null,

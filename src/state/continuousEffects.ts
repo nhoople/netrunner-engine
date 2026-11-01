@@ -1,7 +1,8 @@
 /**
- * Practical continuous-effect dependency resolution for blanking-class
- * abilities (CR 9.12.1d / 9.12.1e) — enough for Hush × Magnet loops and
- * Magnet continuous hosted-program blanks, without a full CR→AST compiler.
+ * Practical continuous-effect dependency resolution (CR 9.12.1d / 9.12.1e).
+ * Blanking-class effects plus ice subtype grants (Egret / Chromatophores /
+ * Mother Goddess). Extends toward a general continuous-characteristics layer
+ * without compiling CR prose.
  */
 import type { GameState } from "./types.js";
 
@@ -226,4 +227,198 @@ export function resolveBlankedCardIds(state: GameState): Set<string> {
     for (const t of e.targetIds) blanked.add(t);
   }
   return blanked;
+}
+
+// --- Subtype grants (standardization S1) ---------------------------------
+
+/** Hosted trojan grants barrier + code gate + sentry to its host ice. */
+export type HostSubtypeGrantEffect = {
+  kind: "host_grant_bcs";
+  id: string;
+  sourceId: string;
+  targetIceId: string;
+};
+
+/**
+ * Mother Goddess-class: rezzed ice gains subtypes of other rezzed ice
+ * (including subtypes those ice only gained from earlier continuous grants).
+ */
+export type MotherGoddessSubtypeEffect = {
+  kind: "mother_goddess";
+  id: string;
+  sourceId: string;
+  targetIceId: string;
+};
+
+export type SubtypeGrantEffect =
+  | HostSubtypeGrantEffect
+  | MotherGoddessSubtypeEffect;
+
+/** Collect continuous subtype-grant effects (sources may later be blanked). */
+export function collectSubtypeGrantEffects(
+  state: GameState,
+): SubtypeGrantEffect[] {
+  const effects: SubtypeGrantEffect[] = [];
+
+  for (const id of state.runner.installed) {
+    const card = state.cards[id];
+    if (!card?.hostId) continue;
+    const grants =
+      card.continuousSubtypeGrants ??
+      (card.hostGainsAllIceSubtypes
+        ? [{ kind: "host_grant_bcs" as const }]
+        : []);
+    if (!grants.some((g) => g.kind === "host_grant_bcs")) continue;
+    const host = state.cards[card.hostId];
+    if (!host || host.type !== "ice") continue;
+    effects.push({
+      kind: "host_grant_bcs",
+      id: `host-bcs:${id}`,
+      sourceId: id,
+      targetIceId: card.hostId,
+    });
+  }
+
+  for (const server of Object.values(state.servers)) {
+    for (const iceId of server.ice) {
+      const ice = state.cards[iceId];
+      if (!ice?.rezzed || ice.type !== "ice") continue;
+      const grants =
+        ice.continuousSubtypeGrants ??
+        (ice.hostGainsAllIceSubtypes
+          ? [{ kind: "copy_other_rezzed_ice_subtypes" as const }]
+          : []);
+      if (!grants.some((g) => g.kind === "copy_other_rezzed_ice_subtypes")) {
+        continue;
+      }
+      effects.push({
+        kind: "mother_goddess",
+        id: `mg-subtypes:${iceId}`,
+        sourceId: iceId,
+        targetIceId: iceId,
+      });
+    }
+  }
+
+  return effects;
+}
+
+function gainSubtype(counts: Map<string, number>, subtype: string): void {
+  counts.set(subtype, (counts.get(subtype) ?? 0) + 1);
+}
+
+function loseSubtype(counts: Map<string, number>, subtype: string): void {
+  const next = (counts.get(subtype) ?? 0) - 1;
+  if (next > 0) counts.set(subtype, next);
+  else counts.delete(subtype);
+}
+
+function subtypesFromCounts(counts: Map<string, number>): string[] {
+  return [...counts.keys()];
+}
+
+/**
+ * Resolve effective ice subtypes with blanking first, then independent host
+ * grants, then Mother Goddess copying other ice's layered subtypes (CR 9.12.1d/e).
+ */
+export function resolveIceSubtypeMap(
+  state: GameState,
+): Map<string, string[]> {
+  const blanked = resolveBlankedCardIds(state);
+  const byIce = new Map<string, Map<string, number>>();
+
+  const ensure = (iceId: string): Map<string, number> => {
+    let m = byIce.get(iceId);
+    if (!m) {
+      m = new Map();
+      byIce.set(iceId, m);
+    }
+    return m;
+  };
+
+  for (const server of Object.values(state.servers)) {
+    for (const iceId of server.ice) {
+      const ice = state.cards[iceId];
+      if (!ice || ice.type !== "ice") continue;
+      const counts = ensure(iceId);
+      for (const subtype of ice.subtypes ?? []) gainSubtype(counts, subtype);
+    }
+  }
+
+  const grants = collectSubtypeGrantEffects(state).filter(
+    (e) => !blanked.has(e.sourceId),
+  );
+
+  // Independent: hosted BCS grants (Egret / Chromatophores).
+  for (const e of grants) {
+    if (e.kind !== "host_grant_bcs") continue;
+    const counts = ensure(e.targetIceId);
+    gainSubtype(counts, "barrier");
+    gainSubtype(counts, "code gate");
+    gainSubtype(counts, "sentry");
+  }
+
+  // Encounter / turn / morph (local continuous; applied before MG copy).
+  for (const server of Object.values(state.servers)) {
+    for (const iceId of server.ice) {
+      const ice = state.cards[iceId];
+      if (!ice || ice.type !== "ice") continue;
+      const counts = ensure(iceId);
+      const enc = state.run?.encounter;
+      if (enc?.iceId === iceId && enc.grantedSubtypes?.length) {
+        for (const s of enc.grantedSubtypes) gainSubtype(counts, s);
+      }
+      if (ice.grantedSubtypesUntilEndOfTurn?.length) {
+        for (const s of ice.grantedSubtypesUntilEndOfTurn) {
+          gainSubtype(counts, s);
+        }
+      }
+      const morph = ice.morphOddAdvancementSubtypeSwap;
+      if (morph && (ice.advancementCounters ?? 0) % 2 === 1) {
+        loseSubtype(counts, morph.lose);
+        gainSubtype(counts, morph.gain);
+      }
+    }
+  }
+
+  // Dependent: Mother Goddess copies other rezzed ice's subtypes *after*
+  // host grants (gained→further grant).
+  for (const e of grants) {
+    if (e.kind !== "mother_goddess") continue;
+    if (blanked.has(e.sourceId)) continue;
+    const ice = state.cards[e.targetIceId];
+    if (!ice?.rezzed) continue;
+    const counts = ensure(e.targetIceId);
+    for (const server of Object.values(state.servers)) {
+      for (const otherId of server.ice) {
+        if (otherId === e.targetIceId) continue;
+        const other = state.cards[otherId];
+        if (!other?.rezzed) continue;
+        const otherCounts = byIce.get(otherId);
+        if (!otherCounts) continue;
+        for (const subtype of otherCounts.keys()) {
+          gainSubtype(counts, subtype);
+        }
+      }
+    }
+  }
+
+  const out = new Map<string, string[]>();
+  for (const [iceId, counts] of byIce) {
+    out.set(iceId, subtypesFromCounts(counts));
+  }
+  return out;
+}
+
+/** Effective subtypes for one ice via the continuous subtype layer. */
+export function resolveIceSubtypes(
+  state: GameState,
+  iceId: string,
+): string[] {
+  const ice = state.cards[iceId];
+  if (!ice || ice.type !== "ice") {
+    // Non-ice or missing: preserve prior behavior (printed only).
+    return ice?.subtypes ? [...ice.subtypes] : [];
+  }
+  return resolveIceSubtypeMap(state).get(iceId) ?? [...(ice.subtypes ?? [])];
 }
