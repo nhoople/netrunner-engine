@@ -15920,7 +15920,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const prog = state.cards[chosenId]!;
       prog.hostId = sourceId;
-      prog.abilitiesBlanked = true;
+      // Magnet blanks hosted programs via continuous 9.12 (hostedProgramsLoseAbilities),
+      // not an abilitiesBlanked stamp (CR 9.12.1d/e; not 9.10.1).
       // Still-pending instances die when the ability is blanked (CR 9.6.10).
       cancelPendingIfSourceInactive(
         state,
