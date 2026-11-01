@@ -18,7 +18,7 @@ describe("the-liberated-mind", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.13");
+    assertCardsPinnedTag("v1.147.14");
   });
 
   describe("The Liberated Mind v1.120.0 set-complete", () => {

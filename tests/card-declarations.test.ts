@@ -25,7 +25,7 @@ import { fx } from "../src/effects/ir.js";
 
 describe("remaining static declarations", () => {
   beforeAll(() => {
-    assertCardsPinnedTag("v1.147.13");
+    assertCardsPinnedTag("v1.147.14");
     assertPinnedTag("v26.03");
     expect(cardsDataPresent() && crDataPresent()).toBe(true);
   });
