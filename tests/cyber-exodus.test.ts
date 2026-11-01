@@ -18,7 +18,7 @@ describe("cyber-exodus", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.13");
+    assertCardsPinnedTag("v1.147.14");
   });
 
   describe("CE may_gain_click_then_tag_at_turn_end", () => {
@@ -81,7 +81,7 @@ describe("cyber-exodus", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.13");
+    assertCardsPinnedTag("v1.147.14");
   });
 
   describe("Cyber Exodus v1.90.0 set-complete", () => {

@@ -18,7 +18,7 @@ describe("station-one", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.13");
+    assertCardsPinnedTag("v1.147.14");
   });
 
   describe("Station One v1.129.0 set-complete", () => {

@@ -19,7 +19,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.13");
+  assertCardsPinnedTag("v1.147.14");
 });
 
 describe("blanked run-tax / advancement / Corp hand size (CR 9.12.1d)", () => {

@@ -117,4 +117,25 @@ describe("continuous gained-sub decls (M6)", () => {
 
     expect(collectHostedConditionSubsBeforePrinted(s, "heim-1")).toHaveLength(0);
   });
+
+  it("instantiate prefers card-supplied continuous decls over legacy flag projection", () => {
+    const fatuma = instantiateCard("warden-fatuma", "fat-1", "server:hq:root");
+    expect(fatuma.bioroidIceGainsLoseClickSubroutineBeforeOthers).toBe(true);
+    expect(fatuma.continuousGainedSubDecls).toEqual([
+      { kind: "fatuma_lose_click" },
+    ]);
+
+    const boost = instantiateCard("sub-boost", "sb-1", "hosted:ice-1");
+    expect(boost.hostGainsBarrierAndEtrSubroutine).toBe(true);
+    expect(boost.continuousSubtypeGrants).toEqual([
+      { kind: "host_grant_barrier" },
+    ]);
+    expect(boost.continuousGainedSubDecls).toEqual([{ kind: "sub_boost_etr" }]);
+
+    const mg = instantiateCard("mother-goddess", "mg-1", "server:hq:ice");
+    expect(mg.hostGainsAllIceSubtypes).toBe(true);
+    expect(mg.continuousSubtypeGrants).toEqual([
+      { kind: "copy_other_rezzed_ice_subtypes" },
+    ]);
+  });
 });
