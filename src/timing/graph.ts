@@ -1143,7 +1143,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           const card = s.cards[id];
           if (card.securityTesting && !s.pendingChoice) {
             card.namedServerId = undefined;
-            s.pendingChoice = {
+            openPendingChoose(s, {
               sourceId: id,
               chooser: "runner",
               options: [
@@ -1168,10 +1168,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 })),
               ],
-            };
-            s.log.push(
-              `${card.title} — you may choose a server (CR 9.10.3b).`,
-            );
+              logLine: `${card.title} — you may choose a server (CR 9.10.3b).`,
+            });
           }
           if (typeof card.patronChooseServerDrawInsteadOfBreach === "number") {
             noteInlineConditional(s, {
@@ -1655,7 +1653,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             const hook =
               card?.onRunBeginMaySpendAgendaCounterRezUpToIceProtectingAttacked;
             if (!hook || (card.agendaCounters ?? 0) < 1) continue;
-            s.pendingChoice = {
+            openPendingChoose(s, {
               sourceId: id,
               chooser: "corp",
               options: [
@@ -1679,11 +1677,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 },
               ],
-            };
-            log(
-              s,
-              `${card.title} — may remove 1 agenda counter to rez up to ${hook.maxIce} ice.`,
-            );
+              logLine: `${card.title} — may remove 1 agenda counter to rez up to ${hook.maxIce} ice.`,
+            });
             break;
           }
         }
@@ -1797,14 +1792,12 @@ export const STEPS: Record<string, TimingStepDef> = {
             },
           },
         });
-        s.pendingChoice = {
+        openPendingChoose(s, {
           sourceId: runState.runSourceId ?? s.runner.identityId,
           chooser: "runner",
           options,
-        };
-        s.log.push(
-          `Baker — may pay ${cost}¢ from stealth to approach HQ or R&D.`,
-        );
+          logLine: `Baker — may pay ${cost}¢ from stealth to approach HQ or R&D.`,
+        });
       },
     },
   ),
@@ -1861,7 +1854,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               continue;
             }
             runState.snitchUsedThisRun = true;
-            s.pendingChoice = {
+            openPendingChoose(s, {
               sourceId: id,
               chooser: "runner",
               options: [
@@ -1896,10 +1889,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 },
               ],
-            };
-            s.log.push(
-              `${snitch.title} — may expose approached ${ice.title}, then may jack out.`,
-            );
+              logLine: `${snitch.title} — may expose approached ${ice.title}, then may jack out.`,
+            });
             break;
           }
         }
@@ -2596,7 +2587,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.runner.clicks >= 1 &&
           !s.pendingChoice
         ) {
-          s.pendingChoice = {
+          openPendingChoose(s, {
             sourceId: runState.runSourceId ?? iceId,
             chooser: "runner",
             options: [
@@ -2634,10 +2625,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                 },
               },
             ],
-          };
-          s.log.push(
-            `Threat — may spend [click] to bypass ${ice.title} (second encounter).`,
-          );
+            logLine: `Threat — may spend [click] to bypass ${ice.title} (second encounter).`,
+          });
         }
         // Alarm Clock: may spend N clicks to bypass first encounter.
         if (
@@ -2648,7 +2637,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           !s.pendingChoice
         ) {
           const n = runState.bypassFirstEncounterForClicks!;
-          s.pendingChoice = {
+          openPendingChoose(s, {
             sourceId: runState.runSourceId ?? iceId,
             chooser: "runner",
             options: [
@@ -2686,10 +2675,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                 },
               },
             ],
-          };
-          s.log.push(
-            `Alarm Clock — may spend ${n} [click] to bypass ${ice.title} (first encounter).`,
-          );
+            logLine: `Alarm Clock — may spend ${n} [click] to bypass ${ice.title} (first encounter).`,
+          });
         }
         s.log.push(
           `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${(ice.subroutines ?? subs).length} subroutine(s).`,
@@ -2801,14 +2788,12 @@ export const STEPS: Record<string, TimingStepDef> = {
                 action: { kind: "gain_credits", side: "corp", amount: 0 },
               },
             });
-            s.pendingChoice = {
+            openPendingChoose(s, {
               sourceId: rid,
               chooser: "corp",
               options,
-            };
-            s.log.push(
-              `${up.title} — may trash ${ice.title} to resolve a subroutine.`,
-            );
+              logLine: `${up.title} — may trash ${ice.title} to resolve a subroutine.`,
+            });
             break;
           }
         }
@@ -2842,7 +2827,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             const n = (ice.subroutines ?? []).length;
             const cost = n;
             if (s.runner.credits >= cost) {
-              s.pendingChoice = {
+              openPendingChoose(s, {
                 sourceId: rid,
                 chooser: "runner",
                 options: [
@@ -2880,10 +2865,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                     },
                   },
                 ],
-              };
-              s.log.push(
-                `${femme.title} — may pay ${cost}¢ to bypass ${ice.title}.`,
-              );
+                logLine: `${femme.title} — may pay ${cost}¢ to bypass ${ice.title}.`,
+              });
             }
             break;
           }
@@ -3564,7 +3547,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                     continue;
                   }
                   const others = server.ice.filter((id) => id !== iceId);
-                  s.pendingChoice = {
+                  openPendingChoose(s, {
                     sourceId: rid,
                     chooser: "corp",
                     options: [
@@ -3593,10 +3576,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                         },
                       },
                     ],
-                  };
-                  s.log.push(
-                    `${grid.title} — may swap ${ice.title} with another ice on this server.`,
-                  );
+                    logLine: `${grid.title} — may swap ${ice.title} with another ice on this server.`,
+                  });
                   break;
                 }
               }
@@ -3787,7 +3768,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 Math.max(0, (s.cards[hid]!.rezCost ?? 0) - 7),
             );
             if (affordable.length === 0) continue;
-            s.pendingChoice = {
+            openPendingChoose(s, {
               sourceId: id,
               chooser: "corp",
               options: [
@@ -3819,10 +3800,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 },
               ],
-            };
-            s.log.push(
-              `${card.title} — may rez a hosted bioroid ice (−7¢) and force the Runner to encounter it.`,
-            );
+              logLine: `${card.title} — may rez a hosted bioroid ice (−7¢) and force the Runner to encounter it.`,
+            });
             break;
           }
         }
@@ -3993,7 +3972,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Sneakdoor: redirect attacked server before declaring success.
         if (s.run?.redirectSuccessChooseHqOrRd && !s.pendingChoice) {
           s.run.redirectSuccessChooseHqOrRd = false;
-          s.pendingChoice = {
+          openPendingChoose(s, {
             sourceId: s.run.runSourceId ?? s.runner.identityId,
             chooser: "runner",
             options: [
@@ -4014,8 +3993,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                 },
               },
             ],
-          };
-          s.log.push(`Omar Keung — choose HQ or R&D for successful run.`);
+            logLine: `Omar Keung — choose HQ or R&D for successful run.`,
+          });
         }
         if (s.run?.redirectSuccessTo) {
           const dest = s.run.redirectSuccessTo;
@@ -5318,7 +5297,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
             } else if (!abilitiesSuppressed(s, idCard.id)) {
               s.turn.pendingZahyaRunEnd = { credits: n, serverId: sid };
-              s.pendingChoice = {
+              openPendingChoose(s, {
                 sourceId: idCard.id,
                 chooser: "runner",
                 options: [
@@ -5347,10 +5326,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                     },
                   },
                 ],
-              };
-              s.log.push(
-                `${idCard.title} — may gain ${n}¢ (${n} access(es) on ${sid}).`,
-              );
+                logLine: `${idCard.title} — may gain ${n}¢ (${n} access(es) on ${sid}).`,
+              });
             }
           }
         }

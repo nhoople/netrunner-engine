@@ -426,6 +426,11 @@ export {
   collectWinchesterHqSubs,
 } from "./state/continuousSubs.js";
 export type { ContinuousGainedSub } from "./state/continuousSubs.js";
+export {
+  collectIceRezCostIncreases,
+  resolveIceRezCostIncrease,
+} from "./state/continuousCosts.js";
+export type { ContinuousRezCostMod } from "./state/continuousCosts.js";
 export { openPendingChoose } from "./state/pendingChoice.js";
 export type { PendingChoiceOption } from "./state/pendingChoice.js";
 export {

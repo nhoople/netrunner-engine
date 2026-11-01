@@ -1,7 +1,6 @@
 import type { Action, GameState, Server } from "../state/types.js";
 import {
   corpMayRez,
-  continuousIceRezCostIncrease,
   iceShareServer,
   rezCostDiscountPerRezzedSubtype,
   rezCostDiscountPerOtherUnrezzedIce,
@@ -14,6 +13,7 @@ import {
   isAiBreaker,
   iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
+import { resolveIceRezCostIncrease } from "../state/continuousCosts.js";
 import {
   abilityCost,
   abilityNeedsEncounter,
@@ -98,7 +98,7 @@ export function addApproachIceCandidates(
       const ice = state.cards[iceId];
       let increase =
         (state.run?.iceRezCostIncrease ?? 0) +
-        continuousIceRezCostIncrease(state, iceId) +
+        resolveIceRezCostIncrease(state, iceId) +
         (state.turn.iceAdditionalRezCostThisTurn[iceId] ?? 0);
       if (state.turn.iceRezzedThisTurn === 0) {
         for (const carrierId of runnerAbilityCarrierIds(state)) {
