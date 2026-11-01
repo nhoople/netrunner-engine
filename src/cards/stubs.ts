@@ -20,11 +20,8 @@ import { allIceStrengthBonusFromCurrents } from "../state/currents.js";
 import { log } from "../state/createGame.js";
 import { syncHostDurationReplacements } from "../state/hostDuration.js";
 import {
-  hasLingeringBreakerStrength,
   lingeringBreakerStrengthBoost,
   lingeringIceStrengthBoost,
-  LINGERING_KIND_ICE_STRENGTH,
-  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
 } from "../state/lingeringEffects.js";
 import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
 import { agendaPointsFor } from "../state/scoring.js";
@@ -271,15 +268,8 @@ export function effectiveBreakerStrength(
       increases += mod.hostIcebreakerStrengthBonus;
     }
   }
-  // Temporary boosts: lingering registry only (single-write residual).
-  // Map fields remain for fortify/legacy seeds that never registered lingerings.
-  const fromLingering = lingeringBreakerStrengthBoost(state, breakerId);
-  const temp = hasLingeringBreakerStrength(state, breakerId)
-    ? fromLingering
-    : (state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0) +
-      (state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0) +
-      (state.run?.strengthBoosts?.[breakerId] ?? 0) +
-      (state.run?.encounterStrengthBoosts?.[breakerId] ?? 0);
+  // Temporary boosts: lingering registry only (CR 9.10.1).
+  const temp = lingeringBreakerStrengthBoost(state, breakerId);
   if (temp >= 0) increases += temp;
   else decreases += -temp;
   // Stegodon-class scored-agenda lower.
@@ -714,26 +704,8 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     subtypeBonus +
     scoredSubtypeBonus +
     sandburgBonus;
-  // Prefer lingerings when they currently contribute; otherwise use map seeds /
-  // fortify paths that still write maps only (M2).
-  const fromLingering = lingeringIceStrengthBoost(state, iceId);
-  const hasActiveIceLingering = state.lingeringEffects.some((e) => {
-    if (e.expired) return false;
-    if (
-      e.kind !== LINGERING_KIND_ICE_STRENGTH &&
-      e.kind !== LINGERING_KIND_ICE_STRENGTH_ENCOUNTER
-    ) {
-      return false;
-    }
-    if (e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER && !state.run) {
-      return false;
-    }
-    return (e.payload as { iceId?: string } | undefined)?.iceId === iceId;
-  });
-  const tempBoost = hasActiveIceLingering
-    ? fromLingering
-    : (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
-      (state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0);
+  // Temporary boosts: lingering registry only (CR 9.10.1).
+  const tempBoost = lingeringIceStrengthBoost(state, iceId);
   const tempIncrease = Math.max(0, tempBoost);
   let tempDecrease = Math.max(0, -tempBoost);
   if (card.strengthCannotBeLowered) {

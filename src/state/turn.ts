@@ -712,11 +712,7 @@ export function memoryLimit(state: GameState): number {
     const c = state.cards[id];
     if (c.muBonus && !c.muBonusOnlyForCaissaPrograms) limit += c.muBonus;
   }
-  const fromMu = lingeringRunnerMuModifier(state);
-  limit +=
-    fromMu !== 0
-      ? fromMu
-      : (state.turn.runnerMuModifierUntilTurnEnd ?? 0);
+  limit += lingeringRunnerMuModifier(state);
   return limit;
 }
 

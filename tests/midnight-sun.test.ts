@@ -44,6 +44,8 @@ import {
   resolveAndAdvance,
 } from "../src/index.js";
 import {
+  addBreakerStrengthBoostThisRun,
+  addIceStrengthBoostThisEncounter,
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
   lingeringIceStrengthOfKind,
 } from "../src/state/lingeringEffects.js";
@@ -756,13 +758,18 @@ describe("midnight-sun", () => {
         cannotJackOut: false,
         strengthBoosts: {},
         encounterStrengthBoosts: {},
-        iceStrengthBoosts: { "bath-boost": 2 },
+        iceStrengthBoosts: {},
         accessingCardId: null,
         encounter: {
           iceId: "bath-boost",
           broken: [false],
         },
       };
+      addIceStrengthBoostThisEncounter(s, {
+        createdBy: "bath-boost",
+        iceId: "bath-boost",
+        amount: 2,
+      });
       // 1 printed + 3 Archives + 2 fortify
       expect(effectiveIceStrength(s, "bath-boost")).toBe(6);
     });
@@ -837,7 +844,11 @@ describe("midnight-sun", () => {
       );
       expect(breaksBefore.length).toBe(0);
 
-      s.run!.strengthBoosts["br-1"] = 1;
+      addBreakerStrengthBoostThisRun(s, {
+        createdBy: "br-1",
+        breakerId: "br-1",
+        amount: 1,
+      });
       const legalAfter = queryLegality(s).legal;
       const breaksAfter = legalAfter.filter(
         (e) =>
@@ -967,7 +978,7 @@ describe("midnight-sun", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: { "beg-pump": 1 },
+        strengthBoosts: {},
         encounterStrengthBoosts: {},
         iceStrengthBoosts: {},
         accessingCardId: null,
@@ -976,6 +987,11 @@ describe("midnight-sun", () => {
           broken: [],
         },
       };
+      addBreakerStrengthBoostThisRun(s, {
+        createdBy: "beg-pump",
+        breakerId: "beg-pump",
+        amount: 1,
+      });
       // 2 printed + 2 CD + 1 run boost
       expect(effectiveBreakerStrength(s, "beg-pump")).toBe(5);
     });

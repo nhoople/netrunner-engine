@@ -16,6 +16,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { iceStrength } from "../src/effects/iceStrength.js";
+import { addIceStrengthBoostThisEncounter } from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/index.js";
 
 beforeAll(() => {
@@ -102,7 +103,11 @@ describe("Şifr encounter strength set (CR 9.12.1a)", () => {
     );
     expect(effectiveIceStrength(s, "wall-1")).toBe(0);
 
-    s.run!.iceStrengthBoosts["wall-1"] = 2;
+    addIceStrengthBoostThisEncounter(s, {
+      createdBy: "sifr-1",
+      iceId: "wall-1",
+      amount: 2,
+    });
     expect(effectiveIceStrength(s, "wall-1")).toBe(2);
     expect(iceStrength(s, "wall-1")).toBe(2);
   });

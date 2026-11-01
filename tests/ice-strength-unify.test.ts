@@ -12,6 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { iceStrength } from "../src/effects/iceStrength.js";
+import { addIceStrengthBoostThisEncounter } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -46,10 +47,15 @@ describe("ice strength unify (CR 9.12.1a)", () => {
       cannotJackOut: false,
       strengthBoosts: {},
       encounterStrengthBoosts: {},
-      iceStrengthBoosts: { "ice-1": 3 },
+      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.turn.iceStrengthBoostsThisTurn = {};
+    addIceStrengthBoostThisEncounter(s, {
+      createdBy: "test",
+      iceId: "ice-1",
+      amount: 3,
+    });
     const a = iceStrength(s, "ice-1");
     const b = effectiveIceStrength(s, "ice-1");
     expect(a).toBe(b);
