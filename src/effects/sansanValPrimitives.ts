@@ -10,6 +10,8 @@ import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -118,7 +120,7 @@ export function applySansanValPrimitive(
       }
       const n = Math.min(x, progs.length);
       // Offer Corp choice iteratively via pendingChoice for first batch.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: progs.map((id) => ({
@@ -130,7 +132,7 @@ export function applySansanValPrimitive(
             remaining: n - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -146,7 +148,7 @@ export function applySansanValPrimitive(
       if (remaining > 0) {
         const progs = installedPrograms(state);
         if (progs.length === 0) return { ok: true };
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: progs.map((id) => ({
@@ -158,7 +160,7 @@ export function applySansanValPrimitive(
               remaining: remaining - 1,
             }),
           })),
-        };
+        });
       }
       return { ok: true };
     }
@@ -178,7 +180,7 @@ export function applySansanValPrimitive(
       // The newly faceup face is the active one (CR 3.1.1a).
       applyIdentityFace(source);
       log(state, `Jinteki Biotech flips (${face.label}).`);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -188,7 +190,7 @@ export function applySansanValPrimitive(
             effect: face.onFlip,
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -243,7 +245,7 @@ export function applySansanValPrimitive(
         log(state, `Jinteki Biotech (Warehouse) — no advanceable card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => ({
@@ -255,7 +257,7 @@ export function applySansanValPrimitive(
             amount: 4,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -265,7 +267,7 @@ export function applySansanValPrimitive(
         log(state, `Genetic Resequencing — no scored agenda.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: scored.map((id) => ({
@@ -276,7 +278,7 @@ export function applySansanValPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -347,7 +349,7 @@ export function applySansanValPrimitive(
         }
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: assets.map((id) => ({
@@ -358,7 +360,7 @@ export function applySansanValPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 

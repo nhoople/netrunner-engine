@@ -7,6 +7,8 @@ import { log } from "../state/createGame.js";
 import type { Effect } from "../effects/ir.js";
 import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 export type BreachReplacementMode =
   | "security_testing"
@@ -121,11 +123,11 @@ export function openBreachReplacementChoice(state: GameState): void {
   }
   if (options.length < 2) return;
   run.deferBreachReplacement = false;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: stId,
     chooser: "runner",
     options,
-  };
+  });
   log(
     state,
     `Choose which replacement applies to the breach (CR ${CR.replacementMustReplace.number}).`,

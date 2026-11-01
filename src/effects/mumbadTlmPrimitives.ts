@@ -16,6 +16,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import { playEffectFromCard } from "./abilityRecord.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -45,7 +47,7 @@ function offerInfoSiftAssign(ctx: EffectCtx): PrimResult {
   }
   const cardId = remaining[0]!;
   const title = state.cards[cardId]?.title ?? cardId;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "corp",
     options: [
@@ -68,11 +70,8 @@ function offerInfoSiftAssign(ctx: EffectCtx): PrimResult {
         }),
       },
     ],
-  };
-  log(
-    state,
-    `Information Sifting — Corp assigns ${title} (${remaining.length} left).`,
-  );
+logLine: `Information Sifting — Corp assigns ${title} (${remaining.length} left).`,
+});
   return { ok: true };
 }
 
@@ -81,7 +80,7 @@ function offerInfoSiftRunnerPick(ctx: EffectCtx): PrimResult {
   const pileA = state.turn.tlmInfoSiftPileA ?? [];
   const pileB = state.turn.tlmInfoSiftPileB ?? [];
   state.turn.tlmInfoSiftRemaining = undefined;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: [
@@ -96,11 +95,8 @@ function offerInfoSiftRunnerPick(ctx: EffectCtx): PrimResult {
         effect: fx.do({ kind: "access_pile", pile: "b" }),
       },
     ],
-  };
-  log(
-    state,
-    `Information Sifting — Runner chooses a pile (${pileA.length}/${pileB.length}).`,
-  );
+logLine: `Information Sifting — Runner chooses a pile (${pileA.length}/${pileB.length}).`,
+});
   return { ok: true };
 }
 
@@ -191,7 +187,7 @@ export function applyMumbadTlmPrimitive(
           kind: "score_self",
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -206,7 +202,7 @@ export function applyMumbadTlmPrimitive(
             effect: fx.do({ kind: "score_self" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -225,7 +221,7 @@ export function applyMumbadTlmPrimitive(
           agendaId: agendas[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: agendas.map((agendaId) => ({
@@ -236,7 +232,7 @@ export function applyMumbadTlmPrimitive(
             agendaId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -291,7 +287,7 @@ export function applyMumbadTlmPrimitive(
         recomputeRunnerLink(state);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((cardId) => ({
@@ -302,11 +298,8 @@ export function applyMumbadTlmPrimitive(
             cardId,
           }),
         })),
-      };
-      log(
-        state,
-        `Rebirth — choose a ${current?.faction ?? "same-faction"} identity from outside the game (CR ${CR.additionalIdentity.number}).`,
-      );
+logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity from outside the game (CR ${CR.additionalIdentity.number}).`,
+});
       return { ok: true };
     }
     case "rebirth_switch_to_identity": {
@@ -328,7 +321,7 @@ export function applyMumbadTlmPrimitive(
         log(state, `The Turning Wheel — no active run.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -349,7 +342,7 @@ export function applyMumbadTlmPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -417,7 +410,7 @@ export function applyMumbadTlmPrimitive(
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -470,7 +463,7 @@ export function applyMumbadTlmPrimitive(
           cardId: ops[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ops.map((cardId) => ({
@@ -478,7 +471,7 @@ export function applyMumbadTlmPrimitive(
           label: `Play ${state.cards[cardId]!.title}`,
           effect: fx.do({ kind: "play_resolve", cardId }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -500,7 +493,7 @@ export function applyMumbadTlmPrimitive(
       log(state, `Consulting Visit — play ${card.title} from R&D.`);
       const playFx = playEffectFromCard(card);
       if (playFx) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId: cardId,
           chooser: "corp",
           options: [
@@ -510,7 +503,7 @@ export function applyMumbadTlmPrimitive(
               effect: playFx,
             },
           ],
-        };
+        });
       }
       return { ok: true };
     }
@@ -521,7 +514,7 @@ export function applyMumbadTlmPrimitive(
         return { ok: true };
       }
       rfgCard(ctx, sourceId);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: (Object.keys(state.servers) as ServerId[]).map((serverId) => ({
@@ -529,8 +522,8 @@ export function applyMumbadTlmPrimitive(
           label: `Run ${serverId}`,
           effect: fx.do({ kind: "queue_start_run", serverId }),
         })),
-      };
-      log(state, `Out of the Ashes — remove from game; make a run.`);
+logLine: `Out of the Ashes — remove from game; make a run.`,
+});
       return { ok: true };
     }
 
@@ -550,7 +543,7 @@ export function applyMumbadTlmPrimitive(
         log(state, `Puppet Master — no card that can be advanced.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -568,7 +561,7 @@ export function applyMumbadTlmPrimitive(
             effect: fx.gainCredits("corp", 0),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 

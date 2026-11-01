@@ -8,6 +8,8 @@ import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -30,7 +32,7 @@ function trashRunnerProgramChoose(
     log(state, `${label} — trash ${state.cards[programs[0]!]!.title}.`);
     return { ok: true };
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "corp",
     options: programs.map((id) => ({
@@ -38,7 +40,7 @@ function trashRunnerProgramChoose(
       label: `Trash ${state.cards[id]!.title}`,
       effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
     })),
-  };
+  });
   return { ok: true };
 }
 
@@ -61,7 +63,7 @@ export function applyLunarAtrPrimitive(
         log(state, `Bifrost Array — no other scored agenda with when-scored.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -85,7 +87,7 @@ export function applyLunarAtrPrimitive(
             },
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "score_bifrost_fire_scored_agenda_on": {
@@ -98,7 +100,7 @@ export function applyLunarAtrPrimitive(
       log(state, `Bifrost Array — trigger when-scored of ${card.title}.`);
       // Queue the agenda's onScore as the sole pending choice option so
       // resolution uses cardId as source (via a trampoline pendingChoice).
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: cardId,
         chooser: "corp",
         options: [
@@ -108,7 +110,7 @@ export function applyLunarAtrPrimitive(
             effect: structuredClone(card.onScore),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "trace_sagittarius_subroutine": {
@@ -173,7 +175,7 @@ export function applyLunarAtrPrimitive(
         log(state, `Snatch and Grab — no connection to trash.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: connections.map((id) => ({
@@ -184,12 +186,12 @@ export function applyLunarAtrPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "offer_prevent": {
       const cardId = (action as { cardId: string }).cardId;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -207,7 +209,7 @@ export function applyLunarAtrPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "prevent_with_tag": {

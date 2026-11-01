@@ -9,6 +9,8 @@ import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -133,11 +135,9 @@ export function applyHostedCreditPrimitive(
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — may take hosted credits instead of breaching.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — may take hosted credits instead of breaching.`,
+});
       return { ok: true };
     }
     case "take_hosted_credits_skip_breach": {

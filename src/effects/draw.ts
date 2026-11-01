@@ -1,3 +1,4 @@
+import { openPendingChoose } from "../state/pendingChoice.js";
 /**
  * Drawing cards. Pavilion limits, Class Act's would-draw interrupt,
  * and the on-draw hooks for Political Dealings and Jinja City Grid.
@@ -186,7 +187,7 @@ function openDbsBottomChoice(state: GameState, cardIds: string[]): void {
       card.interruptFirstDrawBottomOne &&
       !abilitiesSuppressed(state, card.id),
   );
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: dbs?.id ?? cardIds[0]!,
     chooser: "corp",
     options: cardIds.map((cardId) => ({
@@ -197,7 +198,7 @@ function openDbsBottomChoice(state: GameState, cardIds: string[]): void {
         action: { kind: "bottom_drawn_card" as const, cardId },
       },
     })),
-  };
+  });
   log(
     state,
     `Daily Business Show — choose a drawn card to add to the bottom of R&D.`,

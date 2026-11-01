@@ -8,6 +8,8 @@ import {
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import type { Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -55,7 +57,7 @@ export function applySansanOhPrimitive(
         return { ok: true };
       }
       state.turn.ohTropeShuffleRemaining = n;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: heap.map((cardId) => ({
@@ -69,8 +71,8 @@ export function applySansanOhPrimitive(
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose ${n} heap card(s) to shuffle.`);
+logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
+});
       return { ok: true };
     }
 
@@ -99,7 +101,7 @@ export function applySansanOhPrimitive(
         state.turn.ohTropeShuffleRemaining = undefined;
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: heap.map((id) => ({
@@ -113,7 +115,7 @@ export function applySansanOhPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -164,7 +166,7 @@ export function applySansanOhPrimitive(
         return { ok: true };
       }
       if (action.pick === "choose" && targets.length > 1) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: targets.map((id) => ({
@@ -178,7 +180,7 @@ export function applySansanOhPrimitive(
               },
             },
           })),
-        };
+        });
         return { ok: true };
       }
       moveRunnerCardToHeap(state, targets[0]!);
@@ -199,7 +201,7 @@ export function applySansanOhPrimitive(
         log(state, `${source.title} — no advanceable installed card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -233,7 +235,7 @@ export function applySansanOhPrimitive(
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -266,7 +268,7 @@ export function applySansanOhPrimitive(
         log(state, `Early Premiere — no advanceable remote root card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((cardId) => ({
@@ -280,7 +282,7 @@ export function applySansanOhPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -299,7 +301,7 @@ export function applySansanOhPrimitive(
 
     case "an_offer_you_cant_refuse": {
       const centrals: ServerId[] = ["hq", "rd", "archives"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: centrals.map((serverId) => ({
@@ -313,13 +315,13 @@ export function applySansanOhPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "offer_central_chosen": {
       const serverId = action.serverId as ServerId;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -346,7 +348,7 @@ export function applySansanOhPrimitive(
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -376,7 +378,7 @@ export function applySansanOhPrimitive(
         log(state, `Back Channels — no remote root card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((cardId) => ({
@@ -390,7 +392,7 @@ export function applySansanOhPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -427,7 +429,7 @@ export function applySansanOhPrimitive(
         log(state, `Casting Call — no agenda in HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: agendas.map((cardId) => ({
@@ -441,7 +443,7 @@ export function applySansanOhPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -517,7 +519,7 @@ export function applySansanOhPrimitive(
         log(state, `Hollywood Renovation — no other advanceable card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -546,7 +548,7 @@ export function applySansanOhPrimitive(
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -572,7 +574,7 @@ function offerStackArrangeChoice(ctx: EffectCtx): PrimResult {
     log(state, `Arrange stack — ${placed.length} card(s) replaced.`);
     return { ok: true };
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: looked.map((cardId) => ({
@@ -586,6 +588,6 @@ function offerStackArrangeChoice(ctx: EffectCtx): PrimResult {
         },
       },
     })),
-  };
+  });
   return { ok: true };
 }

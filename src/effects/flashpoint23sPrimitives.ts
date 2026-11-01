@@ -8,6 +8,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect, grantAbilityCredits } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -47,7 +49,7 @@ export function applyFlashpoint23sPrimitive(
         return { ok: true };
       };
       if (grip.length === 1) return apply(grip[0]!);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: grip.map((id) => ({
@@ -59,7 +61,7 @@ export function applyFlashpoint23sPrimitive(
             amount,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -140,11 +142,11 @@ export function applyFlashpoint23sPrimitive(
           });
         }
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: pairs,
-      };
+      });
       return { ok: true };
     }
 
@@ -171,7 +173,7 @@ export function applyFlashpoint23sPrimitive(
         log(state, `Injection Attack — no installed icebreaker.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: breakers.map((id) => ({
@@ -183,7 +185,7 @@ export function applyFlashpoint23sPrimitive(
             strengthBonus: bonus,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -237,11 +239,11 @@ export function applyFlashpoint23sPrimitive(
       if (options.length === 1) {
         return evalEffect(ctx, options[0]!.effect);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
+      });
       return { ok: true };
     }
 
@@ -262,7 +264,7 @@ export function applyFlashpoint23sPrimitive(
           }),
         );
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: programs.map((id) => ({
@@ -273,7 +275,7 @@ export function applyFlashpoint23sPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -314,7 +316,7 @@ export function applyFlashpoint23sPrimitive(
         log(state, `Move upgrade — no other servers.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((sid) => ({
@@ -322,7 +324,7 @@ export function applyFlashpoint23sPrimitive(
           label: `Move to ${sid} root`,
           effect: fx.do({ kind: "move_upgrade_to_server_root", serverId: sid }),
         })),
-      };
+      });
       return { ok: true };
     }
 

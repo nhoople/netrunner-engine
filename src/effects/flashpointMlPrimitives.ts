@@ -8,6 +8,8 @@ import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { breakerStrength, iceStrength } from "./iceStrength.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -77,7 +79,7 @@ export function applyFlashpointMlPrimitive(
         log(state, `On the Lam — no installed resource to host on.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: resources.map((id) => ({
@@ -88,7 +90,7 @@ export function applyFlashpointMlPrimitive(
             resourceId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -139,7 +141,7 @@ export function applyFlashpointMlPrimitive(
       if (options.length === 1) {
         return evalEffect(ctx, options[0]!.effect);
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -176,7 +178,7 @@ export function applyFlashpointMlPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -187,7 +189,7 @@ export function applyFlashpointMlPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -212,7 +214,7 @@ export function applyFlashpointMlPrimitive(
       }
       const topId = state.corp.deck[0]!; // deck top is index 0 (commitDraw shifts)
       const top = state.cards[topId]!;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -227,7 +229,7 @@ export function applyFlashpointMlPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -236,7 +238,7 @@ export function applyFlashpointMlPrimitive(
       const topId = state.corp.deck[0]!; // deck top is index 0 (commitDraw shifts)
       const top = state.cards[topId]!;
       log(state, `Equivocation — reveal top of R&D: ${top.title}.`);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -251,7 +253,7 @@ export function applyFlashpointMlPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -279,7 +281,7 @@ export function applyFlashpointMlPrimitive(
         label: "Decline",
         effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -389,11 +391,9 @@ export function applyFlashpointMlPrimitive(
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `Friends in High Places — install up to ${remaining} from Archives (paying).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Friends in High Places — install up to ${remaining} from Archives (paying).`,
+});
       return { ok: true };
     }
 
@@ -406,7 +406,7 @@ export function applyFlashpointMlPrimitive(
         log(state, `Mind Game — no other server.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: servers.map((s) => ({
@@ -417,7 +417,7 @@ export function applyFlashpointMlPrimitive(
             serverId: s.id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -456,7 +456,7 @@ export function applyFlashpointMlPrimitive(
         log(state, `Nihongai Grid — nothing to swap.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -474,7 +474,7 @@ export function applyFlashpointMlPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -501,8 +501,9 @@ export function applyFlashpointMlPrimitive(
         label: "Decline swap",
         effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `Nihongai Grid — choose R&D↔HQ swap.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Nihongai Grid — choose R&D↔HQ swap.`,
+});
       return { ok: true };
     }
 

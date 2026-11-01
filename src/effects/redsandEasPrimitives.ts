@@ -6,6 +6,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 import { getCardDef } from "../cards/load.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -118,7 +120,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Persephone — stack empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -136,7 +138,7 @@ export function applyRedsandEasPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -183,7 +185,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Rubicon Switch — cannot pay printed rez cost of any candidate.`);
         return { ok: true };
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -195,7 +197,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Rosetta 2.0 — no installed program to remove.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => ({
@@ -203,7 +205,7 @@ export function applyRedsandEasPrimitive(
           label: `Remove ${state.cards[id]!.title} from the game`,
           effect: fx.do({ kind: "search_rosetta_rfg_then", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -241,7 +243,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Rosetta 2.0 — no non-virus program in stack.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: matches.map((id) => ({
@@ -253,7 +255,7 @@ export function applyRedsandEasPrimitive(
             discount,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -304,7 +306,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Inversificator — no other installed ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -323,7 +325,7 @@ export function applyRedsandEasPrimitive(
             }),
           })),
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -362,7 +364,7 @@ export function applyRedsandEasPrimitive(
         log(state, `AgInfusion — no other server.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: servers.map((sid) => ({
@@ -370,7 +372,7 @@ export function applyRedsandEasPrimitive(
           label: `Move Runner to ${sid}`,
           effect: fx.do({ kind: "redirect_aginfusion_resolve", serverId: sid }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -407,7 +409,7 @@ export function applyRedsandEasPrimitive(
       for (const id of top) {
         log(state, `Bamboo Dome — reveal ${state.cards[id]?.title}.`);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: top.map((id) => ({
@@ -419,7 +421,7 @@ export function applyRedsandEasPrimitive(
             restIds: top.filter((x) => x !== id),
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -440,7 +442,7 @@ export function applyRedsandEasPrimitive(
         // Keep relative order; already on top after removing HQ card.
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: still.map((id) => ({
@@ -452,7 +454,7 @@ export function applyRedsandEasPrimitive(
             remaining: still.filter((x) => x !== id),
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -476,7 +478,7 @@ export function applyRedsandEasPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: remaining.map((id) => ({
@@ -488,7 +490,7 @@ export function applyRedsandEasPrimitive(
             remaining: remaining.filter((x) => x !== id),
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -505,7 +507,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Audacity — no advanceable installed cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: advanceable.flatMap((id) => {
@@ -530,7 +532,7 @@ export function applyRedsandEasPrimitive(
             },
           ];
         }),
-      };
+      });
       return { ok: true };
     }
 
@@ -544,7 +546,7 @@ export function applyRedsandEasPrimitive(
       const advanceable = installedCorpCards(state).filter((id) =>
         canAdvance(state, id),
       );
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: advanceable.map((id) => ({
@@ -556,7 +558,7 @@ export function applyRedsandEasPrimitive(
             amount: 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -580,7 +582,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Red Planet Couriers — no advanceable target; counters lost.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -592,7 +594,7 @@ export function applyRedsandEasPrimitive(
             amount: total,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -600,7 +602,7 @@ export function applyRedsandEasPrimitive(
       const cardId = action.cardId;
       const card = cardId ? state.cards[cardId] : null;
       if (!card) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -618,7 +620,7 @@ export function applyRedsandEasPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 

@@ -8,6 +8,8 @@ import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { breakerStrength, iceStrength } from "./iceStrength.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -73,7 +75,7 @@ export function applyFlashpointBmPrimitive(
         label: "Decline",
         effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -144,7 +146,7 @@ export function applyFlashpointBmPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: side, options };
+      openPendingChoose(state, { sourceId, chooser: side, options });
       return { ok: true };
     }
 
@@ -198,7 +200,7 @@ export function applyFlashpointBmPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -206,7 +208,7 @@ export function applyFlashpointBmPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -219,7 +221,7 @@ export function applyFlashpointBmPrimitive(
         log(state, `Hatchet Job — no installed non-virtual Runner card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -230,7 +232,7 @@ export function applyFlashpointBmPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -240,7 +242,7 @@ export function applyFlashpointBmPrimitive(
       if (hand.length === 0) {
         return evalEffect(ctx, fx.do({ kind: "draw_shuffled" }));
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -258,7 +260,7 @@ export function applyFlashpointBmPrimitive(
             effect: fx.do({ kind: "draw_shuffled" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -305,7 +307,7 @@ export function applyFlashpointBmPrimitive(
         log(state, `Liquidation — no rezzed cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -323,7 +325,7 @@ export function applyFlashpointBmPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -367,15 +369,12 @@ export function applyFlashpointBmPrimitive(
           }),
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(
-        state,
-        `Financial Collapse — Runner loses ${lose}¢ or trashes a resource to prevent.`,
-      );
+logLine: `Financial Collapse — Runner loses ${lose}¢ or trashes a resource to prevent.`,
+});
       return { ok: true };
     }
 

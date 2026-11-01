@@ -5,6 +5,8 @@ import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { GameState, RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 function trashCorpToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
@@ -48,7 +50,7 @@ function offerCbiRaidHqToRd(ctx: EffectCtx): PrimResult {
     log(state, `CBI Raid — ${card.title} to top of R&D.`);
     return { ok: true };
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "corp",
     options: hq.map((id) => ({
@@ -56,8 +58,8 @@ function offerCbiRaidHqToRd(ctx: EffectCtx): PrimResult {
       label: `Top of R&D: ${state.cards[id]!.title}`,
       effect: fx.do({ kind: "place_hq_on_top_rd_continue", cardId: id }),
     })),
-  };
-  log(state, `CBI Raid — Corp chooses next HQ card for top of R&D (${hq.length} left).`);
+logLine: `CBI Raid — Corp chooses next HQ card for top of R&D (${hq.length} left).`,
+});
   return { ok: true };
 }
 
@@ -69,7 +71,7 @@ function offerDiscardDownToHandSize(ctx: EffectCtx): PrimResult {
   const { state, sourceId } = ctx;
   const max = state.runner.maxHandSize ?? 5;
   if (state.runner.hand.length <= max) return { ok: true };
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: state.runner.hand.map((id) => ({
@@ -80,7 +82,7 @@ function offerDiscardDownToHandSize(ctx: EffectCtx): PrimResult {
         cardId: id,
       }),
     })),
-  };
+  });
   return { ok: true };
 }
 
@@ -156,7 +158,7 @@ export function applyMumbadBfPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: agendas.map((id) => {
@@ -171,7 +173,7 @@ export function applyMumbadBfPrimitive(
             }),
           };
         }),
-      };
+      });
       return { ok: true };
     }
 
@@ -222,7 +224,7 @@ export function applyMumbadBfPrimitive(
         log(state, `Product Recall — trash ${card.title}; gain ${gainAmt}¢.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => {
@@ -237,7 +239,7 @@ export function applyMumbadBfPrimitive(
             }),
           };
         }),
-      };
+      });
       return { ok: true };
     }
 
@@ -305,7 +307,7 @@ export function applyMumbadBfPrimitive(
       }
       const adv = source?.advancementCounters ?? 0;
       const rezIgnore = adv >= 5;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: eligible.map((id) => ({
@@ -319,7 +321,7 @@ export function applyMumbadBfPrimitive(
             rezIgnoringCosts: rezIgnore,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -405,7 +407,7 @@ export function applyMumbadBfPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: faceup.map((id) => ({
@@ -416,7 +418,7 @@ export function applyMumbadBfPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -446,7 +448,7 @@ export function applyMumbadBfPrimitive(
         log(state, `PAD Factory — no advanceable card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -457,7 +459,7 @@ export function applyMumbadBfPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 

@@ -7,6 +7,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -79,7 +81,7 @@ export function applyRedsandSoPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -91,7 +93,7 @@ export function applyRedsandSoPrimitive(
       );
       if (remaining <= 0) {
         const bonus = Math.floor(trashed / 2);
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: (["hq", "rd"] as const).map((sid) => ({
@@ -103,14 +105,14 @@ export function applyRedsandSoPrimitive(
               bonusAccess: bonus,
             }),
           })),
-        };
+        });
         return { ok: true };
       }
       if (cardIds.length === 0) {
         log(state, `Severnius — grip empty mid-trash.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cardIds.map((id) => ({
@@ -129,7 +131,7 @@ export function applyRedsandSoPrimitive(
             ],
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -176,7 +178,7 @@ export function applyRedsandSoPrimitive(
     }
 
     case "counter_surveillance_run": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: (Object.keys(state.servers) as ServerId[]).map((sid) => ({
@@ -187,7 +189,7 @@ export function applyRedsandSoPrimitive(
             serverId: sid,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -234,7 +236,7 @@ export function applyRedsandSoPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -278,7 +280,7 @@ export function applyRedsandSoPrimitive(
         log(state, `Möbius — second run successful; gain 4¢.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -293,7 +295,7 @@ export function applyRedsandSoPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -395,7 +397,7 @@ export function applyRedsandSoPrimitive(
           }),
         ],
       };
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -434,7 +436,7 @@ export function applyRedsandSoPrimitive(
         log(state, `Customized Secretary — no hosted program.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: hosted.map((cardId) => ({
@@ -442,7 +444,7 @@ export function applyRedsandSoPrimitive(
           label: `Install ${state.cards[cardId]!.title}`,
           effect: fx.do({ kind: "install_hosted_program", cardId }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -475,7 +477,7 @@ export function applyRedsandSoPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -510,7 +512,7 @@ export function applyRedsandSoPrimitive(
         log(state, `Replanting — no installed card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: installed.map((id) => ({
@@ -518,7 +520,7 @@ export function applyRedsandSoPrimitive(
           label: `Add ${state.cards[id]!.title} to HQ`,
           effect: fx.do({ kind: "move_to_hq", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -606,7 +608,7 @@ export function applyRedsandSoPrimitive(
         log(state, `Replanting — no installable cards in HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -642,7 +644,7 @@ export function applyRedsandSoPrimitive(
         // Operation already played; linger in play-area as condition without host?
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: hosts.map((id) => ({
@@ -653,7 +655,7 @@ export function applyRedsandSoPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -705,8 +707,9 @@ export function applyRedsandSoPrimitive(
         label: "Trash the top card of the stack",
         effect: fx.do({ kind: "trash_top_of_stack" }),
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `Clyde Van Rite — Runner must pay 1¢ or trash top of stack.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `Clyde Van Rite — Runner must pay 1¢ or trash top of stack.`,
+});
       return { ok: true };
     }
 

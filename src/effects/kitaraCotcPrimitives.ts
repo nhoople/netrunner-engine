@@ -7,6 +7,8 @@ import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -113,7 +115,7 @@ export function applyKitaraCotcPrimitive(
         log(state, `${source?.title ?? "Friday Chip"} — no virus programs.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: viruses.map((id) => ({
@@ -124,7 +126,7 @@ export function applyKitaraCotcPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -154,7 +156,7 @@ export function applyKitaraCotcPrimitive(
         log(state, `Crypt — no virus program in stack; shuffle.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -165,7 +167,7 @@ export function applyKitaraCotcPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -198,7 +200,7 @@ export function applyKitaraCotcPrimitive(
     case "cotc_no_one_home": {
       const mode = (action as { mode?: string }).mode ?? "tags";
       state.turn.cotcNoOneHomeUsed = true;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -223,7 +225,7 @@ export function applyKitaraCotcPrimitive(
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -295,7 +297,7 @@ export function applyKitaraCotcPrimitive(
     }
 
     case "cotc_white_hat": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -317,7 +319,7 @@ export function applyKitaraCotcPrimitive(
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -349,11 +351,11 @@ export function applyKitaraCotcPrimitive(
         label: "Done (shuffle 0)",
         effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: opts,
-      };
+      });
       return { ok: true };
     }
 
@@ -388,17 +390,17 @@ export function applyKitaraCotcPrimitive(
         label: "Done",
         effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: opts,
-      };
+      });
       return { ok: true };
     }
 
     case "trace_kuwinda": {
       const x = source?.powerCounters ?? 0;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -419,7 +421,7 @@ export function applyKitaraCotcPrimitive(
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -433,7 +435,7 @@ export function applyKitaraCotcPrimitive(
           effect: fx.do({ kind: "draw", side: "corp", amount: n }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options: opts };
+      openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
       return { ok: true };
     }
 
@@ -444,7 +446,7 @@ export function applyKitaraCotcPrimitive(
         log(state, `NEXT Sapphire — add 0 from Archives (X=${x}).`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -463,7 +465,7 @@ export function applyKitaraCotcPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -481,7 +483,7 @@ export function applyKitaraCotcPrimitive(
       if (remaining <= 0) return { ok: true };
       const archives = [...state.corp.discardPile];
       if (archives.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -500,7 +502,7 @@ export function applyKitaraCotcPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -511,7 +513,7 @@ export function applyKitaraCotcPrimitive(
         log(state, `NEXT Sapphire — shuffle 0 from HQ (X=${x}).`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -530,7 +532,7 @@ export function applyKitaraCotcPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -549,7 +551,7 @@ export function applyKitaraCotcPrimitive(
       if (remaining <= 0) return { ok: true };
       const hq = [...state.corp.hand];
       if (hq.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -568,7 +570,7 @@ export function applyKitaraCotcPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -597,7 +599,7 @@ export function applyKitaraCotcPrimitive(
         state.cards[id]!.faceup = true;
         log(state, `Anansi — look at ${state.cards[id]?.title}.`);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: taken.map((id) => ({
@@ -605,7 +607,7 @@ export function applyKitaraCotcPrimitive(
           label: `Place ${state.cards[id]!.title} on top next`,
           effect: fx.do({ kind: "pick_rd_arrange", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -655,7 +657,7 @@ export function applyKitaraCotcPrimitive(
 
     case "cotc_azmari_name_card_type": {
       const types = ["event", "hardware", "program", "resource"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: types.map((t) => ({
@@ -663,7 +665,7 @@ export function applyKitaraCotcPrimitive(
           label: `Name ${t}`,
           effect: fx.do({ kind: "cotc_azmari_set_named_type", cardType: t }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -691,7 +693,7 @@ export function applyKitaraCotcPrimitive(
           cites: [],
         };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: installed.map((id) => ({
@@ -703,7 +705,7 @@ export function applyKitaraCotcPrimitive(
             remaining: amount - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -714,7 +716,7 @@ export function applyKitaraCotcPrimitive(
       if (remaining <= 0) return { ok: true };
       const installed = installedRunnerCardIds(state);
       if (installed.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: installed.map((id) => ({
@@ -726,7 +728,7 @@ export function applyKitaraCotcPrimitive(
             remaining: remaining - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -754,7 +756,7 @@ export function applyKitaraCotcPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: progs.map((id) => ({
@@ -762,7 +764,7 @@ export function applyKitaraCotcPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_trojan_horse_resolve", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 

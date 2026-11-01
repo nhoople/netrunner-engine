@@ -1408,6 +1408,8 @@ describe("downfall", () => {
         s.pendingChoice?.options.some((o) => o.id === "climactic-server:hq"),
       ).toBe(true);
 
+      // chooseOption clears the window before the chosen effect opens the next one.
+      s.pendingChoice = null;
       const corpMay = evalEffect(
         { state: s, sourceId: s.runner.identityId },
         fx.do({ kind: "may_corp_trash_climactic_ice", serverId: "hq" }),
@@ -1417,6 +1419,7 @@ describe("downfall", () => {
         s.pendingChoice?.options.some((o) => o.id === "climactic-decline"),
       ).toBe(true);
 
+      s.pendingChoice = null;
       const decline = evalEffect(
         { state: s, sourceId: s.runner.identityId },
         fx.do({ kind: "climactic_register_bonus_access", amount: 2 }),

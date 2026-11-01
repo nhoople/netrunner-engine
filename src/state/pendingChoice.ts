@@ -21,6 +21,8 @@ export function openPendingChoose(
     sourceId: string;
     chooser: Side;
     options: PendingChoiceOption[];
+    /** Corp names how many times a mandatory loop resolves (CR 10.1.6a). */
+    loopCount?: boolean;
     logLine?: string;
   },
 ): boolean {
@@ -34,6 +36,7 @@ export function openPendingChoose(
       label: o.label,
       effect: o.effect,
     })),
+    ...(args.loopCount ? { loopCount: true } : {}),
   };
   if (args.logLine) state.log.push(args.logLine);
   return true;

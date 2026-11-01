@@ -6,6 +6,8 @@ import type { RuleCite } from "../state/types.js";
 import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -50,7 +52,7 @@ export function applySansanUwPrimitive(
         log(state, `${source.title} — no hosted installable card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: hosted.map((cardId) => ({
@@ -65,8 +67,8 @@ export function applySansanUwPrimitive(
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a hosted card to install.`);
+logLine: `${source.title} — choose a hosted card to install.`,
+});
       return { ok: true };
     }
 
@@ -120,7 +122,7 @@ export function applySansanUwPrimitive(
         log(state, `Drive By — no unrezzed remote root card to expose.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: targets.map((id) => ({
@@ -134,8 +136,8 @@ export function applySansanUwPrimitive(
             },
           },
         })),
-      };
-      log(state, `Drive By — choose a remote root card to expose.`);
+logLine: `Drive By — choose a remote root card to expose.`,
+});
       return { ok: true };
     }
 
@@ -180,7 +182,7 @@ export function applySansanUwPrimitive(
         log(state, `Muertos — Corp derezzes ${state.cards[id]!.title}.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -191,8 +193,8 @@ export function applySansanUwPrimitive(
             action: { kind: "derez_card" as const, cardId: id },
           },
         })),
-      };
-      log(state, `Muertos — Corp must choose a card to derez.`);
+logLine: `Muertos — Corp must choose a card to derez.`,
+});
       return { ok: true };
     }
 
@@ -228,12 +230,12 @@ export function applySansanUwPrimitive(
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(state, `Muertos — Corp may rez a card, ignoring rez cost.`);
+logLine: `Muertos — Corp may rez a card, ignoring rez cost.`,
+});
       return { ok: true };
     }
 
@@ -264,7 +266,7 @@ export function applySansanUwPrimitive(
         return { ok: true };
       }
       const max = Math.min(n, targets.length);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -281,8 +283,8 @@ export function applySansanUwPrimitive(
             },
           })),
         ],
-      };
-      log(state, `${source.title} — derez up to ${max} card(s).`);
+logLine: `${source.title} — derez up to ${max} card(s).`,
+});
       return { ok: true };
     }
 
@@ -306,7 +308,7 @@ export function applySansanUwPrimitive(
         }
       }
       if (targets.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -321,7 +323,7 @@ export function applySansanUwPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -375,7 +377,7 @@ export function applySansanUwPrimitive(
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -432,7 +434,7 @@ export function applySansanUwPrimitive(
         log(state, `${source.title} — no rezzed protecting ice with subs.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: picks.map((p) => {
@@ -444,11 +446,8 @@ export function applySansanUwPrimitive(
             effect: sub.effect,
           };
         }),
-      };
-      log(
-        state,
-        `${source.title} — resolve 1 subroutine on protecting ice.`,
-      );
+logLine: `${source.title} — resolve 1 subroutine on protecting ice.`,
+});
       return { ok: true };
     }
 

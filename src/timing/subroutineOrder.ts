@@ -7,6 +7,8 @@ import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "./labels.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type OrderResult =
   | { ok: true }
@@ -34,7 +36,7 @@ function openNextPick(state: GameState, sourceId: string): void {
     ? state.cards[state.run.encounter.iceId]
     : undefined;
   const subs = ice?.subroutines ?? [];
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: (pending?.remaining ?? []).map((index) => ({
@@ -49,7 +51,7 @@ function openNextPick(state: GameState, sourceId: string): void {
         },
       },
     })),
-  };
+  });
 }
 
 function finishOrder(state: GameState, sourceId: string): void {

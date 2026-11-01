@@ -10,6 +10,8 @@ import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -30,7 +32,7 @@ export function applyBadPublicityPrimitive(
         log(state, `${source.title} — may host BP (have ${have} < ${amount}).`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -61,8 +63,8 @@ export function applyBadPublicityPrimitive(
             },
           },
         ],
-      };
-      log(state, `${source.title} — may host ${amount} bad publicity.`);
+logLine: `${source.title} — may host ${amount} bad publicity.`,
+});
       return { ok: true };
     }
     case "host_bad_publicity": {

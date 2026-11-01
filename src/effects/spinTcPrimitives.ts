@@ -6,6 +6,8 @@ import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../state/tras
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -30,7 +32,7 @@ export function applySpinTcPrimitive(
         log(state, `Keyhole — not a successful R&D run.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -45,8 +47,8 @@ export function applySpinTcPrimitive(
             effect: fx.do({ kind: "breach_instead_keyhole" }),
           },
         ],
-      };
-      log(state, `Keyhole — may instead of breaching R&D.`);
+logLine: `Keyhole — may instead of breaching R&D.`,
+});
       return { ok: true };
     }
     case "breach_instead_keyhole": {
@@ -75,7 +77,7 @@ export function applySpinTcPrimitive(
         log(state, `Keyhole — trash ${state.cards[id]!.title}; shuffle R&D.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => ({
@@ -83,7 +85,7 @@ export function applySpinTcPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_looked_program", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "trash_looked_program": {
@@ -108,12 +110,13 @@ export function applySpinTcPrimitive(
           ),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `Lawyer Up — remove up to ${max} tag(s), draw 3.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `Lawyer Up — remove up to ${max} tag(s), draw 3.`,
+});
       return { ok: true };
     }
     case "leverage": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -128,8 +131,8 @@ export function applySpinTcPrimitive(
             effect: fx.do({ kind: "leverage_shield_runner" }),
           },
         ],
-      };
-      log(state, `Leverage — Corp may take 2 bad publicity.`);
+logLine: `Leverage — Corp may take 2 bad publicity.`,
+});
       return { ok: true };
     }
     case "leverage_shield_runner": {
@@ -149,8 +152,9 @@ export function applySpinTcPrimitive(
         label: "Done trashing",
         effect: fx.gainCredits("runner", 0),
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `Capstone — trash cards from grip.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `Capstone — trash cards from grip.`,
+});
       return { ok: true };
     }
     case "trash_capstone_grip_card": {
@@ -186,7 +190,7 @@ export function applySpinTcPrimitive(
     }
     case "rex_campaign_when_empty": {
       const trashTail = fx.do({ kind: "trash_self" });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -207,8 +211,8 @@ export function applySpinTcPrimitive(
             ),
           },
         ],
-      };
-      log(state, `Rex Campaign — empty; choose benefit then trash.`);
+logLine: `Rex Campaign — empty; choose benefit then trash.`,
+});
       return { ok: true };
     }
     case "forbid_runner_spend_credits_for_run": {
@@ -228,7 +232,7 @@ export function applySpinTcPrimitive(
           effect: fx.do({ kind: "remove_bad_publicity", amount: n }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
     case "break_all_destroyer_subroutines_on_encounter": {

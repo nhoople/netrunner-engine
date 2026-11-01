@@ -1,3 +1,4 @@
+import { openPendingChoose } from "../state/pendingChoice.js";
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
 import { log } from "../state/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
@@ -111,7 +112,7 @@ export function applyRedsandTdPrimitive(
         log(state, `Brute-Force Hack — no rezzed ice with rez cost ≤ ${x}.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -119,7 +120,7 @@ export function applyRedsandTdPrimitive(
           label: `Derez ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "derez_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -138,8 +139,9 @@ export function applyRedsandTdPrimitive(
           effect: fx.do({ kind: "choose_syn_attack_discard", remaining: 2 }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `SYN Attack — Corp must discard 2 or draw 4.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
+});
       return { ok: true };
     }
 
@@ -164,7 +166,7 @@ export function applyRedsandTdPrimitive(
       }
       const remaining = action.remaining ?? 2;
       if (remaining <= 0 || state.corp.hand.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: state.corp.hand.map((id) => ({
@@ -176,7 +178,7 @@ export function applyRedsandTdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -200,7 +202,7 @@ export function applyRedsandTdPrimitive(
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -211,7 +213,7 @@ export function applyRedsandTdPrimitive(
         // Charlatan: first approached rezzed ice may pay strength to bypass.
       };
       state.turn.charlatanArmed = true;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: (["hq", "rd", "archives"] as ServerId[])
@@ -225,7 +227,7 @@ export function applyRedsandTdPrimitive(
             label: `Run ${sid}`,
             effect: fx.do({ kind: "charlatan_start_run", serverId: sid }),
           })),
-      };
+      });
       return { ok: true };
     }
 
@@ -244,7 +246,7 @@ export function applyRedsandTdPrimitive(
         log(state, `Maxwell James — no rezzed remote ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -252,7 +254,7 @@ export function applyRedsandTdPrimitive(
           label: `Derez ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "derez_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -268,7 +270,7 @@ export function applyRedsandTdPrimitive(
         log(state, `Careful Planning — no unrezzed remote cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -279,7 +281,7 @@ export function applyRedsandTdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -379,7 +381,7 @@ export function applyRedsandTdPrimitive(
         log(state, `Levy — no programs among top 4; add to bottom.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -401,7 +403,7 @@ export function applyRedsandTdPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -431,7 +433,7 @@ export function applyRedsandTdPrimitive(
         return { ok: true };
       }
       const bonus = state.runner.hand.length;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: breakers.map((id) => ({
@@ -443,7 +445,7 @@ export function applyRedsandTdPrimitive(
             amount: bonus,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -471,7 +473,7 @@ export function applyRedsandTdPrimitive(
         log(state, `The Shadow Net — no events in heap.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: events.map((id) => ({
@@ -482,7 +484,7 @@ export function applyRedsandTdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -519,7 +521,7 @@ export function applyRedsandTdPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -573,7 +575,7 @@ export function applyRedsandTdPrimitive(
         log(state, `Holmegaard — no installed icebreakers.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: breakers.map((id) => ({
@@ -581,12 +583,12 @@ export function applyRedsandTdPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "core_or_jack_out": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -601,7 +603,7 @@ export function applyRedsandTdPrimitive(
             effect: fx.do({ kind: "jack_out" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -650,7 +652,7 @@ export function applyRedsandTdPrimitive(
           ],
         },
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -668,7 +670,7 @@ export function applyRedsandTdPrimitive(
         log(state, `Hunter Seeker — no installed cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: candidates.map((id) => ({
@@ -682,12 +684,12 @@ export function applyRedsandTdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "tag_or_end_the_run": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -702,7 +704,7 @@ export function applyRedsandTdPrimitive(
             effect: fx.etr(),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -720,7 +722,7 @@ export function applyRedsandTdPrimitive(
           effect: fx.do({ kind: "take_hosted_credits", amount: n }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -730,7 +732,7 @@ export function applyRedsandTdPrimitive(
         log(state, `Weir — grip empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: grip.map((id) => ({
@@ -738,7 +740,7 @@ export function applyRedsandTdPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_from_grip", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 

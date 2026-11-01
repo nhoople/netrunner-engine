@@ -8,6 +8,8 @@ import type { GameState, RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -125,11 +127,9 @@ export function applyDamagePrimitive(
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may remove up to ${maxRemove} power counter(s), then net damage.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may remove up to ${maxRemove} power counter(s), then net damage.`,
+});
       return { ok: true };
     }
     case "net_damage_agenda_points_this_turn": {
@@ -179,15 +179,12 @@ export function applyDamagePrimitive(
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to do ${action.damage} core damage.`,
-      );
+logLine: `${source.title} — may pay ${action.amount}¢ to do ${action.damage} core damage.`,
+});
       return { ok: true };
     }
     case "may_pay_credits_for_core_damage_per_advancement": {
@@ -229,15 +226,12 @@ export function applyDamagePrimitive(
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to do ${damage} core damage (per advancement).`,
-      );
+logLine: `${source.title} — may pay ${action.amount}¢ to do ${damage} core damage (per advancement).`,
+});
       return { ok: true };
     }
     case "may_pay_credits_for_net_damage_per_advancement": {
@@ -278,15 +272,12 @@ export function applyDamagePrimitive(
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to do ${damage} net damage (${per} per advancement).`,
-      );
+logLine: `${source.title} — may pay ${action.amount}¢ to do ${damage} net damage (${per} per advancement).`,
+});
       return { ok: true };
     }
     case "net_damage_up_to_tags": {
@@ -357,11 +348,9 @@ export function applyDamagePrimitive(
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to do ${iceCount} core damage (ice protecting server).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may pay ${action.amount}¢ to do ${iceCount} core damage (ice protecting server).`,
+});
       return { ok: true };
     }
     default:

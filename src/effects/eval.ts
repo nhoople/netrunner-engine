@@ -202,6 +202,7 @@ import {
   fireOnInstallFromNonHq,
   fireOnInstallProgramFromHeap,
 } from "../state/miscConditionalHooks.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 
 export interface EffectCtx {
   state: GameState;
@@ -403,11 +404,9 @@ export function fireAfterBreakSubroutineHooks(
         });
       }
       if (options.length > 1) {
-        state.pendingChoice = { sourceId: id, chooser: "runner", options };
-        log(
-          state,
-          `${card.title} — may pay ${credits}¢ to break another subroutine.`,
-        );
+        openPendingChoose(state, { sourceId: id, chooser: "runner", options,
+logLine: `${card.title} — may pay ${credits}¢ to break another subroutine.`,
+});
         return;
       }
     }
@@ -508,7 +507,7 @@ export function fireIceRezDuringRunHooks(
     if (!state.turn.brasiliaAbilityUsedIds.includes(uid)) {
       state.turn.brasiliaAbilityUsedIds.push(uid);
     }
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId: uid,
       chooser: "corp",
       options: [
@@ -535,7 +534,7 @@ export function fireIceRezDuringRunHooks(
           },
         })),
       ],
-    };
+    });
     log(
       state,
       `${up.title} — may derez another ice for +${bonus} strength on ${ice.title}.`,
@@ -649,7 +648,7 @@ function offerMayChargeCard(
     );
     return { ok: true };
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: [
@@ -678,11 +677,8 @@ function offerMayChargeCard(
         },
       },
     ],
-  };
-  log(
-    state,
-    `May charge ${card.title} (CR ${CR.charge.number}).`,
-  );
+logLine: `May charge ${card.title} (CR ${CR.charge.number}).`,
+});
   return { ok: true };
 }
 
@@ -823,11 +819,9 @@ function offerBurnerMoves(
       },
     });
   }
-  state.pendingChoice = { sourceId, chooser: "runner", options };
-  log(
-    state,
-    `Burner — choose ${movesLeft} more card(s) to move to R&D top/bottom.`,
-  );
+  openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `Burner — choose ${movesLeft} more card(s) to move to R&D top/bottom.`,
+});
   return { ok: true };
 }
 
@@ -967,7 +961,7 @@ export function offerNextExclusiveChoice(state: GameState): EvalResult {
     }
     return offerNextExclusiveChoice(state);
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: pend.sourceId,
     chooser: pend.chooser,
     options: available.map((o) => ({
@@ -975,11 +969,8 @@ export function offerNextExclusiveChoice(state: GameState): EvalResult {
       label: o.label,
       effect: structuredClone(o.effect),
     })),
-  };
-  log(
-    state,
-    `Exclusive choices — ${pend.remaining} remaining among ${available.length} options (from ${state.cards[pend.sourceId]?.title ?? pend.sourceId}).`,
-  );
+logLine: `Exclusive choices — ${pend.remaining} remaining among ${available.length} options (from ${state.cards[pend.sourceId]?.title ?? pend.sourceId}).`,
+});
   return { ok: true };
 }
 
@@ -1143,7 +1134,7 @@ function finishRdArrange(state: GameState, sourceId: string): EvalResult {
     `R&D rearranged (${placed.length} cards). They are new objects (CR ${CR.objectMoveLocation.number}).`,
   );
   if (maybeDraw && hostServerUnprotectedByIce(state, sourceId)) {
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId,
       chooser: "corp",
       options: [
@@ -1158,7 +1149,7 @@ function finishRdArrange(state: GameState, sourceId: string): EvalResult {
           effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 0 } },
         },
       ],
-    };
+    });
     log(state, `Federal — host server unprotected; may draw 1.`);
   }
   return { ok: true };
@@ -1172,7 +1163,7 @@ function offerRdArrangeChoice(
   if (remaining.length === 0) {
     return finishRdArrange(state, sourceId);
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: state.cards[sourceId]?.side === "runner" ? "runner" : "corp",
     options: remaining.map((id) => ({
@@ -1183,8 +1174,8 @@ function offerRdArrangeChoice(
         action: { kind: "pick_rd_arrange" as const, cardId: id },
       },
     })),
-  };
-  log(state, `Arrange R&D — choose next card for top (${remaining.length} remaining).`);
+logLine: `Arrange R&D — choose next card for top (${remaining.length} remaining).`,
+});
   return { ok: true };
 }
 
@@ -1193,7 +1184,7 @@ function offerCultivateTrashChoice(
   sourceId: string,
 ): EvalResult {
   const remaining = state.turn.rdLookedCards;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "corp",
     options: remaining.map((id) => ({
@@ -1204,8 +1195,8 @@ function offerCultivateTrashChoice(
         action: { kind: "trash_cultivate_looked" as const, cardId: id },
       },
     })),
-  };
-  log(state, `Cultivate — choose 1 to trash.`);
+logLine: `Cultivate — choose 1 to trash.`,
+});
   return { ok: true };
 }
 
@@ -1214,7 +1205,7 @@ function offerCultivateHqChoice(
   sourceId: string,
 ): EvalResult {
   const remaining = state.turn.rdLookedCards;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "corp",
     options: remaining.map((id) => ({
@@ -1225,8 +1216,8 @@ function offerCultivateHqChoice(
         action: { kind: "cultivate_hq_looked" as const, cardId: id },
       },
     })),
-  };
-  log(state, `Cultivate — choose 1 to add to HQ.`);
+logLine: `Cultivate — choose 1 to add to HQ.`,
+});
   return { ok: true };
 }
 
@@ -1335,15 +1326,12 @@ function finishPlaceAdvancementsOnTarget(
             },
       },
     ];
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId,
       chooser: "corp",
       options,
-    };
-    log(
-      state,
-      `${source.title} — may score ${target.title} (CR ${CR.scoringAgenda.number}).`,
-    );
+logLine: `${source.title} — may score ${target.title} (CR ${CR.scoringAgenda.number}).`,
+});
     return { ok: true };
   }
   if (after) return evalEffect(ctx, after);
@@ -1662,7 +1650,7 @@ function offerInstallRezSplit(
   effectFor: (installDiscount: number) => Effect,
 ): { offered: true } | { offered: false; pay: number } {
   if (discount > 0 && chosenInstallDiscount === undefined) {
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId,
       chooser: "corp",
       options: Array.from({ length: discount + 1 }, (_, installDiscount) => {
@@ -1679,11 +1667,8 @@ function offerInstallRezSplit(
           effect: effectFor(installDiscount),
         };
       }),
-    };
-    log(
-      state,
-      `Divide ${discount}¢ between the install cost and the rez cost (CR ${CR.totalInstallRez.number}).`,
-    );
+logLine: `Divide ${discount}¢ between the install cost and the rez cost (CR ${CR.totalInstallRez.number}).`,
+});
     return { offered: true };
   }
   const installDiscount = chosenInstallDiscount ?? 0;
@@ -1964,7 +1949,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Indexing — not a successful R&D run.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -1985,8 +1970,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `Indexing — may instead of breaching R&D.`);
+logLine: `Indexing — may instead of breaching R&D.`,
+});
       return { ok: true };
     }
     case "breach_instead_indexing_arrange": {
@@ -2013,7 +1998,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: drawn[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: drawn.map((id) => ({
@@ -2024,11 +2009,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "bottom_drawn_card" as const, cardId: id },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose 1 of ${drawn.length} drawn cards to bottom.`,
-      );
+logLine: `${source.title} — choose 1 of ${drawn.length} drawn cards to bottom.`,
+});
       return { ok: true };
     }
     case "bottom_drawn_card": {
@@ -2083,8 +2065,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         })),
       ];
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `Midori — may swap approached ice with ice from HQ.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Midori — may swap approached ice with ice from HQ.`,
+});
       return { ok: true };
     }
     case "swap_approached_ice_with_hq": {
@@ -2277,7 +2260,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (action.pick === "choose" && targets.length > 1) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: targets.map((id) => ({
@@ -2288,11 +2271,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               action: { kind: "trash_corp_card" as const, cardId: id },
             },
           })),
-        };
-        log(
-          state,
-          `Trash ice rezzed this run — Runner chooses among ${targets.length}.`,
-        );
+logLine: `Trash ice rezzed this run — Runner chooses among ${targets.length}.`,
+});
         return { ok: true };
       }
       const iceId = targets[0]!;
@@ -2374,7 +2354,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: resources.map((id) => ({
@@ -2385,11 +2365,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "trash_runner_rig_card" as const, cardId: id },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — Runner must trash an installed resource (CR ${CR.trashing.number}).`,
-      );
+logLine: `${source.title} — Runner must trash an installed resource (CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "trash_own_program": {
@@ -2415,7 +2392,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => ({
@@ -2429,11 +2406,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — Runner must trash an installed program (CR ${CR.trashing.number}).`,
-      );
+logLine: `${source.title} — Runner must trash an installed program (CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "may_pay_credits_add_virus_counter": {
@@ -2464,8 +2438,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `${source.title} — may pay ${cost}¢ for virus.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — may pay ${cost}¢ for virus.`,
+});
       return { ok: true };
     }
     case "pay_credits_add_virus_counter": {
@@ -2496,7 +2471,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           amount: action.amount,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: ids.map((id) => ({
@@ -2511,11 +2486,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose a program that received virus this turn.`,
-      );
+logLine: `${source.title} — choose a program that received virus this turn.`,
+});
       return { ok: true };
     }
     case "place_virus_on_program": {
@@ -2552,7 +2524,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         (id) => state.cards[id]?.title === title,
       );
       if (matches.length === 0) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: [
@@ -2575,14 +2547,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           ],
-        };
-        log(
-          state,
-          `${source.title} — may search stack for another ${title}.`,
-        );
+logLine: `${source.title} — may search stack for another ${title}.`,
+});
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -2605,8 +2574,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may search stack for another ${title}.`);
+logLine: `${source.title} — may search stack for another ${title}.`,
+});
       return { ok: true };
     }
     case "search_stack_copy_of_last_installed_hardware_add_to_grip": {
@@ -2657,7 +2626,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Look stack — ${state.cards[id]!.title}.`);
       }
       state.turn.rdLookedCards = taken;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: taken.map((id) => ({
@@ -2671,11 +2640,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — Corp trashes 1 of ${taken.length} looked card(s).`,
-      );
+logLine: `${source.title} — Corp trashes 1 of ${taken.length} looked card(s).`,
+});
       return { ok: true };
     }
     case "trash_data_hound_looked": {
@@ -2697,7 +2663,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       // Arrange remaining in any order on top of stack (Corp chooses order).
       // Simple path: present permutation via sequential top-placement.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -2724,8 +2690,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `${source.title} — arrange remaining looked cards.`);
+logLine: `${source.title} — arrange remaining looked cards.`,
+});
       return { ok: true };
     }
     case "arrange_looked": {
@@ -2750,7 +2716,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no servers with ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: servers.map((serverId) => ({
@@ -2764,8 +2730,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a server.`);
+logLine: `${source.title} — choose a server.`,
+});
       return { ok: true };
     }
     case "corp_trash_ice_protecting_server": {
@@ -2781,7 +2747,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: ice[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ice.map((id) => ({
@@ -2792,11 +2758,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "corp_trash_ice_card" as const, cardId: id },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — Corp trashes 1 ice protecting ${action.serverId}.`,
-      );
+logLine: `${source.title} — Corp trashes 1 ice protecting ${action.serverId}.`,
+});
       return { ok: true };
     }
     case "corp_trash_ice_card": {
@@ -3046,11 +3009,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may trash up to ${remaining} more resource(s).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may trash up to ${remaining} more resource(s).`,
+});
       return { ok: true };
     }
     case "trash_program_or_hardware": {
@@ -3131,7 +3092,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Shuffle from HQ into R&D — HQ empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -3167,8 +3128,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `May shuffle any number of cards from HQ into R&D.`);
+logLine: `May shuffle any number of cards from HQ into R&D.`,
+});
       return { ok: true };
     }
     case "shuffle_hq_card_into_rd": {
@@ -3379,8 +3340,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
                 action: { kind: "gain_credits", side: "corp", amount: 0 },
               },
         });
-        state.pendingChoice = { sourceId, chooser: "corp", options };
-        log(state, `${source.title} — choose card for advancements.`);
+        openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — choose card for advancements.`,
+});
         return { ok: true };
       }
       return finishPlaceAdvancementsOnTarget(
@@ -3510,15 +3472,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to trash ${count} program(s) (1 per advancement).`,
-      );
+logLine: `${source.title} — may pay ${action.amount}¢ to trash ${count} program(s) (1 per advancement).`,
+});
       return { ok: true };
     }
     case "trash_n_programs_remaining": {
@@ -3550,7 +3509,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: programs.map((id) => ({
@@ -3576,11 +3535,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             ],
           },
         })),
-      };
-      log(
-        state,
-        `Trash programs — choose among ${programs.length} (${remaining} remaining; CR ${CR.trashing.number}).`,
-      );
+logLine: `Trash programs — choose among ${programs.length} (${remaining} remaining; CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "may_pay_credits_for_shuffle_installed_runner_per_advancement": {
@@ -3620,15 +3576,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.amount}¢ to shuffle ${count} installed Runner card(s) (1 per advancement).`,
-      );
+logLine: `${source.title} — may pay ${action.amount}¢ to shuffle ${count} installed Runner card(s) (1 per advancement).`,
+});
       return { ok: true };
     }
     case "shuffle_n_installed_runner_remaining": {
@@ -3666,7 +3619,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: installed.map((id) => ({
@@ -3692,11 +3645,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             ],
           },
         })),
-      };
-      log(
-        state,
-        `Shuffle installed Runner cards — choose among ${installed.length} (${remaining} remaining).`,
-      );
+logLine: `Shuffle installed Runner cards — choose among ${installed.length} (${remaining} remaining).`,
+});
       return { ok: true };
     }
     case "install_any_number_from_hq_ignore_costs": {
@@ -3787,11 +3737,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `Install any number from HQ ignoring all costs (${installable.length} installable).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Install any number from HQ ignoring all costs (${installable.length} installable).`,
+});
       return { ok: true };
     }
     case "search_stack_subtype_may_install": {
@@ -3853,11 +3801,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — may install ${card.title} from grip.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — may install ${card.title} from grip.`,
+});
       return { ok: true };
     }
     case "grant_chosen_ice_subtypes_until_end_of_turn": {
@@ -3870,7 +3816,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const subtypes = action.subtypes ?? [];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: iceIds.map((id) => ({
@@ -3885,11 +3831,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose ice to gain ${subtypes.join(", ")} until end of turn.`,
-      );
+logLine: `${source.title} — choose ice to gain ${subtypes.join(", ")} until end of turn.`,
+});
       return { ok: true };
     }
     case "grant_ice_subtypes_until_end_of_turn": {
@@ -3958,11 +3901,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — place up to ${max} advancements on an unrezzed remote-root card.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — place up to ${max} advancements on an unrezzed remote-root card.`,
+});
       return { ok: true };
     }
     case "place_on": {
@@ -4019,11 +3960,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may add 1 rezzed card to HQ and gain its rez cost.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may add 1 rezzed card to HQ and gain its rez cost.`,
+});
       return { ok: true };
     }
     case "return_rezzed_to_hq_gain_rez_cost": {
@@ -4075,8 +4014,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         })),
       ];
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `${source.title} — may add 1 Archives card to top of R&D.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may add 1 Archives card to top of R&D.`,
+});
       return { ok: true };
     }
     case "add_archives_card_to_rd_top": {
@@ -4105,7 +4045,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no unrezzed ice to rez.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -4119,8 +4059,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose ice to rez ignoring costs.`);
+logLine: `${source.title} — choose ice to rez ignoring costs.`,
+});
       return { ok: true };
     }
     case "oversight_ai_host_on_ice": {
@@ -4165,7 +4105,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no unrezzed bioroid ice to rez.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -4179,8 +4119,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose bioroid ice to rez ignoring costs.`);
+logLine: `${source.title} — choose bioroid ice to rez ignoring costs.`,
+});
       return { ok: true };
     }
     case "host_on_ice": {
@@ -4285,15 +4225,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — trash any number of rezzed cards, 1 tag each (CR ${CR.trashing.number}, ${CR.tags.number}).`,
-      );
+logLine: `${source.title} — trash any number of rezzed cards, 1 tag each (CR ${CR.trashing.number}, ${CR.tags.number}).`,
+});
       return { ok: true };
     }
     case "trash_any_number_from_hq": {
@@ -4331,11 +4268,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — trash any number of cards from HQ (CR ${CR.trashing.number}).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — trash any number of cards from HQ (CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "turn_all_archives_facedown": {
@@ -4407,11 +4342,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may install from Archives in remote root +${amount} advancements (paying).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may install from Archives in remote root +${amount} advancements (paying).`,
+});
       return { ok: true };
     }
     case "install_archives_remote_root_with_advancements": {
@@ -4476,7 +4409,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state.runner.credits >= Math.max(0, (c.installCost ?? 0) - discount)
         );
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -4514,11 +4447,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             };
           }),
         ],
-      };
-      log(
-        state,
-        `${source.title} — may install 1 program or virtual (−${discount}¢).`,
-      );
+logLine: `${source.title} — may install 1 program or virtual (−${discount}¢).`,
+});
       return { ok: true };
     }
     case "install_set_aside": {
@@ -4544,7 +4474,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       // Offer iterative selection until `need` picked (or use combinatorial).
       // Deterministic UX: choose exactly `need` via continue leaf.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: aside.map((id) => ({
@@ -4559,11 +4489,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — shuffle exactly ${need} of ${aside.length} remaining into stack; RFG rest.`,
-      );
+logLine: `${source.title} — shuffle exactly ${need} of ${aside.length} remaining into stack; RFG rest.`,
+});
       return { ok: true };
     }
     case "shuffle_pick_continue": {
@@ -4584,7 +4511,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardIds: [...selected, ...remaining],
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: remaining.map((id) => ({
@@ -4599,7 +4526,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
     case "shuffle_selected_rfg_rest": {
@@ -4667,7 +4594,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -4696,11 +4623,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `${source.title} — choose up to ${action.maxRemaining} more heap card(s) with [trash] to shuffle.`,
-      );
+logLine: `${source.title} — choose up to ${action.maxRemaining} more heap card(s) with [trash] to shuffle.`,
+});
       return { ok: true };
     }
     case "rfg_self": {
@@ -4730,7 +4654,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: heap[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: heap.map((id) => ({
@@ -4744,8 +4668,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a heap card to remove from the game.`);
+logLine: `${source.title} — choose a heap card to remove from the game.`,
+});
       return { ok: true };
     }
     case "rfg_specific_heap_card": {
@@ -4808,7 +4732,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: candidates[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: candidates.map((id) => ({
@@ -4822,11 +4746,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose an installed ${action.subtypes.join("/")} to remove from the game.`,
-      );
+logLine: `${source.title} — choose an installed ${action.subtypes.join("/")} to remove from the game.`,
+});
       return { ok: true };
     }
     case "shuffle_up_to_n_distinct_heap_titles_into_stack": {
@@ -4838,7 +4759,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -4872,11 +4793,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             };
           }),
         ],
-      };
-      log(
-        state,
-        `${source.title} — shuffle up to ${max} cards with distinct titles from heap into stack.`,
-      );
+logLine: `${source.title} — shuffle up to ${max} cards with distinct titles from heap into stack.`,
+});
       return { ok: true };
     }
     case "shuffle_up_to_n_distinct_heap_titles_into_stack_continue": {
@@ -4906,7 +4824,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -4940,7 +4858,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             };
           }),
         ],
-      };
+      });
       return { ok: true };
     }
     case "rfg_self_then_derez_bypassed_ice": {
@@ -5010,7 +4928,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: agendas[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: agendas.map((agId) => ({
@@ -5024,8 +4942,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — forfeit a scored agenda.`);
+logLine: `${source.title} — forfeit a scored agenda.`,
+});
       return { ok: true };
     }
     case "forfeit_runner_scored_agenda": {
@@ -5089,11 +5007,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "move_unrezzed_ice_to_hq", iceId },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `False Echo — Corp must rez ${ice.title} by paying its costs, or add it to HQ (CR ${CR.mustNotForceAdditionalCost.number}).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `False Echo — Corp must rez ${ice.title} by paying its costs, or add it to HQ (CR ${CR.mustNotForceAdditionalCost.number}).`,
+});
       return { ok: true };
     }
     case "rez_ice_by_id": {
@@ -5168,7 +5084,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (options.length === 1) return evalEffect(ctx, options[0]!.effect);
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
     case "caissa_rook_host": {
@@ -5221,7 +5137,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           iceId: pickFrom[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: pickFrom.map((iceId) => ({
@@ -5236,7 +5152,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
     case "caissa_bishop_host": {
@@ -5277,7 +5193,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           iceId: candidates[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((iceId) => ({
@@ -5292,7 +5208,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
     case "reveal_install_or_trash": {
@@ -5314,7 +5230,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Eureka! — trash ${card.title} (cannot install).`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -5339,7 +5255,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "breach_instead_record_reconstructor_archives": {
@@ -5371,8 +5287,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           effect: { op: "seq" as const, effects },
         };
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `${source.title} — choose bad publicity for credits.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — choose bad publicity for credits.`,
+});
       return { ok: true };
     }
     case "copycat_jump_to_rezzed_copy": {
@@ -5406,7 +5323,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           iceId: matches[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: matches.map((iceId) => ({
@@ -5417,7 +5334,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "copycat_continue_from_ice", iceId },
           },
         })),
-      };
+      });
       return { ok: true };
     }
     case "copycat_continue_from_ice": {
@@ -5475,7 +5392,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         (id) => isCaissa(id) && id !== sourceId,
       );
       if (caissaIds.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: caissaIds.map((cardId) => ({
@@ -5489,7 +5406,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
     case "install_caissa_from_zone_ignore_costs": {
@@ -5541,7 +5458,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (!r1.ok) return r1;
         return applyPrimitive(ctx, { kind: "trash_project_ares_next" });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((cardId) => ({
@@ -5564,7 +5481,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             ],
           },
         })),
-      };
+      });
       return { ok: true };
     }
     case "invasion_of_privacy": {
@@ -5628,11 +5545,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "invasion_of_privacy_finish" as const },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: invasionOpts,
-      };
+      });
       return { ok: true };
     }
     case "invasion_of_privacy_finish": {
@@ -5760,8 +5677,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         })),
       ];
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `May search R&D for 1 card, reveal, install or add to HQ.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May search R&D for 1 card, reveal, install or add to HQ.`,
+});
       return { ok: true };
     }
     case "search_rd_reveal_pick_install_or_hq": {
@@ -5837,8 +5755,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options: installOpts };
-      log(state, `May install ${card.title} ignoring costs or leave in HQ.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options: installOpts,
+logLine: `May install ${card.title} ignoring costs or leave in HQ.`,
+});
       return { ok: true };
     }
     case "search_rd_operation_or_agenda_to_hq": {
@@ -5898,7 +5817,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           creditsAvailableForInstall(state, "corp") >=
           corpInstallCost(state.cards[id]!, 0),
       );
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -5922,8 +5841,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `May install one looked R&D card paying install costs.`);
+logLine: `May install one looked R&D card paying install costs.`,
+});
       return { ok: true };
     }
     case "look_top_n_rd_may_install_and_rez_ignore_costs": {
@@ -5957,7 +5876,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
         );
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -5985,11 +5904,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             };
           }),
         ],
-      };
-      log(
-        state,
-        `May install and rez one looked R&D card ignoring all costs.`,
-      );
+logLine: `May install and rez one looked R&D card ignoring all costs.`,
+});
       return { ok: true };
     }
     case "install_rez_rd_looked_card_ignore_costs": {
@@ -6095,8 +6011,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `${source.title} — swap HQ with attacked root/ice.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — swap HQ with attacked root/ice.`,
+});
       return { ok: true };
     }
     case "swap_yagi_hq_with_attacked_pick": {
@@ -6193,8 +6110,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `${source.title} — swap this root with other root or HQ.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — swap this root with other root or HQ.`,
+});
       return { ok: true };
     }
     case "swap_pick": {
@@ -6287,7 +6205,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         "program",
         "resource",
       ];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: types.map((t) => ({
@@ -6301,11 +6219,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose a card type, reveal grip, gain ETR-unless-tag subs for the run.`,
-      );
+logLine: `${source.title} — choose a card type, reveal grip, gain ETR-unless-tag subs for the run.`,
+});
       return { ok: true };
     }
     case "peeping_tom_apply_type": {
@@ -6371,7 +6286,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no installed Corp cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: installed.map((id) => ({
@@ -6387,8 +6302,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose 1 installed card.`);
+logLine: `${source.title} — choose 1 installed card.`,
+});
       return { ok: true };
     }
     case "hangeki_runner_may_access": {
@@ -6397,7 +6312,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Hangeki — chosen card missing.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -6419,11 +6334,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             effect: action.onDecline,
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — Runner may access ${card.title}.`,
-      );
+logLine: `${source.title} — Runner may access ${card.title}.`,
+});
       return { ok: true };
     }
     case "access_installed": {
@@ -6572,7 +6484,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         "upgrade",
         "event",
       ];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: types.map((t) => ({
@@ -6587,8 +6499,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `Choose a card type and look at the top card of R&D.`);
+logLine: `Choose a card type and look at the top card of R&D.`,
+});
       return { ok: true };
     }
     case "may_reveal_peek_rd_top_for_chosen_type_gain": {
@@ -6608,7 +6520,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Type does not match — leave card on top of R&D.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      if (!openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -6638,7 +6550,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
+      })) return { ok: true };
       top.faceup = true;
       log(state, `May reveal ${top.title} and gain ${credits}¢.`);
       return { ok: true };
@@ -6665,7 +6577,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (elseEff) return evalEffect(ctx, elseEff);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -6697,8 +6609,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
                 },
           },
         ],
-      };
-      log(state, `Corp may reveal an agenda from HQ.`);
+logLine: `Corp may reveal an agenda from HQ.`,
+});
       return { ok: true };
     }
     case "look_top_n_rd_peek": {
@@ -6746,7 +6658,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         );
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -6771,8 +6683,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `Search R&D — choose ice to install on ${host.id}.`);
+logLine: `Search R&D — choose ice to install on ${host.id}.`,
+});
       return { ok: true };
     }
     case "install_rez_rd_ice_on_source_server": {
@@ -7024,7 +6936,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Play or install from HQ — no eligible cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -7059,8 +6971,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `May play an operation or install from HQ.`);
+logLine: `May play an operation or install from HQ.`,
+});
       return { ok: true };
     }
     case "play_hq_operation_paying_costs": {
@@ -7121,7 +7033,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (action.pick === "choose" && heap.length > 1) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: heap.map((id) => ({
@@ -7136,8 +7048,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           })),
-        };
-        log(state, `Choose a card in the heap to add to grip.`);
+logLine: `Choose a card in the heap to add to grip.`,
+});
         return { ok: true };
       }
       return moveToGrip(heap[0]!);
@@ -7163,25 +7075,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `trieste:${id}`,
-          label: `Choose ${state.cards[id]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "trash_corp_card" as const, // placeholder replaced below
-              cardId: id,
-            },
-          },
-        })),
-      };
+      
       // Use a dedicated leaf via encoding in option effect as gain 0 then set flag in chooseOption — simpler: use custom option ids handled in chooseOption OR set via a new primitive set_flag.
       // Rebuild options with a seq that uses a new micro-primitive: encode as choose that evaluates a do with kind we handle specially.
       // Simpler approach: set flag synchronously on choose via option id prefix in chooseOption.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -7198,11 +7096,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `${source.title} — choose a rezzed bioroid ice (CR ${CR.paidAbility.number}).`,
-      );
+logLine: `${source.title} — choose a rezzed bioroid ice (CR ${CR.paidAbility.number}).`,
+});
       return { ok: true };
     }
     case "score_facedown_agenda_from_archives_if_clean": {
@@ -7268,7 +7163,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Unleash — no unrezzed installed ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -7282,8 +7177,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose an installed ice to rez ignoring costs.`);
+logLine: `${source.title} — choose an installed ice to rez ignoring costs.`,
+});
       return { ok: true };
     }
     case "rez_ice_then_may_resolve_sub": {
@@ -7315,11 +7210,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may resolve 1 subroutine on ${ice.title}.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may resolve 1 subroutine on ${ice.title}.`,
+});
       return { ok: true };
     }
     case "trash_self": {
@@ -7866,7 +7759,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "reveal_installed_to_verify", cardId: pick },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
     case "rez_installed_paying": {
@@ -8065,26 +7958,6 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install facedown from Archives — no eligible card.`);
         return { ok: true };
       }
-      if (installable.length > 1) {
-        state.pendingChoice = {
-          sourceId,
-          chooser: "corp",
-          options: installable.map((id) => ({
-            id: `arch-install:${id}`,
-            label: `Install ${state.cards[id].title} facedown`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "may_install_facedown_from_archives" as const,
-                // handled below via single-card path after filtering
-              },
-            },
-          })),
-        };
-        // Store pick via option evaluation: simplify — auto first for multi
-        // by collapsing to first (deterministic v0). Clear choice.
-        state.pendingChoice = null;
-      }
       const pick = installable[0]!;
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
       const card = state.cards[pick]!;
@@ -8142,7 +8015,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (action.pick === "choose" && installed.length > 1) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: installed.map((id) => ({
@@ -8158,13 +8031,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           })),
-        };
-        log(
-          state,
-          action.unrezzedOnly
+logLine: action.unrezzedOnly
             ? `Choose an unrezzed installed Corp card to add to HQ.`
             : `Choose an installed Corp card to add to HQ.`,
-        );
+});
         return { ok: true };
       }
       return moveToHq(installed[0]!);
@@ -8175,7 +8045,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `May trash from grip to draw — grip empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -8203,8 +8073,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `May trash 1 from grip to draw 1.`);
+logLine: `May trash 1 from grip to draw 1.`,
+});
       return { ok: true };
     }
     case "trash_grip_card_draw": {
@@ -8294,11 +8164,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         label: "Done",
         effect: { op: "do", action: { kind: "gain_credits", side, amount: 0 } },
       });
-      state.pendingChoice = { sourceId, chooser: side, options };
-      log(
-        state,
-        `${source.title} — trash up to ${remaining} matching grip card(s) for ${action.per}¢ each (CR ${CR.trashing.number}).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: side, options,
+logLine: `${source.title} — trash up to ${remaining} matching grip card(s) for ${action.per}¢ each (CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "may_play_event_from_heap": {
@@ -8310,7 +8178,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — may play event from heap: none affordable.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -8334,8 +8202,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may play an event from the heap.`);
+logLine: `${source.title} — may play an event from the heap.`,
+});
       return { ok: true };
     }
     case "play_heap_event_card": {
@@ -8364,7 +8232,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `May trash from grip — grip empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -8389,8 +8257,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `May trash 1 card from the grip.`);
+logLine: `May trash 1 card from the grip.`,
+});
       return { ok: true };
     }
     case "trash_grip_card": {
@@ -8415,7 +8283,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const amount = action.amount;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -8444,11 +8312,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may trash 1 hardware from grip to place ${amount}¢.`,
-      );
+logLine: `${source.title} — may trash 1 hardware from grip to place ${amount}¢.`,
+});
       return { ok: true };
     }
     case "trash_grip_hardware_place_hosted_credits": {
@@ -8542,12 +8407,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: chooseOpts,
-      };
-      log(state, `${source.title} — may trash 1 card from HQ.`);
+logLine: `${source.title} — may trash 1 card from HQ.`,
+});
       return { ok: true };
     }
     case "forbid_installed_runner_break_for_run": {
@@ -8565,7 +8430,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => ({
@@ -8579,8 +8444,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose installed Runner card to forbid break.`);
+logLine: `${source.title} — choose installed Runner card to forbid break.`,
+});
       return { ok: true };
     }
     case "forbid_runner_card_break_for_run": {
@@ -8597,7 +8462,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_give_runner_credits_then": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -8632,11 +8497,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may have the Runner gain ${action.amount}¢.`,
-      );
+logLine: `${source.title} — may have the Runner gain ${action.amount}¢.`,
+});
       return { ok: true };
     }
     case "blank_installed_resource_until_corp_turn_end": {
@@ -8660,7 +8522,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: resources.map((id) => ({
@@ -8674,8 +8536,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose installed resource to blank.`);
+logLine: `${source.title} — choose installed resource to blank.`,
+});
       return { ok: true };
     }
     case "blank_resource_until_corp_turn_end": {
@@ -8726,7 +8588,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const chosen = action.cardId;
       if (!chosen) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: [
@@ -8741,7 +8603,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               effect: fx.do({ kind: "install_ice_inward_free", cardId: id }),
             })),
           ],
-        };
+        });
         return { ok: true };
       }
       if (!candidates.includes(chosen)) return { ok: true };
@@ -8793,7 +8655,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: candidates[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: candidates.map((id) => ({
@@ -8807,8 +8669,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `Howler — choose a bioroid ice to install and rez.`);
+logLine: `Howler — choose a bioroid ice to install and rez.`,
+});
       return { ok: true };
     }
     case "install_rez_chosen": {
@@ -9086,8 +8948,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (state.run && !state.run.cannotJackOut) {
-        state.run.pendingJackOutOffer = true;
-        state.pendingChoice = {
+        if (openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: [
@@ -9105,9 +8966,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           ],
-        };
-        // end_the_run via jack out should mark unsuccessful — handle in choose
-        log(state, `Runner may jack out (Karunā).`);
+        })) {
+          state.run.pendingJackOutOffer = true;
+          // end_the_run via jack out should mark unsuccessful — handle in choose
+          log(state, `Runner may jack out (Karunā).`);
+        }
       }
       return { ok: true };
     }
@@ -9152,7 +9015,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         finishSearch();
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -9182,11 +9045,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `Runner may fail to find (CR ${CR.failToFind.number}).`,
-      );
+logLine: `Runner may fail to find (CR ${CR.failToFind.number}).`,
+});
       return { ok: true };
     }
     case "search_stack_icebreaker_resolve": {
@@ -9331,13 +9191,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      // Stash swap pairs: handled in chooseOption by parsing option id.
-      log(state, `Tāo Salonga — may swap two ice.`);
+logLine: `Tāo Salonga — may swap two ice.`,
+});
       return { ok: true };
     }
     case "rez_ice_ignoring_costs": {
@@ -9377,12 +9236,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         })),
       ];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: source.side === "runner" ? "corp" : "corp",
         options,
-      };
-      log(state, `Send a Message — may rez ice ignoring all costs.`);
+logLine: `Send a Message — may rez ice ignoring all costs.`,
+});
       return { ok: true };
     }
     case "may_install_from_grip": {
@@ -9450,12 +9309,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           };
         }),
       ];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(state, `May install a card from grip.`);
+logLine: `May install a card from grip.`,
+});
       return { ok: true };
     }
     case "may_add_hq_agenda_ap_lte_to_score": {
@@ -9473,7 +9332,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -9497,11 +9356,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `${source.title} — may add an HQ agenda (≤${maxAp} AP) to the score area.`,
-      );
+logLine: `${source.title} — may add an HQ agenda (≤${maxAp} AP) to the score area.`,
+});
       return { ok: true };
     }
     case "add_hq_agenda_to_score": {
@@ -9531,7 +9387,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no facedown Archives cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -9556,8 +9412,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `${source.title} — may turn a facedown Archives card faceup.`);
+logLine: `${source.title} — may turn a facedown Archives card faceup.`,
+});
       return { ok: true };
     }
     case "turn_archives_card_faceup": {
@@ -9735,7 +9591,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       if (action.pick === "choose" && hq.length > 1) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: hq.map((id) => ({
@@ -9746,8 +9602,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               action: { kind: "hq_card_to_top_rd", cardId: id },
             },
           })),
-        };
-        log(state, `HQ to top of R&D — Corp chooses among ${hq.length}.`);
+logLine: `HQ to top of R&D — Corp chooses among ${hq.length}.`,
+});
         return { ok: true };
       }
       const id = action.pick === "first" ? hq[0]! : hq[hq.length - 1]!;
@@ -9838,7 +9694,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: taken[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: taken.map((id) => ({
@@ -9852,8 +9708,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose 1 revealed card to trash.`);
+logLine: `${source.title} — choose 1 revealed card to trash.`,
+});
       return { ok: true };
     }
     case "reveal_top_n_rd_trash_picked": {
@@ -9918,7 +9774,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           amount: 2,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: iced.map((sid) => ({
@@ -9932,8 +9788,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a server protected by ice.`);
+logLine: `${source.title} — choose a server protected by ice.`,
+});
       return { ok: true };
     }
     case "may_corp_trash_climactic_ice": {
@@ -9969,15 +9825,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — Corp may trash 1 ice protecting ${sid}.`,
-      );
+logLine: `${source.title} — Corp may trash 1 ice protecting ${sid}.`,
+});
       return { ok: true };
     }
     case "trash_climactic_ice": {
@@ -10028,7 +9881,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         if (c.side === "corp") titles.add(c.title);
       }
       const titleList = [...titles].sort();
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -10061,11 +9914,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `${source.title} — may trash to name an agenda for steal-ignore-costs.`,
-      );
+logLine: `${source.title} — may trash to name an agenda for steal-ignore-costs.`,
+});
       return { ok: true };
     }
     case "name_agenda": {
@@ -10108,12 +9958,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(state, `${source.title} — choose grip-random or stack-top reveal.`);
+logLine: `${source.title} — choose grip-random or stack-top reveal.`,
+});
       return { ok: true };
     }
     case "reveal_hyoubu_grip_random": {
@@ -10161,7 +10011,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.cards[id]!.faceup = true;
         log(state, `Class Act looks at ${state.cards[id]!.title}.`);
       }
-      state.pendingChoice = {
+      if (!openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: taken.map((id) => ({
@@ -10175,7 +10025,14 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
+      })) {
+        for (let i = taken.length - 1; i >= 0; i--) {
+          const id = taken[i]!;
+          state.cards[id]!.faceup = false;
+          state.runner.deck.unshift(id);
+        }
+        return { ok: true };
+      }
       // Stash looked ids on turn for the bottom leaf.
       state.turn.rdLookedCards = taken;
       log(
@@ -10221,7 +10078,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const serverId = state.run.attackedServerId;
       const lastIce = state.run.lastEncounteredIceId;
-      state.pendingChoice = {
+      if (!openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -10242,7 +10099,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
+      })) return { ok: true };
       // Stash bypass target on the source for the rerun leaf.
       source.chosenIceId = lastIce;
       source.chosenServerId = serverId;
@@ -10310,7 +10167,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no known Runner card titles to name.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: titleList.map((title) => ({
@@ -10324,8 +10181,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a card name for net damage loop.`);
+logLine: `${source.title} — choose a card name for net damage loop.`,
+});
       return { ok: true };
     }
     case "net_named": {
@@ -10390,7 +10247,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: costList.map((cost) => ({
@@ -10404,8 +10261,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a printed install cost.`);
+logLine: `${source.title} — choose a printed install cost.`,
+});
       return { ok: true };
     }
     case "set_aside_access_shuffle": {
@@ -10432,7 +10289,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — R&D empty; nothing to access.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: aside.map((id) => ({
@@ -10446,11 +10303,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — set aside top ${aside.length} of R&D (cost ${cost}); access 1.`,
-      );
+logLine: `${source.title} — set aside top ${aside.length} of R&D (cost ${cost}); access 1.`,
+});
       return { ok: true };
     }
     case "access_set_aside": {
@@ -10489,7 +10343,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -10517,8 +10371,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may search HQ, R&D, or Archives for an agenda.`);
+logLine: `${source.title} — may search HQ, R&D, or Archives for an agenda.`,
+});
       return { ok: true };
     }
     case "search_zone_agenda_to_hq_or_rd_bottom": {
@@ -10540,7 +10394,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no agenda in ${zone}.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: agendas.flatMap((id) => [
@@ -10569,8 +10423,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ]),
-      };
-      log(state, `${source.title} — choose agenda from ${zone}.`);
+logLine: `${source.title} — choose agenda from ${zone}.`,
+});
       return { ok: true };
     }
     case "place_agenda_hq_or_rd_bottom": {
@@ -10627,7 +10481,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no non-virus program in stack.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: matches.map((id) => ({
@@ -10641,8 +10495,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — search stack for a non-virus program.`);
+logLine: `${source.title} — search stack for a non-virus program.`,
+});
       return { ok: true };
     }
     case "install_stack_program_ignore_costs_track": {
@@ -10715,7 +10569,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — HQ empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: hq.map((id) => ({
@@ -10729,8 +10583,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — reveal 1 card in HQ.`);
+logLine: `${source.title} — reveal 1 card in HQ.`,
+});
       return { ok: true };
     }
     case "forbid_steal_trash_title_this_run": {
@@ -10783,7 +10637,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no matching non-agenda in R&D.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -10811,11 +10665,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may search R&D for black ops / gray ops / liability.`,
-      );
+logLine: `${source.title} — may search R&D for black ops / gray ops / liability.`,
+});
       return { ok: true };
     }
     case "pay_credits_or_etr": {
@@ -10867,7 +10718,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       if (action.pick === "choose" && iceIds.length > 1) {
         // Printed: "Derez 1 installed piece of ice" — the Runner chooses.
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: iceIds.map((id) => ({
@@ -10875,7 +10726,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             label: `Derez ${state.cards[id]!.title}`,
             effect: fx.do({ kind: "derez_card", cardId: id }),
           })),
-        };
+        });
         return { ok: true };
       }
       const target = iceIds[0]!;
@@ -10977,15 +10828,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may derez another installed card (CR ${CR.derez.number}).`,
-      );
+logLine: `${source.title} — may derez another installed card (CR ${CR.derez.number}).`,
+});
       return { ok: true };
     }
     case "trash_corp_card": {
@@ -11040,15 +10888,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
                 : { op: "seq" as const, effects },
           };
         });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — must trash an installed Corp card (CR ${CR.trashing.number}).`,
-      );
+logLine: `${source.title} — must trash an installed Corp card (CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "trash_n_installed_corp": {
@@ -11061,7 +10906,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.trashing],
         };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: action.chooser,
         options: targets.map((id) => ({
@@ -11077,11 +10922,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — trash ${count} installed Corp card(s) (${action.chooser} chooses).`,
-      );
+logLine: `${source.title} — trash ${count} installed Corp card(s) (${action.chooser} chooses).`,
+});
       return { ok: true };
     }
     case "trash_corp_card_then_trash_n": {
@@ -11111,7 +10953,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.playOperation],
         };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: rezzed.map((id) => ({
@@ -11125,8 +10967,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose first rezzed ice.`);
+logLine: `${source.title} — choose first rezzed ice.`,
+});
       return { ok: true };
     }
     case "pick_second": {
@@ -11144,7 +10986,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.playOperation],
         };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: rezzed.map((id) => ({
@@ -11158,8 +11000,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose second rezzed ice.`);
+logLine: `${source.title} — choose second rezzed ice.`,
+});
       return { ok: true };
     }
     case "resolve_realloc": {
@@ -11226,7 +11068,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: advanceable.map((id) => ({
@@ -11241,11 +11083,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose advanceable card (${amount} iced rooted remote(s)).`,
-      );
+logLine: `${source.title} — choose advanceable card (${amount} iced rooted remote(s)).`,
+});
       return { ok: true };
     }
     case "may_add_archives_card_to_rd_top_or_bottom": {
@@ -11291,8 +11130,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `${source.title} — may move Archives card to R&D.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may move Archives card to R&D.`,
+});
       return { ok: true };
     }
     case "add_archives_card_to_rd": {
@@ -11322,7 +11162,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no installed Runner cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -11336,8 +11176,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose installed Runner card for grip.`);
+logLine: `${source.title} — choose installed Runner card for grip.`,
+});
       return { ok: true };
     }
     case "add_installed_runner_card_to_grip": {
@@ -11424,11 +11264,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — install and rez ice from Archives (−${discount}¢).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — install and rez ice from Archives (−${discount}¢).`,
+});
       return { ok: true };
     }
     case "install_and_rez_archives_ice": {
@@ -11568,15 +11406,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may trash another installed card (CR ${CR.trashing.number}).`,
-      );
+logLine: `${source.title} — may trash another installed card (CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "trash_must_installed": {
@@ -11612,15 +11447,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           };
         });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — must trash another installed card (CR ${CR.trashing.number}).`,
-      );
+logLine: `${source.title} — must trash another installed card (CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "forbid_bioroid_ice_paid_abilities_this_turn": {
@@ -11646,7 +11478,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const chosen = action.cardId;
       if (!chosen) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: [
@@ -11664,7 +11496,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               }),
             })),
           ],
-        };
+        });
         return { ok: true };
       }
       if (!candidates.includes(chosen)) return { ok: true };
@@ -11806,15 +11638,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "runner", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may pay ${action.creditCost}¢ to return to grip.`,
-      );
+logLine: `${source.title} — may pay ${action.creditCost}¢ to return to grip.`,
+});
       return { ok: true };
     }
     case "return_source_to_grip": {
@@ -11854,7 +11683,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install resource discounted — none in grip.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: matches.map((id) => ({
@@ -11862,7 +11691,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           label: `Install ${state.cards[id]!.title} (${discount}¢ discount)`,
           effect: fx.do({ kind: "install_grip_card", cardId: id, discount }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "install_grip_card": {
@@ -11926,7 +11755,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (candidates.length === 1) {
         return evalEffect({ state, sourceId }, buildEffect(candidates[0]!));
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => {
@@ -11938,11 +11767,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             effect: buildEffect(id),
           };
         }),
-      };
-      log(
-        state,
-        `Install from grip — choose among ${candidates.length} cards (${action.discount}¢ discount).`,
-      );
+logLine: `Install from grip — choose among ${candidates.length} cards (${action.discount}¢ discount).`,
+});
       return { ok: true };
     }
     case "shuffle_installed_runner_into_stack": {
@@ -11969,7 +11795,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: installed[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: installed.map((id) => ({
@@ -11983,11 +11809,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose an installed Runner card to shuffle into the stack.`,
-      );
+logLine: `${source.title} — choose an installed Runner card to shuffle into the stack.`,
+});
       return { ok: true };
     }
     case "shuffle_runner_card_into_stack": {
@@ -12064,7 +11887,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       // Always re-set on front; if already flipped, still allow choose for next cycle.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: (
@@ -12084,8 +11907,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — secretly set identity face.`);
+logLine: `${source.title} — secretly set identity face.`,
+});
       return { ok: true };
     }
     case "melies_set_face": {
@@ -12110,7 +11933,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -12137,11 +11960,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `Look at top of R&D (${top.title}) — may trash; if so, Archives → HQ.`,
-      );
+logLine: `Look at top of R&D (${top.title}) — may trash; if so, Archives → HQ.`,
+});
       return { ok: true };
     }
     case "may_host_one_from_grip_facedown_then_draw": {
@@ -12156,7 +11976,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — grip empty; cannot host.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -12184,8 +12004,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may host 1 from grip facedown to draw 1.`);
+logLine: `${source.title} — may host 1 from grip facedown to draw 1.`,
+});
       return { ok: true };
     }
     case "host_grip_card_facedown_then_draw": {
@@ -12259,7 +12079,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (!isBreaker && !isRunEvent) {
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -12283,7 +12103,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "reveal_runner_stack_top_to_grip": {
@@ -12327,7 +12147,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Peer Review — no affordable root install from HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -12351,8 +12171,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `Peer Review — may install 1 card from HQ in a remote root.`);
+logLine: `Peer Review — may install 1 card from HQ in a remote root.`,
+});
       return { ok: true };
     }
     case "remove_bigger_picture_tags": {
@@ -12389,8 +12209,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `Bigger Picture — choose how many tags to remove.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Bigger Picture — choose how many tags to remove.`,
+});
       return { ok: true };
     }
     case "mitra_aman_approach_ice": {
@@ -12447,8 +12268,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         })),
       ];
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `Mitra Aman — may swap approached ice.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Mitra Aman — may swap approached ice.`,
+});
       return { ok: true };
     }
     case "pay_rez_additional_cost": {
@@ -12489,8 +12311,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.rezProcedure],
         };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `Plutus — pay additional rez cost.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Plutus — pay additional rez cost.`,
+});
       return { ok: true };
     }
     case "forfeit_scored_agenda": {
@@ -12555,7 +12378,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Plutus — no transaction operations in Archives.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -12579,8 +12402,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `Plutus — may play 1 transaction operation from Archives.`);
+logLine: `Plutus — may play 1 transaction operation from Archives.`,
+});
       return { ok: true };
     }
     case "play_archives_transaction_then_rfg": {
@@ -12643,8 +12466,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `IP Enforcement — choose how many tags to remove.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `IP Enforcement — choose how many tags to remove.`,
+});
       return { ok: true };
     }
     case "store_ip_enforcement_tags_removed": {
@@ -12664,7 +12488,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: candidates.map((cardId) => ({
@@ -12679,8 +12503,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `IP Enforcement — install agenda (${x} point(s)) from Runner score.`);
+logLine: `IP Enforcement — install agenda (${x} point(s)) from Runner score.`,
+});
       return { ok: true };
     }
     case "trash_rezzed_accessed": {
@@ -12706,7 +12530,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Charm Offensive — no rezzed copy of an accessed card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -12724,8 +12548,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
-      log(state, `Charm Offensive — may trash 1 rezzed copy of an accessed card.`);
+logLine: `Charm Offensive — may trash 1 rezzed copy of an accessed card.`,
+});
       return { ok: true };
     }
     case "host_all_programs_from_grip": {
@@ -12759,7 +12583,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no hosted programs to install.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -12780,8 +12604,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
-      log(state, `${source.title} — may install 1 hosted program.`);
+logLine: `${source.title} — may install 1 hosted program.`,
+});
       return { ok: true };
     }
     case "install_hosted_program": {
@@ -12834,7 +12658,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no program/hardware in grip to host.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -12862,11 +12686,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may host 1 program or hardware from grip faceup.`,
-      );
+logLine: `${source.title} — may host 1 program or hardware from grip faceup.`,
+});
       return { ok: true };
     }
     case "host_grip_program_or_hardware_faceup": {
@@ -12906,7 +12727,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const discountFlag = Boolean(
         action.firstThisTurnDiscountPerUniqueConnection,
       );
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -12930,8 +12751,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
-      log(state, `${source.title} — may install 1 hosted card.`);
+logLine: `${source.title} — may install 1 hosted card.`,
+});
       return { ok: true };
     }
     case "install_hosted_card": {
@@ -13023,13 +12844,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        requireHost
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: requireHost
           ? `${source.title} — host on an icebreaker.`
           : `${source.title} — may host on a${allowAi ? "" : " non-AI"} icebreaker.`,
-      );
+});
       return { ok: true };
     }
     case "host_hardware_on_icebreaker": {
@@ -13131,8 +12950,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `${source.title} — may install ${card.title} from grip.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — may install ${card.title} from grip.`,
+});
       return { ok: true };
     }
     case "trash_rezzed_ice_gain_credits": {
@@ -13153,7 +12973,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           amount: action.amount,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -13168,8 +12988,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a rezzed ice to trash.`);
+logLine: `${source.title} — choose a rezzed ice to trash.`,
+});
       return { ok: true };
     }
     case "trash_rezzed_ice_gain_credits_resolve": {
@@ -13368,11 +13188,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — install up to ${remaining} more from HQ paying costs.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — install up to ${remaining} more from HQ paying costs.`,
+});
       return { ok: true };
     }
     case "deja_vu_from_heap": {
@@ -13415,11 +13233,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — add 1 card (or up to 2 virus cards) from heap to grip.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — add 1 card (or up to 2 virus cards) from heap to grip.`,
+});
       return { ok: true };
     }
     case "deja_vu_add_heap_cards": {
@@ -13456,7 +13272,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           ? matches[0]!
           : matches[0]!; // first match; choice UX optional
       if (matches.length > 1) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: matches.map((mid) => ({
@@ -13470,11 +13286,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           })),
-        };
-        log(
-          state,
-          `Search stack — choose ${action.subtype} ${wantType ?? "card"} to reveal.`,
-        );
+logLine: `Search stack — choose ${action.subtype} ${wantType ?? "card"} to reveal.`,
+});
         return { ok: true };
       }
       addFoundStackCardAfterSearch(state, id);
@@ -13498,7 +13311,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         beginExpose(state, targets[0]!);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: targets.map((id) => ({
@@ -13513,8 +13326,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a card to expose.`);
+logLine: `${source.title} — choose a card to expose.`,
+});
       return { ok: true };
     }
     case "expose_up_to": {
@@ -13674,8 +13487,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           ],
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `ABT — may install and rez ${state.cards[iceId]!.title}.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `ABT — may install and rez ${state.cards[iceId]!.title}.`,
+});
       return { ok: true };
     }
     case "trash_looked": {
@@ -13766,8 +13580,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `Account Siphon — may instead of breaching HQ.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `Account Siphon — may instead of breaching HQ.`,
+});
       return { ok: true };
     }
     case "resolve_breach_replacement": {
@@ -13801,7 +13616,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Escher — not a successful HQ run.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -13822,8 +13637,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `Escher — may instead of breaching HQ.`);
+logLine: `Escher — may instead of breaching HQ.`,
+});
       return { ok: true };
     }
     case "escher_rearrange_pick_server": {
@@ -13835,7 +13650,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no server with 2+ ice to rearrange.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -13860,8 +13675,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — choose a server to rearrange ice, or finish.`);
+logLine: `${source.title} — choose a server to rearrange ice, or finish.`,
+});
       return { ok: true };
     }
     case "escher_rearrange_server_ice": {
@@ -13896,7 +13711,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           order: [...placed, remaining[0]!],
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: remaining.map((iceId: string) => ({
@@ -13911,11 +13726,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
-      );
+logLine: `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
+});
       return { ok: true };
     }
     case "may_breach_instead_exploratory_romp": {
@@ -13930,7 +13742,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         (id) => (state.cards[id]?.advancementCounters ?? 0) > 0,
       );
       const amount = action.amount;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -13958,8 +13770,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               ]
             : []),
         ],
-      };
-      log(state, `Exploratory Romp — may instead of breaching.`);
+logLine: `Exploratory Romp — may instead of breaching.`,
+});
       return { ok: true };
     }
     case "choose_exploratory_romp_card": {
@@ -13980,7 +13792,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           amount,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -13995,8 +13807,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `Exploratory Romp — choose a card to remove advancements from.`);
+logLine: `Exploratory Romp — choose a card to remove advancements from.`,
+});
       return { ok: true };
     }
     case "remove_up_to": {
@@ -14042,8 +13854,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `Vamp — may instead of breaching HQ.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `Vamp — may instead of breaching HQ.`,
+});
       return { ok: true };
     }
     case "resolve_vamp": {
@@ -14148,7 +13961,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         hostFenrisIdentity(state, sourceId, candidates[0]!);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((cardId) => ({
@@ -14163,11 +13976,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose a g-mod identity to host (CR 1.5.4a).`,
-      );
+logLine: `${source.title} — choose a g-mod identity to host (CR 1.5.4a).`,
+});
       return { ok: true };
     }
     case "host_gmod_identity": {
@@ -14237,7 +14047,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (state.corp.hand.length === 0) {
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -14255,8 +14065,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
-      log(state, `${source.title} — Runner may access 1 HQ at random.`);
+logLine: `${source.title} — Runner may access 1 HQ at random.`,
+});
       return { ok: true };
     }
     case "access_random_hq": {
@@ -14283,7 +14093,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — R&D empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: top.map((cardId) => ({
@@ -14294,11 +14104,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "trash_co_looked_rd_card" as const, cardId },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — look at top ${top.length} of R&D; trash 1, rest to HQ.`,
-      );
+logLine: `${source.title} — look at top ${top.length} of R&D; trash 1, rest to HQ.`,
+});
       return { ok: true };
     }
     case "trash_co_looked_rd_card": {
@@ -14351,7 +14158,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (installEffects.length === 1) {
         return evalEffect(ctx, installEffects[0]!);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: remotes.map(([serverId], i) => ({
@@ -14359,7 +14166,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           label: `Install on ${serverId}`,
           effect: installEffects[i]!,
         })),
-      };
+      });
       return { ok: true };
     }
     case "install_runner_score_agenda_on_server": {
@@ -14472,7 +14279,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install from discarded — none eligible.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      if (!openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -14499,7 +14306,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             })),
         ],
-      };
+      })) return { ok: true };
       if ((state.pendingChoice?.options.length ?? 0) <= 1) {
         state.pendingChoice = null;
         log(state, `Install from discarded — none affordable.`);
@@ -14610,7 +14417,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       };
       if (ids.length === 1) return apply(ids[0]!);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: ids.map((id) => ({
@@ -14621,7 +14428,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "trash_passed_unrezzed_ice_resolve": {
@@ -14659,7 +14466,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: targets[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: targets.map((id) => ({
@@ -14670,7 +14477,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "offer_forged_activation_orders_rez": {
@@ -14691,7 +14498,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         label: `Trash ${ice.title}`,
         effect: fx.do({ kind: "trash_installed_corp_card", cardId: iceId }),
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
     case "install_program_from_stack_or_heap_free": {
@@ -14772,7 +14579,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
     case "place_advancements_x_from_tags_resolve": {
@@ -14826,7 +14633,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
     case "fortify_ice_spend_x_resolve": {
@@ -14927,15 +14734,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may trash another installed card for printed install cost.`,
-      );
+logLine: `${source.title} — may trash another installed card for printed install cost.`,
+});
       return { ok: true };
     }
     case "choose_type_shuffle_grip": {
@@ -14964,12 +14768,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(state, `${source.title} — choose a card type to shuffle from grip.`);
+logLine: `${source.title} — choose a card type to shuffle from grip.`,
+});
       return { ok: true };
     }
     case "shuffle_grip_of_type": {
@@ -15016,11 +14820,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: pickOptions,
-      };
+      });
       return { ok: true };
     }
     case "shuffle_grip_card_into_stack": {
@@ -15099,8 +14903,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `${source.title} — may rez installed ice (−${discount}¢).`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may rez installed ice (−${discount}¢).`,
+});
       return { ok: true };
     }
     case "rez_ice_with_discount": {
@@ -15169,7 +14974,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           );
         });
       if (closedLoop) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           loopCount: true,
@@ -15180,11 +14985,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               effect: fx.gainCredits("corp", 0),
             },
           ],
-        };
-        log(
-          state,
-          `${source.title} — mandatory loop; choose how many times it resolves (CR ${CR.mandatoryLoop.number}).`,
-        );
+logLine: `${source.title} — mandatory loop; choose how many times it resolves (CR ${CR.mandatoryLoop.number}).`,
+});
         return { ok: true };
       }
       const options: import("./ir.js").ChoiceOption[] = picks.map((p) => {
@@ -15210,13 +15012,11 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        mandatory
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: mandatory
           ? `${source.title} — resolve a subroutine on another rezzed ice.`
           : `${source.title} — may resolve a subroutine on rezzed ${subtype} ice.`,
-      );
+});
       return { ok: true };
     }
     case "may_flip_archives_ice_resolve_subroutine": {
@@ -15260,15 +15060,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may turn 1 facedown Archives ice faceup and resolve a subroutine.`,
-      );
+logLine: `${source.title} — may turn 1 facedown Archives ice faceup and resolve a subroutine.`,
+});
       return { ok: true };
     }
     case "flip_archives_ice_resolve_subroutine": {
@@ -15353,7 +15150,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no servers to name.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -15378,8 +15175,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may choose a server.`);
+logLine: `${source.title} — may choose a server.`,
+});
       return { ok: true };
     }
     case "set_named_server": {
@@ -15393,7 +15190,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no servers to choose.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: servers.map((serverId) => ({
@@ -15404,8 +15201,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "set_chosen_server" as const, serverId },
           },
         })),
-      };
-      log(state, `${source.title} — choose a server.`);
+logLine: `${source.title} — choose a server.`,
+});
       return { ok: true };
     }
     case "choose_server_runner": {
@@ -15414,7 +15211,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no servers to choose.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: servers.map((serverId) => ({
@@ -15425,8 +15222,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "set_chosen_server" as const, serverId },
           },
         })),
-      };
-      log(state, `${source.title} — choose a server.`);
+logLine: `${source.title} — choose a server.`,
+});
       return { ok: true };
     }
     case "may_install_next_design_ice": {
@@ -15466,11 +15263,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         })),
       ];
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may install up to ${remaining} more ice (≤1 per server, ignoring costs).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may install up to ${remaining} more ice (≤1 per server, ignoring costs).`,
+});
       return { ok: true };
     }
     case "choose_next_design_server": {
@@ -15524,8 +15319,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       ];
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `${source.title} — choose a server to protect with ${card.title}.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — choose a server to protect with ${card.title}.`,
+});
       return { ok: true };
     }
     case "install_next_design_on_server": {
@@ -15657,7 +15453,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -15682,8 +15478,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may add 1 hosted card to grip.`);
+logLine: `${source.title} — may add 1 hosted card to grip.`,
+});
       return { ok: true };
     }
     case "add_hosted_card_to_grip": {
@@ -15805,7 +15601,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         );
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: Array.from({ length: maxX }, (_, i) => {
@@ -15823,11 +15619,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           };
         }),
-      };
-      log(
-        state,
-        `${source.title} — choose how many subroutines to break (1–${maxX}).`,
-      );
+logLine: `${source.title} — choose how many subroutines to break (1–${maxX}).`,
+});
       return { ok: true };
     }
     case "break_resolve": {
@@ -15897,7 +15690,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             cardId: hosted[0]!,
           } as Primitive);
         }
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: hosted.map((id) => ({
@@ -15911,7 +15704,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           })),
-        };
+        });
         return { ok: true };
       }
       if (!hosted.includes(chosenId)) {
@@ -15954,7 +15747,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: others.map((iceId) => ({
@@ -15965,8 +15758,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "rehost_to_ice" as const, iceId },
           },
         })),
-      };
-      log(state, `${source.title} — choose another installed ice to host on.`);
+logLine: `${source.title} — choose another installed ice to host on.`,
+});
       return { ok: true };
     }
     case "rehost_to_ice": {
@@ -16010,7 +15803,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       // Printed: "trash 1 of your other installed cards" — the Runner chooses.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: owned.map((id) => ({
@@ -16022,7 +15815,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             amount: action.amount,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "trash_aesop_for_credits_resolve": {
@@ -16054,7 +15847,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             cardId: setAside[0]!,
           });
         }
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: setAside.map((id) => ({
@@ -16062,7 +15855,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             label: `Add ${state.cards[id]!.title} to grip`,
             effect: fx.do({ kind: "ayla_set_aside_to_grip", cardId: id }),
           })),
-        };
+        });
         return { ok: true };
       }
       if (!setAside.includes(picked)) return { ok: true };
@@ -16137,7 +15930,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const bypassClicks = action.bypassFirstEncounterForClicks;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -16168,8 +15961,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may start a run (${action.servers}).`);
+logLine: `${source.title} — may start a run (${action.servers}).`,
+});
       return { ok: true };
     }
     case "queue_start_run": {
@@ -16201,7 +15994,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — may install from heap: none affordable.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -16233,11 +16026,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may install from heap (${[...types].join("/")}).`,
-      );
+logLine: `${source.title} — may install from heap (${[...types].join("/")}).`,
+});
       return { ok: true };
     }
     case "haas_pet_project_setup": {
@@ -16326,7 +16116,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         };
       };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -16341,11 +16131,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           ...hqCandidates.map((id) => buildOption(id, "hq")),
           ...archiveEligible.map((id) => buildOption(id, "archives")),
         ],
-      };
-      log(
-        state,
-        `${source.title} — install up to ${remaining} more from HQ/Archives into ${serverId}.`,
-      );
+logLine: `${source.title} — install up to ${remaining} more from HQ/Archives into ${serverId}.`,
+});
       return { ok: true };
     }
     case "install_up_to_n_programs_from_grip_discount": {
@@ -16438,11 +16225,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "runner", amount: 0 },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — install up to ${remaining} program(s) from grip (${discount}¢ discount each; CR ${CR.runnerBasicInstall.number}).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — install up to ${remaining} program(s) from grip (${discount}¢ discount each; CR ${CR.runnerBasicInstall.number}).`,
+});
       return { ok: true };
     }
     case "install_scavenge_program": {
@@ -16504,15 +16289,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (options.length === 1) {
         return evalEffect(ctx, options[0]!.effect);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(
-        state,
-        `${source.title} — choose a program to install (${discount}¢ discount; CR ${CR.runnerBasicInstall.number}).`,
-      );
+logLine: `${source.title} — choose a program to install (${discount}¢ discount; CR ${CR.runnerBasicInstall.number}).`,
+});
       return { ok: true };
     }
     case "install_from_heap": {
@@ -16540,7 +16322,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => {
@@ -16558,11 +16340,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           };
         }),
-      };
-      log(
-        state,
-        `${source.title} — install from heap (${[...types].join("/")}).`,
-      );
+logLine: `${source.title} — install from heap (${[...types].join("/")}).`,
+});
       return { ok: true };
     }
     case "may_add_from_heap_to_stack_bottom": {
@@ -16581,7 +16360,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — may add from heap to stack: none.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -16609,8 +16388,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may add from heap to bottom of stack.`);
+logLine: `${source.title} — may add from heap to bottom of stack.`,
+});
       return { ok: true };
     }
     case "add_from_heap_to_stack_bottom": {
@@ -16633,7 +16412,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — may add from heap to stack top: none.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -16661,8 +16440,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may add from heap to top of stack.`);
+logLine: `${source.title} — may add from heap to top of stack.`,
+});
       return { ok: true };
     }
     case "add_from_heap_to_stack_top": {
@@ -16691,7 +16470,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no batch cards in heap to bottom.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -16719,11 +16498,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may add 1 of the trashed cards to bottom of stack.`,
-      );
+logLine: `${source.title} — may add 1 of the trashed cards to bottom of stack.`,
+});
       return { ok: true };
     }
     case "add_card_id_to_stack_bottom": {
@@ -16767,7 +16543,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (cands.length === 1) {
         return chargeCard(state, cands[0]!, sourceId);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: side,
         options: cands.map((id) => ({
@@ -16782,11 +16558,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `Charge — ${side} chooses among ${cands.length} cards (CR ${CR.chargeTargets.number}).`,
-      );
+logLine: `Charge — ${side} chooses among ${cands.length} cards (CR ${CR.chargeTargets.number}).`,
+});
       return { ok: true };
     }
     case "bonus_access": {
@@ -16867,7 +16640,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const cost = stackCardInstallCost(state, prog, discount);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -16892,11 +16665,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may install ${prog.title} (${discount}¢ discount).`,
-      );
+logLine: `${source.title} — may install ${prog.title} (${discount}¢ discount).`,
+});
       return { ok: true };
     }
     case "install_set_aside_program": {
@@ -16977,7 +16747,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const remaining = Math.max(0, action.remaining ?? 0);
       if (remaining <= 0) return { ok: true };
       const nextRemaining = remaining - 1;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -17030,11 +16800,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — choose gain 2¢ or draw 2 (${remaining} remaining).`,
-      );
+logLine: `${source.title} — choose gain 2¢ or draw 2 (${remaining} remaining).`,
+});
       return { ok: true };
     }
     case "look_top_n_stack_may_bottom_one": {
@@ -17051,7 +16818,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.cards[id]!.faceup = true;
         log(state, `Runner looks at stack — ${state.cards[id]!.title}.`);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -17079,11 +16846,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `${source.title} — may add 1 of ${taken.length} looked card(s) to bottom.`,
-      );
+logLine: `${source.title} — may add 1 of ${taken.length} looked card(s) to bottom.`,
+});
       return { ok: true };
     }
     case "look_top_n_stack_bottom_one": {
@@ -17117,7 +16881,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const options = ["barrier", "code gate", "sentry"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: options.map((subtype) => ({
@@ -17131,11 +16895,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose an ice subtype for the encounter.`,
-      );
+logLine: `${source.title} — choose an ice subtype for the encounter.`,
+});
       return { ok: true };
     }
     case "grant_encounter_ice_subtype": {
@@ -17176,7 +16937,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           revealedIds: revealed,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: revealed.map((id) => {
@@ -17195,11 +16956,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           };
         }),
-      };
-      log(
-        state,
-        `${source.title} — Corp chooses 1 of ${revealed.length} revealed card(s).`,
-      );
+logLine: `${source.title} — Corp chooses 1 of ${revealed.length} revealed card(s).`,
+});
       return { ok: true };
     }
     case "pick_revealed": {
@@ -17249,7 +17007,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         const centrals = Object.values(state.servers).filter(
           (s) => s.kind === "central",
         );
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: centrals.map((server) => ({
@@ -17265,15 +17023,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           })),
-        };
-        log(
-          state,
-          `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
-        );
+logLine: `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
+});
         return { ok: true };
       };
       if (iceIds.length === 1) return offerInstall(iceIds[0]!);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: iceIds.map((id) => ({
@@ -17288,8 +17043,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `Search R&D — choose ice to reveal and install.`);
+logLine: `Search R&D — choose ice to reveal and install.`,
+});
       return { ok: true };
     }
     case "search_rd_ice_install_central_discount_pick": {
@@ -17307,7 +17062,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const centrals = Object.values(state.servers).filter(
         (s) => s.kind === "central",
       );
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: centrals.map((server) => ({
@@ -17323,11 +17078,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
-      );
+logLine: `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
+});
       return { ok: true };
     }
     case "install_rd_ice_protecting_central_discount": {
@@ -17418,7 +17170,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (candidates.length === 1) {
         return evalEffect({ state, sourceId }, build(candidates[0]!));
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => {
@@ -17430,11 +17182,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             effect: build(id),
           };
         }),
-      };
-      log(
-        state,
-        `${source.title} — choose installed program/hardware to add to grip.`,
-      );
+logLine: `${source.title} — choose installed program/hardware to add to grip.`,
+});
       return { ok: true };
     }
     case "may_return_non_virus_trojan_to_grip_place_hosted": {
@@ -17488,11 +17237,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits" as const, side: "runner", amount: 0 },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — may return a non-virus trojan to grip.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — may return a non-virus trojan to grip.`,
+});
       return { ok: true };
     }
     case "trash_top_n_may_install_discount": {
@@ -17543,15 +17290,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits" as const, side: "runner", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may install 1 of ${candidates.length} milled card(s) (${discount}¢ discount).`,
-      );
+logLine: `${source.title} — may install 1 of ${candidates.length} milled card(s) (${discount}¢ discount).`,
+});
       return { ok: true };
     }
     case "install_heap_card": {
@@ -17616,15 +17360,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(
-        state,
-        `${source.title} — may trash another installed card to search stack.`,
-      );
+logLine: `${source.title} — may trash another installed card to search stack.`,
+});
       return { ok: true };
     }
     case "trash_runner_rig_card": {
@@ -17726,7 +17467,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: targets.map((id) => ({
@@ -17741,11 +17482,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose an icebreaker for +${action.amount} strength this turn.`,
-      );
+logLine: `${source.title} — choose an icebreaker for +${action.amount} strength this turn.`,
+});
       return { ok: true };
     }
     case "choose_ice_additional_rez_cost_this_turn": {
@@ -17769,7 +17507,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: targets.map((id) => ({
@@ -17784,11 +17522,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose ice for +${action.amount}¢ rez this turn.`,
-      );
+logLine: `${source.title} — choose ice for +${action.amount}¢ rez this turn.`,
+});
       return { ok: true };
     }
     case "add_ice_additional_rez_cost_this_turn": {
@@ -17870,7 +17605,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install from HQ paying costs — no eligible affordable card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -17900,8 +17635,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `May install one card from HQ paying install costs.`);
+logLine: `May install one card from HQ paying install costs.`,
+});
       return { ok: true };
     }
     case "may_install_from_hq_in_remote_root_paying_costs": {
@@ -17918,7 +17653,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `May install from HQ in remote root — none affordable.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -17942,11 +17677,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `May install 1 card from HQ in the root of a remote server paying costs.`,
-      );
+logLine: `May install 1 card from HQ in the root of a remote server paying costs.`,
+});
       return { ok: true };
     }
     case "may_move_source_upgrade_to_another_server_root": {
@@ -17969,7 +17701,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Move upgrade — no other servers.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -17993,8 +17725,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `May move ${source.title} to another server root.`);
+logLine: `May move ${source.title} to another server root.`,
+});
       return { ok: true };
     }
     case "move_upgrade_to_server_root": {
@@ -18037,7 +17769,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no rezzed upgrades to move.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: upgrades.map((id) => ({
@@ -18051,8 +17783,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a rezzed upgrade to move.`);
+logLine: `${source.title} — choose a rezzed upgrade to move.`,
+});
       return { ok: true };
     }
     case "may_move_picked_rezzed_upgrade": {
@@ -18076,7 +17808,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Move upgrade — no other servers.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((sid) => ({
@@ -18091,8 +17823,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `Choose destination for ${card.title}.`);
+logLine: `Choose destination for ${card.title}.`,
+});
       return { ok: true };
     }
     case "move_rezzed_upgrade_to_server_root": {
@@ -18216,7 +17948,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `May play operation from HQ — none in HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -18247,8 +17979,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may play an operation from HQ.`);
+logLine: `${source.title} — may play an operation from HQ.`,
+});
       return { ok: true };
     }
     case "may_play_nonterminal_operation_from_hq": {
@@ -18264,7 +17996,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `May play non-terminal operation — none in HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -18295,8 +18027,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `${source.title} — may play a non-terminal operation from HQ.`);
+logLine: `${source.title} — may play a non-terminal operation from HQ.`,
+});
       return { ok: true };
     }
     case "play_hq_operation_card": {
@@ -18340,7 +18072,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Add installed resource to stack top — none installed.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: resources.map((id) => {
@@ -18357,8 +18089,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           };
         }),
-      };
-      log(state, `${source.title} — choose an installed resource for stack top.`);
+logLine: `${source.title} — choose an installed resource for stack top.`,
+});
       return { ok: true };
     }
     case "add_installed_program_to_stack_top": {
@@ -18369,7 +18101,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Add installed program to stack top — none installed.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: programs.map((id) => {
@@ -18386,8 +18118,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           };
         }),
-      };
-      log(state, `${source.title} — choose an installed program for stack top.`);
+logLine: `${source.title} — choose an installed program for stack top.`,
+});
       return { ok: true };
     }
     case "move_runner_card_to_stack_top": {
@@ -18443,8 +18175,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           action: { kind: "gain_credits", side: "runner", amount: 0 },
         },
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `${source.title} — host an installed trojan on attacked ice.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — host an installed trojan on attacked ice.`,
+});
       return { ok: true };
     }
     case "host_program_on_ice": {
@@ -18527,12 +18260,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(state, `May install from HQ on another remote ignoring costs.`);
+logLine: `May install from HQ on another remote ignoring costs.`,
+});
       return { ok: true };
     }
     case "install_hq_on_remote_ignore_costs": {
@@ -18650,8 +18383,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.corpBasicInstall],
         };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `Install 1 agenda, asset, or ice from Archives (paying).`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Install 1 agenda, asset, or ice from Archives (paying).`,
+});
       return { ok: true };
     }
     case "may_install_from_archives_ignore_costs": {
@@ -18719,8 +18453,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `May install from Archives ignoring all costs.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May install from Archives ignoring all costs.`,
+});
       return { ok: true };
     }
     case "may_install_from_hq_ignore_costs": {
@@ -18788,8 +18523,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `May install from HQ ignoring all costs.`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May install from HQ ignoring all costs.`,
+});
       return { ok: true };
     }
     case "may_install_from_hq_ignore_costs_exclude_source_server": {
@@ -18862,11 +18598,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `May install from HQ ignoring all costs (cannot install in root of ${excludeServerId ?? "source server"}).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May install from HQ ignoring all costs (cannot install in root of ${excludeServerId ?? "source server"}).`,
+});
       return { ok: true };
     }
     case "wall_to_wall_turn_begin": {
@@ -18975,11 +18709,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (options.length === 0) return { ok: true };
       // Exactly-1 mandatory with only one live option: auto-resolve if single
       // non-ice choice; ice still needs a pick among ice ids.
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — resolve ${action.mustPick ? "1" : `up to ${action.remaining}`} option(s).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — resolve ${action.mustPick ? "1" : `up to ${action.remaining}`} option(s).`,
+});
       return { ok: true };
     }
     case "place_adv_on_ice": {
@@ -19011,7 +18743,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         "program",
         "resource",
       ];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: types.map((t) => ({
@@ -19025,8 +18757,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a card type for this encounter.`);
+logLine: `${source.title} — choose a card type for this encounter.`,
+});
       return { ok: true };
     }
     case "set_encounter_chosen_card_type": {
@@ -19083,11 +18815,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may trash 1 revealed ${chosen}.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may trash 1 revealed ${chosen}.`,
+});
       return { ok: true };
     }
     case "reveal_may_advance": {
@@ -19097,7 +18827,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         "program",
         "resource",
       ];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: types.map((t) => ({
@@ -19111,8 +18841,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a card type.`);
+logLine: `${source.title} — choose a card type.`,
+});
       return { ok: true };
     }
     case "focus_group_after_type": {
@@ -19143,11 +18873,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — choose X ≤ ${count} revealed ${action.cardType}.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — choose X ≤ ${count} revealed ${action.cardType}.`,
+});
       return { ok: true };
     }
     case "may_pay_place": {
@@ -19157,7 +18885,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const canPay = state.corp.credits >= x;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -19199,13 +18927,10 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        canPay
+logLine: canPay
           ? `${source.title} — may pay ${x}¢ to place ${x} advancement(s).`
           : `${source.title} — cannot afford ${x}¢; only decline.`,
-      );
+});
       return { ok: true };
     }
     case "may_forfeit_return_stolen": {
@@ -19224,7 +18949,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const stolen = state.cards[stolenId]!;
       const gain = action.gainCredits;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -19268,11 +18993,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may forfeit to gain ${gain}¢ and return ${stolen.title} to HQ.`,
-      );
+logLine: `${source.title} — may forfeit to gain ${gain}¢ and return ${stolen.title} to HQ.`,
+});
       return { ok: true };
     }
     case "return_stolen_agenda_to_hq": {
@@ -19354,7 +19076,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -19368,11 +19090,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
           ...removeOptions,
         ],
-      };
-      log(
-        state,
-        `${source.title} — may remove any 2 virus counters from installed cards.`,
-      );
+logLine: `${source.title} — may remove any 2 virus counters from installed cards.`,
+});
       return { ok: true };
     }
     case "remove_nihilist_virus_from": {
@@ -19425,19 +19144,16 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: contOptions,
-      };
-      log(
-        state,
-        `${source.title} — remove ${action.remaining} more virus counter(s).`,
-      );
+logLine: `${source.title} — remove ${action.remaining} more virus counter(s).`,
+});
       return { ok: true };
     }
     case "nihilist_corp_trash_top_rd_or_runner_draws_2": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -19462,11 +19178,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — Corp may trash top of R&D or Runner draws 2.`,
-      );
+logLine: `${source.title} — Corp may trash top of R&D or Runner draws 2.`,
+});
       return { ok: true };
     }
     case "trash_type_may_pay_3_prevent": {
@@ -19476,7 +19189,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         "program",
         "resource",
       ];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: types.map((t) => ({
@@ -19490,8 +19203,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a Runner card type.`);
+logLine: `${source.title} — choose a Runner card type.`,
+});
       return { ok: true };
     }
     case "game_over_after_type": {
@@ -19536,7 +19249,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         });
       }
       const canPay = state.runner.credits >= 3;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -19592,11 +19305,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — Runner may pay 3¢ to prevent trashing ${card.title}.`,
-      );
+logLine: `${source.title} — Runner may pay 3¢ to prevent trashing ${card.title}.`,
+});
       return { ok: true };
     }
     case "install_program_from_grip_paying_cost": {
@@ -19631,7 +19341,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (programs.length === 1) {
         return finish(programs[0]!);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => ({
@@ -19646,8 +19356,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `Choose program from grip to install.`);
+logLine: `Choose program from grip to install.`,
+});
       return { ok: true };
     }
     case "prevent_current_ice_on_encounter": {
@@ -19681,7 +19391,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Place advancements on up to ${maxCards} — no eligible cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -19708,11 +19418,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `Place ${amountEach} advancement(s) on each of up to ${maxCards} card(s).`,
-      );
+logLine: `Place ${amountEach} advancement(s) on each of up to ${maxCards} card(s).`,
+});
       return { ok: true };
     }
     case "place_advancements_on_up_to_continue": {
@@ -19737,7 +19444,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         }
       }
       if (candidates.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -19764,7 +19471,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "remove_all_virus_from_one_installed": {
@@ -19787,7 +19494,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: withVirus[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: withVirus.map((id) => ({
@@ -19798,8 +19505,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "remove_all_virus_from" as const, cardId: id },
           },
         })),
-      };
-      log(state, `Remove all virus counters from 1 installed card.`);
+logLine: `Remove all virus counters from 1 installed card.`,
+});
       return { ok: true };
     }
     case "remove_all_virus_from": {
@@ -19872,7 +19579,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           serverId: targets[0]! as import("../state/types.js").ServerId,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((sid) => ({
@@ -19886,8 +19593,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose another server to move to.`);
+logLine: `${source.title} — choose another server to move to.`,
+});
       return { ok: true };
     }
     case "move_source_ice_to_outermost_server_continue_run": {
@@ -20037,11 +19744,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `May install 1 ice from HQ protecting ${serverId}, ignoring costs.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May install 1 ice from HQ protecting ${serverId}, ignoring costs.`,
+});
       return { ok: true };
     }
     case "may_install_ice_from_hq_other_server_ignore_costs": {
@@ -20089,11 +19794,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `May install ice from HQ protecting another server, ignoring costs.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May install ice from HQ protecting another server, ignoring costs.`,
+});
       return { ok: true };
     }
     case "install_ice_from_hq_ignore_costs": {
@@ -20122,8 +19825,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `Install ice from HQ ignoring costs (any server).`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Install ice from HQ ignoring costs (any server).`,
+});
       return { ok: true };
     }
     case "install_hq_ice_protecting_server_ignore_costs": {
@@ -20193,11 +19897,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install ice from HQ — no affordable ice.`);
         return { ok: true };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `May install ice from HQ paying ${discount}¢ less; move ${source.title} to that server root.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May install ice from HQ paying ${discount}¢ less; move ${source.title} to that server root.`,
+});
       return { ok: true };
     }
     case "install_hq_ice_protecting_server_paying_costs": {
@@ -20302,7 +20004,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return afterRevealGain();
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -20330,11 +20032,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `Meeting of Minds — may search stack for a ${subtype} resource.`,
-      );
+logLine: `Meeting of Minds — may search stack for a ${subtype} resource.`,
+});
       return { ok: true };
     }
     case "meeting_of_minds_fetch": {
@@ -20405,7 +20104,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: pool[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: pool.map((id) => ({
@@ -20419,8 +20118,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `Window — derez 1 ice protecting the attacked server.`);
+logLine: `Window — derez 1 ice protecting the attacked server.`,
+});
       return { ok: true };
     }
     case "derez_unless_protecting_attacked": {
@@ -20446,7 +20145,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           amount: 1,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -20463,11 +20162,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           })),
           takeBp,
         ],
-      };
-      log(
-        state,
-        `${source.title} — Corp may derez protecting ice or take 1 bad publicity.`,
-      );
+logLine: `${source.title} — Corp may derez protecting ice or take 1 bad publicity.`,
+});
       return { ok: true };
     }
     case "derez_ice_protecting_attacked": {
@@ -20494,7 +20190,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `May rez event-derezzed ice — none recorded.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -20515,8 +20211,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `Window — Corp may rez the derezzed ice ignoring costs.`);
+logLine: `Window — Corp may rez the derezzed ice ignoring costs.`,
+});
       return { ok: true };
     }
     case "rez_ice_ignore_costs": {
@@ -20555,7 +20251,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           log(state, `Shuffle R&D after agenda reveal.`);
           return { ok: true };
         }
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: [
@@ -20582,11 +20278,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             })),
           ],
-        };
-        log(
-          state,
-          `Reveal up to ${remaining} agenda(s) in HQ/Archives and shuffle into R&D.`,
-        );
+logLine: `Reveal up to ${remaining} agenda(s) in HQ/Archives and shuffle into R&D.`,
+});
         return { ok: true };
       };
       return offer(max, []);
@@ -20629,7 +20322,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         state.corp.deck.reverse();
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -20656,7 +20349,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "reveal_hq_subtype_install_and_rez_ignore_costs": {
@@ -20706,11 +20399,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `Reveal a ${action.subtype} from HQ; install and rez ignoring all costs.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Reveal a ${action.subtype} from HQ; install and rez ignoring all costs.`,
+});
       return { ok: true };
     }
     case "install_and_rez_hq_ice_protecting_server_ignore_costs": {
@@ -20770,7 +20461,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no advanced installed cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -20795,11 +20486,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `${source.title} — may remove 1 advancement from an installed card to gain ${credits}¢.`,
-      );
+logLine: `${source.title} — may remove 1 advancement from an installed card to gain ${credits}¢.`,
+});
       return { ok: true };
     }
     case "remove_advancement_from_installed_gain_credits": {
@@ -20823,7 +20511,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -20844,8 +20532,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `Look at top of R&D (${top.title}) — may trash.`);
+logLine: `Look at top of R&D (${top.title}) — may trash.`,
+});
       return { ok: true };
     }
     case "look_top_rd_may_bottom": {
@@ -20855,7 +20543,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       }
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -20876,8 +20564,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(state, `Look at top of R&D (${top.title}) — may bottom.`);
+logLine: `Look at top of R&D (${top.title}) — may bottom.`,
+});
       return { ok: true };
     }
     case "look_top_rd_may_advance_may_bottom": {
@@ -20888,7 +20576,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
       // Step 1: may place 1 advancement on the looked card.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -20924,11 +20612,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `Look at top of R&D (${top.title}) — may advance, then may bottom.`,
-      );
+logLine: `Look at top of R&D (${top.title}) — may advance, then may bottom.`,
+});
       return { ok: true };
     }
     case "rd_top_to_bottom": {
@@ -20972,7 +20657,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           otherIceId: others[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: others.map((id) => ({
@@ -20986,8 +20671,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose another ice to swap with.`);
+logLine: `${source.title} — choose another ice to swap with.`,
+});
       return { ok: true };
     }
     case "may_swap_ice_with_other_installed": {
@@ -21008,7 +20693,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       }
       const chooser = source.side === "corp" ? "corp" : "runner";
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser,
         options: [
@@ -21036,8 +20721,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `May swap ${source.title} with another installed ice.`);
+logLine: `May swap ${source.title} with another installed ice.`,
+});
       return { ok: true };
     }
     case "may_swap_protecting_attacked_ice_with_other_installed": {
@@ -21061,7 +20746,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -21089,11 +20774,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `${source.title} — may swap ice protecting attacked server with another installed ice.`,
-      );
+logLine: `${source.title} — may swap ice protecting attacked server with another installed ice.`,
+});
       return { ok: true };
     }
     case "swap_protecting_attacked_ice_pick_other": {
@@ -21115,7 +20797,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           otherIceId: others[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: others.map((id) => ({
@@ -21130,11 +20812,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `Choose another installed ice to swap with ${state.cards[protectingIceId]?.title ?? protectingIceId}.`,
-      );
+logLine: `Choose another installed ice to swap with ${state.cards[protectingIceId]?.title ?? protectingIceId}.`,
+});
       return { ok: true };
     }
     case "swap_protecting_attacked_ice_with": {
@@ -21255,7 +20934,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       };
       if (state.corp.hand.length === 1) return apply(state.corp.hand[0]!);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: state.corp.hand.map((id) => ({
@@ -21266,7 +20945,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "trash_hq_reencounter_passed_ice_resolve": {
@@ -21305,7 +20984,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Install and rez from HQ — no eligible cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -21342,11 +21021,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             };
           }),
         ],
-      };
-      log(
-        state,
-        `May install and rez 1 card from HQ paying ${discount}¢ less total.`,
-      );
+logLine: `May install and rez 1 card from HQ paying ${discount}¢ less total.`,
+});
       return { ok: true };
     }
     case "install_and_rez_hq_card_with_discount": {
@@ -21447,7 +21123,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Search R&D install+rez — none found.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -21471,8 +21147,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(state, `May search R&D for 1 card to install and rez ignoring costs.`);
+logLine: `May search R&D for 1 card to install and rez ignoring costs.`,
+});
       return { ok: true };
     }
     case "search_rd_pick_install_rez_ignore_costs": {
@@ -21526,7 +21202,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "choose_lycian_subtypes": {
       const options = ["barrier", "code gate", "sentry"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: options.map((subtype) => ({
@@ -21541,11 +21217,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose 1 or more subtypes (barrier / code gate / sentry).`,
-      );
+logLine: `${source.title} — choose 1 or more subtypes (barrier / code gate / sentry).`,
+});
       return { ok: true };
     }
     case "gain_lycian_subtype": {
@@ -21560,7 +21233,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       log(state, `${source.title} gains ${subtype} while rezzed.`);
       const remaining = action.remaining ?? [];
       if (remaining.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -21585,7 +21258,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "spend_lightning_counter_rez_up_to_protecting_attacked": {
@@ -21623,7 +21296,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Rez protecting ice — none unrezzed.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -21648,11 +21321,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `Rez up to ${maxIce} ice protecting the attacked server ignoring costs.`,
-      );
+logLine: `Rez up to ${maxIce} ice protecting the attacked server ignoring costs.`,
+});
       return { ok: true };
     }
     case "rez_one_protecting_attacked_ignore_costs": {
@@ -21679,7 +21349,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           !state.cards[id]!.rezzed,
       );
       if (unrezzed.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -21704,7 +21374,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "derez_up_to_ice_protecting_server": {
@@ -21719,7 +21389,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Derez ice protecting ${serverId} — none rezzed.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -21745,11 +21415,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `Derez up to ${maxIce} ice protecting ${serverId}.`,
-      );
+logLine: `Derez up to ${maxIce} ice protecting ${serverId}.`,
+});
       return { ok: true };
     }
     case "derez_one_protecting_server": {
@@ -21776,7 +21443,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           state.cards[id]!.rezzed,
       );
       if (rezzed.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -21802,7 +21469,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "derez_brasilia_other_ice_for_strength": {
@@ -21835,7 +21502,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         action: { kind: "add_agenda_counters_equal_to_bad_publicity" },
       };
       if (amount <= 0) return evalEffect(ctx, continueFx);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -21859,11 +21526,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             effect: continueFx,
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may take ${amount} bad publicity, then place agenda counters equal to bad publicity.`,
-      );
+logLine: `${source.title} — may take ${amount} bad publicity, then place agenda counters equal to bad publicity.`,
+});
       return { ok: true };
     }
     case "add_agenda_counters_equal_to_bad_publicity": {
@@ -21884,7 +21548,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -21908,11 +21572,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may pay ${credits}¢ to gain [click] (trash at turn end if no successful run).`,
-      );
+logLine: `${source.title} — may pay ${credits}¢ to gain [click] (trash at turn end if no successful run).`,
+});
       return { ok: true };
     }
     case "pay_gain_click": {
@@ -21931,7 +21592,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "may_gain_click_then_tag_at_turn_end": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -21952,11 +21613,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may gain [click] (tag at turn end if you do).`,
-      );
+logLine: `${source.title} — may gain [click] (tag at turn end if you do).`,
+});
       return { ok: true };
     }
     case "gain_joshua_click_tag_at_turn_end": {
@@ -21980,7 +21638,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no program/hardware in grip to host.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: grip.map((cardId) => ({
@@ -21994,11 +21652,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — host a program or hardware from grip with power = install cost.`,
-      );
+logLine: `${source.title} — host a program or hardware from grip with power = install cost.`,
+});
       return { ok: true };
     }
     case "host_grip_pw_card_with_power_equal_install_cost": {
@@ -22044,7 +21699,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: hosted[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: hosted.map((cardId) => ({
@@ -22058,8 +21713,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a hosted card to remove 1 power.`);
+logLine: `${source.title} — choose a hosted card to remove 1 power.`,
+});
       return { ok: true };
     }
     case "remove_power_from_hosted_card_id_install_at_zero": {
@@ -22125,7 +21780,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no server with 2+ ice to rearrange.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: servers.map((s) => ({
@@ -22140,8 +21795,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose a server to rearrange ice.`);
+logLine: `${source.title} — choose a server to rearrange ice.`,
+});
       return { ok: true };
     }
     case "rearrange_server_ice": {
@@ -22176,7 +21831,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           order: [...placed, remaining[0]!],
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: remaining.map((iceId: string) => ({
@@ -22191,11 +21846,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
-      );
+logLine: `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
+});
       return { ok: true };
     }
     case "choose_ice_gain_credits_per_advancement": {
@@ -22207,7 +21859,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no installed ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: iceIds.map((iceId) => {
@@ -22225,11 +21877,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           };
         }),
-      };
-      log(
-        state,
-        `${source.title} — choose ice; gain ¢ equal to advancements.`,
-      );
+logLine: `${source.title} — choose ice; gain ¢ equal to advancements.`,
+});
       return { ok: true };
     }
     case "gain_credits_from_ice_advancements": {
@@ -22243,7 +21892,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     }
     case "choose_one_subtype_until_derez": {
       const options = ["barrier", "code gate", "sentry"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: options.map((subtype) => ({
@@ -22257,11 +21906,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose sentry, code gate, or barrier until derezzed.`,
-      );
+logLine: `${source.title} — choose sentry, code gate, or barrier until derezzed.`,
+});
       return { ok: true };
     }
     case "gain_one_subtype_until_derez": {
@@ -22345,11 +21991,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `May install from HQ ignoring costs, then place ${amount} advancement(s).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May install from HQ ignoring costs, then place ${amount} advancement(s).`,
+});
       return { ok: true };
     }
     case "install_hq_card_ignore_costs_then_place_advancements": {
@@ -22429,11 +22073,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         })),
       ];
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `Divert Power — derez any number (current ${derezzed}), then may rez (−${per}¢ each).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Divert Power — derez any number (current ${derezzed}), then may rez (−${per}¢ each).`,
+});
       return { ok: true };
     }
     case "may_rez_card_with_discount": {
@@ -22479,8 +22121,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           };
         }),
       ];
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(state, `May rez 1 card (−${discount}¢).`);
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `May rez 1 card (−${discount}¢).`,
+});
       return { ok: true };
     }
     case "rez_card_with_discount": {
@@ -22531,7 +22174,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no agenda in HQ to add to score.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: candidates.map((id) => ({
@@ -22546,11 +22189,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — add an HQ agenda worth ${pts} AP (hosted power).`,
-      );
+logLine: `${source.title} — add an HQ agenda worth ${pts} AP (hosted power).`,
+});
       return { ok: true };
     }
     case "add_hq_agenda_to_score_with_agenda_points": {
@@ -22626,11 +22266,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — may place up to ${maxAdv} advancements, then Runner accesses unless pays ${credits}¢.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — may place up to ${maxAdv} advancements, then Runner accesses unless pays ${credits}¢.`,
+});
       return { ok: true };
     }
     case "place_advancements_then_access_unless_pay": {
@@ -22643,7 +22281,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const credits = Math.max(0, action.credits);
       const title = state.cards[action.cardId]?.title ?? action.cardId;
       if (credits > 0 && state.runner.credits >= credits) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: [
@@ -22671,11 +22309,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           ],
-        };
-        log(
-          state,
-          `Runner accesses ${title} unless they pay ${credits}¢.`,
-        );
+logLine: `Runner accesses ${title} unless they pay ${credits}¢.`,
+});
         return { ok: true };
       }
       return applyPrimitive(ctx, {
@@ -22714,7 +22349,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no ice to host on.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -22728,8 +22363,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose ice to host as condition counter.`);
+logLine: `${source.title} — choose ice to host as condition counter.`,
+});
       return { ok: true };
     }
     case "host_on_ice_as_condition_on": {
@@ -22798,7 +22433,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       if (remaining <= 0 || state.runner.discardPile.length === 0) {
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -22823,11 +22458,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `Install up to ${remaining} more from heap facedown.`,
-      );
+logLine: `Install up to ${remaining} more from heap facedown.`,
+});
       return { ok: true };
     }
     case "runner_break_fast_equal_to_scored_agendas": {
@@ -22906,15 +22538,12 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source.title} — choose a single remote for up to ${remaining} install(s).`,
-      );
+logLine: `${source.title} — choose a single remote for up to ${remaining} install(s).`,
+});
       return { ok: true };
     }
     case "install_continue": {
@@ -22990,7 +22619,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Fast Break — no more affordable HQ cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -23031,11 +22660,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `Fast Break — install up to ${remaining} more into/protecting ${serverId}.`,
-      );
+logLine: `Fast Break — install up to ${remaining} more into/protecting ${serverId}.`,
+});
       return { ok: true };
     }
     case "install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn": {
@@ -23086,11 +22712,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source.title} — install from HQ on a remote root (pay costs), place ${amount} advancement(s), lock until next Corp turn.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source.title} — install from HQ on a remote root (pay costs), place ${amount} advancement(s), lock until next Corp turn.`,
+});
       return { ok: true };
     }
     case "install_hq_remote_root_place_adv_lock_until_next_corp_turn": {
@@ -23281,7 +22905,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         return { ok: true };
       };
       if (agendas.length === 1) return finish(agendas[0]!);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: agendas.map((id) => ({
@@ -23298,11 +22922,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose an agenda in HQ or Archives to reveal.`,
-      );
+logLine: `${source.title} — choose an agenda in HQ or Archives to reveal.`,
+});
       return { ok: true };
     }
     case "search_install_non_daemon": {
@@ -23336,8 +22957,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             | "grip",
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `${source.title} — choose zone to search.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — choose zone to search.`,
+});
       return { ok: true };
     }
     case "search_zone": {
@@ -23354,7 +22976,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           from: action.zone,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -23369,11 +22991,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(
-        state,
-        `Muse — choose non-daemon program from ${action.zone} (${cands.length}).`,
-      );
+logLine: `Muse — choose non-daemon program from ${action.zone} (${cands.length}).`,
+});
       return { ok: true };
     }
     case "install_picked": {
@@ -23403,7 +23022,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             from: action.from,
           });
         }
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: iceIds.map((iceId) => ({
@@ -23419,8 +23038,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
               },
             },
           })),
-        };
-        log(state, `Muse — choose ice to host ${card.title}.`);
+logLine: `Muse — choose ice to host ${card.title}.`,
+});
         return { ok: true };
       }
       return applyPrimitive(ctx, {
@@ -23455,7 +23074,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         "program",
         "resource",
       ];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: types.map((cardType) => ({
@@ -23471,8 +23090,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose card type.`);
+logLine: `${source.title} — choose card type.`,
+});
       return { ok: true };
     }
     case "wizard_chest_for_type": {
@@ -23525,11 +23144,9 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           },
         },
       ];
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(
-        state,
-        `${source.title} — may install 1 of ${matches.length} ${action.cardType}(s) ignoring costs.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `${source.title} — may install 1 of ${matches.length} ${action.cardType}(s) ignoring costs.`,
+});
       return { ok: true };
     }
     case "install_wizard_chest": {
@@ -23632,7 +23249,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           iceId: iceIds[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: iceIds.map((id) => ({
@@ -23643,11 +23260,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "set_reencounter_ice" as const, iceId: id },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — choose rezzed ice protecting ${serverId} for encounter.`,
-      );
+logLine: `${source.title} — choose rezzed ice protecting ${serverId} for encounter.`,
+});
       return { ok: true };
     }
     case "set_reencounter_ice": {
@@ -23714,7 +23328,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `${source.title} — no other rezzed ice to encounter.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -23738,11 +23352,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           })),
         ],
-      };
-      log(
-        state,
-        `${source.title} — may choose another rezzed ice to force encounter.`,
-      );
+logLine: `${source.title} — may choose another rezzed ice to force encounter.`,
+});
       return { ok: true };
     }
     case "set_nested_encounter_then_resume_source": {
@@ -23813,7 +23424,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: installed.map((id) => ({
@@ -23824,11 +23435,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "trash_runner_rig_card" as const, cardId: id },
           },
         })),
-      };
-      log(
-        state,
-        `${source.title} — Runner must trash 1 installed card (CR ${CR.trashing.number}).`,
-      );
+logLine: `${source.title} — Runner must trash 1 installed card (CR ${CR.trashing.number}).`,
+});
       return { ok: true };
     }
     case "look_top_n_stack_peek": {
@@ -23866,7 +23474,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -23891,11 +23499,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${source.title} — may install revealed ${card.title} from stack.`,
-      );
+logLine: `${source.title} — may install revealed ${card.title} from stack.`,
+});
       return { ok: true };
     }
     case "may_shuffle_register_title_from_heap_on_successful_run_end": {
@@ -23924,7 +23529,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -23948,11 +23553,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `May shuffle 1 copy of ${action.title} from heap into stack.`,
-      );
+logLine: `May shuffle 1 copy of ${action.title} from heap into stack.`,
+});
       return { ok: true };
     }
     case "shuffle_heap_card_into_stack": {
@@ -23995,7 +23597,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       const top = state.cards[topId]!;
       top.faceup = true;
       log(state, `${source.title} — reveal top of R&D: ${top.title}.`);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -24016,7 +23618,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "draw_top_rd_to_hand": {
@@ -24143,7 +23745,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "score_unorthodox_predictions_on": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ["sentry", "code gate", "barrier"].map((subtype) => ({
@@ -24157,8 +23759,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
-      log(state, `${source.title} — choose ice subtype to lock breaks until your next turn.`);
+logLine: `${source.title} — choose ice subtype to lock breaks until your next turn.`,
+});
       return { ok: true };
     }
     case "unorthodox_predictions_lock_subtype": {
@@ -24195,7 +23797,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cardId: state.runner.hand[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: state.runner.hand.map((id) => ({
@@ -24206,7 +23808,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             action: { kind: "trash_from_grip" as const, cardId: id },
           },
         })),
-      };
+      });
       return { ok: true };
     }
     case "runner_lose_credits_equal_corp_bad_publicity": {
@@ -24221,7 +23823,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
       return { ok: true };
     }
     case "power_shutdown": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -24250,8 +23852,8 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             };
           }),
         ],
-      };
-      log(state, `${source.title} — choose how many cards to trash from top of R&D.`);
+logLine: `${source.title} — choose how many cards to trash from top of R&D.`,
+});
       return { ok: true };
     }
     case "trash_rd": {
@@ -24278,7 +23880,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         log(state, `Power Shutdown — no Runner install cost ≤ ${maxCost}.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -24292,7 +23894,7 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
     case "break_barrier": {
@@ -24459,7 +24061,7 @@ function openExposeUpTo(
       action: { kind: "end_expose_up_to" as const },
     },
   });
-  state.pendingChoice = { sourceId, chooser: "runner", options };
+  openPendingChoose(state, { sourceId, chooser: "runner", options });
   log(
     state,
     `${source?.title ?? "Expose"} — may expose up to ${remaining} more card(s).`,
@@ -24601,7 +24203,7 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
       return { ok: true };
     }
     case "choose": {
-      ctx.state.pendingChoice = {
+      openPendingChoose(ctx.state, {
         sourceId: ctx.sourceId,
         chooser: effect.chooser,
         options: effect.options.map((o) => ({
@@ -24609,11 +24211,8 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
           label: o.label,
           effect: structuredClone(o.effect),
         })),
-      };
-      log(
-        ctx.state,
-        `Choice pending for ${effect.chooser} (${effect.options.length} options) from ${ctx.state.cards[ctx.sourceId].title}.`,
-      );
+logLine: `Choice pending for ${effect.chooser} (${effect.options.length} options) from ${ctx.state.cards[ctx.sourceId].title}.`,
+});
       return { ok: true };
     }
     default: {

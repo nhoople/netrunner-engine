@@ -8,6 +8,8 @@ import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -51,8 +53,9 @@ export function applyKitaraKaPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `Diversion of Funds — may instead of breaching HQ.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `Diversion of Funds — may instead of breaching HQ.`,
+});
       return { ok: true };
     }
 
@@ -79,7 +82,7 @@ export function applyKitaraKaPrimitive(
         log(state, `Reclaim — no program/hardware/virtual in heap.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -87,7 +90,7 @@ export function applyKitaraKaPrimitive(
           label: `Install ${state.cards[id]!.title} from heap (pay install cost)`,
           effect: fx.do({ kind: "install_reclaim_resolve", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -131,7 +134,7 @@ export function applyKitaraKaPrimitive(
         return { ok: true };
       }
       const serverId = state.run.attackedServerId;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: iceInHq.map((id) => ({
@@ -143,7 +146,7 @@ export function applyKitaraKaPrimitive(
             serverId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 

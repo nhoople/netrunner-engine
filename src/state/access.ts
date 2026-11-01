@@ -1,4 +1,5 @@
 import { runnerIsTagged } from "./tags.js";
+import { openPendingChoose } from "./pendingChoice.js";
 /** Central / remote breach access candidate building (CR 7.3–7.4). */
 
 import { log } from "./createGame.js";
@@ -53,7 +54,7 @@ function offerMercuryBreachBonusAccess(
   const idCard = state.cards[state.runner.identityId];
   const amount = idCard?.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess;
   if (!amount || amount <= 0) return false;
-  state.pendingChoice = {
+  if (!openPendingChoose(state, {
     sourceId: idCard.id,
     chooser: "runner",
     options: [
@@ -74,7 +75,7 @@ function offerMercuryBreachBonusAccess(
         },
       },
     ],
-  };
+  })) return false;
   state.turn.mercuryBreachBonusUsedThisTurn = true;
   run.mercuryBreachPending = true;
   log(
@@ -124,7 +125,7 @@ function offerMediumBreachBonusAccess(
       // 0 virus → no positive choice; no additional access, continue.
       continue;
     }
-    state.pendingChoice = { sourceId: id, chooser: "runner", options };
+    if (!openPendingChoose(state, { sourceId: id, chooser: "runner", options })) continue;
     run.mediumBreachPending = true;
     log(
       state,
@@ -151,7 +152,7 @@ function offerRotaryBreachBonusAccess(
     const card = state.cards[id];
     const amount = card?.mayTakeTagForBonusAccessOnHqRdBreach;
     if (!amount || amount <= 0) continue;
-    state.pendingChoice = {
+    if (!openPendingChoose(state, {
       sourceId: id,
       chooser: "runner",
       options: [
@@ -181,7 +182,7 @@ function offerRotaryBreachBonusAccess(
           },
         },
       ],
-    };
+    })) continue;
     run.mercuryBreachPending = true;
     log(
       state,
@@ -213,7 +214,7 @@ function offerPrettyMaryBreachBonusAccess(
     if (allowed < spec.min) continue;
     const amount = spec.amount;
     if (amount <= 0) continue;
-    state.pendingChoice = {
+    if (!openPendingChoose(state, {
       sourceId: id,
       chooser: "runner",
       options: [
@@ -234,7 +235,7 @@ function offerPrettyMaryBreachBonusAccess(
           },
         },
       ],
-    };
+    })) continue;
     run.prettyMaryBreachResolved = true;
     run.mercuryBreachPending = true;
     log(
@@ -278,7 +279,7 @@ function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): bool
         action: { kind: "gain_credits", side: "runner", amount: 0 },
       },
     });
-    state.pendingChoice = { sourceId: id, chooser: "runner", options };
+    if (!openPendingChoose(state, { sourceId: id, chooser: "runner", options })) continue;
     run.wakeImplantPending = true;
     log(state, `${card.title} — may remove up to ${upTo} power for bonus R&D access.`);
     return true;

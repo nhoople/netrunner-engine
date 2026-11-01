@@ -7,6 +7,8 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
 import { applySansanOhPrimitive } from "./sansanOhPrimitives.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -64,11 +66,9 @@ export function offerRamanRaiSwapWhileSetAside(
     label: "Decline",
     effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
   });
-  state.pendingChoice = { sourceId: raman.id, chooser: "corp", options };
-  log(
-    state,
-    `Reaction window (CR ${CR.checkpointReaction.number}); ${raman.title} may swap a drawn card.`,
-  );
+  openPendingChoose(state, { sourceId: raman.id, chooser: "corp", options,
+logLine: `Reaction window (CR ${CR.checkpointReaction.number}); ${raman.title} may swap a drawn card.`,
+});
   return true;
 }
 
@@ -147,7 +147,7 @@ export function applyMumbadSiPrimitive(
         log(state, `Brahman — no installed non-virus program.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => {
@@ -161,8 +161,8 @@ export function applyMumbadSiPrimitive(
             }),
           };
         }),
-      };
-      log(state, `Brahman — choose an installed non-virus program for stack top.`);
+logLine: `Brahman — choose an installed non-virus program for stack top.`,
+});
       return { ok: true };
     }
 
@@ -199,11 +199,11 @@ export function applyMumbadSiPrimitive(
         log(state, `Salem's Hospitality — no card names available.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
+      });
       return { ok: true };
     }
 
@@ -250,7 +250,7 @@ export function applyMumbadSiPrimitive(
           cardId: matches[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: matches.map((cardId) => ({
@@ -261,7 +261,7 @@ export function applyMumbadSiPrimitive(
             cardId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -306,11 +306,11 @@ export function applyMumbadSiPrimitive(
         log(state, `Localized Product Line — R&D empty; shuffle.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
+      });
       return { ok: true };
     }
 
@@ -350,7 +350,7 @@ export function applyMumbadSiPrimitive(
         log(state, `Raman Rai — no same-type card in Archives.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -369,7 +369,7 @@ export function applyMumbadSiPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -421,7 +421,7 @@ export function applyMumbadSiPrimitive(
 
     case "choose_patron_server": {
       const servers = Object.keys(state.servers);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -439,7 +439,7 @@ export function applyMumbadSiPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -578,7 +578,7 @@ function offerSiStackTrashOrArrange(ctx: EffectCtx): PrimResult {
   if (looked.length === 0) {
     return offerSiStackArrangeChoice(ctx);
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: [
@@ -596,7 +596,7 @@ function offerSiStackTrashOrArrange(ctx: EffectCtx): PrimResult {
         effect: fx.do({ kind: "si_stack_done_trashing" }),
       },
     ],
-  };
+  });
   return { ok: true };
 }
 
@@ -616,7 +616,7 @@ function offerSiStackArrangeChoice(ctx: EffectCtx): PrimResult {
     log(state, `Arrange stack — ${placed.length} card(s) replaced.`);
     return { ok: true };
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: looked.map((cardId) => ({
@@ -627,6 +627,6 @@ function offerSiStackArrangeChoice(ctx: EffectCtx): PrimResult {
         cardId,
       }),
     })),
-  };
+  });
   return { ok: true };
 }

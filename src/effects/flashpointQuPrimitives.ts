@@ -9,6 +9,8 @@ import { fireOnPlay } from "../state/cardLifecycleHooks.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -70,7 +72,7 @@ export function applyFlashpointQuPrimitive(
         label: "Decline",
         effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -159,7 +161,7 @@ export function applyFlashpointQuPrimitive(
         label: "Decline",
         effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -203,7 +205,7 @@ export function applyFlashpointQuPrimitive(
         log(state, `Sensor Net Activation — no unrezzed bioroid.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: candidates.map((id) => ({
@@ -214,7 +216,7 @@ export function applyFlashpointQuPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -260,7 +262,7 @@ export function applyFlashpointQuPrimitive(
         const t = state.cards[id].type;
         return t === "agenda" || t === "asset" || t === "upgrade";
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -278,7 +280,7 @@ export function applyFlashpointQuPrimitive(
             }),
           })),
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -316,7 +318,7 @@ export function applyFlashpointQuPrimitive(
         };
         targets = [sid];
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((serverId) => ({
@@ -328,7 +330,7 @@ export function applyFlashpointQuPrimitive(
             serverId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -392,7 +394,7 @@ export function applyFlashpointQuPrimitive(
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -427,7 +429,7 @@ export function applyFlashpointQuPrimitive(
         log(state, `Macrophage — trash virus ${state.cards[id]!.title}.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: viruses.map((id) => ({
@@ -435,7 +437,7 @@ export function applyFlashpointQuPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_installed_virus_resolve", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -461,7 +463,7 @@ export function applyFlashpointQuPrimitive(
         log(state, `Macrophage — RFG virus ${state.cards[id]!.title} from heap.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: viruses.map((id) => ({
@@ -469,7 +471,7 @@ export function applyFlashpointQuPrimitive(
           label: `RFG ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "rfg_virus_from_heap_resolve", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -495,7 +497,7 @@ export function applyFlashpointQuPrimitive(
         log(state, `Bryan Stinson — no transaction in Archives.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: txs.map((id) => ({
@@ -506,7 +508,7 @@ export function applyFlashpointQuPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -557,7 +559,7 @@ export function applyFlashpointQuPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 

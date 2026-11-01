@@ -8,6 +8,8 @@ import { canPayCost, payCost } from "../state/costs.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -31,7 +33,7 @@ export function applyLunarFcPrimitive(
         log(state, `Kitsune — no cards in HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -46,7 +48,7 @@ export function applyLunarFcPrimitive(
             effect: fx.do({ kind: "breach_hq_resolve", cardId: id }),
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "breach_hq_resolve": {
@@ -67,7 +69,7 @@ export function applyLunarFcPrimitive(
         log(state, `Wendigo — no programs to ban.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: progs.map((id) => ({
@@ -75,7 +77,7 @@ export function applyLunarFcPrimitive(
           label: `Ban ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "resolve_wendigo_ban_program", programId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "resolve_wendigo_ban_program": {
@@ -109,7 +111,7 @@ export function applyLunarFcPrimitive(
         log(state, `Shattered Remains — no advancement counters.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -127,7 +129,7 @@ export function applyLunarFcPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "pay_shattered_remains": {
@@ -156,7 +158,7 @@ export function applyLunarFcPrimitive(
         moveRunnerCardToHeap(state, progs[0]!);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: progs.map((id) => ({
@@ -164,7 +166,7 @@ export function applyLunarFcPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "supplier_host_from_grip": {
@@ -178,7 +180,7 @@ export function applyLunarFcPrimitive(
         log(state, `The Supplier — nothing to host from grip.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((id) => ({
@@ -186,7 +188,7 @@ export function applyLunarFcPrimitive(
           label: `Host ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "resolve_supplier_host", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "resolve_supplier_host": {
@@ -205,7 +207,7 @@ export function applyLunarFcPrimitive(
       const host = state.cards[sourceId];
       const hosted = host?.hostedCardIds ?? [];
       if (hosted.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -220,7 +222,7 @@ export function applyLunarFcPrimitive(
             effect: fx.do({ kind: "install_supplier_hosted", cardId: id }),
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "install_supplier_hosted": {

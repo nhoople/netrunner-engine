@@ -6,6 +6,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -85,12 +87,12 @@ export function applyKitaraSsPrimitive(
           effect: fx.do({ kind: "remove_power_counter", amount: 1 }),
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(state, `${source?.title ?? "Puffer"} — add or remove 1 power counter.`);
+logLine: `${source?.title ?? "Puffer"} — add or remove 1 power counter.`,
+});
       return { ok: true };
     }
 
@@ -103,7 +105,7 @@ export function applyKitaraSsPrimitive(
         log(state, `${source?.title ?? "Assimilator"} — no facedown installed cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: facedown.map((id) => ({
@@ -111,7 +113,7 @@ export function applyKitaraSsPrimitive(
           label: `Turn ${state.cards[id]!.title} faceup`,
           effect: fx.do({ kind: "resolve_assimilator_faceup", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -175,11 +177,9 @@ export function applyKitaraSsPrimitive(
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `${source?.title ?? "Asa Group"} — may install non-agenda same server (${serverId}).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `${source?.title ?? "Asa Group"} — may install non-agenda same server (${serverId}).`,
+});
       return { ok: true };
     }
 
@@ -216,7 +216,7 @@ export function applyKitaraSsPrimitive(
         return { ok: true };
       }
       // Offer choosing up to n cards; if fewer exist, take all via sequential choices.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -228,11 +228,8 @@ export function applyKitaraSsPrimitive(
             remaining: n - 1,
           }),
         })),
-      };
-      log(
-        state,
-        `${source?.title ?? "Self-Growth Program"} — add ${n} installed Runner card(s) to grip.`,
-      );
+logLine: `${source?.title ?? "Self-Growth Program"} — add ${n} installed Runner card(s) to grip.`,
+});
       return { ok: true };
     }
 
@@ -243,7 +240,7 @@ export function applyKitaraSsPrimitive(
       if (remaining <= 0) return { ok: true };
       const targets = [...state.runner.installed];
       if (targets.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -255,7 +252,7 @@ export function applyKitaraSsPrimitive(
             remaining: remaining - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -278,7 +275,7 @@ export function applyKitaraSsPrimitive(
         log(state, `${source?.title ?? "Calibration Testing"} — no other root cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: root.map((id) => ({
@@ -290,7 +287,7 @@ export function applyKitaraSsPrimitive(
             amount: 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -319,7 +316,7 @@ export function applyKitaraSsPrimitive(
         log(state, `${source?.title ?? "Wake Up Call"} — no legal targets.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -327,14 +324,14 @@ export function applyKitaraSsPrimitive(
           label: `Choose ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "resolve_wake_up_call", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "resolve_wake_up_call": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -352,11 +349,8 @@ export function applyKitaraSsPrimitive(
             effect: fx.do({ kind: "meat_damage", amount: 4 }),
           },
         ],
-      };
-      log(
-        state,
-        `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.title} or 4 meat.`,
-      );
+logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.title} or 4 meat.`,
+});
       return { ok: true };
     }
 
@@ -410,7 +404,7 @@ export function applyKitaraSsPrimitive(
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -437,7 +431,7 @@ export function applyKitaraSsPrimitive(
     }
 
     case "may_place_advancement_on_self_meat": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -456,7 +450,7 @@ export function applyKitaraSsPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -508,7 +502,7 @@ export function maybeOfferGainCreditsOnExpose(
     if (!c || typeof n !== "number" || n <= 0) continue;
     // If a choice is already pending, skip (expose continues).
     if (state.pendingChoice) return;
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId: id,
       chooser: "runner",
       options: [
@@ -523,8 +517,8 @@ export function maybeOfferGainCreditsOnExpose(
           effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
         },
       ],
-    };
-    log(state, `${c.title} — may gain ${n}¢ (Corp card exposed).`);
+logLine: `${c.title} — may gain ${n}¢ (Corp card exposed).`,
+});
     return;
   }
 }
@@ -538,7 +532,7 @@ export function maybeOfferAdvancementOnMeatDamage(
       const c = state.cards[id];
       if (!c?.rezzed || !c.placeAdvancementOnSufferMeatDamage) continue;
       if (state.pendingChoice) return;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: id,
         chooser: "corp",
         options: [
@@ -557,8 +551,8 @@ export function maybeOfferAdvancementOnMeatDamage(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
-      log(state, `${c.title} — may place 1 advancement (meat damage).`);
+logLine: `${c.title} — may place 1 advancement (meat damage).`,
+});
       return;
     }
   }

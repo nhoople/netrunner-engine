@@ -8,6 +8,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 import { getCardDef } from "../cards/load.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -119,7 +121,7 @@ export function applyRedsandBawPrimitive(
         log(state, `Loki — no other rezzed ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: candidates.map((id) => ({
@@ -127,7 +129,7 @@ export function applyRedsandBawPrimitive(
           label: `Copy ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "gain_from_ice", iceId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -202,7 +204,7 @@ export function applyRedsandBawPrimitive(
         state.run.position = null;
       }
       log(state, `Mirāju — Runner moves to outermost Archives.`);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -217,7 +219,7 @@ export function applyRedsandBawPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -250,12 +252,12 @@ export function applyRedsandBawPrimitive(
           })),
         };
       };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: (pickOne(n, candidates) as Extract<Effect, { op: "choose" }>)
           .options,
-      };
+      });
       return { ok: true };
     }
 
@@ -295,7 +297,7 @@ export function applyRedsandBawPrimitive(
           }),
         })),
       );
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -320,7 +322,7 @@ export function applyRedsandBawPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -389,7 +391,7 @@ export function applyRedsandBawPrimitive(
           effect: fx.do({ kind: "meat_damage", amount: 7 }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -412,7 +414,7 @@ export function applyRedsandBawPrimitive(
           effect: fx.do({ kind: "runner_trash_standoff_after", cardId: id }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -440,7 +442,7 @@ export function applyRedsandBawPrimitive(
           ),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -466,7 +468,7 @@ export function applyRedsandBawPrimitive(
         log(state, `Success — no advanceable card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: candidates.map((id) => ({
@@ -478,7 +480,7 @@ export function applyRedsandBawPrimitive(
             amount: x,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -489,7 +491,7 @@ export function applyRedsandBawPrimitive(
         log(state, `Whampoa Reclamation — Archives empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: archives.map((id) => ({
@@ -497,7 +499,7 @@ export function applyRedsandBawPrimitive(
           label: `Add ${state.cards[id]!.title} to R&D bottom`,
           effect: fx.do({ kind: "whampoa_archives_to_rd_bottom", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -525,7 +527,7 @@ export function applyRedsandBawPrimitive(
           effect: fx.do({ kind: "bug_out_bag_load_power", amount: x }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
