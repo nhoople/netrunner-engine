@@ -58,6 +58,10 @@ import { drawCards } from "../src/effects/draw.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import { mayLookAtHiddenZone } from "../src/state/hiddenSearch.js";
+import {
+  addLingeringEffect,
+  LINGERING_KIND_RUNNER_MU,
+} from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/state/types.js";
 
 beforeAll(() => {
@@ -598,7 +602,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     install("mu-1", 1);
     install("mu-2", 1);
     install("mu-3", 2);
-    s.turn.runnerMuModifierUntilTurnEnd = -2;
+    addLingeringEffect(s, {
+      createdBy: s.corp.identityId,
+      duration: { kind: "turn", side: "runner" },
+      kind: LINGERING_KIND_RUNNER_MU,
+      payload: { delta: -2 },
+    });
     const from = s.log.length;
     occurCheckpoint(s, "timing", "Bad Times", [CR.checkpointCardRestrictions], "test");
     expect(s.checkpoints).toHaveLength(1);
@@ -638,7 +647,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.cards["mu-1"] = card;
     s.runner.installed = ["mu-1"];
     s.runner.memoryLimit = 2;
-    s.turn.runnerMuModifierUntilTurnEnd = -2;
+    addLingeringEffect(s, {
+      createdBy: s.corp.identityId,
+      duration: { kind: "turn", side: "runner" },
+      kind: LINGERING_KIND_RUNNER_MU,
+      payload: { delta: -2 },
+    });
     occurCheckpoint(s, "timing", "Bad Times", [CR.checkpointCardRestrictions], "test");
     expect(s.pendingChoice).toBeNull();
     expect(s.checkpoints).toHaveLength(0);

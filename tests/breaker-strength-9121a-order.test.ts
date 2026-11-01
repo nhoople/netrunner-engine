@@ -13,6 +13,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
+import { addBreakerStrengthBoostThisEncounter } from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/index.js";
 
 beforeAll(() => {
@@ -57,7 +58,11 @@ describe("breaker strength order (CR 9.12.1a)", () => {
     // Printed 5 − 2 grip = 3.
     expect(effectiveBreakerStrength(s, "cradle-1")).toBe(3);
 
-    s.run!.encounterStrengthBoosts["cradle-1"] = 4;
+    addBreakerStrengthBoostThisEncounter(s, {
+      createdBy: "cradle-1",
+      breakerId: "cradle-1",
+      amount: 4,
+    });
     // Increases (+4) then grip decrease (−2) → 7.
     expect(effectiveBreakerStrength(s, "cradle-1")).toBe(7);
     expect(breakerStrength(s, "cradle-1")).toBe(7);
@@ -89,7 +94,11 @@ describe("breaker strength order (CR 9.12.1a)", () => {
     s.runner.installed = ["br-1"];
     s.run = runState();
     s.run.iceDerezzedThisRun = true;
-    s.run.encounterStrengthBoosts["br-1"] = 3;
+    addBreakerStrengthBoostThisEncounter(s, {
+      createdBy: "br-1",
+      breakerId: "br-1",
+      amount: 3,
+    });
 
     // Corroder printed 2 + 3 pump − 2 Stegodon = 3.
     expect(steg.whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun).toBe(2);

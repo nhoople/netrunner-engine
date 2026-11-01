@@ -36,6 +36,9 @@ import {
 import {
   moveRunnerCardToHeap,
 } from "../src/state/trashHooks.js";
+import {
+  addBreakerStrengthBoostThisRun,
+} from "../src/state/lingeringEffects.js";
 
 describe("parhelion", () => {
   describe("parhelion-adv-req-reduction", () => {
@@ -2518,7 +2521,11 @@ describe("parhelion", () => {
         accessingCardId: null,
       };
       // Match strength
-      s.run.strengthBoosts["orca-1"] = 10;
+      addBreakerStrengthBoostThisRun(s, {
+        createdBy: "orca-1",
+        breakerId: "orca-1",
+        amount: 10,
+      });
 
       s = must(s, {
         type: "break_subroutine",
