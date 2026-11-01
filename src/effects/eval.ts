@@ -1793,10 +1793,22 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
           cites: [CR.icebreakerStrengthImplicit],
         };
       }
-      const beforeTurn = state.turn.breakerStrengthBoostsThisTurn[sourceId] ?? 0;
-      const beforeRun = state.run?.strengthBoosts[sourceId] ?? 0;
-      const beforeEnc = state.run?.encounterStrengthBoosts[sourceId] ?? 0;
-      const beforeCp = state.turn.checkpointBreakerBoosts?.[sourceId] ?? 0;
+      const sumKind = (kind: string): number => {
+        let n = 0;
+        for (const e of state.lingeringEffects) {
+          if (e.expired || e.kind !== kind) continue;
+          const p = e.payload as
+            | { breakerId?: string; amount?: number }
+            | undefined;
+          if (p?.breakerId !== sourceId) continue;
+          n += p.amount ?? 0;
+        }
+        return n;
+      };
+      const beforeTurn = sumKind("breaker_strength_turn");
+      const beforeRun = sumKind("breaker_strength_run");
+      const beforeEnc = sumKind("breaker_strength_encounter");
+      const beforeCp = sumKind("breaker_strength_checkpoint");
       if (duration === "turn") {
         addBreakerStrengthBoostThisTurn(state, {
           createdBy: sourceId,
@@ -1823,13 +1835,13 @@ function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
         });
       }
       const applied: import("./ir.js").PumpDuration =
-        (state.turn.breakerStrengthBoostsThisTurn[sourceId] ?? 0) > beforeTurn
+        sumKind("breaker_strength_turn") > beforeTurn
           ? "turn"
-          : (state.run?.strengthBoosts[sourceId] ?? 0) > beforeRun
+          : sumKind("breaker_strength_run") > beforeRun
             ? "run"
-            : (state.run?.encounterStrengthBoosts[sourceId] ?? 0) > beforeEnc
+            : sumKind("breaker_strength_encounter") > beforeEnc
               ? "encounter"
-              : (state.turn.checkpointBreakerBoosts?.[sourceId] ?? 0) > beforeCp
+              : sumKind("breaker_strength_checkpoint") > beforeCp
                 ? "checkpoint"
                 : duration;
       const eff = breakerStrength(state, sourceId);

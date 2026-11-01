@@ -19,6 +19,13 @@ import { resolveIceSubtypes } from "../state/continuousEffects.js";
 import { allIceStrengthBonusFromCurrents } from "../state/currents.js";
 import { log } from "../state/createGame.js";
 import { syncHostDurationReplacements } from "../state/hostDuration.js";
+import {
+  hasLingeringBreakerStrength,
+  lingeringBreakerStrengthBoost,
+  lingeringIceStrengthBoost,
+  LINGERING_KIND_ICE_STRENGTH,
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+} from "../state/lingeringEffects.js";
 import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { runnerIsTagged } from "../state/tags.js";
@@ -264,12 +271,13 @@ export function effectiveBreakerStrength(
       increases += mod.hostIcebreakerStrengthBonus;
     }
   }
-  // Temporary boosts: dual-write maps (readers) + lingerings (9.10 expiry / S3).
-  const temp =
-    (state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0) +
-    (state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0) +
-    (state.run?.strengthBoosts?.[breakerId] ?? 0) +
-    (state.run?.encounterStrengthBoosts?.[breakerId] ?? 0);
+  // Temporary boosts: lingerings when present, else map seeds (M2).
+  const temp = hasLingeringBreakerStrength(state, breakerId)
+    ? lingeringBreakerStrengthBoost(state, breakerId)
+    : (state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0) +
+      (state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0) +
+      (state.run?.strengthBoosts?.[breakerId] ?? 0) +
+      (state.run?.encounterStrengthBoosts?.[breakerId] ?? 0);
   if (temp >= 0) increases += temp;
   else decreases += -temp;
   // Stegodon-class scored-agenda lower.
@@ -696,8 +704,29 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     subtypeBonus +
     scoredSubtypeBonus +
     sandburgBonus;
-  let tempBoost = state.run?.iceStrengthBoosts?.[iceId] ?? 0;
-  tempBoost += state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0;
+  // Prefer lingerings when they currently contribute; otherwise use map seeds /
+  // fortify paths that still write maps only (M2).
+  const fromLingering = lingeringIceStrengthBoost(state, iceId);
+  const hasActiveIceLingering = state.lingeringEffects.some((e) => {
+    if (e.expired) return false;
+    if (
+      e.kind !== LINGERING_KIND_ICE_STRENGTH &&
+      e.kind !== LINGERING_KIND_ICE_STRENGTH_ENCOUNTER
+    ) {
+      return false;
+    }
+    if (
+      e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER &&
+      !state.run?.encounter
+    ) {
+      return false;
+    }
+    return (e.payload as { iceId?: string } | undefined)?.iceId === iceId;
+  });
+  let tempBoost = hasActiveIceLingering
+    ? fromLingering
+    : (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
+      (state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0);
   const tempIncrease = Math.max(0, tempBoost);
   let tempDecrease = Math.max(0, -tempBoost);
   if (card.strengthCannotBeLowered) {

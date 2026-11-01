@@ -266,9 +266,7 @@ export function applyLunarUpPrimitive(
     }
     case "runner_mu_modifier_until_turn_end": {
       const delta = (action as { delta: number }).delta;
-      // Dual-write: memoryLimit still reads the turn field; the registry is the
-      // CR 9.10.1 lingering that 10.3.1b expires (Runner-turn scoped, matching
-      // removeTurnDurations).
+      // Registry authoritative; turn field is a derived mirror (M2).
       state.turn.runnerMuModifierUntilTurnEnd =
         (state.turn.runnerMuModifierUntilTurnEnd ?? 0) + delta;
       addLingeringEffect(state, {

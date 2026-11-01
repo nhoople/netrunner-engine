@@ -12,6 +12,11 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
+import {
+  addBreakerStrengthBoostThisEncounter,
+  addBreakerStrengthBoostThisRun,
+  addBreakerStrengthBoostThisTurn,
+} from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -27,7 +32,6 @@ describe("breaker strength unify (CR 9.12.1a)", () => {
     const br = instantiateCard("corroder", "br-1", "runner:installed");
     s.cards["br-1"] = br;
     s.runner.installed = ["br-1"];
-    s.turn.breakerStrengthBoostsThisTurn = { "br-1": 2 };
     s.run = {
       attackedServerId: "hq",
       phase: "encounter",
@@ -39,11 +43,26 @@ describe("breaker strength unify (CR 9.12.1a)", () => {
       encounter: { iceId: "none", broken: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: { "br-1": 1 },
-      encounterStrengthBoosts: { "br-1": 1 },
+      strengthBoosts: {},
+      encounterStrengthBoosts: {},
       iceStrengthBoosts: {},
       accessingCardId: null,
     };
+    addBreakerStrengthBoostThisTurn(s, {
+      createdBy: "br-1",
+      breakerId: "br-1",
+      amount: 2,
+    });
+    addBreakerStrengthBoostThisRun(s, {
+      createdBy: "br-1",
+      breakerId: "br-1",
+      amount: 1,
+    });
+    addBreakerStrengthBoostThisEncounter(s, {
+      createdBy: "br-1",
+      breakerId: "br-1",
+      amount: 1,
+    });
     const a = breakerStrength(s, "br-1");
     const b = effectiveBreakerStrength(s, "br-1");
     expect(a).toBe(b);

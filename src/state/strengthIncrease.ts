@@ -182,6 +182,7 @@ function commitByDuration(
 ): void {
   switch (args.requestedDuration) {
     case "turn": {
+      // Registry authoritative; maps are derived mirrors for logs/tests (M2).
       state.turn.breakerStrengthBoostsThisTurn[args.breakerId] =
         (state.turn.breakerStrengthBoostsThisTurn[args.breakerId] ?? 0) +
         args.amount;
