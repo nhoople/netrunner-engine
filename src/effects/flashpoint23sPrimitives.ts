@@ -190,7 +190,7 @@ export function applyFlashpoint23sPrimitive(
     case "injection_attack_run_with_breaker": {
       const breakerId = action.breakerId;
       const bonus = action.strengthBonus ?? 2;
-      // Stash for the ensuing run; applied when strengthBoosts exists.
+      // Stash for the ensuing run; applied when the run begins.
       state.turn.injectionAttackBreakerBonus = {
         breakerId,
         amount: bonus,

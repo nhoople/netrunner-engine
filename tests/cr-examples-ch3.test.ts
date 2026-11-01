@@ -49,9 +49,6 @@ describe("CR examples, chapter 3", () => {
       encounter: { iceId: "arch-1", broken: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       encounterOutsideRun: true,
     };
@@ -86,9 +83,6 @@ describe("CR examples, chapter 3", () => {
       encounter: { iceId: "ice-1", subIndex: 0 },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const before = breakerStrength(s, "co-1");
@@ -122,9 +116,6 @@ describe("CR examples, chapter 3", () => {
       encounter: { iceId: "ice-1", subIndex: 0 },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const before = breakerStrength(s, "gb-1");

@@ -981,9 +981,6 @@ describe("reign-and-reverie", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         blankIdentities: true,
         runSourceId: "da",
       };

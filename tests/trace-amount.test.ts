@@ -60,9 +60,6 @@ describe("trace-amount", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
   }

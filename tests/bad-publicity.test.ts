@@ -86,9 +86,6 @@ describe("CR G5 — bad publicity fund (11.4_1_b / 10.6.2)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     expect(runnerAvailableCredits(s)).toBe(4); // 1 bank + 3 BP

@@ -277,9 +277,6 @@ export function applySpinFalDtPrimitive(
           encounter: null,
           endedTheRun: false,
           cannotJackOut: false,
-          strengthBoosts: {},
-          encounterStrengthBoosts: {},
-          iceStrengthBoosts: {},
           paintbrushIceId: action.iceId,
         };
       } else {

@@ -59,7 +59,13 @@ import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import { mayLookAtHiddenZone } from "../src/state/hiddenSearch.js";
 import {
+  addBreakerStrengthBoostThisRun,
+  addBreakerStrengthBoostThisTurn,
+  addIceStrengthBoostThisTurn,
   addLingeringEffect,
+  LINGERING_KIND_BREAKER_STRENGTH,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  LINGERING_KIND_ICE_STRENGTH,
   LINGERING_KIND_RUNNER_MU,
 } from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/state/types.js";
@@ -274,9 +280,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
 
@@ -338,9 +341,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
 
@@ -386,9 +386,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
 
@@ -516,9 +513,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       agendasStolenThisRun: 1,
       persistentTagsIfAgendaStolen: 2,
@@ -555,9 +549,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         lastPassedUnrezzedIceId: "arch-1",
       };
@@ -704,9 +695,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     // Baseline so 10.3.1a zone-diff can see the root entry (CR 10.3.1j).
@@ -744,9 +732,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     commitCheckpointSnapshot(s, "before-drafter-install");
@@ -1230,9 +1215,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
 
@@ -2293,20 +2275,43 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     ice.grantedSubtypesUntilEndOfTurn = ["sentry"];
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
-    s.turn.breakerStrengthBoostsThisTurn = { "runner-program-1": 2 };
-    s.turn.iceStrengthBoostsThisTurn = { "ice-1": 1 };
-    s.turn.runnerMuModifierUntilTurnEnd = -2;
+    addBreakerStrengthBoostThisTurn(s, {
+      createdBy: "runner-program-1",
+      breakerId: "runner-program-1",
+      amount: 2,
+    });
+    addIceStrengthBoostThisTurn(s, {
+      createdBy: "ice-1",
+      iceId: "ice-1",
+      amount: 1,
+    });
+    addLingeringEffect(s, {
+      createdBy: "bad-times",
+      duration: { kind: "turn", side: "runner" },
+      kind: LINGERING_KIND_RUNNER_MU,
+      payload: { delta: -2 },
+    });
     s.markServerId = "hq";
     s.timingKey = "runner.turnEnds";
     autoWalk(s);
     expect(s.timingKey).toBe("runner.turnComplete");
-    expect(s.turn.breakerStrengthBoostsThisTurn["runner-program-1"]).toBe(2);
+    expect(
+      s.lingeringEffects.some(
+        (effect) => effect.kind === LINGERING_KIND_BREAKER_STRENGTH,
+      ),
+    ).toBe(true);
     expect(s.markServerId).toBe("hq");
     expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toEqual(["sentry"]);
     s = must(s, { type: "pass_window" });
-    expect(s.turn.breakerStrengthBoostsThisTurn).toEqual({});
-    expect(s.turn.iceStrengthBoostsThisTurn).toEqual({});
-    expect(s.turn.runnerMuModifierUntilTurnEnd).toBeUndefined();
+    expect(
+      s.lingeringEffects.some((effect) =>
+        [
+          LINGERING_KIND_BREAKER_STRENGTH,
+          LINGERING_KIND_ICE_STRENGTH,
+          LINGERING_KIND_RUNNER_MU,
+        ].includes(effect.kind),
+      ),
+    ).toBe(false);
     expect(s.markServerId).toBeNull();
     expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toBeUndefined();
     expect(s.log.join("\n")).toContain(
@@ -2327,14 +2332,26 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: { "runner-program-1": 3 },
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
+    addBreakerStrengthBoostThisRun(s, {
+      createdBy: "runner-program-1",
+      breakerId: "runner-program-1",
+      amount: 3,
+    });
+    expect(
+      s.lingeringEffects.some(
+        (effect) => effect.kind === LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(true);
     s.timingKey = "run.ends";
     autoWalk(s);
     expect(s.run).toBeNull();
+    expect(
+      s.lingeringEffects.some(
+        (effect) => effect.kind === LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(false);
     expect(s.log.join("\n")).toContain(
       `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); 1 removed.`,
     );
@@ -2464,9 +2481,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     occurCheckpoint(
@@ -2498,9 +2512,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     waiting.priorityStack = [
@@ -3269,9 +3280,6 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       return s;

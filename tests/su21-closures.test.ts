@@ -228,9 +228,6 @@ describe("SU21 partial closures", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     // No scored agenda → cannot rez

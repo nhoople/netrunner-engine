@@ -3451,8 +3451,6 @@ export interface TurnBookkeeping {
   lastTraceExcess: number | null;
   /** Strength of the most recently resolved trace (Taurus-class). */
   lastResolvedTraceStrength: number | null;
-  /** Bad Times-class MU modifier until Runner turn end. */
-  runnerMuModifierUntilTurnEnd?: number;
   /** Checkpoint frame paused at CR 10.3.1e until a restriction set is chosen. */
   pausedCheckpointId?: string;
   /**
@@ -3473,11 +3471,6 @@ export interface TurnBookkeeping {
    * duration was that turn (CR 9.10.1 / 10.3.1b).
    */
   turnDurationsPassed?: "corp" | "runner";
-  /**
-   * Icebreaker strength from an implicit encounter duration used outside an
-   * encounter. The next checkpoint removes it (CR 3.9.5d).
-   */
-  checkpointBreakerBoosts?: Record<string, number>;
   /**
    * Strength increases whose duration a hosted static replacement stretched
    * (Gebrselassie → turn, Gamedragon Pro → run; CR 9.9.9a). Cleared when that
@@ -3505,11 +3498,8 @@ export interface TurnBookkeeping {
    * checkpoint removes them (CR 9.9.9a).
    */
   revertedHostDurationBoosts?: { breakerId: string; amount: number }[];
-  /**
-   * Run-duration effects whose run has ended. The next checkpoint removes
-   * them (CR 9.10.1 / 10.3.1b).
-   */
-  passedRunDurationCount?: number;
+  /** A run ended; the next checkpoint expires run-duration lingerings. */
+  runDurationPassed?: boolean;
   /**
    * Agendas that left a score area, with the cards hosted on them at that
    * moment (CR 10.3.1f).
@@ -3995,10 +3985,6 @@ export interface TurnBookkeeping {
    * Runner use of paid abilities on bioroid ice.
    */
   bioroidIcePaidAbilitiesForbidden: boolean;
-  /** Turn-scoped ice strength boosts (Troubleshooter). */
-  iceStrengthBoostsThisTurn: Record<string, number>;
-  /** Turn-scoped icebreaker strength boosts (Living Mural). */
-  breakerStrengthBoostsThisTurn: Record<string, number>;
   /**
    * Cortez Chip: additional rez cost on chosen ice until end of turn
    * (cardId → amount).
@@ -4389,8 +4375,6 @@ export interface RunState {
    * bioroid this run (Zed 1.0 subroutine gate).
    */
   lostClickToBreakThisRun?: boolean;
-  /** Run-scoped icebreaker strength boosts (cardId → delta). */
-  strengthBoosts: Record<string, number>;
   /**
    * Icebreakers that gained System Seizure's run-duration rewrite for the
    * remainder of this run (CR 9.9.9).
@@ -4400,16 +4384,12 @@ export interface RunState {
   armoredServersTrashGripAdditionalCost?: boolean;
   /** Holmegaard: cannot access or breach remainder of run. */
   holmegaardForbidAccessBreach?: boolean;
-  /** Encounter-scoped icebreaker strength boosts (CR 10.3.1b / 3.9.5b). */
-  encounterStrengthBoosts: Record<string, number>;
   /** Down the White Nile — RNG Key named number for next access this run. */
   dtwnRngKeyNamedNumber?: number;
   dtwnRngKeySourceId?: string;
   dtwnRngKeyPendingReveal?: boolean;
   /** Council of the Crest — Code Replicator may jack out before reencounter. */
   cotcCodeReplicatorMayJackOut?: boolean;
-  /** Encounter-scoped ice strength boosts (cardId → delta). */
-  iceStrengthBoosts: Record<string, number>;
   /** Ice ids that gained a Thunderbolt synthetic subroutine this run. */
   thunderboltGrantedIceIds?: string[];
   /** Howler: card id to trash at run end (set when its subroutine fires). */

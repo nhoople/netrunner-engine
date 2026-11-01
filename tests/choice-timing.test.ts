@@ -75,9 +75,6 @@ function openRun(state: GameState, serverId: ServerId, encounterIceId: string | 
       : null,
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
   };
 }

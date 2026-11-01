@@ -137,15 +137,8 @@ import { resolveStoredOrInlineConditionalInstance } from "../state/storedTrigger
 import {
   expireLingeringEffects,
   LINGERING_KIND_ABILITY_BLANK,
-  LINGERING_KIND_BREAKER_STRENGTH,
-  LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
-  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
-  LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_GRANTED_SUBTYPES,
-  LINGERING_KIND_ICE_STRENGTH,
-  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
   LINGERING_KIND_MARK,
-  LINGERING_KIND_RUNNER_MU,
 } from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
 import {
@@ -3677,48 +3670,12 @@ function closeCheckpointReactionWindow(
 function removeExpiredDurationAbilities(state: GameState): void {
   clearAppliedReplacements(state);
   let removed = removeRevertedHostDurations(state);
-  const checkpointBoosts = state.turn.checkpointBreakerBoosts;
-  if (checkpointBoosts && Object.keys(checkpointBoosts).length > 0) {
-    const cpViaRegistry = state.lingeringEffects.some(
-      (e) =>
-        !e.expired && e.kind === LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
-    );
-    // Registry-backed checkpoint boosts are counted when expireLingeringEffects
-    // removes them; keep the turn map in sync for dual-write consumers.
-    if (!cpViaRegistry) removed += Object.keys(checkpointBoosts).length;
-    state.turn.checkpointBreakerBoosts = undefined;
-  }
   removed += trashDurationPassedCurrents(state);
   const afterEncounter = currentCheckpoint(state)?.cites.some(
     (cite) => cite.number === CR.encounterIcePhase.number,
   );
-  if (afterEncounter && state.run) {
-    const encKeys = Object.keys(state.run.encounterStrengthBoosts).length;
-    const iceKeys = Object.keys(state.run.iceStrengthBoosts).length;
-    // Registry-backed encounter boosts are counted when expireLingeringEffects
-    // removes them; keep the run maps in sync for dual-write consumers.
-    const encViaRegistry = state.lingeringEffects.some(
-      (e) =>
-        !e.expired && e.kind === LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
-    );
-    const iceViaRegistry = state.lingeringEffects.some(
-      (e) => !e.expired && e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
-    );
-    state.run.encounterStrengthBoosts = {};
-    state.run.iceStrengthBoosts = {};
-    if (!encViaRegistry) removed += encKeys;
-    if (!iceViaRegistry) removed += iceKeys;
-  }
-  const passedRun = state.turn.passedRunDurationCount ?? 0;
-  if (passedRun > 0) {
-    const runViaRegistry = state.lingeringEffects.some(
-      (e) => !e.expired && e.kind === LINGERING_KIND_BREAKER_STRENGTH_RUN,
-    );
-    // When run-duration boosts were dual-written, expireLingeringEffects
-    // counts them; otherwise preserve the ad-hoc key count from graph.ts.
-    if (!runViaRegistry) removed += passedRun;
-    state.turn.passedRunDurationCount = undefined;
-  }
+  const passedRun = state.turn.runDurationPassed === true;
+  state.turn.runDurationPassed = undefined;
   const endedTurn = state.turn.turnDurationsPassed;
   if (endedTurn) {
     state.turn.turnDurationsPassed = undefined;
@@ -3727,7 +3684,7 @@ function removeExpiredDurationAbilities(state: GameState): void {
   // Registry lingerings (CR 9.10.1) expire alongside ad-hoc duration fields.
   removed += expireLingeringEffects(state, {
     turn: endedTurn,
-    run: passedRun > 0,
+    run: passedRun,
     encounter: Boolean(afterEncounter && state.run),
     untilCheckpoint: true,
   });
@@ -3745,33 +3702,6 @@ function removeExpiredDurationAbilities(state: GameState): void {
 /** Lingering effects that lasted for the remainder of the ended turn. */
 function removeTurnDurations(state: GameState, side: "corp" | "runner"): number {
   let removed = 0;
-  {
-    const breakerKeys = Object.keys(
-      state.turn.breakerStrengthBoostsThisTurn,
-    ).length;
-    const iceKeys = Object.keys(state.turn.iceStrengthBoostsThisTurn).length;
-    // Registry-backed boosts are counted when expireLingeringEffects removes
-    // them; keep the turn maps in sync for dual-write consumers.
-    const breakerViaRegistry = state.lingeringEffects.some(
-      (e) => !e.expired && e.kind === LINGERING_KIND_BREAKER_STRENGTH,
-    );
-    const iceViaRegistry = state.lingeringEffects.some(
-      (e) => !e.expired && e.kind === LINGERING_KIND_ICE_STRENGTH,
-    );
-    state.turn.breakerStrengthBoostsThisTurn = {};
-    state.turn.iceStrengthBoostsThisTurn = {};
-    if (!breakerViaRegistry) removed += breakerKeys;
-    if (!iceViaRegistry) removed += iceKeys;
-  }
-  if (side === "runner" && (state.turn.runnerMuModifierUntilTurnEnd ?? 0) !== 0) {
-    // Registry-backed MU modifiers are counted when expireLingeringEffects
-    // removes them; keep the turn field in sync for dual-write consumers.
-    const viaRegistry = state.lingeringEffects.some(
-      (e) => !e.expired && e.kind === LINGERING_KIND_RUNNER_MU,
-    );
-    state.turn.runnerMuModifierUntilTurnEnd = undefined;
-    if (!viaRegistry) removed += 1;
-  }
   if (state.markServerId !== null) {
     // Registry-backed marks (CR 10.11.4) are counted when expireLingeringEffects
     // removes them; keep `markServerId` in sync here for dual-write consumers.

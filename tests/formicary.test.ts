@@ -50,9 +50,6 @@ describe("CR optional — Formicary interactive 6.8.2c", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.timingKey = "run.afterMove";

@@ -182,9 +182,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     expect(runnerPsiSpendable(s)).toBe(3);
@@ -213,9 +210,6 @@ describe("CR examples, chapter 1", () => {
       encounter: { iceId: "tb-1", subIndex: 0 },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const paid = evalEffect(
@@ -423,9 +417,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       passedIceIds: ["passed-1", "still-1"],
     };
@@ -459,9 +450,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     enterStep(s, "breach.awaitAccess");
@@ -491,9 +479,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       agendasStolenThisRun: 1,
       persistentTagsIfAgendaStolen: 2,
@@ -543,9 +528,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.timingKey = "run.announce";
@@ -888,9 +870,6 @@ describe("CR examples, chapter 1", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     evalEffect(
@@ -966,9 +945,6 @@ describe("CR examples, chapter 1", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     evalEffect(
@@ -1042,9 +1018,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: "obo-1",
     };
     s.timingKey = "access.stealAgenda";
@@ -1077,9 +1050,6 @@ describe("CR examples, chapter 1", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.cards["fh-2"] = {
@@ -1214,9 +1184,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: "bean-1",
     };
     onAccessed(s, "bean-1");
@@ -1262,9 +1229,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const cay = instantiateCard("cayambe-grid", "cay-1", "server:remote-1:root");
@@ -1348,9 +1312,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s = must(s, { type: "rez_ice", cardId: "biawak-1" });
@@ -1481,9 +1442,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: "obo-1",
     };
     s.timingKey = "access.stealAgenda";
@@ -1539,9 +1497,6 @@ describe("CR examples, chapter 1", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: "obo-1",
     };
     s.timingKey = "access.stealAgenda";
@@ -1626,9 +1581,6 @@ describe("CR examples, chapter 1", () => {
       encounter: { iceId: "ice-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");

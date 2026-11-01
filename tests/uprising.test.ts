@@ -838,8 +838,6 @@ describe("uprising", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        iceStrengthBoosts: {},
       };
 
       const r = evalEffect(
@@ -883,8 +881,6 @@ describe("uprising", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        iceStrengthBoosts: {},
       };
 
       const gripBefore = s.runner.hand.length;
@@ -922,8 +918,6 @@ describe("uprising", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       const before = s.runner.hand.length;
       const r = evalEffect(
@@ -1007,8 +1001,6 @@ describe("uprising", () => {
         },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       s.activeSide = "runner";
       s.timingKey = "run.encounterPaw";
@@ -1257,8 +1249,6 @@ describe("uprising", () => {
         encounter: { iceId: "kon-1", broken: [false] },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        iceStrengthBoosts: {},
       };
 
       const r = evalEffect(
@@ -1575,9 +1565,6 @@ describe("uprising", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       // Open damage so AirbladeX paid ability is legal.
@@ -1614,9 +1601,6 @@ describe("uprising", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       const tb = instantiateCard("tollbooth", "tb-1", "server:hq:ice");

@@ -43,9 +43,6 @@ describe("harden unsupported cards", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const gordian = instantiateCard("gordian-blade", "g1", "runner:installed");

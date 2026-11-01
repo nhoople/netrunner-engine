@@ -41,9 +41,6 @@ describe("CR C3 — blanking / Mayfly", () => {
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       breakersThatBroke: ["mf-1"],
     };

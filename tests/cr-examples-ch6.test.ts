@@ -179,9 +179,6 @@ describe("CR examples, chapter 6", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       passedIceIds: [],
     };
@@ -229,9 +226,6 @@ describe("CR examples, chapter 6", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       encounterOutsideRun: true,
     };
@@ -325,9 +319,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       lastPassedRezzedIceId: "passed-1",
     };
@@ -360,9 +351,6 @@ describe("CR examples, chapter 6", () => {
       encounter: { iceId: "cell-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const sub = ice.subroutines?.[0]?.effect;
@@ -400,9 +388,6 @@ describe("CR examples, chapter 6", () => {
       encounter: { iceId: "draft-1", broken: [false, false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const resolved = evalEffect(
@@ -515,9 +500,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const swapped = evalEffect(
@@ -565,9 +547,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       passedIceIds: ["passed-1"],
     };
@@ -670,9 +649,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       trashFirstFullyBrokenSubtype: "sentry",
     };
@@ -708,9 +684,6 @@ describe("CR examples, chapter 6", () => {
       encounter: { iceId: "shiro-1", broken: [true, true] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: "chrys-1",
     };
     const forced = evalEffect(
@@ -772,9 +745,6 @@ describe("CR examples, chapter 6", () => {
       encounter: { iceId: "wall-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     enterStep(s, "run.movement");
@@ -814,9 +784,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       runSourceId: "bic-1",
       successTiedToServers: "remote",
@@ -844,9 +811,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       runSourceId: "bic-2",
       successTiedToServers: "remote",
@@ -882,9 +846,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       runSourceId: "sip-1",
       onSuccessfulRunEffect: { op: "do", action: { kind: "may_breach_instead_account_siphon" } },
@@ -916,9 +877,6 @@ describe("CR examples, chapter 6", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       // Open the approach PAW frame as the live host would.
@@ -1018,9 +976,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     enterStep(s, "run.encounter");
@@ -1069,9 +1024,6 @@ describe("CR examples, chapter 6", () => {
         encounter: null,
         endedTheRun: true,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       s.priorityStack = [
@@ -1183,9 +1135,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       preventAllDamageThisRun: true,
     };
@@ -1217,9 +1166,6 @@ describe("CR examples, chapter 6", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       preventAllDamageThisRun: true,
     };

@@ -37,9 +37,6 @@ describe("CR examples, chapter 4", () => {
       encounter: { iceId, broken: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
   }

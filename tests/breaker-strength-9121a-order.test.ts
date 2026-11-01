@@ -35,9 +35,6 @@ function runState(serverId: ServerId = "hq"): NonNullable<GameState["run"]> {
     encounter: { iceId: "ice-1", broken: [false], subroutinesResolved: [] },
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
   };
 }

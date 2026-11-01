@@ -1159,7 +1159,7 @@ export type Primitive =
   | { kind: "gain_strength_this_turn"; amount: number; targetCardId?: string }
   /**
    * Helpful AI: choose an installed icebreaker; it gains `amount` strength
-   * this turn (`breakerStrengthBoostsThisTurn`).
+   * this turn.
    */
   | { kind: "choose_icebreaker_gain_strength_this_turn"; amount: number }
   /**

@@ -49,9 +49,6 @@ function runOn(state: GameState, server: "hq" | "rd"): void {
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
   };
 }

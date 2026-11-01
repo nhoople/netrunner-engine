@@ -1499,9 +1499,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "inz-1", broken: [true, false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     runKind(s, "inz-1", "forbid_jack_out_until_next_encounter");
@@ -3255,7 +3252,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "stavka", "st-1", "server:hq:ice");
     s.run = {
       attackedServerId: "hq",
-      iceStrengthBoosts: {},
     } as GameState["run"];
     runKind(s, "st-1", "fortify_ice", { amount: 5 });
     expect(lingeringIceStrengthOfKind(s, "st-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(5);
@@ -4026,7 +4022,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "corroder", "br-1", "runner:installed");
     put(s, "gordian-blade", "br-2", "runner:installed");
     s.runner.installed = ["nre-1", "br-1", "br-2"];
-    s.run = { attackedServerId: "hq", strengthBoosts: {} } as GameState["run"];
+    s.run = { attackedServerId: "hq" } as GameState["run"];
     runKind(s, "nre-1", "net_ready_eyes_choose_icebreaker_strength", {
       amount: 1,
     });
@@ -4183,9 +4179,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "shiro-1", broken: [true, false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     runKind(s, "shiro-1", "may_corp_pay_credits_else_breach", {
@@ -4221,9 +4214,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "shiro-2", broken: [true, false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     runKind(s2, "shiro-2", "may_corp_pay_credits_else_breach", {
@@ -4248,8 +4238,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "sage-1", "break_code_gate_or_barrier");
     expect(s.run.encounter?.broken).toEqual([true, false]);
@@ -4278,8 +4266,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "dr-1", broken: [false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "ad-1", "break_sentry_or_barrier");
     expect(s.run.encounter?.broken).toEqual([true]);
@@ -4294,8 +4280,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "sv-1", "break_sentry_or_code_gates");
     expect(s.run.encounter?.broken).toEqual([true, true]);
@@ -4650,8 +4634,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "gh-1", "break_all_but_n_subroutines_on_encounter", {
       leave: 1,
@@ -4680,8 +4662,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "mat-1", "break_matryoshka");
     expect(s.pendingChoice?.chooser).toBe("runner");
@@ -5927,8 +5907,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     s.turn.stealthCreditsOnLastPaidAbility = 0;
     runKind(s, "bk-1", "pump_blackat_strength");
@@ -5940,8 +5918,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s2.run = {
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     s2.turn.stealthCreditsOnLastPaidAbility = 1;
     runKind(s2, "bk-2", "pump_blackat_strength");
@@ -6819,8 +6795,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "cobra-1", broken: [false, false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "mk-1", "spend_mkultra_pump_and_break");
     expect(lingeringBreakerStrengthOfKind(s, "mk-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
@@ -6834,8 +6808,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s2.run = {
       attackedServerId: "hq",
       encounter: { iceId: "hun-1", broken: [false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s2, "mk-2", "spend_mkultra_pump_and_break");
     expect(lingeringBreakerStrengthOfKind(s2, "mk-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
@@ -6852,8 +6824,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "bo-1", "spend_pump_and_break");
     expect(lingeringBreakerStrengthOfKind(s, "bo-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
@@ -6867,8 +6837,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s2.run = {
       attackedServerId: "hq",
       encounter: { iceId: "tb-1", broken: [false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s2, "bo-2", "spend_pump_and_break");
     expect(lingeringBreakerStrengthOfKind(s2, "bo-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
@@ -6937,8 +6905,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "wos-1", broken: [false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "pc-1", "spend_x_pump_and_break");
     expect(s.pendingChoice?.options.map((o) => o.id)).toContain("paperclip-x:2");
@@ -6961,8 +6927,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s2.run = {
       attackedServerId: "hq",
       encounter: { iceId: "heim-1", broken: [false, false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s2, "pc-2", "spend_x_pump_and_break");
     // str 1+2=3 < heimdall 6 — pump only, no break.
@@ -7040,8 +7004,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       attackedServerId: "hq",
       position: 1,
       encounter: { iceId: "iw-1", broken: [false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "sur-1", "swap_encounter_barrier_adjacent");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
@@ -7295,8 +7257,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "sn-1", "trace_bypass_or_tag_etr");
     expect(s.runner.tags).toBe(1);
@@ -7312,8 +7272,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s2.run = {
       attackedServerId: "hq",
       encounter: { iceId: "iw-2", broken: [false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s2, "sn-2", "trace_bypass_or_tag_etr");
     expect(s2.runner.tags).toBe(0);
@@ -7365,8 +7323,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "troll-1", broken: [false] },
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "troll-1", "trace_troll_encounter");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
@@ -7391,8 +7347,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       attackedServerId: "hq",
       position: 0,
       encounter: null,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "agi-1", "trash_aginfusion_approached_unrezzed_redirect");
     expect(s.corp.discardPile).toContain("iw-1");
@@ -7655,9 +7609,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       pendingReencounterIceId: "ice-1",
-      iceStrengthBoosts: {},
-      encounterStrengthBoosts: {},
-      strengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "sp-1", "trash_hq_reencounter_passed_ice");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
@@ -7703,9 +7654,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       iceRezzedThisRunIds: ["iw-1"],
-      iceStrengthBoosts: {},
-      encounterStrengthBoosts: {},
-      strengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "ra-1", "trash_ice_rezzed_this_run", { pick: "choose" });
     expect(s.corp.discardPile).toContain("iw-1");
@@ -7779,9 +7727,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       encounter: { iceId: "iw-1" },
-      iceStrengthBoosts: {},
-      encounterStrengthBoosts: {},
-      strengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "null-1", "trash_null_grip_lower_encountered_ice_strength", {
       amount: 2,
@@ -7800,9 +7745,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       programsUsedThisRun: ["used-1"],
-      iceStrengthBoosts: {},
-      encounterStrengthBoosts: {},
-      strengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "cr-1", "trash_one_program_used_this_run_cannot_prevent");
     expect(s.runner.discardPile).toContain("used-1");
@@ -7991,9 +7933,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       attackedServerId: "hq",
       position: 0,
       encounter: { iceId: "iw-1" },
-      iceStrengthBoosts: {},
-      encounterStrengthBoosts: {},
-      strengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "twins-1", "trash_twins_hq_copy_reencounter");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
@@ -8041,9 +7980,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = {
       attackedServerId: "hq",
       breakersThatBroke: ["brk-1"],
-      iceStrengthBoosts: {},
-      encounterStrengthBoosts: {},
-      strengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "wow-1", "trash_will_o_wisp_breaker_used");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(

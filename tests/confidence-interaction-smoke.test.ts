@@ -63,9 +63,6 @@ describe("confidence smoke — prevent × cost (AirbladeX net prevent)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
 
@@ -242,9 +239,6 @@ describe("confidence smoke — success ternary (Crisium / 6.8.4a)", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     expect(evalEffect({ state: s, sourceId: "corp-ice-1" }, fx.etr()).ok).toBe(
@@ -273,9 +267,6 @@ describe("confidence smoke — Mayfly delayed trash (host / run-end)", () => {
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       breakersThatBroke: ["mf-1"],
     };

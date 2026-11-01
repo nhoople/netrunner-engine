@@ -41,9 +41,6 @@ function encounterRun(s: GameState): void {
     encounter: { iceId: "ice-1", broken: [false], subroutinesResolved: [] },
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
   };
 }
@@ -69,7 +66,6 @@ describe("Gebrselassie encounter-boost rewrite (CR 9.9.9a)", () => {
     );
     expect(r.ok).toBe(true);
     expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH)).toBe(3);
-    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBeUndefined();
     expect(s.turn.hostDurationReplacements?.some((rec) => rec.breakerId === "corr-1")).toBe(
       true,
     );

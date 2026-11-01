@@ -160,9 +160,6 @@ function boardFor(def: CardDef): GameState {
     },
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
   };
   return state;

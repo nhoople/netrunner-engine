@@ -23,6 +23,12 @@ import {
   resolveTrace,
   startTrace,
   stealAgenda,
+  addBreakerStrengthBoostThisRun,
+  addBreakerStrengthBoostThisEncounter,
+  addIceStrengthBoostThisEncounter,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
 import {
@@ -115,9 +121,6 @@ describe("CR examples, chapter 10", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       kitsuneIceToTrashAtBreachEnd: "kit-1",
     };
@@ -179,9 +182,6 @@ describe("CR examples, chapter 10", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const opened = evalEffect(
@@ -270,16 +270,40 @@ describe("CR examples, chapter 10", () => {
       encounter: { iceId: "ice-1", broken: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: { "runner-program-1": 4 },
-      encounterStrengthBoosts: { "runner-program-1": 2 },
-      iceStrengthBoosts: { "ice-1": 1 },
       accessingCardId: null,
     };
+    addBreakerStrengthBoostThisRun(s, {
+      createdBy: "runner-program-1",
+      breakerId: "runner-program-1",
+      amount: 4,
+    });
+    addBreakerStrengthBoostThisEncounter(s, {
+      createdBy: "runner-program-1",
+      breakerId: "runner-program-1",
+      amount: 2,
+    });
+    addIceStrengthBoostThisEncounter(s, {
+      createdBy: "ice-1",
+      iceId: "ice-1",
+      amount: 1,
+    });
     s.timingKey = "run.checkSubs";
     enterStep(s, "run.movement");
-    expect(s.run!.encounterStrengthBoosts).toEqual({});
-    expect(s.run!.iceStrengthBoosts).toEqual({});
-    expect(s.run!.strengthBoosts["runner-program-1"]).toBe(4);
+    expect(
+      s.lingeringEffects.some(
+        (effect) => effect.kind === LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(false);
+    expect(
+      s.lingeringEffects.some(
+        (effect) => effect.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(false);
+    expect(
+      s.lingeringEffects.some(
+        (effect) => effect.kind === LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(true);
     expect(s.log.join("\n")).toContain(
       `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); 2 removed.`,
     );
@@ -407,9 +431,6 @@ describe("CR examples, chapter 10", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: "gank-1",
     };
     // Baseline so 10.3.1a zone-diff can see the root entry (CR 10.3.1j).
@@ -457,9 +478,6 @@ describe("CR examples, chapter 10", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       agendasStolenThisRun: 1,
       persistentTagsIfAgendaStolen: 2,
@@ -689,9 +707,6 @@ describe("CR examples, chapter 10", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       skipBreach: true,
     };
@@ -720,9 +735,6 @@ describe("CR examples, chapter 10", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       skipBreach: true,
     };
@@ -927,9 +939,6 @@ describe("CR examples, chapter 10", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const opened = evalEffect(
@@ -983,9 +992,6 @@ describe("CR examples, chapter 10", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const before = evalEffect(
@@ -1012,9 +1018,6 @@ describe("CR examples, chapter 10", () => {
       encounter: { iceId: "rsvp-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const sub = rsvp.subroutines?.[0]?.effect;

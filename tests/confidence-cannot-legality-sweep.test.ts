@@ -193,9 +193,6 @@ describe("cannot sweep — Mitosis-class cannot score/rez card ids", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     expect(

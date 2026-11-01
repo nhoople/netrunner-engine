@@ -83,9 +83,6 @@ describe("what-lies-ahead", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       const modem = instantiateCard("desperado", "sm-1", "runner:installed");
@@ -169,7 +166,7 @@ describe("what-lies-ahead", () => {
   });
 
   describe("WLA Helpful AI choose icebreaker strength this turn", () => {
-    it("boosts chosen icebreaker via breakerStrengthBoostsThisTurn", () => {
+    it("boosts the chosen icebreaker for the turn", () => {
       const effect = fx.chooseIcebreakerGainStrengthThisTurn(2);
       expect(validateEffectTree(effect)).toBeNull();
 

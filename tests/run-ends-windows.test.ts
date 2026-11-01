@@ -55,9 +55,6 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.priorityStack = [

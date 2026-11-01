@@ -3609,10 +3609,6 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.run!.encounter = null;
         s.run!.usedAbilitiesThisEncounter = [];
         s.run!.runnerCannotSpendCredits = false;
-        // Encounter-scoped strength boosts expire (CR 3.9.5b).
-        // Run-scoped pumps (duration: "run") persist until the run ends.
-        s.run!.encounterStrengthBoosts = {};
-        s.run!.iceStrengthBoosts = {};
         s.log.push(`Pass ice / move inward (appendix 11.4_4).`);
       },
     },
@@ -5171,17 +5167,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             (sub) => !sub.id.startsWith(`${template.id}-`),
           );
         }
-        const passedRunDurations =
-          Object.keys(runState.strengthBoosts ?? {}).length +
-          Object.keys(runState.encounterStrengthBoosts ?? {}).length +
-          Object.keys(runState.iceStrengthBoosts ?? {}).length;
-        if (passedRunDurations > 0) {
-          s.turn.passedRunDurationCount =
-            (s.turn.passedRunDurationCount ?? 0) + passedRunDurations;
-        }
-        runState.strengthBoosts = {};
-        runState.encounterStrengthBoosts = {};
-        runState.iceStrengthBoosts = {};
+        // The next checkpoint expires run-duration lingerings (CR 10.3.1b).
+        s.turn.runDurationPassed = true;
         if (postBreach) {
           s.log.push(
             `Post-run breach of ${postBreach} begins (CR 7.3.1).`,
@@ -5198,9 +5185,6 @@ export const STEPS: Record<string, TimingStepDef> = {
             encounter: null,
             endedTheRun: false,
             cannotJackOut: false,
-            strengthBoosts: {},
-            encounterStrengthBoosts: {},
-            iceStrengthBoosts: {},
             accessingCardId: null,
             isPostRunBreach: true,
           };

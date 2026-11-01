@@ -75,9 +75,6 @@ describe("CR examples, chapter 5", () => {
       encounter: { iceId: "eli-1", broken: [false, false], strengthBoost: 0 },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const broken = must(acted, {
