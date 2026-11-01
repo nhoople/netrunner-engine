@@ -316,6 +316,7 @@ export {
   materializeSubroutinesFromRecords,
   paidAbilitiesFromCard,
   playEffectFromCard,
+  setPrintedPlay,
   subroutinesFromCard,
   syncPaidAbilitiesFromRecords,
   syncSubroutinesFromRecords,

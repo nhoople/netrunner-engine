@@ -1,10 +1,9 @@
 /**
  * One printed ability, classified the way Comprehensive Rules 9.3 reads a card.
- * Load still materializes records onto hooks for catalog/shape tests.
- * Play (CR 9.3.7d), paid (9.3.7b), and subroutine (9.3.7e) abilities also stay
- * on `abilities`; runtime prefers `playEffectFromCard` /
- * `paidAbilitiesFromCard` / `subroutinesFromCard` so instances do not depend
- * on the catalog mirrors. A flag is the printed ability flag (CR 9.3.6).
+ * Load still copies play records onto `onPlay` for catalog/shape tests.
+ * Play (CR 9.3.7d), paid (9.3.7b), and subroutine (9.3.7e) text is the
+ * record: `playEffectFromCard` / `paidAbilitiesFromCard` /
+ * `subroutinesFromCard`. A flag is the printed ability flag (CR 9.3.6).
  * `rule` is the class number (CR 9.3.7). An instruction hosted on a
  * declaration is written back onto that object. A card that still has only
  * the old hook is left alone.
@@ -167,10 +166,9 @@ function withCondition(ability: AbilityRecord): Effect | undefined {
 }
 
 /**
- * Play instructions from CR 9.3.7d records, else legacy `onPlay`.
- * Prefer records when they match the catalog dual-write (or when `onPlay` is
- * absent). If a caller stubbed a different `onPlay` onto another card's shell,
- * honor that stub.
+ * Play instructions from CR 9.3.7d records. `onPlay` is only the play text
+ * when the card has no play record (a hook-only shell, or the copy
+ * `fireOnPlay` stores for the pending-ability resume key).
  */
 export function playEffectFromCard(card: {
   abilities?: AbilityRecord[];
@@ -184,18 +182,30 @@ export function playEffectFromCard(card: {
     const effect = withCondition(ability);
     if (effect) effects.push(effect);
   }
-  const fromRecords =
-    effects.length === 0
-      ? undefined
-      : effects.length === 1
-        ? effects[0]
-        : ({ op: "seq", effects } as Effect);
-  if (!fromRecords) return card.onPlay;
-  if (!card.onPlay) return fromRecords;
-  if (JSON.stringify(fromRecords) === JSON.stringify(card.onPlay)) {
-    return fromRecords;
-  }
-  return card.onPlay;
+  if (effects.length === 0) return card.onPlay;
+  if (effects.length === 1) return effects[0];
+  return { op: "seq", effects } as Effect;
+}
+
+/**
+ * Replace printed play text with one play record (CR 9.3.7d).
+ * Also writes the derived `onPlay` copy shape tests and the stored-conditional
+ * resume key still read.
+ */
+export function setPrintedPlay(
+  card: { abilities?: AbilityRecord[]; onPlay?: Effect },
+  effect: Effect,
+): void {
+  const rest = (card.abilities ?? []).filter((ability) => ability.class !== "play");
+  card.abilities = [
+    ...rest,
+    {
+      class: "play",
+      rule: "9.3.7d",
+      instructions: effect,
+    },
+  ];
+  card.onPlay = effect;
 }
 
 /** True when the card has a play ability (record or legacy onPlay). */
@@ -271,16 +281,14 @@ export type PaidAbilityCarrier = {
     oncePerTurn?: boolean;
     requiresThreat?: number;
   }>;
-  /** Card-level: every paid ability is once-per-turn (Savoir-faire). */
-  oncePerTurnPaidAbilities?: boolean;
+  /** Card-level: at most one paid ability on this card each turn (CR 9.3.6g). */
   paidAbilitiesOncePerTurn?: boolean;
 };
 
 /**
- * Effective paid abilities: record-sourced entries preferred when they match
- * the catalog dual-write; engine extras (Guru / runtime gains) kept; stubbed
- * overlays with a different effect win (test shells). Applies card-level
- * once-per-turn paid (CR 9.3.6g) the same way load does.
+ * Effective paid abilities: printed entries come from CR 9.3 records.
+ * Engine extras (Guru / runtime gains) whose ids are not record ids stay.
+ * Applies card-level once-per-turn paid (CR 9.3.6g) the same way load does.
  */
 export function paidAbilitiesFromCard(
   card: PaidAbilityCarrier,
@@ -293,19 +301,11 @@ export function paidAbilitiesFromCard(
     fromRecords.map((ability) => String(ability.id ?? "")),
   );
   const extras = existing.filter((ability) => !recordIds.has(ability.id));
-  const synced = fromRecords.map((rec) => {
-    const id = String(rec.id ?? "");
-    const stub = existing.find((ability) => ability.id === id);
-    if (
-      stub &&
-      JSON.stringify(stub.effect) !== JSON.stringify(rec.effect)
-    ) {
-      return stub;
-    }
-    return rec as NonNullable<PaidAbilityCarrier["paidAbilities"]>[number];
-  });
-  const list = [...synced, ...extras];
-  if (card.oncePerTurnPaidAbilities || card.paidAbilitiesOncePerTurn) {
+  const list = [
+    ...(fromRecords as NonNullable<PaidAbilityCarrier["paidAbilities"]>),
+    ...extras,
+  ];
+  if (card.paidAbilitiesOncePerTurn) {
     for (const ab of list) {
       ab.oncePerTurn = true;
       canonicalizeAbilityFlags(ab);
@@ -352,11 +352,11 @@ export type SubroutineCarrier = {
 };
 
 /**
- * Effective subroutines: record-sourced printed entries preferred when they
- * match the catalog dual-write; runtime extras (Stick and Poke, TLDR copies,
- * Marker, gained ETR, …) kept in their current positions; stubbed overlays
- * with a different effect win. `subroutines === undefined` fills from records;
- * an explicit empty or trimmed list is left alone (Hive / “nothing to resolve”).
+ * Effective subroutines: printed entries come from CR 9.3.7e records.
+ * Runtime extras (Stick and Poke, TLDR copies, Marker, gained ETR, …) whose
+ * ids are not record ids stay in their current positions.
+ * `subroutines === undefined` fills from records; an explicit empty or
+ * trimmed list is left alone (Hive / “nothing to resolve”).
  */
 export function subroutinesFromCard(
   card: SubroutineCarrier,
@@ -372,9 +372,6 @@ export function subroutinesFromCard(
   return card.subroutines.map((stub) => {
     const rec = byId.get(stub.id);
     if (!rec) return stub;
-    if (JSON.stringify(stub.effect) !== JSON.stringify(rec.effect)) {
-      return stub;
-    }
     return rec as NonNullable<SubroutineCarrier["subroutines"]>[number];
   });
 }
@@ -428,8 +425,8 @@ export function applyAbilityRecords(
     if (hasFlag(record.flag, "persistent")) card.persistent = true;
 
     if (record.class === "play" && effect) {
-      // Catalog dual-write for getCardDef().onPlay shape tests. Runtime play
-      // prefers playEffectFromCard (abilities on the instance).
+      // Derived copy for getCardDef().onPlay shape tests and the
+      // stored-conditional effectKey. Runtime play reads the record.
       appendEffect(card, "onPlay", effect);
     } else if (record.class === "conditional" && effect && record.trigger && record.host) {
       const hostErr = record.hostAbility

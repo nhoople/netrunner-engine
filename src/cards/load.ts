@@ -517,13 +517,6 @@ export interface CardDef {
   onFirstEventTrashedThisTurn?: Effect;
   nonAiIcebreakerInstallStrengthBonusThisTurn?: number;
   onFirstInstallInThisServerRootThisTurn?: Effect;
-  gainsSubroutinesWhileProtectingHq?: Array<{ id: string; text: string; effect: Effect }>;
-  gainsSubroutinesBeforePrintedPerFaceupArchives?: {
-    subtype: string;
-    type: string;
-    per: number;
-    subroutine: { id: string; text: string; effect: Effect };
-  };
   additionalTagsDuringOutermostIceEncounter?: number;
   /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
   onProgramOrHardwareInstall?: Effect;
@@ -719,9 +712,6 @@ export interface CardDef {
   personalWorkshop?: boolean;
   onAccessRequiresInstalled?: boolean;
   canAdvanceOnlyWhenRezzed?: boolean;
-  gainsSubroutinesPerAdvancement?: {
-    subroutine: { id: string; text: string; effect: Effect };
-  };
   mayRezWhenCardWouldBeExposed?: boolean;
   /** Saisentan: amplify net damage on trash of chosen encounter type. */
   amplifyNetDamageOnTrashChosenEncounterType?: boolean;
@@ -973,11 +963,8 @@ export interface CardDef {
     bonus: number;
   };
   runsCannotBeSuccessful?: boolean;
-  hostGainsAllIceSubtypes?: boolean;
   /**
-   * Continuous subtype grants (S6 / L1). Prefer card-supplied decls when
-   * present; otherwise projected from hostGainsAllIceSubtypes /
-   * hostGainsBarrierAndEtrSubroutine at instantiate.
+   * Continuous subtype grants (S6 / L1).
    */
   continuousSubtypeGrants?: Array<
     | { kind: "host_grant_bcs" }
@@ -985,8 +972,7 @@ export interface CardDef {
     | { kind: "copy_other_rezzed_ice_subtypes" }
   >;
   /**
-   * Continuous gained-sub declarations (M6 / L2). Prefer card-supplied decls
-   * when present; otherwise projected from Fatuma / Wetwork / Sub Boost flags.
+   * Continuous gained-sub declarations (M6 / L2).
    */
   continuousGainedSubDecls?: import("../state/types.js").ContinuousGainedSubDecl[];
   recurringSpendFor?: Array<
@@ -1089,8 +1075,6 @@ export interface CardDef {
   badPublicityOnRez?: number;
   /** Housekeeping: first Runner install each turn → trash 1 from grip. */
   firstRunnerInstallTrashFromGripEachTurn?: boolean;
-  /** Sub Boost: host ice gains barrier + ETR sub. */
-  hostGainsBarrierAndEtrSubroutine?: boolean;
   /** Satellite Grid: ice protecting this server +N virtual advancement counters. */
   iceProtectingThisServerAdditionalAdvancementCounters?: number;
   /** Edward Kim: first accessed operation each turn trash free. */
@@ -1216,8 +1200,6 @@ export interface CardDef {
   addSelfToCorpScoreOnAgendaAccess?: { agendaPoints: number };
   /** Worlds Plaza: only host assets. */
   hostAssetsOnly?: boolean;
-  /** Tour Guide: ETR sub per rezzed asset. */
-  etrSubroutinesPerRezzedAsset?: boolean;
   /** SYNC front: +N¢ to basic remove-tag while unflipped. */
   basicRemoveTagAdditionalCostCreditsWhileUnflipped?: number;
   /** SYNC back: −N¢ to basic trash-resource while flipped. */
@@ -1348,12 +1330,6 @@ export interface CardDef {
   autoPreventNetOrMeatDamagePayOrTrash?: number;
   /** The Turning Wheel */
   placePowerOnHqOrRdRunEndIfNoAgendaStolen?: boolean;
-  /** Brainstorm */
-  gainsSubroutinesOnEncounterEqualGripSize?: {
-    id: string;
-    text: string;
-    effect: import("../effects/ir.js").Effect;
-  };
   /** Dedicated Neural Net */
   firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess?: boolean;
   /** Puppet Master */
@@ -1427,12 +1403,6 @@ export interface CardDef {
   mayInsteadOfBreachRdAccessOneOfTopN?: number;
   /** Government Investigations */
   secretSpendCannotEqual?: number;
-  /** Wetwork Refit */
-  hostGainsSubroutinesBeforePrinted?: Array<{
-    id: string;
-    text: string;
-    effect: Effect;
-  }>;
   /** Fumiko Yamamori */
   meatDamageWhenSecretSpendAmountsDiffer?: number;
   /** Drone Screen */
@@ -1511,10 +1481,6 @@ export interface CardDef {
   hostGainsPumpAbility?: { credits: number; strength: number };
   inversificatorSwapIceAfterFullyBrokeOncePerTurn?: boolean;
   trashSelfAndMeatDamageWhenCreditsZero?: number;
-  gainsSubroutinesPerRezzedIceWithSubtype?: {
-    subtype: string;
-    subroutine: { id: string; text: string; effect: Effect };
-  };
   bioroidWorkCrewRequireAfterOperationPaidWindow?: boolean;
   mayTakeTagToBypassOnEncounter?: boolean;
   gainCreditsOnBreakSubThisServerIfTagged?: number;
@@ -1588,7 +1554,6 @@ export interface CardDef {
   };
   hostIcebreakerStrengthIncreasesLastRemainderOfTurn?: boolean;
   onAgendaAddedToRunnerScore?: Effect;
-  bioroidIceGainsLoseClickSubroutineBeforeOthers?: boolean;
   onScoreTurnEnd?: Effect;
   hqOrRdRootOnly?: boolean;
   gainCreditsPerCardAccessedDuringBreach?: number;
@@ -1641,7 +1606,6 @@ export interface CardDef {
   gainCreditsOnTraceInitiated?: number;
   onGripRdSuccessInstallSelfIgnoringCosts?: boolean;
   onEncounterRezzedAfterApproach?: Effect;
-  oncePerTurnPaidAbilities?: boolean;
   blackguardForceRezOnExpose?: boolean;
   breakerOnlyOutermostIce?: boolean;
   breakerOnlyInnermostIce?: boolean;
@@ -1740,36 +1704,6 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     for (let i = 0; i < c.subroutines.length; i++) {
       const sub = c.subroutines[i] as { effect?: unknown };
       checkEffect(sub.effect, `subroutines[${i}].effect`);
-    }
-  }
-  if (
-    c.gainsSubroutinesBeforePrintedPerFaceupArchives &&
-    typeof c.gainsSubroutinesBeforePrintedPerFaceupArchives === "object"
-  ) {
-    const g = c.gainsSubroutinesBeforePrintedPerFaceupArchives as {
-      subroutine?: { effect?: unknown };
-    };
-    checkEffect(
-      g.subroutine?.effect,
-      "gainsSubroutinesBeforePrintedPerFaceupArchives.subroutine.effect",
-    );
-  }
-  if (
-    c.gainsSubroutinesPerAdvancement &&
-    typeof c.gainsSubroutinesPerAdvancement === "object"
-  ) {
-    const g = c.gainsSubroutinesPerAdvancement as {
-      subroutine?: { effect?: unknown };
-    };
-    checkEffect(
-      g.subroutine?.effect,
-      "gainsSubroutinesPerAdvancement.subroutine.effect",
-    );
-  }
-  if (Array.isArray(c.gainsSubroutinesWhileProtectingHq)) {
-    for (let i = 0; i < c.gainsSubroutinesWhileProtectingHq.length; i++) {
-      const sub = c.gainsSubroutinesWhileProtectingHq[i] as { effect?: unknown };
-      checkEffect(sub.effect, `gainsSubroutinesWhileProtectingHq[${i}].effect`);
     }
   }
   if (Array.isArray(c.paidAbilities)) {
@@ -1918,18 +1852,6 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onHostEncounter, "onHostEncounter");
   checkEffect(c.onApproachServer, "onApproachServer");
   checkEffect(c.onRunDeclaredOnThisServerIfTagged, "onRunDeclaredOnThisServerIfTagged");
-  if (Array.isArray(c.hostGainsSubroutinesBeforePrinted)) {
-    for (let i = 0; i < c.hostGainsSubroutinesBeforePrinted.length; i++) {
-      const sub = c.hostGainsSubroutinesBeforePrinted[i] as {
-        id?: string;
-        effect?: unknown;
-      };
-      checkEffect(
-        sub.effect,
-        `hostGainsSubroutinesBeforePrinted[${i}].effect`,
-      );
-    }
-  }
   checkEffect(c.onApproachIce, "onApproachIce");
   const flippedHooks = c.identityFlippedHooks as CardDef["identityFlippedHooks"];
   if (flippedHooks?.onFirstOperationPlayThisTurn) {
@@ -2699,7 +2621,6 @@ export function instantiateCard(
     badPublicityOnRez: def.badPublicityOnRez,
     firstRunnerInstallTrashFromGripEachTurn:
       def.firstRunnerInstallTrashFromGripEachTurn,
-    hostGainsBarrierAndEtrSubroutine: def.hostGainsBarrierAndEtrSubroutine,
     iceProtectingThisServerAdditionalAdvancementCounters:
       def.iceProtectingThisServerAdditionalAdvancementCounters,
     firstAccessedOperationTrashFreeEachTurn:
@@ -2929,9 +2850,6 @@ export function instantiateCard(
       def.bonusAccessOnHqBreachPerFullyBrokenProtectingIce,
     mayInsteadOfBreachRdAccessOneOfTopN: def.mayInsteadOfBreachRdAccessOneOfTopN,
     secretSpendCannotEqual: def.secretSpendCannotEqual,
-    hostGainsSubroutinesBeforePrinted: def.hostGainsSubroutinesBeforePrinted
-      ? structuredClone(def.hostGainsSubroutinesBeforePrinted)
-      : undefined,
     meatDamageWhenSecretSpendAmountsDiffer:
       def.meatDamageWhenSecretSpendAmountsDiffer,
     onRunDeclaredOnThisServerIfTagged: def.onRunDeclaredOnThisServerIfTagged
@@ -3114,8 +3032,6 @@ export function instantiateCard(
       : undefined,
     hostIcebreakerStrengthIncreasesLastRemainderOfTurn:
       def.hostIcebreakerStrengthIncreasesLastRemainderOfTurn,
-    bioroidIceGainsLoseClickSubroutineBeforeOthers:
-      def.bioroidIceGainsLoseClickSubroutineBeforeOthers,
     hqOrRdRootOnly: def.hqOrRdRootOnly,
     gainCreditsPerCardAccessedDuringBreach:
       def.gainCreditsPerCardAccessedDuringBreach,
@@ -3216,92 +3132,14 @@ export function instantiateCard(
         : undefined,
     runsCannotBeSuccessful: def.runsCannotBeSuccessful,
     maxAccessOtherThanSelf: def.maxAccessOtherThanSelf,
-    hostGainsAllIceSubtypes: def.hostGainsAllIceSubtypes,
-    // L1: prefer card-supplied continuous decls; else project from legacy flags.
     continuousSubtypeGrants:
       def.continuousSubtypeGrants && def.continuousSubtypeGrants.length > 0
         ? structuredClone(def.continuousSubtypeGrants)
-        : def.hostGainsAllIceSubtypes
-          ? def.type === "ice"
-            ? [{ kind: "copy_other_rezzed_ice_subtypes" as const }]
-            : [{ kind: "host_grant_bcs" as const }]
-          : def.hostGainsBarrierAndEtrSubroutine
-            ? [{ kind: "host_grant_barrier" as const }]
-            : undefined,
+        : undefined,
     continuousGainedSubDecls:
       def.continuousGainedSubDecls && def.continuousGainedSubDecls.length > 0
         ? structuredClone(def.continuousGainedSubDecls)
-        : def.bioroidIceGainsLoseClickSubroutineBeforeOthers
-          ? [{ kind: "fatuma_lose_click" as const }]
-          : def.hostGainsSubroutinesBeforePrinted
-            ? [{ kind: "wetwork_hosted_before" as const }]
-            : def.hostGainsBarrierAndEtrSubroutine
-              ? [{ kind: "sub_boost_etr" as const }]
-              : def.gainsSubroutinesWhileProtectingHq
-                ? [
-                    {
-                      kind: "hq_protect_subs" as const,
-                      position: "after" as const,
-                      subroutines: structuredClone(
-                        def.gainsSubroutinesWhileProtectingHq,
-                      ),
-                    },
-                  ]
-                : def.gainsSubroutinesBeforePrintedPerFaceupArchives
-                  ? [
-                      {
-                        kind: "archives_faceup_per" as const,
-                        position: "before" as const,
-                        type: def.gainsSubroutinesBeforePrintedPerFaceupArchives
-                          .type,
-                        subtype:
-                          def.gainsSubroutinesBeforePrintedPerFaceupArchives
-                            .subtype,
-                        per: def.gainsSubroutinesBeforePrintedPerFaceupArchives
-                          .per,
-                        subroutine: structuredClone(
-                          def.gainsSubroutinesBeforePrintedPerFaceupArchives
-                            .subroutine,
-                        ),
-                      },
-                    ]
-                  : def.gainsSubroutinesPerAdvancement
-                    ? [
-                        {
-                          kind: "per_advancement" as const,
-                          position: "after" as const,
-                          subroutine: structuredClone(
-                            def.gainsSubroutinesPerAdvancement.subroutine,
-                          ),
-                        },
-                      ]
-                    : def.gainsSubroutinesPerRezzedIceWithSubtype
-                      ? [
-                          {
-                            kind: "per_rezzed_subtype" as const,
-                            position: "after" as const,
-                            subtype:
-                              def.gainsSubroutinesPerRezzedIceWithSubtype
-                                .subtype,
-                            subroutine: structuredClone(
-                              def.gainsSubroutinesPerRezzedIceWithSubtype
-                                .subroutine,
-                            ),
-                          },
-                        ]
-                      : def.gainsSubroutinesOnEncounterEqualGripSize
-                        ? [
-                            {
-                              kind: "grip_size_on_encounter" as const,
-                              position: "after" as const,
-                              subroutine: structuredClone(
-                                def.gainsSubroutinesOnEncounterEqualGripSize,
-                              ),
-                            },
-                          ]
-                        : def.etrSubroutinesPerRezzedAsset
-                          ? [{ kind: "etr_per_rezzed_asset" as const }]
-                          : undefined,
+        : undefined,
     recurringSpendFor: def.recurringSpendFor
       ? [...def.recurringSpendFor]
       : undefined,
@@ -3342,7 +3180,6 @@ export function instantiateCard(
     onEncounterRezzedAfterApproach: def.onEncounterRezzedAfterApproach
       ? structuredClone(def.onEncounterRezzedAfterApproach)
       : undefined,
-    oncePerTurnPaidAbilities: def.oncePerTurnPaidAbilities,
     blackguardForceRezOnExpose: def.blackguardForceRezOnExpose,
     breakerOnlyOutermostIce: def.breakerOnlyOutermostIce,
     breakerOnlyInnermostIce: def.breakerOnlyInnermostIce,
@@ -3472,7 +3309,7 @@ export function instantiateCard(
     for (const ab of card.paidAbilities) {
       canonicalizeAbilityFlags(ab);
     }
-    if (def.oncePerTurnPaidAbilities) {
+    if (def.paidAbilitiesOncePerTurn) {
       for (const ab of card.paidAbilities) {
         ab.oncePerTurn = true;
         canonicalizeAbilityFlags(ab);
@@ -3624,9 +3461,6 @@ export function instantiateCard(
   if (def.advancementRequirementIncreasePerCorpBadPublicity !== undefined) {
     card.advancementRequirementIncreasePerCorpBadPublicity =
       def.advancementRequirementIncreasePerCorpBadPublicity;
-  }
-  if (def.oncePerTurnPaidAbilities) {
-    card.oncePerTurnPaidAbilities = true;
   }
   if (def.blackguardForceRezOnExpose) {
     card.blackguardForceRezOnExpose = true;

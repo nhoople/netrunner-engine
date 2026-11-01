@@ -32,7 +32,7 @@ describe("CR 9.3 ability records", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   it("round-trips a conditional trigger to its hook", () => {
@@ -59,7 +59,7 @@ describe("CR 9.3 ability records", () => {
       ],
     };
     expect(applyAbilityRecords(card)).toBeNull();
-    // Catalog still dual-writes onPlay for shape tests.
+    // Derived onPlay copy for shape tests. Runtime play reads the record.
     expect(card.onPlay).toBeDefined();
     expect(hasPlayEffect(card as never)).toBe(true);
     const effect = playEffectFromCard(card as never);
@@ -445,6 +445,38 @@ describe("CR 9.3 ability records", () => {
         "abilities[0]",
       ),
     ).toMatch(/expected 9\.3\.7d/);
+  });
+
+  it("reads the play record when onPlay disagrees (CR 9.3.7d)", () => {
+    const card = {
+      abilities: [
+        {
+          class: "play" as const,
+          instructions: {
+            op: "do" as const,
+            action: { kind: "gain_credits" as const, side: "runner" as const, amount: 9 },
+          },
+        },
+      ],
+      onPlay: { op: "do" as const, action: { kind: "end_the_run" as const } },
+    };
+    expect(playEffectFromCard(card)).toEqual(card.abilities[0]!.instructions);
+  });
+
+  it("keeps the printed subroutine when a same-id stub disagrees (CR 9.3.7e)", () => {
+    const wall = instantiateCard("ice-wall", "iw-1", "corp:hq:ice");
+    wall.subroutines = [
+      {
+        id: "iw-etr",
+        text: "stub",
+        effect: { op: "do", action: { kind: "core_damage", amount: 1 } },
+      },
+    ];
+    syncSubroutinesFromRecords(wall);
+    expect(wall.subroutines?.[0]?.effect).toEqual({
+      op: "do",
+      action: { kind: "end_the_run" },
+    });
   });
 
   it("leaves a card that still uses hooks unchanged", () => {

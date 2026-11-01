@@ -1,8 +1,8 @@
 {
-  "tag": "v1.147.16",
+  "tag": "v1.147.17",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.16",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.16",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.17",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.17",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "runner/program",
     "runner/resource"
   ],
-  "notes": "Pair cards v1.147.16. W1 Winchester-family continuousGainedSubDecls; Magnet continuous-only already on engine. CR pin v26.03."
+  "notes": "Pair cards v1.147.17. One paidAbilitiesOncePerTurn name; unused gained-sub flags dropped. CR pin v26.03."
 }

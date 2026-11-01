@@ -24,6 +24,7 @@ import {
   expireLingeringEffects,
   fx,
   instantiateCard,
+  setPrintedPlay,
   markPendingAbilityImminent,
   moveRunnerCardToHeap,
   occurCheckpoint,
@@ -48,7 +49,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.16");
+  assertCardsPinnedTag("v1.147.17");
 });
 
 describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
@@ -4084,7 +4085,7 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
     const asset = instantiateCard("pad-campaign", "pad-1", "server:hq:root");
     asset.onInstall = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
     asset.onRez = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
-    asset.onPlay = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
+    setPrintedPlay(asset, fx.do({ kind: "gain_credits", side: "corp", amount: 1 }));
     asset.onAccess = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
     asset.onBypass = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
     const breaker = instantiateCard("corroder", "cor-1", "runner:installed");

@@ -23,7 +23,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.01.0 kickoff", () => {
@@ -95,7 +95,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.02.0 A-slice", () => {
@@ -167,7 +167,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.03.0 B-slice", () => {
@@ -266,7 +266,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.04.0 B-slice", () => {
@@ -328,7 +328,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.05.0 B-slice", () => {
@@ -389,7 +389,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.06.0 B-slice", () => {
@@ -431,7 +431,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.07.0 B-slice", () => {
@@ -519,7 +519,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.08.0 B-slice", () => {
@@ -594,7 +594,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.09.0 B-slice", () => {
@@ -654,7 +654,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.10.0 B-slice", () => {
@@ -701,7 +701,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.11.0 B-slice", () => {
@@ -791,7 +791,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Elevation v1.12.0 final B-slice", () => {

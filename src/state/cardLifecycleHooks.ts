@@ -69,8 +69,8 @@ export function fireOnRez(state: GameState, cardId: string): boolean {
  * Note a card's play ability for the CR 8.6.7e play checkpoint (CR 9.3.7d /
  * 10.3.1a). Caller must open that checkpoint next; on-play marks there and
  * resolves at 8.6.7f (see resolveNotedPlayAbilities / play.ts).
- * Records on the instance are the source of truth; sync `onPlay` so the
- * stored_conditional resume path keeps working until phase 1 cuts that key.
+ * The play record is the source. Copy it onto `onPlay` so the
+ * stored_conditional resume path can read effectKey "onPlay".
  */
 export function fireOnPlay(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];

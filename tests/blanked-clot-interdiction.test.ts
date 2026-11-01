@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.16");
+  assertCardsPinnedTag("v1.147.17");
 });
 
 describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
