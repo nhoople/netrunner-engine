@@ -46,6 +46,7 @@ import { CR } from "../timing/labels.js";
 import {
   fireOnInstallWithoutSpendingCredits,
 } from "../state/miscConditionalHooks.js";
+import { resolveRunnerInstallCostDelta } from "../state/continuousCosts.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -55,124 +56,15 @@ function ok(state: GameState): ApplyResult {
   return { ok: true, state };
 }
 
-function countInstalledIcebreakers(state: GameState): number {
-  return state.runner.installed.filter(
-    (id) =>
-      Boolean(state.cards[id].breaker) ||
-      (state.cards[id].subtypes ?? []).includes("icebreaker"),
-  ).length;
-}
-
 export function runnerInstallCost(
   state: GameState,
   card: GameState["cards"][string],
   destination?: InstallDestination,
 ): number {
-  let cost = card.installCost;
-  if (card.type === "resource") {
-    for (const c of Object.values(state.cards)) {
-      if (!c || abilitiesSuppressed(state, c.id)) continue;
-      if (
-        c.zone === "corp:play-area" &&
-        typeof c.resourceInstallCostIncrease === "number"
-      ) {
-        cost += c.resourceInstallCostIncrease;
-      }
-      // Water Monopoly: scored agenda increases non-virtual resource install cost.
-      if (
-        c.zone === "corp:score" &&
-        typeof c.nonVirtualResourceInstallCostIncrease === "number" &&
-        !(card.subtypes ?? []).some((s) => s.toLowerCase() === "virtual")
-      ) {
-        cost += c.nonVirtualResourceInstallCostIncrease;
-      }
-    }
-  }
-  // TechnoCo: +1 install for program / hardware / virtual resource while rezzed.
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.root) {
-      if (abilitiesSuppressed(state, id)) continue;
-      const c = state.cards[id];
-      if (!c?.rezzed) continue;
-      if (
-        card.type === "program" &&
-        typeof c.programInstallCostIncrease === "number"
-      ) {
-        cost += c.programInstallCostIncrease;
-      }
-      if (
-        card.type === "hardware" &&
-        typeof c.hardwareInstallCostIncrease === "number"
-      ) {
-        cost += c.hardwareInstallCostIncrease;
-      }
-      if (
-        card.type === "resource" &&
-        (card.subtypes ?? []).includes("virtual") &&
-        typeof c.virtualResourceInstallCostIncrease === "number"
-      ) {
-        cost += c.virtualResourceInstallCostIncrease;
-      }
-    }
-  }
-  if (
-    card.installCostDiscountIfSuccessfulRunThisTurn &&
-    state.turn.successfulRunThisTurn
-  ) {
-    cost = Math.max(
-      0,
-      cost - card.installCostDiscountIfSuccessfulRunThisTurn,
-    );
-  }
-  if (
-    card.installCostDiscountIfSuccessfulHqRunThisTurn &&
-    state.turn.successfulHqRunThisTurn
-  ) {
-    cost = Math.max(
-      0,
-      cost - card.installCostDiscountIfSuccessfulHqRunThisTurn,
-    );
-  }
-  if (card.installCostDiscountPerInstalledIcebreaker) {
-    cost = Math.max(
-      0,
-      cost -
-        card.installCostDiscountPerInstalledIcebreaker *
-          countInstalledIcebreakers(state),
-    );
-  }
-  if ((card.installCostReductionPerLink ?? 0) > 0 && state.runner.link > 0) {
-    cost = Math.max(
-      0,
-      cost - card.installCostReductionPerLink! * state.runner.link,
-    );
-  }
-  if (card.type === "program" && state.turn.programsInstalledThisTurn === 0) {
-    for (const id of state.runner.installed) {
-      if (abilitiesSuppressed(state, id)) continue;
-      const discount = state.cards[id].firstProgramInstallDiscount ?? 0;
-      if (discount > 0) cost = Math.max(0, cost - discount);
-    }
-  }
-  if (
-    (card.type === "program" || card.type === "hardware") &&
-    state.turn.programsInstalledThisTurn === 0 &&
-    state.turn.hardwareInstalledThisTurn === 0
-  ) {
-    let kate = 0;
-    const identityId = state.runner.identityId;
-    if (!abilitiesSuppressed(state, identityId)) {
-      kate = state.cards[identityId]?.firstProgramOrHardwareInstallDiscount ?? 0;
-    }
-    for (const id of state.runner.installed) {
-      if (abilitiesSuppressed(state, id)) continue;
-      kate = Math.max(
-        kate,
-        state.cards[id]?.firstProgramOrHardwareInstallDiscount ?? 0,
-      );
-    }
-    if (kate > 0) cost = Math.max(0, cost - kate);
-  }
+  let cost = Math.max(
+    0,
+    card.installCost + resolveRunnerInstallCostDelta(state, card.id),
+  );
   {
     const azDisc = azJobConnectionOrHardwareInstallDiscount(state, card);
     if (azDisc > 0) cost = Math.max(0, cost - azDisc);

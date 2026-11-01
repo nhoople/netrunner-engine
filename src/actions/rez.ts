@@ -9,16 +9,17 @@ import {
   applyHostServerRecurringTowardCorpRez,
   quoteHostServerRecurringTowardCorpRez,
   applyRezIceRecurringTowardCorpRez,
-  continuousIceRezCostReduction,
   corpMayRez,
   currentWindow,
-  iceRezCostReductionFromScoredAgendaCounters,
   rezCostDiscountIfAgendaScoredOrStolenThisTurn,
   rezCostDiscountPerOtherUnrezzedIce,
   rezCostDiscountPerRezzedSubtype,
   rootRezCostReduction,
 } from "../cards/stubs.js";
-import { resolveIceRezCostIncrease } from "../state/continuousCosts.js";
+import {
+  resolveIceRezCostIncrease,
+  resolveIceRezCostReduction,
+} from "../state/continuousCosts.js";
 import { addRestriction, trashCardsOnForbiddenHosts, withCostCheckpoint } from "../legality/checkpoints.js";
 import {
   ensurePriorityWindow,
@@ -274,14 +275,13 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     rezCostDiscountPerRezzedSubtype(state, cardId) +
     rezCostDiscountPerOtherUnrezzedIce(state, cardId) +
     rezCostDiscountIfAgendaScoredOrStolenThisTurn(state, cardId) +
-    iceRezCostReductionFromScoredAgendaCounters(state);
-  const serverReduction = continuousIceRezCostReduction(state, cardId);
+    resolveIceRezCostReduction(state, cardId);
   const advRezReduction =
     (card.rezCostReductionPerAdvancement ?? 0) *
     (card.advancementCounters ?? 0);
   let cost = Math.max(
     0,
-    (card.rezCost ?? 0) + increase - discount - serverReduction - advRezReduction,
+    (card.rezCost ?? 0) + increase - discount - advRezReduction,
   );
   const costBeforeRecurring = cost;
   cost = quoteHostServerRecurringTowardCorpRez(state, cardId, cost);

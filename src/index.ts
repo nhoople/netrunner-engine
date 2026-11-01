@@ -431,9 +431,16 @@ export {
 export type { ContinuousGainedSub } from "./state/continuousSubs.js";
 export {
   collectIceRezCostIncreases,
+  collectIceRezCostReductions,
+  collectRunnerInstallCostDeltas,
   resolveIceRezCostIncrease,
+  resolveIceRezCostReduction,
+  resolveRunnerInstallCostDelta,
 } from "./state/continuousCosts.js";
-export type { ContinuousRezCostMod } from "./state/continuousCosts.js";
+export type {
+  ContinuousInstallCostMod,
+  ContinuousRezCostMod,
+} from "./state/continuousCosts.js";
 export { openPendingChoose } from "./state/pendingChoice.js";
 export type { PendingChoiceOption } from "./state/pendingChoice.js";
 export {
