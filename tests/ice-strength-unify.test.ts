@@ -45,12 +45,8 @@ describe("ice strength unify (CR 9.12.1a)", () => {
       encounter: { iceId: "ice-1", broken: [false], subroutinesResolved: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
-    s.turn.iceStrengthBoostsThisTurn = {};
     addIceStrengthBoostThisEncounter(s, {
       createdBy: "test",
       iceId: "ice-1",

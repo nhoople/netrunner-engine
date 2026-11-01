@@ -40,9 +40,6 @@ function encounterState(
     encounter: { iceId, broken: [false], subroutinesResolved: [] },
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
   };
 }

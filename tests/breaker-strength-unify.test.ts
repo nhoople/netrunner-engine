@@ -43,9 +43,6 @@ describe("breaker strength unify (CR 9.12.1a)", () => {
       encounter: { iceId: "none", broken: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     addBreakerStrengthBoostThisTurn(s, {

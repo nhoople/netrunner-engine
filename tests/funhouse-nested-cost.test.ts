@@ -55,9 +55,6 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.cards["fh-1"] = {

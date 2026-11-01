@@ -170,9 +170,6 @@ describe("core", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       const r = evalEffect(
         { state: s, sourceId: "chum-ice" },
@@ -215,9 +212,6 @@ describe("core", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       const offer = evalEffect(
         { state: s, sourceId: "siphon" },
@@ -347,9 +341,6 @@ describe("core", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       const siphon = instantiateCard("account-siphon", "siphon", "runner:play-area");
       s.cards["siphon"] = siphon;

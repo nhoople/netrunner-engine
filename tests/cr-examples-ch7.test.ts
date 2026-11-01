@@ -44,9 +44,6 @@ function breach(state: GameState, server: ServerId): void {
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
     breached: true,
   };

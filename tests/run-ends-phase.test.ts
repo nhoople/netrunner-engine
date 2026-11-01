@@ -88,9 +88,6 @@ describe("CR G6 residual — Run Ends Phase (11.4_6_a–d)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.badPublicityFund = 2;
@@ -131,9 +128,6 @@ describe("CR G6 residual — Run Ends Phase (11.4_6_a–d)", () => {
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.badPublicityFund = 0;

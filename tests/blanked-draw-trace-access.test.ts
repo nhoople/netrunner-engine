@@ -61,9 +61,6 @@ describe("blanked draw / trace / access / MU cost (CR 9.12.1d)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
 
@@ -103,9 +100,6 @@ describe("blanked draw / trace / access / MU cost (CR 9.12.1d)", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       return s;

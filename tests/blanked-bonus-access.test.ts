@@ -41,9 +41,6 @@ function hqRunState(): GameState {
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
   };
   return s;

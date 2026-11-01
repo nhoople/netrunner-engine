@@ -81,9 +81,6 @@ describe("CR M1 — success ternary (6.8.4a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const src = instantiateCard("phoneutria", "ph-1", "server:hq:ice");
@@ -144,9 +141,6 @@ describe("CR M1 — success ternary (6.8.4a)", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const r = evalEffect(

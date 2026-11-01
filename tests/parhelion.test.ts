@@ -847,9 +847,6 @@ describe("parhelion", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       const r = evalEffect({ state: s, sourceId: "haf-1" }, def.onRez!);
@@ -887,9 +884,6 @@ describe("parhelion", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       const r = evalEffect({ state: s, sourceId: "klev-1" }, def.onRez!);
@@ -924,9 +918,6 @@ describe("parhelion", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       const r = evalEffect({ state: s, sourceId: "uns-1" }, def.onRez!);
@@ -1222,9 +1213,6 @@ describe("parhelion", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {} as Record<string, number>,
-      encounterStrengthBoosts: {} as Record<string, number>,
-      iceStrengthBoosts: {} as Record<string, number>,
       accessingCardId: null as string | null,
     };
   }
@@ -1675,10 +1663,12 @@ describe("parhelion", () => {
         endedTheRun: false,
         cannotJackOut: false,
       };
-      s.run.strengthBoosts = { "orca-1": 10 };
-      s.run.encounterStrengthBoosts = {};
-      s.run.iceStrengthBoosts = {};
       s.run.accessingCardId = null;
+      addBreakerStrengthBoostThisRun(s, {
+        createdBy: "orca-1",
+        breakerId: "orca-1",
+        amount: 10,
+      });
 
       s = must(s, {
         type: "break_subroutine",
@@ -1793,9 +1783,6 @@ describe("parhelion", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         cannotStealOrTrash: false,
         accessCandidatesPreset: true,
@@ -2238,9 +2225,6 @@ describe("parhelion", () => {
         encounter: { iceId: "ice-1", broken: [false, false] },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
 
@@ -2515,9 +2499,6 @@ describe("parhelion", () => {
         },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       // Match strength

@@ -651,9 +651,6 @@ describe("downfall", () => {
         },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       const subs = effectiveIceSubtypes(s, "ice-1");
       expect(subs).toContain("code gate");
@@ -886,9 +883,6 @@ describe("downfall", () => {
         encounter: { iceId: "ice-1", broken: [false] },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       const r = evalEffect(
         { state: s, sourceId: "bak-1" },
@@ -1041,9 +1035,6 @@ describe("downfall", () => {
         },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       // Sole grip card is the chosen type: 1 net trashes it, amplify 1 with
       // empty grip flatlines (proves amplify fired).
@@ -1166,9 +1157,6 @@ describe("downfall", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(2);
       expect(runnerAvailableCreditsForBreaker(s)).toBeGreaterThanOrEqual(2);
@@ -1386,9 +1374,6 @@ describe("downfall", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       const r = evalEffect(
         { state: s, sourceId: s.corp.identityId },
@@ -1450,9 +1435,6 @@ describe("downfall", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       // Seed HQ hand so bonus access has cards to expand into.
       const h1 = instantiateCard("hedge-fund", "hq-1", "corp:hq");
@@ -1503,9 +1485,6 @@ describe("downfall", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         blankIdentities: true,
         runSourceId: "da-1",
       };
@@ -1657,9 +1636,6 @@ describe("downfall", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         blankIdentities: true,
       };
       expect(abilitiesSuppressed(s, s.corp.identityId)).toBe(true);
@@ -1681,9 +1657,6 @@ describe("downfall", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       openPendingEndTheRun(s, "ice-wall-1", true);
       expect(s.pendingEndTheRun?.fromCorpCardAbility).toBe(true);

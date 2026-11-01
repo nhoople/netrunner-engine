@@ -577,9 +577,6 @@ describe("system-core-2019", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       beginBreachAccess(s);
@@ -612,9 +609,6 @@ describe("system-core-2019", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       beginBreachAccess(s);
@@ -1608,9 +1602,6 @@ describe("system-core-2019", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       const r = evalEffect(
         { state: s, sourceId: "bj" },
@@ -1659,9 +1650,6 @@ describe("system-core-2019", () => {
         randomAccessLimit: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       noteRunnerClickSpend(s);
       expect(s.turn.seidrClickMetPending).toBe(true);

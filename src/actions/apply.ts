@@ -1421,9 +1421,6 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         isPostRunBreach: true,
         runSourceId: pending.sourceId,
@@ -1461,9 +1458,6 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         isPostRunBreach: true,
         accessCandidatesPreset: true,
@@ -3504,14 +3498,6 @@ export function describeState(state: GameState): string {
     lines.push(
       `Run: ${state.run.attackedServerId} phase=${state.run.phase} success=${state.run.successful} pos=${state.run.position} etr=${state.run.endedTheRun} noJack=${state.run.cannotJackOut}`,
     );
-    const boosts = Object.entries(state.run.strengthBoosts);
-    const encBoosts = Object.entries(state.run.encounterStrengthBoosts);
-    const iceBoosts = Object.entries(state.run.iceStrengthBoosts);
-    if (boosts.length || encBoosts.length || iceBoosts.length) {
-      lines.push(
-        `Strength boosts: run={${boosts.map(([k, v]) => `${k}:+${v}`).join(",")}} encounter={${encBoosts.map(([k, v]) => `${k}:+${v}`).join(",")}} ice={${iceBoosts.map(([k, v]) => `${k}:+${v}`).join(",")}}`,
-      );
-    }
     if (state.run.encounter) {
       const iceId = state.run.encounter.iceId;
       lines.push(

@@ -657,9 +657,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: { iceId: "ice-1", broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
     };
     noteFirstEncounterEachRun(s);
     expect(s.run!.firstEncounterEachRunMetPending).toBe(true);
@@ -1499,9 +1496,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: { iceId: "iw-1", broken: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       outsidePoolCreditSpendThisRun: true,
     };
@@ -1548,9 +1542,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: { iceId: "iw-1", broken: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     noteEncounterAnyIceOncePerTurn(s);
@@ -1596,9 +1587,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: { iceId: "iw-1", broken: [] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       compileFirstEncounterFired: false,
     };
@@ -1705,9 +1693,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: "pf-1",
     };
     noteAccessedCardAbilities(s);
@@ -1751,9 +1736,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     noteFinishAccessRdOncePerTurn(s);
@@ -1799,9 +1781,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     noteSuccessfulRunServerAbilities(s);
@@ -1846,9 +1825,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     noteUnsuccessfulRunServerAbilities(s);
@@ -2125,9 +2101,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
     };
     noteSisyphusFirstPass(s, "ice-1");
     expect(s.turn.sisyphusPassMetPending).toBe(true);
@@ -2785,9 +2758,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     commitCheckpointSnapshot(s, "before-root-entry");
@@ -3154,9 +3124,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     addBreakerStrengthBoostThisRun(s, {
@@ -3484,9 +3451,6 @@ describe("simultaneous trash multiplicity (CR 9.12.2a)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.activeSide = "runner";
@@ -3900,9 +3864,6 @@ describe("Amaze run-end pending (CR 9.12.5d)", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       agendasStolenThisRun: 1,
       persistentTagsIfAgendaStolen: 2,
@@ -3958,9 +3919,6 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       lastEncounteredIceId: "wall-1",
     };
@@ -4009,9 +3967,6 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
       encounter: null,
       endedTheRun: true,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
       lastEncounteredIceId: "chum-1",
     };

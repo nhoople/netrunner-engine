@@ -293,9 +293,6 @@ describe("creation-and-control", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       s.timingKey = "run.jackOutWindow";
       resolveAndAdvance(s);
@@ -342,9 +339,6 @@ describe("creation-and-control", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         awakeningCenterHostedIceIds: ["ice-1"],
       };
       s2.timingKey = "run.ends";
@@ -401,9 +395,6 @@ describe("creation-and-control", () => {
         encounter: { iceId: "wall-1", broken: [false] },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       s.timingKey = "run.encounterPaw";
       return s;
@@ -550,9 +541,6 @@ describe("creation-and-control", () => {
         encounter: { iceId: "wall-1", broken: [false] },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
       };
       s.timingKey = "run.encounterPaw";
 

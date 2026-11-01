@@ -49,9 +49,6 @@ function setupRun(s: GameState): GameState {
     encounter: null,
     endedTheRun: false,
     cannotJackOut: false,
-    strengthBoosts: {},
-    encounterStrengthBoosts: {},
-    iceStrengthBoosts: {},
     accessingCardId: null,
   } as GameState["run"];
   return s;

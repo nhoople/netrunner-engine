@@ -35,9 +35,6 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     beginBreachAccess(s);
@@ -60,9 +57,6 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const logLen = s.log.length;
@@ -99,9 +93,6 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     beginBreachAccess(s);

@@ -62,9 +62,6 @@ describe("cross-pack — success ternary: Flagship (VP) × Phoneutria (TAI)", ()
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     const ph = instantiateCard("phoneutria", "ph-1", "server:hq:ice");
@@ -120,9 +117,6 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
 
@@ -160,9 +154,6 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
       },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     s.cards["fh-1"] = instantiateCard("funhouse", "fh-1", "server:hq:ice");

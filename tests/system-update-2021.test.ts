@@ -77,9 +77,6 @@ describe("card corpus system-update-2021", () => {
       encounter: { iceId, broken: [false] },
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {},
-      encounterStrengthBoosts: {},
-      iceStrengthBoosts: {},
       accessingCardId: null,
     };
     // Lotus Field cannot have its strength lowered (card text / CR 9.12.1a).

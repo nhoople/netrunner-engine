@@ -118,9 +118,6 @@ describe("the-automata-initiative", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         clicksGainedThisRun: 0,
       };
@@ -233,9 +230,6 @@ describe("the-automata-initiative", () => {
         },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       const r = evalEffect(
@@ -376,9 +370,6 @@ describe("the-automata-initiative", () => {
       encounter: null,
       endedTheRun: false,
       cannotJackOut: false,
-      strengthBoosts: {} as Record<string, number>,
-      encounterStrengthBoosts: {} as Record<string, number>,
-      iceStrengthBoosts: {} as Record<string, number>,
       accessingCardId: null as string | null,
     };
   }
@@ -537,9 +528,6 @@ describe("the-automata-initiative", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         agendasStolenThisRun: 0,
         iceEncounteredCount: 0,
@@ -677,9 +665,6 @@ describe("the-automata-initiative", () => {
         encounter: { iceId: ice.id, broken: [false] },
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         agendasStolenThisRun: 0,
         iceEncounteredCount: 1,
@@ -772,9 +757,6 @@ describe("the-automata-initiative", () => {
         position: 0,
         phase: "encounter",
         bypassedIceIds: ["ice-1"],
-        iceStrengthBoosts: {},
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
       } as typeof s.run;
       const r = evalEffect(
         { state: s, sourceId: "capy-1" },
@@ -897,9 +879,6 @@ describe("the-automata-initiative", () => {
         encounter: null,
         endedTheRun: true,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       const ice = instantiateCard("phoneutria", "ph-1", "server:hq:ice");
@@ -1383,9 +1362,6 @@ describe("the-automata-initiative", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         runSourceId: "ev-1",
       };
@@ -2116,9 +2092,6 @@ describe("the-automata-initiative", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
       s.servers["remote-1"] = {
@@ -2223,9 +2196,6 @@ describe("the-automata-initiative", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
         iceDerezzedThisRun: true,
       };
@@ -2264,9 +2234,6 @@ describe("the-automata-initiative", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
-        strengthBoosts: {},
-        encounterStrengthBoosts: {},
-        iceStrengthBoosts: {},
         accessingCardId: null,
       };
 
