@@ -38,6 +38,7 @@ import {
   preventPendingTags,
 } from "../src/index.js";
 import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
+import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { dealDamage, preventPendingDamage } from "../src/state/damage.js";
 import { resetPendingAbilitySeqForTests } from "../src/state/pendingAbilities.js";
 import { resetLingeringSeqForTests } from "../src/state/lingeringEffects.js";
@@ -3244,19 +3245,19 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       createdBy: s.corp.identityId,
       cardId: "res-1",
     });
-    expect(s.cards["res-1"]!.abilitiesBlanked).toBe(true);
-    expect(s.cards["res-1"]!.abilitiesBlankedCorpTurnsRemaining).toBe(1);
+    expect(s.cards["res-1"]!.abilitiesBlanked).toBeFalsy();
     const blanks = lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK);
     expect(blanks).toHaveLength(1);
     expect(blanks[0]!.duration).toEqual({ kind: "turn", side: "corp" });
     expect(blanks[0]!.payload).toEqual({ cardId: "res-1" });
+    expect(abilitiesSuppressed(s, "res-1")).toBe(true);
 
     // Runner turn end does not clear Corp-scoped blanks.
     expireLingeringEffects(s, { turn: "runner" });
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK)).toHaveLength(
       1,
     );
-    expect(s.cards["res-1"]!.abilitiesBlanked).toBe(true);
+    expect(abilitiesSuppressed(s, "res-1")).toBe(true);
 
     s.timingKey = "corp.turnEnds";
     autoWalk(s);
@@ -3264,8 +3265,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(passed.ok).toBe(true);
     if (!passed.ok) return;
     s = passed.state;
-    expect(s.cards["res-1"]!.abilitiesBlanked).toBeFalsy();
-    expect(s.cards["res-1"]!.abilitiesBlankedCorpTurnsRemaining).toBeUndefined();
+    expect(abilitiesSuppressed(s, "res-1")).toBe(false);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK),
     ).toHaveLength(0);

@@ -4,6 +4,7 @@
  * Mother Goddess). Extends toward a general continuous-characteristics layer
  * without compiling CR prose.
  */
+import { LINGERING_KIND_ABILITY_BLANK } from "./lingeringEffects.js";
 import type { GameState } from "./types.js";
 
 /** One blanking-class continuous/lingering effect waiting to apply. */
@@ -21,8 +22,8 @@ export interface BlankingEffect {
  * Collect blanking-class continuous effects currently in play.
  * Scoped to ability-suppression shapes the corpus actually uses:
  * Hush (`blanksHostAbilities`), Magnet (`hostedProgramsLoseAbilities`),
- * temporary `abilitiesBlanked` flags (Magnet on-host / Klevetnik), and
- * Light the Fire root blank.
+ * temporary `abilitiesBlanked` flags (Magnet on-host), Klevetnik-class
+ * `ability_blank` lingerings, and Light the Fire root blank.
  */
 export function collectBlankingEffects(state: GameState): BlankingEffect[] {
   const effects: BlankingEffect[] = [];
@@ -58,17 +59,27 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
     }
   }
 
-  // Lingering abilitiesBlanked flags (Magnet onRez host / Klevetnik-class).
-  // When the flag sits on a program hosted on Magnet-class ice, treat it as
-  // originating from that ice so Hush×Magnet dependency loops form correctly.
+  // Klevetnik-class Corp-turn blanks from the lingering registry (CR 9.10.1).
+  for (const e of state.lingeringEffects) {
+    if (e.expired || e.kind !== LINGERING_KIND_ABILITY_BLANK) continue;
+    const cardId = (e.payload as { cardId?: string } | undefined)?.cardId;
+    if (!cardId || !state.cards[cardId]) continue;
+    effects.push({
+      id: `lingering-blank:${e.id}`,
+      sourceId: e.createdBy,
+      targetIds: [cardId],
+    });
+  }
+
+  // Magnet onRez host still stamps `abilitiesBlanked` without a Corp-turn
+  // counter. When the flag sits on a program hosted on Magnet-class ice,
+  // treat it as originating from that ice so Hush×Magnet loops form.
   for (const id of Object.keys(state.cards)) {
     const card = state.cards[id];
     if (!card?.abilitiesBlanked) continue;
+    // Registry-backed Klevetnik blanks no longer set the flag.
     const host = card.hostId ? state.cards[card.hostId] : undefined;
     if (host?.hostedProgramsLoseAbilities) {
-      // Covered by continuous Magnet effect above when host is still active;
-      // still record a distinct edge so onRez-set flags participate in loops
-      // even if collect order differs.
       effects.push({
         id: `flag-blank-via-host:${id}`,
         sourceId: card.hostId!,
@@ -76,7 +87,6 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
       });
       continue;
     }
-    // Klevetnik / other temporary blanks — no cross-effect dependency.
     effects.push({
       id: `flag-blank:${id}`,
       sourceId: id,
