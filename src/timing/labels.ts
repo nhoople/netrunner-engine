@@ -803,6 +803,11 @@ export const CR = {
     number: "9.9.5a",
     id: "rule_ordinal_would",
   },
+  /** An interrupt can create a replacement for the imminent effects (CR 9.9.10). */
+  replaceImminentEffects: {
+    number: "9.9.10",
+    id: "rule_replace_imminent_effects",
+  },
   /** An imminent damage amount can be reduced below zero and still be modified (CR 9.9.7a). */
   negativeDamageValue: {
     number: "9.9.7a",

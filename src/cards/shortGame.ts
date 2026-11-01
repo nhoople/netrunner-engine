@@ -140,6 +140,7 @@ export function createShortGameState(
     pendingTags: null,
     pendingEndTheRun: null,
     pendingSubroutineBreak: null,
+    pendingStrengthIncrease: null,
     pendingEffectContinuation: null,
     pendingTrashProgram: null,
     pendingMuProgramInstall: null,

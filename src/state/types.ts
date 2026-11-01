@@ -168,7 +168,12 @@ export type InterruptWindow =
    * Tyr's Hand-class: interrupt before a subroutine on bioroid ice protecting
    * a server is marked broken. Opens `PendingSubroutineBreak`.
    */
-  | "break_interrupt";
+  | "break_interrupt"
+  /**
+   * System Seizure-class: interrupt before an icebreaker strength increase
+   * resolves. Opens `PendingStrengthIncrease`.
+   */
+  | "strength_increase_interrupt";
 
 export type PaidAbilityWindow =
   | "approach_paw"
@@ -5127,7 +5132,27 @@ export interface ExpectedEffects {
   exposeCardIds?: string[];
   /** Imminent bioroid subroutine break (Tyr's Hand-class; CR 9.9.2). */
   breakSubroutine?: { iceId: string; subIndex: number } | null;
+  /** Imminent icebreaker strength increase (System Seizure-class; CR 9.9.2). */
+  strengthIncrease?: {
+    breakerId: string;
+    amount: number;
+    duration: "encounter" | "run" | "turn" | "checkpoint";
+  };
   notes?: string[];
+}
+
+/**
+ * Opened for a `strength_increase_interrupt` (System Seizure-class). An
+ * icebreaker strength increase is imminent; mandatory interrupts may grant
+ * lasting duration rewrites before the boost commits.
+ */
+export interface PendingStrengthIncrease {
+  breakerId: string;
+  amount: number;
+  requestedDuration: "encounter" | "run" | "turn" | "checkpoint";
+  sourceId: string;
+  effectId: string;
+  expectedEffects?: ExpectedEffects;
 }
 
 /** Duration for a lingering effect (CR 9.10.1). */
@@ -5444,6 +5469,11 @@ export interface GameState {
   pendingEndTheRun: PendingEndTheRun | null;
   /** Pending subroutine-break interrupt (Tyr's Hand-class). */
   pendingSubroutineBreak: PendingSubroutineBreak | null;
+  /**
+   * Pending icebreaker strength-increase interrupt (System Seizure-class).
+   * Auto-resolved today (mandatory, no choices); held during the window.
+   */
+  pendingStrengthIncrease: PendingStrengthIncrease | null;
   /** Remaining seq effects after an interrupt pause. */
   pendingEffectContinuation: PendingEffectContinuation | null;
   /** Pending Corp choice of program to trash. */
