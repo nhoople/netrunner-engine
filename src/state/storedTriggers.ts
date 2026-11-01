@@ -79,19 +79,11 @@ export type StoredConditionalMark = {
   logLine: string;
 };
 
-export type InlineConditionalMark = {
-  abilityKey: string;
-  sourceId: string;
-  controller: Side;
-  mandatory: boolean;
-  effect: Effect;
-  logLine: string;
-};
-
 /**
  * Note a single card-field conditional for 10.3.1a, then open an instruction
  * checkpoint so it marks and resolves (CR 9.6.2 / 10.3.1a). Play abilities use
  * fireOnPlay / noteCheckpointAndResolvePlay instead (CR 8.6.7e–f).
+ * Inline Effect conditionals use `noteInlineConditional` + checkpoint.
  */
 export function fireCardConditional(
   state: GameState,
@@ -118,60 +110,6 @@ export function fireCardConditional(
   if ((state.turn.storedConditionalPending ?? []).length === 0) return false;
   checkpointAfterInstruction(state, `cardConditional.${abilityKey}`);
   return interruptOpen(state);
-}
-
-/**
- * Mark flag-driven / synthesized Effects pending (CR 9.6.2) when the card
- * has no Effect field — payload carries the Effect for resume.
- */
-export function fireInlineConditionals(
-  state: GameState,
-  items: InlineConditionalMark[],
-): boolean {
-  if (items.length === 0) return false;
-  const createdIds: string[] = [];
-  for (const item of items) {
-    if (abilitiesSuppressed(state, item.sourceId)) continue;
-    const card = state.cards[item.sourceId];
-    if (!card) continue;
-    const inst = createPendingAbilityInstance(state, {
-      abilityKey: item.abilityKey,
-      sourceId: item.sourceId,
-      controller: item.controller,
-      mandatory: item.mandatory,
-      payload: {
-        kind: "inline_conditional",
-        effect: item.effect,
-      } satisfies PendingAbilityPayload,
-    });
-    createdIds.push(inst.id);
-    log(state, item.logLine);
-  }
-  if (createdIds.length === 0) return false;
-  return resolveStoredConditionalPendings(state, createdIds);
-}
-
-/** Mark and resolve a single inline Effect conditional (CR 9.6.2). */
-export function fireInlineConditional(
-  state: GameState,
-  sourceId: string,
-  effect: Effect,
-  abilityKey: string,
-  logLine: string,
-  controller?: Side,
-): boolean {
-  const card = state.cards[sourceId];
-  if (!card) return false;
-  return fireInlineConditionals(state, [
-    {
-      abilityKey,
-      sourceId,
-      controller: controller ?? (card.side === "corp" ? "corp" : "runner"),
-      mandatory: true,
-      effect,
-      logLine,
-    },
-  ]);
 }
 
 function effectForConditionalPending(
