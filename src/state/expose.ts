@@ -6,6 +6,10 @@ import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { occurCheckpoint } from "../legality/checkpoints.js";
 import { fireExposeWhileInstalled } from "./storedTriggers.js";
+import {
+  allocateEffectIdentity,
+  applyActiveReplacementsAtInterruptOpen,
+} from "./replacements.js";
 
 /** Installed, unrezzed Corp cards legal as expose targets. */
 export function exposeLegalTargets(state: GameState): string[] {
@@ -89,11 +93,17 @@ export function beginExpose(state: GameState, cardId: string): "pending" | "done
     }
   }
   if (mayRez.length > 0 && !state.pendingExpose) {
+    const effectId = allocateEffectIdentity(state, `expose:${cardId}`);
+    const expectedEffects = applyActiveReplacementsAtInterruptOpen(
+      state,
+      { exposeCardIds: [cardId] },
+      effectId,
+    );
     state.pendingExpose = {
       cardId,
       phase: "may_rez",
       offeredRezIds: mayRez,
-      expectedEffects: { exposeCardIds: [cardId] },
+      expectedEffects,
     };
     state.pendingChoice = {
       sourceId: mayRez[0]!,
@@ -134,10 +144,16 @@ export function openExposeInterruptOrComplete(
   cardId: string,
 ): "pending" | "done" {
   if (hasPayableExposeInterrupt(state)) {
+    const effectId = allocateEffectIdentity(state, `expose:${cardId}`);
+    const expectedEffects = applyActiveReplacementsAtInterruptOpen(
+      state,
+      { exposeCardIds: [cardId] },
+      effectId,
+    );
     state.pendingExpose = {
       cardId,
       phase: "interrupt",
-      expectedEffects: { exposeCardIds: [cardId] },
+      expectedEffects,
     };
     log(
       state,

@@ -343,6 +343,16 @@ export {
   stealAgenda,
 } from "./state/scoring.js";
 export {
+  allocateEffectIdentity,
+  applyActiveReplacementsAtInterruptOpen,
+  clearAppliedReplacements,
+  listActiveExpectedReplacements,
+  noteReplacementApplied,
+  replacementAlreadyApplied,
+  tryApplyReplacement,
+} from "./state/replacements.js";
+export type { ActiveExpectedReplacement } from "./state/replacements.js";
+export {
   moveRunnerCardToHeap,
   purgeVirusCounters,
   releaseHostedCardsOnTrash,

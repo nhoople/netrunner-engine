@@ -783,6 +783,11 @@ export const CR = {
     number: "9.9.9b",
     id: "rule_replacement_effects_apply_as_interrupt_window_opens",
   },
+  /** Each replacement applies once to a single effect (CR 9.9.9c). */
+  replacementEffectOnlyOncePerEffect: {
+    number: "9.9.9c",
+    id: "rule_replacement_effect_only_applies_once_per_effect",
+  },
   /** A pending interrupt can be triggered only while it is still relevant (CR 9.9.4c). */
   conditionalInterruptStillRelevant: {
     number: "9.9.4c",

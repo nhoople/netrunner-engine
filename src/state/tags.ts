@@ -5,6 +5,10 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { noteFirstTagThisTurn } from "./miscConditionalHooks.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import {
+  allocateEffectIdentity,
+  applyActiveReplacementsAtInterruptOpen,
+} from "./replacements.js";
 
 /**
  * Acme Consulting: while encountering the outermost ice protecting any server,
@@ -90,15 +94,22 @@ export function openPendingTags(
   amount: number,
   sourceId: string,
 ): void {
+  const effectId = allocateEffectIdentity(state, "tags");
+  const expectedEffects = applyActiveReplacementsAtInterruptOpen(
+    state,
+    { tags: { amount } },
+    effectId,
+  );
+  const remaining = expectedEffects.tags?.amount ?? amount;
   state.pendingTags = {
-    remaining: amount,
+    remaining,
     sourceId,
     activeAtOpen: [...state.runner.installed],
-    expectedEffects: { tags: { amount } },
+    expectedEffects,
   };
   log(
     state,
-    `Pending ${amount} tag(s) from ${sourceId} — interrupt PAW (CR ${CR.tags.number} / avoid).`,
+    `Pending ${remaining} tag(s) from ${sourceId} — interrupt PAW (CR ${CR.tags.number} / avoid).`,
   );
 }
 

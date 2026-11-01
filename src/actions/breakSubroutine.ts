@@ -45,6 +45,10 @@ import {
   fireOnFullyBreakProtectingIce,
   fireOnHostFullyBrokenThisEncounter,
 } from "../state/miscConditionalHooks.js";
+import {
+  allocateEffectIdentity,
+  applyActiveReplacementsAtInterruptOpen,
+} from "../state/replacements.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -472,10 +476,16 @@ function maybeOpenTyrsHandInterrupt(
     return state.corp.credits >= (c.rezCost ?? 0);
   });
   if (!eligible) return false;
+  const effectId = allocateEffectIdentity(state, `break:${ice.id}:${subIndex}`);
+  const expectedEffects = applyActiveReplacementsAtInterruptOpen(
+    state,
+    { breakSubroutine: { iceId: ice.id, subIndex } },
+    effectId,
+  );
   state.pendingSubroutineBreak = {
     iceId: ice.id,
     subIndex,
-    expectedEffects: { breakSubroutine: { iceId: ice.id, subIndex } },
+    expectedEffects,
   };
   log(
     state,

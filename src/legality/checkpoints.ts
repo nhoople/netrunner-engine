@@ -28,6 +28,7 @@ import {
 } from "../state/scoring.js";
 import { trashDurationPassedCurrents } from "../state/currents.js";
 import { removeRevertedHostDurations } from "../state/hostDuration.js";
+import { clearAppliedReplacements } from "../state/replacements.js";
 import { getCardDef } from "../cards/load.js";
 import {
   commitCheckpointSnapshot,
@@ -3674,6 +3675,7 @@ function closeCheckpointReactionWindow(
  * turn ends.
  */
 function removeExpiredDurationAbilities(state: GameState): void {
+  clearAppliedReplacements(state);
   let removed = removeRevertedHostDurations(state);
   const checkpointBoosts = state.turn.checkpointBreakerBoosts;
   if (checkpointBoosts && Object.keys(checkpointBoosts).length > 0) {

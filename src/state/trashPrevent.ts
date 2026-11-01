@@ -4,6 +4,10 @@ import { log } from "./createGame.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import {
+  allocateEffectIdentity,
+  applyActiveReplacementsAtInterruptOpen,
+} from "./replacements.js";
 
 export type TrashInterruptResult =
   | { ok: true }
@@ -51,11 +55,17 @@ export function maybeOpenTrashPrevent(
     Boolean(card.turnFacedownInsteadOfHeapWhenTrashed) &&
     !abilitiesSuppressed(state, cardId);
   if (!facedownInterrupt && !hasPayableTrashInterrupt(state)) return false;
+  const effectId = allocateEffectIdentity(state, `trash:${cardId}`);
+  const expectedEffects = applyActiveReplacementsAtInterruptOpen(
+    state,
+    { trashCardIds: [cardId] },
+    effectId,
+  );
   state.pendingTrashPrevent = {
     cardId,
     pendingInterruptIds: facedownInterrupt ? [cardId] : [],
-    trashExpected: true,
-    expectedEffects: { trashCardIds: [cardId] },
+    trashExpected: (expectedEffects.trashCardIds?.length ?? 0) > 0,
+    expectedEffects,
   };
   log(
     state,
