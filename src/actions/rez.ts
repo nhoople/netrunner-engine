@@ -48,6 +48,7 @@ import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 import {
   fireOnFirstIceRezEachTurn,
 } from "../state/miscConditionalHooks.js";
@@ -310,7 +311,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     }
     if (canPayDiscount && (canPayFull || state.corp.credits < cost)) {
       state.pendingRezCardId = cardId;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: cardId,
         chooser: "corp",
         options: [
@@ -343,11 +344,8 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
             },
           },
         ],
-      };
-      log(
-        state,
-        `${card.title} — may forfeit an agenda for −${agendaCreditDiscount}¢ rez cost.`,
-      );
+        logLine: `${card.title} — may forfeit an agenda for −${agendaCreditDiscount}¢ rez cost.`,
+      });
       return ok(state);
     }
   }
@@ -753,15 +751,12 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
           },
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: cardId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${card.title} — may pay up to ${affordable}¢ for power counters.`,
-      );
+        logLine: `${card.title} — may pay up to ${affordable}¢ for power counters.`,
+      });
     }
   }
   log(

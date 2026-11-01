@@ -22,6 +22,7 @@ import { CR } from "../timing/labels.js";
 import {
   fireOnRunDeclaredOnThisServerIfTagged,
 } from "../state/miscConditionalHooks.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -156,7 +157,7 @@ export function startRun(
         `Hired Help — forfeit ${state.cards[agendas[0]!]!.title} as additional cost to run.`,
       );
     } else {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: state.corp.identityId,
         chooser: "runner",
         options: agendas.map((agId) => ({
@@ -170,7 +171,7 @@ export function startRun(
             },
           },
         })),
-      };
+      });
       state.pendingStartRun = {
         sourceId: mods.runSourceId ?? state.runner.identityId,
         serverId,
@@ -556,7 +557,7 @@ function offerPortAnsonTrash(state: GameState): boolean {
     );
     return offerPortAnsonTrash(state);
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: programs.map((id) => ({
@@ -571,11 +572,8 @@ function offerPortAnsonTrash(state: GameState): boolean {
         },
       },
     })),
-  };
-  log(
-    state,
-    `${source.title} — Runner chooses 1 installed program to trash (CR ${CR.jackingOut.number}).`,
-  );
+    logLine: `${source.title} — Runner chooses 1 installed program to trash (CR ${CR.jackingOut.number}).`,
+  });
   return true;
 }
 
