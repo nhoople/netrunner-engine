@@ -1,6 +1,6 @@
 /**
- * System Seizure grants a run-duration strength rewrite on the first increase
- * each turn (CR 9.9.9 printed interrupt → lingering grant).
+ * System Seizure: mandatory strength-increase interrupt grants a run-duration
+ * rewrite on the first would-increase each turn (CR 9.9.5a / 9.9.9).
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -14,6 +14,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
+import { CR } from "../src/timing/labels.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -42,7 +43,7 @@ function encounterRun(s: GameState): void {
 }
 
 describe("System Seizure duration replacement (CR 9.9.9)", () => {
-  it("rewrites the first pump and later pumps on that breaker to run duration", () => {
+  it("opens an interrupt window and rewrites the first pump to run duration", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const corr = instantiateCard("corroder", "corr-1", "runner:installed");
@@ -62,10 +63,15 @@ describe("System Seizure duration replacement (CR 9.9.9)", () => {
       fx.do({ kind: "pump_strength", amount: 1 }),
     );
     expect(first.ok).toBe(true);
+    expect(s.pendingStrengthIncrease).toBeNull();
     expect(s.turn.systemSeizureFiredThisTurn).toBe(true);
     expect(s.run?.strengthDurationRunInsteadBreakerIds).toContain("corr-1");
     expect(s.run?.strengthBoosts["corr-1"]).toBe(1);
     expect(s.run?.encounterStrengthBoosts["corr-1"]).toBeUndefined();
+    const joined = s.log.join("\n");
+    expect(joined).toContain("interrupt window");
+    expect(joined).toContain(CR.ordinalWould.number);
+    expect(joined).toContain("System Seizure");
 
     const second = evalEffect(
       { state: s, sourceId: "corr-1" },
@@ -111,5 +117,43 @@ describe("System Seizure duration replacement (CR 9.9.9)", () => {
     expect(s.run?.strengthDurationRunInsteadBreakerIds).toEqual(["corr-1"]);
     expect(s.run?.encounterStrengthBoosts["gord-1"]).toBe(1);
     expect(s.run?.strengthBoosts["gord-1"]).toBeUndefined();
+  });
+
+  it("counts the first would-increase outside a run without attaching a grant (CR 9.9.5a)", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    const corr = instantiateCard("corroder", "corr-1", "runner:installed");
+    const seizure = instantiateCard(
+      "system-seizure",
+      "ss-1",
+      "runner:play-area",
+    );
+    s.cards["corr-1"] = corr;
+    s.cards["ss-1"] = seizure;
+    s.runner.installed = ["corr-1"];
+    s.runner.playArea = ["ss-1"];
+    // No run.
+
+    expect(
+      evalEffect(
+        { state: s, sourceId: "corr-1" },
+        fx.do({ kind: "pump_strength", amount: 1 }),
+      ).ok,
+    ).toBe(true);
+    expect(s.turn.systemSeizureFiredThisTurn).toBe(true);
+    // Outside a run, encounter pumps fall back to checkpoint duration.
+    expect(s.turn.checkpointBreakerBoosts?.["corr-1"]).toBe(1);
+    expect(s.log.join("\n")).toContain("no run");
+
+    encounterRun(s);
+    expect(
+      evalEffect(
+        { state: s, sourceId: "corr-1" },
+        fx.do({ kind: "pump_strength", amount: 1 }),
+      ).ok,
+    ).toBe(true);
+    // Already fired this turn — no grant on the later in-run pump.
+    expect(s.run?.strengthDurationRunInsteadBreakerIds ?? []).toEqual([]);
+    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBe(1);
   });
 });

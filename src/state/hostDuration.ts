@@ -13,6 +13,7 @@
  */
 
 import { log } from "./createGame.js";
+import { tryApplyReplacement } from "./replacements.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 
@@ -78,24 +79,39 @@ function systemSeizureInPlay(state: GameState): string | undefined {
 }
 
 /**
- * Grant System Seizure's run-duration rewrite on the first strength increase
- * of the turn (printed interrupt → lingering grant for the remainder of the run).
+ * Resolve System Seizure's mandatory interrupt when a strength increase is
+ * imminent (CR 9.9.5a / 9.9.10). Counts the first "would increase" each turn
+ * even outside a run; the lasting grant attaches only during a run.
  */
 export function maybeGrantSystemSeizureRunDuration(
   state: GameState,
   breakerId: string,
+  effectId?: string,
 ): void {
   if (state.turn.systemSeizureFiredThisTurn) return;
-  if (!state.run) return;
   const seizureId = systemSeizureInPlay(state);
   if (!seizureId) return;
+  if (effectId) {
+    if (
+      !tryApplyReplacement(state, effectId, `system-seizure:${seizureId}`)
+    ) {
+      return;
+    }
+  }
   state.turn.systemSeizureFiredThisTurn = true;
+  const breaker = state.cards[breakerId]?.title ?? breakerId;
+  if (!state.run) {
+    log(
+      state,
+      `System Seizure — first time this turn ${breaker} would increase strength (no run; lasting grant does not attach) (CR ${CR.ordinalWould.number}).`,
+    );
+    return;
+  }
   const grants = (state.run.strengthDurationRunInsteadBreakerIds ??= []);
   if (!grants.includes(breakerId)) grants.push(breakerId);
-  const breaker = state.cards[breakerId]?.title ?? breakerId;
   log(
     state,
-    `System Seizure — ${breaker} gains strength increases lasting for the remainder of the run (CR ${CR.applyingReplacementEffects.number}).`,
+    `System Seizure — ${breaker} gains strength increases lasting for the remainder of the run (CR ${CR.ordinalWould.number}, ${CR.applyingReplacementEffects.number}).`,
   );
 }
 

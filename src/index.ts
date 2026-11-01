@@ -352,6 +352,8 @@ export {
   tryApplyReplacement,
 } from "./state/replacements.js";
 export type { ActiveExpectedReplacement } from "./state/replacements.js";
+export { applyBreakerStrengthIncrease } from "./state/strengthIncrease.js";
+export type { PendingStrengthIncrease } from "./state/types.js";
 export {
   moveRunnerCardToHeap,
   purgeVirusCounters,

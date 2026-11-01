@@ -4,12 +4,8 @@
  * passed. Coexists with ad-hoc turn/run fields until those migrate here.
  */
 import { CR } from "../timing/labels.js";
-import {
-  maybeGrantSystemSeizureRunDuration,
-  noteHostDurationReplacement,
-  resolveStrengthIncreaseDuration,
-} from "./hostDuration.js";
 import { cancelPendingIfSourceInactive } from "./pendingAbilities.js";
+import { applyBreakerStrengthIncrease } from "./strengthIncrease.js";
 import type {
   GameState,
   LingeringDuration,
@@ -137,25 +133,15 @@ export function removeLingeringEffectsOfKind(
 
 /**
  * Dual-write a this-turn icebreaker strength boost onto the turn field and the
- * lingering registry (CR 9.10.1). Strength consumers still read the turn field.
- * Still counts as a strength increase for System Seizure's first-time grant.
+ * lingering registry (CR 9.10.1). Opens the strength-increase interrupt window.
  */
 export function addBreakerStrengthBoostThisTurn(
   state: GameState,
   args: { createdBy: string; breakerId: string; amount: number },
 ): void {
-  if (args.amount === 0) return;
-  if (args.amount > 0) {
-    maybeGrantSystemSeizureRunDuration(state, args.breakerId);
-  }
-  state.turn.breakerStrengthBoostsThisTurn[args.breakerId] =
-    (state.turn.breakerStrengthBoostsThisTurn[args.breakerId] ?? 0) +
-    args.amount;
-  addLingeringEffect(state, {
-    createdBy: args.createdBy,
-    duration: { kind: "turn" },
-    kind: LINGERING_KIND_BREAKER_STRENGTH,
-    payload: { breakerId: args.breakerId, amount: args.amount },
+  applyBreakerStrengthIncrease(state, {
+    ...args,
+    requestedDuration: "turn",
   });
 }
 
@@ -202,107 +188,29 @@ export function blankAbilitiesUntilCorpTurnEnd(
 
 /**
  * Dual-write a run-duration icebreaker strength boost (CR 9.10.1).
- * Requires an active run; no-ops otherwise. Active 9.9.9 replacements may
- * stretch the duration (Gebrselassie → turn).
+ * Opens the strength-increase interrupt window; 9.9.9 may stretch duration.
  */
 export function addBreakerStrengthBoostThisRun(
   state: GameState,
   args: { createdBy: string; breakerId: string; amount: number },
 ): void {
-  if (args.amount === 0 || !state.run) return;
-  if (args.amount > 0) {
-    maybeGrantSystemSeizureRunDuration(state, args.breakerId);
-    const resolved = resolveStrengthIncreaseDuration(
-      state,
-      args.breakerId,
-      "run",
-    );
-    if (resolved.duration === "turn" && resolved.replacement) {
-      addBreakerStrengthBoostThisTurn(state, args);
-      if (
-        resolved.replacement.trackWhileSourceActive &&
-        resolved.original
-      ) {
-        noteHostDurationReplacement(state, {
-          sourceId: resolved.replacement.sourceId,
-          breakerId: args.breakerId,
-          amount: args.amount,
-          original: resolved.original,
-          replacedTo: "turn",
-        });
-      }
-      return;
-    }
-  }
-  if (!state.run.strengthBoosts) state.run.strengthBoosts = {};
-  state.run.strengthBoosts[args.breakerId] =
-    (state.run.strengthBoosts[args.breakerId] ?? 0) + args.amount;
-  addLingeringEffect(state, {
-    createdBy: args.createdBy,
-    duration: { kind: "run" },
-    kind: LINGERING_KIND_BREAKER_STRENGTH_RUN,
-    payload: { breakerId: args.breakerId, amount: args.amount },
+  applyBreakerStrengthIncrease(state, {
+    ...args,
+    requestedDuration: "run",
   });
 }
 
 /**
  * Dual-write an encounter-duration icebreaker strength boost (CR 9.10.1).
- * Requires an active run; no-ops otherwise. Active 9.9.9 replacements may
- * stretch the duration (Gebrselassie → turn; System Seizure / Gamedragon → run).
+ * Opens the strength-increase interrupt window; 9.9.9 may stretch duration.
  */
 export function addBreakerStrengthBoostThisEncounter(
   state: GameState,
   args: { createdBy: string; breakerId: string; amount: number },
 ): void {
-  if (args.amount === 0 || !state.run) return;
-  if (args.amount > 0) {
-    maybeGrantSystemSeizureRunDuration(state, args.breakerId);
-    const resolved = resolveStrengthIncreaseDuration(
-      state,
-      args.breakerId,
-      "encounter",
-    );
-    if (resolved.duration === "turn" && resolved.replacement) {
-      addBreakerStrengthBoostThisTurn(state, args);
-      if (
-        resolved.replacement.trackWhileSourceActive &&
-        resolved.original
-      ) {
-        noteHostDurationReplacement(state, {
-          sourceId: resolved.replacement.sourceId,
-          breakerId: args.breakerId,
-          amount: args.amount,
-          original: resolved.original,
-          replacedTo: "turn",
-        });
-      }
-      return;
-    }
-    if (resolved.duration === "run") {
-      addBreakerStrengthBoostThisRun(state, args);
-      if (
-        resolved.replacement?.trackWhileSourceActive &&
-        resolved.original
-      ) {
-        noteHostDurationReplacement(state, {
-          sourceId: resolved.replacement.sourceId,
-          breakerId: args.breakerId,
-          amount: args.amount,
-          original: resolved.original,
-          replacedTo: "run",
-        });
-      }
-      return;
-    }
-  }
-  if (!state.run.encounterStrengthBoosts) state.run.encounterStrengthBoosts = {};
-  state.run.encounterStrengthBoosts[args.breakerId] =
-    (state.run.encounterStrengthBoosts[args.breakerId] ?? 0) + args.amount;
-  addLingeringEffect(state, {
-    createdBy: args.createdBy,
-    duration: { kind: "encounter" },
-    kind: LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
-    payload: { breakerId: args.breakerId, amount: args.amount },
+  applyBreakerStrengthIncrease(state, {
+    ...args,
+    requestedDuration: "encounter",
   });
 }
 
@@ -327,63 +235,16 @@ export function addIceStrengthBoostThisEncounter(
 }
 
 /**
- * Dual-write an until-next-checkpoint icebreaker strength boost
- * (CR 9.10.1). Used when a pump resolves outside an encounter.
- * Active 9.9.9 replacements may stretch the duration.
+ * Dual-write an until-next-checkpoint icebreaker strength boost (CR 9.10.1).
+ * Opens the strength-increase interrupt window; 9.9.9 may stretch duration.
  */
 export function addBreakerStrengthBoostUntilCheckpoint(
   state: GameState,
   args: { createdBy: string; breakerId: string; amount: number },
 ): void {
-  if (args.amount === 0) return;
-  if (args.amount > 0) {
-    maybeGrantSystemSeizureRunDuration(state, args.breakerId);
-    const resolved = resolveStrengthIncreaseDuration(
-      state,
-      args.breakerId,
-      "checkpoint",
-    );
-    if (resolved.duration === "turn" && resolved.replacement) {
-      addBreakerStrengthBoostThisTurn(state, args);
-      if (
-        resolved.replacement.trackWhileSourceActive &&
-        resolved.original
-      ) {
-        noteHostDurationReplacement(state, {
-          sourceId: resolved.replacement.sourceId,
-          breakerId: args.breakerId,
-          amount: args.amount,
-          original: resolved.original,
-          replacedTo: "turn",
-        });
-      }
-      return;
-    }
-    if (resolved.duration === "run" && state.run) {
-      addBreakerStrengthBoostThisRun(state, args);
-      if (
-        resolved.replacement?.trackWhileSourceActive &&
-        resolved.original
-      ) {
-        noteHostDurationReplacement(state, {
-          sourceId: resolved.replacement.sourceId,
-          breakerId: args.breakerId,
-          amount: args.amount,
-          original: resolved.original,
-          replacedTo: "run",
-        });
-      }
-      return;
-    }
-  }
-  const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
-  checkpointBoosts[args.breakerId] =
-    (checkpointBoosts[args.breakerId] ?? 0) + args.amount;
-  addLingeringEffect(state, {
-    createdBy: args.createdBy,
-    duration: { kind: "until_checkpoint" },
-    kind: LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
-    payload: { breakerId: args.breakerId, amount: args.amount },
+  applyBreakerStrengthIncrease(state, {
+    ...args,
+    requestedDuration: "checkpoint",
   });
 }
 

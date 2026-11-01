@@ -108,6 +108,9 @@ export function applyActiveReplacementsAtInterruptOpen(
   if (expected.breakSubroutine) {
     next.breakSubroutine = { ...expected.breakSubroutine };
   }
+  if (expected.strengthIncrease) {
+    next.strengthIncrease = { ...expected.strengthIncrease };
+  }
   if (expected.trashCardIds) next.trashCardIds = [...expected.trashCardIds];
   if (expected.exposeCardIds) next.exposeCardIds = [...expected.exposeCardIds];
   if (expected.notes) next.notes = [...expected.notes];
