@@ -3815,8 +3815,7 @@ describe("CR examples, chapter 9", () => {
     const hush = instantiateCard("hush", "hush-1", "runner:installed");
     hush.hostId = "mag-1";
     hush.blanksHostAbilities = true;
-    // Magnet onRez would also set this; flag must not win over Hush.
-    hush.abilitiesBlanked = true;
+    // Magnet blanks hosted programs continuously (9.12), not via abilitiesBlanked.
     s.cards["hush-1"] = hush;
     s.runner.installed = ["hush-1"];
 

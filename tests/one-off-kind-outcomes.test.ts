@@ -4986,7 +4986,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["prog-b"]?.hostId).toBe("mag-1");
-    expect(after.state.cards["prog-b"]?.abilitiesBlanked).toBe(true);
+    // Continuous 9.12 blank via hostedProgramsLoseAbilities — no abilitiesBlanked stamp.
+    expect(after.state.cards["prog-b"]?.abilitiesBlanked).toBeFalsy();
+    expect(abilitiesSuppressed(after.state, "prog-b")).toBe(true);
     expect(after.state.cards["prog-a"]?.hostId).toBe("iw-1");
   });
 

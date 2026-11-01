@@ -22,8 +22,8 @@ export interface BlankingEffect {
  * Collect blanking-class continuous effects currently in play.
  * Scoped to ability-suppression shapes the corpus actually uses:
  * Hush (`blanksHostAbilities`), Magnet (`hostedProgramsLoseAbilities`),
- * temporary `abilitiesBlanked` flags (Magnet on-host), Klevetnik-class
- * `ability_blank` lingerings, and Light the Fire root blank.
+ * Klevetnik-class `ability_blank` lingerings, test-injection `abilitiesBlanked`
+ * self-flags, and Light the Fire root blank.
  */
 export function collectBlankingEffects(state: GameState): BlankingEffect[] {
   const effects: BlankingEffect[] = [];
@@ -71,22 +71,12 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
     });
   }
 
-  // Magnet onRez host still stamps `abilitiesBlanked` without a Corp-turn
-  // counter. When the flag sits on a program hosted on Magnet-class ice,
-  // treat it as originating from that ice so Hush×Magnet loops form.
+  // Test / legacy self-flag: `abilitiesBlanked` on a card blanks itself.
+  // Magnet no longer stamps this (continuous hostedProgramsLoseAbilities).
+  // Klevetnik blanks are registry-only via ability_blank lingerings above.
   for (const id of Object.keys(state.cards)) {
     const card = state.cards[id];
     if (!card?.abilitiesBlanked) continue;
-    // Registry-backed Klevetnik blanks no longer set the flag.
-    const host = card.hostId ? state.cards[card.hostId] : undefined;
-    if (host?.hostedProgramsLoseAbilities) {
-      effects.push({
-        id: `flag-blank-via-host:${id}`,
-        sourceId: card.hostId!,
-        targetIds: [id],
-      });
-      continue;
-    }
     effects.push({
       id: `flag-blank:${id}`,
       sourceId: id,
