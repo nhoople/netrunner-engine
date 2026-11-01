@@ -13,14 +13,17 @@ import {
   resolveTrace,
 } from "../src/index.js";
 import {
+  LINGERING_KIND_ABILITY_BLANK,
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_ICE_STRENGTH,
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
   lingeringBreakerStrengthOfKind,
+  lingeringEffectsOfKind,
   lingeringIceStrengthOfKind,
   lingeringRunnerMuModifier,
 } from "../src/state/lingeringEffects.js";
+import { abilitiesSuppressed } from "../src/state/abilities.js";
 
 import { drawCards } from "../src/effects/draw.js";
 import type { GameState } from "../src/state/types.js";
@@ -3163,8 +3166,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "blank-res:res-2",
     });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.cards["res-2"]?.abilitiesBlanked).toBe(true);
-    expect(after.state.cards["res-1"]?.abilitiesBlanked).toBeFalsy();
+    expect(
+      lingeringEffectsOfKind(after.state, LINGERING_KIND_ABILITY_BLANK).some(
+        (e) => (e.payload as { cardId?: string })?.cardId === "res-2",
+      ),
+    ).toBe(true);
+    expect(abilitiesSuppressed(after.state, "res-2")).toBe(true);
+    expect(abilitiesSuppressed(after.state, "res-1")).toBe(false);
   });
 
   it("DDoS: the Corp cannot rez outermost ice during a run this turn", () => {

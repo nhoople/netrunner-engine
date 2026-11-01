@@ -42,8 +42,9 @@ export const LINGERING_KIND_ICE_STRENGTH = "ice_strength_turn";
 
 /**
  * Temporary ability blank until end of the Corp's turn (Klevetnik-class;
- * CR 9.10.1). Payload: `{ cardId: string }`. Also sets
- * `abilitiesBlanked` / `abilitiesBlankedCorpTurnsRemaining` for consumers.
+ * CR 9.10.1). Payload: `{ cardId: string }`. Registry is the sole write path;
+ * `collectBlankingEffects` reads this kind. Magnet on-host still uses the
+ * `abilitiesBlanked` card flag without a Corp-turn counter.
  */
 export const LINGERING_KIND_ABILITY_BLANK = "ability_blank";
 
@@ -291,17 +292,14 @@ export function addIceStrengthBoostThisTurn(
 }
 
 /**
- * Blank abilities until Corp turn end (CR 9.10.1). Sets card blank flags for
- * consumers; 10.3.1b expires the registry entry.
+ * Blank abilities until Corp turn end (CR 9.10.1). Registry single-write;
+ * 10.3.1b expires the entry.
  */
 export function blankAbilitiesUntilCorpTurnEnd(
   state: GameState,
   args: { createdBy: string; cardId: string },
 ): void {
-  const card = state.cards[args.cardId];
-  if (!card) return;
-  card.abilitiesBlanked = true;
-  card.abilitiesBlankedCorpTurnsRemaining = 1;
+  if (!state.cards[args.cardId]) return;
   addLingeringEffect(state, {
     createdBy: args.createdBy,
     duration: { kind: "turn", side: "corp" },

@@ -893,7 +893,6 @@ describe("parhelion", () => {
       expect(r.ok).toBe(true);
       s = must(s, { type: "choose_option", optionId: "give-credits" });
       expect(s.runner.credits).toBeGreaterThanOrEqual(2);
-      expect(s.cards["res-1"]!.abilitiesBlanked).toBe(true);
       expect(abilitiesSuppressed(s, "res-1")).toBe(true);
     });
   });
