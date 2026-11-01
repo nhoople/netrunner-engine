@@ -12,6 +12,8 @@ import {
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -51,7 +53,7 @@ function openSpareSubroutineChoice(
   const ice = enc ? state.cards[enc.iceId] : undefined;
   const spared = new Set(state.run?.pendingSpareSubroutines?.spared ?? []);
   const subs = ice?.subroutines ?? [];
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: subs.flatMap((sub, index) =>
@@ -72,7 +74,7 @@ function openSpareSubroutineChoice(
             },
           ],
     ),
-  };
+  });
 }
 
 function breakUnbrokenExcept(
@@ -170,7 +172,7 @@ export function applySpinHapPrimitive(
         log(state, `Tennin — no installed Corp cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => ({
@@ -178,7 +180,7 @@ export function applySpinHapPrimitive(
           label: `Place 1 advancement on ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "place_advancements_on", cardId: id, amount: 1 }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "spend_shi_kyu_for_net_damage": {
@@ -218,7 +220,7 @@ export function applySpinHapPrimitive(
           ),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options: opts };
+      openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
       return { ok: true };
     }
     case "install_mushin_from_hq_root": {
@@ -230,7 +232,7 @@ export function applySpinHapPrimitive(
         log(state, `Mushin — no asset/agenda/upgrade in HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: hq.map((id) => ({
@@ -241,14 +243,14 @@ export function applySpinHapPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "install_mushin_hq_card_server_pick": {
       const cardId = action.cardId;
       // Printed: "Install a card from HQ in a new remote server" —
       // always a new remote, never an existing one.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -258,7 +260,7 @@ export function applySpinHapPrimitive(
             effect: fx.do({ kind: "install_mushin_new_remote", cardId }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "install_mushin_new_remote": {
@@ -311,7 +313,7 @@ export function applySpinHapPrimitive(
     }
     case "pay_or_net": {
       const amt = action.amount ?? 1;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -326,7 +328,7 @@ export function applySpinHapPrimitive(
             effect: fx.do({ kind: "net_damage", amount: amt }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "may_corp_pay_credits_else_breach": {
@@ -345,7 +347,7 @@ export function applySpinHapPrimitive(
           cannotAccessRoot,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -362,13 +364,10 @@ export function applySpinHapPrimitive(
             effect: breach,
           },
         ],
-      };
-      log(
-        state,
-        `Corp may pay ${credits}¢ or the Runner breaches ${server}${
+logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
           cannotAccessRoot ? " without root access" : ""
         }.`,
-      );
+});
       return { ok: true };
     }
     case "breach_server_during_encounter": {
@@ -455,7 +454,7 @@ export function applySpinHapPrimitive(
         state.cards[id]!.faceup = true;
       }
       if (taken.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: taken.map((id) => ({
@@ -467,7 +466,7 @@ export function applySpinHapPrimitive(
             restIds: taken.filter((x) => x !== id),
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "express_delivery_finish": {
@@ -499,7 +498,7 @@ export function applySpinHapPrimitive(
         log(state, `Planned Assault — no run events in stack.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -507,7 +506,7 @@ export function applySpinHapPrimitive(
           label: `Play ${state.cards[id]!.title} ignoring cost`,
           effect: fx.do({ kind: "play_heap_event_ignore_cost", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "play_heap_event_ignore_cost": {
@@ -543,7 +542,7 @@ export function applySpinHapPrimitive(
     case "search_stack_take_to_grip": {
       const cands = [...state.runner.deck];
       if (cands.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.slice(0, 20).map((id) => ({
@@ -551,7 +550,7 @@ export function applySpinHapPrimitive(
           label: `Take ${state.cards[id]!.title} to grip`,
           effect: fx.do({ kind: "take_runner_deck_card_to_grip", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "take_runner_deck_card_to_grip": {
@@ -586,7 +585,7 @@ export function applySpinHapPrimitive(
       const title = drawnId
         ? (state.cards[drawnId]?.title ?? "the drawn card")
         : "the drawn card";
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -601,7 +600,7 @@ export function applySpinHapPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "reveal_top_paid": {
@@ -638,7 +637,7 @@ export function applySpinHapPrimitive(
     }
     case "choose_type_reveal_install": {
       const types = ["event", "program", "resource", "hardware"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: types.map((t) => ({
@@ -646,7 +645,7 @@ export function applySpinHapPrimitive(
           label: `Choose ${t}`,
           effect: fx.do({ kind: "reveal_oracle_top_match", cardType: t }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "reveal_oracle_top_match": {
@@ -692,7 +691,7 @@ export function applySpinHapPrimitive(
         log(state, `Plan B — no scoreable agenda in HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: agendas.map((id) => ({
@@ -700,7 +699,7 @@ export function applySpinHapPrimitive(
           label: `Score ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "score_agenda_from_hq", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "score_agenda_from_hq": {
@@ -718,7 +717,7 @@ export function applySpinHapPrimitive(
     case "trash_unregistered_rezzed_ice_gain_per_strength": {
       const ice = installedIceIds(state).filter((id) => state.cards[id]?.rezzed);
       if (ice.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: ice.map((id) => ({
@@ -726,7 +725,7 @@ export function applySpinHapPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_unregistered_ice_gain", iceId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "trash_unregistered_ice_gain": {
@@ -787,7 +786,7 @@ export function applySpinHapPrimitive(
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options: opts.slice(0, 12) };
+      openPendingChoose(state, { sourceId, chooser: "corp", options: opts.slice(0, 12) });
       return { ok: true };
     }
     case "corp_pay_credits": {

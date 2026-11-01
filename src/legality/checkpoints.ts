@@ -147,6 +147,8 @@ import {
 } from "../effects/mumbadSiPrimitives.js";
 import type { PendingAbilityPayload } from "../state/types.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 let checkpointSeq = 0;
 
@@ -3588,7 +3590,7 @@ function closeCheckpointReactionWindow(
       } else {
         const drawn = state.cards[inst.payload.cardId];
         const up = state.cards[inst.sourceId];
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId: inst.sourceId,
           chooser: "corp",
           options: [
@@ -3618,7 +3620,7 @@ function closeCheckpointReactionWindow(
               },
             },
           ],
-        };
+        });
         state.log.push(
           `${up?.title ?? "Jinja City Grid"} — may reveal/install drawn ice ${drawn?.title ?? inst.payload.cardId}.`,
         );
@@ -3855,7 +3857,7 @@ function checkCardRestrictions(state: GameState): boolean {
   }
   const chooser = restrictionChooser(state, plans);
   const both = restrictionSetsMixSides(state, plans);
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: plans[0]?.programs[0] ?? state.corp.identityId,
     chooser,
     options: plans.map((plan) => ({
@@ -3863,7 +3865,7 @@ function checkCardRestrictions(state: GameState): boolean {
       label: restrictionPlanLabel(state, plan),
       effect: { op: "do", action: { kind: "gain_credits", side: chooser, amount: 0 } },
     })),
-  };
+  });
   const who = both
     ? "active player"
     : chooser === "runner"
@@ -4078,7 +4080,7 @@ function offerRootEntry(state: GameState, ids: string[]): void {
   if (!cardId || !state.run) return;
   state.run.pendingRootEntryIds = rest;
   const cite = CR.checkpointCardEnteringRoot.number;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: cardId,
     chooser: "runner",
     options: [
@@ -4093,7 +4095,7 @@ function offerRootEntry(state: GameState, ids: string[]): void {
         effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
       },
     ],
-  };
+  });
   state.log.push(
     `The Runner declares whether the card that entered the root becomes a candidate (CR ${cite}).`,
   );

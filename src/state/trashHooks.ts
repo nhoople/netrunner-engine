@@ -21,6 +21,8 @@ import {
 } from "./storedTriggers.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import { openPendingChoose } from "./pendingChoice.js";
+
 
 function noteAndCheckpointStored(
   state: GameState,
@@ -125,7 +127,7 @@ function offerSkorpiosRfgInsteadOfHeap(
     fromZone,
     wasInstalled,
   };
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: idCard.id,
     chooser: "corp",
     options: [
@@ -146,11 +148,8 @@ function offerSkorpiosRfgInsteadOfHeap(
         },
       },
     ],
-  };
-  log(
-    state,
-    `${idCard.title} may remove ${card.title} from the game instead of adding it to the heap.`,
-  );
+logLine: `${idCard.title} may remove ${card.title} from the game instead of adding it to the heap.`,
+});
   return true;
 }
 

@@ -1,3 +1,4 @@
+import { openPendingChoose } from "../state/pendingChoice.js";
 /**
  * Runner install from grip, heap, stack, and set-aside.
  * Helpers moved out of eval.ts; the switch still calls them.
@@ -453,7 +454,7 @@ export function installStackProgramPaying(
   let cost = full;
   if (state.runner.credits < full) {
     if (state.runner.hand.length > 1 && !gripCardId) {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: state.runner.hand.map((id) => ({
@@ -468,8 +469,8 @@ export function installStackProgramPaying(
             },
           },
         })),
-      };
-      log(state, `Patchwork — trash 1 card from grip to pay the install.`);
+logLine: `Patchwork — trash 1 card from grip to pay the install.`,
+});
       return { ok: true };
     }
     const gripId = gripCardId ?? state.runner.hand[0];
@@ -672,7 +673,7 @@ export function searchStackTypeInstall(
       sourceId,
     );
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: affordable.map((id) => {
@@ -691,11 +692,8 @@ export function searchStackTypeInstall(
         },
       };
     }),
-  };
-  log(
-    state,
-    `Search stack — choose among ${affordable.length} ${cardType}(s) to install.`,
-  );
+logLine: `Search stack — choose among ${affordable.length} ${cardType}(s) to install.`,
+});
   return { ok: true };
 }
 
@@ -990,7 +988,7 @@ export function searchStackProgramInstall(
   if (affordable.length === 1) {
     return installStackProgramPaying(state, affordable[0]!, sourceId);
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: affordable.map((id) => {
@@ -1008,11 +1006,8 @@ export function searchStackProgramInstall(
         },
       };
     }),
-  };
-  log(
-    state,
-    `Search stack — choose among ${affordable.length} programs to install.`,
-  );
+logLine: `Search stack — choose among ${affordable.length} programs to install.`,
+});
   return { ok: true };
 }
 

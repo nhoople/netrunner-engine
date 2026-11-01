@@ -6,6 +6,8 @@ import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fireOnAgendaAddedToRunnerScore } from "../state/trashHooks.js";
 import type { Effect, Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -38,7 +40,7 @@ export function applySansanCcPrimitive(
         log(state, `Turntable — Corp score area empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: corpScored.map((id) => ({
@@ -52,8 +54,8 @@ export function applySansanCcPrimitive(
             },
           },
         })),
-      };
-      log(state, `Turntable — choose Corp scored agenda to swap.`);
+logLine: `Turntable — choose Corp scored agenda to swap.`,
+});
       return { ok: true };
     }
 
@@ -112,7 +114,7 @@ export function applySansanCcPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: breakers.map((id) => ({
@@ -127,7 +129,7 @@ export function applySansanCcPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -198,8 +200,9 @@ export function applySansanCcPrimitive(
           },
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `Analog Dreamers — may instead of breaching R&D.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `Analog Dreamers — may instead of breaching R&D.`,
+});
       return { ok: true };
     }
 
@@ -258,7 +261,7 @@ export function applySansanCcPrimitive(
         });
       }
       state.turn.ccImmolationScriptUsedThisRun = true;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: ids.map((id) => ({
@@ -269,7 +272,7 @@ export function applySansanCcPrimitive(
             action: { kind: "trash_corp_card" as const, cardId: id },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 

@@ -7,6 +7,8 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -130,7 +132,7 @@ export function applyKitaraWinPrimitive(
         log(state, `Contaminate — place 3 virus on ${c.title}.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: targets.map((id) => ({
@@ -138,7 +140,7 @@ export function applyKitaraWinPrimitive(
           label: `Place 3 virus on ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "resolve_contaminate", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -151,7 +153,7 @@ export function applyKitaraWinPrimitive(
     }
 
     case "win_embezzle": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: ["asset", "ice", "operation", "upgrade"].map((t) => ({
@@ -159,7 +161,7 @@ export function applyKitaraWinPrimitive(
           label: `Name ${t}`,
           effect: fx.do({ kind: "win_embezzle_named", cardType: t }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -238,11 +240,11 @@ export function applyKitaraWinPrimitive(
         log(state, `Slipstream — no matching central ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
+      });
       return { ok: true };
     }
 
@@ -277,7 +279,7 @@ export function applyKitaraWinPrimitive(
           cardId: targets[0]!,
         }));
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: targets.map((id) => ({
@@ -285,7 +287,7 @@ export function applyKitaraWinPrimitive(
           label: `Host on ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "resolve_gebrselassie_host", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -299,7 +301,7 @@ export function applyKitaraWinPrimitive(
     }
 
     case "install_compile_program": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -314,7 +316,7 @@ export function applyKitaraWinPrimitive(
             effect: fx.do({ kind: "search_compile", zone: "heap" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -327,7 +329,7 @@ export function applyKitaraWinPrimitive(
         if (action.zone === "stack") shuffleDeck(state.runner.deck);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => ({
@@ -339,7 +341,7 @@ export function applyKitaraWinPrimitive(
             zone: action.zone,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -400,7 +402,7 @@ export function applyKitaraWinPrimitive(
       }
       // Printed: "take any number of credits from Jackpot!. If you do,
       // trash Jackpot!" — the Runner chooses how many.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: Array.from({ length: n }, (_, i) => i + 1).map((x) => ({
@@ -408,7 +410,7 @@ export function applyKitaraWinPrimitive(
           label: `Take ${x}¢ from Jackpot! and trash it`,
           effect: fx.do({ kind: "take_jackpot_credits_resolve", amount: x }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -430,7 +432,7 @@ export function applyKitaraWinPrimitive(
         shuffleDeck(state.corp.deck);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ice.map((id) => ({
@@ -438,7 +440,7 @@ export function applyKitaraWinPrimitive(
           label: `Install and rez ${state.cards[id]!.title} protecting a remote`,
           effect: fx.do({ kind: "win_remote_enforcement_pick_ice", iceId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -471,11 +473,11 @@ export function applyKitaraWinPrimitive(
           serverId: "new-remote",
         }),
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
+      });
       return { ok: true };
     }
 
@@ -533,7 +535,7 @@ export function applyKitaraWinPrimitive(
     }
 
     case "win_standard_procedure": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ["event", "hardware", "program", "resource", "identity"].map(
@@ -543,7 +545,7 @@ export function applyKitaraWinPrimitive(
             effect: fx.do({ kind: "win_standard_procedure_named", cardType: t }),
           }),
         ),
-      };
+      });
       return { ok: true };
     }
 
@@ -572,7 +574,7 @@ export function applyKitaraWinPrimitive(
           cardId: targets[0]!,
         }));
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -580,7 +582,7 @@ export function applyKitaraWinPrimitive(
           label: `Bounce ${state.cards[id]!.title} to grip`,
           effect: fx.do({ kind: "resolve_intake_bounce", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 

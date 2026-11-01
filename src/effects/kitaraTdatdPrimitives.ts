@@ -1,3 +1,4 @@
+import { openPendingChoose } from "../state/pendingChoice.js";
 /** The Devil and the Dragon (tdatd) Kitara pack primitives — v1.139.0. */
 import { log } from "../state/createGame.js";
 import { beginExpose } from "../state/expose.js";
@@ -149,7 +150,7 @@ export function applyKitaraTdatdPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: viruses.map((id) => ({
@@ -160,7 +161,7 @@ export function applyKitaraTdatdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -185,7 +186,7 @@ export function applyKitaraTdatdPrimitive(
         1;
       const target = state.cards[cardId];
       if (!target) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -206,7 +207,7 @@ export function applyKitaraTdatdPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -236,7 +237,7 @@ export function applyKitaraTdatdPrimitive(
 
     case "tdatd_falsified_credentials": {
       const types = ["agenda", "asset", "ice", "upgrade"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: types.map((t) => ({
@@ -247,7 +248,7 @@ export function applyKitaraTdatdPrimitive(
             cardType: t,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -275,7 +276,7 @@ export function applyKitaraTdatdPrimitive(
         log(state, `Falsified Credentials — no remote card to expose.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: targets.map((id) => ({
@@ -287,7 +288,7 @@ export function applyKitaraTdatdPrimitive(
             cardType,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -343,7 +344,7 @@ export function applyKitaraTdatdPrimitive(
         log(state, `Malia Z0L0K4 — no installed non-virtual resource.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -351,7 +352,7 @@ export function applyKitaraTdatdPrimitive(
           label: `Blank ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "blank_malia", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -368,7 +369,7 @@ export function applyKitaraTdatdPrimitive(
     }
 
     case "resolve_tempus": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -383,7 +384,7 @@ export function applyKitaraTdatdPrimitive(
             effect: fx.do({ kind: "core_damage", amount: 1 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -406,7 +407,7 @@ export function applyKitaraTdatdPrimitive(
       for (const id of top) {
         log(state, `Sadaka — look at ${state.cards[id]?.title}.`);
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -427,7 +428,7 @@ export function applyKitaraTdatdPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -448,7 +449,7 @@ export function applyKitaraTdatdPrimitive(
       for (const id of cardIds) {
         state.cards[id]!.faceup = true;
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cardIds.map((id) => ({
@@ -456,8 +457,8 @@ export function applyKitaraTdatdPrimitive(
           label: `Place ${state.cards[id]!.title} on top next`,
           effect: fx.do({ kind: "pick_rd_arrange", cardId: id }),
         })),
-      };
-      log(state, `Sadaka — arrange top of R&D.`);
+logLine: `Sadaka — arrange top of R&D.`,
+});
       return { ok: true };
     }
 
@@ -474,7 +475,7 @@ export function applyKitaraTdatdPrimitive(
         log(state, `Sadaka — HQ empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: state.corp.hand.map((id) => ({
@@ -485,7 +486,7 @@ export function applyKitaraTdatdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -506,7 +507,7 @@ export function applyKitaraTdatdPrimitive(
         log(state, `Sadaka — no resource to trash.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: resources.map((id) => ({
@@ -517,7 +518,7 @@ export function applyKitaraTdatdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -548,7 +549,7 @@ export function applyKitaraTdatdPrimitive(
         log(state, `Amani Senai — no installed Runner card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: installed.map((id) => ({
@@ -559,7 +560,7 @@ export function applyKitaraTdatdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -573,7 +574,7 @@ export function applyKitaraTdatdPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -585,7 +586,7 @@ export function applyKitaraTdatdPrimitive(
             amount: ap,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -628,7 +629,7 @@ export function applyKitaraTdatdPrimitive(
         }
       }
       if (others.length === 0 || x <= 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -651,7 +652,7 @@ export function applyKitaraTdatdPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -702,7 +703,7 @@ export function fireTdatd419OnFirstCorpInstall(
   const installed = state.cards[installedId];
   if (!installed || installed.side !== "corp") return;
   state.turn.tdatd419FiredThisTurn = true;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: idCard.id,
     chooser: "runner",
     options: [
@@ -725,7 +726,7 @@ export function fireTdatd419OnFirstCorpInstall(
         }),
       },
     ],
-  };
+  });
   log(
     state,
     `419 — first Corp install (${installed.title}); Runner may expose unless Corp pays ${cost}¢.`,

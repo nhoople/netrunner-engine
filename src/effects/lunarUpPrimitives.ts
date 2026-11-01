@@ -13,6 +13,8 @@ import type { GameState, RuleCite, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -37,7 +39,7 @@ function trashRunnerHardwareChoose(
     log(state, `${label} — trash ${state.cards[hw[0]!]!.title}.`);
     return { ok: true };
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "corp",
     options: hw.map((id) => ({
@@ -45,7 +47,7 @@ function trashRunnerHardwareChoose(
       label: `Trash ${state.cards[id]!.title}`,
       effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
     })),
-  };
+  });
   return { ok: true };
 }
 
@@ -60,7 +62,7 @@ export function offerSubroutineInsertChoice(state: GameState): void {
     return;
   }
   const subs = ice.subroutines ?? [];
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: ice.id,
     chooser: "corp",
     options: Array.from({ length: subs.length + 1 }, (_, index) => {
@@ -80,7 +82,7 @@ export function offerSubroutineInsertChoice(state: GameState): void {
         }),
       };
     }),
-  };
+  });
   log(
     state,
     `${ice.title} — choose where "${next.text}" is placed (CR ${CR.subroutineOrderChoice.number}).`,
@@ -135,7 +137,7 @@ export function applyLunarUpPrimitive(
       if (rezzed.length === 0) {
         return { ok: false, error: "No rezzed ice to trash for Mutate.", cites: [] };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: rezzed.map((id) => ({
@@ -143,7 +145,7 @@ export function applyLunarUpPrimitive(
           label: `Trash ${state.cards[id]!.title} (additional cost)`,
           effect: fx.do({ kind: "mutate_record_trashed_ice", iceId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "mutate_record_trashed_ice": {
@@ -288,7 +290,7 @@ export function applyLunarUpPrimitive(
     case "cyber_threat": {
       // Printed: "Choose a server." — centrals, including HQ, are legal.
       const servers = Object.keys(state.servers) as ServerId[];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: servers.map((sid) => ({
@@ -296,7 +298,7 @@ export function applyLunarUpPrimitive(
           label: `Cyber Threat — ${sid}`,
           effect: fx.do({ kind: "cyber_threat_server", serverId: sid }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "cyber_threat_server": {
@@ -315,7 +317,7 @@ export function applyLunarUpPrimitive(
           serverId,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -330,7 +332,7 @@ export function applyLunarUpPrimitive(
             effect: fx.do({ kind: "run_cyber_threat_server", serverId }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "corp_rez": {
@@ -375,7 +377,7 @@ export function applyLunarUpPrimitive(
         log(state, `Social Engineering — no unrezzed ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: unrezzed.map((id) => ({
@@ -383,7 +385,7 @@ export function applyLunarUpPrimitive(
           label: `Choose ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "social_engineering_mark", iceId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "social_engineering_mark": {
@@ -399,7 +401,7 @@ export function applyLunarUpPrimitive(
         log(state, `Eden Shard — not in grip; breach R&D.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      if (!openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -414,7 +416,7 @@ export function applyLunarUpPrimitive(
             effect: fx.do({ kind: "install_instead" }),
           },
         ],
-      };
+      })) return { ok: true };
       state.run.skipBreach = true;
       return { ok: true };
     }

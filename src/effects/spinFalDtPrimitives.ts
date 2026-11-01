@@ -9,6 +9,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 import { applySpinTcPrimitive } from "./spinTcPrimitives.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -36,7 +38,7 @@ export function applySpinFalDtPrimitive(
         log(state, `Hemorrhage — Corp trashes ${state.cards[id]!.title} from HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: state.corp.hand.map((id) => ({
@@ -44,12 +46,12 @@ export function applySpinFalDtPrimitive(
           label: `Trash ${state.cards[id]!.title} from HQ`,
           effect: fx.do({ kind: "trash_hq_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "tallie_perrault_on_ops_trashed": {
       // Printed text is a "may": the Runner chooses.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -64,7 +66,7 @@ export function applySpinFalDtPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "give_bad_publicity_and_tag": {
@@ -102,7 +104,7 @@ export function applySpinFalDtPrimitive(
           max: 2,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => ({
@@ -113,8 +115,8 @@ export function applySpinFalDtPrimitive(
             fx.do({ kind: "remove_bad_publicity_up_to", max: 2 }),
           ),
         })),
-      };
-      log(state, `Restoring Face — choose sysop/executive/clone to trash.`);
+logLine: `Restoring Face — choose sysop/executive/clone to trash.`,
+});
       return { ok: true };
     }
     case "trash_installed_corp_card": {
@@ -138,7 +140,7 @@ export function applySpinFalDtPrimitive(
         log(state, `Toshiyuki Sakai — no agenda/asset in HQ to swap.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: hqAgendaAsset.map((id) => ({
@@ -149,8 +151,8 @@ export function applySpinFalDtPrimitive(
             hqCardId: id,
           }),
         })),
-      };
-      log(state, `Toshiyuki Sakai — may swap with agenda/asset from HQ.`);
+logLine: `Toshiyuki Sakai — may swap with agenda/asset from HQ.`,
+});
       return { ok: true };
     }
     case "swap_execute": {
@@ -186,7 +188,7 @@ export function applySpinFalDtPrimitive(
         log(state, `Singularity — no active run.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -204,8 +206,8 @@ export function applySpinFalDtPrimitive(
             ),
           },
         ],
-      };
-      log(state, `Singularity — may instead of breaching trash the server root.`);
+logLine: `Singularity — may instead of breaching trash the server root.`,
+});
       return { ok: true };
     }
     case "install_program_from_grip": {
@@ -216,7 +218,7 @@ export function applySpinFalDtPrimitive(
         log(state, `Savoir-faire — no program in grip.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => ({
@@ -227,8 +229,8 @@ export function applySpinFalDtPrimitive(
             cardId: id,
           }),
         })),
-      };
-      log(state, `Savoir-faire — install a program from grip (pay install cost).`);
+logLine: `Savoir-faire — install a program from grip (pay install cost).`,
+});
       return { ok: true };
     }
     case "prevent_trash_resource": {
@@ -248,7 +250,7 @@ export function applySpinFalDtPrimitive(
         log(state, `Paintbrush — no rezzed ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -259,8 +261,8 @@ export function applySpinFalDtPrimitive(
             iceId: id,
           }),
         })),
-      };
-      log(state, `Paintbrush — choose rezzed ice to paint.`);
+logLine: `Paintbrush — choose rezzed ice to paint.`,
+});
       return { ok: true };
     }
     case "paintbrush_apply_subtype": {
@@ -326,7 +328,7 @@ export function applySpinFalDtPrimitive(
           });
         }
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
     case "take_reclamation_copies_to_hq": {

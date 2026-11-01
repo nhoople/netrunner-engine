@@ -6,6 +6,8 @@ import { corpInstallCost } from "../state/costs.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -91,15 +93,12 @@ export function applyRedsandCdPrimitive(
         label: `Take ${amount} bad publicity`,
         effect: fx.do({ kind: "give_bad_publicity", amount }),
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-      };
-      log(
-        state,
-        `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or take ${amount} bad publicity.`,
-      );
+logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or take ${amount} bad publicity.`,
+});
       return { ok: true };
     }
 
@@ -145,11 +144,11 @@ export function applyRedsandCdPrimitive(
           });
         }
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: opts.slice(0, 24),
-      };
+      });
       return { ok: true };
     }
 
@@ -185,7 +184,7 @@ export function applyRedsandCdPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: gripMatches.map((id) => ({
@@ -196,7 +195,7 @@ export function applyRedsandCdPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -272,12 +271,12 @@ export function applyRedsandCdPrimitive(
           }),
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         // Do not truncate: every ice × remote (plus new-remote) pair is legal.
         options: opts,
-      };
+      });
       return { ok: true };
     }
 
@@ -375,11 +374,11 @@ export function applyRedsandCdPrimitive(
         log(state, `Restore — cannot afford any Archives install+rez.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: opts.slice(0, 24),
-      };
+      });
       return { ok: true };
     }
 
@@ -459,7 +458,7 @@ export function applyRedsandCdPrimitive(
         log(state, `Diana's Hunt — no program in grip.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -477,7 +476,7 @@ export function applyRedsandCdPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 

@@ -7,6 +7,8 @@ import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { breakerStrength, iceStrength } from "./iceStrength.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -103,7 +105,7 @@ export function applyFlashpointEsPrimitive(
         log(state, `Ark Lockdown — heap empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [...titles.entries()].map(([defId, title]) => ({
@@ -114,7 +116,7 @@ export function applyFlashpointEsPrimitive(
             defId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -144,7 +146,7 @@ export function applyFlashpointEsPrimitive(
         return { ok: true };
       }
       const count = Math.min(2, targets.length);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -156,7 +158,7 @@ export function applyFlashpointEsPrimitive(
             remaining: count - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -174,7 +176,7 @@ export function applyFlashpointEsPrimitive(
         return c && c.type !== "program" && id !== cardId;
       });
       if (targets.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -186,7 +188,7 @@ export function applyFlashpointEsPrimitive(
             remaining: remaining - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -205,7 +207,7 @@ export function applyFlashpointEsPrimitive(
         log(state, `Project Kusanagi — no ice installed.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -216,7 +218,7 @@ export function applyFlashpointEsPrimitive(
             iceId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -277,7 +279,7 @@ export function applyFlashpointEsPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -353,7 +355,7 @@ export function applyFlashpointEsPrimitive(
     }
 
     case "net_mercur_place_or_draw": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -368,7 +370,7 @@ export function applyFlashpointEsPrimitive(
             effect: fx.do({ kind: "draw", side: "runner", amount: 1 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 

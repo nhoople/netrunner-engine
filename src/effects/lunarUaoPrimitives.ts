@@ -5,6 +5,8 @@ import { canPayCost, emptyRunnerCreditPool, payCost, subtractRunnerCreditPool } 
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -72,7 +74,7 @@ export function applyLunarUaoPrimitive(
         log(state, `Hades Fragment — Archives empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -91,7 +93,7 @@ export function applyLunarUaoPrimitive(
             }),
           })),
         ],
-      };
+      });
       return { ok: true };
     }
     case "reveal_top_four": {
@@ -131,7 +133,7 @@ export function applyLunarUaoPrimitive(
       if (hw.length === 0) {
         return { ok: false, error: "No hardware to trash for Trade-In.", cites: [] };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: hw.map((id) => ({
@@ -139,7 +141,7 @@ export function applyLunarUaoPrimitive(
           label: `Trash ${state.cards[id]!.title} (additional cost)`,
           effect: fx.do({ kind: "trade_in_record_hw", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "trade_in_record_hw": {
@@ -156,7 +158,7 @@ export function applyLunarUaoPrimitive(
       const half = state.turn.tradeInCredits ?? 0;
       state.runner.credits += half;
       state.turn.tradeInCredits = undefined;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -173,8 +175,8 @@ export function applyLunarUaoPrimitive(
               effect: fx.do({ kind: "add_hw_to_grip", cardId: id }),
             })),
         ],
-      };
-      log(state, `Trade-In — gain ${half}¢; search hardware.`);
+logLine: `Trade-In — gain ${half}¢; search hardware.`,
+});
       return { ok: true };
     }
     case "add_hw_to_grip": {
@@ -192,7 +194,7 @@ export function applyLunarUaoPrimitive(
       // what the Runner can pay (CR 1.2.1: card text wins).
       const max = state.runner.credits;
       const amounts = Array.from({ length: max + 1 }, (_, i) => i);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: amounts.map((x) => ({
@@ -200,7 +202,7 @@ export function applyLunarUaoPrimitive(
           label: `Place ${x} power counter(s) (pay ${x}¢)`,
           effect: fx.do({ kind: "place_x_resolve", amount: x }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "place_x_resolve": {
@@ -220,7 +222,7 @@ export function applyLunarUaoPrimitive(
       }
       const top = state.runner.deck[0]!; // deck top is index 0 (commitDraw shifts)
       state.cards[top]!.faceup = true;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -235,7 +237,7 @@ export function applyLunarUaoPrimitive(
             effect: fx.do({ kind: "bottom_top", cardId: top }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "bottom_top": {
@@ -273,7 +275,7 @@ function applyTrashAnyHqThenGainPerCard(
     } as Primitive);
     return fin ?? { ok: true };
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "corp",
     options: [
@@ -298,6 +300,6 @@ function applyTrashAnyHqThenGainPerCard(
         },
       },
     ],
-  };
+  });
   return { ok: true };
 }

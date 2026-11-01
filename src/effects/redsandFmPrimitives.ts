@@ -8,6 +8,8 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 import { getCardDef } from "../cards/load.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -94,7 +96,7 @@ export function applyRedsandFmPrimitive(
         return { ok: true };
       }
       const credits = action.credits ?? 2;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: heap.map((id) => ({
@@ -106,7 +108,7 @@ export function applyRedsandFmPrimitive(
             credits,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -122,7 +124,7 @@ export function applyRedsandFmPrimitive(
     }
 
     case "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -137,7 +139,7 @@ export function applyRedsandFmPrimitive(
             effect: fx.do({ kind: "o2_shortage_corp_gains_clicks" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -302,11 +304,9 @@ export function applyRedsandFmPrimitive(
         });
       }
 
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.length} placed, ${pool.length} left).`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.length} placed, ${pool.length} left).`,
+});
       return { ok: true };
     }
 
@@ -341,7 +341,7 @@ export function applyRedsandFmPrimitive(
     }
 
     case "swap_2_other_ice_or_2_non_ice": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -356,7 +356,7 @@ export function applyRedsandFmPrimitive(
             effect: fx.do({ kind: "swap_2_non_ice" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -423,7 +423,7 @@ export function applyRedsandFmPrimitive(
       }
       const take = Math.min(n, grip.length);
       // Sequential choose: pick cards one-by-one onto stack top.
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: grip.map((id) => ({
@@ -435,7 +435,7 @@ export function applyRedsandFmPrimitive(
             remaining: take - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -468,7 +468,7 @@ export function applyRedsandFmPrimitive(
         }
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: grip.map((id) => ({
@@ -480,12 +480,12 @@ export function applyRedsandFmPrimitive(
             remaining: remaining - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "choose_type": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: (["resource", "hardware", "program"] as const).map((t) => ({
@@ -493,7 +493,7 @@ export function applyRedsandFmPrimitive(
           label: `Choose ${t}`,
           effect: fx.do({ kind: "resolve_biased_reporting", cardType: t }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -502,7 +502,7 @@ export function applyRedsandFmPrimitive(
       const installed = state.runner.installed.filter(
         (id) => state.cards[id]?.type === t,
       );
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -526,7 +526,7 @@ export function applyRedsandFmPrimitive(
             }),
           })),
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -546,7 +546,7 @@ export function applyRedsandFmPrimitive(
           trashed,
         })!;
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -570,7 +570,7 @@ export function applyRedsandFmPrimitive(
             }),
           })),
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -600,7 +600,7 @@ export function applyRedsandFmPrimitive(
         log(state, `Open Forum — reveal ${c?.title ?? top} and add to HQ.`);
       }
       if (state.corp.hand.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: state.corp.hand.map((id) => ({
@@ -608,7 +608,7 @@ export function applyRedsandFmPrimitive(
           label: `Add ${state.cards[id]?.title ?? id} to top of R&D`,
           effect: fx.do({ kind: "open_forum_hq_to_rd_top", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -640,7 +640,7 @@ export function applyRedsandFmPrimitive(
         log(state, `Transparency Initiative — no installed agenda.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: agendas.map((id) => ({
@@ -651,7 +651,7 @@ export function applyRedsandFmPrimitive(
             agendaId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -690,7 +690,7 @@ export function applyRedsandFmPrimitive(
         log(state, `Rover Algorithm — no rezzed ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: iceIds.map((id) => ({
@@ -701,7 +701,7 @@ export function applyRedsandFmPrimitive(
             iceId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 

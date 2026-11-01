@@ -10,6 +10,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { grantAbilityCredits, type EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -62,7 +64,7 @@ export function applyOacPrimitive(
         log(state, `Firmware Updates — no advanceable ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => ({
@@ -74,7 +76,7 @@ export function applyOacPrimitive(
             amount: 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -91,7 +93,7 @@ export function applyOacPrimitive(
         log(state, `Glenn Station — already hosting a card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: hq.map((id) => ({
@@ -99,7 +101,7 @@ export function applyOacPrimitive(
           label: `Host ${state.cards[id]!.title} facedown`,
           effect: fx.do({ kind: "glenn_host_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -125,7 +127,7 @@ export function applyOacPrimitive(
         log(state, `Glenn Station — no hosted card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: hosted.map((c) => ({
@@ -133,7 +135,7 @@ export function applyOacPrimitive(
           label: `Add ${c.title} to HQ`,
           effect: fx.do({ kind: "glenn_retrieve_card", cardId: c.id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -189,7 +191,7 @@ export function applyOacPrimitive(
         log(state, `Constellation Protocol — no distinct targets.`);
         return { ok: true };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options: opts };
+      openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
       return { ok: true };
     }
 
@@ -226,7 +228,7 @@ export function applyOacPrimitive(
         log(state, `Mark Yale — no agenda counters.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => ({
@@ -234,7 +236,7 @@ export function applyOacPrimitive(
           label: `Spend agenda counter on ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "mark_yale_spend_counter_on", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -267,7 +269,7 @@ export function applyOacPrimitive(
         log(state, `Space Camp — no advanceable installed card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => ({
@@ -279,13 +281,13 @@ export function applyOacPrimitive(
             amount: 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "move_to_outermost": {
       const servers = Object.keys(state.servers) as ServerId[];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: servers.map((sid) => ({
@@ -293,7 +295,7 @@ export function applyOacPrimitive(
           label: `Move Builder to outermost of ${sid}`,
           effect: fx.do({ kind: "move_to_server", serverId: sid }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -322,7 +324,7 @@ export function applyOacPrimitive(
         log(state, `Builder — no advanceable ice on this server.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => ({
@@ -334,7 +336,7 @@ export function applyOacPrimitive(
             amount: 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -379,7 +381,7 @@ export function applyOacPrimitive(
         log(state, `The Twins — no HQ copy of ${title}.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: copies.map((id) => ({
@@ -391,7 +393,7 @@ export function applyOacPrimitive(
             iceId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -436,7 +438,7 @@ export function applyOacPrimitive(
           effect: fx.do({ kind: "spend_wanton_clicks_trash_hq", amount: n }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options: opts };
+      openPendingChoose(state, { sourceId, chooser: "runner", options: opts });
       return { ok: true };
     }
 
@@ -470,7 +472,7 @@ export function applyOacPrimitive(
         log(state, `Uninstall — no program/hardware installed.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -478,7 +480,7 @@ export function applyOacPrimitive(
           label: `Add ${state.cards[id]!.title} to grip`,
           effect: fx.do({ kind: "uninstall_to_grip", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -502,7 +504,7 @@ export function applyOacPrimitive(
         log(state, `Chop Bot 3000 — no other installed card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -510,14 +512,14 @@ export function applyOacPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_chop_bot_then_choose", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "trash_chop_bot_then_choose": {
       const cardId = (action as { cardId: string }).cardId;
       moveRunnerCardToHeap(state, cardId);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -532,7 +534,7 @@ export function applyOacPrimitive(
             effect: fx.do({ kind: "remove_tags", amount: 1 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -611,7 +613,7 @@ export function applyOacPrimitive(
         log(state, `Virus Breeding Ground — no other card with virus.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -619,7 +621,7 @@ export function applyOacPrimitive(
           label: `Move virus to ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "move_vbg_apply", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 

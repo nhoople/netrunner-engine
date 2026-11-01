@@ -10,6 +10,8 @@ import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { breakerStrength, iceStrength } from "./iceStrength.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -63,7 +65,7 @@ export function applyLunarTsPrimitive(
           effect: fx.do({ kind: "helium3_place_n", cardId: id, amount: 2 }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
     case "helium3_place_n": {
@@ -88,7 +90,7 @@ export function applyLunarTsPrimitive(
         log(state, `IT Department — no rezzed ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: rezzed.map((id) => ({
@@ -100,7 +102,7 @@ export function applyLunarTsPrimitive(
             amount: bonus,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "boost_it_department_apply": {
@@ -127,7 +129,7 @@ export function applyLunarTsPrimitive(
         moveRunnerCardToHeap(state, installed[0]!);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: installed.map((id) => ({
@@ -135,7 +137,7 @@ export function applyLunarTsPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "rez_ice_per_tag": {
@@ -184,7 +186,7 @@ export function applyLunarTsPrimitive(
       return { ok: true };
     }
     case "trace_troll_success": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -203,7 +205,7 @@ export function applyLunarTsPrimitive(
             effect: fx.do({ kind: "end_the_run" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "trace_virgo_subroutine": {
@@ -289,7 +291,7 @@ export function applyLunarTsPrimitive(
         log(state, `Incubator — no virus counters to move or no target.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      if (!openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: viruses.map((id) => ({
@@ -301,7 +303,7 @@ export function applyLunarTsPrimitive(
             amount: n,
           }),
         })),
-      };
+      })) return { ok: true };
       // Capture amount on turn so trash-self cost still works.
       state.turn.incubatorMoveAmount = n;
       return { ok: true };
@@ -324,7 +326,7 @@ export function applyLunarTsPrimitive(
       return { ok: true };
     }
     case "may_breach_instead_code_siphon": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -339,7 +341,7 @@ export function applyLunarTsPrimitive(
             effect: fx.do({ kind: "breach_instead_code_siphon" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "breach_instead_code_siphon": {
@@ -353,7 +355,7 @@ export function applyLunarTsPrimitive(
       }
       const iceCount = state.servers.rd?.ice.length ?? 0;
       const discount = iceCount * 3;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => ({
@@ -365,7 +367,7 @@ export function applyLunarTsPrimitive(
             discount,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "install_program": {
@@ -457,7 +459,7 @@ function applyShootTheMoonPick(ctx: EffectCtx): PrimResult {
     return { ok: true };
   }
   const remaining = state.turn.shootTheMoonRemaining ?? 0;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "corp",
     options: [
@@ -472,6 +474,6 @@ function applyShootTheMoonPick(ctx: EffectCtx): PrimResult {
         effect: fx.gainCredits("corp", 0),
       },
     ],
-  };
+  });
   return { ok: true };
 }

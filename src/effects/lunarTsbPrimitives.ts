@@ -8,6 +8,8 @@ import type { RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -81,7 +83,7 @@ export function applyLunarTsbPrimitive(
       const defs = [...loadCardCatalog().values()]
         .filter((d) => d.type !== "identity")
         .sort((a, b) => a.title.localeCompare(b.title));
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: defs.map((d) => ({
@@ -92,7 +94,7 @@ export function applyLunarTsbPrimitive(
             defId: d.id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "set_name": {
@@ -131,7 +133,7 @@ export function applyLunarTsbPrimitive(
       const remaining = action.remaining ?? 0;
       const installed = [...state.runner.installed];
       if (remaining <= 0 || installed.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: installed.map((id) => ({
@@ -142,14 +144,14 @@ export function applyLunarTsbPrimitive(
             fx.do({ kind: "trash_per_tag_continue", remaining: remaining - 1 }),
           ),
         })),
-      };
+      });
       return { ok: true };
     }
     case "sealed_vault_store_from_pool": {
       // Printed: move *any number* of credits from the pool to this asset.
       const pool = state.corp.credits;
       if (pool <= 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: Array.from({ length: pool }, (_, i) => i + 1).map((n) => ({
@@ -157,7 +159,7 @@ export function applyLunarTsbPrimitive(
           label: `Store ${n}¢ on Sealed Vault`,
           effect: fx.do({ kind: "move_credits_to_sealed_vault", amount: n }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "move_credits_to_sealed_vault": {
@@ -174,7 +176,7 @@ export function applyLunarTsbPrimitive(
       const card = state.cards[sourceId];
       const hosted = card?.hostedCredits ?? 0;
       if (!card || hosted <= 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: Array.from({ length: hosted }, (_, i) => i + 1).map((n) => ({
@@ -182,7 +184,7 @@ export function applyLunarTsbPrimitive(
           label: `Take ${n}¢ from Sealed Vault`,
           effect: fx.do({ kind: "move_credits_from_sealed_vault", amount: n }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "move_credits_from_sealed_vault": {
@@ -195,7 +197,7 @@ export function applyLunarTsbPrimitive(
       return { ok: true };
     }
     case "trash_will_o_wisp_breaker_used": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -210,7 +212,7 @@ export function applyLunarTsbPrimitive(
             effect: fx.do({ kind: "resolve_will_o_wisp" }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
     case "resolve_will_o_wisp": {
@@ -242,7 +244,7 @@ export function applyLunarTsbPrimitive(
         log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: used.map((id) => ({
@@ -253,7 +255,7 @@ export function applyLunarTsbPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
     case "resolve_will_o_wisp_breaker": {

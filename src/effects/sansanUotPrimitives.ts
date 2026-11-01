@@ -6,6 +6,8 @@ import type { Effect } from "./ir.js";
 import type { Primitive } from "./ir.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import { syncEtrPerRezzedAssetSubs } from "../state/powerCounters.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -90,7 +92,7 @@ export function applySansanUotPrimitive(
         log(state, `Surfer — no adjacent ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: neighbors.map((nPos) => {
@@ -107,8 +109,8 @@ export function applySansanUotPrimitive(
             },
           };
         }),
-      };
-      log(state, `Surfer — choose adjacent ice to swap.`);
+logLine: `Surfer — choose adjacent ice to swap.`,
+});
       return { ok: true };
     }
 
@@ -205,7 +207,7 @@ export function applySansanUotPrimitive(
         log(state, `DaVinci — no eligible grip card (≤ ${counters}).`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((cardId) => ({
@@ -219,8 +221,8 @@ export function applySansanUotPrimitive(
             },
           },
         })),
-      };
-      log(state, `DaVinci — choose grip card to install (≤ ${counters}).`);
+logLine: `DaVinci — choose grip card to install (≤ ${counters}).`,
+});
       return { ok: true };
     }
 
@@ -324,11 +326,9 @@ export function applySansanUotPrimitive(
         log(state, `Team Sponsorship — no installable card in HQ/Archives.`);
         return { ok: true };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `Team Sponsorship — may install from HQ or Archives ignoring install cost.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Team Sponsorship — may install from HQ or Archives ignoring install cost.`,
+});
       return { ok: true };
     }
 
@@ -347,7 +347,7 @@ export function applySansanUotPrimitive(
         log(state, `Worlds Plaza — no asset in HQ.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: assets.map((cardId) => ({
@@ -362,7 +362,7 @@ export function applySansanUotPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -425,7 +425,7 @@ export function applySansanUotPrimitive(
         log(state, `${source.title} — R&D empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: deck.map((cardId) => ({
@@ -439,8 +439,8 @@ export function applySansanUotPrimitive(
             },
           },
         })),
-      };
-      log(state, `${source.title} — search R&D for a card to add to HQ.`);
+logLine: `${source.title} — search R&D for a card to add to HQ.`,
+});
       return { ok: true };
     }
 
@@ -466,7 +466,7 @@ export function applySansanUotPrimitive(
         state.turn.uotChronosTrashRemaining = undefined;
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: state.corp.identityId,
         chooser: "corp",
         options: grip.map((id) => ({
@@ -480,7 +480,7 @@ export function applySansanUotPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -497,7 +497,7 @@ function offerBookmarkHostChoice(ctx: EffectCtx): PrimResult {
     state.turn.uotBookmarkHostRemaining = undefined;
     return { ok: true };
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: [
@@ -525,11 +525,8 @@ function offerBookmarkHostChoice(ctx: EffectCtx): PrimResult {
         },
       },
     ],
-  };
-  log(
-    state,
-    `${source.title} — host from grip (${remaining} remaining capacity).`,
-  );
+logLine: `${source.title} — host from grip (${remaining} remaining capacity).`,
+});
   return { ok: true };
 }
 

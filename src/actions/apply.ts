@@ -198,6 +198,7 @@ import {
   fireOnAccessFaceupInstalledAgenda,
   fireOnCorpBasicClickForCreditOrDraw,
 } from "../state/miscConditionalHooks.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -628,7 +629,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       (id) => state.cards[id]?.type === "operation",
     );
     if (optionId !== "subcontract-done" && remaining > 0 && more.length > 0) {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -657,7 +658,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
             },
           },
         ],
-      };
+      });
       return ok(state);
     }
     notePlayEffectComplete(state);
@@ -2321,7 +2322,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (prompted) {
         const canPay = next.runner.credits >= extra;
         next.turn.pendingFirstRunServerId = action.serverId;
-        next.pendingChoice = {
+        openPendingChoose(next, {
           sourceId: next.runner.identityId,
           chooser: "runner",
           options: [
@@ -2354,11 +2355,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
               },
             },
           ],
-        };
-        log(
-          next,
-          `The first click must be a run — the additional ${extra}¢ can be declined (CR ${CR.mustNotForceAdditionalCost.number}).`,
-        );
+logLine: `The first click must be a run — the additional ${extra}¢ can be declined (CR ${CR.mustNotForceAdditionalCost.number}).`,
+});
         return ok(next);
       }
       if (extra > 0 && next.runner.credits < extra) {
@@ -2476,7 +2474,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         );
         if (copy) {
           next.run.pendingImmolationAccessCardId = action.cardId;
-          next.pendingChoice = {
+          openPendingChoose(next, {
             sourceId: next.runner.identityId,
             chooser: "runner",
             options: [
@@ -2491,11 +2489,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
                 effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
               },
             ],
-          };
-          log(
-            next,
-            `Immolation Script — may trash a rezzed copy of ${preview.title} instead of accessing it (CR ${CR.candidatesAlreadyAccessed.number}).`,
-          );
+logLine: `Immolation Script — may trash a rezzed copy of ${preview.title} instead of accessing it (CR ${CR.candidatesAlreadyAccessed.number}).`,
+});
           return ok(next);
         }
       }
@@ -2509,7 +2504,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           (id) => next.cards[id]?.archivesAccessMayRfgInstead,
         );
         if (faceId) {
-          next.pendingChoice = {
+          openPendingChoose(next, {
             sourceId: faceId,
             chooser: "runner",
             options: [
@@ -2524,8 +2519,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
                 effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
               },
             ],
-          };
-          log(next, `${next.cards[faceId]!.title} — may remove ${preview.title} from the game instead of accessing it.`);
+logLine: `${next.cards[faceId]!.title} — may remove ${preview.title} from the game instead of accessing it.`,
+});
           return ok(next);
         }
       }
@@ -2545,15 +2540,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
             effect: { op: "do" as const, action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 } },
           },
         ];
-        next.pendingChoice = {
+        openPendingChoose(next, {
           sourceId: next.corp.identityId,
           chooser: "runner",
           options,
-        };
-        log(
-          next,
-          `${next.cards[next.corp.identityId]?.title ?? "Corp"} — pay ${tax}¢ to access ${preview?.title ?? action.cardId}, or it ceases to be a candidate (CR ${CR.candidatesAlreadyAccessed.number}).`,
-        );
+logLine: `${next.cards[next.corp.identityId]?.title ?? "Corp"} — pay ${tax}¢ to access ${preview?.title ?? action.cardId}, or it ceases to be a candidate (CR ${CR.candidatesAlreadyAccessed.number}).`,
+});
         return ok(next);
       }
       // Heliamphora: [interrupt] before Archives access resolves.
@@ -2565,7 +2557,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         const heliId = findHeliamphora(next)!;
         const title = next.cards[action.cardId]?.title ?? action.cardId;
         next.run.pendingHeliamphoraAccessCardId = action.cardId;
-        next.pendingChoice = {
+        openPendingChoose(next, {
           sourceId: heliId,
           chooser: "runner",
           options: [
@@ -2586,11 +2578,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
               },
             },
           ],
-        };
-        log(
-          next,
-          `${next.cards[heliId]!.title} — may host ${title} instead of accessing.`,
-        );
+logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessing.`,
+});
         return ok(next);
       }
       next.run.pendingHeliamphoraAccessCardId = undefined;

@@ -1,3 +1,4 @@
+import { openPendingChoose } from "../state/pendingChoice.js";
 /**
  * Corp basic install from HQ or Archives, paying costs or ignoring them.
  * Card sequences that install and then advance, rez, or lock stay in eval.ts.
@@ -102,7 +103,7 @@ export function applyCorpInstallPrimitive(
       ) {
         const installedId = state.turn.lastInstalledFromEffectId;
         const installed = state.cards[installedId];
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options: [
@@ -136,7 +137,7 @@ export function applyCorpInstallPrimitive(
               },
             },
           ],
-        };
+        });
         log(state, `May remove 1 tag to place 1 advancement on installed card.`);
       }
       return { ok: true };

@@ -6,6 +6,8 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -94,7 +96,7 @@ export function applyKitaraDtwnPrimitive(
       // Trash self first, then name subtype + choose ice to expose.
       trashRunnerInstalled(state, sourceId);
       const subtypes = ["sentry", "code gate", "barrier"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: subtypes.map((sub) => ({
@@ -102,8 +104,8 @@ export function applyKitaraDtwnPrimitive(
           label: `Name ${sub}`,
           effect: fx.do({ kind: "dtwn_wari_name_subtype", subtype: sub }),
         })),
-      };
-      log(state, `Wari — trash self; name sentry, code gate, or barrier.`);
+logLine: `Wari — trash self; name sentry, code gate, or barrier.`,
+});
       return { ok: true };
     }
 
@@ -116,7 +118,7 @@ export function applyKitaraDtwnPrimitive(
         log(state, `Wari — no ice to expose.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: iceIds.map((id) => ({
@@ -128,7 +130,7 @@ export function applyKitaraDtwnPrimitive(
             subtype: action.subtype,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -158,7 +160,7 @@ export function applyKitaraDtwnPrimitive(
         log(state, `${source?.title ?? "Kabonesa Wu"} — no non-virus program.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: matches.map((id) => ({
@@ -169,8 +171,8 @@ export function applyKitaraDtwnPrimitive(
             cardId: id,
           }),
         })),
-      };
-      log(state, `${source?.title ?? "Kabonesa Wu"} — search stack.`);
+logLine: `${source?.title ?? "Kabonesa Wu"} — search stack.`,
+});
       return { ok: true };
     }
 
@@ -223,7 +225,7 @@ export function applyKitaraDtwnPrimitive(
         log(state, `Takobi — no installed non-AI icebreaker.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: breakers.map((id) => ({
@@ -235,7 +237,7 @@ export function applyKitaraDtwnPrimitive(
             amount,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -275,7 +277,7 @@ export function applyKitaraDtwnPrimitive(
     }
 
     case "dtwn_emergent_creativity": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -288,8 +290,8 @@ export function applyKitaraDtwnPrimitive(
             }),
           },
         ],
-      };
-      log(state, `Emergent Creativity — trash from grip then search stack.`);
+logLine: `Emergent Creativity — trash from grip then search stack.`,
+});
       return { ok: true };
     }
 
@@ -321,7 +323,7 @@ export function applyKitaraDtwnPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -355,7 +357,7 @@ export function applyKitaraDtwnPrimitive(
         log(state, `Emergent Creativity — no program/hardware in stack.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: matches.map((id) => ({
@@ -367,7 +369,7 @@ export function applyKitaraDtwnPrimitive(
             discount: action.discount,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -406,8 +408,9 @@ export function applyKitaraDtwnPrimitive(
         label: `Name ${n}`,
         effect: fx.do({ kind: "dtwn_rng_key_set_number", named: n }),
       }));
-      state.pendingChoice = { sourceId, chooser: "runner", options };
-      log(state, `RNG Key — name a number.`);
+      openPendingChoose(state, { sourceId, chooser: "runner", options,
+logLine: `RNG Key — name a number.`,
+});
       return { ok: true };
     }
 
@@ -421,7 +424,7 @@ export function applyKitaraDtwnPrimitive(
     }
 
     case "dtwn_rng_key_reward": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -436,7 +439,7 @@ export function applyKitaraDtwnPrimitive(
             effect: fx.do({ kind: "draw", side: "runner", amount: 2 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -461,7 +464,7 @@ export function applyKitaraDtwnPrimitive(
       // Stage looked cards on the source for multi-step choice.
       (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked =
         looked;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -471,8 +474,8 @@ export function applyKitaraDtwnPrimitive(
             effect: fx.do({ kind: "dtwn_bacterial_partition" }),
           },
         ],
-      };
-      log(state, `Bacterial Programming — look at top ${n} of R&D.`);
+logLine: `Bacterial Programming — look at top ${n} of R&D.`,
+});
       return { ok: true };
     }
 
@@ -516,7 +519,7 @@ export function applyKitaraDtwnPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -588,7 +591,7 @@ export function applyKitaraDtwnPrimitive(
       }
       if (installed.length === 1) {
         // Choose the only card; Runner must bounce it.
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: [
@@ -601,7 +604,7 @@ export function applyKitaraDtwnPrimitive(
               }),
             },
           ],
-        };
+        });
         return { ok: true };
       }
       // Corp chooses 2; then Runner picks which to bounce.
@@ -611,7 +614,7 @@ export function applyKitaraDtwnPrimitive(
           pairs.push([installed[i]!, installed[j]!]);
         }
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: pairs.map(([a, b]) => ({
@@ -622,12 +625,12 @@ export function applyKitaraDtwnPrimitive(
             cardIds: [a, b],
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "dtwn_jua_runner_pick_bounce": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: action.cardIds.map((id) => ({
@@ -635,7 +638,7 @@ export function applyKitaraDtwnPrimitive(
           label: `Add ${state.cards[id]!.title} to top of stack`,
           effect: fx.do({ kind: "resolve_jua_bounce", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -662,7 +665,7 @@ export function applyKitaraDtwnPrimitive(
         log(state, `Threat Assessment — no installed Runner cards.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: installed.map((id) => ({
@@ -670,12 +673,12 @@ export function applyKitaraDtwnPrimitive(
           label: `Choose ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "resolve_threat_assessment", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
     case "resolve_threat_assessment": {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -693,7 +696,7 @@ export function applyKitaraDtwnPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -721,7 +724,7 @@ export function applyKitaraDtwnPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -757,7 +760,7 @@ export function applyKitaraDtwnPrimitive(
             }),
           });
         }
-        state.pendingChoice = { sourceId, chooser: "corp", options };
+        openPendingChoose(state, { sourceId, chooser: "corp", options });
         return { ok: true };
       }
       return applyKitaraDtwnPrimitive(ctx, {
@@ -786,7 +789,7 @@ export function applyKitaraDtwnPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 

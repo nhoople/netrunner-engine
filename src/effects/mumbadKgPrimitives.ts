@@ -5,6 +5,8 @@ import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -121,12 +123,12 @@ export function applyMumbadKgPrimitive(
           amount: 0,
         }) as Effect,
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(state, `Panchatantra — choose subtype for ${ice.title}.`);
+logLine: `Panchatantra — choose subtype for ${ice.title}.`,
+});
       return { ok: true };
     }
 
@@ -158,7 +160,7 @@ export function applyMumbadKgPrimitive(
         log(state, `Artist Colony — no program/resource/hardware in stack.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -169,8 +171,8 @@ export function applyMumbadKgPrimitive(
             cardId: id,
           }),
         })),
-      };
-      log(state, `Artist Colony — search stack to install.`);
+logLine: `Artist Colony — search stack to install.`,
+});
       return { ok: true };
     }
 
@@ -205,7 +207,7 @@ export function applyMumbadKgPrimitive(
         log(state, `Chatterjee University — no program in grip.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: programs.map((id) => ({
@@ -217,7 +219,7 @@ export function applyMumbadKgPrimitive(
             discount,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -302,7 +304,7 @@ export function applyMumbadKgPrimitive(
         log(state, `Museum of History — shuffle ${c.title} into R&D.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: arch.map((id) => ({
@@ -313,7 +315,7 @@ export function applyMumbadKgPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 

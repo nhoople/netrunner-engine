@@ -8,6 +8,8 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
 import { applySansanOhPrimitive } from "./sansanOhPrimitives.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -57,7 +59,7 @@ export function applyMumbadDagPrimitive(
           agendaId: agendas[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: agendas.map((agendaId) => {
@@ -71,7 +73,7 @@ export function applyMumbadDagPrimitive(
             }),
           };
         }),
-      };
+      });
       return { ok: true };
     }
 
@@ -144,7 +146,7 @@ export function applyMumbadDagPrimitive(
         log(state, `Political Operative — no eligible rezzed card.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -166,7 +168,7 @@ export function applyMumbadDagPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -206,7 +208,7 @@ export function applyMumbadDagPrimitive(
           cardId: grip[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: grip.map((cardId) => ({
@@ -217,7 +219,7 @@ export function applyMumbadDagPrimitive(
             cardId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -250,7 +252,7 @@ export function applyMumbadDagPrimitive(
         log(state, `Voting Machine Initiative — no agenda counters.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -265,7 +267,7 @@ export function applyMumbadDagPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -303,7 +305,7 @@ export function applyMumbadDagPrimitive(
           cardId: ops[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ops.map((cardId) => ({
@@ -314,7 +316,7 @@ export function applyMumbadDagPrimitive(
             cardId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -350,7 +352,7 @@ export function applyMumbadDagPrimitive(
           cardId: state.corp.hand[0]!,
         });
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: state.corp.hand.map((cardId) => ({
@@ -361,7 +363,7 @@ export function applyMumbadDagPrimitive(
             cardId,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -388,7 +390,7 @@ export function applyMumbadDagPrimitive(
       }
       if (!state.cards[agendaId]) return { ok: true };
       const agenda = state.cards[agendaId]!;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -406,7 +408,7 @@ export function applyMumbadDagPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -459,7 +461,7 @@ export function applyMumbadDagPrimitive(
         log(state, `Mumbad City Hall — no alliance in R&D; shuffle.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: alliance.map((cardId) => {
@@ -473,8 +475,8 @@ export function applyMumbadDagPrimitive(
             }),
           };
         }),
-      };
-      log(state, `Mumbad City Hall — choose an alliance from R&D.`);
+logLine: `Mumbad City Hall — choose an alliance from R&D.`,
+});
       return { ok: true };
     }
 
@@ -512,7 +514,7 @@ export function applyMumbadDagPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -530,7 +532,7 @@ export function applyMumbadDagPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -572,7 +574,7 @@ export function applyMumbadDagPrimitive(
         log(state, `Surat City Grid — no card to rez at −${discount}¢.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -595,7 +597,7 @@ export function applyMumbadDagPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 

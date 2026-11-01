@@ -1,3 +1,4 @@
+import { openPendingChoose } from "../state/pendingChoice.js";
 /** Magnum Opus (mo) primitives — v1.142.0. */
 import { log } from "../state/createGame.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
@@ -42,7 +43,7 @@ function offerHeapShufflePick(
     return { ok: true };
   }
   state.turn.moHeapShuffleRemaining = remaining;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: "runner",
     options: heap.map((cardId) => ({
@@ -50,7 +51,7 @@ function offerHeapShufflePick(
       label: `Shuffle ${state.cards[cardId]!.title} into stack`,
       effect: fx.do({ kind: "shuffle_heap_pick", cardId }),
     })),
-  };
+  });
   return { ok: true };
 }
 
@@ -140,7 +141,7 @@ export function applyMagnumOpusPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -159,11 +160,8 @@ export function applyMagnumOpusPrimitive(
             }),
           },
         ],
-      };
-      log(
-        state,
-        `Crowdfunding — may install from heap ignoring costs (${runs} successful runs).`,
-      );
+logLine: `Crowdfunding — may install from heap ignoring costs (${runs} successful runs).`,
+});
       return { ok: true };
     }
 
@@ -191,7 +189,7 @@ export function applyMagnumOpusPrimitive(
         log(state, `Timely Public Release — no ice in HQ or Archives.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ice.map(({ cardId, from }) => ({
@@ -203,11 +201,8 @@ export function applyMagnumOpusPrimitive(
             from,
           }),
         })),
-      };
-      log(
-        state,
-        `Timely Public Release — choose ice from HQ or Archives.`,
-      );
+logLine: `Timely Public Release — choose ice from HQ or Archives.`,
+});
       return { ok: true };
     }
 
@@ -226,7 +221,7 @@ export function applyMagnumOpusPrimitive(
         return { ok: true };
       }
       const servers = Object.keys(state.servers) as ServerId[];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: servers.map((serverId) => ({
@@ -239,11 +234,8 @@ export function applyMagnumOpusPrimitive(
             serverId,
           }),
         })),
-      };
-      log(
-        state,
-        `Timely Public Release — choose server for ${ice.title}.`,
-      );
+logLine: `Timely Public Release — choose server for ${ice.title}.`,
+});
       return { ok: true };
     }
 
@@ -274,11 +266,9 @@ export function applyMagnumOpusPrimitive(
           }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
-      log(
-        state,
-        `Timely Public Release — choose position on ${action.serverId}.`,
-      );
+      openPendingChoose(state, { sourceId, chooser: "corp", options,
+logLine: `Timely Public Release — choose position on ${action.serverId}.`,
+});
       return { ok: true };
     }
 

@@ -6,6 +6,8 @@ import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -69,12 +71,12 @@ export function applySansanBbPrimitive(
           action: { kind: "gain_credits", side: "runner", amount: 0 },
         },
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(state, `Hayley — may install another ${typ} from grip.`);
+logLine: `Hayley — may install another ${typ} from grip.`,
+});
       return { ok: true };
     }
 
@@ -133,7 +135,7 @@ export function applySansanBbPrimitive(
         log(state, `London Library — no non-virus program in grip.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -161,7 +163,7 @@ export function applySansanBbPrimitive(
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -195,7 +197,7 @@ export function applySansanBbPrimitive(
         log(state, `London Library — no hosted program.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -223,7 +225,7 @@ export function applySansanBbPrimitive(
             },
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -258,7 +260,7 @@ export function applySansanBbPrimitive(
         log(state, `Search stack for ${typ} — none found; shuffle.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: matches.map((id) => ({
@@ -272,7 +274,7 @@ export function applySansanBbPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -310,7 +312,7 @@ export function applySansanBbPrimitive(
         log(state, `Research Grant — no other installed copy.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ids.map((id) => ({
@@ -324,7 +326,7 @@ export function applySansanBbPrimitive(
             },
           },
         })),
-      };
+      });
       return { ok: true };
     }
 

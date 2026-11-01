@@ -1,3 +1,4 @@
+import { openPendingChoose } from "./pendingChoice.js";
 /** Damage types + prevention hooks (CR 10.4). */
 
 import type { Effect } from "../effects/ir.js";
@@ -456,7 +457,7 @@ export function resolveDamage(
     const ribsChoose = titaniumRibsChoosesGripTrash(state);
     const chooser =
       ribsChoose && state.activeSide === "runner" ? "runner" : "corp";
-    state.pendingChoice = {
+    if (!openPendingChoose(state, {
       sourceId: chronosId,
       chooser,
       options: grip.map((id) => ({
@@ -470,7 +471,11 @@ export function resolveDamage(
           },
         },
       })),
-    };
+    })) {
+      state.turn.uotChronosNetDamageUsedThisTurn = false;
+      state.turn.uotChronosTrashRemaining = 0;
+      state.turn.uotChronosNetAmount = 0;
+    } else {
     if (ribsChoose) {
       log(
         state,
@@ -487,6 +492,7 @@ export function resolveDamage(
       );
     }
     return "applied";
+    }
   }
   // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine
   // still opens a choice when grip size is small via pendingChoice elsewhere;
@@ -573,7 +579,7 @@ export function resolveDamage(
         for (const id of server.root) {
           const c = state.cards[id];
           if (!c?.rezzed || !c.placeAdvancementOnSufferMeatDamage) continue;
-          state.pendingChoice = {
+          openPendingChoose(state, {
             sourceId: id,
             chooser: "corp",
             options: [
@@ -602,7 +608,7 @@ export function resolveDamage(
                 },
               },
             ],
-          };
+          });
           log(state, `${c.title} — may place 1 advancement (meat damage).`);
           break;
         }
@@ -760,7 +766,7 @@ export function preventAllPendingNetOrMeat(state: GameState, sourceId: string): 
     return;
   }
   if (state.runner.credits >= pay) {
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId,
       chooser: "runner",
       options: [
@@ -778,7 +784,7 @@ export function preventAllPendingNetOrMeat(state: GameState, sourceId: string): 
           effect: { op: "do", action: { kind: "trash_self" } },
         },
       ],
-    };
+    });
     return;
   }
   state.runner.installed = state.runner.installed.filter((id) => id !== sourceId);

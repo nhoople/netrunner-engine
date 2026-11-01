@@ -1,3 +1,4 @@
+import { openPendingChoose } from "./pendingChoice.js";
 /** Expose interrupt helpers (CR 1.21.4). */
 
 import { log } from "./createGame.js";
@@ -105,7 +106,7 @@ export function beginExpose(state: GameState, cardId: string): "pending" | "done
       offeredRezIds: mayRez,
       expectedEffects,
     };
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId: mayRez[0]!,
       chooser: "corp",
       options: [
@@ -129,11 +130,8 @@ export function beginExpose(state: GameState, cardId: string): "pending" | "done
           },
         },
       ],
-    };
-    log(
-      state,
-      `Card would be exposed — Corp may rez Zaibatsu-class asset (CR ${CR.expose?.number ?? "1.21.4"}).`,
-    );
+logLine: `Card would be exposed — Corp may rez Zaibatsu-class asset (CR ${CR.expose?.number ?? "1.21.4"}).`,
+});
     return "pending";
   }
   return openExposeInterruptOrComplete(state, cardId);
@@ -205,7 +203,7 @@ export function completeExpose(state: GameState, cardId: string): void {
       const c = state.cards[rid];
       const n = c?.mayGainCreditsOnCorpCardExposed;
       if (!c || typeof n !== "number" || n <= 0) continue;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: rid,
         chooser: "runner",
         options: [
@@ -226,7 +224,7 @@ export function completeExpose(state: GameState, cardId: string): void {
             },
           },
         ],
-      };
+      });
       log(state, `${c.title} — may gain ${n}¢ (Corp card exposed).`);
       break;
     }

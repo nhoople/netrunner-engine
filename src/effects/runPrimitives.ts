@@ -12,6 +12,8 @@ import { CR } from "../timing/labels.js";
 import { evalEffect, type EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -60,7 +62,7 @@ export function offerNestedUnless(
   const options = opts.payFirst === false
     ? [instruction, pay]
     : [pay, instruction];
-  state.pendingChoice = { sourceId, chooser: opts.payer, options };
+  openPendingChoose(state, { sourceId, chooser: opts.payer, options });
   if (opts.offerLog) log(state, opts.offerLog);
   return { ok: true };
 }

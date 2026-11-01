@@ -13,6 +13,8 @@ import { CR } from "../timing/labels.js";
 import { fx } from "../effects/ir.js";
 import { startTrace } from "./trace.js";
 import { memoryLimit, usedMemory } from "./turn.js";
+import { openPendingChoose } from "./pendingChoice.js";
+
 
 const noop = (side: Side) => fx.do({ kind: "gain_credits", side, amount: 0 });
 
@@ -23,14 +25,14 @@ function offer(
   options: Array<{ id: string; label: string }>,
 ): boolean {
   if (state.pendingChoice || state.trace || state.psi || state.done) return false;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser,
     options: options.map((option) => ({
       ...option,
       effect: noop(chooser),
     })),
-  };
+  });
   return true;
 }
 

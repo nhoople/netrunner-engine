@@ -12,6 +12,8 @@ import { CR } from "../timing/labels.js";
 import { playEffectFromCard } from "./abilityRecord.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -56,7 +58,7 @@ export function applyDadPrimitive(
         log(state, `${source?.title ?? "Sol"} — no current to play.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cands.map((id) => {
@@ -72,7 +74,7 @@ export function applyDadPrimitive(
             effect: play.length === 1 ? play[0]! : fx.seq(...play),
           };
         }),
-      };
+      });
       return { ok: true };
     }
 
@@ -139,7 +141,7 @@ export function applyDadPrimitive(
         log(state, `${source?.title ?? "Shannon Claire"} — no agenda found.`);
         return { ok: true };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options: opts };
+      openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
       return { ok: true };
     }
 
@@ -247,7 +249,7 @@ export function applyDadPrimitive(
         log(state, `24/7 News Cycle — no when-scored ability can resolve.`);
         return { ok: true };
       }
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -264,7 +266,7 @@ export function applyDadPrimitive(
         log(state, `Ad Blitz — nothing to install (X=${x}).`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: ads.map((id) => ({
@@ -276,7 +278,7 @@ export function applyDadPrimitive(
             remaining: x - 1,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -314,7 +316,7 @@ export function applyDadPrimitive(
         log(state, `Media Blitz — no agenda in Runner score.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: agendas.map((id) => ({
@@ -322,7 +324,7 @@ export function applyDadPrimitive(
           label: `Copy text of ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "dad_media_blitz_copy", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -362,7 +364,7 @@ export function applyDadPrimitive(
           effect: fx.do({ kind: "remove_bad_publicity_instead", amount: 1 }),
         });
       }
-      state.pendingChoice = { sourceId, chooser: "runner", options: opts };
+      openPendingChoose(state, { sourceId, chooser: "runner", options: opts });
       return { ok: true };
     }
 
@@ -389,7 +391,7 @@ export function applyDadPrimitive(
         log(state, `Apex — grip empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: grip.map((id) => ({
@@ -397,7 +399,7 @@ export function applyDadPrimitive(
           label: `Install ${state.cards[id]!.title} facedown`,
           effect: fx.do({ kind: "install_facedown", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -441,7 +443,7 @@ export function applyDadPrimitive(
         log(state, `Heartbeat — no installed card to trash.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -452,7 +454,7 @@ export function applyDadPrimitive(
             fx.do({ kind: "prevent_pending_damage", amount: action.amount }),
           ),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -482,7 +484,7 @@ export function applyDadPrimitive(
         log(state, `Endless Hunger — nothing to trash.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -493,7 +495,7 @@ export function applyDadPrimitive(
             fx.do({ kind: "break_encounter_etr_subroutine" }),
           ),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -521,7 +523,7 @@ export function applyDadPrimitive(
         .map((s, i) => ({ s, i }))
         .filter(({ i }) => !enc.broken[i]);
       if (unbroken.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: unbroken.map(({ s, i }) => ({
@@ -533,7 +535,7 @@ export function applyDadPrimitive(
             index: i,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -568,7 +570,7 @@ export function applyDadPrimitive(
 
     case "trash_draw": {
       const cands = installedRunnerIds(state);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -590,7 +592,7 @@ export function applyDadPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -599,7 +601,7 @@ export function applyDadPrimitive(
       const last = trashed[trashed.length - 1]!;
       moveRunnerCardToHeap(state, last);
       if (action.remainingPicks <= 0) {
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId,
           chooser: "runner",
           options: [
@@ -612,11 +614,11 @@ export function applyDadPrimitive(
               }),
             },
           ],
-        };
+        });
         return { ok: true };
       }
       const cands = installedRunnerIds(state);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -638,7 +640,7 @@ export function applyDadPrimitive(
             }),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 
@@ -665,7 +667,7 @@ export function applyDadPrimitive(
     case "blank_installed_abilities": {
       const cands = installedRunnerIds(state);
       if (cands.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: cands.map((id) => ({
@@ -673,7 +675,7 @@ export function applyDadPrimitive(
           label: `Blank ${state.cards[id]!.title} this turn`,
           effect: fx.do({ kind: "blank_card_this_turn", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -696,7 +698,7 @@ export function applyDadPrimitive(
       const clouds = breakers.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("cloud"),
       );
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -723,7 +725,7 @@ export function applyDadPrimitive(
             }),
           })),
         ],
-      };
+      });
       return { ok: true };
     }
 

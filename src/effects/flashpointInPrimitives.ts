@@ -5,6 +5,8 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import { grantAbilityCredits, type EffectCtx } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -68,15 +70,12 @@ export function applyFlashpointInPrimitive(
           lookedIds: looked,
         }),
       });
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options,
-      };
-      log(
-        state,
-        `Frantic Coding — look at top ${looked.length}; ${programs.length} program(s).`,
-      );
+logLine: `Frantic Coding — look at top ${looked.length}; ${programs.length} program(s).`,
+});
       return { ok: true };
     }
 
@@ -149,7 +148,7 @@ export function applyFlashpointInPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: grip.map((id) => ({
@@ -160,7 +159,7 @@ export function applyFlashpointInPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -182,7 +181,7 @@ export function applyFlashpointInPrimitive(
         log(state, `${source?.title ?? "Wetwork"} — no rezzed bioroid ice.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -193,11 +192,8 @@ export function applyFlashpointInPrimitive(
             iceId: id,
           }),
         })),
-      };
-      log(
-        state,
-        `${source?.title ?? "Wetwork"} — choose rezzed bioroid ice to host on.`,
-      );
+logLine: `${source?.title ?? "Wetwork"} — choose rezzed bioroid ice to host on.`,
+});
       return { ok: true };
     }
 
@@ -234,7 +230,7 @@ export function applyFlashpointInPrimitive(
         }
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: state.corp.hand.map((id) => ({
@@ -251,7 +247,7 @@ export function applyFlashpointInPrimitive(
             ],
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -270,7 +266,7 @@ export function applyFlashpointInPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((id) => ({
@@ -278,7 +274,7 @@ export function applyFlashpointInPrimitive(
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -312,7 +308,7 @@ export function applyFlashpointInPrimitive(
         log(state, `Top Hat — R&D empty.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
@@ -330,11 +326,8 @@ export function applyFlashpointInPrimitive(
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-      };
-      log(
-        state,
-        `Top Hat — may access 1 of top ${ordered.length} instead of breach.`,
-      );
+logLine: `Top Hat — may access 1 of top ${ordered.length} instead of breach.`,
+});
       return { ok: true };
     }
 

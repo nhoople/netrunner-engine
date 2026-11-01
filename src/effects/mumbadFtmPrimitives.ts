@@ -7,6 +7,8 @@ import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { fx, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -78,7 +80,7 @@ export function applyMumbadFtmPrimitive(
         log(state, `Trash own ${subtype} resource ${title}.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: resources.map((id) => ({
@@ -89,7 +91,7 @@ export function applyMumbadFtmPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -162,7 +164,7 @@ export function applyMumbadFtmPrimitive(
         log(state, `Rigged Results — no ice to choose.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: iceIds.map((id) => {
@@ -181,7 +183,7 @@ export function applyMumbadFtmPrimitive(
             }),
           };
         }),
-      };
+      });
       return { ok: true };
     }
 
@@ -200,7 +202,7 @@ export function applyMumbadFtmPrimitive(
 
     case "name_type_trash_from_grip": {
       const types = ["event", "hardware", "program", "resource"];
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: types.map((t) => ({
@@ -211,7 +213,7 @@ export function applyMumbadFtmPrimitive(
             cardType: t,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -237,7 +239,7 @@ export function applyMumbadFtmPrimitive(
         );
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: matches.map((id) => ({
@@ -248,7 +250,7 @@ export function applyMumbadFtmPrimitive(
             cardId: id,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -306,7 +308,7 @@ export function applyMumbadFtmPrimitive(
         return { ok: true };
       }
       state.turn.ftmSubcontractRemaining = max;
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: [
@@ -324,7 +326,7 @@ export function applyMumbadFtmPrimitive(
             effect: fx.gainCredits("corp", 0),
           },
         ],
-      };
+      });
       return { ok: true };
     }
 

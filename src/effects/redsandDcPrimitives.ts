@@ -8,6 +8,8 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
+
 
 type PrimResult =
   | { ok: true }
@@ -84,7 +86,7 @@ export function applyRedsandDcPrimitive(
         label: "Done",
         effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
       });
-      state.pendingChoice = { sourceId, chooser: "runner", options };
+      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 
@@ -99,7 +101,7 @@ export function applyRedsandDcPrimitive(
         log(state, `Spot the Prey — no non-ice card to expose; still run.`);
         return evalEffect(ctx, fx.do({ kind: "may_start_run", servers: "any" }));
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: candidates.map((c) => ({
@@ -113,7 +115,7 @@ export function applyRedsandDcPrimitive(
             ],
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -204,7 +206,7 @@ export function applyRedsandDcPrimitive(
         return c && state.corp.discardPile.includes(id) && !c.faceup;
       });
       if (remaining <= 0 || cardIds.length === 0) return { ok: true };
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: cardIds.map((id) => ({
@@ -222,7 +224,7 @@ export function applyRedsandDcPrimitive(
             ],
           },
         })),
-      };
+      });
       return { ok: true };
     }
 
@@ -309,7 +311,7 @@ export function applyRedsandDcPrimitive(
         label: "Done",
         effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
       });
-      state.pendingChoice = { sourceId, chooser: "corp", options };
+      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 
@@ -383,7 +385,7 @@ export function applyRedsandDcPrimitive(
         log(state, `Jemison — no installed card for advancements.`);
         return { ok: true };
       }
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: targets.map((c) => ({
@@ -395,7 +397,7 @@ export function applyRedsandDcPrimitive(
             amount: x,
           }),
         })),
-      };
+      });
       return { ok: true };
     }
 
