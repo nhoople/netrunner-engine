@@ -17,7 +17,6 @@ import {
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_ICE_STRENGTH,
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
-  LINGERING_KIND_RUNNER_MU,
   lingeringBreakerStrengthOfKind,
   lingeringIceStrengthOfKind,
   lingeringRunnerMuModifier,
