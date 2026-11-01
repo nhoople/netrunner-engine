@@ -2624,6 +2624,15 @@ export interface CardInstance {
   /** Trojan: host ice gains barrier+code gate+sentry (Egret). */
   hostGainsAllIceSubtypes?: boolean;
   /**
+   * Continuous subtype grants for the 9.12 layer (standardization S6).
+   * Projected from `hostGainsAllIceSubtypes` at load until cards declare these
+   * directly. Prefer this over new one-off booleans for subtype continuous.
+   */
+  continuousSubtypeGrants?: Array<
+    | { kind: "host_grant_bcs" }
+    | { kind: "copy_other_rezzed_ice_subtypes" }
+  >;
+  /**
    * Recurring credits may only be spent for these purposes.
    * `run_central` = any credit cost while attacking HQ / R&D / Archives
    * (Cezve-class; CR §1.10.5a / §6.3.4).

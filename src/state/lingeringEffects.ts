@@ -107,6 +107,49 @@ export function addLingeringEffect(
   return effect;
 }
 
+const BREAKER_STRENGTH_KINDS = new Set([
+  LINGERING_KIND_BREAKER_STRENGTH,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+]);
+
+/** True when the registry has a non-expired pump for this breaker. */
+export function hasLingeringBreakerStrength(
+  state: GameState,
+  breakerId: string,
+): boolean {
+  for (const e of state.lingeringEffects) {
+    if (e.expired) continue;
+    if (!BREAKER_STRENGTH_KINDS.has(e.kind)) continue;
+    const payload = e.payload as { breakerId?: string } | undefined;
+    if (payload?.breakerId === breakerId) return true;
+  }
+  return false;
+}
+
+/**
+ * Temporary breaker strength from the lingering registry (CR 9.10.1).
+ * Prefer this when `hasLingeringBreakerStrength` is true; otherwise tests /
+ * legacy map writes still apply (S3 migration).
+ */
+export function lingeringBreakerStrengthBoost(
+  state: GameState,
+  breakerId: string,
+): number {
+  let n = 0;
+  for (const e of state.lingeringEffects) {
+    if (e.expired) continue;
+    if (!BREAKER_STRENGTH_KINDS.has(e.kind)) continue;
+    const payload = e.payload as
+      | { breakerId?: string; amount?: number }
+      | undefined;
+    if (!payload || payload.breakerId !== breakerId) continue;
+    n += payload.amount ?? 0;
+  }
+  return n;
+}
+
 export function lingeringEffectsOfKind(
   state: GameState,
   kind: string,

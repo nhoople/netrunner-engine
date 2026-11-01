@@ -23,7 +23,8 @@ import {
 } from "../state/powerCounters.js";
 import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
-import { effectiveIceSubtypes } from "../cards/stubs.js";
+import { collectFatumaGainedSubs } from "../state/continuousSubs.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import {
   beginCorpTurnFlags,
@@ -265,44 +266,30 @@ function syncWardenBeforeSubroutines(state: GameState, iceId: string): void {
   const ice = state.cards[iceId];
   const encounter = state.run?.encounter;
   if (!ice || encounter?.iceId !== iceId) return;
-  const bioroid = effectiveIceSubtypes(state, iceId).some(
-    (subtype) => subtype.toLowerCase() === "bioroid",
-  );
-  const sources = Object.values(state.cards).filter(
-    (card) =>
-      card.rezzed &&
-      card.bioroidIceGainsLoseClickSubroutineBeforeOthers &&
-      !abilitiesSuppressed(state, card.id),
-  );
-  const sourceIds = new Set(sources.map((card) => card.id));
+  const gained = collectFatumaGainedSubs(state, iceId);
+  const keepIds = new Set(gained.map((g) => g.subId));
   const subs = [...(ice.subroutines ?? [])];
   const broken = [...encounter.broken];
   for (let i = subs.length - 1; i >= 0; i--) {
     const sub = subs[i]!;
     if (!sub.id.startsWith("warden-lose-click-")) continue;
-    const sourceId = sub.id.slice("warden-lose-click-".length);
-    if (bioroid && sourceIds.has(sourceId)) continue;
+    if (keepIds.has(sub.id)) continue;
     subs.splice(i, 1);
     broken.splice(i, 1);
   }
-  if (bioroid) {
-    for (const source of sources) {
-      const id = `warden-lose-click-${source.id}`;
-      if (subs.some((sub) => sub.id === id)) continue;
-      subs.unshift({
-        id,
-        text: "The Runner loses [click].",
-        effect: {
-          op: "do",
-          action: { kind: "lose_clicks", side: "runner", amount: 1 },
-        },
-      });
-      broken.unshift(false);
-      log(
-        state,
-        `${source.title} — ${ice.title} gains "The Runner loses [click]." before its other subroutines (CR ${CR.subroutineOriginExternalBefore.number}).`,
-      );
-    }
+  for (const g of [...gained].reverse()) {
+    if (subs.some((sub) => sub.id === g.subId)) continue;
+    subs.unshift({
+      id: g.subId,
+      text: g.text,
+      effect: g.effect,
+    });
+    broken.unshift(false);
+    const source = state.cards[g.sourceId];
+    log(
+      state,
+      `${source?.title ?? g.sourceId} — ${ice.title} gains "The Runner loses [click]." before its other subroutines (CR ${CR.subroutineOriginExternalBefore.number}).`,
+    );
   }
   ice.subroutines = subs;
   encounter.broken = broken;
@@ -2967,7 +2954,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (!nexus?.paidAbilities?.some((ability) => ability.id === "security-nexus-trace")) {
               continue;
             }
-            s.pendingChoice = {
+            openPendingChoose(s, {
               sourceId: rid,
               chooser: "runner",
               options: [
@@ -2988,10 +2975,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 },
               ],
-            };
-            s.log.push(
-              `${nexus.title} — may trace at the start of this encounter (CR ${CR.runEndsCloseReactionWindow.number}).`,
-            );
+              logLine: `${nexus.title} — may trace at the start of this encounter (CR ${CR.runEndsCloseReactionWindow.number}).`,
+            });
             break;
           }
         }
