@@ -723,7 +723,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     }
     return (e.payload as { iceId?: string } | undefined)?.iceId === iceId;
   });
-  let tempBoost = hasActiveIceLingering
+  const tempBoost = hasActiveIceLingering
     ? fromLingering
     : (state.run?.iceStrengthBoosts?.[iceId] ?? 0) +
       (state.turn.iceStrengthBoostsThisTurn?.[iceId] ?? 0);
