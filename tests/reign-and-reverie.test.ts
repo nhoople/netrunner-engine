@@ -31,7 +31,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.75.0 kickoff", () => {
@@ -103,7 +103,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.76.0 A-slice", () => {
@@ -196,7 +196,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.77.0 B-slice", () => {
@@ -250,7 +250,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.78.0 C-slice", () => {
@@ -329,7 +329,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.81.0 D-slice", () => {
@@ -395,7 +395,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.81.0 E-slice", () => {
@@ -480,7 +480,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.81.0 F-slice", () => {
@@ -561,7 +561,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.82.0 G-slice", () => {
@@ -638,7 +638,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.83.0 H-slice", () => {
@@ -709,7 +709,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.84.0 I-slice", () => {
@@ -772,23 +772,22 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Reign and Reverie v1.85.0 J-slice", () => {
 
     it("Blockchain: gainsSubroutinesBeforePrintedPerFaceupArchives + printed subs", () => {
       const def = getCardDef("blockchain");
-      expect(def.gainsSubroutinesBeforePrintedPerFaceupArchives).toMatchObject({
+      const archives = def.continuousGainedSubDecls?.find(
+        (d) => d.kind === "archives_faceup_per",
+      );
+      expect(archives).toMatchObject({
         subtype: "transaction",
         type: "operation",
         per: 2,
       });
-      expect(
-        validateEffectTree(
-          def.gainsSubroutinesBeforePrintedPerFaceupArchives!.subroutine.effect,
-        ),
-      ).toBeNull();
+      expect(validateEffectTree(archives!.subroutine.effect)).toBeNull();
       expect(def.subroutines).toHaveLength(2);
       expect(validateEffectTree(def.subroutines![0]!.effect)).toBeNull();
       expect(validateEffectTree(def.subroutines![1]!.effect)).toBeNull();
@@ -845,7 +844,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   function seedFenrisWithOutsideIdentity(

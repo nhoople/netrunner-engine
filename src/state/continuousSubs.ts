@@ -1,5 +1,5 @@
 /**
- * Continuous gained-subroutine collectors (framework migration M1 / L2).
+ * Continuous gained-subroutine collectors (framework migration M1 / L2 / W1).
  * Graph applies the lists; collectors own the continuous math.
  */
 import { abilitiesSuppressed } from "./abilities.js";
@@ -32,10 +32,43 @@ const SUB_BOOST_ETR_SUB = {
   effect: { op: "do" as const, action: { kind: "end_the_run" as const } },
 };
 
+const TOUR_GUIDE_ETR_SUB = {
+  id: "etr-asset",
+  text: "End the run.",
+  effect: { op: "do" as const, action: { kind: "end_the_run" as const } },
+};
+
 function gainedSubDecls(
   card: GameState["cards"][string] | undefined,
 ): ContinuousGainedSubDecl[] {
   return card?.continuousGainedSubDecls ?? [];
+}
+
+function firstDecl<K extends ContinuousGainedSubDecl["kind"]>(
+  card: GameState["cards"][string] | undefined,
+  kind: K,
+): Extract<ContinuousGainedSubDecl, { kind: K }> | undefined {
+  return gainedSubDecls(card).find(
+    (d): d is Extract<ContinuousGainedSubDecl, { kind: K }> => d.kind === kind,
+  );
+}
+
+/** True when ice carries a Winchester-family continuous gained-sub declaration. */
+export function iceHasWinchesterFamilyDecl(
+  card: GameState["cards"][string] | undefined,
+): boolean {
+  return gainedSubDecls(card).some((d) =>
+    (
+      [
+        "hq_protect_subs",
+        "archives_faceup_per",
+        "per_advancement",
+        "per_rezzed_subtype",
+        "grip_size_on_encounter",
+        "etr_per_rezzed_asset",
+      ] as const
+    ).includes(d.kind as never),
+  );
 }
 
 /** Warden Fatuma-class: bioroid ice gains lose-click before printed. */
@@ -132,16 +165,20 @@ export function collectWinchesterHqSubs(
   iceId: string,
 ): ContinuousGainedSub[] {
   const ice = state.cards[iceId];
-  if (!ice?.gainsSubroutinesWhileProtectingHq) return [];
+  if (!ice) return [];
   if (state.run?.attackedServerId !== "hq") return [];
   if (abilitiesSuppressed(state, iceId)) return [];
-  return ice.gainsSubroutinesWhileProtectingHq.map((sub) => ({
+  const decl = firstDecl(ice, "hq_protect_subs");
+  const subs =
+    decl?.subroutines ?? ice.gainsSubroutinesWhileProtectingHq ?? [];
+  if (!decl && !ice.gainsSubroutinesWhileProtectingHq) return [];
+  return subs.map((sub) => ({
     sourceId: iceId,
     iceId,
     subId: `${sub.id}-hq`,
     text: sub.text,
     effect: structuredClone(sub.effect),
-    position: "after" as const,
+    position: (decl?.position ?? "after") as "before" | "after",
   }));
 }
 
@@ -151,9 +188,22 @@ export function collectBlockchainArchivesSubs(
   iceId: string,
 ): ContinuousGainedSub[] {
   const ice = state.cards[iceId];
-  const spec = ice?.gainsSubroutinesBeforePrintedPerFaceupArchives;
-  if (!ice || !spec) return [];
+  if (!ice) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
+  const decl = firstDecl(ice, "archives_faceup_per");
+  const legacy = ice.gainsSubroutinesBeforePrintedPerFaceupArchives;
+  const spec = decl
+    ? {
+        type: decl.type,
+        subtype: decl.subtype,
+        per: decl.per,
+        subroutine: decl.subroutine,
+        position: decl.position ?? "before",
+      }
+    : legacy
+      ? { ...legacy, position: "before" as const }
+      : null;
+  if (!spec) return [];
   let faceup = 0;
   for (const id of state.corp.discardPile) {
     const c = state.cards[id];
@@ -170,7 +220,7 @@ export function collectBlockchainArchivesSubs(
     subId: `${spec.subroutine.id}-${i}`,
     text: spec.subroutine.text,
     effect: structuredClone(spec.subroutine.effect),
-    position: "before" as const,
+    position: spec.position,
   }));
 }
 
@@ -180,17 +230,20 @@ export function collectAdvancementGainedSubs(
   iceId: string,
 ): ContinuousGainedSub[] {
   const ice = state.cards[iceId];
-  const spec = ice?.gainsSubroutinesPerAdvancement;
-  if (!ice || !spec) return [];
+  if (!ice) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
+  const decl = firstDecl(ice, "per_advancement");
+  const legacy = ice.gainsSubroutinesPerAdvancement;
+  const subroutine = decl?.subroutine ?? legacy?.subroutine;
+  if (!subroutine) return [];
   const n = Math.max(0, ice.advancementCounters ?? 0);
   return Array.from({ length: n }, (_, i) => ({
     sourceId: iceId,
     iceId,
-    subId: `${spec.subroutine.id}-${i}`,
-    text: spec.subroutine.text,
-    effect: structuredClone(spec.subroutine.effect),
-    position: "after" as const,
+    subId: `${subroutine.id}-${i}`,
+    text: subroutine.text,
+    effect: structuredClone(subroutine.effect),
+    position: (decl?.position ?? "after") as "before" | "after",
   }));
 }
 
@@ -202,9 +255,13 @@ export function collectNextOpalSubs(
   iceId: string,
 ): ContinuousGainedSub[] {
   const ice = state.cards[iceId];
-  const spec = ice?.gainsSubroutinesPerRezzedIceWithSubtype;
-  if (!ice || !spec) return [];
+  if (!ice) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
+  const decl = firstDecl(ice, "per_rezzed_subtype");
+  const legacy = ice.gainsSubroutinesPerRezzedIceWithSubtype;
+  const subtype = decl?.subtype ?? legacy?.subtype;
+  const subroutine = decl?.subroutine ?? legacy?.subroutine;
+  if (!subtype || !subroutine) return [];
   let n = 0;
   for (const server of Object.values(state.servers)) {
     for (const id of server.ice) {
@@ -212,7 +269,7 @@ export function collectNextOpalSubs(
       if (!c?.rezzed) continue;
       if (
         resolveIceSubtypes(state, id).some(
-          (t) => t.toLowerCase() === spec.subtype.toLowerCase(),
+          (t) => t.toLowerCase() === subtype.toLowerCase(),
         )
       ) {
         n += 1;
@@ -222,10 +279,10 @@ export function collectNextOpalSubs(
   return Array.from({ length: n }, (_, i) => ({
     sourceId: iceId,
     iceId,
-    subId: `${spec.subroutine.id}-${i}`,
-    text: spec.subroutine.text,
-    effect: structuredClone(spec.subroutine.effect),
-    position: "after" as const,
+    subId: `${subroutine.id}-${i}`,
+    text: subroutine.text,
+    effect: structuredClone(subroutine.effect),
+    position: (decl?.position ?? "after") as "before" | "after",
   }));
 }
 
@@ -235,9 +292,11 @@ export function collectBrainstormGripSubs(
   iceId: string,
 ): ContinuousGainedSub[] {
   const ice = state.cards[iceId];
-  const template = ice?.gainsSubroutinesOnEncounterEqualGripSize;
-  if (!ice || !template) return [];
+  if (!ice) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
+  const decl = firstDecl(ice, "grip_size_on_encounter");
+  const template = decl?.subroutine ?? ice.gainsSubroutinesOnEncounterEqualGripSize;
+  if (!template) return [];
   const x = state.runner.hand.length;
   return Array.from({ length: x }, (_, i) => ({
     sourceId: iceId,
@@ -245,7 +304,7 @@ export function collectBrainstormGripSubs(
     subId: `${template.id}-${i}`,
     text: template.text,
     effect: structuredClone(template.effect),
-    position: "after" as const,
+    position: (decl?.position ?? "after") as "before" | "after",
   }));
 }
 
@@ -255,7 +314,9 @@ export function collectTourGuideEtrSubs(
   iceId: string,
 ): ContinuousGainedSub[] {
   const ice = state.cards[iceId];
-  if (!ice?.etrSubroutinesPerRezzedAsset) return [];
+  if (!ice) return [];
+  const decl = firstDecl(ice, "etr_per_rezzed_asset");
+  if (!decl && !ice.etrSubroutinesPerRezzedAsset) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
   let n = 0;
   for (const c of Object.values(state.cards)) {
@@ -264,13 +325,16 @@ export function collectTourGuideEtrSubs(
       n += 1;
     }
   }
+  const sub = decl?.subroutine ?? TOUR_GUIDE_ETR_SUB;
+  const subIdBase =
+    decl?.subroutine?.id ?? `${ice.defId}-etr-asset`;
   return Array.from({ length: n }, (_, i) => ({
     sourceId: iceId,
     iceId,
-    subId: `${ice.defId}-etr-asset-${i}`,
-    text: "End the run.",
-    effect: { op: "do", action: { kind: "end_the_run" } },
-    position: "before" as const,
+    subId: `${subIdBase}-${i}`,
+    text: sub.text,
+    effect: structuredClone(sub.effect),
+    position: (decl?.position ?? "before") as "before" | "after",
   }));
 }
 
@@ -281,14 +345,24 @@ function looksLikeContinuousGainedSubId(
   if (subId.startsWith("warden-lose-click-")) return true;
   if (subId.startsWith("sub-boost-etr-")) return true;
   if (subId.startsWith(`${ice.defId}-etr-asset-`)) return true;
-  if (subId.endsWith("-hq") && ice.gainsSubroutinesWhileProtectingHq) {
-    return true;
+  if (subId.endsWith("-hq")) {
+    if (
+      ice.gainsSubroutinesWhileProtectingHq ||
+      firstDecl(ice, "hq_protect_subs")
+    ) {
+      return true;
+    }
   }
   const templates = [
+    firstDecl(ice, "archives_faceup_per")?.subroutine.id,
     ice.gainsSubroutinesBeforePrintedPerFaceupArchives?.subroutine.id,
+    firstDecl(ice, "per_advancement")?.subroutine.id,
     ice.gainsSubroutinesPerAdvancement?.subroutine.id,
+    firstDecl(ice, "per_rezzed_subtype")?.subroutine.id,
     ice.gainsSubroutinesPerRezzedIceWithSubtype?.subroutine.id,
+    firstDecl(ice, "grip_size_on_encounter")?.subroutine.id,
     ice.gainsSubroutinesOnEncounterEqualGripSize?.id,
+    firstDecl(ice, "etr_per_rezzed_asset")?.subroutine?.id,
   ].filter(Boolean) as string[];
   return templates.some(
     (t) => subId === t || subId.startsWith(`${t}-`),

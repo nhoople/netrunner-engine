@@ -2383,7 +2383,18 @@ export const STEPS: Record<string, TimingStepDef> = {
             Boolean(ice.gainsSubroutinesBeforePrintedPerFaceupArchives) ||
             Boolean(ice.gainsSubroutinesPerAdvancement) ||
             Boolean(ice.gainsSubroutinesPerRezzedIceWithSubtype) ||
-            Boolean(ice.etrSubroutinesPerRezzedAsset);
+            Boolean(ice.etrSubroutinesPerRezzedAsset) ||
+            (ice.continuousGainedSubDecls ?? []).some((d) =>
+              (
+                [
+                  "hq_protect_subs",
+                  "archives_faceup_per",
+                  "per_advancement",
+                  "per_rezzed_subtype",
+                  "etr_per_rezzed_asset",
+                ] as const
+              ).includes(d.kind as never),
+            );
           if (needsSync) {
             const beforeLen = ice.subroutines?.length ?? 0;
             applyContinuousGainedSubs(s, iceId, continuous);

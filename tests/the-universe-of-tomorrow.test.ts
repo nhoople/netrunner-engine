@@ -18,7 +18,7 @@ describe("the-universe-of-tomorrow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("The Universe of Tomorrow v1.114.0 set-complete", () => {
@@ -60,7 +60,7 @@ describe("the-universe-of-tomorrow", () => {
       ).toBe(1);
       expect(getCardDef("worlds-plaza").maxHostedCards).toBe(3);
       expect(getCardDef("worlds-plaza").hostAssetsOnly).toBe(true);
-      expect(getCardDef("tour-guide").etrSubroutinesPerRezzedAsset).toBe(true);
+      expect(getCardDef("tour-guide").continuousGainedSubDecls?.some((d) => d.kind === "etr_per_rezzed_asset")).toBe(true);
       expect(getCardDef("expo-grid").onTurnBegin).toBeTruthy();
       expect(getCardDef("the-future-is-now").onScore).toBeTruthy();
     });

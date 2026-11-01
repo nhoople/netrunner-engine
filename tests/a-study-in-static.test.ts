@@ -18,7 +18,7 @@ describe("a-study-in-static", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("ASIS forbid_runner_runs_this_turn", () => {
@@ -60,7 +60,7 @@ describe("a-study-in-static", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("A Study in Static v1.91.0 set-complete", () => {
@@ -84,7 +84,7 @@ describe("a-study-in-static", () => {
       expect(getCardDef("net-police").recurringSpendFor).toEqual(["trace"]);
       expect(getCardDef("tyrant").canAdvance).toBe(true);
       expect(getCardDef("tyrant").canAdvanceOnlyWhenRezzed).toBe(true);
-      expect(getCardDef("tyrant").gainsSubroutinesPerAdvancement).toBeTruthy();
+      expect(getCardDef("tyrant").continuousGainedSubDecls?.some((d) => d.kind === "per_advancement")).toBe(true);
       const crescentus = getCardDef("crescentus");
       expect(crescentus.paidAbilities?.[0]?.requireFullyBrokenThisEncounter).toBe(
         true,

@@ -19,7 +19,7 @@ describe("humanitys-shadow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("HS primitives IR validate", () => {
@@ -62,7 +62,7 @@ describe("humanitys-shadow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Humanity's Shadow v1.92.0 set-complete", () => {
@@ -127,7 +127,7 @@ describe("humanitys-shadow", () => {
 
       expect(getCardDef("salvage").canAdvance).toBe(true);
       expect(getCardDef("salvage").canAdvanceOnlyWhenRezzed).toBe(true);
-      expect(getCardDef("salvage").gainsSubroutinesPerAdvancement).toBeTruthy();
+      expect(getCardDef("salvage").continuousGainedSubDecls?.some((d) => d.kind === "per_advancement")).toBe(true);
 
       expect(getCardDef("simone-diego").recurringSpendFor).toEqual([
         "advance_cards_this_server",
