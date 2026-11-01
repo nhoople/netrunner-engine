@@ -1,11 +1,14 @@
 /** The Universe of Tomorrow (uot) SanSan pack primitives. */
-import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect } from "./ir.js";
 import type { Primitive } from "./ir.js";
 import type { RuleCite, ServerId } from "../state/types.js";
-import { syncEtrPerRezzedAssetSubs } from "../state/powerCounters.js";
+import {
+  applyContinuousGainedSubs,
+  collectTourGuideEtrSubs,
+  firstDecl,
+} from "../state/continuousSubs.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
 
@@ -27,16 +30,12 @@ function countRezzedAssets(state: EffectCtx["state"]): number {
 }
 
 export function syncAllTourGuideSubs(state: EffectCtx["state"]): void {
-  const n = countRezzedAssets(state);
   for (const server of Object.values(state.servers)) {
     for (const id of server.ice) {
       const ice = state.cards[id];
-      if (!ice?.etrSubroutinesPerRezzedAsset) continue;
+      if (!ice || !firstDecl(ice, "etr_per_rezzed_asset")) continue;
       // Blanked Tour Guide keeps only printed base subs (CR 9.12.1d).
-      syncEtrPerRezzedAssetSubs(
-        ice,
-        abilitiesSuppressed(state, id) ? 0 : n,
-      );
+      applyContinuousGainedSubs(state, id, collectTourGuideEtrSubs(state, id));
     }
   }
 }

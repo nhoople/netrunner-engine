@@ -15,6 +15,7 @@ import {
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { maybeFireFirstEmptyGripTriggers } from "../src/state/damage.js";
 import { maybeFireHostedCreditsGte } from "../src/state/hostedCredits.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -57,7 +58,7 @@ describe("blanked damage / hosted-credits threshold (CR 9.12.1d)", () => {
       "sdp-2",
       "corp:score-area",
     );
-    sdp2.abilitiesBlanked = true;
+    suppressAbilities(s, sdp2.id);
     s.cards["sdp-2"] = sdp2;
     s.corp.scoreArea = ["sdp-2"];
     for (let i = 0; i < 5; i++) {
@@ -94,7 +95,7 @@ describe("blanked damage / hosted-credits threshold (CR 9.12.1d)", () => {
     s = createInitialState();
     s = structuredClone(s);
     const resp2 = instantiateCard("respirocytes", "resp-2", "runner:installed");
-    resp2.abilitiesBlanked = true;
+    suppressAbilities(s, resp2.id);
     s.cards["resp-2"] = resp2;
     s.runner.installed = ["resp-2"];
     s.runner.hand = [];
@@ -122,7 +123,7 @@ describe("blanked damage / hosted-credits threshold (CR 9.12.1d)", () => {
     expect(s.runner.credits).toBe(6);
 
     hustle.hostedCredits = 6;
-    hustle.abilitiesBlanked = true;
+    suppressAbilities(s, hustle.id);
     s.runner.credits = 0;
     expect(abilitiesSuppressed(s, "sh-1")).toBe(true);
     maybeFireHostedCreditsGte(s, "sh-1");

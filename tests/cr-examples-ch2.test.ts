@@ -13,6 +13,10 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { recomputeRunnerLink } from "../src/state/trashHooks.js";
+import {
+  addLingeringEffect,
+  LINGERING_KIND_GRANTED_SUBTYPES,
+} from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -39,9 +43,17 @@ describe("CR examples, chapter 2", () => {
     const lycan = instantiateCard("lycan", "lycan-1", "server:hq:ice");
     lycan.rezzed = true;
     lycan.advancementCounters = 1;
-    lycan.grantedSubtypesUntilEndOfTurn = ["sentry", "code gate", "barrier"];
     s.cards["lycan-1"] = lycan;
     s.servers.hq.ice = ["lycan-1"];
+    addLingeringEffect(s, {
+      createdBy: "lycan-1",
+      duration: { kind: "turn" },
+      kind: LINGERING_KIND_GRANTED_SUBTYPES,
+      payload: {
+        cardId: "lycan-1",
+        subtypes: ["sentry", "code gate", "barrier"],
+      },
+    });
     const subtypes = effectiveIceSubtypes(s, "lycan-1");
     expect(subtypes).toContain("sentry");
     expect(subtypes).toContain("code gate");

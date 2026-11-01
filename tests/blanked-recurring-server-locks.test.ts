@@ -20,6 +20,7 @@ import {
 } from "../src/state/cardDeclarations.js";
 import { offTheGridBlocksServer } from "../src/state/runLegality.js";
 import type { ServerId } from "../src/index.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -41,7 +42,7 @@ describe("blanked recurring / server locks (CR 9.12.1d)", () => {
     expect(cf.recurringCredits).toBeGreaterThan(0);
 
     cf.recurringCredits = 0;
-    cf.abilitiesBlanked = true;
+    suppressAbilities(s, cf.id);
     refillRecurringCredits(s, "runner");
     expect(cf.recurringCredits).toBe(0);
   });
@@ -60,7 +61,7 @@ describe("blanked recurring / server locks (CR 9.12.1d)", () => {
     s.servers.hq.root = ["sg-1"];
 
     expect(consideredAdvancement(s, ice)).toBeGreaterThan(1);
-    sat.abilitiesBlanked = true;
+    suppressAbilities(s, sat.id);
     expect(consideredAdvancement(s, ice)).toBe(1);
   });
 
@@ -78,7 +79,7 @@ describe("blanked recurring / server locks (CR 9.12.1d)", () => {
     };
 
     expect(offTheGridBlocksServer(s, "remote-1" as ServerId)).toBe(true);
-    otg.abilitiesBlanked = true;
+    suppressAbilities(s, otg.id);
     expect(offTheGridBlocksServer(s, "remote-1" as ServerId)).toBe(false);
   });
 
@@ -92,7 +93,7 @@ describe("blanked recurring / server locks (CR 9.12.1d)", () => {
 
     expect(gripRevealed(s)).toBe(true);
     // abilitiesBlanked on identity is enough for the suppress check.
-    id.abilitiesBlanked = true;
+    suppressAbilities(s, id.id);
     expect(gripRevealed(s)).toBe(false);
   });
 
@@ -105,7 +106,7 @@ describe("blanked recurring / server locks (CR 9.12.1d)", () => {
     s.servers.hq.root = ["k-1"];
 
     expect(runnerCannotTrashWhileRezzed(s, "k-1")).toBe(true);
-    k.abilitiesBlanked = true;
+    suppressAbilities(s, k.id);
     expect(runnerCannotTrashWhileRezzed(s, "k-1")).toBe(false);
   });
 
@@ -121,7 +122,7 @@ describe("blanked recurring / server locks (CR 9.12.1d)", () => {
     s.runner.installed = ["ds-1", "hm-1"];
 
     expect(virusCountersAvailable(s, virus)).toBe(4);
-    hive.abilitiesBlanked = true;
+    suppressAbilities(s, hive.id);
     expect(virusCountersAvailable(s, virus)).toBe(1);
   });
 });

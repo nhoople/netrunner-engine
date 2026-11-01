@@ -19,6 +19,7 @@ import {
 } from "../src/state/cardDeclarations.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { completeExpose } from "../src/state/expose.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -43,7 +44,7 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
 
     s.pendingChoice = null;
     s.turn.padTapFiredThisTurn = false;
-    pad.abilitiesBlanked = true;
+    suppressAbilities(s, pad.id);
     expect(abilitiesSuppressed(s, "pad-1")).toBe(true);
     onCorpAbilityGainedCredits(s);
     expect(s.pendingChoice).toBeNull();
@@ -62,7 +63,7 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
     expect(s.runner.credits).toBe(6);
 
     s.runner.credits = 5;
-    tt.abilitiesBlanked = true;
+    suppressAbilities(s, tt.id);
     onTrashAbility(s, "runner");
     expect(s.runner.credits).toBe(5);
   });
@@ -99,7 +100,7 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
     expect(s.trace?.runnerSpendsFirst).toBe(true);
 
     s.trace!.runnerSpendsFirst = false;
-    sweep.abilitiesBlanked = true;
+    suppressAbilities(s, sweep.id);
     prepareTraceSpendOrder(s);
     expect(s.trace?.runnerSpendsFirst).toBeFalsy();
   });
@@ -116,7 +117,7 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
     expect(s.pendingChoice?.sourceId).toBe("na-1");
 
     s.pendingChoice = null;
-    na.abilitiesBlanked = true;
+    suppressAbilities(s, na.id);
     onTagsRemoved(s);
     expect(s.pendingChoice).toBeNull();
   });
@@ -136,7 +137,7 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
     expect(s.pendingChoice?.sourceId).toBe("z-1");
 
     s.pendingChoice = null;
-    z.abilitiesBlanked = true;
+    suppressAbilities(s, z.id);
     completeExpose(s, "ice-1");
     expect(s.pendingChoice).toBeNull();
   });

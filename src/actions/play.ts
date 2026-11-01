@@ -2,6 +2,7 @@
  * Playing an operation or an event, including the Patchwork discount.
  */
 import { log } from "../state/createGame.js";
+import { currentMark } from "../state/msKeywords.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import {
   evalEffect,
@@ -1349,7 +1350,7 @@ export function playEvent(
     );
   }
   if (state.pendingStartRunOnMark) {
-    const mark = state.markServerId;
+    const mark = currentMark(state);
     const runSrc = state.pendingStartRunOnMark.sourceId;
     state.pendingStartRunOnMark = null;
     if (mark && state.servers[mark]) {

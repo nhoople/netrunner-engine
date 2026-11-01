@@ -16,6 +16,7 @@ import {
   purgeVirusCounters,
 } from "../src/state/trashHooks.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -36,7 +37,7 @@ describe("blanked Friday Chip / Progenitor (CR 9.12.1d)", () => {
     expect(chip.virusCounters ?? 0).toBeGreaterThan(0);
 
     chip.virusCounters = 0;
-    chip.abilitiesBlanked = true;
+    suppressAbilities(s, chip.id);
     expect(abilitiesSuppressed(s, "fc-1")).toBe(true);
     fireCotcOnCorpCardTrashed(s);
     expect(chip.virusCounters ?? 0).toBe(0);
@@ -58,7 +59,7 @@ describe("blanked Friday Chip / Progenitor (CR 9.12.1d)", () => {
     expect(virus.virusCounters).toBe(1);
 
     virus.virusCounters = 3;
-    prog.abilitiesBlanked = true;
+    suppressAbilities(s, prog.id);
     purgeVirusCounters(s, "pr-1");
     expect(virus.virusCounters).toBe(0);
   });

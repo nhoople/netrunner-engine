@@ -12,6 +12,7 @@ import {
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { noteRunnerClickLose } from "../src/state/clickHooks.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -43,7 +44,7 @@ describe("blanked currents / click / phase (CR 9.12.1d)", () => {
     expect(s.runner.credits).toBe(0);
 
     s.runner.credits = 8;
-    hein.abilitiesBlanked = true;
+    suppressAbilities(s, hein.id);
     expect(abilitiesSuppressed(s, "hg-1")).toBe(true);
     noteRunnerClickLose(s);
     expect(s.runner.credits).toBe(8);

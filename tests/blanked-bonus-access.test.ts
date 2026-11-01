@@ -14,6 +14,7 @@ import {
 import { beginBreachAccess } from "../src/state/access.js";
 import { breachCreditGain } from "../src/state/staticFlags.js";
 import type { GameState, ServerId } from "../src/index.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -58,7 +59,7 @@ describe("blanked bonus access / breach credits (CR 9.12.1d)", () => {
 
     const blanked = hqRunState();
     const hw2 = instantiateCard("hq-interface", "hqi", "runner:installed");
-    hw2.abilitiesBlanked = true;
+    suppressAbilities(blanked, hw2.id);
     blanked.cards["hqi"] = hw2;
     blanked.runner.installed = ["hqi"];
     beginBreachAccess(blanked);
@@ -82,7 +83,7 @@ describe("blanked bonus access / breach credits (CR 9.12.1d)", () => {
     blanked.turn.hqBreachesThisTurn = 0;
     const pass2 = instantiateCard("docklands-pass", "dp-1", "runner:installed");
     pass2.bonusAccessOnFirstHqBreachThisTurn = 1;
-    pass2.abilitiesBlanked = true;
+    suppressAbilities(blanked, pass2.id);
     blanked.cards["dp-1"] = pass2;
     blanked.runner.installed = ["dp-1"];
     beginBreachAccess(blanked);
@@ -109,7 +110,7 @@ describe("blanked bonus access / breach credits (CR 9.12.1d)", () => {
       "ml-1",
       "runner:installed",
     );
-    manuel2.abilitiesBlanked = true;
+    suppressAbilities(blanked, manuel2.id);
     blanked.cards["ml-1"] = manuel2;
     blanked.runner.installed = ["ml-1"];
     beginBreachAccess(blanked);
@@ -127,7 +128,7 @@ describe("blanked bonus access / breach credits (CR 9.12.1d)", () => {
 
     const blanked = hqRunState();
     const g2 = instantiateCard("the-gauntlet", "tg-1", "runner:installed");
-    g2.abilitiesBlanked = true;
+    suppressAbilities(blanked, g2.id);
     blanked.cards["tg-1"] = g2;
     blanked.runner.installed = ["tg-1"];
     blanked.run!.inFullyBrokenHqProtectingIceIds = ["ice-1", "ice-2"];
@@ -155,7 +156,7 @@ describe("blanked bonus access / breach credits (CR 9.12.1d)", () => {
       "server:hq:root",
     );
     mwanza2.rezzed = true;
-    mwanza2.abilitiesBlanked = true;
+    suppressAbilities(blanked, mwanza2.id);
     blanked.cards["mw-1"] = mwanza2;
     blanked.servers.hq.root = ["mw-1"];
     beginBreachAccess(blanked);
@@ -182,7 +183,7 @@ describe("blanked bonus access / breach credits (CR 9.12.1d)", () => {
       "server:hq:root",
     );
     mwCred2.rezzed = true;
-    mwCred2.abilitiesBlanked = true;
+    suppressAbilities(creditBlank, mwCred2.id);
     creditBlank.cards["mw-1"] = mwCred2;
     creditBlank.servers.hq.root = ["mw-1"];
     creditBlank.run!.accessedCardIds = ["c1", "c2"];

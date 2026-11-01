@@ -14,6 +14,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { discardPhase } from "../src/actions/phase.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -32,7 +33,7 @@ describe("blanked run-tax / advancement / Corp hand size (CR 9.12.1d)", () => {
     s.servers.hq.root = ["rv-1"];
 
     expect(additionalRunInitiateTax(s, "hq").clicks).toBe(1);
-    ruhr.abilitiesBlanked = true;
+    suppressAbilities(s, ruhr.id);
     expect(additionalRunInitiateTax(s, "hq").clicks).toBe(0);
   });
 
@@ -48,7 +49,7 @@ describe("blanked run-tax / advancement / Corp hand size (CR 9.12.1d)", () => {
     const tax = additionalRunInitiateTax(s, "hq");
     expect(tax.credits).toBe(2);
     expect(tax.clicks).toBe(2);
-    cold.abilitiesBlanked = true;
+    suppressAbilities(s, cold.id);
     expect(additionalRunInitiateTax(s, "hq")).toEqual({ credits: 0, clicks: 0 });
   });
 
@@ -77,7 +78,7 @@ describe("blanked run-tax / advancement / Corp hand size (CR 9.12.1d)", () => {
 
     const printed = agenda.advancementRequirement ?? 0;
     expect(effectiveAdvancementRequirement(s, agenda)).toBe(printed - 1);
-    sansan.abilitiesBlanked = true;
+    suppressAbilities(s, sansan.id);
     expect(effectiveAdvancementRequirement(s, agenda)).toBe(printed);
   });
 
@@ -102,7 +103,7 @@ describe("blanked run-tax / advancement / Corp hand size (CR 9.12.1d)", () => {
 
     const printed = agenda.advancementRequirement ?? 0;
     expect(effectiveAdvancementRequirement(s, agenda)).toBe(printed + 1);
-    source.abilitiesBlanked = true;
+    suppressAbilities(s, source.id);
     expect(effectiveAdvancementRequirement(s, agenda)).toBe(printed);
   });
 
@@ -121,7 +122,7 @@ describe("blanked run-tax / advancement / Corp hand size (CR 9.12.1d)", () => {
     let s2 = createInitialState();
     s2 = structuredClone(s2);
     const lewi2 = instantiateCard("lewi-guilherme", "lg-2", "runner:installed");
-    lewi2.abilitiesBlanked = true;
+    suppressAbilities(s2, lewi2.id);
     s2.cards["lg-2"] = lewi2;
     s2.runner.installed = ["lg-2"];
     s2.corp.maxHandSize = 5;

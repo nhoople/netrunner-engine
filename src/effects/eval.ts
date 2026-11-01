@@ -21,6 +21,7 @@ import {
 import {
   chargeableInstalledIds,
   chargeCard,
+  currentMark,
   identifyMark,
   resolveSabotageAmount,
   trashCorpCardFacedownToArchives,
@@ -1473,11 +1474,11 @@ case "run_unsuccessful":
     case "virus_counters_gte":
       return (source.virusCounters ?? 0) >= cond.amount;
     case "has_mark":
-      return state.markServerId !== null;
+      return currentMark(state) !== null;
     case "attacking_mark":
       return (
-        state.markServerId !== null &&
-        state.run?.attackedServerId === state.markServerId
+        currentMark(state) !== null &&
+        state.run?.attackedServerId === currentMark(state)
       );
     case "source_protects_attacked_server": {
       if (!state.run) return false;
@@ -3841,14 +3842,7 @@ logLine: `${source.title} — choose ice to gain ${subtypes.join(", ")} until en
         log(state, `Grant subtypes — unknown ice ${action.cardId}.`);
         return { ok: true };
       }
-      const subtypes = [...(action.subtypes ?? [])];
-      const granted = ice.grantedSubtypesUntilEndOfTurn ?? [];
-      for (const s of subtypes) {
-        if (!granted.includes(s)) granted.push(s);
-      }
-      // Dual-write: effective subtypes still read the card field; the registry
-      // is the CR 9.10.1 lingering that 10.3.1b expires.
-      ice.grantedSubtypesUntilEndOfTurn = granted;
+      const subtypes = [...new Set(action.subtypes ?? [])];
       addLingeringEffect(state, {
         createdBy: sourceId,
         duration: { kind: "turn" },
@@ -15882,7 +15876,8 @@ logLine: `${source.title} — choose another installed ice to host on.`,
       return { ok: true };
     }
     case "start_run_on_mark": {
-      if (state.markServerId === null) {
+      const mark = currentMark(state);
+      if (mark === null) {
         log(
           state,
           `Start run on mark — no mark designated (CR ${CR.mark.number}).`,
@@ -15892,7 +15887,7 @@ logLine: `${source.title} — choose another installed ice to host on.`,
       state.pendingStartRunOnMark = { sourceId };
       log(
         state,
-        `Pending run on mark ${state.markServerId} (from ${source.title}; CR ${CR.mark.number}).`,
+        `Pending run on mark ${mark} (from ${source.title}; CR ${CR.mark.number}).`,
       );
       return { ok: true };
     }

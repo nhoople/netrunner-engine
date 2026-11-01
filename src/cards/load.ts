@@ -2779,7 +2779,6 @@ export function instantiateCard(
       ? { ...def.addSelfToCorpScoreOnAgendaAccess }
       : undefined,
     hostAssetsOnly: def.hostAssetsOnly,
-    etrSubroutinesPerRezzedAsset: def.etrSubroutinesPerRezzedAsset,
     basicRemoveTagAdditionalCostCreditsWhileUnflipped: def.basicRemoveTagAdditionalCostCreditsWhileUnflipped,
     basicTrashResourceCreditReductionWhileFlipped: def.basicTrashResourceCreditReductionWhileFlipped,
     subroutineTraceBaseStrengthBonus: def.subroutineTraceBaseStrengthBonus,
@@ -2871,12 +2870,6 @@ export function instantiateCard(
     autoPreventNetOrMeatDamagePayOrTrash: def.autoPreventNetOrMeatDamagePayOrTrash,
     placePowerOnHqOrRdRunEndIfNoAgendaStolen:
       def.placePowerOnHqOrRdRunEndIfNoAgendaStolen,
-    gainsSubroutinesOnEncounterEqualGripSize: def.gainsSubroutinesOnEncounterEqualGripSize
-      ? {
-          ...def.gainsSubroutinesOnEncounterEqualGripSize,
-          effect: structuredClone(def.gainsSubroutinesOnEncounterEqualGripSize.effect),
-        }
-      : undefined,
     firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess:
       def.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess,
     onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced:
@@ -3024,18 +3017,6 @@ export function instantiateCard(
       def.inversificatorSwapIceAfterFullyBrokeOncePerTurn,
     trashSelfAndMeatDamageWhenCreditsZero:
       def.trashSelfAndMeatDamageWhenCreditsZero,
-    gainsSubroutinesPerRezzedIceWithSubtype:
-      def.gainsSubroutinesPerRezzedIceWithSubtype
-        ? {
-            subtype: def.gainsSubroutinesPerRezzedIceWithSubtype.subtype,
-            subroutine: {
-              ...def.gainsSubroutinesPerRezzedIceWithSubtype.subroutine,
-              effect: structuredClone(
-                def.gainsSubroutinesPerRezzedIceWithSubtype.subroutine.effect,
-              ),
-            },
-          }
-        : undefined,
     bioroidWorkCrewRequireAfterOperationPaidWindow:
       def.bioroidWorkCrewRequireAfterOperationPaidWindow,
     mayTakeTagToBypassOnEncounter: def.mayTakeTagToBypassOnEncounter,
@@ -3195,16 +3176,6 @@ export function instantiateCard(
     personalWorkshop: def.personalWorkshop,
     onAccessRequiresInstalled: def.onAccessRequiresInstalled,
     canAdvanceOnlyWhenRezzed: def.canAdvanceOnlyWhenRezzed,
-    gainsSubroutinesPerAdvancement: def.gainsSubroutinesPerAdvancement
-      ? {
-          subroutine: {
-            ...def.gainsSubroutinesPerAdvancement.subroutine,
-            effect: structuredClone(
-              def.gainsSubroutinesPerAdvancement.subroutine.effect,
-            ),
-          },
-        }
-      : undefined,
     mayRezWhenCardWouldBeExposed: def.mayRezWhenCardWouldBeExposed,
     rfgWhenPowerEmpty: def.rfgWhenPowerEmpty,
     badPublicityCountersOnRez: def.badPublicityCountersOnRez,
@@ -4218,27 +4189,6 @@ export function instantiateCard(
       def.onFirstInstallInThisServerRootThisTurn,
     );
   }
-  if (def.gainsSubroutinesWhileProtectingHq) {
-    card.gainsSubroutinesWhileProtectingHq =
-      def.gainsSubroutinesWhileProtectingHq.map((s) => ({
-        id: s.id,
-        text: s.text,
-        effect: structuredClone(s.effect),
-      }));
-  }
-  if (def.gainsSubroutinesBeforePrintedPerFaceupArchives) {
-    const g = def.gainsSubroutinesBeforePrintedPerFaceupArchives;
-    card.gainsSubroutinesBeforePrintedPerFaceupArchives = {
-      subtype: g.subtype,
-      type: g.type as import("../state/types.js").CardType,
-      per: g.per,
-      subroutine: {
-        id: g.subroutine.id,
-        text: g.subroutine.text,
-        effect: structuredClone(g.subroutine.effect),
-      },
-    };
-  }
   if (def.additionalTagsDuringOutermostIceEncounter !== undefined) {
     card.additionalTagsDuringOutermostIceEncounter =
       def.additionalTagsDuringOutermostIceEncounter;
@@ -4508,47 +4458,6 @@ export function instantiateCard(
       },
     };
     card.paidAbilities = [...(card.paidAbilities ?? []), bryanAb];
-  }
-  // W1: mirror continuousGainedSubDecls onto legacy instance fields so graph
-  // sync paths (Tour Guide / Brainstorm / Winchester logs) keep working.
-  for (const decl of card.continuousGainedSubDecls ?? []) {
-    if (decl.kind === "hq_protect_subs" && !card.gainsSubroutinesWhileProtectingHq) {
-      card.gainsSubroutinesWhileProtectingHq = structuredClone(decl.subroutines);
-    } else if (
-      decl.kind === "archives_faceup_per" &&
-      !card.gainsSubroutinesBeforePrintedPerFaceupArchives
-    ) {
-      card.gainsSubroutinesBeforePrintedPerFaceupArchives = {
-        type: decl.type as import("../state/types.js").CardType,
-        subtype: decl.subtype,
-        per: decl.per,
-        subroutine: structuredClone(decl.subroutine),
-      };
-    } else if (
-      decl.kind === "per_advancement" &&
-      !card.gainsSubroutinesPerAdvancement
-    ) {
-      card.gainsSubroutinesPerAdvancement = {
-        subroutine: structuredClone(decl.subroutine),
-      };
-    } else if (
-      decl.kind === "per_rezzed_subtype" &&
-      !card.gainsSubroutinesPerRezzedIceWithSubtype
-    ) {
-      card.gainsSubroutinesPerRezzedIceWithSubtype = {
-        subtype: decl.subtype,
-        subroutine: structuredClone(decl.subroutine),
-      };
-    } else if (
-      decl.kind === "grip_size_on_encounter" &&
-      !card.gainsSubroutinesOnEncounterEqualGripSize
-    ) {
-      card.gainsSubroutinesOnEncounterEqualGripSize = structuredClone(
-        decl.subroutine,
-      );
-    } else if (decl.kind === "etr_per_rezzed_asset") {
-      card.etrSubroutinesPerRezzedAsset = true;
-    }
   }
   return card;
 }

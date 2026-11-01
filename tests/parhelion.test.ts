@@ -36,9 +36,8 @@ import {
 import {
   moveRunnerCardToHeap,
 } from "../src/state/trashHooks.js";
-import {
-  addBreakerStrengthBoostThisRun,
-} from "../src/state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisRun } from "../src/state/lingeringEffects.js";
+import { clearMark, placeMark } from "../src/state/msKeywords.js";
 
 describe("parhelion", () => {
   describe("parhelion-adv-req-reduction", () => {
@@ -1487,7 +1486,7 @@ describe("parhelion", () => {
       wake.powerCounters = 2;
       s.cards["wake-1"] = wake;
       s.runner.installed = ["wake-1"];
-      s.markServerId = null;
+      clearMark(s);
       s.servers.rd.ice = [];
       // Put a few cards in R&D
       for (let i = 0; i < 4; i++) {
@@ -2568,7 +2567,7 @@ describe("parhelion", () => {
       const ib = instantiateCard("info-bounty", "ib-1", "runner:installed");
       s.cards["ib-1"] = ib;
       s.runner.installed = ["ib-1"];
-      s.markServerId = "archives";
+      placeMark(s, "archives", s.corp.identityId);
       s.servers.archives.ice = [];
       s.corp.discardPile = [];
       s.runner.credits = 5;
@@ -3384,7 +3383,7 @@ describe("parhelion", () => {
       s.cards["tv-1"] = tv;
       s.runner.installed = ["tv-1"];
       s.runner.credits = 10;
-      s.markServerId = "rd";
+      placeMark(s, "rd", s.corp.identityId);
       const ice = instantiateCard("palisade", "ice-1", "server:hq:ice");
       ice.rezzed = true;
       ice.strength = 1;
@@ -3411,7 +3410,7 @@ describe("parhelion", () => {
       ).toBe(false);
 
       // Retarget mark to HQ and re-check via a fresh encounter-shaped state
-      s.markServerId = "hq";
+      placeMark(s, "hq", s.corp.identityId);
       const legal2 = queryLegality(s).legal;
       expect(
         legal2.some(

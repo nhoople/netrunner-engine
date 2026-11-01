@@ -13,6 +13,7 @@ import {
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { fireOnBypassTriggers } from "../src/state/iceRezHooks.js";
 import { CR } from "../src/timing/labels.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -91,7 +92,7 @@ describe("Jeitinho heap install on bypass (CR 9.6.2)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const jei = instantiateCard("jeitinho", "jei-1", "runner:heap");
-    jei.abilitiesBlanked = true;
+    suppressAbilities(s, jei.id);
     s.cards["jei-1"] = jei;
     s.runner.discardPile = ["jei-1"];
     s.runner.clicks = 2;

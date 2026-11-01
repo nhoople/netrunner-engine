@@ -1,4 +1,5 @@
 import type { Action, GameState, Server } from "../state/types.js";
+import { currentMark } from "../state/msKeywords.js";
 import {
   corpMayRez,
   iceShareServer,
@@ -354,7 +355,7 @@ export function addPaidWindowCandidates(
           }
         }
         if (ab.requireAttackingMark) {
-          const mark = state.markServerId;
+          const mark = currentMark(state);
           if (!mark || state.run?.attackedServerId !== mark) continue;
         }
         if (ab.requireBrokenSubThisEncounter) {
@@ -820,7 +821,7 @@ export function addPaidWindowCandidates(
         }
         if (
           br.breaker.breakRequiresAttackingMark &&
-          state.run?.attackedServerId !== state.markServerId
+          state.run?.attackedServerId !== currentMark(state)
         ) {
           continue;
         }

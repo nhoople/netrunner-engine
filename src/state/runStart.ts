@@ -2,6 +2,7 @@
 
 import type { Effect } from "../effects/ir.js";
 import { abilitiesSuppressed } from "./abilities.js";
+import { currentMark } from "./msKeywords.js";
 import { agendaPointsFor } from "./scoring.js";
 import { isRunTargetAllowed } from "./runLegality.js";
 import type {
@@ -37,12 +38,11 @@ export function serversMatchingSpec(
     case "archives":
       matched = all.filter((id) => id === "archives");
       break;
-    case "mark":
-      matched =
-        state.markServerId !== null && state.servers[state.markServerId]
-          ? [state.markServerId]
-          : [];
+    case "mark": {
+      const mark = currentMark(state);
+      matched = mark !== null && state.servers[mark] ? [mark] : [];
       break;
+    }
     case "remote":
       matched = all.filter((id) => state.servers[id]?.kind === "remote");
       break;

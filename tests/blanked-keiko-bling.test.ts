@@ -14,6 +14,7 @@ import {
 import { hostedPlayableAsGrip } from "../src/actions/installRunner.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "../src/state/companionHooks.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -35,7 +36,7 @@ describe("blanked Keiko / Bling / credit triggers (CR 9.12.1d)", () => {
     bling.hostedCardIds = ["sg-1"];
 
     expect(hostedPlayableAsGrip(s, "sg-1")).toBe("bling-1");
-    bling.abilitiesBlanked = true;
+    suppressAbilities(s, bling.id);
     expect(hostedPlayableAsGrip(s, "sg-1")).toBeNull();
   });
 
@@ -53,7 +54,7 @@ describe("blanked Keiko / Bling / credit triggers (CR 9.12.1d)", () => {
     const blanked = structuredClone(createInitialState());
     blanked.runner.credits = 0;
     const keiko2 = instantiateCard("keiko", "keiko-1", "runner:installed");
-    keiko2.abilitiesBlanked = true;
+    suppressAbilities(blanked, keiko2.id);
     blanked.cards["keiko-1"] = keiko2;
     blanked.runner.installed = ["keiko-1"];
     maybeFireCompanionInstallOrSpendCredits(blanked);
@@ -73,7 +74,7 @@ describe("blanked Keiko / Bling / credit triggers (CR 9.12.1d)", () => {
         (s.cards[id]?.gainCreditsOnFirstOwnInstalledTrashEachTurn ?? 0) > 0,
     );
     expect(active).toBe(true);
-    w.abilitiesBlanked = true;
+    suppressAbilities(s, w.id);
     expect(
       s.runner.installed.some(
         (id) =>
@@ -99,7 +100,7 @@ describe("blanked Keiko / Bling / credit triggers (CR 9.12.1d)", () => {
         (c.gainCreditsOnSpendAgendaCounter ?? 0) > 0,
     );
     expect(active).toBe(true);
-    my.abilitiesBlanked = true;
+    suppressAbilities(s, my.id);
     expect(
       Object.values(s.cards).some(
         (c) =>
@@ -124,7 +125,7 @@ describe("blanked Keiko / Bling / credit triggers (CR 9.12.1d)", () => {
         (s.cards[id]?.gainCreditsOnFirstFullyBreakEachTurn ?? 0) > 0,
     );
     expect(active).toBe(true);
-    cy.abilitiesBlanked = true;
+    suppressAbilities(s, cy.id);
     expect(
       s.runner.installed.some(
         (id) =>
@@ -147,7 +148,7 @@ describe("blanked Keiko / Bling / credit triggers (CR 9.12.1d)", () => {
         (s.cards[id]?.gainCreditsOnFirstDerezIceEachTurn ?? 0) > 0,
     );
     expect(active).toBe(true);
-    k.abilitiesBlanked = true;
+    suppressAbilities(s, k.id);
     expect(
       s.runner.installed.some(
         (id) =>
@@ -166,7 +167,7 @@ describe("blanked Keiko / Bling / credit triggers (CR 9.12.1d)", () => {
 
     expect(rime.rezAsNonIceDuringRunsOnServer).toBe(true);
     expect(abilitiesSuppressed(s, "rime-1")).toBe(false);
-    rime.abilitiesBlanked = true;
+    suppressAbilities(s, rime.id);
     expect(abilitiesSuppressed(s, "rime-1")).toBe(true);
   });
 });

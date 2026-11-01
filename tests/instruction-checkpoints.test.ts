@@ -58,17 +58,9 @@ import { drawCards } from "../src/effects/draw.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import { mayLookAtHiddenZone } from "../src/state/hiddenSearch.js";
-import {
-  addBreakerStrengthBoostThisRun,
-  addBreakerStrengthBoostThisTurn,
-  addIceStrengthBoostThisTurn,
-  addLingeringEffect,
-  LINGERING_KIND_BREAKER_STRENGTH,
-  LINGERING_KIND_BREAKER_STRENGTH_RUN,
-  LINGERING_KIND_ICE_STRENGTH,
-  LINGERING_KIND_RUNNER_MU,
-} from "../src/state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisRun, addBreakerStrengthBoostThisTurn, addIceStrengthBoostThisTurn, addLingeringEffect, LINGERING_KIND_BREAKER_STRENGTH, LINGERING_KIND_BREAKER_STRENGTH_RUN, LINGERING_KIND_GRANTED_SUBTYPES, LINGERING_KIND_ICE_STRENGTH, LINGERING_KIND_RUNNER_MU } from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/state/types.js";
+import { currentMark, placeMark } from "../src/state/msKeywords.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -2272,7 +2264,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
   it("removes turn-duration effects at the checkpoint after the turn ends (CR 9.10.1 / 10.3.1b)", () => {
     let s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
-    ice.grantedSubtypesUntilEndOfTurn = ["sentry"];
+    addLingeringEffect(s, {
+      createdBy: "ice-1",
+      duration: { kind: "turn" },
+      kind: LINGERING_KIND_GRANTED_SUBTYPES,
+      payload: { cardId: "ice-1", subtypes: ["sentry"] },
+    });
     s.cards["ice-1"] = ice;
     s.servers.hq.ice = ["ice-1"];
     addBreakerStrengthBoostThisTurn(s, {
@@ -2291,7 +2288,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       kind: LINGERING_KIND_RUNNER_MU,
       payload: { delta: -2 },
     });
-    s.markServerId = "hq";
+    placeMark(s, "hq", s.corp.identityId);
     s.timingKey = "runner.turnEnds";
     autoWalk(s);
     expect(s.timingKey).toBe("runner.turnComplete");
@@ -2300,8 +2297,14 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
         (effect) => effect.kind === LINGERING_KIND_BREAKER_STRENGTH,
       ),
     ).toBe(true);
-    expect(s.markServerId).toBe("hq");
-    expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toEqual(["sentry"]);
+    expect(currentMark(s)).toBe("hq");
+    expect(
+      s.lingeringEffects.some(
+        (effect) =>
+          effect.kind === LINGERING_KIND_GRANTED_SUBTYPES &&
+          (effect.payload as { subtypes?: string[] }).subtypes?.[0] === "sentry",
+      ),
+    ).toBe(true);
     s = must(s, { type: "pass_window" });
     expect(
       s.lingeringEffects.some((effect) =>
@@ -2312,8 +2315,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
         ].includes(effect.kind),
       ),
     ).toBe(false);
-    expect(s.markServerId).toBeNull();
-    expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toBeUndefined();
+    expect(currentMark(s)).toBeNull();
+    expect(
+      s.lingeringEffects.some(
+        (effect) => effect.kind === LINGERING_KIND_GRANTED_SUBTYPES,
+      ),
+    ).toBe(false);
     expect(s.log.join("\n")).toContain(
       `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); 5 removed.`,
     );

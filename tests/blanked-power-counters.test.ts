@@ -19,6 +19,7 @@ import {
   maybeFirePowerCountersGte,
   syncEtrPerPowerCounterSubs,
 } from "../src/state/powerCounters.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -53,7 +54,7 @@ describe("blanked power counters (CR 9.12.1d)", () => {
       "runner:installed",
     );
     et2.powerCounters = 4;
-    et2.abilitiesBlanked = true;
+    suppressAbilities(s, et2.id);
     s.cards["et-2"] = et2;
     s.runner.installed = ["et-2"];
     s.runner.credits = 0;
@@ -85,7 +86,7 @@ describe("blanked power counters (CR 9.12.1d)", () => {
     expect(alix.powerCounters).toBe(1);
 
     alix.powerCounters = 0;
-    alix.abilitiesBlanked = true;
+    suppressAbilities(s, alix.id);
     expect(abilitiesSuppressed(s, "alix-1")).toBe(true);
     firePowerCounterOnAnyCorpInstall(s, "pad-1");
     expect(alix.powerCounters).toBe(0);
@@ -112,7 +113,7 @@ describe("blanked power counters (CR 9.12.1d)", () => {
     expect(wp.powerCounters).toBe(1);
 
     wp.powerCounters = 0;
-    wp.abilitiesBlanked = true;
+    suppressAbilities(s, wp.id);
     expect(abilitiesSuppressed(s, "wp-1")).toBe(true);
     firePowerCounterOnAnyCardRez(s, "iw-1");
     expect(wp.powerCounters).toBe(0);
@@ -134,7 +135,7 @@ describe("blanked power counters (CR 9.12.1d)", () => {
     const withPower = (env.subroutines ?? []).length;
     expect(withPower).toBeGreaterThan((env.baseSubroutines ?? []).length);
 
-    env.abilitiesBlanked = true;
+    suppressAbilities(s, env.id);
     expect(abilitiesSuppressed(s, "env-1")).toBe(true);
     syncEtrPerPowerCounterSubs(env, s);
     expect((env.subroutines ?? []).length).toBe((env.baseSubroutines ?? []).length);
@@ -161,7 +162,7 @@ describe("blanked power counters (CR 9.12.1d)", () => {
     expect((cyber.hostedCredits ?? 0) > 0).toBe(true);
 
     const before = cyber.hostedCredits ?? 0;
-    cyber.abilitiesBlanked = true;
+    suppressAbilities(s, cyber.id);
     expect(abilitiesSuppressed(s, "cs-1")).toBe(true);
     fireHostedCreditsOnAnyIceRez(s, "iw-2");
     expect(cyber.hostedCredits).toBe(before);

@@ -14,6 +14,7 @@ import {
   instantiateCard,
   runnerTrashCostForCard,
 } from "../src/index.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -34,7 +35,7 @@ describe("blanked continuous rez/trash costs (CR 9.12.1d)", () => {
     s.runner.installed = ["xan-1"];
 
     expect(continuousIceRezCostIncrease(s, "wall-1")).toBe(1);
-    xanadu.abilitiesBlanked = true;
+    suppressAbilities(s, xanadu.id);
     expect(continuousIceRezCostIncrease(s, "wall-1")).toBe(0);
   });
 
@@ -49,7 +50,7 @@ describe("blanked continuous rez/trash costs (CR 9.12.1d)", () => {
     s.runner.installed = ["cc-1"];
 
     expect(continuousIceRezCostIncrease(s, "en-1")).toBeGreaterThan(0);
-    cradle.abilitiesBlanked = true;
+    suppressAbilities(s, cradle.id);
     expect(continuousIceRezCostIncrease(s, "en-1")).toBe(0);
   });
 
@@ -71,7 +72,7 @@ describe("blanked continuous rez/trash costs (CR 9.12.1d)", () => {
 
     const before = continuousIceRezCostReduction(s, "wall-1");
     expect(before).toBeGreaterThan(0);
-    vovo.abilitiesBlanked = true;
+    suppressAbilities(s, vovo.id);
     expect(continuousIceRezCostReduction(s, "wall-1")).toBe(0);
   });
 
@@ -84,7 +85,7 @@ describe("blanked continuous rez/trash costs (CR 9.12.1d)", () => {
     s.corp.scoreArea = ["bt-1"];
 
     expect(iceRezCostReductionFromScoredAgendaCounters(s)).toBeGreaterThan(0);
-    bt.abilitiesBlanked = true;
+    suppressAbilities(s, bt.id);
     expect(iceRezCostReductionFromScoredAgendaCounters(s)).toBe(0);
   });
 
@@ -106,7 +107,7 @@ describe("blanked continuous rez/trash costs (CR 9.12.1d)", () => {
 
     const printed = pad.trashCost ?? 0;
     expect(runnerTrashCostForCard(s, "pad-1")).toBeLessThan(printed);
-    demo.abilitiesBlanked = true;
+    suppressAbilities(s, demo.id);
     expect(runnerTrashCostForCard(s, "pad-1")).toBe(printed);
   });
 });

@@ -47,7 +47,7 @@ export function maybeFirePowerCountersGte(
  * `baseSubroutines` + N synthetic ETR leaves.
  *
  * When `state` is provided, blanked ice keeps only printed base subs
- * (CR 9.12.1d). Callers without state may set `abilitiesBlanked` directly.
+ * (CR 9.12.1d).
  */
 export function syncEtrPerPowerCounterSubs(
   card: CardInstance,
@@ -59,9 +59,7 @@ export function syncEtrPerPowerCounterSubs(
       ? structuredClone(card.subroutines)
       : [];
   }
-  const blanked = state
-    ? abilitiesSuppressed(state, card.id)
-    : Boolean(card.abilitiesBlanked);
+  const blanked = state ? abilitiesSuppressed(state, card.id) : false;
   const n = blanked ? 0 : Math.max(0, card.powerCounters ?? 0);
   const etrEffect: Effect = {
     op: "do",
@@ -69,32 +67,6 @@ export function syncEtrPerPowerCounterSubs(
   };
   const etrSubs = Array.from({ length: n }, (_, i) => ({
     id: `${card.defId}-etr-power-${i}`,
-    text: "End the run.",
-    effect: structuredClone(etrEffect),
-  }));
-  card.subroutines = [...etrSubs, ...structuredClone(card.baseSubroutines)];
-}
-
-/**
- * Tour Guide-class: ice gains an ETR subroutine for each rezzed asset.
- */
-export function syncEtrPerRezzedAssetSubs(
-  card: CardInstance,
-  rezzedAssetCount: number,
-): void {
-  if (!card.etrSubroutinesPerRezzedAsset) return;
-  if (!card.baseSubroutines) {
-    card.baseSubroutines = card.subroutines
-      ? structuredClone(card.subroutines)
-      : [];
-  }
-  const n = Math.max(0, rezzedAssetCount);
-  const etrEffect: Effect = {
-    op: "do",
-    action: { kind: "end_the_run" },
-  };
-  const etrSubs = Array.from({ length: n }, (_, i) => ({
-    id: `${card.defId}-etr-asset-${i}`,
     text: "End the run.",
     effect: structuredClone(etrEffect),
   }));
@@ -154,52 +126,22 @@ export function syncNextSubtypeEtrSubs(
 export function syncGainsSubroutinesPerAdvancement(
   card: CardInstance,
 ): void {
-  const spec = card.gainsSubroutinesPerAdvancement;
-  if (!spec) return;
+  const spec = card.continuousGainedSubDecls?.find(
+    (d) => d.kind === "per_advancement",
+  );
+  if (!spec?.subroutine) return;
   if (!card.baseSubroutines) {
     card.baseSubroutines = card.subroutines
       ? structuredClone(card.subroutines)
       : [];
   }
   const n = Math.max(0, card.advancementCounters ?? 0);
+  const subroutine = spec.subroutine;
   const extras = Array.from({ length: n }, (_, i) => ({
-    ...structuredClone(spec.subroutine),
-    id: `${spec.subroutine.id}-${i}`,
+    ...structuredClone(subroutine),
+    id: `${subroutine.id}-${i}`,
   }));
   card.subroutines = [...structuredClone(card.baseSubroutines), ...extras];
-}
-
-/**
- * Blockchain-class: gains floor(faceup matching Archives / per) copies of a
- * subroutine before printed ones. Call at encounter begin (and when Archives
- * faceup count changes while encountered, if wired).
- */
-export function syncGainsSubroutinesBeforePrintedPerFaceupArchives(
-  state: GameState,
-  card: CardInstance,
-): void {
-  const spec = card.gainsSubroutinesBeforePrintedPerFaceupArchives;
-  if (!spec) return;
-  if (!card.baseSubroutines) {
-    card.baseSubroutines = card.subroutines
-      ? structuredClone(card.subroutines)
-      : [];
-  }
-  let faceup = 0;
-  for (const id of state.corp.discardPile) {
-    const c = state.cards[id];
-    if (!c?.faceup) continue;
-    if (c.type !== spec.type) continue;
-    if (!(c.subtypes ?? []).includes(spec.subtype)) continue;
-    faceup += 1;
-  }
-  const per = Math.max(1, spec.per);
-  const n = Math.floor(faceup / per);
-  const extras = Array.from({ length: n }, (_, i) => ({
-    ...structuredClone(spec.subroutine),
-    id: `${spec.subroutine.id}-${i}`,
-  }));
-  card.subroutines = [...extras, ...structuredClone(card.baseSubroutines)];
 }
 
 /**

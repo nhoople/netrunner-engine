@@ -14,6 +14,7 @@ import {
 import { runnerInstallCost } from "../src/actions/installRunner.js";
 import { recomputeRunnerLink } from "../src/state/trashHooks.js";
 import { installCorp } from "../src/actions/installCorp.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -32,7 +33,7 @@ describe("blanked link and Corp install costs (CR 9.12.1d)", () => {
     recomputeRunnerLink(s);
     expect(s.runner.link).toBeGreaterThan(0);
     const withChip = s.runner.link;
-    chip.abilitiesBlanked = true;
+    suppressAbilities(s, chip.id);
     recomputeRunnerLink(s);
     expect(s.runner.link).toBe(withChip - 1);
   });
@@ -63,7 +64,7 @@ describe("blanked link and Corp install costs (CR 9.12.1d)", () => {
     let s2 = createInitialState();
     s2 = structuredClone(s2);
     const ne2 = instantiateCard("network-exchange", "ne-2", "runner:installed");
-    ne2.abilitiesBlanked = true;
+    suppressAbilities(s2, ne2.id);
     s2.cards["ne-2"] = ne2;
     s2.runner.installed = ["ne-2"];
     const wall2 = instantiateCard("ice-wall", "wall-2", "server:hq:ice");
@@ -100,7 +101,7 @@ describe("blanked link and Corp install costs (CR 9.12.1d)", () => {
     s2 = structuredClone(s2);
     const diwan2 = instantiateCard("diwan", "di-2", "runner:installed");
     diwan2.chosenServerId = "hq";
-    diwan2.abilitiesBlanked = true;
+    suppressAbilities(s2, diwan2.id);
     s2.cards["di-2"] = diwan2;
     s2.runner.installed = ["di-2"];
     const wall2 = instantiateCard("ice-wall", "wall-2", "corp:hq");
@@ -131,7 +132,7 @@ describe("blanked link and Corp install costs (CR 9.12.1d)", () => {
     let s2 = createInitialState();
     s2 = structuredClone(s2);
     const eden2 = instantiateCard("eden-fragment", "ef-2", "corp:score");
-    eden2.abilitiesBlanked = true;
+    suppressAbilities(s2, eden2.id);
     s2.cards["ef-2"] = eden2;
     s2.corp.scoreArea = ["ef-2"];
     const wall2 = instantiateCard("ice-wall", "wall-2", "corp:hq");
@@ -154,7 +155,7 @@ describe("blanked link and Corp install costs (CR 9.12.1d)", () => {
     s.cards["cor-1"] = prog;
     const printed = prog.installCost;
     expect(runnerInstallCost(s, prog)).toBeLessThan(printed);
-    dzmz.abilitiesBlanked = true;
+    suppressAbilities(s, dzmz.id);
     expect(runnerInstallCost(s, prog)).toBe(printed);
   });
 });

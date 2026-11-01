@@ -14,6 +14,7 @@ import {
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { canPayTakeTagsNestedCost } from "../src/effects/tagPrimitives.js";
 import { runnerPsiSpendable } from "../src/state/psi.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -41,7 +42,7 @@ describe("blanked psi / tag / starlight helpers (CR 9.12.1d)", () => {
     };
 
     expect(runnerPsiSpendable(s)).toBe(3);
-    ghost.abilitiesBlanked = true;
+    suppressAbilities(s, ghost.id);
     expect(runnerPsiSpendable(s)).toBe(0);
   });
 
@@ -67,7 +68,7 @@ describe("blanked psi / tag / starlight helpers (CR 9.12.1d)", () => {
 
     // Prevent makes a nested 1-tag cost unpayable while a run is active.
     expect(canPayTakeTagsNestedCost(s, 1)).toBe(false);
-    id.abilitiesBlanked = true;
+    suppressAbilities(s, id.id);
     expect(canPayTakeTagsNestedCost(s, 1)).toBe(true);
   });
 
@@ -79,7 +80,7 @@ describe("blanked psi / tag / starlight helpers (CR 9.12.1d)", () => {
     s.runner.installed = ["zs-1"];
     expect(zona.trashSelfWhenRunnerTagged).toBe(true);
     expect(abilitiesSuppressed(s, "zs-1")).toBe(false);
-    zona.abilitiesBlanked = true;
+    suppressAbilities(s, zona.id);
     expect(abilitiesSuppressed(s, "zs-1")).toBe(true);
   });
 
@@ -95,7 +96,7 @@ describe("blanked psi / tag / starlight helpers (CR 9.12.1d)", () => {
     s.runner.installed = ["sl-1"];
     expect(host.ignoreAdditionalCostFirstDoubleEventEachTurn).toBe(true);
     expect(abilitiesSuppressed(s, "sl-1")).toBe(false);
-    host.abilitiesBlanked = true;
+    suppressAbilities(s, host.id);
     expect(abilitiesSuppressed(s, "sl-1")).toBe(true);
   });
 });

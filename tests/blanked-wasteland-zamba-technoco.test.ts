@@ -14,6 +14,7 @@ import {
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { maybeOfferGainCreditsOnExpose } from "../src/effects/kitaraSsPrimitives.js";
 import { noteInstalledThisTurn } from "../src/state/programHardwareInstall.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -32,7 +33,7 @@ describe("blanked Wasteland / Zamba / TechnoCo (CR 9.12.1d)", () => {
     expect(w.gainCreditsOnFirstOwnInstalledTrashEachTurn ?? 0).toBeGreaterThan(
       0,
     );
-    w.abilitiesBlanked = true;
+    suppressAbilities(s, w.id);
     expect(abilitiesSuppressed(s, "w-1")).toBe(true);
   });
 
@@ -48,7 +49,7 @@ describe("blanked Wasteland / Zamba / TechnoCo (CR 9.12.1d)", () => {
     expect(s.pendingChoice?.sourceId).toBe("z-1");
 
     s.pendingChoice = null;
-    z.abilitiesBlanked = true;
+    suppressAbilities(s, z.id);
     maybeOfferGainCreditsOnExpose(s);
     expect(s.pendingChoice).toBeNull();
   });
@@ -70,7 +71,7 @@ describe("blanked Wasteland / Zamba / TechnoCo (CR 9.12.1d)", () => {
 
     s.corp.credits = 5;
     s.turn.installedThisTurn = [];
-    tech.abilitiesBlanked = true;
+    suppressAbilities(s, tech.id);
     noteInstalledThisTurn(s, "cor-1");
     expect(s.corp.credits).toBe(5);
   });
@@ -82,7 +83,7 @@ describe("blanked Wasteland / Zamba / TechnoCo (CR 9.12.1d)", () => {
     s.cards["sam-1"] = msg;
     s.corp.scoreArea = ["sam-1"];
     expect(msg.mayRezIceIgnoringCostsOnScoreOrSteal).toBe(true);
-    msg.abilitiesBlanked = true;
+    suppressAbilities(s, msg.id);
     expect(abilitiesSuppressed(s, "sam-1")).toBe(true);
   });
 });

@@ -17,6 +17,7 @@ import {
   fireOnPassRezzedIceProtectingThisServer,
   fireOnPassUnrezzedIce,
 } from "../src/state/runTimingHooks.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -42,7 +43,7 @@ describe("blanked Wage Workers / pass-ice hooks (CR 9.12.1d)", () => {
 
     s.corp.clicks = 0;
     s.turn.corpActionTypeCounts = { basic_action: 2 };
-    ww.abilitiesBlanked = true;
+    suppressAbilities(s, ww.id);
     expect(abilitiesSuppressed(s, "ww-1")).toBe(true);
     noteCorpActionType(s, "basic_action");
     expect(s.corp.clicks).toBe(0);
@@ -65,7 +66,7 @@ describe("blanked Wage Workers / pass-ice hooks (CR 9.12.1d)", () => {
     s = createInitialState();
     s = structuredClone(s);
     const echo2 = instantiateCard("false-echo", "fe-2", "runner:installed");
-    echo2.abilitiesBlanked = true;
+    suppressAbilities(s, echo2.id);
     s.cards["fe-2"] = echo2;
     s.runner.installed = ["fe-2"];
     expect(abilitiesSuppressed(s, "fe-2")).toBe(true);
@@ -96,7 +97,7 @@ describe("blanked Wage Workers / pass-ice hooks (CR 9.12.1d)", () => {
     s = structuredClone(s);
     const twins2 = instantiateCard("the-twins", "tt-2", "server:hq:root");
     twins2.rezzed = true;
-    twins2.abilitiesBlanked = true;
+    suppressAbilities(s, twins2.id);
     s.cards["tt-2"] = twins2;
     s.servers.hq.root = ["tt-2"];
     expect(abilitiesSuppressed(s, "tt-2")).toBe(true);

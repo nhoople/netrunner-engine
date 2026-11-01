@@ -13,6 +13,7 @@ import {
   collectHostedConditionSubsBeforePrinted,
   collectSubBoostEtrSubs,
 } from "../src/state/continuousSubs.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 describe("continuous gained-sub collectors (M1)", () => {
   it("Sub Boost grants barrier via the subtype layer, not ice.subtypes mutation", () => {
@@ -49,7 +50,7 @@ describe("continuous gained-sub collectors (M1)", () => {
     const wet = instantiateCard("wetwork-refit", "wet-1", "hosted:heim-1");
     wet.faceup = true;
     wet.hostId = "heim-1";
-    wet.abilitiesBlanked = true;
+    suppressAbilities(s, wet.id);
     ice.hostedCardIds = ["wet-1"];
     s.cards["heim-1"] = ice;
     s.cards["wet-1"] = wet;

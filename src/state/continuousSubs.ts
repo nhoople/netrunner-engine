@@ -44,7 +44,7 @@ function gainedSubDecls(
   return card?.continuousGainedSubDecls ?? [];
 }
 
-function firstDecl<K extends ContinuousGainedSubDecl["kind"]>(
+export function firstDecl<K extends ContinuousGainedSubDecl["kind"]>(
   card: GameState["cards"][string] | undefined,
   kind: K,
 ): Extract<ContinuousGainedSubDecl, { kind: K }> | undefined {
@@ -169,9 +169,8 @@ export function collectWinchesterHqSubs(
   if (state.run?.attackedServerId !== "hq") return [];
   if (abilitiesSuppressed(state, iceId)) return [];
   const decl = firstDecl(ice, "hq_protect_subs");
-  const subs =
-    decl?.subroutines ?? ice.gainsSubroutinesWhileProtectingHq ?? [];
-  if (!decl && !ice.gainsSubroutinesWhileProtectingHq) return [];
+  if (!decl) return [];
+  const subs = decl.subroutines;
   return subs.map((sub) => ({
     sourceId: iceId,
     iceId,
@@ -191,19 +190,14 @@ export function collectBlockchainArchivesSubs(
   if (!ice) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
   const decl = firstDecl(ice, "archives_faceup_per");
-  const legacy = ice.gainsSubroutinesBeforePrintedPerFaceupArchives;
-  const spec = decl
-    ? {
-        type: decl.type,
-        subtype: decl.subtype,
-        per: decl.per,
-        subroutine: decl.subroutine,
-        position: decl.position ?? "before",
-      }
-    : legacy
-      ? { ...legacy, position: "before" as const }
-      : null;
-  if (!spec) return [];
+  if (!decl) return [];
+  const spec = {
+    type: decl.type,
+    subtype: decl.subtype,
+    per: decl.per,
+    subroutine: decl.subroutine,
+    position: decl.position ?? "before",
+  };
   let faceup = 0;
   for (const id of state.corp.discardPile) {
     const c = state.cards[id];
@@ -233,8 +227,7 @@ export function collectAdvancementGainedSubs(
   if (!ice) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
   const decl = firstDecl(ice, "per_advancement");
-  const legacy = ice.gainsSubroutinesPerAdvancement;
-  const subroutine = decl?.subroutine ?? legacy?.subroutine;
+  const subroutine = decl?.subroutine;
   if (!subroutine) return [];
   const n = Math.max(0, ice.advancementCounters ?? 0);
   return Array.from({ length: n }, (_, i) => ({
@@ -258,9 +251,8 @@ export function collectNextOpalSubs(
   if (!ice) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
   const decl = firstDecl(ice, "per_rezzed_subtype");
-  const legacy = ice.gainsSubroutinesPerRezzedIceWithSubtype;
-  const subtype = decl?.subtype ?? legacy?.subtype;
-  const subroutine = decl?.subroutine ?? legacy?.subroutine;
+  const subtype = decl?.subtype;
+  const subroutine = decl?.subroutine;
   if (!subtype || !subroutine) return [];
   let n = 0;
   for (const server of Object.values(state.servers)) {
@@ -295,7 +287,7 @@ export function collectBrainstormGripSubs(
   if (!ice) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
   const decl = firstDecl(ice, "grip_size_on_encounter");
-  const template = decl?.subroutine ?? ice.gainsSubroutinesOnEncounterEqualGripSize;
+  const template = decl?.subroutine;
   if (!template) return [];
   const x = state.runner.hand.length;
   return Array.from({ length: x }, (_, i) => ({
@@ -316,7 +308,7 @@ export function collectTourGuideEtrSubs(
   const ice = state.cards[iceId];
   if (!ice) return [];
   const decl = firstDecl(ice, "etr_per_rezzed_asset");
-  if (!decl && !ice.etrSubroutinesPerRezzedAsset) return [];
+  if (!decl) return [];
   if (abilitiesSuppressed(state, iceId)) return [];
   let n = 0;
   for (const c of Object.values(state.cards)) {
@@ -345,23 +337,14 @@ function looksLikeContinuousGainedSubId(
   if (subId.startsWith("warden-lose-click-")) return true;
   if (subId.startsWith("sub-boost-etr-")) return true;
   if (subId.startsWith(`${ice.defId}-etr-asset-`)) return true;
-  if (subId.endsWith("-hq")) {
-    if (
-      ice.gainsSubroutinesWhileProtectingHq ||
-      firstDecl(ice, "hq_protect_subs")
-    ) {
-      return true;
-    }
+  if (subId.endsWith("-hq") && firstDecl(ice, "hq_protect_subs")) {
+    return true;
   }
   const templates = [
     firstDecl(ice, "archives_faceup_per")?.subroutine.id,
-    ice.gainsSubroutinesBeforePrintedPerFaceupArchives?.subroutine.id,
     firstDecl(ice, "per_advancement")?.subroutine.id,
-    ice.gainsSubroutinesPerAdvancement?.subroutine.id,
     firstDecl(ice, "per_rezzed_subtype")?.subroutine.id,
-    ice.gainsSubroutinesPerRezzedIceWithSubtype?.subroutine.id,
     firstDecl(ice, "grip_size_on_encounter")?.subroutine.id,
-    ice.gainsSubroutinesOnEncounterEqualGripSize?.id,
     firstDecl(ice, "etr_per_rezzed_asset")?.subroutine?.id,
   ].filter(Boolean) as string[];
   return templates.some(

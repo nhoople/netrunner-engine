@@ -6,23 +6,14 @@ import {
   cardsDataPresent,
   createInitialState,
   crDataPresent,
+  effectiveIceSubtypes,
   evalEffect,
   fx,
   getCardDef,
   instantiateCard,
   resolveTrace,
 } from "../src/index.js";
-import {
-  LINGERING_KIND_ABILITY_BLANK,
-  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
-  LINGERING_KIND_BREAKER_STRENGTH_RUN,
-  LINGERING_KIND_ICE_STRENGTH,
-  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
-  lingeringBreakerStrengthOfKind,
-  lingeringEffectsOfKind,
-  lingeringIceStrengthOfKind,
-  lingeringRunnerMuModifier,
-} from "../src/state/lingeringEffects.js";
+import { LINGERING_KIND_ABILITY_BLANK, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER, LINGERING_KIND_BREAKER_STRENGTH_RUN, LINGERING_KIND_ICE_STRENGTH, LINGERING_KIND_ICE_STRENGTH_ENCOUNTER, lingeringBreakerStrengthOfKind, lingeringEffectsOfKind, lingeringIceStrengthOfKind, lingeringRunnerMuModifier } from "../src/state/lingeringEffects.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 
 import { drawCards } from "../src/effects/draw.js";
@@ -4482,7 +4473,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "tinker:en-1",
     });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.cards["en-1"]?.grantedSubtypesUntilEndOfTurn).toEqual(
+    expect(effectiveIceSubtypes(after.state, "en-1")).toEqual(
       expect.arrayContaining(["sentry", "code gate", "barrier"]),
     );
   });
@@ -4795,10 +4786,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "loki:en-1",
     });
     if (!after.ok) throw new Error(after.error);
-    expect(
-      after.state.cards["loki-1"]?.grantedSubtypesUntilEndOfTurn ??
-        after.state.cards["loki-1"]?.subtypes,
-    ).toEqual(expect.arrayContaining(["code gate"]));
+    expect(after.state.cards["loki-1"]?.subtypes).toEqual(
+      expect.arrayContaining(["code gate"]),
+    );
   });
 
   it("The Turning Wheel: chooses HQ or R&D for +1 access this run", () => {
@@ -4986,8 +4976,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["prog-b"]?.hostId).toBe("mag-1");
-    // Continuous 9.12 blank via hostedProgramsLoseAbilities — no abilitiesBlanked stamp.
-    expect(after.state.cards["prog-b"]?.abilitiesBlanked).toBeFalsy();
+    // Continuous 9.12 blank via hostedProgramsLoseAbilities.
     expect(abilitiesSuppressed(after.state, "prog-b")).toBe(true);
     expect(after.state.cards["prog-a"]?.hostId).toBe("iw-1");
   });
