@@ -18,7 +18,7 @@ describe("cyber-exodus", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("CE may_gain_click_then_tag_at_turn_end", () => {
@@ -81,7 +81,7 @@ describe("cyber-exodus", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Cyber Exodus v1.90.0 set-complete", () => {
@@ -98,7 +98,7 @@ describe("cyber-exodus", () => {
       expect(getCardDef("edge-of-world").onAccessRequiresInstalled).toBe(true);
       expect(getCardDef("woodcutter").canAdvance).toBe(true);
       expect(getCardDef("woodcutter").canAdvanceOnlyWhenRezzed).toBe(true);
-      expect(getCardDef("woodcutter").gainsSubroutinesPerAdvancement).toBeTruthy();
+      expect(getCardDef("woodcutter").continuousGainedSubDecls?.some((d) => d.kind === "per_advancement")).toBe(true);
       expect(getCardDef("chimera").derezAtAnyTurnEnd).toBe(true);
       expect(getCardDef("joshua-b").onTurnBegin).toMatchObject({
         op: "do",

@@ -5,7 +5,7 @@ import type { Effect } from "../effects/ir.js";
 
 export type Side = "corp" | "runner";
 
-/** Gained-subroutine continuous declaration (L2 payload shape). */
+/** Gained-subroutine continuous declaration (L2 / W1 payload shape). */
 export type ContinuousGainedSubDecl =
   | {
       kind: "fatuma_lose_click";
@@ -21,6 +21,40 @@ export type ContinuousGainedSubDecl =
       kind: "wetwork_hosted_before";
       position?: "before";
       subroutines?: Array<{ id: string; text: string; effect: Effect }>;
+    }
+  | {
+      kind: "hq_protect_subs";
+      position?: "after";
+      subroutines: Array<{ id: string; text: string; effect: Effect }>;
+    }
+  | {
+      kind: "archives_faceup_per";
+      position?: "before";
+      type: string;
+      subtype: string;
+      per: number;
+      subroutine: { id: string; text: string; effect: Effect };
+    }
+  | {
+      kind: "per_advancement";
+      position?: "after";
+      subroutine: { id: string; text: string; effect: Effect };
+    }
+  | {
+      kind: "per_rezzed_subtype";
+      position?: "after";
+      subtype: string;
+      subroutine: { id: string; text: string; effect: Effect };
+    }
+  | {
+      kind: "grip_size_on_encounter";
+      position?: "after";
+      subroutine: { id: string; text: string; effect: Effect };
+    }
+  | {
+      kind: "etr_per_rezzed_asset";
+      position?: "before";
+      subroutine?: { id: string; text: string; effect: Effect };
     };
 
 /**

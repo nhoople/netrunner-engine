@@ -18,7 +18,7 @@ describe("earths-scion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Earth's Scion v1.131.0 set-complete", () => {
@@ -47,7 +47,9 @@ describe("earths-scion", () => {
         getCardDef("dadiana-chacon").trashSelfAndMeatDamageWhenCreditsZero,
       ).toBe(3);
       expect(
-        getCardDef("next-opal").gainsSubroutinesPerRezzedIceWithSubtype?.subtype,
+        getCardDef("next-opal").continuousGainedSubDecls?.find(
+          (d) => d.kind === "per_rezzed_subtype",
+        )?.subtype,
       ).toBe("next");
       expect(
         getCardDef("bioroid-work-crew").bioroidWorkCrewRequireAfterOperationPaidWindow,

@@ -21,7 +21,7 @@ import { CR } from "../src/timing/labels.js";
 
 describe("static declarations", () => {
   beforeAll(() => {
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
     assertPinnedTag("v26.03");
   });
 

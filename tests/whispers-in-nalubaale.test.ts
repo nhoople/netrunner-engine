@@ -19,7 +19,7 @@ describe("whispers-in-nalubaale", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("Whispers in Nalubaale v1.140.0 set-complete", () => {
@@ -76,7 +76,7 @@ describe("whispers-in-nalubaale", () => {
       expect(getCardDef("intake").mustRevealWhenAccessedFromRd).toBe(true);
       expect(getCardDef("intake").skipOnAccessFromArchives).toBe(true);
       expect(getCardDef("masvingo").canAdvance).toBe(true);
-      expect(getCardDef("masvingo").gainsSubroutinesPerAdvancement).toBeTruthy();
+      expect(getCardDef("masvingo").continuousGainedSubDecls?.some((d) => d.kind === "per_advancement")).toBe(true);
       expect(getCardDef("overseer-matrix").persistent).toBe(true);
       expect(
         getCardDef("overseer-matrix")

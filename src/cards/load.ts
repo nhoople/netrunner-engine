@@ -3266,7 +3266,71 @@ export function instantiateCard(
             ? [{ kind: "wetwork_hosted_before" as const }]
             : def.hostGainsBarrierAndEtrSubroutine
               ? [{ kind: "sub_boost_etr" as const }]
-              : undefined,
+              : def.gainsSubroutinesWhileProtectingHq
+                ? [
+                    {
+                      kind: "hq_protect_subs" as const,
+                      position: "after" as const,
+                      subroutines: structuredClone(
+                        def.gainsSubroutinesWhileProtectingHq,
+                      ),
+                    },
+                  ]
+                : def.gainsSubroutinesBeforePrintedPerFaceupArchives
+                  ? [
+                      {
+                        kind: "archives_faceup_per" as const,
+                        position: "before" as const,
+                        type: def.gainsSubroutinesBeforePrintedPerFaceupArchives
+                          .type,
+                        subtype:
+                          def.gainsSubroutinesBeforePrintedPerFaceupArchives
+                            .subtype,
+                        per: def.gainsSubroutinesBeforePrintedPerFaceupArchives
+                          .per,
+                        subroutine: structuredClone(
+                          def.gainsSubroutinesBeforePrintedPerFaceupArchives
+                            .subroutine,
+                        ),
+                      },
+                    ]
+                  : def.gainsSubroutinesPerAdvancement
+                    ? [
+                        {
+                          kind: "per_advancement" as const,
+                          position: "after" as const,
+                          subroutine: structuredClone(
+                            def.gainsSubroutinesPerAdvancement.subroutine,
+                          ),
+                        },
+                      ]
+                    : def.gainsSubroutinesPerRezzedIceWithSubtype
+                      ? [
+                          {
+                            kind: "per_rezzed_subtype" as const,
+                            position: "after" as const,
+                            subtype:
+                              def.gainsSubroutinesPerRezzedIceWithSubtype
+                                .subtype,
+                            subroutine: structuredClone(
+                              def.gainsSubroutinesPerRezzedIceWithSubtype
+                                .subroutine,
+                            ),
+                          },
+                        ]
+                      : def.gainsSubroutinesOnEncounterEqualGripSize
+                        ? [
+                            {
+                              kind: "grip_size_on_encounter" as const,
+                              position: "after" as const,
+                              subroutine: structuredClone(
+                                def.gainsSubroutinesOnEncounterEqualGripSize,
+                              ),
+                            },
+                          ]
+                        : def.etrSubroutinesPerRezzedAsset
+                          ? [{ kind: "etr_per_rezzed_asset" as const }]
+                          : undefined,
     recurringSpendFor: def.recurringSpendFor
       ? [...def.recurringSpendFor]
       : undefined,
@@ -4444,6 +4508,47 @@ export function instantiateCard(
       },
     };
     card.paidAbilities = [...(card.paidAbilities ?? []), bryanAb];
+  }
+  // W1: mirror continuousGainedSubDecls onto legacy instance fields so graph
+  // sync paths (Tour Guide / Brainstorm / Winchester logs) keep working.
+  for (const decl of card.continuousGainedSubDecls ?? []) {
+    if (decl.kind === "hq_protect_subs" && !card.gainsSubroutinesWhileProtectingHq) {
+      card.gainsSubroutinesWhileProtectingHq = structuredClone(decl.subroutines);
+    } else if (
+      decl.kind === "archives_faceup_per" &&
+      !card.gainsSubroutinesBeforePrintedPerFaceupArchives
+    ) {
+      card.gainsSubroutinesBeforePrintedPerFaceupArchives = {
+        type: decl.type as import("../state/types.js").CardType,
+        subtype: decl.subtype,
+        per: decl.per,
+        subroutine: structuredClone(decl.subroutine),
+      };
+    } else if (
+      decl.kind === "per_advancement" &&
+      !card.gainsSubroutinesPerAdvancement
+    ) {
+      card.gainsSubroutinesPerAdvancement = {
+        subroutine: structuredClone(decl.subroutine),
+      };
+    } else if (
+      decl.kind === "per_rezzed_subtype" &&
+      !card.gainsSubroutinesPerRezzedIceWithSubtype
+    ) {
+      card.gainsSubroutinesPerRezzedIceWithSubtype = {
+        subtype: decl.subtype,
+        subroutine: structuredClone(decl.subroutine),
+      };
+    } else if (
+      decl.kind === "grip_size_on_encounter" &&
+      !card.gainsSubroutinesOnEncounterEqualGripSize
+    ) {
+      card.gainsSubroutinesOnEncounterEqualGripSize = structuredClone(
+        decl.subroutine,
+      );
+    } else if (decl.kind === "etr_per_rezzed_asset") {
+      card.etrSubroutinesPerRezzedAsset = true;
+    }
   }
   return card;
 }

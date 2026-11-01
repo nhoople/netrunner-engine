@@ -18,7 +18,7 @@ describe("the-liberated-mind", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.15");
+    assertCardsPinnedTag("v1.147.16");
   });
 
   describe("The Liberated Mind v1.120.0 set-complete", () => {
@@ -44,7 +44,9 @@ describe("the-liberated-mind", () => {
         getCardDef("the-turning-wheel").placePowerOnHqOrRdRunEndIfNoAgendaStolen,
       ).toBe(true);
       expect(
-        getCardDef("brainstorm").gainsSubroutinesOnEncounterEqualGripSize?.id,
+        getCardDef("brainstorm").continuousGainedSubDecls?.find(
+          (d) => d.kind === "grip_size_on_encounter",
+        )?.subroutine?.id,
       ).toBe("brainstorm-core");
       expect(
         getCardDef("dedicated-neural-net")
