@@ -1865,7 +1865,8 @@ describe("CR examples, chapter 9", () => {
       s = passed.state;
     }
 
-    expect(s.cards["lance-1"]?.subtypes).toContain("barrier");
+    // Sub Boost barrier is a continuous grant (not a printed subtype mutation).
+    expect(effectiveIceSubtypes(s, "lance-1")).toContain("barrier");
     expect(s.cards["lance-1"]?.subroutines?.map((sub) => sub.text)).toEqual([
       "Trash 1 installed program",
       "End the run.",

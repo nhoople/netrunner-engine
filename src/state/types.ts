@@ -2630,6 +2630,7 @@ export interface CardInstance {
    */
   continuousSubtypeGrants?: Array<
     | { kind: "host_grant_bcs" }
+    | { kind: "host_grant_barrier" }
     | { kind: "copy_other_rezzed_ice_subtypes" }
   >;
   /**
