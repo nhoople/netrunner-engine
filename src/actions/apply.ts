@@ -1,5 +1,5 @@
-import { chooseSubroutinePosition } from "../effects/lunarUpPrimitives.js";
-import { chooseSparedSubroutine } from "../effects/spinHapPrimitives.js";
+import { chooseSubroutinePosition } from "../effects/primitives/trashResolveTrace.js";
+import { chooseSparedSubroutine } from "../effects/primitives/spendInstallAdd.js";
 import { chooseNextSubroutineToResolve } from "../timing/subroutineOrder.js";
 import { activePlayer, cloneState, log } from "../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
@@ -89,7 +89,7 @@ import {
   noteFirstCorpCardTrashEachTurn,
   fireMeatDamageWhenRunnerTakesTags,
 } from "../state/trashHooks.js";
-import { fireTdatdOnAgendaAccessedOrScored } from "../effects/kitaraTdatdPrimitives.js";
+import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import { psiCorpBid, psiRunnerBid } from "../state/psi.js";
 import {
@@ -129,7 +129,7 @@ import {
   resumePendingOnCorpDrawCard,
   resumePendingStoredConditionals,
 } from "../state/storedTriggers.js";
-import { resolveDelayedRunEndOrder } from "../effects/kitaraWinPrimitives.js";
+import { resolveDelayedRunEndOrder } from "../effects/primitives/resolveMoveInstall.js";
 import { installCorp } from "./installCorp.js";
 import {
   chooseBreakerSubtype,
@@ -2061,13 +2061,22 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       let drawAmount = 1 + (next.activeSide === "runner" ? basicDrawBonus(next) : 0);
       if (
         next.activeSide === "runner" &&
-        next.turn.basicDrawsThisTurn === 0 &&
-        next.runner.installed.some(
-          (id) => next.cards[id].defId === "verbal-plasticity",
-        )
+        next.turn.basicDrawsThisTurn === 0
       ) {
-        drawAmount = 2;
-        log(next, `Verbal Plasticity — first basic draw is 2.`);
+        let extra = 0;
+        let sourceTitle: string | undefined;
+        for (const id of next.runner.installed) {
+          if (abilitiesSuppressed(next, id)) continue;
+          const card = next.cards[id];
+          const n = card?.additionalCardsOnFirstBasicDrawEachTurn ?? 0;
+          if (n <= 0) continue;
+          extra += n;
+          sourceTitle ??= card?.title;
+        }
+        if (extra > 0) {
+          drawAmount += extra;
+          log(next, `${sourceTitle} — first basic draw is ${drawAmount}.`);
+        }
       }
       const drewTotal = drawN(next, next.activeSide, drawAmount);
       if (next.winReason === "empty_rd") return ok(next);
@@ -2705,7 +2714,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         // Ambush exemption: Snare!/Behold! do not fire from Archives.
         if (
           next.run.attackedServerId === "archives" &&
-          (card.skipOnAccessFromArchives || card.defId === "snare")
+          card.skipOnAccessFromArchives
         ) {
           log(next, `${card.title} onAccess skipped — accessed from Archives.`);
         } else if (card.onAccessRequiresRezzed && !card.rezzed) {

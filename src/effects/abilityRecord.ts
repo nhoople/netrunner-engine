@@ -1,6 +1,5 @@
 /**
  * One printed ability, classified the way Comprehensive Rules 9.3 reads a card.
- * Load still copies play records onto `onPlay` for catalog/shape tests.
  * Play (CR 9.3.7d), paid (9.3.7b), and subroutine (9.3.7e) text is the
  * record: `playEffectFromCard` / `paidAbilitiesFromCard` /
  * `subroutinesFromCard`. A flag is the printed ability flag (CR 9.3.6).
@@ -166,9 +165,8 @@ function withCondition(ability: AbilityRecord): Effect | undefined {
 }
 
 /**
- * Play instructions from CR 9.3.7d records. `onPlay` is only the play text
- * when the card has no play record (a hook-only shell, or the copy
- * `fireOnPlay` stores for the pending-ability resume key).
+ * Play instructions from CR 9.3.7d records. `onPlay` is the play text only
+ * when the card has no play record (a hook-only shell).
  */
 export function playEffectFromCard(card: {
   abilities?: AbilityRecord[];
@@ -189,8 +187,6 @@ export function playEffectFromCard(card: {
 
 /**
  * Replace printed play text with one play record (CR 9.3.7d).
- * Also writes the derived `onPlay` copy shape tests and the stored-conditional
- * resume key still read.
  */
 export function setPrintedPlay(
   card: { abilities?: AbilityRecord[]; onPlay?: Effect },
@@ -205,7 +201,6 @@ export function setPrintedPlay(
       instructions: effect,
     },
   ];
-  card.onPlay = effect;
 }
 
 /** True when the card has a play ability (record or legacy onPlay). */
@@ -424,10 +419,8 @@ export function applyAbilityRecords(
     const effect = withCondition(record);
     if (hasFlag(record.flag, "persistent")) card.persistent = true;
 
-    if (record.class === "play" && effect) {
-      // Derived copy for getCardDef().onPlay shape tests and the
-      // stored-conditional effectKey. Runtime play reads the record.
-      appendEffect(card, "onPlay", effect);
+    if (record.class === "play") {
+      // The record is the play text (CR 9.3.7d). Readers use playEffectFromCard.
     } else if (record.class === "conditional" && effect && record.trigger && record.host) {
       const hostErr = record.hostAbility
         ? writeHostedAbility(paid, record.hostAbility, record.host, record.trigger, effect, label)

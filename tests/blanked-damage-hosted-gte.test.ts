@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.17");
+  assertCardsPinnedTag("v1.147.18");
 });
 
 describe("blanked damage / hosted-credits threshold (CR 9.12.1d)", () => {

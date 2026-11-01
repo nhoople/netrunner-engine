@@ -14,6 +14,7 @@ import {
   validateEffectTree,
   moveRunnerCardToHeap,
   fx,
+  playEffectFromCard,
 } from "../src/index.js";
 import {
   beginExpose,
@@ -32,16 +33,16 @@ describe("core", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("FFG Core Set final 7 clears", () => {
 
     it("Infiltration choose gain 2¢ or expose", () => {
       const def = getCardDef("infiltration");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("expose");
-      expect(JSON.stringify(def.onPlay)).toContain("gain_credits");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("expose");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("gain_credits");
 
       const s = structuredClone(createInitialState());
       s.servers["remote-1"] = {
@@ -364,7 +365,7 @@ describe("core", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("FFG Core Set kickoff (floor v1.86.0 → set-complete v1.87.0)", () => {
@@ -439,11 +440,11 @@ describe("core", () => {
     it("Scorched Earth requires tagged and does 4 meat", () => {
       const def = getCardDef("scorched-earth");
       expect(def.playRequiresTagged).toBe(true);
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "do",
         action: { kind: "meat_damage", amount: 4 },
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Data Mine nets then trashes self", () => {
@@ -483,8 +484,8 @@ describe("core", () => {
 
     it("Shipment from Kaguya places advancements on up to 2", () => {
       const def = getCardDef("shipment-from-kaguya");
-      expect(JSON.stringify(def.onPlay)).toContain("place_advancements_on_up_to");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("place_advancements_on_up_to");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
   });
   });
@@ -495,7 +496,7 @@ describe("core", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("FFG Core Set additional clears (floor v1.86.0 → v1.87.0)", () => {
@@ -529,16 +530,16 @@ describe("core", () => {
 
     it("Shipment from MirrorMorph installs up to 3 from HQ", () => {
       const def = getCardDef("shipment-from-mirrormorph");
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "install_up_to_from_hq_paying_costs",
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Déjà Vu pulls from heap (1 or up to 2 virus)", () => {
       const def = getCardDef("deja-vu");
-      expect(JSON.stringify(def.onPlay)).toContain("deja_vu_from_heap");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("deja_vu_from_heap");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       const s = structuredClone(createInitialState());
       const a = instantiateCard("deja-vu", "dv", "runner:grip");
@@ -550,7 +551,7 @@ describe("core", () => {
       s.cards["v2"] = v2;
       s.cards["mo"] = other;
       s.runner.discardPile.push("v1", "v2", "mo");
-      const r = evalEffect({ state: s, sourceId: "dv" }, def.onPlay!);
+      const r = evalEffect({ state: s, sourceId: "dv" }, playEffectFromCard(def)!);
       expect(r.ok).toBe(true);
       expect(s.pendingChoice).toBeTruthy();
       expect(s.pendingChoice!.options.length).toBeGreaterThanOrEqual(4);

@@ -13,6 +13,7 @@ import {
   assertPinnedTag,
   crDataPresent,
   effectiveIceStrength,
+  playEffectFromCard,
 } from "../src/index.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 
@@ -46,10 +47,10 @@ describe("card corpus system-gateway", () => {
   });
 
   it("Government Subsidy / Creative Commission / Whitespace IR", () => {
-    expect(getCardDef("government-subsidy").onPlay).toEqual(
+    expect(playEffectFromCard(getCardDef("government-subsidy"))).toEqual(
       fx.gainCredits("corp", 15),
     );
-    expect(getCardDef("creative-commission").onPlay).toEqual(
+    expect(playEffectFromCard(getCardDef("creative-commission"))).toEqual(
       fx.seq(
         fx.gainCredits("runner", 5),
         fx.if(

@@ -15,6 +15,7 @@ import {
   loadCardCatalog,
   validateEffectTree,
   CARD_WAVE_DIRS,
+  playEffectFromCard,
 } from "../src/index.js";
 import type {
   Action,
@@ -27,7 +28,7 @@ describe("magnum-opus", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
     loadCardCatalog(true);
   });
 
@@ -335,7 +336,7 @@ describe("magnum-opus", () => {
 
   describe("MO Labor Rights IR", () => {
     it("validates full onPlay tree", () => {
-      expect(validateEffectTree(getCardDef("labor-rights").onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(getCardDef("labor-rights"))!)).toBeNull();
       expect(getCardDef("labor-rights").rfgInsteadOfTrashing).toBe(true);
     });
   });
@@ -347,7 +348,7 @@ describe("magnum-opus", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Magnum Opus v1.142.0 set-complete", () => {
@@ -362,7 +363,7 @@ describe("magnum-opus", () => {
     it("wires key mo fields (NRDB text)", () => {
       loadCardCatalog(true);
       expect(getCardDef("labor-rights").rfgInsteadOfTrashing).toBe(true);
-      expect(getCardDef("labor-rights").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("labor-rights"))).toBeTruthy();
       expect(getCardDef("crowdfunding").hostedCreditsOnInstall).toBe(3);
       expect(getCardDef("crowdfunding").drawOnHostedEmpty).toBe(1);
       expect(getCardDef("crowdfunding").onTurnBegin).toBeTruthy();

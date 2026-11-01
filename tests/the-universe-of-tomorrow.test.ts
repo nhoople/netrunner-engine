@@ -9,6 +9,7 @@ import {
   crDataPresent,
   getCardDef,
   loadCardCatalog,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("the-universe-of-tomorrow", () => {
@@ -18,7 +19,7 @@ describe("the-universe-of-tomorrow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("The Universe of Tomorrow v1.114.0 set-complete", () => {
@@ -26,7 +27,7 @@ describe("the-universe-of-tomorrow", () => {
     it("wires key UOT fields", () => {
       loadCardCatalog(true);
       expect(getCardDef("power-to-the-people").playRequiresFirstClick).toBe(true);
-      expect(getCardDef("power-to-the-people").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("power-to-the-people"))).toBeTruthy();
       expect(getCardDef("surfer").paidAbilities?.[0]?.requireEncounterSubtype).toBe(
         "barrier",
       );

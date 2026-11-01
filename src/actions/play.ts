@@ -17,7 +17,7 @@ import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
 import {
   fireSiAfterCorpRezOrPlay,
   fireSiAfterPaidAbilityClicks,
-} from "../effects/mumbadSiPrimitives.js";
+} from "../effects/primitives/lookTrashAdd.js";
 import { occurCheckpoint, withCostCheckpoint } from "../legality/checkpoints.js";
 import {
   isCurrentCard,

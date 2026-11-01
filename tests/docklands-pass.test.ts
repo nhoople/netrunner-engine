@@ -68,12 +68,11 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
     );
   });
 
-  it("legacy docklands-pass defId still grants +1 until cards pin carries the field", () => {
+  it("docklands-pass grants +1 from its declaration, not its id", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const pass = instantiateCard("docklands-pass", "dp-1", "runner:installed");
-    // Current pin may omit the field — hardcode fallback covers it.
-    expect(pass.defId).toBe("docklands-pass");
+    expect(pass.bonusAccessOnFirstHqBreachThisTurn).toBe(1);
     s.cards["dp-1"] = pass;
     s.runner.installed = ["dp-1"];
     const c1 = instantiateCard("hedge-fund", "c1", "corp:hq");
@@ -98,5 +97,23 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
     beginBreachAccess(s);
     expect(s.run!.randomAccessLimit).toBe(2);
     expect(s.log.some((l) => l.includes("Docklands Pass"))).toBe(true);
+
+    pass.bonusAccessOnFirstHqBreachThisTurn = undefined;
+    s.turn.hqBreachesThisTurn = 0;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "breach",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    beginBreachAccess(s);
+    expect(s.run!.randomAccessLimit).toBe(1);
   });
 });

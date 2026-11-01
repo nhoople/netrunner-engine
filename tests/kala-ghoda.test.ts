@@ -9,6 +9,7 @@ import {
   crDataPresent,
   getCardDef,
   loadCardCatalog,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("kala-ghoda", () => {
@@ -18,7 +19,7 @@ describe("kala-ghoda", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Kala Ghoda v1.116.0 set-complete", () => {
@@ -48,7 +49,7 @@ describe("kala-ghoda", () => {
       expect(getCardDef("mumba-temple").recurringCreditsMax).toBe(2);
       expect(getCardDef("mumba-temple").recurringSpendFor).toContain("rez");
       expect(getCardDef("museum-of-history").unique).toBe(true);
-      expect(getCardDef("dedication-ceremony").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("dedication-ceremony"))).toBeTruthy();
     });
   });
   });

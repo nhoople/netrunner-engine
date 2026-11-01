@@ -32,7 +32,7 @@ describe("CR 9.3 ability records", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   it("round-trips a conditional trigger to its hook", () => {
@@ -59,8 +59,7 @@ describe("CR 9.3 ability records", () => {
       ],
     };
     expect(applyAbilityRecords(card)).toBeNull();
-    // Derived onPlay copy for shape tests. Runtime play reads the record.
-    expect(card.onPlay).toBeDefined();
+    expect(card.onPlay).toBeUndefined();
     expect(hasPlayEffect(card as never)).toBe(true);
     const effect = playEffectFromCard(card as never);
     expect(effect).toBeTruthy();

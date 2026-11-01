@@ -27,6 +27,7 @@ import {
   additionalRunInitiateTax,
   occurCheckpoint,
   CR,
+  playEffectFromCard,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
 import { noteProgramOrHardwareInstalled, fireRemainderOfTurnOnInstallPrintedCostGte } from "../src/state/programHardwareInstall.js";
@@ -44,7 +45,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.47.0 kickoff", () => {
@@ -95,9 +96,9 @@ describe("downfall", () => {
       expect(def.playCost).toBe(2);
       expect(def.playRequiresInstalledResource).toBe(true);
       expect(def.playAdditionalCost).toEqual(fx.trashOwnResource());
-      expect(def.onPlay).toEqual(fx.gainCredits("runner", 7));
+      expect(playEffectFromCard(def)).toEqual(fx.gainCredits("runner", 7));
       expect(validateEffectTree(def.playAdditionalCost!)).toBeNull();
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("CSR Campaign may draw 1 on turn begin", () => {
@@ -127,7 +128,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.48.0 A-slice", () => {
@@ -167,11 +168,11 @@ describe("downfall", () => {
       expect(def.playCost).toBe(1);
       expect(def.playRequiresInstalledProgram).toBe(true);
       expect(def.playAdditionalCost).toEqual(fx.trashOwnProgram());
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.seq(fx.gainCredits("runner", 4), fx.draw("runner", 2)),
       );
       expect(validateEffectTree(def.playAdditionalCost!)).toBeNull();
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Nanoetching Matrix has once-per-turn click gain and onTrash may gain", () => {
@@ -234,7 +235,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function corpWithVulnerabilityAudit(): GameState {
@@ -389,7 +390,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.51.0 C-slice", () => {
@@ -416,11 +417,11 @@ describe("downfall", () => {
 
     it("Red Level Clearance is choose_exactly_n of four options", () => {
       const def = getCardDef("red-level-clearance");
-      expect(def.onPlay).toBeDefined();
-      expect(JSON.stringify(def.onPlay)).toContain("choose_exactly_n");
-      expect(JSON.stringify(def.onPlay)).toContain("may_install_from_hq_paying_costs");
-      expect(JSON.stringify(def.onPlay)).toContain("gain_clicks");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toBeDefined();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("choose_exactly_n");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("may_install_from_hq_paying_costs");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("gain_clicks");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Afshar limits printed breaks on HQ and has lose¢ + ETR subs", () => {
@@ -482,7 +483,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.51.0 D-slice", () => {
@@ -565,10 +566,10 @@ describe("downfall", () => {
 
     it("Fully Operational resolves gain-or-draw per iced rooted remote", () => {
       const def = getCardDef("fully-operational");
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.do({ kind: "resolve_fully_operational" }),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
   });
   });
@@ -579,7 +580,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.52.0 E-slice", () => {
@@ -606,13 +607,13 @@ describe("downfall", () => {
 
     it("Blueberry Diesel looks at top 2, may bottom one, then draws 2", () => {
       const def = getCardDef("blueberry-diesel");
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.seq(
           fx.do({ kind: "look_top_n_stack_may_bottom_one", n: 2 }),
           fx.draw("runner", 2),
         ),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Pelangi installs with 2 virus and grants encounter subtype", () => {
@@ -698,7 +699,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.53.0 F-slice", () => {
@@ -706,13 +707,13 @@ describe("downfall", () => {
     it("Secure and Protect is double + search-install central −3¢", () => {
       const def = getCardDef("secure-and-protect");
       expect(def.playAdditionalClick).toBe(true);
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.do({
           kind: "search_rd_ice_install_central_discount",
           discount: 3,
         }),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Lat may draw when grip equals HQ at discard phase end", () => {
@@ -725,8 +726,8 @@ describe("downfall", () => {
     it("Rejig requires installed program/hardware and bounce-installs", () => {
       const def = getCardDef("rejig");
       expect(def.playRequiresInstalledProgramOrHardware).toBe(true);
-      expect(def.onPlay).toEqual(fx.do({ kind: "install_rejig_bounce" }));
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toEqual(fx.do({ kind: "install_rejig_bounce" }));
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Chisel installs on ice, weakens host per virus, trashes at 0", () => {
@@ -762,7 +763,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.54.0 G-slice", () => {
@@ -940,7 +941,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.55.0 H-slice", () => {
@@ -1049,10 +1050,10 @@ describe("downfall", () => {
     it("Focus Group requires successful run last turn and reveal-advance", () => {
       const def = getCardDef("focus-group");
       expect(def.playRequiresSuccessfulRunLastTurn).toBe(true);
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.do({ kind: "reveal_may_advance" }),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       let s: GameState = createInitialState();
       s = structuredClone(s);
@@ -1064,7 +1065,7 @@ describe("downfall", () => {
       }
       const r = evalEffect(
         { state: s, sourceId: s.corp.identityId },
-        def.onPlay!,
+        playEffectFromCard(def)!,
       );
       expect(r.ok).toBe(true);
       expect(s.pendingChoice?.options.some((o) => o.id.startsWith("fg-type:"))).toBe(
@@ -1116,7 +1117,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.56.0 I-slice", () => {
@@ -1223,11 +1224,11 @@ describe("downfall", () => {
     it("Game Over requires stolen agenda last turn and trash-type composite", () => {
       const def = getCardDef("game-over");
       expect(def.playRequiresAgendaStolenLastTurn).toBe(true);
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "trash_type_may_pay_3_prevent",
       );
-      expect(JSON.stringify(def.onPlay)).toContain("give_bad_publicity");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("give_bad_publicity");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       let s: GameState = createInitialState();
       s = structuredClone(s);
@@ -1249,7 +1250,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.57.0 J-slice", () => {
@@ -1460,7 +1461,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Downfall v1.58.0 K-slice", () => {
@@ -1562,10 +1563,10 @@ describe("downfall", () => {
       expect(def.playRequiresSuccessfulRunLastTurn).toBe(true);
       expect(def.playRequiresRunnerAgendaPointsGte).toBe(3);
       expect(def.endsActionPhase).toBe(true);
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "name_net_damage_loop",
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Khusyuk skip breach + set-aside access", () => {

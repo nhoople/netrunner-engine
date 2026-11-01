@@ -23,7 +23,7 @@ import {
   noteFirstInstallInServerRootThisTurn,
   noteFirstRemoteInstallThisTurn,
 } from "../state/trashHooks.js";
-import { fireTdatd419OnFirstCorpInstall } from "../effects/kitaraTdatdPrimitives.js";
+import { fireTdatd419OnFirstCorpInstall } from "../effects/primitives/resolveExposePay.js";
 import type { ApplyResult, GameState, InstallDestination, RuleCite, Server, ServerId } from "../state/types.js";
 import { fx } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";

@@ -135,11 +135,11 @@ import {
 } from "../state/pendingAbilities.js";
 import { resolveStoredOrInlineConditionalInstance } from "../state/storedTriggers.js";
 import { expireLingeringEffects } from "../state/lingeringEffects.js";
-import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
+import { applyMumbadDagPrimitive } from "../effects/primitives/hostResolveLook.js";
 import {
   offerRamanRaiSwapWhileSetAside,
   ramanRaiCanOfferSwap,
-} from "../effects/mumbadSiPrimitives.js";
+} from "../effects/primitives/lookTrashAdd.js";
 import type { PendingAbilityPayload } from "../state/types.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { openPendingChoose } from "../state/pendingChoice.js";

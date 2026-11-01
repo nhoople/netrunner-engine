@@ -16,6 +16,7 @@ import {
   evalEffect,
   instantiateCard,
   loadCardCatalog,
+  playEffectFromCard,
 } from "../src/index.js";
 import type { Effect } from "../src/effects/ir.js";
 import type { EvalResult } from "../src/effects/eval.js";
@@ -26,7 +27,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.17");
+  assertCardsPinnedTag("v1.147.18");
 });
 
 function isEffect(value: unknown): value is Effect {
@@ -35,7 +36,7 @@ function isEffect(value: unknown): value is Effect {
 
 function treesOf(def: CardDef): Array<[string, Effect]> {
   const trees: Array<[string, Effect]> = [];
-  if (isEffect(def.onPlay)) trees.push(["onPlay", def.onPlay]);
+  if (isEffect(playEffectFromCard(def))) trees.push(["onPlay", playEffectFromCard(def)]);
   if (isEffect(def.onRez)) trees.push(["onRez", def.onRez]);
   for (const [index, sub] of (def.subroutines ?? []).entries()) {
     if (isEffect(sub.effect)) trees.push([`subroutines[${index}]`, sub.effect]);

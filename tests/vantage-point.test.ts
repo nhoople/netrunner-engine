@@ -10,6 +10,7 @@ import {
   fx,
   getCardDef,
   validateEffectTree,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("vantage-point", () => {
@@ -19,7 +20,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.13.0 kickoff", () => {
@@ -35,13 +36,13 @@ describe("vantage-point", () => {
 
     it("Vulture Fund gains 14¢ and takes 1 bad publicity", () => {
       const def = getCardDef("vulture-fund");
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.seq(
           fx.gainCredits("corp", 14),
           fx.do({ kind: "give_bad_publicity", amount: 1 }),
         ),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Paywall onEncounter drains 1¢ and offers ETR-unless-pay", () => {
@@ -65,7 +66,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.14.0 B-slice", () => {
@@ -115,15 +116,15 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.15.0 B-slice", () => {
 
     it("Caveat Emptor offers allotted-click choose", () => {
       const def = getCardDef("caveat-emptor");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("allotted_clicks_next_turn");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("allotted_clicks_next_turn");
     });
 
     it("Grubber onRez BP if protecting_central + dual ETR-unless-pay", () => {
@@ -162,7 +163,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.17.0 B-slice", () => {
@@ -212,7 +213,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.17.0 B-slice", () => {
@@ -222,9 +223,9 @@ describe("vantage-point", () => {
       expect(def.playRequiresInstalledResource).toBe(true);
       expect(validateEffectTree(def.playAdditionalCost!)).toBeNull();
       expect(JSON.stringify(def.playAdditionalCost)).toContain("trash_own_resource");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("gain_credits");
-      expect(JSON.stringify(def.onPlay)).toContain('"amount":2');
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("gain_credits");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain('"amount":2');
     });
 
     it("Underdome Irregulars gates on ice_rezzed_this_turn", () => {
@@ -242,8 +243,8 @@ describe("vantage-point", () => {
       expect(def.playRequiresTagged).toBe(true);
       expect(validateEffectTree(def.playAdditionalCost!)).toBeNull();
       expect(JSON.stringify(def.playAdditionalCost)).toContain("remove_tags");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("rez_may_resolve_sub");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("rez_may_resolve_sub");
     });
   });
   });
@@ -254,7 +255,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.18.0 B-slice", () => {
@@ -297,7 +298,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.19.0 B-slice", () => {
@@ -329,8 +330,8 @@ describe("vantage-point", () => {
     it("Retirement Plan is a double that installs from Archives paying", () => {
       const def = getCardDef("retirement-plan");
       expect(def.playAdditionalClick).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("install_from_archives");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("install_from_archives");
     });
   });
   });
@@ -341,7 +342,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.20.0 B-slice", () => {
@@ -370,9 +371,9 @@ describe("vantage-point", () => {
 
     it("Scapegoat offers remove BP or shuffle installed", () => {
       const def = getCardDef("scapegoat");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("remove_bad_publicity");
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("remove_bad_publicity");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "shuffle_installed_runner_into_stack",
       );
     });
@@ -385,7 +386,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.21.0 B-slice", () => {
@@ -400,16 +401,16 @@ describe("vantage-point", () => {
     it("Chain Reaction requires all centrals then trashes", () => {
       const def = getCardDef("chain-reaction");
       expect(def.playRequiresSuccessfulAllCentralsThisTurn).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("trash_n_installed_corp");
-      expect(JSON.stringify(def.onPlay)).toContain("trash_installed_runner");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("trash_n_installed_corp");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("trash_installed_runner");
     });
 
     it("realloc() is a double that picks two rezzed ice", () => {
       const def = getCardDef("realloc");
       expect(def.playAdditionalClick).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("realloc_two_rezzed_ice");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("realloc_two_rezzed_ice");
     });
   });
   });
@@ -420,7 +421,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.22.0 B-slice", () => {
@@ -429,15 +430,15 @@ describe("vantage-point", () => {
       const def = getCardDef("myoshu");
       expect(def.playRequiresScoredAgendaNotInstalledThisTurn).toBe(true);
       expect(def.agendaPoints).toBe(2);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("score_self_as_agenda");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("score_self_as_agenda");
     });
 
     it("Flood the Market is a double that advances per iced rooted remote", () => {
       const def = getCardDef("flood-the-market");
       expect(def.playAdditionalClick).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "place_advancements_per_iced_rooted_remote",
       );
     });
@@ -455,7 +456,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.23.0 B-slice", () => {
@@ -495,7 +496,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.24.0 B-slice", () => {
@@ -515,11 +516,11 @@ describe("vantage-point", () => {
 
     it("Reanimation Protocol install+rez ice from Archives with discount", () => {
       const def = getCardDef("reanimation-protocol");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "install_and_rez_ice_from_archives",
       );
-      expect(JSON.stringify(def.onPlay)).toContain('"totalDiscount":10');
+      expect(JSON.stringify(playEffectFromCard(def))).toContain('"totalDiscount":10');
     });
 
     it("Tungsten Tailor penalizes ice strength and rewards low-str breaks", () => {
@@ -537,7 +538,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.25.0 B-slice", () => {
@@ -576,7 +577,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.26.0 B-slice", () => {
@@ -590,8 +591,8 @@ describe("vantage-point", () => {
 
     it("Cultivate looks, trashes one, HQs one, arranges rest", () => {
       const def = getCardDef("cultivate");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "look_top_n_rd_trash_one_hq_one_arrange_rest",
       );
     });
@@ -610,7 +611,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.27.0 B-slice", () => {
@@ -643,7 +644,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.28.0 B-slice", () => {
@@ -679,7 +680,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.29.0 B-slice", () => {
@@ -725,7 +726,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.30.0 B-slice", () => {
@@ -759,7 +760,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.31.0 B-slice", () => {
@@ -831,7 +832,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.32.0 B-slice", () => {
@@ -844,8 +845,8 @@ describe("vantage-point", () => {
 
     it("Beta Build searches non-virus program then may return on run end", () => {
       const def = getCardDef("beta-build");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "search_stack_non_virus_program_install_ignore_costs_track",
       );
       expect(validateEffectTree(def.runEvent!.onRunEnd!)).toBeNull();
@@ -867,7 +868,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Vantage Point v1.33.0 B-slice", () => {

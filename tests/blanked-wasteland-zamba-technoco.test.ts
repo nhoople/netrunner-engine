@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
-import { maybeOfferGainCreditsOnExpose } from "../src/effects/kitaraSsPrimitives.js";
+import { maybeOfferGainCreditsOnExpose } from "../src/effects/primitives/addResolveInstall.js";
 import { noteInstalledThisTurn } from "../src/state/programHardwareInstall.js";
 import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
@@ -20,7 +20,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.17");
+  assertCardsPinnedTag("v1.147.18");
 });
 
 describe("blanked Wasteland / Zamba / TechnoCo (CR 9.12.1d)", () => {

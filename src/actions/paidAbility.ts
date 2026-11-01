@@ -17,7 +17,7 @@ import {
   fireOnAfterOperationOrExpendable,
   validatePaidEffect,
 } from "../effects/eval.js";
-import { fireSiAfterPaidAbilityClicks } from "../effects/mumbadSiPrimitives.js";
+import { fireSiAfterPaidAbilityClicks } from "../effects/primitives/lookTrashAdd.js";
 import {
   abilityCost,
   abilityNeedsEncounter,

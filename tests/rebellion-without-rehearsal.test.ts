@@ -17,6 +17,7 @@ import {
   applyAction,
   createInitialState,
   purgeVirusCounters,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("rebellion-without-rehearsal", () => {
@@ -25,7 +26,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.88 Corporate Hospitality / Boto / Capacitor / FoF / Seraph", () => {
@@ -33,7 +34,7 @@ describe("rebellion-without-rehearsal", () => {
     it("Corporate Hospitality is double: gain 6, draw 2, archives to HQ", () => {
       const def = getCardDef("corporate-hospitality");
       expect(def.playAdditionalClick).toBe(true);
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.seq(
           fx.gainCredits("corp", 6),
           fx.draw("corp", 2),
@@ -88,7 +89,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.89 Powers / Stoke / Boi-tatá / Sorocaban / Piranhas", () => {
@@ -138,7 +139,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.90 Charlotte / Janaína / Arruaceiras / Logjam / Hammer", () => {
@@ -194,7 +195,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.91 policing / breach / tags", () => {
@@ -203,15 +204,15 @@ describe("rebellion-without-rehearsal", () => {
       const def = getCardDef("active-policing");
       expect(def.endsActionPhase).toBe(true);
       expect(def.playRequiresRunnerStoleOrTrashedCorpCardLastTurn).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("allotted_clicks_next_turn");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("allotted_clicks_next_turn");
     });
 
     it("Bring Them Home moves grip cards to stack top", () => {
       const def = getCardDef("bring-them-home");
       expect(def.endsActionPhase).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("add_random_grip_to_stack_top");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("add_random_grip_to_stack_top");
     });
 
     it("Pretty Mary gates R&D bonus access on min allowed", () => {
@@ -247,7 +248,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.92 Malandragem / Physarum / Lobisomem / Trick Shot / Privileged Access", () => {
@@ -296,7 +297,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.93 Amanuensis / Ashen / Sudden / Working Prototype / Spree", () => {
@@ -310,14 +311,14 @@ describe("rebellion-without-rehearsal", () => {
 
     it("Ashen Epilogue shuffles grip+heap and RFGs", () => {
       const def = getCardDef("ashen-epilogue");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("shuffle_grip_and_heap_into_stack");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("shuffle_grip_and_heap_into_stack");
     });
 
     it("Sudden Commandment may play a non-terminal operation", () => {
       const def = getCardDef("sudden-commandment");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "may_play_nonterminal_operation_from_hq",
       );
     });
@@ -342,7 +343,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.94 Hearts / Warm Reception / Basalt / Juli / Alarm Clock", () => {
@@ -400,7 +401,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.95 Holo Man / Isaac / Kingmaking / Amelia / Cohort", () => {
@@ -452,19 +453,19 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.96 Business / Tributary / Meeting / Manuel / Window", () => {
 
     it("Business As Usual offers advancements or virus purge (+threat)", () => {
       const def = getCardDef("business-as-usual");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("place_advancements_on_up_to");
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("place_advancements_on_up_to");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "remove_all_virus_from_one_installed",
       );
-      expect(JSON.stringify(def.onPlay)).toContain('"op":"threat"');
+      expect(JSON.stringify(playEffectFromCard(def))).toContain('"op":"threat"');
     });
 
     it("Tributary moves on first run begin and fortifies", () => {
@@ -481,8 +482,8 @@ describe("rebellion-without-rehearsal", () => {
 
     it("Meeting of Minds resolves connection or virtual search", () => {
       const def = getCardDef("meeting-of-minds");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("resolve_meeting_of_minds");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("resolve_meeting_of_minds");
     });
 
     it("Manuel grants tagged HQ/R&D access and threat trash cost", () => {
@@ -493,8 +494,8 @@ describe("rebellion-without-rehearsal", () => {
 
     it("Window may install then derez/rez on the run", () => {
       const def = getCardDef("window-of-opportunity");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("may_install_from_grip");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("may_install_from_grip");
       expect(def.runEvent?.derezProtectingIceOnRunBegin).toBe(true);
       expect(def.runEvent?.mayRezEventDerezzedIceOnRunEndIgnoreCosts).toBe(true);
     });
@@ -506,7 +507,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.97 Sebastião / Cloud Eater / Descent / Nuvem / Sisyphus", () => {
@@ -558,7 +559,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.98 Eminent / Lightning / Brasília / Thunderbolt / Lycian", () => {
@@ -619,7 +620,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("RWR v0.99 Burner / Cataloguer / Muse / Jeitinho / Wizard's Chest", () => {
@@ -691,7 +692,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function must(

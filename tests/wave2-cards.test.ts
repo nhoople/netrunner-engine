@@ -16,6 +16,7 @@ import {
   validateEffectTree,
   assertPinnedTag,
   crDataPresent,
+  playEffectFromCard,
 } from "../src/index.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 
@@ -64,16 +65,16 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
       expect(catalog.has(id), id).toBe(true);
       const def = catalog.get(id)!;
       expect(["system-gateway", "system-update-2021"]).toContain(def.wave);
-      if (def.onPlay) expect(validateEffectTree(def.onPlay)).toBeNull();
+      if (playEffectFromCard(def)) expect(validateEffectTree(playEffectFromCard(def))).toBeNull();
       if (def.onScore) expect(validateEffectTree(def.onScore)).toBeNull();
     }
   });
 
   it("Sure Gamble / Diesel onPlay match printed economy", () => {
-    expect(getCardDef("sure-gamble").onPlay).toEqual(
+    expect(playEffectFromCard(getCardDef("sure-gamble"))).toEqual(
       fx.gainCredits("runner", 9),
     );
-    expect(getCardDef("diesel").onPlay).toEqual(fx.draw("runner", 3));
+    expect(playEffectFromCard(getCardDef("diesel"))).toEqual(fx.draw("runner", 3));
   });
 
   it("Gordian / Carmen break code gate and sentry respectively", () => {

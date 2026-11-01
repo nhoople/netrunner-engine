@@ -1421,6 +1421,10 @@ export interface CardInstance {
   mcaInformantHosted?: boolean;
   daemonHostInstallCreditDiscount?: number;
   basicDrawBonus?: number;
+  /** First basic draw each turn draws this many additional cards (Verbal Plasticity). */
+  additionalCardsOnFirstBasicDrawEachTurn?: number;
+  /** Corp turn end: gain this many credits if Archives has a facedown card. */
+  gainCreditOnCorpTurnEndIfArchivesHasFacedown?: number;
   polyhistorPassAllHqIceMayDrawForceCorpDraw?: boolean;
   maxwellJamesRequireAfterSuccessfulHqRunPaidWindow?: boolean;
   placePowerCounterOnInstallCardInRemoteRoot?: boolean;

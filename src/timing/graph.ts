@@ -36,7 +36,7 @@ import {
 import { resolveIceSubtypes } from "../state/continuousEffects.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { currentMark } from "../state/msKeywords.js";
-import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
+import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
 import {
   beginCorpTurnFlags,
   beginRunnerTurnFlags,
@@ -1003,14 +1003,20 @@ export const STEPS: Record<string, TimingStepDef> = {
     "corp.turnComplete",
     {
       onResolve: (s) => {
-        // Jinteki: Restoring Humanity — facedown Archives → gain 1¢
+        // When the Corp turn ends, gain credits if Archives has a facedown card.
         const idCard = s.cards[s.corp.identityId];
-        if (idCard?.defId === "jinteki-restoring-humanity") {
-          const facedown = s.corp.discardPile.some((id) => !s.cards[id].faceup);
-          if (facedown) {
-            s.corp.credits += 1;
-            log(s, `Jinteki: Restoring Humanity — gain 1¢ (facedown Archives).`);
-          }
+        const facedownGain = idCard?.gainCreditOnCorpTurnEndIfArchivesHasFacedown ?? 0;
+        if (
+          idCard &&
+          facedownGain > 0 &&
+          !abilitiesSuppressed(s, idCard.id) &&
+          s.corp.discardPile.some((id) => !s.cards[id].faceup)
+        ) {
+          s.corp.credits += facedownGain;
+          log(
+            s,
+            `${idCard.title} — gain ${facedownGain}¢ (facedown Archives).`,
+          );
         }
         // Klevetnik, the mark, and temporary subtypes expire at the next
         // checkpoint (CR 9.10.1 / 10.3.1b / 10.11.4).

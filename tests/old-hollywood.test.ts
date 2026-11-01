@@ -9,6 +9,7 @@ import {
   crDataPresent,
   getCardDef,
   loadCardCatalog,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("old-hollywood", () => {
@@ -18,7 +19,7 @@ describe("old-hollywood", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Old Hollywood v1.113.0 set-complete", () => {
@@ -43,14 +44,14 @@ describe("old-hollywood", () => {
       expect(getCardDef("enforcer-1-0").bioroidBreakMaxSubs).toBe(1);
       expect(getCardDef("enforcer-1-0").subroutines).toHaveLength(4);
       expect(getCardDef("its-a-trap").onExposeWhileInstalled).toBeTruthy();
-      expect(getCardDef("an-offer-you-cant-refuse").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("an-offer-you-cant-refuse"))).toBeTruthy();
       expect(
         getCardDef("haarpsichord-studios-entertainment-unleashed")
           .cannotStealMoreThanOneAgendaPerTurn,
       ).toBe(true);
       expect(getCardDef("award-bait").mustRevealWhenAccessedFromRd).toBe(true);
       expect(getCardDef("early-premiere").onTurnBegin).toBeTruthy();
-      expect(getCardDef("casting-call").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("casting-call"))).toBeTruthy();
       expect(getCardDef("old-hollywood-grid").persistent).toBe(true);
       expect(getCardDef("old-hollywood-grid").cannotStealUnlessCopyInRunnerScore).toBe(
         true,
@@ -60,7 +61,7 @@ describe("old-hollywood", () => {
         getCardDef("hollywood-renovation").placeAdvancementOnAnotherOnAdvance
           ?.default,
       ).toBe(1);
-      expect(getCardDef("back-channels").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("back-channels"))).toBeTruthy();
       expect(getCardDef("vanity-project").advancementRequirement).toBe(6);
       expect(getCardDef("vanity-project").agendaPoints).toBe(4);
     });

@@ -10,6 +10,7 @@ import {
   assertPinnedTag,
   crDataPresent,
   effectiveBreakerStrength,
+  playEffectFromCard,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
 
@@ -82,7 +83,7 @@ describe("Gateway partial closures", () => {
   it("Retribution requires tagged Runner and may trash hardware", () => {
     const def = getCardDef("retribution");
     expect(def.playRequiresTagged).toBe(true);
-    expect(def.onPlay).toEqual(fx.trashProgramOrHardware("choose"));
+    expect(playEffectFromCard(def)).toEqual(fx.trashProgramOrHardware("choose"));
   });
 
   it("Echelon gains strength per icebreaker", () => {

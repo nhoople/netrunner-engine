@@ -2,6 +2,7 @@
  * Conditional abilities whose card data is loaded and whose moment is a
  * shared procedure: the ability becomes pending when that moment happens.
  */
+import { playEffectFromCard } from "../effects/abilityRecord.js";
 import { evalEffect } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
 import { abilitiesSuppressed } from "./abilities.js";
@@ -56,6 +57,7 @@ function effectFromKey(
   if (key === "onArchivesFacedownTurnedFaceupGte") {
     return card.onArchivesFacedownTurnedFaceupGte?.effect;
   }
+  if (key === "onPlay") return playEffectFromCard(card);
   return card[key as keyof CardInstance] as Effect | undefined;
 }
 
