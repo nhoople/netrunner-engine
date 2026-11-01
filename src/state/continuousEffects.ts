@@ -301,10 +301,8 @@ export function collectSubtypeGrantEffects(
         targetIceId: card.hostId,
       });
     }
-    if (
-      grants.some((g) => g.kind === "host_grant_barrier") ||
-      card.hostGainsBarrierAndEtrSubroutine
-    ) {
+    // Decl array (or boolean fallback above) is authoritative — no extra OR.
+    if (grants.some((g) => g.kind === "host_grant_barrier")) {
       effects.push({
         kind: "host_grant_barrier",
         id: `host-barrier:${id}`,

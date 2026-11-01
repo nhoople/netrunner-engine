@@ -17,6 +17,32 @@ export type ContinuousGainedSub = {
   position: "before" | "after";
 };
 
+type GainedSubDeclKind =
+  | "fatuma_lose_click"
+  | "wetwork_hosted_before"
+  | "sub_boost_etr";
+
+/** Prefer M6 `continuousGainedSubDecls`; fall back to legacy one-off flags. */
+function hasGainedSubDecl(
+  card: GameState["cards"][string] | undefined,
+  kind: GainedSubDeclKind,
+): boolean {
+  if (!card) return false;
+  if ((card.continuousGainedSubDecls ?? []).some((d) => d.kind === kind)) {
+    return true;
+  }
+  if (kind === "fatuma_lose_click") {
+    return Boolean(card.bioroidIceGainsLoseClickSubroutineBeforeOthers);
+  }
+  if (kind === "sub_boost_etr") {
+    return Boolean(card.hostGainsBarrierAndEtrSubroutine);
+  }
+  if (kind === "wetwork_hosted_before") {
+    return (card.hostGainsSubroutinesBeforePrinted?.length ?? 0) > 0;
+  }
+  return false;
+}
+
 /** Warden Fatuma-class: bioroid ice gains lose-click before printed. */
 export function collectFatumaGainedSubs(
   state: GameState,
@@ -29,7 +55,7 @@ export function collectFatumaGainedSubs(
   const out: ContinuousGainedSub[] = [];
   for (const card of Object.values(state.cards)) {
     if (!card.rezzed) continue;
-    if (!card.bioroidIceGainsLoseClickSubroutineBeforeOthers) continue;
+    if (!hasGainedSubDecl(card, "fatuma_lose_click")) continue;
     if (abilitiesSuppressed(state, card.id)) continue;
     out.push({
       sourceId: card.id,
@@ -57,6 +83,7 @@ export function collectHostedConditionSubsBeforePrinted(
   for (const hid of ice.hostedCardIds ?? []) {
     if (abilitiesSuppressed(state, hid)) continue;
     const hosted = state.cards[hid];
+    if (!hasGainedSubDecl(hosted, "wetwork_hosted_before")) continue;
     for (const sub of hosted?.hostGainsSubroutinesBeforePrinted ?? []) {
       out.push({
         sourceId: hid,
@@ -82,7 +109,7 @@ export function collectSubBoostEtrSubs(
   for (const hid of ice.hostedCardIds ?? []) {
     if (abilitiesSuppressed(state, hid)) continue;
     const hosted = state.cards[hid];
-    if (!hosted?.hostGainsBarrierAndEtrSubroutine) continue;
+    if (!hasGainedSubDecl(hosted, "sub_boost_etr")) continue;
     out.push({
       sourceId: hid,
       iceId,
