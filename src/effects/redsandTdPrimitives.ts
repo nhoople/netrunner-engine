@@ -4,9 +4,9 @@ import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { enterLingeringPlayArea } from "../state/zones.js";
 import type { RuleCite, ServerId } from "../state/types.js";
-import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
+import { breakerStrength, iceStrength } from "./iceStrength.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 import {
   fireOnPlay,
@@ -56,20 +56,6 @@ function remoteIce(state: EffectCtx["state"]): string[] {
   return out;
 }
 
-function breakerStrength(state: EffectCtx["state"], sourceId: string): number {
-  const source = state.cards[sourceId];
-  if (!source) return 0;
-  const unused = Math.max(0, memoryLimit(state) - usedMemory(state));
-  const per = source.strengthBonusPerUnusedMu ?? 0;
-  return (
-    (source.breaker?.strength ?? source.strength ?? 0) +
-    unused * per +
-    (state.turn.breakerStrengthBoostsThisTurn[sourceId] ?? 0) +
-    (state.run?.strengthBoosts[sourceId] ?? 0) +
-    (state.run?.encounterStrengthBoosts[sourceId] ?? 0)
-  );
-}
-
 function breakOneSub(
   state: EffectCtx["state"],
   sourceId: string,
@@ -82,7 +68,7 @@ function breakOneSub(
   }
   const ice = state.cards[enc.iceId];
   const str = breakerStrength(state, sourceId);
-  const iceStr = ice?.strength ?? 0;
+  const iceStr = iceStrength(state, enc.iceId);
   if (str < iceStr) {
     return {
       ok: false,
@@ -346,7 +332,7 @@ export function applyRedsandTdPrimitive(
       if (isCodeGate && !isSentry) {
         // Break up to 2 code gate subs
         const str = breakerStrength(state, sourceId);
-        const iceStr = ice?.strength ?? 0;
+        const iceStr = iceStrength(state, enc.iceId);
         if (str < iceStr) {
           return {
             ok: false,

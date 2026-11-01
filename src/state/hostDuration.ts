@@ -233,21 +233,6 @@ function lingeringAmountOfKind(
   return n;
 }
 
-function takeBoost(
-  bucket: Record<string, number> | undefined,
-  breakerId: string,
-  amount: number,
-): number {
-  if (!bucket) return 0;
-  const have = bucket[breakerId] ?? 0;
-  const move = Math.min(have, amount);
-  if (move <= 0) return 0;
-  const left = have - move;
-  if (left <= 0) delete bucket[breakerId];
-  else bucket[breakerId] = left;
-  return move;
-}
-
 function rekindBreakerLingering(
   state: GameState,
   breakerId: string,
@@ -312,16 +297,6 @@ export function syncHostDurationReplacements(state: GameState): void {
       const move =
         before - lingeringAmountOfKind(state, rec.breakerId, fromKind);
       if (move <= 0) continue;
-      // Derived map mirrors stay in sync with registry.
-      takeBoost(
-        replacedTo === "run"
-          ? state.run?.strengthBoosts
-          : state.turn.breakerStrengthBoostsThisTurn,
-        rec.breakerId,
-        move,
-      );
-      const bucket = state.run.encounterStrengthBoosts;
-      bucket[rec.breakerId] = (bucket[rec.breakerId] ?? 0) + move;
       log(
         state,
         `${title} no longer replaces ${breaker}'s strength duration, so it lasts for this encounter (CR ${CR.replacementStaticMustRemainActive.number}).`,
@@ -338,15 +313,6 @@ export function syncHostDurationReplacements(state: GameState): void {
       const move =
         before - lingeringAmountOfKind(state, rec.breakerId, fromKind);
       if (move <= 0) continue;
-      takeBoost(
-        replacedTo === "run"
-          ? state.run?.strengthBoosts
-          : state.turn.breakerStrengthBoostsThisTurn,
-        rec.breakerId,
-        move,
-      );
-      state.run.strengthBoosts[rec.breakerId] =
-        (state.run.strengthBoosts[rec.breakerId] ?? 0) + move;
       log(
         state,
         `${title} no longer replaces ${breaker}'s strength duration, so it lasts for this run (CR ${CR.replacementStaticMustRemainActive.number}).`,
@@ -365,15 +331,6 @@ export function syncHostDurationReplacements(state: GameState): void {
       const move =
         before - lingeringAmountOfKind(state, rec.breakerId, fromKind);
       if (move <= 0) continue;
-      takeBoost(
-        replacedTo === "run"
-          ? state.run?.strengthBoosts
-          : state.turn.breakerStrengthBoostsThisTurn,
-        rec.breakerId,
-        move,
-      );
-      state.turn.breakerStrengthBoostsThisTurn[rec.breakerId] =
-        (state.turn.breakerStrengthBoostsThisTurn[rec.breakerId] ?? 0) + move;
       state.turn.revertedHostDurationBoosts = [
         ...(state.turn.revertedHostDurationBoosts ?? []),
         { breakerId: rec.breakerId, amount: move },
@@ -393,15 +350,7 @@ export function removeRevertedHostDurations(state: GameState): number {
   const list = state.turn.revertedHostDurationBoosts;
   if (!list?.length) return 0;
   let removed = 0;
-  const turn = state.turn.breakerStrengthBoostsThisTurn;
   for (const rec of list) {
-    const have = turn[rec.breakerId] ?? 0;
-    const drop = Math.min(have, rec.amount);
-    if (drop > 0) {
-      const left = have - drop;
-      if (left <= 0) delete turn[rec.breakerId];
-      else turn[rec.breakerId] = left;
-    }
     let leftLingering = rec.amount;
     for (const e of state.lingeringEffects) {
       if (leftLingering <= 0) break;
@@ -418,7 +367,7 @@ export function removeRevertedHostDurations(state: GameState): number {
       else payload.amount = rem;
       leftLingering -= take;
     }
-    if (drop > 0 || leftLingering < rec.amount) removed += 1;
+    if (leftLingering < rec.amount) removed += 1;
   }
   state.turn.revertedHostDurationBoosts = undefined;
   return removed;

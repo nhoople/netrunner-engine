@@ -6,9 +6,9 @@ import { addIceStrengthBoostThisTurn } from "../state/lingeringEffects.js";
 import { autoResolveTrace } from "../state/trace.js";
 import { chargeableInstalledIds, chargeCard } from "../state/msKeywords.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
-import { memoryLimit, usedMemory } from "../state/turn.js";
 import type { RuleCite, ServerId } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
+import { breakerStrength, iceStrength } from "./iceStrength.js";
 import { fx, type Primitive } from "./ir.js";
 
 type PrimResult =
@@ -414,15 +414,8 @@ export function applyLunarTsPrimitive(
           cites: [],
         };
       }
-      const unused = Math.max(0, memoryLimit(state) - usedMemory(state));
-      const per = source?.strengthBonusPerUnusedMu ?? 1;
-      const str =
-        (source?.breaker?.strength ?? source?.strength ?? 0) +
-        unused * per +
-        (state.turn.breakerStrengthBoostsThisTurn[sourceId] ?? 0) +
-        (state.run?.strengthBoosts[sourceId] ?? 0) +
-        (state.run?.encounterStrengthBoosts[sourceId] ?? 0);
-      const iceStr = ice?.strength ?? 0;
+      const str = breakerStrength(state, sourceId);
+      const iceStr = iceStrength(state, enc.iceId);
       if (str < iceStr) {
         return {
           ok: false,

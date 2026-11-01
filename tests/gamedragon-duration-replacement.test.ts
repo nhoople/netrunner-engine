@@ -14,6 +14,12 @@ import {
   instantiateCard,
   occurCheckpoint,
 } from "../src/index.js";
+import {
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  lingeringBreakerStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
+
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { moveRunnerCardToHeap } from "../src/state/trashHooks.js";
 import { CR } from "../src/timing/labels.js";
@@ -64,8 +70,8 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
         fx.do({ kind: "pump_strength", amount: 2 }),
       ).ok,
     ).toBe(true);
-    expect(s.run?.strengthBoosts["corr-1"]).toBe(2);
-    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBeUndefined();
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(0);
     expect(
       s.turn.hostDurationReplacements?.some((r) => r.replacedTo === "run"),
     ).toBe(true);
@@ -98,8 +104,8 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
     // Strength read syncs host-duration replacements (CR 9.9.9a).
     // Corroder 2 + encounter pump 2 (host +1 gone with Gamedragon).
     expect(breakerStrength(s, "corr-1")).toBe(4);
-    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBe(2);
-    expect(s.run?.strengthBoosts["corr-1"]).toBeUndefined();
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(0);
     expect(s.log.join("\n")).toContain(CR.replacementStaticMustRemainActive.number);
   });
 

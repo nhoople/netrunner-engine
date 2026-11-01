@@ -13,6 +13,13 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
+import {
+  LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  lingeringBreakerStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
+
 import type { GameState } from "../src/index.js";
 import { CR } from "../src/timing/labels.js";
 
@@ -66,8 +73,8 @@ describe("System Seizure duration replacement (CR 9.9.9)", () => {
     expect(s.pendingStrengthIncrease).toBeNull();
     expect(s.turn.systemSeizureFiredThisTurn).toBe(true);
     expect(s.run?.strengthDurationRunInsteadBreakerIds).toContain("corr-1");
-    expect(s.run?.strengthBoosts["corr-1"]).toBe(1);
-    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBeUndefined();
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(1);
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(0);
     const joined = s.log.join("\n");
     expect(joined).toContain("interrupt window");
     expect(joined).toContain(CR.ordinalWould.number);
@@ -78,8 +85,8 @@ describe("System Seizure duration replacement (CR 9.9.9)", () => {
       fx.do({ kind: "pump_strength", amount: 1 }),
     );
     expect(second.ok).toBe(true);
-    expect(s.run?.strengthBoosts["corr-1"]).toBe(2);
-    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBeUndefined();
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(0);
   });
 
   it("does not rewrite a second icebreaker's pumps until its own first increase", () => {
@@ -115,8 +122,8 @@ describe("System Seizure duration replacement (CR 9.9.9)", () => {
       ).ok,
     ).toBe(true);
     expect(s.run?.strengthDurationRunInsteadBreakerIds).toEqual(["corr-1"]);
-    expect(s.run?.encounterStrengthBoosts["gord-1"]).toBe(1);
-    expect(s.run?.strengthBoosts["gord-1"]).toBeUndefined();
+    expect(lingeringBreakerStrengthOfKind(s, "gord-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(1);
+    expect(lingeringBreakerStrengthOfKind(s, "gord-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(0);
   });
 
   it("counts the first would-increase outside a run without attaching a grant (CR 9.9.5a)", () => {
@@ -142,7 +149,7 @@ describe("System Seizure duration replacement (CR 9.9.9)", () => {
     ).toBe(true);
     expect(s.turn.systemSeizureFiredThisTurn).toBe(true);
     // Outside a run, encounter pumps fall back to checkpoint duration.
-    expect(s.turn.checkpointBreakerBoosts?.["corr-1"]).toBe(1);
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT)).toBe(1);
     expect(s.log.join("\n")).toContain("no run");
 
     encounterRun(s);
@@ -154,6 +161,6 @@ describe("System Seizure duration replacement (CR 9.9.9)", () => {
     ).toBe(true);
     // Already fired this turn — no grant on the later in-run pump.
     expect(s.run?.strengthDurationRunInsteadBreakerIds ?? []).toEqual([]);
-    expect(s.run?.encounterStrengthBoosts["corr-1"]).toBe(1);
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(1);
   });
 });

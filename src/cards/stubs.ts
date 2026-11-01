@@ -271,9 +271,11 @@ export function effectiveBreakerStrength(
       increases += mod.hostIcebreakerStrengthBonus;
     }
   }
-  // Temporary boosts: lingerings when present, else map seeds (M2).
+  // Temporary boosts: lingering registry only (single-write residual).
+  // Map fields remain for fortify/legacy seeds that never registered lingerings.
+  const fromLingering = lingeringBreakerStrengthBoost(state, breakerId);
   const temp = hasLingeringBreakerStrength(state, breakerId)
-    ? lingeringBreakerStrengthBoost(state, breakerId)
+    ? fromLingering
     : (state.turn.breakerStrengthBoostsThisTurn?.[breakerId] ?? 0) +
       (state.turn.checkpointBreakerBoosts?.[breakerId] ?? 0) +
       (state.run?.strengthBoosts?.[breakerId] ?? 0) +
@@ -723,10 +725,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     ) {
       return false;
     }
-    if (
-      e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER &&
-      !state.run?.encounter
-    ) {
+    if (e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER && !state.run) {
       return false;
     }
     return (e.payload as { iceId?: string } | undefined)?.iceId === iceId;

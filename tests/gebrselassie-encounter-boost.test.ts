@@ -14,6 +14,11 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
+import {
+  LINGERING_KIND_BREAKER_STRENGTH,
+  lingeringBreakerStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
+
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import type { GameState } from "../src/index.js";
 
@@ -63,7 +68,7 @@ describe("Gebrselassie encounter-boost rewrite (CR 9.9.9a)", () => {
       fx.do({ kind: "pump_takobi_resolve", cardId: "corr-1", amount: 3 }),
     );
     expect(r.ok).toBe(true);
-    expect(s.turn.breakerStrengthBoostsThisTurn["corr-1"]).toBe(3);
+    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH)).toBe(3);
     expect(s.run?.encounterStrengthBoosts["corr-1"]).toBeUndefined();
     expect(s.turn.hostDurationReplacements?.some((rec) => rec.breakerId === "corr-1")).toBe(
       true,

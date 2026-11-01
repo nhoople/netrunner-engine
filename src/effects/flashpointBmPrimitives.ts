@@ -6,6 +6,7 @@ import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { evalEffect } from "./eval.js";
+import { breakerStrength, iceStrength } from "./iceStrength.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
 type PrimResult =
@@ -95,12 +96,9 @@ export function applyFlashpointBmPrimitive(
       const ice = state.cards[enc.iceId];
       if (!ice || !(ice.subtypes ?? []).includes("barrier")) return { ok: true };
       // Printed: then, if this can interface with the barrier, break up to X
-      // (CR 1.2.1).
-      const str =
-        (source?.breaker?.strength ?? source?.strength ?? 0) +
-        (state.run.strengthBoosts[sourceId] ?? 0) +
-        (state.run.encounterStrengthBoosts[sourceId] ?? 0);
-      const iceStr = ice.strength ?? 0;
+      // (CR 1.2.1). Strength via shared CR 9.12.1a calculator (lingerings).
+      const str = breakerStrength(state, sourceId);
+      const iceStr = iceStrength(state, enc.iceId);
       if (str < iceStr) {
         log(
           state,
