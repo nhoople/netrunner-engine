@@ -16,14 +16,22 @@ import {
   beginBreachAccess,
   refreshRdDeckCandidate,
 } from "../state/access.js";
-import {
-  syncGainsSubroutinesBeforePrintedPerFaceupArchives,
-  syncGainsSubroutinesPerAdvancement,
-  syncNextSubtypeEtrSubs,
-} from "../state/powerCounters.js";
+import { syncNextSubtypeEtrSubs } from "../state/powerCounters.js";
 import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
-import { collectFatumaGainedSubs } from "../state/continuousSubs.js";
+import {
+  collectAdvancementGainedSubs,
+  collectBlockchainArchivesSubs,
+  collectBrainstormGripSubs,
+  collectFatumaGainedSubs,
+  collectHostedConditionSubsBeforePrinted,
+  collectNextOpalSubs,
+  collectSubBoostEtrSubs,
+  collectTourGuideEtrSubs,
+  collectWinchesterHqSubs,
+  applyContinuousGainedSubs,
+} from "../state/continuousSubs.js";
+import { resolveIceSubtypes } from "../state/continuousEffects.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import {
@@ -213,43 +221,29 @@ function clearTldrSubroutineCopies(state: GameState): void {
   }
 }
 
-/** Sub Boost: host ice gains barrier and an ETR subroutine after its others. */
+/**
+ * Sub Boost: host gains ETR after printed (collector). Barrier is a continuous
+ * subtype grant (host_grant_barrier) — do not mutate ice.subtypes.
+ */
 function syncHostedSubBoost(state: GameState, iceId: string): void {
   const ice = state.cards[iceId];
   if (!ice) return;
-  const hosted = (ice.hostedCardIds ?? []).filter(
-    (id) => state.cards[id]?.hostGainsBarrierAndEtrSubroutine,
-  );
+  const gained = collectSubBoostEtrSubs(state, iceId);
+  const keepIds = new Set(gained.map((g) => g.subId));
   ice.subroutines = (ice.subroutines ?? []).filter((sub) => {
     if (!sub.id.startsWith("sub-boost-etr-")) return true;
-    return hosted.some((id) => sub.id === `sub-boost-etr-${id}`);
+    return keepIds.has(sub.id);
   });
-  for (const hid of hosted) {
-    const id = `sub-boost-etr-${hid}`;
-    if (ice.subroutines.some((sub) => sub.id === id)) continue;
+  for (const g of gained) {
+    if (ice.subroutines.some((sub) => sub.id === g.subId)) continue;
     ice.subroutines.push({
-      id,
-      text: "End the run.",
-      effect: { op: "do", action: { kind: "end_the_run" } },
+      id: g.subId,
+      text: g.text,
+      effect: g.effect,
     });
     log(
       state,
-      `${ice.title} gains "End the run." after its other subroutines (${state.cards[hid]!.title}).`,
-    );
-  }
-  const printed = ice.defId
-    ? (getCardDef(ice.defId).subtypes ?? []).map((subtype) =>
-        subtype.toLowerCase(),
-      )
-    : [];
-  const hasBarrier = (ice.subtypes ?? []).some(
-    (subtype) => subtype.toLowerCase() === "barrier",
-  );
-  if (hosted.length > 0 && !hasBarrier) {
-    ice.subtypes = [...(ice.subtypes ?? []), "barrier"];
-  } else if (hosted.length === 0 && !printed.includes("barrier")) {
-    ice.subtypes = (ice.subtypes ?? []).filter(
-      (subtype) => subtype.toLowerCase() !== "barrier",
+      `${ice.title} gains "End the run." after its other subroutines (${state.cards[g.sourceId]?.title ?? g.sourceId}).`,
     );
   }
   const encounter = state.run?.encounter;
@@ -2379,86 +2373,75 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Chum — ${ice.title} gets +${chum.strengthBonus} strength this encounter.`,
           );
         }
-        // Winchester: while protecting HQ, gains extra printed subroutines.
-        if (
-          ice.gainsSubroutinesWhileProtectingHq &&
-          s.run?.attackedServerId === "hq" &&
-          !(runState as { winchesterHqSubsApplied?: boolean }).winchesterHqSubsApplied
-        ) {
-          if (!ice.baseSubroutines) {
-            ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
-          }
-          const extras = ice.gainsSubroutinesWhileProtectingHq.map((sub) => ({
-            ...structuredClone(sub),
-            id: `${sub.id}-hq`,
-          }));
-          ice.subroutines = [...(ice.baseSubroutines ?? []), ...extras];
-          runState.encounter = {
-            iceId,
-            broken: ice.subroutines.map(() => false),
-          };
-          (runState as { winchesterHqSubsApplied?: boolean }).winchesterHqSubsApplied =
-            true;
-          s.log.push(
-            `${ice.title} — gains ${extras.length} subroutine(s) while protecting HQ.`,
-          );
-        }
-        // Blockchain: gains floor(faceup Archives type+subtype / per) subs
-        // before printed (sync at encounter begin).
-        if (ice.gainsSubroutinesBeforePrintedPerFaceupArchives) {
-          const before = ice.subroutines?.length ?? 0;
-          syncGainsSubroutinesBeforePrintedPerFaceupArchives(s, ice);
-          const after = ice.subroutines?.length ?? 0;
-          runState.encounter = {
-            iceId,
-            broken: (ice.subroutines ?? []).map(() => false),
-          };
-          if (after !== before) {
-            s.log.push(
-              `${ice.title} — sync Archives-faceup gained subroutines (${after - (ice.baseSubroutines?.length ?? 0)} before printed).`,
-            );
-          }
-        }
-        // Wetwork Refit-class: hosted condition grants subs before printed.
+        // Continuous gained subs (M1 collectors) — one apply so families do not wipe each other.
         {
-          const hostedExtras: Array<{
-            id: string;
-            text: string;
-            effect: import("../effects/ir.js").Effect;
-          }> = [];
-          for (const hid of ice.hostedCardIds ?? []) {
-            const hosted = s.cards[hid];
-            for (const sub of hosted?.hostGainsSubroutinesBeforePrinted ?? []) {
-              hostedExtras.push({
-                ...structuredClone(sub),
-                id: `${sub.id}-${hid}`,
-              });
-            }
-          }
-          if (hostedExtras.length > 0) {
-            if (!ice.baseSubroutines) {
-              ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
-            }
-            ice.subroutines = [
-              ...hostedExtras,
-              ...(ice.baseSubroutines ?? []),
-            ];
+          const winchester = collectWinchesterHqSubs(s, iceId);
+          const winchesterFresh =
+            winchester.length > 0 &&
+            !(runState as { winchesterHqSubsApplied?: boolean })
+              .winchesterHqSubsApplied;
+          const continuous = [
+            ...winchester,
+            ...collectBlockchainArchivesSubs(s, iceId),
+            ...collectHostedConditionSubsBeforePrinted(s, iceId),
+            ...collectAdvancementGainedSubs(s, iceId),
+            ...collectNextOpalSubs(s, iceId),
+            ...collectTourGuideEtrSubs(s, iceId),
+          ];
+          const needsSync =
+            continuous.length > 0 ||
+            Boolean(ice.gainsSubroutinesBeforePrintedPerFaceupArchives) ||
+            Boolean(ice.gainsSubroutinesPerAdvancement) ||
+            Boolean(ice.gainsSubroutinesPerRezzedIceWithSubtype) ||
+            Boolean(ice.etrSubroutinesPerRezzedAsset);
+          if (needsSync) {
+            const beforeLen = ice.subroutines?.length ?? 0;
+            applyContinuousGainedSubs(s, iceId, continuous);
             runState.encounter = {
               iceId,
               broken: (ice.subroutines ?? []).map(() => false),
             };
-            s.log.push(
-              `${ice.title} — gains ${hostedExtras.length} hosted condition subroutine(s) before printed.`,
+            if (winchesterFresh) {
+              (runState as { winchesterHqSubsApplied?: boolean }).winchesterHqSubsApplied =
+                true;
+              s.log.push(
+                `${ice.title} — gains ${winchester.length} subroutine(s) while protecting HQ.`,
+              );
+            }
+            const blockchain = continuous.filter((g) =>
+              ice.gainsSubroutinesBeforePrintedPerFaceupArchives
+                ? g.subId.startsWith(
+                    `${ice.gainsSubroutinesBeforePrintedPerFaceupArchives.subroutine.id}-`,
+                  ) ||
+                  g.subId ===
+                    ice.gainsSubroutinesBeforePrintedPerFaceupArchives.subroutine
+                      .id
+                : false,
             );
+            if (
+              ice.gainsSubroutinesBeforePrintedPerFaceupArchives &&
+              (ice.subroutines?.length ?? 0) !== beforeLen
+            ) {
+              s.log.push(
+                `${ice.title} — sync Archives-faceup gained subroutines (${blockchain.length} before printed).`,
+              );
+            }
+            const wetworkN = collectHostedConditionSubsBeforePrinted(s, iceId).length;
+            if (wetworkN > 0) {
+              s.log.push(
+                `${ice.title} — gains ${wetworkN} hosted condition subroutine(s) before printed.`,
+              );
+            }
+            const opal = collectNextOpalSubs(s, iceId);
+            if (opal.length > 0 && ice.gainsSubroutinesPerRezzedIceWithSubtype) {
+              s.log.push(
+                `${ice.title} — gains ${opal.length} subroutine(s) from rezzed ${ice.gainsSubroutinesPerRezzedIceWithSubtype.subtype}.`,
+              );
+            }
           }
-        }
-        // Woodcutter/Tyrant: gains one sub per advancement.
-        if (ice.gainsSubroutinesPerAdvancement) {
-          syncGainsSubroutinesPerAdvancement(ice);
-          runState.encounter = {
-            iceId,
-            broken: (ice.subroutines ?? []).map(() => false),
-          };
+          if (ice.etrSubroutinesPerRezzedAsset) {
+            syncAllTourGuideSubs(s);
+          }
         }
         // Mass-Driver: first N subs of this encounter do not resolve.
         if (
@@ -2478,47 +2461,11 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Mass-Driver — first ${n} subroutine(s) of this encounter do not resolve.`,
           );
         }
-        // NEXT Opal: gains install-from-HQ sub per rezzed ice with subtype.
-        if (ice.gainsSubroutinesPerRezzedIceWithSubtype) {
-          const spec = ice.gainsSubroutinesPerRezzedIceWithSubtype;
-          if (!ice.baseSubroutines) {
-            ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
-          }
-          let n = 0;
-          for (const server of Object.values(s.servers)) {
-            for (const id of server.ice) {
-              const c = s.cards[id];
-              if (!c?.rezzed) continue;
-              if (
-                (c.subtypes ?? []).some(
-                  (t) => t.toLowerCase() === spec.subtype.toLowerCase(),
-                )
-              ) {
-                n += 1;
-              }
-            }
-          }
-          const extras = Array.from({ length: n }, (_, i) => ({
-            ...structuredClone(spec.subroutine),
-            id: `${spec.subroutine.id}-${i}`,
-          }));
-          ice.subroutines = [
-            ...structuredClone(ice.baseSubroutines),
-            ...extras,
-          ];
-          runState.encounter = {
-            iceId,
-            broken: (ice.subroutines ?? []).map(() => false),
-          };
-          if (n > 0) {
-            s.log.push(
-              `${ice.title} — gains ${n} subroutine(s) from rezzed ${spec.subtype}.`,
-            );
-          }
-        }
         // Berserker: +1 strength per barrier subroutine for remainder of encounter.
         if (
-          (ice.subtypes ?? []).some((t) => t.toLowerCase() === "barrier")
+          resolveIceSubtypes(s, iceId).some(
+            (t) => t.toLowerCase() === "barrier",
+          )
         ) {
           const subCount = ice.subroutines?.length ?? 0;
           for (const rid of s.runner.installed) {
@@ -2541,45 +2488,38 @@ export const STEPS: Record<string, TimingStepDef> = {
           ice.gainsSubroutinesOnEncounterEqualGripSize &&
           !(runState as { tlmBrainstormApplied?: boolean }).tlmBrainstormApplied
         ) {
-          const x = s.runner.hand.length;
-          if (!ice.baseSubroutines) {
-            ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
-          }
+          const brainstorm = collectBrainstormGripSubs(s, iceId);
           const template = ice.gainsSubroutinesOnEncounterEqualGripSize;
-          const extras = Array.from({ length: x }, (_, i) => ({
-            ...structuredClone(template),
-            id: `${template.id}-${i}`,
-          }));
-          // Drop extras left over from a previous run before adding this
-          // run's; the gain lasts only for the remainder of this run.
           const prior = (ice.subroutines ?? []).filter(
             (sub) => !sub.id.startsWith(`${template.id}-`),
           );
-          ice.subroutines = [...prior, ...extras];
+          if (!ice.baseSubroutines) {
+            ice.baseSubroutines = structuredClone(prior);
+          }
+          ice.subroutines = [
+            ...structuredClone(ice.baseSubroutines),
+            ...brainstorm.map((g) => ({
+              id: g.subId,
+              text: g.text,
+              effect: g.effect,
+            })),
+          ];
           const kept = runState.encounter?.broken ?? [];
           runState.encounter = {
             iceId,
             broken: [
-              ...kept.slice(0, (ice.subroutines?.length ?? 0) - extras.length),
-              ...extras.map(() => false),
+              ...kept.slice(
+                0,
+                (ice.subroutines?.length ?? 0) - brainstorm.length,
+              ),
+              ...brainstorm.map(() => false),
             ],
           };
           (runState as { tlmBrainstormApplied?: boolean }).tlmBrainstormApplied =
             true;
           s.log.push(
-            `${ice.title} gains ${x} "Do 1 core damage." subroutine(s) after the others (CR ${CR.subroutineOriginExternalAfter.number}).`,
+            `${ice.title} gains ${brainstorm.length} "Do 1 core damage." subroutine(s) after the others (CR ${CR.subroutineOriginExternalAfter.number}).`,
           );
-        }
-        // Tour Guide: sync ETR subs per rezzed asset at encounter begin.
-        if (
-          ice.etrSubroutinesPerRezzedAsset &&
-          !abilitiesSuppressed(s, iceId)
-        ) {
-          syncAllTourGuideSubs(s);
-          runState.encounter = {
-            iceId,
-            broken: (ice.subroutines ?? []).map(() => false),
-          };
         }
         syncWardenBeforeSubroutines(s, iceId);
         // Stick and Poke: first encounter each turn, ice gains a subroutine.

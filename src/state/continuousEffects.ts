@@ -239,6 +239,14 @@ export type HostSubtypeGrantEffect = {
   targetIceId: string;
 };
 
+/** Sub Boost-class: hosted condition grants barrier to its host ice. */
+export type HostBarrierGrantEffect = {
+  kind: "host_grant_barrier";
+  id: string;
+  sourceId: string;
+  targetIceId: string;
+};
+
 /**
  * Mother Goddess-class: rezzed ice gains subtypes of other rezzed ice
  * (including subtypes those ice only gained from earlier continuous grants).
@@ -252,6 +260,7 @@ export type MotherGoddessSubtypeEffect = {
 
 export type SubtypeGrantEffect =
   | HostSubtypeGrantEffect
+  | HostBarrierGrantEffect
   | MotherGoddessSubtypeEffect;
 
 /** Collect continuous subtype-grant effects (sources may later be blanked). */
@@ -260,23 +269,39 @@ export function collectSubtypeGrantEffects(
 ): SubtypeGrantEffect[] {
   const effects: SubtypeGrantEffect[] = [];
 
-  for (const id of state.runner.installed) {
+  for (const id of Object.keys(state.cards)) {
     const card = state.cards[id];
     if (!card?.hostId) continue;
+    const host = state.cards[card.hostId];
+    if (!host || host.type !== "ice") continue;
+
     const grants =
       card.continuousSubtypeGrants ??
       (card.hostGainsAllIceSubtypes
         ? [{ kind: "host_grant_bcs" as const }]
-        : []);
-    if (!grants.some((g) => g.kind === "host_grant_bcs")) continue;
-    const host = state.cards[card.hostId];
-    if (!host || host.type !== "ice") continue;
-    effects.push({
-      kind: "host_grant_bcs",
-      id: `host-bcs:${id}`,
-      sourceId: id,
-      targetIceId: card.hostId,
-    });
+        : card.hostGainsBarrierAndEtrSubroutine
+          ? [{ kind: "host_grant_barrier" as const }]
+          : []);
+
+    if (grants.some((g) => g.kind === "host_grant_bcs")) {
+      effects.push({
+        kind: "host_grant_bcs",
+        id: `host-bcs:${id}`,
+        sourceId: id,
+        targetIceId: card.hostId,
+      });
+    }
+    if (
+      grants.some((g) => g.kind === "host_grant_barrier") ||
+      card.hostGainsBarrierAndEtrSubroutine
+    ) {
+      effects.push({
+        kind: "host_grant_barrier",
+        id: `host-barrier:${id}`,
+        sourceId: id,
+        targetIceId: card.hostId,
+      });
+    }
   }
 
   for (const server of Object.values(state.servers)) {
@@ -356,6 +381,13 @@ export function resolveIceSubtypeMap(
     gainSubtype(counts, "barrier");
     gainSubtype(counts, "code gate");
     gainSubtype(counts, "sentry");
+  }
+
+  // Independent: Sub Boost-class barrier grant.
+  for (const e of grants) {
+    if (e.kind !== "host_grant_barrier") continue;
+    const counts = ensure(e.targetIceId);
+    gainSubtype(counts, "barrier");
   }
 
   // Encounter / turn / morph (local continuous; applied before MG copy).

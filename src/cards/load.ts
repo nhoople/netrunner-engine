@@ -3235,7 +3235,9 @@ export function instantiateCard(
       ? def.type === "ice"
         ? [{ kind: "copy_other_rezzed_ice_subtypes" as const }]
         : [{ kind: "host_grant_bcs" as const }]
-      : undefined,
+      : def.hostGainsBarrierAndEtrSubroutine
+        ? [{ kind: "host_grant_barrier" as const }]
+        : undefined,
     recurringSpendFor: def.recurringSpendFor
       ? [...def.recurringSpendFor]
       : undefined,

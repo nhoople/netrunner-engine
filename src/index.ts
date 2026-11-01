@@ -414,8 +414,16 @@ export type {
   SubtypeGrantEffect,
 } from "./state/continuousEffects.js";
 export {
+  applyContinuousGainedSubs,
+  collectAdvancementGainedSubs,
+  collectBlockchainArchivesSubs,
+  collectBrainstormGripSubs,
   collectFatumaGainedSubs,
   collectHostedConditionSubsBeforePrinted,
+  collectNextOpalSubs,
+  collectSubBoostEtrSubs,
+  collectTourGuideEtrSubs,
+  collectWinchesterHqSubs,
 } from "./state/continuousSubs.js";
 export type { ContinuousGainedSub } from "./state/continuousSubs.js";
 export { openPendingChoose } from "./state/pendingChoice.js";
