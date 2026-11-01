@@ -974,6 +974,25 @@ export interface CardDef {
   };
   runsCannotBeSuccessful?: boolean;
   hostGainsAllIceSubtypes?: boolean;
+  /**
+   * Continuous subtype grants (S6 / L1). Prefer card-supplied decls when
+   * present; otherwise projected from hostGainsAllIceSubtypes /
+   * hostGainsBarrierAndEtrSubroutine at instantiate.
+   */
+  continuousSubtypeGrants?: Array<
+    | { kind: "host_grant_bcs" }
+    | { kind: "host_grant_barrier" }
+    | { kind: "copy_other_rezzed_ice_subtypes" }
+  >;
+  /**
+   * Continuous gained-sub declarations (M6 / L1). Prefer card-supplied decls
+   * when present; otherwise projected from Fatuma / Wetwork / Sub Boost flags.
+   */
+  continuousGainedSubDecls?: Array<
+    | { kind: "fatuma_lose_click" }
+    | { kind: "wetwork_hosted_before" }
+    | { kind: "sub_boost_etr" }
+  >;
   recurringSpendFor?: Array<
     | "trash"
     | "trash_asset"
@@ -3231,21 +3250,27 @@ export function instantiateCard(
     runsCannotBeSuccessful: def.runsCannotBeSuccessful,
     maxAccessOtherThanSelf: def.maxAccessOtherThanSelf,
     hostGainsAllIceSubtypes: def.hostGainsAllIceSubtypes,
-    continuousSubtypeGrants: def.hostGainsAllIceSubtypes
-      ? def.type === "ice"
-        ? [{ kind: "copy_other_rezzed_ice_subtypes" as const }]
-        : [{ kind: "host_grant_bcs" as const }]
-      : def.hostGainsBarrierAndEtrSubroutine
-        ? [{ kind: "host_grant_barrier" as const }]
-        : undefined,
-    // M6: static continuous gained-sub declarations (Fatuma / Wetwork / Sub Boost).
-    continuousGainedSubDecls: def.bioroidIceGainsLoseClickSubroutineBeforeOthers
-      ? [{ kind: "fatuma_lose_click" as const }]
-      : def.hostGainsSubroutinesBeforePrinted
-        ? [{ kind: "wetwork_hosted_before" as const }]
-        : def.hostGainsBarrierAndEtrSubroutine
-          ? [{ kind: "sub_boost_etr" as const }]
-          : undefined,
+    // L1: prefer card-supplied continuous decls; else project from legacy flags.
+    continuousSubtypeGrants:
+      def.continuousSubtypeGrants && def.continuousSubtypeGrants.length > 0
+        ? structuredClone(def.continuousSubtypeGrants)
+        : def.hostGainsAllIceSubtypes
+          ? def.type === "ice"
+            ? [{ kind: "copy_other_rezzed_ice_subtypes" as const }]
+            : [{ kind: "host_grant_bcs" as const }]
+          : def.hostGainsBarrierAndEtrSubroutine
+            ? [{ kind: "host_grant_barrier" as const }]
+            : undefined,
+    continuousGainedSubDecls:
+      def.continuousGainedSubDecls && def.continuousGainedSubDecls.length > 0
+        ? structuredClone(def.continuousGainedSubDecls)
+        : def.bioroidIceGainsLoseClickSubroutineBeforeOthers
+          ? [{ kind: "fatuma_lose_click" as const }]
+          : def.hostGainsSubroutinesBeforePrinted
+            ? [{ kind: "wetwork_hosted_before" as const }]
+            : def.hostGainsBarrierAndEtrSubroutine
+              ? [{ kind: "sub_boost_etr" as const }]
+              : undefined,
     recurringSpendFor: def.recurringSpendFor
       ? [...def.recurringSpendFor]
       : undefined,

@@ -2624,16 +2624,18 @@ export interface CardInstance {
   /** Trojan: host ice gains barrier+code gate+sentry (Egret). */
   hostGainsAllIceSubtypes?: boolean;
   /**
-   * Continuous subtype grants for the 9.12 layer (standardization S6).
-   * Projected from `hostGainsAllIceSubtypes` at load until cards declare these
-   * directly. Prefer this over new one-off booleans for subtype continuous.
+   * Continuous subtype grants for the 9.12 layer (standardization S6 / L1).
+   * Prefer card-supplied decls; else projected from legacy flags at load.
    */
   continuousSubtypeGrants?: Array<
     | { kind: "host_grant_bcs" }
     | { kind: "host_grant_barrier" }
     | { kind: "copy_other_rezzed_ice_subtypes" }
   >;
-  /** Static continuous gained-sub declarations (framework migration M6). */
+  /**
+   * Static continuous gained-sub declarations (M6 / L1). Prefer card-supplied
+   * decls; else projected from Fatuma / Wetwork / Sub Boost flags at load.
+   */
   continuousGainedSubDecls?: Array<
     | { kind: "fatuma_lose_click" }
     | { kind: "wetwork_hosted_before" }
