@@ -18,7 +18,7 @@ describe("twenty-three-seconds", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("23 Seconds v1.122.0 set-complete", () => {

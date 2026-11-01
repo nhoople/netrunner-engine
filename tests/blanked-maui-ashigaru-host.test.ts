@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
-import { syncMauiRecurringCredits } from "../src/effects/redsandBawPrimitives.js";
+import { syncMauiRecurringCredits } from "../src/effects/primitives/chooseGainShuffle.js";
 import { syncCorpHandSizeSubroutines } from "../src/state/handSizeSubroutines.js";
 import { syncNextSubtypeEtrSubs } from "../src/state/powerCounters.js";
 import { suppressAbilities } from "../src/state/lingeringEffects.js";
@@ -21,7 +21,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.17");
+  assertCardsPinnedTag("v1.147.18");
 });
 
 describe("blanked Maui / Ashigaru / host (CR 9.12.1d)", () => {

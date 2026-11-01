@@ -345,6 +345,7 @@ export interface DeckEntry {
   influence?: number;
   faction?: string;
   type?: string;
+  agendaPoints?: number;
   deckLimit?: number;
   deckLimitOne?: boolean;
   zeroInfluenceIfIceInDeckLte?: number;
@@ -354,11 +355,47 @@ export interface DeckEntry {
   zeroInfluenceIfCardCopiesGte?: number;
 }
 
-/** Copies above a printed deck limit, and influence after a deckbuilding reduction. */
-export function deckbuildingReport(entries: DeckEntry[]): {
+/** Identity used only while building the deck (CR 1.4). It is not an entry. */
+export interface DeckIdentity {
+  side: "corp" | "runner";
+  faction?: string;
+  minimumDeckSize?: number;
+  influenceLimit?: number;
+}
+
+/**
+ * Agenda points a Corp deck of this size must total (CR 1.4.6a–d).
+ * Decks under 40 cards have no band; the minimum-size check is the failure.
+ */
+export function agendaPointBand(deckSize: number): { min: number; max: number } | null {
+  if (deckSize < 40) return null;
+  if (deckSize <= 44) return { min: 18, max: 19 };
+  if (deckSize <= 49) return { min: 20, max: 21 };
+  const extra = Math.floor((deckSize - 50) / 5) * 2;
+  return { min: 22 + extra, max: 23 + extra };
+}
+
+export interface DeckbuildingReport {
   overLimit: string[];
+  /** Printed influence × copies after a zero-influence reduction (CR 1.4.5a). */
   influence: number;
-} {
+  deckSize: number;
+  /** True when the deck is shorter than the identity minimum (CR 1.4.3). */
+  underMinimum: boolean;
+  /** True when influence exceeds the identity limit (CR 1.4.5). */
+  overInfluence: boolean;
+  agendaPoints: number;
+  agendaMin: number | null;
+  agendaMax: number | null;
+  /** True when a Corp deck of 40 or more cards is outside the agenda band (CR 1.4.6). */
+  agendaOutOfRange: boolean;
+}
+
+/** Copies above a printed deck limit, and influence after a deckbuilding reduction. */
+export function deckbuildingReport(
+  entries: DeckEntry[],
+  identity?: DeckIdentity,
+): DeckbuildingReport {
   const counts = new Map<string, number>();
   let ice = 0;
   let assets = 0;
@@ -413,5 +450,27 @@ export function deckbuildingReport(entries: DeckEntry[]): {
     }
     influence += cost * copies;
   }
-  return { overLimit, influence };
+  let agendaPoints = 0;
+  for (const entry of entries) {
+    if (entry.type === "agenda") agendaPoints += entry.agendaPoints ?? 0;
+  }
+  const deckSize = entries.length;
+  const underMinimum =
+    identity?.minimumDeckSize !== undefined && deckSize < identity.minimumDeckSize;
+  const overInfluence =
+    identity?.influenceLimit !== undefined && influence > identity.influenceLimit;
+  const band = identity?.side === "corp" ? agendaPointBand(deckSize) : null;
+  const agendaOutOfRange =
+    band !== null && (agendaPoints < band.min || agendaPoints > band.max);
+  return {
+    overLimit,
+    influence,
+    deckSize,
+    underMinimum,
+    overInfluence,
+    agendaPoints,
+    agendaMin: band?.min ?? null,
+    agendaMax: band?.max ?? null,
+    agendaOutOfRange,
+  };
 }

@@ -1464,6 +1464,10 @@ export interface CardDef {
   /** Terminal Directive (td) */
   daemonHostInstallCreditDiscount?: number;
   basicDrawBonus?: number;
+  /** First basic draw each turn draws this many additional cards (Verbal Plasticity). */
+  additionalCardsOnFirstBasicDrawEachTurn?: number;
+  /** Corp turn end: gain this many credits if Archives has a facedown card. */
+  gainCreditOnCorpTurnEndIfArchivesHasFacedown?: number;
   polyhistorPassAllHqIceMayDrawForceCorpDraw?: boolean;
   maxwellJamesRequireAfterSuccessfulHqRunPaidWindow?: boolean;
   placePowerCounterOnInstallCardInRemoteRoot?: boolean;
@@ -2906,6 +2910,10 @@ export function instantiateCard(
     mcaInformantHosted: def.mcaInformantHosted,
     daemonHostInstallCreditDiscount: def.daemonHostInstallCreditDiscount,
     basicDrawBonus: def.basicDrawBonus,
+    additionalCardsOnFirstBasicDrawEachTurn:
+      def.additionalCardsOnFirstBasicDrawEachTurn,
+    gainCreditOnCorpTurnEndIfArchivesHasFacedown:
+      def.gainCreditOnCorpTurnEndIfArchivesHasFacedown,
     polyhistorPassAllHqIceMayDrawForceCorpDraw:
       def.polyhistorPassAllHqIceMayDrawForceCorpDraw,
     maxwellJamesRequireAfterSuccessfulHqRunPaidWindow:

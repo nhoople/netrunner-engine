@@ -15,6 +15,7 @@ import {
   effectiveBreakerStrength,
   effectiveIceStrength,
   validateEffectTree,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("elevation", () => {
@@ -23,7 +24,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.01.0 kickoff", () => {
@@ -95,7 +96,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.02.0 A-slice", () => {
@@ -114,7 +115,7 @@ describe("elevation", () => {
       expect(b.mustRevealWhenAccessedFromRd).toBe(true);
       expect(b.skipOnAccessFromArchives).toBe(true);
       expect(b.onAccess).toBeDefined();
-      expect(getCardDef("nanomanagement").onPlay).toEqual(
+      expect(playEffectFromCard(getCardDef("nanomanagement"))).toEqual(
         fx.gainClicks("corp", 2),
       );
     });
@@ -150,7 +151,7 @@ describe("elevation", () => {
     });
 
     it("Top-Down / Illumination / Maglectric / Idiosyncresis / Devadatta", () => {
-      expect(getCardDef("top-down-solutions").onPlay).toBeDefined();
+      expect(playEffectFromCard(getCardDef("top-down-solutions"))).toBeDefined();
       expect(getCardDef("illumination").runEvent?.servers).toBe("rd");
       expect(getCardDef("maglectric-rapid-748-mod").onSuccessfulRun).toBeDefined();
       expect(getCardDef("idiosyncresis").canAdvance).toBe(true);
@@ -167,7 +168,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.03.0 B-slice", () => {
@@ -266,7 +267,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.04.0 B-slice", () => {
@@ -274,14 +275,14 @@ describe("elevation", () => {
     it("Lie Low is a double with draw/remove-tags choice", () => {
       const c = getCardDef("lie-low");
       expect(c.playAdditionalClick).toBe(true);
-      expect(c.onPlay?.op).toBe("choose");
+      expect(playEffectFromCard(c)?.op).toBe("choose");
     });
 
     it("Measured Response requires Threat 4 + successful run last turn", () => {
       const c = getCardDef("measured-response");
       expect(c.playRequiresThreat).toBe(4);
       expect(c.playRequiresSuccessfulRunLastTurn).toBe(true);
-      expect(c.onPlay?.op).toBe("choose");
+      expect(playEffectFromCard(c)?.op).toBe("choose");
     });
 
     it("Kessleroid cannot be trashed while rezzed; dual ETR", () => {
@@ -328,7 +329,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.05.0 B-slice", () => {
@@ -341,7 +342,7 @@ describe("elevation", () => {
     });
 
     it("Ritual draws per clicks remaining", () => {
-      expect(getCardDef("ritual").onPlay).toEqual({
+      expect(playEffectFromCard(getCardDef("ritual"))).toEqual({
         op: "do",
         action: {
           kind: "draw",
@@ -375,8 +376,8 @@ describe("elevation", () => {
     it("Scrounge is double: install from heap + may stack-bottom", () => {
       const c = getCardDef("scrounge");
       expect(c.playAdditionalClick).toBe(true);
-      expect(JSON.stringify(c.onPlay)).toContain("install_from_heap");
-      expect(JSON.stringify(c.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(c))).toContain("install_from_heap");
+      expect(JSON.stringify(playEffectFromCard(c))).toContain(
         "may_add_from_heap_to_stack_bottom",
       );
     });
@@ -389,7 +390,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.06.0 B-slice", () => {
@@ -402,7 +403,7 @@ describe("elevation", () => {
     });
 
     it("KPI chooses exactly 2 including ice install ignore costs", () => {
-      const onPlay = getCardDef("key-performance-indicators").onPlay;
+      const onPlay = playEffectFromCard(getCardDef("key-performance-indicators"));
       expect(JSON.stringify(onPlay)).toContain("choose_exactly_n");
       expect(JSON.stringify(onPlay)).toContain(
         "install_ice_from_hq_ignore_costs",
@@ -431,7 +432,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.07.0 B-slice", () => {
@@ -519,7 +520,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.08.0 B-slice", () => {
@@ -594,7 +595,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.09.0 B-slice", () => {
@@ -602,9 +603,9 @@ describe("elevation", () => {
     it("Touch-ups additional click + advancements + grip shuffle IR", () => {
       const c = getCardDef("touch-ups");
       expect(c.playAdditionalClick).toBe(true);
-      expect(JSON.stringify(c.onPlay)).toContain("place_advancements");
-      expect(JSON.stringify(c.onPlay)).toContain("choose_type_shuffle_grip");
-      expect(validateEffectTree(c.onPlay!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(c))).toContain("place_advancements");
+      expect(JSON.stringify(playEffectFromCard(c))).toContain("choose_type_shuffle_grip");
+      expect(validateEffectTree(playEffectFromCard(c)!)).toBeNull();
     });
 
     it("Knickknack first run begin trash-other printed install draw", () => {
@@ -654,7 +655,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.10.0 B-slice", () => {
@@ -680,7 +681,7 @@ describe("elevation", () => {
     it("Petty Cash gate + Archives paid ability", () => {
       const c = getCardDef("petty-cash");
       expect(c.playRequiresNoCorpActionFinished).toBe(true);
-      expect(JSON.stringify(c.onPlay)).toContain("played_from_non_hq");
+      expect(JSON.stringify(playEffectFromCard(c))).toContain("played_from_non_hq");
       expect(c.paidAbilities?.[0]?.usableFromArchives).toBe(true);
       expect(JSON.stringify(c.paidAbilities?.[0]?.effect)).toContain(
         "play_self_from_archives_then_rfg",
@@ -689,8 +690,8 @@ describe("elevation", () => {
 
     it("Peer Review single onPlay primitive", () => {
       const c = getCardDef("peer-review");
-      expect(JSON.stringify(c.onPlay)).toContain("peer_review");
-      expect(validateEffectTree(c.onPlay!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(c))).toContain("peer_review");
+      expect(validateEffectTree(playEffectFromCard(c)!)).toBeNull();
     });
   });
   });
@@ -701,7 +702,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.11.0 B-slice", () => {
@@ -715,8 +716,8 @@ describe("elevation", () => {
     it("Bigger Picture tagged gate + remove-tags mode", () => {
       const c = getCardDef("bigger-picture");
       expect(c.playRequiresTagged).toBe(true);
-      expect(JSON.stringify(c.onPlay)).toContain("remove_bigger_picture_tags");
-      expect(validateEffectTree(c.onPlay!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(c))).toContain("remove_bigger_picture_tags");
+      expect(validateEffectTree(playEffectFromCard(c)!)).toBeNull();
     });
 
     it("Aggressive Trendsetting scored hook + corp allotted click", () => {
@@ -742,7 +743,7 @@ describe("elevation", () => {
       expect(JSON.stringify(c.playAdditionalCost)).toContain(
         "remove_enforcement_tags",
       );
-      expect(JSON.stringify(c.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(c))).toContain(
         "install_from_runner_score",
       );
     });
@@ -791,7 +792,7 @@ describe("elevation", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Elevation v1.12.0 final B-slice", () => {

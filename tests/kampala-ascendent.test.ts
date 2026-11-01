@@ -10,6 +10,7 @@ import {
   getCardDef,
   loadCardCatalog,
   CARD_WAVE_DIRS,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("kampala-ascendent", () => {
@@ -19,7 +20,7 @@ describe("kampala-ascendent", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Kampala Ascendent v1.141.0 set-complete", () => {
@@ -64,7 +65,7 @@ describe("kampala-ascendent", () => {
       expect(
         getCardDef("flame-out").trashHostedProgramAtEndOfTurnIfHostedCreditsUsed,
       ).toBe(true);
-      expect(getCardDef("black-hat").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("black-hat"))).toBeTruthy();
       expect(
         getCardDef("kasi-string")
           .placePowerOnFirstSuccessfulRemoteRunEndIfBreachedNoSteal,

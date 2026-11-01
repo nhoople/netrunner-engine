@@ -14,6 +14,7 @@ import {
   instantiateCard,
   evalEffect,
   effectiveBreakerStrength,
+  playEffectFromCard,
 } from "../src/index.js";
 import type {
   GameState,
@@ -28,7 +29,7 @@ describe("future-proof", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("FP primitives IR validate", () => {
@@ -76,7 +77,7 @@ describe("future-proof", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Future Proof v1.93.0 set-complete", () => {
@@ -127,7 +128,7 @@ describe("future-proof", () => {
 
       const midseason = getCardDef("midseason-replacements");
       expect(midseason.playRequiresAgendaStolenLastTurn).toBe(true);
-      expect(JSON.stringify(midseason.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(midseason))).toContain(
         "give_tags_equal_to_last_trace_excess",
       );
 

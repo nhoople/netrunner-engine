@@ -10,6 +10,7 @@ import {
   fx,
   validateEffectTree,
   getCardDef,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("cyber-exodus", () => {
@@ -18,7 +19,7 @@ describe("cyber-exodus", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("CE may_gain_click_then_tag_at_turn_end", () => {
@@ -81,7 +82,7 @@ describe("cyber-exodus", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Cyber Exodus v1.90.0 set-complete", () => {
@@ -104,11 +105,11 @@ describe("cyber-exodus", () => {
         op: "do",
         action: { kind: "may_gain_click_then_tag_at_turn_end" },
       });
-      expect(getCardDef("sunset").onPlay).toMatchObject({
+      expect(playEffectFromCard(getCardDef("sunset"))).toMatchObject({
         op: "do",
         action: { kind: "choose_server_rearrange_ice" },
       });
-      expect(getCardDef("commercialization").onPlay).toMatchObject({
+      expect(playEffectFromCard(getCardDef("commercialization"))).toMatchObject({
         op: "do",
         action: { kind: "choose_ice_gain_credits_per_advancement" },
       });

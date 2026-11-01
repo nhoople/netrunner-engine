@@ -8,6 +8,7 @@ import {
   cardsDataPresent,
   crDataPresent,
   getCardDef,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("opening-moves", () => {
@@ -17,7 +18,7 @@ describe("opening-moves", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Opening Moves v1.95.0 set-complete", () => {
@@ -29,7 +30,7 @@ describe("opening-moves", () => {
       );
       expect(getCardDef("rook").iceRezCostIncreaseProtectingHostedServer).toBe(2);
       expect(getCardDef("pawn").caissaAdvanceOnSuccessfulRun).toBe(true);
-      expect(JSON.stringify(getCardDef("cyberdex-trial").onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(getCardDef("cyberdex-trial")))).toContain(
         "purge_virus_counters",
       );
       expect(getCardDef("swarm").canAdvance).toBe(true);

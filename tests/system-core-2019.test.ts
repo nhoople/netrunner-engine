@@ -24,6 +24,7 @@ import {
   effectiveIceSubtypes,
   isRunTargetAllowed,
   effectiveBreakerStrength,
+  playEffectFromCard,
 } from "../src/index.js";
 import {
   memoryLimit,
@@ -60,7 +61,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.59.0 kickoff", () => {
@@ -68,8 +69,8 @@ describe("system-core-2019", () => {
     it("Easy Mark gains 3¢ on play", () => {
       const def = getCardDef("easy-mark");
       expect(def.playCost).toBe(0);
-      expect(def.onPlay).toEqual(fx.gainCredits("runner", 3));
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toEqual(fx.gainCredits("runner", 3));
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       const state = createGame({ seed: 1 });
       const card = instantiateCard("easy-mark", "em1", "runner:grip");
@@ -86,8 +87,8 @@ describe("system-core-2019", () => {
     it("Beanstalk Royalties gains 3¢ on play", () => {
       const def = getCardDef("beanstalk-royalties");
       expect(def.playCost).toBe(0);
-      expect(def.onPlay).toEqual(fx.gainCredits("corp", 3));
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toEqual(fx.gainCredits("corp", 3));
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Wall of Static is a barrier with one ETR subroutine", () => {
@@ -125,7 +126,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.60.0 A-slice", () => {
@@ -165,8 +166,8 @@ describe("system-core-2019", () => {
     it("IPO gains 13¢ and ends the action phase", () => {
       const def = getCardDef("ipo");
       expect(def.endsActionPhase).toBe(true);
-      expect(def.onPlay).toEqual(fx.gainCredits("corp", 13));
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toEqual(fx.gainCredits("corp", 13));
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
   });
   });
@@ -177,7 +178,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.61.0 B-slice", () => {
@@ -212,10 +213,10 @@ describe("system-core-2019", () => {
     it("Blue Level Clearance is a double: +click, gain 5, draw 2", () => {
       const def = getCardDef("blue-level-clearance");
       expect(def.playAdditionalClick).toBe(true);
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.seq(fx.gainCredits("corp", 5), fx.draw("corp", 2)),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Adonis Campaign hosts 12¢ and takes 3¢ on turn begin", () => {
@@ -235,7 +236,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.62.0 C-slice", () => {
@@ -286,14 +287,14 @@ describe("system-core-2019", () => {
 
     it("Modded installs program/hardware from grip at −3", () => {
       const def = getCardDef("modded");
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.do({
           kind: "install_from_grip_discount",
           types: ["program", "hardware"],
           discount: 3,
         }),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Chaos Theory identity grants +1 MU via memoryLimit", () => {
@@ -321,7 +322,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.63.0 D-slice", () => {
@@ -390,10 +391,10 @@ describe("system-core-2019", () => {
 
     it("Special Order searches stack for an icebreaker", () => {
       const def = getCardDef("special-order");
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.do({ kind: "search_stack_icebreaker" }),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
   });
   });
@@ -404,7 +405,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.64.0 E-slice", () => {
@@ -451,14 +452,14 @@ describe("system-core-2019", () => {
     it("SEA Source gates on successful run last turn then Trace tag", () => {
       const def = getCardDef("sea-source");
       expect(def.playRequiresSuccessfulRunLastTurn).toBe(true);
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.do({
           kind: "trace",
           strength: 3,
           onSuccess: fx.giveTags(1),
         }),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Product Placement reveals from R&D and gains 2¢ on access", () => {
@@ -472,13 +473,13 @@ describe("system-core-2019", () => {
     it("Notoriety scores itself after all centrals", () => {
       const def = getCardDef("notoriety");
       expect(def.playRequiresSuccessfulAllCentralsThisTurn).toBe(true);
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.do({
           kind: "add_to_runner_score_as_agenda",
           agendaPoints: 1,
         }),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
   });
   });
@@ -489,7 +490,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.65.0 F-slice", () => {
@@ -506,10 +507,10 @@ describe("system-core-2019", () => {
     it("Quest Completed accesses one installed non-ice after all centrals", () => {
       const def = getCardDef("quest-completed");
       expect(def.playRequiresSuccessfulAllCentralsThisTurn).toBe(true);
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.do({ kind: "access_one_root_other_server" }),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Explode-a-palooza may gain 5¢ on access", () => {
@@ -547,7 +548,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.66.0 G-slice", () => {
@@ -627,8 +628,8 @@ describe("system-core-2019", () => {
     it("Closed Accounts requires a tag and drains the Runner credit pool", () => {
       const def = getCardDef("closed-accounts");
       expect(def.playRequiresTagged).toBe(true);
-      expect(def.onPlay).toEqual(fx.loseAllCredits("runner"));
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toEqual(fx.loseAllCredits("runner"));
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       const s = structuredClone(createInitialState());
       s.runner.credits = 7;
@@ -725,7 +726,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.69.0 H-slice", () => {
@@ -739,8 +740,8 @@ describe("system-core-2019", () => {
     it("Neural EMP requires a Runner run last turn and deals 1 net", () => {
       const def = getCardDef("neural-emp");
       expect(def.playRequiresRunnerMadeRunLastTurn).toBe(true);
-      expect(def.onPlay).toEqual(fx.netDamage(1));
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toEqual(fx.netDamage(1));
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Stronger Together grants +1 strength to bioroid ice", () => {
@@ -827,7 +828,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.69.0 I-slice", () => {
@@ -964,7 +965,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.69.0 J-slice", () => {
@@ -1088,7 +1089,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.70.0 K-slice", () => {
@@ -1199,7 +1200,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.71.0 L-slice", () => {
@@ -1290,7 +1291,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.72.0 M-slice", () => {
@@ -1360,8 +1361,8 @@ describe("system-core-2019", () => {
     it("Hostage searches stack for Connection and may install", () => {
       const def = getCardDef("hostage");
       expect(def.playAdditionalClick).toBe(true);
-      expect(def.onPlay).toEqual(fx.searchStackSubtypeMayInstall("connection"));
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toEqual(fx.searchStackSubtypeMayInstall("connection"));
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       const s = structuredClone(createInitialState());
       s.runner.credits = 5;
@@ -1382,14 +1383,14 @@ describe("system-core-2019", () => {
 
     it("Tinkering grants chosen ice subtypes until end of turn", () => {
       const def = getCardDef("tinkering");
-      expect(def.onPlay).toEqual(
+      expect(playEffectFromCard(def)).toEqual(
         fx.grantChosenIceSubtypesUntilEndOfTurn([
           "sentry",
           "code gate",
           "barrier",
         ]),
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       const s = structuredClone(createInitialState());
       const ice = instantiateCard("ice-wall", "iw", "server:hq:ice");
@@ -1429,7 +1430,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.73.0 N-slice", () => {
@@ -1454,11 +1455,11 @@ describe("system-core-2019", () => {
     it("Queen's Gambit places up to 3 and blocks access", () => {
       const def = getCardDef("queens-gambit");
       expect(def.playAdditionalClick).toBe(true);
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "do",
         action: { kind: "place_up_to", max: 3, creditsPer: 2 },
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       const s = structuredClone(createInitialState());
       s.servers["remote-1"] = {
@@ -1562,7 +1563,7 @@ describe("system-core-2019", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("System Core 2019 v1.74.0 O-slice set-complete", () => {
@@ -1712,11 +1713,11 @@ describe("system-core-2019", () => {
       expect(getCardDef("crypsis").removeVirusOrTrashOnEncounterEndIfBroke).toBe(
         true,
       );
-      expect(getCardDef("oversight-ai").onPlay).toEqual({
+      expect(playEffectFromCard(getCardDef("oversight-ai"))).toEqual({
         op: "do",
         action: { kind: "rez_and_host" },
       });
-      expect(validateEffectTree(getCardDef("oversight-ai").onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(getCardDef("oversight-ai"))!)).toBeNull();
       const deus = getCardDef("deus-x");
       expect(deus.paidAbilities?.some((a) => a.cost?.trashSelf)).toBe(true);
       expect(

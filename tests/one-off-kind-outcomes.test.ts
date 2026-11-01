@@ -12,6 +12,7 @@ import {
   getCardDef,
   instantiateCard,
   resolveTrace,
+  playEffectFromCard,
 } from "../src/index.js";
 import { LINGERING_KIND_ABILITY_BLANK, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER, LINGERING_KIND_BREAKER_STRENGTH_RUN, LINGERING_KIND_ICE_STRENGTH, LINGERING_KIND_ICE_STRENGTH_ENCOUNTER, lingeringBreakerStrengthOfKind, lingeringEffectsOfKind, lingeringIceStrengthOfKind, lingeringRunnerMuModifier } from "../src/state/lingeringEffects.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
@@ -27,7 +28,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.17");
+  assertCardsPinnedTag("v1.147.18");
 });
 
 function put(
@@ -2380,7 +2381,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "sure-gamble", "heap-3", "runner:discard");
     s.runner.discardPile = ["heap-1", "heap-2", "heap-3"];
     s.runner.credits = 3;
-    const onPlay = getCardDef("power-nap").onPlay;
+    const onPlay = playEffectFromCard(getCardDef("power-nap"));
     if (!onPlay) throw new Error("power-nap has no onPlay effect");
     const r = evalEffect({ state: s, sourceId: "pn-1" }, onPlay);
     if (!r.ok) throw new Error(r.error);

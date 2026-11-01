@@ -10,6 +10,7 @@ import {
   getCardDef,
   loadCardCatalog,
   CARD_WAVE_DIRS,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("the-devil-and-the-dragon", () => {
@@ -19,7 +20,7 @@ describe("the-devil-and-the-dragon", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("The Devil and the Dragon v1.139.0 set-complete", () => {
@@ -42,7 +43,7 @@ describe("the-devil-and-the-dragon", () => {
       expect(
         getCardDef("419-amoral-scammer").mayExposeFirstCorpInstallEachTurnUnlessCorpPays,
       ).toBe(1);
-      expect(getCardDef("falsified-credentials").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("falsified-credentials"))).toBeTruthy();
       expect(getCardDef("rogue-trading").hostedCreditsOnInstall).toBe(18);
       expect(getCardDef("rogue-trading").trashWhenHostedCreditsEmpty).toBe(true);
       expect(getCardDef("because-i-can").runEvent?.servers).toBe("remote");

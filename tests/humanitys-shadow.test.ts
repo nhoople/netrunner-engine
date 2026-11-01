@@ -11,6 +11,7 @@ import {
   validateEffectTree,
   getCardDef,
   startingHandSizeFor,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("humanitys-shadow", () => {
@@ -19,7 +20,7 @@ describe("humanitys-shadow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("HS primitives IR validate", () => {
@@ -62,7 +63,7 @@ describe("humanitys-shadow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Humanity's Shadow v1.92.0 set-complete", () => {
@@ -80,7 +81,7 @@ describe("humanitys-shadow", () => {
       expect(getCardDef("surge").playRequiresVirusCounterPlacedOnProgramThisTurn).toBe(
         true,
       );
-      expect(JSON.stringify(getCardDef("surge").onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(getCardDef("surge")))).toContain(
         "place_virus_on_program_that_received_virus_this_turn",
       );
 
@@ -89,7 +90,7 @@ describe("humanitys-shadow", () => {
       expect(pher.recurringSpendFor).toEqual(["run_hq"]);
       expect(JSON.stringify(pher.onSuccessfulRun)).toContain("attacking_hq");
 
-      expect(JSON.stringify(getCardDef("quality-time").onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(getCardDef("quality-time")))).toContain(
         '"amount":5',
       );
 
@@ -101,7 +102,7 @@ describe("humanitys-shadow", () => {
       expect(getCardDef("creeper").breaker?.breaksSubtype).toBe("sentry");
 
       expect(getCardDef("kraken").playRequiresAgendaStolenThisTurn).toBe(true);
-      expect(JSON.stringify(getCardDef("kraken").onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(getCardDef("kraken")))).toContain(
         "choose_server_corp_trash_ice_protecting",
       );
 
@@ -109,7 +110,7 @@ describe("humanitys-shadow", () => {
       expect(JSON.stringify(eve.onRez)).toContain("place_hosted_credits");
       expect(JSON.stringify(eve.onTurnBegin)).toContain("take_hosted_credits");
 
-      expect(JSON.stringify(getCardDef("rework").onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(getCardDef("rework")))).toContain(
         "shuffle_hq_to_rd",
       );
 
@@ -134,7 +135,7 @@ describe("humanitys-shadow", () => {
       ]);
       expect(getCardDef("simone-diego").recurringCreditsMax).toBe(2);
 
-      expect(JSON.stringify(getCardDef("foxfire").onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(getCardDef("foxfire")))).toContain(
         "trash_virtual_resource_or_link_card",
       );
     });

@@ -69,15 +69,14 @@ export function fireOnRez(state: GameState, cardId: string): boolean {
  * Note a card's play ability for the CR 8.6.7e play checkpoint (CR 9.3.7d /
  * 10.3.1a). Caller must open that checkpoint next; on-play marks there and
  * resolves at 8.6.7f (see resolveNotedPlayAbilities / play.ts).
- * The play record is the source. Copy it onto `onPlay` so the
- * stored_conditional resume path can read effectKey "onPlay".
+ * The play record is the source. Resume reads effectKey "onPlay" through
+ * playEffectFromCard.
  */
 export function fireOnPlay(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
   if (!card) return false;
   const effect = playEffectFromCard(card);
   if (!effect) return false;
-  card.onPlay = effect;
   // Play abilities may resolve after the card is trashed (8.6.7g) or from
   // effect-path shortcuts that archive first — keep the mark (CR 9.6.13c).
   noteStoredConditional(state, {

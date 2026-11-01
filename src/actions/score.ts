@@ -20,7 +20,7 @@ import {
   fireWouldTakeBadPublicity,
 } from "../state/storedTriggers.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
-import { fireTdatdOnAgendaAccessedOrScored } from "../effects/kitaraTdatdPrimitives.js";
+import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import { canScoreAgenda, checkWinConditions, scoreAgenda } from "../state/scoring.js";
 import { syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import {

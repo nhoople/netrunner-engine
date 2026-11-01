@@ -10,13 +10,14 @@ import {
   supportedCardIds,
   validateEffectTree,
   fx,
+  playEffectFromCard,
 } from "../src/index.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.17");
+  assertCardsPinnedTag("v1.147.18");
 });
 
 describe("card data model", () => {
@@ -69,8 +70,8 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
     for (const id of supportedCardIds()) {
       expect(catalog.has(id), id).toBe(true);
       const def = catalog.get(id)!;
-      if (def.onPlay) {
-        expect(validateEffectTree(def.onPlay)).toBeNull();
+      if (playEffectFromCard(def)) {
+        expect(validateEffectTree(playEffectFromCard(def))).toBeNull();
       }
       for (const sub of def.subroutines ?? []) {
         expect(validateEffectTree(sub.effect)).toBeNull();
@@ -90,6 +91,6 @@ describe("card corpus Gateway + SU21 + Midnight Sun", () => {
   it("Hedge Fund onPlay is gain 9 credits", () => {
     const def = getCardDef("hedge-fund");
     expect(def.playCost).toBe(5);
-    expect(def.onPlay).toEqual(fx.gainCredits("corp", 9));
+    expect(playEffectFromCard(def)).toEqual(fx.gainCredits("corp", 9));
   });
 });

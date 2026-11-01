@@ -1,14 +1,19 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import {
+  applyAction,
   assertCardsPinnedTag,
   assertPinnedTag,
+  autoWalk,
   cardsDataPresent,
   createInitialState,
   crDataPresent,
+  enterStep,
   evalEffect,
   fx,
   instantiateCard,
 } from "../src/index.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import type { GameState } from "../src/state/types.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/handSize.js";
@@ -21,7 +26,7 @@ import { CR } from "../src/timing/labels.js";
 
 describe("static declarations", () => {
   beforeAll(() => {
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
     assertPinnedTag("v26.03");
   });
 
@@ -99,5 +104,139 @@ describe("static declarations", () => {
     ]);
     expect(report.overLimit).toContain("fifteen-minutes");
     expect(report.influence).toBe(4);
+    expect(report.deckSize).toBe(4);
+    expect(report.underMinimum).toBe(false);
+    expect(report.agendaOutOfRange).toBe(false);
+  });
+
+  it("checks minimum deck size, influence, and the Corp agenda band (CR 1.4.3, 1.4.5, 1.4.6)", () => {
+    const identity = {
+      side: "corp" as const,
+      faction: "haas-bioroid",
+      minimumDeckSize: 45,
+      influenceLimit: 15,
+    };
+    const short = deckbuildingReport(
+      Array.from({ length: 39 }, (_, i) => ({
+        defId: `card-${i}`,
+        influence: 0,
+        faction: "haas-bioroid",
+      })),
+      identity,
+    );
+    expect(short.underMinimum).toBe(true);
+    expect(short.agendaMin).toBe(null);
+
+    const legal = deckbuildingReport(
+      [
+        ...Array.from({ length: 43 }, (_, i) => ({
+          defId: `ice-${i}`,
+          type: "ice",
+          influence: i === 0 ? 16 : 0,
+          faction: i === 0 ? "jinteki" : "haas-bioroid",
+        })),
+        { defId: "ag-a", type: "agenda", agendaPoints: 10, influence: 0 },
+        { defId: "ag-b", type: "agenda", agendaPoints: 10, influence: 0 },
+      ],
+      identity,
+    );
+    expect(legal.deckSize).toBe(45);
+    expect(legal.underMinimum).toBe(false);
+    expect(legal.influence).toBe(16);
+    expect(legal.overInfluence).toBe(true);
+    expect(legal.agendaPoints).toBe(20);
+    expect(legal.agendaMin).toBe(20);
+    expect(legal.agendaMax).toBe(21);
+    expect(legal.agendaOutOfRange).toBe(false);
+
+    const wide = deckbuildingReport(
+      Array.from({ length: 66 }, (_, i) => ({
+        defId: i < 14 ? `ag-${i}` : `card-${i}`,
+        type: i < 14 ? "agenda" : "ice",
+        agendaPoints: i < 14 ? 2 : 0,
+        influence: 0,
+      })),
+      { side: "corp", minimumDeckSize: 40, influenceLimit: 15 },
+    );
+    expect(wide.agendaPoints).toBe(28);
+    expect(wide.agendaMin).toBe(28);
+    expect(wide.agendaMax).toBe(29);
+    expect(wide.agendaOutOfRange).toBe(false);
+
+    const runner = deckbuildingReport(
+      [{ defId: "sure-gamble", influence: 0 }],
+      { side: "runner", minimumDeckSize: 45, influenceLimit: 15 },
+    );
+    expect(runner.underMinimum).toBe(true);
+    expect(runner.agendaMin).toBe(null);
+    expect(runner.agendaOutOfRange).toBe(false);
+  });
+
+  it("draws one extra card on the first basic draw from the declaration", () => {
+    let s = createInitialState();
+    const card = instantiateCard("sure-gamble", "vp", "runner:installed");
+    card.additionalCardsOnFirstBasicDrawEachTurn = 1;
+    card.title = "Verbal Plasticity";
+    card.defId = "sure-gamble";
+    s.cards["vp"] = card;
+    s.runner.installed = ["vp"];
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    s.runner.clicks = 1;
+    const hand = s.runner.hand.length;
+    s = must(s, { type: "basic_draw" });
+    expect(s.runner.hand).toHaveLength(hand + 2);
+    expect(s.log.some((line) => line.includes("Verbal Plasticity — first basic draw is 2."))).toBe(true);
+
+    const named = createInitialState();
+    const shell = instantiateCard("sure-gamble", "shell", "runner:installed");
+    shell.defId = "verbal-plasticity";
+    shell.additionalCardsOnFirstBasicDrawEachTurn = undefined;
+    named.cards["shell"] = shell;
+    named.runner.installed = ["shell"];
+    named.activeSide = "runner";
+    named.timingKey = "runner.takeAction";
+    named.runner.clicks = 1;
+    const namedHand = named.runner.hand.length;
+    const drawn = must(named, { type: "basic_draw" });
+    expect(drawn.runner.hand).toHaveLength(namedHand + 1);
+  });
+
+  it("gains a credit at Corp turn end when Archives has a facedown card", () => {
+    const s = createInitialState();
+    const id = s.cards[s.corp.identityId]!;
+    id.gainCreditOnCorpTurnEndIfArchivesHasFacedown = 1;
+    id.title = "Jinteki: Restoring Humanity";
+    const facedown = instantiateCard("hedge-fund", "arch-1", "corp:discard");
+    facedown.faceup = false;
+    s.cards["arch-1"] = facedown;
+    s.corp.discardPile = ["arch-1"];
+    const before = s.corp.credits;
+    s.timingKey = "corp.loseClicks";
+    enterStep(s, "corp.turnEnds");
+    autoWalk(s);
+    expect(s.corp.credits).toBe(before + 1);
+    expect(s.log.join("\n")).toContain("facedown Archives");
+
+    const blank = createInitialState();
+    const blankId = blank.cards[blank.corp.identityId]!;
+    blankId.gainCreditOnCorpTurnEndIfArchivesHasFacedown = 1;
+    blankId.defId = "jinteki-restoring-humanity";
+    suppressAbilities(blank, blankId.id);
+    const hidden = instantiateCard("hedge-fund", "arch-2", "corp:discard");
+    hidden.faceup = false;
+    blank.cards["arch-2"] = hidden;
+    blank.corp.discardPile = ["arch-2"];
+    const blankCredits = blank.corp.credits;
+    blank.timingKey = "corp.loseClicks";
+    enterStep(blank, "corp.turnEnds");
+    autoWalk(blank);
+    expect(blank.corp.credits).toBe(blankCredits);
   });
 });
+
+function must(state: GameState, action: Parameters<typeof applyAction>[1]): GameState {
+  const result = applyAction(state, action);
+  if (!result.ok) throw new Error(result.error);
+  return result.state;
+}

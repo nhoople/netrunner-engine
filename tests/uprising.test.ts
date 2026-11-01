@@ -20,6 +20,7 @@ import {
   stealAdditionalCreditsFromActiveLockdowns,
   trashActiveLockdownsAtCorpTurnBegin,
   stealAgenda,
+  playEffectFromCard,
 } from "../src/index.js";
 import type {
   Action,
@@ -49,7 +50,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.35.0 kickoff", () => {
@@ -111,7 +112,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.36.0 A-slice", () => {
@@ -173,7 +174,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.37.1 B-slice", () => {
@@ -232,7 +233,7 @@ describe("uprising", () => {
         op: "do",
         action: { kind: "trash_n_from_grip", amount: 3 },
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Cyberdex Sandbox gains on first purge and may purge on score", () => {
@@ -274,7 +275,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.38.1 C-slice", () => {
@@ -344,7 +345,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.39.0 D-slice", () => {
@@ -425,7 +426,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.42.0 E-slice", () => {
@@ -453,8 +454,8 @@ describe("uprising", () => {
     it("Scapenet traces then RFGs installed chip/virtual", () => {
       const def = getCardDef("scapenet");
       expect(def.playRequiresSuccessfulRunLastTurn).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "rfg_installed_with_any_subtype",
       );
     });
@@ -470,11 +471,11 @@ describe("uprising", () => {
 
     it("Harmony AR Therapy shuffles distinct heap titles then RFGs self", () => {
       const def = getCardDef("harmony-ar-therapy");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "shuffle_up_to_n_distinct_heap_titles_into_stack",
       );
-      expect(JSON.stringify(def.onPlay)).toContain("rfg_self");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("rfg_self");
     });
   });
   });
@@ -485,7 +486,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.42.0 F-slice", () => {
@@ -555,7 +556,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.42.0 G-slice", () => {
@@ -636,7 +637,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Uprising v1.43.0 H-slice", () => {
@@ -720,7 +721,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function must(state: GameState, action: Action): GameState {
@@ -759,8 +760,8 @@ describe("uprising", () => {
 
     it("Hyoubu wires choose_server + psi on chosen successful run", () => {
       const def = getCardDef("hyoubu-precog-manifold");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("choose_server");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("choose_server");
       expect(validateEffectTree(def.onSuccessfulRun!)).toBeNull();
       expect(JSON.stringify(def.onSuccessfulRun)).toContain(
         "attacking_chosen_server",
@@ -1023,7 +1024,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function must(state: GameState, action: Action): GameState {
@@ -1117,12 +1118,12 @@ describe("uprising", () => {
     it("DRM wires no-HQ-last-turn gate + search + remote install + forbid score", () => {
       const def = getCardDef("digital-rights-management");
       expect(def.playRequiresNoSuccessfulHqRunLastTurn).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(JSON.stringify(def.onPlay)).toContain("search_rd_type_to_hq");
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("search_rd_type_to_hq");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "may_install_from_hq_in_remote_root_paying_costs",
       );
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "forbid_scoring_agendas_this_turn",
       );
     });
@@ -1348,7 +1349,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function must(state: GameState, action: Action): GameState {
@@ -1523,8 +1524,8 @@ describe("uprising", () => {
     it("Kakurenbo wires triple + HQ trash + facedown + install+adv + RFG", () => {
       const def = getCardDef("kakurenbo");
       expect(def.playAdditionalClicks).toBe(2);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      const js = JSON.stringify(def.onPlay);
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      const js = JSON.stringify(playEffectFromCard(def));
       expect(js).toContain("trash_any_number_from_hq");
       expect(js).toContain("turn_all_archives_facedown");
       expect(js).toContain(

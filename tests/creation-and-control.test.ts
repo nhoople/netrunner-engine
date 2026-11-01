@@ -13,6 +13,7 @@ import {
   validateEffectTree,
   CardInstance,
   getCardDef,
+  playEffectFromCard,
 } from "../src/index.js";
 import {
   resolveAndAdvance,
@@ -24,7 +25,7 @@ describe("creation-and-control", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Alix T4LB07 gain_credits_per_power_counter", () => {
@@ -562,7 +563,7 @@ describe("creation-and-control", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Creation and Control v1.95.0 set-complete", () => {
@@ -580,7 +581,7 @@ describe("creation-and-control", () => {
       expect(JSON.stringify(getCardDef("escher").runEvent)).toContain(
         "may_breach_instead_escher",
       );
-      expect(JSON.stringify(getCardDef("bioroid-efficiency-research").onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(getCardDef("bioroid-efficiency-research")))).toContain(
         "rez_bioroid_and_host",
       );
       expect(getCardDef("cyber-cypher").interfaceRequiresChosenServer).toBe(true);

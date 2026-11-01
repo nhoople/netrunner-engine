@@ -9,6 +9,7 @@ import {
   crDataPresent,
   getCardDef,
   loadCardCatalog,
+  playEffectFromCard,
 } from "../src/index.js";
 
 describe("council-of-the-crest", () => {
@@ -18,7 +19,7 @@ describe("council-of-the-crest", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Council of the Crest v1.138.0 set-complete", () => {
@@ -49,7 +50,7 @@ describe("council-of-the-crest", () => {
       expect(
         getCardDef("code-replicator").onPassRezzedIceProtectingThisServer,
       ).toBeTruthy();
-      expect(getCardDef("reverse-infection").onPlay).toBeTruthy();
+      expect(playEffectFromCard(getCardDef("reverse-infection"))).toBeTruthy();
       expect(getCardDef("azmari-edtech-shaping-the-future").type).toBe("identity");
       expect(
         getCardDef("azmari-edtech-shaping-the-future")

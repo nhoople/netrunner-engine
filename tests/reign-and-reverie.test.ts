@@ -19,6 +19,7 @@ import {
   releaseHostedCardsOnTrash,
   runnerAbilityCarrierIds,
   RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE,
+  playEffectFromCard,
 } from "../src/index.js";
 import type {
   GameState,
@@ -31,7 +32,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.75.0 kickoff", () => {
@@ -103,7 +104,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.76.0 A-slice", () => {
@@ -153,9 +154,9 @@ describe("reign-and-reverie", () => {
 
     it("Guinea Pig trashes grip and gains 10¢", () => {
       const def = getCardDef("guinea-pig");
-      expect(JSON.stringify(def.onPlay)).toContain("trash_random_from_grip");
-      expect(JSON.stringify(def.onPlay)).toContain("gain_credits");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("trash_random_from_grip");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("gain_credits");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
 
       const s = structuredClone(createInitialState());
       for (const [i, cardId] of ["a", "b", "c"].entries()) {
@@ -165,7 +166,7 @@ describe("reign-and-reverie", () => {
         void i;
       }
       const before = s.runner.credits;
-      const r = evalEffect({ state: s, sourceId: "gp" }, def.onPlay!);
+      const r = evalEffect({ state: s, sourceId: "gp" }, playEffectFromCard(def)!);
       expect(r.ok).toBe(true);
       expect(s.runner.hand).toHaveLength(0);
       expect(s.runner.credits).toBe(before + 10);
@@ -196,7 +197,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.77.0 B-slice", () => {
@@ -212,21 +213,21 @@ describe("reign-and-reverie", () => {
     it("Too Big to Fail requires <10¢ then gains 7¢ + bad publicity", () => {
       const def = getCardDef("too-big-to-fail");
       expect(def.playRequiresCreditsLt).toBe(10);
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "seq",
         effects: [
           fx.gainCredits("corp", 7),
           fx.do({ kind: "give_bad_publicity", amount: 1 }),
         ],
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Office Supplies reduces by link and chooses gain or draw 4", () => {
       const def = getCardDef("office-supplies");
       expect(def.playCostReducedByLink).toBe(true);
-      expect(def.onPlay?.op).toBe("choose");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)?.op).toBe("choose");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Miss Bones hosts 12¢ spendable for trash", () => {
@@ -250,7 +251,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.78.0 C-slice", () => {
@@ -258,16 +259,16 @@ describe("reign-and-reverie", () => {
     it("Insight may arrange top 4 R&D then reveal_top_n_rd", () => {
       const def = getCardDef("insight");
       expect(def.playAdditionalClick).toBe(true);
-      expect(def.onPlay?.op).toBe("seq");
-      expect(JSON.stringify(def.onPlay)).toContain("look_top_n_rd_arrange");
-      expect(JSON.stringify(def.onPlay)).toContain("reveal_top_n_rd");
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)?.op).toBe("seq");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("look_top_n_rd_arrange");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("reveal_top_n_rd");
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Under the Bus requires access last turn then trashes connection + BP", () => {
       const def = getCardDef("under-the-bus");
       expect(def.playRequiresRunnerAccessedCardLastTurn).toBe(true);
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "seq",
         effects: [
           fx.do({
@@ -278,7 +279,7 @@ describe("reign-and-reverie", () => {
           fx.do({ kind: "give_bad_publicity", amount: 1 }),
         ],
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Thimblerig may swap ice on turn begin and on pass", () => {
@@ -309,7 +310,7 @@ describe("reign-and-reverie", () => {
     it("Game Changer gains clicks equal to Runner scored agendas then RFGs", () => {
       const def = getCardDef("game-changer");
       expect(def.rfgInsteadOfTrashing).toBe(true);
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "do",
         action: {
           kind: "gain_clicks",
@@ -318,7 +319,7 @@ describe("reign-and-reverie", () => {
           tally: { count: "runner_score", per: 1, side: "corp" },
         },
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
   });
   });
@@ -329,7 +330,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.81.0 D-slice", () => {
@@ -349,19 +350,19 @@ describe("reign-and-reverie", () => {
 
     it("Building Blocks reveals a barrier then install+rez ignore costs", () => {
       const def = getCardDef("building-blocks");
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "do",
         action: {
           kind: "reveal_hq_subtype_install_and_rez_ignore_costs",
           subtype: "barrier",
         },
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Attitude Adjustment draws 2 then reveals agendas for credits", () => {
       const def = getCardDef("attitude-adjustment");
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "seq",
         effects: [
           fx.draw("corp", 2),
@@ -372,7 +373,7 @@ describe("reign-and-reverie", () => {
           }),
         ],
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("API-S Keeper Isobel may remove an advancement for credits", () => {
@@ -395,7 +396,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.81.0 E-slice", () => {
@@ -480,7 +481,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.81.0 F-slice", () => {
@@ -561,7 +562,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.82.0 G-slice", () => {
@@ -580,14 +581,14 @@ describe("reign-and-reverie", () => {
 
     it("Divert Power derezzes any then may rez with per-derez discount", () => {
       const def = getCardDef("divert-power");
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "do",
         action: {
           kind: "derez_any_number_then_may_rez_discount_per",
           creditsPerDerezzed: 3,
         },
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Lady Liberty places power on turn begin; paid ability scores HQ agenda", () => {
@@ -638,18 +639,18 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.83.0 H-slice", () => {
 
     it("Eavesdrop hosts as condition with Trace on host encounter", () => {
       const def = getCardDef("eavesdrop");
-      expect(def.onPlay).toEqual({
+      expect(playEffectFromCard(def)).toEqual({
         op: "do",
         action: { kind: "host_on_ice_as_condition" },
       });
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
       expect(def.onHostEncounter).toBeTruthy();
       expect(JSON.stringify(def.onHostEncounter)).toContain('"kind":"trace"');
       expect(validateEffectTree(def.onHostEncounter!)).toBeNull();
@@ -709,7 +710,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.84.0 I-slice", () => {
@@ -758,10 +759,10 @@ describe("reign-and-reverie", () => {
 
     it("Fast Break: fast_break_equal_to_runner_scored_agendas", () => {
       const def = getCardDef("fast-break");
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "runner_break_fast_equal_to_scored_agendas",
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
   });
   });
@@ -772,7 +773,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Reign and Reverie v1.85.0 J-slice", () => {
@@ -820,14 +821,14 @@ describe("reign-and-reverie", () => {
       const def = getCardDef("hangeki");
       expect(def.playRequiresRunnerTrashedCorpCardLastTurn).toBe(true);
       expect(def.playRequiresCorpHasInstalledCard).toBe(true);
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "choose_installed_runner_may_access",
       );
-      expect(JSON.stringify(def.onPlay)).toContain("rfg_self");
-      expect(JSON.stringify(def.onPlay)).toContain(
+      expect(JSON.stringify(playEffectFromCard(def))).toContain("rfg_self");
+      expect(JSON.stringify(playEffectFromCard(def))).toContain(
         "add_to_runner_score_as_agenda",
       );
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("Acme Consulting: additionalTagsDuringOutermostIceEncounter", () => {
@@ -844,7 +845,7 @@ describe("reign-and-reverie", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function seedFenrisWithOutsideIdentity(

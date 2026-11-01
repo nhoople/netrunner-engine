@@ -10,6 +10,7 @@ import {
   assertPinnedTag,
   crDataPresent,
   effectiveIceStrength,
+  playEffectFromCard,
 } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
 
@@ -113,8 +114,8 @@ describe("card corpus system-update-2021", () => {
   });
 
   it("Biotic Labor / Archived Memories / Liberated Account", () => {
-    expect(getCardDef("biotic-labor").onPlay).toEqual(fx.gainClicks("corp", 2));
-    expect(getCardDef("archived-memories").onPlay).toEqual({
+    expect(playEffectFromCard(getCardDef("biotic-labor"))).toEqual(fx.gainClicks("corp", 2));
+    expect(playEffectFromCard(getCardDef("archived-memories"))).toEqual({
       op: "do",
       action: { kind: "archives_to_hq", amount: 1 },
     });

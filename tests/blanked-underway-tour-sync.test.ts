@@ -14,7 +14,7 @@ import {
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { basicRemoveTagCreditCost } from "../src/state/costs.js";
 import { exposeLegalTargets } from "../src/state/expose.js";
-import { syncAllTourGuideSubs } from "../src/effects/sansanUotPrimitives.js";
+import { syncAllTourGuideSubs } from "../src/effects/primitives/gainCannotSwap.js";
 import type { GameState, ServerId } from "../src/index.js";
 import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
@@ -22,7 +22,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.17");
+  assertCardsPinnedTag("v1.147.18");
 });
 
 /** Mirror of graph iceBypassBlockedByServerUpgrade for unit checks. */

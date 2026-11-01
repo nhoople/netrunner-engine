@@ -35,9 +35,9 @@ import {
   fireOnForfeit,
   fireOnRez,
 } from "../state/cardLifecycleHooks.js";
-import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
-import { fireDagAfterCorpRez } from "../effects/mumbadDagPrimitives.js";
-import { fireSiAfterCorpRezOrPlay } from "../effects/mumbadSiPrimitives.js";
+import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
+import { fireDagAfterCorpRez } from "../effects/primitives/hostResolveLook.js";
+import { fireSiAfterCorpRezOrPlay } from "../effects/primitives/lookTrashAdd.js";
 import {
   fireHostedCreditsOnAnyIceRez,
   firePowerCounterOnAnyCardRez,

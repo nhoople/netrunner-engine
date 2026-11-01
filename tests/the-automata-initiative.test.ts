@@ -31,6 +31,7 @@ import {
   CR,
   legalActions,
   occurCheckpoint,
+  playEffectFromCard,
 } from "../src/index.js";
 import { fireHostedCreditsOnAnyIceRez } from "../src/state/powerCounters.js";
 import { creditsAvailableForInstall, spendCreditsForInstall } from "../src/state/costs.js";
@@ -52,7 +53,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI B-1001 / Umbrella / Pichação / Cybersand / Urban Art", () => {
@@ -200,7 +201,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI Banner / Curupira / Debbie / VSA / Mercury", () => {
@@ -296,7 +297,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI Beatriz / Laser Pointer / M.I.C.", () => {
@@ -346,7 +347,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function must(
@@ -432,8 +433,8 @@ describe("the-automata-initiative", () => {
     it("wires Your Digital Life gain_credits_per_hq_card; unsupported empty", () => {
       const def = getCardDef("your-digital-life");
       expect(def.unsupported).toEqual([]);
-      expect(def.onPlay).toEqual(fx.gainCreditsPerHqCard(1));
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(playEffectFromCard(def)).toEqual(fx.gainCreditsPerHqCard(1));
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("gains 1¢ per card in HQ", () => {
@@ -458,7 +459,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   const frontIr = {
@@ -487,7 +488,7 @@ describe("the-automata-initiative", () => {
     it("wires Chrysopoeian Skimming onPlay", () => {
       const def = getCardDef("chrysopoeian-skimming");
       expect(def.unsupported).toEqual([]);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
     it("wires Tucana persistent search-install-rez", () => {
       const def = getCardDef("tucana");
@@ -686,7 +687,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative", () => {
@@ -816,7 +817,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI LilyPAD / Hannah / Armed / Saci / Tatu-Bola", () => {
@@ -899,7 +900,7 @@ describe("the-automata-initiative", () => {
     it("wires Armed Asset Protection onPlay", () => {
       const def = getCardDef("armed-asset-protection");
       expect(def.unsupported).toEqual([]);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("gain_credits_per_distinct_faceup_archive_type", () => {
@@ -971,7 +972,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI Oppo / Epiphany / Pivot / Federal / Wage Workers", () => {
@@ -980,7 +981,7 @@ describe("the-automata-initiative", () => {
       expect(def.unsupported).toEqual([]);
       expect(def.playRequiresRunnerStoleOrTrashedCorpCardLastTurn).toBe(true);
       expect(def.endsActionPhase).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("wires Epiphany steal-or-trash power + look/install", () => {
@@ -998,7 +999,7 @@ describe("the-automata-initiative", () => {
       const def = getCardDef("pivot");
       expect(def.unsupported).toEqual([]);
       expect(def.playAdditionalClick).toBe(true);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("wires Federal Fundraising arrange + unprotected draw", () => {
@@ -1204,7 +1205,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function must<T extends { ok: boolean }>(
@@ -1251,7 +1252,7 @@ describe("the-automata-initiative", () => {
     it("wires Greasing the Palm HQ install-paying-costs", () => {
       const def = getCardDef("greasing-the-palm");
       expect(def.unsupported).toEqual([]);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("wires Bahia Bands choose_exactly_n + trash hosted spend", () => {
@@ -1469,7 +1470,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI Slash / Audrey / Price / Lago / Angelique", () => {
@@ -1512,8 +1513,8 @@ describe("the-automata-initiative", () => {
     it("wires The Price mill+install leaf; unsupported empty", () => {
       const def = getCardDef("the-price");
       expect(def.unsupported).toEqual([]);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
-      expect(def.onPlay).toMatchObject({
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
+      expect(playEffectFromCard(def)).toMatchObject({
         op: "do",
         action: {
           kind: "trash_top_n_may_install_discount",
@@ -1538,7 +1539,7 @@ describe("the-automata-initiative", () => {
       s.cards["price-1"] = price;
       const r = evalEffect(
         { state: s, sourceId: "price-1" },
-        getCardDef("the-price").onPlay!,
+        playEffectFromCard(getCardDef("the-price"))!,
       );
       expect(r.ok).toBe(true);
       expect(s.runner.discardPile.filter((id) => titles.includes(id))).toHaveLength(
@@ -1608,7 +1609,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI Solidarity / Eru / Valentão / S-Dobrado", () => {
@@ -1744,7 +1745,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI threat + Mindscaping / Shibboleth / Jaguarundi", () => {
@@ -1758,7 +1759,7 @@ describe("the-automata-initiative", () => {
     it("wires Mindscaping choose tree; unsupported empty", () => {
       const def = getCardDef("mindscaping");
       expect(def.unsupported).toEqual([]);
-      expect(validateEffectTree(def.onPlay!)).toBeNull();
+      expect(validateEffectTree(playEffectFromCard(def)!)).toBeNull();
     });
 
     it("wires Jaguarundi threat onEncounter + subs; unsupported empty", () => {
@@ -1835,7 +1836,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("TAI Tree Line / Phoneutria / Slap Vandal / Attini", () => {
@@ -1957,7 +1958,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   function must(

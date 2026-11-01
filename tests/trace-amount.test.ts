@@ -19,6 +19,7 @@ import {
   validateEffectTree,
   assertCardsPinnedTag,
   getCardDef,
+  playEffectFromCard,
 } from "../src/index.js";
 import { LINGERING_KIND_BREAKER_STRENGTH_RUN, lingeringBreakerStrengthOfKind } from "../src/state/lingeringEffects.js";
 
@@ -276,7 +277,7 @@ describe("trace-amount", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.17");
+    assertCardsPinnedTag("v1.147.18");
   });
 
   describe("Trace Amount v1.89.0 set-complete", () => {
@@ -311,7 +312,7 @@ describe("trace-amount", () => {
         action: { kind: "may_breach_instead_vamp" },
       });
       const sat = getCardDef("satellite-uplink");
-      expect(sat.onPlay).toMatchObject({
+      expect(playEffectFromCard(sat)).toMatchObject({
         op: "do",
         action: { kind: "expose_up_to", max: 2 },
       });
