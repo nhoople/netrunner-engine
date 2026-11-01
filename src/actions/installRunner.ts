@@ -208,7 +208,11 @@ export function installRunner(
     if (!host || host.type !== "ice") {
       return fail("Host must be installed ice.", [CR.runnerBasicInstall]);
     }
-    if (card.hostGainsAllIceSubtypes && !host.rezzed) {
+    const grantsBcs =
+      (card.continuousSubtypeGrants ?? []).some(
+        (g) => g.kind === "host_grant_bcs",
+      ) || Boolean(card.hostGainsAllIceSubtypes);
+    if (grantsBcs && !host.rezzed) {
       return fail("Egret must be installed on rezzed ice.", [
         CR.runnerBasicInstall,
       ]);

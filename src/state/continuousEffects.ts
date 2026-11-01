@@ -285,13 +285,7 @@ export function collectSubtypeGrantEffects(
     const host = state.cards[card.hostId];
     if (!host || host.type !== "ice") continue;
 
-    const grants =
-      card.continuousSubtypeGrants ??
-      (card.hostGainsAllIceSubtypes
-        ? [{ kind: "host_grant_bcs" as const }]
-        : card.hostGainsBarrierAndEtrSubroutine
-          ? [{ kind: "host_grant_barrier" as const }]
-          : []);
+    const grants = card.continuousSubtypeGrants ?? [];
 
     if (grants.some((g) => g.kind === "host_grant_bcs")) {
       effects.push({
@@ -301,7 +295,6 @@ export function collectSubtypeGrantEffects(
         targetIceId: card.hostId,
       });
     }
-    // Decl array (or boolean fallback above) is authoritative — no extra OR.
     if (grants.some((g) => g.kind === "host_grant_barrier")) {
       effects.push({
         kind: "host_grant_barrier",
@@ -316,11 +309,7 @@ export function collectSubtypeGrantEffects(
     for (const iceId of server.ice) {
       const ice = state.cards[iceId];
       if (!ice?.rezzed || ice.type !== "ice") continue;
-      const grants =
-        ice.continuousSubtypeGrants ??
-        (ice.hostGainsAllIceSubtypes
-          ? [{ kind: "copy_other_rezzed_ice_subtypes" as const }]
-          : []);
+      const grants = ice.continuousSubtypeGrants ?? [];
       if (!grants.some((g) => g.kind === "copy_other_rezzed_ice_subtypes")) {
         continue;
       }
