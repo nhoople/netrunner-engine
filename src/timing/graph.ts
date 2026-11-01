@@ -630,7 +630,7 @@ function offerDelayedRunEndOrder(s: GameState): boolean {
   }
   runState.delayedRunEndSourceZone = zones;
   const trashLabel = trashIds.length === 1 ? trashTitles : "the trash abilities";
-  s.pendingChoice = {
+  return openPendingChoose(s, {
     sourceId: eventId ?? trashIds[0]!,
     chooser: "runner",
     options: [
@@ -651,8 +651,7 @@ function offerDelayedRunEndOrder(s: GameState): boolean {
         },
       },
     ],
-  };
-  return true;
+  });
 }
 
 export const STEPS: Record<string, TimingStepDef> = {
@@ -814,7 +813,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             !idCard.chosenIdentityFaceId &&
             (idCard.identityFaceOptions?.length ?? 0) > 0
           ) {
-            s.pendingChoice = {
+            openPendingChoose(s, {
               sourceId: idCard.id,
               chooser: "corp",
               options: idCard.identityFaceOptions!.map((face) => ({
@@ -828,7 +827,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 },
               })),
-            };
+            });
           }
         }
         // Lockdowns: trash at turn begin before pending conditionals (CR 3.5.1c).
@@ -2805,7 +2804,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             !(runState.bypassedIceIds ?? []).includes(iceId)
           ) {
             s.turn.ftmRiggedResultsBypassIceId = undefined;
-            s.pendingChoice = {
+            openPendingChoose(s, {
               sourceId: iceId,
               chooser: "runner",
               options: [
@@ -2818,8 +2817,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 },
               ],
-            };
-            s.log.push(`Rigged Results — bypass ${ice.title}.`);
+              logLine: `Rigged Results — bypass ${ice.title}.`,
+            });
           } else
           for (const rid of s.runner.installed) {
             const femme = s.cards[rid];
@@ -3846,14 +3845,12 @@ export const STEPS: Record<string, TimingStepDef> = {
                 label: "End the run",
                 effect: { op: "do", action: { kind: "end_the_run" } },
               });
-              s.pendingChoice = {
+              openPendingChoose(s, {
                 sourceId: id,
                 chooser: "runner",
                 options,
-              };
-              s.log.push(
-                `${card.title} — approach tax: pay ${cost}¢ (${per}¢ × ${advanced} advanced ice) or ETR.`,
-              );
+                logLine: `${card.title} — approach tax: pay ${cost}¢ (${per}¢ × ${advanced} advanced ice) or ETR.`,
+              });
               break;
             }
           }
@@ -3897,14 +3894,12 @@ export const STEPS: Record<string, TimingStepDef> = {
             label: "End the run",
             effect: { op: "do", action: { kind: "end_the_run" } },
           });
-          s.pendingChoice = {
+          openPendingChoose(s, {
             sourceId: id,
             chooser: "runner",
             options,
-          };
-          s.log.push(
-            `${card.title} — approach tax: pay ${tax.clicks} clicks or ${tax.credits}¢ or ETR.`,
-          );
+            logLine: `${card.title} — approach tax: pay ${tax.clicks} clicks or ${tax.credits}¢ or ETR.`,
+          });
           break;
         }
         // Nanisivik Grid-class: rezzed root onApproachServer — queue for 10.3.1a.
