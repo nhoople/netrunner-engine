@@ -26,6 +26,7 @@ import { CR } from "../timing/labels.js";
 import { fireScoreOrStealSideEffects } from "./score.js";
 import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";
 import { applyAction } from "./apply.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -239,7 +240,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
           state,
           `${accessed.title} — choose how to trash it (CR ${CR.mustAnyMeans.number}).`,
         );
-        state.pendingChoice = {
+        openPendingChoose(state, {
           sourceId: accessingId,
           chooser: "runner",
           options: [
@@ -260,7 +261,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
               },
             },
           ],
-        };
+        });
         return ok(state);
       }
       if (canPay) {

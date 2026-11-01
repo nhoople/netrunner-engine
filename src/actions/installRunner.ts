@@ -47,6 +47,7 @@ import {
   fireOnInstallWithoutSpendingCredits,
 } from "../state/miscConditionalHooks.js";
 import { resolveRunnerInstallCostDelta } from "../state/continuousCosts.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -380,7 +381,7 @@ export function installRunner(
     const maxX = state.runner.credits;
     state.turn.installCostXDestination = destination ?? { kind: "installed" };
     state.deferAfterBasicAction = true;
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId: cardId,
       chooser: "runner",
       options: Array.from({ length: maxX + 1 }, (_, x) => ({
@@ -391,7 +392,7 @@ export function installRunner(
           action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
         },
       })),
-    };
+    });
     return ok(state);
   }
   let cost = card.installCostX
@@ -536,7 +537,7 @@ export function installRunner(
     const servers = Object.values(state.servers).sort((a, b) =>
       a.id.localeCompare(b.id),
     );
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId: cardId,
       chooser: "runner",
       options: servers.map((server) => ({
@@ -547,8 +548,8 @@ export function installRunner(
           action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
         },
       })),
-    };
-    log(state, `${card.title} — choose a server.`);
+      logLine: `${card.title} — choose a server.`,
+    });
   }
   if (
     card.chooseBreakerSubtypeOnInstall &&
@@ -556,7 +557,7 @@ export function installRunner(
     !state.pendingChoice
   ) {
     const subtypes = ["barrier", "code gate", "sentry"] as const;
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId: cardId,
       chooser: "runner",
       options: subtypes.map((subtype) => ({
@@ -567,8 +568,8 @@ export function installRunner(
           action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
         },
       })),
-    };
-    log(state, `${card.title} — choose barrier, code gate, or sentry.`);
+      logLine: `${card.title} — choose barrier, code gate, or sentry.`,
+    });
   }
   if (
     (card.chooseIceOnInstallForBypass || card.chooseIceOnInstall) &&
@@ -579,7 +580,7 @@ export function installRunner(
     if (ice.length === 0) {
       log(state, `${card.title} — no installed ice to choose.`);
     } else {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: cardId,
         chooser: "runner",
         options: ice.map((choice) => ({
@@ -590,8 +591,8 @@ export function installRunner(
             action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
           },
         })),
-      };
-      log(state, `${card.title} — choose an installed piece of ice.`);
+        logLine: `${card.title} — choose an installed piece of ice.`,
+      });
     }
   }
   if (cost === 0) {
@@ -633,7 +634,7 @@ function openMuProgramTrashChoice(
   const installing = state.cards[cardId]!;
   state.pendingMuProgramInstall = { cardId, destination };
   state.deferAfterBasicAction = true;
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId: cardId,
     chooser: "runner",
     options: candidates.map((id) => ({
@@ -648,11 +649,8 @@ function openMuProgramTrashChoice(
         },
       },
     })),
-  };
-  log(
-    state,
-    `Insufficient MU to install ${installing.title}. Trash installed programs? (CR ${CR.installTrashProgramsForMemory.number}).`,
-  );
+    logLine: `Insufficient MU to install ${installing.title}. Trash installed programs? (CR ${CR.installTrashProgramsForMemory.number}).`,
+  });
   return ok(state);
 }
 

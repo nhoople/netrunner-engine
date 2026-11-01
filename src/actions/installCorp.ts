@@ -29,6 +29,7 @@ import { fx } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
 import { installBlockReason } from "../state/staticFlags.js";
 import { onCorpCardInstalledInRemote } from "../state/cardDeclarations.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -442,7 +443,7 @@ function installCorpInner(
         up?.mayImmediatelyRezIceOnInstallProtectingThisServerDiscount;
       if (!up?.rezzed || typeof discount !== "number") continue;
       const pay = Math.max(0, (card.rezCost ?? 0) - discount);
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: rid,
         chooser: "corp",
         options: [
@@ -467,11 +468,8 @@ function installCorpInner(
             },
           },
         ],
-      };
-      log(
-        state,
-        `${up.title} — may immediately rez ${card.title} (−${discount}¢).`,
-      );
+        logLine: `${up.title} — may immediately rez ${card.title} (−${discount}¢).`,
+      });
       break;
     }
   }

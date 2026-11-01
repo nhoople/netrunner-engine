@@ -50,6 +50,7 @@ import { CR } from "../timing/labels.js";
 import { hostedPlayableAsGrip } from "./installRunner.js";
 import { finishRunReturnToAction, startRun } from "./run.js";
 import { spendClick } from "./spendClick.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -669,7 +670,7 @@ export function playOperation(
       return continuePlayedOperation(state, cardId, increase, 0);
     }
     state.pendingPlayCostXCardId = cardId;
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId: cardId,
       chooser: "corp",
       options: Array.from({ length: maxX + 1 }, (_, x) => ({
@@ -684,7 +685,7 @@ export function playOperation(
           },
         },
       })),
-    };
+    });
     return ok(state);
   }
   if (card.playAdditionalCostForfeitAgenda) {
@@ -692,7 +693,7 @@ export function playOperation(
       (id) => !state.cards[id]?.cannotForfeit,
     );
     if (agendas.length > 1) {
-      state.pendingChoice = {
+      openPendingChoose(state, {
         sourceId: cardId,
         chooser: "corp",
         options: agendas.map((id) => ({
@@ -707,8 +708,8 @@ export function playOperation(
             },
           },
         })),
-      };
-      log(state, `${card.title} — choose an agenda to forfeit.`);
+        logLine: `${card.title} — choose an agenda to forfeit.`,
+      });
       return ok(state);
     }
     forfeitSpecificAgenda(state, agendas[0]!);
@@ -1104,7 +1105,7 @@ export function playEvent(
   }
   if (card.briberyPlayCostX && state.turn.briberyCardId !== cardId) {
     const maxX = state.runner.credits;
-    state.pendingChoice = {
+    openPendingChoose(state, {
       sourceId: cardId,
       chooser: "runner",
       options: Array.from({ length: maxX + 1 }, (_, x) => ({
@@ -1112,7 +1113,7 @@ export function playEvent(
         label: `X = ${x}`,
         effect: { op: "do" as const, action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 } },
       })),
-    };
+    });
     return ok(state);
   }
   state.turn.playingEventId = cardId;

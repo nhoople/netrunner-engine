@@ -7,6 +7,7 @@ import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 
 type PrimResult =
   | { ok: true }
@@ -107,11 +108,11 @@ export function applyChooseCard(
       },
     });
   }
-  state.pendingChoice = {
+  openPendingChoose(state, {
     sourceId,
     chooser: action.chooser,
     options,
-  };
-  log(state, `Choose 1 card (CR ${CR.announceTargets.number}).`);
+    logLine: `Choose 1 card (CR ${CR.announceTargets.number}).`,
+  });
   return { ok: true };
 }
