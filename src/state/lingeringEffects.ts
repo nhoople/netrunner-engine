@@ -228,6 +228,7 @@ export function addBreakerStrengthBoostThisRun(
           breakerId: args.breakerId,
           amount: args.amount,
           original: resolved.original,
+          replacedTo: "turn",
         });
       }
       return;
@@ -247,7 +248,7 @@ export function addBreakerStrengthBoostThisRun(
 /**
  * Dual-write an encounter-duration icebreaker strength boost (CR 9.10.1).
  * Requires an active run; no-ops otherwise. Active 9.9.9 replacements may
- * stretch the duration (Gebrselassie → turn; System Seizure grant → run).
+ * stretch the duration (Gebrselassie → turn; System Seizure / Gamedragon → run).
  */
 export function addBreakerStrengthBoostThisEncounter(
   state: GameState,
@@ -272,12 +273,25 @@ export function addBreakerStrengthBoostThisEncounter(
           breakerId: args.breakerId,
           amount: args.amount,
           original: resolved.original,
+          replacedTo: "turn",
         });
       }
       return;
     }
     if (resolved.duration === "run") {
       addBreakerStrengthBoostThisRun(state, args);
+      if (
+        resolved.replacement?.trackWhileSourceActive &&
+        resolved.original
+      ) {
+        noteHostDurationReplacement(state, {
+          sourceId: resolved.replacement.sourceId,
+          breakerId: args.breakerId,
+          amount: args.amount,
+          original: resolved.original,
+          replacedTo: "run",
+        });
+      }
       return;
     }
   }
@@ -340,12 +354,25 @@ export function addBreakerStrengthBoostUntilCheckpoint(
           breakerId: args.breakerId,
           amount: args.amount,
           original: resolved.original,
+          replacedTo: "turn",
         });
       }
       return;
     }
     if (resolved.duration === "run" && state.run) {
       addBreakerStrengthBoostThisRun(state, args);
+      if (
+        resolved.replacement?.trackWhileSourceActive &&
+        resolved.original
+      ) {
+        noteHostDurationReplacement(state, {
+          sourceId: resolved.replacement.sourceId,
+          breakerId: args.breakerId,
+          amount: args.amount,
+          original: resolved.original,
+          replacedTo: "run",
+        });
+      }
       return;
     }
   }

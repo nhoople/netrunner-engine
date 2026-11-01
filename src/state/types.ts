@@ -3441,14 +3441,17 @@ export interface TurnBookkeeping {
    */
   checkpointBreakerBoosts?: Record<string, number>;
   /**
-   * Strength increases whose duration Gebrselassie replaced with "this turn"
-   * (CR 9.9.9a). Cleared when that card is no longer hosted on the breaker.
+   * Strength increases whose duration a hosted static replacement stretched
+   * (Gebrselassie → turn, Gamedragon Pro → run; CR 9.9.9a). Cleared when that
+   * card is no longer hosted on the breaker.
    */
   hostDurationReplacements?: {
     sourceId: string;
     breakerId: string;
     amount: number;
     original: "encounter" | "run";
+    /** Bucket the boost was placed in after replacement. Defaults to turn. */
+    replacedTo?: "turn" | "run";
   }[];
   /**
    * Those increases whose original duration has already expired. The next

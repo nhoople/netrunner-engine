@@ -4,6 +4,9 @@
  * Gebrselassie-class: while hosted, rewrite shorter durations to "this turn";
  * when the source leaves the host, the modification ends (9.9.9a).
  *
+ * Gamedragon Pro-class: while hosted, rewrite shorter durations to "this run";
+ * same 9.9.9a host-leave tracking.
+ *
  * System Seizure: first strength increase each turn grants the icebreaker
  * "increases last for the remainder of the run instead of any shorter
  * duration" for the rest of that run (lingering; independent of the current).
@@ -28,7 +31,7 @@ export type StrengthDurationReplacement = {
   sourceId: string;
   /**
    * When true, track each rewritten boost and revert if the source stops
-   * applying (Gebrselassie static; CR 9.9.9a).
+   * applying (hosted static; CR 9.9.9a).
    */
   trackWhileSourceActive: boolean;
 };
@@ -170,12 +173,13 @@ export function noteHostDurationReplacement(
     breakerId: string;
     amount: number;
     original: HostDurationOriginal;
+    replacedTo?: "turn" | "run";
   },
 ): void {
   if (rec.amount <= 0) return;
   state.turn.hostDurationReplacements = [
     ...(state.turn.hostDurationReplacements ?? []),
-    rec,
+    { replacedTo: "turn", ...rec },
   ];
 }
 
@@ -189,6 +193,21 @@ function stillHosted(
   return src.zone === "runner:installed" || state.runner.installed.includes(sourceId);
 }
 
+function takeBoost(
+  bucket: Record<string, number> | undefined,
+  breakerId: string,
+  amount: number,
+): number {
+  if (!bucket) return 0;
+  const have = bucket[breakerId] ?? 0;
+  const move = Math.min(have, amount);
+  if (move <= 0) return 0;
+  const left = have - move;
+  if (left <= 0) delete bucket[breakerId];
+  else bucket[breakerId] = left;
+  return move;
+}
+
 /** Drop replacements whose source is no longer hosted on that icebreaker. */
 export function syncHostDurationReplacements(state: GameState): void {
   const list = state.turn.hostDurationReplacements;
@@ -199,32 +218,33 @@ export function syncHostDurationReplacements(state: GameState): void {
       keep.push(rec);
       continue;
     }
-    const turn = state.turn.breakerStrengthBoostsThisTurn;
-    const have = turn[rec.breakerId] ?? 0;
-    const move = Math.min(have, rec.amount);
-    if (move > 0) {
-      const left = have - move;
-      if (left <= 0) delete turn[rec.breakerId];
-      else turn[rec.breakerId] = left;
-    }
+    const replacedTo = rec.replacedTo ?? "turn";
+    const move =
+      replacedTo === "run"
+        ? takeBoost(state.run?.strengthBoosts, rec.breakerId, rec.amount)
+        : takeBoost(state.turn.breakerStrengthBoostsThisTurn, rec.breakerId, rec.amount);
     const title = state.cards[rec.sourceId]?.title ?? rec.sourceId;
     const breaker = state.cards[rec.breakerId]?.title ?? rec.breakerId;
-    if (rec.original === "encounter" && state.run?.encounter && move > 0) {
+    if (move <= 0) continue;
+    if (rec.original === "encounter" && state.run?.encounter) {
       const bucket = state.run.encounterStrengthBoosts;
       bucket[rec.breakerId] = (bucket[rec.breakerId] ?? 0) + move;
       log(
         state,
         `${title} no longer replaces ${breaker}'s strength duration, so it lasts for this encounter (CR ${CR.replacementStaticMustRemainActive.number}).`,
       );
-    } else if (rec.original === "run" && state.run && move > 0) {
+    } else if (rec.original === "run" && state.run) {
       state.run.strengthBoosts[rec.breakerId] =
         (state.run.strengthBoosts[rec.breakerId] ?? 0) + move;
       log(
         state,
         `${title} no longer replaces ${breaker}'s strength duration, so it lasts for this run (CR ${CR.replacementStaticMustRemainActive.number}).`,
       );
-    } else if (move > 0) {
-      turn[rec.breakerId] = (turn[rec.breakerId] ?? 0) + move;
+    } else {
+      // Original duration already expired — keep applying until the next
+      // checkpoint (CR 9.9.9a.ex1). Hold on the turn bucket.
+      state.turn.breakerStrengthBoostsThisTurn[rec.breakerId] =
+        (state.turn.breakerStrengthBoostsThisTurn[rec.breakerId] ?? 0) + move;
       state.turn.revertedHostDurationBoosts = [
         ...(state.turn.revertedHostDurationBoosts ?? []),
         { breakerId: rec.breakerId, amount: move },
