@@ -13,6 +13,10 @@ import {
 import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { onAgendaScored, runnerHeapLocked } from "./cardDeclarations.js";
+import {
+  allocateEffectIdentity,
+  tryApplyReplacement,
+} from "./replacements.js";
 
 export function agendaPointsFor(state: GameState, side: Side): number {
   const p = side === "corp" ? state.corp : state.runner;
@@ -317,8 +321,17 @@ export function stealAgenda(state: GameState, cardId: string): void {
     card.zone === "corp:archives" || state.corp.discardPile.includes(cardId);
   // Project Vacheron (CR 9.9.9c): replacement when added from anywhere except
   // Archives — place 4 agenda counters once; does not re-trigger on result.
+  const stealEffectId = allocateEffectIdentity(state, `steal:${cardId}`);
+  let vacheronApplied = false;
   if (card.vacheronStealReplacement && !fromArchives) {
-    card.agendaCounters = 4;
+    vacheronApplied = tryApplyReplacement(
+      state,
+      stealEffectId,
+      `vacheron:${cardId}`,
+    );
+    if (vacheronApplied) {
+      card.agendaCounters = 4;
+    }
   }
   // Remove from wherever it lives
   removeCardFromCurrentZone(state, cardId);
@@ -344,8 +357,8 @@ export function stealAgenda(state: GameState, cardId: string): void {
   noteRunnerStoleOrTrashedCorpCard(state);
   log(
     state,
-    card.vacheronStealReplacement && !fromArchives
-      ? `Runner steals ${card.title} with 4 agenda counters (worth 0 while counters remain; CR ${CR.stealingAgenda.number}, 9.9.9c).`
+    vacheronApplied
+      ? `Runner steals ${card.title} with 4 agenda counters (worth 0 while counters remain; CR ${CR.stealingAgenda.number}, ${CR.replacementEffectOnlyOncePerEffect.number}).`
       : `Runner steals ${card.title} for ${pts} points (CR ${CR.stealingAgenda.number}).`,
   );
   trashCorpCurrentsOnAgendaStolen(state);

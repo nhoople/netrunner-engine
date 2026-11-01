@@ -13,6 +13,10 @@ import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import type { StoredConditionalMark } from "./storedTriggers.js";
+import {
+  allocateEffectIdentity,
+  applyActiveReplacementsAtInterruptOpen,
+} from "./replacements.js";
 
 function noteAndCheckpointStored(
   state: GameState,
@@ -325,22 +329,28 @@ export function dealDamage(
   }
 
   if (interactive) {
+    const effectId = allocateEffectIdentity(state, `damage:${type}`);
+    // Live expected effects; active replacements apply as the window opens
+    // (CR 9.9.2 / 9.9.9b).
+    const expectedEffects = applyActiveReplacementsAtInterruptOpen(
+      state,
+      { damage: { type, amount } },
+      effectId,
+    );
+    const remaining = expectedEffects.damage?.amount ?? amount;
     state.pendingDamage = {
-      type,
-      remaining: amount,
+      type: expectedEffects.damage?.type ?? type,
+      remaining,
       sourceId,
       ...(opts.preventByLoseAllClicks
         ? { preventByLoseAllClicks: true }
         : {}),
       ...(interruptPawOnly ? { interruptPawOnly: true } : {}),
-      // Live expected effects for the interrupt window (CR 9.9.2).
-      expectedEffects: {
-        damage: { type, amount },
-      },
+      expectedEffects,
     };
     log(
       state,
-      `Pending ${amount} ${type} damage from ${sourceId} (CR ${CR.sufferDamage.number}${
+      `Pending ${remaining} ${expectedEffects.damage?.type ?? type} damage from ${sourceId} (CR ${CR.sufferDamage.number}${
         interruptPawOnly
           ? `; interrupt PAW ${CR.preventDamage.number}`
           : ""

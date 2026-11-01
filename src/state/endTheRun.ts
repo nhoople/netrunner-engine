@@ -4,6 +4,10 @@ import { log } from "./createGame.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import {
+  allocateEffectIdentity,
+  applyActiveReplacementsAtInterruptOpen,
+} from "./replacements.js";
 
 /** True when Runner has a payable `end_the_run_interrupt` ability. */
 export function hasPayableEndTheRunInterrupt(state: GameState): boolean {
@@ -39,10 +43,16 @@ export function openPendingEndTheRun(
   sourceId: string,
   fromCorpCardAbility: boolean,
 ): void {
+  const effectId = allocateEffectIdentity(state, "end-the-run");
+  const expectedEffects = applyActiveReplacementsAtInterruptOpen(
+    state,
+    { endTheRun: true },
+    effectId,
+  );
   state.pendingEndTheRun = {
     sourceId,
     fromCorpCardAbility,
-    expectedEffects: { endTheRun: true },
+    expectedEffects,
   };
   log(
     state,

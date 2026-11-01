@@ -3454,6 +3454,15 @@ export interface TurnBookkeeping {
     replacedTo?: "turn" | "run";
   }[];
   /**
+   * Monotonic id for imminent effect occurrences (CR 9.9.9c bookkeeping).
+   */
+  effectIdentitySeq?: number;
+  /**
+   * Replacement ids already applied to an effect identity this turn
+   * (CR 9.9.9c). Cleared at checkpoints.
+   */
+  appliedReplacements?: Record<string, string[]>;
+  /**
    * Those increases whose original duration has already expired. The next
    * checkpoint removes them (CR 9.9.9a).
    */
