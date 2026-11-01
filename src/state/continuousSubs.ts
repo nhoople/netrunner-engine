@@ -113,10 +113,7 @@ export function collectHostedConditionSubsBeforePrinted(
     const hosted = state.cards[hid];
     for (const decl of gainedSubDecls(hosted)) {
       if (decl.kind !== "wetwork_hosted_before") continue;
-      const subs =
-        decl.subroutines && decl.subroutines.length > 0
-          ? decl.subroutines
-          : (hosted?.hostGainsSubroutinesBeforePrinted ?? []);
+      const subs = decl.subroutines ?? [];
       for (const sub of subs) {
         out.push({
           sourceId: hid,

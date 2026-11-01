@@ -117,7 +117,6 @@ export function findPaidAbility(
   card: {
     abilities?: AbilityRecord[];
     paidAbilities?: PaidAbility[];
-    oncePerTurnPaidAbilities?: boolean;
     paidAbilitiesOncePerTurn?: boolean;
   },
   abilityId: string,
@@ -630,7 +629,7 @@ export function usePaidAbility(
     ]);
   }
   if (
-    (card.paidAbilitiesOncePerTurn || card.oncePerTurnPaidAbilities) &&
+    card.paidAbilitiesOncePerTurn &&
     (syncPaidAbilitiesFromRecords(card) as unknown as PaidAbility[]).some(
       (ab) => wasAbilityUsed(state, cardId, ab.id),
     )

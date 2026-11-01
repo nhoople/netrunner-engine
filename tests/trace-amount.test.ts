@@ -276,7 +276,7 @@ describe("trace-amount", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.16");
+    assertCardsPinnedTag("v1.147.17");
   });
 
   describe("Trace Amount v1.89.0 set-complete", () => {

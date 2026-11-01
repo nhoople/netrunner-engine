@@ -37,7 +37,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.16");
+  assertCardsPinnedTag("v1.147.17");
 });
 
 const WINDOW_STEP: Partial<Record<PaidAbilityWindow, string>> = {

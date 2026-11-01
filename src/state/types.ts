@@ -1389,11 +1389,6 @@ export interface CardInstance {
   bonusAccessOnHqBreachPerFullyBrokenProtectingIce?: boolean;
   mayInsteadOfBreachRdAccessOneOfTopN?: number;
   secretSpendCannotEqual?: number;
-  hostGainsSubroutinesBeforePrinted?: Array<{
-    id: string;
-    text: string;
-    effect: import("../effects/ir.js").Effect;
-  }>;
   meatDamageWhenSecretSpendAmountsDiffer?: number;
   onRunDeclaredOnThisServerIfTagged?: import("../effects/ir.js").Effect;
   placePowerPerUnbrokenSubOnAnyEncounterEnd?: boolean;
@@ -1519,7 +1514,6 @@ export interface CardInstance {
   };
   hostIcebreakerStrengthIncreasesLastRemainderOfTurn?: boolean;
   onAgendaAddedToRunnerScore?: Effect;
-  bioroidIceGainsLoseClickSubroutineBeforeOthers?: boolean;
   onScoreTurnEnd?: Effect;
   onAccessWhileInstalled?: Effect;
   onAccessWhileUninstalled?: Effect;
@@ -2499,8 +2493,6 @@ export interface CardInstance {
   gainCreditsOnTraceInitiated?: number;
   /** Eden Shard: install from grip instead of breaching R&D on success. */
   onGripRdSuccessInstallSelfIgnoringCosts?: boolean;
-  /** Savoir-faire: each paid ability once per turn. */
-  oncePerTurnPaidAbilities?: boolean;
   /** Blackguard: force Corp rez on expose when able. */
   blackguardForceRezOnExpose?: boolean;
   /** Alpha: only interface with outermost ice on server. */
@@ -2573,7 +2565,6 @@ export interface CardInstance {
   gainCreditsOnSpendAgendaCounter?: number;
   badPublicityOnRez?: number;
   firstRunnerInstallTrashFromGripEachTurn?: boolean;
-  hostGainsBarrierAndEtrSubroutine?: boolean;
   iceProtectingThisServerAdditionalAdvancementCounters?: number;
   firstAccessedOperationTrashFreeEachTurn?: boolean;
   corpStartsWithBadPublicity?: number;
@@ -2643,11 +2634,8 @@ export interface CardInstance {
    * cards other than this upgrade (Flagship).
    */
   maxAccessOtherThanSelf?: number;
-  /** Trojan: host ice gains barrier+code gate+sentry (Egret). */
-  hostGainsAllIceSubtypes?: boolean;
   /**
    * Continuous subtype grants for the 9.12 layer (standardization S6 / L1).
-   * Prefer card-supplied decls; else projected from legacy flags at load.
    */
   continuousSubtypeGrants?: Array<
     | { kind: "host_grant_bcs" }
@@ -2655,9 +2643,7 @@ export interface CardInstance {
     | { kind: "copy_other_rezzed_ice_subtypes" }
   >;
   /**
-   * Static continuous gained-sub declarations (M6 / L2). Prefer card-supplied
-   * decls with optional subroutine payloads; else projected from Fatuma /
-   * Wetwork / Sub Boost flags at load.
+   * Static continuous gained-sub declarations (M6 / L2).
    */
   continuousGainedSubDecls?: ContinuousGainedSubDecl[];
   /**

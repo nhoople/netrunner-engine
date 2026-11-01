@@ -245,7 +245,7 @@ export function addPaidWindowCandidates(
           continue;
         }
         if (
-          (card.paidAbilitiesOncePerTurn || card.oncePerTurnPaidAbilities) &&
+          card.paidAbilitiesOncePerTurn &&
           (card.paidAbilities ?? []).some((other) =>
             wasAbilityUsed(state, cardId, other.id),
           )

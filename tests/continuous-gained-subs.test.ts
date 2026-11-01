@@ -71,7 +71,6 @@ describe("continuous gained-sub decls (L2)", () => {
     s.servers.hq.ice = ["heim-1"];
     const fatuma = instantiateCard("warden-fatuma", "fat-1", "server:hq:root");
     fatuma.rezzed = true;
-    fatuma.bioroidIceGainsLoseClickSubroutineBeforeOthers = undefined;
     s.cards["fat-1"] = fatuma;
     s.servers.hq.root = ["fat-1"];
 
@@ -87,7 +86,6 @@ describe("continuous gained-sub decls (L2)", () => {
     const boost = instantiateCard("sub-boost", "sb-1", "hosted:eng-1");
     boost.faceup = true;
     boost.hostId = "eng-1";
-    boost.hostGainsBarrierAndEtrSubroutine = undefined;
     enigma.hostedCardIds = ["sb-1"];
     s.cards["eng-1"] = enigma;
     s.cards["sb-1"] = boost;
@@ -107,7 +105,6 @@ describe("continuous gained-sub decls (L2)", () => {
     const wet = instantiateCard("wetwork-refit", "wet-1", "hosted:heim-1");
     wet.faceup = true;
     wet.hostId = "heim-1";
-    wet.hostGainsSubroutinesBeforePrinted = undefined;
     wet.continuousGainedSubDecls = [{ kind: "wetwork_hosted_before" }];
     ice.hostedCardIds = ["wet-1"];
     s.cards["heim-1"] = ice;
@@ -125,7 +122,6 @@ describe("continuous gained-sub decls (L2)", () => {
     const wet = instantiateCard("wetwork-refit", "wet-1", "hosted:heim-1");
     wet.faceup = true;
     wet.hostId = "heim-1";
-    wet.hostGainsSubroutinesBeforePrinted = undefined;
     ice.hostedCardIds = ["wet-1"];
     s.cards["heim-1"] = ice;
     s.cards["wet-1"] = wet;
@@ -136,20 +132,17 @@ describe("continuous gained-sub decls (L2)", () => {
     expect(gained[0]?.text).toBe("Do 1 core damage.");
   });
 
-  it("instantiate loads continuous decls without legacy flags on L2 cards", () => {
+  it("instantiate loads continuous decls on L2 cards", () => {
     const fatuma = instantiateCard("warden-fatuma", "fat-1", "server:hq:root");
-    expect(fatuma.bioroidIceGainsLoseClickSubroutineBeforeOthers).toBeUndefined();
     expect(fatuma.continuousGainedSubDecls?.[0]?.kind).toBe("fatuma_lose_click");
 
     const boost = instantiateCard("sub-boost", "sb-1", "hosted:ice-1");
-    expect(boost.hostGainsBarrierAndEtrSubroutine).toBeUndefined();
     expect(boost.continuousSubtypeGrants).toEqual([
       { kind: "host_grant_barrier" },
     ]);
     expect(boost.continuousGainedSubDecls?.[0]?.kind).toBe("sub_boost_etr");
 
     const mg = instantiateCard("mother-goddess", "mg-1", "server:hq:ice");
-    expect(mg.hostGainsAllIceSubtypes).toBeUndefined();
     expect(mg.continuousSubtypeGrants).toEqual([
       { kind: "copy_other_rezzed_ice_subtypes" },
     ]);
