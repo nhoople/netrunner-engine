@@ -9,7 +9,6 @@ import {
   applyHostServerRecurringTowardCorpRez,
   quoteHostServerRecurringTowardCorpRez,
   applyRezIceRecurringTowardCorpRez,
-  continuousIceRezCostIncrease,
   continuousIceRezCostReduction,
   corpMayRez,
   currentWindow,
@@ -19,6 +18,7 @@ import {
   rezCostDiscountPerRezzedSubtype,
   rootRezCostReduction,
 } from "../cards/stubs.js";
+import { resolveIceRezCostIncrease } from "../state/continuousCosts.js";
 import { addRestriction, trashCardsOnForbiddenHosts, withCostCheckpoint } from "../legality/checkpoints.js";
 import {
   ensurePriorityWindow,
@@ -263,7 +263,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     (!state.run?.briberyFirstIceRezConsumed
       ? (state.run?.firstApproachedIceAdditionalRezCost ?? 0)
       : 0) +
-    continuousIceRezCostIncrease(state, cardId) +
+    resolveIceRezCostIncrease(state, cardId) +
     (state.turn.iceAdditionalRezCostThisTurn[cardId] ?? 0) +
     firstIceRezIncrease(state) +
     hernandoIceRezSurcharge(state, cardId) +

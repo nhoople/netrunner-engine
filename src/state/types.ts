@@ -2633,6 +2633,12 @@ export interface CardInstance {
     | { kind: "host_grant_barrier" }
     | { kind: "copy_other_rezzed_ice_subtypes" }
   >;
+  /** Static continuous gained-sub declarations (framework migration M6). */
+  continuousGainedSubDecls?: Array<
+    | { kind: "fatuma_lose_click" }
+    | { kind: "wetwork_hosted_before" }
+    | { kind: "sub_boost_etr" }
+  >;
   /**
    * Recurring credits may only be spent for these purposes.
    * `run_central` = any credit cost while attacking HQ / R&D / Archives

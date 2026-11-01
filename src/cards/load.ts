@@ -3238,6 +3238,14 @@ export function instantiateCard(
       : def.hostGainsBarrierAndEtrSubroutine
         ? [{ kind: "host_grant_barrier" as const }]
         : undefined,
+    // M6: static continuous gained-sub declarations (Fatuma / Wetwork / Sub Boost).
+    continuousGainedSubDecls: def.bioroidIceGainsLoseClickSubroutineBeforeOthers
+      ? [{ kind: "fatuma_lose_click" as const }]
+      : def.hostGainsSubroutinesBeforePrinted
+        ? [{ kind: "wetwork_hosted_before" as const }]
+        : def.hostGainsBarrierAndEtrSubroutine
+          ? [{ kind: "sub_boost_etr" as const }]
+          : undefined,
     recurringSpendFor: def.recurringSpendFor
       ? [...def.recurringSpendFor]
       : undefined,

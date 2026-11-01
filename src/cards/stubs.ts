@@ -611,11 +611,15 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   if (selfOk && card.strengthBonusPerRezzedIceWithSubtype) {
     const { subtype, bonus: perBonus } =
       card.strengthBonusPerRezzedIceWithSubtype;
+    const want = subtype.toLowerCase();
     let count = 0;
     for (const server of Object.values(state.servers)) {
       for (const id of server.ice) {
         const ice = state.cards[id];
-        if (ice?.rezzed && (ice.subtypes ?? []).includes(subtype)) {
+        if (
+          ice?.rezzed &&
+          resolveIceSubtypes(state, id).some((t) => t.toLowerCase() === want)
+        ) {
           count += 1;
         }
       }
@@ -656,15 +660,19 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
         Math.floor(state.corp.credits / spec.perCredits) * spec.bonus;
     }
   }
-  // Stronger Together-class: Corp identity / active cards grant subtype ice +N.
+  // Stronger Together-class: Corp identity / active cards grant subtype ice +N
+  // (layered subtypes — framework migration M4).
   let subtypeBonus = 0;
+  const layeredSubs = resolveIceSubtypes(state, iceId).map((s) =>
+    s.toLowerCase(),
+  );
   const idCard = state.cards[state.corp.identityId];
   if (
     idCard?.iceStrengthBonusForSubtype &&
     !abilitiesSuppressed(state, state.corp.identityId)
   ) {
     const { subtype, bonus } = idCard.iceStrengthBonusForSubtype;
-    if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += bonus;
+    if (layeredSubs.includes(subtype.toLowerCase())) subtypeBonus += bonus;
   }
   for (const server of Object.values(state.servers)) {
     for (const rid of [...server.root, ...server.ice]) {
@@ -677,7 +685,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
         continue;
       }
       const { subtype, bonus } = src.iceStrengthBonusForSubtype;
-      if ((card.subtypes ?? []).includes(subtype)) subtypeBonus += bonus;
+      if (layeredSubs.includes(subtype.toLowerCase())) subtypeBonus += bonus;
     }
   }
   const lockdownBonus = allIceStrengthBonusFromLockdowns(state);
