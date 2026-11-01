@@ -19,7 +19,7 @@ describe("whispers-in-nalubaale", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("Whispers in Nalubaale v1.140.0 set-complete", () => {
@@ -60,8 +60,8 @@ describe("whispers-in-nalubaale", () => {
       expect(getCardDef("remote-enforcement").onAgendaScored).toBeTruthy();
       expect(getCardDef("kamali-1-0").subroutines?.length).toBe(3);
       expect(
-        getCardDef("warden-fatuma").bioroidIceGainsLoseClickSubroutineBeforeOthers,
-      ).toBe(true);
+        getCardDef("warden-fatuma").continuousGainedSubDecls?.[0]?.kind,
+      ).toBe("fatuma_lose_click");
       expect(getCardDef("viral-weaponization").onScoreTurnEnd).toBeTruthy();
       expect(getCardDef("envelope").subroutines?.length).toBe(2);
       expect(getCardDef("mwanza-city-grid").hqOrRdRootOnly).toBe(true);

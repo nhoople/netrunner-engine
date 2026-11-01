@@ -99,7 +99,7 @@ describe("SU21 partial closures", () => {
     s.cards[iceId].rezzed = true;
     const eg = instantiateCard("egret", "eg-1", "runner:installed");
     eg.hostId = iceId;
-    eg.hostGainsAllIceSubtypes = true;
+    eg.continuousSubtypeGrants = [{ kind: "host_grant_bcs" }];
     s.cards["eg-1"] = eg;
     s.runner.installed.push("eg-1");
     const subs = effectiveIceSubtypes(s, iceId);

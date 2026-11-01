@@ -22,7 +22,7 @@ describe("up-and-over", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("Up and Over v1.105.0 set-complete", () => {

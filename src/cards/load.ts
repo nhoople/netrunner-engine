@@ -985,14 +985,10 @@ export interface CardDef {
     | { kind: "copy_other_rezzed_ice_subtypes" }
   >;
   /**
-   * Continuous gained-sub declarations (M6 / L1). Prefer card-supplied decls
+   * Continuous gained-sub declarations (M6 / L2). Prefer card-supplied decls
    * when present; otherwise projected from Fatuma / Wetwork / Sub Boost flags.
    */
-  continuousGainedSubDecls?: Array<
-    | { kind: "fatuma_lose_click" }
-    | { kind: "wetwork_hosted_before" }
-    | { kind: "sub_boost_etr" }
-  >;
+  continuousGainedSubDecls?: import("../state/types.js").ContinuousGainedSubDecl[];
   recurringSpendFor?: Array<
     | "trash"
     | "trash_asset"

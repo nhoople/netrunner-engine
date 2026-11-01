@@ -18,7 +18,7 @@ describe("intervention", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("Intervention v1.125.0 set-complete", () => {
@@ -53,7 +53,10 @@ describe("intervention", () => {
       expect(getCardDef("preemptive-action").endsActionPhase).toBe(true);
       expect(getCardDef("preemptive-action").rfgInsteadOfTrashing).toBe(true);
       expect(
-        getCardDef("wetwork-refit").hostGainsSubroutinesBeforePrinted?.[0]?.text,
+        getCardDef("wetwork-refit").continuousGainedSubDecls?.[0]?.kind ===
+          "wetwork_hosted_before" &&
+          getCardDef("wetwork-refit").continuousGainedSubDecls?.[0]
+            ?.subroutines?.[0]?.text,
       ).toMatch(/core damage/i);
       expect(
         getCardDef("drone-screen").onRunDeclaredOnThisServerIfTagged,

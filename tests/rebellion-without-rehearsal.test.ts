@@ -25,7 +25,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.88 Corporate Hospitality / Boto / Capacitor / FoF / Seraph", () => {
@@ -88,7 +88,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.89 Powers / Stoke / Boi-tatá / Sorocaban / Piranhas", () => {
@@ -138,7 +138,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.90 Charlotte / Janaína / Arruaceiras / Logjam / Hammer", () => {
@@ -194,7 +194,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.91 policing / breach / tags", () => {
@@ -247,7 +247,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.92 Malandragem / Physarum / Lobisomem / Trick Shot / Privileged Access", () => {
@@ -296,7 +296,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.93 Amanuensis / Ashen / Sudden / Working Prototype / Spree", () => {
@@ -342,7 +342,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.94 Hearts / Warm Reception / Basalt / Juli / Alarm Clock", () => {
@@ -400,7 +400,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.95 Holo Man / Isaac / Kingmaking / Amelia / Cohort", () => {
@@ -452,7 +452,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.96 Business / Tributary / Meeting / Manuel / Window", () => {
@@ -506,7 +506,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.97 Sebastião / Cloud Eater / Descent / Nuvem / Sisyphus", () => {
@@ -558,7 +558,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.98 Eminent / Lightning / Brasília / Thunderbolt / Lycian", () => {
@@ -619,7 +619,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   describe("RWR v0.99 Burner / Cataloguer / Muse / Jeitinho / Wizard's Chest", () => {
@@ -691,7 +691,7 @@ describe("rebellion-without-rehearsal", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.14");
+    assertCardsPinnedTag("v1.147.15");
   });
 
   function must(

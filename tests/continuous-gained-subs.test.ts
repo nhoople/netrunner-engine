@@ -1,5 +1,5 @@
 /**
- * Framework migration M1/M6: gained-sub collectors + Sub Boost barrier grant.
+ * Framework migration M1/M6/L2: gained-sub collectors + Sub Boost barrier grant.
  */
 import { describe, expect, it } from "vitest";
 import {
@@ -60,8 +60,8 @@ describe("continuous gained-sub collectors (M1)", () => {
   });
 });
 
-describe("continuous gained-sub decls (M6)", () => {
-  it("Fatuma collector follows continuousGainedSubDecls without the legacy boolean", () => {
+describe("continuous gained-sub decls (L2)", () => {
+  it("Fatuma collector follows continuousGainedSubDecls payload", () => {
     const s = createInitialState();
     const ice = instantiateCard("heimdall-1-0", "heim-1", "server:hq:ice");
     ice.rezzed = true;
@@ -70,11 +70,11 @@ describe("continuous gained-sub decls (M6)", () => {
     s.servers.hq.ice = ["heim-1"];
     const fatuma = instantiateCard("warden-fatuma", "fat-1", "server:hq:root");
     fatuma.rezzed = true;
-    fatuma.bioroidIceGainsLoseClickSubroutineBeforeOthers = false;
-    fatuma.continuousGainedSubDecls = [{ kind: "fatuma_lose_click" }];
+    fatuma.bioroidIceGainsLoseClickSubroutineBeforeOthers = undefined;
     s.cards["fat-1"] = fatuma;
     s.servers.hq.root = ["fat-1"];
 
+    expect(fatuma.continuousGainedSubDecls?.[0]?.kind).toBe("fatuma_lose_click");
     expect(collectFatumaGainedSubs(s, "heim-1")).toHaveLength(1);
   });
 
@@ -86,9 +86,7 @@ describe("continuous gained-sub decls (M6)", () => {
     const boost = instantiateCard("sub-boost", "sb-1", "hosted:eng-1");
     boost.faceup = true;
     boost.hostId = "eng-1";
-    boost.hostGainsBarrierAndEtrSubroutine = false;
-    boost.continuousGainedSubDecls = [{ kind: "sub_boost_etr" }];
-    boost.continuousSubtypeGrants = [{ kind: "host_grant_barrier" }];
+    boost.hostGainsBarrierAndEtrSubroutine = undefined;
     enigma.hostedCardIds = ["sb-1"];
     s.cards["eng-1"] = enigma;
     s.cards["sb-1"] = boost;
@@ -100,7 +98,7 @@ describe("continuous gained-sub decls (M6)", () => {
     );
   });
 
-  it("Wetwork marker decl alone does not grant without hostGainsSubroutinesBeforePrinted", () => {
+  it("Wetwork marker decl alone does not grant without subroutine payload", () => {
     const s = createInitialState();
     const ice = instantiateCard("heimdall-1-0", "heim-1", "server:hq:ice");
     ice.rezzed = true;
@@ -108,7 +106,7 @@ describe("continuous gained-sub decls (M6)", () => {
     const wet = instantiateCard("wetwork-refit", "wet-1", "hosted:heim-1");
     wet.faceup = true;
     wet.hostId = "heim-1";
-    wet.hostGainsSubroutinesBeforePrinted = [];
+    wet.hostGainsSubroutinesBeforePrinted = undefined;
     wet.continuousGainedSubDecls = [{ kind: "wetwork_hosted_before" }];
     ice.hostedCardIds = ["wet-1"];
     s.cards["heim-1"] = ice;
@@ -118,22 +116,39 @@ describe("continuous gained-sub decls (M6)", () => {
     expect(collectHostedConditionSubsBeforePrinted(s, "heim-1")).toHaveLength(0);
   });
 
-  it("instantiate prefers card-supplied continuous decls over legacy flag projection", () => {
+  it("Wetwork grants from continuousGainedSubDecls subroutines payload", () => {
+    const s = createInitialState();
+    const ice = instantiateCard("heimdall-1-0", "heim-1", "server:hq:ice");
+    ice.rezzed = true;
+    ice.faceup = true;
+    const wet = instantiateCard("wetwork-refit", "wet-1", "hosted:heim-1");
+    wet.faceup = true;
+    wet.hostId = "heim-1";
+    wet.hostGainsSubroutinesBeforePrinted = undefined;
+    ice.hostedCardIds = ["wet-1"];
+    s.cards["heim-1"] = ice;
+    s.cards["wet-1"] = wet;
+    s.servers.hq.ice = ["heim-1"];
+
+    const gained = collectHostedConditionSubsBeforePrinted(s, "heim-1");
+    expect(gained).toHaveLength(1);
+    expect(gained[0]?.text).toBe("Do 1 core damage.");
+  });
+
+  it("instantiate loads continuous decls without legacy flags on L2 cards", () => {
     const fatuma = instantiateCard("warden-fatuma", "fat-1", "server:hq:root");
-    expect(fatuma.bioroidIceGainsLoseClickSubroutineBeforeOthers).toBe(true);
-    expect(fatuma.continuousGainedSubDecls).toEqual([
-      { kind: "fatuma_lose_click" },
-    ]);
+    expect(fatuma.bioroidIceGainsLoseClickSubroutineBeforeOthers).toBeUndefined();
+    expect(fatuma.continuousGainedSubDecls?.[0]?.kind).toBe("fatuma_lose_click");
 
     const boost = instantiateCard("sub-boost", "sb-1", "hosted:ice-1");
-    expect(boost.hostGainsBarrierAndEtrSubroutine).toBe(true);
+    expect(boost.hostGainsBarrierAndEtrSubroutine).toBeUndefined();
     expect(boost.continuousSubtypeGrants).toEqual([
       { kind: "host_grant_barrier" },
     ]);
-    expect(boost.continuousGainedSubDecls).toEqual([{ kind: "sub_boost_etr" }]);
+    expect(boost.continuousGainedSubDecls?.[0]?.kind).toBe("sub_boost_etr");
 
     const mg = instantiateCard("mother-goddess", "mg-1", "server:hq:ice");
-    expect(mg.hostGainsAllIceSubtypes).toBe(true);
+    expect(mg.hostGainsAllIceSubtypes).toBeUndefined();
     expect(mg.continuousSubtypeGrants).toEqual([
       { kind: "copy_other_rezzed_ice_subtypes" },
     ]);

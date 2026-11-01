@@ -5,6 +5,24 @@ import type { Effect } from "../effects/ir.js";
 
 export type Side = "corp" | "runner";
 
+/** Gained-subroutine continuous declaration (L2 payload shape). */
+export type ContinuousGainedSubDecl =
+  | {
+      kind: "fatuma_lose_click";
+      position?: "before";
+      subroutine?: { id: string; text: string; effect: Effect };
+    }
+  | {
+      kind: "sub_boost_etr";
+      position?: "after";
+      subroutine?: { id: string; text: string; effect: Effect };
+    }
+  | {
+      kind: "wetwork_hosted_before";
+      position?: "before";
+      subroutines?: Array<{ id: string; text: string; effect: Effect }>;
+    };
+
 /**
  * Restriction on when recurring credits on a card may be spent.
  * Purpose gates (`trash` / `trash_asset` / `play_event`) match Paricia /
@@ -2633,14 +2651,11 @@ export interface CardInstance {
     | { kind: "copy_other_rezzed_ice_subtypes" }
   >;
   /**
-   * Static continuous gained-sub declarations (M6 / L1). Prefer card-supplied
-   * decls; else projected from Fatuma / Wetwork / Sub Boost flags at load.
+   * Static continuous gained-sub declarations (M6 / L2). Prefer card-supplied
+   * decls with optional subroutine payloads; else projected from Fatuma /
+   * Wetwork / Sub Boost flags at load.
    */
-  continuousGainedSubDecls?: Array<
-    | { kind: "fatuma_lose_click" }
-    | { kind: "wetwork_hosted_before" }
-    | { kind: "sub_boost_etr" }
-  >;
+  continuousGainedSubDecls?: ContinuousGainedSubDecl[];
   /**
    * Recurring credits may only be spent for these purposes.
    * `run_central` = any credit cost while attacking HQ / R&D / Archives

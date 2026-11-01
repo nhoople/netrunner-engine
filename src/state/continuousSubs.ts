@@ -1,11 +1,11 @@
 /**
- * Continuous gained-subroutine collectors (framework migration M1).
+ * Continuous gained-subroutine collectors (framework migration M1 / L2).
  * Graph applies the lists; collectors own the continuous math.
  */
 import { abilitiesSuppressed } from "./abilities.js";
 import { resolveIceSubtypes } from "./continuousEffects.js";
 import type { Effect } from "../effects/ir.js";
-import type { GameState, Subroutine } from "./types.js";
+import type { ContinuousGainedSubDecl, GameState, Subroutine } from "./types.js";
 
 export type ContinuousGainedSub = {
   sourceId: string;
@@ -17,30 +17,25 @@ export type ContinuousGainedSub = {
   position: "before" | "after";
 };
 
-type GainedSubDeclKind =
-  | "fatuma_lose_click"
-  | "wetwork_hosted_before"
-  | "sub_boost_etr";
+const FATUMA_LOSE_CLICK_SUB = {
+  id: "warden-lose-click",
+  text: "The Runner loses [click].",
+  effect: {
+    op: "do" as const,
+    action: { kind: "lose_clicks" as const, side: "runner" as const, amount: 1 },
+  },
+};
 
-/** Prefer M6 `continuousGainedSubDecls`; fall back to legacy one-off flags. */
-function hasGainedSubDecl(
+const SUB_BOOST_ETR_SUB = {
+  id: "sub-boost-etr",
+  text: "End the run.",
+  effect: { op: "do" as const, action: { kind: "end_the_run" as const } },
+};
+
+function gainedSubDecls(
   card: GameState["cards"][string] | undefined,
-  kind: GainedSubDeclKind,
-): boolean {
-  if (!card) return false;
-  if ((card.continuousGainedSubDecls ?? []).some((d) => d.kind === kind)) {
-    return true;
-  }
-  if (kind === "fatuma_lose_click") {
-    return Boolean(card.bioroidIceGainsLoseClickSubroutineBeforeOthers);
-  }
-  if (kind === "sub_boost_etr") {
-    return Boolean(card.hostGainsBarrierAndEtrSubroutine);
-  }
-  if (kind === "wetwork_hosted_before") {
-    return (card.hostGainsSubroutinesBeforePrinted?.length ?? 0) > 0;
-  }
-  return false;
+): ContinuousGainedSubDecl[] {
+  return card?.continuousGainedSubDecls ?? [];
 }
 
 /** Warden Fatuma-class: bioroid ice gains lose-click before printed. */
@@ -55,19 +50,19 @@ export function collectFatumaGainedSubs(
   const out: ContinuousGainedSub[] = [];
   for (const card of Object.values(state.cards)) {
     if (!card.rezzed) continue;
-    if (!hasGainedSubDecl(card, "fatuma_lose_click")) continue;
     if (abilitiesSuppressed(state, card.id)) continue;
-    out.push({
-      sourceId: card.id,
-      iceId,
-      subId: `warden-lose-click-${card.id}`,
-      text: "The Runner loses [click].",
-      effect: {
-        op: "do",
-        action: { kind: "lose_clicks", side: "runner", amount: 1 },
-      },
-      position: "before",
-    });
+    for (const decl of gainedSubDecls(card)) {
+      if (decl.kind !== "fatuma_lose_click") continue;
+      const sub = decl.subroutine ?? FATUMA_LOSE_CLICK_SUB;
+      out.push({
+        sourceId: card.id,
+        iceId,
+        subId: `${sub.id}-${card.id}`,
+        text: sub.text,
+        effect: structuredClone(sub.effect),
+        position: decl.position ?? "before",
+      });
+    }
   }
   return out;
 }
@@ -83,16 +78,22 @@ export function collectHostedConditionSubsBeforePrinted(
   for (const hid of ice.hostedCardIds ?? []) {
     if (abilitiesSuppressed(state, hid)) continue;
     const hosted = state.cards[hid];
-    if (!hasGainedSubDecl(hosted, "wetwork_hosted_before")) continue;
-    for (const sub of hosted?.hostGainsSubroutinesBeforePrinted ?? []) {
-      out.push({
-        sourceId: hid,
-        iceId,
-        subId: `${sub.id}-${hid}`,
-        text: sub.text,
-        effect: structuredClone(sub.effect),
-        position: "before",
-      });
+    for (const decl of gainedSubDecls(hosted)) {
+      if (decl.kind !== "wetwork_hosted_before") continue;
+      const subs =
+        decl.subroutines && decl.subroutines.length > 0
+          ? decl.subroutines
+          : (hosted?.hostGainsSubroutinesBeforePrinted ?? []);
+      for (const sub of subs) {
+        out.push({
+          sourceId: hid,
+          iceId,
+          subId: `${sub.id}-${hid}`,
+          text: sub.text,
+          effect: structuredClone(sub.effect),
+          position: decl.position ?? "before",
+        });
+      }
     }
   }
   return out;
@@ -109,15 +110,18 @@ export function collectSubBoostEtrSubs(
   for (const hid of ice.hostedCardIds ?? []) {
     if (abilitiesSuppressed(state, hid)) continue;
     const hosted = state.cards[hid];
-    if (!hasGainedSubDecl(hosted, "sub_boost_etr")) continue;
-    out.push({
-      sourceId: hid,
-      iceId,
-      subId: `sub-boost-etr-${hid}`,
-      text: "End the run.",
-      effect: { op: "do", action: { kind: "end_the_run" } },
-      position: "after",
-    });
+    for (const decl of gainedSubDecls(hosted)) {
+      if (decl.kind !== "sub_boost_etr") continue;
+      const sub = decl.subroutine ?? SUB_BOOST_ETR_SUB;
+      out.push({
+        sourceId: hid,
+        iceId,
+        subId: `${sub.id}-${hid}`,
+        text: sub.text,
+        effect: structuredClone(sub.effect),
+        position: decl.position ?? "after",
+      });
+    }
   }
   return out;
 }
