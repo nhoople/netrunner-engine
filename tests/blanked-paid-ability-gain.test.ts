@@ -14,6 +14,7 @@ import {
 import { usePaidAbility } from "../src/actions/paidAbility.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { paidAbilitiesIncludingHosted } from "../src/state/cardDeclarations.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -38,7 +39,7 @@ describe("blanked paid-ability gain (CR 9.12.1d)", () => {
     const hostedIds = paidAbilitiesIncludingHosted(s, baba).map((a) => a.id);
     expect(hostedIds).toContain("gordian-pump");
 
-    baba.abilitiesBlanked = true;
+    suppressAbilities(s, baba.id);
     expect(abilitiesSuppressed(s, "baba-1")).toBe(true);
     expect(paidAbilitiesIncludingHosted(s, baba).map((a) => a.id)).not.toContain(
       "gordian-pump",

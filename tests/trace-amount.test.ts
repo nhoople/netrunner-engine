@@ -20,10 +20,7 @@ import {
   assertCardsPinnedTag,
   getCardDef,
 } from "../src/index.js";
-import {
-  LINGERING_KIND_BREAKER_STRENGTH_RUN,
-  lingeringBreakerStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+import { LINGERING_KIND_BREAKER_STRENGTH_RUN, lingeringBreakerStrengthOfKind } from "../src/state/lingeringEffects.js";
 
 import {
   fireAfterBreakSubroutineHooks,

@@ -16,6 +16,7 @@ import { computeRunnerMaxHandSize } from "../src/state/handSize.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { runnerInstallCost } from "../src/actions/installRunner.js";
 import { agendaPointMu, agendaPointHandSize } from "../src/state/staticFlags.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -33,7 +34,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     s.runner.installed = ["ps-1"];
 
     expect(computeRunnerMaxHandSize(s)).toBe(7);
-    ps.abilitiesBlanked = true;
+    suppressAbilities(s, ps.id);
     expect(computeRunnerMaxHandSize(s)).toBe(5);
   });
 
@@ -51,7 +52,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     };
 
     expect(computeRunnerMaxHandSize(s)).toBe(3);
-    hiro.abilitiesBlanked = true;
+    suppressAbilities(s, hiro.id);
     expect(computeRunnerMaxHandSize(s)).toBe(5);
   });
 
@@ -68,7 +69,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
 
     const base = s.runner.memoryLimit;
     expect(memoryLimit(s)).toBe(base + 2);
-    chip.abilitiesBlanked = true;
+    suppressAbilities(s, chip.id);
     expect(memoryLimit(s)).toBe(base);
   });
 
@@ -83,7 +84,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     s.runner.scoreArea = ["ag-1"];
 
     expect(agendaPointMu(s)).toBeGreaterThan(0);
-    chip.abilitiesBlanked = true;
+    suppressAbilities(s, chip.id);
     expect(agendaPointMu(s)).toBe(0);
   });
 
@@ -104,7 +105,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
 
     const printed = icebreaker.installCost;
     expect(runnerInstallCost(s, icebreaker)).toBe(printed + 1);
-    tech.abilitiesBlanked = true;
+    suppressAbilities(s, tech.id);
     expect(runnerInstallCost(s, icebreaker)).toBe(printed);
   });
 
@@ -119,7 +120,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
 
     const printed = res.installCost;
     expect(runnerInstallCost(s, res)).toBe(printed + 1);
-    wm.abilitiesBlanked = true;
+    suppressAbilities(s, wm.id);
     expect(runnerInstallCost(s, res)).toBe(printed);
   });
 
@@ -137,7 +138,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     let s2 = createInitialState();
     s2 = structuredClone(s2);
     const aks2 = instantiateCard("akshara-sareen", "aks-2", "runner:installed");
-    aks2.abilitiesBlanked = true;
+    suppressAbilities(s2, aks2.id);
     s2.cards["aks-2"] = aks2;
     s2.runner.installed = ["aks-2"];
     s2.timingKey = "runner.gainClicks";
@@ -166,7 +167,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     s2 = structuredClone(s2);
     const dh2 = instantiateCard("director-haas", "dh-2", "server:remote-1:root");
     dh2.rezzed = true;
-    dh2.abilitiesBlanked = true;
+    suppressAbilities(s2, dh2.id);
     s2.cards["dh-2"] = dh2;
     s2.servers["remote-1"] = {
       id: "remote-1",
@@ -190,7 +191,7 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     s.runner.scoreArea = ["ag-1"];
 
     expect(agendaPointHandSize(s)).toBeGreaterThan(0);
-    chip.abilitiesBlanked = true;
+    suppressAbilities(s, chip.id);
     expect(agendaPointHandSize(s)).toBe(0);
   });
 });

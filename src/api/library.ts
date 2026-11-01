@@ -14,6 +14,7 @@ import {
   openFace,
   openHostedCredits,
 } from "../state/seatVisibility.js";
+import { currentMark } from "../state/msKeywords.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
 import type {
   Action,
@@ -274,7 +275,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       : null,
     pendingScoreAgendaId: state.pendingScoreAgendaId,
     pendingRezCardId: state.pendingRezCardId,
-    markServerId: state.markServerId,
+    markServerId: currentMark(state),
     pendingAbilities: structuredClone(state.pendingAbilities),
     reactionStack: structuredClone(state.reactionStack),
     lingeringEffects: structuredClone(state.lingeringEffects),

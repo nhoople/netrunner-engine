@@ -12,6 +12,7 @@ import {
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { completeExpose } from "../src/state/expose.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -36,7 +37,7 @@ describe("blanked Aumakua expose (CR 9.12.1d)", () => {
     expect(aum.virusCounters ?? 0).toBeGreaterThan(0);
 
     aum.virusCounters = 0;
-    aum.abilitiesBlanked = true;
+    suppressAbilities(s, aum.id);
     expect(abilitiesSuppressed(s, "au-1")).toBe(true);
     completeExpose(s, "ice-1");
     expect(aum.virusCounters ?? 0).toBe(0);

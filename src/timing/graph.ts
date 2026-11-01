@@ -30,9 +30,12 @@ import {
   collectTourGuideEtrSubs,
   collectWinchesterHqSubs,
   applyContinuousGainedSubs,
+  firstDecl,
+  iceHasWinchesterFamilyDecl,
 } from "../state/continuousSubs.js";
 import { resolveIceSubtypes } from "../state/continuousEffects.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { currentMark } from "../state/msKeywords.js";
 import { syncAllTourGuideSubs } from "../effects/sansanUotPrimitives.js";
 import {
   beginCorpTurnFlags,
@@ -2379,22 +2382,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             ...collectTourGuideEtrSubs(s, iceId),
           ];
           const needsSync =
-            continuous.length > 0 ||
-            Boolean(ice.gainsSubroutinesBeforePrintedPerFaceupArchives) ||
-            Boolean(ice.gainsSubroutinesPerAdvancement) ||
-            Boolean(ice.gainsSubroutinesPerRezzedIceWithSubtype) ||
-            Boolean(ice.etrSubroutinesPerRezzedAsset) ||
-            (ice.continuousGainedSubDecls ?? []).some((d) =>
-              (
-                [
-                  "hq_protect_subs",
-                  "archives_faceup_per",
-                  "per_advancement",
-                  "per_rezzed_subtype",
-                  "etr_per_rezzed_asset",
-                ] as const
-              ).includes(d.kind as never),
-            );
+            continuous.length > 0 || iceHasWinchesterFamilyDecl(ice);
           if (needsSync) {
             const beforeLen = ice.subroutines?.length ?? 0;
             applyContinuousGainedSubs(s, iceId, continuous);
@@ -2409,18 +2397,16 @@ export const STEPS: Record<string, TimingStepDef> = {
                 `${ice.title} — gains ${winchester.length} subroutine(s) while protecting HQ.`,
               );
             }
-            const blockchain = continuous.filter((g) =>
-              ice.gainsSubroutinesBeforePrintedPerFaceupArchives
-                ? g.subId.startsWith(
-                    `${ice.gainsSubroutinesBeforePrintedPerFaceupArchives.subroutine.id}-`,
-                  ) ||
-                  g.subId ===
-                    ice.gainsSubroutinesBeforePrintedPerFaceupArchives.subroutine
-                      .id
-                : false,
-            );
+            const archivesDecl = firstDecl(ice, "archives_faceup_per");
+            const blockchain = archivesDecl
+              ? continuous.filter(
+                  (g) =>
+                    g.subId.startsWith(`${archivesDecl.subroutine.id}-`) ||
+                    g.subId === archivesDecl.subroutine.id,
+                )
+              : [];
             if (
-              ice.gainsSubroutinesBeforePrintedPerFaceupArchives &&
+              archivesDecl &&
               (ice.subroutines?.length ?? 0) !== beforeLen
             ) {
               s.log.push(
@@ -2434,13 +2420,14 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
             }
             const opal = collectNextOpalSubs(s, iceId);
-            if (opal.length > 0 && ice.gainsSubroutinesPerRezzedIceWithSubtype) {
+            const opalDecl = firstDecl(ice, "per_rezzed_subtype");
+            if (opal.length > 0 && opalDecl) {
               s.log.push(
-                `${ice.title} — gains ${opal.length} subroutine(s) from rezzed ${ice.gainsSubroutinesPerRezzedIceWithSubtype.subtype}.`,
+                `${ice.title} — gains ${opal.length} subroutine(s) from rezzed ${opalDecl.subtype}.`,
               );
             }
           }
-          if (ice.etrSubroutinesPerRezzedAsset) {
+          if (firstDecl(ice, "etr_per_rezzed_asset")) {
             syncAllTourGuideSubs(s);
           }
         }
@@ -2485,12 +2472,13 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Brainstorm: gains X "Do 1 core damage" subs = grip size for remainder of run.
+        const gripDecl = firstDecl(ice, "grip_size_on_encounter");
         if (
-          ice.gainsSubroutinesOnEncounterEqualGripSize &&
+          gripDecl &&
           !(runState as { tlmBrainstormApplied?: boolean }).tlmBrainstormApplied
         ) {
           const brainstorm = collectBrainstormGripSubs(s, iceId);
-          const template = ice.gainsSubroutinesOnEncounterEqualGripSize;
+          const template = gripDecl.subroutine;
           const prior = (ice.subroutines ?? []).filter(
             (sub) => !sub.id.startsWith(`${template.id}-`),
           );
@@ -4581,7 +4569,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
 
           // First successful run on the mark this turn (Virtuoso-class).
-          const mark = s.markServerId;
+          const mark = currentMark(s);
           if (
             mark !== null &&
             s.run!.attackedServerId === mark &&
@@ -4893,8 +4881,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         const markSid = runState.attackedServerId;
         if (
           !s.turn.infoBountyMarkRunEndUsed &&
-          s.markServerId &&
-          markSid === s.markServerId &&
+          currentMark(s) &&
+          markSid === currentMark(s) &&
           runState.breached
         ) {
           for (const rid of s.runner.installed) {
@@ -5172,7 +5160,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // the remainder of the run; strip them so the next run starts
         // from the printed list.
         for (const card of Object.values(s.cards)) {
-          const template = card.gainsSubroutinesOnEncounterEqualGripSize;
+          const template = firstDecl(card, "grip_size_on_encounter")?.subroutine;
           if (!template || !card.subroutines) continue;
           card.subroutines = card.subroutines.filter(
             (sub) => !sub.id.startsWith(`${template.id}-`),

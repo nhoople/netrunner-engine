@@ -161,7 +161,6 @@ export function createShortGameState(
     pendingTrashAccessedCardId: null,
     pendingRezCardId: null,
     deferAfterBasicAction: false,
-    markServerId: null,
     runnerAllottedClicksDeltaNextTurn: 0,
     corpAllottedClicksDeltaNextTurn: 0,
     corpCannotAdvanceCardsNextTurn: false,

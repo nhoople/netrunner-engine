@@ -20,6 +20,7 @@ import {
   titaniumRibsChoosesGripTrash,
 } from "../src/state/damage.js";
 import { runnerCannotPlayCurrentEvents } from "../src/state/currents.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -37,7 +38,7 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
         s.corp.identityId,
         "corp:identity",
       );
-      if (blanked) chronos.abilitiesBlanked = true;
+      if (blanked) suppressAbilities(s, chronos.id);
       s.cards[s.corp.identityId] = chronos;
       for (const id of ["r1", "r2"] as const) {
         s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
@@ -58,7 +59,7 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
     s.runner.installed = ["tr-1"];
 
     expect(titaniumRibsChoosesGripTrash(s)).toBe(true);
-    ribs.abilitiesBlanked = true;
+    suppressAbilities(s, ribs.id);
     expect(titaniumRibsChoosesGripTrash(s)).toBe(false);
   });
 
@@ -70,7 +71,7 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
     s.corp.scoreArea = ["ai-1"];
 
     expect(ancestralImagerJackOutDamage(s).length).toBeGreaterThan(0);
-    ai.abilitiesBlanked = true;
+    suppressAbilities(s, ai.id);
     expect(ancestralImagerJackOutDamage(s)).toEqual([]);
   });
 
@@ -83,7 +84,7 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
     s.servers.hq.root = ["dbs-1"];
 
     expect(dailyBusinessShowSource(s)).toBe("dbs-1");
-    dbs.abilitiesBlanked = true;
+    suppressAbilities(s, dbs.id);
     expect(dailyBusinessShowSource(s)).toBeNull();
   });
 
@@ -98,7 +99,7 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
     s.servers.hq.root = ["lock-1"];
 
     expect(runnerCannotPlayCurrentEvents(s)).toBe(true);
-    lock.abilitiesBlanked = true;
+    suppressAbilities(s, lock.id);
     expect(runnerCannotPlayCurrentEvents(s)).toBe(false);
   });
 
@@ -126,7 +127,7 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
       "corp:play-area",
     );
     chips2.increaseFirstCoreDamagePerTurn = 2;
-    chips2.abilitiesBlanked = true;
+    suppressAbilities(blanked, chips2.id);
     blanked.cards["dbc-1"] = chips2;
     blanked.corp.playArea = ["dbc-1"];
     blanked.runner.coreDamage = 0;

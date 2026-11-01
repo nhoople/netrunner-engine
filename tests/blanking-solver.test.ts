@@ -15,6 +15,7 @@ import {
   instantiateCard,
   resolveBlankedCardIds,
 } from "../src/index.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -72,7 +73,7 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
     expect(abilitiesSuppressed(s, "hush-1")).toBe(false);
   });
 
-  it("Klevetnik-class abilitiesBlanked flag still suppresses without a host loop", () => {
+  it("ability_blank lingering suppresses without a host loop", () => {
     let s = createInitialState();
     s = structuredClone(s);
     s.cards["res-1"] = {
@@ -84,10 +85,9 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
       zone: "runner:installed",
       faceup: true,
       rezzed: true,
-      abilitiesBlanked: true,
-      abilitiesBlankedCorpTurnsRemaining: 1,
     };
     s.runner.installed = ["res-1"];
+    suppressAbilities(s, "res-1");
     expect(abilitiesSuppressed(s, "res-1")).toBe(true);
   });
 

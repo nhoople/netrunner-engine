@@ -18,6 +18,7 @@ import {
   onSuccessfulRunEnded,
 } from "../src/state/cardDeclarations.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -41,7 +42,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
     expect(s.pendingChoice?.sourceId).toBe("gpi-1");
 
     s.pendingChoice = null;
-    gpi.abilitiesBlanked = true;
+    suppressAbilities(s, gpi.id);
     expect(abilitiesSuppressed(s, "gpi-1")).toBe(true);
     noteApproachIce(s, "ice-1");
     expect(s.pendingChoice).toBeNull();
@@ -62,7 +63,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
 
     s.pendingChoice = null;
     s.turn.engoloUsedThisTurn = false;
-    eng.abilitiesBlanked = true;
+    suppressAbilities(s, eng.id);
     noteEncounterIce(s, "ice-1");
     expect(s.pendingChoice).toBeNull();
   });
@@ -81,7 +82,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
 
     s.pendingChoice = null;
     s.turn.cometEventPlayedThisTurn = false;
-    comet.abilitiesBlanked = true;
+    suppressAbilities(s, comet.id);
     onRunnerEventPlayed(s, "sg-1");
     expect(s.pendingChoice).toBeNull();
   });
@@ -109,7 +110,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
     expect(s.corpAllottedClicksDeltaNextTurn ?? 0).toBeGreaterThan(0);
 
     s.corpAllottedClicksDeltaNextTurn = 0;
-    manta.abilitiesBlanked = true;
+    suppressAbilities(s, manta.id);
     onSuccessfulRunEnded(s);
     expect(s.corpAllottedClicksDeltaNextTurn ?? 0).toBe(0);
   });
@@ -136,7 +137,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
     expect(mirror.recurringCredits).toBe(1);
 
     mirror.recurringCredits = 0;
-    mirror.abilitiesBlanked = true;
+    suppressAbilities(s, mirror.id);
     onSuccessfulRunEnded(s);
     expect(mirror.recurringCredits).toBe(0);
   });
@@ -169,7 +170,7 @@ describe("blanked GPI / Engolo / Comet (CR 9.12.1d)", () => {
 
     kasi.powerCounters = 0;
     s.turn.kasiFiredThisTurn = false;
-    kasi.abilitiesBlanked = true;
+    suppressAbilities(s, kasi.id);
     onSuccessfulRunEnded(s);
     expect(kasi.powerCounters ?? 0).toBe(0);
   });

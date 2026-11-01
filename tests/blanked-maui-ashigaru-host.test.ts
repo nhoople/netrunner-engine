@@ -15,6 +15,7 @@ import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { syncMauiRecurringCredits } from "../src/effects/redsandBawPrimitives.js";
 import { syncCorpHandSizeSubroutines } from "../src/state/handSizeSubroutines.js";
 import { syncNextSubtypeEtrSubs } from "../src/state/powerCounters.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -39,7 +40,7 @@ describe("blanked Maui / Ashigaru / host (CR 9.12.1d)", () => {
     expect(maui.recurringCreditsMax).toBe(1);
     expect(maui.recurringCredits).toBe(1);
 
-    maui.abilitiesBlanked = true;
+    suppressAbilities(s, maui.id);
     syncMauiRecurringCredits(s);
     expect(maui.recurringCreditsMax).toBe(0);
     expect(maui.recurringCredits).toBe(0);
@@ -63,7 +64,7 @@ describe("blanked Maui / Ashigaru / host (CR 9.12.1d)", () => {
     const withHand = (ash.subroutines ?? []).length;
     expect(withHand).toBeGreaterThan((ash.baseSubroutines ?? []).length);
 
-    ash.abilitiesBlanked = true;
+    suppressAbilities(s, ash.id);
     syncCorpHandSizeSubroutines(s, "ash-1");
     expect((ash.subroutines ?? []).length).toBe(
       (ash.baseSubroutines ?? []).length,
@@ -87,7 +88,7 @@ describe("blanked Maui / Ashigaru / host (CR 9.12.1d)", () => {
       (silver.baseSubroutines ?? []).length,
     );
 
-    silver.abilitiesBlanked = true;
+    suppressAbilities(s, silver.id);
     syncNextSubtypeEtrSubs(s, "ns-1");
     expect((silver.subroutines ?? []).length).toBe(
       (silver.baseSubroutines ?? []).length,
@@ -107,7 +108,7 @@ describe("blanked Maui / Ashigaru / host (CR 9.12.1d)", () => {
       Boolean(ice.cannotHostCards) && !abilitiesSuppressed(s, "tith-1");
     expect(blocked).toBe(true);
 
-    ice.abilitiesBlanked = true;
+    suppressAbilities(s, ice.id);
     const stillBlocked =
       Boolean(ice.cannotHostCards) && !abilitiesSuppressed(s, "tith-1");
     expect(stillBlocked).toBe(false);

@@ -18,6 +18,7 @@ import {
 import { clotForbidsScoreAgendaInstalledThisTurn } from "../src/actions/score.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import type { ServerId } from "../src/index.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -40,7 +41,7 @@ describe("blanked AIZ / Hacktivist / Lampades / Gourmand (CR 9.12.1d)", () => {
     s.servers.hq.root = ["aiz-1"];
 
     expect(amazonIndustrialZoneDiscount(s, "hq" as ServerId)).not.toBeNull();
-    aiz.abilitiesBlanked = true;
+    suppressAbilities(s, aiz.id);
     expect(amazonIndustrialZoneDiscount(s, "hq" as ServerId)).toBeNull();
   });
 
@@ -56,7 +57,7 @@ describe("blanked AIZ / Hacktivist / Lampades / Gourmand (CR 9.12.1d)", () => {
     s.corp.playArea = ["hm-1"];
 
     expect(hacktivistMeetingRequiresHqTrash(s)).toBe(true);
-    hm.abilitiesBlanked = true;
+    suppressAbilities(s, hm.id);
     expect(hacktivistMeetingRequiresHqTrash(s)).toBe(false);
   });
 
@@ -68,7 +69,7 @@ describe("blanked AIZ / Hacktivist / Lampades / Gourmand (CR 9.12.1d)", () => {
     s.runner.installed = ["clot-1"];
 
     expect(clotForbidsScoreAgendaInstalledThisTurn(s)).toBe(true);
-    clot.abilitiesBlanked = true;
+    suppressAbilities(s, clot.id);
     expect(clotForbidsScoreAgendaInstalledThisTurn(s)).toBe(false);
   });
 
@@ -87,7 +88,7 @@ describe("blanked AIZ / Hacktivist / Lampades / Gourmand (CR 9.12.1d)", () => {
         (s.cards[id]?.powerCounters ?? 0) >= 1,
     );
     expect(active).toBe(true);
-    lamp.abilitiesBlanked = true;
+    suppressAbilities(s, lamp.id);
     expect(
       s.runner.installed.some(
         (id) =>
@@ -111,7 +112,7 @@ describe("blanked AIZ / Hacktivist / Lampades / Gourmand (CR 9.12.1d)", () => {
         s.cards[id]?.accessTrashSelfNonAgendaThenDraw,
     );
     expect(active).toBe(true);
-    g.abilitiesBlanked = true;
+    suppressAbilities(s, g.id);
     expect(
       s.runner.installed.some(
         (id) =>
@@ -138,7 +139,7 @@ describe("blanked AIZ / Hacktivist / Lampades / Gourmand (CR 9.12.1d)", () => {
       ),
     );
     expect(active).toBe(true);
-    of.abilitiesBlanked = true;
+    suppressAbilities(s, of.id);
     expect(
       Object.values(s.servers).some((server) =>
         server.root.some(

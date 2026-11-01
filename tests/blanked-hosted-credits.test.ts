@@ -18,6 +18,7 @@ import {
   hostedCreditsSpendableToUseProgramsDuringRuns,
   spendHostedCreditsDuringRuns,
 } from "../src/state/costs.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -47,7 +48,7 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
     expect(spendHostedCreditsDuringRuns(s, 1)).toBe(0);
     expect(ghost.hostedCredits).toBe(2);
 
-    ghost.abilitiesBlanked = true;
+    suppressAbilities(s, ghost.id);
     ghost.hostedCredits = 3;
     expect(hostedCreditsSpendableDuringRuns(s)).toBe(0);
     expect(spendHostedCreditsDuringRuns(s, 1)).toBe(1);
@@ -71,7 +72,7 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
     };
 
     expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(2);
-    taka.abilitiesBlanked = true;
+    suppressAbilities(s, taka.id);
     expect(hostedCreditsSpendableToUseProgramsDuringRuns(s)).toBe(0);
   });
 
@@ -92,7 +93,7 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
     const ice = instantiateCard("ice-wall", "iw-1", "corp:hq");
 
     expect(creditsAvailableForInstall(s, "corp", ice)).toBe(4);
-    cyber.abilitiesBlanked = true;
+    suppressAbilities(s, cyber.id);
     expect(creditsAvailableForInstall(s, "corp", ice)).toBe(0);
   });
 
@@ -108,7 +109,7 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
     s.runner.installed = ["deb-1"];
     expect(deb.hostedCreditsOnRunEventPlay ?? 0).toBeGreaterThan(0);
     expect(abilitiesSuppressed(s, "deb-1")).toBe(false);
-    deb.abilitiesBlanked = true;
+    suppressAbilities(s, deb.id);
     expect(abilitiesSuppressed(s, "deb-1")).toBe(true);
   });
 });

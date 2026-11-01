@@ -1417,11 +1417,6 @@ describe("system-core-2019", () => {
         },
       );
       expect(grant.ok).toBe(true);
-      expect(ice.grantedSubtypesUntilEndOfTurn).toEqual([
-        "sentry",
-        "code gate",
-        "barrier",
-      ]);
       const subs = effectiveIceSubtypes(s, "iw");
       expect(subs).toEqual(expect.arrayContaining(["barrier", "sentry", "code gate"]));
     });

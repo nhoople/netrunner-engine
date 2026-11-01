@@ -18,6 +18,7 @@ import {
 import { wirelessNetPavilionExtra } from "../src/state/costs.js";
 import { checkWinConditions } from "../src/state/scoring.js";
 import type { ServerId } from "../src/index.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -53,7 +54,7 @@ describe("blanked static locks / taxes (CR 9.12.1d)", () => {
     };
 
     expect(midwayStationBreakTax(s)).toBeGreaterThan(0);
-    mid.abilitiesBlanked = true;
+    suppressAbilities(s, mid.id);
     expect(midwayStationBreakTax(s)).toBe(0);
   });
 
@@ -83,7 +84,7 @@ describe("blanked static locks / taxes (CR 9.12.1d)", () => {
     };
 
     expect(naviMumbaiBlocksPaidAbilities(s)).toBe(true);
-    navi.abilitiesBlanked = true;
+    suppressAbilities(s, navi.id);
     expect(naviMumbaiBlocksPaidAbilities(s)).toBe(false);
   });
 
@@ -99,7 +100,7 @@ describe("blanked static locks / taxes (CR 9.12.1d)", () => {
     s.runner.installed = ["wnp-1"];
 
     expect(wirelessNetPavilionExtra(s)).toBeGreaterThan(0);
-    pav.abilitiesBlanked = true;
+    suppressAbilities(s, pav.id);
     expect(wirelessNetPavilionExtra(s)).toBe(0);
   });
 
@@ -112,7 +113,7 @@ describe("blanked static locks / taxes (CR 9.12.1d)", () => {
     s.servers.hq.root = ["bl-1"];
 
     expect(runnerHeapLocked(s)).toBe(true);
-    bl.abilitiesBlanked = true;
+    suppressAbilities(s, bl.id);
     expect(runnerHeapLocked(s)).toBe(false);
   });
 
@@ -134,7 +135,7 @@ describe("blanked static locks / taxes (CR 9.12.1d)", () => {
     expect(s.winner).toBeNull();
     expect(s.done).toBeFalsy();
 
-    bf.abilitiesBlanked = true;
+    suppressAbilities(s, bf.id);
     checkWinConditions(s);
     expect(s.winner).toBe("corp");
   });

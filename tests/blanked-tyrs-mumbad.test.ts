@@ -13,6 +13,7 @@ import {
 } from "../src/index.js";
 import { resolveTyrsHandRezDuringBreakInterrupt } from "../src/actions/breakSubroutine.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -50,7 +51,7 @@ describe("blanked Tyr's Hand / Mumbad Virtual Tour (CR 9.12.1d)", () => {
       subIndex: 0,
       expectedEffects: { breakSubroutine: { iceId: "hm-1", subIndex: 0 } },
     };
-    tyr.abilitiesBlanked = true;
+    suppressAbilities(s, tyr.id);
     expect(abilitiesSuppressed(s, "th-1")).toBe(true);
     const blocked = resolveTyrsHandRezDuringBreakInterrupt(s, "th-1");
     expect(blocked.ok).toBe(false);
@@ -69,7 +70,7 @@ describe("blanked Tyr's Hand / Mumbad Virtual Tour (CR 9.12.1d)", () => {
     s.servers.hq.root = ["mvt-1"];
     expect(tour.mustTrashWhenAccessedWhileInstalled).toBe(true);
     expect(abilitiesSuppressed(s, "mvt-1")).toBe(false);
-    tour.abilitiesBlanked = true;
+    suppressAbilities(s, tour.id);
     expect(abilitiesSuppressed(s, "mvt-1")).toBe(true);
   });
 });

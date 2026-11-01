@@ -142,24 +142,43 @@ export function pickRandomCentral(state: GameState): CentralServerId {
   return CENTRAL_SERVERS[state.turnNumber % CENTRAL_SERVERS.length]!;
 }
 
+/** Mark server from the lingering registry (CR 10.11.4). */
+export function currentMark(state: GameState): ServerId | null {
+  for (const effect of state.lingeringEffects) {
+    if (effect.expired || effect.kind !== LINGERING_KIND_MARK) continue;
+    const serverId = (effect.payload as { serverId?: ServerId } | undefined)
+      ?.serverId;
+    if (serverId) return serverId;
+  }
+  return null;
+}
+
+/** Replace any current mark with this server for the rest of the turn. */
+export function placeMark(
+  state: GameState,
+  serverId: ServerId,
+  createdBy: string,
+): void {
+  removeLingeringEffectsOfKind(state, LINGERING_KIND_MARK);
+  addLingeringEffect(state, {
+    createdBy,
+    duration: { kind: "turn" },
+    kind: LINGERING_KIND_MARK,
+    payload: { serverId },
+  });
+}
+
 export function identifyMark(state: GameState, sourceId: string): void {
-  if (state.markServerId !== null) {
+  const existing = currentMark(state);
+  if (existing !== null) {
     log(
       state,
-      `Identify mark — already ${state.markServerId} this turn (CR ${CR.markAlreadyIdentified.number}).`,
+      `Identify mark — already ${existing} this turn (CR ${CR.markAlreadyIdentified.number}).`,
     );
     return;
   }
   const server = pickRandomCentral(state);
-  // Dual-write: consumers still read `markServerId`; the registry is the
-  // CR 9.10.1 / 10.11.4 lingering that 10.3.1b expires (CR 10.11.4).
-  state.markServerId = server;
-  addLingeringEffect(state, {
-    createdBy: sourceId,
-    duration: { kind: "turn" },
-    kind: LINGERING_KIND_MARK,
-    payload: { serverId: server },
-  });
+  placeMark(state, server, sourceId);
   const src = state.cards[sourceId]?.title ?? sourceId;
   log(
     state,
@@ -168,12 +187,12 @@ export function identifyMark(state: GameState, sourceId: string): void {
 }
 
 export function clearMark(state: GameState): void {
-  if (state.markServerId !== null) {
+  const existing = currentMark(state);
+  if (existing !== null) {
     log(
       state,
-      `Mark on ${state.markServerId} expires (CR ${CR.markLingering.number}).`,
+      `Mark on ${existing} expires (CR ${CR.markLingering.number}).`,
     );
-    state.markServerId = null;
   }
   removeLingeringEffectsOfKind(state, LINGERING_KIND_MARK);
 }
@@ -231,10 +250,11 @@ export function isMarkServer(
   state: GameState,
   serverId: ServerId | null | undefined,
 ): boolean {
+  const mark = currentMark(state);
   return (
-    state.markServerId !== null &&
+    mark !== null &&
     serverId !== undefined &&
     serverId !== null &&
-    state.markServerId === serverId
+    mark === serverId
   );
 }

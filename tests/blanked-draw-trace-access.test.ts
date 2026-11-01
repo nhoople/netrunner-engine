@@ -18,6 +18,7 @@ import {
 import { applyMaxAccessOtherThanSelf } from "../src/state/accessFilter.js";
 import { effectiveMemoryCost } from "../src/state/turn.js";
 import type { GameState, ServerId } from "../src/index.js";
+import { clearSuppressedAbilities, suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -39,7 +40,7 @@ describe("blanked draw / trace / access / MU cost (CR 9.12.1d)", () => {
     s.runner.installed = ["lv-1"];
 
     expect(basicDrawBonus(s)).toBeGreaterThan(0);
-    laguna.abilitiesBlanked = true;
+    suppressAbilities(s, laguna.id);
     expect(basicDrawBonus(s)).toBe(0);
   });
 
@@ -65,7 +66,7 @@ describe("blanked draw / trace / access / MU cost (CR 9.12.1d)", () => {
     };
 
     expect(traceBaseBonus(s)).toBeGreaterThan(0);
-    grid.abilitiesBlanked = true;
+    suppressAbilities(s, grid.id);
     expect(traceBaseBonus(s)).toBe(0);
   });
 
@@ -75,7 +76,7 @@ describe("blanked draw / trace / access / MU cost (CR 9.12.1d)", () => {
       s = structuredClone(s);
       const flag = instantiateCard("flagship", "fl-1", "server:remote-1:root");
       flag.rezzed = true;
-      flag.abilitiesBlanked = blanked;
+      if (blanked) suppressAbilities(s, flag.id); else clearSuppressedAbilities(s, flag.id);
       s.cards["fl-1"] = flag;
       const agenda = instantiateCard(
         "priority-requisition",
@@ -125,7 +126,7 @@ describe("blanked draw / trace / access / MU cost (CR 9.12.1d)", () => {
     s.runner.installed = ["cor-1"];
 
     expect(effectiveMemoryCost(s, "cor-1")).toBe(0);
-    prog.abilitiesBlanked = true;
+    suppressAbilities(s, prog.id);
     expect(effectiveMemoryCost(s, "cor-1")).toBe(1);
   });
 });

@@ -13,6 +13,7 @@ import {
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { noteRunnerClickSpend } from "../src/state/clickHooks.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -38,7 +39,7 @@ describe("blanked Sundew / Awakening / LLDS (CR 9.12.1d)", () => {
     // Reset for blanked pass.
     s.corp.credits = 5;
     s.turn.sundewFirstClickSpendFiredThisTurn = false;
-    sundew.abilitiesBlanked = true;
+    suppressAbilities(s, sundew.id);
     noteRunnerClickSpend(s);
     expect(s.corp.credits).toBe(5);
   });
@@ -52,7 +53,7 @@ describe("blanked Sundew / Awakening / LLDS (CR 9.12.1d)", () => {
     s.servers.hq.root = ["ac-1"];
     expect(ac.hostsBioroidIceIgnoreInstallCost).toBe(true);
     expect(abilitiesSuppressed(s, "ac-1")).toBe(false);
-    ac.abilitiesBlanked = true;
+    suppressAbilities(s, ac.id);
     expect(abilitiesSuppressed(s, "ac-1")).toBe(true);
   });
 
@@ -66,7 +67,7 @@ describe("blanked Sundew / Awakening / LLDS (CR 9.12.1d)", () => {
       0,
     );
     expect(abilitiesSuppressed(s, "llds-1")).toBe(false);
-    llds.abilitiesBlanked = true;
+    suppressAbilities(s, llds.id);
     expect(abilitiesSuppressed(s, "llds-1")).toBe(true);
   });
 
@@ -83,7 +84,7 @@ describe("blanked Sundew / Awakening / LLDS (CR 9.12.1d)", () => {
     expect(
       talut.nonAiIcebreakerInstallStrengthBonusThisTurn ?? 0,
     ).toBeGreaterThan(0);
-    talut.abilitiesBlanked = true;
+    suppressAbilities(s, talut.id);
     expect(abilitiesSuppressed(s, "ct-1")).toBe(true);
   });
 });

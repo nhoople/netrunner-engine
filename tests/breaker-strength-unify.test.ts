@@ -12,11 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
-import {
-  addBreakerStrengthBoostThisEncounter,
-  addBreakerStrengthBoostThisRun,
-  addBreakerStrengthBoostThisTurn,
-} from "../src/state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisEncounter, addBreakerStrengthBoostThisRun, addBreakerStrengthBoostThisTurn } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

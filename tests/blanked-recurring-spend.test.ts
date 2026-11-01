@@ -20,6 +20,7 @@ import {
 import { creditsAvailableForInstall } from "../src/state/costs.js";
 import { firstClickMustIsActive } from "../src/state/firstClickMust.js";
 import { corpCreditsForTrace } from "../src/state/trace.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -40,7 +41,7 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
     const virus = instantiateCard("datasucker", "ds-1", "runner:grip");
 
     expect(creditsAvailableForInstall(s, "runner", virus)).toBe(1);
-    cf.abilitiesBlanked = true;
+    suppressAbilities(s, cf.id);
     expect(creditsAvailableForInstall(s, "runner", virus)).toBe(0);
   });
 
@@ -62,7 +63,7 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
     };
 
     expect(recurringCreditsForCentralRun(s)).toBe(2);
-    cezve.abilitiesBlanked = true;
+    suppressAbilities(s, cezve.id);
     expect(recurringCreditsForCentralRun(s)).toBe(0);
   });
 
@@ -79,7 +80,7 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
     spendRunnerCreditsFor(s, 1, "trash");
     expect(az.recurringCredits).toBe(1);
 
-    az.abilitiesBlanked = true;
+    suppressAbilities(s, az.id);
     az.recurringCredits = 2;
     expect(runnerCreditsFor(s, "trash")).toBe(0);
     spendRunnerCreditsFor(s, 1, "trash");
@@ -99,7 +100,7 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
     expect(ds.recurringCredits).toBe(0);
 
     ds.recurringCredits = 2;
-    ds.abilitiesBlanked = true;
+    suppressAbilities(s, ds.id);
     expect(applyRezIceRecurringTowardCorpRez(s, 2)).toBe(2);
     expect(ds.recurringCredits).toBe(2);
   });
@@ -114,7 +115,7 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
     s.corp.credits = 0;
 
     expect(corpCreditsForTrace(s)).toBe(2);
-    id.abilitiesBlanked = true;
+    suppressAbilities(s, id.id);
     expect(corpCreditsForTrace(s)).toBe(0);
   });
 
@@ -128,7 +129,7 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
     s.turn.runnerClicksSpentThisTurn = 0;
 
     expect(firstClickMustIsActive(s)).toBe(true);
-    abr.abilitiesBlanked = true;
+    suppressAbilities(s, abr.id);
     expect(firstClickMustIsActive(s)).toBe(false);
   });
 });

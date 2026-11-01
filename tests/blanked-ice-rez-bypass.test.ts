@@ -14,6 +14,7 @@ import {
 import { CR } from "../src/timing/labels.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { fireOnBypassTriggers } from "../src/state/iceRezHooks.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -49,7 +50,7 @@ describe("blanked ice rez / bypass (CR 9.12.1d)", () => {
     s = structuredClone(s);
     const lethe2 = instantiateCard("lethe", "lethe-2", "server:hq:ice");
     lethe2.rezzed = true;
-    lethe2.abilitiesBlanked = true;
+    suppressAbilities(s, lethe2.id);
     s.cards["lethe-2"] = lethe2;
     s.servers.hq.ice = ["lethe-2"];
     expect(abilitiesSuppressed(s, "lethe-2")).toBe(true);

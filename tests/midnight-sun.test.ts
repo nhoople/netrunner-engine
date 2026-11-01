@@ -43,12 +43,7 @@ import {
   serversMatchingSpec,
   resolveAndAdvance,
 } from "../src/index.js";
-import {
-  addBreakerStrengthBoostThisRun,
-  addIceStrengthBoostThisEncounter,
-  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
-  lingeringIceStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisRun, addIceStrengthBoostThisEncounter, LINGERING_KIND_ICE_STRENGTH_ENCOUNTER, lingeringIceStrengthOfKind } from "../src/state/lingeringEffects.js";
 
 import type { ServerId, PaidAbility, StartsRunSpec } from "../src/state/types.js";
 import type { Effect } from "../src/index.js";
@@ -59,6 +54,7 @@ import { moveRunnerCardToHeap, purgeVirusCounters } from "../src/state/trashHook
 import { beginCorpTurnFlags } from "../src/state/turn.js";
 import { noteInstalledCardCreditSpend } from "../src/state/costs.js";
 import { beginBreachAccess } from "../src/state/access.js";
+import { currentMark, placeMark } from "../src/state/msKeywords.js";
 
 describe("midnight-sun", () => {
   describe("midnight-sun-add-power-counter", () => {
@@ -3415,16 +3411,16 @@ describe("midnight-sun", () => {
     it("identify_mark designates a central; second call is no-op", () => {
       expect(validateEffectTree(fx.identifyMark())).toBeNull();
       const s = createInitialState();
-      expect(s.markServerId).toBeNull();
+      expect(currentMark(s)).toBeNull();
       expect(evalEffect({ state: s, sourceId: "runner-id" }, fx.identifyMark()).ok).toBe(
         true,
       );
-      expect(s.markServerId).toBeTruthy();
-      const first = s.markServerId;
+      expect(currentMark(s)).toBeTruthy();
+      const first = currentMark(s);
       expect(evalEffect({ state: s, sourceId: "runner-id" }, fx.identifyMark()).ok).toBe(
         true,
       );
-      expect(s.markServerId).toBe(first);
+      expect(currentMark(s)).toBe(first);
       expect(s.log.join("\n")).toMatch(/already/);
     });
 
@@ -3439,7 +3435,7 @@ describe("midnight-sun", () => {
       expect(s.runner.credits).toBe(5); // no mark → else skipped
 
       evalEffect({ state: s, sourceId: "runner-id" }, fx.identifyMark());
-      const mark = s.markServerId!;
+      const mark = currentMark(s)!;
       expect(
         evalEffect(
           { state: s, sourceId: "runner-id" },
@@ -3978,7 +3974,7 @@ describe("midnight-sun", () => {
   }) {
     let s = createInitialState();
     s = structuredClone(s);
-    s.markServerId = opts.markServerId;
+    if (opts.markServerId) placeMark(s, opts.markServerId, s.corp.identityId);
 
     const ice = instantiateCard("tithe", "ice-1", `server:${opts.runServerId}:ice`);
     ice.rezzed = false;
@@ -4136,14 +4132,14 @@ describe("midnight-sun", () => {
     it("serversMatchingSpec mark returns designated mark only", () => {
       const s = createInitialState();
       expect(serversMatchingSpec(s, { servers: "mark" })).toEqual([]);
-      s.markServerId = "rd";
+      placeMark(s, "rd", s.corp.identityId);
       expect(serversMatchingSpec(s, { servers: "mark" })).toEqual(["rd"]);
     });
 
     it("start_run_on_mark queues pending then starts run via choose", () => {
       let s = createInitialState();
       s = structuredClone(s);
-      s.markServerId = "hq";
+      placeMark(s, "hq", s.corp.identityId);
       s.servers.hq.ice = [];
       s.runner.credits = 5;
       s.runner.clicks = 4;
@@ -4178,7 +4174,7 @@ describe("midnight-sun", () => {
       s = must(s, { type: "play_event", cardId: "carpe-1" });
       expect(s.pendingChoice?.chooser).toBe("runner");
       expect(s.runner.credits).toBe(9);
-      expect(s.markServerId).toBeTruthy();
+      expect(currentMark(s)).toBeTruthy();
 
       s = must(s, { type: "choose_option", optionId: "run-mark" });
       expect(s.pendingStartRunOnMark).toBeNull();
@@ -4233,7 +4229,7 @@ describe("midnight-sun", () => {
       id.onSuccessfulRunOncePerTurn = true;
 
       // Archives: empty breach completes immediately.
-      s.markServerId = "archives";
+      placeMark(s, "archives", s.corp.identityId);
       s.servers.archives.ice = [];
       s.corp.discardPile = [];
       s.activeSide = "runner";
@@ -6749,7 +6745,7 @@ describe("midnight-sun", () => {
     it("HQ mark → +1 bonus access during mark breach", () => {
       let s = createInitialState();
       s = structuredClone(s);
-      s.markServerId = "hq";
+      placeMark(s, "hq", s.corp.identityId);
 
       const v = instantiateCard("virtuoso", "v-1", "runner:installed");
       v.onFirstSuccessfulMarkRunThisTurn = virtuosoMarkEffect();
@@ -6792,7 +6788,7 @@ describe("midnight-sun", () => {
     it("non-HQ mark → post-run HQ breach (not a successful HQ run)", () => {
       let s = createInitialState();
       s = structuredClone(s);
-      s.markServerId = "archives";
+      placeMark(s, "archives", s.corp.identityId);
 
       const v = instantiateCard("virtuoso", "v-2", "runner:installed");
       v.onFirstSuccessfulMarkRunThisTurn = virtuosoMarkEffect();
@@ -6827,7 +6823,7 @@ describe("midnight-sun", () => {
     it("fires only on the first successful mark run each turn", () => {
       let s = createInitialState();
       s = structuredClone(s);
-      s.markServerId = "archives";
+      placeMark(s, "archives", s.corp.identityId);
 
       const v = instantiateCard("virtuoso", "v-3", "runner:installed");
       v.onFirstSuccessfulMarkRunThisTurn = virtuosoMarkEffect();
@@ -6871,7 +6867,7 @@ describe("midnight-sun", () => {
     it("non-mark successful run does not consume the mark trigger", () => {
       let s = createInitialState();
       s = structuredClone(s);
-      s.markServerId = "hq";
+      placeMark(s, "hq", s.corp.identityId);
 
       const v = instantiateCard("virtuoso", "v-4", "runner:installed");
       v.onFirstSuccessfulMarkRunThisTurn = virtuosoMarkEffect();
@@ -7120,10 +7116,10 @@ describe("midnight-sun", () => {
       s = structuredClone(s);
       const id = s.cards[s.runner.identityId]!;
       id.onTurnBegin = fx.identifyMark();
-      expect(s.markServerId).toBeNull();
+      expect(currentMark(s)).toBeNull();
       s.timingKey = "runner.turnBegins";
       resolveAndAdvance(s);
-      expect(s.markServerId).toBeTruthy();
+      expect(currentMark(s)).toBeTruthy();
     });
 
     it("installed onAgendaScored fires sabotage for Marrow-class", () => {
@@ -7255,7 +7251,7 @@ describe("midnight-sun", () => {
         fx.seq(fx.identifyMark(), fx.gainCredits("runner", 4)),
       );
       expect(r.ok).toBe(true);
-      expect(s.markServerId).toBeTruthy();
+      expect(currentMark(s)).toBeTruthy();
       expect(s.runner.credits).toBe(before + 4);
     });
   });

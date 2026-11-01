@@ -14,6 +14,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -33,7 +34,7 @@ describe("blanked breaker static strength (CR 9.12.1d)", () => {
     const printed = hyp.breaker?.strength ?? hyp.strength ?? 0;
     expect(effectiveBreakerStrength(s, "hyp-1")).toBe(printed + 3);
 
-    hyp.abilitiesBlanked = true;
+    suppressAbilities(s, hyp.id);
     expect(abilitiesSuppressed(s, "hyp-1")).toBe(true);
     expect(effectiveBreakerStrength(s, "hyp-1")).toBe(printed);
     expect(breakerStrength(s, "hyp-1")).toBe(printed);
@@ -51,7 +52,7 @@ describe("blanked breaker static strength (CR 9.12.1d)", () => {
     const withAura = effectiveBreakerStrength(s, "corr-1");
     expect(withAura).toBeGreaterThan(withoutAura);
 
-    k2.abilitiesBlanked = true;
+    suppressAbilities(s, k2.id);
     expect(abilitiesSuppressed(s, "k2-1")).toBe(true);
     expect(effectiveBreakerStrength(s, "corr-1")).toBe(withoutAura);
   });
@@ -74,7 +75,7 @@ describe("blanked breaker static strength (CR 9.12.1d)", () => {
       printed + (touch.hostIcebreakerStrengthBonus ?? 0),
     );
 
-    touch.abilitiesBlanked = true;
+    suppressAbilities(s, touch.id);
     expect(abilitiesSuppressed(s, "tpt-1")).toBe(true);
     expect(effectiveBreakerStrength(s, "corr-1")).toBe(printed);
   });

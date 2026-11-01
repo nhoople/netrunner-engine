@@ -26,10 +26,7 @@ import {
   getCardDef,
   orderBlankingEffects,
 } from "../src/index.js";
-import {
-  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
-  lingeringIceStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+import { LINGERING_KIND_ICE_STRENGTH_ENCOUNTER, lingeringIceStrengthOfKind } from "../src/state/lingeringEffects.js";
 
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { noteProgramOrHardwareInstalled } from "../src/state/programHardwareInstall.js";

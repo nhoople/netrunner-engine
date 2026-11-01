@@ -16,6 +16,7 @@ import {
   chosenIceBypassOffered,
   securityNexusTraceOffered,
 } from "../src/state/onEncounter.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -32,7 +33,7 @@ describe("blanked lifecycle / ice rez / encounter (CR 9.12.1d)", () => {
     s.cards["sn-1"] = nexus;
     s.runner.installed = ["sn-1"];
     expect(securityNexusTraceOffered(s)).toBe(true);
-    nexus.abilitiesBlanked = true;
+    suppressAbilities(s, nexus.id);
     expect(abilitiesSuppressed(s, "sn-1")).toBe(true);
     expect(securityNexusTraceOffered(s)).toBe(false);
   });
@@ -64,7 +65,7 @@ describe("blanked lifecycle / ice rez / encounter (CR 9.12.1d)", () => {
     } as typeof s.run;
 
     expect(chosenIceBypassOffered(s, "ice-1")).toBe(true);
-    femme.abilitiesBlanked = true;
+    suppressAbilities(s, femme.id);
     expect(chosenIceBypassOffered(s, "ice-1")).toBe(false);
   });
 });

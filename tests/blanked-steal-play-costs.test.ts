@@ -14,6 +14,7 @@ import {
   operationAndEventPlayCostIncreaseTotal,
 } from "../src/index.js";
 import { stealAdditionalCreditsForAgenda } from "../src/actions/access.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -45,7 +46,7 @@ describe("blanked steal and play costs (CR 9.12.1d)", () => {
     expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBeGreaterThan(
       0,
     );
-    rh.abilitiesBlanked = true;
+    suppressAbilities(s, rh.id);
     expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBe(0);
   });
 
@@ -69,7 +70,7 @@ describe("blanked steal and play costs (CR 9.12.1d)", () => {
     s.runner.installed = ["src-1"];
 
     expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBe(3);
-    source.abilitiesBlanked = true;
+    suppressAbilities(s, source.id);
     expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBe(0);
   });
 
@@ -98,7 +99,7 @@ describe("blanked steal and play costs (CR 9.12.1d)", () => {
     expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBeGreaterThan(
       0,
     );
-    pred.abilitiesBlanked = true;
+    suppressAbilities(s, pred.id);
     expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBe(0);
   });
 
@@ -113,7 +114,7 @@ describe("blanked steal and play costs (CR 9.12.1d)", () => {
 
     const printed = event.playCost ?? 0;
     expect(effectiveEventPlayCost(s, printed, event)).toBeLessThan(printed);
-    ghost.abilitiesBlanked = true;
+    suppressAbilities(s, ghost.id);
     expect(effectiveEventPlayCost(s, printed, event)).toBe(printed);
   });
 
@@ -124,7 +125,7 @@ describe("blanked steal and play costs (CR 9.12.1d)", () => {
     s.cards["rb-1"] = rb;
 
     expect(operationAndEventPlayCostIncreaseTotal(s)).toBeGreaterThan(0);
-    rb.abilitiesBlanked = true;
+    suppressAbilities(s, rb.id);
     expect(operationAndEventPlayCostIncreaseTotal(s)).toBe(0);
   });
 });

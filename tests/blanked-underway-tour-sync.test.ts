@@ -16,6 +16,7 @@ import { basicRemoveTagCreditCost } from "../src/state/costs.js";
 import { exposeLegalTargets } from "../src/state/expose.js";
 import { syncAllTourGuideSubs } from "../src/effects/sansanUotPrimitives.js";
 import type { GameState, ServerId } from "../src/index.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -53,7 +54,7 @@ describe("blanked Underway / Tour Guide / SYNC (CR 9.12.1d)", () => {
     s.servers.hq.root = ["ug-1"];
 
     expect(bypassBlocked(s, "iw-1")).toBe(true);
-    ug.abilitiesBlanked = true;
+    suppressAbilities(s, ug.id);
     expect(bypassBlocked(s, "iw-1")).toBe(false);
   });
 
@@ -66,7 +67,7 @@ describe("blanked Underway / Tour Guide / SYNC (CR 9.12.1d)", () => {
     s.servers.hq.ice = ["g-1"];
 
     expect(bypassBlocked(s, "g-1")).toBe(true);
-    guard.abilitiesBlanked = true;
+    suppressAbilities(s, guard.id);
     expect(bypassBlocked(s, "g-1")).toBe(false);
   });
 
@@ -83,7 +84,7 @@ describe("blanked Underway / Tour Guide / SYNC (CR 9.12.1d)", () => {
     s.servers.hq.root = ["ug-1"];
 
     expect(exposeLegalTargets(s)).not.toContain("iw-1");
-    ug.abilitiesBlanked = true;
+    suppressAbilities(s, ug.id);
     expect(exposeLegalTargets(s)).toContain("iw-1");
   });
 
@@ -108,7 +109,7 @@ describe("blanked Underway / Tour Guide / SYNC (CR 9.12.1d)", () => {
     const withAssets = (tg.subroutines ?? []).length;
     expect(withAssets).toBeGreaterThan((tg.baseSubroutines ?? []).length || 0);
 
-    tg.abilitiesBlanked = true;
+    suppressAbilities(s, tg.id);
     syncAllTourGuideSubs(s);
     expect((tg.subroutines ?? []).length).toBe((tg.baseSubroutines ?? []).length);
   });
@@ -127,7 +128,7 @@ describe("blanked Underway / Tour Guide / SYNC (CR 9.12.1d)", () => {
     sync.identityFlipped = false;
 
     expect(basicRemoveTagCreditCost(s)).toBeGreaterThan(2);
-    sync.abilitiesBlanked = true;
+    suppressAbilities(s, sync.id);
     expect(basicRemoveTagCreditCost(s)).toBe(2);
   });
 });

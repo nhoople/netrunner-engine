@@ -1229,8 +1229,6 @@ export interface CardInstance {
   addSelfToCorpScoreOnAgendaAccess?: { agendaPoints: number };
   /** Worlds Plaza. */
   hostAssetsOnly?: boolean;
-  /** Tour Guide. */
-  etrSubroutinesPerRezzedAsset?: boolean;
   /** SYNC front: +N¢ to basic remove-tag while unflipped. */
   basicRemoveTagAdditionalCostCreditsWhileUnflipped?: number;
   /** SYNC back: −N¢ to basic trash-resource while flipped. */
@@ -1344,12 +1342,6 @@ export interface CardInstance {
   autoPreventNetOrMeatDamagePayOrTrash?: number;
   /** The Turning Wheel */
   placePowerOnHqOrRdRunEndIfNoAgendaStolen?: boolean;
-  /** Brainstorm */
-  gainsSubroutinesOnEncounterEqualGripSize?: {
-    id: string;
-    text: string;
-    effect: import("../effects/ir.js").Effect;
-  };
   /** Dedicated Neural Net */
   firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess?: boolean;
   /** Puppet Master */
@@ -1451,10 +1443,6 @@ export interface CardInstance {
   hostGainsPumpAbility?: { credits: number; strength: number };
   inversificatorSwapIceAfterFullyBrokeOncePerTurn?: boolean;
   trashSelfAndMeatDamageWhenCreditsZero?: number;
-  gainsSubroutinesPerRezzedIceWithSubtype?: {
-    subtype: string;
-    subroutine: Subroutine;
-  };
   bioroidWorkCrewRequireAfterOperationPaidWindow?: boolean;
   mayTakeTagToBypassOnEncounter?: boolean;
   gainCreditsOnBreakSubThisServerIfTagged?: number;
@@ -1577,18 +1565,6 @@ export interface CardInstance {
   nonAiIcebreakerInstallStrengthBonusThisTurn?: number;
   /** Tranquility Home Grid: first install in this server's root each turn. */
   onFirstInstallInThisServerRootThisTurn?: Effect;
-  /** Winchester: extra printed subs while protecting HQ. */
-  gainsSubroutinesWhileProtectingHq?: Subroutine[];
-  /**
-   * Blockchain: gains N copies of `subroutine` before printed subs, where
-   * N = floor(faceup Archives cards matching type+subtype / per).
-   */
-  gainsSubroutinesBeforePrintedPerFaceupArchives?: {
-    subtype: string;
-    type: CardType;
-    per: number;
-    subroutine: Subroutine;
-  };
   /**
    * Acme Consulting: Runner is considered to have this many additional tags
    * during encounters with outermost ice (even at 0 physical tags).
@@ -2462,12 +2438,6 @@ export interface CardInstance {
   onAccessRequiresInstalled?: boolean;
   /** Woodcutter: canAdvance only while rezzed. */
   canAdvanceOnlyWhenRezzed?: boolean;
-  /**
-   * Woodcutter/Tyrant: gains one copy of subroutine per advancement.
-   */
-  gainsSubroutinesPerAdvancement?: {
-    subroutine: { id: string; text: string; effect: Effect };
-  };
   /** Joshua B.: take 1 tag at Runner turn end after gaining the click. */
   tagAtTurnEnd?: boolean;
   mayRezWhenCardWouldBeExposed?: boolean;
@@ -2787,13 +2757,6 @@ export interface CardInstance {
   chosenIceId?: string;
   /** Hosted programs lose abilities while hosted here (Magnet). */
   hostedProgramsLoseAbilities?: boolean;
-  /** Abilities blanked while hosted on Magnet. */
-  abilitiesBlanked?: boolean;
-  /**
-   * Klevetnik: Corp turns remaining until `abilitiesBlanked` clears
-   * (decremented at Corp turn end).
-   */
-  abilitiesBlankedCorpTurnsRemaining?: number;
   /**
    * Hafrún: this Runner card's abilities cannot break subroutines for the
    * remainder of the current run.
@@ -2833,11 +2796,6 @@ export interface CardInstance {
   azmariNamedType?: string;
   /** Bounce to stack at end of turn (Test Run). */
   bounceToStackAtTurnEnd?: boolean;
-  /**
-   * Temporary ice subtypes granted until end of turn (Tinkering).
-   * Cleared at corp.turnEnds / runner.turnEnds.
-   */
-  grantedSubtypesUntilEndOfTurn?: string[];
   /**
    * While rezzed, when an encounter with ice protecting this server ends, if
    * the Runner broke ≥1 subroutine, they lose [click] (Mason Bellamy).
@@ -5629,11 +5587,6 @@ export interface GameState {
   pendingTrashAccessedCardId: string | null;
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */
   pendingRezCardId: string | null;
-  /**
-   * Server currently designated as the mark (CR §10.11).
-   * Lingering effect; cleared at end of turn.
-   */
-  markServerId: ServerId | null;
   /**
    * Pending allotted-click delta applied on the Runner's next gain-clicks step
    * (Hypoxia −1). Cleared when applied.

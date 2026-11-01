@@ -77,7 +77,7 @@ import {
 } from "../state/trashPrevent.js";
 import { acceptPendingEndTheRun } from "../state/endTheRun.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
-import { resolveSabotageAmount } from "../state/msKeywords.js";
+import { currentMark, resolveSabotageAmount } from "../state/msKeywords.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import {
@@ -1138,7 +1138,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
 
   if (state.pendingStartRunOnMark) {
-    const mark = state.markServerId;
+    const mark = currentMark(state);
     const runSrc = state.pendingStartRunOnMark.sourceId;
     state.pendingStartRunOnMark = null;
     state.deferAfterBasicAction = false;

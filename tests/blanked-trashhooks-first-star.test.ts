@@ -12,6 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -28,7 +29,7 @@ describe("blanked trashHooks first-* (CR 9.12.1d)", () => {
     s.cards["rv-1"] = reaver;
     s.runner.installed = ["rv-1"];
     expect(reaver.drawOnFirstTrashInstalledEachTurn).toBe(true);
-    reaver.abilitiesBlanked = true;
+    suppressAbilities(s, reaver.id);
     expect(abilitiesSuppressed(s, "rv-1")).toBe(true);
   });
 
@@ -44,7 +45,7 @@ describe("blanked trashHooks first-* (CR 9.12.1d)", () => {
     s.cards["hi-1"] = hi;
     s.servers.hq.root = ["hi-1"];
     expect(hi.netDamageWheneverRunnerTrashesCorpCard ?? 0).toBeGreaterThan(0);
-    hi.abilitiesBlanked = true;
+    suppressAbilities(s, hi.id);
     expect(abilitiesSuppressed(s, "hi-1")).toBe(true);
   });
 });

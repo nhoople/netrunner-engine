@@ -19,6 +19,7 @@ import {
   onRunnerTurnBegan,
 } from "../src/state/cardDeclarations.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -45,7 +46,7 @@ describe("blanked Aesop / Oberth / Anson (CR 9.12.1d)", () => {
     expect(guest.powerCounters).toBe(1);
 
     guest.powerCounters = 2;
-    pw.abilitiesBlanked = true;
+    suppressAbilities(s, pw.id);
     expect(abilitiesSuppressed(s, "pw-1")).toBe(true);
     onRunnerTurnBegan(s);
     expect(guest.powerCounters).toBe(2);
@@ -69,7 +70,7 @@ describe("blanked Aesop / Oberth / Anson (CR 9.12.1d)", () => {
 
     ice.advancementCounters = 1;
     s.turn.oberthFiredThisTurn = false;
-    oberth.abilitiesBlanked = true;
+    suppressAbilities(s, oberth.id);
     onCardAdvanced(s, "ice-1");
     expect(ice.advancementCounters).toBe(1);
   });
@@ -91,7 +92,7 @@ describe("blanked Aesop / Oberth / Anson (CR 9.12.1d)", () => {
     expect(s.pendingChoice?.sourceId).toBe("ar-1");
 
     s.pendingChoice = null;
-    anson.abilitiesBlanked = true;
+    suppressAbilities(s, anson.id);
     onIceRezzed(s, "ice-1");
     expect(s.pendingChoice).toBeNull();
   });
@@ -114,7 +115,7 @@ describe("blanked Aesop / Oberth / Anson (CR 9.12.1d)", () => {
     expect(et.powerCounters ?? 0).toBeGreaterThan(0);
 
     et.powerCounters = 0;
-    et.abilitiesBlanked = true;
+    suppressAbilities(s, et.id);
     onCorpCardInstalledInRemote(s);
     expect(et.powerCounters ?? 0).toBe(0);
   });
@@ -134,7 +135,7 @@ describe("blanked Aesop / Oberth / Anson (CR 9.12.1d)", () => {
     expect(s.trace?.sourceId).toBe("ta-1");
 
     s.trace = null;
-    arch.abilitiesBlanked = true;
+    suppressAbilities(s, arch.id);
     onAgendaScored(s, agenda);
     expect(s.trace).toBeNull();
   });

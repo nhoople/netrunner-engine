@@ -41,10 +41,9 @@ export const LINGERING_KIND_BREAKER_STRENGTH = "breaker_strength_turn";
 export const LINGERING_KIND_ICE_STRENGTH = "ice_strength_turn";
 
 /**
- * Temporary ability blank until end of the Corp's turn (Klevetnik-class;
- * CR 9.10.1). Payload: `{ cardId: string }`. Registry is the sole write path;
- * `collectBlankingEffects` reads this kind. Magnet on-host still uses the
- * `abilitiesBlanked` card flag without a Corp-turn counter.
+ * Temporary ability blank (Klevetnik-class and test suppression; CR 9.10.1).
+ * Payload: `{ cardId: string }`. Registry is the sole write path;
+ * `collectBlankingEffects` reads this kind.
  */
 export const LINGERING_KIND_ABILITY_BLANK = "ability_blank";
 
@@ -308,6 +307,38 @@ export function blankAbilitiesUntilCorpTurnEnd(
   });
   // Still-pending instances die when the ability is blanked (CR 9.6.10).
   cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== args.cardId);
+}
+
+/**
+ * Blank a card until `clearSuppressedAbilities`. Duration does not expire at
+ * a turn or checkpoint, so tests and callers can suppress one card the way
+ * the blanking collector already reads `ability_blank` lingerings.
+ */
+export function suppressAbilities(state: GameState, cardId: string): void {
+  const already = state.lingeringEffects.some(
+    (e) =>
+      !e.expired &&
+      e.kind === LINGERING_KIND_ABILITY_BLANK &&
+      (e.payload as { cardId?: string } | undefined)?.cardId === cardId,
+  );
+  if (already) return;
+  addLingeringEffect(state, {
+    createdBy: cardId,
+    duration: { kind: "custom", label: "abilities-suppressed" },
+    kind: LINGERING_KIND_ABILITY_BLANK,
+    payload: { cardId },
+  });
+  if (state.cards[cardId]) {
+    cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
+  }
+}
+
+/** Remove every ability_blank lingering on this card. */
+export function clearSuppressedAbilities(state: GameState, cardId: string): void {
+  state.lingeringEffects = state.lingeringEffects.filter((e) => {
+    if (e.kind !== LINGERING_KIND_ABILITY_BLANK) return true;
+    return (e.payload as { cardId?: string } | undefined)?.cardId !== cardId;
+  });
 }
 
 /**

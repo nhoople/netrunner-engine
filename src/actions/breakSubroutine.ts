@@ -2,6 +2,7 @@
  * Breaking ice subroutines, including bioroid break and the Tyrs Hand interrupt.
  */
 import { log } from "../state/createGame.js";
+import { currentMark } from "../state/msKeywords.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { onFullBreak } from "../state/cardDeclarations.js";
 import { noteVacuousFullBreak } from "../timing/vacuousBreak.js";
@@ -153,7 +154,7 @@ export function breakSubroutine(
     );
   }
   if (breaker.breaker.breakRequiresAttackingMark) {
-    if (!state.run || state.run.attackedServerId !== state.markServerId) {
+    if (!state.run || state.run.attackedServerId !== currentMark(state)) {
       return fail(
         `${breaker.title} can only break ice protecting the mark.`,
         [CR.encounterBreakPaw],

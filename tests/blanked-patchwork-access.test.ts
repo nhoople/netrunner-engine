@@ -18,6 +18,7 @@ import {
 import { patchworkDiscountSource } from "../src/actions/play.js";
 import { classActWouldDrawSource } from "../src/effects/draw.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -35,7 +36,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
     s.runner.installed = ["pw-1"];
 
     expect(patchworkDiscountSource(s)?.amount).toBeGreaterThan(0);
-    pw.abilitiesBlanked = true;
+    suppressAbilities(s, pw.id);
     expect(patchworkDiscountSource(s)).toBeNull();
   });
 
@@ -56,7 +57,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
         s.cards[id]?.revealCorpBasicActionDraws,
     );
     expect(active).toBe(true);
-    cd.abilitiesBlanked = true;
+    suppressAbilities(s, cd.id);
     expect(
       s.runner.installed.some(
         (id) =>
@@ -78,7 +79,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
     s.runner.installed = ["carn-1"];
 
     expect(carnivoreAvailable(s)).toBe(true);
-    carn.abilitiesBlanked = true;
+    suppressAbilities(s, carn.id);
     expect(carnivoreAvailable(s)).toBe(false);
   });
 
@@ -97,7 +98,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
         (s.cards[id]?.virusCounters ?? 0) >= 1,
     );
     expect(active).toBe(true);
-    imp.abilitiesBlanked = true;
+    suppressAbilities(s, imp.id);
     expect(
       s.runner.installed.some(
         (id) =>
@@ -125,7 +126,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
         s.cards[id]?.accessPayTrashCostRemoveFromGameOncePerTurn,
     );
     expect(active).toBe(true);
-    slums.abilitiesBlanked = true;
+    suppressAbilities(s, slums.id);
     expect(
       s.runner.installed.some(
         (id) =>
@@ -143,7 +144,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
     s.runner.installed = ["ca-1"];
 
     expect(classActWouldDrawSource(s)).toBe("ca-1");
-    ca.abilitiesBlanked = true;
+    suppressAbilities(s, ca.id);
     expect(classActWouldDrawSource(s)).toBeNull();
   });
 
@@ -163,7 +164,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
     } as typeof s.run;
 
     expect(findCupellationHost(s)).toBe("cup-1");
-    cup.abilitiesBlanked = true;
+    suppressAbilities(s, cup.id);
     expect(findCupellationHost(s)).toBeNull();
   });
 });

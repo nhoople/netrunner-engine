@@ -25,6 +25,7 @@ import {
 } from "../src/actions/rez.js";
 import { clotForbidsScoreAgendaInstalledThisTurn } from "../src/actions/score.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -42,7 +43,7 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
     s.runner.installed = ["clot-1"];
 
     expect(clotForbidsScoreAgendaInstalledThisTurn(s)).toBe(true);
-    clot.abilitiesBlanked = true;
+    suppressAbilities(s, clot.id);
     expect(clotForbidsScoreAgendaInstalledThisTurn(s)).toBe(false);
   });
 
@@ -54,7 +55,7 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
     s.corp.playArea = ["int-1"];
 
     expect(interdictionBlocksNonIceRez(s)).toBe(true);
-    cur.abilitiesBlanked = true;
+    suppressAbilities(s, cur.id);
     expect(interdictionBlocksNonIceRez(s)).toBe(false);
   });
 
@@ -75,7 +76,7 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
     s.runner.installed = ["hc-1"];
 
     expect(hernandoIceRezSurcharge(s, "iw-1")).toBeGreaterThan(0);
-    hernando.abilitiesBlanked = true;
+    suppressAbilities(s, hernando.id);
     expect(hernandoIceRezSurcharge(s, "iw-1")).toBe(0);
   });
 
@@ -90,7 +91,7 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
     s.servers.hq.root = ["wd-1"];
 
     expect(watchdogFirstIceRezReduction(s)).toBe(2);
-    wd.abilitiesBlanked = true;
+    suppressAbilities(s, wd.id);
     expect(watchdogFirstIceRezReduction(s)).toBe(0);
   });
 
@@ -102,7 +103,7 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
     s.runner.installed = ["hr-1"];
 
     expect(corpLosesCreditsOnCreateServerTotal(s)).toBeGreaterThan(0);
-    hr.abilitiesBlanked = true;
+    suppressAbilities(s, hr.id);
     expect(corpLosesCreditsOnCreateServerTotal(s)).toBe(0);
   });
 
@@ -115,7 +116,7 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
     s.servers.hq.root = ["tb-1"];
 
     expect(corpGainsCreditsOnCreateServerTotal(s)).toBeGreaterThan(0);
-    tb.abilitiesBlanked = true;
+    suppressAbilities(s, tb.id);
     expect(corpGainsCreditsOnCreateServerTotal(s)).toBe(0);
   });
 
@@ -133,7 +134,7 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
     s.runner.installed = ["hel-1"];
 
     expect(heliamphoraHostInsteadAvailable(s)).toBe(true);
-    hel.abilitiesBlanked = true;
+    suppressAbilities(s, hel.id);
     expect(heliamphoraHostInsteadAvailable(s)).toBe(false);
     expect(abilitiesSuppressed(s, "hel-1")).toBe(true);
   });
@@ -155,7 +156,7 @@ describe("blanked Clot / Interdiction / create-server (CR 9.12.1d)", () => {
         s.cards[id]?.mustTrashFirstAccessedCardWithTrashCostEachTurn,
     );
     expect(active).toBe(true);
-    nat.abilitiesBlanked = true;
+    suppressAbilities(s, nat.id);
     const blanked = s.runner.installed.some(
       (id) =>
         !abilitiesSuppressed(s, id) &&

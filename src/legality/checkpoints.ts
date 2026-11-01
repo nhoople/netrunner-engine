@@ -134,12 +134,7 @@ import {
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
 import { resolveStoredOrInlineConditionalInstance } from "../state/storedTriggers.js";
-import {
-  expireLingeringEffects,
-  LINGERING_KIND_ABILITY_BLANK,
-  LINGERING_KIND_GRANTED_SUBTYPES,
-  LINGERING_KIND_MARK,
-} from "../state/lingeringEffects.js";
+import { expireLingeringEffects } from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/mumbadDagPrimitives.js";
 import {
   offerRamanRaiSwapWhileSetAside,
@@ -3681,7 +3676,6 @@ function removeExpiredDurationAbilities(state: GameState): void {
   const endedTurn = state.turn.turnDurationsPassed;
   if (endedTurn) {
     state.turn.turnDurationsPassed = undefined;
-    removed += removeTurnDurations(state, endedTurn);
   }
   // Registry lingerings (CR 9.10.1) expire alongside ad-hoc duration fields.
   removed += expireLingeringEffects(state, {
@@ -3699,55 +3693,6 @@ function removeExpiredDurationAbilities(state: GameState): void {
   state.log.push(
     `Duration abilities checked (CR ${CR.checkpointDurationAbilities.number}); ${removed} removed.`,
   );
-}
-
-/** Lingering effects that lasted for the remainder of the ended turn. */
-function removeTurnDurations(state: GameState, side: "corp" | "runner"): number {
-  let removed = 0;
-  if (state.markServerId !== null) {
-    // Registry-backed marks (CR 10.11.4) are counted when expireLingeringEffects
-    // removes them; keep `markServerId` in sync here for dual-write consumers.
-    const viaRegistry = state.lingeringEffects.some(
-      (e) => !e.expired && e.kind === LINGERING_KIND_MARK,
-    );
-    state.markServerId = null;
-    if (!viaRegistry) removed += 1;
-  }
-  for (const card of Object.values(state.cards)) {
-    if (!card.grantedSubtypesUntilEndOfTurn?.length) continue;
-    // Registry-backed grants are counted when expireLingeringEffects removes
-    // them; keep the card field in sync here for dual-write consumers.
-    const viaRegistry = state.lingeringEffects.some(
-      (e) =>
-        !e.expired &&
-        e.kind === LINGERING_KIND_GRANTED_SUBTYPES &&
-        (e.payload as { cardId?: string } | undefined)?.cardId === card.id,
-    );
-    delete card.grantedSubtypesUntilEndOfTurn;
-    if (!viaRegistry) removed += 1;
-  }
-  if (side === "corp") {
-    for (const card of Object.values(state.cards)) {
-      const rem = card.abilitiesBlankedCorpTurnsRemaining;
-      if (rem === undefined || rem === null) continue;
-      if (rem <= 1) {
-        // Registry-backed blanks are counted when expireLingeringEffects
-        // removes them; keep the card flags in sync for dual-write consumers.
-        const viaRegistry = state.lingeringEffects.some(
-          (e) =>
-            !e.expired &&
-            e.kind === LINGERING_KIND_ABILITY_BLANK &&
-            (e.payload as { cardId?: string } | undefined)?.cardId === card.id,
-        );
-        card.abilitiesBlanked = false;
-        delete card.abilitiesBlankedCorpTurnsRemaining;
-        if (!viaRegistry) removed += 1;
-      } else {
-        card.abilitiesBlankedCorpTurnsRemaining = rem - 1;
-      }
-    }
-  }
-  return removed;
 }
 
 /**

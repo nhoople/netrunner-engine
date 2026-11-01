@@ -41,7 +41,8 @@ import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { dealDamage, preventPendingDamage } from "../src/state/damage.js";
 import { resetPendingAbilitySeqForTests } from "../src/state/pendingAbilities.js";
-import { resetLingeringSeqForTests } from "../src/state/lingeringEffects.js";
+import { resetLingeringSeqForTests, suppressAbilities } from "../src/state/lingeringEffects.js";
+import { currentMark } from "../src/state/msKeywords.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -2932,7 +2933,7 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
       mandatory: true,
       payload: { kind: "net_damage_on_corp_trash", amount: 1 },
     });
-    hi.abilitiesBlanked = true;
+    suppressAbilities(s, hi.id);
     cancelPendingIfSourceInactive(s);
     expect(pending.status).toBe("cancelled");
     expect(
@@ -3075,11 +3076,11 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     } = await import("../src/state/lingeringEffects.js");
     let s = createInitialState();
     identifyMark(s, s.runner.identityId);
-    expect(s.markServerId).toBeTruthy();
+    expect(currentMark(s)).toBeTruthy();
     const marks = lingeringEffectsOfKind(s, LINGERING_KIND_MARK);
     expect(marks).toHaveLength(1);
     expect(marks[0]!.duration).toEqual({ kind: "turn" });
-    expect(marks[0]!.payload).toEqual({ serverId: s.markServerId });
+    expect(marks[0]!.payload).toEqual({ serverId: currentMark(s) });
     expect(marks[0]!.independent).toBe(true);
     expect(
       s.log.some((line) => line.includes(CR.markLingering.number)),
@@ -3091,7 +3092,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(passed.ok).toBe(true);
     if (!passed.ok) return;
     s = passed.state;
-    expect(s.markServerId).toBeNull();
+    expect(currentMark(s)).toBeNull();
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_MARK)).toHaveLength(0);
   });
 
@@ -3212,7 +3213,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       createdBy: s.corp.identityId,
       cardId: "res-1",
     });
-    expect(s.cards["res-1"]!.abilitiesBlanked).toBeFalsy();
     const blanks = lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK);
     expect(blanks).toHaveLength(1);
     expect(blanks[0]!.duration).toEqual({ kind: "turn", side: "corp" });
@@ -3350,10 +3350,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       },
     );
     expect(r.ok).toBe(true);
-    expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toEqual([
-      "sentry",
-      "code gate",
-    ]);
     const grants = lingeringEffectsOfKind(s, LINGERING_KIND_GRANTED_SUBTYPES);
     expect(grants).toHaveLength(1);
     expect(grants[0]!.duration).toEqual({ kind: "turn" });
@@ -3369,7 +3365,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(passed.ok).toBe(true);
     if (!passed.ok) return;
     s = passed.state;
-    expect(s.cards["ice-1"]!.grantedSubtypesUntilEndOfTurn).toBeUndefined();
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_GRANTED_SUBTYPES),
     ).toHaveLength(0);
@@ -3955,7 +3950,7 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
       mandatory: true,
       payload: { kind: "chum_net_damage", amount: 3 },
     });
-    chum.abilitiesBlanked = true;
+    suppressAbilities(s, chum.id);
     s.run = {
       attackedServerId: "hq",
       phase: "ends",

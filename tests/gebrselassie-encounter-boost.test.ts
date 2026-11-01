@@ -14,10 +14,7 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import {
-  LINGERING_KIND_BREAKER_STRENGTH,
-  lingeringBreakerStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+import { LINGERING_KIND_BREAKER_STRENGTH, lingeringBreakerStrengthOfKind } from "../src/state/lingeringEffects.js";
 
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import type { GameState } from "../src/index.js";

@@ -13,6 +13,7 @@ import {
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { noteVirusProgramInstalled } from "../src/state/virusInstall.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -38,7 +39,7 @@ describe("blanked Grimoire virus install (CR 9.12.1d)", () => {
     virus.virusCounters = 0;
     s.turn.virusProgramsInstalledThisTurn = 0;
     s.turn.programsWithVirusPlacedThisTurn = [];
-    grim.abilitiesBlanked = true;
+    suppressAbilities(s, grim.id);
     expect(abilitiesSuppressed(s, "gr-1")).toBe(true);
     noteVirusProgramInstalled(s, "ds-1");
     expect(virus.virusCounters ?? 0).toBe(0);

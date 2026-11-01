@@ -19,6 +19,7 @@ import {
   onProgramOrHardwareInstalled,
 } from "../src/state/cardDeclarations.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -47,7 +48,7 @@ describe("blanked Maw / Hippo / Polyhistor (CR 9.12.1d)", () => {
     s.corp.discardPile = [];
     hq.zone = "corp:hq";
     s.turn.mawFiredThisTurn = false;
-    maw.abilitiesBlanked = true;
+    suppressAbilities(s, maw.id);
     expect(abilitiesSuppressed(s, "maw-1")).toBe(true);
     onAccessFinishedWithoutStealOrTrash(s, "hf-1");
     expect(s.corp.discardPile).not.toContain("hq-1");
@@ -69,7 +70,7 @@ describe("blanked Maw / Hippo / Polyhistor (CR 9.12.1d)", () => {
 
     s.pendingChoice = null;
     s.turn.hippoFiredThisTurn = false;
-    hippo.abilitiesBlanked = true;
+    suppressAbilities(s, hippo.id);
     onFullBreak(s, "ice-1");
     expect(s.pendingChoice).toBeNull();
   });
@@ -95,7 +96,7 @@ describe("blanked Maw / Hippo / Polyhistor (CR 9.12.1d)", () => {
 
     s.pendingChoice = null;
     s.turn.polyhistorFiredThisTurn = false;
-    poly.abilitiesBlanked = true;
+    suppressAbilities(s, poly.id);
     onPassedAllIce(s);
     expect(s.pendingChoice).toBeNull();
   });
@@ -117,7 +118,7 @@ describe("blanked Maw / Hippo / Polyhistor (CR 9.12.1d)", () => {
     expect(s.pendingChoice?.sourceId).toBe("baz-1");
 
     s.pendingChoice = null;
-    bazaar.abilitiesBlanked = true;
+    suppressAbilities(s, bazaar.id);
     onProgramOrHardwareInstalled(s, "d-1");
     expect(s.pendingChoice).toBeNull();
   });
@@ -146,7 +147,7 @@ describe("blanked Maw / Hippo / Polyhistor (CR 9.12.1d)", () => {
     s.runner.coreDamage = 0;
     s.turn.synthDnaFiredThisTurn = false;
     s.turn.hippoFiredThisTurn = true;
-    synth.abilitiesBlanked = true;
+    suppressAbilities(s, synth.id);
     onFullBreak(s, "nk-1");
     expect(s.runner.coreDamage).toBe(0);
   });
@@ -177,7 +178,7 @@ describe("blanked Maw / Hippo / Polyhistor (CR 9.12.1d)", () => {
     expect(s.pendingChoice?.sourceId).toBe("rd-1");
 
     s.pendingChoice = null;
-    rip.abilitiesBlanked = true;
+    suppressAbilities(s, rip.id);
     maybeRipDeal(s);
     expect(s.pendingChoice).toBeNull();
   });

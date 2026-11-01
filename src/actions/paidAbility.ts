@@ -2,6 +2,7 @@
  * Paid abilities on installed cards and identities.
  */
 import { log } from "../state/createGame.js";
+import { currentMark } from "../state/msKeywords.js";
 import { drawCards } from "../effects/draw.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { allButNDamageRelevant, firstNetDamageWouldAllows } from "../state/damage.js";
@@ -751,7 +752,7 @@ export function usePaidAbility(
     }
   }
   if (ability.requireAttackingMark) {
-    const mark = state.markServerId;
+    const mark = currentMark(state);
     if (!mark || state.run?.attackedServerId !== mark) {
       return fail("Ability requires a run on the mark.", [CR.paidAbility]);
     }

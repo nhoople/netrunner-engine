@@ -13,7 +13,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
-import { addBreakerStrengthBoostThisEncounter } from "../src/state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisEncounter, suppressAbilities } from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/index.js";
 
 beforeAll(() => {
@@ -69,7 +69,7 @@ describe("breaker strength order (CR 9.12.1a)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const cradle = instantiateCard("cradle", "cradle-1", "runner:installed");
-    cradle.abilitiesBlanked = true;
+    suppressAbilities(s, cradle.id);
     s.cards["cradle-1"] = cradle;
     s.runner.installed = ["cradle-1"];
     s.runner.hand = ["h1", "h2", "h3"];

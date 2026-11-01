@@ -14,6 +14,7 @@ import {
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { installBlockReason } from "../src/state/staticFlags.js";
 import { scoreAgendaAction } from "../src/actions/score.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -39,7 +40,7 @@ describe("blanked steal/score/install locks (CR 9.12.1d)", () => {
 
     expect(installBlockReason(s, arm)).toMatch(/cannot install non-virtual/i);
 
-    apex.abilitiesBlanked = true;
+    suppressAbilities(s, apex.id);
     expect(abilitiesSuppressed(s, "apex-1")).toBe(true);
     expect(installBlockReason(s, arm)).toBeNull();
   });
@@ -70,7 +71,7 @@ describe("blanked steal/score/install locks (CR 9.12.1d)", () => {
     expect(blocked.ok).toBe(false);
     expect(blocked.error).toMatch(/installed this turn/i);
 
-    va.abilitiesBlanked = true;
+    suppressAbilities(s, va.id);
     expect(abilitiesSuppressed(s, "va-1")).toBe(true);
     const allowed = scoreAgendaAction(s, "va-1");
     expect(allowed.ok).toBe(true);
@@ -94,7 +95,7 @@ describe("blanked steal/score/install locks (CR 9.12.1d)", () => {
     }
     expect(threshold).toBe(2);
 
-    gene.abilitiesBlanked = true;
+    suppressAbilities(s, gene.id);
     expect(abilitiesSuppressed(s, "gcs-1")).toBe(true);
     threshold = 1;
     for (const id of s.runner.installed) {

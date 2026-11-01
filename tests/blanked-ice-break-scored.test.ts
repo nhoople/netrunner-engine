@@ -17,6 +17,7 @@ import { scoredAgendaMeatDamageIncrease } from "../src/state/breakerMods.js";
 import { geneticsPavilionDrawLimit } from "../src/state/staticFlags.js";
 import { startTrace, spendLink } from "../src/state/trace.js";
 import { fx } from "../src/effects/ir.js";
+import { clearSuppressedAbilities, suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -35,7 +36,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
     s.servers.hq.ice = ["tu-1"];
 
     expect(iceBlocksAiBreak(s, "tu-1")).toBe(true);
-    ice.abilitiesBlanked = true;
+    suppressAbilities(s, ice.id);
     expect(iceBlocksAiBreak(s, "tu-1")).toBe(false);
   });
 
@@ -49,7 +50,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
     s.servers.hq.ice = ["ho-1"];
 
     expect(iceBlocksAiBreak(s, "ho-1")).toBe(true);
-    ice.abilitiesBlanked = true;
+    suppressAbilities(s, ice.id);
     expect(iceBlocksAiBreak(s, "ho-1")).toBe(false);
   });
 
@@ -62,7 +63,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
     s.servers.hq.ice = ["ss-1"];
 
     expect(iceBreakExceptSubtype(s, "ss-1")).toBeTruthy();
-    ice.abilitiesBlanked = true;
+    suppressAbilities(s, ice.id);
     expect(iceBreakExceptSubtype(s, "ss-1")).toBeUndefined();
   });
 
@@ -78,7 +79,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
     s.corp.scoreArea = ["tc-1"];
 
     expect(scoredAgendaMeatDamageIncrease(s)).toBeGreaterThan(0);
-    cleaners.abilitiesBlanked = true;
+    suppressAbilities(s, cleaners.id);
     expect(scoredAgendaMeatDamageIncrease(s)).toBe(0);
   });
 
@@ -97,7 +98,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
 
     const blanked = structuredClone(createInitialState());
     const nq2 = instantiateCard("net-quarantine", "nq-1", "corp:score-area");
-    nq2.abilitiesBlanked = true;
+    suppressAbilities(blanked, nq2.id);
     blanked.cards["nq-1"] = nq2;
     blanked.corp.scoreArea = ["nq-1"];
     blanked.runner.link = 2;
@@ -121,12 +122,12 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
       runnerLinkSpent: 0,
       onSuccess: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
     };
-    nq.abilitiesBlanked = false;
+    clearSuppressedAbilities(s, nq.id);
     const before = s.corp.credits;
     spendLink(s, 4);
     expect(s.corp.credits).toBe(before + 2);
 
-    nq.abilitiesBlanked = true;
+    suppressAbilities(s, nq.id);
     s.corp.credits = before;
     s.runner.credits = 10;
     s.trace.runnerLinkSpent = 0;
@@ -152,7 +153,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
     };
 
     expect(geneticsPavilionDrawLimit(s)).toBeGreaterThan(0);
-    gp.abilitiesBlanked = true;
+    suppressAbilities(s, gp.id);
     expect(geneticsPavilionDrawLimit(s)).toBeUndefined();
   });
 
@@ -168,7 +169,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
 
     const blanked = structuredClone(createInitialState());
     const tap2 = instantiateCard("power-tap", "pt-1", "runner:installed");
-    tap2.abilitiesBlanked = true;
+    suppressAbilities(blanked, tap2.id);
     blanked.cards["pt-1"] = tap2;
     blanked.runner.installed = ["pt-1"];
     const beforeBlank = blanked.runner.credits;

@@ -14,6 +14,7 @@ import {
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { syncLongTermInvestment } from "../src/state/cardDeclarations.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -40,7 +41,7 @@ describe("blanked Fenris / Film Critic / CPC / LTI (CR 9.12.1d)", () => {
 
     expect(fenris.gainsTextOfHostedIdentity).toBe(true);
     expect(runnerAbilityCarrierIds(s)).toContain("df-1");
-    fenris.abilitiesBlanked = true;
+    suppressAbilities(s, fenris.id);
     expect(runnerAbilityCarrierIds(s)).not.toContain("df-1");
   });
 
@@ -52,7 +53,7 @@ describe("blanked Fenris / Film Critic / CPC / LTI (CR 9.12.1d)", () => {
     s.runner.installed = ["fc-1"];
     expect(fc.mayHostAccessedAgenda).toBe(true);
     expect(abilitiesSuppressed(s, "fc-1")).toBe(false);
-    fc.abilitiesBlanked = true;
+    suppressAbilities(s, fc.id);
     expect(abilitiesSuppressed(s, "fc-1")).toBe(true);
   });
 
@@ -66,7 +67,7 @@ describe("blanked Fenris / Film Critic / CPC / LTI (CR 9.12.1d)", () => {
     expect(
       cpc.corpGainsOnFirstRunnerBasicGainCreditEachTurn ?? 0,
     ).toBeGreaterThan(0);
-    cpc.abilitiesBlanked = true;
+    suppressAbilities(s, cpc.id);
     expect(abilitiesSuppressed(s, "cpc-1")).toBe(true);
   });
 
@@ -90,7 +91,7 @@ describe("blanked Fenris / Film Critic / CPC / LTI (CR 9.12.1d)", () => {
 
     // Blanked cards are not synced from candidateClicks; clear then confirm
     // the suppress gate would skip re-sync.
-    lti.abilitiesBlanked = true;
+    suppressAbilities(s, lti.id);
     expect(abilitiesSuppressed(s, "lti-1")).toBe(true);
   });
 });

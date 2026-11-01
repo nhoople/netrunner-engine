@@ -4,7 +4,10 @@
  * Mother Goddess). Extends toward a general continuous-characteristics layer
  * without compiling CR prose.
  */
-import { LINGERING_KIND_ABILITY_BLANK } from "./lingeringEffects.js";
+import {
+  LINGERING_KIND_ABILITY_BLANK,
+  LINGERING_KIND_GRANTED_SUBTYPES,
+} from "./lingeringEffects.js";
 import type { GameState } from "./types.js";
 
 /** One blanking-class continuous/lingering effect waiting to apply. */
@@ -22,8 +25,7 @@ export interface BlankingEffect {
  * Collect blanking-class continuous effects currently in play.
  * Scoped to ability-suppression shapes the corpus actually uses:
  * Hush (`blanksHostAbilities`), Magnet (`hostedProgramsLoseAbilities`),
- * Klevetnik-class `ability_blank` lingerings, test-injection `abilitiesBlanked`
- * self-flags, and Light the Fire root blank.
+ * `ability_blank` lingerings, and Light the Fire root blank.
  */
 export function collectBlankingEffects(state: GameState): BlankingEffect[] {
   const effects: BlankingEffect[] = [];
@@ -68,19 +70,6 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
       id: `lingering-blank:${e.id}`,
       sourceId: e.createdBy,
       targetIds: [cardId],
-    });
-  }
-
-  // Test / legacy self-flag: `abilitiesBlanked` on a card blanks itself.
-  // Magnet no longer stamps this (continuous hostedProgramsLoseAbilities).
-  // Klevetnik blanks are registry-only via ability_blank lingerings above.
-  for (const id of Object.keys(state.cards)) {
-    const card = state.cards[id];
-    if (!card?.abilitiesBlanked) continue;
-    effects.push({
-      id: `flag-blank:${id}`,
-      sourceId: id,
-      targetIds: [id],
     });
   }
 
@@ -387,10 +376,15 @@ export function resolveIceSubtypeMap(
       if (enc?.iceId === iceId && enc.grantedSubtypes?.length) {
         for (const s of enc.grantedSubtypes) gainSubtype(counts, s);
       }
-      if (ice.grantedSubtypesUntilEndOfTurn?.length) {
-        for (const s of ice.grantedSubtypesUntilEndOfTurn) {
-          gainSubtype(counts, s);
+      for (const effect of state.lingeringEffects) {
+        if (effect.expired || effect.kind !== LINGERING_KIND_GRANTED_SUBTYPES) {
+          continue;
         }
+        const payload = effect.payload as
+          | { cardId?: string; subtypes?: string[] }
+          | undefined;
+        if (payload?.cardId !== iceId) continue;
+        for (const s of payload.subtypes ?? []) gainSubtype(counts, s);
       }
       const morph = ice.morphOddAdvancementSubtypeSwap;
       if (morph && (ice.advancementCounters ?? 0) % 2 === 1) {

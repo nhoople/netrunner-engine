@@ -40,6 +40,7 @@ import {
 import {
   createShortGameState,
 } from "../src/cards/shortGame.js";
+import { clearMark, currentMark } from "../src/state/msKeywords.js";
 
 
 beforeAll(() => {
@@ -695,7 +696,7 @@ describe("CR examples, chapter 10", () => {
   it("gives Virtuoso's extra HQ access on the first successful mark run (CR 10.11.5.ex1)", () => {
     const s = createInitialState();
     s.turnNumber = 3;
-    s.markServerId = null;
+    clearMark(s);
     s.run = {
       attackedServerId: "hq",
       phase: "success",
@@ -723,7 +724,7 @@ describe("CR examples, chapter 10", () => {
       { state: s, sourceId: "carpe-1" },
       fx.do({ kind: "identify_mark" }),
     );
-    expect(s.markServerId).toBe("hq");
+    expect(currentMark(s)).toBe("hq");
     s.run = {
       attackedServerId: "hq",
       phase: "success",
