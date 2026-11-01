@@ -11,9 +11,11 @@ import {
   iceBlocksAiBreak,
   iceBreakExceptSubtype,
   isAiBreaker,
-  iceRezCostReductionFromScoredAgendaCounters,
 } from "../cards/stubs.js";
-import { resolveIceRezCostIncrease } from "../state/continuousCosts.js";
+import {
+  resolveIceRezCostIncrease,
+  resolveIceRezCostReduction,
+} from "../state/continuousCosts.js";
 import {
   abilityCost,
   abilityNeedsEncounter,
@@ -110,7 +112,7 @@ export function addApproachIceCandidates(
       const discount =
         rezCostDiscountPerRezzedSubtype(state, iceId) +
         rezCostDiscountPerOtherUnrezzedIce(state, iceId) +
-        iceRezCostReductionFromScoredAgendaCounters(state);
+        resolveIceRezCostReduction(state, iceId);
       const cost = Math.max(
         0,
         (ice.rezCost ?? 0) +
