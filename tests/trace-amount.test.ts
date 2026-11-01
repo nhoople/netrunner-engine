@@ -21,6 +21,11 @@ import {
   getCardDef,
 } from "../src/index.js";
 import {
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  lingeringBreakerStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
+
+import {
   fireAfterBreakSubroutineHooks,
   fireOnAnyIceRez,
 } from "../src/effects/eval.js";
@@ -131,7 +136,7 @@ describe("trace-amount", () => {
 
       const before = effectiveBreakerStrength(s, "sb-1");
       fireAfterBreakSubroutineHooks(s, "sb-1");
-      expect(s.run!.strengthBoosts["sb-1"]).toBe(1);
+      expect(lingeringBreakerStrengthOfKind(s, "sb-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(1);
       expect(effectiveBreakerStrength(s, "sb-1")).toBe(before + 1);
       expect(s.pendingChoice).not.toBeNull();
       expect(s.pendingChoice!.sourceId).toBe("e3-1");

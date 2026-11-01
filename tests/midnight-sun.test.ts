@@ -43,6 +43,11 @@ import {
   serversMatchingSpec,
   resolveAndAdvance,
 } from "../src/index.js";
+import {
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  lingeringIceStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
+
 import type { ServerId, PaidAbility, StartsRunSpec } from "../src/state/types.js";
 import type { Effect } from "../src/index.js";
 import { canScoreAgenda } from "../src/state/scoring.js";
@@ -6164,7 +6169,7 @@ describe("midnight-sun", () => {
 
       s = must(s, { type: "choose_option", optionId: "trash:pad-1" });
       expect(s.corp.discardPile).toContain("pad-1");
-      expect(s.run?.iceStrengthBoosts["stavka-1"]).toBe(5);
+      expect(lingeringIceStrengthOfKind(s, "stavka-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(5);
       expect(effectiveIceStrength(s, "stavka-1")).toBe(7);
     });
 

@@ -26,6 +26,11 @@ import {
   getCardDef,
   orderBlankingEffects,
 } from "../src/index.js";
+import {
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  lingeringIceStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
+
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { noteProgramOrHardwareInstalled } from "../src/state/programHardwareInstall.js";
 import { onRunnerTurnEnds } from "../src/state/staticFlags.js";
@@ -1138,7 +1143,7 @@ describe("CR examples, chapter 9", () => {
       abilityId: "arruaceiras-weaken",
     });
     expect(weakened.runner.tags).toBe(1);
-    expect(weakened.run?.iceStrengthBoosts["wall-1"]).toBe(-2);
+    expect(lingeringIceStrengthOfKind(weakened, "wall-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(-2);
   });
 
 

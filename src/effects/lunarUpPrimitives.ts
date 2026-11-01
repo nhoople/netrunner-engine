@@ -266,9 +266,6 @@ export function applyLunarUpPrimitive(
     }
     case "runner_mu_modifier_until_turn_end": {
       const delta = (action as { delta: number }).delta;
-      // Registry authoritative; turn field is a derived mirror (M2).
-      state.turn.runnerMuModifierUntilTurnEnd =
-        (state.turn.runnerMuModifierUntilTurnEnd ?? 0) + delta;
       addLingeringEffect(state, {
         createdBy: sourceId,
         duration: { kind: "turn", side: "runner" },

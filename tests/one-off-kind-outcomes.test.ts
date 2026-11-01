@@ -12,6 +12,16 @@ import {
   instantiateCard,
   resolveTrace,
 } from "../src/index.js";
+import {
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  LINGERING_KIND_ICE_STRENGTH,
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  lingeringBreakerStrengthOfKind,
+  lingeringIceStrengthOfKind,
+  lingeringRunnerMuModifier,
+} from "../src/state/lingeringEffects.js";
+
 import { drawCards } from "../src/effects/draw.js";
 import type { GameState } from "../src/state/types.js";
 import { onRunnerEventPlayed } from "../src/state/cardDeclarations.js";
@@ -2737,7 +2747,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "bad-times", "bt-1", "corp:play");
     runKind(s, "bt-1", "runner_mu_modifier_until_turn_end", { delta: -2 });
-    expect(s.turn.runnerMuModifierUntilTurnEnd).toBe(-2);
+    expect(lingeringRunnerMuModifier(s)).toBe(-2);
   });
 
   it("Encore: takes an additional turn after this one", () => {
@@ -3240,7 +3250,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       iceStrengthBoosts: {},
     } as GameState["run"];
     runKind(s, "st-1", "fortify_ice", { amount: 5 });
-    expect(s.run.iceStrengthBoosts?.["st-1"]).toBe(5);
+    expect(lingeringIceStrengthOfKind(s, "st-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(5);
   });
 
   it("Replanting: installs 2 cards from HQ ignoring all costs", () => {
@@ -4014,7 +4024,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     const after = applyAction(s, { type: "choose_option", optionId: "nre:br-2" });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.run?.strengthBoosts?.["br-2"]).toBe(1);
+    expect(lingeringBreakerStrengthOfKind(after.state, "br-2", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(1);
   });
 
   it("Herald: may pay up to 2 credits to place that many advancements", () => {
@@ -4082,7 +4092,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "tk-1", "pump_takobi_breaker", { amount: 3 });
     const after = applyAction(s, { type: "choose_option", optionId: "takobi:br-1" });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.run?.encounterStrengthBoosts?.["br-1"]).toBe(3);
+    expect(lingeringBreakerStrengthOfKind(after.state, "br-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(3);
   });
 
   it("Mandatory Seed Replacement: rearranges ice across servers (CR 8.3.1)", () => {
@@ -5914,7 +5924,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as unknown as GameState["run"];
     s.turn.stealthCreditsOnLastPaidAbility = 0;
     runKind(s, "bk-1", "pump_blackat_strength");
-    expect(s.run?.encounterStrengthBoosts?.["bk-1"]).toBe(1);
+    expect(lingeringBreakerStrengthOfKind(s, "bk-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(1);
 
     const s2 = createInitialState();
     put(s2, "blackat", "bk-2", "runner:installed");
@@ -5927,7 +5937,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as unknown as GameState["run"];
     s2.turn.stealthCreditsOnLastPaidAbility = 1;
     runKind(s2, "bk-2", "pump_blackat_strength");
-    expect(s2.run?.encounterStrengthBoosts?.["bk-2"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s2, "bk-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
   });
 
   it("Reeducation: reeducation_hq_bottom_rd_draw_runner_grip_to_stack offers HQ picks", () => {
@@ -6805,7 +6815,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "mk-1", "spend_mkultra_pump_and_break");
-    expect(s.run?.encounterStrengthBoosts?.["mk-1"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s, "mk-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
     expect(s.run?.encounter?.broken).toEqual([true, true, false]);
 
     const s2 = createInitialState();
@@ -6820,7 +6830,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s2, "mk-2", "spend_mkultra_pump_and_break");
-    expect(s2.run?.encounterStrengthBoosts?.["mk-2"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s2, "mk-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
     expect(s2.run?.encounter?.broken).toEqual([false, false]);
   });
 
@@ -6838,7 +6848,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s, "bo-1", "spend_pump_and_break");
-    expect(s.run?.encounterStrengthBoosts?.["bo-1"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s, "bo-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
     expect(s.run?.encounter?.broken).toEqual([true, true]);
 
     const s2 = createInitialState();
@@ -6853,7 +6863,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounterStrengthBoosts: {},
     } as unknown as GameState["run"];
     runKind(s2, "bo-2", "spend_pump_and_break");
-    expect(s2.run?.encounterStrengthBoosts?.["bo-2"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s2, "bo-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
     expect(s2.run?.encounter?.broken).toEqual([false, false]);
   });
 
@@ -6931,7 +6941,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.credits).toBe(3);
-    expect(after.state.run?.encounterStrengthBoosts?.["pc-1"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(after.state, "pc-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
     expect(after.state.run?.encounter?.broken).toEqual([true, true]);
 
     const s2 = createInitialState();
@@ -6953,7 +6963,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "paperclip-x:2",
     });
     if (!after2.ok) throw new Error(after2.error);
-    expect(after2.state.run?.encounterStrengthBoosts?.["pc-2"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(after2.state, "pc-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
     expect(after2.state.run?.encounter?.broken).toEqual([false, false]);
   });
 
@@ -7770,7 +7780,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     expect(s.runner.hand).toEqual([]);
     expect(s.runner.discardPile).toContain("grip-1");
-    expect(s.run?.iceStrengthBoosts?.["iw-1"]).toBe(-2);
+    expect(lingeringIceStrengthOfKind(s, "iw-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(-2);
   });
 
   it("Cold Read: trashes 1 program used this run and cannot be prevented", () => {
@@ -8066,7 +8076,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.credits).toBe(1);
-    expect(after.state.turn.iceStrengthBoostsThisTurn["iw-1"]).toBe(3);
+    expect(lingeringIceStrengthOfKind(after.state, "iw-1", LINGERING_KIND_ICE_STRENGTH)).toBe(3);
   });
 
   it("Apocalypse: turns all installed Runner cards facedown", () => {

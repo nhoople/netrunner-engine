@@ -182,10 +182,7 @@ function commitByDuration(
 ): void {
   switch (args.requestedDuration) {
     case "turn": {
-      // Registry authoritative; maps are derived mirrors for logs/tests (M2).
-      state.turn.breakerStrengthBoostsThisTurn[args.breakerId] =
-        (state.turn.breakerStrengthBoostsThisTurn[args.breakerId] ?? 0) +
-        args.amount;
+      // Registry single-write (residual lingering migration).
       pushLingering(state, {
         createdBy: args.createdBy,
         duration: { kind: "turn" },
@@ -196,9 +193,6 @@ function commitByDuration(
     }
     case "run": {
       if (!state.run) return;
-      if (!state.run.strengthBoosts) state.run.strengthBoosts = {};
-      state.run.strengthBoosts[args.breakerId] =
-        (state.run.strengthBoosts[args.breakerId] ?? 0) + args.amount;
       pushLingering(state, {
         createdBy: args.createdBy,
         duration: { kind: "run" },
@@ -209,12 +203,6 @@ function commitByDuration(
     }
     case "encounter": {
       if (!state.run) return;
-      if (!state.run.encounterStrengthBoosts) {
-        state.run.encounterStrengthBoosts = {};
-      }
-      state.run.encounterStrengthBoosts[args.breakerId] =
-        (state.run.encounterStrengthBoosts[args.breakerId] ?? 0) +
-        args.amount;
       pushLingering(state, {
         createdBy: args.createdBy,
         duration: { kind: "encounter" },
@@ -224,9 +212,6 @@ function commitByDuration(
       return;
     }
     case "checkpoint": {
-      const checkpointBoosts = (state.turn.checkpointBreakerBoosts ??= {});
-      checkpointBoosts[args.breakerId] =
-        (checkpointBoosts[args.breakerId] ?? 0) + args.amount;
       pushLingering(state, {
         createdBy: args.createdBy,
         duration: { kind: "until_checkpoint" },

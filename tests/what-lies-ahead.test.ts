@@ -20,6 +20,11 @@ import {
   getCardDef,
 } from "../src/index.js";
 import {
+  LINGERING_KIND_BREAKER_STRENGTH,
+  lingeringBreakerStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
+
+import {
   effectiveMemoryCost,
   usedMemory,
 } from "../src/state/turn.js";
@@ -193,9 +198,9 @@ describe("what-lies-ahead", () => {
         type: "choose_option",
         optionId: "icebreaker-str:br-1",
       });
-      expect(s.turn.breakerStrengthBoostsThisTurn["br-1"]).toBe(2);
+      expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH)).toBe(2);
       expect(effectiveBreakerStrength(s, "br-1")).toBe(before + 2);
-      expect(s.turn.breakerStrengthBoostsThisTurn["br-2"]).toBeUndefined();
+      expect(lingeringBreakerStrengthOfKind(s, "br-2", LINGERING_KIND_BREAKER_STRENGTH)).toBe(0);
     });
 
     it("auto-applies when only one icebreaker is installed", () => {
@@ -211,7 +216,7 @@ describe("what-lies-ahead", () => {
       );
       expect(r.ok).toBe(true);
       expect(s.pendingChoice).toBeNull();
-      expect(s.turn.breakerStrengthBoostsThisTurn["br-1"]).toBe(1);
+      expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH)).toBe(1);
     });
   });
 

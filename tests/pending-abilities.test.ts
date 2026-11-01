@@ -3131,6 +3131,8 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
       LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
       lingeringEffectsOfKind,
+      lingeringBreakerStrengthOfKind,
+      lingeringIceStrengthOfKind,
       addBreakerStrengthBoostThisRun,
       addBreakerStrengthBoostThisEncounter,
       addIceStrengthBoostThisEncounter,
@@ -3171,9 +3173,9 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       iceId: "ice-1",
       amount: 3,
     });
-    expect(s.run.strengthBoosts["br-1"]).toBe(2);
-    expect(s.run.encounterStrengthBoosts["br-1"]).toBe(1);
-    expect(s.run.iceStrengthBoosts["ice-1"]).toBe(3);
+    expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(1);
+    expect(lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(3);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_RUN),
     ).toHaveLength(1);
@@ -3185,7 +3187,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     ).toHaveLength(1);
 
     expireLingeringEffects(s, { encounter: true });
-    expect(s.run.strengthBoosts["br-1"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(2);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER),
     ).toHaveLength(0);
@@ -3207,6 +3209,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     const {
       LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
       lingeringEffectsOfKind,
+      lingeringBreakerStrengthOfKind,
       addBreakerStrengthBoostUntilCheckpoint,
     } = await import("../src/state/lingeringEffects.js");
     const s = createInitialState();
@@ -3215,7 +3218,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       breakerId: "br-1",
       amount: 2,
     });
-    expect(s.turn.checkpointBreakerBoosts?.["br-1"]).toBe(2);
+    expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT)).toBe(2);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT),
     ).toHaveLength(1);
@@ -3274,6 +3277,8 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       LINGERING_KIND_BREAKER_STRENGTH,
       LINGERING_KIND_ICE_STRENGTH,
       lingeringEffectsOfKind,
+      lingeringBreakerStrengthOfKind,
+      lingeringIceStrengthOfKind,
       addBreakerStrengthBoostThisTurn,
       addIceStrengthBoostThisTurn,
     } = await import("../src/state/lingeringEffects.js");
@@ -3291,8 +3296,8 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       iceId: "ice-1",
       amount: 1,
     });
-    expect(s.turn.breakerStrengthBoostsThisTurn["breaker-1"]).toBe(2);
-    expect(s.turn.iceStrengthBoostsThisTurn["ice-1"]).toBe(1);
+    expect(lingeringBreakerStrengthOfKind(s, "breaker-1", LINGERING_KIND_BREAKER_STRENGTH)).toBe(2);
+    expect(lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH)).toBe(1);
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH)).toHaveLength(
       1,
     );
@@ -3310,8 +3315,8 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(passed.ok).toBe(true);
     if (!passed.ok) return;
     s = passed.state;
-    expect(s.turn.breakerStrengthBoostsThisTurn).toEqual({});
-    expect(s.turn.iceStrengthBoostsThisTurn).toEqual({});
+    expect(lingeringBreakerStrengthOfKind(s, "breaker-1", LINGERING_KIND_BREAKER_STRENGTH)).toBe(0);
+    expect(lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH)).toBe(0);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH),
     ).toHaveLength(0);
@@ -3323,6 +3328,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     const {
       LINGERING_KIND_RUNNER_MU,
       lingeringEffectsOfKind,
+      lingeringRunnerMuModifier,
     } = await import("../src/state/lingeringEffects.js");
     let s = createInitialState();
     const r = evalEffect(
@@ -3333,7 +3339,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       },
     );
     expect(r.ok).toBe(true);
-    expect(s.turn.runnerMuModifierUntilTurnEnd).toBe(-2);
+    expect(lingeringRunnerMuModifier(s)).toBe(-2);
     const mus = lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU);
     expect(mus).toHaveLength(1);
     expect(mus[0]!.duration).toEqual({ kind: "turn", side: "runner" });
@@ -3343,7 +3349,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     // Corp turn end does not clear Runner-scoped MU.
     expireLingeringEffects(s, { turn: "corp" });
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU)).toHaveLength(1);
-    expect(s.turn.runnerMuModifierUntilTurnEnd).toBe(-2);
+    expect(lingeringRunnerMuModifier(s)).toBe(-2);
 
     s.timingKey = "runner.turnEnds";
     autoWalk(s);
@@ -3351,7 +3357,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(passed.ok).toBe(true);
     if (!passed.ok) return;
     s = passed.state;
-    expect(s.turn.runnerMuModifierUntilTurnEnd).toBeUndefined();
+    expect(lingeringRunnerMuModifier(s)).toBe(0);
     expect(lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU)).toHaveLength(0);
   });
 

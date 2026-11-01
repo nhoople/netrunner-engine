@@ -5,6 +5,7 @@ import { addBreakerStrengthBoostThisEncounter } from "../state/lingeringEffects.
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
+import { breakerStrength, iceStrength } from "./iceStrength.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 
 type PrimResult =
@@ -68,11 +69,8 @@ export function applyFlashpointEsPrimitive(
       if (!ice || !(ice.subtypes ?? []).includes("code gate")) {
         return { ok: true };
       }
-      const str =
-        (source.breaker?.strength ?? source.strength ?? 0) +
-        (state.run.strengthBoosts[sourceId] ?? 0) +
-        (state.run.encounterStrengthBoosts[sourceId] ?? 0);
-      const iceStr = ice.strength ?? 0;
+      const str = breakerStrength(state, sourceId);
+      const iceStr = iceStrength(state, enc.iceId);
       if (str < iceStr) {
         log(
           state,

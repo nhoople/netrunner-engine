@@ -24,8 +24,7 @@ export const LINGERING_KIND_GRANTED_SUBTYPES = "granted_subtypes";
 
 /**
  * Runner memory-limit modifier until end of the Runner's turn (CR 9.10.1).
- * Payload: `{ delta: number }`. Cleared when the Runner's turn ends (matches
- * `runnerMuModifierUntilTurnEnd` dual-write).
+ * Payload: `{ delta: number }`. Cleared when the Runner's turn ends.
  */
 export const LINGERING_KIND_RUNNER_MU = "runner_mu";
 
@@ -43,8 +42,8 @@ export const LINGERING_KIND_ICE_STRENGTH = "ice_strength_turn";
 
 /**
  * Temporary ability blank until end of the Corp's turn (Klevetnik-class;
- * CR 9.10.1). Payload: `{ cardId: string }`. Dual-writes
- * `abilitiesBlanked` / `abilitiesBlankedCorpTurnsRemaining`.
+ * CR 9.10.1). Payload: `{ cardId: string }`. Also sets
+ * `abilitiesBlanked` / `abilitiesBlankedCorpTurnsRemaining` for consumers.
  */
 export const LINGERING_KIND_ABILITY_BLANK = "ability_blank";
 
@@ -62,21 +61,19 @@ export const LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER =
   "breaker_strength_encounter";
 
 /**
- * Ice strength boost for the remainder of the encounter (CR 9.10.1).
- * Payload: `{ iceId: string; amount: number }`. Dual-writes
- * `run.iceStrengthBoosts`.
+ * Ice strength boost for the remainder of the encounter / open run
+ * (CR 9.10.1; Stavka-class fortify before encounter begins).
+ * Payload: `{ iceId: string; amount: number }`.
  */
 export const LINGERING_KIND_ICE_STRENGTH_ENCOUNTER = "ice_strength_encounter";
 
 /**
  * Icebreaker strength boost until the next checkpoint (CR 9.10.1 /
  * icebreaker strength outside an encounter). Payload:
- * `{ breakerId: string; amount: number }`. Dual-writes
- * `turn.checkpointBreakerBoosts`.
+ * `{ breakerId: string; amount: number }`.
  */
 export const LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT =
   "breaker_strength_checkpoint";
-
 let lingeringSeq = 0;
 
 export function resetLingeringSeqForTests(): void {
@@ -178,10 +175,9 @@ export function lingeringIceStrengthBoost(
     ) {
       continue;
     }
-    if (
-      e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER &&
-      !state.run?.encounter
-    ) {
+    // Encounter-kind ice boosts live on the run object historically; apply
+    // whenever a run is open (Stavka fortify at rez before encounter begins).
+    if (e.kind === LINGERING_KIND_ICE_STRENGTH_ENCOUNTER && !state.run) {
       continue;
     }
     const payload = e.payload as
@@ -200,6 +196,42 @@ export function lingeringRunnerMuModifier(state: GameState): number {
     if (e.expired || e.kind !== LINGERING_KIND_RUNNER_MU) continue;
     const payload = e.payload as { delta?: number } | undefined;
     n += payload?.delta ?? 0;
+  }
+  return n;
+}
+
+/** Sum of active breaker strength lingerings of one kind (tests / debug). */
+export function lingeringBreakerStrengthOfKind(
+  state: GameState,
+  breakerId: string,
+  kind: string,
+): number {
+  let n = 0;
+  for (const e of state.lingeringEffects) {
+    if (e.expired || e.kind !== kind) continue;
+    const payload = e.payload as
+      | { breakerId?: string; amount?: number }
+      | undefined;
+    if (!payload || payload.breakerId !== breakerId) continue;
+    n += payload.amount ?? 0;
+  }
+  return n;
+}
+
+/** Sum of active ice strength lingerings of one kind (tests / debug). */
+export function lingeringIceStrengthOfKind(
+  state: GameState,
+  iceId: string,
+  kind: string,
+): number {
+  let n = 0;
+  for (const e of state.lingeringEffects) {
+    if (e.expired || e.kind !== kind) continue;
+    const payload = e.payload as
+      | { iceId?: string; amount?: number }
+      | undefined;
+    if (!payload || payload.iceId !== iceId) continue;
+    n += payload.amount ?? 0;
   }
   return n;
 }
@@ -229,8 +261,8 @@ export function removeLingeringEffectsOfKind(
 }
 
 /**
- * Dual-write a this-turn icebreaker strength boost onto the turn field and the
- * lingering registry (CR 9.10.1). Opens the strength-increase interrupt window.
+ * Register a this-turn icebreaker strength boost (CR 9.10.1). Opens the
+ * strength-increase interrupt window.
  */
 export function addBreakerStrengthBoostThisTurn(
   state: GameState,
@@ -243,17 +275,13 @@ export function addBreakerStrengthBoostThisTurn(
 }
 
 /**
- * Dual-write a this-turn ice strength boost onto the turn field and the
- * lingering registry (CR 9.10.1). Strength consumers still read the turn field.
+ * Register a this-turn ice strength boost (CR 9.10.1).
  */
 export function addIceStrengthBoostThisTurn(
   state: GameState,
   args: { createdBy: string; iceId: string; amount: number },
 ): void {
   if (args.amount === 0) return;
-  // Derived map mirror; readers use lingerings (M2).
-  state.turn.iceStrengthBoostsThisTurn[args.iceId] =
-    (state.turn.iceStrengthBoostsThisTurn[args.iceId] ?? 0) + args.amount;
   addLingeringEffect(state, {
     createdBy: args.createdBy,
     duration: { kind: "turn" },
@@ -263,8 +291,8 @@ export function addIceStrengthBoostThisTurn(
 }
 
 /**
- * Dual-write a Corp-turn-scoped ability blank (CR 9.10.1). Blanking consumers
- * still read `abilitiesBlanked`; 10.3.1b expires the registry entry.
+ * Blank abilities until Corp turn end (CR 9.10.1). Sets card blank flags for
+ * consumers; 10.3.1b expires the registry entry.
  */
 export function blankAbilitiesUntilCorpTurnEnd(
   state: GameState,
@@ -285,7 +313,7 @@ export function blankAbilitiesUntilCorpTurnEnd(
 }
 
 /**
- * Dual-write a run-duration icebreaker strength boost (CR 9.10.1).
+ * Register a run-duration icebreaker strength boost (CR 9.10.1).
  * Opens the strength-increase interrupt window; 9.9.9 may stretch duration.
  */
 export function addBreakerStrengthBoostThisRun(
@@ -299,7 +327,7 @@ export function addBreakerStrengthBoostThisRun(
 }
 
 /**
- * Dual-write an encounter-duration icebreaker strength boost (CR 9.10.1).
+ * Register an encounter-duration icebreaker strength boost (CR 9.10.1).
  * Opens the strength-increase interrupt window; 9.9.9 may stretch duration.
  */
 export function addBreakerStrengthBoostThisEncounter(
@@ -313,17 +341,14 @@ export function addBreakerStrengthBoostThisEncounter(
 }
 
 /**
- * Dual-write an encounter-duration ice strength boost onto `run.iceStrengthBoosts`
- * (CR 9.10.1). Requires an active run; no-ops otherwise.
+ * Register an encounter-duration ice strength boost (CR 9.10.1). Requires an
+ * active run; no-ops otherwise. Applies while the run is open.
  */
 export function addIceStrengthBoostThisEncounter(
   state: GameState,
   args: { createdBy: string; iceId: string; amount: number },
 ): void {
   if (args.amount === 0 || !state.run) return;
-  if (!state.run.iceStrengthBoosts) state.run.iceStrengthBoosts = {};
-  state.run.iceStrengthBoosts[args.iceId] =
-    (state.run.iceStrengthBoosts[args.iceId] ?? 0) + args.amount;
   addLingeringEffect(state, {
     createdBy: args.createdBy,
     duration: { kind: "encounter" },
@@ -333,7 +358,7 @@ export function addIceStrengthBoostThisEncounter(
 }
 
 /**
- * Dual-write an until-next-checkpoint icebreaker strength boost (CR 9.10.1).
+ * Register an until-next-checkpoint icebreaker strength boost (CR 9.10.1).
  * Opens the strength-increase interrupt window; 9.9.9 may stretch duration.
  */
 export function addBreakerStrengthBoostUntilCheckpoint(
