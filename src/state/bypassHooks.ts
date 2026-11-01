@@ -1,13 +1,14 @@
 /**
  * Bypass conditionals (ice + Runner onBypass). Notes queues for 10.3.1a
- * (phase 3). Jeitinho heap-install-on-bypass stays a mid-hook offer.
+ * (phase 3). Jeitinho heap-install-on-bypass is noted separately as an
+ * inline conditional by `fireOnBypassTriggers`.
  */
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
 
 /**
  * Queue ice and Runner-installed onBypass sources for the next 10.3.1a
- * checkpoint. Does not open Jeitinho (caller handles that).
+ * checkpoint.
  */
 export function noteBypassTriggers(state: GameState, iceId: string): void {
   const bypassed = state.cards[iceId];

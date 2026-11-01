@@ -4265,10 +4265,43 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
 });
 
 describe("inline flag conditionals pending (CR 9.6.2)", () => {
-  it("marks Franchise City / Builder of Nations / Caïssa pending", async () => {
-    const { fireInlineConditional } = await import(
-      "../src/state/storedTriggers.js"
+  async function markInlineAtCheckpoint(
+    s: ReturnType<typeof createInitialState>,
+    args: {
+      sourceId: string;
+      effect: import("../src/effects/ir.js").Effect;
+      abilityKey: string;
+      logLine: string;
+      controller?: "corp" | "runner";
+      independentOfSource?: boolean;
+    },
+  ): Promise<void> {
+    const { noteInlineConditional } = await import(
+      "../src/state/inlineConditionalHooks.js"
     );
+    const card = s.cards[args.sourceId];
+    noteInlineConditional(s, {
+      cardId: args.sourceId,
+      abilityKey: args.abilityKey,
+      controller:
+        args.controller ?? (card?.side === "corp" ? "corp" : "runner"),
+      mandatory: true,
+      effect: args.effect,
+      logLine: args.logLine,
+      ...(args.independentOfSource
+        ? { independentOfSource: true }
+        : {}),
+    });
+    occurCheckpoint(
+      s,
+      "instruction",
+      "inline conditional",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+  }
+
+  it("marks Franchise City / Builder of Nations / Caïssa pending", async () => {
 
     const s = createInitialState();
     const city = instantiateCard("franchise-city", "fc-1", "server:hq:root");
@@ -4290,17 +4323,16 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     s.servers.hq.root = ["fc-1"];
     s.runner.installed = ["imp-1"];
 
-    fireInlineConditional(
-      s,
-      "fc-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "fc-1",
+      effect: {
         op: "do",
         action: { kind: "add_to_corp_score_as_agenda", agendaPoints: 1 },
       },
-      "add-self-to-corp-score-on-agenda-access",
-      `${city.title} becomes pending — agenda accessed (add self to Corp score).`,
-      "corp",
-    );
+      abilityKey: "add-self-to-corp-score-on-agenda-access",
+      logLine: `${city.title} becomes pending — agenda accessed (add self to Corp score).`,
+      controller: "corp",
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4308,14 +4340,13 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "bon-1",
-      { op: "do", action: { kind: "meat_damage", amount: 1 } },
-      "first-advanced-ice-encounter-end-meat",
-      `${bon.title} becomes pending — first advanced ice encounter ends (meat damage).`,
-      "corp",
-    );
+    await markInlineAtCheckpoint(s, {
+      sourceId: "bon-1",
+      effect: { op: "do", action: { kind: "meat_damage", amount: 1 } },
+      abilityKey: "first-advanced-ice-encounter-end-meat",
+      logLine: `${bon.title} becomes pending — first advanced ice encounter ends (meat damage).`,
+      controller: "corp",
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4324,16 +4355,15 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "imp-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "imp-1",
+      effect: {
         op: "do",
         action: { kind: "advance_caissa_host_inward_or_install" },
       },
-      "caissa-advance-on-successful-run",
-      `${caissa.title} becomes pending — successful run (Caïssa advance).`,
-    );
+      abilityKey: "caissa-advance-on-successful-run",
+      logLine: `${caissa.title} becomes pending — successful run (Caïssa advance).`,
+    });
     expect(
       s.log.some(
         (line) => line.includes("Imp") && line.includes("becomes pending"),
@@ -4342,25 +4372,26 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks on-advance flag hooks pending via inline_conditional", async () => {
-    const { fireInlineConditional } = await import(
-      "../src/state/storedTriggers.js"
-    );
 
     const s = createInitialState();
     const card = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
     card.creditsOnAdvance = { default: 1 };
     card.placeAdvancementOnAnotherOnAdvance = { default: 1 };
     s.cards["pad-1"] = card;
-    s.servers.remote1 = { ice: [], root: ["pad-1"] } as (typeof s.servers)["hq"];
+    s.servers.remote1 = {
+      id: "remote1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1"],
+    };
 
-    fireInlineConditional(
-      s,
-      "pad-1",
-      { op: "do", action: { kind: "gain_credits", side: "corp", amount: 1 } },
-      "credits-on-advance",
-      `${card.title} becomes pending — advanced (gain 1¢).`,
-      "corp",
-    );
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pad-1",
+      effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 1 } },
+      abilityKey: "credits-on-advance",
+      logLine: `${card.title} becomes pending — advanced (gain 1¢).`,
+      controller: "corp",
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4368,26 +4399,22 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "pad-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pad-1",
+      effect: {
         op: "do",
         action: { kind: "place_advancement_on_another_on_advance", amount: 1 },
       },
-      "place-advancement-on-another-on-advance",
-      `${card.title} becomes pending — advanced (may place advancement on another).`,
-      "corp",
-    );
+      abilityKey: "place-advancement-on-another-on-advance",
+      logLine: `${card.title} becomes pending — advanced (may place advancement on another).`,
+      controller: "corp",
+    });
     expect(
       s.log.filter((line) => line.includes("becomes pending")).length,
     ).toBeGreaterThanOrEqual(2);
   });
 
   it("marks mandatory flag conditionals pending via inline_conditional", async () => {
-    const { fireInlineConditional } = await import(
-      "../src/state/storedTriggers.js"
-    );
 
     const s = createInitialState();
     const alg = instantiateCard("algernon", "alg-1", "runner:installed");
@@ -4398,13 +4425,12 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     s.cards["dd-1"] = dd;
     s.runner.installed = ["alg-1", "dd-1"];
 
-    fireInlineConditional(
-      s,
-      "alg-1",
-      { op: "do", action: { kind: "trash_self" } },
-      "trash-at-turn-end-unless-successful-run",
-      `${alg.title} becomes pending — turn end (trash unless successful run).`,
-    );
+    await markInlineAtCheckpoint(s, {
+      sourceId: "alg-1",
+      effect: { op: "do", action: { kind: "trash_self" } },
+      abilityKey: "trash-at-turn-end-unless-successful-run",
+      logLine: `${alg.title} becomes pending — turn end (trash unless successful run).`,
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4412,13 +4438,12 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "dd-1",
-      { op: "do", action: { kind: "draw", side: "runner", amount: 2 } },
-      "daredevil-draw-on-first-run-ice-gte",
-      `${dd.title} becomes pending — first run on server with 2 ice (draw 2).`,
-    );
+    await markInlineAtCheckpoint(s, {
+      sourceId: "dd-1",
+      effect: { op: "do", action: { kind: "draw", side: "runner", amount: 2 } },
+      abilityKey: "daredevil-draw-on-first-run-ice-gte",
+      logLine: `${dd.title} becomes pending — first run on server with 2 ice (draw 2).`,
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4428,9 +4453,6 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks encounter/run may flag hooks pending via inline_conditional", async () => {
-    const { fireInlineConditional } = await import(
-      "../src/state/storedTriggers.js"
-    );
 
     const s = createInitialState();
     const paperclip = instantiateCard("paperclip", "pc-1", "runner:heap");
@@ -4453,10 +4475,9 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     s.runner.discardPile = ["pc-1"];
     s.runner.installed = ["sifr-1", "ae-1"];
 
-    fireInlineConditional(
-      s,
-      "pc-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pc-1",
+      effect: {
         op: "choose",
         chooser: "runner",
         options: [
@@ -4478,9 +4499,10 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
           },
         ],
       },
-      "paperclip-heap-install-on-encounter-barrier",
-      `${paperclip.title} becomes pending — encounter (may install from heap).`,
-    );
+      abilityKey: "paperclip-heap-install-on-encounter-barrier",
+      logLine: `${paperclip.title} becomes pending — encounter (may install from heap).`,
+      independentOfSource: true,
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4488,10 +4510,9 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "sifr-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "sifr-1",
+      effect: {
         op: "choose",
         chooser: "runner",
         options: [
@@ -4513,22 +4534,21 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
           },
         ],
       },
-      "sifr-may-zero-encounter-ice-strength",
-      `${sifr.title} becomes pending — encounter (may zero ice strength).`,
-    );
+      abilityKey: "sifr-may-zero-encounter-ice-strength",
+      logLine: `${sifr.title} becomes pending — encounter (may zero ice strength).`,
+    });
     expect(
       s.log.some(
         (line) => line.includes("Şifr") && line.includes("becomes pending"),
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "nero-1",
-      { op: "do", action: { kind: "offer_jack_out" } },
-      "nero-may-jack-out-on-encounter-sentry",
-      `${nero.title} becomes pending — encounter sentry (may jack out).`,
-    );
+    await markInlineAtCheckpoint(s, {
+      sourceId: "nero-1",
+      effect: { op: "do", action: { kind: "offer_jack_out" } },
+      abilityKey: "nero-may-jack-out-on-encounter-sentry",
+      logLine: `${nero.title} becomes pending — encounter sentry (may jack out).`,
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4536,16 +4556,15 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "ae-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "ae-1",
+      effect: {
         op: "do",
         action: { kind: "may_reveal_aeneas_gain_one", cardId: "x-1" },
       },
-      "aeneas-may-reveal-gain-on-access-without-trash",
-      `${aeneas.title} becomes pending — access without trash (may reveal and gain).`,
-    );
+      abilityKey: "aeneas-may-reveal-gain-on-access-without-trash",
+      logLine: `${aeneas.title} becomes pending — access without trash (may reveal and gain).`,
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4555,9 +4574,6 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks Top Hat / Analog Dreamers / Puppet Master / Dedicated Neural Net pending", async () => {
-    const { fireInlineConditional } = await import(
-      "../src/state/storedTriggers.js"
-    );
 
     const s = createInitialState();
     const hat = instantiateCard("top-hat", "th-1", "runner:installed");
@@ -4578,16 +4594,15 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     s.runner.installed = ["th-1", "ad-1"];
     s.corp.scoreArea = ["pm-1", "dnn-1"];
 
-    fireInlineConditional(
-      s,
-      "th-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "th-1",
+      effect: {
         op: "do",
         action: { kind: "top_hat_may_instead_of_breach", n: 3 },
       },
-      "top-hat-may-instead-of-breach",
-      `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
-    );
+      abilityKey: "top-hat-may-instead-of-breach",
+      logLine: `${hat.title} becomes pending — successful R&D run (may instead of breach).`,
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4595,16 +4610,15 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "ad-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "ad-1",
+      effect: {
         op: "do",
         action: { kind: "may_breach_instead_analog_dreamers" },
       },
-      "analog-dreamers-may-instead-of-breach",
-      `${ad.title} becomes pending — successful R&D run (may instead of breach).`,
-    );
+      abilityKey: "analog-dreamers-may-instead-of-breach",
+      logLine: `${ad.title} becomes pending — successful R&D run (may instead of breach).`,
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4612,17 +4626,16 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "pm-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pm-1",
+      effect: {
         op: "do",
         action: { kind: "tlm_puppet_master_place_advancement" },
       },
-      "puppet-master-place-advancement-on-successful-run",
-      `${pm.title} becomes pending — successful run (may place advancement).`,
-      "corp",
-    );
+      abilityKey: "puppet-master-place-advancement-on-successful-run",
+      logLine: `${pm.title} becomes pending — successful run (may place advancement).`,
+      controller: "corp",
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4630,10 +4643,9 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "dnn-1",
-      {
+    await markInlineAtCheckpoint(s, {
+      sourceId: "dnn-1",
+      effect: {
         op: "do",
         action: {
           kind: "play_psi_game",
@@ -4644,10 +4656,10 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
           },
         },
       },
-      "dedicated-neural-net-psi-on-first-successful-hq",
-      `${dnn.title} becomes pending — first successful HQ (psi; Corp may choose access).`,
-      "corp",
-    );
+      abilityKey: "dedicated-neural-net-psi-on-first-successful-hq",
+      logLine: `${dnn.title} becomes pending — first successful HQ (psi; Corp may choose access).`,
+      controller: "corp",
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4658,9 +4670,6 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks score/steal flag hooks pending via inline_conditional", async () => {
-    const { fireInlineConditional } = await import(
-      "../src/state/storedTriggers.js"
-    );
 
     const s = createInitialState();
     const pe = instantiateCard(
@@ -4677,14 +4686,13 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     s.runner.installed = ["pan-1"];
     s.runner.hand = [];
 
-    fireInlineConditional(
-      s,
-      "pe-1",
-      fx.netDamage(1),
-      "net-damage-on-agenda-scored-or-stolen",
-      `${pe.title} becomes pending — agenda scored or stolen (net damage).`,
-      "corp",
-    );
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pe-1",
+      effect: fx.netDamage(1),
+      abilityKey: "net-damage-on-agenda-scored-or-stolen",
+      logLine: `${pe.title} becomes pending — agenda scored or stolen (net damage).`,
+      controller: "corp",
+    });
     expect(
       s.log.some(
         (line) =>
@@ -4694,13 +4702,12 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       ),
     ).toBe(true);
 
-    fireInlineConditional(
-      s,
-      "pan-1",
-      fx.mayInstallFromGrip(),
-      "may-install-on-score-or-steal",
-      `${panto.title} becomes pending — agenda scored or stolen (may install).`,
-    );
+    await markInlineAtCheckpoint(s, {
+      sourceId: "pan-1",
+      effect: fx.mayInstallFromGrip(),
+      abilityKey: "may-install-on-score-or-steal",
+      logLine: `${panto.title} becomes pending — agenda scored or stolen (may install).`,
+    });
     expect(
       s.log.some(
         (line) =>

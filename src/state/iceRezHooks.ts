@@ -3,12 +3,11 @@
  * Host / any-ice / protecting-server notes for 10.3.1a (phase 3).
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { log } from "./createGame.js";
 import { agendaPointsFor } from "./scoring.js";
-import { creditsAvailableForInstall } from "./costs.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 import { syncMauiRecurringCredits } from "../effects/redsandBawPrimitives.js";
 import { noteBypassTriggers } from "./bypassHooks.js";
+import { noteInlineConditional } from "./inlineConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 export type IceRezAbilityPendingMark = {
@@ -47,15 +46,28 @@ function checkpointIfNoted(state: GameState, openedBy: string): void {
 }
 
 /**
- * Note ice + Runner-installed onBypass for 10.3.1a, then offer Jeitinho-class
- * heap install mid-hook when Threat is met (not a stored conditional).
+ * Note ice + Runner-installed onBypass and Jeitinho-class heap install for
+ * 10.3.1a (CR 9.6.2). Heap install is an optional inline conditional
+ * (Paperclip-class), not a mid-hook pendingChoice.
  */
 export function fireOnBypassTriggers(state: GameState, iceId: string): void {
   noteBypassTriggers(state, iceId);
-  if (state.pendingChoice) return;
-  // Jeitinho-class: heap cards may install on bypass when Threat met.
+  noteJeitinhoHeapInstallOnBypass(state);
+  if (
+    (state.turn.bypassPendingSourceIds ?? []).length > 0 ||
+    (state.turn.inlineConditionalPending ?? []).length > 0
+  ) {
+    checkpointAfterInstruction(state, "bypass");
+  }
+}
+
+/**
+ * Jeitinho-class: while in the heap at Threat N, bypass notes a may-spend-
+ * click install (CR 9.6.2 / 9.6.13c heap exception).
+ */
+function noteJeitinhoHeapInstallOnBypass(state: GameState): void {
   for (const id of [...state.runner.discardPile]) {
-    // CR 9.12.1d — blanked heap sources do not offer install-on-bypass.
+    // CR 9.12.1d — blanked heap sources do not note install-on-bypass.
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     const spec = card?.onBypassMayInstallFromHeap;
@@ -65,40 +77,42 @@ export function fireOnBypassTriggers(state: GameState, iceId: string): void {
       agendaPointsFor(state, "runner"),
     );
     if (threatPts < spec.requiresThreat) continue;
-    if (state.runner.clicks < spec.clickCost) continue;
     const installCost = card.installCost ?? 0;
-    if (creditsAvailableForInstall(state, "runner") < installCost) continue;
-    state.pendingChoice = {
-      sourceId: id,
-      chooser: "runner",
-      options: [
-        {
-          id: "install-from-heap",
-          label: `Spend ${spec.clickCost}[click]: install ${card.title} from heap (${installCost}¢)`,
-          effect: {
-            op: "do",
-            action: {
-              kind: "install_heap_paying_click",
-              cardId: id,
-              clickCost: spec.clickCost,
+    noteInlineConditional(state, {
+      cardId: id,
+      abilityKey: "heap-install-on-bypass",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "install-from-heap",
+            label: `Spend ${spec.clickCost}[click]: install ${card.title} from heap (${installCost}¢)`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "install_heap_paying_click",
+                cardId: id,
+                clickCost: spec.clickCost,
+              },
             },
           },
-        },
-        {
-          id: "decline",
-          label: "Decline",
-          effect: {
-            op: "do",
-            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
           },
-        },
-      ],
-    };
-    log(
-      state,
-      `${card.title} — may spend ${spec.clickCost}[click] to install from heap (Threat ${spec.requiresThreat}).`,
-    );
-    return;
+        ],
+      },
+      logLine: `${card.title} becomes pending — bypass (may spend ${spec.clickCost}[click] to install from heap; Threat ${spec.requiresThreat}).`,
+      // Heap may-install fires from an inactive zone (CR 9.6.10 / 9.6.13c).
+      independentOfSource: true,
+    });
   }
 }
 
