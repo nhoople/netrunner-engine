@@ -7,6 +7,7 @@ import {
   cardsDataPresent,
   createInitialState,
   crDataPresent,
+  deckbuildingReport,
   enterStep,
   evalEffect,
   fx,
@@ -17,11 +18,7 @@ import type { GameState } from "../src/state/types.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/handSize.js";
-import {
-  deckbuildingReport,
-  installBlockReason,
-  onCardRezzed,
-} from "../src/state/staticFlags.js";
+import { installBlockReason, onCardRezzed } from "../src/state/staticFlags.js";
 import { CR } from "../src/timing/labels.js";
 
 describe("static declarations", () => {

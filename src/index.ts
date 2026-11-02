@@ -393,6 +393,8 @@ export {
 } from "./state/trace.js";
 export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, operationAndEventPlayCostIncreaseTotal, eventPlayCostDiscountTotal, firstDoubleOperationClickDiscountAvailable, effectiveOperationExtraClicks, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, isAttackingHq, recurringCreditsForCentralRun, runnerAvailableCreditsForBreaker, hostedCreditsSpendableDuringRuns, hostedCreditsSpendableToUseProgramsDuringRuns } from "./state/costs.js";
 export { startingHandSizeFor } from "./state/startingHand.js";
+export { agendaPointBand, deckbuildingReport } from "./state/staticFlags.js";
+export type { DeckEntry, DeckIdentity, DeckbuildingReport } from "./state/staticFlags.js";
 export type { RecurringSpendPurpose } from "./state/types.js";
 export { abilitiesSuppressed } from "./state/abilities.js";
 export {
