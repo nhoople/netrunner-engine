@@ -9,15 +9,15 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.147.13`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.147.18`**
 
 ### Cards ↔ engine pairing
 
-Match **cards-data** and this engine by the **same semver tag**. Pin a **release tag**, not `master`.
+A set-complete shares one semver on cards-data and this engine. The current floor is a maintenance pair, in the table below. Pin a **release tag**, not `master`.
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.147.13`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.13) | [`v1.147.222`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.222) (loads cards by side and type; pins cards v1.147.13; continuous subtype layer; one-off-kind burn-down baseline empty) |
+| **Current** | [`v1.147.18`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.18) | [`v1.147.241`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.241) (maintenance pair, not one shared semver; pins cards v1.147.18; play text is the ability record; effect switch split by procedure) |
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 
@@ -104,7 +104,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template)
 
 Scenario tests ported from [mtgred/netrunner](https://github.com/mtgred/netrunner) follow [`docs/jnet-test-ports.md`](docs/jnet-test-ports.md): quarantined under `tests/jnet/`, native-style titles with the upstream `deftest` name kept as provenance, and a promoted native test for every engine fix they produce.
 
-**Corpus status:** Cards pin **`v1.147.13`** (side and type, deck limits, printings, verified rulings, and format lists; double-sided identity faces, uniqueness, and attribution restored). Title corpus unchanged from **`v1.147.6`** — Magnum Opus complete (**8/8**; `mor` absorbed). Printed link, deck size, influence limit, and influence cost; ice, assets, and upgrades omit a copied install cost. Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
+**Corpus status:** Cards pin **`v1.147.18`** (side and type, deck limits, printings, verified rulings, and format lists; double-sided identity faces, uniqueness, and attribution restored). Title corpus unchanged from **`v1.147.6`** — Magnum Opus complete (**8/8**; `mor` absorbed). Printed link, deck size, influence limit, and influence cost; ice, assets, and upgrades omit a copied install cost. Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
 
 ## CR pin (`v26.03`)
 
@@ -118,7 +118,7 @@ Scenario tests ported from [mtgred/netrunner](https://github.com/mtgred/netrunne
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects. When Null Signal ships a new CR, follow [`docs/cr-pin-bump-checklist.md`](docs/cr-pin-bump-checklist.md).
 
-## Card pin (`v1.147.13`)
+## Card pin (`v1.147.18`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -128,7 +128,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
 | Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, `corp/`, `runner/`, `PIN.json`) |
 
-`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (cards pin **`v1.147.13`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
+`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (cards pin **`v1.147.18`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 **Authoritative corpus:** pinned cards `pool.json` — **68/68** waves `supported` (see `corpusOrder` + wave `status` / card counts). Do not treat any shorter README wave list as complete.
 
@@ -213,9 +213,9 @@ Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].eff
 - UI / multiplayer / networking (out of scope for this Project)
 - Full NetrunnerDB / every NSG expansion beyond the declared `pool.json` corpus (Gateway → Vantage Point today)
 - Compiling `nodes.json` or Comprehensive Rules prose into executable behavior. Effect IR is hand-authored. Example boards in `tests/cr-examples-chN.test.ts` prove the outcomes those examples name. A catalog sweep proves an ability ran on its step, a missing window, cost, encounter, or target was refused, a score or steal moved the agenda (CR 1.17.6, CR 1.17.7), and a one-instruction subroutine changed the board by its printed number (`tests/printed-board.test.ts`). A play ability such as Hedge Fund resolves from its instruction and does not need that sentence stored.
-- Deckbuilding at deck submit. `deckbuildingReport` checks extra copies and influence reductions. Minimum deck size, the identity's influence limit, and agenda points are outside the report. CR 3.1.2: those limits do not apply once the game has started.
+- Deckbuilding at deck submit. `deckbuildingReport` checks extra copies, influence after a reduction, minimum deck size (CR 1.4.3), the identity's influence limit (CR 1.4.5), and the Corp agenda band (CR 1.4.6). The match host does not call it. CR 3.1.2: those limits do not apply once the game has started.
 - Perfect fidelity for every printed clause outside the supported mapping (partial cards use explicit `unsupported` notes; supported waves must keep those empty unless allowlisted)
-- Full **9.12** continuous-effect compiler. Blanking order (CR 9.12.1d / 9.12.1e) covers Standard. The chain where a gained subtype feeds a further grant needs Mother Goddess, Egret, and Warden Fatuma, which are Eternal and outside Standard.
+- Full **9.12** continuous-effect compiler. Blanking order (CR 9.12.1d / 9.12.1e) covers Standard. A gained subtype that feeds a further grant is the continuous subtype layer (Mother Goddess, Egret, Warden Fatuma).
 
 ## Layout
 
@@ -228,7 +228,9 @@ vendor/
   cards-data/      # npm run fetch-cards (gitignored)
 src/
   api/library.ts          # createGame / applyIntent / getPublicView
-  effects/eval.ts         # card-specific effect sequences
+  effects/eval.ts         # effect evaluator; the kind switch is effects/kinds/
+  effects/kinds/          # one file per procedure in the kind switch
+  effects/primitives/     # printed procedures grouped by verb, not by pack
   effects/*Primitives.ts  # shared rules (credits, damage, tags, runs, counters, …)
   cards/                  # load + short-game setup + runtime helpers
   timing/
