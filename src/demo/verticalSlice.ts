@@ -17,12 +17,43 @@ import {
 import { getStep } from "../timing/machine.js";
 import type { Action, GameState, ServerId } from "../state/types.js";
 
+const recorded: Action[] = [];
+let capture = false;
+
 function must(state: GameState, action: Action): GameState {
   const result = applyIntent(state, action);
   if (!result.ok) {
     throw new Error(`${result.error} cites=${JSON.stringify(result.cites)}`);
   }
+  if (capture) recorded.push(structuredClone(action));
   return result.state;
+}
+
+/** Golden fixtures that are a full intent list from a demo game. */
+export const GOLDEN_TRANSCRIPTS = [
+  "vertical-slice-decline-rez",
+  "ice-break-success",
+  "ice-etr-failure",
+] as const;
+
+export type GoldenTranscriptName = (typeof GOLDEN_TRANSCRIPTS)[number];
+
+/**
+ * The intents of one regression golden, from `createGame({ stopAfterFirstCycle: true })`.
+ * Replaying them in order reaches that golden. The list is not a live match.
+ */
+export function goldenTranscript(name: GoldenTranscriptName): Action[] {
+  recorded.length = 0;
+  capture = true;
+  try {
+    if (name === "vertical-slice-decline-rez") runVerticalSlice();
+    else if (name === "ice-break-success") runIceBreakSlice();
+    else runIceEtrSlice();
+    return recorded.map((action) => structuredClone(action));
+  } finally {
+    capture = false;
+    recorded.length = 0;
+  }
 }
 
 function pass(state: GameState): GameState {

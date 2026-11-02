@@ -241,6 +241,8 @@ export {
   canPass,
 } from "./timing/machine.js";
 export {
+  goldenTranscript,
+  GOLDEN_TRANSCRIPTS,
   runVerticalSlice,
   runIceBreakSlice,
   runIceEtrSlice,
@@ -253,6 +255,7 @@ export {
   setupEmptyRemoteWithIce,
   keepOpeningHands,
 } from "./demo/verticalSlice.js";
+export type { GoldenTranscriptName } from "./demo/verticalSlice.js";
 export {
   ICE_WALL,
   PALISADE,

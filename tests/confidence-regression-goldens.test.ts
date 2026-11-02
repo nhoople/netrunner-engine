@@ -14,8 +14,10 @@ import { describe, expect, it, beforeAll } from "vitest";
 import {
   applyAction,
   assertPinnedTag,
+  createGame,
   createInitialState,
   CR,
+  goldenTranscript,
   crDataPresent,
   getStep,
   instantiateCard,
@@ -109,6 +111,27 @@ function must(state: GameState, action: Action): GameState {
 }
 
 describe("regression goldens — full-run transcripts", () => {
+  it("replays each golden transcript onto its frozen board", () => {
+    const runs = [
+      ["vertical-slice-decline-rez", runVerticalSlice],
+      ["ice-break-success", runIceBreakSlice],
+      ["ice-etr-failure", runIceEtrSlice],
+    ] as const;
+    for (const [name, run] of runs) {
+      const steps = goldenTranscript(name);
+      let state = createGame({ stopAfterFirstCycle: true });
+      for (const intent of steps) state = must(state, intent);
+      const markers =
+        name === "vertical-slice-decline-rez"
+          ? [CR.corpBasicInstall.number, CR.successfulRun.number, "No access candidates"]
+          : name === "ice-break-success"
+            ? [CR.rezInPaw.number, CR.successfulRun.number]
+            : [CR.endTheRun.number, CR.unsuccessfulRun.number];
+      expect(snapshot(name, state, markers)).toEqual(snapshot(name, run(), markers));
+      expect(steps.length).toBeGreaterThan(0);
+    }
+  });
+
   it("vertical slice (decline rez → empty breach → end)", () => {
     const s = runVerticalSlice();
     assertGolden(
