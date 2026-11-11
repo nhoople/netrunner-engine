@@ -277,6 +277,50 @@ describe("looking at cards", () => {
   });
 });
 
+describe("looks whose kind is not named for looking", () => {
+  it("shows the top 3 cards of R&D to the Runner alone when Keyhole resolves (CR 1.21.2)", () => {
+    let s = board();
+    doKind(s, "src-r", "breach_instead_keyhole");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(seen(s, "runner")).toContain("Trash Hedge Fund");
+    const corp = seen(s, "corp");
+    for (const id of ["rd-0", "rd-1", "rd-2"]) {
+      expect(s.cards[id]?.lookedBy, id).toBe("runner");
+      expect(s.cards[id]?.faceup, id).toBe(false);
+      expect(corp).not.toContain(`"${id}"`);
+      expect(corp).not.toContain(s.cards[id]!.title);
+    }
+    expect(titles(getPublicView(s, "runner").looks)).toEqual(["Hedge Fund", "Ice Wall", "PAD Campaign"]);
+    expect(getPublicView(s, "corp").looks).toEqual([]);
+
+    // The Runner saw the card it trashes, so it is faceup in Archives
+    // (CR 4.4.6b). The other two go back unseen by the Corp.
+    s = choose(s, "keyhole-trash:rd-1");
+    expect(s.cards["rd-1"]?.zone).toBe("corp:archives");
+    expect(s.cards["rd-1"]?.faceup).toBe(true);
+    for (const id of ["rd-0", "rd-2"]) {
+      expect(s.corp.deck).toContain(id);
+      expect(s.cards[id]?.lookedBy).toBeUndefined();
+      expect(s.cards[id]?.faceup).toBe(false);
+    }
+  });
+
+  it("shows the top 3 cards of R&D to the Corp alone for Accelerated Diagnostics (CR 1.21.2, CR 4.4.6b)", () => {
+    const s = board();
+    doKind(s, "src-c", "accelerated_diagnostics");
+    expect(titles(getPublicView(s, "corp").looks)).toEqual(["Hedge Fund", "Ice Wall", "PAD Campaign"]);
+    expect(getPublicView(s, "runner").looks).toEqual([]);
+    // Hedge Fund was played. The two the Corp did not play are trashed
+    // facedown, and the log does not name them.
+    for (const id of ["rd-1", "rd-2"]) {
+      expect(s.cards[id]?.zone, id).toBe("corp:archives");
+      expect(s.cards[id]?.faceup, id).toBe(false);
+      expect(s.log.join("\n")).not.toContain(s.cards[id]!.title);
+    }
+    expect(s.log.join("\n")).toContain("Hedge Fund");
+  });
+});
+
 describe("every look and search kind", () => {
   const kinds = [
     ...new Set(
