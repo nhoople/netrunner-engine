@@ -1,8 +1,8 @@
 {
-  "tag": "v1.147.19",
+  "tag": "v1.147.20",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.19",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.19",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.20",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.20",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "runner/program",
     "runner/resource"
   ],
-  "notes": "Pair cards v1.147.19. Nine pay-or-penalty cards are nested costs (CR 1.16.11b); Longevity Serum, Hansei Review, and Anemone let the Corp choose the HQ cards. CR pin v26.03."
+  "notes": "Pair cards v1.147.20. Interns, Drafter, and The Powers That Be ignore the install cost and other ability installs pay it (CR 8.5.16); Graft and Project Atlas reveal what they find; Keyhole has no \"may\". CR pin v26.03."
 }

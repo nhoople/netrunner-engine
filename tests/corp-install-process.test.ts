@@ -16,21 +16,25 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
+  assertCardsPinnedTag,
   assertPinnedTag,
   cardsDataPresent,
   crDataPresent,
   createInitialState,
   evalEffect,
   fx,
+  getCardDef,
   getPublicView,
   instantiateCard,
+  playEffectFromCard,
 } from "../src/index.js";
-import type { Action, GameState } from "../src/index.js";
+import type { Action, Effect, GameState } from "../src/index.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
+  assertCardsPinnedTag("v1.147.20");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -408,5 +412,120 @@ describe("Keyhole (card text: no 'may')", () => {
       "keyhole-trash:top-2",
       "keyhole-trash:top-3",
     ]);
+  });
+});
+
+describe("card definitions say whether the install cost is paid (CR 1.2.1)", () => {
+  function resolve(s: GameState, sourceId: string, effect: Effect | undefined): void {
+    if (!effect) throw new Error("The card has no such ability");
+    const r = evalEffect({ state: s, sourceId }, effect);
+    if (!r.ok) throw new Error(r.error);
+  }
+
+  /** HQ holds 1 ice; HQ is already protected by 1 ice, so protecting it costs 1¢. */
+  function oneIceOnHq(): GameState {
+    const s = corpTurn();
+    hq(s, [["enigma", "new-ice"]]);
+    ice(s, "ice-wall", "hq-ice", "hq", true);
+    return s;
+  }
+
+  it("Interns: the install is required and ignores the install cost", () => {
+    const s = oneIceOnHq();
+    put(s, "interns", "interns-1", "corp:play");
+    resolve(s, "interns-1", playEffectFromCard(getCardDef("interns")));
+    // No "may": with 1 card that can be installed there is nothing to
+    // choose but where it goes.
+    expect(optionIds(s)).not.toContain("choose-cards-done");
+    expect(optionIds(s)).toContain("install-dest:hq");
+    const t = choose(s, "install-dest:hq");
+    expect(t.servers.hq.ice).toEqual(["new-ice", "hq-ice"]);
+    expect(t.corp.credits).toBe(5);
+  });
+
+  it("Drafter: 'ignoring all costs'", () => {
+    const s = oneIceOnHq();
+    const drafter = ice(s, "drafter", "drafter", "rd", true);
+    resolve(s, "drafter", drafter.subroutines?.[1]?.effect);
+    let t = choose(s, "install");
+    t = choose(pick(t, "new-ice"), "install-dest:hq");
+    expect(t.servers.hq.ice).toEqual(["new-ice", "hq-ice"]);
+    expect(t.corp.credits).toBe(5);
+  });
+
+  it("Architect's second subroutine does not ignore the install cost", () => {
+    const s = oneIceOnHq();
+    const architect = ice(s, "architect", "architect", "rd", true);
+    resolve(s, "architect", architect.subroutines?.[1]?.effect);
+    const t = choose(pick(s, "new-ice"), "install-dest:hq");
+    expect(t.servers.hq.ice).toEqual(["new-ice", "hq-ice"]);
+    expect(t.corp.credits).toBe(4);
+  });
+});
+
+describe("card definitions for searches and modes (CR 1.2.1)", () => {
+  function deck(s: GameState, n: number): void {
+    s.corp.deck = [];
+    for (let i = 0; i < n; i += 1) {
+      put(s, i === 0 ? "ice-wall" : "hedge-fund", `rd-${i}`, "corp:rd");
+      s.corp.deck.push(`rd-${i}`);
+    }
+  }
+
+  it("Graft: up to 3 cards, and they are revealed (CR 1.21.3)", () => {
+    const s = corpTurn();
+    deck(s, 5);
+    put(s, "graft", "graft-1", "corp:score").faceup = true;
+    s.corp.scoreArea = ["graft-1"];
+    const r = evalEffect({ state: s, sourceId: "graft-1" }, getCardDef("graft").onScore!);
+    if (!r.ok) throw new Error(r.error);
+    let t = choose(s, "accept");
+    t = pick(t, "rd-0");
+    // "Up to 3": the Corp can stop after 1.
+    t = choose(t, "choose-cards-done");
+    expect(t.corp.hand).toEqual(["rd-0"]);
+    expect(t.corp.deck).toHaveLength(4);
+    expect(t.cards["rd-0"].faceup).toBe(false);
+    expect(t.reveals?.at(-1)).toMatchObject({
+      by: "corp",
+      sourceTitle: "Graft",
+      cards: [{ defId: "ice-wall", title: "Ice Wall" }],
+    });
+  });
+
+  it("Project Atlas: the card found is revealed", () => {
+    const s = corpTurn();
+    deck(s, 3);
+    put(s, "project-atlas", "atlas-1", "corp:score").faceup = true;
+    s.corp.scoreArea = ["atlas-1"];
+    const search = getCardDef("project-atlas").paidAbilities?.find(
+      (a) => a.id === "atlas-search",
+    );
+    const r = evalEffect({ state: s, sourceId: "atlas-1" }, search!.effect);
+    if (!r.ok) throw new Error(r.error);
+    // Exactly 1 card with no criterion: there is no way to find nothing.
+    expect(optionIds(s)).not.toContain("choose-cards-done");
+    const t = pick(s, "rd-1");
+    expect(t.corp.hand).toEqual(["rd-1"]);
+    expect(t.reveals?.at(-1)?.cards).toEqual([
+      { defId: "hedge-fund", title: "Hedge Fund" },
+    ]);
+  });
+
+  it("Key Performance Indicators: drawing and shuffling a card back is one mode of four", () => {
+    const effect = playEffectFromCard(getCardDef("key-performance-indicators"));
+    const action = (effect as { action: { n: number; options: Array<{ id: string }> } }).action;
+    expect(action.n).toBe(2);
+    expect(action.options.map((o) => o.id)).toEqual([
+      "draw-shuffle",
+      "install-ice",
+      "advance",
+      "credits",
+    ]);
+  });
+
+  it("Keyhole's card definition has no 'may'", () => {
+    expect(JSON.stringify(getCardDef("keyhole"))).not.toContain("may_breach_instead_keyhole");
+    expect(JSON.stringify(getCardDef("keyhole"))).toContain("breach_instead_keyhole");
   });
 });
