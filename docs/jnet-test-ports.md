@@ -211,7 +211,7 @@ Promoted native tests remain after any of these steps, so removing the ports kee
 
 - [ ] Upstream commit pin recorded in the manifest entries.
 - [ ] `tests/jnet/NOTICE.md` present with the MIT notice (first batch).
-- [ ] One upstream file per batch, on a `cursor/jnet-port-<name>` branch.
+- [ ] One upstream file per batch, on a `claude/jnet-port-<name>` branch.
 - [ ] Every title follows the naming rules above, with a `// jnet:` provenance comment.
 - [ ] Every considered scenario has a manifest status.
 - [ ] Status section regenerated (`node scripts/jnet-status.mjs --write`).
