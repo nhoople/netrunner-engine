@@ -5651,6 +5651,12 @@ export interface GameState {
   rngState?: number;
   /** Last number handed out per id prefix (see `state/ids.ts`). */
   idSeq?: Record<string, number>;
+  /**
+   * Ids of the active cards, oldest first by when each became active.
+   * Kept by the checkpoint so that uniqueness trashes all but the newest
+   * (CR 10.3.1d).
+   */
+  activeOrder?: string[];
   log: string[];
   /** True when the game (or demo cycle) has finished. */
   done: boolean;
