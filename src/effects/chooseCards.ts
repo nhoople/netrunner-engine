@@ -11,9 +11,11 @@ import { log } from "../state/createGame.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
+import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { trashCorpCardToArchives } from "./corpTrash.js";
+import { deferContinuationAfter } from "./continuation.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
 
@@ -24,8 +26,14 @@ type PrimResult =
 export type ChooseCards = Extract<Primitive, { kind: "choose_cards" }>;
 type Purpose = ChooseCards["purpose"];
 
-function verb(purpose: Purpose): string {
+function verb(purpose: Purpose, label?: string): string {
   switch (purpose) {
+    case "shuffle_hq_to_rd":
+      return "shuffle into R&D from HQ";
+    case "trash_grip":
+      return "trash from the grip";
+    case "resume":
+      return label ?? "choose";
     case "discard_to_hand_size":
       return "discard";
     case "trash_hq":
@@ -44,6 +52,8 @@ function openToOpponent(state: GameState, cardId: string): boolean {
   if (card.zone === "corp:archives" || card.zone === "runner:heap") {
     return Boolean(card.faceup);
   }
+  if (card.zone.startsWith("server:")) return Boolean(card.rezzed);
+  if (card.zone === "runner:installed") return card.faceup !== false;
   return false;
 }
 
@@ -91,6 +101,39 @@ function finish(
         state,
         `Add ${ids.length} card(s) from Archives to HQ (CR ${CR.announceTargets.number}).`,
       );
+      break;
+    }
+    case "shuffle_hq_to_rd": {
+      for (const id of ids) {
+        if (!state.corp.hand.includes(id)) continue;
+        removeCardFromCurrentZone(state, id);
+        state.corp.deck.push(id);
+        state.cards[id]!.zone = "corp:rd";
+        state.cards[id]!.faceup = false;
+      }
+      shuffleInPlace(state, state.corp.deck);
+      log(
+        state,
+        `Shuffle ${ids.length} card(s) from HQ into R&D (CR ${CR.announceTargets.number}).`,
+      );
+      break;
+    }
+    case "trash_grip": {
+      for (const id of ids) {
+        if (!state.runner.hand.includes(id)) continue;
+        const title = state.cards[id]!.title;
+        moveRunnerCardToHeap(state, id);
+        log(state, `Runner trashes ${title} from the grip (CR ${CR.trashing.number}).`);
+      }
+      break;
+    }
+    case "resume": {
+      if (!action.resume) break;
+      const resumed = evalEffect(ctx, {
+        op: "do",
+        action: { ...structuredClone(action.resume), cardIds: ids } as Primitive,
+      });
+      if (!resumed.ok) return resumed;
       break;
     }
     case "shuffle_archives_to_rd": {
@@ -168,6 +211,14 @@ export function applyChooseCards(
       },
     });
   }
+  // Another choice is open: this pick waits its turn instead of being lost.
+  if (state.pendingChoice) {
+    deferContinuationAfter(state, {
+      sourceId,
+      effects: [{ op: "do", action: structuredClone(action) }],
+    });
+    return { ok: true };
+  }
   const total = Math.min(action.count, action.candidates.length);
   const who = action.chooser === "corp" ? "The Corp" : "The Runner";
   openPendingChoose(state, {
@@ -175,11 +226,13 @@ export function applyChooseCards(
     chooser: action.chooser,
     options,
     // The other player may not learn which hidden cards are on offer.
-    hiddenFromOpponent: left.some((id) => !openToOpponent(state, id)),
-    prompt: `Choose a card to ${verb(action.purpose)} (${action.picked.length + 1} of ${action.upTo ? "up to " : ""}${total}).`,
+    hiddenFromOpponent:
+      !action.open && left.some((id) => !openToOpponent(state, id)),
+    ...(action.open ? { shownToOpponent: true } : {}),
+    prompt: `Choose a card to ${verb(action.purpose, action.label)} (${action.picked.length + 1} of ${action.upTo ? "up to " : ""}${total}).`,
     logLine:
       action.picked.length === 0
-        ? `${who} chooses ${action.upTo ? "up to " : ""}${total} card(s) to ${verb(action.purpose)} (CR ${CR.announceTargets.number}).`
+        ? `${who} chooses ${action.upTo ? "up to " : ""}${total} card(s) to ${verb(action.purpose, action.label)} (CR ${CR.announceTargets.number}).`
         : undefined,
   });
   if (!state.pendingChoice) return finish(ctx, action, evalEffect);
@@ -193,6 +246,9 @@ export function chooseCards(args: {
   count: number;
   upTo?: boolean;
   purpose: Purpose;
+  resume?: Primitive;
+  label?: string;
+  open?: boolean;
   then?: Effect;
 }): Effect {
   return {
@@ -205,6 +261,9 @@ export function chooseCards(args: {
       ...(args.upTo ? { upTo: true } : {}),
       picked: [],
       purpose: args.purpose,
+      ...(args.resume ? { resume: structuredClone(args.resume) } : {}),
+      ...(args.label ? { label: args.label } : {}),
+      ...(args.open ? { open: true } : {}),
       ...(args.then ? { then: structuredClone(args.then) } : {}),
     },
   };

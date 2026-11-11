@@ -2,6 +2,12 @@
  * Primitive kinds whose procedure is install.
  * The effect switch in eval.ts dispatches here.
  */
+import {
+  applyInstallCorpCard,
+  chooseCorpCardToInstall,
+  corpInstallableIds,
+  rezInstalledIgnoringCosts,
+} from "../corpAbilityInstall.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -22,7 +28,6 @@ import {
 import { log } from "../../state/createGame.js";
 import {
   fireOnFirstIceRezEachTurn,
-  fireOnInstallFromNonHq,
   fireOnInstallProgramFromHeap,
 } from "../../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -583,130 +588,81 @@ case "install_hq_new_remotes_with_advancements": {
     }
 
 case "install_from_hq_or_archives": {
-      // May install 1 card from HQ or Archives (Ansel / Ablative). Auto: first from HQ, else Archives.
-      const eligible = (id: string, allowOperation: boolean): boolean => {
-        const t = state.cards[id].type;
-        if (action.excludeAgenda && t === "agenda") return false;
-        if (t === "operation") return allowOperation && !action.excludeAgenda;
-        return (
-          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
-        );
-      };
-      const pick =
-        state.corp.hand.find((id) => eligible(id, true)) ??
-        state.corp.discardPile.find((id) => eligible(id, false));
-      if (!pick) {
-        log(state, `Install from HQ/Archives — no eligible card.`);
-        return { ok: true };
-      }
-      const fromArchives = state.corp.discardPile.includes(pick);
-      const card = state.cards[pick];
-      if (card.type === "operation") {
-        log(state, `Install from HQ/Archives — operations are not installable.`);
-        return { ok: true };
-      }
-      // Remove from current zone
-      state.corp.hand = state.corp.hand.filter((id) => id !== pick);
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
-      const attacked =
-        state.timing.structure === "breach" && state.run
-          ? state.servers[state.run.attackedServerId]
-          : undefined;
-      if (attacked && card.type !== "ice") {
-        attacked.root.push(pick);
-        card.zone = `server:${attacked.id}:root`;
-        card.rezzed = false;
-        card.faceup = false;
-        log(
-          state,
-          `A card is installed in the root of the breached server (CR ${CR.checkpointCardEnteringRoot.number}).`,
-        );
-        // CR 10.3.1j candidates come from the zone diff at 10.3.1a.
-        occurCheckpoint(
-          state,
-          "instruction",
-          "Install into a breached root",
-          [CR.checkpointCardEnteringRoot],
-          sourceId,
-        );
-        return { ok: true };
-      }
-      // Drafter: ice installed during its encounter protects the attacked
-      // server, outward of the Runner (CR 6.2.6a).
-      if (
-        card.type === "ice" &&
-        state.run?.encounter?.iceId === sourceId &&
-        state.servers[state.run.attackedServerId]
-      ) {
-        const attackedServer = state.servers[state.run.attackedServerId]!;
-        attackedServer.ice.unshift(pick);
-        card.zone = `server:${attackedServer.id}:ice`;
-        card.rezzed = false;
-        card.faceup = false;
-        if (typeof state.run.position === "number") state.run.position += 1;
-        log(
-          state,
-          `Install ${card.title} outward of the Runner on ${attackedServer.id} (CR ${CR.iceChangeOutward.number}).`,
-        );
-        return { ok: true };
-      }
-      // New remote always differs from source server (Ablative excludeSourceServer).
-      const remoteNum = state.nextRemoteNumber++;
-      const sid = `remote-${remoteNum}` as import("../../state/types.js").ServerId;
-      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
-      if (card.type === "ice") {
-        state.servers[sid].ice.push(pick);
-        card.zone = `server:${sid}:ice`;
-      } else {
-        state.servers[sid].root.push(pick);
-        card.zone = `server:${sid}:root`;
-      }
-      card.rezzed = false;
-      card.faceup = false;
-      log(
+      // The Corp picks the card (CR 1.15.2), then its destination
+      // (CR 8.5.16b). The install cost is paid unless the text ignores it.
+      const candidates = corpInstallableIds(
         state,
-        `Install ${card.title} from HQ/Archives onto ${sid} (ignoring costs).`,
+        ["hq", "archives"],
+        (id) => !(action.excludeAgenda && state.cards[id]?.type === "agenda"),
       );
-      if (fromArchives && card.onInstallFromNonHq) {
-        fireOnInstallFromNonHq(state, pick);
-        if (state.pendingChoice) return { ok: true };
+      if (!action.cardIds) {
+        if (candidates.length === 0) {
+          log(state, `Install from HQ or Archives — no card can be installed.`);
+          return { ok: true };
+        }
+        return evalEffect(
+          ctx,
+          chooseCorpCardToInstall({
+            candidates,
+            required: action.required,
+            resume: { ...action },
+          }),
+        );
       }
-      return { ok: true };
+      const cardId = action.cardIds.find((id) => candidates.includes(id));
+      if (!cardId) {
+        log(state, `Install from HQ or Archives — the Corp installs nothing.`);
+        return { ok: true };
+      }
+      const here = action.excludeSourceServer
+        ? serverHostingCard(state, sourceId)?.id
+        : undefined;
+      return evalEffect(ctx, {
+        op: "do",
+        action: {
+          kind: "install_corp_card",
+          cardId,
+          ...(action.ignoreInstallCost ? { ignoreInstallCost: true } : {}),
+          ...(here ? { excludeServerId: here } : {}),
+        },
+      });
     }
 
 case "may_install_facedown_from_archives": {
-      const installable = state.corp.discardPile.filter((id) => {
-        const t = state.cards[id].type;
-        return (
-          t === "agenda" ||
-          t === "asset" ||
-          t === "ice" ||
-          t === "upgrade"
+      // Printed (Hybrid Release): "you may install 1 facedown card from
+      // Archives." The Corp picks the card and its destination.
+      const candidates = corpInstallableIds(
+        state,
+        ["archives"],
+        (id) => !state.cards[id]?.faceup,
+      );
+      if (!action.cardIds) {
+        if (candidates.length === 0) {
+          log(state, `Install facedown from Archives — no facedown card can be installed.`);
+          return { ok: true };
+        }
+        return evalEffect(
+          ctx,
+          chooseCorpCardToInstall({ candidates, resume: { ...action } }),
         );
-      });
-      if (installable.length === 0) {
-        log(state, `Install facedown from Archives — no eligible card.`);
+      }
+      const cardId = action.cardIds.find((id) => candidates.includes(id));
+      if (!cardId) {
+        log(state, `Install facedown from Archives — the Corp installs nothing.`);
         return { ok: true };
       }
-      const pick = installable[0]!;
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
-      const card = state.cards[pick]!;
-      const remoteNum = state.nextRemoteNumber++;
-      const sid = `remote-${remoteNum}` as import("../../state/types.js").ServerId;
-      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
-      if (card.type === "ice") {
-        state.servers[sid].ice.push(pick);
-        card.zone = `server:${sid}:ice`;
-      } else {
-        state.servers[sid].root.push(pick);
-        card.zone = `server:${sid}:root`;
-      }
-      card.rezzed = false;
-      card.faceup = false;
-      log(
-        state,
-        `Install ${card.title} facedown from Archives onto ${sid}.`,
-      );
+      return evalEffect(ctx, {
+        op: "do",
+        action: { kind: "install_corp_card", cardId },
+      });
+    }
+
+case "install_corp_card": {
+      return applyInstallCorpCard(ctx, action, evalEffect);
+    }
+
+case "rez_installed_card_ignoring_costs": {
+      rezInstalledIgnoringCosts(state, action.cardId);
       return { ok: true };
     }
 
@@ -1128,149 +1084,74 @@ case "install_and_rez_archives_ice": {
 
 case "install_and_rez_asset_or_upgrade_free": {
       // Printed (License Acquisition): "you may install and rez 1 asset
-      // or upgrade from HQ or Archives" — the Corp chooses the card.
-      const candidates = [...state.corp.hand, ...state.corp.discardPile].filter(
-        (id) => {
-          const t = state.cards[id].type;
-          return t === "asset" || t === "upgrade";
-        },
-      );
-      if (candidates.length === 0) {
-        log(state, `Install+rez asset/upgrade — none in HQ/Archives.`);
-        return { ok: true };
-      }
-      const chosen = action.cardId;
-      if (!chosen) {
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "corp",
-          options: [
-            {
-              id: "decline",
-              label: "Decline",
-              effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-            },
-            ...candidates.map((id) => ({
-              id: `lic-acq:${id}`,
-              label: `Install and rez ${state.cards[id]!.title}`,
-              effect: fx.do({
-                kind: "install_and_rez_asset_or_upgrade_free",
-                cardId: id,
-              }),
-            })),
-          ],
-        });
-        return { ok: true };
-      }
-      if (!candidates.includes(chosen)) return { ok: true };
-      const pick = chosen;
-      const card = state.cards[pick];
-      state.corp.hand = state.corp.hand.filter((id) => id !== pick);
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
-      let serverId: import("../../state/types.js").ServerId;
-      if (card.type === "upgrade") {
-        // Prefer first remote, else create
-        const remotes = Object.values(state.servers).filter(
-          (s) => s.kind === "remote",
-        );
-        if (remotes.length > 0) {
-          serverId = remotes[0]!.id;
-        } else {
-          const remoteNum = state.nextRemoteNumber++;
-          serverId = `remote-${remoteNum}`;
-          state.servers[serverId] = {
-            id: serverId,
-            kind: "remote",
-            ice: [],
-            root: [],
-          };
+      // or upgrade from HQ or Archives, ignoring all costs." The Corp
+      // picks the card and its destination.
+      const candidates = corpInstallableIds(state, ["hq", "archives"], (id) => {
+        const t = state.cards[id]?.type;
+        return t === "asset" || t === "upgrade";
+      });
+      const named = action.cardIds ?? (action.cardId ? [action.cardId] : undefined);
+      if (!named) {
+        if (candidates.length === 0) {
+          log(state, `Install+rez asset/upgrade — none in HQ/Archives.`);
+          return { ok: true };
         }
-      } else {
-        const remoteNum = state.nextRemoteNumber++;
-        serverId = `remote-${remoteNum}`;
-        state.servers[serverId] = {
-          id: serverId,
-          kind: "remote",
-          ice: [],
-          root: [],
-        };
+        return evalEffect(
+          ctx,
+          chooseCorpCardToInstall({
+            candidates,
+            resume: { kind: "install_and_rez_asset_or_upgrade_free" },
+          }),
+        );
       }
-      state.servers[serverId].root.push(pick);
-      card.zone = `server:${serverId}:root`;
-      card.rezzed = true;
-      card.faceup = true;
-      if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-        card.hostedCredits = card.hostedCreditsOnInstall;
+      const cardId = named.find((id) => candidates.includes(id));
+      if (!cardId) {
+        log(state, `Install+rez asset/upgrade — the Corp installs nothing.`);
+        return { ok: true };
       }
-      if ((card.recurringCreditsMax ?? 0) > 0) {
-        card.recurringCredits = card.recurringCreditsMax;
-      }
-      if ((card.badPublicityCountersOnRez ?? 0) > 0 && card.rezzed) {
-        card.badPublicityCounters = card.badPublicityCountersOnRez;
-      }
-      log(
-        state,
-        `Install and rez ${card.title} on ${serverId} ignoring costs.`,
-      );
-      fireOnRez(state, pick);
-      fireOnInstall(state, pick);
-      return { ok: true };
+      return evalEffect(ctx, {
+        op: "do",
+        action: {
+          kind: "install_corp_card",
+          cardId,
+          ignoreInstallCost: true,
+          rez: true,
+        },
+      });
     }
 
 case "install_and_rez_from_archives_free": {
-      const pick = state.corp.discardPile.find((id) => {
-        const t = state.cards[id].type;
-        return (
-          t === "asset" || t === "upgrade" || t === "ice" || t === "agenda"
+      // Printed (Trust Operation): "Install and rez 1 card from Archives,
+      // ignoring all costs." The Corp picks the card and its destination.
+      const candidates = corpInstallableIds(state, ["archives"]);
+      if (!action.cardIds) {
+        if (candidates.length === 0) {
+          log(state, `Install+rez from Archives — none available.`);
+          return { ok: true };
+        }
+        return evalEffect(
+          ctx,
+          chooseCorpCardToInstall({
+            candidates,
+            required: true,
+            resume: { kind: "install_and_rez_from_archives_free" },
+          }),
         );
-      });
-      if (!pick) {
+      }
+      const cardId = action.cardIds.find((id) => candidates.includes(id));
+      if (!cardId) {
         log(state, `Install+rez from Archives — none available.`);
         return { ok: true };
       }
-      const card = state.cards[pick];
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== pick);
-      const remoteNum = state.nextRemoteNumber++;
-      const serverId =
-        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
-      state.servers[serverId] = {
-        id: serverId,
-        kind: "remote",
-        ice: [],
-        root: [],
-      };
-      if (card.type === "ice") {
-        state.servers[serverId].ice.push(pick);
-        card.zone = `server:${serverId}:ice`;
-      } else {
-        state.servers[serverId].root.push(pick);
-        card.zone = `server:${serverId}:root`;
-      }
-      if (card.type !== "agenda") {
-        card.rezzed = true;
-      }
-      card.faceup = true;
-      if (card.type === "agenda") {
-        log(
-          state,
-          `Reveal ${card.title} (CR ${CR.revealForInstallAndRez.number}).`,
-        );
-      }
-      if ((card.hostedCreditsOnInstall ?? 0) > 0) {
-        card.hostedCredits = card.hostedCreditsOnInstall;
-      }
-      if ((card.recurringCreditsMax ?? 0) > 0) {
-        card.recurringCredits = card.recurringCreditsMax;
-      }
-      log(
-        state,
-        `Install${card.type !== "agenda" ? " and rez" : ""} ${card.title} from Archives on ${serverId} ignoring costs.`,
-      );
-      if (card.onRez && card.rezzed) {
-        fireOnRez(state, pick);
-      }
-      fireOnInstall(state, pick);
-      return { ok: true };
+      return evalEffect(ctx, {
+        op: "do",
+        action: {
+          kind: "install_corp_card",
+          cardId,
+          ignoreInstallCost: true,
+          rez: true,
+        },
+      });
     }
 
 case "install_resource_discount": {

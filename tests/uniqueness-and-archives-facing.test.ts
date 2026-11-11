@@ -118,6 +118,70 @@ describe("uniqueness keeps the card that became active most recently (CR 10.3.1d
   });
 });
 
+describe("a card a checkpoint trashes (CR 10.3.1d, 10.3.1g)", () => {
+  it("meets its own 'when trashed' ability at the next checkpoint (CR 10.3.1a)", () => {
+    const s = createInitialState();
+    remoteWith(s, "remote-1", "calvin-b4l3y", "calvin-old", true);
+    remoteWith(s, "remote-2", "calvin-b4l3y", "calvin-new", false);
+    checkpointAfterInstruction(s, "test.first");
+    s.cards["calvin-new"].rezzed = true;
+    s.cards["calvin-new"].faceup = true;
+    checkpointAfterInstruction(s, "test.second");
+
+    expect(s.cards["calvin-old"].zone).toBe("corp:archives");
+    // Printed: "When this asset is trashed, you may draw 2 cards."
+    expect(s.pendingChoice?.sourceId).toBe("calvin-old");
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["draw", "decline"]);
+    const lines = s.log;
+    const trashed = lines.findIndex((l) => l.includes("Calvin B4L3Y trashed for uniqueness"));
+    const pending = lines.findIndex((l) => l.includes("Calvin B4L3Y becomes pending — trashed."));
+    const nextCheckpoint = lines.findIndex(
+      (l, i) => i > trashed && l.includes("After a checkpoint trashed a card"),
+    );
+    // Marked pending in the checkpoint after the one that trashed it.
+    expect(trashed).toBeGreaterThan(-1);
+    expect(nextCheckpoint).toBeGreaterThan(trashed);
+    expect(pending).toBeGreaterThan(nextCheckpoint);
+  });
+
+  it("runs no extra checkpoint when the trashed card has no such ability", () => {
+    const s = createInitialState();
+    remoteWith(s, "remote-1", "the-board", "board-old", true);
+    remoteWith(s, "remote-2", "the-board", "board-new", false);
+    checkpointAfterInstruction(s, "test.first");
+    s.cards["board-new"].rezzed = true;
+    s.cards["board-new"].faceup = true;
+    checkpointAfterInstruction(s, "test.second");
+    expect(s.cards["board-old"].zone).toBe("corp:archives");
+    expect(s.pendingChoice ?? null).toBeNull();
+    expect(s.log.some((l) => l.includes("After a checkpoint trashed a card"))).toBe(false);
+  });
+
+  it("keeps the facing of a Corp card hosted on a card that left play (CR 4.4.6b)", () => {
+    const s = createInitialState();
+    // The host is already in Archives; two pieces of ice are still hosted on it.
+    const host = instantiateCard("awakening-center", "host-1", "corp:archives");
+    host.hostedCardIds = ["seen", "unseen"];
+    s.cards["host-1"] = host;
+    s.corp.discardPile.push("host-1");
+    for (const [id, rezzed] of [["seen", true], ["unseen", false]] as const) {
+      const hosted = instantiateCard("eli-1-0", id, "hosted:host-1");
+      hosted.hostId = "host-1";
+      hosted.rezzed = rezzed;
+      hosted.faceup = rezzed;
+      s.cards[id] = hosted;
+    }
+    checkpointAfterInstruction(s, "test");
+    expect(s.cards["seen"].zone).toBe("corp:archives");
+    expect(s.cards["seen"].faceup).toBe(true);
+    expect(s.cards["seen"].rezzed).toBe(false);
+    expect(s.cards["unseen"].zone).toBe("corp:archives");
+    expect(s.cards["unseen"].faceup).toBe(false);
+    expect(s.log.some((l) => l.includes("Eli 1.0 trashed (CR 10.3.1g)"))).toBe(true);
+  });
+});
+
 describe("a trashed Corp card faces up only if the Runner could see it (CR 4.4.6b)", () => {
   it("is facedown when trashed from HQ", () => {
     const s = createInitialState();

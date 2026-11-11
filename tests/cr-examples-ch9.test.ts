@@ -45,7 +45,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.19");
+  assertCardsPinnedTag("v1.147.20");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -1333,10 +1333,12 @@ describe("CR examples, chapter 9", () => {
     enterStep(s, "corp.turnBegins");
     autoWalk(s);
     const trashed = must(s, { type: "choose_option", optionId: "trash-net" });
-    const rezzed = must(trashed, { type: "choose_option", optionId: "ob-rez:nico-1" });
+    // The Corp finds Nico Campaign; an asset with no other remote goes to
+    // a new one. It is rezzed ignoring credit costs.
+    const rezzed = must(trashed, { type: "choose_option", optionId: "choose-card:nico-1" });
     expect(rezzed.cards["nico-1"]?.rezzed).toBe(true);
     expect(rezzed.cards["nico-1"]?.hostedCredits).toBe(9);
-    expect(rezzed.corp.credits).toBe(3);
+    expect(rezzed.corp.credits).toBe(5);
     expect(rezzed.runner.hand).toEqual([]);
     expect(rezzed.log.join("\n")).not.toContain("Take 3¢ from Nico Campaign");
   });
@@ -1753,7 +1755,8 @@ describe("CR examples, chapter 9", () => {
       optionId: "forfeit-agenda:astro-1",
     });
     expect(tagged.corp.scoreArea).not.toContain("astro-1");
-    expect(tagged.cards["astro-1"]?.zone).toBe("corp:archives");
+    // A forfeited agenda is removed from the game (CR 8.2.5).
+    expect(tagged.cards["astro-1"]?.zone).toBe("removed-from-game");
     expect(tagged.pendingChoice?.options.map((option) => option.id)).toEqual([
       "247:mr-1",
     ]);

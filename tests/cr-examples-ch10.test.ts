@@ -29,7 +29,9 @@ import {
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  seedRng,
 } from "../src/index.js";
+import { pickRandomCentral } from "../src/state/msKeywords.js";
 import type { Action, GameState } from "../src/state/types.js";
 import {
   occurCheckpoint,
@@ -47,7 +49,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.19");
+  assertCardsPinnedTag("v1.147.20");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -440,7 +442,10 @@ describe("CR examples, chapter 10", () => {
     if (!sub) throw new Error("Drafter's second subroutine is missing");
     const offered = evalEffect({ state: s, sourceId: "draft-1" }, sub);
     expect(offered.ok).toBe(true);
-    const installed = must(s, { type: "choose_option", optionId: "install" });
+    let installed = must(s, { type: "choose_option", optionId: "install" });
+    // The Corp picks the card and the breached root (CR 8.5.16b).
+    installed = must(installed, { type: "choose_option", optionId: "choose-card:pad-1" });
+    installed = must(installed, { type: "choose_option", optionId: "install-dest:remote-1" });
     expect(installed.servers["remote-1"]?.root).toContain("pad-1");
     expect(installed.pendingChoice?.options.map((option) => option.id)).toContain(
       "root-access:yes:pad-1",
@@ -720,6 +725,16 @@ describe("CR examples, chapter 10", () => {
     s.cards["virt-1"] = virtuoso;
     s.cards["carpe-1"] = carpe;
     s.runner.installed = ["virt-1"];
+    // The mark is a random central server (CR 10.11.2a): use a seed that
+    // lands on HQ.
+    for (let seed = 1; seed < 50; seed++) {
+      const probe = structuredClone(s);
+      seedRng(probe, seed);
+      if (pickRandomCentral(probe) === "hq") {
+        seedRng(s, seed);
+        break;
+      }
+    }
     evalEffect(
       { state: s, sourceId: "carpe-1" },
       fx.do({ kind: "identify_mark" }),

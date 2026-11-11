@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is other.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -55,10 +56,12 @@ import {
   chargeCard,
   currentMark,
   identifyMark,
+  offerSabotagePick,
   resolveSabotageAmount,
 } from "../../state/msKeywords.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import {
+  moveForfeitedAgendaOutOfGame,
   removeCardFromCurrentZone,
   canScoreAgenda,
   checkWinConditions,
@@ -1228,13 +1231,10 @@ case "forfeit_scored_agenda": {
           cites: [CR.scoringAgenda],
         };
       }
-      state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
       fireOnForfeit(state, cardId);
-      state.corp.discardPile.push(cardId);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      log(state, `Forfeit ${card.title} (Plutus rez cost).`);
+      moveForfeitedAgendaOutOfGame(state, cardId);
+      log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
       return { ok: true };
     }
 
@@ -1254,13 +1254,10 @@ case "forfeit_self": {
           cites: [CR.scoringAgenda],
         };
       }
-      state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
       fireOnForfeit(state, cardId);
-      state.corp.discardPile.push(cardId);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      log(state, `Forfeit ${card.title}.`);
+      moveForfeitedAgendaOutOfGame(state, cardId);
+      log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
       return { ok: true };
     }
 
@@ -3081,18 +3078,32 @@ case "melies_set_face": {
     }
 
 case "peer_review": {
-      const hqLen = state.corp.hand.length;
-      const revealN = Math.max(0, hqLen - 1);
-      if (revealN > 0) {
-        // Reveal all but 1: leave the last HQ card hidden for bookkeeping.
-        for (const id of state.corp.hand.slice(0, revealN)) {
-          state.cards[id]!.faceup = true;
-        }
+      // "Reveal all but 1 card in HQ": the Corp picks the card that stays
+      // hidden (CR 1.15.2).
+      if (!action.cardIds && state.corp.hand.length > 1) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.hand],
+            count: 1,
+            purpose: "resume",
+            label: "keep hidden (the rest of HQ is revealed)",
+            resume: { kind: "peer_review" },
+          }),
+        );
       }
+      const kept = action.cardIds?.[0] ?? state.corp.hand[0];
+      // Revealed cards are shown to both players and stay hidden in HQ
+      // afterwards (CR 1.21.3).
+      const revealed = state.corp.hand.filter((id) => id !== kept);
       state.corp.credits += 7;
+      revealCards(state, revealed, sourceId);
       log(
         state,
-        `Peer Review — reveal ${revealN} HQ card(s); gain 7¢ → ${state.corp.credits}¢.`,
+        revealed.length > 0
+          ? `Peer Review — the rest of HQ is revealed; gain 7¢ → ${state.corp.credits}¢.`
+          : `Peer Review — no card in HQ to reveal; gain 7¢ → ${state.corp.credits}¢.`,
       );
       const hqCards = state.corp.hand.filter((id) => {
         const t = state.cards[id]?.type;
@@ -3831,12 +3842,19 @@ case "ayla_set_aside_to_grip": {
     }
 
 case "sabotage": {
-      if (action.interactive) {
-        state.pendingSabotage = { sourceId, amount: action.amount };
+      // The Corp chooses which HQ cards go (CR 10.12.2). With nothing in
+      // HQ, or fewer than N cards in HQ and R&D together (CR 10.12.3b),
+      // there is nothing to choose.
+      const total = state.corp.hand.length + state.corp.deck.length;
+      const forced =
+        action.amount <= 0 || state.corp.hand.length === 0 || total < action.amount;
+      if (action.interactive || !forced) {
+        state.pendingSabotage = { sourceId, amount: action.amount, picked: [] };
         log(
           state,
           `Sabotage ${action.amount} pending — Corp chooses HQ cards (CR ${CR.sabotageResolution.number}).`,
         );
+        offerSabotagePick(state);
         return { ok: true };
       }
       return resolveSabotageAmount(state, sourceId, action.amount);

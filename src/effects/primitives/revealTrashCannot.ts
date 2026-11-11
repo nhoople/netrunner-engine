@@ -1,10 +1,13 @@
 /** Fear the Masses (ftm) Mumbad pack primitives — v1.121.0. */
+import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
 import { startPsiGame } from "../../state/psi.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
+import { chooseCards } from "../chooseCards.js";
+import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -46,15 +49,28 @@ export function applyMumbadFtmPrimitive(
       const copies = state.runner.hand.filter(
         (id) => state.cards[id]?.defId === "fear-the-masses",
       );
-      // Auto-reveal all copies in grip (max fidelity for set-complete).
-      for (const id of copies) {
-        state.cards[id]!.faceup = true;
+      // "Reveal any number of copies": the Runner says how many (CR 1.15.2).
+      if (!action.cardIds && copies.length > 0) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: copies,
+            count: copies.length,
+            upTo: true,
+            purpose: "resume",
+            label: "reveal from the grip",
+            resume: { kind: "reveal_copies_trash_rd" },
+          }),
+        );
       }
-      const x = 1 + copies.length;
+      const shown = (action.cardIds ?? []).filter((id) => copies.includes(id));
+      const x = 1 + shown.length;
+      revealCards(state, shown, sourceId);
       trashTopOfRd(state, x, source?.title ?? "Fear the Masses");
       log(
         state,
-        `Fear the Masses — revealed ${copies.length} copy(ies); trash ${x} from R&D.`,
+        `Fear the Masses — revealed ${shown.length} copy(ies); trash ${x} from R&D.`,
       );
       return { ok: true };
     }

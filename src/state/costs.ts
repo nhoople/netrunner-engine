@@ -796,6 +796,107 @@ function takeFromCentralRunRecurring(
   return left;
 }
 
+/** Cards a cost has its payer pick (CR 1.16.1). */
+export interface CostCardNeed {
+  payer: Side;
+  candidates: string[];
+  count: number;
+  /** What the cards are for, as "trash from HQ as a cost". */
+  what: string;
+  /** The other player may not see the candidates (HQ, the grip). */
+  hidden: boolean;
+  sourceId: string;
+}
+
+/**
+ * The cards this cost has its payer pick, if any. Card data never combines
+ * two of these on one cost, so the first that applies is the answer.
+ */
+export function costCardNeed(
+  state: GameState,
+  side: Side,
+  cost: CostSpec,
+  source?: CardInstance,
+): CostCardNeed | null {
+  const sourceId = source?.id ?? "";
+  if ((cost.trashFromHq ?? 0) > 0) {
+    return {
+      payer: "corp",
+      candidates: [...state.corp.hand],
+      count: cost.trashFromHq ?? 0,
+      what: "trash from HQ as a cost",
+      hidden: true,
+      sourceId,
+    };
+  }
+  if ((cost.trashFromGrip ?? 0) > 0) {
+    return {
+      payer: "runner",
+      candidates: [...state.runner.hand],
+      count: cost.trashFromGrip ?? 0,
+      what: "trash from the grip as a cost",
+      hidden: true,
+      sourceId,
+    };
+  }
+  if (cost.trashProgramFromGrip) {
+    return {
+      payer: "runner",
+      candidates: state.runner.hand.filter(
+        (id) => state.cards[id]?.type === "program",
+      ),
+      count: 1,
+      what: "trash from the grip as a cost",
+      hidden: true,
+      sourceId,
+    };
+  }
+  if (
+    cost.trashInstalledProgramUnlessOwnInstalledTrashedThisTurn &&
+    !state.turn.runnerTrashedOwnInstalledThisTurn
+  ) {
+    return {
+      payer: "runner",
+      candidates: installedProgramsForSimulchipCost(state, source?.id),
+      count: 1,
+      what: "trash as an additional cost",
+      hidden: false,
+      sourceId,
+    };
+  }
+  if (cost.forfeitAgenda) {
+    const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
+    return {
+      payer: side,
+      candidates: score.filter((id) => !state.cards[id]?.cannotForfeit),
+      count: 1,
+      what: "forfeit as a cost",
+      hidden: false,
+      sourceId,
+    };
+  }
+  return null;
+}
+
+/**
+ * The cards to take from `pool` for a cost: the payer's picks first. When
+ * the payer was not asked (every card must go, or the cards are copies of
+ * one card), the rest come from one end of the pool.
+ */
+function takeCostCards(
+  state: GameState,
+  pool: readonly string[],
+  count: number,
+  fallback: "first" | "last",
+): string[] {
+  const named = (state.costCardIds ?? []).filter((id) => pool.includes(id));
+  const rest = pool.filter((id) => !named.includes(id));
+  const missing = Math.max(0, count - named.length);
+  const filler =
+    fallback === "first" ? rest.slice(0, missing) : rest.slice(rest.length - missing);
+  return [...named, ...filler].slice(0, count);
+}
+
 export function canPayCost(
   state: GameState,
   side: Side,
@@ -1151,9 +1252,8 @@ export function payCost(
       );
     }
     if ((cost.trashFromHq ?? 0) > 0) {
-      for (let i = 0; i < (cost.trashFromHq ?? 0); i++) {
-        const id = state.corp.hand.pop();
-        if (!id) break;
+      for (const id of takeCostCards(state, state.corp.hand, cost.trashFromHq ?? 0, "last")) {
+        state.corp.hand = state.corp.hand.filter((x) => x !== id);
         state.corp.discardPile.push(id);
         const c = state.cards[id];
         c.zone = "corp:archives";
@@ -1163,9 +1263,8 @@ export function payCost(
       }
     }
     if ((cost.trashFromGrip ?? 0) > 0) {
-      for (let i = 0; i < (cost.trashFromGrip ?? 0); i++) {
-        const id = state.runner.hand.pop();
-        if (!id) break;
+      for (const id of takeCostCards(state, state.runner.hand, cost.trashFromGrip ?? 0, "last")) {
+        state.runner.hand = state.runner.hand.filter((x) => x !== id);
         state.runner.discardPile.push(id);
         const c = state.cards[id];
         c.zone = "runner:heap";
@@ -1188,9 +1287,12 @@ export function payCost(
       }
     }
     if (cost.trashProgramFromGrip) {
-      const id = state.runner.hand.find(
-        (cid) => state.cards[cid]?.type === "program",
-      );
+      const id = takeCostCards(
+        state,
+        state.runner.hand.filter((cid) => state.cards[cid]?.type === "program"),
+        1,
+        "first",
+      )[0];
       if (id) {
         state.runner.hand = state.runner.hand.filter((cid) => cid !== id);
         state.runner.discardPile.push(id);
@@ -1203,8 +1305,7 @@ export function payCost(
     if (cost.trashInstalledProgramUnlessOwnInstalledTrashedThisTurn) {
       if (!state.turn.runnerTrashedOwnInstalledThisTurn) {
         const programs = installedProgramsForSimulchipCost(state, source?.id);
-        // v1: trash the first installed program deterministically (no pendingChoice).
-        const pick = programs[0];
+        const pick = takeCostCards(state, programs, 1, "first")[0];
         if (pick) {
           const prog = state.cards[pick]!;
           moveRunnerCardToHeap(state, pick);
@@ -1327,7 +1428,12 @@ export function payCost(
     }
     if (cost.forfeitAgenda) {
       const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
-      const id = score.find((x) => !state.cards[x]?.cannotForfeit);
+      const id = takeCostCards(
+        state,
+        score.filter((x) => !state.cards[x]?.cannotForfeit),
+        1,
+        "first",
+      )[0];
       if (id) {
         const card = state.cards[id]!;
         // CR 8.2.5 / 4.9.3 — forfeit moves the agenda to RFG.

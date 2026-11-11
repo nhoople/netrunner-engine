@@ -262,16 +262,14 @@ function finishTrashAbilityIfResolved(state: GameState): void {
   returnSetAsideAdvancements(state);
 }
 
-export function usePaidAbility(
+/** A card's paid ability, including one it gains from a hosted icebreaker. */
+function paidAbilityOn(
   state: GameState,
   cardId: string,
   abilityId: string,
-  serverId?: ServerId,
-): ApplyResult {
+): PaidAbility | undefined {
   const card = state.cards[cardId];
-  if (!card) {
-    return fail("Unknown card.", [CR.paidAbility]);
-  }
+  if (!card) return undefined;
   let ability = findPaidAbility(card, abilityId);
   // Baba Yaga-class: continuous grant of hosted icebreaker paid abilities
   // (CR 9.12.1d — blanked hosts do not gain them).
@@ -285,8 +283,56 @@ export function usePaidAbility(
       if (ability) break;
     }
   }
+  return ability;
+}
+
+/** The cost of a paid ability and who pays it, before the ability is used. */
+export function paidAbilityCostAndPayer(
+  state: GameState,
+  cardId: string,
+  abilityId: string,
+): { cost: CostSpec; payer: "corp" | "runner"; card: CardInstance } | null {
+  const card = state.cards[cardId];
+  const ability = paidAbilityOn(state, cardId, abilityId);
+  if (!card || !ability) return null;
+  return {
+    cost: abilityCost(ability, state, card),
+    payer: ability.usableByAnyPlayer ? state.activeSide : card.side,
+    card,
+  };
+}
+
+export function usePaidAbility(
+  state: GameState,
+  cardId: string,
+  abilityId: string,
+  serverId?: ServerId,
+): ApplyResult {
+  const card = state.cards[cardId];
+  if (!card) {
+    return fail("Unknown card.", [CR.paidAbility]);
+  }
+  const ability = paidAbilityOn(state, cardId, abilityId);
   if (!ability) {
     return fail("Unknown paid ability.", [CR.paidAbility]);
+  }
+  // An unrezzed Corp card is inactive, and so are its abilities (CR 9.1.7),
+  // except one that rezzes the card itself (CR 9.1.8c; Formicary).
+  const rezzesItsSource =
+    Boolean(ability.formicaryApproachAnyServer) ||
+    JSON.stringify(ability.effect ?? null).includes('"rez_move_innermost"');
+  if (
+    card.side === "corp" &&
+    !card.rezzed &&
+    !rezzesItsSource &&
+    Object.values(state.servers).some(
+      (server) => server.root.includes(cardId) || server.ice.includes(cardId),
+    )
+  ) {
+    return fail("An unrezzed card's abilities are not active.", [
+      CR.abilityActive,
+      CR.paidAbility,
+    ]);
   }
   if (card.bioroidWorkCrewRequireAfterOperationPaidWindow && !state.turn.operationPaidWindowOpen) {
     return fail("That ability is only legal after an operation resolves.", [CR.paidAbility]);

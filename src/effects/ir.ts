@@ -352,7 +352,18 @@ export type Primitive =
         | "discard_to_hand_size"
         | "trash_hq"
         | "archives_to_hq"
-        | "shuffle_archives_to_rd";
+        | "shuffle_archives_to_rd"
+        | "shuffle_hq_to_rd"
+        | "trash_grip"
+        | "resume";
+      /**
+       * For `resume`: the instruction that takes the picked cards as its
+       * `cardIds`, and the words that finish "Choose a card to ...".
+       */
+      resume?: Primitive;
+      label?: string;
+      /** The other player sees the cards on offer (they are revealed or open). */
+      open?: boolean;
       then?: Effect;
     }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
@@ -894,21 +905,41 @@ export type Primitive =
       kind: "resolve_moon_pool";
       trashHqMax: number;
       revealArchivesMax: number;
+      /** Set by the engine as the Corp's picks come in; not authored. */
+      step?: "trash" | "reveal" | "advance";
+      cardIds?: string[];
+      agendasLeft?: number;
     }
   /**
    * Simulation Reset: trash up to `trashHqMax` from HQ; shuffle that many
    * from Archives into R&D; draw that many; remove source from the game.
    */
-  | { kind: "resolve_simulation_reset"; trashHqMax: number }
+  | {
+      kind: "resolve_simulation_reset";
+      trashHqMax: number;
+      /** Set by the engine as the Corp's picks come in; not authored. */
+      step?: "trash" | "shuffle";
+      cardIds?: string[];
+      trashed?: number;
+    }
   /**
    * Search R&D for a card whose printed rez cost equals
    * `lastTrashedRezzedPrintedRezCost + delta` (Ob: delta -1); install into a
    * new remote ignoring install costs. Rez is an additional cost the Corp
    * may decline (CR 8.5.13c).
    */
-  | { kind: "search_rd_install_rez_by_printed_rez_cost"; delta: number }
+  | {
+      kind: "search_rd_install_rez_by_printed_rez_cost";
+      delta: number;
+      /** Set by the engine: the card the Corp found. */
+      cardIds?: string[];
+    }
   | { kind: "rez_installed_paying"; cardId: string }
-  | { kind: "reveal_installed_to_verify"; cardId: string }
+  /**
+   * Reveal an installed card to verify the install (CR 8.5.13c), or, with
+   * `forRez`, because it was not rezzed by "install and rez" (CR 8.5.13d).
+   */
+  | { kind: "reveal_installed_to_verify"; cardId: string; forRez?: boolean }
   /**
    * Deep Dive: set aside top `setAside` of R&D faceup; access up to
    * `initialAccess` (then may spend clicks for more — auto spends available
@@ -919,21 +950,48 @@ export type Primitive =
       setAside?: number;
       initialAccess?: number;
     }
+  /**
+   * Install 1 card from HQ or Archives. The Corp picks the card and its
+   * destination (CR 1.15.2, 8.5.16b) and pays the install cost unless
+   * `ignoreInstallCost` is set.
+   */
   | {
       kind: "install_from_hq_or_archives";
-      /** Skip agendas when picking (Ablative Barrier). */
+      /** The card may not be an agenda. */
       excludeAgenda?: boolean;
-      /**
-       * Install into a server other than the source's server (Ablative).
-       * Current v0 path always creates a new remote, which satisfies this.
-       */
+      /** The destination may not be the source's server. */
       excludeSourceServer?: boolean;
+      /** The text ignores the install cost, or all costs. */
+      ignoreInstallCost?: boolean;
+      /** The text has no "may": a card is installed if one can be. */
+      required?: boolean;
+      /** Set by the engine: the card the Corp picked. */
+      cardIds?: string[];
     }
   /**
-   * May install 1 facedown card from Archives into a new remote
-   * (Hybrid Release). No-op when Archives has no installable card.
+   * May install 1 facedown card from Archives. The Corp picks the card
+   * and its destination.
    */
-  | { kind: "may_install_facedown_from_archives" }
+  | { kind: "may_install_facedown_from_archives"; cardIds?: string[] }
+  /**
+   * The Corp installs this card from HQ or Archives by an ability. Without
+   * `serverId` the Corp is asked for the destination (CR 8.5.16b). With
+   * `trashFirst` the Corp is asked which cards already there to trash
+   * first (CR 8.5.6a, 8.5.6b); `cardIds` are those cards. `rez` rezzes the
+   * card afterwards, ignoring all costs (CR 8.5.15).
+   */
+  /** Rez this installed Corp card, ignoring costs (CR 8.5.15). */
+  | { kind: "rez_installed_card_ignoring_costs"; cardId: string }
+  | {
+      kind: "install_corp_card";
+      cardId: string;
+      serverId?: string;
+      ignoreInstallCost?: boolean;
+      rez?: boolean;
+      excludeServerId?: string;
+      trashFirst?: boolean;
+      cardIds?: string[];
+    }
   /**
    * May trash 1 card from grip to draw 1 (Abaasy). Decline / empty grip = no-op.
    */
@@ -1179,8 +1237,21 @@ export type Primitive =
       fail?: boolean;
       mayInstallIfSuccessfulRunThisTurn?: boolean;
     }
-  | { kind: "search_rd_non_agenda" }
-  | { kind: "search_rd_to_hq"; amount: number }
+  /** `cardIds` is the Corp's pick, set by the engine; not authored. */
+  | { kind: "search_rd_non_agenda"; cardIds?: string[] }
+  /**
+   * Search R&D for `amount` cards and add them to HQ, then shuffle R&D
+   * (CR 8.7). `upTo`: the text says "up to". `reveal`: the text has the
+   * found cards revealed. `cardIds` is the Corp's pick, set by the engine;
+   * card data does not author it.
+   */
+  | {
+      kind: "search_rd_to_hq";
+      amount: number;
+      upTo?: boolean;
+      reveal?: boolean;
+      cardIds?: string[];
+    }
   | { kind: "swap_two_ice" }
   | { kind: "rez_ice_ignoring_costs" }
   | {
@@ -1277,7 +1348,12 @@ export type Primitive =
   | { kind: "fortify_all_ice"; amount: number }
   | { kind: "resolve_meeting_of_minds"; subtype: string }
   | { kind: "meeting_of_minds_fetch"; cardId: string; subtype: string }
-  | { kind: "reveal_gain"; subtype: string }
+  /**
+   * Meeting of Minds: reveal any number of grip cards with the subtype and
+   * gain 1 credit for each. `cardIds` is the Runner's pick, set by the
+   * engine; card data does not author it.
+   */
+  | { kind: "reveal_gain"; subtype: string; cardIds?: string[] }
   | { kind: "derez_ice_protecting_attacked"; cardId: string }
   | { kind: "may_derez_protecting_attacked_ice" }
   /**
@@ -1664,14 +1740,11 @@ export type Primitive =
       cardId: string;
       serverId: string;
     }
-  /**
-   * Daniela: move first `count` grip cards to bottom of stack (v0 deterministic:
-   * first N in hand order).
-   */
+  /** Daniela: add `count` grip cards at random to the bottom of the stack. */
   | { kind: "add_random_grip_to_stack_bottom"; count: number }
-  /** Bring Them Home: move first `count` grip cards to top of stack. */
+  /** Bring Them Home: reveal and add `count` grip cards at random to the top of the stack. */
   | { kind: "add_random_grip_to_stack_top"; count: number }
-  /** Bring Them Home threat: move `count` grip cards into stack and shuffle. */
+  /** Bring Them Home threat: reveal `count` grip cards at random; the Runner shuffles them into the stack. */
   | { kind: "shuffle_random_grip_into_stack"; count: number }
   | { kind: "shuffle_grip_and_heap_into_stack" }
   | { kind: "rfg_top_of_stack"; amount: number }
@@ -2225,13 +2298,19 @@ export type Primitive =
    * remainder of the turn (Hákarl 1.0 after may-derez).
    */
   | { kind: "forbid_bioroid_ice_paid_abilities_this_turn" }
-  | { kind: "install_and_rez_asset_or_upgrade_free"; cardId?: string }
+  | {
+      kind: "install_and_rez_asset_or_upgrade_free";
+      cardId?: string;
+      cardIds?: string[];
+    }
   /**
    * Install and rez 1 card from Archives ignoring all costs
    * (Trust Operation). Targets asset / upgrade / ice (and agendas install
-   * without rez). Auto-picks first eligible Archives card (v0).
+   * without rez). The Corp picks the card; `cardIds` is that pick, set by
+   * the engine, and card data does not author it. The card goes to a new
+   * remote server.
    */
-  | { kind: "install_and_rez_from_archives_free" }
+  | { kind: "install_and_rez_from_archives_free"; cardIds?: string[] }
   | { kind: "may_return_self_to_grip"; creditCost: number }
   | { kind: "return_source_to_grip" }
   /** Janaína / Descent: move source Corp card to HQ. */
@@ -2325,7 +2404,11 @@ export type Primitive =
   | { kind: "shuffle_hosted_cards_into_stack" }
   | { kind: "look_top_stack_may_reveal_breaker_or_run_event" }
   | { kind: "reveal_runner_stack_top_to_grip"; cardId: string }
-  | { kind: "peer_review" }
+  /**
+   * Peer Review. `cardIds` is the HQ card the Corp keeps hidden, set by the
+   * engine once the Corp has picked it; card data does not author it.
+   */
+  | { kind: "peer_review"; cardIds?: string[] }
   | { kind: "play_self_from_archives_then_rfg" }
   /** Same Old Thing: may play an event from the heap, paying its play cost. */
   | { kind: "may_play_event_from_heap" }
@@ -2585,7 +2668,12 @@ export type Primitive =
   | { kind: "move_vbg_apply"; cardId: string }
   | { kind: "lose_qianju_click_prevent_tag_until_next_turn" }
   | { kind: "gain_if_unused_mu_gte"; amount: number; threshold: number }
-  | { kind: "search_stack_copies_to_heap" }
+  /**
+   * Paige Piper: may add any number of copies of the installed card from
+   * the stack to the heap, then shuffle. `cardIds` is the Runner's pick,
+   * set by the engine; card data does not author it.
+   */
+  | { kind: "search_stack_copies_to_heap"; cardIds?: string[] }
   | { kind: "reveal_random_hq_card" }
   | { kind: "next_gold_net_damage" }
   | { kind: "trash_programs" }
@@ -2816,7 +2904,12 @@ export type Primitive =
   | { kind: "tlm_puppet_master_place_advancement" }
   | { kind: "resolve_puppet_master_place"; cardId: string }
   /** Fear the Masses (ftm) */
-  | { kind: "reveal_copies_trash_rd" }
+  /**
+   * Fear the Masses: reveal any number of copies from the grip, then the
+   * Corp trashes 1 plus that many from the top of R&D. `cardIds` is the
+   * Runner's pick, set by the engine; card data does not author it.
+   */
+  | { kind: "reveal_copies_trash_rd"; cardIds?: string[] }
   | { kind: "trash_own_resource_with_subtype"; subtype: string }
   | { kind: "trash_own_resource_with_subtype_resolve"; cardId: string }
   | { kind: "corp_cannot_advance_cards_next_turn" }
@@ -3111,7 +3204,11 @@ export type Primitive =
       order: string[];
     }
   | { kind: "swap_2_other_ice_or_2_non_ice" }
-  | { kind: "swap_2_non_ice" }
+  /**
+   * Metamorph: swap 2 installed non-ice cards. `cardIds` is the Corp's
+   * pick, set by the engine; card data does not author it.
+   */
+  | { kind: "swap_2_non_ice"; cardIds?: string[] }
   | { kind: "choose_n_grip_to_stack_top"; count?: number }
   | {
       kind: "choose_n_grip_to_stack_top_continue";
@@ -3296,7 +3393,11 @@ export type Primitive =
   | { kind: "trash_trojan_horse" }
   | { kind: "trash_trojan_horse_resolve"; cardId: string }
 
-  | { kind: "tdatd_glut_cipher" }
+  /**
+   * Glut Cipher. `cardIds` is the Corp's pick of 5 Archives cards, set by
+   * the engine; card data does not author it.
+   */
+  | { kind: "tdatd_glut_cipher"; cardIds?: string[] }
   | { kind: "tdatd_knobkierie_place_virus" }
   | { kind: "resolve_knobkierie_place_virus"; cardId: string }
   | { kind: "expose_419_or_pay"; cardId: string; credits?: number }
@@ -3419,6 +3520,20 @@ export type Primitive =
   | { kind: "lose_2_per_resource_or_trash" }
   | { kind: "search_rd_any_card_to_hq" }
   | { kind: "trash_chronos_pick"; cardId: string }
+  /**
+   * Titanium Ribs: the Runner's picks for damage being suffered. The last
+   * pick trashes them together and finishes the damage. Set by the engine;
+   * card data does not author this kind.
+   */
+  | {
+      kind: "suffer_chosen_damage";
+      damage: "net" | "meat" | "core" | "brain";
+      amount: number;
+      damageSourceId: string;
+      beforeCore: number;
+      count: number;
+      picked: string[];
+    }
   | { kind: "prevent_labyrinthine_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
   | { kind: "spend_click_additional_cost" }
@@ -5249,6 +5364,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_any_card_to_hq",
   "search_rd_take_card_to_hq",
   "trash_chronos_pick",
+  "suffer_chosen_damage",
+  "install_corp_card",
+  "rez_installed_card_ignoring_costs",
   "prevent_labyrinthine_jack_out",
   "universal_connectivity_fee_sub",
   "spend_click_additional_cost",
@@ -7754,6 +7872,18 @@ export function validateEffectTree(
           typeof action.excludeSourceServer !== "boolean"
         ) {
           return `${path}.action.excludeSourceServer: must be boolean when present`;
+        }
+        if (
+          action.ignoreInstallCost !== undefined &&
+          typeof action.ignoreInstallCost !== "boolean"
+        ) {
+          return `${path}.action.ignoreInstallCost: must be boolean when present`;
+        }
+        if (
+          action.required !== undefined &&
+          typeof action.required !== "boolean"
+        ) {
+          return `${path}.action.required: must be boolean when present`;
         }
       }
       if (action.kind === "install_hq_new_remotes_with_advancements") {

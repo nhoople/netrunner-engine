@@ -1,4 +1,5 @@
 /** The Universe of Tomorrow (uot) SanSan pack primitives. */
+import { resolveRibsPick } from "../../state/damage.js";
 import { log } from "../../state/createGame.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir.js";
@@ -440,6 +441,18 @@ logLine: `Team Sponsorship — may install from HQ or Archives ignoring install 
         })),
 logLine: `${source.title} — search R&D for a card to add to HQ.`,
 });
+      return { ok: true };
+    }
+
+    case "suffer_chosen_damage": {
+      resolveRibsPick(state, {
+        type: action.damage,
+        amount: action.amount,
+        sourceId: action.damageSourceId,
+        beforeCore: action.beforeCore,
+        count: action.count,
+        picked: [...action.picked],
+      });
       return { ok: true };
     }
 

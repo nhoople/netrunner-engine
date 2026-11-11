@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is reveal.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -14,6 +15,7 @@ import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { CR } from "../../timing/labels.js";
+import { chooseCards } from "../chooseCards.js";
 import {
   trashCorpCardToArchives,
   trashToHeap,
@@ -194,11 +196,14 @@ logLine: `Corp may reveal an agenda from HQ.`,
 case "reveal_installed_to_verify": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      card.faceup = true;
-      card.rezzed = false;
-      log(
+      // Shown to both players, and it stays facedown (CR 1.21.3a).
+      revealCards(
         state,
-        `Reveal ${card.title} (CR ${CR.revealForAbilityLimitations.number}).`,
+        [card.id],
+        sourceId,
+        card.type === "agenda" || action.forRez
+          ? CR.revealForInstallAndRez
+          : CR.revealForAbilityLimitations,
       );
       return { ok: true };
     }
@@ -580,14 +585,30 @@ case "reveal_gain": {
         );
         return { ok: true };
       }
-      const gained = inGrip.length;
-      state.runner.credits += gained;
-      for (const id of inGrip) {
-        state.cards[id]!.faceup = true;
+      // "Reveal any number": the Runner says which (CR 1.15.2).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: inGrip,
+            count: inGrip.length,
+            upTo: true,
+            purpose: "resume",
+            label: `reveal from the grip (${subtype})`,
+            resume: { kind: "reveal_gain", subtype: action.subtype },
+          }),
+        );
       }
+      const shown = action.cardIds.filter((id) => inGrip.includes(id));
+      state.runner.credits += shown.length;
+      // Revealed cards are shown to both players and stay in the grip (CR 1.21.3).
+      revealCards(state, shown, sourceId);
       log(
         state,
-        `Meeting of Minds — reveal ${gained} ${subtype} card(s) in grip, gain ${gained}¢.`,
+        shown.length > 0
+          ? `Meeting of Minds — ${shown.length} card(s) revealed from the grip, gain ${shown.length}¢.`
+          : `Meeting of Minds — reveal no cards.`,
       );
       return { ok: true };
     }

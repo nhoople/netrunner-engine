@@ -216,7 +216,9 @@ logLine: `${source?.title ?? "Wetwork"} — choose rezzed bioroid ice to host on
       if (remaining <= 0 || state.corp.hand.length === 0) {
         return { ok: true };
       }
-      if (state.corp.hand.length === 1 || remaining === 1) {
+      // Only one card left in HQ: nothing to choose. Otherwise the Corp
+      // picks each card, the last one included (CR 1.15.2).
+      if (state.corp.hand.length === 1) {
         const id = state.corp.hand[0]!;
         removeCardFromCurrentZone(state, id);
         state.corp.deck.unshift(id);

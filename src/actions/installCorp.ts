@@ -1,6 +1,8 @@
 /**
- * Corp basic install from HQ, including creating a remote.
- * Effect-driven installs stay in the effect evaluator.
+ * The Corp install process (CR 8.5.16): destination, trashing like cards
+ * (CR 8.5.6a, 8.5.6b), install cost, then the card becomes installed.
+ * The basic action installs from HQ. An ability may install from HQ or
+ * Archives and may ignore the install cost.
  */
 import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
@@ -30,6 +32,47 @@ import { CR } from "../timing/labels.js";
 import { installBlockReason } from "../state/staticFlags.js";
 import { onCorpCardInstalledInRemote } from "../state/cardDeclarations.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { trashCorpCardToArchives } from "../effects/corpTrash.js";
+import { fireOnInstallFromNonHq } from "../state/miscConditionalHooks.js";
+
+/** How an install differs from the basic action. */
+export interface CorpInstallOptions {
+  /**
+   * Cards in the destination the Corp trashes first (CR 8.5.6a, 8.5.6b).
+   * An asset or agenda that must go is trashed whether or not it is named.
+   */
+  trashFirstIds?: readonly string[];
+  /** An ability ignores the install cost (CR 8.5.11). */
+  ignoreInstallCost?: boolean;
+  /** An ability installs the card, so it may come from Archives. */
+  byAbility?: boolean;
+}
+
+/**
+ * Cards already in the destination that the Corp may trash before
+ * installing `cardId` there, and those it must (CR 8.5.6a, 8.5.6b).
+ */
+export function likeCardsAtDestination(
+  state: GameState,
+  cardId: string,
+  serverId: ServerId,
+): { may: string[]; must: string[] } {
+  const card = state.cards[cardId];
+  const server = state.servers[serverId];
+  if (!card || !server) return { may: [], must: [] };
+  if (card.type === "ice") {
+    return { may: server.ice.filter((id) => id !== cardId), must: [] };
+  }
+  const others = server.root.filter((id) => id !== cardId);
+  const must =
+    card.type === "asset" || card.type === "agenda"
+      ? others.filter((id) => {
+          const type = state.cards[id]?.type;
+          return type === "asset" || type === "agenda";
+        })
+      : [];
+  return { may: others, must };
+}
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -153,10 +196,11 @@ export function installCorp(
   state: GameState,
   cardId: string,
   destination: InstallDestination,
+  options: CorpInstallOptions = {},
 ): ApplyResult {
   state.turn.corpInstallInProgress = true;
   try {
-    return installCorpInner(state, cardId, destination);
+    return installCorpInner(state, cardId, destination, options);
   } finally {
     state.turn.corpInstallInProgress = false;
     state.turn.installDestinationServerId = undefined;
@@ -167,15 +211,33 @@ function installCorpInner(
   state: GameState,
   cardId: string,
   destination: InstallDestination,
+  options: CorpInstallOptions,
 ): ApplyResult {
   const card = state.cards[cardId];
   if (!card || card.side !== "corp") {
     return fail("Card not in Corp hand.", [CR.corpBasicInstall]);
   }
   const handIdx = state.corp.hand.indexOf(cardId);
-  if (handIdx < 0) {
+  const fromArchives =
+    handIdx < 0 &&
+    Boolean(options.byAbility) &&
+    state.corp.discardPile.includes(cardId);
+  const fromRd =
+    handIdx < 0 &&
+    Boolean(options.byAbility) &&
+    state.corp.deck.includes(cardId);
+  if (handIdx < 0 && !fromArchives && !fromRd) {
     return fail("Card not in HQ.", [CR.corpBasicInstall]);
   }
+  const leaveSourceZone = (): void => {
+    if (fromArchives) {
+      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+    } else if (fromRd) {
+      state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
+    } else {
+      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
+    }
+  };
   if (
     card.type !== "asset" &&
     card.type !== "agenda" &&
@@ -235,7 +297,7 @@ function installCorpInner(
     if (!hostInServer) {
       return fail("Host upgrade is not installed.", [CR.corpBasicInstall]);
     }
-    state.corp.hand.splice(handIdx, 1);
+    leaveSourceZone();
     card.hostId = destination.hostId;
     card.zone = `hosted:${destination.hostId}`;
     card.rezzed = false;
@@ -320,6 +382,47 @@ function installCorpInner(
     ]);
   }
 
+  // CR 8.5.16c: trash like cards. An asset or agenda already in the root
+  // must go when another is installed there (CR 8.5.6a); other cards in the
+  // root, and ice protecting the server (CR 8.5.6b), go if the Corp says so.
+  const like = likeCardsAtDestination(state, cardId, server.id);
+  const named = [...new Set(options.trashFirstIds ?? [])];
+  const stray = named.find((id) => !like.may.includes(id));
+  if (stray) {
+    return fail(
+      `${state.cards[stray]?.title ?? stray} is not a card the Corp may trash for this install.`,
+      [CR.installTrashLikeCards],
+    );
+  }
+  const trashFirst = [...new Set([...like.must, ...named])];
+  if (trashFirst.length > 0) {
+    // The destination does not cease to exist meanwhile (CR 8.5.9).
+    state.turn.installDestinationServerId = server.id;
+    const attackedIce =
+      state.run?.attackedServerId === server.id ? [...server.ice] : null;
+    const positionId =
+      attackedIce && typeof state.run?.position === "number"
+        ? attackedIce[state.run.position]
+        : undefined;
+    for (const id of trashFirst) {
+      const gone = state.cards[id];
+      if (!gone) continue;
+      const seen = Boolean(gone.rezzed) || Boolean(gone.faceup);
+      trashCorpCardToArchives(state, id, "corp");
+      log(
+        state,
+        seen
+          ? `Corp trashes ${gone.title} from ${server.id} before installing (CR ${CR.installTrashLikeCards.number}).`
+          : `Corp trashes a facedown card from ${server.id} before installing (CR ${CR.installTrashLikeCards.number}, ${CR.archivesFacing.number}).`,
+      );
+    }
+    // Ice outward of the Runner was trashed: their ice keeps its position.
+    if (state.run && positionId && typeof state.run.position === "number") {
+      const at = server.ice.indexOf(positionId);
+      if (at >= 0) state.run.position = at;
+    }
+  }
+
   const iceAlready = card.type === "ice" ? server.ice.length : 0;
   let installCost = corpInstallCost(card, iceAlready);
   for (const id of state.runner.installed) {
@@ -349,6 +452,7 @@ function installCorpInner(
     state.turn.ignoredFirstIceInstallCostThisTurn = true;
     log(state, `First ice this turn is installed ignoring its install cost.`);
   }
+  if (options.ignoreInstallCost) installCost = 0;
   if (
     server.kind === "remote" &&
     (card.type === "asset" || card.type === "agenda") &&
@@ -367,7 +471,7 @@ function installCorpInner(
     ]);
   }
   spendCreditsForInstall(state, "corp", installCost);
-  state.corp.hand.splice(handIdx, 1);
+  leaveSourceZone();
 
   if (card.type === "ice") {
     server.ice.unshift(cardId);
@@ -375,6 +479,18 @@ function installCorpInner(
     card.rezzed = false;
     card.faceup = false;
     card.advancementCounters = card.advancementCounters ?? 0;
+    // New ice is outermost, so the Runner's ice moves one position inward
+    // in the list (CR 6.2.6a).
+    if (
+      state.run?.attackedServerId === server.id &&
+      typeof state.run.position === "number"
+    ) {
+      state.run.position += 1;
+      log(
+        state,
+        `The new ice is outward of the Runner, who keeps their position (CR ${CR.iceChangeOutward.number}).`,
+      );
+    }
     // Server Diagnostics: trash when the Corp installs any ice.
     for (const other of Object.values(state.cards)) {
       if (!other.trashSelfOnCorpIceInstall) continue;
@@ -416,14 +532,24 @@ function installCorpInner(
     }
   }
 
+  const paid = options.ignoreInstallCost
+    ? ", ignoring the install cost"
+    : installCost > 0
+      ? ` for ${installCost}¢`
+      : "";
   log(
     state,
-    `Corp installs ${card.title} on ${server.id} (CR ${CR.corpBasicInstall.number}, ${CR.installing.number}).`,
+    options.byAbility
+      ? `Corp installs a card from ${fromArchives ? "Archives" : fromRd ? "R&D" : "HQ"} on ${server.id}${paid} (CR ${CR.installing.number}).`
+      : `Corp installs ${card.title} on ${server.id} (CR ${CR.corpBasicInstall.number}, ${CR.installing.number}).`,
   );
+  if ((fromArchives || fromRd) && card.onInstallFromNonHq) {
+    fireOnInstallFromNonHq(state, cardId);
+  }
   fireOnInstall(state, cardId);
   noteInstalledThisTurn(state, cardId);
   cardBecameNewObject(state, cardId);
-  state.turn.corpInstalledFromHqThisTurn = true;
+  if (!fromArchives && !fromRd) state.turn.corpInstalledFromHqThisTurn = true;
   firePowerCounterOnAnyCorpInstall(state, cardId);
   noteFirstCorpCardInstallEachTurn(state);
   fireTdatd419OnFirstCorpInstall(state, cardId);

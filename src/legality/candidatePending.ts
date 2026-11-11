@@ -17,6 +17,14 @@ import {
 export function collectPendingCandidates(state: GameState): Action[] | null {
   const actions: Action[] = [];
 
+  // A cost waiting for its payer's cards comes before everything else (CR 1.16.1).
+  if (state.pendingCost && state.pendingChoice) {
+    for (const opt of state.pendingChoice.options) {
+      actions.push({ type: "choose_option", optionId: opt.id });
+    }
+    return actions;
+  }
+
   if (state.psi) {
     const psi = state.psi;
     if (psi.runnerBid === null) {
@@ -355,14 +363,19 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       actions.push({ type: "resolve_sabotage", hqCardIds: [] });
       return actions;
     }
-    // Enumerate valid HQ subset sizes; for each size, offer one deterministic
-    // pick (end of hand). Hosts that need full combinatorial choice can send
-    // any legal hqCardIds via applyIntent.
+    // The Corp picks HQ cards one at a time, then finishes with the picks
+    // made so far once enough are chosen (CR 10.12.2, 10.12.3a).
+    const picked = state.pendingSabotage.picked ?? [];
     const minFromHq = Math.max(0, amount - rdLen);
     const maxFromHq = Math.min(amount, hq.length);
-    for (let n = minFromHq; n <= maxFromHq; n++) {
-      const hqCardIds = n === 0 ? [] : hq.slice(hq.length - n);
-      actions.push({ type: "resolve_sabotage", hqCardIds });
+    if (picked.length < maxFromHq) {
+      for (const id of hq) {
+        if (picked.includes(id)) continue;
+        actions.push({ type: "choose_option", optionId: `sabotage-hq:${id}` });
+      }
+    }
+    if (picked.length >= minFromHq) {
+      actions.push({ type: "resolve_sabotage", hqCardIds: [...picked] });
     }
     return actions;
   }

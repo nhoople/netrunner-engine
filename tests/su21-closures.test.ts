@@ -240,7 +240,9 @@ describe("SU21 partial closures", () => {
     s = must(s, { type: "rez_ice", cardId: iceId });
     expect(s.cards[iceId].rezzed).toBe(true);
     expect(s.corp.scoreArea).toEqual([]);
-    expect(s.corp.discardPile).toContain("ht-scored");
+    // A forfeited agenda is removed from the game (CR 8.2.5).
+    expect(s.corp.discardPile).not.toContain("ht-scored");
+    expect(s.removedFromGame).toContain("ht-scored");
   });
 
   it("Psychographics spends X ≤ tags for advancements", () => {

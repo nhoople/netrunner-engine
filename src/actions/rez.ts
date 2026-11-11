@@ -1,6 +1,7 @@
 /**
  * Rezzing ice and assets, including rez-cost modifiers.
  */
+import { moveForfeitedAgendaOutOfGame } from "../state/scoring.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { onCardRezzed } from "../state/staticFlags.js";
@@ -163,16 +164,31 @@ function forfeitSpecificAgenda(state: GameState, id: string): void {
       log(state, `Jemison forfeit trigger failed: ${jr.error}`);
     }
   }
-  state.corp.discardPile.push(id);
-  card.zone = "corp:archives";
-  card.faceup = true;
-  log(state, `Forfeit ${card.title}.`);
+  moveForfeitedAgendaOutOfGame(state, id);
+  log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
 }
 
 export { forfeitSpecificAgenda };
 
+/** Rezzed ice another card's rez cost may derez (Bloop). */
+export function derezCostTargets(state: GameState, cardId: string): string[] {
+  const subtype = state.cards[cardId]?.rezAdditionalCostDerezSubtype;
+  if (!subtype) return [];
+  const targets: string[] = [];
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.ice) {
+      if (id === cardId) continue;
+      const c = state.cards[id];
+      if (c?.rezzed && (c.subtypes ?? []).includes(subtype)) targets.push(id);
+    }
+  }
+  return targets;
+}
+
 function forfeitAgenda(state: GameState): void {
-  const id = state.corp.scoreArea.find((x) => !state.cards[x]?.cannotForfeit);
+  const pool = state.corp.scoreArea.filter((x) => !state.cards[x]?.cannotForfeit);
+  // The Corp's pick for this cost comes with the action (CR 1.16.1).
+  const id = (state.costCardIds ?? []).find((x) => pool.includes(x)) ?? pool[0];
   if (!id) return;
   forfeitSpecificAgenda(state, id);
 }
@@ -363,24 +379,16 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   let derezTarget: string | null = null;
   if (card.rezAdditionalCostDerezSubtype) {
     const subtype = card.rezAdditionalCostDerezSubtype;
-    const targets: string[] = [];
-    for (const server of Object.values(state.servers)) {
-      for (const id of server.ice) {
-        if (id === cardId) continue;
-        const c = state.cards[id];
-        if (c?.rezzed && (c.subtypes ?? []).includes(subtype)) {
-          targets.push(id);
-        }
-      }
-    }
+    const targets = derezCostTargets(state, cardId);
     if (targets.length === 0) {
       return fail(
         `Rez requires derezzing another rezzed ${subtype} ice.`,
         [CR.rezProcedure],
       );
     }
-    // Deterministic: first eligible target (multi-match auto-pick).
-    derezTarget = targets[0]!;
+    // The Corp's pick comes with the action (CR 1.16.1).
+    derezTarget =
+      (state.costCardIds ?? []).find((id) => targets.includes(id)) ?? targets[0]!;
   }
   // Valentão-class: additional rez cost Effect (may open a choice).
   if (card.rezAdditionalCost) {

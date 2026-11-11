@@ -2,6 +2,8 @@
  * Primitive kinds whose procedure is search.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
+import { chooseCards } from "../chooseCards.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -488,61 +490,51 @@ case "search_rd_install_rez_by_printed_rez_cost": {
         return { ok: true };
       }
       const targetCost = base + action.delta;
-      const pick = state.corp.deck.find((id) => {
+      const matches = state.corp.deck.filter((id) => {
         const c = state.cards[id];
         if (c.rezCost === undefined) return false;
         return c.rezCost === targetCost;
       });
+      // The Corp looks through R&D and picks the card. A search with a
+      // criterion may fail to find (CR 8.7.1, 8.7.2e).
+      if (!action.cardIds && matches.length > 0) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: matches,
+            count: 1,
+            upTo: true,
+            purpose: "resume",
+            label: `install and rez (printed rez cost ${targetCost}¢)`,
+            resume: { kind: "search_rd_install_rez_by_printed_rez_cost", delta: action.delta },
+          }),
+        );
+      }
+      const pick = (action.cardIds ?? []).find((id) => matches.includes(id));
+      shuffleInPlace(state, state.corp.deck);
       if (!pick) {
         log(
           state,
-          `${source.title} — no R&D card with printed rez ${targetCost}¢.`,
+          `${source.title} — no card found with printed rez ${targetCost}¢; shuffle R&D (CR ${CR.failToFind.number}, ${CR.shuffleDeckAfterSearch.number}).`,
         );
         return { ok: true };
       }
-      state.corp.deck = state.corp.deck.filter((id) => id !== pick);
-      const card = state.cards[pick]!;
-      shuffleInPlace(state, state.corp.deck);
-      const remoteNum = state.nextRemoteNumber++;
-      const sid =
-        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
-      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
-      state.turn.remotesCreatedThisTurn += 1;
-      if (card.type === "ice") {
-        state.servers[sid].ice.push(pick);
-        card.zone = `server:${sid}:ice`;
-      } else {
-        state.servers[sid].root.push(pick);
-        card.zone = `server:${sid}:root`;
-      }
-      card.rezzed = false;
-      card.faceup = false;
       log(
         state,
-        `${source.title} — install ${card.title} from R&D on ${sid} (printed rez ${card.rezCost}¢; ignore install costs).`,
+        `${source.title} — find a card with printed rez ${targetCost}¢; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
       );
-      const rezCost = card.rezCost ?? 0;
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      if (state.corp.credits >= rezCost) {
-        options.push({
-          id: `ob-rez:${pick}`,
-          label: `Pay ${rezCost}¢: rez ${card.title}`,
-          effect: {
-            op: "do",
-            action: { kind: "rez_installed_paying", cardId: pick },
-          },
-        });
-      }
-      options.push({
-        id: `ob-reveal:${pick}`,
-        label: `Decline to rez ${card.title}`,
-        effect: {
-          op: "do",
-          action: { kind: "reveal_installed_to_verify", cardId: pick },
+      // Install and rez it, ignoring credit costs. The Corp picks the
+      // destination (CR 8.5.16b).
+      return evalEffect(ctx, {
+        op: "do",
+        action: {
+          kind: "install_corp_card",
+          cardId: pick,
+          ignoreInstallCost: true,
+          rez: true,
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
     }
 
 case "search_stack_icebreaker": {
@@ -685,39 +677,27 @@ case "search_stack_icebreaker_resolve": {
     }
 
 case "search_rd_non_agenda": {
-      const matches = state.corp.deck.filter(
-        (id) => state.cards[id].type !== "agenda",
-      );
-      if (matches.length === 0) {
-        log(state, `Search R&D for non-agenda — none found.`);
-        return { ok: true };
+      // The Corp looks through R&D and picks the card (CR 8.7.1). With a
+      // criterion the Corp may fail to find (CR 8.7.2e).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: state.corp.deck.filter(
+              (id) => state.cards[id].type !== "agenda",
+            ),
+            count: 1,
+            upTo: true,
+            purpose: "resume",
+            label: "add to HQ from R&D",
+            resume: { kind: "search_rd_non_agenda" },
+          }),
+        );
       }
-      const id = matches[0]!;
-      state.corp.deck = state.corp.deck.filter((x) => x !== id);
-      state.corp.hand.push(id);
-      state.cards[id].zone = "corp:hq";
-      state.cards[id].faceup = false;
-      shuffleInPlace(state, state.corp.deck);
-      log(
-        state,
-        `Search R&D — add ${state.cards[id].title} to HQ (non-agenda).`,
-      );
-      return { ok: true };
-    }
-
-case "search_rd_to_hq": {
-      const n = Math.min(action.amount, state.corp.deck.length);
-      for (let i = 0; i < n; i++) {
-        const id = state.corp.deck[0]!;
-        // Prefer first card; for multi-search take sequential tops after shuffle sense:
-        // Deterministic: take first N distinct from current deck order.
-        void id;
-      }
-      const taken: string[] = [];
-      for (let i = 0; i < n; i++) {
-        const id = state.corp.deck.shift();
-        if (!id) break;
-        taken.push(id);
+      const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
+      for (const id of found) {
+        state.corp.deck = state.corp.deck.filter((x) => x !== id);
         state.corp.hand.push(id);
         state.cards[id].zone = "corp:hq";
         state.cards[id].faceup = false;
@@ -725,7 +705,41 @@ case "search_rd_to_hq": {
       shuffleInPlace(state, state.corp.deck);
       log(
         state,
-        `Search R&D — add ${taken.length} card(s) to HQ (${taken.map((id) => state.cards[id].title).join(", ") || "none"}).`,
+        `Search R&D for a non-agenda — add ${found.length} card(s) to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
+      );
+      return { ok: true };
+    }
+
+case "search_rd_to_hq": {
+      // The Corp looks through R&D and picks the cards (CR 8.7.1). A search
+      // for a set number with no criterion must find that many (CR 8.7.2d).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.deck],
+            count: action.amount,
+            ...(action.upTo ? { upTo: true } : {}),
+            purpose: "resume",
+            label: "add to HQ from R&D",
+            resume: { ...action },
+          }),
+        );
+      }
+      const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
+      for (const id of found) {
+        state.corp.deck = state.corp.deck.filter((x) => x !== id);
+        state.corp.hand.push(id);
+        state.cards[id].zone = "corp:hq";
+        state.cards[id].faceup = false;
+      }
+      // R&D is shuffled once the search is complete (CR 8.7.3).
+      shuffleInPlace(state, state.corp.deck);
+      if (action.reveal) revealCards(state, found, sourceId);
+      log(
+        state,
+        `Search R&D — add ${found.length} card(s) to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
       );
       return { ok: true };
     }

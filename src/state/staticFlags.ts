@@ -178,18 +178,6 @@ export function onInstalledProgramTrashed(state: GameState): void {
 export function onRunnerInstalledProgramOrHardware(state: GameState): void {
   if (!state.turn.runnerInstalledProgramOrHardwareThisTurn) {
     state.turn.runnerInstalledProgramOrHardwareThisTurn = true;
-    for (const card of rezzedWith(state, "firstRunnerInstallTrashFromGripEachTurn")) {
-      const grip = state.runner.hand[0];
-      if (!grip) continue;
-      state.runner.hand = state.runner.hand.filter((id) => id !== grip);
-      state.runner.discardPile.push(grip);
-      const trashed = state.cards[grip];
-      if (trashed) {
-        trashed.zone = "runner:heap";
-        trashed.faceup = true;
-      }
-      log(state, `${card.title} — trash 1 card from grip.`);
-    }
   }
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;

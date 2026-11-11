@@ -4,6 +4,7 @@ import {
   createInitialState,
   fx,
   getCardDef,
+  getPublicView,
   instantiateCard,
   loadCardCatalog,
   loadCardPool,
@@ -75,9 +76,41 @@ describe("Gateway partial closures", () => {
     s.corp.clicks = 3;
     s.activeSide = "corp";
     s.timingKey = "corp.takeAction";
+    s.corp.deck = s.corp.deck.filter((id) => id.startsWith("fill-"));
     s = must(s, { type: "play_operation", cardId: "sp-1" });
-    // Drew 3 into hand then shuffled 2 back → hand size 1
+    // Drew 3 copies of one card, so there is nothing to pick: 2 go back.
+    expect(s.pendingChoice ?? null).toBeNull();
     expect(s.corp.hand.length).toBe(1);
+  });
+
+  it("Sprint: the Corp picks which 2 HQ cards go back (CR 1.15.2)", () => {
+    let s = createInitialState();
+    s = structuredClone(s);
+    s.cards["sp-1"] = instantiateCard("sprint", "sp-1", "corp:hq");
+    const defs = ["hedge-fund", "ice-wall", "pad-campaign", "hostile-takeover"];
+    s.corp.deck = [];
+    defs.forEach((defId, i) => {
+      const id = `fill-${i}`;
+      s.cards[id] = instantiateCard(defId, id, "corp:rd");
+      s.corp.deck.push(id);
+    });
+    s.corp.hand = ["sp-1"];
+    s.corp.credits = 5;
+    s.corp.clicks = 3;
+    s.activeSide = "corp";
+    s.timingKey = "corp.takeAction";
+    s = must(s, { type: "play_operation", cardId: "sp-1" });
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.corp.hand).toEqual(["fill-0", "fill-1", "fill-2"]);
+    // The Runner is not shown which cards are in HQ.
+    expect(
+      getPublicView(s, "runner").pendingChoice?.options.map((o) => o.id),
+    ).toEqual(["hidden:0", "hidden:1", "hidden:2"]);
+    s = must(s, { type: "choose_option", optionId: "choose-card:fill-0" });
+    s = must(s, { type: "choose_option", optionId: "choose-card:fill-2" });
+    expect(s.corp.hand).toEqual(["fill-1"]);
+    expect(s.corp.deck).toHaveLength(3);
+    expect(s.pendingChoice ?? null).toBeNull();
   });
 
   it("Retribution requires tagged Runner and may trash hardware", () => {

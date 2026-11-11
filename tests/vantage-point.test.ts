@@ -20,7 +20,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.13.0 kickoff", () => {
@@ -66,7 +66,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.14.0 B-slice", () => {
@@ -116,7 +116,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.15.0 B-slice", () => {
@@ -163,7 +163,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.17.0 B-slice", () => {
@@ -213,7 +213,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.17.0 B-slice", () => {
@@ -255,7 +255,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.18.0 B-slice", () => {
@@ -298,7 +298,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.19.0 B-slice", () => {
@@ -342,7 +342,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.20.0 B-slice", () => {
@@ -386,7 +386,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.21.0 B-slice", () => {
@@ -421,7 +421,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.22.0 B-slice", () => {
@@ -456,7 +456,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.23.0 B-slice", () => {
@@ -496,7 +496,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.24.0 B-slice", () => {
@@ -538,7 +538,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.25.0 B-slice", () => {
@@ -577,7 +577,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.26.0 B-slice", () => {
@@ -611,7 +611,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.27.0 B-slice", () => {
@@ -644,7 +644,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.28.0 B-slice", () => {
@@ -680,7 +680,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.29.0 B-slice", () => {
@@ -726,7 +726,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.30.0 B-slice", () => {
@@ -760,7 +760,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.31.0 B-slice", () => {
@@ -832,7 +832,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.32.0 B-slice", () => {
@@ -868,7 +868,7 @@ describe("vantage-point", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("Vantage Point v1.33.0 B-slice", () => {

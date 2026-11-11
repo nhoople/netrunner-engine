@@ -4,6 +4,7 @@ import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
+import { offerRdArrangeChoice } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -488,12 +489,12 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
         log(state, `Bacterial Programming — nothing left to arrange.`);
         return { ok: true };
       }
-      // Simplified: put all back on top in current order (fail-closed usable).
-      // Full HQ/trash/arrange UI is multi-step; keep looked on top for now via arrange.
+      // Each card may go to HQ or be trashed; "Done" then arranges the rest
+      // on top of R&D in the order the Corp picks.
       const options: { id: string; label: string; effect: Effect }[] = [
         {
           id: "keep-order",
-          label: "Arrange looked cards back on top of R&D (same order)",
+          label: "Done — arrange the rest on top of R&D",
           effect: fx.do({
             kind: "dtwn_bacterial_finish",
             toHq: [],
@@ -534,7 +535,7 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       state.corp.hand.push(id);
       state.cards[id]!.zone = "corp:hq";
       state.cards[id]!.faceup = false;
-      log(state, `Bacterial Programming — add ${state.cards[id]!.title} to HQ.`);
+      log(state, `Bacterial Programming — add 1 card to HQ.`);
       return applyKitaraDtwnPrimitive(ctx, {
         kind: "dtwn_bacterial_partition",
       }) ?? { ok: true };
@@ -549,8 +550,9 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
         looked.filter((x) => x !== id);
       state.corp.discardPile.push(id);
       state.cards[id]!.zone = "corp:archives";
-      state.cards[id]!.faceup = true;
-      log(state, `Bacterial Programming — trash ${state.cards[id]!.title}.`);
+      // Trashed from R&D by the Corp: facedown, and not named (CR 4.4.6b).
+      state.cards[id]!.faceup = false;
+      log(state, `Bacterial Programming — trash 1 card.`);
       return applyKitaraDtwnPrimitive(ctx, {
         kind: "dtwn_bacterial_partition",
       }) ?? { ok: true };
@@ -566,6 +568,14 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
         state.cards[id]!.zone = "corp:archives";
         // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
         state.cards[id]!.faceup = false;
+      }
+      // "arrange the rest in any order": with more than one card left the
+      // Corp picks the order (CR 1.15.2).
+      if (action.arrange.length > 1 && state.turn.rdLookedCards.length === 0) {
+        delete (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked;
+        state.turn.rdLookedCards = [...action.arrange];
+        state.turn.rdArrangePlaced = [];
+        return offerRdArrangeChoice(state, sourceId);
       }
       // arrange: bottom-to-top → unshift in reverse so first is top
       for (let i = action.arrange.length - 1; i >= 0; i--) {

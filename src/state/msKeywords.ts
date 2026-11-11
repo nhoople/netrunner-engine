@@ -10,6 +10,7 @@ import {
   removeLingeringEffectsOfKind,
 } from "./lingeringEffects.js";
 import { maybeFirePowerCountersGte } from "./powerCounters.js";
+import { random } from "./rng.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
 import type {
   CentralServerId,
@@ -33,6 +34,48 @@ export function trashCorpCardFacedownToArchives(
   card.zone = "corp:archives";
   card.faceup = false;
   card.rezzed = false;
+}
+
+/** How many HQ cards a pending sabotage must and may take (CR 10.12.3a). */
+export function sabotageHqBounds(state: GameState): { min: number; max: number } {
+  const amount = state.pendingSabotage?.amount ?? 0;
+  return {
+    min: Math.max(0, amount - state.corp.deck.length),
+    max: Math.min(amount, state.corp.hand.length),
+  };
+}
+
+/**
+ * Offer the Corp the HQ cards for a pending sabotage, one pick at a time
+ * (CR 10.12.2). The Corp finishes with `resolve_sabotage` naming the picks;
+ * the rest come from the top of R&D. No offer is made when every card in
+ * HQ and R&D goes (CR 10.12.3b) or HQ is empty.
+ */
+export function offerSabotagePick(state: GameState): void {
+  const pending = state.pendingSabotage;
+  if (!pending) return;
+  const total = state.corp.hand.length + state.corp.deck.length;
+  const picked = pending.picked ?? [];
+  const { max } = sabotageHqBounds(state);
+  const left = state.corp.hand.filter((id) => !picked.includes(id));
+  if (total < pending.amount || left.length === 0 || picked.length >= max) {
+    state.pendingChoice = null;
+    return;
+  }
+  state.pendingChoice = {
+    sourceId: pending.sourceId,
+    chooser: "corp",
+    hiddenFromOpponent: true,
+    prompt: `Sabotage ${pending.amount}: choose a card to trash from HQ (${picked.length} chosen). The rest come from the top of R&D.`,
+    options: left.map((id) => ({
+      id: `sabotage-hq:${id}`,
+      label: state.cards[id]?.title ?? id,
+      effect: {
+        op: "do" as const,
+        action: { kind: "gain_credits" as const, side: "corp" as const, amount: 0 },
+      },
+    })),
+  };
 }
 
 export function sabotageCites(): RuleCite[] {
@@ -137,9 +180,10 @@ export function resolveSabotageAmount(
   return { ok: true };
 }
 
-/** Deterministic central when identifying a fresh mark (equal-weight stand-in). */
+/** A random central server, each equally likely (CR 10.11.2a). */
 export function pickRandomCentral(state: GameState): CentralServerId {
-  return CENTRAL_SERVERS[state.turnNumber % CENTRAL_SERVERS.length]!;
+  const index = Math.floor(random(state) * CENTRAL_SERVERS.length);
+  return CENTRAL_SERVERS[Math.min(index, CENTRAL_SERVERS.length - 1)]!;
 }
 
 /** Mark server from the lingering registry (CR 10.11.4). */

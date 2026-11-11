@@ -472,6 +472,75 @@ export interface TimingStepDef {
   onResolve?: (state: GameState) => void;
 }
 
+/**
+ * CR 6.9.4a: the Runner passed ice with no position more inward, so the
+ * conditions for passing all of the ice protecting the server are met.
+ * This is before the 6.9.4b paid ability window and before the Runner may
+ * jack out (6.9.4c).
+ */
+function meetPassAllIceConditions(s: GameState): void {
+  const run = s.run;
+  if (!run) return;
+  const serverId = run.attackedServerId;
+  // Root cards with a pass-all-ice ability (Caprice Nisei, K. P. Lynn)
+  // become pending for the checkpoint that follows.
+  notePassAllIceProtectingServer(s, serverId);
+  // Polyhistor: the first time each turn all ice protecting HQ is passed.
+  if (!s.pendingChoice) onPassedAllIce(s);
+  // Awakening Center: may rez 1 hosted piece of ice for 7¢ less; the
+  // Runner then encounters it. Once per run per upgrade.
+  if (s.pendingChoice) return;
+  for (const id of s.servers[serverId].root) {
+    if (abilitiesSuppressed(s, id)) continue;
+    const card = s.cards[id];
+    if (!card?.rezzed || !card.hostsBioroidIceIgnoreInstallCost) continue;
+    const fired = run.awakeningCenterTriggeredIds ?? [];
+    if (fired.includes(id)) continue;
+    run.awakeningCenterTriggeredIds = [...fired, id];
+    const hostedUnrezzed = (card.hostedCardIds ?? []).filter((hid) => {
+      const h = s.cards[hid];
+      return h && h.type === "ice" && !h.rezzed;
+    });
+    if (hostedUnrezzed.length === 0) continue;
+    const affordable = hostedUnrezzed.filter(
+      (hid) => s.corp.credits >= Math.max(0, (s.cards[hid]!.rezCost ?? 0) - 7),
+    );
+    if (affordable.length === 0) continue;
+    openPendingChoose(s, {
+      sourceId: id,
+      chooser: "corp",
+      options: [
+        ...affordable.map((hid) => {
+          const h = s.cards[hid]!;
+          const pay = Math.max(0, (h.rezCost ?? 0) - 7);
+          return {
+            id: `awakening-rez:${hid}`,
+            label: `Rez ${h.title} for ${pay}¢ (−7) and force encounter`,
+            effect: {
+              op: "do" as const,
+              action: { kind: "rez_hosted" as const, cardId: hid },
+            },
+          };
+        }),
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "gain_credits" as const,
+              side: "corp" as const,
+              amount: 0,
+            },
+          },
+        },
+      ],
+      logLine: `${card.title} — may rez a hosted bioroid ice (−7¢) and force the Runner to encounter it.`,
+    });
+    break;
+  }
+}
+
 export function cursorFrom(step: TimingStepDef): TimingCursor {
   return {
     structure: step.structure,
@@ -3164,8 +3233,22 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         const runState = s.run!;
+        // A forced encounter with ice hosted on a root card began in this
+        // step, after the pass. The step is not started again: the game
+        // returns to where the encounter was caused (CR 6.5.9a).
+        const forcedFrom = runState.resumeEncounterIceId
+          ? s.cards[runState.resumeEncounterIceId]
+          : undefined;
+        const afterForcedEncounter = Boolean(
+          forcedFrom && forcedFrom.type !== "ice",
+        );
+        if (afterForcedEncounter) {
+          s.log.push(
+            `Back in the Movement Phase after the forced encounter (CR ${CR.forcedEncounter.number}).`,
+          );
+        }
         const pos = runState.position;
-        if (pos !== null) {
+        if (pos !== null && !afterForcedEncounter) {
           const iceId = s.servers[runState.attackedServerId].ice[pos];
           if (iceId) {
             const iceAtPosition = s.cards[iceId];
@@ -3607,6 +3690,10 @@ export const STEPS: Record<string, TimingStepDef> = {
               s.turn.cotcLastPassedIceId = iceId;
               notePassRezzedIceProtectingServer(s, runState.attackedServerId);
             }
+            // No position more inward than the ice just passed (CR 6.9.4a).
+            if (!passReplaced && runState.passedAllIce) {
+              meetPassAllIceConditions(s);
+            }
           }
         }
         s.run!.phase = "movement";
@@ -3616,6 +3703,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Anvil: clear encounter-scoped break forbid (not Trieste lasting forbid).
         if (
           pos !== null &&
+          !afterForcedEncounter &&
           runState.encounter?.forbidRunnerBreakThisEncounter
         ) {
           const iceId = s.servers[runState.attackedServerId].ice[pos];
@@ -3746,80 +3834,6 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         s.run!.phase = "success";
         s.log.push(`Approach server (appendix 11.4_4_g).`);
-        // CR 6.9.4a: passing all ice needs a piece of ice to have been
-        // passed. A server with no ice does not meet the condition.
-        const passedAllIce = Boolean(s.run!.passedAllIce);
-        if (!s.pendingChoice && passedAllIce) onPassedAllIce(s);
-        // Awakening Center: whenever the Runner passes all ice protecting
-        // this server (this is exactly that moment — position is null and
-        // the run has arrived here), may rez 1 hosted bioroid ice for −7¢
-        // and force the Runner to encounter it. Fires once per run per
-        // upgrade (the run re-enters this step after the forced encounter).
-        if (!s.pendingChoice && passedAllIce) {
-          const sid0 = s.run!.attackedServerId;
-          const server0 = s.servers[sid0];
-          for (const id of server0.root) {
-            if (abilitiesSuppressed(s, id)) continue;
-            const card = s.cards[id];
-            if (!card?.rezzed || !card.hostsBioroidIceIgnoreInstallCost) {
-              continue;
-            }
-            const fired = s.run!.awakeningCenterTriggeredIds ?? [];
-            if (fired.includes(id)) continue;
-            s.run!.awakeningCenterTriggeredIds = [...fired, id];
-            const hostedUnrezzed = (card.hostedCardIds ?? []).filter(
-              (hid) => {
-                const h = s.cards[hid];
-                return h && h.type === "ice" && !h.rezzed;
-              },
-            );
-            if (hostedUnrezzed.length === 0) continue;
-            const affordable = hostedUnrezzed.filter(
-              (hid) =>
-                s.corp.credits >=
-                Math.max(0, (s.cards[hid]!.rezCost ?? 0) - 7),
-            );
-            if (affordable.length === 0) continue;
-            openPendingChoose(s, {
-              sourceId: id,
-              chooser: "corp",
-              options: [
-                ...affordable.map((hid) => {
-                  const h = s.cards[hid]!;
-                  const pay = Math.max(0, (h.rezCost ?? 0) - 7);
-                  return {
-                    id: `awakening-rez:${hid}`,
-                    label: `Rez ${h.title} for ${pay}¢ (−7) and force encounter`,
-                    effect: {
-                      op: "do" as const,
-                      action: {
-                        kind: "rez_hosted" as const,
-                        cardId: hid,
-                      },
-                    },
-                  };
-                }),
-                {
-                  id: "decline",
-                  label: "Decline",
-                  effect: {
-                    op: "do" as const,
-                    action: {
-                      kind: "gain_credits" as const,
-                      side: "corp" as const,
-                      amount: 0,
-                    },
-                  },
-                },
-              ],
-              logLine: `${card.title} — may rez a hosted bioroid ice (−7¢) and force the Runner to encounter it.`,
-            });
-            break;
-          }
-        }
-        if (!s.pendingChoice && !s.psi && passedAllIce) {
-          notePassAllIceProtectingServer(s, s.run!.attackedServerId);
-        }
         // Open Manegarm / Cayambe tax as a pending Runner choice if applicable.
         const sid = s.run!.attackedServerId;
         const server = s.servers[sid];

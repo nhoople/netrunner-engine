@@ -11,6 +11,7 @@ import {
   fx,
   getCardDef,
   instantiateCard,
+  seedRng,
   resolveTrace,
   playEffectFromCard,
 } from "../src/index.js";
@@ -28,7 +29,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.19");
+  assertCardsPinnedTag("v1.147.20");
 });
 
 function put(
@@ -45,6 +46,13 @@ function put(
 function runKind(s: GameState, sourceId: string, kind: string, extra: object = {}) {
   const r = evalEffect({ state: s, sourceId }, fx.do({ kind, ...extra }));
   if (!r.ok) throw new Error(`${kind}: ${r.error ?? "failed"}`);
+}
+
+/** Answer the open choice; the state is replaced by the result. */
+function choose(s: GameState, optionId: string): GameState {
+  const r = applyAction(s, { type: "choose_option", optionId });
+  if (!r.ok) throw new Error(`${optionId}: ${r.error}`);
+  return r.state;
 }
 
 describe("one-off kind outcomes (batch A: immediate effects)", () => {
@@ -771,8 +779,18 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.deck = ["prog-2"];
     s.turn.installedThisTurn = ["prog-1"];
     runKind(s, "pp-1", "search_stack_copies_to_heap");
-    expect(s.runner.discardPile).toContain("prog-2");
-    expect(s.runner.deck).toEqual([]);
+    // "any number of copies": the Runner says how many (CR 1.15.2).
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "choose-card:prog-2",
+      "choose-cards-done",
+    ]);
+    const took = choose(s, "choose-card:prog-2");
+    expect(took.runner.discardPile).toContain("prog-2");
+    expect(took.runner.deck).toEqual([]);
+    const declined = choose(s, "choose-cards-done");
+    expect(declined.runner.discardPile).not.toContain("prog-2");
+    expect(declined.runner.deck).toEqual(["prog-2"]);
   });
 
   it("Localized Product Line: takes all copies of a card from R&D to HQ", () => {
@@ -3051,10 +3069,51 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.hand = ["g-0", "g-1", "g-2"];
     put(s, "sure-gamble", "stk-1", "runner:stack");
     s.runner.deck = ["stk-1"];
-    runKind(s, "bth-1", "shuffle_random_grip_into_stack", { count: 2 });
+    runKind(s, "bth-1", "add_random_grip_to_stack_top", { count: 2 });
     expect(s.runner.hand).toHaveLength(1);
     expect(s.runner.deck).toHaveLength(3);
     expect(s.runner.deck[2]).toBe("stk-1"); // moved cards are on top
+    // "Reveal and add": both players are shown which cards moved (CR 1.21.3).
+    expect(s.reveals?.at(-1)?.cards.map((c) => c.title)).toEqual([
+      "Sure Gamble",
+      "Sure Gamble",
+    ]);
+  });
+
+  it("Bring Them Home (threat): reveals 1 random grip card and shuffles it into the stack", () => {
+    const s = createInitialState();
+    put(s, "bring-them-home", "bth-1", "corp:play");
+    put(s, "sure-gamble", "g-0", "runner:grip");
+    put(s, "diesel", "g-1", "runner:grip");
+    s.runner.hand = ["g-0", "g-1"];
+    for (let i = 0; i < 6; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3", "stk-4", "stk-5"];
+    runKind(s, "bth-1", "shuffle_random_grip_into_stack", { count: 1 });
+    expect(s.runner.hand).toHaveLength(1);
+    expect(s.runner.deck).toHaveLength(7);
+    expect(s.reveals?.at(-1)?.cards).toHaveLength(1);
+    expect(s.reveals?.at(-1)?.cards[0]?.title).toMatch(/^(Sure Gamble|Diesel)$/);
+  });
+
+  it("Daniela Jorge Inácio: the grip cards moved to the bottom of the stack are random", () => {
+    const moved = new Set<string>();
+    for (let seed = 1; seed <= 12; seed++) {
+      const s = createInitialState();
+      seedRng(s, seed);
+      put(s, "daniela-jorge-inacio", "dan-1", "server:hq:root");
+      for (let i = 0; i < 4; i++) put(s, "sure-gamble", `g-${i}`, "runner:grip");
+      s.runner.hand = ["g-0", "g-1", "g-2", "g-3"];
+      put(s, "sure-gamble", "stk-1", "runner:stack");
+      s.runner.deck = ["stk-1"];
+      runKind(s, "dan-1", "add_random_grip_to_stack_bottom", { count: 2 });
+      expect(s.runner.hand).toHaveLength(2);
+      expect(s.runner.deck[0]).toBe("stk-1");
+      for (const id of s.runner.deck.slice(1)) moved.add(id);
+      // Not revealed: the log does not name them.
+      expect(s.log.at(-1)).not.toContain("Sure Gamble");
+    }
+    // Not always the first two cards in the grip.
+    expect(moved.size).toBeGreaterThan(2);
   });
 
   it("Liquidation: trashes any number of rezzed cards for 3 credits each", () => {
@@ -3440,14 +3499,20 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.discardPile = ["as-2"];
     runKind(s, "la-1", "install_and_rez_asset_or_upgrade_free");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
-    expect(ids).toContain("lic-acq:as-2");
+    // "You may": the Corp can pick either card or none.
+    expect(ids).toEqual(["choose-card:as-1", "choose-card:as-2", "choose-cards-done"]);
     const after = applyAction(s, {
       type: "choose_option",
-      optionId: "lic-acq:as-2",
+      optionId: "choose-card:as-2",
     });
     if (!after.ok) throw new Error(after.error);
+    // With no remote server yet, an asset can only open a new one.
     expect(after.state.cards["as-2"]?.rezzed).toBe(true);
+    expect(after.state.cards["as-2"]?.zone).toMatch(/^server:remote-\d+:root$/);
     expect(after.state.corp.hand).toContain("as-1");
+    const none = applyAction(s, { type: "choose_option", optionId: "choose-cards-done" });
+    if (!none.ok) throw new Error(none.error);
+    expect(none.state.corp.discardPile).toContain("as-2");
   });
 
   it("New Construction: installs 1 card from HQ in a new remote", () => {
@@ -6023,12 +6088,54 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       revealArchivesMax: 2,
     });
     expect(s.cards["mp-1"]?.zone).toBe("removed-from-game");
-    expect(s.corp.hand).toEqual([]);
-    expect(s.corp.discardPile).toEqual(
-      expect.arrayContaining(["hq-1", "hq-2"]),
-    );
-    expect(s.corp.deck).toContain("fa-1");
-    expect(s.cards["host-1"]?.advancementCounters).toBe(1);
+    // "Trash up to 2 cards from HQ": the Corp picks, and may stop early.
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    expect(s.corp.hand).toEqual(["hq-1", "hq-2"]);
+    let t = choose(s, "choose-card:hq-1");
+    t = choose(t, "choose-card:hq-2");
+    expect(t.corp.hand).toEqual([]);
+    expect(t.corp.discardPile).toEqual(expect.arrayContaining(["hq-1", "hq-2"]));
+    // "Reveal up to 2 facedown cards in Archives": the Corp picks, and the
+    // cards just trashed are among the facedown cards on offer.
+    expect(t.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
+      "choose-card:fa-1",
+      "choose-card:hq-1",
+      "choose-card:hq-2",
+      "choose-cards-done",
+    ]);
+    t = choose(t, "choose-card:fa-1");
+    t = choose(t, "choose-cards-done");
+    expect(t.corp.deck).toContain("fa-1");
+    expect(t.log.join("\n")).toContain("reveal Hostile Takeover");
+    // One agenda revealed: the Corp may place 1 advancement counter.
+    expect(t.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "advance:host-1",
+      "decline",
+    ]);
+    const placed = choose(t, "advance:host-1");
+    expect(placed.cards["host-1"]?.advancementCounters).toBe(1);
+    expect(placed.pendingChoice ?? null).toBeNull();
+    const declined = choose(t, "decline");
+    expect(declined.cards["host-1"]?.advancementCounters).toBe(0);
+  });
+
+  it("Moon Pool: the Corp may trash and reveal nothing", () => {
+    const s = createInitialState();
+    put(s, "moon-pool", "mp-1", "corp:archives");
+    s.corp.discardPile = ["mp-1"];
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "ice-wall", "hq-2", "corp:hand");
+    s.corp.hand = ["hq-1", "hq-2"];
+    put(s, "hostile-takeover", "fa-1", "corp:archives").faceup = false;
+    s.corp.discardPile.push("fa-1");
+    s.corp.deck = [];
+    runKind(s, "mp-1", "resolve_moon_pool", { trashHqMax: 2, revealArchivesMax: 2 });
+    let t = choose(s, "choose-cards-done");
+    expect(t.corp.hand).toEqual(["hq-1", "hq-2"]);
+    t = choose(t, "choose-cards-done");
+    expect(t.corp.deck).toEqual([]);
+    expect(t.corp.discardPile).toContain("fa-1");
+    expect(t.pendingChoice ?? null).toBeNull();
   });
 
   it("Mutate: reveals until ice, installs/rezzes in trashed slot, shuffles R&D", () => {
@@ -6064,9 +6171,42 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     for (let i = 0; i < 3; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
     s.corp.deck = ["rd-0", "rd-1", "rd-2"];
     runKind(s, "sr-1", "resolve_simulation_reset", { trashHqMax: 2 });
-    expect(s.cards["sr-1"]?.zone).toBe("removed-from-game");
-    expect(s.corp.hand).toHaveLength(2); // drew 2 after trash 2
-    expect(s.corp.discardPile).toHaveLength(1); // arch leftovers after shuffle 2
+    // "Trash up to 5 cards from HQ": the Corp picks.
+    let t = choose(s, "choose-card:hq-1");
+    t = choose(t, "choose-card:hq-2");
+    // Every card in Archives is the same facedown card, so there is nothing
+    // to pick for "shuffle that many cards from Archives into R&D".
+    expect(t.pendingChoice ?? null).toBeNull();
+    expect(t.cards["sr-1"]?.zone).toBe("removed-from-game");
+    expect(t.corp.hand).toHaveLength(2); // drew 2 after trash 2
+    expect(t.corp.discardPile).toHaveLength(1); // 3 in Archives, 2 shuffled back
+  });
+
+  it("Simulation Reset: the Corp picks which Archives cards go back to R&D", () => {
+    const s = createInitialState();
+    put(s, "simulation-reset", "sr-1", "corp:play");
+    put(s, "hedge-fund", "hq-1", "corp:hand");
+    put(s, "ice-wall", "hq-2", "corp:hand");
+    s.corp.hand = ["hq-1", "hq-2"];
+    put(s, "hostile-takeover", "arch-1", "corp:archives").faceup = true;
+    put(s, "project-atlas", "arch-2", "corp:archives").faceup = true;
+    s.corp.discardPile = ["arch-1", "arch-2"];
+    for (let i = 0; i < 3; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
+    s.corp.deck = ["rd-0", "rd-1", "rd-2"];
+    runKind(s, "sr-1", "resolve_simulation_reset", { trashHqMax: 5 });
+    let t = choose(s, "choose-card:hq-1");
+    t = choose(t, "choose-cards-done");
+    expect(t.corp.hand).toEqual(["hq-2"]);
+    // One card trashed, so exactly one card goes back, of the Corp's choice.
+    expect(t.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
+      "choose-card:arch-1",
+      "choose-card:arch-2",
+      "choose-card:hq-1",
+    ]);
+    t = choose(t, "choose-card:arch-2");
+    expect(t.corp.discardPile.sort()).toEqual(["arch-1", "hq-1"]);
+    expect(t.corp.hand).toHaveLength(2); // drew 1
+    expect(t.cards["sr-1"]?.zone).toBe("removed-from-game");
   });
 
   it("Marcus Batty: offers a subroutine on rezzed ice protecting this server", () => {
@@ -6175,10 +6315,17 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.run = { attackedServerId: "hq" } as GameState["run"];
     runKind(s, "ftm-1", "reveal_copies_trash_rd");
     expect(s.run?.skipBreach).toBe(true);
-    expect(s.cards["ftm-2"]?.faceup).toBe(true);
-    expect(s.cards["ftm-3"]?.faceup).toBe(true);
-    expect(s.corp.deck).toHaveLength(2); // trashed 1+2=3
-    expect(s.corp.discardPile).toHaveLength(3);
+    // "reveal any number of copies": the Runner says how many (CR 1.15.2).
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const both = choose(choose(s, "choose-card:ftm-2"), "choose-card:ftm-3");
+    expect(both.corp.deck).toHaveLength(2); // trashed 1+2=3
+    expect(both.corp.discardPile).toHaveLength(3);
+    const one = choose(choose(s, "choose-card:ftm-2"), "choose-cards-done");
+    expect(one.corp.deck).toHaveLength(3); // trashed 1+1=2
+    const none = choose(s, "choose-cards-done");
+    expect(none.corp.deck).toHaveLength(4); // trashed 1
+    // The copies stay in the grip (CR 1.21.3).
+    expect(both.runner.hand).toEqual(["ftm-2", "ftm-3"]);
   });
 
   it("Customized Secretary: reveals top 5 and offers to host revealed programs", () => {

@@ -1,3 +1,4 @@
+import { noteStoredConditional } from "../state/storedConditionalHooks.js";
 import type {
   CardInstance,
   CheckpointFrame,
@@ -224,6 +225,27 @@ function finishCheckpointAfterRestrictions(state: GameState, frameId: string): v
   checkDiscardPileCounters(state);
   const closed = popCheckpoint(state, frameId);
   closeCheckpointReactionWindow(state, closed?.kind);
+  // A card this checkpoint trashed has a "when trashed" ability. It is
+  // marked pending by the next checkpoint (CR 10.3.1a), which is run now
+  // so the ability does not wait for some later event.
+  if (state.turn.checkpointTrashNoted) {
+    state.turn.checkpointTrashNoted = undefined;
+    if (
+      !state.done &&
+      !state.pendingChoice &&
+      !state.trace &&
+      !state.psi &&
+      (state.turn.storedConditionalPending ?? []).length > 0
+    ) {
+      occurCheckpoint(
+        state,
+        closed?.kind ?? "instruction",
+        "After a checkpoint trashed a card",
+        [CR.checkpointConditionalAbilities],
+        "checkpoint",
+      );
+    }
+  }
 }
 
 /**
@@ -3755,25 +3777,60 @@ function checkUniqueness(state: GameState): void {
     return;
   }
   for (const id of trashIds) {
-    const card = state.cards[id];
-    if (!card) continue;
-    // CR 4.4.6b: a Corp card the Runner could see goes to Archives faceup.
-    const visibleToRunner = Boolean(card.rezzed) || Boolean(card.faceup);
-    removeCardFromCurrentZone(state, id);
-    if (card.side === "runner") {
-      card.zone = "runner:heap";
-      card.faceup = true;
-      state.runner.discardPile.push(id);
-    } else {
-      card.zone = "corp:archives";
-      card.faceup = visibleToRunner;
-      state.corp.discardPile.push(id);
+    trashByCheckpoint(state, id, CR.checkpointUniqueness, " for uniqueness");
+  }
+}
+
+/**
+ * A checkpoint trashes a card (CR 10.3.1d, 10.3.1e, 10.3.1f, 10.3.1g). No
+ * player trashes it, so abilities about a player trashing a card are not
+ * met. The card's own "when this card is trashed" ability is: it is noted
+ * here and marked pending at 10.3.1a of the next checkpoint (CR 10.3.1a,
+ * 9.6.13c).
+ */
+function trashByCheckpoint(
+  state: GameState,
+  id: string,
+  cite: RuleCite,
+  why = "",
+): void {
+  const card = state.cards[id];
+  if (!card) return;
+  // CR 4.4.6b: a Corp card the Runner could see goes to Archives faceup.
+  const visibleToRunner = Boolean(card.rezzed) || Boolean(card.faceup);
+  if (card.hostId) {
+    const host = state.cards[card.hostId];
+    if (host?.hostedCardIds) {
+      host.hostedCardIds = host.hostedCardIds.filter((hostedId) => hostedId !== id);
     }
-    card.rezzed = false;
-    state.activeOrder = (state.activeOrder ?? []).filter((x) => x !== id);
-    state.log.push(
-      `${card.title} trashed for uniqueness (CR ${CR.checkpointUniqueness.number}).`,
-    );
+    card.hostId = undefined;
+  }
+  removeCardFromCurrentZone(state, id);
+  // CR 9.6.10: pending instances from this source end when it leaves play.
+  cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== id);
+  if (card.side === "runner") {
+    card.zone = "runner:heap";
+    card.faceup = true;
+    state.runner.discardPile.push(id);
+  } else {
+    card.zone = "corp:archives";
+    card.faceup = visibleToRunner;
+    state.corp.discardPile.push(id);
+  }
+  card.rezzed = false;
+  state.activeOrder = (state.activeOrder ?? []).filter((x) => x !== id);
+  state.log.push(`${card.title} trashed${why} (CR ${cite.number}).`);
+  if (card.onTrash) {
+    noteStoredConditional(state, {
+      cardId: id,
+      abilityKey: "on-trash",
+      effectKey: "onTrash",
+      controller: card.side,
+      mandatory: true,
+      logLine: `${card.title} becomes pending — trashed.`,
+      independentOfSource: true,
+    });
+    state.turn.checkpointTrashNoted = true;
   }
 }
 
@@ -4196,25 +4253,7 @@ function trashHostedCard(
   id: string,
   cite: RuleCite = CR.checkpointHostedOnUninstalled,
 ): void {
-  const card = state.cards[id];
-  if (!card) return;
-  const host = card.hostId ? state.cards[card.hostId] : undefined;
-  if (host?.hostedCardIds) {
-    host.hostedCardIds = host.hostedCardIds.filter((hostedId) => hostedId !== id);
-  }
-  card.hostId = undefined;
-  removeCardFromCurrentZone(state, id);
-  if (card.side === "runner") {
-    card.zone = "runner:heap";
-    card.faceup = true;
-    state.runner.discardPile.push(id);
-  } else {
-    card.zone = "corp:archives";
-    card.faceup = false;
-    state.corp.discardPile.push(id);
-  }
-  card.rezzed = false;
-  state.log.push(`${card.title} trashed (CR ${cite.number}).`);
+  trashByCheckpoint(state, id, cite);
 }
 
 function hostedOnForbiddenHost(state: GameState): string[] {
@@ -4407,27 +4446,7 @@ function applyRestrictionPlan(state: GameState, plan: RestrictionPlan): void {
 }
 
 function trashRestrictionCard(state: GameState, id: string): void {
-  const card = state.cards[id];
-  if (!card) return;
-  if (card.hostId) {
-    const host = state.cards[card.hostId];
-    if (host?.hostedCardIds) {
-      host.hostedCardIds = host.hostedCardIds.filter((hostedId) => hostedId !== id);
-    }
-    card.hostId = undefined;
-  }
-  removeCardFromCurrentZone(state, id);
-  if (card.side === "runner") {
-    card.zone = "runner:heap";
-    card.faceup = true;
-    state.runner.discardPile.push(id);
-  } else {
-    card.zone = "corp:archives";
-    card.faceup = false;
-    state.corp.discardPile.push(id);
-  }
-  card.rezzed = false;
-  state.log.push(`${card.title} trashed (CR ${CR.checkpointCardRestrictions.number}).`);
+  trashByCheckpoint(state, id, CR.checkpointCardRestrictions);
 }
 
 function markOlderCopies(cards: CardInstance[], trashIds: Set<string>): void {

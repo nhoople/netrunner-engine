@@ -366,6 +366,25 @@ export function stealAgenda(state: GameState, cardId: string): void {
   checkWinConditions(state);
 }
 
+/**
+ * Move a forfeited agenda from a score area to the removed-from-game zone
+ * (CR 8.2.5). It does not go to Archives, where it could be accessed.
+ */
+export function moveForfeitedAgendaOutOfGame(
+  state: GameState,
+  cardId: string,
+): void {
+  const card = state.cards[cardId];
+  if (!card) return;
+  state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
+  state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
+  card.zone = "removed-from-game";
+  card.faceup = true;
+  card.rezzed = false;
+  if (!state.removedFromGame) state.removedFromGame = [];
+  if (!state.removedFromGame.includes(cardId)) state.removedFromGame.push(cardId);
+}
+
 export function removeCardFromCurrentZone(
   state: GameState,
   cardId: string,

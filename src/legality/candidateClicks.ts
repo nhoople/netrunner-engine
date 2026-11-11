@@ -1,4 +1,5 @@
 import type { Action, GameState, Server, ServerId } from "../state/types.js";
+import { likeCardsAtDestination } from "../actions/installCorp.js";
 import {
   actionMeetsFirstClickMust,
   firstClickMustIsActive,
@@ -374,12 +375,39 @@ export function addClickActionCandidates(
       ) {
         for (const id of state.corp.hand) {
           const card = state.cards[id];
+          // A second offer with trashFirst asks which other cards in the
+          // destination to trash before installing (CR 8.5.6a, 8.5.6b).
+          const offerTrashFirst = (destination: {
+            kind: "remote_root" | "protect";
+            serverId: ServerId;
+          }): void => {
+            const like = likeCardsAtDestination(state, id, destination.serverId);
+            if (like.may.some((other) => !like.must.includes(other))) {
+              actions.push({
+                type: "basic_install",
+                cardId: id,
+                destination,
+                trashFirst: true,
+              });
+            }
+          };
           if (card.type === "asset" || card.type === "agenda") {
             actions.push({
               type: "basic_install",
               cardId: id,
               destination: { kind: "new_remote" },
             });
+            // Any remote server's root (CR 4.6.8a). An asset or agenda
+            // already there is trashed first (CR 8.5.6a).
+            for (const s of listServers(state)) {
+              if (s.kind !== "remote") continue;
+              const destination = {
+                kind: "remote_root" as const,
+                serverId: s.id,
+              };
+              actions.push({ type: "basic_install", cardId: id, destination });
+              offerTrashFirst(destination);
+            }
           }
           if (card.type === "upgrade") {
             actions.push({
@@ -388,11 +416,12 @@ export function addClickActionCandidates(
               destination: { kind: "new_remote" },
             });
             for (const s of listServers(state)) {
-              actions.push({
-                type: "basic_install",
-                cardId: id,
-                destination: { kind: "remote_root", serverId: s.id },
-              });
+              const destination = {
+                kind: "remote_root" as const,
+                serverId: s.id,
+              };
+              actions.push({ type: "basic_install", cardId: id, destination });
+              offerTrashFirst(destination);
             }
           }
           if (card.type === "ice") {
@@ -403,12 +432,12 @@ export function addClickActionCandidates(
             });
             const budget = creditsAvailableForInstall(state, "corp");
             for (const s of listServers(state)) {
+              const destination = { kind: "protect" as const, serverId: s.id };
+              // Ice trashed first is not counted for the cost (CR 8.5.6b),
+              // so this is on offer even when the full cost is not.
+              offerTrashFirst(destination);
               if (budget < corpIceInstallCost(state, card, s)) continue;
-              actions.push({
-                type: "basic_install",
-                cardId: id,
-                destination: { kind: "protect", serverId: s.id },
-              });
+              actions.push({ type: "basic_install", cardId: id, destination });
             }
             if ((card.subtypes ?? []).includes("bioroid")) {
               for (const s of listServers(state)) {

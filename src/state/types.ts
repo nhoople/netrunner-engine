@@ -3436,6 +3436,12 @@ export interface TurnBookkeeping {
   /** Checkpoint frame paused at CR 10.3.1e until a restriction set is chosen. */
   pausedCheckpointId?: string;
   /**
+   * A checkpoint trashed a card with a "when this card is trashed" ability
+   * (CR 10.3.1d, 10.3.1e, 10.3.1f, 10.3.1g). The next checkpoint's 10.3.1a
+   * marks it pending.
+   */
+  checkpointTrashNoted?: boolean;
+  /**
    * Pending ability instance ids marked at the current checkpoint's 10.3.1a
    * step (CR 10.3.2). Cleared when the post-checkpoint reaction window opens
    * or stays closed. Survives `popCheckpoint` so scoop can use it.
@@ -3582,6 +3588,8 @@ export interface TurnBookkeeping {
   runnerDrewThisTurn?: boolean;
   hostedCreditsUsedCardIds?: string[];
   runnerInstalledProgramOrHardwareThisTurn?: boolean;
+  /** The Runner has installed a card this turn (Housekeeping). */
+  runnerInstalledCardThisTurn?: boolean;
   openingBadPublicityApplied?: boolean;
   firstAccessedOperationTrashedFreeThisTurn?: boolean;
   ignoredFirstIceInstallCostThisTurn?: boolean;
@@ -3891,8 +3899,6 @@ export interface TurnBookkeeping {
   zwickyCreditsDrawUsedThisTurn: boolean;
   /** Top of R&D temporarily removed for look / arrange effects. */
   rdLookedCards: string[];
-  /** Serial for cards that become new objects in a hidden location (CR 1.12.3). */
-  hiddenObjectSerial?: number;
   /** Cards already placed during R&D arrange (top-to-bottom order). */
   rdArrangePlaced: string[];
   /** Federal: after arrange, offer may-draw if host server unprotected. */
@@ -5218,6 +5224,24 @@ export interface TraceState {
   runnerSpendLocked?: boolean;
 }
 
+/** Cards a cost has its payer pick, and the action waiting on them. */
+export interface PendingCost {
+  action: Action;
+  payer: Side;
+  candidates: string[];
+  count: number;
+  picked: string[];
+  /** What the cards are for, as "trash from HQ as a cost". */
+  what: string;
+  /** The other player may not see the candidates. */
+  hidden: boolean;
+  sourceId: string;
+  /** The payer may stop at any number of picks. */
+  anyNumber?: boolean;
+  /** The action field the picks go in. Defaults to costCardIds. */
+  into?: "costCardIds" | "trashFirstIds";
+}
+
 /** Interactive psi game (Adrian Seis; v0 sequential bids). */
 export interface PsiState {
   id: string;
@@ -5324,6 +5348,8 @@ export interface PendingTrashProgram {
 export interface PendingSabotage {
   sourceId: string;
   amount: number;
+  /** HQ cards the Corp has picked so far (CR 10.12.2). Corp-only. */
+  picked?: string[];
 }
 
 /** Host chooses among effect IR options (Ballista, Funhouse, etc.). */
@@ -5625,6 +5651,9 @@ export interface GameState {
   turn: TurnBookkeeping;
   /** Cards removed from the game (Steve Cambridge). */
   removedFromGame: string[];
+  /** Cards shown to all players by a reveal (CR 1.21.3). Open to both. */
+  reveals?: RevealEvent[];
+  revealSeq?: number;
   /**
    * Watch the World Burn lasting titles: accessing a card with one of these
    * printed titles removes it from the game.
@@ -5663,6 +5692,13 @@ export interface GameState {
    * (CR 10.3.1d).
    */
   activeOrder?: string[];
+  /**
+   * An action whose cost has its payer pick cards. Nothing is paid until
+   * the picks are in; the action then resolves with them (CR 1.16.1).
+   */
+  pendingCost?: PendingCost;
+  /** The picks for the cost being paid by the action now resolving. */
+  costCardIds?: string[];
   log: string[];
   /** True when the game (or demo cycle) has finished. */
   done: boolean;
@@ -5685,7 +5721,12 @@ export type Action =
   /** CR 1.6.6a — shuffle starting hand into deck and draw a new one (once). */
   | { type: "mulligan" }
   | { type: "basic_gain_credit" }
-  | { type: "basic_trash_resource"; cardId: string }
+  | {
+      type: "basic_trash_resource";
+      cardId: string;
+      /** The HQ card trashed for an additional cost, when one applies. */
+      costCardIds?: string[];
+    }
   | { type: "basic_draw" }
   | {
       type: "basic_install";
@@ -5693,6 +5734,14 @@ export type Action =
       destination: InstallDestination;
       /** Patchwork: trash this grip card to discount the install. */
       trashGripForDiscountCardId?: string;
+      /**
+       * Corp: ask which cards already in the destination to trash first
+       * (CR 8.5.6a, 8.5.6b). Without it only the asset or agenda that must
+       * go is trashed.
+       */
+      trashFirst?: boolean;
+      /** Corp: the cards in the destination trashed first. */
+      trashFirstIds?: string[];
     }
   | { type: "basic_run"; serverId: ServerId }
   | { type: "basic_remove_tag" }
@@ -5704,11 +5753,17 @@ export type Action =
       cardId: string;
       serverId?: ServerId;
       /** Patchwork: trash this grip card to discount the play. */
-      trashGripForDiscountCardId?: string;
+      trashGripForDiscountCardId?: string;      /** The grip cards trashed for an additional cost to play (Moshing). */
+      costCardIds?: string[];
     }
   | { type: "advance"; cardId: string }
   | { type: "score_agenda"; cardId: string }
-  | { type: "rez_ice"; cardId: string }
+  | {
+      type: "rez_ice";
+      cardId: string;
+      /** The agenda forfeited or the ice derezzed for an additional rez cost. */
+      costCardIds?: string[];
+    }
   | {
       type: "break_subroutine";
       breakerId: string;
@@ -5732,6 +5787,12 @@ export type Action =
       cardId: string;
       abilityId: string;
       serverId?: ServerId;
+      /**
+       * The cards the payer trashes or forfeits for this cost. Left out, the
+       * engine asks the payer when there is more than one way to pay
+       * (CR 1.16.1).
+       */
+      costCardIds?: string[];
     }
   | { type: "use_identity_ability"; abilityId: string }
   | { type: "continue_run" }
@@ -5807,7 +5868,12 @@ export type Action =
       hqCardIds: string[];
     }
   | { type: "choose_option"; optionId: string }
-  | { type: "rez_asset"; cardId: string }
+  | {
+      type: "rez_asset";
+      cardId: string;
+      /** The agenda forfeited for an additional rez cost. */
+      costCardIds?: string[];
+    }
   /**
    * The discard step (CR 5.5.4). `cardIds` names the cards to discard when
    * the hand is over its maximum; without it the engine asks the player
@@ -5857,8 +5923,20 @@ export interface PublicSetAsideCardView {
   groupId?: string | null;
 }
 
+/** One reveal: the cards shown to all players (CR 1.21.3). */
+export interface RevealEvent {
+  /** Counts up through the game, so a host can tell new reveals apart. */
+  seq: number;
+  /** Whose cards were shown. */
+  by: Side;
+  sourceTitle: string;
+  cards: Array<{ defId: string; title: string }>;
+}
+
 export interface PublicView {
   viewer: Side;
+  /** Recent reveals, oldest first (CR 1.21.3). */
+  reveals: RevealEvent[];
   turnNumber: number;
   activeSide: Side;
   timingKey: string;

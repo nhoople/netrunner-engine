@@ -64,7 +64,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -279,7 +279,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -421,7 +421,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -677,7 +677,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -864,7 +864,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -1024,7 +1024,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -1103,7 +1103,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -1315,7 +1315,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -1592,7 +1592,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -1700,7 +1700,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -1873,7 +1873,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("MS deep_dive_resolve", () => {
@@ -1914,7 +1914,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("MS Echo powerCounterOnHarmonicIceRez", () => {
@@ -1945,7 +1945,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -2112,7 +2112,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -2255,7 +2255,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -2421,7 +2421,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -2561,7 +2561,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -2708,7 +2708,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -2989,7 +2989,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -3232,7 +3232,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -3536,7 +3536,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -3736,7 +3736,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -3965,7 +3965,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -4118,7 +4118,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -4314,7 +4314,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -4441,7 +4441,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("MS install_hq_new_remotes_with_advancements (Mitosis)", () => {
@@ -4496,7 +4496,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("MS moon_pool_resolve (Moon Pool)", () => {
@@ -4543,6 +4543,18 @@ describe("midnight-sun", () => {
       );
       expect(r.ok).toBe(true);
       expect(s.cards["mp-1"].zone).toBe("removed-from-game");
+      // Each step is the Corp's choice (CR 1.15.2).
+      for (const optionId of [
+        "choose-card:hq-1",
+        "choose-card:hq-2",
+        "choose-card:fa-1",
+        "choose-cards-done",
+        "advance:host-1",
+      ]) {
+        const picked = applyAction(s, { type: "choose_option", optionId });
+        if (!picked.ok) throw new Error(`${optionId}: ${picked.error}`);
+        s = picked.state;
+      }
       expect(s.corp.hand).toEqual([]);
       expect(s.corp.discardPile).toContain("hq-1");
       expect(s.corp.discardPile).toContain("hq-2");
@@ -4558,7 +4570,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("MS Ob Superheavy search_rd_install_rez_by_printed_rez_cost", () => {
@@ -4590,12 +4602,19 @@ describe("midnight-sun", () => {
         fx.searchRdInstallRezByPrintedRezCost(-1),
       );
       expect(r.ok).toBe(true);
-      const paid = applyAction(s, { type: "choose_option", optionId: "ob-rez:iw-1" });
+      // The Corp finds the card, then says where it goes (CR 8.5.16b).
+      const found = applyAction(s, { type: "choose_option", optionId: "choose-card:iw-1" });
+      if (!found.ok) throw new Error(found.error);
+      const paid = applyAction(found.state, {
+        type: "choose_option",
+        optionId: "install-dest:__new_remote__",
+      });
       if (!paid.ok) throw new Error(paid.error);
       expect(paid.state.corp.deck).not.toContain("iw-1");
       expect(paid.state.cards["iw-1"].rezzed).toBe(true);
       expect(paid.state.cards["iw-1"].zone).toMatch(/^server:remote-\d+:ice$/);
-      expect(paid.state.corp.credits).toBe(0);
+      // Printed: "ignoring credit costs".
+      expect(paid.state.corp.credits).toBe(2);
     });
   });
   });
@@ -4605,7 +4624,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -4806,7 +4825,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -4971,7 +4990,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -5094,7 +5113,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -5229,7 +5248,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -5416,7 +5435,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -5634,7 +5653,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -5978,7 +5997,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -6259,7 +6278,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
 
@@ -6390,7 +6409,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
 
@@ -6435,8 +6454,20 @@ describe("midnight-sun", () => {
         fx.installAndRezFromArchivesFree(),
       );
       expect(r.ok).toBe(true);
-      expect(s.cards["arch-ice"].rezzed).toBe(true);
-      expect(s.cards["arch-ice"].zone).toMatch(/^server:remote-\d+:ice$/);
+      // Ice can protect any server: the Corp says which (CR 8.5.16b).
+      expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+        "install-dest:__new_remote__",
+        "install-dest:hq",
+        "install-dest:rd",
+        "install-dest:archives",
+      ]);
+      const placed = applyAction(s, {
+        type: "choose_option",
+        optionId: "install-dest:__new_remote__",
+      });
+      if (!placed.ok) throw new Error(placed.error);
+      expect(placed.state.cards["arch-ice"].rezzed).toBe(true);
+      expect(placed.state.cards["arch-ice"].zone).toMatch(/^server:remote-\d+:ice$/);
     });
 
     it("Trust Operation card wiring is fully clear on pin v0.34.0", () => {
@@ -6453,7 +6484,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   describe("MS The Twinning power + bonus access", () => {
@@ -6512,7 +6543,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function vigOnTurnBegin(): Effect {
@@ -6599,7 +6630,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -6749,7 +6780,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -6972,7 +7003,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(
@@ -7107,7 +7138,7 @@ describe("midnight-sun", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.19");
+    assertCardsPinnedTag("v1.147.20");
   });
 
   function must(

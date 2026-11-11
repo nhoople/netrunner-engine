@@ -170,7 +170,7 @@ import {
   noteCheckpointAndResolvePlay,
   fireOnRez,
 } from "../state/cardLifecycleHooks.js";
-import { shuffleInPlace } from "../state/rng.js";
+import { random, shuffleInPlace } from "../state/rng.js";
 export {
   fireOnBypassTriggers,
   fireHostRezStateTriggers,
@@ -1037,9 +1037,15 @@ export function returnRdLookedToDeckTop(state: GameState): void {
 function hiddenCopy(state: GameState, oldId: string): string {
   const old = state.cards[oldId];
   if (!old) return oldId;
-  const serial = (state.turn.hiddenObjectSerial ?? 0) + 1;
-  state.turn.hiddenObjectSerial = serial;
-  const newId = `${old.defId ?? "card"}-hidden-${serial}`;
+  // The id must say nothing about the card, which may next be seen
+  // facedown, and must not repeat across turns.
+  let newId: string;
+  do {
+    const part = Math.floor(random(state) * 36 ** 8)
+      .toString(36)
+      .padStart(8, "0");
+    newId = `obj_${part}`;
+  } while (state.cards[newId]);
   const copy = structuredClone(old);
   copy.id = newId;
   copy.faceup = false;
