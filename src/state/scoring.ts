@@ -12,6 +12,7 @@ import {
 } from "./trashHooks.js";
 import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { noteIceUninstalled } from "./runPosition.js";
 import { onAgendaScored, runnerHeapLocked } from "./cardDeclarations.js";
 import {
   allocateEffectIdentity,
@@ -394,6 +395,7 @@ export function removeCardFromCurrentZone(
     return;
   }
   const card = state.cards[cardId];
+  noteIceUninstalled(state, cardId);
   const leftScore =
     state.corp.scoreArea.includes(cardId) ||
     state.runner.scoreArea.includes(cardId);

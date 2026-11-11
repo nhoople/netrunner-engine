@@ -6,6 +6,7 @@ import type {
   EffectCtx,
   EvalResult,
 } from "../eval.js";
+import { setRunnerPosition } from "../../state/runPosition.js";
 import type { Primitive } from "../ir.js";
 import { serverIdForIce } from "../../cards/stubs.js";
 import { log } from "../../state/createGame.js";
@@ -56,12 +57,12 @@ case "move_runner_to_outermost_attacked": {
         return { ok: true };
       }
       if (server.ice.length > 0) {
-        state.run.position = 0;
+        setRunnerPosition(state.run, 0);
         state.log.push(
           `Runner moves to outermost ice protecting ${sid}.`,
         );
       } else {
-        state.run.position = null;
+        setRunnerPosition(state.run, null);
         state.log.push(`Runner moves to ${sid} (no ice).`);
       }
       return { ok: true };
@@ -109,12 +110,12 @@ case "move_runner_to_archives_outermost": {
       state.run.attackedServerId = "archives";
       const arch = state.servers.archives;
       if (arch.ice.length > 0) {
-        state.run.position = 0;
+        setRunnerPosition(state.run, 0);
         state.log.push(
           `Runner moves to outermost Archives ice (Proprionegation).`,
         );
       } else {
-        state.run.position = null;
+        setRunnerPosition(state.run, null);
         state.log.push(`Runner moves to Archives (no ice).`);
       }
       return { ok: true };
@@ -327,7 +328,7 @@ case "move_source_ice_to_outermost_attacked": {
       fromServer.ice = fromServer.ice.filter((id) => id !== sourceId);
       toServer.ice.unshift(sourceId);
       source.zone = `server:${attacked}:ice`;
-      state.run.position = 0;
+      setRunnerPosition(state.run, 0);
       log(
         state,
         `Move ${source.title} to outermost protecting ${attacked}.`,
@@ -408,7 +409,7 @@ case "move_source_ice_to_outermost_server_continue_run": {
       source.zone = `server:${toSid}:ice`;
       state.run.attackedServerId =
         toSid as import("../../state/types.js").ServerId;
-      state.run.position = 0;
+      setRunnerPosition(state.run, 0);
       log(
         state,
         `Move ${source.title} to outermost protecting ${toSid}; run continues.`,

@@ -1,4 +1,5 @@
 import type { Action, GameState, Server } from "../state/types.js";
+import { iceAtRunnerPosition } from "../state/runPosition.js";
 import { currentMark } from "../state/msKeywords.js";
 import {
   corpMayRez,
@@ -85,9 +86,7 @@ export function listServers(state: GameState): Server[] {
 }
 
 function approachedIceId(state: GameState): string | null {
-  const run = state.run;
-  if (!run || run.position === null) return null;
-  return state.servers[run.attackedServerId].ice[run.position] ?? null;
+  return iceAtRunnerPosition(state);
 }
 
 export function addApproachIceCandidates(

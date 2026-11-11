@@ -3,6 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { moveForfeitedAgendaOutOfGame } from "../../state/scoring.js";
+import { setRunnerPosition } from "../../state/runPosition.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -483,7 +484,7 @@ case "rez_move_innermost": {
         );
         return { ok: true };
       }
-      state.run.position = innermostIdx;
+      setRunnerPosition(state.run, innermostIdx);
       state.run.reencounterIceId = sourceId;
       log(
         state,

@@ -1,5 +1,6 @@
 /** Up and Over (uao) Lunar pack primitives. */
 import { revealCards } from "../../state/reveal.js";
+import { trashCorpCardToArchives } from "../corpTrash.js";
 import { log } from "../../state/createGame.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { canPayCost, emptyRunnerCreditPool, payCost, subtractRunnerCreditPool } from "../../state/costs.js";
@@ -33,9 +34,9 @@ export function applyLunarUaoPrimitive(
         emptyRunnerCreditPool(state);
         log(state, `UCF — tagged Runner loses all credits; trash ice.`);
         if (source?.type === "ice") {
-          removeCardFromIce(state, sourceId);
-          state.corp.discardPile.push(sourceId);
-          state.cards[sourceId]!.zone = "corp:archives";
+          // The ice's own subroutine trashes it (CR 1.14.5); the encounter
+          // then ends (CR 6.2.7c).
+          trashCorpCardToArchives(state, sourceId, "corp");
         }
       } else if (state.runner.credits > 0) {
         subtractRunnerCreditPool(state, 1);
@@ -252,16 +253,6 @@ logLine: `Trade-In — gain ${half}¢; search hardware.`,
     }
     default:
       return null;
-  }
-}
-
-function removeCardFromIce(state: EffectCtx["state"], iceId: string): void {
-  for (const server of Object.values(state.servers)) {
-    const idx = server.ice.indexOf(iceId);
-    if (idx >= 0) {
-      server.ice.splice(idx, 1);
-      break;
-    }
   }
 }
 

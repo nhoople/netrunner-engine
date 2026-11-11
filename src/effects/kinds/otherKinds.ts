@@ -3,6 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { iceAtRunnerPosition, setRunnerPosition } from "../../state/runPosition.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -401,7 +402,7 @@ case "redirect_approach_to_server": {
         };
       }
       state.run.attackedServerId = sid;
-      state.run.position = server.ice.length > 0 ? 0 : null;
+      setRunnerPosition(state.run, server.ice.length > 0 ? 0 : null);
       log(
         state,
         `Baker — change attacked server to ${sid} and approach${
@@ -742,7 +743,7 @@ case "grant_approached_rezzed_bioroid_etr_subroutine_this_run": {
         log(state, `${source.title} — no approached ice.`);
         return { ok: true };
       }
-      const iceId = state.servers[run.attackedServerId]?.ice[run.position];
+      const iceId = iceAtRunnerPosition(state);
       const ice = iceId ? state.cards[iceId] : undefined;
       if (!ice || !ice.rezzed || !(ice.subtypes ?? []).includes("bioroid")) {
         log(state, `${source.title} — approached ice is not a rezzed bioroid.`);
@@ -1544,7 +1545,7 @@ case "copycat_continue_from_ice": {
       const serverId = hostServer as import("../../state/types.js").ServerId;
       state.run.attackedServerId = serverId;
       const pos = state.servers[serverId].ice.indexOf(iceId);
-      state.run.position = pos >= 0 ? pos : 0;
+      setRunnerPosition(state.run, pos >= 0 ? pos : 0);
       state.run.passedIceIds = [...(state.run.passedIceIds ?? []), iceId];
       log(
         state,
@@ -3161,7 +3162,7 @@ case "mitra_aman_approach_ice": {
         return { ok: true };
       }
       const approachedId =
-        state.servers[run.attackedServerId]?.ice[run.position];
+        iceAtRunnerPosition(state);
       if (!approachedId) {
         log(state, `Mitra Aman — no approached ice.`);
         return { ok: true };
@@ -3407,7 +3408,7 @@ case "accelerated_beta_test_continue": {
           state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
             (x) => x !== id,
           );
-          trashCorpCardToArchives(state, id);
+          trashCorpCardToArchives(state, id, source.side);
           log(state, `ABT — trash ${state.cards[id]!.title}.`);
         }
         state.turn.rdLookedCards = [];
@@ -3487,34 +3488,70 @@ logLine: `ABT — may install and rez ${state.cards[iceId]!.title}.`,
     }
 
 case "accelerated_diagnostics": {
-      const n = 3;
-      // Deck top is index 0 (commitDraw shifts).
-      const looked: string[] = state.corp.deck.splice(0, n);
-      // Only the Corp looks (CR 1.21.2). A card it does not play is trashed
-      // unseen by the Runner, so it goes to Archives facedown (CR 4.4.6b).
-      lookAtCards(state, looked, sourceId, "corp");
-      for (const id of [...looked]) {
+      // "Look at the top 3 cards of R&D. If any of those cards are
+      // operations, you may play them (paying their play cost), ignoring any
+      // additional costs. Trash the rest of the unplayed cards you looked at."
+      let looked: string[];
+      if (!action.cardIds) {
+        // Deck top is index 0 (commitDraw shifts).
+        looked = state.corp.deck.splice(0, 3);
+        // Only the Corp looks (CR 1.21.2).
+        lookAtCards(state, looked, sourceId, "corp");
+      } else {
+        looked = action.cardIds.filter(
+          (id) => state.cards[id]?.zone === "corp:rd" && !state.corp.deck.includes(id),
+        );
+        // Still being looked at while the card resolves (CR 1.21.6).
+        for (const id of looked) state.cards[id]!.lookedBy = "corp";
+      }
+      if (action.playId && looked.includes(action.playId)) {
+        const id = action.playId;
         const card = state.cards[id]!;
-        if (card.type === "operation") {
-          log(state, `Play ${card.title} from looked cards (ignore additional costs).`);
-          state.corp.hand.push(id);
-          card.zone = "corp:hq";
-          card.faceup = false;
-          const r = applyPrimitive(ctx, {
-            kind: "play_hq_operation_paying_costs",
-            cardId: id,
-          });
-          if (!r.ok) return r;
-          looked.splice(looked.indexOf(id), 1);
-        }
+        log(state, `Accelerated Diagnostics — play ${card.title}, ignoring additional costs.`);
+        state.corp.hand.push(id);
+        card.zone = "corp:hq";
+        card.faceup = false;
+        delete card.lookedBy;
+        return applyPrimitive(ctx, { kind: "play_hq_operation_paying_costs", cardId: id });
       }
-      for (const id of looked) {
-        if (state.corp.deck.includes(id)) {
-          state.corp.deck = state.corp.deck.filter((x) => x !== id);
+      // The Corp plays the operations one at a time, choosing each and
+      // whether to play any more (CR 8.6.3, CR 1.14.5).
+      const playable = looked.filter((id) => {
+        const card = state.cards[id]!;
+        return card.type === "operation" && state.corp.credits >= (card.playCost ?? 0);
+      });
+      if (playable.length === 0 || action.done) {
+        // A card the Corp did not play was never seen by the Runner, so it
+        // goes to Archives facedown (CR 4.4.6b).
+        for (const id of looked) trashCorpCardToArchives(state, id, "corp");
+        if (looked.length > 0) {
+          log(state, `Accelerated Diagnostics — trash ${looked.length} looked-at card(s).`);
         }
-        trashCorpCardToArchives(state, id);
-        log(state, `Accelerated Diagnostics — trash a looked card.`);
+        return { ok: true };
       }
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options: [
+          ...playable.map((id) => {
+            const rest = looked.filter((other) => other !== id);
+            return {
+              id: `play-looked:${id}`,
+              label: `Play ${state.cards[id]!.title} (${state.cards[id]!.playCost ?? 0}¢)`,
+              effect: fx.seq(
+                fx.do({ kind: "accelerated_diagnostics", cardIds: looked, playId: id }),
+                fx.do({ kind: "accelerated_diagnostics", cardIds: rest }),
+              ),
+            };
+          }),
+          {
+            id: "play-looked:none",
+            label: "Play no more of them",
+            effect: fx.do({ kind: "accelerated_diagnostics", cardIds: looked, done: true }),
+          },
+        ],
+        logLine: `Accelerated Diagnostics — the Corp may play an operation it looked at.`,
+      });
       return { ok: true };
     }
 

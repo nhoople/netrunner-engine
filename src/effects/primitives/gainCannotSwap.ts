@@ -1,5 +1,6 @@
 /** The Universe of Tomorrow (uot) SanSan pack primitives. */
-import { resolveRibsPick } from "../../state/damage.js";
+import { resolveChronosFirstNetPick, resolveRibsPick } from "../../state/damage.js";
+import { setRunnerPosition } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir.js";
@@ -127,7 +128,7 @@ logLine: `Surfer — choose adjacent ice to swap.`,
       if (a < 0 || b < 0) return { ok: true };
       server.ice[a] = otherId;
       server.ice[b] = iceId;
-      run.position = b;
+      setRunnerPosition(run, b);
       // Printed: still encountering that ice (the barrier), from its new
       // position — do not switch the encounter onto the other ice (CR 1.2.1).
       log(
@@ -457,42 +458,8 @@ logLine: `${source.title} — search R&D for a card to add to HQ.`,
     }
 
     case "trash_chronos_pick": {
-      const cardId = action.cardId;
-      const remaining = state.turn.uotChronosTrashRemaining ?? 0;
-      if (!state.runner.hand.includes(cardId) || remaining <= 0) {
-        return { ok: true };
-      }
-      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      const card = state.cards[cardId]!;
-      card.zone = "runner:heap";
-      card.faceup = true;
-      state.runner.discardPile.push(cardId);
-      state.turn.uotChronosTrashRemaining = remaining - 1;
-      log(state, `Chronos Protocol — trash ${card.title} from grip.`);
-      if ((state.turn.uotChronosTrashRemaining ?? 0) <= 0) {
-        state.turn.uotChronosTrashRemaining = undefined;
-        return { ok: true };
-      }
-      const grip = [...state.runner.hand];
-      if (grip.length === 0) {
-        state.turn.uotChronosTrashRemaining = undefined;
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId: state.corp.identityId,
-        chooser: "corp",
-        options: grip.map((id) => ({
-          id: `chronos:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "trash_chronos_pick" as const,
-              cardId: id,
-            },
-          },
-        })),
-      });
+      // An empty id is the Corp selecting no card.
+      resolveChronosFirstNetPick(state, action.cardId === "" ? null : action.cardId);
       return { ok: true };
     }
 

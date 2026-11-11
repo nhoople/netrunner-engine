@@ -34,5 +34,5 @@ export function noteVacuousFullBreak(state: GameState): void {
     state,
     `${ice.title} is trashed — every subroutine is broken (CR ${CR.vacuousAll.number}).`,
   );
-  trashCorpCardToArchives(state, enc.iceId);
+  trashCorpCardToArchives(state, enc.iceId, "runner");
 }

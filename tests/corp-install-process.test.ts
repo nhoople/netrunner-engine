@@ -14,6 +14,7 @@
  * Card text decides whether the install cost is paid (CR 1.2.1).
  */
 import { beforeAll, describe, expect, it } from "vitest";
+import { iceAtRunnerPosition } from "../src/state/runPosition.js";
 import {
   applyAction,
   assertCardsPinnedTag,
@@ -34,7 +35,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.21");
+  assertCardsPinnedTag("v1.147.22");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -277,19 +278,36 @@ describe("an ability install during a run (CR 6.2.6)", () => {
     const s = encounter();
     run(s, "drafter", "install_from_hq_or_archives", { ignoreInstallCost: true });
     let t = choose(pick(s, "new-ice"), "install-dest-trash:hq");
-    // The ice being encountered is not on offer (CR 8.5.10 is not modelled).
+    // Any of the ice can go, the ice in the Runner's position included
+    // (CR 8.5.6b).
     expect(optionIds(t)).toEqual([
       "choose-card:outer",
+      "choose-card:drafter",
       "choose-card:inner",
       "choose-cards-done",
     ]);
     t = pick(t, "outer");
     t = pick(t, "inner");
+    t = choose(t, "choose-cards-done");
     expect(t.servers.hq.ice).toEqual(["new-ice", "drafter"]);
     expect(t.run?.position).toBe(1);
     expect(t.servers.hq.ice[t.run!.position!]).toBe("drafter");
     expect(t.cards["outer"].zone).toBe("corp:archives");
     expect(t.cards["inner"].zone).toBe("corp:archives");
+  });
+
+  it("trashing the Runner's own ice first empties their position (CR 8.5.10, 6.2.6a.ex1)", () => {
+    const s = encounter();
+    run(s, "drafter", "install_from_hq_or_archives", { ignoreInstallCost: true });
+    let t = choose(pick(s, "new-ice"), "install-dest-trash:hq");
+    t = pick(t, "outer");
+    t = pick(t, "drafter");
+    t = pick(t, "inner");
+    expect(t.servers.hq.ice).toEqual(["new-ice"]);
+    // The new ice is outward of the Runner, who will not approach it.
+    expect(t.run?.positionVacated).toBe(true);
+    expect(iceAtRunnerPosition(t)).toBeNull();
+    expect(t.run!.position).toBe(1);
   });
 });
 

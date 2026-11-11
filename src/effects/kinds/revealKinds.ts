@@ -302,7 +302,7 @@ case "reveal_top_n_rd_trash_picked": {
         return { ok: true };
       }
       state.turn.rdLookedCards.splice(idx, 1);
-      trashCorpCardToArchives(state, cardId);
+      trashCorpCardToArchives(state, cardId, source.side);
       log(state, `${source.title} — trash ${state.cards[cardId]!.title}.`);
       // Remaining revealed cards return to top of R&D in relative order
       // (first revealed stays top).

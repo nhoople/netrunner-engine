@@ -3,6 +3,7 @@
  * at the moment that declaration describes.
  */
 import { abilitiesSuppressed } from "./abilities.js";
+import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import { subtractRunnerCreditPool } from "./costs.js";
 import { noteTargetedMarketing } from "./currents.js";
 import { noteAzmariNamedTypeMatch } from "./programHardwareInstall.js";
@@ -318,16 +319,8 @@ export function notePowerCounters(state: GameState, card: CardInstance): void {
     (card.powerCounters ?? 0) === 0 &&
     card.zone.startsWith("server:")
   ) {
-    const serverId = card.zone.split(":")[1] as ServerId;
-    const server = state.servers[serverId];
-    if (server) {
-      server.root = server.root.filter((id) => id !== card.id);
-      server.ice = server.ice.filter((id) => id !== card.id);
-    }
-    state.corp.discardPile.push(card.id);
-    card.zone = "corp:archives";
-    card.faceup = true;
-    card.rezzed = false;
+    // The card's own ability trashes it, so the Corp does (CR 1.14.5).
+    trashCorpCardToArchives(state, card.id, "corp");
     log(state, `${card.title} is trashed — power counters are empty.`);
   }
 }
@@ -971,13 +964,8 @@ export function resolveDeclaration(state: GameState, optionId: string): "jackout
     }
     const ice = iceId ? state.cards[iceId] : undefined;
     if (ice) {
-      for (const server of Object.values(state.servers)) {
-        server.ice = server.ice.filter((id) => id !== ice.id);
-      }
-      state.corp.discardPile.push(ice.id);
-      ice.zone = "corp:archives";
-      ice.faceup = true;
-      ice.rezzed = false;
+      // Hippo is the Runner's card, so the Runner trashes the ice (CR 1.14.5).
+      trashCorpCardToArchives(state, ice.id, "runner");
       log(state, `${ice.title} is trashed.`);
     }
     return "ok";

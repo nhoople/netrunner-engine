@@ -78,6 +78,7 @@ import {
 } from "../state/lingeringEffects.js";
 import { serversMatchingSpec } from "../state/runStart.js";
 import { CR } from "./labels.js";
+import { moveRunnerInward, setRunnerPosition } from "../state/runPosition.js";
 import {
   maybeOfferSubroutineOrder,
   takeNextSubroutineIndex,
@@ -403,6 +404,33 @@ function iceBypassBlockedByServerUpgrade(
   return false;
 }
 
+
+/**
+ * Is the encounter over before its remaining steps? The encountered ice was
+ * uninstalled (CR 8.5.10) or derezzed (CR 6.2.7c), or an effect already
+ * ended the encounter. The Runner then passes the position (run.movement).
+ */
+function encounterEndsEarly(s: GameState): boolean {
+  const run = s.run;
+  if (!run) return false;
+  const enc = run.encounter;
+  if (!enc) return true;
+  const ice = s.cards[enc.iceId];
+  if (enc.iceUninstalled) {
+    s.log.push(
+      `${ice?.title ?? "The encountered ice"} was uninstalled — the encounter ends and the Runner passes its position (CR ${CR.uninstallIceDuringRun.number}, ${CR.encounteredIceLeaves.number}).`,
+    );
+    return true;
+  }
+  const installed = Boolean(ice) && (ice!.zone.endsWith(":ice") || Boolean(ice!.hostId));
+  if (installed && !ice!.rezzed) {
+    s.log.push(
+      `${ice!.title} was derezzed — the encounter ends (CR ${CR.encounteredIceLeaves.number}).`,
+    );
+    return true;
+  }
+  return false;
+}
 
 /** Derez ice with derezAtAnyTurnEnd; clear Lycian gained subtypes. */
 function sweepDerezAtAnyTurnEnd(s: GameState): void {
@@ -1795,7 +1823,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       ) {
         runState.archivesApproachRedirectUsed = true;
         runState.attackedServerId = "hq";
-        runState.position = 0;
+        setRunnerPosition(runState, 0);
         server = s.servers.hq;
         s.log.push(
           "Maintenance Access — change attacked server to HQ and approach HQ ice.",
@@ -1804,8 +1832,11 @@ export const STEPS: Record<string, TimingStepDef> = {
       // No ice at the Runner's position: go to the Movement Phase
       // (CR 6.9.1f). Nothing is passed at 6.9.4a, so it resumes at the
       // 6.9.4b paid ability window.
+      // An emptied position the Runner is still in holds no ice either
+      // (CR 6.2.4, 6.2.7e).
       if (
         runState.position !== null &&
+        !runState.positionVacated &&
         runState.position < server.ice.length
       ) {
         return "run.approachIce";
@@ -1904,6 +1935,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.servers[runState.attackedServerId].ice[runState.position!];
         const ice = s.cards[iceId];
         runState.phase = "approach_ice";
+        runState.approachedIceUninstalled = false;
         s.log.push(
           `Approach ice ${ice.title} at position ${runState.position} (appendix 11.4_2_a / CR 6.4.1).`,
         );
@@ -2002,6 +2034,21 @@ export const STEPS: Record<string, TimingStepDef> = {
     "branch",
     (s) => {
       const runState = s.run!;
+      // The approached ice was uninstalled: the window that was open has
+      // been completed, the approach ends, and the Runner passes the
+      // position it had occupied (CR 8.5.10, 6.2.7a).
+      if (runState.approachedIceUninstalled) {
+        runState.approachedIceUninstalled = false;
+        s.log.push(
+          `The approached ice was uninstalled — the approach ends and the Runner passes its position (CR ${CR.uninstallIceDuringRun.number}, ${CR.approachedIceLeaves.number}).`,
+        );
+        if (runState.forceEncounterIceId) {
+          runState.forceEncounterIceId = undefined;
+          return "run.movement";
+        }
+        runState.phase = "movement";
+        return "run.passIcePaw";
+      }
       const iceId =
         runState.forceEncounterIceId ??
         s.servers[runState.attackedServerId].ice[runState.position!];
@@ -2025,6 +2072,8 @@ export const STEPS: Record<string, TimingStepDef> = {
       if (iceId && (s.run?.bypassedIceIds ?? []).includes(iceId)) {
         return "run.movement";
       }
+      // No window is open yet, so the encounter ends at once (CR 8.5.10).
+      if (s.run?.encounter && encounterEndsEarly(s)) return "run.movement";
       return "run.encounterPaw";
     },
     {
@@ -3015,6 +3064,8 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Are there unbroken subroutines to resolve?",
     "branch",
     (s) => {
+      // The paid ability window has been completed (CR 8.5.10).
+      if (encounterEndsEarly(s)) return "run.movement";
       const enc = s.run!.encounter!;
       if (s.cards[enc.iceId]?.dynamicEtrSubroutineCountFromCorpHandSize) {
         syncCorpHandSizeSubroutines(s, enc.iceId);
@@ -3039,7 +3090,8 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         const runState = s.run!;
-        const enc = runState.encounter!;
+        const enc = runState.encounter;
+        if (!enc) return;
         const ice = s.cards[enc.iceId];
         if (!ice) return;
         if (maybeOfferSubroutineOrder(s)) return;
@@ -3152,7 +3204,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         const server = s.servers[s.run.attackedServerId];
         const pos = server.ice.indexOf(iceId);
         if (pos >= 0) {
-          s.run.position = pos;
+          setRunnerPosition(s.run, pos);
           s.run.reencounterIceId = undefined;
           s.log.push(
             `Sisyphus — Runner encounters ${s.cards[iceId]?.title ?? iceId} again.`,
@@ -3197,7 +3249,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             srv.ice.includes(parentId),
           );
           if (host && host.id === s.run.attackedServerId) {
-            s.run.position = host.ice.indexOf(parentId);
+            setRunnerPosition(s.run, host.ice.indexOf(parentId));
           }
           if (s.run.suspendedEncounter?.iceId === parentId) {
             s.run.encounter = s.run.suspendedEncounter;
@@ -3248,7 +3300,17 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
         }
         const pos = runState.position;
-        if (pos !== null && !afterForcedEncounter) {
+        if (pos !== null && !afterForcedEncounter && runState.positionVacated) {
+          // The Runner passes the position; there is no ice in it to pass
+          // (CR 8.5.10). No position is more inward when no ice is.
+          runState.passReplacedByEncounterEnd = false;
+          runState.passedAllIce =
+            pos >= s.servers[runState.attackedServerId].ice.length;
+          s.log.push(
+            `The Runner passes a position with no ice (CR ${CR.uninstallIceDuringRun.number}, ${CR.destroyPosition.number}).`,
+          );
+        }
+        if (pos !== null && !afterForcedEncounter && !runState.positionVacated) {
           const iceId = s.servers[runState.attackedServerId].ice[pos];
           if (iceId) {
             const iceAtPosition = s.cards[iceId];
@@ -3704,6 +3766,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (
           pos !== null &&
           !afterForcedEncounter &&
+          !runState.positionVacated &&
           runState.encounter?.forbidRunnerBreakThisEncounter
         ) {
           const iceId = s.servers[runState.attackedServerId].ice[pos];
@@ -3747,15 +3810,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.afterMovePaw",
     {
       onResolve: (s) => {
-        const runState = s.run!;
-        const server = s.servers[runState.attackedServerId];
-        if (runState.position === null) return;
-        const nextPos = runState.position + 1;
-        if (nextPos < server.ice.length) {
-          runState.position = nextPos;
-        } else {
-          runState.position = null;
-        }
+        moveRunnerInward(s);
       },
     },
   ),
@@ -5569,7 +5624,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             srv.ice.includes(parentId),
           );
           if (host && host.id === run.attackedServerId) {
-            run.position = host.ice.indexOf(parentId);
+            setRunnerPosition(run, host.ice.indexOf(parentId));
           }
           if (suspended?.iceId === parentId) {
             run.encounter = suspended;
@@ -5611,7 +5666,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               s,
               `${ice.title} is trashed — its own name means this ice (CR ${CR.selfReference.number}).`,
             );
-            trashCorpCardToArchives(s, kitsuneId);
+            trashCorpCardToArchives(s, kitsuneId, "corp");
           }
         }
         s.log.push(`Breach complete (appendix 11.5_7).`);

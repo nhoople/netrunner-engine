@@ -43,36 +43,32 @@ export function titaniumRibsChoosesGripTrash(state: GameState): boolean {
   );
 }
 
-/** Chronos chooses the first card; the rest are random; all leave together (CR 10.4.3a). */
-export function resolveChronosFirstNetPick(state: GameState, cardId: string): void {
+/**
+ * Chronos Protocol: the Corp selects the first card, or selects none and
+ * leaves all of them to chance ("you may"). The rest are random, and all
+ * leave together (CR 10.4.3a). The damage then finishes as any other does,
+ * so what follows suffering damage is met here too.
+ */
+export function resolveChronosFirstNetPick(state: GameState, cardId: string | null): void {
   const total = state.turn.uotChronosTrashRemaining ?? 0;
   const owed = state.turn.uotChronosNetAmount ?? total;
+  const sourceId = state.turn.uotChronosSourceId ?? state.corp.identityId;
   state.turn.uotChronosTrashRemaining = undefined;
   state.turn.uotChronosNetAmount = undefined;
-  if (!state.runner.hand.includes(cardId) || total <= 0) return;
-  const handBefore = state.runner.hand.length;
+  state.turn.uotChronosSourceId = undefined;
+  if (total <= 0) return;
+  if (cardId !== null && !state.runner.hand.includes(cardId)) return;
+  const first = cardId === null ? [] : [cardId];
   const rest = state.runner.hand.filter((id) => id !== cardId);
-  const random = pickRandomSubset(state, rest, Math.min(total - 1, rest.length));
-  const picks = [cardId, ...random];
-  const lethal = owed > handBefore;
-  if (lethal) state.turn.lethalDamageSkippingTrashTriggers = true;
-  beginGripOrStackTrashBatch(state);
-  for (const id of picks) trashToHeap(state, id);
-  endGripOrStackTrashBatch(state);
-  if (lethal) state.turn.lethalDamageSkippingTrashTriggers = false;
+  const random = pickRandomSubset(state, rest, Math.min(total - first.length, rest.length));
+  const picks = [...first, ...random];
   log(
     state,
-    `Chronos Protocol — ${picks.length} card(s) trashed simultaneously (CR ${CR.sequentialDamageSelection.number}, ${CR.multipleDamageSimultaneous.number}).`,
+    cardId === null
+      ? `Chronos Protocol — the Corp selects no card; ${picks.length} card(s) are chosen at random (CR ${CR.multipleDamageSimultaneous.number}).`
+      : `Chronos Protocol — the Corp selects 1 card and ${random.length} more are chosen at random; all are trashed together (CR ${CR.sequentialDamageSelection.number}, ${CR.multipleDamageSimultaneous.number}).`,
   );
-  if (owed > picks.length) {
-    state.winner = "corp";
-    state.winReason = "flatline";
-    state.done = true;
-    log(
-      state,
-      `Runner flatlined — could not suffer remaining ${owed - picks.length} net damage (CR ${CR.flatline.number}).`,
-    );
-  }
+  sufferPickedDamage(state, "net", owed, sourceId, picks, state.runner.coreDamage);
 }
 
 /** Core damage includes the older "brain damage" alias (CR §10.4.2c). */
@@ -452,6 +448,7 @@ export function resolveDamage(
     state.turn.uotChronosNetDamageUsedThisTurn = true;
     state.turn.uotChronosTrashRemaining = toTrash;
     state.turn.uotChronosNetAmount = amount;
+    state.turn.uotChronosSourceId = sourceId;
     const grip = [...state.runner.hand];
     const ribsChoose = titaniumRibsChoosesGripTrash(state);
     const chooser =
@@ -461,21 +458,38 @@ export function resolveDamage(
       chooser,
       // The Corp looks at the grip, so both players read these options.
       shownToOpponent: true,
-      options: grip.map((id) => ({
-        id: `chronos:${id}`,
-        label: `Trash ${state.cards[id]!.title}`,
-        effect: {
-          op: "do" as const,
-          action: {
-            kind: "trash_chronos_pick" as const,
-            cardId: id,
+      options: [
+        ...grip.map((id) => ({
+          id: `chronos:${id}`,
+          label: `Trash ${state.cards[id]!.title}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "trash_chronos_pick" as const,
+              cardId: id,
+            },
           },
-        },
-      })),
+        })),
+        // "You may ... select the card that is trashed": the Corp may leave
+        // the card to chance.
+        ...(chooser === "corp"
+          ? [
+              {
+                id: "chronos:random",
+                label: "Do not select a card: trash at random",
+                effect: {
+                  op: "do" as const,
+                  action: { kind: "trash_chronos_pick" as const, cardId: "" },
+                },
+              },
+            ]
+          : []),
+      ],
     })) {
       state.turn.uotChronosNetDamageUsedThisTurn = false;
       state.turn.uotChronosTrashRemaining = 0;
       state.turn.uotChronosNetAmount = 0;
+      state.turn.uotChronosSourceId = undefined;
     } else {
     if (ribsChoose) {
       log(

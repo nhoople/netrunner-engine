@@ -328,7 +328,8 @@ export type Primitive =
       then?: Effect;
     }
   /** Leaf: trash a specific card from HQ. */
-  | { kind: "trash_hq_card"; cardId: string }
+  /** `by`: the player the text says trashes the card, when not the controller (CR 1.14.5). */
+  | { kind: "trash_hq_card"; cardId: string; by?: "corp" | "runner" }
   /**
    * Follow-up the engine builds while a reaction window asks which pending
    * ability its controller triggers next (CR 9.2.8d). Not for card data.
@@ -1943,6 +1944,8 @@ export type Primitive =
   | { kind: "set_nested_encounter_then_resume_source"; iceId: string }
   /** Mystic Maemi: trash N random cards from grip. */
   | { kind: "trash_random_from_grip"; amount: number }
+  /** The Corp reveals and trashes `amount` cards from HQ, chosen at random. */
+  | { kind: "reveal_trash_random_from_hq"; amount: number }
   /**
    * Paladin Poemu: Runner must trash 1 of their installed cards
    * (chooser; may include source).
@@ -2528,7 +2531,12 @@ export type Primitive =
   | { kind: "breach_hq_no_root" }
   | { kind: "cap_run_access_remaining"; max: number }
   | { kind: "break_subroutine_on_self"; amount: number }
-  | { kind: "accelerated_diagnostics" }
+  /**
+   * `cardIds`: the looked-at cards not yet played or trashed. `playId`: the
+   * one the Corp chose to play next. `done`: the Corp plays no more. All
+   * three are set while the card resolves.
+   */
+  | { kind: "accelerated_diagnostics"; cardIds?: string[]; playId?: string; done?: boolean }
   | { kind: "score_unorthodox_predictions_on" }
   | { kind: "reveal_grip" }
   | { kind: "reveal_grip_may_trash_one" }
@@ -5715,6 +5723,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_choose_other_rezzed_ice_encounter_then_resume_source",
   "set_nested_encounter_then_resume_source",
   "trash_random_from_grip",
+  "reveal_trash_random_from_hq",
   "trash_must_own_installed",
   "look_top_n_stack_peek",
   "reveal_top_stack_may_install_program_or_hardware",

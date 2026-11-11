@@ -3095,6 +3095,8 @@ export interface TurnBookkeeping {
   uotChronosTrashRemaining?: number;
   /** UOT: full net-damage amount for the open Chronos choice, including a flatline excess. */
   uotChronosNetAmount?: number;
+  /** UOT: the source of the net damage the open Chronos choice finishes. */
+  uotChronosSourceId?: string;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF / Asa: first Corp card-install ability already marked this turn. */
@@ -4240,6 +4242,11 @@ export type RunPhase =
 
 export interface EncounterState {
   iceId: string;
+  /**
+   * The encountered ice was uninstalled. The encounter ends once any open
+   * paid ability window is completed (CR 6.2.7c, 8.5.10).
+   */
+  iceUninstalled?: boolean;
   /** Parallel to card.subroutines — true if broken this encounter. */
   broken: boolean[];
   /** Subroutines that resolved this encounter, including replacements (CR 9.8.9). */
@@ -4305,6 +4312,17 @@ export interface RunState {
   phase: RunPhase;
   /** Ice index being approached/encountered, or null when past ice. */
   position: number | null;
+  /**
+   * The ice in the Runner's position was uninstalled. The position exists
+   * until the Runner moves (CR 6.2.4); `position` is the index the next ice
+   * inward now has.
+   */
+  positionVacated?: boolean;
+  /**
+   * The approached ice was uninstalled. The approach ends once any open
+   * paid ability window is completed (CR 6.2.7a, 8.5.10).
+   */
+  approachedIceUninstalled?: boolean;
   /**
    * Times net damage has become imminent this run, including damage that
    * an interrupt then prevents (CR 9.9.5a).

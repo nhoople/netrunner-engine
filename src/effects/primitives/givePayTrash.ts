@@ -1,5 +1,6 @@
 /** Crimson Dust (cd) Red Sand pack primitives — v1.134.0. */
 import { log } from "../../state/createGame.js";
+import { addOutermostIce } from "../../state/runPosition.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import { corpInstallCost } from "../../state/costs.js";
@@ -415,7 +416,8 @@ logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or
       state.corp.credits -= total;
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       if (card.type === "ice") {
-        server.ice.push(cardId);
+        // Outermost, as the text names no other position (CR 6.2.2a).
+        addOutermostIce(state, serverId, cardId);
         card.zone = `server:${serverId}:ice`;
       } else {
         server.root.push(cardId);

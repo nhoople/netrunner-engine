@@ -553,7 +553,8 @@ export function noteFirstCorpCardTrashEachTurn(
   trashedBy: "corp" | "runner" = "runner",
 ): void {
   noteRunnerStoleOrTrashedCorpCard(state);
-  state.turn.runnerTrashedCorpCardThisTurn = trashedBy === "runner";
+  // A later Corp trash does not undo an earlier Runner trash this turn.
+  if (trashedBy === "runner") state.turn.runnerTrashedCorpCardThisTurn = true;
   // Hostile Infrastructure meets its trigger only when the Runner trashes
   // the Corp card (CR 1.14.5a).
   if (trashedBy !== "runner") return;

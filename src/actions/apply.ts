@@ -1,4 +1,5 @@
 import { endLooksAndReveals, lookAtChoiceCards } from "../state/reveal.js";
+import { setRunnerPosition } from "../state/runPosition.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
 import {
   costCardNeedForAction,
@@ -498,13 +499,13 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
   if (optionId.startsWith("chronos:")) {
     const cardId = optionId.slice("chronos:".length);
-    if (!cardId) {
+    if (!cardId || !pending.options.some((option) => option.id === optionId)) {
       return fail("Choose the first card for this net damage.", [
         CR.sequentialDamageSelection,
       ]);
     }
     state.pendingChoice = null;
-    resolveChronosFirstNetPick(state, cardId);
+    resolveChronosFirstNetPick(state, cardId === "random" ? null : cardId);
     return ok(state);
   }
   if (optionId.startsWith("diwan:")) {
@@ -733,7 +734,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         const ice = state.cards[id];
         return Boolean(ice?.rezzed && chosen && ice.title === chosen.title && id !== cardId);
       });
-    if (copyId) trashCorpCardToArchives(state, copyId);
+    if (copyId) trashCorpCardToArchives(state, copyId, "runner");
     const at = state.run.accessCandidates.indexOf(cardId);
     if (at >= 0) state.run.accessCandidates.splice(at, 1);
     state.run.immolationScriptAccessReplace = false;
@@ -1107,7 +1108,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const server = state.servers[state.run.attackedServerId];
     const pos = server?.ice.indexOf(iceId) ?? -1;
     if (pos >= 0) {
-      state.run.position = pos;
+      setRunnerPosition(state.run, pos);
       state.run.reencounterIceId = undefined;
       enterStep(state, "run.approachIce");
       autoWalk(state);
@@ -1141,7 +1142,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const server = state.servers[state.run.attackedServerId];
     const pos = server?.ice.indexOf(iceId) ?? -1;
     if (pos >= 0) {
-      state.run.position = pos;
+      setRunnerPosition(state.run, pos);
     }
     state.run.forceEncounterIceId = iceId;
     enterStep(state, "run.approachIce");
@@ -2971,7 +2972,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         const server = next.servers[next.run.attackedServerId];
         const pos = server?.ice.indexOf(iceId) ?? -1;
         if (pos >= 0) {
-          next.run.position = pos;
+          setRunnerPosition(next.run, pos);
           next.run.reencounterIceId = undefined;
           enterStep(next, "run.approachIce");
           autoWalk(next);

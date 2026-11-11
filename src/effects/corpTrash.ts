@@ -88,8 +88,8 @@ export function maybeTrashHostsAtStrengthLte(state: GameState): void {
     }
     if (trashed.has(hostId)) continue;
     trashed.add(hostId);
-    trashCorpCardToArchives(state, hostId);
-    if (state.run?.encounter?.iceId === hostId) state.run.encounter = null;
+    // The Runner controls the hosted card's ability (CR 1.14.5).
+    trashCorpCardToArchives(state, hostId, "runner");
     log(
       state,
       `Trash ${host.title} — host strength ${str} ≤ parasite threshold (CR ${CR.trashing.number}).`,
@@ -119,10 +119,15 @@ function noteStaticConditionResolvedWithNoEffect(
   );
 }
 
+/**
+ * `trashedBy` is the player who carries out the trash: the controller of the
+ * ability, unless its text names the other player (CR 1.14.5). Conditions
+ * that care who trashed a card read it, not whose turn it is (CR 1.14.5a).
+ */
 export function trashCorpCardToArchives(
   state: GameState,
   cardId: string,
-  trashedBy: "corp" | "runner" = state.activeSide,
+  trashedBy: "corp" | "runner",
 ): void {
   const card = state.cards[cardId];
   const wasRezzed = Boolean(card.rezzed);
@@ -146,10 +151,7 @@ export function trashCorpCardToArchives(
     return;
   }
   // Kessleroid: Runner cannot trash while rezzed.
-  if (
-    runnerCannotTrashWhileRezzed(state, cardId) &&
-    state.activeSide === "runner"
-  ) {
+  if (runnerCannotTrashWhileRezzed(state, cardId) && trashedBy === "runner") {
     log(state, `Cannot trash rezzed ${card.title}.`);
     return;
   }
@@ -214,7 +216,7 @@ export function trashCorpCardToArchives(
   noteCorpCardAddedToArchives(state);
   if (wasInstalled) {
     onInstalledCorpCardTrashed(state, card, wasRezzed);
-    if (state.activeSide === "runner") {
+    if (trashedBy === "runner") {
       const serverId = zoneBefore.split(":")[1] as import("../state/types.js").ServerId;
       if (serverId) onRunnerTrashedFromServer(state, serverId);
     }
@@ -233,7 +235,7 @@ export function trashCorpCardToArchives(
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
   maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);
-  maybeFireWarroidTracker(state, wasInstalled, cardId, zoneBefore);
+  maybeFireWarroidTracker(state, wasInstalled, trashedBy, zoneBefore);
   maybeFireAuCoOnHqTrash(state, wasFromHq);
 
 }
@@ -299,11 +301,13 @@ function maybeFireYakovCredits(
 function maybeFireWarroidTracker(
   state: GameState,
   wasInstalled: boolean,
-  _trashedId: string,
+  trashedBy: "corp" | "runner",
   zoneBefore: string,
 ): void {
   if (!wasInstalled) return;
-  if (state.activeSide !== "runner") return;
+  // "Whenever the Runner trashes": met by the Runner's trash on either
+  // player's turn, and not by the Corp's (CR 1.14.5a).
+  if (trashedBy !== "runner") return;
   const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
   if (!m) return;
   const sid = m[1]!;

@@ -1,5 +1,6 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
 import { revealCards } from "../../state/reveal.js";
+import { addOutermostIce, setRunnerPosition } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { corpInstallCost } from "../../state/costs.js";
@@ -249,7 +250,7 @@ export function applyKitaraWinPrimitive(
       if (!server) return { ok: true };
       state.run.attackedServerId = serverId;
       const pos = server.ice.indexOf(action.iceId);
-      state.run.position = pos >= 0 ? pos : 0;
+      setRunnerPosition(state.run, pos >= 0 ? pos : 0);
       state.run.encounter = {
         iceId: action.iceId,
         broken: (state.cards[action.iceId]?.subroutines ?? []).map(() => false),
@@ -510,7 +511,8 @@ export function applyKitaraWinPrimitive(
       ice.zone = `server:${serverId}:ice`;
       ice.rezzed = true;
       ice.faceup = true;
-      server.ice.push(action.iceId);
+      // Outermost, as the text names no other position (CR 6.2.2a).
+      addOutermostIce(state, serverId, action.iceId);
       shuffleInPlace(state, state.corp.deck);
       log(
         state,

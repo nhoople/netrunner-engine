@@ -12,7 +12,7 @@ import {
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
-import { maybeTrashHostsAtStrengthLte } from "./corpTrash.js";
+import { maybeTrashHostsAtStrengthLte, trashCorpCardToArchives } from "./corpTrash.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
 import {
@@ -74,16 +74,8 @@ export function applyCounterPrimitive(
             state,
             `${source.title} trashes host ${host.title} (${source.virusCounters} virus).`,
           );
-          // Move ice to Archives (faceup).
-          for (const server of Object.values(state.servers)) {
-            const i = server.ice.indexOf(hostId);
-            if (i >= 0) server.ice.splice(i, 1);
-          }
-          host.zone = "corp:archives";
-          host.faceup = true;
-          host.rezzed = false;
-          state.corp.discardPile.push(hostId);
-          // Hosted programs go to heap with ice trash — leave to trash hooks if present.
+          // The Runner controls the hosted program's ability (CR 1.14.5).
+          trashCorpCardToArchives(state, hostId, "runner");
         }
       }
       maybeTrashHostsAtStrengthLte(state);

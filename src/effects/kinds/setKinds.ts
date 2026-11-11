@@ -6,6 +6,7 @@ import type {
   EffectCtx,
   EvalResult,
 } from "../eval.js";
+import { setRunnerPosition } from "../../state/runPosition.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -152,7 +153,7 @@ case "set_reencounter_ice": {
       // Prefer attacked-server ice index when present.
       const attacked = state.servers[state.run.attackedServerId];
       const attackedPos = attacked?.ice.indexOf(action.iceId) ?? -1;
-      state.run.position = attackedPos >= 0 ? attackedPos : pos;
+      setRunnerPosition(state.run, attackedPos >= 0 ? attackedPos : pos);
       state.run.reencounterIceId = action.iceId;
       if (state.run.accessingCardId) {
         state.run.resumeAccessAfterReencounter = true;
@@ -185,7 +186,7 @@ case "set_nested_encounter_then_resume_source": {
         s.ice.includes(action.iceId),
       );
       if (host && host.id === state.run.attackedServerId) {
-        state.run.position = host.ice.indexOf(action.iceId);
+        setRunnerPosition(state.run, host.ice.indexOf(action.iceId));
       }
       log(
         state,

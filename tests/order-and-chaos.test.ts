@@ -18,7 +18,7 @@ describe("order-and-chaos", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Order and Chaos v1.108.0 set-complete", () => {

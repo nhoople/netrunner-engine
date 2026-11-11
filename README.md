@@ -9,7 +9,7 @@ Hand-authored TypeScript **rules engine library** for Android: Netrunner. It is 
 Depends on:
 
 - [netrunner-comprehensive-rules-data](https://github.com/nhoople/netrunner-comprehensive-rules-data) pinned to tag **`v26.03`**
-- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.147.21`**
+- [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data) pinned to tag **`v1.147.22`**
 
 ### Cards ↔ engine pairing
 
@@ -17,7 +17,7 @@ A set-complete shares one semver on cards-data and this engine. The current floo
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.147.21`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.21) | [`v1.147.247`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.247) (maintenance pair, not one shared semver; pins cards v1.147.21; a look or a search is seen by the player making it and no one else, Keyhole and Accelerated Diagnostics included, and every reveal is recorded for both players) |
+| **Current** | [`v1.147.22`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.22) | [`v1.147.248`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.248) (maintenance pair, not one shared semver; pins cards v1.147.22; ice uninstalled while it is approached or encountered ends that approach or encounter and the Runner passes its position, the controller of an ability is the player who trashes, and ability installs put ice outermost) |
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 
@@ -104,7 +104,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template)
 
 Scenario tests ported from [mtgred/netrunner](https://github.com/mtgred/netrunner) follow [`docs/jnet-test-ports.md`](docs/jnet-test-ports.md): quarantined under `tests/jnet/`, native-style titles with the upstream `deftest` name kept as provenance, and a promoted native test for every engine fix they produce.
 
-**Corpus status:** Cards pin **`v1.147.21`** (side and type, deck limits, printings, verified rulings, and format lists; double-sided identity faces, uniqueness, and attribution restored). Title corpus unchanged from **`v1.147.6`** — Magnum Opus complete (**8/8**; `mor` absorbed). Printed link, deck size, influence limit, and influence cost; ice, assets, and upgrades omit a copied install cost. Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
+**Corpus status:** Cards pin **`v1.147.22`** (side and type, deck limits, printings, verified rulings, and format lists; double-sided identity faces, uniqueness, and attribution restored). Title corpus unchanged from **`v1.147.6`** — Magnum Opus complete (**8/8**; `mor` absorbed). Printed link, deck size, influence limit, and influence cost; ice, assets, and upgrades omit a copied install cost. Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
 
 ## CR pin (`v26.03`)
 
@@ -118,7 +118,7 @@ Scenario tests ported from [mtgred/netrunner](https://github.com/mtgred/netrunne
 
 CR data is authority for **citations and timing IDs**, not executable card behavior. The engine does **not** compile `nodes.json` into effects. When Null Signal ships a new CR, follow [`docs/cr-pin-bump-checklist.md`](docs/cr-pin-bump-checklist.md).
 
-## Card pin (`v1.147.21`)
+## Card pin (`v1.147.22`)
 
 Cards remain **pure data**. Definitions live in the sibling consumer repo [netrunner-cards-data](https://github.com/nhoople/netrunner-cards-data); this engine keeps loader / Effect IR / eval.
 
@@ -128,7 +128,7 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 | Fetch script | [`scripts/fetch-cards-data.mjs`](scripts/fetch-cards-data.mjs) — `npm run fetch-cards` |
 | Vendored files | `vendor/cards-data/` (`schema.json`, `pool.json`, `corp/`, `runner/`, `PIN.json`) |
 
-`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (cards pin **`v1.147.21`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
+`vendor/cards-data/` is gitignored; a clean checkout needs `npm run fetch-cards` (or `npm run prepare-data`) before tests. The loader validates Effect IR and **fails closed** on unknown nodes. `pool.json` declares the supported corpus and **corpus order through Magnum Opus** (cards pin **`v1.147.22`**; `mor` absorbed) then SC19 → Downfall → Uprising → Gateway → SU21 → Midnight Sun → Parhelion → TAI → RWR → Elevation → Vantage Point. Partial cards mark unimplemented clauses in an `unsupported` array.
 
 **Authoritative corpus:** pinned cards `pool.json` — **68/68** waves `supported` (see `corpusOrder` + wave `status` / card counts). Do not treat any shorter README wave list as complete.
 

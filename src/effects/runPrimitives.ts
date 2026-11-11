@@ -3,6 +3,7 @@
  * live here; the rest of the run flow stays in eval.ts.
  */
 import { revealCards } from "../state/reveal.js";
+import { pickRandomSubset } from "../state/rng.js";
 import { log } from "../state/createGame.js";
 import {
   hasPayableEndTheRunInterrupt,
@@ -20,7 +21,7 @@ type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
 
-type TrashCorpCard = (state: GameState, cardId: string) => void;
+type TrashCorpCard = (state: GameState, cardId: string, trashedBy: "corp" | "runner") => void;
 
 type CanPayTakeTags = (state: GameState, amount: number) => boolean;
 
@@ -310,7 +311,7 @@ function offerGeneralUnless(
   });
 }
 
-function endTheRun(ctx: EffectCtx, trashCorpCardToArchives: TrashCorpCard): PrimResult {
+function endTheRun(ctx: EffectCtx): PrimResult {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   if (!state.run) {
@@ -342,29 +343,40 @@ function endTheRun(ctx: EffectCtx, trashCorpCardToArchives: TrashCorpCard): Prim
     state.run.shredFirstEndTheRunUsed = true;
     const sid = state.run.attackedServerId;
     const rootN = state.servers[sid]?.root.length ?? 0;
-    const hq = [...state.corp.hand];
-    if (rootN > 0 && hq.length >= rootN) {
-      const picks = hq.slice(hq.length - rootN);
-      for (const id of picks) {
-        trashCorpCardToArchives(state, id);
-        revealCards(state, [id], sourceId);
-        log(
-          state,
-          `Shred — Corp reveals and trashes ${state.cards[id]!.title} from HQ.`,
-        );
-      }
-      state.run.endedTheRun = true;
-      state.run.successful = false;
+    // "Prevent the run from ending unless the Corp reveals and trashes X
+    // cards from HQ at random" is a nested cost (CR 1.16.11b). The Corp
+    // decides whether to pay it, a cost of 0 included (CR 1.16.1d), and
+    // cannot pay it with fewer than X cards in HQ (CR 1.16.1).
+    if (state.corp.hand.length < rootN) {
       log(
         state,
-        `Shred — Corp trashed ${rootN} from HQ; end the run proceeds.`,
+        `Shred — the run does not end: the Corp cannot trash ${rootN} card(s) from HQ (CR ${CR.nestedCostUnless.number}).`,
       );
       return { ok: true };
     }
-    log(
-      state,
-      `Shred — prevent end the run (Corp cannot trash ${rootN} from HQ).`,
-    );
+    openPendingChoose(state, {
+      sourceId,
+      chooser: "corp",
+      options: [
+        {
+          id: "end-run-pay",
+          label: `Reveal and trash ${rootN} card(s) from HQ at random to end the run`,
+          effect: {
+            op: "seq",
+            effects: [
+              { op: "do", action: { kind: "reveal_trash_random_from_hq", amount: rootN } },
+              { op: "do", action: { kind: "end_the_run" } },
+            ],
+          },
+        },
+        {
+          id: "end-run-decline",
+          label: "Do not: the run does not end",
+          effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 0 } },
+        },
+      ],
+      logLine: `Shred — the run does not end unless the Corp reveals and trashes ${rootN} card(s) from HQ at random (CR ${CR.nestedCostUnless.number}).`,
+    });
     return { ok: true };
   }
   // Lucky Charm-class: Corp card ability ETR may open interrupt PAW.
@@ -406,7 +418,20 @@ export function applyRunPrimitive(
       return { ok: true };
     }
     case "end_the_run":
-      return endTheRun(ctx, trashCorpCardToArchives);
+      return endTheRun(ctx);
+    case "reveal_trash_random_from_hq": {
+      const picks = pickRandomSubset(state, state.corp.hand, action.amount);
+      // Revealed first, so the Runner sees each card as it is trashed and it
+      // goes to Archives faceup (CR 1.21.3, CR 4.4.6b).
+      revealCards(state, picks, sourceId);
+      for (const id of picks) {
+        trashCorpCardToArchives(state, id, "corp");
+        const card = state.cards[id]!;
+        if (card.zone === "corp:archives") card.faceup = true;
+      }
+      log(state, `The Corp reveals and trashes ${picks.length} card(s) from HQ at random.`);
+      return { ok: true };
+    }
     case "forbid_end_the_run_this_encounter": {
       if (!state.run?.encounter) {
         log(state, `${source.title} — forbid ETR: no encounter.`);

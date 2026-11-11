@@ -1,5 +1,6 @@
 /** The Spaces Between (tsb) Lunar pack primitives. */
 import { revealCards } from "../../state/reveal.js";
+import { trashCorpCardToArchives } from "../corpTrash.js";
 import { loadCardCatalog } from "../../cards/load.js";
 import { log } from "../../state/createGame.js";
 import { autoResolveTrace } from "../../state/trace.js";
@@ -229,17 +230,8 @@ export function applyLunarTsbPrimitive(
       }
       const trashSelf = () => {
         const up = state.cards[sourceId];
-        if (!up) return;
-        for (const server of Object.values(state.servers)) {
-          server.root = server.root.filter((id) => id !== sourceId);
-          server.ice = server.ice.filter((id) => id !== sourceId);
-        }
-        up.zone = "corp:archives";
-        up.rezzed = false;
-        up.faceup = true;
-        if (!state.corp.discardPile.includes(sourceId)) {
-          state.corp.discardPile.push(sourceId);
-        }
+        if (!up || !up.zone.startsWith("server:")) return;
+        trashCorpCardToArchives(state, sourceId, "corp");
       };
       if (used.length === 1) {
         moveRunnerCardToHeap(state, used[0]!);
@@ -268,15 +260,8 @@ export function applyLunarTsbPrimitive(
       }
       const up = state.cards[sourceId];
       if (up) {
-        for (const server of Object.values(state.servers)) {
-          server.root = server.root.filter((id) => id !== sourceId);
-          server.ice = server.ice.filter((id) => id !== sourceId);
-        }
-        up.zone = "corp:archives";
-        up.rezzed = false;
-        up.faceup = true;
-        if (!state.corp.discardPile.includes(sourceId)) {
-          state.corp.discardPile.push(sourceId);
+        if (up.zone.startsWith("server:")) {
+          trashCorpCardToArchives(state, sourceId, "corp");
         }
         log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
       }

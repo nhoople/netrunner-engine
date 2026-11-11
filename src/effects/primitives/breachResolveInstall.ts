@@ -1,5 +1,6 @@
 /** Kampala Ascendent (ka) Kitara pack primitives — v1.141.0. */
 import { subtractRunnerCreditPool } from "../../state/costs.js";
+import { setRunnerPosition } from "../../state/runPosition.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { effectiveIceStrength } from "../../cards/stubs.js";
 import { CR } from "../../timing/labels.js";
@@ -164,7 +165,7 @@ logLine: `Diversion of Funds — may instead of breaching HQ.`,
       ice.zone = `server:${serverId}:ice`;
       ice.rezzed = false;
       ice.faceup = false;
-      state.run.position = server.ice.length - 1;
+      setRunnerPosition(state.run, server.ice.length - 1);
       state.run.encounter = null;
       log(
         state,
