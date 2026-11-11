@@ -498,13 +498,13 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
   if (optionId.startsWith("chronos:")) {
     const cardId = optionId.slice("chronos:".length);
-    if (!cardId) {
+    if (!cardId || !pending.options.some((option) => option.id === optionId)) {
       return fail("Choose the first card for this net damage.", [
         CR.sequentialDamageSelection,
       ]);
     }
     state.pendingChoice = null;
-    resolveChronosFirstNetPick(state, cardId);
+    resolveChronosFirstNetPick(state, cardId === "random" ? null : cardId);
     return ok(state);
   }
   if (optionId.startsWith("diwan:")) {

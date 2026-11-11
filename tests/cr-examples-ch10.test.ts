@@ -606,7 +606,8 @@ describe("CR examples, chapter 10", () => {
     );
     expect(dealt.ok).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(s.pendingChoice?.options).toHaveLength(4);
+    // The four grip cards, and selecting none ("you may").
+    expect(s.pendingChoice?.options).toHaveLength(5);
     const picked = must(s, { type: "choose_option", optionId: "chronos:worse-1" });
     expect(picked.pendingChoice).toBeNull();
     expect(picked.runner.discardPile).toContain("worse-1");
@@ -615,6 +616,48 @@ describe("CR examples, chapter 10", () => {
     expect(picked.log.join("\n")).toContain(CR.sequentialDamageSelection.number);
     expect(picked.runner.hand).toHaveLength(4);
     expect(picked.runner.deck).toEqual([]);
+  });
+
+
+  it("finishes Chronos Protocol's damage like any other, and lets the Corp select no card (CR 10.4.3a)", () => {
+    const board = () => {
+      const s = createInitialState();
+      s.cards[s.corp.identityId]!.corpChoosesFirstNetDamageCardEachTurn = true;
+      const clan = instantiateCard("clan-vengeance", "clan-1", "runner:installed");
+      s.cards["clan-1"] = clan;
+      s.runner.installed = ["clan-1"];
+      for (const id of ["g1", "g2", "g3"]) {
+        s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+      }
+      s.runner.hand = ["g1", "g2", "g3"];
+      const dealt = evalEffect(
+        { state: s, sourceId: s.corp.identityId },
+        { op: "do", action: { kind: "net_damage", amount: 2 } },
+      );
+      expect(dealt.ok).toBe(true);
+      expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+        "chronos:g1",
+        "chronos:g2",
+        "chronos:g3",
+        "chronos:random",
+      ]);
+      return s;
+    };
+    // Clan Vengeance: "Whenever you suffer any amount of damage, place 1
+    // power counter". The damage is suffered when the cards are trashed.
+    const picked = must(board(), { type: "choose_option", optionId: "chronos:g2" });
+    expect(picked.runner.discardPile).toContain("g2");
+    expect(picked.runner.hand).toHaveLength(1);
+    expect(picked.cards["clan-1"]?.powerCounters).toBe(1);
+    expect(picked.pendingDamage).toBeFalsy();
+
+    // "You may": the Corp can leave both cards to chance.
+    const random = must(board(), { type: "choose_option", optionId: "chronos:random" });
+    expect(random.runner.hand).toHaveLength(1);
+    expect(random.runner.discardPile).toHaveLength(2);
+    expect(random.cards["clan-1"]?.powerCounters).toBe(1);
+    // Used for the turn either way.
+    expect(random.turn.uotChronosNetDamageUsedThisTurn).toBe(true);
   });
 
 

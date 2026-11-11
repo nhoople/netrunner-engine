@@ -3095,6 +3095,8 @@ export interface TurnBookkeeping {
   uotChronosTrashRemaining?: number;
   /** UOT: full net-damage amount for the open Chronos choice, including a flatline excess. */
   uotChronosNetAmount?: number;
+  /** UOT: the source of the net damage the open Chronos choice finishes. */
+  uotChronosSourceId?: string;
   /** True if Corp installed any card from HQ this turn (Holo Man). */
   corpInstalledFromHqThisTurn: boolean;
   /** HB ETF / Asa: first Corp card-install ability already marked this turn. */
