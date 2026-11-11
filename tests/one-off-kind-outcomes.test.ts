@@ -29,7 +29,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.21");
+  assertCardsPinnedTag("v1.147.22");
 });
 
 function put(
@@ -6150,6 +6150,145 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(t.corp.deck).toEqual([]);
     expect(t.corp.discardPile).toContain("fa-1");
     expect(t.pendingChoice ?? null).toBeNull();
+  });
+
+  it("Moon Pool: R&D is shuffled even when no card goes into it (ruling 2022-10-22)", () => {
+    const s = createInitialState();
+    put(s, "moon-pool", "mp-1", "removed-from-game");
+    s.corp.hand = [];
+    s.corp.discardPile = [];
+    s.corp.deck = [];
+    for (let i = 0; i < 6; i += 1) {
+      put(s, "hedge-fund", `rd-${i}`, "corp:rd");
+      s.corp.deck.push(`rd-${i}`);
+    }
+    seedRng(s, 7);
+    const before = s.rngState;
+    runKind(s, "mp-1", "resolve_moon_pool", { trashHqMax: 2, revealArchivesMax: 2 });
+    expect(s.cards["mp-1"]?.zone).toBe("removed-from-game");
+    expect(s.pendingChoice ?? null).toBeNull();
+    expect(s.rngState).not.toBe(before);
+    expect([...s.corp.deck].sort()).toEqual(
+      ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4", "rd-5"],
+    );
+  });
+
+  it("Moon Pool: the counter may go on any installed card (CR 1.18.2)", () => {
+    const s = createInitialState();
+    put(s, "moon-pool", "mp-1", "removed-from-game");
+    s.corp.hand = [];
+    put(s, "hostile-takeover", "fa-1", "corp:archives").faceup = false;
+    s.corp.discardPile = ["fa-1"];
+    put(s, "ice-wall", "ice-1", "server:hq:ice");
+    s.servers["hq"]!.ice = ["ice-1"];
+    put(s, "pad-campaign", "asset-1", "server:remote-1:root");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["asset-1"],
+    } as GameState["servers"][string];
+    put(s, "corroder", "prog-1", "runner:installed");
+    s.runner.installed = ["prog-1"];
+    runKind(s, "mp-1", "resolve_moon_pool", { trashHqMax: 2, revealArchivesMax: 2 });
+    let t = choose(s, "choose-card:fa-1");
+    if (t.pendingChoice?.options.some((o) => o.id === "choose-cards-done")) {
+      t = choose(t, "choose-cards-done");
+    }
+    expect(t.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
+      "advance:asset-1",
+      "advance:ice-1",
+      "advance:prog-1",
+      "decline",
+    ]);
+    const placed = choose(t, "advance:prog-1");
+    expect(placed.cards["prog-1"]?.advancementCounters).toBe(1);
+  });
+
+  it("Moon Pool: leaving the game is the cost, so it never enters Archives (CR 1.16.1)", () => {
+    const s = createInitialState();
+    const pool = put(s, "moon-pool", "mp-1", "server:remote-1:root");
+    pool.rezzed = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["mp-1"],
+    } as GameState["servers"][string];
+    s.corp.hand = [];
+    s.corp.discardPile = [];
+    s.corp.clicks = 3;
+    s.activeSide = "corp";
+    s.timingKey = "corp.actionPaw";
+    const r = applyAction(s, {
+      type: "use_paid_ability",
+      cardId: "mp-1",
+      abilityId: "moon-pool-resolve",
+    });
+    if (!r.ok) throw new Error(r.error);
+    const t = r.state;
+    expect(t.cards["mp-1"]?.zone).toBe("removed-from-game");
+    expect(t.corp.discardPile).not.toContain("mp-1");
+    // No click is printed in the cost.
+    expect(t.corp.clicks).toBe(3);
+    // Regenesis still sees no Corp card added to Archives this turn.
+    expect(t.turn.corpCardsAddedToArchivesThisTurn).toBe(0);
+  });
+
+  it("Spin Doctor: removed from the game as the cost, it is not among the cards to shuffle back", () => {
+    const s = createInitialState();
+    const doc = put(s, "spin-doctor", "sd-1", "server:remote-1:root");
+    doc.rezzed = true;
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["sd-1"],
+    } as GameState["servers"][string];
+    put(s, "hedge-fund", "arc-1", "corp:archives").faceup = true;
+    put(s, "ice-wall", "arc-2", "corp:archives").faceup = true;
+    s.corp.discardPile = ["arc-1", "arc-2"];
+    s.activeSide = "corp";
+    s.timingKey = "corp.actionPaw";
+    const r = applyAction(s, {
+      type: "use_paid_ability",
+      cardId: "sd-1",
+      abilityId: "spin-doctor-rfg",
+    });
+    if (!r.ok) throw new Error(r.error);
+    const t = r.state;
+    expect(t.cards["sd-1"]?.zone).toBe("removed-from-game");
+    expect(t.corp.discardPile).not.toContain("sd-1");
+    expect(t.pendingChoice?.options.map((o) => o.id)).not.toContain(
+      "choose-card:sd-1",
+    );
+    expect(t.pendingChoice?.options.map((o) => o.id)).toContain(
+      "choose-card:arc-1",
+    );
+  });
+
+  it("Buffer Drive: removed from the game as the cost, not as part of the effect", () => {
+    const s = createInitialState();
+    put(s, "buffer-drive", "buf-1", "runner:installed");
+    s.runner.installed = ["buf-1"];
+    put(s, "sure-gamble", "heap-1", "runner:heap");
+    s.runner.discardPile = ["heap-1"];
+    s.activeSide = "runner";
+    s.timingKey = "runner.actionPaw";
+    const r = applyAction(s, {
+      type: "use_paid_ability",
+      cardId: "buf-1",
+      abilityId: "buffer-drive-heap-top",
+    });
+    if (!r.ok) throw new Error(r.error);
+    let t = r.state;
+    expect(t.cards["buf-1"]?.zone).toBe("removed-from-game");
+    expect(t.runner.installed).not.toContain("buf-1");
+    expect(getCardDef("buffer-drive").paidAbilities![0]!.cost).toEqual({
+      rfgSelf: true,
+    });
+    t = choose(t, "heap-stack-top:heap-1");
+    expect(t.runner.deck[0]).toBe("heap-1");
   });
 
   it("Mutate: reveals until ice, installs/rezzes in trashed slot, shuffles R&D", () => {

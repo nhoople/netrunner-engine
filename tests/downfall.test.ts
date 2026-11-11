@@ -45,7 +45,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.47.0 kickoff", () => {
@@ -128,7 +128,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.48.0 A-slice", () => {
@@ -235,7 +235,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   function corpWithVulnerabilityAudit(): GameState {
@@ -390,7 +390,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.51.0 C-slice", () => {
@@ -483,7 +483,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.51.0 D-slice", () => {
@@ -580,7 +580,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.52.0 E-slice", () => {
@@ -699,7 +699,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.53.0 F-slice", () => {
@@ -763,7 +763,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.54.0 G-slice", () => {
@@ -941,7 +941,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.55.0 H-slice", () => {
@@ -1117,7 +1117,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.56.0 I-slice", () => {
@@ -1250,7 +1250,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.57.0 J-slice", () => {
@@ -1461,7 +1461,7 @@ describe("downfall", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.21");
+    assertCardsPinnedTag("v1.147.22");
   });
 
   describe("Downfall v1.58.0 K-slice", () => {

@@ -18,7 +18,7 @@ import {
   removeCardFromCurrentZone,
   stealAgenda,
 } from "../../state/scoring.js";
-import { noteCorpCardAddedToArchives } from "../../state/trashHooks.js";
+import { trashCorpCardToArchives } from "../corpTrash.js";
 import {
   memoryLimit,
   usedMemory,
@@ -132,16 +132,19 @@ logLine: `${source.title} — may install 1 program or virtual (−${discount}¢
 case "resolve_moon_pool": {
       // Each "up to" and each target is the Corp's choice (CR 1.15.2).
       if (!action.step) {
-        // RFG self (typically after trashSelf cost left it in Archives).
-        removeCardFromCurrentZone(state, sourceId);
-        if (!state.removedFromGame) state.removedFromGame = [];
-        if (!state.removedFromGame.includes(sourceId)) {
-          state.removedFromGame.push(sourceId);
+        // Removing Moon Pool from the game is its cost. A catalog that still
+        // trashes it as the cost is caught here.
+        if (source.zone !== "removed-from-game") {
+          removeCardFromCurrentZone(state, sourceId);
+          if (!state.removedFromGame) state.removedFromGame = [];
+          if (!state.removedFromGame.includes(sourceId)) {
+            state.removedFromGame.push(sourceId);
+          }
+          source.zone = "removed-from-game";
+          source.faceup = true;
+          source.rezzed = false;
+          log(state, `${source.title} is removed from the game (Moon Pool).`);
         }
-        source.zone = "removed-from-game";
-        source.faceup = true;
-        source.rezzed = false;
-        log(state, `${source.title} is removed from the game (Moon Pool).`);
         return evalEffect(
           ctx,
           chooseCards({
@@ -159,14 +162,8 @@ case "resolve_moon_pool": {
         const picked = (action.cardIds ?? []).filter((id) =>
           state.corp.hand.includes(id),
         );
-        for (const id of picked) {
-          state.corp.hand = state.corp.hand.filter((x) => x !== id);
-          state.corp.discardPile.push(id);
-          state.cards[id].zone = "corp:archives";
-          // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-          state.cards[id].faceup = false;
-          noteCorpCardAddedToArchives(state);
-        }
+        // The Corp trashes them (CR 1.14.5); from HQ they go facedown (CR 4.4.6b).
+        for (const id of picked) trashCorpCardToArchives(state, id, "corp");
         log(state, `${source.title} — trash ${picked.length} card(s) from HQ.`);
         return evalEffect(
           ctx,
@@ -198,7 +195,9 @@ case "resolve_moon_pool": {
         if (revealed.length > 0) {
           log(state, `${source.title} — ${revealed.length} revealed card(s) go from Archives into R&D.`);
         }
-        if (revealed.length > 0) shuffleInPlace(state, state.corp.deck);
+        // R&D is shuffled even when no card goes into it (Moon Pool ruling,
+        // 2022-10-22).
+        shuffleInPlace(state, state.corp.deck);
         const agendas = revealed.filter(
           (id) => state.cards[id].type === "agenda",
         ).length;
@@ -216,10 +215,13 @@ case "resolve_moon_pool": {
       // advancement counter on an installed card of their choice.
       const left = action.agendasLeft ?? 0;
       if (left <= 0) return { ok: true };
+      // "An installed card": placing a counter is not advancing, so the card
+      // need not be one the Corp can advance, or the Corp's (CR 1.18.2).
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) targets.push(id);
       }
+      for (const id of state.runner.installed) targets.push(id);
       if (targets.length === 0) {
         log(state, `${source.title} — no installed card for an advancement counter.`);
         return { ok: true };
@@ -235,7 +237,7 @@ case "resolve_moon_pool": {
         options: [
           ...targets.map((id) => ({
             id: `advance:${id}`,
-            label: `Advance ${state.cards[id].title}`,
+            label: `Place 1 advancement counter on ${state.cards[id].title}`,
             effect: {
               op: "seq" as const,
               effects: [
@@ -278,14 +280,8 @@ case "resolve_simulation_reset": {
         const picked = (action.cardIds ?? []).filter((id) =>
           state.corp.hand.includes(id),
         );
-        for (const id of picked) {
-          state.corp.hand = state.corp.hand.filter((x) => x !== id);
-          state.corp.discardPile.push(id);
-          state.cards[id].zone = "corp:archives";
-          // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-          state.cards[id].faceup = false;
-          noteCorpCardAddedToArchives(state);
-        }
+        // The Corp trashes them (CR 1.14.5); from HQ they go facedown (CR 4.4.6b).
+        for (const id of picked) trashCorpCardToArchives(state, id, "corp");
         log(state, `${source.title} — trash ${picked.length} card(s) from HQ.`);
         return evalEffect(
           ctx,
