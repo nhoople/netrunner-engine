@@ -238,15 +238,18 @@ describe("looking at cards", () => {
     }
   });
 
-  it("leaves no card in R&D, the stack, or HQ faceup once nothing is pending", () => {
+  it("leaves no card in R&D or HQ faceup once nothing is pending, and leaves the Runner's cards as dealt", () => {
     let s = board();
     doKind(s, "src-c", "search_rd_to_hq", { amount: 1 });
     s = choose(s, "choose-card:rd-3");
     expect(s.pendingChoice).toBeFalsy();
     expect(s.corp.hand).toContain("rd-3");
-    for (const id of [...s.corp.deck, ...s.runner.deck, ...s.corp.hand]) {
+    for (const id of [...s.corp.deck, ...s.corp.hand]) {
       expect(s.cards[id]?.faceup, id).toBe(false);
     }
+    // A Runner card keeps the flag it was dealt with, so one drawn and then
+    // installed or trashed by any path is faceup (CR 8.5.4, CR 8.1.4c).
+    for (const id of s.runner.deck) expect(s.cards[id]?.faceup, id).toBe(true);
   });
 
   it("offers a reveal without naming the card the player has not seen", () => {
@@ -413,12 +416,17 @@ describe("revealing cards", () => {
     expect(root.find((entry) => entry.id === "pad-1")?.title).toBeNull();
   });
 
-  it("does not leave a revealed card faceup in a deck", () => {
+  it("keeps a revealed card in the record and nowhere else once it is back in the deck (CR 1.21.6)", () => {
     let s = board();
     doKind(s, "src-r", "reveal_top_may_bottom");
     s = choose(s, "angel-keep");
     expect(s.runner.deck[0]).toBe("st-0");
-    for (const id of s.runner.deck) expect(s.cards[id]?.faceup).toBe(false);
+    const title = s.cards["st-0"]!.title;
+    expect(titles(s.reveals)).toEqual([title]);
+    // The reveal is in the record and the log. The board does not show the card.
+    const { reveals: _record, log: _log, ...rest } = getPublicView(s, "corp");
+    expect(JSON.stringify(rest)).not.toContain(title);
+    expect(JSON.stringify(rest)).not.toContain(`"st-0"`);
   });
 
   it("has the Corp look, not the Runner, when Insight is played", () => {

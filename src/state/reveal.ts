@@ -81,12 +81,13 @@ export function lookAtCards(
 
 /**
  * The resolving ability is finished: nobody is looking any more, and a card
- * in R&D, the stack, or HQ is neither faceup nor facedown
- * (CR 1.21.6, CR 1.21.1a). Cards in the grip keep the flag, which Runner
- * cards carry from the start and which the Corp's view does not read.
+ * in R&D or HQ is neither faceup nor facedown (CR 1.21.6, CR 1.21.1a).
+ * Runner cards are left alone. They carry the faceup flag from the start,
+ * the Corp's view does not read it for a card in the stack or the grip, and
+ * the paths that later install or trash them expect it.
  */
 export function endLooksAndReveals(state: GameState): void {
-  const hidden = new Set([...state.corp.deck, ...state.runner.deck, ...state.corp.hand]);
+  const hidden = new Set([...state.corp.deck, ...state.corp.hand]);
   for (const card of Object.values(state.cards)) {
     if (card.lookedBy) delete card.lookedBy;
     if (card.faceup && hidden.has(card.id)) card.faceup = false;
