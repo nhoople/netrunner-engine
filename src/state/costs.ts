@@ -96,7 +96,6 @@ export function costBeginsWithClick(ability: PaidAbility): boolean {
 
 const REGULAR_PAID_WINDOWS = new Set<PaidAbility["windows"][number]>([
   "approach_paw",
-  "approach_server_paw",
   "encounter_paw",
   "corp_action_paw",
   "runner_action_paw",
@@ -135,12 +134,47 @@ export function unrestrictedPaidAbility(ability: PaidAbility): boolean {
   );
 }
 
+/** Every paid ability window of a run (CR 6.9.1e, 6.9.2b, 6.9.3b, 6.9.4b, 6.9.4e). */
+const RUN_PAID_WINDOWS = new Set<PaidAbility["windows"][number]>([
+  "run_initiate_paw",
+  "approach_paw",
+  "encounter_paw",
+  "run_movement_paw",
+  "run_after_move_paw",
+]);
+
+/**
+ * CR 9.2.7b: a paid ability that is not an action and is declared for both
+ * approaching ice and encounters is usable "during a run", so it is open in
+ * every paid ability window of the run.
+ */
+export function runWidePaidAbility(ability: PaidAbility): boolean {
+  if (costBeginsWithClick(ability) || ability.startsRun) return false;
+  return (
+    ability.windows.includes("approach_paw") &&
+    ability.windows.includes("encounter_paw")
+  );
+}
+
+/**
+ * An ability that is used only when the Runner approaches the server
+ * (CR 6.9.4g), such as Anoetic Void. CR 6.9.4g is not a paid ability
+ * window, so nothing else may be used or rezzed at that step.
+ */
+export function approachServerAbility(ability: PaidAbility): boolean {
+  return (
+    ability.windows.length === 1 && ability.windows[0] === "approach_server_paw"
+  );
+}
+
 export function paidAbilityOpenIn(
   ability: PaidAbility,
   paw: PaidAbility["windows"][number] | null,
 ): boolean {
   if (!paw) return false;
+  if (paw === "approach_server_paw") return approachServerAbility(ability);
   if (ability.windows.includes(paw)) return true;
+  if (runWidePaidAbility(ability) && RUN_PAID_WINDOWS.has(paw)) return true;
   return unrestrictedPaidAbility(ability) && REGULAR_PAID_WINDOWS.has(paw);
 }
 

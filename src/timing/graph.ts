@@ -6,7 +6,7 @@ import type {
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
-import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
+import { approachServerAbility, refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
 import { syncSubroutinesFromRecords } from "../effects/abilityRecord.js";
 import { trashCorpCardToArchives } from "../effects/corpTrash.js";
@@ -1732,10 +1732,17 @@ export const STEPS: Record<string, TimingStepDef> = {
           "Maintenance Access — change attacked server to HQ and approach HQ ice.",
         );
       }
-      return runState.position !== null &&
+      // No ice at the Runner's position: go to the Movement Phase
+      // (CR 6.9.1f). Nothing is passed at 6.9.4a, so it resumes at the
+      // 6.9.4b paid ability window.
+      if (
+        runState.position !== null &&
         runState.position < server.ice.length
-        ? "run.approachIce"
-        : "run.approachServer";
+      ) {
+        return "run.approachIce";
+      }
+      runState.phase = "movement";
+      return "run.passIcePaw";
     },
     {
       onResolve: (s) => {
@@ -3698,17 +3705,14 @@ export const STEPS: Record<string, TimingStepDef> = {
       }
       const sid = s.run!.attackedServerId;
       const server = s.servers[sid];
+      // CR 6.9.4g is not a paid ability window. The run stops here only for
+      // an ability that is used when the Runner approaches the server.
       for (const id of server.root) {
         const card = s.cards[id];
-        if (!card.rezzed && (card.type === "upgrade" || card.type === "asset")) {
-          return "run.approachServerPaw";
-        }
         if (
           !abilitiesSuppressed(s, id) &&
           card.rezzed &&
-          (card.paidAbilities ?? []).some((a) =>
-            a.windows.includes("approach_server_paw"),
-          )
+          (card.paidAbilities ?? []).some(approachServerAbility)
         ) {
           return "run.approachServerPaw";
         }
@@ -3722,9 +3726,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             !card.rezzed &&
             !abilitiesSuppressed(s, id) &&
             (card.paidAbilities ?? []).some(
-              (a) =>
-                a.formicaryApproachAnyServer &&
-                a.windows.includes("approach_server_paw"),
+              (a) => a.formicaryApproachAnyServer && approachServerAbility(a),
             )
           ) {
             return "run.approachServerPaw";
@@ -3940,11 +3942,11 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.approachServerPaw",
     "sec_appendix_timing_structure_of_a_run_4_g",
     "11.4_4_g",
-    "Paid ability window while approaching the server.",
+    "Abilities used when the Runner approaches the server.",
     "pass",
     (s) =>
       s.run?.endedTheRun ? "run.closePriorityWindows" : "run.success",
-    { allows: ["use_paid_ability", "rez_asset", "pass_window"] },
+    { allows: ["use_paid_ability", "pass_window"] },
   ),
   "run.success": run(
     "run.success",

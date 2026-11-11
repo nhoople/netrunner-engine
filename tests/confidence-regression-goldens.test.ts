@@ -183,6 +183,8 @@ describe("regression goldens — full-run transcripts", () => {
     s.timingKey = "runner.takeAction";
     s.runner.clicks = 4;
     s = must(s, { type: "basic_run", serverId: "archives" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     assertGolden(
       "crisium-archives-ternary",
       snapshot("crisium-archives-ternary", s, [

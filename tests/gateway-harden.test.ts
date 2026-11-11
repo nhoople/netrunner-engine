@@ -55,6 +55,8 @@ describe("Gateway harden pass 2", () => {
     // Empty R&D → successful run with no access candidates
     s.corp.deck = [];
     s = must(s, { type: "play_event", cardId: "jb-1", serverId: "rd" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.run).toBeNull();
     expect(s.turn.successfulRunThisTurn).toBe(true);
     expect(s.runner.hand.length).toBe(1); // drew 1 after playing
@@ -104,6 +106,8 @@ describe("Gateway harden pass 2", () => {
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
     s = must(s, { type: "basic_run", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.pendingChoice?.sourceId).toBe("ms-1");
     s = must(s, { type: "choose_option", optionId: "pay-credits" });
     expect(s.runner.credits).toBe(5);

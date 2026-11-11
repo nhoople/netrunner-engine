@@ -141,6 +141,8 @@ describe("midnight-sun", () => {
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.run).toBeNull();
       expect(s.turn.successfulRunThisTurn).toBe(true);
       expect(s.cards["end-1"]!.powerCounters).toBe(4);
@@ -265,6 +267,8 @@ describe("midnight-sun", () => {
       s.runner.clicks = 4;
       const before = end.powerCounters ?? 0;
       s = must(s, { type: "basic_run", serverId: "archives" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.cards["end-live"]!.powerCounters).toBe(before + 1);
     });
   });
@@ -3871,6 +3875,8 @@ describe("midnight-sun", () => {
         abilityId: "ltf-run",
         serverId: "remote-1",
       });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       // Ice-less remote: run auto-walks to completion (run cleared).
       expect(s.run).toBeNull();
       expect(s.servers["remote-1"]).toBeUndefined();
@@ -3897,6 +3903,8 @@ describe("midnight-sun", () => {
         abilityId: "ltf-run",
         serverId: "remote-1",
       });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
 
       expect(s.run).toBeNull();
       expect(s.servers["remote-1"]).toBeUndefined();
@@ -4179,6 +4187,8 @@ describe("midnight-sun", () => {
       expect(currentMark(s)).toBeTruthy();
 
       s = must(s, { type: "choose_option", optionId: "run-mark" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.pendingStartRunOnMark).toBeNull();
       expect(s.turn.successfulRunThisTurn).toBe(true);
       expect(s.run).toBeNull();
@@ -4239,6 +4249,8 @@ describe("midnight-sun", () => {
       s.runner.clicks = 4;
       const clicksBefore = s.runner.clicks;
       s = must(s, { type: "basic_run", serverId: "archives" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.run).toBeNull();
       expect(s.turn.successfulRunThisTurn).toBe(true);
       expect(s.runner.clicks).toBe(clicksBefore); // spent 1 for run, gained 1 from ID
@@ -4290,6 +4302,8 @@ describe("midnight-sun", () => {
       );
       expect(s.runner.credits).toBe(8); // 5 - 1 play + 4 gain
       s = must(s, { type: "choose_option", optionId: "run-mark" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulRunThisTurn).toBe(true);
     });
   });
@@ -4667,6 +4681,8 @@ describe("midnight-sun", () => {
       );
 
       s = must(s, { type: "choose_option", optionId: "charge" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.cards["prop-1"]!.powerCounters).toBe(3);
       expect(s.pendingChoice).toBeNull();
       // Empty R&D ice + empty deck/root → run completes
@@ -4738,6 +4754,8 @@ describe("midnight-sun", () => {
 
       s = must(s, { type: "basic_run", serverId: "rd" });
       s = must(s, { type: "choose_option", optionId: "decline" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.cards["prop-2"]!.powerCounters).toBe(1);
       expect(s.run).toBeNull();
       expect(s.turn.successfulRunThisTurn).toBe(true);
@@ -4871,6 +4889,8 @@ describe("midnight-sun", () => {
     it("first successful HQ: Corp loses 1¢, Runner gains 1¢", () => {
       let s = withPanweave({ corpCredits: 5, runnerCredits: 3 });
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulHqRunThisTurn).toBe(true);
       expect(s.corp.credits).toBe(4);
       expect(s.runner.credits).toBe(4);
@@ -4879,6 +4899,8 @@ describe("midnight-sun", () => {
     it("second successful HQ same turn does not transfer again", () => {
       let s = withPanweave({ corpCredits: 5, runnerCredits: 3 });
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.corp.credits).toBe(4);
       expect(s.runner.credits).toBe(4);
 
@@ -4893,6 +4915,8 @@ describe("midnight-sun", () => {
     it("successful R&D does not trigger; later first HQ still does", () => {
       let s = withPanweave({ corpCredits: 5, runnerCredits: 3 });
       s = must(s, { type: "basic_run", serverId: "rd" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulHqRunThisTurn).toBe(false);
       expect(s.corp.credits).toBe(5);
       expect(s.runner.credits).toBe(3);
@@ -4901,6 +4925,8 @@ describe("midnight-sun", () => {
       expect(s.timingKey).toBe("runner.takeAction");
       s.runner.clicks = 4;
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulHqRunThisTurn).toBe(true);
       expect(s.corp.credits).toBe(4);
       expect(s.runner.credits).toBe(4);
@@ -4909,6 +4935,8 @@ describe("midnight-sun", () => {
     it("Corp at 0¢: loses nothing; Runner does not gain (if they do)", () => {
       let s = withPanweave({ corpCredits: 0, runnerCredits: 3 });
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulHqRunThisTurn).toBe(true);
       expect(s.corp.credits).toBe(0);
       expect(s.runner.credits).toBe(3);
@@ -5913,6 +5941,8 @@ describe("midnight-sun", () => {
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulRunThisTurn).toBe(true);
       expect(s.pendingChoice?.options.map((o) => o.id) ?? []).toEqual(
         expect.arrayContaining(["place-adv", "decline"]),
@@ -6767,6 +6797,8 @@ describe("midnight-sun", () => {
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulMarkRunThisTurn).toBe(true);
       expect(s.turn.successfulRunThisTurn).toBe(true);
       // Still mid-breach with bonus access.
@@ -6808,6 +6840,8 @@ describe("midnight-sun", () => {
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "archives" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulMarkRunThisTurn).toBe(true);
       // Archives empty → mark breach auto-completes; then post-run HQ breach.
       expect(s.run?.isPostRunBreach).toBe(true);
@@ -6839,6 +6873,8 @@ describe("midnight-sun", () => {
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "archives" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulMarkRunThisTurn).toBe(true);
       const postLogs = s.log.filter((l) => /Post-run breach of hq/i.test(l));
       expect(postLogs).toHaveLength(1);
@@ -6882,6 +6918,8 @@ describe("midnight-sun", () => {
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "archives" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.turn.successfulMarkRunThisTurn).toBe(false);
       expect(s.turn.successfulRunThisTurn).toBe(true);
       expect(s.log.some((l) => /bonus access|Post-run breach/i.test(l))).toBe(
@@ -7107,6 +7145,8 @@ describe("midnight-sun", () => {
       s.timingKey = "runner.takeAction";
       s.servers.hq.ice = [];
       s = must(s, { type: "play_event", cardId: "chast-1", serverId: "hq" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.pendingSabotage?.amount).toBe(2);
       expect(s.turn.successfulRunThisTurn).toBe(true);
       // No breach access remaining
@@ -7322,6 +7362,8 @@ describe("midnight-sun", () => {
       s.timingKey = "runner.takeAction";
       s.servers.hq.ice = [];
       s = must(s, { type: "play_event", cardId: "ch-1", serverId: "hq" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.pendingSabotage?.amount).toBe(4);
       const legal = queryLegality(s);
       expect(

@@ -283,6 +283,8 @@ describe("Phase 1 mechanics smoke", () => {
     s = burnSide(s, "corp");
     s = toRunnerTakeAction(s);
     s = must(s, { type: "basic_run", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.timingKey).toBe("breach.awaitAccess");
     expect(s.run?.accessCandidates.length).toBeGreaterThan(0);
     expect(s.log.some((l) => l.includes(CR.hqAccess.number))).toBe(true);

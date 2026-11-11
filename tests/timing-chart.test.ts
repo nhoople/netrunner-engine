@@ -158,8 +158,9 @@ const CHART_SKIPS: Record<string, { text: string; because: string; arm?: Arm; pr
   },
   "11.4_1_f_ii": {
     text: "If no, go to (4).",
-    because: "run.checkIce continues to run.approachServer.",
-    arm: { from: "run.checkIce", to: "run.approachServer", arrange: (state) => { state.run!.position = null; } },
+    because:
+      "run.checkIce continues to run.passIcePaw: nothing is passed at 11.4_4_a, so (4) resumes at 11.4_4_b.",
+    arm: { from: "run.checkIce", to: "run.passIcePaw", arrange: (state) => { state.run!.position = null; } },
   },
   "11.4_2_c_i": {
     text: "If yes, go to (3).",
@@ -269,11 +270,19 @@ const YES_ARMS: Array<Arm & { number: string }> = [
  * engine opens (P) (R) on the next step. CR 6.8.2c completes other priority
  * windows at Run Ends without a second chart line.
  */
+// Stops that are not chart paid ability windows. run.approachServerPaw is
+// where an ability used "whenever the Runner approaches the server" is
+// offered at 11.4_4_g; no other paid ability and no rez is legal there.
 const EXTRA_PAID_WINDOWS = new Set([
   "run.approachServerPaw",
   "run.completeOtherPriorityWindows",
 ]);
-const EXTRA_REZ_WINDOWS = new Set(["run.approachServerPaw"]);
+const EXTRA_REZ_WINDOWS = new Set<string>();
+/** Stops where the usual active-player-first paid ability order does not apply. */
+const NOT_PAID_ABILITY_WINDOWS = new Set([
+  "run.approachServerPaw",
+  "run.completeOtherPriorityWindows",
+]);
 
 const CHARTS = ["11.2", "11.3", "11.4", "11.5", "11.6"] as const;
 
@@ -541,10 +550,13 @@ describe("pinned timing charts 11.2 through 11.6", () => {
   it("starts a paid ability window with the active player (CR 9.2.7a)", () => {
     for (const step of CHARTS.flatMap((prefix) => engineSteps(prefix))) {
       if (!currentWindow(step.key)) continue;
+      if (step.key === "run.approachServerPaw") continue;
       expect(priorityHolderForStep(step.key, "runner"), step.key).toBe("runner");
       expect(priorityHolderForStep(step.key, "corp"), step.key).toBe("corp");
     }
     expect(priorityHolderForStep("run.jackOutWindow", "corp")).toBe("runner");
+    // CR 6.9.4g: only the Corp has abilities used on approaching a server.
+    expect(priorityHolderForStep("run.approachServerPaw", "runner")).toBe("corp");
   });
 
   it("keeps the other player's option hidden until they receive priority (CR 9.2.7a)", () => {
@@ -561,7 +573,7 @@ describe("pinned timing charts 11.2 through 11.6", () => {
     expect(keys).toContain("run.completeOtherPriorityWindows");
 
     for (const step of windows) {
-      if (step.key === "run.completeOtherPriorityWindows") continue;
+      if (NOT_PAID_ABILITY_WINDOWS.has(step.key)) continue;
       const active = step.stepNumber.startsWith("11.2") ? "corp" : "runner";
       const other = active === "corp" ? "runner" : "corp";
       const opened = standOn(step.key);
@@ -624,6 +636,8 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       ),
     ).toBe("11.4_2_b");
 
+    // An iceless run goes on to the Movement Phase (11.4_1_f_ii), where the
+    // Runner may still jack out (11.4_4_c).
     expect(
       stop(
         park("run.initiatePaw", (state) => {
@@ -634,7 +648,7 @@ describe("pinned timing charts 11.2 through 11.6", () => {
           state.corp.hand = [];
         }),
       ),
-    ).toBe("11.3_1_e");
+    ).toBe("11.4_4_c");
   });
 
   it("returns to the paid ability window after the last click (11.2_2_c, 11.3_1_g)", () => {
@@ -693,6 +707,11 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       }
     });
     state = closeWindow(state);
+    expect(state.timing.stepNumber).toBe("11.4_4_c");
+    const onward = applyAction(state, { type: "continue_run" });
+    expect(onward.ok).toBe(true);
+    if (!onward.ok) return;
+    state = onward.state;
     expect(state.timing.stepNumber).toBe("11.5_4_a");
     expect(state.run?.accessCandidates).toEqual(["corp-asset-1", "corp-fill-1"]);
     expect(state.run?.randomAccessLimit).toBe(2);
@@ -784,12 +803,24 @@ describe("pinned timing charts 11.2 through 11.6", () => {
 
     expect(STEPS["run.approachServer"].stepNumber).toBe("11.4_4_g");
     expect(go("run.approachServer")).toBe("run.success");
+    // 11.4_4_g is not a paid ability window: a facedown card in the root
+    // does not stop the run there. Its rez window was 11.4_4_e.
     expect(go("run.approachServer", (state) => plantRoot(state, "asset"))).toBe(
-      "run.approachServerPaw",
+      "run.success",
     );
     expect(go("run.approachServer", (state) => plantRoot(state, "upgrade"))).toBe(
-      "run.approachServerPaw",
+      "run.success",
     );
+    // An ability used when the Runner approaches the server does stop it.
+    expect(
+      go("run.approachServer", (state) => {
+        plantRoot(state, "upgrade");
+        const card = state.cards["corp-asset-1"];
+        card.rezzed = true;
+        card.faceup = true;
+        card.paidAbilities = [foreignAbility(["approach_server_paw"])];
+      }),
+    ).toBe("run.approachServerPaw");
 
     expect(STEPS["run.success"].stepNumber).toBe("11.4_5_a");
     const declared = withRun();

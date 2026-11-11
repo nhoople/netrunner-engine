@@ -787,6 +787,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.corp.hand = [];
 
     s = must(s, { type: "play_event", cardId: "dl-1", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
 
     const remains = at(s.log, "Dirty Laundry remains in the play area");
     const begins = at(s.log, "Run begins");
@@ -2608,6 +2610,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
     s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
 
     const lines = s.log.slice(from);
     const complete = at(lines, "Run complete");
@@ -2647,6 +2651,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
     s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
 
     const lines = s.log.slice(from);
     const complete = at(lines, "Run complete");
@@ -2670,7 +2676,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-  it("checkpoints outside the initiation phase after the run begins, before the Runner approaches the server (CR 10.3.6, 9.2.2b)", () => {
+  it("checkpoints outside the initiation phase after the run begins, before the Movement Phase (CR 10.3.6, 9.2.2b, 6.9.1f)", () => {
     let s = createInitialState();
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -2683,6 +2689,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
     s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
 
     const lines = s.log.slice(from);
     const begins = at(lines, "Run begins");
@@ -2701,7 +2709,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(lines[outside]).toContain(CR.runTimingStructure.number);
     expect(lines[outside]).toContain(CR.runPhases.number);
     expect(lines[outside]).toContain(CR.initiationPhase.number);
-    expect(lines[outside]).toContain("← run.approachServer");
+    // An iceless run leaves the Initiation Phase for the Movement Phase
+    // (CR 6.9.1f), whose first stop is the 6.9.4b paid ability window.
+    expect(lines[outside]).toContain("← run.passIcePaw");
     expect(s.checkpoints).toHaveLength(0);
   });
 
@@ -2808,6 +2818,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
     s = must(s, { type: "basic_run", serverId: "archives" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
 
     const lines = s.log.slice(from);
     const approach = at(lines, "Approach server");
@@ -2838,6 +2850,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
     s = must(s, { type: "basic_run", serverId: "archives" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
 
     const lines = s.log.slice(from);
     const breach = at(lines, "Breach complete");
@@ -2867,6 +2881,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
     s = must(s, { type: "basic_run", serverId: "archives" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
 
     const lines = s.log.slice(from);
     const breach = at(lines, "Breach complete");

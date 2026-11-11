@@ -203,10 +203,9 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     Boolean(state.run) &&
     iceServerId(state, cardId) === state.run!.attackedServerId;
   if (asNonIce) {
-    const paw = currentWindow(state.timingKey);
-    if (paw !== "approach_server_paw" && paw !== "corp_action_paw") {
+    if (!corpMayRez(state.timingKey)) {
       return fail(
-        "This ice may only be rezzed as non-ice during approach-server or Corp action PAWs.",
+        "This ice may be rezzed as a non-ice card only in a window where the Corp may rez.",
         [CR.rezInPaw, CR.rezProcedure],
       );
     }

@@ -415,17 +415,22 @@ describe("parhelion", () => {
 
       const grip0 = s.runner.hand.length;
       s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.runner.hand.length).toBe(grip0);
       s = finishToTakeAction(s);
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      s = must(s, { type: "continue_run" });
       expect(s.runner.hand.length).toBe(grip0 + 1);
       s = finishToTakeAction(s);
       s.runner.clicks = 4;
 
       const grip1 = s.runner.hand.length;
       s = must(s, { type: "basic_run", serverId: "rd" as ServerId });
+      s = must(s, { type: "continue_run" });
+      expect(s.turn.successfulRunThisTurn).toBe(true);
       expect(s.runner.hand.length).toBe(grip1);
     });
   });
@@ -461,6 +466,8 @@ describe("parhelion", () => {
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.pendingChoice?.sourceId).toBe("nga-1");
       s = must(s, { type: "choose_option", optionId: "sabotage" });
       expect(s.cards["nga-1"]!.powerCounters).toBe(2);
@@ -547,6 +554,8 @@ describe("parhelion", () => {
       s.timingKey = "runner.takeAction";
 
       s = must(s, { type: "play_event", cardId: "fin-1", serverId: "rd" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.runner.coreDamage).toBe(1);
       expect(s.run?.attackedServerId).toBe("rd");
       expect(s.run?.bonusAccess).toBe(3);
@@ -1502,6 +1511,8 @@ describe("parhelion", () => {
       s.activeSide = "runner";
       s.timingKey = "runner.takeAction";
       s = must(s, { type: "basic_run", serverId: "rd" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.pendingChoice?.chooser).toBe("runner");
       expect(s.run?.wakeImplantPending).toBe(true);
       s = must(s, { type: "choose_option", optionId: "wake-access:2" });
@@ -2578,6 +2589,8 @@ describe("parhelion", () => {
       s.timingKey = "runner.takeAction";
       const creditsBefore = s.runner.credits;
       s = must(s, { type: "basic_run", serverId: "archives" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.run).toBeNull();
       expect(s.turn.infoBountyMarkRunEndUsed).toBe(true);
       expect(s.runner.credits).toBe(creditsBefore + 2);

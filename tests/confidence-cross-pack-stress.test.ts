@@ -79,6 +79,8 @@ describe("cross-pack — success ternary: Flagship (VP) × Phoneutria (TAI)", ()
     expect(mid.runner.tags).toBe(0);
 
     s = must(s, { type: "basic_run", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.run).toBeNull();
     expect(s.turn.successfulRunThisTurn).toBe(false);
     expect(

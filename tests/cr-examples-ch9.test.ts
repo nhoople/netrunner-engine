@@ -291,6 +291,8 @@ describe("CR examples, chapter 9", () => {
     s.timingKey = "runner.takeAction";
 
     s = must(s, { type: "play_event", cardId: "da-1", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.timingKey).toBe("breach.awaitAccess");
     expect(s.runner.credits).toBe(4);
 

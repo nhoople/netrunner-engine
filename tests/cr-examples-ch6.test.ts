@@ -1087,6 +1087,8 @@ describe("CR examples, chapter 6", () => {
     it("Crisium: Success Phase reached → successful null, not unsuccessful (CR 6.8.4a.ex1)", () => {
       let s = runnerReadyWithUpgrade("crisium-grid", "archives");
       s = must(s, { type: "basic_run", serverId: "archives" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
 
       // Run finished; no active run shell.
       expect(s.run).toBeNull();

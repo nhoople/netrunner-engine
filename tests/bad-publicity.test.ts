@@ -52,6 +52,8 @@ describe("CR G5 — bad publicity fund (11.4_1_b / 10.6.2)", () => {
     s.runner.credits = 0;
 
     s = must(s, { type: "basic_run", serverId: "archives" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     // During or after the empty-archives run walk, fund was filled then cleared.
     expect(
       s.log.some((l) =>

@@ -815,6 +815,8 @@ describe("CR examples, chapter 10", () => {
     setCorpPile(s, 5, 2);
     const hq = [...s.corp.hand];
     s = must(s, { type: "play_event", cardId: "ch-1", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.pendingSabotage?.amount).toBe(4);
     const short = applyAction(s, {
       type: "resolve_sabotage",
@@ -844,6 +846,8 @@ describe("CR examples, chapter 10", () => {
     s.servers.hq.ice = [];
     setCorpPile(s, 2, 1);
     s = must(s, { type: "play_event", cardId: "ch-2", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.pendingSabotage?.amount).toBe(4);
     s = must(s, { type: "resolve_sabotage", hqCardIds: [] });
     expect(s.corp.hand).toEqual([]);

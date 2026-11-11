@@ -95,7 +95,8 @@ registerEmptyRunPawCloser((state) => {
   if (
     state.timingKey !== "run.initiatePaw" &&
     state.timingKey !== "run.passIcePaw" &&
-    state.timingKey !== "run.afterMovePaw"
+    state.timingKey !== "run.afterMovePaw" &&
+    state.timingKey !== "run.approachServerPaw"
   ) {
     return false;
   }

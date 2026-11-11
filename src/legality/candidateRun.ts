@@ -475,11 +475,12 @@ export function addPaidWindowCandidates(
             if (!card.rezzed || !state.servers[sid]?.ice.includes(cardId)) {
               continue;
             }
-          } else {
-            const approached = approachedIceId(state);
-            if (approached !== cardId || !card.rezzed) {
-              continue;
-            }
+          } else if (
+            !card.rezzed &&
+            cardId !== state.corp.identityId
+          ) {
+            // Any active Corp card may be the source (CR 9.2.7b).
+            continue;
           }
         }
         if (card.side === "corp" && paw === "approach_server_paw") {

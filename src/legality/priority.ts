@@ -27,6 +27,9 @@ export function priorityHolderForStep(timingKey: string, activeSide: Side): Side
     case "run.jackOutWindow":
       // Appendix 11.4_4_c. The Runner decides whether to jack out.
       return "runner";
+    case "run.approachServerPaw":
+      // CR 6.9.4g. Only the Corp has abilities used on approaching a server.
+      return "corp";
     default:
       // CR 9.2.1 / 9.2.7a: a paid ability window starts with the active player,
       // the player whose turn it is. During a run that is the Runner.
