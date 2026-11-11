@@ -50,7 +50,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.35.0 kickoff", () => {
@@ -112,7 +112,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.36.0 A-slice", () => {
@@ -174,7 +174,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.37.1 B-slice", () => {
@@ -275,7 +275,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.38.1 C-slice", () => {
@@ -345,7 +345,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.39.0 D-slice", () => {
@@ -426,7 +426,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.42.0 E-slice", () => {
@@ -486,7 +486,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.42.0 F-slice", () => {
@@ -556,7 +556,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.42.0 G-slice", () => {
@@ -637,7 +637,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Uprising v1.43.0 H-slice", () => {
@@ -721,7 +721,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(state: GameState, action: Action): GameState {
@@ -848,10 +848,10 @@ describe("uprising", () => {
       );
       expect(r.ok).toBe(true);
       expect(s.pendingChoice?.chooser).toBe("runner");
-      expect(s.pendingChoice?.options.some((o) => o.id === "pay4")).toBe(true);
-      expect(s.pendingChoice?.options.some((o) => o.id === "tag")).toBe(true);
+      expect(s.pendingChoice?.options.some((o) => o.id === "unless-pay")).toBe(true);
+      expect(s.pendingChoice?.options.some((o) => o.id === "unless-instruction")).toBe(true);
 
-      s = must(s, { type: "choose_option", optionId: "tag" });
+      s = must(s, { type: "choose_option", optionId: "unless-instruction" });
       expect(s.runner.tags).toBe(1);
     });
 
@@ -1024,7 +1024,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(state: GameState, action: Action): GameState {
@@ -1349,7 +1349,7 @@ describe("uprising", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(state: GameState, action: Action): GameState {
