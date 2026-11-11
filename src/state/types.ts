@@ -5230,6 +5230,10 @@ export interface PendingCost {
   /** The other player may not see the candidates. */
   hidden: boolean;
   sourceId: string;
+  /** The payer may stop at any number of picks. */
+  anyNumber?: boolean;
+  /** The action field the picks go in. Defaults to costCardIds. */
+  into?: "costCardIds" | "trashFirstIds";
 }
 
 /** Interactive psi game (Adrian Seis; v0 sequential bids). */
@@ -5641,6 +5645,9 @@ export interface GameState {
   turn: TurnBookkeeping;
   /** Cards removed from the game (Steve Cambridge). */
   removedFromGame: string[];
+  /** Cards shown to all players by a reveal (CR 1.21.3). Open to both. */
+  reveals?: RevealEvent[];
+  revealSeq?: number;
   /**
    * Watch the World Burn lasting titles: accessing a card with one of these
    * printed titles removes it from the game.
@@ -5721,6 +5728,14 @@ export type Action =
       destination: InstallDestination;
       /** Patchwork: trash this grip card to discount the install. */
       trashGripForDiscountCardId?: string;
+      /**
+       * Corp: ask which cards already in the destination to trash first
+       * (CR 8.5.6a, 8.5.6b). Without it only the asset or agenda that must
+       * go is trashed.
+       */
+      trashFirst?: boolean;
+      /** Corp: the cards in the destination trashed first. */
+      trashFirstIds?: string[];
     }
   | { type: "basic_run"; serverId: ServerId }
   | { type: "basic_remove_tag" }
@@ -5902,8 +5917,20 @@ export interface PublicSetAsideCardView {
   groupId?: string | null;
 }
 
+/** One reveal: the cards shown to all players (CR 1.21.3). */
+export interface RevealEvent {
+  /** Counts up through the game, so a host can tell new reveals apart. */
+  seq: number;
+  /** Whose cards were shown. */
+  by: Side;
+  sourceTitle: string;
+  cards: Array<{ defId: string; title: string }>;
+}
+
 export interface PublicView {
   viewer: Side;
+  /** Recent reveals, oldest first (CR 1.21.3). */
+  reveals: RevealEvent[];
   turnNumber: number;
   activeSide: Side;
   timingKey: string;

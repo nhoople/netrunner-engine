@@ -283,13 +283,20 @@ describe("CR examples, chapter 8", () => {
     const secondAsset = instantiateCard("pad-campaign", "pad-2", "corp:hq");
     s.cards["pad-2"] = secondAsset;
     s.corp.hand = ["hf-1", "nan-1", "pad-2"];
+    // A second asset replaces the first: the root holds 1 asset or agenda
+    // (CR 4.6.6e), so the one there must be trashed (CR 8.5.6a). It was
+    // facedown and stays so in Archives, unrevealed (CR 8.5.7).
     const asset = applyAction(s, {
       type: "basic_install",
       cardId: "pad-2",
       destination: { kind: "remote_root", serverId },
     });
-    expect(asset.ok).toBe(false);
-    if (!asset.ok) expect(asset.cites?.map((cite) => cite.number)).toContain("4.6.6e");
+    if (!asset.ok) throw new Error(asset.error);
+    expect(asset.state.servers[serverId]!.root).toEqual(["pad-2"]);
+    expect(asset.state.cards["pad-1"]?.zone).toBe("corp:archives");
+    expect(asset.state.cards["pad-1"]?.faceup).toBe(false);
+    expect(asset.state.reveals ?? []).toEqual([]);
+    expect(asset.state.log.join("\n")).not.toMatch(/reveal/i);
 
     s = must(s, {
       type: "basic_install",
@@ -387,12 +394,21 @@ describe("CR examples, chapter 8", () => {
       fx.do({ kind: "search_rd_install_rez_by_printed_rez_cost", delta: -1 }),
     );
     if (!searched.ok) throw new Error(searched.error);
-    expect(s.cards["archer-1"]?.rezzed).toBe(false);
-    expect(s.cards["archer-1"]?.faceup).toBe(false);
-    const revealed = must(s, { type: "choose_option", optionId: "ob-reveal:archer-1" });
+    // The Corp finds Archer and says where it goes.
+    let revealed = must(s, { type: "choose_option", optionId: "choose-card:archer-1" });
+    revealed = must(revealed, {
+      type: "choose_option",
+      optionId: "install-dest:__new_remote__",
+    });
+    // No agenda to forfeit: the additional cost is not paid, Archer is not
+    // rezzed, and it is revealed. It stays facedown (CR 1.21.3a).
+    expect(revealed.cards["archer-1"]?.zone).toMatch(/^server:remote-\d+:ice$/);
     expect(revealed.cards["archer-1"]?.rezzed).toBe(false);
-    expect(revealed.cards["archer-1"]?.faceup).toBe(true);
-    expect(revealed.log.join("\n")).toContain("Reveal Archer (CR 8.5.13c)");
+    expect(revealed.cards["archer-1"]?.faceup).toBe(false);
+    expect(revealed.reveals?.at(-1)?.cards).toEqual([
+      { defId: "archer", title: "Archer" },
+    ]);
+    expect(revealed.log.join("\n")).toContain("reveal Archer (CR 8.5.13d, 1.21.3)");
     expect(revealed.corp.credits).toBe(0);
   });
 
@@ -412,9 +428,13 @@ describe("CR examples, chapter 8", () => {
     );
     if (!installed.ok) throw new Error(installed.error);
     expect(s.cards["agenda-1"]?.rezzed).toBeFalsy();
-    expect(s.cards["agenda-1"]?.faceup).toBe(true);
+    // Revealed to both players, and still facedown (CR 1.21.3a).
+    expect(s.cards["agenda-1"]?.faceup).toBe(false);
     expect(s.cards["agenda-1"]?.zone).toMatch(/^server:remote-\d+:root$/);
-    expect(s.log.join("\n")).toContain("Reveal Hostile Takeover (CR 8.5.13d)");
+    expect(s.reveals?.at(-1)?.cards).toEqual([
+      { defId: "hostile-takeover", title: "Hostile Takeover" },
+    ]);
+    expect(s.log.join("\n")).toContain("reveal Hostile Takeover (CR 8.5.13d, 1.21.3)");
   });
 
 

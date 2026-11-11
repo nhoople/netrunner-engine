@@ -1554,10 +1554,12 @@ describe("CR examples, chapter 1", () => {
     }
     s = must(s, { type: "score_agenda", cardId: "azef-1" });
     s = must(s, { type: "choose_option", optionId: "trash:pad-1" });
-    s = must(s, { type: "choose_option", optionId: "ob-rez:ice-1" });
+    // The Corp finds the card, then says where it goes (CR 8.5.16b).
+    s = must(s, { type: "choose_option", optionId: "choose-card:ice-1" });
+    s = must(s, { type: "choose_option", optionId: "install-dest:__new_remote__" });
     const log = s.log.join("\n");
-    const installedAt = log.indexOf("install Ice Wall");
-    const rezzedAt = log.indexOf("rez Ice Wall");
+    const installedAt = log.indexOf("Corp installs a card from R&D");
+    const rezzedAt = log.indexOf("Rez Ice Wall");
     const scoredAt = log.indexOf("Corp scores Azef Protocol");
     expect(installedAt).toBeGreaterThan(-1);
     expect(rezzedAt).toBeGreaterThan(installedAt);

@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is shuffle.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -640,12 +641,11 @@ case "shuffle_random_grip_into_stack": {
         state.cards[id].faceup = false;
       }
       if (moved.length > 0) shuffleInPlace(state, state.runner.deck);
+      revealCards(state, moved, sourceId);
       log(
         state,
         moved.length > 0
-          ? `Reveal ${moved
-              .map((id) => state.cards[id]!.title)
-              .join(", ")} at random from the grip — shuffled into the stack (CR ${CR.reveal.number}).`
+          ? `${moved.length} card(s) at random from the grip are shuffled into the stack.`
           : `No cards in the grip to reveal.`,
       );
       return { ok: true };

@@ -29,28 +29,15 @@ export function applySpinTcPrimitive(
   const { state, sourceId } = ctx;
   switch (action.kind) {
     case "may_breach_instead_keyhole": {
+      // Printed: "If successful, instead of breaching R&D, look at the top
+      // 3 cards of R&D." There is no "may": the Runner does not breach.
       if (!state.run || state.run.attackedServerId !== "rd") {
         log(state, `Keyhole — not a successful R&D run.`);
         return { ok: true };
       }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "breach",
-            label: "Breach R&D",
-            effect: fx.gainCredits("runner", 0),
-          },
-          {
-            id: "keyhole",
-            label: "Instead: look at top 3, trash 1 program, shuffle",
-            effect: fx.do({ kind: "breach_instead_keyhole" }),
-          },
-        ],
-logLine: `Keyhole — may instead of breaching R&D.`,
-});
-      return { ok: true };
+      return applySpinTcPrimitive(ctx, { kind: "breach_instead_keyhole" }) ?? {
+        ok: true,
+      };
     }
     case "breach_instead_keyhole": {
       if (state.run) state.run.skipBreach = true;
@@ -58,10 +45,8 @@ logLine: `Keyhole — may instead of breaching R&D.`,
       const looked: string[] = state.corp.deck.splice(0, 3);
       for (const id of looked) state.cards[id]!.faceup = true;
       state.turn.rdLookedCards = looked;
-      log(
-        state,
-        `Keyhole — look top ${looked.length}: ${looked.map((id) => state.cards[id]!.title).join(", ") || "none"}.`,
-      );
+      // Only the Runner looks (CR 1.21.2): the log does not name the cards.
+      log(state, `Keyhole — the Runner looks at the top ${looked.length} card(s) of R&D instead of breaching.`);
       // The Runner trashes 1 of the looked cards, whatever its type, then
       // R&D is shuffled.
       if (looked.length === 0) {

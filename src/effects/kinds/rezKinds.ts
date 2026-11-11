@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is rez.
  * The effect switch in eval.ts dispatches here.
  */
+import { moveForfeitedAgendaOutOfGame } from "../../state/scoring.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -118,10 +119,7 @@ case "rez_ice_by_id": {
       state.corp.credits -= cost;
       if (agendaId) {
         const agenda = state.cards[agendaId]!;
-        state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== agendaId);
-        state.corp.discardPile.push(agendaId);
-        agenda.zone = "corp:archives";
-        agenda.faceup = true;
+        moveForfeitedAgendaOutOfGame(state, agendaId);
         log(
           state,
           `Forfeit ${agenda.title} and pay ${cost}¢ to rez ${ice.title} (CR ${CR.mustNotForceAdditionalCost.number}).`,

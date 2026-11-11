@@ -164,6 +164,7 @@ describe("basic action legality", () => {
           action.type === "basic_install" &&
           action.cardId === "corp-ice-1" &&
           action.destination.kind === kind &&
+          !action.trashFirst &&
           (serverId === undefined ||
             (action.destination.kind === "protect" &&
               action.destination.serverId === serverId)),
@@ -172,6 +173,105 @@ describe("basic action legality", () => {
     expect(installsOn("new_remote")).toHaveLength(1);
     state.corp.credits = 2;
     expect(installsOn("protect", "hq")).toHaveLength(1);
+  });
+
+  it("offers to trash ice first, which lowers the install cost (CR 8.5.6b)", () => {
+    const state = toCorpTakeAction(createGame());
+    state.corp.clicks = 3;
+    state.corp.credits = 1;
+    hold(state, "corp-ice-1");
+    for (const id of ["hq-ice-a", "hq-ice-b"]) {
+      const ice = structuredClone(state.cards["corp-ice-1"]);
+      ice.id = id;
+      ice.zone = "server:hq:ice";
+      ice.rezzed = id === "hq-ice-a";
+      ice.faceup = ice.rezzed;
+      state.cards[id] = ice;
+      state.servers.hq.ice.push(id);
+    }
+    const offer = {
+      type: "basic_install" as const,
+      cardId: "corp-ice-1",
+      destination: { kind: "protect" as const, serverId: "hq" as const },
+      trashFirst: true,
+    };
+    // 2 ice cost 2¢ and the Corp has 1¢: only the trash-first install is on offer.
+    expect(ofType(state, "basic_install")).toContainEqual(offer);
+    const asked = applyIntent(state, offer);
+    if (!asked.ok) throw new Error(asked.error);
+    expect(asked.state.pendingChoice?.chooser).toBe("corp");
+    expect(asked.state.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "cost-card:hq-ice-a",
+      "cost-card:hq-ice-b",
+      "cost-card-done",
+    ]);
+    // Nothing has happened yet.
+    expect(asked.state.corp.hand).toContain("corp-ice-1");
+    expect(asked.state.corp.clicks).toBe(3);
+    const picked = applyIntent(asked.state, {
+      type: "choose_option",
+      optionId: "cost-card:hq-ice-b",
+    });
+    if (!picked.ok) throw new Error(picked.error);
+    const installed = applyIntent(picked.state, {
+      type: "choose_option",
+      optionId: "cost-card-done",
+    });
+    if (!installed.ok) throw new Error(installed.error);
+    const after = installed.state;
+    // One ice left, so the new ice costs 1¢ (CR 8.5.6b).
+    expect(after.servers.hq.ice).toEqual(["corp-ice-1", "hq-ice-a"]);
+    expect(after.corp.credits).toBe(0);
+    expect(after.corp.clicks).toBe(2);
+    // The unrezzed ice goes to Archives facedown (CR 8.5.7).
+    expect(after.cards["hq-ice-b"].zone).toBe("corp:archives");
+    expect(after.cards["hq-ice-b"].faceup).toBe(false);
+    // Stopping without trashing anything cannot pay for 2 ice.
+    const none = applyIntent(asked.state, {
+      type: "choose_option",
+      optionId: "cost-card-done",
+    });
+    if (!none.ok) throw new Error(none.error);
+    expect(none.state.corp.hand).toContain("corp-ice-1");
+    expect(none.state.corp.clicks).toBe(3);
+    expect(none.state.pendingCost).toBeUndefined();
+  });
+
+  it("installs an asset or agenda into an existing remote, trashing the one there (CR 4.6.8a, 8.5.6a)", () => {
+    const state = toCorpTakeAction(createGame());
+    state.corp.clicks = 3;
+    hold(state, "corp-asset-1");
+    const old = structuredClone(state.cards["corp-asset-1"]);
+    old.id = "old-asset";
+    old.zone = "server:remote-1:root";
+    old.rezzed = true;
+    old.faceup = true;
+    state.cards["old-asset"] = old;
+    const wall = structuredClone(state.cards["corp-ice-1"]);
+    wall.id = "remote-ice";
+    wall.zone = "server:remote-1:ice";
+    state.cards["remote-ice"] = wall;
+    state.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: ["remote-ice"],
+      root: ["old-asset"],
+    };
+    state.nextRemoteNumber = 2;
+    const install = {
+      type: "basic_install" as const,
+      cardId: "corp-asset-1",
+      destination: { kind: "remote_root" as const, serverId: "remote-1" as const },
+    };
+    expect(ofType(state, "basic_install")).toContainEqual(install);
+    const done = applyIntent(state, install);
+    if (!done.ok) throw new Error(done.error);
+    expect(done.state.servers["remote-1"]?.root).toEqual(["corp-asset-1"]);
+    expect(done.state.servers["remote-1"]?.ice).toEqual(["remote-ice"]);
+    // The rezzed asset goes to Archives faceup (CR 8.5.7).
+    expect(done.state.cards["old-asset"].zone).toBe("corp:archives");
+    expect(done.state.cards["old-asset"].faceup).toBe(true);
+    expect(done.state.log.join("\n")).toContain("8.5.6a");
   });
 
   it("offers a Runner install only when the Runner can pay its install cost", () => {

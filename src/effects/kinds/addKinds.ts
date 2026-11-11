@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is add.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import { pickRandomSubset } from "../../state/rng.js";
 import type {
   EffectCtx,
@@ -657,12 +658,11 @@ case "add_random_grip_to_stack_top": {
         state.cards[id].zone = "runner:stack";
         state.cards[id].faceup = false;
       }
+      revealCards(state, moved, sourceId);
       log(
         state,
         moved.length > 0
-          ? `Reveal ${moved
-              .map((id) => state.cards[id]!.title)
-              .join(", ")} at random from the grip — add to the top of the stack (CR ${CR.reveal.number}).`
+          ? `${moved.length} card(s) at random from the grip go to the top of the stack.`
           : `No cards in the grip to reveal.`,
       );
       return { ok: true };

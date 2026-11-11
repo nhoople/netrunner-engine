@@ -928,9 +928,18 @@ export type Primitive =
    * new remote ignoring install costs. Rez is an additional cost the Corp
    * may decline (CR 8.5.13c).
    */
-  | { kind: "search_rd_install_rez_by_printed_rez_cost"; delta: number }
+  | {
+      kind: "search_rd_install_rez_by_printed_rez_cost";
+      delta: number;
+      /** Set by the engine: the card the Corp found. */
+      cardIds?: string[];
+    }
   | { kind: "rez_installed_paying"; cardId: string }
-  | { kind: "reveal_installed_to_verify"; cardId: string }
+  /**
+   * Reveal an installed card to verify the install (CR 8.5.13c), or, with
+   * `forRez`, because it was not rezzed by "install and rez" (CR 8.5.13d).
+   */
+  | { kind: "reveal_installed_to_verify"; cardId: string; forRez?: boolean }
   /**
    * Deep Dive: set aside top `setAside` of R&D faceup; access up to
    * `initialAccess` (then may spend clicks for more — auto spends available
@@ -941,21 +950,48 @@ export type Primitive =
       setAside?: number;
       initialAccess?: number;
     }
+  /**
+   * Install 1 card from HQ or Archives. The Corp picks the card and its
+   * destination (CR 1.15.2, 8.5.16b) and pays the install cost unless
+   * `ignoreInstallCost` is set.
+   */
   | {
       kind: "install_from_hq_or_archives";
-      /** Skip agendas when picking (Ablative Barrier). */
+      /** The card may not be an agenda. */
       excludeAgenda?: boolean;
-      /**
-       * Install into a server other than the source's server (Ablative).
-       * Current v0 path always creates a new remote, which satisfies this.
-       */
+      /** The destination may not be the source's server. */
       excludeSourceServer?: boolean;
+      /** The text ignores the install cost, or all costs. */
+      ignoreInstallCost?: boolean;
+      /** The text has no "may": a card is installed if one can be. */
+      required?: boolean;
+      /** Set by the engine: the card the Corp picked. */
+      cardIds?: string[];
     }
   /**
-   * May install 1 facedown card from Archives into a new remote
-   * (Hybrid Release). No-op when Archives has no installable card.
+   * May install 1 facedown card from Archives. The Corp picks the card
+   * and its destination.
    */
-  | { kind: "may_install_facedown_from_archives" }
+  | { kind: "may_install_facedown_from_archives"; cardIds?: string[] }
+  /**
+   * The Corp installs this card from HQ or Archives by an ability. Without
+   * `serverId` the Corp is asked for the destination (CR 8.5.16b). With
+   * `trashFirst` the Corp is asked which cards already there to trash
+   * first (CR 8.5.6a, 8.5.6b); `cardIds` are those cards. `rez` rezzes the
+   * card afterwards, ignoring all costs (CR 8.5.15).
+   */
+  /** Rez this installed Corp card, ignoring costs (CR 8.5.15). */
+  | { kind: "rez_installed_card_ignoring_costs"; cardId: string }
+  | {
+      kind: "install_corp_card";
+      cardId: string;
+      serverId?: string;
+      ignoreInstallCost?: boolean;
+      rez?: boolean;
+      excludeServerId?: string;
+      trashFirst?: boolean;
+      cardIds?: string[];
+    }
   /**
    * May trash 1 card from grip to draw 1 (Abaasy). Decline / empty grip = no-op.
    */
@@ -2262,7 +2298,11 @@ export type Primitive =
    * remainder of the turn (Hákarl 1.0 after may-derez).
    */
   | { kind: "forbid_bioroid_ice_paid_abilities_this_turn" }
-  | { kind: "install_and_rez_asset_or_upgrade_free"; cardId?: string }
+  | {
+      kind: "install_and_rez_asset_or_upgrade_free";
+      cardId?: string;
+      cardIds?: string[];
+    }
   /**
    * Install and rez 1 card from Archives ignoring all costs
    * (Trust Operation). Targets asset / upgrade / ice (and agendas install
@@ -5325,6 +5365,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_take_card_to_hq",
   "trash_chronos_pick",
   "suffer_chosen_damage",
+  "install_corp_card",
+  "rez_installed_card_ignoring_costs",
   "prevent_labyrinthine_jack_out",
   "universal_connectivity_fee_sub",
   "spend_click_additional_cost",
@@ -7830,6 +7872,18 @@ export function validateEffectTree(
           typeof action.excludeSourceServer !== "boolean"
         ) {
           return `${path}.action.excludeSourceServer: must be boolean when present`;
+        }
+        if (
+          action.ignoreInstallCost !== undefined &&
+          typeof action.ignoreInstallCost !== "boolean"
+        ) {
+          return `${path}.action.ignoreInstallCost: must be boolean when present`;
+        }
+        if (
+          action.required !== undefined &&
+          typeof action.required !== "boolean"
+        ) {
+          return `${path}.action.required: must be boolean when present`;
         }
       }
       if (action.kind === "install_hq_new_remotes_with_advancements") {

@@ -887,6 +887,29 @@ export const CR = {
     number: "8.5.6c",
     id: "rule_install_trash_programs",
   },
+  /** The Corp trashes like cards in the destination first (CR 8.5.6a). */
+  installTrashLikeCards: {
+    number: "8.5.6a",
+    id: "rule_must_trash_cases_in_root_of_server",
+  },
+  /** Ice trashed first is not counted for the install cost (CR 8.5.6b). */
+  installTrashIce: { number: "8.5.6b", id: "rule_install_trash_ice" },
+  /** A destination that cannot be used installs nothing (CR 8.5.14). */
+  installInvalidDestination: {
+    number: "8.5.14",
+    id: "rule_install_to_invalid_destination",
+  },
+  /** Install normally, then rez (CR 8.5.15). */
+  installAndRez: { number: "8.5.15", id: "rule_install_and_rez" },
+  /** A forfeited agenda is removed from the game (CR 8.2.5). */
+  forfeit: { number: "8.2.5", id: "movement_forfeit" },
+  /** Declare the install destination (CR 8.5.16b). */
+  installDestination: {
+    number: "8.5.16b",
+    id: "rule_steps_installing_destination",
+  },
+  /** Visible cards go to Archives faceup, others facedown (CR 4.4.6b). */
+  archivesFacing: { number: "4.4.6b", id: "rule_archives_faceup_facedown" },
   iceStrength: { number: "3.4.4", id: "rule_ice_strength_value" },
   sufferDamage: { number: "10.4.1", id: "rule_suffer_or_take_damage" },
   /** Damage section — interruptible suffer procedure. */

@@ -801,6 +801,27 @@ describe("the-automata-initiative", () => {
         }),
       );
       expect(r.ok).toBe(true);
+      // The agenda is not on offer, and neither is Ablative's own server.
+      expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+        "choose-card:ice-hq",
+        "choose-cards-done",
+      ]);
+      const picked = applyAction(s, {
+        type: "choose_option",
+        optionId: "choose-card:ice-hq",
+      });
+      if (!picked.ok) throw new Error(picked.error);
+      expect(picked.state.pendingChoice?.options.map((o) => o.id)).toEqual([
+        "install-dest:__new_remote__",
+        "install-dest:rd",
+        "install-dest:archives",
+      ]);
+      const placed = applyAction(picked.state, {
+        type: "choose_option",
+        optionId: "install-dest:__new_remote__",
+      });
+      if (!placed.ok) throw new Error(placed.error);
+      s = placed.state;
       expect(s.corp.hand).toContain("ag-1");
       expect(s.corp.hand).not.toContain("ice-hq");
       const afterRemotes = Object.keys(s.servers).filter((id) =>

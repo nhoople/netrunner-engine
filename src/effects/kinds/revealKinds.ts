@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is reveal.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -195,11 +196,14 @@ logLine: `Corp may reveal an agenda from HQ.`,
 case "reveal_installed_to_verify": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      card.faceup = true;
-      card.rezzed = false;
-      log(
+      // Shown to both players, and it stays facedown (CR 1.21.3a).
+      revealCards(
         state,
-        `Reveal ${card.title} (CR ${CR.revealForAbilityLimitations.number}).`,
+        [card.id],
+        sourceId,
+        card.type === "agenda" || action.forRez
+          ? CR.revealForInstallAndRez
+          : CR.revealForAbilityLimitations,
       );
       return { ok: true };
     }
@@ -599,12 +603,11 @@ case "reveal_gain": {
       const shown = action.cardIds.filter((id) => inGrip.includes(id));
       state.runner.credits += shown.length;
       // Revealed cards are shown to both players and stay in the grip (CR 1.21.3).
+      revealCards(state, shown, sourceId);
       log(
         state,
         shown.length > 0
-          ? `Meeting of Minds — reveal ${shown
-              .map((id) => state.cards[id]!.title)
-              .join(", ")} from the grip, gain ${shown.length}¢ (CR ${CR.reveal.number}).`
+          ? `Meeting of Minds — ${shown.length} card(s) revealed from the grip, gain ${shown.length}¢.`
           : `Meeting of Minds — reveal no cards.`,
       );
       return { ok: true };

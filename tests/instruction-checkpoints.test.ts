@@ -571,7 +571,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(rezzed.cards["arch-1"]?.rezzed).toBe(true);
     expect(rezzed.corp.credits).toBe(0);
     expect(rezzed.corp.scoreArea).not.toContain("agenda-1");
-    expect(rezzed.corp.discardPile).toContain("agenda-1");
+    // A forfeited agenda is removed from the game (CR 8.2.5).
+    expect(rezzed.corp.discardPile).not.toContain("agenda-1");
+    expect(rezzed.removedFromGame).toContain("agenda-1");
     expect(rezzed.log.join("\n")).toContain(CR.mustNotForceAdditionalCost.number);
 
     const broke = start();
@@ -682,7 +684,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("lets the Runner add a card Drafter installed in the breached root (CR 10.3.1j)", () => {
     const s = createInitialState();
-    const pad = instantiateCard("pad-campaign", "pad-1", "corp:hq");
+    // An upgrade: an asset cannot go in a central root (CR 4.6.6e).
+    const pad = instantiateCard("ash-2x3zb9cy", "pad-1", "corp:hq");
     s.cards["pad-1"] = pad;
     s.corp.hand = ["pad-1"];
     s.timing.structure = "breach";
@@ -706,12 +709,15 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       fx.do({ kind: "install_from_hq_or_archives" }),
     );
     expect(installed.ok).toBe(true);
-    expect(s.servers.hq.root).toContain("pad-1");
-    expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
+    // The Corp picks the card and the breached root (CR 8.5.16b).
+    let placed = must(s, { type: "choose_option", optionId: "choose-card:pad-1" });
+    placed = must(placed, { type: "choose_option", optionId: "install-dest:hq" });
+    expect(placed.servers.hq.root).toContain("pad-1");
+    expect(placed.pendingChoice?.options.map((option) => option.id)).toEqual([
       "root-access:yes:pad-1",
       "root-access:no:pad-1",
     ]);
-    const added = must(s, { type: "choose_option", optionId: "root-access:yes:pad-1" });
+    const added = must(placed, { type: "choose_option", optionId: "root-access:yes:pad-1" });
     expect(added.run?.accessCandidates).toContain("pad-1");
     expect(added.pendingChoice).toBeNull();
     expect(added.log.join("\n")).toContain(CR.checkpointCardEnteringRoot.number);
@@ -719,7 +725,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("leaves Drafter's install out of the breach when the Runner declines (CR 10.3.1j)", () => {
     const s = createInitialState();
-    const pad = instantiateCard("pad-campaign", "pad-2", "corp:hq");
+    const pad = instantiateCard("ash-2x3zb9cy", "pad-2", "corp:hq");
     s.cards["pad-2"] = pad;
     s.corp.hand = ["pad-2"];
     s.timing.structure = "breach";
@@ -741,7 +747,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       { state: s, sourceId: "drafter-1" },
       fx.do({ kind: "install_from_hq_or_archives" }),
     );
-    const declined = must(s, { type: "choose_option", optionId: "root-access:no:pad-2" });
+    let placed = must(s, { type: "choose_option", optionId: "choose-card:pad-2" });
+    placed = must(placed, { type: "choose_option", optionId: "install-dest:hq" });
+    const declined = must(placed, { type: "choose_option", optionId: "root-access:no:pad-2" });
     expect(declined.servers.hq.root).toContain("pad-2");
     expect(declined.run?.accessCandidates).toEqual(["already"]);
   });

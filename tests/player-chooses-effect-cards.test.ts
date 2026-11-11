@@ -591,10 +591,21 @@ describe("other instructions where the player picks (CR 1.15.2)", () => {
     ]);
     run(s, "to-1", "install_and_rez_from_archives_free");
     expect(optionIds(s).sort()).toEqual(["choose-card:a-1", "choose-card:a-2"]);
-    const t = pick(s, "a-2");
+    let t = pick(s, "a-2");
+    // Then where it goes (CR 8.5.16b).
+    expect(optionIds(t)).toEqual([
+      "install-dest:__new_remote__",
+      "install-dest:hq",
+      "install-dest:rd",
+      "install-dest:archives",
+    ]);
+    t = must(t, { type: "choose_option", optionId: "install-dest:rd" });
     expect(t.cards["a-2"].rezzed).toBe(true);
-    expect(t.cards["a-2"].zone).toMatch(/^server:remote-\d+:ice$/);
+    expect(t.cards["a-2"].zone).toBe("server:rd:ice");
+    expect(t.servers.rd.ice).toEqual(["a-2"]);
     expect(t.corp.discardPile).toEqual(["a-1"]);
+    // "Ignoring all costs".
+    expect(t.corp.credits).toBe(s.corp.credits);
   });
 
   it("Glut Cipher: the Corp picks the 5 Archives cards, and the log names none", () => {

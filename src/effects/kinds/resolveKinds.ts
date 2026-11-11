@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is resolve.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -186,16 +187,16 @@ case "resolve_moon_pool": {
         const revealed = (action.cardIds ?? []).filter((id) =>
           state.corp.discardPile.includes(id),
         );
+        revealCards(state, revealed, sourceId);
         for (const id of revealed) {
           state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
           state.corp.deck.push(id);
           state.cards[id].zone = "corp:rd";
           // Revealed, then facedown again once in R&D (CR 1.21.3).
           state.cards[id].faceup = false;
-          log(
-            state,
-            `${source.title} — reveal ${state.cards[id].title} from Archives → R&D.`,
-          );
+        }
+        if (revealed.length > 0) {
+          log(state, `${source.title} — ${revealed.length} revealed card(s) go from Archives into R&D.`);
         }
         if (revealed.length > 0) shuffleInPlace(state, state.corp.deck);
         const agendas = revealed.filter(

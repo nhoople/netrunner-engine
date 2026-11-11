@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is other.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -60,6 +61,7 @@ import {
 } from "../../state/msKeywords.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import {
+  moveForfeitedAgendaOutOfGame,
   removeCardFromCurrentZone,
   canScoreAgenda,
   checkWinConditions,
@@ -1229,13 +1231,10 @@ case "forfeit_scored_agenda": {
           cites: [CR.scoringAgenda],
         };
       }
-      state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
       fireOnForfeit(state, cardId);
-      state.corp.discardPile.push(cardId);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      log(state, `Forfeit ${card.title} (Plutus rez cost).`);
+      moveForfeitedAgendaOutOfGame(state, cardId);
+      log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
       return { ok: true };
     }
 
@@ -1255,13 +1254,10 @@ case "forfeit_self": {
           cites: [CR.scoringAgenda],
         };
       }
-      state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
       fireOnForfeit(state, cardId);
-      state.corp.discardPile.push(cardId);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      log(state, `Forfeit ${card.title}.`);
+      moveForfeitedAgendaOutOfGame(state, cardId);
+      log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
       return { ok: true };
     }
 
@@ -3102,12 +3098,11 @@ case "peer_review": {
       // afterwards (CR 1.21.3).
       const revealed = state.corp.hand.filter((id) => id !== kept);
       state.corp.credits += 7;
+      revealCards(state, revealed, sourceId);
       log(
         state,
         revealed.length > 0
-          ? `Peer Review — reveal ${revealed
-              .map((id) => state.cards[id]!.title)
-              .join(", ")} from HQ (CR ${CR.reveal.number}); gain 7¢ → ${state.corp.credits}¢.`
+          ? `Peer Review — the rest of HQ is revealed; gain 7¢ → ${state.corp.credits}¢.`
           : `Peer Review — no card in HQ to reveal; gain 7¢ → ${state.corp.credits}¢.`,
       );
       const hqCards = state.corp.hand.filter((id) => {

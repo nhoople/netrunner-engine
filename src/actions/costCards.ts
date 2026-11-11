@@ -201,17 +201,55 @@ export function validateCostCards(
 function offer(state: GameState): void {
   const pending = state.pendingCost!;
   const left = pending.candidates.filter((id) => !pending.picked.includes(id));
+  const options = left.map((id) => ({
+    id: `cost-card:${id}`,
+    label: state.cards[id]?.title ?? id,
+    effect: NO_EFFECT,
+  }));
+  if (pending.anyNumber) {
+    options.push({
+      id: "cost-card-done",
+      label: pending.picked.length === 0 ? "None" : "Done",
+      effect: NO_EFFECT,
+    });
+  }
   state.pendingChoice = {
     sourceId: pending.sourceId,
     chooser: pending.payer,
-    options: left.map((id) => ({
-      id: `cost-card:${id}`,
-      label: state.cards[id]?.title ?? id,
-      effect: NO_EFFECT,
-    })),
-    prompt: `Choose a card to ${pending.what} (${pending.picked.length + 1} of ${pending.count}).`,
+    options,
+    prompt: pending.anyNumber
+      ? `Choose a card to ${pending.what}, or stop (${pending.picked.length} chosen).`
+      : `Choose a card to ${pending.what} (${pending.picked.length + 1} of ${pending.count}).`,
     ...(pending.hidden ? { hiddenFromOpponent: true } : {}),
   };
+}
+
+/**
+ * Hold a Corp install and ask which cards already in the destination are
+ * trashed first (CR 8.5.6a, 8.5.6b).
+ */
+export function openInstallTrashChoice(
+  state: GameState,
+  action: Action,
+  candidates: readonly string[],
+): void {
+  state.pendingCost = {
+    action: structuredClone(action),
+    payer: "corp",
+    candidates: [...candidates],
+    count: candidates.length,
+    picked: [],
+    what: "trash before installing",
+    hidden: false,
+    sourceId: (action as { cardId: string }).cardId,
+    anyNumber: true,
+    into: "trashFirstIds",
+  };
+  log(
+    state,
+    `The Corp may trash cards in the destination before installing (CR ${CR.installTrashLikeCards.number}, ${CR.installTrashIce.number}).`,
+  );
+  offer(state);
 }
 
 /** Hold the action and ask its payer for the cards. */
@@ -248,19 +286,25 @@ export function takeCostPick(
 ): { ok: true; action: Action | null } | { ok: false; error: string; cites: RuleCite[] } {
   const pending = state.pendingCost;
   if (!pending) return { ok: false, error: "No cost is waiting for cards.", cites: [CR.cost] };
-  const id = optionId.startsWith("cost-card:") ? optionId.slice("cost-card:".length) : "";
-  if (!pending.candidates.includes(id) || pending.picked.includes(id)) {
-    return { ok: false, error: `Choose a card to ${pending.what}.`, cites: [CR.cost] };
-  }
-  pending.picked.push(id);
-  if (pending.picked.length < pending.count) {
-    offer(state);
-    return { ok: true, action: null };
+  const stop = Boolean(pending.anyNumber) && optionId === "cost-card-done";
+  if (!stop) {
+    const id = optionId.startsWith("cost-card:") ? optionId.slice("cost-card:".length) : "";
+    if (!pending.candidates.includes(id) || pending.picked.includes(id)) {
+      return { ok: false, error: `Choose a card to ${pending.what}.`, cites: [CR.cost] };
+    }
+    pending.picked.push(id);
+    if (pending.picked.length < pending.count) {
+      offer(state);
+      return { ok: true, action: null };
+    }
   }
   state.pendingChoice = null;
   state.pendingCost = undefined;
   return {
     ok: true,
-    action: { ...pending.action, costCardIds: [...pending.picked] } as Action,
+    action: {
+      ...pending.action,
+      [pending.into ?? "costCardIds"]: [...pending.picked],
+    } as Action,
   };
 }

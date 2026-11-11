@@ -1,11 +1,11 @@
 /** Fear the Masses (ftm) Mumbad pack primitives — v1.121.0. */
+import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
 import { startPsiGame } from "../../state/psi.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import { CR } from "../../timing/labels.js";
 import { chooseCards } from "../chooseCards.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
@@ -66,10 +66,11 @@ export function applyMumbadFtmPrimitive(
       }
       const shown = (action.cardIds ?? []).filter((id) => copies.includes(id));
       const x = 1 + shown.length;
+      revealCards(state, shown, sourceId);
       trashTopOfRd(state, x, source?.title ?? "Fear the Masses");
       log(
         state,
-        `Fear the Masses — revealed ${shown.length} copy(ies) (CR ${CR.reveal.number}); trash ${x} from R&D.`,
+        `Fear the Masses — revealed ${shown.length} copy(ies); trash ${x} from R&D.`,
       );
       return { ok: true };
     }

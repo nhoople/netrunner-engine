@@ -395,10 +395,20 @@ describe("CR examples, chapter 6", () => {
       { op: "do", action: { kind: "install_from_hq_or_archives" } },
     );
     expect(resolved.ok).toBe(true);
-    expect(s.servers.hq.ice[0]).toBe("fresh-1");
-    expect(s.run?.position).toBe(1);
-    expect(s.servers.hq.ice[s.run!.position!]).toBe("draft-1");
-    expect(s.log.join("\n")).toContain("6.2.6a");
+    s.corp.credits = 5;
+    // The Corp picks the ice and the attacked server (CR 8.5.16b).
+    const picked = applyAction(s, { type: "choose_option", optionId: "choose-card:fresh-1" });
+    if (!picked.ok) throw new Error(picked.error);
+    const placed = applyAction(picked.state, {
+      type: "choose_option",
+      optionId: "install-dest:hq",
+    });
+    if (!placed.ok) throw new Error(placed.error);
+    const after = placed.state;
+    expect(after.servers.hq.ice[0]).toBe("fresh-1");
+    expect(after.run?.position).toBe(1);
+    expect(after.servers.hq.ice[after.run!.position!]).toBe("draft-1");
+    expect(after.log.join("\n")).toContain("6.2.6a");
   });
 
 

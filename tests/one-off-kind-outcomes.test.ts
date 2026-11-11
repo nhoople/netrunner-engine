@@ -3073,8 +3073,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.runner.hand).toHaveLength(1);
     expect(s.runner.deck).toHaveLength(3);
     expect(s.runner.deck[2]).toBe("stk-1"); // moved cards are on top
-    // "Reveal and add": both players read which cards moved.
-    expect(s.log.at(-1)).toContain("Reveal Sure Gamble, Sure Gamble");
+    // "Reveal and add": both players are shown which cards moved (CR 1.21.3).
+    expect(s.reveals?.at(-1)?.cards.map((c) => c.title)).toEqual([
+      "Sure Gamble",
+      "Sure Gamble",
+    ]);
   });
 
   it("Bring Them Home (threat): reveals 1 random grip card and shuffles it into the stack", () => {
@@ -3088,7 +3091,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "bth-1", "shuffle_random_grip_into_stack", { count: 1 });
     expect(s.runner.hand).toHaveLength(1);
     expect(s.runner.deck).toHaveLength(7);
-    expect(s.log.at(-1)).toMatch(/Reveal (Sure Gamble|Diesel) at random/);
+    expect(s.reveals?.at(-1)?.cards).toHaveLength(1);
+    expect(s.reveals?.at(-1)?.cards[0]?.title).toMatch(/^(Sure Gamble|Diesel)$/);
   });
 
   it("Daniela Jorge Inácio: the grip cards moved to the bottom of the stack are random", () => {
@@ -3495,14 +3499,20 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.discardPile = ["as-2"];
     runKind(s, "la-1", "install_and_rez_asset_or_upgrade_free");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
-    expect(ids).toContain("lic-acq:as-2");
+    // "You may": the Corp can pick either card or none.
+    expect(ids).toEqual(["choose-card:as-1", "choose-card:as-2", "choose-cards-done"]);
     const after = applyAction(s, {
       type: "choose_option",
-      optionId: "lic-acq:as-2",
+      optionId: "choose-card:as-2",
     });
     if (!after.ok) throw new Error(after.error);
+    // With no remote server yet, an asset can only open a new one.
     expect(after.state.cards["as-2"]?.rezzed).toBe(true);
+    expect(after.state.cards["as-2"]?.zone).toMatch(/^server:remote-\d+:root$/);
     expect(after.state.corp.hand).toContain("as-1");
+    const none = applyAction(s, { type: "choose_option", optionId: "choose-cards-done" });
+    if (!none.ok) throw new Error(none.error);
+    expect(none.state.corp.discardPile).toContain("as-2");
   });
 
   it("New Construction: installs 1 card from HQ in a new remote", () => {

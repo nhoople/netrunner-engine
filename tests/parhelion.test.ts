@@ -1745,6 +1745,17 @@ describe("parhelion", () => {
         fx.mayInstallFacedownFromArchives(),
       );
       expect(r.ok).toBe(true);
+      // "You may": the Corp picks the facedown card, or none.
+      expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+        "choose-card:arch-1",
+        "choose-cards-done",
+      ]);
+      const picked = applyAction(s, {
+        type: "choose_option",
+        optionId: "choose-card:arch-1",
+      });
+      if (!picked.ok) throw new Error(picked.error);
+      s = picked.state;
       expect(s.corp.discardPile).not.toContain("arch-1");
       const remotesAfter = Object.keys(s.servers).filter((k) =>
         k.startsWith("remote-"),

@@ -1,6 +1,7 @@
 /**
  * Rezzing ice and assets, including rez-cost modifiers.
  */
+import { moveForfeitedAgendaOutOfGame } from "../state/scoring.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { onCardRezzed } from "../state/staticFlags.js";
@@ -163,10 +164,8 @@ function forfeitSpecificAgenda(state: GameState, id: string): void {
       log(state, `Jemison forfeit trigger failed: ${jr.error}`);
     }
   }
-  state.corp.discardPile.push(id);
-  card.zone = "corp:archives";
-  card.faceup = true;
-  log(state, `Forfeit ${card.title}.`);
+  moveForfeitedAgendaOutOfGame(state, id);
+  log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
 }
 
 export { forfeitSpecificAgenda };

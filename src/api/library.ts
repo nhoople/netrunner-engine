@@ -362,6 +362,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
             : {}),
         }
       : null,
+    reveals: structuredClone(state.reveals ?? []),
     pendingChoice: publicPendingChoice(state, side),
     pendingExclusiveChoices: state.pendingExclusiveChoices
       ? structuredClone(state.pendingExclusiveChoices)

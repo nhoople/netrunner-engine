@@ -3,6 +3,7 @@ import {
   costCardNeedForAction,
   costHasChoice,
   openCostChoice,
+  openInstallTrashChoice,
   takeCostPick,
   validateCostCards,
 } from "./costCards.js";
@@ -143,7 +144,7 @@ import {
   resumePendingStoredConditionals,
 } from "../state/storedTriggers.js";
 import { resolveDelayedRunEndOrder } from "../effects/primitives/resolveMoveInstall.js";
-import { installCorp } from "./installCorp.js";
+import { installCorp, likeCardsAtDestination } from "./installCorp.js";
 import {
   chooseBreakerSubtype,
   chooseInstalledIce,
@@ -1588,7 +1589,12 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
   // (CR 1.16.1). Once they are in, the held action resolves with them.
   if (state.pendingCost) {
     if (action.type !== "choose_option") {
-      return fail("Choose the cards for the cost first.", [CR.cost]);
+      return fail(
+        state.pendingCost.into === "trashFirstIds"
+          ? "Choose the cards to trash before installing first."
+          : "Choose the cards for the cost first.",
+        [state.pendingCost.into === "trashFirstIds" ? CR.installTrashLikeCards : CR.cost],
+      );
     }
     const picking = cloneState(state);
     const taken = takeCostPick(picking, action.optionId);
@@ -1596,8 +1602,44 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     if (!taken.action) return ok(picking);
     const paid = applyAction(picking, taken.action);
     if (paid.ok) return paid;
-    log(picking, `The cost could not be paid: ${paid.error}`);
+    log(
+      picking,
+      taken.action.type === "basic_install"
+        ? `The install could not be completed: ${paid.error}`
+        : `The cost could not be paid: ${paid.error}`,
+    );
     return ok(picking);
+  }
+
+  // CR 8.5.6a, 8.5.6b: the Corp says which cards already in the destination
+  // are trashed before the install.
+  if (
+    action.type === "basic_install" &&
+    state.activeSide === "corp" &&
+    action.trashFirst &&
+    !action.trashFirstIds &&
+    (action.destination.kind === "protect" ||
+      action.destination.kind === "remote_root")
+  ) {
+    const like = likeCardsAtDestination(
+      state,
+      action.cardId,
+      action.destination.serverId,
+    );
+    const optional = like.may.filter((id) => !like.must.includes(id));
+    if (optional.length > 0) {
+      // Trashing everything is the cheapest install: if that cannot be
+      // done, no choice of cards can be.
+      const trial = applyWithCostCards(
+        state,
+        { ...action, trashFirstIds: optional },
+        undefined,
+      );
+      if (!trial.ok) return trial;
+      const asking = cloneState(state);
+      openInstallTrashChoice(asking, action, optional);
+      return ok(asking);
+    }
   }
 
   const need = costCardNeedForAction(state, action);
@@ -2238,7 +2280,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       }
       const result =
         next.activeSide === "corp"
-          ? installCorp(next, action.cardId, action.destination)
+          ? installCorp(next, action.cardId, action.destination, {
+              trashFirstIds: action.trashFirstIds,
+            })
           : action.destination.kind === "installed" ||
               action.destination.kind === "host_ice" ||
               action.destination.kind === "host_card"
