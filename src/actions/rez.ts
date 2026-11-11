@@ -664,7 +664,8 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
       const trashed = state.cards[pick];
       if (trashed) {
         trashed.zone = "corp:archives";
-        trashed.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        trashed.faceup = false;
       }
       log(
         state,

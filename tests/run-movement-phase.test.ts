@@ -258,8 +258,16 @@ describe("approaching the server is not a paid ability window (CR 6.9.4g)", () =
     });
     expect(nisei.ok).toBe(false);
 
+    const hqBefore = [...s.corp.hand];
     s = must(s, { type: "use_paid_ability", cardId: "void-1", abilityId: "etr" });
     expect(s.run).toBeNull();
+    // Cards trashed from HQ as the cost are facedown in Archives (CR 4.4.6b).
+    const paid = hqBefore.filter((id) => !s.corp.hand.includes(id));
+    expect(paid).toHaveLength(2);
+    for (const id of paid) {
+      expect(s.cards[id].zone).toBe("corp:archives");
+      expect(s.cards[id].faceup).toBe(false);
+    }
     expect(s.corp.credits).toBe(8);
   });
 

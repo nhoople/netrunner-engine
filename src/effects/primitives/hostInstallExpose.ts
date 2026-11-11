@@ -397,7 +397,8 @@ logLine: `${source.title} — derez up to ${max} card(s).`,
       const hqCard = state.cards[hqId]!;
       const archCard = state.cards[archId]!;
       hqCard.zone = "corp:archives";
-      hqCard.faceup = true;
+      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+      hqCard.faceup = false;
       archCard.zone = "corp:hq";
       archCard.faceup = false;
       log(

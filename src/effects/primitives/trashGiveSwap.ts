@@ -34,7 +34,8 @@ export function applySpinFalDtPrimitive(
         removeCardFromCurrentZone(state, id);
         state.corp.discardPile.push(id);
         state.cards[id]!.zone = "corp:archives";
-        state.cards[id]!.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[id]!.faceup = false;
         noteCorpCardAddedToArchives(state);
         log(state, `Hemorrhage — Corp trashes ${state.cards[id]!.title} from HQ.`);
         return { ok: true };

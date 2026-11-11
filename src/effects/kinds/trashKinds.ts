@@ -2501,7 +2501,8 @@ case "trash_hq_reencounter_passed_ice": {
         state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
         state.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
-        hqCard.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        hqCard.faceup = false;
         noteCorpCardAddedToArchives(state);
         if (state.run) {
           state.run.reencounterIceId = iceId;
@@ -2543,7 +2544,8 @@ case "trash_hq_reencounter_passed_ice_resolve": {
       state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
       state.corp.discardPile.push(hqId);
       hqCard.zone = "corp:archives";
-      hqCard.faceup = true;
+      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+      hqCard.faceup = false;
       noteCorpCardAddedToArchives(state);
       state.run.reencounterIceId = state.run.pendingReencounterIceId;
       state.run.pendingReencounterIceId = undefined;

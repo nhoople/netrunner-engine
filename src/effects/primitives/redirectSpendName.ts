@@ -307,7 +307,8 @@ export function applyFlashpointEsPrimitive(
             const c = state.cards[id];
             if (c) {
               c.zone = "corp:archives";
-              c.faceup = true;
+              // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+              c.faceup = false;
             }
           }
           for (const id of toShuffle) {

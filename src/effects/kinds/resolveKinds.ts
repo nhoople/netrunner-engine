@@ -150,7 +150,8 @@ case "resolve_moon_pool": {
         const id = state.corp.hand.pop()!;
         state.corp.discardPile.push(id);
         state.cards[id].zone = "corp:archives";
-        state.cards[id].faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[id].faceup = false;
         noteCorpCardAddedToArchives(state);
         log(
           state,
@@ -158,8 +159,11 @@ case "resolve_moon_pool": {
         );
       }
 
+      // The cards just trashed from HQ stay in Archives: revealing is "up
+      // to", and this kind resolves without asking the Corp.
+      const justTrashed = new Set(trashN > 0 ? state.corp.discardPile.slice(-trashN) : []);
       const facedown = state.corp.discardPile.filter(
-        (id) => !state.cards[id].faceup,
+        (id) => !state.cards[id].faceup && !justTrashed.has(id),
       );
       const revealN = Math.min(
         Math.max(0, action.revealArchivesMax),
@@ -224,7 +228,8 @@ case "resolve_simulation_reset": {
         const id = state.corp.hand.pop()!;
         state.corp.discardPile.push(id);
         state.cards[id].zone = "corp:archives";
-        state.cards[id].faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[id].faceup = false;
         noteCorpCardAddedToArchives(state);
         log(
           state,

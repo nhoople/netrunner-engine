@@ -119,7 +119,8 @@ export function applyKitaraTdatdPrimitive(
         if (idx >= 0) state.corp.hand.splice(idx, 1);
         const c = state.cards[id]!;
         c.zone = "corp:archives";
-        c.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        c.faceup = false;
         c.rezzed = false;
         state.corp.discardPile.push(id);
         log(state, `Glut Cipher — trash ${c.title} from HQ at random.`);
@@ -489,7 +490,8 @@ logLine: `Sadaka — arrange top of R&D.`,
       state.corp.hand.splice(idx, 1);
       const c = state.cards[cardId]!;
       c.zone = "corp:archives";
-      c.faceup = true;
+      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+      c.faceup = false;
       state.corp.discardPile.push(cardId);
       log(state, `Sadaka — trash ${c.title} from HQ.`);
       const resources = state.runner.installed.filter(

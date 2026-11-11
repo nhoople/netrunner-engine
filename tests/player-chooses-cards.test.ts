@@ -401,3 +401,69 @@ describe("a choice shown to the other player", () => {
     );
   });
 });
+
+describe("the other player does not read hidden cards off an open choice (CR 1.21.2)", () => {
+  function hemorrhage(): GameState {
+    const s = structuredClone(createInitialState());
+    s.corp.hand = [];
+    for (const [i, defId] of ["hedge-fund", "ice-wall", "pad-campaign"].entries()) {
+      s.cards[`hq-${i}`] = instantiateCard(defId, `hq-${i}`, "corp:hq");
+      s.corp.hand.push(`hq-${i}`);
+    }
+    s.cards["hem-1"] = instantiateCard("hemorrhage", "hem-1", "runner:installed");
+    s.runner.installed.push("hem-1");
+    const r = evalEffect({ state: s, sourceId: "hem-1" }, fx.do({ kind: "corp_trash_from_hq" }));
+    expect(r.ok).toBe(true);
+    return s;
+  }
+
+  it("shows the Corp every option", () => {
+    const s = hemorrhage();
+    const choice = getPublicView(s, "corp").pendingChoice;
+    expect(choice?.options.map((o) => o.label)).toEqual([
+      "Trash Hedge Fund from HQ",
+      "Trash Ice Wall from HQ",
+      "Trash PAD Campaign from HQ",
+    ]);
+  });
+
+  it("shows the Runner only that three options are open", () => {
+    const s = hemorrhage();
+    const choice = getPublicView(s, "runner").pendingChoice;
+    expect(choice?.chooser).toBe("corp");
+    expect(choice?.options).toHaveLength(3);
+    const wire = JSON.stringify(choice?.options);
+    for (const leak of ["hq-0", "hq-1", "hq-2", "Hedge Fund", "Ice Wall", "PAD Campaign"]) {
+      expect(wire).not.toContain(leak);
+    }
+  });
+
+  it("puts the chosen card in Archives facedown (CR 4.4.6b)", () => {
+    let s = hemorrhage();
+    s = must(s, { type: "choose_option", optionId: "hemorrhage:hq-1" });
+    expect(s.cards["hq-1"].zone).toBe("corp:archives");
+    expect(s.cards["hq-1"].faceup).toBe(false);
+    expect(getPublicView(s, "runner").opponent.discardPileFaceup).not.toContain("hq-1");
+  });
+
+  it("keeps an option about cards both players can see", () => {
+    const s = structuredClone(createInitialState());
+    s.cards["src"] = instantiateCard("hedge-fund", "src", "corp:play-area");
+    s.cards["src"].faceup = true;
+    const r = evalEffect(
+      { state: s, sourceId: "src" },
+      fx.choose("corp", [
+        { id: "gain", label: "Gain 1 credit", effect: fx.gainCredits("corp", 1) },
+        { id: "none", label: "Decline", effect: fx.gainCredits("corp", 0) },
+      ]),
+    );
+    expect(r.ok).toBe(true);
+    const choice = getPublicView(s, "runner").pendingChoice;
+    expect(choice?.options.map((o) => [o.id, o.label])).toEqual([
+      ["gain", "Gain 1 credit"],
+      ["none", "Decline"],
+    ]);
+    // What an option does is still only the chooser's to read.
+    expect(JSON.stringify(choice?.options)).not.toContain('"amount":1');
+  });
+});

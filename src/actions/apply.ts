@@ -2238,7 +2238,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next.corp.hand.pop();
         next.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
-        hqCard.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        hqCard.faceup = false;
         noteCorpCardAddedToArchives(next);
         log(
           next,
@@ -2256,7 +2257,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next.corp.hand.pop();
         next.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
-        hqCard.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        hqCard.faceup = false;
         noteCorpCardAddedToArchives(next);
         log(
           next,

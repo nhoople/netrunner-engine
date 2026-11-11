@@ -5341,6 +5341,12 @@ export interface PendingChoice {
    * the options without their ids or labels.
    */
   hiddenFromOpponent?: boolean;
+  /**
+   * The other player is looking at the cards the options name, so their
+   * view keeps the option ids and labels (Chronos Protocol looks at the
+   * grip; CR 1.21.2).
+   */
+  shownToOpponent?: boolean;
 }
 
 /**

@@ -2622,7 +2622,8 @@ logLine: `HQ to top of R&D — Corp chooses among ${hq.length}.`,
       }
       const id = action.pick === "first" ? hq[0]! : hq[hq.length - 1]!;
       removeCardFromCurrentZone(state, id);
-      state.corp.deck.push(id);
+      // Index 0 is the top of R&D.
+      state.corp.deck.unshift(id);
       state.cards[id].zone = "corp:rd";
       state.cards[id].faceup = false;
       log(

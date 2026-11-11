@@ -564,7 +564,8 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       for (const id of action.toTrash) {
         state.corp.discardPile.push(id);
         state.cards[id]!.zone = "corp:archives";
-        state.cards[id]!.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[id]!.faceup = false;
       }
       // arrange: bottom-to-top → unshift in reverse so first is top
       for (let i = action.arrange.length - 1; i >= 0; i--) {
@@ -735,7 +736,8 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
         state.corp.discardPile.push(id);
         state.cards[id]!.zone = "corp:archives";
-        state.cards[id]!.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[id]!.faceup = false;
         log(state, `Distract the Masses — trash ${state.cards[id]!.title} from HQ.`);
       }
       if (action.remainingAfter > 0) {

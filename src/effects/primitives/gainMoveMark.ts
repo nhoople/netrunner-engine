@@ -456,7 +456,8 @@ export function applyOacPrimitive(
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
         const card = state.cards[id]!;
         card.zone = "corp:archives";
-        card.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        card.faceup = false;
         card.rezzed = false;
         state.corp.discardPile.push(id);
         log(state, `Wanton Destruction — trash ${card.title} from HQ.`);

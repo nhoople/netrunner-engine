@@ -156,7 +156,8 @@ logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
         state.corp.hand = state.corp.hand.filter((id) => id !== picked);
         state.corp.discardPile.push(picked);
         state.cards[picked]!.zone = "corp:archives";
-        state.cards[picked]!.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[picked]!.faceup = false;
         log(state, `SYN Attack — Corp discards ${state.cards[picked]!.title}.`);
         const left = (action.remaining ?? 1) - 1;
         if (left <= 0 || state.corp.hand.length === 0) return { ok: true };

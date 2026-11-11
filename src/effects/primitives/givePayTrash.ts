@@ -60,7 +60,8 @@ function trashTopOfRd(state: EffectCtx["state"], n: number, label: string): void
     const c = state.cards[top];
     if (c) {
       c.zone = "corp:archives";
-      c.faceup = true;
+      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+      c.faceup = false;
     }
     log(state, `${label} — trash ${c?.title ?? top} from R&D.`);
   }

@@ -1807,7 +1807,8 @@ describe("the-automata-initiative", () => {
       );
       expect(r.ok).toBe(true);
       expect(s.corp.hand).toHaveLength(1);
-      expect(s.corp.deck.at(-1)).toBe("h1");
+      // The top of R&D is the card the Corp draws next.
+      expect(s.corp.deck[0]).toBe("h1");
     });
 
     it("threat cond uses max agenda points across players", () => {

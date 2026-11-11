@@ -1157,7 +1157,8 @@ export function payCost(
         state.corp.discardPile.push(id);
         const c = state.cards[id];
         c.zone = "corp:archives";
-        c.faceup = true;
+        // The Runner could not see a card in HQ, so it is facedown (CR 4.4.6b).
+        c.faceup = false;
         log(state, `Trash ${c.title} from HQ as cost.`);
       }
     }

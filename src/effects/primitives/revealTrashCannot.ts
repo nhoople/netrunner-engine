@@ -24,7 +24,8 @@ function trashTopOfRd(state: EffectCtx["state"], n: number, label: string): void
     const card = state.cards[top];
     if (card) {
       card.zone = "corp:archives";
-      card.faceup = true;
+      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+      card.faceup = false;
     }
     trashed += 1;
   }

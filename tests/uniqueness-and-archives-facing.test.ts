@@ -12,9 +12,13 @@ import {
   crDataPresent,
   createInitialState,
   CR,
+  evalEffect,
   getPublicView,
   instantiateCard,
+  seedRng,
 } from "../src/index.js";
+import type { Effect } from "../src/index.js";
+import { onAccessFinishedWithoutStealOrTrash } from "../src/state/cardDeclarations.js";
 import type { GameState } from "../src/index.js";
 import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
@@ -174,5 +178,70 @@ describe("a trashed Corp card faces up only if the Runner could see it (CR 4.4.6
     trashCorpCardToArchives(s, "h-1", "runner");
     expect(card.zone).toBe("corp:archives");
     expect(card.faceup).toBe(true);
+  });
+});
+
+describe("cards trashed out of HQ and R&D by card effects are facedown (CR 4.4.6b)", () => {
+  function hqOf(s: GameState, n: number): string[] {
+    s.corp.hand = [];
+    const ids: string[] = [];
+    for (let i = 0; i < n; i++) {
+      const id = `hq-${i}`;
+      s.cards[id] = instantiateCard("hedge-fund", id, "corp:hq");
+      s.corp.hand.push(id);
+      ids.push(id);
+    }
+    return ids;
+  }
+
+  function mawTrash(seed: number): { s: GameState; trashed: string } {
+    const s = structuredClone(createInitialState());
+    seedRng(s, seed);
+    s.cards["maw-1"] = instantiateCard("maw", "maw-1", "runner:installed");
+    s.runner.installed = ["maw-1"];
+    hqOf(s, 8);
+    s.cards["seen"] = instantiateCard("pad-campaign", "seen", "server:remote-1:root");
+    onAccessFinishedWithoutStealOrTrash(s, "seen");
+    expect(s.corp.hand).toHaveLength(7);
+    return { s, trashed: s.corp.discardPile.at(-1)! };
+  }
+
+  it("Maw trashes a random HQ card, facedown", () => {
+    const { s, trashed } = mawTrash(11);
+    expect(s.cards[trashed].zone).toBe("corp:archives");
+    expect(s.cards[trashed].faceup).toBe(false);
+    expect(getPublicView(s, "runner").opponent.discardPileFaceup).not.toContain(trashed);
+    // The pick comes from the seeded stream, not from one end of HQ.
+    const picks = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((seed) => mawTrash(seed).trashed));
+    expect(picks.size).toBeGreaterThan(1);
+    expect(mawTrash(11).trashed).toBe(trashed);
+  });
+
+  it("a random discard from HQ is facedown", () => {
+    const s = structuredClone(createInitialState());
+    hqOf(s, 4);
+    s.cards["src"] = instantiateCard("hedge-fund", "src", "corp:play-area");
+    const r = evalEffect(
+      { state: s, sourceId: "src" },
+      { op: "do", action: { kind: "corp_discard_random_from_hq", amount: 2 } } as unknown as Effect,
+    );
+    expect(r.ok).toBe(true);
+    const gone = s.corp.discardPile.filter((id) => id.startsWith("hq-"));
+    expect(gone).toHaveLength(2);
+    for (const id of gone) expect(s.cards[id].faceup).toBe(false);
+  });
+
+  it("a card trashed off the top of R&D is facedown", () => {
+    const s = structuredClone(createInitialState());
+    const top = s.corp.deck[0]!;
+    s.turn.damageSufferedThisTurn = 1;
+    s.cards["src"] = instantiateCard("salvaged-vanadis-armory", "src", "runner:heap");
+    const r = evalEffect(
+      { state: s, sourceId: "src" },
+      { op: "do", action: { kind: "trash_top_rd_equal_damage_suffered_this_turn" } } as unknown as Effect,
+    );
+    expect(r.ok).toBe(true);
+    expect(s.cards[top].zone).toBe("corp:archives");
+    expect(s.cards[top].faceup).toBe(false);
   });
 });

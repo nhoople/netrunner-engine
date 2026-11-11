@@ -460,6 +460,8 @@ export function resolveDamage(
     if (!openPendingChoose(state, {
       sourceId: chronosId,
       chooser,
+      // The Corp looks at the grip, so both players read these options.
+      shownToOpponent: true,
       options: grip.map((id) => ({
         id: `chronos:${id}`,
         label: `Trash ${state.cards[id]!.title}`,
