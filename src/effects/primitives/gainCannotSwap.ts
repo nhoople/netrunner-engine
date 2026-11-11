@@ -1,5 +1,6 @@
 /** The Universe of Tomorrow (uot) SanSan pack primitives. */
 import { resolveChronosFirstNetPick, resolveRibsPick } from "../../state/damage.js";
+import { setRunnerPosition } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir.js";
@@ -127,7 +128,7 @@ logLine: `Surfer — choose adjacent ice to swap.`,
       if (a < 0 || b < 0) return { ok: true };
       server.ice[a] = otherId;
       server.ice[b] = iceId;
-      run.position = b;
+      setRunnerPosition(run, b);
       // Printed: still encountering that ice (the barrier), from its new
       // position — do not switch the encounter onto the other ice (CR 1.2.1).
       log(

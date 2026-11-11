@@ -1,5 +1,6 @@
 /** Sovereign Sight (ss) Kitara pack primitives — v1.136.0. */
 import { abilitiesSuppressed } from "../../state/abilities.js";
+import { addOutermostIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
@@ -194,7 +195,8 @@ logLine: `${source?.title ?? "Asa Group"} — may install non-agenda same server
       card.faceup = false;
       card.advancementCounters = card.advancementCounters ?? 0;
       if (action.asIce) {
-        server.ice.push(action.cardId);
+        // Outermost, as the text names no other position (CR 6.2.2a).
+        addOutermostIce(state, action.serverId as ServerId, action.cardId);
         card.zone = `server:${action.serverId}:ice`;
       } else {
         server.root.push(action.cardId);

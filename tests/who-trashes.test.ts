@@ -23,12 +23,13 @@ import {
   seedRng,
 } from "../src/index.js";
 import type { Action, Effect, GameState } from "../src/index.js";
+import { notePowerCounters } from "../src/state/cardDeclarations.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.21");
+  assertCardsPinnedTag("v1.147.22");
 });
 
 function put(s: GameState, defId: string, id: string, zone: string) {
@@ -330,5 +331,44 @@ describe("Accelerated Diagnostics", () => {
     doKind(s, "src-c", "accelerated_diagnostics");
     expect(s.pendingChoice).toBeFalsy();
     expect(s.corp.discardPile).toEqual(["rd-0", "rd-1", "rd-2"]);
+  });
+});
+
+describe("card-specific trashes use the trash procedure (CR 1.14.5, CR 4.4.6b)", () => {
+  it("Trypano: the Runner trashes its host, and unrezzed ice goes to Archives facedown", () => {
+    const s = createInitialState();
+    const ice = put(s, "ice-wall", "host-ice", "server:hq:ice");
+    ice.rezzed = false;
+    ice.faceup = false;
+    s.servers["hq"]!.ice = ["host-ice"];
+    const trypano = put(s, "trypano", "tryp-1", "runner:installed");
+    trypano.hostId = "host-ice";
+    trypano.virusCounters = 4;
+    ice.hostedCardIds = ["tryp-1"];
+    s.runner.installed = ["tryp-1"];
+    s.turn.runnerTrashedCorpCardThisTurn = false;
+    doKind(s, "tryp-1", "add_virus_counter", { amount: 1 });
+    expect(s.cards["host-ice"]?.zone).toBe("corp:archives");
+    expect(s.cards["host-ice"]?.faceup).toBe(false);
+    expect(s.servers["hq"]!.ice).toEqual([]);
+    expect(s.turn.runnerTrashedCorpCardThisTurn).toBe(true);
+  });
+
+  it("an asset trashed for having no power counters is a Corp card added to Archives by the Corp", () => {
+    const s = createInitialState();
+    const rex = put(s, "rex-campaign", "rex-1", "server:remote-1:root");
+    rex.rezzed = true;
+    rex.faceup = true;
+    rex.trashWhenPowerEmpty = true;
+    rex.powerHosted = true;
+    rex.powerCounters = 0;
+    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["rex-1"] };
+    s.turn.runnerTrashedCorpCardThisTurn = false;
+    const before = s.turn.corpCardsAddedToArchivesThisTurn;
+    notePowerCounters(s, rex);
+    expect(rex.zone).toBe("corp:archives");
+    expect(rex.faceup).toBe(true);
+    expect(s.turn.corpCardsAddedToArchivesThisTurn).toBe(before + 1);
+    expect(s.turn.runnerTrashedCorpCardThisTurn).toBe(false);
   });
 });

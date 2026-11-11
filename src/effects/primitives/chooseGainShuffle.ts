@@ -1,5 +1,6 @@
 /** Blood and Water (baw) Red Sand pack primitives — v1.132.0. */
 import { abilitiesSuppressed } from "../../state/abilities.js";
+import { setRunnerPosition } from "../../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
@@ -200,9 +201,9 @@ export function applyRedsandBawPrimitive(
       state.run.attackedServerId = "archives";
       const arch = state.servers.archives;
       if (arch.ice.length > 0) {
-        state.run.position = 0;
+        setRunnerPosition(state.run, 0);
       } else {
-        state.run.position = null;
+        setRunnerPosition(state.run, null);
       }
       log(state, `Mirāju — Runner moves to outermost Archives.`);
       openPendingChoose(state, {

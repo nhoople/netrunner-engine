@@ -1,6 +1,7 @@
 /** Richer cost model + recurring credit refill (CR 1.10 / 1.16). */
 
 import { abilitiesSuppressed } from "./abilities.js";
+import { iceAtRunnerPosition } from "./runPosition.js";
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
@@ -214,7 +215,7 @@ export function approachedIceMissesStipulation(
   }
   const run = state.run;
   if (!run || run.position === null) return true;
-  const iceId = state.servers[run.attackedServerId]?.ice[run.position];
+  const iceId = iceAtRunnerPosition(state);
   const ice = iceId ? state.cards[iceId] : undefined;
   return !(ice?.rezzed && (ice.subtypes ?? []).includes("bioroid"));
 }

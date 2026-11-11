@@ -1,5 +1,6 @@
 /** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
 import { corpInstallCost, subtractRunnerCreditPool } from "../../state/costs.js";
+import { addOutermostIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -65,9 +66,7 @@ function exposeIceAndMaybeBounce(
     return { ok: true };
   }
   // Bounce to HQ
-  for (const server of Object.values(state.servers)) {
-    server.ice = server.ice.filter((id) => id !== iceId);
-  }
+  removeCardFromCurrentZone(state, iceId);
   state.corp.hand.push(iceId);
   ice.zone = "corp:hq";
   ice.rezzed = false;
@@ -860,7 +859,8 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
           (id) => id !== iceId,
         );
       }
-      server.ice.push(iceId);
+      // Outermost, as the text names no other position (CR 6.2.2a).
+      addOutermostIce(state, serverId, iceId);
       ice.zone = `server:${serverId}:ice`;
       ice.rezzed = false;
       ice.faceup = false;

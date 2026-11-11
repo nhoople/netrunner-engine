@@ -3,6 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { iceAtRunnerPosition, setRunnerPosition } from "../../state/runPosition.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -401,7 +402,7 @@ case "redirect_approach_to_server": {
         };
       }
       state.run.attackedServerId = sid;
-      state.run.position = server.ice.length > 0 ? 0 : null;
+      setRunnerPosition(state.run, server.ice.length > 0 ? 0 : null);
       log(
         state,
         `Baker — change attacked server to ${sid} and approach${
@@ -742,7 +743,7 @@ case "grant_approached_rezzed_bioroid_etr_subroutine_this_run": {
         log(state, `${source.title} — no approached ice.`);
         return { ok: true };
       }
-      const iceId = state.servers[run.attackedServerId]?.ice[run.position];
+      const iceId = iceAtRunnerPosition(state);
       const ice = iceId ? state.cards[iceId] : undefined;
       if (!ice || !ice.rezzed || !(ice.subtypes ?? []).includes("bioroid")) {
         log(state, `${source.title} — approached ice is not a rezzed bioroid.`);
@@ -1544,7 +1545,7 @@ case "copycat_continue_from_ice": {
       const serverId = hostServer as import("../../state/types.js").ServerId;
       state.run.attackedServerId = serverId;
       const pos = state.servers[serverId].ice.indexOf(iceId);
-      state.run.position = pos >= 0 ? pos : 0;
+      setRunnerPosition(state.run, pos >= 0 ? pos : 0);
       state.run.passedIceIds = [...(state.run.passedIceIds ?? []), iceId];
       log(
         state,
@@ -3161,7 +3162,7 @@ case "mitra_aman_approach_ice": {
         return { ok: true };
       }
       const approachedId =
-        state.servers[run.attackedServerId]?.ice[run.position];
+        iceAtRunnerPosition(state);
       if (!approachedId) {
         log(state, `Mitra Aman — no approached ice.`);
         return { ok: true };

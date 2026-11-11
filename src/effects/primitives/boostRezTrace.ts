@@ -1,5 +1,6 @@
 /** The Source (ts) Lunar pack primitives. */
 import { subtractRunnerCreditPool } from "../../state/costs.js";
+import { trashCorpCardToArchives } from "../corpTrash.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
 import { addIceStrengthBoostThisTurn } from "../../state/lingeringEffects.js";
@@ -252,16 +253,8 @@ export function applyLunarTsPrimitive(
       for (const id of toTrash) {
         const card = state.cards[id];
         if (!card) continue;
-        if (server.root.includes(id)) {
-          server.root = server.root.filter((x) => x !== id);
-        }
-        if (server.ice.includes(id)) {
-          server.ice = server.ice.filter((x) => x !== id);
-        }
-        state.corp.discardPile.push(id);
-        card.zone = "corp:archives";
-        card.faceup = true;
-        card.rezzed = false;
+        trashCorpCardToArchives(state, id, "corp");
+        if (card.zone !== "corp:archives") continue;
         trashed += 1;
         log(state, `Self-destruct — trash ${card.title}.`);
       }

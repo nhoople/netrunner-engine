@@ -266,6 +266,23 @@ export const CR = {
   },
   countPositions: { number: "6.2.3", id: "rule_count_positions" },
   iceChangeOutward: { number: "6.2.6a", id: "rule_ice_change_outward" },
+  /** An emptied position exists while the Runner is in it (CR 6.2.4). */
+  destroyPosition: { number: "6.2.4", id: "rule_destroy_position" },
+  /** Approached ice is uninstalled: the approach ends (CR 6.2.7a). */
+  approachedIceLeaves: {
+    number: "6.2.7a",
+    id: "rule_ice_change_approach_uninstall_move",
+  },
+  /** Encountered ice is uninstalled or derezzed: the encounter ends (CR 6.2.7c). */
+  encounteredIceLeaves: {
+    number: "6.2.7c",
+    id: "rule_ice_change_encounter_uninstall_derez",
+  },
+  /** Ice uninstalled while approached or encountered (CR 8.5.10). */
+  uninstallIceDuringRun: {
+    number: "8.5.10",
+    id: "rule_uninstall_ice_during_run",
+  },
   abilitiesDuringRun: { number: "6.3.4", id: "rule_abilities_during_a_run" },
   ifSuccessfulTiedToServer: {
     number: "6.7.4a",

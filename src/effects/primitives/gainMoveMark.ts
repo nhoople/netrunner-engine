@@ -1,5 +1,6 @@
 /** Order and Chaos (oac) deluxe primitives. */
 import { abilitiesSuppressed } from "../../state/abilities.js";
+import { addOutermostIce, iceAtRunnerPosition } from "../../state/runPosition.js";
 import { emptyRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage, removePendingDamageEntirely } from "../../state/damage.js";
@@ -309,7 +310,7 @@ export function applyOacPrimitive(
       state.servers[from]!.ice = state.servers[from]!.ice.filter(
         (id) => id !== sourceId,
       );
-      state.servers[serverId]!.ice.push(sourceId);
+      addOutermostIce(state, serverId, sourceId);
       source!.zone = `server:${serverId}:ice`;
       log(state, `Builder — move to outermost of ${serverId}.`);
       return { ok: true };
@@ -366,9 +367,7 @@ export function applyOacPrimitive(
 
     case "trash_twins_hq_copy_reencounter": {
       const atPosition =
-        state.run?.position != null
-          ? state.servers[state.run.attackedServerId]?.ice[state.run.position]
-          : undefined;
+        iceAtRunnerPosition(state);
       const iceId = state.run?.encounter?.iceId ?? atPosition;
       if (!iceId) {
         log(state, `The Twins — no passed ice.`);

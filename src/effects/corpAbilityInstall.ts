@@ -53,16 +53,10 @@ function optionalLikeCards(
 ): string[] {
   if (serverId === NEW_REMOTE) return [];
   const like = likeCardsAtDestination(state, cardId, serverId as ServerId);
-  // The Runner's position is an element of the path (CR 6.2.6), so other
-  // ice can go. Uninstalling the ice being approached or encountered ends
-  // that approach or encounter (CR 8.5.10); that is not modelled, so that
-  // one piece of ice is not offered.
-  const run = state.run;
-  const runnerIce =
-    run && run.attackedServerId === serverId && typeof run.position === "number"
-      ? state.servers[serverId]?.ice[run.position]
-      : undefined;
-  return like.may.filter((id) => !like.must.includes(id) && id !== runnerIce);
+  // Any of the ice can go (CR 8.5.6b). The Runner's position is an element
+  // of the path (CR 6.2.6), and trashing the ice they are approaching or
+  // encountering ends that approach or encounter (CR 8.5.10).
+  return like.may.filter((id) => !like.must.includes(id));
 }
 
 /**

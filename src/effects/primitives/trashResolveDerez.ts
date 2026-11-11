@@ -1,5 +1,6 @@
 /** Earth's Scion (eas) Red Sand pack primitives — v1.131.0. */
 import { revealCards } from "../../state/reveal.js";
+import { iceAtRunnerPosition, setRunnerPosition } from "../../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -350,7 +351,7 @@ export function applyRedsandEasPrimitive(
         return { ok: true };
       }
       const iceId =
-        state.servers[run.attackedServerId]?.ice[run.position] ?? null;
+        iceAtRunnerPosition(state);
       const ice = iceId ? state.cards[iceId] : null;
       if (!ice || ice.rezzed) {
         log(state, `AgInfusion — approached ice must be unrezzed.`);
@@ -387,7 +388,7 @@ export function applyRedsandEasPrimitive(
       }
       run.attackedServerId = sid;
       const iceCount = state.servers[sid]!.ice.length;
-      run.position = iceCount > 0 ? iceCount - 1 : null;
+      setRunnerPosition(run, iceCount > 0 ? iceCount - 1 : null);
       run.encounter = null;
       if (iceCount > 0) {
         const outer = state.servers[sid]!.ice[iceCount - 1]!;

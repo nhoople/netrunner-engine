@@ -6,6 +6,7 @@ import type {
   EffectCtx,
   EvalResult,
 } from "../eval.js";
+import { iceAtRunnerPosition } from "../../state/runPosition.js";
 import type {
   Effect,
   Primitive,
@@ -33,7 +34,7 @@ case "may_swap_approached_ice_with_hq": {
         return { ok: true };
       }
       const approachedId =
-        state.servers[run.attackedServerId]?.ice[run.position];
+        iceAtRunnerPosition(state);
       if (!approachedId) {
         log(state, `Midori — no approached ice.`);
         return { ok: true };
@@ -75,7 +76,7 @@ case "swap_approached_ice_with_hq": {
         return { ok: true };
       }
       const serverId = run.attackedServerId;
-      const approachedId = state.servers[serverId]?.ice[run.position];
+      const approachedId = iceAtRunnerPosition(state);
       const replacementId = action.replacementIceId;
       const replacement = state.cards[replacementId];
       const approached = approachedId ? state.cards[approachedId] : undefined;
@@ -490,7 +491,7 @@ case "swap_approached_ice_with_hq_or_archives": {
         return { ok: true };
       }
       const serverId = run.attackedServerId;
-      const approachedId = state.servers[serverId]?.ice[run.position];
+      const approachedId = iceAtRunnerPosition(state);
       const replacementId = action.replacementIceId;
       const replacement = state.cards[replacementId];
       const approached = approachedId ? state.cards[approachedId] : undefined;

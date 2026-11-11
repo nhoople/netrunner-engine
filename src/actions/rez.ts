@@ -2,6 +2,7 @@
  * Rezzing ice and assets, including rez-cost modifiers.
  */
 import { moveForfeitedAgendaOutOfGame } from "../state/scoring.js";
+import { iceAtRunnerPosition } from "../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { onCardRezzed } from "../state/staticFlags.js";
@@ -130,9 +131,7 @@ function firstIceRezIncrease(state: GameState): number {
 }
 
 export function approachedIceId(state: GameState): string | null {
-  const run = state.run;
-  if (!run || run.position === null) return null;
-  return state.servers[run.attackedServerId].ice[run.position] ?? null;
+  return iceAtRunnerPosition(state);
 }
 
 function forfeitSpecificAgenda(state: GameState, id: string): void {

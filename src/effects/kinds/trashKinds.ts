@@ -2237,7 +2237,6 @@ case "trash_encounter_ice_if_strength_lte": {
       }
       const ice = state.cards[iceId]!;
       trashCorpCardToArchives(state, iceId, source.side);
-      if (state.run?.encounter) state.run.encounter = null;
       log(
         state,
         `Trash encountered ${ice.title} (strength ${str} ≤ ${action.maxStrength}) (CR ${CR.trashing.number}).`,

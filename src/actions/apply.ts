@@ -1,4 +1,5 @@
 import { endLooksAndReveals, lookAtChoiceCards } from "../state/reveal.js";
+import { setRunnerPosition } from "../state/runPosition.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
 import {
   costCardNeedForAction,
@@ -1107,7 +1108,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const server = state.servers[state.run.attackedServerId];
     const pos = server?.ice.indexOf(iceId) ?? -1;
     if (pos >= 0) {
-      state.run.position = pos;
+      setRunnerPosition(state.run, pos);
       state.run.reencounterIceId = undefined;
       enterStep(state, "run.approachIce");
       autoWalk(state);
@@ -1141,7 +1142,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const server = state.servers[state.run.attackedServerId];
     const pos = server?.ice.indexOf(iceId) ?? -1;
     if (pos >= 0) {
-      state.run.position = pos;
+      setRunnerPosition(state.run, pos);
     }
     state.run.forceEncounterIceId = iceId;
     enterStep(state, "run.approachIce");
@@ -2971,7 +2972,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         const server = next.servers[next.run.attackedServerId];
         const pos = server?.ice.indexOf(iceId) ?? -1;
         if (pos >= 0) {
-          next.run.position = pos;
+          setRunnerPosition(next.run, pos);
           next.run.reencounterIceId = undefined;
           enterStep(next, "run.approachIce");
           autoWalk(next);

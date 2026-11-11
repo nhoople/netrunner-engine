@@ -90,7 +90,6 @@ export function maybeTrashHostsAtStrengthLte(state: GameState): void {
     trashed.add(hostId);
     // The Runner controls the hosted card's ability (CR 1.14.5).
     trashCorpCardToArchives(state, hostId, "runner");
-    if (state.run?.encounter?.iceId === hostId) state.run.encounter = null;
     log(
       state,
       `Trash ${host.title} — host strength ${str} ≤ parasite threshold (CR ${CR.trashing.number}).`,
