@@ -17,7 +17,7 @@ A set-complete shares one semver on cards-data and this engine. The current floo
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.147.21`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.21) | [`v1.147.246`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.246) (maintenance pair, not one shared semver; pins cards v1.147.21; a look or a search is seen by the player making it and no one else, and every reveal is recorded for both players) |
+| **Current** | [`v1.147.21`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.21) | [`v1.147.247`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.247) (maintenance pair, not one shared semver; pins cards v1.147.21; a look or a search is seen by the player making it and no one else, Keyhole and Accelerated Diagnostics included, and every reveal is recorded for both players) |
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 

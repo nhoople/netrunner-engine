@@ -3490,13 +3490,9 @@ case "accelerated_diagnostics": {
       const n = 3;
       // Deck top is index 0 (commitDraw shifts).
       const looked: string[] = state.corp.deck.splice(0, n);
-      for (const id of looked) {
-        state.cards[id]!.faceup = true;
-      }
-      log(
-        state,
-        `Accelerated Diagnostics — look top ${looked.length}: ${looked.map((id) => state.cards[id]!.title).join(", ") || "none"}.`,
-      );
+      // Only the Corp looks (CR 1.21.2). A card it does not play is trashed
+      // unseen by the Runner, so it goes to Archives facedown (CR 4.4.6b).
+      lookAtCards(state, looked, sourceId, "corp");
       for (const id of [...looked]) {
         const card = state.cards[id]!;
         if (card.type === "operation") {
@@ -3517,7 +3513,7 @@ case "accelerated_diagnostics": {
           state.corp.deck = state.corp.deck.filter((x) => x !== id);
         }
         trashCorpCardToArchives(state, id);
-        log(state, `Trash looked ${state.cards[id]?.title ?? id}.`);
+        log(state, `Accelerated Diagnostics — trash a looked card.`);
       }
       return { ok: true };
     }

@@ -8,6 +8,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { lookAtCards } from "../../state/reveal.js";
 
 
 type PrimResult =
@@ -43,9 +44,10 @@ export function applySpinTcPrimitive(
       if (state.run) state.run.skipBreach = true;
       // Deck top is index 0 (commitDraw shifts).
       const looked: string[] = state.corp.deck.splice(0, 3);
-      for (const id of looked) state.cards[id]!.faceup = true;
+      // Only the Runner looks (CR 1.21.2): the cards are not turned faceup,
+      // and the log does not name them.
+      lookAtCards(state, looked, sourceId, "runner");
       state.turn.rdLookedCards = looked;
-      // Only the Runner looks (CR 1.21.2): the log does not name the cards.
       log(state, `Keyhole — the Runner looks at the top ${looked.length} card(s) of R&D instead of breaching.`);
       // The Runner trashes 1 of the looked cards, whatever its type, then
       // R&D is shuffled.
