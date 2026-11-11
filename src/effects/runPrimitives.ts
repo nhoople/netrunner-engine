@@ -80,28 +80,28 @@ function instructionLabel(effect: Effect): string {
  * trash-an-installed-card, and shuffle-grip costs are recognized.
  * Anything else fails closed. Tag payability includes CR 1.16.1b.
  */
-function offerGeneralUnless(
+type NestedCostPart = {
+  empty: boolean;
+  payable: boolean;
+  unpaidLog: string;
+  costLabel: string;
+  payLabel: string;
+};
+
+/** One primitive of a nested cost: is it empty, can it be paid, how it reads. */
+function nestedCostPart(
   ctx: EffectCtx,
-  action: Extract<Primitive, { kind: "unless" }>,
+  payer: "corp" | "runner",
+  prim: Primitive,
   canPayTakeTagsNestedCost: CanPayTakeTags,
-): PrimResult {
+): NestedCostPart | Extract<PrimResult, { ok: false }> {
   const { state } = ctx;
-  const cost = action.cost;
-  if (cost.op !== "do") {
-    return {
-      ok: false,
-      error: "unless cost must be a single primitive.",
-      cites: [CR.nestedCostUnless],
-    };
-  }
-  const payer = action.payer;
   const pool = payer === "corp" ? state.corp : state.runner;
   let empty: boolean;
   let payable: boolean;
   let unpaidLog = "";
   let costLabel: string;
   let payLabel: string;
-  const prim = cost.action;
   switch (prim.kind) {
     case "lose_credits":
     case "runner_pay_credits":
@@ -244,6 +244,55 @@ function offerGeneralUnless(
         cites: [CR.nestedCostUnless],
       };
   }
+  return { empty, payable, unpaidLog, costLabel, payLabel };
+}
+
+function offerGeneralUnless(
+  ctx: EffectCtx,
+  action: Extract<Primitive, { kind: "unless" }>,
+  canPayTakeTagsNestedCost: CanPayTakeTags,
+): PrimResult {
+  const cost = action.cost;
+  const payer = action.payer;
+  // A cost is one primitive, or several that are all paid together
+  // ("pays [click] and 2 credits"). It is paid in full or not at all
+  // (CR 1.16.11b).
+  const prims: Primitive[] = [];
+  if (cost.op === "do") {
+    prims.push(cost.action);
+  } else if (
+    cost.op === "seq" &&
+    cost.effects.length > 0 &&
+    cost.effects.every((part) => part.op === "do")
+  ) {
+    for (const part of cost.effects) {
+      if (part.op === "do") prims.push(part.action);
+    }
+  } else {
+    return {
+      ok: false,
+      error: "unless cost must be a primitive or a list of primitives.",
+      cites: [CR.nestedCostUnless],
+    };
+  }
+  const parts: NestedCostPart[] = [];
+  for (const prim of prims) {
+    const part = nestedCostPart(ctx, payer, prim, canPayTakeTagsNestedCost);
+    if ("ok" in part) return part;
+    parts.push(part);
+  }
+  const empty = parts.every((part) => part.empty);
+  const payable = parts.every((part) => part.payable);
+  const unpaidLog =
+    parts.find((part) => !part.payable)?.unpaidLog ?? parts[0]!.unpaidLog;
+  const costLabel = parts.map((part) => part.costLabel).join(" and ");
+  const payLabel = parts
+    .map((part, index) =>
+      index === 0
+        ? part.payLabel
+        : part.payLabel.charAt(0).toLowerCase() + part.payLabel.slice(1),
+    )
+    .join(" and ");
   const label = instructionLabel(action.instruction);
   return offerNestedUnless(ctx, {
     payer,

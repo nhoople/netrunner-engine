@@ -1403,6 +1403,8 @@ export type Primitive =
    * runner_pay_credits, corp_pay_credits, corp_pay_credits_to_prevent,
    * lose_clicks, give_tags, net_damage, core_damage,
    * trash_installed_runner, or shuffle_all_grip_into_stack.
+   * A seq of those is one cost with several parts ("spends [click] and
+   * pays 2 credits"): it is paid in full or not at all.
    * An empty cost (amount ≤ 0) is treated as paid. An unpayable cost
    * resolves the instruction (CR 1.16.1b for tags).
    */
