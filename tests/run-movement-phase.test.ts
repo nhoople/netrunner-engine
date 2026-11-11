@@ -415,13 +415,44 @@ describe("passing all ice needs ice to pass (CR 6.9.4a)", () => {
     s.cards["wall-1"].faceup = false;
     s.corp.credits = 0;
     s = must(s, { type: "basic_run", serverId: "hq" });
-    s = passTo(s, "run.jackOutWindow");
-    expect(s.run?.passedAllIce).toBe(true);
-    s = must(s, { type: "continue_run" });
-    for (let i = 0; i < 4 && !s.pendingChoice; i += 1) {
+    for (let i = 0; i < 8 && !s.pendingChoice; i += 1) {
       s = must(s, { type: "pass_window" });
     }
+    // The condition is met as the ice is passed (CR 6.9.4a), before the
+    // 6.9.4b window and before the Runner may jack out (6.9.4c).
+    expect(s.timingKey).toBe("run.movement");
+    expect(s.run?.passedAllIce).toBe(true);
     expect(s.pendingChoice?.sourceId).toBe("poly-1");
+    const grip = s.runner.hand.length;
+    const hqSize = s.corp.hand.length;
+    s = must(s, { type: "choose_option", optionId: "decl:poly:poly-1" });
+    expect(s.runner.hand).toHaveLength(grip + 1);
+    expect(s.corp.hand).toHaveLength(hqSize + 1);
+    // The Runner can still jack out afterwards; the draws stand.
+    s = passTo(s, "run.jackOutWindow");
+    s = must(s, { type: "jack_out" });
+    expect(s.run).toBeNull();
+    expect(s.runner.hand).toHaveLength(grip + 1);
+  });
+
+  it("meets a root card's pass-all-ice condition before the Runner may jack out (CR 6.9.4a)", () => {
+    let s = runnerTurn();
+    remote(s, "remote-1");
+    inRoot(s, "k-p-lynn", "kp-1", "remote-1", true);
+    ice(s, "ice-wall", "wall-1", "remote-1");
+    s.cards["wall-1"].rezzed = false;
+    s.cards["wall-1"].faceup = false;
+    s.corp.credits = 0;
+    s = must(s, { type: "basic_run", serverId: "remote-1" });
+    for (let i = 0; i < 8 && !s.pendingChoice; i += 1) {
+      s = must(s, { type: "pass_window" });
+    }
+    // K. P. Lynn: the Runner must take 1 tag or end the run. They are
+    // asked in the Movement Phase, not while approaching the server.
+    expect(s.pendingChoice?.sourceId).toBe("kp-1");
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.run?.position).toBe(0);
+    expect(["run.movement", "run.passIcePaw"]).toContain(s.timingKey);
   });
 
   it("does not count the outer ice of two as passing all ice", () => {

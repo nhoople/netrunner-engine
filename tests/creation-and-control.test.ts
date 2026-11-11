@@ -13,6 +13,7 @@ import {
   validateEffectTree,
   CardInstance,
   getCardDef,
+  instantiateCard,
   playEffectFromCard,
 } from "../src/index.js";
 import {
@@ -281,31 +282,35 @@ describe("creation-and-control", () => {
       s.cards["ac-1"] = center;
       s.cards["ice-1"] = ice;
       s.servers.hq.root = ["ac-1"];
-      s.servers.hq.ice = [];
+      // One unrezzed piece of ice protects HQ; the Corp leaves it unrezzed.
+      const wall = instantiateCard("ice-wall", "wall-1", "server:hq:ice");
+      wall.rezzed = false;
+      wall.faceup = false;
+      s.cards["wall-1"] = wall;
+      s.servers.hq.ice = ["wall-1"];
       s.corp.credits = 10;
-      s.run = {
-        attackedServerId: "hq",
-        phase: "movement",
-        position: null,
-        successful: null,
-        accessedCardIds: [],
-        accessCandidates: [],
-        randomAccessLimit: null,
-        encounter: null,
-        endedTheRun: false,
-        cannotJackOut: false,
-        // The Runner passed the innermost ice at 6.9.4a.
-        passedAllIce: true,
-      };
-      s.timingKey = "run.jackOutWindow";
-      resolveAndAdvance(s);
+      s.activeSide = "runner";
+      s.timingKey = "runner.takeAction";
+      s.runner.clicks = 4;
+      s.priorityStack = [];
+      let ran = applyAction(s, { type: "basic_run", serverId: "hq" });
+      if (!ran.ok) throw new Error(ran.error);
+      for (let i = 0; i < 8 && !ran.state.pendingChoice; i += 1) {
+        ran = applyAction(ran.state, { type: "pass_window" });
+        if (!ran.ok) throw new Error(ran.error);
+      }
+      const passed = ran.state;
 
-      expect(s.pendingChoice?.sourceId).toBe("ac-1");
+      // The ice is passed with nothing more inward (CR 6.9.4a): the offer
+      // comes in that step, before the Runner may jack out (6.9.4c).
+      expect(passed.timingKey).toBe("run.movement");
+      expect(passed.run?.position).toBe(0);
+      expect(passed.pendingChoice?.sourceId).toBe("ac-1");
       expect(
-        s.pendingChoice?.options.some((o) => o.id === "awakening-rez:ice-1"),
+        passed.pendingChoice?.options.some((o) => o.id === "awakening-rez:ice-1"),
       ).toBe(true);
 
-      const chosen = applyAction(s, {
+      const chosen = applyAction(passed, {
         type: "choose_option",
         optionId: "awakening-rez:ice-1",
       });
@@ -313,6 +318,8 @@ describe("creation-and-control", () => {
       if (!chosen.ok) return;
       expect(chosen.state.cards["ice-1"].rezzed).toBe(true);
       expect(chosen.state.corp.credits).toBe(10); // rezCost 3 − 7 → 0
+      // The outer ice was passed once, not again after the offer.
+      expect(chosen.state.run?.passedIceIds).toEqual(["wall-1"]);
       expect(chosen.state.run?.awakeningCenterHostedIceIds).toContain("ice-1");
       // Runner is forced into a nested encounter with the hosted ice (Konjin-
       // class divert), or has already resolved it — accept either.

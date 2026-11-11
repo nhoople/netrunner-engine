@@ -440,6 +440,30 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     }
     const outcome = resolveDeclaration(state, optionId);
     if (outcome === "jackout") return jackOut(state);
+    // A declaration offered inside a run step that has no window of its
+    // own (passing ice, CR 6.9.4a): the run goes on once it is answered.
+    if (
+      state.run &&
+      !state.run.endedTheRun &&
+      !state.pendingChoice &&
+      !state.pendingDamage &&
+      !state.pendingTags &&
+      !state.pendingTrashProgram &&
+      !state.pendingSabotage &&
+      !state.trace &&
+      !state.psi
+    ) {
+      const step = getStep(state);
+      if (step.kind === "auto" || step.kind === "branch") {
+        const nextKey =
+          typeof step.next === "function" ? step.next(state) : step.next;
+        enterStep(state, nextKey);
+        const cont = advanceRunUntilStop(state);
+        if (!cont.ok) return cont;
+        finishRunReturnToAction(cont.state);
+        return cont;
+      }
+    }
     return ok(state);
   }
   if (optionId.startsWith("mu-trash:")) {
