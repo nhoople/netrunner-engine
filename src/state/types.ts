@@ -3436,6 +3436,12 @@ export interface TurnBookkeeping {
   /** Checkpoint frame paused at CR 10.3.1e until a restriction set is chosen. */
   pausedCheckpointId?: string;
   /**
+   * A checkpoint trashed a card with a "when this card is trashed" ability
+   * (CR 10.3.1d, 10.3.1e, 10.3.1f, 10.3.1g). The next checkpoint's 10.3.1a
+   * marks it pending.
+   */
+  checkpointTrashNoted?: boolean;
+  /**
    * Pending ability instance ids marked at the current checkpoint's 10.3.1a
    * step (CR 10.3.2). Cleared when the post-checkpoint reaction window opens
    * or stays closed. Survives `popCheckpoint` so scoop can use it.
