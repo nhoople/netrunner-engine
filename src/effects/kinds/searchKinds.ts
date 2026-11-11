@@ -145,6 +145,7 @@ case "search_stack_copy_of_last_installed_hardware_add_to_grip": {
       state.cards[id]!.zone = "runner:grip";
       state.cards[id]!.faceup = true;
       shuffleRunnerStack(state);
+      revealCards(state, [id], sourceId);
       log(
         state,
         `Search stack — reveal ${state.cards[id]!.title} and add to grip.`,
@@ -230,8 +231,9 @@ case "search_rd_type_to_hq": {
       state.corp.deck = state.corp.deck.filter((x) => x !== id);
       state.corp.hand.push(id);
       state.cards[id]!.zone = "corp:hq";
-      state.cards[id]!.faceup = true;
+      state.cards[id]!.faceup = false;
       shuffleInPlace(state, state.corp.deck);
+      revealCards(state, [id], sourceId);
       const title = state.cards[id]!.title;
       const shown = cardType === "agenda" ? `agenda ${title}` : title;
       log(state, `Search R&D — reveal ${shown} and add to HQ.`);
@@ -261,6 +263,7 @@ case "search_rd_up_to_one_each_subtype_to_hq": {
         state.corp.hand.push(id);
         state.cards[id].zone = "corp:hq";
         state.cards[id].faceup = true;
+        revealCards(state, [id], sourceId);
         log(
           state,
           `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
@@ -281,6 +284,7 @@ case "search_rd_operation_to_top_rd": {
       const pick = ops[0]!;
       state.corp.deck = state.corp.deck.filter((x) => x !== pick);
       state.cards[pick].faceup = true;
+      revealCards(state, [pick], sourceId);
       log(state, `Search R&D — reveal ${state.cards[pick].title}.`);
       shuffleCorpRdAfterSearch(state);
       state.corp.deck.unshift(pick);
@@ -337,6 +341,7 @@ case "search_rd_reveal_pick_install_or_hq": {
       }
       state.corp.deck.splice(deckIdx, 1);
       card.faceup = true;
+      revealCards(state, [card.id], sourceId);
       log(state, `Search R&D — reveal ${card.title}.`);
       shuffleCorpRdAfterSearch(state);
       state.corp.hand.push(cardId);
@@ -416,6 +421,7 @@ case "search_rd_operation_or_agenda_to_hq": {
       state.cards[id].zone = "corp:hq";
       state.cards[id].faceup = true;
       shuffleCorpRdAfterSearch(state);
+      revealCards(state, [id], sourceId);
       log(
         state,
         `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
@@ -649,6 +655,7 @@ case "search_stack_icebreaker_resolve": {
       state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== id);
       card.setAsideGroupId = undefined;
       card.faceup = true;
+      revealCards(state, [card.id], sourceId);
       log(
         state,
         `${card.title} revealed (CR ${CR.revealForSearch.number}).`,
@@ -885,6 +892,7 @@ case "search_rd_take_card_to_hq": {
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;
       }
+      revealCards(state, [id], sourceId);
       log(state, `Search R&D — reveal ${state.cards[id]!.title} and add to HQ.`);
       return { ok: true };
     }
@@ -957,6 +965,7 @@ case "search_stack_same_title_may_install_paying": {
       state.cards[id]!.zone = "runner:grip";
       state.cards[id]!.faceup = true;
       shuffleRunnerStack(state);
+      revealCards(state, [id], sourceId);
       log(state, `Search stack — reveal ${state.cards[id]!.title} and add to grip.`);
       const card = state.cards[id]!;
       const cost = gripInstallCostAfterDiscount(state, card, 0);
@@ -1099,6 +1108,7 @@ case "search_rd_ice_install_central_discount": {
       const offerInstall = (cardId: string): EvalResult => {
         const card = state.cards[cardId]!;
         card.faceup = true;
+        revealCards(state, [card.id], sourceId);
         log(state, `Search R&D — reveal ${card.title}.`);
         const deckIdx = state.corp.deck.indexOf(cardId);
         if (deckIdx >= 0) state.corp.deck.splice(deckIdx, 1);
@@ -1156,6 +1166,7 @@ case "search_rd_ice_install_central_discount_pick": {
         return { ok: true };
       }
       card.faceup = true;
+      revealCards(state, [card.id], sourceId);
       log(state, `Search R&D — reveal ${card.title}.`);
       state.corp.deck = state.corp.deck.filter((x) => x !== cardId);
       shuffleCorpRdAfterSearch(state);

@@ -1,4 +1,5 @@
 /** Old Hollywood (oh) SanSan pack primitives. */
+import { lookAtCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import {
@@ -123,10 +124,7 @@ logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
       }
       state.turn.ohStackLookedCards = taken;
       state.turn.ohStackArrangePlaced = [];
-      for (const id of taken) {
-        state.cards[id]!.faceup = true;
-        log(state, `Look stack — ${state.cards[id]!.title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       return offerStackArrangeChoice(ctx);
     }
 

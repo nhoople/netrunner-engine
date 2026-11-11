@@ -2,6 +2,7 @@
  * Run initiation, automatic advance, jack out, and return to the action phase.
  * Approaching ice and encounters are driven by the timing machine.
  */
+import { revealCards } from "../state/reveal.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
@@ -473,6 +474,7 @@ export function jackOut(state: GameState): ApplyResult {
       const idx = Math.floor(random(state) * state.corp.hand.length);
       const hqId = state.corp.hand[idx]!;
       const hqCard = state.cards[hqId]!;
+      revealCards(state, [hqId], card.id);
       log(
         state,
         `${card.title} — Corp reveals ${hqCard.title} from HQ (jack out).`,

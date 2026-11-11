@@ -1,3 +1,4 @@
+import { revealCards } from "../../state/reveal.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
 import { log } from "../../state/createGame.js";
@@ -371,6 +372,7 @@ logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
         log(state, `Levy Advanced Research Lab — stack empty.`);
         return { ok: true };
       }
+      revealCards(state, top, sourceId);
       const programs = top.filter(
         (id) => state.cards[id]?.type === "program",
       );

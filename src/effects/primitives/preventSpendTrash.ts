@@ -1,4 +1,5 @@
 /** Up and Over (uao) Lunar pack primitives. */
+import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { canPayCost, emptyRunnerCreditPool, payCost, subtractRunnerCreditPool } from "../../state/costs.js";
@@ -100,6 +101,7 @@ export function applyLunarUaoPrimitive(
     case "reveal_top_four": {
       // Deck top is index 0 (commitDraw shifts).
       const revealed: string[] = state.runner.deck.splice(0, 4);
+      revealCards(state, revealed, sourceId);
       for (const id of revealed) state.cards[id]!.faceup = true;
       let gained = 0;
       const toGrip: string[] = [];
@@ -222,7 +224,7 @@ logLine: `Trade-In — gain ${half}¢; search hardware.`,
         return { ok: true };
       }
       const top = state.runner.deck[0]!; // deck top is index 0 (commitDraw shifts)
-      state.cards[top]!.faceup = true;
+      revealCards(state, [top], sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",

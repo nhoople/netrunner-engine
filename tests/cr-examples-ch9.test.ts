@@ -45,7 +45,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.20");
+  assertCardsPinnedTag("v1.147.21");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -1873,6 +1873,18 @@ describe("CR examples, chapter 9", () => {
       if (s.pendingChoice?.options.some((option) => option.id === "grail-at:1")) {
         break;
       }
+      // The Corp says which grail ice in HQ it reveals (CR 1.15.2).
+      if (s.pendingChoice?.options.some((option) => option.id === "choose-card:merlin-1")) {
+        expect(s.pendingChoice.chooser).toBe("corp");
+        expect(s.pendingChoice.options.map((option) => option.id)).toEqual([
+          "choose-card:merlin-1",
+          "choose-cards-done",
+        ]);
+        s = must(s, { type: "choose_option", optionId: "choose-card:merlin-1" });
+        expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Merlin"]);
+        expect(s.cards["merlin-1"]?.faceup).toBe(false);
+        continue;
+      }
       const passed = applyAction(s, { type: "pass_window" });
       if (!passed.ok) break;
       s = passed.state;
@@ -3679,7 +3691,9 @@ describe("CR examples, chapter 9", () => {
     );
     expect(looked.ok).toBe(true);
     const text = s.log.join("\n");
-    const look = text.indexOf("Look R&D — rd-1");
+    // The log counts the looked cards and does not name them (CR 1.21.2).
+    expect(text).not.toContain("rd-1");
+    const look = text.indexOf("the Corp looks at 5 card(s)");
     const between = text.indexOf("Between instructions");
     const offer = text.indexOf("May install and rez one looked R&D card");
     expect(look).toBeGreaterThan(-1);

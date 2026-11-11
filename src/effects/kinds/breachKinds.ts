@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is breach.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -261,11 +262,8 @@ case "may_breach_instead_expert_schedule_analyzer": {
         log(state, `${source.title} — no successful HQ run to replace.`);
         return { ok: true };
       }
-      const titles = state.corp.hand.map((id) => state.cards[id]!.title);
-      log(
-        state,
-        `${source.title} — reveal HQ (${titles.length}): ${titles.join(", ") || "empty"}; skip breach.`,
-      );
+      revealCards(state, state.corp.hand, sourceId);
+      log(state, `${source.title} — reveal HQ (${state.corp.hand.length}); skip breach.`);
       state.run.skipBreach = true;
       return { ok: true };
     }

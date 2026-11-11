@@ -1,4 +1,5 @@
 /** Salsette Island (si) Mumbad pack primitives — v1.119.0. */
+import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
@@ -84,10 +85,7 @@ export function applyMumbadSiPrimitive(
       }
       state.turn.siStackLookedCards = taken;
       state.turn.siStackArrangePlaced = [];
-      for (const id of taken) {
-        state.cards[id]!.faceup = true;
-        log(state, `Look stack — ${state.cards[id]!.title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       return offerSiStackTrashOrArrange(ctx);
     }
 
@@ -206,13 +204,15 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
       for (const id of grip) {
         const c = state.cards[id];
         if (!c || c.defId !== defId) continue;
+        revealCards(state, [c.id], sourceId);
         log(state, `Salem's Hospitality — reveal ${c.title}.`);
         moveRunnerCardToHeap(state, id);
         trashed += 1;
       }
       for (const id of state.runner.hand) {
         const c = state.cards[id];
-        if (c) log(state, `Salem's Hospitality — reveal ${c.title}.`);
+        if (c) revealCards(state, [c.id], sourceId);
+ log(state, `Salem's Hospitality — reveal ${c.title}.`);
       }
       log(
         state,
@@ -269,6 +269,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
       card.zone = "corp:hq";
       card.faceup = false;
       shuffleInPlace(state, state.corp.deck);
+      revealCards(state, [card.id], sourceId);
       log(
         state,
         `${source?.title ?? "Executive Search Firm"} — reveal ${card.title}, add to HQ; shuffle R&D.`,
@@ -317,6 +318,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
         state.corp.hand.push(id);
         card.zone = "corp:hq";
         card.faceup = false;
+        revealCards(state, [card.id], sourceId);
         log(state, `Localized Product Line — reveal ${card.title}, add to HQ.`);
       }
       shuffleInPlace(state, state.corp.deck);
@@ -380,6 +382,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
       state.corp.clicks -= 1;
       const drawn = state.cards[drawnId]!;
       const arch = state.cards[archivesId]!;
+      revealCards(state, [drawn.id, arch.id], sourceId);
       log(
         state,
         `Raman Rai — reveal ${drawn.title} and ${arch.title}; lose [click].`,

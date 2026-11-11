@@ -1,4 +1,5 @@
 /** Station One (so) Red Sand pack primitives — v1.129.0. */
+import { revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -316,9 +317,7 @@ export function applyRedsandSoPrimitive(
       for (let i = 0; i < 5 && state.runner.deck.length > 0; i++) {
         top.push(state.runner.deck.shift()!);
       }
-      for (const id of top) {
-        log(state, `Customized Secretary — reveal ${state.cards[id]?.title}.`);
-      }
+      revealCards(state, top, sourceId);
       const programs = top.filter((id) => state.cards[id]?.type === "program");
       const rest = top.filter((id) => !programs.includes(id));
       // Return non-programs to stack temporarily; host choice for programs.

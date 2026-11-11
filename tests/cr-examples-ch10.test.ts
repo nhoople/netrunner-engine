@@ -49,7 +49,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.20");
+  assertCardsPinnedTag("v1.147.21");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -442,9 +442,10 @@ describe("CR examples, chapter 10", () => {
     if (!sub) throw new Error("Drafter's second subroutine is missing");
     const offered = evalEffect({ state: s, sourceId: "draft-1" }, sub);
     expect(offered.ok).toBe(true);
-    let installed = must(s, { type: "choose_option", optionId: "install" });
+    // "You may": the install offers "done" beside the cards, and asks once.
+    expect(s.pendingChoice?.options.map((option) => option.id)).toContain("choose-cards-done");
     // The Corp picks the card and the breached root (CR 8.5.16b).
-    installed = must(installed, { type: "choose_option", optionId: "choose-card:pad-1" });
+    let installed = must(s, { type: "choose_option", optionId: "choose-card:pad-1" });
     installed = must(installed, { type: "choose_option", optionId: "install-dest:remote-1" });
     expect(installed.servers["remote-1"]?.root).toContain("pad-1");
     expect(installed.pendingChoice?.options.map((option) => option.id)).toContain(

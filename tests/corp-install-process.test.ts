@@ -34,7 +34,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.20");
+  assertCardsPinnedTag("v1.147.21");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -447,8 +447,9 @@ describe("card definitions say whether the install cost is paid (CR 1.2.1)", () 
     const s = oneIceOnHq();
     const drafter = ice(s, "drafter", "drafter", "rd", true);
     resolve(s, "drafter", drafter.subroutines?.[1]?.effect);
-    let t = choose(s, "install");
-    t = choose(pick(t, "new-ice"), "install-dest:hq");
+    // "You may" is asked once: the pick itself can be declined.
+    expect(optionIds(s)).toContain("choose-cards-done");
+    const t = choose(pick(s, "new-ice"), "install-dest:hq");
     expect(t.servers.hq.ice).toEqual(["new-ice", "hq-ice"]);
     expect(t.corp.credits).toBe(5);
   });

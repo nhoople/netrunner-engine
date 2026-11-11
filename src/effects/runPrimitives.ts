@@ -2,6 +2,7 @@
  * End-the-run primitives. The subroutine and its nested "unless" costs
  * live here; the rest of the run flow stays in eval.ts.
  */
+import { revealCards } from "../state/reveal.js";
 import { log } from "../state/createGame.js";
 import {
   hasPayableEndTheRunInterrupt,
@@ -346,6 +347,7 @@ function endTheRun(ctx: EffectCtx, trashCorpCardToArchives: TrashCorpCard): Prim
       const picks = hq.slice(hq.length - rootN);
       for (const id of picks) {
         trashCorpCardToArchives(state, id);
+        revealCards(state, [id], sourceId);
         log(
           state,
           `Shred — Corp reveals and trashes ${state.cards[id]!.title} from HQ.`,

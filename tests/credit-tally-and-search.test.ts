@@ -271,7 +271,9 @@ describe("search R&D by card type", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.corp.hand).toContain("ice-1");
-    expect(s.cards["ice-1"]!.faceup).toBe(true);
+    // Revealed, then hidden again in HQ (CR 1.21.3, CR 1.21.1a).
+    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Ice Wall"]);
+    expect(s.cards["ice-1"]!.faceup).toBe(false);
     expect(s.corp.deck).toEqual(["ag-1", "op-1"]);
   });
 

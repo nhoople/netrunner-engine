@@ -1,4 +1,5 @@
 /** Business First (bf) Mumbad pack primitives — v1.117.0. */
+import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
@@ -152,6 +153,7 @@ export function applyMumbadBfPrimitive(
           ...(state.turn.bfCannotStealAgendaDefIds ?? []),
           defId,
         ];
+        revealCards(state, [card.id], sourceId);
         log(
           state,
           `Lakshmi Smartfabrics — reveal ${card.title} (${x}); Runner cannot steal copies this turn.`,
@@ -194,6 +196,7 @@ export function applyMumbadBfPrimitive(
         ...(state.turn.bfCannotStealAgendaDefIds ?? []),
         defId,
       ];
+      revealCards(state, [card.id], sourceId);
       log(
         state,
         `Lakshmi Smartfabrics — reveal ${card.title} (${x}); Runner cannot steal copies this turn.`,

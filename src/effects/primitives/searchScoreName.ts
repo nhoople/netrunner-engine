@@ -1,4 +1,5 @@
 /** The Spaces Between (tsb) Lunar pack primitives. */
+import { revealCards } from "../../state/reveal.js";
 import { loadCardCatalog } from "../../cards/load.js";
 import { log } from "../../state/createGame.js";
 import { autoResolveTrace } from "../../state/trace.js";
@@ -51,9 +52,10 @@ export function applyLunarTsbPrimitive(
       } else {
         const pick = matches[0]!;
         state.corp.deck = state.corp.deck.filter((id) => id !== pick);
-        state.cards[pick]!.faceup = true;
+        state.cards[pick]!.faceup = false;
         state.corp.hand.push(pick);
         state.cards[pick]!.zone = "corp:hq";
+        revealCards(state, [pick], sourceId);
         log(state, `The Foundry — reveal ${title} from R&D and add to HQ.`);
       }
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
