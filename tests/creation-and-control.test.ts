@@ -294,6 +294,8 @@ describe("creation-and-control", () => {
         encounter: null,
         endedTheRun: false,
         cannotJackOut: false,
+        // The Runner passed the innermost ice at 6.9.4a.
+        passedAllIce: true,
       };
       s.timingKey = "run.jackOutWindow";
       resolveAndAdvance(s);

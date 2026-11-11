@@ -3188,6 +3188,9 @@ export const STEPS: Record<string, TimingStepDef> = {
               ...(runState.passedIceIds ?? []),
               iceId,
             ];
+            // CR 6.9.4a: no position more inward than the ice just passed.
+            runState.passedAllIce =
+              pos === s.servers[runState.attackedServerId].ice.length - 1;
             }
             // The Gauntlet: track fully broken ice protecting HQ this run.
             if (
@@ -3743,13 +3746,16 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         s.run!.phase = "success";
         s.log.push(`Approach server (appendix 11.4_4_g).`);
-        if (!s.pendingChoice) onPassedAllIce(s);
+        // CR 6.9.4a: passing all ice needs a piece of ice to have been
+        // passed. A server with no ice does not meet the condition.
+        const passedAllIce = Boolean(s.run!.passedAllIce);
+        if (!s.pendingChoice && passedAllIce) onPassedAllIce(s);
         // Awakening Center: whenever the Runner passes all ice protecting
         // this server (this is exactly that moment — position is null and
         // the run has arrived here), may rez 1 hosted bioroid ice for −7¢
         // and force the Runner to encounter it. Fires once per run per
         // upgrade (the run re-enters this step after the forced encounter).
-        if (!s.pendingChoice) {
+        if (!s.pendingChoice && passedAllIce) {
           const sid0 = s.run!.attackedServerId;
           const server0 = s.servers[sid0];
           for (const id of server0.root) {
@@ -3811,7 +3817,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
-        if (!s.pendingChoice && !s.psi) {
+        if (!s.pendingChoice && !s.psi && passedAllIce) {
           notePassAllIceProtectingServer(s, s.run!.attackedServerId);
         }
         // Open Manegarm / Cayambe tax as a pending Runner choice if applicable.

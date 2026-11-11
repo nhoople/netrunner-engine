@@ -5,6 +5,8 @@
  * the Runner may jack out at 6.9.4c. CR 6.9.4g (approach the server) is not
  * a paid ability window. CR 9.2.7b: a paid ability may be used from any
  * active card whenever its player has priority in a paid ability window.
+ * CR 6.9.4a: conditions for passing all ice are met only when the Runner
+ * passes a piece of ice with no position more inward.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -366,5 +368,88 @@ describe("Corp paid abilities while the Runner approaches ice (CR 9.2.7b)", () =
       abilityId: "gain",
     });
     expect(used.ok).toBe(false);
+  });
+});
+
+describe("passing all ice needs ice to pass (CR 6.9.4a)", () => {
+  function polyhistor(s: GameState): void {
+    s.cards["poly-1"] = instantiateCard("polyhistor", "poly-1", "runner:installed");
+    s.runner.installed.push("poly-1");
+  }
+
+  function awakeningCenter(s: GameState, serverId: string): void {
+    inRoot(s, "awakening-center", "ac-1", serverId, true);
+    const hosted = instantiateCard("eli-1-0", "eli-1", "hosted:ac-1");
+    hosted.rezzed = false;
+    hosted.faceup = false;
+    hosted.hostId = "ac-1";
+    s.cards["eli-1"] = hosted;
+    s.cards["ac-1"].hostedCardIds = ["eli-1"];
+  }
+
+  it("does not offer Polyhistor on a run against HQ with no ice", () => {
+    let s = runnerTurn();
+    polyhistor(s);
+    twoInHq(s);
+    s = must(s, { type: "basic_run", serverId: "hq" });
+    s = must(s, { type: "continue_run" });
+    expect(s.pendingChoice?.sourceId).not.toBe("poly-1");
+    expect(s.turn.polyhistorFiredThisTurn ?? false).toBe(false);
+    expect(s.run?.passedAllIce ?? false).toBe(false);
+  });
+
+  it("offers Polyhistor once the Runner has passed the innermost ice protecting HQ", () => {
+    let s = runnerTurn();
+    polyhistor(s);
+    twoInHq(s);
+    ice(s, "ice-wall", "wall-1", "hq");
+    s.cards["wall-1"].rezzed = false;
+    s.cards["wall-1"].faceup = false;
+    s.corp.credits = 0;
+    s = must(s, { type: "basic_run", serverId: "hq" });
+    s = passTo(s, "run.jackOutWindow");
+    expect(s.run?.passedAllIce).toBe(true);
+    s = must(s, { type: "continue_run" });
+    for (let i = 0; i < 4 && !s.pendingChoice; i += 1) {
+      s = must(s, { type: "pass_window" });
+    }
+    expect(s.pendingChoice?.sourceId).toBe("poly-1");
+  });
+
+  it("does not count the outer ice of two as passing all ice", () => {
+    let s = runnerTurn();
+    ice(s, "ice-wall", "wall-1", "hq");
+    ice(s, "ice-wall", "wall-2", "hq");
+    for (const id of ["wall-1", "wall-2"]) {
+      s.cards[id].rezzed = false;
+      s.cards[id].faceup = false;
+    }
+    s.corp.credits = 0;
+    s = must(s, { type: "basic_run", serverId: "hq" });
+    s = passTo(s, "run.jackOutWindow");
+    expect(s.run?.passedIceIds?.length).toBe(1);
+    expect(s.run?.passedAllIce).toBe(false);
+    s = must(s, { type: "continue_run" });
+    s = passTo(s, "run.jackOutWindow");
+    expect(s.run?.passedIceIds?.length).toBe(2);
+    expect(s.run?.passedAllIce).toBe(true);
+  });
+
+  it("does not offer Awakening Center on a server with no ice", () => {
+    let s = runnerTurn();
+    remote(s, "remote-1");
+    awakeningCenter(s, "remote-1");
+    s = must(s, { type: "basic_run", serverId: "remote-1" });
+    for (let i = 0; i < 8 && s.run && !s.pendingChoice; i += 1) {
+      s = must(
+        s,
+        s.timingKey === "run.jackOutWindow"
+          ? { type: "continue_run" }
+          : { type: "pass_window" },
+      );
+      if (s.timingKey === "breach.awaitAccess") break;
+    }
+    expect(s.pendingChoice?.sourceId).not.toBe("ac-1");
+    expect(s.cards["eli-1"].rezzed).toBe(false);
   });
 });

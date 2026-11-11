@@ -4585,6 +4585,12 @@ export interface RunState {
    * NSG Into the Depths ruling on uninstall-during-encounter).
    */
   passedIceIds?: string[];
+  /**
+   * CR 6.9.4a: the Runner passed a piece of ice with no position more
+   * inward. Conditions for passing all ice protecting the server are met
+   * only then; a run on a server with no ice never meets them.
+   */
+  passedAllIce?: boolean;
   /** The Gauntlet: ice protecting HQ fully broken this run. */
   inFullyBrokenHqProtectingIceIds?: string[];
   /** Most recent unrezzed ice id passed (False Echo-class). */
