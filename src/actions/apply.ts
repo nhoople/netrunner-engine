@@ -1,3 +1,4 @@
+import { endLooksAndReveals, lookAtChoiceCards } from "../state/reveal.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
 import {
   costCardNeedForAction,
@@ -588,7 +589,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     if (!cardId) {
       return fail("No card is being accessed.", [CR.trashing]);
     }
-    return applyAction(state, {
+    return applyActionCore(state, {
       type: optionId === "must-trash:pay" ? "trash_accessed" : "access_trash_with_virus",
       cardId,
     });
@@ -609,7 +610,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       return fail("No run is waiting on the additional cost.", [CR.runnerBasicRun]);
     }
     state.turn.payingFirstRunAdditionalCost = true;
-    return applyAction(state, { type: "basic_run", serverId });
+    return applyActionCore(state, { type: "basic_run", serverId });
   }
 
   if (optionId.startsWith("play-cost-x:")) {
@@ -749,7 +750,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     if (!state.run) return fail("No breach in progress.", [CR.breach]);
     state.run.immolationScriptAccessReplace = false;
     state.pendingChoice = null;
-    return applyAction(state, { type: "access_card", cardId });
+    return applyActionCore(state, { type: "access_card", cardId });
   }
   if (optionId.startsWith("archives-rfg:")) {
     const cardId = optionId.slice("archives-rfg:".length);
@@ -773,7 +774,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     if (!state.run) return fail("No breach in progress.", [CR.breach]);
     state.run.archivesInterfaceSkippedCardId = cardId;
     state.pendingChoice = null;
-    return applyAction(state, { type: "access_card", cardId });
+    return applyActionCore(state, { type: "access_card", cardId });
   }
   if (optionId.startsWith("access-tax-pay:")) {
     const cardId = optionId.slice("access-tax-pay:".length);
@@ -787,7 +788,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     state.run.accessTaxPaidFor = cardId;
     state.pendingChoice = null;
     log(state, `Paid ${tax}¢ to access ${card?.title ?? cardId}.`);
-    return applyAction(state, { type: "access_card", cardId });
+    return applyActionCore(state, { type: "access_card", cardId });
   }
   if (optionId.startsWith("access-tax-decline:")) {
     const cardId = optionId.slice("access-tax-decline:".length);
@@ -834,7 +835,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     // decline does not consume the once-per-breach. Use pending flag: access_card
     // skips offer when pendingHeliamphoraAccessCardId is already set to this card.
     log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
-    return applyAction(state, { type: "access_card", cardId });
+    return applyActionCore(state, { type: "access_card", cardId });
   }
 
   const exclusive = state.pendingExclusiveChoices;
@@ -1341,7 +1342,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   if (state.pendingTrashAccessedCardId) {
     const cardId = state.pendingTrashAccessedCardId;
     state.pendingTrashAccessedCardId = null;
-    const trashed = applyAction(state, { type: "trash_accessed", cardId });
+    const trashed = applyActionCore(state, { type: "trash_accessed", cardId });
     return trashed;
   }
 
@@ -1608,7 +1609,35 @@ function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
 }
 
 /** Pure action apply: returns a new state or a cited legality error. */
+/**
+ * Apply one action, then settle what the players may see.
+ *
+ * A choice opened while a look or search choice resolves is part of the
+ * same look (CR 1.21.2). When nothing is left to choose, the ability has
+ * finished: nobody is looking any more, and no card in a deck stays faceup
+ * (CR 1.21.6, CR 1.21.1a).
+ */
 export function applyAction(state: GameState, action: Action): ApplyResult {
+  const result = applyActionCore(state, action);
+  if (!result.ok) return result;
+  const before = state.pendingChoice;
+  const after = result.state.pendingChoice;
+  if (
+    action.type === "choose_option" &&
+    before?.look &&
+    after &&
+    !after.look &&
+    after.chooser === before.chooser
+  ) {
+    after.look = true;
+    lookAtChoiceCards(result.state);
+  }
+  if (!after && !result.state.pendingCost) endLooksAndReveals(result.state);
+  return result;
+}
+
+/** The action itself. Calls made while an action resolves come here. */
+export function applyActionCore(state: GameState, action: Action): ApplyResult {
   // A cost is waiting for its payer's cards: only those picks are taken
   // (CR 1.16.1). Once they are in, the held action resolves with them.
   if (state.pendingCost) {
@@ -1624,7 +1653,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     const taken = takeCostPick(picking, action.optionId);
     if (!taken.ok) return fail(taken.error, taken.cites);
     if (!taken.action) return ok(picking);
-    const paid = applyAction(picking, taken.action);
+    const paid = applyActionCore(picking, taken.action);
     if (paid.ok) return paid;
     log(
       picking,

@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is look.
  * The effect switch in eval.ts dispatches here.
  */
+import { lookAtCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -38,10 +39,7 @@ case "look_top_last_trace_excess_stack_trash_one_arrange_rest": {
         log(state, `${source.title} — stack empty.`);
         return { ok: true };
       }
-      for (const id of taken) {
-        state.cards[id]!.faceup = true;
-        log(state, `Look stack — ${state.cards[id]!.title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       state.turn.rdLookedCards = taken;
       openPendingChoose(state, {
         sourceId,
@@ -76,10 +74,7 @@ case "look_top_n_rd_may_install_one": {
         Math.min(n, state.corp.deck.length),
       );
       state.turn.rdLookedCards = taken;
-      for (const id of taken) {
-        state.cards[id].faceup = true;
-        log(state, `Look R&D — ${state.cards[id].title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       occurCheckpoint(
         state,
         "instruction",
@@ -142,10 +137,7 @@ case "look_top_n_rd_may_install_and_rez_ignore_costs": {
         Math.min(n, state.corp.deck.length),
       );
       state.turn.rdLookedCards = taken;
-      for (const id of taken) {
-        state.cards[id].faceup = true;
-        log(state, `Look R&D — ${state.cards[id].title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       occurCheckpoint(
         state,
         "instruction",
@@ -235,10 +227,7 @@ case "look_top_n_rd_peek": {
         0,
         Math.min(n, state.corp.deck.length),
       );
-      for (const id of taken) {
-        state.cards[id].faceup = true;
-        log(state, `Runner looks at R&D — ${state.cards[id].title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       for (let i = taken.length - 1; i >= 0; i--) {
         const id = taken[i]!;
         state.cards[id].faceup = false;
@@ -266,10 +255,8 @@ case "look_top_n_rd_arrange": {
       state.turn.rdArrangeThenMayDrawIfUnprotected = Boolean(
         action.thenMayDrawIfUnprotected,
       );
-      for (const id of taken) {
-        state.cards[id].faceup = true;
-        log(state, `Look R&D — ${state.cards[id].title}.`);
-      }
+      state.turn.rdLooker = action.looker;
+      lookAtCards(state, taken, sourceId, action.looker);
       return offerRdArrangeChoice(state, sourceId);
     }
 
@@ -293,8 +280,7 @@ case "look_top_n_rd_trash_one_hq_one_arrange_rest": {
       state.turn.rdLookedCards = taken;
       state.turn.rdArrangePlaced = [];
       state.turn.rdArrangeThenMayDrawIfUnprotected = false;
-      for (const id of taken) state.cards[id].faceup = false;
-      log(state, `Cultivate — look at ${taken.length} cards of R&D.`);
+      lookAtCards(state, taken, sourceId);
       return offerCultivateTrashChoice(state, sourceId);
     }
 
@@ -310,10 +296,7 @@ case "look_class_act_top_draw_amount_plus_one_bottom_one": {
         state.turn.pendingWouldDrawAmount = null;
         return { ok: true };
       }
-      for (const id of taken) {
-        state.cards[id]!.faceup = true;
-        log(state, `Class Act looks at ${state.cards[id]!.title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       if (!openPendingChoose(state, {
         sourceId,
         chooser: "runner",
@@ -352,6 +335,7 @@ case "look_top_rd_may_trash_if_do_archives_to_hq": {
       }
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
+      lookAtCards(state, [topId], sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -379,7 +363,7 @@ case "look_top_rd_may_trash_if_do_archives_to_hq": {
             },
           },
         ],
-logLine: `Look at top of R&D (${top.title}) — may trash; if so, Archives → HQ.`,
+logLine: `Look at top of R&D — may trash; if so, Archives → HQ.`,
 });
       return { ok: true };
     }
@@ -394,10 +378,7 @@ case "look_top_stack_may_reveal_breaker_or_run_event": {
       const isBreaker = (card.subtypes ?? []).includes("icebreaker");
       const isRunEvent =
         card.type === "event" && (card.subtypes ?? []).includes("run");
-      log(
-        state,
-        `Look top of stack — ${card.title}${isBreaker || isRunEvent ? "" : " (no reveal)"}.`,
-      );
+      lookAtCards(state, [top], sourceId);
       if (!isBreaker && !isRunEvent) {
         return { ok: true };
       }
@@ -439,10 +420,7 @@ case "look_top_n_stack_may_bottom_one": {
         log(state, `${source.title} — look at top of stack: empty.`);
         return { ok: true };
       }
-      for (const id of taken) {
-        state.cards[id]!.faceup = true;
-        log(state, `Runner looks at stack — ${state.cards[id]!.title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
@@ -509,6 +487,7 @@ case "look_top_rd_may_trash": {
       }
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
+      lookAtCards(state, [topId], sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -530,7 +509,7 @@ case "look_top_rd_may_trash": {
             },
           },
         ],
-logLine: `Look at top of R&D (${top.title}) — may trash.`,
+logLine: `Look at top of R&D — may trash.`,
 });
       return { ok: true };
     }
@@ -542,6 +521,7 @@ case "look_top_rd_may_bottom": {
       }
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
+      lookAtCards(state, [topId], sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -563,7 +543,7 @@ case "look_top_rd_may_bottom": {
             },
           },
         ],
-logLine: `Look at top of R&D (${top.title}) — may bottom.`,
+logLine: `Look at top of R&D — may bottom.`,
 });
       return { ok: true };
     }
@@ -575,6 +555,7 @@ case "look_top_rd_may_advance_may_bottom": {
       }
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
+      lookAtCards(state, [topId], sourceId);
       // Step 1: may place 1 advancement on the looked card.
       openPendingChoose(state, {
         sourceId,
@@ -612,7 +593,7 @@ case "look_top_rd_may_advance_may_bottom": {
             },
           },
         ],
-logLine: `Look at top of R&D (${top.title}) — may advance, then may bottom.`,
+logLine: `Look at top of R&D — may advance, then may bottom.`,
 });
       return { ok: true };
     }
@@ -623,10 +604,7 @@ case "look_top_n_stack_peek": {
         0,
         Math.min(n, state.runner.deck.length),
       );
-      for (const id of taken) {
-        state.cards[id]!.faceup = true;
-        log(state, `Runner looks at stack — ${state.cards[id]!.title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       for (let i = taken.length - 1; i >= 0; i--) {
         const id = taken[i]!;
         state.cards[id]!.faceup = false;

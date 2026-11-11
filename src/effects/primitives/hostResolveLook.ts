@@ -1,4 +1,5 @@
 /** Democracy and Dogma (dag) Mumbad pack primitives — v1.118.0. */
+import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -124,11 +125,7 @@ export function applyMumbadDagPrimitive(
         log(state, `${source?.title ?? "Spy Camera"} — R&D empty.`);
         return { ok: true };
       }
-      const card = state.cards[top]!;
-      log(
-        state,
-        `${source?.title ?? "Spy Camera"} — look at top of R&D: ${card.title}.`,
-      );
+      lookAtCards(state, [top], sourceId);
       return { ok: true };
     }
 
@@ -326,6 +323,7 @@ export function applyMumbadDagPrimitive(
       if (!state.corp.discardPile.includes(cardId)) return { ok: true };
       const card = state.cards[cardId]!;
       if (!card.faceup) {
+        revealCards(state, [card.id], sourceId);
         log(
           state,
           `Reveal ${card.title} (CR ${CR.revealFromHidden.number}).`,
@@ -440,6 +438,7 @@ export function applyMumbadDagPrimitive(
       agenda.faceup = false;
       agenda.rezzed = false;
       state.servers[serverId]!.root.push(agendaId);
+      revealCards(state, [agenda.id], sourceId);
       log(
         state,
         `Political Dealings — reveal and install ${agenda.title} in ${serverId}.`,
@@ -489,6 +488,7 @@ logLine: `Mumbad City Hall — choose an alliance from R&D.`,
       state.corp.hand.push(cardId);
       card.zone = "corp:hq";
       card.faceup = false;
+      revealCards(state, [card.id], sourceId);
       log(
         state,
         `Mumbad City Hall — reveal ${card.title}; added to HQ (play/install paying costs). R&D shuffled.`,

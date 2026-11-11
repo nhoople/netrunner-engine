@@ -1,4 +1,5 @@
 /** Council of the Crest (cotc) Kitara pack primitives — v1.138.0. */
+import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removePendingDamageEntirely } from "../../state/damage.js";
@@ -320,10 +321,7 @@ export function applyKitaraCotcPrimitive(
     }
 
     case "reveal_white_hat": {
-      for (const id of state.corp.hand) {
-        const c = state.cards[id];
-        if (c) c.faceup = true;
-      }
+      revealCards(state, state.corp.hand, sourceId);
       log(state, `White Hat — reveal all cards in HQ.`);
       const hq = [...state.corp.hand];
       if (hq.length === 0) return { ok: true };
@@ -587,10 +585,7 @@ export function applyKitaraCotcPrimitive(
       }
       state.turn.rdLookedCards = taken;
       state.turn.rdArrangePlaced = [];
-      for (const id of taken) {
-        state.cards[id]!.faceup = true;
-        log(state, `Anansi — look at ${state.cards[id]?.title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",

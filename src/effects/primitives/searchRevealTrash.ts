@@ -1,4 +1,5 @@
 /** The Valley (val) SanSan pack primitives. */
+import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
 import { dealDamage } from "../../state/damage.js";
@@ -107,6 +108,7 @@ export function applySansanValPrimitive(
       }
       const pick = hq[Math.floor(random(state) * hq.length)]!;
       const card = state.cards[pick];
+      revealCards(state, [pick], sourceId);
       log(
         state,
         `Enhanced Vision — Corp reveals ${card?.title ?? pick} from HQ.`,

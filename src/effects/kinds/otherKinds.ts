@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is other.
  * The effect switch in eval.ts dispatches here.
  */
-import { revealCards } from "../../state/reveal.js";
+import { lookAtCards, revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -1635,11 +1635,8 @@ case "peeping_tom_apply_type": {
         return { ok: true };
       }
       const grip = [...state.runner.hand];
-      const titles = grip.map((id) => state.cards[id]?.title ?? id);
-      log(
-        state,
-        `${ice.title} — reveal grip (${titles.length}): ${titles.join(", ") || "empty"}.`,
-      );
+      revealCards(state, grip, sourceId);
+      log(state, `${ice.title} — reveal grip (${grip.length}).`);
       const n = grip.filter((id) => state.cards[id]?.type === action.cardType)
         .length;
       if (!ice.baseSubroutines) {
@@ -3397,10 +3394,7 @@ case "accelerated_beta_test": {
         Math.min(n, state.corp.deck.length),
       );
       state.turn.rdLookedCards = taken;
-      for (const id of taken) {
-        state.cards[id]!.faceup = true;
-        log(state, `ABT look R&D — ${state.cards[id]!.title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       return applyPrimitive(ctx, { kind: "accelerated_beta_test_continue" });
     }
 
@@ -4133,11 +4127,8 @@ case "wall_to_wall_turn_begin": {
 
 case "focus_group_after_type": {
       const grip = [...state.runner.hand];
-      const titles = grip.map((id) => state.cards[id]?.title ?? id);
-      log(
-        state,
-        `${source.title} — reveal grip (${titles.length}): ${titles.join(", ") || "empty"}.`,
-      );
+      revealCards(state, grip, sourceId);
+      log(state, `${source.title} — reveal grip (${grip.length}).`);
       const count = grip.filter(
         (id) => state.cards[id]?.type === action.cardType,
       ).length;
@@ -4374,6 +4365,7 @@ case "meeting_of_minds_fetch": {
       card.zone = "runner:grip";
       card.faceup = true;
       shuffleRunnerStack(state);
+      revealCards(state, [card.id], sourceId);
       log(
         state,
         `Meeting of Minds — reveal ${card.title} and add to grip.`,

@@ -550,6 +550,7 @@ case "shuffle_grip_of_type": {
         );
         return { ok: true };
       }
+      revealCards(state, state.runner.hand, sourceId);
       log(
         state,
         `Touch-ups — reveal grip (${state.runner.hand.length} cards).`,

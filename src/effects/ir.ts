@@ -777,7 +777,16 @@ export type Primitive =
   /** Leaf: return remaining looked R&D cards to top of deck. */
   | { kind: "return_rd_looked_to_deck_top" }
   /** Look at top N of R&D and rearrange order (Federal Fundraising). */
-  | { kind: "look_top_n_rd_arrange"; n: number; thenMayDrawIfUnprotected?: boolean }
+  | {
+      kind: "look_top_n_rd_arrange";
+      n: number;
+      thenMayDrawIfUnprotected?: boolean;
+      /**
+       * The player who looks and arranges, when it is not the controller of
+       * the source (Insight has the Corp look; CR 1.21.2).
+       */
+      looker?: "corp" | "runner";
+    }
   /**
    * Cultivate: look at top N of R&D; trash 1, add 1 to HQ, arrange the rest.
    */
@@ -2384,7 +2393,13 @@ export type Primitive =
   | { kind: "shuffle_installed_runner_into_stack" }
   /** Leaf: shuffle a specific installed Runner card into the stack. */
   | { kind: "shuffle_runner_card_into_stack"; cardId: string }
-  | { kind: "reveal_hq_gain_credits"; maxCards: number; creditsEach: number }
+  | {
+      kind: "reveal_hq_gain_credits";
+      maxCards: number;
+      creditsEach: number;
+      /** The cards the Corp chose to reveal (CR 1.15.2). */
+      cardIds?: string[];
+    }
   | { kind: "flip_identity" }
   /** Méliès U: choose secretly among HQ / R&D / Archives faces. */
   | { kind: "melies_secretly_set_face" }
@@ -2563,7 +2578,12 @@ export type Primitive =
   | { kind: "resolve_mutate_operation" }
   | { kind: "trace_taurus_subroutine" }
   | { kind: "trace_taurus_success" }
-  | { kind: "reveal_grail_gain_subroutines"; maxReveal?: number }
+  | {
+      kind: "reveal_grail_gain_subroutines";
+      maxReveal?: number;
+      /** The grail ice the Corp chose to reveal (CR 1.15.2). */
+      cardIds?: string[];
+    }
   | { kind: "runner_mu_modifier_until_turn_end"; delta: number }
   | { kind: "cyber_threat" }
   | { kind: "cyber_threat_server"; serverId: string }

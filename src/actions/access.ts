@@ -25,7 +25,7 @@ import type { Effect } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
 import { fireScoreOrStealSideEffects } from "./score.js";
 import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";
-import { applyAction } from "./apply.js";
+import { applyActionCore } from "./apply.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
@@ -265,7 +265,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
         return ok(state);
       }
       if (canPay) {
-        return applyAction(state, {
+        return applyActionCore(state, {
           type: "trash_accessed",
           cardId: accessingId,
         });
@@ -275,7 +275,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
           state,
           `${accessed.title} — trash with ${state.cards[impId]!.title} (CR ${CR.mustAnyMeans.number}).`,
         );
-        return applyAction(state, {
+        return applyActionCore(state, {
           type: "access_trash_with_virus",
           cardId: accessingId,
         });
@@ -311,7 +311,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
         accessed.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
       const cost = runnerTrashCostForCard(state, accessingId);
       if (runnerCreditsFor(state, purpose) >= cost) {
-        return applyAction(state, {
+        return applyActionCore(state, {
           type: "trash_accessed",
           cardId: accessingId,
         });

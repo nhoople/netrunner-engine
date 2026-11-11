@@ -2845,6 +2845,11 @@ export interface CardInstance {
   unsupported?: string[];
   /** Whether the card is faceup (Runner cards / accessed / Archives). */
   faceup: boolean;
+  /**
+   * The player looking at this card while an ability resolves. Only that
+   * player sees its face, whoever owns it (CR 1.21.2, CR 1.21.6).
+   */
+  lookedBy?: Side;
   /** Corp installed cards: rezzed vs unrezzed. */
   rezzed: boolean;
   zone: ZoneId;
@@ -3901,6 +3906,8 @@ export interface TurnBookkeeping {
   rdLookedCards: string[];
   /** Cards already placed during R&D arrange (top-to-bottom order). */
   rdArrangePlaced: string[];
+  /** The player arranging the looked R&D cards, when not the source's controller. */
+  rdLooker?: Side;
   /** Federal: after arrange, offer may-draw if host server unprotected. */
   rdArrangeThenMayDrawIfUnprotected: boolean;
   /** Successful HQ run this turn (Emergency Shutdown). */
@@ -5373,6 +5380,13 @@ export interface PendingChoice {
    * grip; CR 1.21.2).
    */
   shownToOpponent?: boolean;
+  /**
+   * The chooser is looking at or searching cards the other player may not
+   * see. An option whose label names one of them is hidden from the other
+   * player, and a choice opened while this one resolves is too
+   * (CR 1.21.2, CR 8.7.1).
+   */
+  look?: boolean;
 }
 
 /**
@@ -5654,6 +5668,9 @@ export interface GameState {
   /** Cards shown to all players by a reveal (CR 1.21.3). Open to both. */
   reveals?: RevealEvent[];
   revealSeq?: number;
+  /** Cards one player looked at (CR 1.21.2). Each entry is for that player only. */
+  looks?: LookEvent[];
+  lookSeq?: number;
   /**
    * Watch the World Burn lasting titles: accessing a card with one of these
    * printed titles removes it from the game.
@@ -5933,10 +5950,22 @@ export interface RevealEvent {
   cards: Array<{ defId: string; title: string }>;
 }
 
+/** One look: the cards one player saw without showing them (CR 1.21.2). */
+export interface LookEvent {
+  /** Counts up through the game, so a host can tell new looks apart. */
+  seq: number;
+  /** The player who looked. */
+  by: Side;
+  sourceTitle: string;
+  cards: Array<{ defId: string; title: string }>;
+}
+
 export interface PublicView {
   viewer: Side;
   /** Recent reveals, oldest first (CR 1.21.3). */
   reveals: RevealEvent[];
+  /** What this viewer looked at, oldest first. The other player's looks are left out (CR 1.21.2). */
+  looks: LookEvent[];
   turnNumber: number;
   activeSide: Side;
   timingKey: string;

@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is reveal.
  * The effect switch in eval.ts dispatches here.
  */
-import { revealCards } from "../../state/reveal.js";
+import { lookAtCards, revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -41,6 +41,7 @@ case "reveal_install_or_trash": {
       }
       const card = state.cards[top]!;
       card.faceup = true;
+      revealCards(state, [card.id], sourceId);
       log(state, `Eureka! — reveal ${card.title}.`);
       const canInstall =
         card.type === "program" ||
@@ -89,10 +90,8 @@ case "may_reveal_peek_rd_top_for_chosen_type_gain": {
       }
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId];
-      log(
-        state,
-        `Look R&D top — ${top.title} (${top.type}); chosen type ${chosen}.`,
-      );
+      lookAtCards(state, [topId], sourceId);
+      log(state, `Look R&D top; chosen type ${chosen}.`);
       if (top.type !== chosen) {
         log(state, `Type does not match — leave card on top of R&D.`);
         return { ok: true };
@@ -107,6 +106,7 @@ case "may_reveal_peek_rd_top_for_chosen_type_gain": {
             effect: {
               op: "seq",
               effects: [
+                { op: "do", action: { kind: "reveal_top_of_rd" } },
                 {
                   op: "do",
                   action: {
@@ -128,8 +128,7 @@ case "may_reveal_peek_rd_top_for_chosen_type_gain": {
           },
         ],
       })) return { ok: true };
-      top.faceup = true;
-      log(state, `May reveal ${top.title} and gain ${credits}¢.`);
+      log(state, `The Corp may reveal the card and gain ${credits}¢.`);
       return { ok: true };
     }
 
@@ -141,6 +140,7 @@ case "reveal_corp_hand_card": {
         return { ok: true };
       }
       card.faceup = true;
+      revealCards(state, [card.id], sourceId);
       log(state, `Reveal ${card.title} from HQ.`);
       return { ok: true };
     }
@@ -222,6 +222,7 @@ case "reveal_top_stack_to_grip_place_hosted_credits": {
       state.runner.hand.push(top);
       card.zone = "runner:grip";
       card.faceup = true;
+      revealCards(state, [card.id], sourceId);
       log(
         state,
         `Reveal ${card.title} — place ${cost}¢ on ${source.title}; add to grip.`,
@@ -237,6 +238,7 @@ case "reveal_top_n_rd": {
         return { ok: true };
       }
       for (const id of top) {
+        revealCards(state, [id], sourceId);
         log(state, `${source.title} reveals ${state.cards[id]!.title}.`);
       }
       return { ok: true };
@@ -264,6 +266,7 @@ case "reveal_top_n_rd_trash_one": {
       state.turn.rdArrangeThenMayDrawIfUnprotected = false;
       for (const id of taken) {
         state.cards[id].faceup = true;
+        revealCards(state, [id], sourceId);
         log(state, `${source.title} reveals ${state.cards[id].title}.`);
       }
       if (taken.length === 1) {
@@ -361,6 +364,7 @@ case "reveal_hyoubu_grip_random": {
           Math.floor(random(state) * state.runner.hand.length)
         ]!;
       noteCardRevealed(state, pick, sourceId);
+      revealCards(state, [pick], sourceId);
       log(
         state,
         `${source.title} — reveal ${state.cards[pick]!.title} from grip.`,
@@ -375,6 +379,7 @@ case "reveal_hyoubu_stack_top": {
         return { ok: true };
       }
       noteCardRevealed(state, top, sourceId);
+      revealCards(state, [top], sourceId);
       log(
         state,
         `${source.title} — reveal ${state.cards[top]!.title} (stack top).`,
@@ -399,11 +404,20 @@ case "reveal_hq_forbid_steal_trash_copies_this_run": {
           id: `reveal:${id}`,
           label: `Reveal ${state.cards[id]!.title}`,
           effect: {
-            op: "do" as const,
-            action: {
-              kind: "forbid_steal_trash_title_this_run" as const,
-              title: state.cards[id]!.title,
-            },
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: { kind: "reveal_corp_hand_card" as const, cardId: id },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "forbid_steal_trash_title_this_run" as const,
+                  title: state.cards[id]!.title,
+                },
+              },
+            ],
           },
         })),
 logLine: `${source.title} — reveal 1 card in HQ.`,
@@ -412,12 +426,37 @@ logLine: `${source.title} — reveal 1 card in HQ.`,
     }
 
 case "reveal_hq_gain_credits": {
-      const n = Math.min(action.maxCards, state.corp.hand.length);
-      const gain = n * action.creditsEach;
+      // "Reveal up to N cards in HQ": the Corp says which, and how many
+      // (CR 1.15.2). "Reveal all cards in HQ" leaves nothing to choose; the
+      // card data writes it as 99.
+      const all = action.maxCards >= 99;
+      if (!action.cardIds && !all) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.hand],
+            count: action.maxCards,
+            upTo: true,
+            purpose: "resume",
+            label: "reveal",
+            resume: {
+              kind: "reveal_hq_gain_credits",
+              maxCards: action.maxCards,
+              creditsEach: action.creditsEach,
+            },
+          }),
+        );
+      }
+      const shown = (action.cardIds ?? state.corp.hand).filter((id) =>
+        state.corp.hand.includes(id),
+      );
+      revealCards(state, shown, sourceId);
+      const gain = shown.length * action.creditsEach;
       state.corp.credits += gain;
       log(
         state,
-        `Reveal ${n} card(s) from HQ → gain ${gain}¢ (${action.creditsEach}¢ each).`,
+        `Reveal ${shown.length} card(s) from HQ → gain ${gain}¢ (${action.creditsEach}¢ each).`,
       );
       return { ok: true };
     }
@@ -433,6 +472,7 @@ case "reveal_runner_stack_top_to_grip": {
       const card = state.cards[cardId]!;
       card.zone = "runner:grip";
       card.faceup = true;
+      revealCards(state, [card.id], sourceId);
       log(state, `Reveal ${card.title} from top of stack → grip.`);
       return { ok: true };
     }
@@ -445,6 +485,7 @@ case "reveal_top_of_rd": {
       }
       const top = state.cards[topId]!;
       top.faceup = true;
+      revealCards(state, [top.id], sourceId);
       log(state, `${source.title} — reveal top of R&D (${top.title}).`);
       // Reveal is informational; leave card on top (faceup flag cleared for
       // unrevealed deck convention after the pulse is logged).
@@ -464,6 +505,7 @@ case "reveal_top_n": {
       }
       for (const id of revealed) {
         state.cards[id]!.faceup = true;
+        revealCards(state, [id], sourceId);
         log(state, `Reveal stack — ${state.cards[id]!.title}.`);
       }
       if (revealed.length === 1) {
@@ -499,11 +541,8 @@ logLine: `${source.title} — Corp chooses 1 of ${revealed.length} revealed card
 
 case "reveal_grip_may_trash_chosen_encounter_type": {
       const grip = [...state.runner.hand];
-      const titles = grip.map((id) => state.cards[id]?.title ?? id);
-      log(
-        state,
-        `${source.title} — reveal grip (${titles.length}): ${titles.join(", ") || "empty"}.`,
-      );
+      revealCards(state, grip, sourceId);
+      log(state, `${source.title} — reveal grip (${grip.length}).`);
       const chosen = state.run?.encounter?.chosenCardType;
       if (!chosen) {
         log(state, `Reveal grip — no encounter card type chosen.`);
@@ -683,11 +722,13 @@ case "reveal_shuffle_agenda_into_rd": {
       const creditsEach = action.creditsEach ?? 0;
       if (creditsEach > 0) {
         state.corp.credits += creditsEach;
+        revealCards(state, [card.id], sourceId);
         log(
           state,
           `Reveal ${card.title}, gain ${creditsEach}¢ → ${state.corp.credits}¢, shuffle into R&D.`,
         );
       } else {
+        revealCards(state, [card.id], sourceId);
         log(state, `Reveal ${card.title} and shuffle into R&D.`);
       }
       if (action.remainingAfter <= 0) {
@@ -817,6 +858,7 @@ case "reveal_agenda_hq_or_archives_gain_ap_shuffle": {
         const ap = card.agendaPoints ?? 0;
         state.corp.credits += ap;
         shuffleInPlace(state, state.corp.deck);
+        revealCards(state, [card.id], sourceId);
         log(
           state,
           `Reveal ${card.title}, gain ${ap}¢ → ${state.corp.credits}¢, shuffle into R&D.`,
@@ -854,6 +896,7 @@ case "reveal_top_stack_may_install_program_or_hardware": {
       }
       const card = state.cards[top]!;
       card.faceup = true;
+      revealCards(state, [card.id], sourceId);
       log(state, `Reveal top of stack — ${card.title}.`);
       if (card.type !== "program" && card.type !== "hardware") {
         card.faceup = false;
@@ -902,6 +945,7 @@ case "reveal_top_rd_corp_may_draw": {
       const topId = state.corp.deck[0]!;
       const top = state.cards[topId]!;
       top.faceup = true;
+      revealCards(state, [top.id], sourceId);
       log(state, `${source.title} — reveal top of R&D: ${top.title}.`);
       openPendingChoose(state, {
         sourceId,
@@ -929,11 +973,8 @@ case "reveal_top_rd_corp_may_draw": {
     }
 
 case "reveal_grip": {
-      const titles = state.runner.hand.map((id) => state.cards[id]!.title);
-      log(
-        state,
-        `${source.title} — reveal grip (${titles.length}): ${titles.join(", ") || "empty"}.`,
-      );
+      revealCards(state, state.runner.hand, sourceId);
+      log(state, `${source.title} — reveal grip (${state.runner.hand.length}).`);
       return { ok: true };
     }
 
@@ -942,11 +983,8 @@ case "reveal_grip_may_trash_one": {
         log(state, `${source.title} — grip empty.`);
         return { ok: true };
       }
-      const titles = state.runner.hand.map((id) => state.cards[id]!.title);
-      log(
-        state,
-        `${source.title} — reveal grip: ${titles.join(", ")}.`,
-      );
+      revealCards(state, state.runner.hand, sourceId);
+      log(state, `${source.title} — reveal grip (${state.runner.hand.length}).`);
       if (state.runner.hand.length === 1) {
         return applyPrimitive(ctx, {
           kind: "trash_from_grip",

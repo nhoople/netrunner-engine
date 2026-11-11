@@ -745,6 +745,7 @@ case "resolve_burner": {
       const revealed = pickRandomSubset(state, [...state.corp.hand], revealN);
       for (const id of revealed) {
         state.cards[id]!.faceup = true;
+        revealCards(state, [id], sourceId);
         log(state, `Reveal ${state.cards[id]!.title} from HQ.`);
       }
       const moves = Math.min(Math.max(0, action.move), revealed.length);

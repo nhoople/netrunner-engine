@@ -6,6 +6,7 @@ import {
 } from "../state/checkpointSnapshot.js";
 
 import { log } from "../state/createGame.js";
+import { lookAtChoiceCards } from "../state/reveal.js";
 import {
   addBreakerStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
@@ -1062,6 +1063,7 @@ function finishRdArrange(state: GameState, sourceId: string): EvalResult {
   state.corp.deck = [...placed, ...state.corp.deck];
   state.turn.rdArrangePlaced = [];
   state.turn.rdLookedCards = [];
+  state.turn.rdLooker = undefined;
   const maybeDraw = state.turn.rdArrangeThenMayDrawIfUnprotected;
   state.turn.rdArrangeThenMayDrawIfUnprotected = false;
   log(
@@ -1100,7 +1102,9 @@ export function offerRdArrangeChoice(
   }
   openPendingChoose(state, {
     sourceId,
-    chooser: state.cards[sourceId]?.side === "runner" ? "runner" : "corp",
+    chooser:
+      state.turn.rdLooker ??
+      (state.cards[sourceId]?.side === "runner" ? "runner" : "corp"),
     options: remaining.map((id) => ({
       id: `rd-arrange:${id}`,
       label: `Place ${state.cards[id].title} on top next`,
@@ -1945,8 +1949,26 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
       }
       return { ok: true };
     }
-    case "do":
-      return applyPrimitive(ctx, effect.action);
+    case "do": {
+      const open = ctx.state.pendingChoice;
+      const looksBefore = ctx.state.lookSeq ?? 0;
+      const result = applyPrimitive(ctx, effect.action);
+      // CR 1.21.2, CR 8.7.1: a choice opened by a look or a search is made
+      // from cards the other player may not see, and the player making it is
+      // the one looking.
+      const opened = ctx.state.pendingChoice;
+      if (opened && opened !== open && /^(look|search)_/.test(effect.action.kind)) {
+        opened.look = true;
+        for (const event of ctx.state.looks ?? []) {
+          if (event.seq > looksBefore) event.by = opened.chooser;
+        }
+        for (const card of Object.values(ctx.state.cards)) {
+          if (card.lookedBy) card.lookedBy = opened.chooser;
+        }
+        lookAtChoiceCards(ctx.state);
+      }
+      return result;
+    }
     case "if": {
       if (evalCond(ctx, effect.cond)) {
         return evalEffect(ctx, effect.then);

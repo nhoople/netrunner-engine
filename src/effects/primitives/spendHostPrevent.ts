@@ -1,4 +1,5 @@
 /** Martial Law (ml) Flashpoint pack primitives — v1.126.0. */
+import { revealCards } from "../../state/reveal.js";
 import { corpInstallCost, subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
@@ -212,15 +213,14 @@ export function applyFlashpointMlPrimitive(
         log(state, `Equivocation — R&D empty.`);
         return { ok: true };
       }
-      const topId = state.corp.deck[0]!; // deck top is index 0 (commitDraw shifts)
-      const top = state.cards[topId]!;
+      // The Runner has not seen the card yet, so the offer does not name it.
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
           {
             id: "reveal",
-            label: `Reveal ${top.title}`,
+            label: "Reveal the top card of R&D",
             effect: fx.do({ kind: "reveal_then_may_force_draw" }),
           },
           {
@@ -237,6 +237,7 @@ export function applyFlashpointMlPrimitive(
       if (state.corp.deck.length === 0) return { ok: true };
       const topId = state.corp.deck[0]!; // deck top is index 0 (commitDraw shifts)
       const top = state.cards[topId]!;
+      revealCards(state, [top.id], sourceId);
       log(state, `Equivocation — reveal top of R&D: ${top.title}.`);
       openPendingChoose(state, {
         sourceId,

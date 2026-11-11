@@ -1,3 +1,4 @@
+import { revealCards } from "../../state/reveal.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 /** Magnum Opus (mo) primitives — v1.142.0. */
 import { log } from "../../state/createGame.js";
@@ -312,6 +313,7 @@ logLine: `Timely Public Release — choose position on ${action.serverId}.`,
       const titles = revealed
         .map((id) => state.cards[id]?.title ?? id)
         .join(", ");
+      revealCards(state, revealed, sourceId);
       log(
         state,
         `Slot Machine — reveal top ${revealN}: ${titles || "(empty)"} (shared-type max=${max}).`,

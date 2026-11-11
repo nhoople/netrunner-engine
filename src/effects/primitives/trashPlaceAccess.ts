@@ -1,4 +1,5 @@
 /** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
+import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import {
   legalRebirthIdentityIds,
@@ -366,6 +367,7 @@ logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity fr
         const card = state.cards[id];
         if (!card) continue;
         const cost = card.playCost ?? card.installCost ?? Infinity;
+        revealCards(state, [card.id], sourceId);
         log(state, `Waiver — reveal ${card.title} (cost ${cost}).`);
         if (typeof cost === "number" && cost <= excess) {
           state.runner.hand = state.runner.hand.filter((x) => x !== id);

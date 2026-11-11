@@ -20,6 +20,7 @@ import { lingeringPlayAreaIds } from "../state/zones.js";
 import type {
   Action,
   ApplyResult,
+  CardInstance,
   GameConfig,
   GameState,
   Intent,
@@ -117,8 +118,18 @@ function idsHiddenFrom(state: GameState, viewer: Side): string[] {
   const hidden: string[] = [];
   for (const card of Object.values(state.cards)) {
     if (card.type === "identity") continue;
+    // The player looking at a card sees it, whoever owns it (CR 1.21.2).
+    if (card.lookedBy === viewer) continue;
+    // A card in a deck is neither faceup nor facedown: neither player sees
+    // it, its owner included (CR 1.21.1a).
     if (decks.has(card.id)) {
-      if (!card.faceup) hidden.push(card.id);
+      hidden.push(card.id);
+      continue;
+    }
+    // A card taken from a deck while an ability resolves is seen by the
+    // player looking at it, or by both when it is revealed (CR 1.21.6).
+    if (takenFromDeck(state, card)) {
+      if (card.lookedBy || !card.faceup) hidden.push(card.id);
       continue;
     }
     if (card.side === viewer) continue;
@@ -129,6 +140,26 @@ function idsHiddenFrom(state: GameState, viewer: Side): string[] {
     if (!(card.faceup || card.rezzed)) hidden.push(card.id);
   }
   return hidden;
+}
+
+/**
+ * True for a card whose zone is still a deck but which is not in it: an
+ * ability took it to look at, reveal, or set aside while it resolves.
+ */
+function takenFromDeck(state: GameState, card: CardInstance): boolean {
+  if (card.zone !== "corp:rd" && card.zone !== "runner:stack") return false;
+  const player = card.zone === "corp:rd" ? state.corp : state.runner;
+  return !player.deck.includes(card.id);
+}
+
+/** Titles of the cards in or taken from a deck that the viewer may not see. */
+function hiddenDeckTitles(state: GameState, hiddenIds: readonly string[]): string[] {
+  const titles = new Set<string>();
+  for (const id of hiddenIds) {
+    const card = state.cards[id];
+    if (card && (card.zone === "corp:rd" || card.zone === "runner:stack")) titles.add(card.title);
+  }
+  return [...titles];
 }
 
 /** Every string inside an effect tree: the card ids it can name. */
@@ -179,7 +210,9 @@ export function pendingOptionHiddenFromOpponent(
   stringsIn(option.effect, named);
   return (
     [...named].some((value) => hiddenSet.has(value)) ||
-    hiddenIds.some((id) => idNames(option.id, id))
+    hiddenIds.some((id) => idNames(option.id, id)) ||
+    (choice.look === true &&
+      hiddenDeckTitles(state, hiddenIds).some((title) => option.label.includes(title)))
   );
 }
 
@@ -201,13 +234,17 @@ function publicPendingChoice(state: GameState, viewer: Side) {
   }
   const hiddenIds = idsHiddenFrom(state, viewer);
   const hiddenSet = new Set(hiddenIds);
+  // CR 1.21.2, CR 8.7.1: the chooser is looking at cards this viewer may not
+  // see, so a label that names one is not shown either.
+  const lookedTitles = choice.look ? hiddenDeckTitles(state, hiddenIds) : [];
   copy.options = copy.options.map((option, index) => {
     const named = new Set<string>();
     stringsIn(option.effect, named);
     const hidden =
       choice.hiddenFromOpponent === true ||
       [...named].some((value) => hiddenSet.has(value)) ||
-      hiddenIds.some((id) => idNames(option.id, id));
+      hiddenIds.some((id) => idNames(option.id, id)) ||
+      lookedTitles.some((title) => option.label.includes(title));
     if (!hidden) return { ...option, effect: noEffect };
     return {
       id: `hidden:${index}`,
@@ -363,6 +400,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
         }
       : null,
     reveals: structuredClone(state.reveals ?? []),
+    looks: structuredClone((state.looks ?? []).filter((event) => event.by === side)),
     pendingChoice: publicPendingChoice(state, side),
     pendingExclusiveChoices: state.pendingExclusiveChoices
       ? structuredClone(state.pendingExclusiveChoices)

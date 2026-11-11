@@ -1,4 +1,5 @@
 /** Free Mars (fm) Red Sand pack primitives — v1.133.0. */
+import { revealCards } from "../../state/reveal.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/lingeringEffects.js";
@@ -612,8 +613,9 @@ logLine: `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.l
         const c = state.cards[top];
         if (c) {
           c.zone = "corp:hq";
-          c.faceup = true;
+          c.faceup = false;
         }
+        revealCards(state, [top], sourceId);
         log(state, `Open Forum — reveal ${c?.title ?? top} and add to HQ.`);
       }
       if (state.corp.hand.length === 0) return { ok: true };

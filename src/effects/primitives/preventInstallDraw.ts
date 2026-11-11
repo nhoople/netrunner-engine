@@ -1,4 +1,5 @@
 /** Breaker Bay (bb) SanSan pack primitives. */
+import { revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../../state/handSize.js";
@@ -284,6 +285,7 @@ logLine: `Hayley — may install another ${typ} from grip.`,
       state.runner.hand.push(cardId);
       card.zone = "runner:grip";
       shuffleInPlace(state, state.runner.deck);
+      revealCards(state, [card.id], sourceId);
       log(state, `Reveal ${card.title}; add to grip; shuffle stack.`);
       return { ok: true };
     }
@@ -391,6 +393,7 @@ logLine: `Hayley — may install another ${typ} from grip.`,
         state.corp.hand.push(id);
         const c = state.cards[id];
         if (c) c.zone = "corp:hq";
+        revealCards(state, [id], sourceId);
         log(state, `Recruiting Trip — reveal ${c?.title ?? id}; add to HQ.`);
       }
       shuffleInPlace(state, state.corp.deck);

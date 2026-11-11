@@ -29,7 +29,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.20");
+  assertCardsPinnedTag("v1.147.21");
 });
 
 function put(
@@ -990,8 +990,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "ice-wall", "bottom-1", "corp:rnd");
     s.corp.deck = ["top-1", "bottom-1"];
     runKind(s, "eq-1", "may_reveal_force_draw");
+    // The Runner decides before seeing the card (CR 1.21.3).
     const opt = s.pendingChoice?.options.find((o) => o.id === "reveal");
-    expect(opt?.label).toContain("Hedge Fund");
+    expect(opt?.label).toBe("Reveal the top card of R&D");
+    const r = evalEffect({ state: s, sourceId: "eq-1" }, opt!.effect);
+    if (!r.ok) throw new Error(r.error);
+    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Hedge Fund"]);
   });
 
   it("deck orientation: Angel Arena reveals the top card and can move it to the bottom", () => {
@@ -4471,7 +4475,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const r = evalEffect({ state: s, sourceId: "wh-1" }, opt.effect);
     if (!r.ok) throw new Error(r.error);
     expect(s.trace).toBeFalsy();
-    expect(s.cards["hf-1"]?.faceup).toBe(true);
+    // HQ is shown to both players and its cards are not turned faceup (CR 1.21.3).
+    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Hedge Fund"]);
+    expect(s.cards["hf-1"]?.faceup).toBe(false);
   });
 
   it("Jemison Astronautics: forfeiting places X+1 advancements on an advanceable card", () => {
@@ -5685,7 +5691,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.credits).toBe(3);
-    expect(after.state.cards["hf-drawn"]?.faceup).toBe(true);
+    // Shown to both players, then hidden again in HQ (CR 1.21.3, CR 1.21.1a).
+    expect(after.state.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Hedge Fund"]);
+    expect(after.state.cards["hf-drawn"]?.faceup).toBe(false);
+    // The offer did not name the card the Runner had not yet seen.
+    expect(JSON.stringify(s.pendingChoice)).not.toContain("Hedge Fund");
     // Printed: reveal the Corp's drawn card — not a Runner stack card.
     expect(after.state.turn.pendingCorpDrawnCardId).toBe("hf-drawn");
   });

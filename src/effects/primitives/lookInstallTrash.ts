@@ -1,4 +1,5 @@
 /** Intervention (in) Flashpoint pack primitives — v1.125.0. */
+import { lookAtCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -48,6 +49,7 @@ export function applyFlashpointInPrimitive(
         log(state, `Frantic Coding — stack empty.`);
         return { ok: true };
       }
+      lookAtCards(state, looked, sourceId);
       const programs = looked.filter(
         (id) => state.cards[id]?.type === "program",
       );

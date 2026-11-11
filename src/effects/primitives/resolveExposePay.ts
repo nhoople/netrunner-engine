@@ -1,3 +1,4 @@
+import { lookAtCards } from "../../state/reveal.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 /** The Devil and the Dragon (tdatd) Kitara pack primitives — v1.139.0. */
 import { log } from "../../state/createGame.js";
@@ -403,9 +404,7 @@ export function applyKitaraTdatdPrimitive(
         log(state, `Sadaka — R&D empty.`);
         return { ok: true };
       }
-      for (const id of top) {
-        log(state, `Sadaka — look at ${state.cards[id]?.title}.`);
-      }
+      lookAtCards(state, top, sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",

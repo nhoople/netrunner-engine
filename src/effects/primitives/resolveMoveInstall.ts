@@ -1,4 +1,5 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
+import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { corpInstallCost } from "../../state/costs.js";
@@ -170,6 +171,7 @@ export function applyKitaraWinPrimitive(
       for (const id of revealed) {
         const c = state.cards[id];
         if (!c) continue;
+        revealCards(state, [c.id], sourceId);
         log(state, `Embezzle — reveal ${c.title} from HQ.`);
         if (c.type === action.cardType) {
           const idx = state.corp.hand.indexOf(id);
@@ -546,7 +548,8 @@ export function applyKitaraWinPrimitive(
       for (const id of state.runner.hand) {
         const c = state.cards[id];
         if (c?.type === action.cardType) n += 1;
-        if (c) log(state, `Standard Procedure — reveal ${c.title}.`);
+        if (c) revealCards(state, [c.id], sourceId);
+ log(state, `Standard Procedure — reveal ${c.title}.`);
       }
       const gainAmt = n * 2;
       state.corp.credits += gainAmt;

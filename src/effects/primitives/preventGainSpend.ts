@@ -1,4 +1,5 @@
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
+import { lookAtCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../../state/handSize.js";
@@ -254,10 +255,7 @@ export function applyFlashpointQuPrimitive(
         Math.min(n, state.corp.deck.length),
       );
       state.turn.rdLookedCards = taken;
-      for (const id of taken) {
-        state.cards[id].faceup = true;
-        log(state, `Psychokinesis — look ${state.cards[id].title}.`);
-      }
+      lookAtCards(state, taken, sourceId);
       const installable = taken.filter((id) => {
         const t = state.cards[id].type;
         return t === "agenda" || t === "asset" || t === "upgrade";

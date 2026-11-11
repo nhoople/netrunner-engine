@@ -48,7 +48,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.20");
+  assertCardsPinnedTag("v1.147.21");
 });
 
 describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {

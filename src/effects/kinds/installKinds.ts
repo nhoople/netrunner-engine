@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is install.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import {
   applyInstallCorpCard,
   chooseCorpCardToInstall,
@@ -465,6 +466,7 @@ case "install_rez_rd_ice_on_source_server": {
         card.rezzed = false;
         card.faceup = true;
         log(state, `Install ${card.title} on ${host.id} for ${installPay}¢.`);
+        revealCards(state, [card.id], sourceId);
         log(
           state,
           `Reveal ${card.title} (CR ${CR.revealForInstallAndRez.number}).`,
@@ -3243,6 +3245,7 @@ case "install_and_rez_hq_ice_protecting_server_ignore_costs": {
       card.rezzed = true;
       card.faceup = true;
       card.advancementCounters = card.advancementCounters ?? 0;
+      revealCards(state, [card.id], sourceId);
       log(
         state,
         `Reveal ${card.title}; install and rez outermost on ${serverId} (ignore costs).`,
@@ -3374,8 +3377,10 @@ case "install_and_rez_hq_card_with_discount": {
         card.rezzed = true;
         card.faceup = true;
       } else {
+        // Shown to both players, and still facedown (CR 1.21.3a).
         card.rezzed = false;
-        card.faceup = true; // revealed
+        card.faceup = false;
+        revealCards(state, [cardId], sourceId);
       }
       if (card.type === "agenda" || card.type === "asset") {
         card.advancementCounters = card.advancementCounters ?? 0;

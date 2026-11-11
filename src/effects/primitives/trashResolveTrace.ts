@@ -1,4 +1,5 @@
 /** Upstalk (up) Lunar pack primitives. */
+import { revealCards } from "../../state/reveal.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { emptyRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
@@ -12,6 +13,8 @@ import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { GameState, RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
+import { evalEffect } from "../eval.js";
+import { chooseCards } from "../chooseCards.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
@@ -182,6 +185,7 @@ export function applyLunarUpPrimitive(
           break;
         }
       }
+      revealCards(state, revealed, sourceId);
       const shuffleRd = () => {
         for (const id of state.corp.deck) {
           state.cards[id]!.faceup = false;
@@ -246,8 +250,24 @@ export function applyLunarUpPrimitive(
         log(state, `Grail reveal — no grail ice in HQ to reveal.`);
         return { ok: true };
       }
-      const pick = hq.slice(0, max);
-      for (const id of pick) state.cards[id]!.faceup = true;
+      // "Reveal up to 2 grail ice from HQ": the Corp says which (CR 1.15.2).
+      const chosen = (action as { cardIds?: string[] }).cardIds;
+      if (!chosen) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: hq,
+            count: max,
+            upTo: true,
+            purpose: "resume",
+            label: "reveal",
+            resume: { kind: "reveal_grail_gain_subroutines", maxReveal: max },
+          }),
+        );
+      }
+      const pick = chosen.filter((id) => hq.includes(id)).slice(0, max);
+      revealCards(state, pick, sourceId);
       const ice = state.cards[state.run.encounter.iceId];
       if (!ice) return { ok: true };
       const extra = pick.flatMap((id) => {

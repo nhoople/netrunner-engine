@@ -1,4 +1,5 @@
 /** Kala Ghoda (kg) Mumbad pack primitives — v1.116.0. */
+import { lookAtCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
@@ -264,10 +265,7 @@ logLine: `Artist Colony — search stack to install.`,
         log(state, `${source?.title ?? "Look"} — stack empty.`);
         return { ok: true };
       }
-      log(
-        state,
-        `${source?.title ?? "Look"} — top of stack is ${state.cards[top]!.title}.`,
-      );
+      lookAtCards(state, [top], sourceId);
       return { ok: true };
     }
 

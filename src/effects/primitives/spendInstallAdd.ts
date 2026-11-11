@@ -1,4 +1,5 @@
 /** Honor and Profit (hap) deluxe primitives. */
+import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { CR } from "../../timing/labels.js";
@@ -452,9 +453,9 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
       for (const id of taken) {
         const idx = deck.lastIndexOf(id);
         if (idx >= 0) deck.splice(idx, 1);
-        state.cards[id]!.faceup = true;
       }
       if (taken.length === 0) return { ok: true };
+      lookAtCards(state, taken, sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
@@ -582,10 +583,8 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
     case "may_pay_reveal_top": {
       // Printed Bug: whenever the Corp draws a card, you may pay 2¢ to
       // reveal that card (CR 1.2.1). The drawn id is on the turn bookkeeping.
-      const drawnId = state.turn.pendingCorpDrawnCardId;
-      const title = drawnId
-        ? (state.cards[drawnId]?.title ?? "the drawn card")
-        : "the drawn card";
+      // The Runner has not seen the card yet, so the offer does not name it.
+      const title = "the card the Corp drew";
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
@@ -610,6 +609,7 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
       const id = state.turn.pendingCorpDrawnCardId;
       if (id && state.cards[id]) {
         state.cards[id]!.faceup = true;
+        revealCards(state, [id], sourceId);
         log(state, `Bug — reveal ${state.cards[id]!.title}.`);
       } else {
         log(state, `Bug — no drawn Corp card to reveal.`);
@@ -654,6 +654,7 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
       if (!top) return { ok: true };
       state.cards[top]!.faceup = true;
       const match = state.cards[top]!.type === action.cardType;
+      revealCards(state, [top], sourceId);
       log(
         state,
         `Oracle May — reveal ${state.cards[top]!.title} (${match ? "match" : "no match"}).`,

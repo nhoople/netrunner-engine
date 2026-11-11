@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is place.
  * The effect switch in eval.ts dispatches here.
  */
+import { revealCards } from "../../state/reveal.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -363,11 +364,13 @@ case "place_agenda_hq_or_rd_bottom": {
         state.corp.hand.push(id);
         card.zone = "corp:hq";
         card.faceup = false;
+        revealCards(state, [card.id], sourceId);
         log(state, `Reveal ${card.title} — add to HQ.`);
       } else {
         state.corp.deck.push(id);
         card.zone = "corp:rd";
         card.faceup = false;
+        revealCards(state, [card.id], sourceId);
         log(state, `Reveal ${card.title} — bottom of R&D.`);
       }
       // shuffle R&D after searching it (always safe)

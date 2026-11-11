@@ -396,6 +396,10 @@ export const CR = {
   reveal: { number: "1.21.3", id: "rule_reveal" },
   /** Looking at a card is separate from choosing it (CR 1.21.2). */
   look: { number: "1.21.2", id: "rule_look" },
+  /** Cards in hidden or secret zones are neither faceup nor facedown (CR 1.21.1a). */
+  hiddenZoneFacing: { number: "1.21.1a", id: "rule_hidden_secret_faceup_facedown" },
+  /** A looked-at or revealed card stays visible until the ability finishes or the card moves (CR 1.21.6). */
+  remainVisible: { number: "1.21.6", id: "rule_remain_visible" },
   /** Increase then lower, then floor at 0 (Ghosttongue event play cost −N¢). */
   costCalculation: { number: "1.16.2a", id: "rule_cost_calculation" },
   totalInstallRez: {

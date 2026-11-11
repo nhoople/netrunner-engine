@@ -1,4 +1,5 @@
 /** Earth's Scion (eas) Red Sand pack primitives — v1.131.0. */
+import { revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -407,9 +408,7 @@ export function applyRedsandEasPrimitive(
         log(state, `Bamboo Dome — R&D empty.`);
         return { ok: true };
       }
-      for (const id of top) {
-        log(state, `Bamboo Dome — reveal ${state.cards[id]?.title}.`);
-      }
+      revealCards(state, top, sourceId);
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -630,6 +629,7 @@ export function applyRedsandEasPrimitive(
       const card = cardId ? state.cards[cardId] : null;
       if (card) {
         card.faceup = true;
+        revealCards(state, [card.id], sourceId);
         log(state, `Aeneas Informant — reveal ${card.title}.`);
       }
       state.runner.credits += 1;
