@@ -5611,7 +5611,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               s,
               `${ice.title} is trashed — its own name means this ice (CR ${CR.selfReference.number}).`,
             );
-            trashCorpCardToArchives(s, kitsuneId);
+            trashCorpCardToArchives(s, kitsuneId, "corp");
           }
         }
         s.log.push(`Breach complete (appendix 11.5_7).`);

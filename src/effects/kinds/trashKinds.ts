@@ -548,7 +548,7 @@ case "trash_hq_card": {
         return { ok: true };
       }
       const title = state.cards[action.cardId]!.title;
-      trashCorpCardToArchives(state, action.cardId);
+      trashCorpCardToArchives(state, action.cardId, action.by ?? source.side);
       log(
         state,
         `Trash ${title} from HQ (CR ${CR.trashing.number}).`,
@@ -1076,7 +1076,7 @@ case "trash_cultivate_looked": {
         return { ok: true };
       }
       state.turn.rdLookedCards.splice(idx, 1);
-      trashCorpCardToArchives(state, cardId);
+      trashCorpCardToArchives(state, cardId, source.side);
       log(state, `Cultivate — trash a looked card.`);
       if (state.turn.rdLookedCards.length === 0) {
         return { ok: true };
@@ -1663,7 +1663,7 @@ case "trash_climactic_ice": {
         log(state, `Climactic trash ice — not ice.`);
         return { ok: true };
       }
-      trashCorpCardToArchives(state, action.cardId);
+      trashCorpCardToArchives(state, action.cardId, source.side);
       log(state, `Climactic Showdown — trash ${ice.title}.`);
       return { ok: true };
     }
@@ -1737,7 +1737,7 @@ case "trash_corp_card": {
         );
         return { ok: true };
       }
-      trashCorpCardToArchives(state, action.cardId);
+      trashCorpCardToArchives(state, action.cardId, source.side);
       log(
         state,
         `Trash ${card.title} (CR ${CR.trashing.number}).`,
@@ -2013,7 +2013,7 @@ case "trash_rezzed_ice_gain_credits_resolve": {
         log(state, `Trash rezzed ice — invalid target.`);
         return { ok: true };
       }
-      trashCorpCardToArchives(state, action.cardId);
+      trashCorpCardToArchives(state, action.cardId, source.side);
       state.corp.credits += action.amount;
       log(
         state,
@@ -2028,7 +2028,7 @@ case "trash_looked": {
       state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
         (x) => x !== id,
       );
-      trashCorpCardToArchives(state, id);
+      trashCorpCardToArchives(state, id, source.side);
       log(state, `ABT — trash ${state.cards[id]!.title}.`);
       return { ok: true };
     }
@@ -2043,7 +2043,7 @@ case "trash_all_hosted_cards": {
         if (card.side === "runner") {
           moveRunnerCardToHeap(state, id);
         } else {
-          trashCorpCardToArchives(state, id);
+          trashCorpCardToArchives(state, id, source.side);
         }
         log(state, `${source.title} — trash hosted ${card.title}.`);
       }
@@ -2060,7 +2060,7 @@ case "trash_co_looked_rd_card": {
       for (const id of top) {
         const card = state.cards[id]!;
         if (id === action.cardId) {
-          trashCorpCardToArchives(state, id);
+          trashCorpCardToArchives(state, id, source.side);
           log(state, `${source.title} — trash ${card.title} from R&D.`);
         } else {
           card.zone = "corp:hq";
@@ -2087,7 +2087,7 @@ case "trash_passed_unrezzed_ice": {
       const apply = (id: string): EvalResult => {
         const card = state.cards[id];
         if (!card) return { ok: true };
-        trashCorpCardToArchives(state, id);
+        trashCorpCardToArchives(state, id, source.side);
         log(state, `Trash unrezzed ${card.title} (passed last run).`);
         return { ok: true };
       };
@@ -2118,7 +2118,7 @@ case "trash_passed_unrezzed_ice_resolve": {
       ) {
         return { ok: true };
       }
-      trashCorpCardToArchives(state, id);
+      trashCorpCardToArchives(state, id, source.side);
       log(state, `Trash unrezzed ${card.title} (passed last run).`);
       return { ok: true };
     }
@@ -2236,7 +2236,7 @@ case "trash_encounter_ice_if_strength_lte": {
         return { ok: true };
       }
       const ice = state.cards[iceId]!;
-      trashCorpCardToArchives(state, iceId);
+      trashCorpCardToArchives(state, iceId, source.side);
       if (state.run?.encounter) state.run.encounter = null;
       log(
         state,
@@ -2678,7 +2678,7 @@ case "trash_rd": {
       let trashed = 0;
       for (let i = 0; i < action.amount && state.corp.deck.length > 0; i++) {
         const id = state.corp.deck.shift()!; // top of R&D is index 0
-        trashCorpCardToArchives(state, id);
+        trashCorpCardToArchives(state, id, source.side);
         trashed++;
       }
       log(state, `Power Shutdown — trash ${trashed} from top of R&D.`);

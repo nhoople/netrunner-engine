@@ -915,17 +915,21 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   });
 
   it("deck orientation: Accelerated Diagnostics looks at the top 3 of R&D", () => {
-    const s = createInitialState();
+    let s = createInitialState();
     put(s, "accelerated-diagnostics", "ad-1", "corp:play");
-    put(s, "hedge-fund", "top-op", "corp:rnd");
-    put(s, "ice-wall", "top-2", "corp:rnd");
-    put(s, "ice-wall", "top-3", "corp:rnd");
-    put(s, "hedge-fund", "bottom-1", "corp:rnd");
+    put(s, "hedge-fund", "top-op", "corp:rd");
+    put(s, "ice-wall", "top-2", "corp:rd");
+    put(s, "ice-wall", "top-3", "corp:rd");
+    put(s, "hedge-fund", "bottom-1", "corp:rd");
     s.corp.deck = ["top-op", "top-2", "top-3", "bottom-1"];
     s.corp.hand = [];
     s.corp.credits = 10;
     runKind(s, "ad-1", "accelerated_diagnostics");
-    // The operation was played for credits; the other looked cards trashed.
+    // The Corp may play the operation; the other looked cards are trashed.
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["play-looked:top-op", "play-looked:none"]);
+    const played = applyAction(s, { type: "choose_option", optionId: "play-looked:top-op" });
+    if (!played.ok) throw new Error(played.error);
+    s = played.state;
     expect(s.corp.credits).toBeGreaterThan(10);
     expect(s.corp.discardPile).toEqual(expect.arrayContaining(["top-2", "top-3"]));
     expect(s.corp.deck).toEqual(["bottom-1"]);

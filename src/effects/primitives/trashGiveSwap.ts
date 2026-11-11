@@ -6,7 +6,7 @@ import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { noteCorpCardAddedToArchives } from "../../state/trashHooks.js";
 import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import type { EffectCtx } from "../eval.js";
+import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { applySpinTcPrimitive } from "./breachTrashTurn.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -29,16 +29,13 @@ export function applySpinFalDtPrimitive(
         log(state, `Hemorrhage — Corp HQ empty.`);
         return { ok: true };
       }
+      // The text names the Corp, so the Corp trashes the card although the
+      // ability is the Runner's (CR 1.14.5a).
       if (state.corp.hand.length === 1) {
-        const id = state.corp.hand[0]!;
-        removeCardFromCurrentZone(state, id);
-        state.corp.discardPile.push(id);
-        state.cards[id]!.zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        state.cards[id]!.faceup = false;
-        noteCorpCardAddedToArchives(state);
-        log(state, `Hemorrhage — Corp trashes ${state.cards[id]!.title} from HQ.`);
-        return { ok: true };
+        return evalEffect(
+          ctx,
+          fx.do({ kind: "trash_hq_card", cardId: state.corp.hand[0]!, by: "corp" }),
+        );
       }
       openPendingChoose(state, {
         sourceId,
@@ -46,7 +43,7 @@ export function applySpinFalDtPrimitive(
         options: state.corp.hand.map((id) => ({
           id: `hemorrhage:${id}`,
           label: `Trash ${state.cards[id]!.title} from HQ`,
-          effect: fx.do({ kind: "trash_hq_card", cardId: id }),
+          effect: fx.do({ kind: "trash_hq_card", cardId: id, by: "corp" }),
         })),
       });
       return { ok: true };

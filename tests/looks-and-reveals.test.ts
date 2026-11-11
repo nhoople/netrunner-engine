@@ -306,12 +306,15 @@ describe("looks whose kind is not named for looking", () => {
   });
 
   it("shows the top 3 cards of R&D to the Corp alone for Accelerated Diagnostics (CR 1.21.2, CR 4.4.6b)", () => {
-    const s = board();
+    let s = board();
     doKind(s, "src-c", "accelerated_diagnostics");
     expect(titles(getPublicView(s, "corp").looks)).toEqual(["Hedge Fund", "Ice Wall", "PAD Campaign"]);
     expect(getPublicView(s, "runner").looks).toEqual([]);
-    // Hedge Fund was played. The two the Corp did not play are trashed
+    expect(seen(s, "corp")).toContain("Play Hedge Fund");
+    expect(seen(s, "runner")).not.toContain("Hedge Fund");
+    // The Corp plays Hedge Fund. The two it did not play are trashed
     // facedown, and the log does not name them.
+    s = choose(s, "play-looked:rd-0");
     for (const id of ["rd-1", "rd-2"]) {
       expect(s.cards[id]?.zone, id).toBe("corp:archives");
       expect(s.cards[id]?.faceup, id).toBe(false);

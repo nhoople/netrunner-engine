@@ -1665,7 +1665,7 @@ case "install_ice": {
       }
       const dest = state.servers[serverId];
       if (!dest) {
-        trashCorpCardToArchives(state, cardId);
+        trashCorpCardToArchives(state, cardId, source.side);
         return { ok: true };
       }
       dest.ice.unshift(cardId);

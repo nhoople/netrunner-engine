@@ -733,7 +733,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         const ice = state.cards[id];
         return Boolean(ice?.rezzed && chosen && ice.title === chosen.title && id !== cardId);
       });
-    if (copyId) trashCorpCardToArchives(state, copyId);
+    if (copyId) trashCorpCardToArchives(state, copyId, "runner");
     const at = state.run.accessCandidates.indexOf(cardId);
     if (at >= 0) state.run.accessCandidates.splice(at, 1);
     state.run.immolationScriptAccessReplace = false;
