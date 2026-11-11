@@ -26,6 +26,7 @@ import {
 import { enterSetAside } from "../../state/zones.js";
 import { resolveBreachReplacement } from "../../timing/breachReplacement.js";
 import { CR } from "../../timing/labels.js";
+import { resolveStoredOrInlineConditionalInstance } from "../../state/storedTriggers.js";
 import {
   deferContinuationBefore,
   effectResolutionBlocked,
@@ -719,6 +720,12 @@ case "resolve_wizard_chest": {
         })),
 logLine: `${source.title} — choose card type.`,
 });
+      return { ok: true };
+    }
+    case "resolve_pending_ability": {
+      // The chosen instance resolves fully before another is chosen
+      // (CR 9.2.8d). The caller resumes the rest of the window afterward.
+      resolveStoredOrInlineConditionalInstance(state, action.pendingId);
       return { ok: true };
     }
     default:

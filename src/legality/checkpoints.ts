@@ -133,7 +133,7 @@ import {
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
-import { resolveStoredOrInlineConditionalInstance } from "../state/storedTriggers.js";
+import { resolvePendingInWindowOrder } from "../state/storedTriggers.js";
 import { expireLingeringEffects } from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/primitives/hostResolveLook.js";
 import {
@@ -3526,6 +3526,17 @@ function closeCheckpointReactionWindow(
     ? (state.cards[guardId]?.title ?? "Blackguard")
     : "Blackguard";
 
+  // Card-effect conditionals in this window resolve in player order
+  // (CR 9.2.8b / 9.2.8d). Play abilities marked at 8.6.7e wait for 8.6.7f.
+  const orderedIds = pending
+    .filter(
+      (p) =>
+        (p.payload?.kind === "inline_conditional" ||
+          p.payload?.kind === "stored_conditional") &&
+        !(checkpointKind === "play" && p.abilityKey === "on-play"),
+    )
+    .map((p) => p.id);
+
   for (const inst of pending) {
     // swap_install_trigger stays pending for eval.ts to consume after the
     // checkpoint returns (CR 8.8.4b).
@@ -3550,7 +3561,9 @@ function closeCheckpointReactionWindow(
       inst.payload?.kind === "inline_conditional" ||
       inst.payload?.kind === "stored_conditional"
     ) {
-      if (resolveStoredOrInlineConditionalInstance(state, inst.id)) {
+      // An earlier pass may already have resolved this one out of mark order.
+      if (inst.status !== "pending") continue;
+      if (resolvePendingInWindowOrder(state, orderedIds)) {
         break;
       }
       continue;

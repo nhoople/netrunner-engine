@@ -5322,6 +5322,8 @@ export interface PendingChoice {
   options: Array<{ id: string; label: string; effect: Effect }>;
   /** Corp names how many times a mandatory loop resolves (CR 10.1.6a). */
   loopCount?: boolean;
+  /** What the chooser is deciding, when the options alone do not say. */
+  prompt?: string;
 }
 
 /**

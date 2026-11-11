@@ -371,6 +371,10 @@ function noteOpenTurnBeginWaiting(state: GameState): void {
   if (!turnBeginPaused(state)) return;
   const waiting = pendingRunnerTurnBeginIds(state).length;
   if (waiting === 0) return;
+  // The open choice is the order of these abilities, not one of them.
+  if (state.pendingChoice?.options.some((o) => o.id.startsWith("trigger:"))) {
+    return;
+  }
   const openId = state.pendingChoice?.sourceId;
   const title = openId ? state.cards[openId]?.title : undefined;
   if (!title) return;

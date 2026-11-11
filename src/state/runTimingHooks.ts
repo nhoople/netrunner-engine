@@ -5,6 +5,7 @@
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 import {
+  effectFromKey,
   fireCardConditional,
   type StoredConditionalMark,
 } from "./storedTriggers.js";
@@ -39,6 +40,8 @@ function mark(
 ): StoredConditionalMark | null {
   const card = state.cards[sourceId];
   if (!card) return null;
+  // Only a card that has this ability can meet its condition (CR 9.6.2).
+  if (!effectFromKey(card, effectKey)) return null;
   return {
     abilityKey,
     sourceId,

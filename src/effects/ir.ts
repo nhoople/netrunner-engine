@@ -322,6 +322,11 @@ export type Primitive =
     }
   /** Leaf: trash a specific card from HQ. */
   | { kind: "trash_hq_card"; cardId: string }
+  /**
+   * Follow-up the engine builds while a reaction window asks which pending
+   * ability its controller triggers next (CR 9.2.8d). Not for card data.
+   */
+  | { kind: "resolve_pending_ability"; pendingId: string }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
   /**
    * Power Grid Overload: trash 1 installed hardware with install cost ≤
@@ -4089,6 +4094,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "increase_hand_size",
   "trash_hq",
   "trash_hq_card",
+  "resolve_pending_ability",
   "trash_hardware",
   "trash_hardware_install_cost_lte_last_trace_excess",
   "trash_up_to_n_resources",
@@ -7333,6 +7339,11 @@ export function validateEffectTree(
       if (action.kind === "trash_hq_card") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "resolve_pending_ability") {
+        if (typeof action.pendingId !== "string") {
+          return `${path}.action.pendingId: required string`;
         }
       }
       if (action.kind === "may_trash_hq_then") {

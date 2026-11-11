@@ -55,6 +55,29 @@ function must(state: GameState, action: Action): GameState {
 }
 
 
+/** Trigger the pending ability of the card named `title` next (CR 9.2.8d). */
+function triggerFirst(state: GameState, title: string): GameState {
+  const option = state.pendingChoice?.options.find(
+    (o) => o.id.startsWith("trigger:") && o.label === title,
+  );
+  if (!option) throw new Error(`No pending ability offered for ${title}`);
+  return must(state, { type: "choose_option", optionId: option.id });
+}
+
+/** Runner turn begins with Drug Dealer installed before Aesop's Pawnshop. */
+function turnBeginWithDealerThenAesop(): GameState {
+  const s = createInitialState();
+  s.cards["dealer-1"] = instantiateCard("drug-dealer", "dealer-1", "runner:installed");
+  s.cards["aesop-1"] = instantiateCard("aesops-pawnshop", "aesop-1", "runner:installed");
+  s.runner.installed = ["dealer-1", "aesop-1"];
+  s.runner.credits = 1;
+  s.activeSide = "runner";
+  s.timingKey = "runner.startPaw";
+  enterStep(s, "runner.turnBegins");
+  autoWalk(s);
+  return s;
+}
+
 function at(lines: string[], fragment: string): number {
   const i = lines.findIndex((line) => line.includes(fragment));
   expect(i, fragment).toBeGreaterThanOrEqual(0);
@@ -1411,14 +1434,22 @@ describe("CR examples, chapter 9", () => {
 
     autoWalk(s);
 
-    const waiting = at(
-      s.log,
-      "The Supplier's turn-begin ability is open; 1 later turn-begin ability waits",
-    );
-    expect(s.log[waiting]).toContain(CR.conditionCheckedWhenResolving.number);
+    // Both abilities are the Runner's, so the Runner picks the order
+    // (CR 9.2.8d). The example has The Supplier go first.
+    const asked = at(s.log, "The Runner has 2 pending abilities");
+    expect(s.log[asked]).toContain(CR.reactionWindowOrder.number);
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.runner.credits).toBe(5);
+    s = triggerFirst(s, "The Supplier");
+
     expect(s.pendingChoice?.options.map((option) => option.id)).toContain(
       "install:dyson-1",
     );
+    expect(
+      s.pendingAbilities.some(
+        (p) => p.sourceId === "uw-1" && p.status === "pending",
+      ),
+    ).toBe(true);
     expect(s.runner.link).toBe(1);
     expect(s.runner.credits).toBe(5);
     expect(s.log.some((line) => line.includes("runner gains 1¢"))).toBe(false);
@@ -1526,18 +1557,18 @@ describe("CR examples, chapter 9", () => {
 
 
   it("drops Drug Dealer's turn-begin ability when Aesop's Pawnshop trashes it first (CR 9.6.10.ex1)", () => {
-    const s = createInitialState();
-    const aesop = instantiateCard("aesops-pawnshop", "aesop-1", "runner:installed");
-    const dealer = instantiateCard("drug-dealer", "dealer-1", "runner:installed");
-    s.cards["aesop-1"] = aesop;
-    s.cards["dealer-1"] = dealer;
-    s.runner.installed = ["aesop-1", "dealer-1"];
-    s.runner.credits = 1;
-    s.activeSide = "runner";
-    s.timingKey = "runner.startPaw";
-    enterStep(s, "runner.turnBegins");
-    autoWalk(s);
-    const picked = must(s, { type: "choose_option", optionId: "trash" });
+    // Drug Dealer was installed first; the order is still the Runner's choice.
+    const s = turnBeginWithDealerThenAesop();
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const aesopTitle = s.cards["aesop-1"]!.title;
+    expect(s.pendingChoice?.options.map((o) => o.label).sort()).toEqual([
+      aesopTitle,
+      "Drug Dealer",
+    ]);
+    expect(s.runner.credits).toBe(1);
+
+    const aesopFirst = triggerFirst(s, aesopTitle);
+    const picked = must(aesopFirst, { type: "choose_option", optionId: "trash" });
     const trashed = must(picked, {
       type: "choose_option",
       optionId: "aesop:dealer-1",
@@ -1548,6 +1579,26 @@ describe("CR examples, chapter 9", () => {
       "Drug Dealer loses pending status — ability inactive",
     );
     expect(trashed.log.join("\n")).toContain(CR.pendingAbilityInactive.number);
+    expect(trashed.log.some((line) => line.includes("runner loses"))).toBe(false);
+  });
+
+  it("lets the Runner trigger Drug Dealer before Aesop's Pawnshop instead (CR 9.2.8d)", () => {
+    const s = turnBeginWithDealerThenAesop();
+
+    const dealerFirst = triggerFirst(s, "Drug Dealer");
+    expect(dealerFirst.runner.credits).toBe(0);
+    expect(dealerFirst.log.some((line) => line.includes("runner loses 1¢"))).toBe(
+      true,
+    );
+    // Aesop's Pawnshop is the only ability left, so it resolves without asking.
+    expect(dealerFirst.pendingChoice?.options.map((o) => o.id)).toContain("trash");
+    const picked = must(dealerFirst, { type: "choose_option", optionId: "trash" });
+    const trashed = must(picked, {
+      type: "choose_option",
+      optionId: "aesop:dealer-1",
+    });
+    expect(trashed.runner.discardPile).toContain("dealer-1");
+    expect(trashed.runner.credits).toBe(3);
   });
 
 

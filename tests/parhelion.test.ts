@@ -3156,6 +3156,13 @@ describe("parhelion", () => {
         }
       }
       expect(s.turn.successfulRunThisTurn).toBe(true);
+      // Pennyshaver and World Tree both trigger on the successful run; the
+      // Runner picks which resolves first (CR 9.2.8d).
+      const treeFirst = s.pendingChoice?.options.find(
+        (o) => o.id.startsWith("trigger:") && o.label === "World Tree",
+      );
+      expect(treeFirst).toBeDefined();
+      s = must(s, { type: "choose_option", optionId: treeFirst!.id });
       expect(s.turn.onSuccessfulRunFiredIds).toContain("wt-3");
       expect(s.pendingChoice?.options.some((o) => o.id === "trash:hw-3")).toBe(
         true,

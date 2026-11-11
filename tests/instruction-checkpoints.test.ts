@@ -221,11 +221,21 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
     autoWalk(s);
 
+    // The Runner controls both pending abilities and picks the order
+    // (CR 9.2.8d); neither has resolved yet.
+    expect(s.runner.credits).toBe(5);
+    expect(s.log.some((line) => line.includes("runner loses"))).toBe(false);
+    const aesopFirst = s.pendingChoice?.options.find(
+      (option) =>
+        option.id.startsWith("trigger:") && option.label === aesop.title,
+    );
+    expect(aesopFirst).toBeDefined();
+    s = must(s, { type: "choose_option", optionId: aesopFirst!.id });
+
     expect(s.pendingChoice?.options.map((option) => option.id)).toContain(
       "trash",
     );
     expect(s.runner.credits).toBe(5);
-    expect(s.log.some((line) => line.includes("runner loses"))).toBe(false);
 
     s = must(s, { type: "choose_option", optionId: "trash" });
     s = must(s, { type: "choose_option", optionId: "aesop:dd-1" });

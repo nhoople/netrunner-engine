@@ -572,6 +572,16 @@ export const CR = {
   },
   /** A paid ability window starts with the active player. */
   abilityWindowPriority: { number: "9.2.7a", id: "rule_ability_window_priority" },
+  /** A reaction window gives the active player priority first, then the inactive player (CR 9.2.8b). */
+  reactionWindowPriority: {
+    number: "9.2.8b",
+    id: "rule_reaction_window_priority",
+  },
+  /** The player with priority triggers their pending abilities in any order (CR 9.2.8d). */
+  reactionWindowOrder: {
+    number: "9.2.8d",
+    id: "rule_reaction_window_pending_abilities_unordered",
+  },
   /** A reaction window opened by a timing structure closes when that structure ends (CR 9.2.8f). */
   reactionWindowCloses: {
     number: "9.2.8f",
