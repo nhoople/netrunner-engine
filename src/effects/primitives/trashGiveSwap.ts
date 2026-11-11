@@ -10,6 +10,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { applySpinTcPrimitive } from "./breachTrashTurn.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -377,7 +378,7 @@ logLine: `Paintbrush — choose rezzed ice to paint.`,
         state.cards[id]!.zone = "corp:rd";
         state.cards[id]!.faceup = false;
       }
-      if (n > 0) state.corp.deck.reverse();
+      if (n > 0) shuffleInPlace(state, state.corp.deck);
       let drawn = 0;
       for (let i = 0; i < action.draw && state.corp.deck.length > 0; i++) {
         const id = state.corp.deck.pop()!;

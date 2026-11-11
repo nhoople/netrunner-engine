@@ -493,7 +493,7 @@ logLine: `Mumbad City Hall — choose an alliance from R&D.`,
         state,
         `Mumbad City Hall — reveal ${card.title}; added to HQ (play/install paying costs). R&D shuffled.`,
       );
-      // Deterministic shuffle after remove
+      // Shuffle R&D after the search.
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
         const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;

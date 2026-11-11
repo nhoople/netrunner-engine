@@ -108,23 +108,40 @@ function publicPendingChoice(state: GameState, viewer: Side) {
   if (!choice) return null;
   const copy = structuredClone(choice);
   if (viewer === choice.chooser) return copy;
+  // The other player cannot pick an option. They do not get what each
+  // option would do, which can name hidden cards.
+  const noEffect = {
+    op: "do" as const,
+    action: { kind: "gain_credits" as const, side: viewer, amount: 0 },
+  };
+  if (choice.hiddenFromOpponent) {
+    // They learn that a choice is open and how many options it has, not
+    // which hidden cards the options name.
+    copy.options = copy.options.map((_, index) => ({
+      id: `hidden:${index}`,
+      label: "Hidden",
+      effect: noEffect,
+    }));
+    return copy;
+  }
   copy.options = copy.options.map((option) => {
+    const open = { ...option, effect: noEffect };
     if (option.id.startsWith("dbs-bottom:")) {
-      return { ...option, label: "Add a set-aside card to the bottom of R&D" };
+      return { ...open, label: "Add a set-aside card to the bottom of R&D" };
     }
     if (option.id.startsWith("cultivate-trash:")) {
-      return { ...option, label: "Trash a looked card" };
+      return { ...open, label: "Trash a looked card" };
     }
     if (option.id.startsWith("cultivate-hq:")) {
-      return { ...option, label: "Add a looked card to HQ" };
+      return { ...open, label: "Add a looked card to HQ" };
     }
     if (option.id.startsWith("rd-arrange:")) {
-      return { ...option, label: "Place a looked card on R&D next" };
+      return { ...open, label: "Place a looked card on R&D next" };
     }
     if (option.id.startsWith("raman:")) {
-      return { ...option, label: "Swap a drawn card with an Archives card" };
+      return { ...open, label: "Swap a drawn card with an Archives card" };
     }
-    return option;
+    return open;
   });
   return copy;
 }

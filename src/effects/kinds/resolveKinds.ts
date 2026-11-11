@@ -49,6 +49,7 @@ import {
 import {
   fireHostRezStateTriggers,
 } from "../eval.js";
+import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 
 export function applyResolveKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -179,7 +180,7 @@ case "resolve_moon_pool": {
         );
       }
       if (revealN > 0) {
-        state.corp.deck.reverse();
+        shuffleInPlace(state, state.corp.deck);
       }
 
       const agendaRevealed = revealed.filter(
@@ -238,8 +239,8 @@ case "resolve_simulation_reset": {
         state.cards[id].faceup = false;
       }
       if (shuffleN > 0) {
-        // Deterministic "shuffle": reverse then leave (v0; same as moon pool).
-        state.corp.deck.reverse();
+
+        shuffleInPlace(state, state.corp.deck);
         log(
           state,
           `${source.title} — shuffle ${shuffleN} from Archives into R&D.`,
@@ -318,7 +319,7 @@ case "resolve_deep_dive": {
         state.cards[id].zone = "corp:rd";
         state.cards[id].faceup = false;
       }
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       state.corp.corpSetAside = [];
       log(
         state,
@@ -686,8 +687,8 @@ case "resolve_burner": {
         Math.max(0, action.reveal),
         state.corp.hand.length,
       );
-      // v0 deterministic "random": first N cards in HQ order.
-      const revealed = state.corp.hand.slice(0, revealN);
+      // The cards are revealed at random.
+      const revealed = pickRandomSubset(state, [...state.corp.hand], revealN);
       for (const id of revealed) {
         state.cards[id]!.faceup = true;
         log(state, `Reveal ${state.cards[id]!.title} from HQ.`);

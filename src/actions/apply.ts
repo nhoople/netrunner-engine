@@ -1881,7 +1881,13 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
 
   if (next.pendingChoice) {
     if (action.type === "choose_option") {
-      return chooseOption(next, action.optionId);
+      const chosen = chooseOption(next, action.optionId);
+      // The active player finished choosing what to discard: the discard
+      // step now discards those cards together (CR 5.5.4c).
+      if (chosen.ok && next.turn.chosenDiscardIds && !next.pendingChoice) {
+        return discardPhase(next, undefined, true);
+      }
+      return chosen;
     }
     return fail(
       `Pending choice for ${next.pendingChoice.chooser} — resolve with choose_option.`,
@@ -2972,6 +2978,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         card.faceup = false;
         card.rezzed = false;
         card.hostedCredits = undefined;
+        shuffleInPlace(next, next.corp.deck);
         log(
           next,
           `Runner trashes accessed ${card.title} for ${cost}¢ — shuffled into R&D instead.`,
@@ -3415,7 +3422,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       return fail("No pending end the run.", [CR.endTheRun]);
 
     case "discard_to_hand_size":
-      return discardPhase(next);
+      return discardPhase(next, action.cardIds);
 
     case "choose_option":
       return fail("No pending choice.", [CR.paidAbility]);

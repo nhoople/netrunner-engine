@@ -30,6 +30,7 @@ import {
   fireOnRezzedCardTrashed,
   fireOnRunnerTrashFromThisServerRootOrProtecting,
 } from "../state/miscConditionalHooks.js";
+import { shuffleInPlace } from "../state/rng.js";
 
 export function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -156,6 +157,7 @@ export function trashCorpCardToArchives(
     card.faceup = false;
     card.rezzed = false;
     card.hostedCredits = undefined;
+    shuffleInPlace(state, state.corp.deck);
     log(state, `${card.title} — shuffle into R&D instead of trash.`);
     return;
   }

@@ -38,6 +38,7 @@ import {
   trashToHeap,
 } from "../corpTrash.js";
 import { drawCards } from "../draw.js";
+import { chooseCards } from "../chooseCards.js";
 import {
   maybeFireNuvemFirstRdTrash,
   serverHostingCard,
@@ -514,9 +515,7 @@ case "trash_hq": {
       }
       const amount = Math.max(1, action.amount ?? 1);
       if (action.pick === "random") {
-        const n = Math.min(amount, hq.length);
-        // Deterministic "random": trash from the end of HQ.
-        const picks = hq.slice(hq.length - n);
+        const picks = pickRandomSubset(state, hq, Math.min(amount, hq.length));
         for (const id of picks) {
           trashCorpCardToArchives(state, id, "corp");
           log(
@@ -529,29 +528,18 @@ case "trash_hq": {
         }
         return { ok: true };
       }
-      if (action.pick === "choose" && hq.length > 1) {
-        // Multi-card HQ choose leaves pending; `then` deferred until host
-        // resolves the trash (Anemone uses pick:"first" for auto).
-        state.pendingTrashProgram = { sourceId, candidates: hq };
-        log(
-          state,
-          `Trash from HQ — Corp must choose among ${hq.length} (CR ${CR.trashing.number}).`,
-        );
-        return { ok: true };
-      }
-      const n = Math.min(amount, hq.length);
-      const picks = hq.slice(hq.length - n);
-      for (const id of picks) {
-        trashCorpCardToArchives(state, id, "corp");
-        log(
-          state,
-          `Trash ${state.cards[id].title} from HQ (CR ${CR.trashing.number}).`,
-        );
-      }
-      if (action.then) {
-        return evalEffect(ctx, action.then);
-      }
-      return { ok: true };
+      // The Corp chooses which of its cards to trash (CR 1.15.2).
+      return evalEffect(
+        ctx,
+        chooseCards({
+          chooser: "corp",
+          candidates: hq,
+          count: amount,
+          upTo: action.upTo,
+          purpose: "trash_hq",
+          then: action.then,
+        }),
+      );
     }
 
 case "trash_hq_card": {

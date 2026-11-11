@@ -55,6 +55,13 @@ describe("seeded random stream", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("no engine source reverses a deck in place of a shuffle", () => {
+    const offenders = sourceFiles(join(import.meta.dirname, "../src")).filter(
+      (path) => /\.deck\.reverse\s*\(/.test(readFileSync(path, "utf8")),
+    );
+    expect(offenders).toEqual([]);
+  });
+
   it("the same seed gives the same mulligan hand (CR 1.6.6a)", () => {
     expect(corpMulliganHand(1234)).toEqual(corpMulliganHand(1234));
     expect(corpMulliganHand(99)).toEqual(corpMulliganHand(99));

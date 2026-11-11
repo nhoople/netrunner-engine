@@ -98,6 +98,7 @@ import { applyMagnumOpusPrimitive } from "./primitives/shuffleInstall.js";
 import { applyHostedCreditPrimitive } from "./hostedCreditPrimitives.js";
 import { applyDamagePrimitive } from "./damagePrimitives.js";
 import { applyChooseCard } from "./chooseCard.js";
+import { applyChooseCards } from "./chooseCards.js";
 import { applyRunPrimitive } from "./runPrimitives.js";
 import {
   applyTagPrimitive,
@@ -169,6 +170,7 @@ import {
   noteCheckpointAndResolvePlay,
   fireOnRez,
 } from "../state/cardLifecycleHooks.js";
+import { shuffleInPlace } from "../state/rng.js";
 export {
   fireOnBypassTriggers,
   fireHostRezStateTriggers,
@@ -614,7 +616,6 @@ logLine: `May charge ${card.title} (CR ${CR.charge.number}).`,
   return { ok: true };
 }
 
-/** Deterministic stack shuffle used after searches (v0). */
 
 /** CR 8.7.5. A search trigger becomes pending after the shuffle, before a found card is acted on. */
 export function noteSearchConditionalAbilities(state: GameState): void {
@@ -1150,7 +1151,7 @@ logLine: `Cultivate — choose 1 to add to HQ.`,
 }
 
 export function shuffleCorpRdAfterSearch(state: GameState): void {
-  state.corp.deck.reverse();
+  shuffleInPlace(state, state.corp.deck);
 }
 
 type TrashInstalledParams = {
@@ -1625,6 +1626,8 @@ export function trashingKeepsScoreRestriction(
 export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   const chosen = applyChooseCard(ctx, action);
   if (chosen) return chosen;
+  const chosenCards = applyChooseCards(ctx, action, evalEffect);
+  if (chosenCards) return chosenCards;
   const hostedCredits = applyHostedCreditPrimitive(ctx, action, drawCards);
   if (hostedCredits) return hostedCredits;
   const damage = applyDamagePrimitive(

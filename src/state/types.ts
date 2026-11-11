@@ -3880,6 +3880,11 @@ export interface TurnBookkeeping {
   corpFlippedIdentityFirstOpMetPending: boolean;
   /** Runner cards discarded to hand size this discard step (Magdalene). */
   runnerDiscardedToMaxHandIds: string[];
+  /**
+   * Cards the active player chose to discard in the discard step
+   * (CR 5.5.4c). Set when the choice finishes; the step then discards them.
+   */
+  chosenDiscardIds?: string[];
   /** Petty Cash: current operation play originated outside HQ. */
   operationPlayedFromNonHq: boolean;
   /** Zwicky: first agenda/operation credit-gain draw offered this turn. */
@@ -5330,6 +5335,12 @@ export interface PendingChoice {
   loopCount?: boolean;
   /** What the chooser is deciding, when the options alone do not say. */
   prompt?: string;
+  /**
+   * The options name cards the other player may not see (HQ, the grip,
+   * facedown cards in Archives). A public view for the other player lists
+   * the options without their ids or labels.
+   */
+  hiddenFromOpponent?: boolean;
 }
 
 /**
@@ -5785,7 +5796,12 @@ export type Action =
     }
   | { type: "choose_option"; optionId: string }
   | { type: "rez_asset"; cardId: string }
-  | { type: "discard_to_hand_size" };
+  /**
+   * The discard step (CR 5.5.4). `cardIds` names the cards to discard when
+   * the hand is over its maximum; without it the engine asks the player
+   * to choose them (CR 5.5.4c).
+   */
+  | { type: "discard_to_hand_size"; cardIds?: string[] };
 
 /** Host intent — same as Action for the pure library API. */
 export type Intent = Action;

@@ -37,6 +37,7 @@ import { type EvalResult } from "./eval.js";
 import {
   fireOnInstallProgramFromHeap,
 } from "../state/miscConditionalHooks.js";
+import { shuffleInPlace } from "../state/rng.js";
 
 export function countInstalledIcebreakersForCost(state: GameState): number {
   return state.runner.installed.filter(
@@ -340,7 +341,7 @@ export function installHeapCardDiscounted(
 
 
 export function shuffleRunnerStack(state: GameState): void {
-  state.runner.deck.reverse();
+  shuffleInPlace(state, state.runner.deck);
 }
 
 export function stackProgramInstallCost(

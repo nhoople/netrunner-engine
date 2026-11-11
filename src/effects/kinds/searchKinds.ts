@@ -47,6 +47,7 @@ import {
   fireOnRez,
 } from "../eval.js";
 import { random } from "../../state/rng.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 export function applySearchKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -221,14 +222,14 @@ case "search_rd_type_to_hq": {
       );
       if (!id) {
         log(state, `Search R&D for ${cardType} — none found.`);
-        if (action.shuffleIfNone) state.corp.deck.reverse();
+        if (action.shuffleIfNone) shuffleInPlace(state, state.corp.deck);
         return { ok: true };
       }
       state.corp.deck = state.corp.deck.filter((x) => x !== id);
       state.corp.hand.push(id);
       state.cards[id]!.zone = "corp:hq";
       state.cards[id]!.faceup = true;
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       const title = state.cards[id]!.title;
       const shown = cardType === "agenda" ? `agenda ${title}` : title;
       log(state, `Search R&D — reveal ${shown} and add to HQ.`);
@@ -501,7 +502,7 @@ case "search_rd_install_rez_by_printed_rez_cost": {
       }
       state.corp.deck = state.corp.deck.filter((id) => id !== pick);
       const card = state.cards[pick]!;
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       const remoteNum = state.nextRemoteNumber++;
       const sid =
         `remote-${remoteNum}` as import("../../state/types.js").ServerId;
@@ -567,7 +568,7 @@ case "search_stack_icebreaker": {
           state,
           `Search complete; Runner may no longer look at the stack (CR ${CR.searchHiddenSecretZone.number}).`,
         );
-        state.runner.deck.reverse();
+        shuffleInPlace(state, state.runner.deck);
         log(
           state,
           `Stack shuffled (CR ${CR.shuffleDeckAfterSearch.number}).`,
@@ -627,7 +628,7 @@ case "search_stack_icebreaker_resolve": {
           state,
           `Search complete; Runner may no longer look at the stack (CR ${CR.searchHiddenSecretZone.number}).`,
         );
-        state.runner.deck.reverse();
+        shuffleInPlace(state, state.runner.deck);
         log(
           state,
           `Stack shuffled (CR ${CR.shuffleDeckAfterSearch.number}).`,
@@ -696,7 +697,7 @@ case "search_rd_non_agenda": {
       state.corp.hand.push(id);
       state.cards[id].zone = "corp:hq";
       state.cards[id].faceup = false;
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       log(
         state,
         `Search R&D — add ${state.cards[id].title} to HQ (non-agenda).`,
@@ -721,7 +722,7 @@ case "search_rd_to_hq": {
         state.cards[id].zone = "corp:hq";
         state.cards[id].faceup = false;
       }
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       log(
         state,
         `Search R&D — add ${taken.length} card(s) to HQ (${taken.map((id) => state.cards[id].title).join(", ") || "none"}).`,

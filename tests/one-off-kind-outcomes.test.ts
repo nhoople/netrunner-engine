@@ -913,17 +913,27 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.corp.deck).toEqual(["bottom-1"]);
   });
 
-  it("deck orientation: Keyhole trashes a program from the top 3 of R&D", () => {
+  it("deck orientation: Keyhole trashes 1 of the top 3 of R&D, then shuffles", () => {
     const s = createInitialState();
     put(s, "keyhole", "kh-1", "runner:installed");
-    put(s, "corroder", "top-prog", "corp:rnd");
+    put(s, "hostile-takeover", "top-1", "corp:rnd");
     put(s, "hedge-fund", "top-2", "corp:rnd");
+    put(s, "ice-wall", "top-3", "corp:rnd");
     put(s, "hedge-fund", "bottom-1", "corp:rnd");
-    s.corp.deck = ["top-prog", "top-2", "bottom-1"];
+    s.corp.deck = ["top-1", "top-2", "top-3", "bottom-1"];
     runKind(s, "kh-1", "breach_instead_keyhole");
-    expect(s.corp.discardPile).toContain("top-prog");
-    expect(s.corp.deck).toContain("bottom-1");
-    expect(s.corp.deck).not.toContain("top-prog");
+    // Any of the 3 looked cards may be trashed, not only a program.
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "keyhole-trash:top-1",
+      "keyhole-trash:top-2",
+      "keyhole-trash:top-3",
+    ]);
+    runKind(s, "kh-1", "trash_looked_program", { cardId: "top-1" });
+    expect(s.corp.discardPile).toContain("top-1");
+    expect([...s.corp.deck].sort()).toEqual(["bottom-1", "top-2", "top-3"]);
+    expect(s.cards["top-2"].faceup).toBe(false);
+    expect(s.cards["top-3"].faceup).toBe(false);
   });
 
   it("deck orientation: Inject trashes the top 4 of the stack, gaining per program", () => {

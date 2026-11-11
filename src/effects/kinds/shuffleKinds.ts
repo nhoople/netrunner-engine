@@ -15,12 +15,15 @@ import {
   heapCardsWithTrashAbilities,
   rfgRunnerSetAside,
   applyPrimitive,
+  evalEffect,
 } from "../eval.js";
 import {
   shuffleRunnerSetAsideIntoStack,
   shuffleRunnerStack,
 } from "../runnerInstall.js";
 import { random } from "../../state/rng.js";
+import { shuffleInPlace } from "../../state/rng.js";
+import { chooseCards } from "../chooseCards.js";
 
 export function applyShuffleKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -34,8 +37,8 @@ case "shuffle_hq_to_rd": {
         state.cards[id].zone = "corp:rd";
         state.cards[id].faceup = false;
       }
-      // Deterministic "shuffle": reverse then rotate by hand size (stable for tests).
-      state.corp.deck.reverse();
+
+      shuffleInPlace(state, state.corp.deck);
       log(
         state,
         `Shuffle ${n} from HQ into R&D (CR ${CR.drawing.number}).`,
@@ -101,7 +104,7 @@ case "shuffle_hq_card_into_rd": {
       const card = state.cards[cardId];
       card.zone = "corp:rd";
       card.faceup = false;
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       log(
         state,
         `Shuffle ${card.title} from HQ into R&D (CR ${CR.drawing.number}).`,
@@ -110,19 +113,18 @@ case "shuffle_hq_card_into_rd": {
     }
 
 case "shuffle_archives_to_rd": {
-      const n = Math.min(action.amount, state.corp.discardPile.length);
-      for (let i = 0; i < n; i++) {
-        const id = state.corp.discardPile.pop()!;
-        state.corp.deck.push(id);
-        state.cards[id].zone = "corp:rd";
-        state.cards[id].faceup = false;
-      }
-      state.corp.deck.reverse();
-      log(
-        state,
-        `Shuffle ${n} from Archives into R&D (CR ${CR.drawing.number}).`,
+      // "Shuffle up to N cards from Archives into R&D": the Corp chooses
+      // the cards (CR 1.15.2) and R&D is shuffled even when none move.
+      return evalEffect(
+        ctx,
+        chooseCards({
+          chooser: "corp",
+          candidates: [...state.corp.discardPile],
+          count: action.amount,
+          upTo: true,
+          purpose: "shuffle_archives_to_rd",
+        }),
       );
-      return { ok: true };
     }
 
 case "shuffle_n_installed_runner_remaining": {
@@ -621,7 +623,7 @@ case "shuffle_source_into_rd": {
       source.zone = "corp:rd";
       source.faceup = false;
       source.rezzed = false;
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       log(state, `${source.title} — shuffle from Runner score into R&D.`);
       return { ok: true };
     }
