@@ -7,20 +7,12 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-function shuffleDeck(deck: string[]): void {
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = deck[i]!;
-    deck[i] = deck[j]!;
-    deck[j] = tmp;
-  }
-}
 
 export function applySansanBbPrimitive(
   ctx: EffectCtx,
@@ -256,7 +248,7 @@ logLine: `Hayley — may install another ${typ} from grip.`,
         (id) => state.cards[id]?.type === typ,
       );
       if (matches.length === 0) {
-        shuffleDeck(state.runner.deck);
+        shuffleInPlace(state, state.runner.deck);
         log(state, `Search stack for ${typ} — none found; shuffle.`);
         return { ok: true };
       }
@@ -291,7 +283,7 @@ logLine: `Hayley — may install another ${typ} from grip.`,
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
       state.runner.hand.push(cardId);
       card.zone = "runner:grip";
-      shuffleDeck(state.runner.deck);
+      shuffleInPlace(state, state.runner.deck);
       log(state, `Reveal ${card.title}; add to grip; shuffle stack.`);
       return { ok: true };
     }
@@ -379,7 +371,7 @@ logLine: `Hayley — may install another ${typ} from grip.`,
         state.turn.lastPlayCostX = x;
       }
       if (x <= 0) {
-        shuffleDeck(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         log(state, `Recruiting Trip — X=0; shuffle R&D.`);
         return { ok: true };
       }
@@ -401,7 +393,7 @@ logLine: `Hayley — may install another ${typ} from grip.`,
         if (c) c.zone = "corp:hq";
         log(state, `Recruiting Trip — reveal ${c?.title ?? id}; add to HQ.`);
       }
-      shuffleDeck(state.corp.deck);
+      shuffleInPlace(state, state.corp.deck);
       log(state, `Recruiting Trip — shuffle R&D (X=${x}).`);
       return { ok: true };
     }

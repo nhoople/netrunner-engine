@@ -76,6 +76,7 @@ import {
   fireHostRezStateTriggers,
   fireOnRez,
 } from "../eval.js";
+import { random } from "../../state/rng.js";
 
 export function applyInstallKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -932,7 +933,7 @@ case "install_stack_program_ignore_costs_track": {
       state.runner.deck = state.runner.deck.filter((x) => x !== id);
       // shuffle rest
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.runner.deck[i]!;
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;

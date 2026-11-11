@@ -384,7 +384,15 @@ export {
   trashActiveLockdownsAtCorpTurnBegin,
 } from "./state/lockdowns.js";
 export { dealDamage, resolveDamage, isCoreDamageType, hasPayableDamageInterrupt } from "./state/damage.js";
-export { setRng, setRngSeed, random, pickRandomSubset } from "./state/rng.js";
+export {
+  DEFAULT_RNG_SEED,
+  setRng,
+  seedRng,
+  random,
+  randomInt,
+  shuffleInPlace,
+  pickRandomSubset,
+} from "./state/rng.js";
 export {
   startTrace,
   resolveTrace,

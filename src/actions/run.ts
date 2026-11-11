@@ -23,6 +23,7 @@ import {
   fireOnRunDeclaredOnThisServerIfTagged,
 } from "../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { random } from "../state/rng.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -469,7 +470,7 @@ export function jackOut(state: GameState): ApplyResult {
     }
     // Reflection: reveal 1 random HQ card on jack out.
     if (card?.revealRandomHqOnJackOut && state.corp.hand.length > 0) {
-      const idx = Math.floor(Math.random() * state.corp.hand.length);
+      const idx = Math.floor(random(state) * state.corp.hand.length);
       const hqId = state.corp.hand[idx]!;
       const hqCard = state.cards[hqId]!;
       log(

@@ -6,6 +6,7 @@ import type { RuleCite } from "../../state/types.js";
 import { grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -138,7 +139,7 @@ logLine: `Frantic Coding — look at top ${looked.length}; ${programs.length} pr
         const cardId = grip[0]!;
         state.runner.hand = [];
         const insertAt = Math.floor(
-          Math.random() * (state.runner.deck.length + 1),
+          random(state) * (state.runner.deck.length + 1),
         );
         state.runner.deck.splice(insertAt, 0, cardId);
         state.cards[cardId]!.zone = "runner:stack";

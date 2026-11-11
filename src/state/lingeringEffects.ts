@@ -12,6 +12,7 @@ import type {
   LingeringEffect,
   Side,
 } from "./types.js";
+import { nextId } from "./ids.js";
 
 /** Mark server designation (CR 10.11.4). Payload: `{ serverId: ServerId }`. */
 export const LINGERING_KIND_MARK = "mark";
@@ -74,11 +75,6 @@ export const LINGERING_KIND_ICE_STRENGTH_ENCOUNTER = "ice_strength_encounter";
  */
 export const LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT =
   "breaker_strength_checkpoint";
-let lingeringSeq = 0;
-
-export function resetLingeringSeqForTests(): void {
-  lingeringSeq = 0;
-}
 
 export function addLingeringEffect(
   state: GameState,
@@ -90,7 +86,7 @@ export function addLingeringEffect(
   },
 ): LingeringEffect {
   const effect: LingeringEffect = {
-    id: `le-${++lingeringSeq}`,
+    id: nextId(state, "le"),
     createdBy: args.createdBy,
     independent: true,
     duration: args.duration,

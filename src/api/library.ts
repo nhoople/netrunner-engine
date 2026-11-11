@@ -5,6 +5,7 @@
 import { applyAction } from "../actions/apply.js";
 import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/createGame.js";
+import { seedRng } from "../state/rng.js";
 import { gripRevealed } from "../state/cardDeclarations.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import {
@@ -50,11 +51,13 @@ export function createGame(options: CreateGameOptions = {}): GameState {
       stopAfterFirstCycle:
         options.stopAfterFirstCycle ?? state.config.stopAfterFirstCycle,
     };
+    if (options.seed !== undefined) seedRng(state, options.seed);
     return state;
   }
   return createInitialState({
     agendaPointsToWin: options.agendaPointsToWin ?? 7,
     stopAfterFirstCycle: options.stopAfterFirstCycle ?? false,
+    seed: options.seed,
   });
 }
 

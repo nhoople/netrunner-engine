@@ -17,6 +17,7 @@ import { playEffectFromCard } from "../abilityRecord.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -449,7 +450,7 @@ logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity fr
       );
       if (ops.length === 0) {
         for (let i = state.corp.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = state.corp.deck[i]!;
           state.corp.deck[i] = state.corp.deck[j]!;
           state.corp.deck[j] = tmp;
@@ -484,7 +485,7 @@ logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity fr
       }
       state.corp.deck = state.corp.deck.filter((x) => x !== cardId);
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;

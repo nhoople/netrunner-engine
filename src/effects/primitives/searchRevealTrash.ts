@@ -11,6 +11,7 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -56,7 +57,7 @@ export function applySansanValPrimitive(
         // Still shuffle.
         // Fisher-Yates via existing shuffle if available — simple reverse+sort ok for test.
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = state.runner.deck[i]!;
           state.runner.deck[i] = state.runner.deck[j]!;
           state.runner.deck[j] = tmp;
@@ -69,7 +70,7 @@ export function applySansanValPrimitive(
         moveRunnerCardToHeap(state, id);
       }
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.runner.deck[i]!;
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;
@@ -87,7 +88,7 @@ export function applySansanValPrimitive(
         log(state, `Enhanced Vision — HQ empty.`);
         return { ok: true };
       }
-      const pick = hq[Math.floor(Math.random() * hq.length)]!;
+      const pick = hq[Math.floor(random(state) * hq.length)]!;
       const card = state.cards[pick];
       log(
         state,
@@ -219,7 +220,7 @@ export function applySansanValPrimitive(
         state.corp.deck.push(id);
       }
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;
@@ -342,7 +343,7 @@ export function applySansanValPrimitive(
       if (assets.length === 0) {
         log(state, `Tech Startup — no asset in R&D.`);
         for (let i = state.corp.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = state.corp.deck[i]!;
           state.corp.deck[i] = state.corp.deck[j]!;
           state.corp.deck[j] = tmp;
@@ -376,7 +377,7 @@ export function applySansanValPrimitive(
       }
       state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;

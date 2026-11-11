@@ -9,20 +9,12 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-function shuffleInPlace(arr: string[]): void {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = arr[i]!;
-    arr[i] = arr[j]!;
-    arr[j] = tmp;
-  }
-}
 
 export function applySansanOhPrimitive(
   ctx: EffectCtx,
@@ -49,7 +41,7 @@ export function applySansanOhPrimitive(
           c.faceup = false;
           state.runner.deck.push(id);
         }
-        shuffleInPlace(state.runner.deck);
+        shuffleInPlace(state, state.runner.deck);
         log(
           state,
           `${source.title} — shuffle all ${heap.length} heap card(s) into stack.`,
@@ -91,13 +83,13 @@ logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
       state.turn.ohTropeShuffleRemaining = remaining - 1;
       log(state, `Trope — shuffle ${c.title} into stack.`);
       if ((state.turn.ohTropeShuffleRemaining ?? 0) <= 0) {
-        shuffleInPlace(state.runner.deck);
+        shuffleInPlace(state, state.runner.deck);
         state.turn.ohTropeShuffleRemaining = undefined;
         return { ok: true };
       }
       const heap = [...state.runner.discardPile];
       if (heap.length === 0) {
-        shuffleInPlace(state.runner.deck);
+        shuffleInPlace(state, state.runner.deck);
         state.turn.ohTropeShuffleRemaining = undefined;
         return { ok: true };
       }

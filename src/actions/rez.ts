@@ -52,6 +52,7 @@ import { openPendingChoose } from "../state/pendingChoice.js";
 import {
   fireOnFirstIceRezEachTurn,
 } from "../state/miscConditionalHooks.js";
+import { random } from "../state/rng.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -658,7 +659,7 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
         );
       }
       const pick =
-        state.corp.hand[Math.floor(Math.random() * state.corp.hand.length)]!;
+        state.corp.hand[Math.floor(random(state) * state.corp.hand.length)]!;
       state.corp.hand = state.corp.hand.filter((id) => id !== pick);
       state.corp.discardPile.push(pick);
       const trashed = state.cards[pick];

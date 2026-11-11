@@ -12,6 +12,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import {
   fireOnPlay,
 } from "../../state/cardLifecycleHooks.js";
+import { random } from "../../state/rng.js";
 
 type PrimResult =
   | { ok: true }
@@ -533,7 +534,7 @@ logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
       const take = Math.min(n, grip.length);
       // Random bottom
       for (let i = 0; i < take; i++) {
-        const idx = Math.floor(Math.random() * grip.length);
+        const idx = Math.floor(random(state) * grip.length);
         const id = grip.splice(idx, 1)[0]!;
         state.runner.hand = state.runner.hand.filter((x) => x !== id);
         state.runner.deck.push(id);

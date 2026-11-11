@@ -199,6 +199,7 @@ import {
   fireOnCorpBasicClickForCreditOrDraw,
 } from "../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { shuffleInPlace } from "../state/rng.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -206,18 +207,6 @@ function fail(error: string, cites: RuleCite[]): ApplyResult {
 
 function ok(state: GameState): ApplyResult {
   return { ok: true, state };
-}
-
-
-/** Patchwork: trash 1 from grip for a once-per-turn play/install discount. */
-
-function shuffleInPlace(arr: string[]): void {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = arr[i]!;
-    arr[i] = arr[j]!;
-    arr[j] = tmp;
-  }
 }
 
 function openingMulliganSide(state: GameState): Side | null {
@@ -260,7 +249,7 @@ function takeMulligan(state: GameState): ApplyResult {
   }
   p.deck.push(...p.hand);
   p.hand = [];
-  shuffleInPlace(p.deck);
+  shuffleInPlace(state, p.deck);
 
   const n = startingHandSizeFor(state.cards[p.identityId]);
   let drawn = 0;

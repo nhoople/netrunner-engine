@@ -2630,6 +2630,7 @@ case "trash_random_from_grip": {
         return { ok: true };
       }
       const picks = pickRandomSubset(
+        state,
         state.runner.hand,
         Math.min(n, state.runner.hand.length),
       );

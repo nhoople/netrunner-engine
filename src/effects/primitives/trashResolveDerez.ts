@@ -7,6 +7,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -232,7 +233,7 @@ export function applyRedsandEasPrimitive(
       // Shuffle after search regardless.
       const shuffle = () => {
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = state.runner.deck[i]!;
           state.runner.deck[i] = state.runner.deck[j]!;
           state.runner.deck[j] = tmp;
@@ -269,7 +270,7 @@ export function applyRedsandEasPrimitive(
       }
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.runner.deck[i]!;
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;

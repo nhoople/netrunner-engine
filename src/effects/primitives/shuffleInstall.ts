@@ -9,19 +9,11 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import {
   fireOnInstall,
 } from "../../state/cardLifecycleHooks.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-function shuffleInPlace(arr: string[]): void {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = arr[i]!;
-    arr[i] = arr[j]!;
-    arr[j] = tmp;
-  }
-}
 
 function moveHeapCardToStack(state: EffectCtx["state"], cardId: string): void {
   state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
@@ -38,7 +30,7 @@ function offerHeapShufflePick(
   const { state, sourceId } = ctx;
   const heap = [...state.runner.discardPile];
   if (remaining <= 0 || heap.length === 0) {
-    shuffleInPlace(state.runner.deck);
+    shuffleInPlace(state, state.runner.deck);
     state.turn.moHeapShuffleRemaining = undefined;
     return { ok: true };
   }
@@ -101,7 +93,7 @@ export function applyMagnumOpusPrimitive(
       const n = Math.min(amount, heap.length);
       if (heap.length <= n) {
         for (const id of heap) moveHeapCardToStack(state, id);
-        shuffleInPlace(state.runner.deck);
+        shuffleInPlace(state, state.runner.deck);
         log(
           state,
           `${source?.title ?? "Labor Rights"} — shuffle all ${heap.length} heap card(s) into stack.`,

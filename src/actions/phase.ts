@@ -75,8 +75,6 @@ export function drawN(
   return commitDraw(state, side, amount).length;
 }
 
-/** Fisher–Yates shuffle (same Math.random pattern as effect primitives). */
-
 function opponentHasPriorityActs(state: GameState): boolean {
   const pw = ensurePriorityWindow(state);
   const opponent: Side = pw.priorityHolder === "corp" ? "runner" : "corp";

@@ -8,6 +8,7 @@ import type { EffectCtx } from "../eval.js";
 import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -295,7 +296,7 @@ export function applyFlashpointEsPrimitive(
           // Trash prevent random cards from HQ instead of shuffling them.
           const shuffled = [...hq];
           for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = Math.floor(random(state) * (i + 1));
             [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
           }
           const toTrash = shuffled.slice(0, prevent);
@@ -320,7 +321,7 @@ export function applyFlashpointEsPrimitive(
           }
           // Shuffle R&D
           for (let i = state.corp.deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = Math.floor(random(state) * (i + 1));
             [state.corp.deck[i], state.corp.deck[j]] = [
               state.corp.deck[j]!,
               state.corp.deck[i]!,
@@ -344,7 +345,7 @@ export function applyFlashpointEsPrimitive(
         }
       }
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         [state.corp.deck[i], state.corp.deck[j]] = [
           state.corp.deck[j]!,
           state.corp.deck[i]!,

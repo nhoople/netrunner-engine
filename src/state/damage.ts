@@ -52,7 +52,7 @@ export function resolveChronosFirstNetPick(state: GameState, cardId: string): vo
   if (!state.runner.hand.includes(cardId) || total <= 0) return;
   const handBefore = state.runner.hand.length;
   const rest = state.runner.hand.filter((id) => id !== cardId);
-  const random = pickRandomSubset(rest, Math.min(total - 1, rest.length));
+  const random = pickRandomSubset(state, rest, Math.min(total - 1, rest.length));
   const picks = [cardId, ...random];
   const lethal = owed > handBefore;
   if (lethal) state.turn.lethalDamageSkippingTrashTriggers = true;
@@ -500,7 +500,7 @@ export function resolveDamage(
   const ribs = titaniumRibsChoosesGripTrash(state);
   const picks = ribs
     ? state.runner.hand.slice(0, toTrash)
-    : pickRandomSubset(state.runner.hand, toTrash);
+    : pickRandomSubset(state, state.runner.hand, toTrash);
   const lethal = amount > state.runner.hand.length;
   if (lethal) state.turn.lethalDamageSkippingTrashTriggers = true;
   beginGripOrStackTrashBatch(state);

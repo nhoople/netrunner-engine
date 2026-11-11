@@ -9,6 +9,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -452,7 +453,7 @@ export function applyMumbadDagPrimitive(
       );
       // Shuffle R&D regardless (search effect)
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;
@@ -494,7 +495,7 @@ logLine: `Mumbad City Hall — choose an alliance from R&D.`,
       );
       // Deterministic shuffle after remove
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;

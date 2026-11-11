@@ -9,6 +9,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -180,7 +181,7 @@ export function applyRedsandBawPrimitive(
         state.runner.deck.push(id);
       }
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.runner.deck[i]!;
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;
@@ -351,7 +352,7 @@ export function applyRedsandBawPrimitive(
         // Runner adds X random grip to bottom of stack.
         const grip = [...state.runner.hand];
         for (let i = grip.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = grip[i]!;
           grip[i] = grip[j]!;
           grip[j] = tmp;

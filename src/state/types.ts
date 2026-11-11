@@ -5359,6 +5359,11 @@ export interface GameConfig {
    * (legacy vertical-slice demos). Library `createGame` sets false.
    */
   stopAfterFirstCycle: boolean;
+  /**
+   * Seed for the game's random stream. The same seed, setup, and intents
+   * always give the same game. Omit for the fixed default seed.
+   */
+  seed?: number;
 }
 
 export interface GameState {
@@ -5619,6 +5624,14 @@ export interface GameState {
     | "draw"
     | null;
   config: GameConfig;
+  /**
+   * Position in this game's seeded random stream (see `state/rng.ts`).
+   * It predicts every later shuffle and random pick, so a host must never
+   * send it to a seat.
+   */
+  rngState?: number;
+  /** Last number handed out per id prefix (see `state/ids.ts`). */
+  idSeq?: Record<string, number>;
   log: string[];
   /** True when the game (or demo cycle) has finished. */
   done: boolean;

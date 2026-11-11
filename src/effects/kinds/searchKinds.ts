@@ -46,6 +46,7 @@ import {
   fireHostRezStateTriggers,
   fireOnRez,
 } from "../eval.js";
+import { random } from "../../state/rng.js";
 
 export function applySearchKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -826,7 +827,7 @@ case "search_stack_non_virus_program_install_ignore_costs_track": {
       if (matches.length === 0) {
         // shuffle
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = state.runner.deck[i]!;
           state.runner.deck[i] = state.runner.deck[j]!;
           state.runner.deck[j] = tmp;
@@ -864,7 +865,7 @@ case "search_rd_take_card_to_hq": {
       state.cards[id]!.zone = "corp:hq";
       state.cards[id]!.faceup = false;
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;
@@ -884,7 +885,7 @@ case "may_search_rd_non_agenda_any_subtype_to_hq": {
       });
       if (matches.length === 0) {
         for (let i = state.corp.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = state.corp.deck[i]!;
           state.corp.deck[i] = state.corp.deck[j]!;
           state.corp.deck[j] = tmp;

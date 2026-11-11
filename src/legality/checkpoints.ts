@@ -143,9 +143,8 @@ import {
 import type { PendingAbilityPayload } from "../state/types.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { nextId } from "../state/ids.js";
 
-
-let checkpointSeq = 0;
 
 export function pushCheckpoint(
   state: GameState,
@@ -155,7 +154,7 @@ export function pushCheckpoint(
   openedBy: string,
 ): CheckpointFrame {
   const frame: CheckpointFrame = {
-    id: `cp-${++checkpointSeq}`,
+    id: nextId(state, "cp"),
     kind,
     label,
     cites,

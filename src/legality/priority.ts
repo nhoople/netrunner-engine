@@ -10,8 +10,7 @@ import type {
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { occurCheckpoint, popCheckpoint, pushCheckpoint } from "./checkpoints.js";
-
-let prioritySeq = 0;
+import { nextId } from "../state/ids.js";
 
 export function currentPriorityWindow(
   state: GameState,
@@ -53,7 +52,7 @@ export function ensurePriorityWindow(state: GameState): PriorityWindowFrame {
     return existing;
   }
   const pw: PriorityWindowFrame = {
-    id: `pw-${++prioritySeq}`,
+    id: nextId(state, "pw"),
     stepKey: state.timingKey,
     nestDepth: state.priorityStack.length,
     consecutivePasses: 0,

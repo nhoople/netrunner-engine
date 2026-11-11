@@ -7,6 +7,7 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -152,7 +153,7 @@ logLine: `Wari — trash self; name sentry, code gate, or barrier.`,
       });
       if (matches.length === 0) {
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = state.runner.deck[i]!;
           state.runner.deck[i] = state.runner.deck[j]!;
           state.runner.deck[j] = tmp;
@@ -181,7 +182,7 @@ logLine: `${source?.title ?? "Kabonesa Wu"} — search stack.`,
       if (!state.runner.deck.includes(id)) return { ok: true };
       state.runner.deck = state.runner.deck.filter((x) => x !== id);
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.runner.deck[i]!;
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;
@@ -349,7 +350,7 @@ logLine: `Emergent Creativity — trash from grip then search stack.`,
       });
       if (matches.length === 0) {
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           const tmp = state.runner.deck[i]!;
           state.runner.deck[i] = state.runner.deck[j]!;
           state.runner.deck[j] = tmp;
@@ -378,7 +379,7 @@ logLine: `Emergent Creativity — trash from grip then search stack.`,
       if (!state.runner.deck.includes(id)) return { ok: true };
       state.runner.deck = state.runner.deck.filter((x) => x !== id);
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.runner.deck[i]!;
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;
@@ -807,7 +808,7 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       }
       // Shuffle deck after adds
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;

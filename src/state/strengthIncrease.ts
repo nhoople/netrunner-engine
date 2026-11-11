@@ -19,14 +19,13 @@ import {
 } from "./replacements.js";
 import type { GameState, LingeringEffect } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { nextId } from "./ids.js";
 
 // Kind strings match lingeringEffects.ts (avoid circular import).
 const KIND_TURN = "breaker_strength_turn";
 const KIND_RUN = "breaker_strength_run";
 const KIND_ENCOUNTER = "breaker_strength_encounter";
 const KIND_CHECKPOINT = "breaker_strength_checkpoint";
-
-let commitSeq = 0;
 
 function pushLingering(
   state: GameState,
@@ -38,7 +37,7 @@ function pushLingering(
   },
 ): void {
   const effect: LingeringEffect = {
-    id: `le-str-${++commitSeq}`,
+    id: nextId(state, "le-str"),
     createdBy: args.createdBy,
     independent: true,
     duration: args.duration,

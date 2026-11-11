@@ -20,6 +20,7 @@ import {
   shuffleRunnerSetAsideIntoStack,
   shuffleRunnerStack,
 } from "../runnerInstall.js";
+import { random } from "../../state/rng.js";
 
 export function applyShuffleKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -499,7 +500,7 @@ case "shuffle_runner_card_into_stack": {
       card.rezzed = false;
       // Shuffle the stack.
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.runner.deck[i]!;
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;
@@ -524,7 +525,7 @@ case "shuffle_hosted_cards_into_stack": {
       }
       // Fisher-Yates shuffle stack
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.runner.deck[i]!;
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;
@@ -595,7 +596,7 @@ case "shuffle_grip_card_into_stack": {
         return { ok: true };
       }
       state.runner.hand.splice(idx, 1);
-      const insertAt = Math.floor(Math.random() * (state.runner.deck.length + 1));
+      const insertAt = Math.floor(random(state) * (state.runner.deck.length + 1));
       state.runner.deck.splice(insertAt, 0, action.cardId);
       state.cards[action.cardId]!.zone = "runner:stack";
       log(
@@ -632,7 +633,7 @@ case "shuffle_random_grip_into_stack": {
       const n = Math.max(0, action.count);
       const moved: string[] = [];
       for (let i = 0; i < n && state.runner.hand.length > 0; i++) {
-        const idx = Math.floor(Math.random() * state.runner.hand.length);
+        const idx = Math.floor(random(state) * state.runner.hand.length);
         moved.push(state.runner.hand.splice(idx, 1)[0]!);
       }
       for (const id of moved) {

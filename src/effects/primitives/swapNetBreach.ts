@@ -7,20 +7,12 @@ import { evalEffect } from "../eval.js";
 import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
 import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-function shuffleDeck(deck: string[]): void {
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = deck[i]!;
-    deck[i] = deck[j]!;
-    deck[j] = tmp;
-  }
-}
 
 export function applySansanCcPrimitive(
   ctx: EffectCtx,
@@ -226,7 +218,7 @@ logLine: `Analog Dreamers — may instead of breaching R&D.`,
       card.zone = "corp:rd";
       card.faceup = false;
       card.rezzed = false;
-      shuffleDeck(state.corp.deck);
+      shuffleInPlace(state, state.corp.deck);
       log(state, `Analog Dreamers — shuffle ${card.title} into R&D.`);
       return { ok: true };
     }

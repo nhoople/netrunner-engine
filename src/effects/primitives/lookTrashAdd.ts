@@ -8,20 +8,12 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random, shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-function shuffleInPlace(arr: string[]): void {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = arr[i]!;
-    arr[i] = arr[j]!;
-    arr[j] = tmp;
-  }
-}
 
 /**
  * While drawn cards are still set aside, Raman Rai may swap one of them
@@ -237,7 +229,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
         return (c.subtypes ?? []).some((s) => want.includes(s.toLowerCase()));
       });
       if (matches.length === 0) {
-        shuffleInPlace(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         log(
           state,
           `${source?.title ?? "Executive Search Firm"} — no matching card in R&D; shuffle.`,
@@ -268,7 +260,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
     case "search_rd_subtype_to_hq_resolve": {
       const cardId = action.cardId;
       if (!state.corp.deck.includes(cardId)) {
-        shuffleInPlace(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         return { ok: true };
       }
       const card = state.cards[cardId]!;
@@ -276,7 +268,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
       state.corp.hand.push(cardId);
       card.zone = "corp:hq";
       card.faceup = false;
-      shuffleInPlace(state.corp.deck);
+      shuffleInPlace(state, state.corp.deck);
       log(
         state,
         `${source?.title ?? "Executive Search Firm"} — reveal ${card.title}, add to HQ; shuffle R&D.`,
@@ -302,7 +294,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
         }),
       }));
       if (options.length === 0) {
-        shuffleInPlace(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         log(state, `Localized Product Line — R&D empty; shuffle.`);
         return { ok: true };
       }
@@ -327,7 +319,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
         card.faceup = false;
         log(state, `Localized Product Line — reveal ${card.title}, add to HQ.`);
       }
-      shuffleInPlace(state.corp.deck);
+      shuffleInPlace(state, state.corp.deck);
       log(
         state,
         `Localized Product Line — added ${matches.length} copy/copies; shuffle R&D.`,
@@ -527,7 +519,7 @@ export function trashRandomGripForPersonalityProfiles(
     log(state, `${card.title} — Runner grip empty.`);
     return;
   }
-  const idx = Math.floor(Math.random() * state.runner.hand.length);
+  const idx = Math.floor(random(state) * state.runner.hand.length);
   const trashId = state.runner.hand[idx]!;
   moveRunnerCardToHeap(state, trashId);
   log(

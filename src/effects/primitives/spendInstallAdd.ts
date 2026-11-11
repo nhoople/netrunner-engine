@@ -13,6 +13,7 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -480,7 +481,7 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
       }
       // shuffle
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         [state.runner.deck[i], state.runner.deck[j]] = [
           state.runner.deck[j]!,
           state.runner.deck[i]!,
@@ -524,7 +525,7 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
       subtractRunnerCreditPool(state, cost);
       state.runner.deck.splice(idx, 1);
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         [state.runner.deck[i], state.runner.deck[j]] = [
           state.runner.deck[j]!,
           state.runner.deck[i]!,

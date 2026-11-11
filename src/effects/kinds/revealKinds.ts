@@ -23,6 +23,7 @@ import {
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
+import { random } from "../../state/rng.js";
 
 export function applyRevealKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -351,7 +352,7 @@ case "reveal_hyoubu_grip_random": {
       }
       const pick =
         state.runner.hand[
-          Math.floor(Math.random() * state.runner.hand.length)
+          Math.floor(random(state) * state.runner.hand.length)
         ]!;
       noteCardRevealed(state, pick, sourceId);
       log(

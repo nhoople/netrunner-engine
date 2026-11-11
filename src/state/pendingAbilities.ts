@@ -13,14 +13,7 @@ import type {
   ReactionWindowFrame,
   Side,
 } from "./types.js";
-
-let pendingAbilitySeq = 0;
-let reactionWindowSeq = 0;
-
-export function resetPendingAbilitySeqForTests(): void {
-  pendingAbilitySeq = 0;
-  reactionWindowSeq = 0;
-}
+import { nextId } from "./ids.js";
 
 export function createPendingAbilityInstance(
   state: GameState,
@@ -35,7 +28,7 @@ export function createPendingAbilityInstance(
   },
 ): PendingAbilityInstance {
   const instance: PendingAbilityInstance = {
-    id: `pa-${++pendingAbilitySeq}`,
+    id: nextId(state, "pa"),
     abilityKey: args.abilityKey,
     sourceId: args.sourceId,
     controller: args.controller,
@@ -190,7 +183,7 @@ export function openReactionWindow(
   afterCheckpointId: string | null,
 ): ReactionWindowFrame {
   const frame: ReactionWindowFrame = {
-    id: `rw-${++reactionWindowSeq}`,
+    id: nextId(state, "rw"),
     afterCheckpointId,
     pendingInstanceIds: [...pendingInstanceIds],
     priorityHolder: state.activeSide,
