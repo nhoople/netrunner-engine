@@ -22,7 +22,7 @@ import {
   shuffleRunnerStack,
 } from "../runnerInstall.js";
 import { random } from "../../state/rng.js";
-import { shuffleInPlace } from "../../state/rng.js";
+import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
 
 export function applyShuffleKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
@@ -30,20 +30,17 @@ export function applyShuffleKinds(ctx: EffectCtx, action: Primitive): EvalResult
   const source = state.cards[sourceId];
   switch (action.kind) {
 case "shuffle_hq_to_rd": {
-      const n = Math.min(action.amount, state.corp.hand.length);
-      for (let i = 0; i < n; i++) {
-        const id = state.corp.hand.pop()!;
-        state.corp.deck.push(id);
-        state.cards[id].zone = "corp:rd";
-        state.cards[id].faceup = false;
-      }
-
-      shuffleInPlace(state, state.corp.deck);
-      log(
-        state,
-        `Shuffle ${n} from HQ into R&D (CR ${CR.drawing.number}).`,
+      // The Corp chooses which cards leave HQ (CR 1.15.2). When the
+      // instruction takes all of HQ there is nothing to choose.
+      return evalEffect(
+        ctx,
+        chooseCards({
+          chooser: "corp",
+          candidates: [...state.corp.hand],
+          count: action.amount,
+          purpose: "shuffle_hq_to_rd",
+        }),
       );
-      return { ok: true };
     }
 
 case "shuffle_any_number_hq_to_rd": {
@@ -629,25 +626,27 @@ case "shuffle_source_into_rd": {
     }
 
 case "shuffle_random_grip_into_stack": {
-      // Printed (Bring Them Home): "Reveal and add 2 cards at random from
-      // the grip to the top of the stack." Random picks, placed on top —
-      // not the first cards in hand order shuffled into the stack.
-      const n = Math.max(0, action.count);
-      const moved: string[] = [];
-      for (let i = 0; i < n && state.runner.hand.length > 0; i++) {
-        const idx = Math.floor(random(state) * state.runner.hand.length);
-        moved.push(state.runner.hand.splice(idx, 1)[0]!);
-      }
+      // Bring Them Home (threat): "reveal 1 card in the grip at random. The
+      // Runner shuffles it into the stack."
+      const moved = pickRandomSubset(
+        state,
+        state.runner.hand,
+        Math.min(Math.max(0, action.count), state.runner.hand.length),
+      );
       for (const id of moved) {
-        state.runner.deck.unshift(id);
+        state.runner.hand = state.runner.hand.filter((x) => x !== id);
+        state.runner.deck.push(id);
         state.cards[id].zone = "runner:stack";
         state.cards[id].faceup = false;
       }
+      if (moved.length > 0) shuffleInPlace(state, state.runner.deck);
       log(
         state,
-        `Reveal ${moved
-          .map((id) => state.cards[id]!.title)
-          .join(", ")} from the grip — add to the top of the stack.`,
+        moved.length > 0
+          ? `Reveal ${moved
+              .map((id) => state.cards[id]!.title)
+              .join(", ")} at random from the grip — shuffled into the stack (CR ${CR.reveal.number}).`
+          : `No cards in the grip to reveal.`,
       );
       return { ok: true };
     }

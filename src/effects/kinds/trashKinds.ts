@@ -1382,8 +1382,12 @@ case "trash_grip_card_draw": {
 
 case "trash_n_from_grip": {
       const n = Math.max(0, action.amount ?? 0);
+      // The Runner's picks for this cost come with the action (CR 1.16.1).
+      const named = (state.costCardIds ?? []).filter((id) =>
+        state.runner.hand.includes(id),
+      );
       for (let i = 0; i < n; i++) {
-        const id = state.runner.hand[state.runner.hand.length - 1];
+        const id = named[i] ?? state.runner.hand[state.runner.hand.length - 1];
         if (!id) {
           return {
             ok: false,

@@ -8,6 +8,8 @@ import { mayAdvanceInstalledCard } from "../../state/advanceable.js";
 import { applyIdentityFace } from "../../state/identityFace.js";
 import { memoryLimit, usedMemory } from "../../state/turn.js";
 import type { RuleCite } from "../../state/types.js";
+import { chooseCards } from "../chooseCards.js";
+import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -64,8 +66,23 @@ export function applySansanValPrimitive(
         }
         return { ok: true };
       }
-      // May add any number — offer choice of how many / which; simplify: move all copies.
-      for (const id of copies) {
+      // "any number of copies": the Runner says how many (CR 1.15.2).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: copies,
+            count: copies.length,
+            upTo: true,
+            purpose: "resume",
+            label: "add to the heap from the stack",
+            resume: { kind: "search_stack_copies_to_heap" },
+          }),
+        );
+      }
+      const taken = action.cardIds.filter((id) => copies.includes(id));
+      for (const id of taken) {
         state.runner.deck = state.runner.deck.filter((x) => x !== id);
         moveRunnerCardToHeap(state, id);
       }
@@ -77,7 +94,7 @@ export function applySansanValPrimitive(
       }
       log(
         state,
-        `Paige Piper — add ${copies.length} copy/copies of ${installed.title} to heap; shuffle stack.`,
+        `Paige Piper — add ${taken.length} copy/copies of ${installed.title} to heap; shuffle stack.`,
       );
       return { ok: true };
     }

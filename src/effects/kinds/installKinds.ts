@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is install.
  * The effect switch in eval.ts dispatches here.
  */
+import { chooseCards } from "../chooseCards.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -1218,12 +1219,28 @@ case "install_and_rez_asset_or_upgrade_free": {
     }
 
 case "install_and_rez_from_archives_free": {
-      const pick = state.corp.discardPile.find((id) => {
+      const eligible = state.corp.discardPile.filter((id) => {
         const t = state.cards[id].type;
         return (
           t === "asset" || t === "upgrade" || t === "ice" || t === "agenda"
         );
       });
+      // The Corp picks which Archives card (CR 1.15.2).
+      if (!action.cardIds && eligible.length > 1) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: eligible,
+            count: 1,
+            purpose: "resume",
+            label: "install and rez from Archives",
+            resume: { kind: "install_and_rez_from_archives_free" },
+          }),
+        );
+      }
+      const pick =
+        (action.cardIds ?? []).find((id) => eligible.includes(id)) ?? eligible[0];
       if (!pick) {
         log(state, `Install+rez from Archives — none available.`);
         return { ok: true };

@@ -29,7 +29,9 @@ import {
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  seedRng,
 } from "../src/index.js";
+import { pickRandomCentral } from "../src/state/msKeywords.js";
 import type { Action, GameState } from "../src/state/types.js";
 import {
   occurCheckpoint,
@@ -720,6 +722,16 @@ describe("CR examples, chapter 10", () => {
     s.cards["virt-1"] = virtuoso;
     s.cards["carpe-1"] = carpe;
     s.runner.installed = ["virt-1"];
+    // The mark is a random central server (CR 10.11.2a): use a seed that
+    // lands on HQ.
+    for (let seed = 1; seed < 50; seed++) {
+      const probe = structuredClone(s);
+      seedRng(probe, seed);
+      if (pickRandomCentral(probe) === "hq") {
+        seedRng(s, seed);
+        break;
+      }
+    }
     evalEffect(
       { state: s, sourceId: "carpe-1" },
       fx.do({ kind: "identify_mark" }),

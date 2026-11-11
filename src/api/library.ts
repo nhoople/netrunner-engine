@@ -159,6 +159,30 @@ function hiddenOptionLabel(optionId: string): string {
   return "Hidden";
 }
 
+/**
+ * True when the pending option names a card the chooser's opponent may
+ * not see, so the log must not carry its label (CR 1.21.2).
+ */
+export function pendingOptionHiddenFromOpponent(
+  state: GameState,
+  optionId: string,
+): boolean {
+  const choice = state.pendingChoice;
+  if (!choice || choice.shownToOpponent) return false;
+  if (choice.hiddenFromOpponent) return true;
+  const option = choice.options.find((o) => o.id === optionId);
+  if (!option) return false;
+  const viewer: Side = choice.chooser === "corp" ? "runner" : "corp";
+  const hiddenIds = idsHiddenFrom(state, viewer);
+  const hiddenSet = new Set(hiddenIds);
+  const named = new Set<string>();
+  stringsIn(option.effect, named);
+  return (
+    [...named].some((value) => hiddenSet.has(value)) ||
+    hiddenIds.some((id) => idNames(option.id, id))
+  );
+}
+
 function publicPendingChoice(state: GameState, viewer: Side) {
   const choice = state.pendingChoice;
   if (!choice) return null;
@@ -328,8 +352,15 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingTrashProgram: state.pendingTrashProgram
       ? structuredClone(state.pendingTrashProgram)
       : null,
+    // The Corp's HQ picks are not the Runner's to see (CR 10.12.2a).
     pendingSabotage: state.pendingSabotage
-      ? structuredClone(state.pendingSabotage)
+      ? {
+          sourceId: state.pendingSabotage.sourceId,
+          amount: state.pendingSabotage.amount,
+          ...(side === "corp" && state.pendingSabotage.picked
+            ? { picked: [...state.pendingSabotage.picked] }
+            : {}),
+        }
       : null,
     pendingChoice: publicPendingChoice(state, side),
     pendingExclusiveChoices: state.pendingExclusiveChoices

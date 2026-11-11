@@ -2866,9 +2866,21 @@ describe("parhelion", () => {
       s.corp.hand.push("sim-1");
 
       s = must(s, { type: "play_operation", cardId: "sim-1" });
+      // The Corp picks the HQ cards to trash (CR 1.15.2), then the
+      // Archives cards that go back to R&D.
+      expect(s.pendingChoice?.chooser).toBe("corp");
+      s = must(s, { type: "choose_option", optionId: "choose-card:hq-0" });
+      s = must(s, { type: "choose_option", optionId: "choose-card:hq-1" });
+      s = must(s, { type: "choose_option", optionId: "choose-cards-done" });
+      s = must(s, { type: "choose_option", optionId: "choose-card:arc-0" });
+      s = must(s, { type: "choose_option", optionId: "choose-card:arc-1" });
       expect(s.removedFromGame).toContain("sim-1");
-      // Trashed up to 5 from HQ (3 fill + maybe demo cards, capped)
-      expect(s.corp.deck.length).toBeGreaterThanOrEqual(deckBefore);
+      expect(s.corp.discardPile).toEqual(
+        expect.arrayContaining(["hq-0", "hq-1", "arc-2", "arc-3"]),
+      );
+      expect(s.corp.discardPile).not.toContain("arc-0");
+      // Two shuffled in, two drawn.
+      expect(s.corp.deck.length).toBe(deckBefore);
     });
   });
 

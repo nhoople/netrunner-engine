@@ -783,6 +783,10 @@ describe("CR examples, chapter 8", () => {
     );
     expect(opened.ok).toBe(true);
     s = must(s, { type: "choose_option", optionId: "meta-nonice" });
+    // The Corp picks the two cards to swap (CR 1.15.2).
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    s = must(s, { type: "choose_option", optionId: "choose-card:ht-1" });
+    s = must(s, { type: "choose_option", optionId: "choose-card:ct-1" });
 
     const refused = at(s.log, "that swap does nothing");
     expect(s.log[refused]).toContain(CR.swapOnlyToValidLocation.number);

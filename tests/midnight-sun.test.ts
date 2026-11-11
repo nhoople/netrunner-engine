@@ -4543,6 +4543,18 @@ describe("midnight-sun", () => {
       );
       expect(r.ok).toBe(true);
       expect(s.cards["mp-1"].zone).toBe("removed-from-game");
+      // Each step is the Corp's choice (CR 1.15.2).
+      for (const optionId of [
+        "choose-card:hq-1",
+        "choose-card:hq-2",
+        "choose-card:fa-1",
+        "choose-cards-done",
+        "advance:host-1",
+      ]) {
+        const picked = applyAction(s, { type: "choose_option", optionId });
+        if (!picked.ok) throw new Error(`${optionId}: ${picked.error}`);
+        s = picked.state;
+      }
       expect(s.corp.hand).toEqual([]);
       expect(s.corp.discardPile).toContain("hq-1");
       expect(s.corp.discardPile).toContain("hq-2");

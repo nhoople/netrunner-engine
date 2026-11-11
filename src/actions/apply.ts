@@ -1,3 +1,11 @@
+import { pendingOptionHiddenFromOpponent } from "../api/library.js";
+import {
+  costCardNeedForAction,
+  costHasChoice,
+  openCostChoice,
+  takeCostPick,
+  validateCostCards,
+} from "./costCards.js";
 import { chooseSubroutinePosition } from "../effects/primitives/trashResolveTrace.js";
 import { chooseSparedSubroutine } from "../effects/primitives/spendInstallAdd.js";
 import { chooseNextSubroutineToResolve } from "../timing/subroutineOrder.js";
@@ -77,7 +85,12 @@ import {
 } from "../state/trashPrevent.js";
 import { acceptPendingEndTheRun } from "../state/endTheRun.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
-import { currentMark, resolveSabotageAmount } from "../state/msKeywords.js";
+import {
+  currentMark,
+  offerSabotagePick,
+  resolveSabotageAmount,
+  sabotageHqBounds,
+} from "../state/msKeywords.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import {
@@ -200,6 +213,12 @@ import {
 } from "../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
+
+/** The payer's pick for a one-card cost, or the last card when not asked. */
+function chosenCostCard(state: GameState, pool: readonly string[]): string {
+  const named = (state.costCardIds ?? []).find((id) => pool.includes(id));
+  return named ?? pool[pool.length - 1]!;
+}
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -366,6 +385,8 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   if (!pending) {
     return fail("No pending choice.", [CR.paidAbility]);
   }
+  // Read before the option resolves and the card moves (CR 1.21.2).
+  const namesHiddenCard = pendingOptionHiddenFromOpponent(state, optionId);
   if (pending.loopCount && optionId.startsWith("loop-times:")) {
     const times = Number(optionId.slice("loop-times:".length));
     if (!Number.isInteger(times) || times < 0) {
@@ -931,7 +952,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
 
   const hiddenLook =
-    optionId.startsWith("cultivate-") || optionId.startsWith("rd-arrange:");
+    namesHiddenCard ||
+    optionId.startsWith("cultivate-") ||
+    optionId.startsWith("rd-arrange:");
   const sourceTitle = state.cards[sourceId]?.title ?? sourceId;
   log(
     state,
@@ -1561,7 +1584,51 @@ function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
 
 /** Pure action apply: returns a new state or a cited legality error. */
 export function applyAction(state: GameState, action: Action): ApplyResult {
+  // A cost is waiting for its payer's cards: only those picks are taken
+  // (CR 1.16.1). Once they are in, the held action resolves with them.
+  if (state.pendingCost) {
+    if (action.type !== "choose_option") {
+      return fail("Choose the cards for the cost first.", [CR.cost]);
+    }
+    const picking = cloneState(state);
+    const taken = takeCostPick(picking, action.optionId);
+    if (!taken.ok) return fail(taken.error, taken.cites);
+    if (!taken.action) return ok(picking);
+    const paid = applyAction(picking, taken.action);
+    if (paid.ok) return paid;
+    log(picking, `The cost could not be paid: ${paid.error}`);
+    return ok(picking);
+  }
+
+  const need = costCardNeedForAction(state, action);
+  const named = (action as { costCardIds?: string[] }).costCardIds;
+  if (named) {
+    const valid = validateCostCards(need, named);
+    if (!valid.ok) return fail(valid.error, valid.cites);
+  } else if (need && costHasChoice(state, need)) {
+    // Check the action can be taken at all before asking for the cards.
+    const trial = applyWithCostCards(state, action, undefined);
+    if (!trial.ok) return trial;
+    const asking = cloneState(state);
+    openCostChoice(asking, need, action);
+    return ok(asking);
+  }
+  return applyWithCostCards(state, action, named);
+}
+
+function applyWithCostCards(
+  state: GameState,
+  action: Action,
+  costCardIds: string[] | undefined,
+): ApplyResult {
   const next = cloneState(state);
+  next.costCardIds = costCardIds ? [...costCardIds] : undefined;
+  const result = applyResolved(next, action);
+  if (result.ok) result.state.costCardIds = undefined;
+  return result;
+}
+
+function applyResolved(next: GameState, action: Action): ApplyResult {
   if (next.done && action.type !== "pass_window") {
     return fail("Game marked done.", []);
   }
@@ -1871,7 +1938,26 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
 
   if (next.pendingSabotage) {
     if (action.type === "resolve_sabotage") {
+      next.pendingChoice = null;
       return resolveSabotageIntent(next, action.hqCardIds);
+    }
+    // One HQ pick at a time (CR 10.12.2); the last possible pick resolves.
+    if (
+      action.type === "choose_option" &&
+      action.optionId.startsWith("sabotage-hq:")
+    ) {
+      const id = action.optionId.slice("sabotage-hq:".length);
+      const picked = next.pendingSabotage.picked ?? [];
+      if (!next.corp.hand.includes(id) || picked.includes(id)) {
+        return fail("Sabotage: choose a card in HQ.", [CR.sabotageResolution]);
+      }
+      next.pendingSabotage.picked = [...picked, id];
+      if (next.pendingSabotage.picked.length >= sabotageHqBounds(next).max) {
+        next.pendingChoice = null;
+        return resolveSabotageIntent(next, next.pendingSabotage.picked);
+      }
+      offerSabotagePick(next);
+      return ok(next);
     }
     return fail(
       "Pending sabotage — Corp must resolve_sabotage with HQ card ids.",
@@ -2233,9 +2319,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
             [CR.corpBasicTrashResource, CR.trashing],
           );
         }
-        const hqId = next.corp.hand[next.corp.hand.length - 1]!;
+        const hqId = chosenCostCard(next, next.corp.hand);
         const hqCard = next.cards[hqId]!;
-        next.corp.hand.pop();
+        next.corp.hand = next.corp.hand.filter((x) => x !== hqId);
         next.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
         // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
@@ -2252,9 +2338,9 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
             [CR.corpBasicTrashResource, CR.trashing],
           );
         }
-        const hqId = next.corp.hand[next.corp.hand.length - 1]!;
+        const hqId = chosenCostCard(next, next.corp.hand);
         const hqCard = next.cards[hqId]!;
-        next.corp.hand.pop();
+        next.corp.hand = next.corp.hand.filter((x) => x !== hqId);
         next.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
         // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
@@ -3101,12 +3187,20 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
           if (spec.oncePerTurn && next.turn.carnivoreAccessTrashUsed) return false;
           return next.runner.hand.length >= spec.gripCards;
         });
-      const n = carn!.accessTrashFromGrip!.gripCards;
-      for (let i = 0; i < n; i++) {
-        const gid = next.runner.hand.pop();
-        if (!gid) {
-          return fail("Not enough cards in grip.", [CR.trashing]);
-        }
+      if (!carn) {
+        return fail("Not enough cards in grip.", [CR.trashing]);
+      }
+      const n = carn.accessTrashFromGrip!.gripCards;
+      const named = (next.costCardIds ?? []).filter((id) =>
+        next.runner.hand.includes(id),
+      );
+      const others = next.runner.hand.filter((id) => !named.includes(id));
+      const gripCost = [
+        ...named,
+        ...others.slice(others.length - Math.max(0, n - named.length)),
+      ].slice(0, n);
+      for (const gid of gripCost) {
+        next.runner.hand = next.runner.hand.filter((x) => x !== gid);
         next.runner.discardPile.push(gid);
         next.cards[gid].zone = "runner:heap";
         next.cards[gid].faceup = true;
@@ -3121,7 +3215,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       card.zone = "corp:archives";
       card.faceup = true;
       next.run.accessingCardId = null;
-      if (carn!.accessTrashFromGrip!.oncePerTurn) {
+      if (carn.accessTrashFromGrip!.oncePerTurn) {
         next.turn.carnivoreAccessTrashUsed = true;
       }
       noteFirstCorpCardTrashEachTurn(next);

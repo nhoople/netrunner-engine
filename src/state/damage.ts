@@ -438,7 +438,6 @@ export function resolveDamage(
     state.turn.vanadisNextPawArmed = true;
   }
 
-  let left = amount;
   const toTrash = Math.min(amount, state.runner.hand.length);
   // Chronos Protocol: first net damage each turn — Corp chooses grip cards.
   const chronosId = state.corp.identityId;
@@ -496,13 +495,118 @@ export function resolveDamage(
     return "applied";
     }
   }
-  // Titanium Ribs: Runner chooses — when installed, prefer grip order (engine
-  // still opens a choice when grip size is small via pendingChoice elsewhere;
-  // default path uses simultaneous trash with Runner preference = hand order).
-  const ribs = titaniumRibsChoosesGripTrash(state);
-  const picks = ribs
-    ? state.runner.hand.slice(0, toTrash)
-    : pickRandomSubset(state, state.runner.hand, toTrash);
+  // Titanium Ribs: "You choose the card(s) from your grip to trash whenever
+  // you take damage." The Runner picks when there is a real choice; the
+  // damage finishes once the picks are in (CR 1.15.2, CR 10.4.3a).
+  if (titaniumRibsChoosesGripTrash(state) && toTrash > 0) {
+    const hand = state.runner.hand;
+    const sameCard = hand.every(
+      (id) => state.cards[id]?.defId === state.cards[hand[0]!]?.defId,
+    );
+    if (hand.length > toTrash && !sameCard) {
+      state.pendingDamage = null;
+      const opened = openRibsPick(state, {
+        type,
+        amount,
+        sourceId,
+        beforeCore,
+        count: toTrash,
+        picked: [],
+      });
+      if (opened) return "applied";
+    }
+    return sufferPickedDamage(
+      state,
+      type,
+      amount,
+      sourceId,
+      state.runner.hand.slice(0, toTrash),
+      beforeCore,
+    );
+  }
+  return sufferPickedDamage(
+    state,
+    type,
+    amount,
+    sourceId,
+    pickRandomSubset(state, state.runner.hand, toTrash),
+    beforeCore,
+  );
+}
+
+/** A Titanium Ribs pick in progress: the damage it finishes. */
+export interface RibsDamagePick {
+  type: DamageType;
+  amount: number;
+  sourceId: string;
+  beforeCore: number;
+  count: number;
+  picked: string[];
+}
+
+function openRibsPick(state: GameState, pick: RibsDamagePick): boolean {
+  const left = state.runner.hand.filter((id) => !pick.picked.includes(id));
+  const ribsId =
+    state.runner.installed.find(
+      (id) => state.cards[id]?.runnerChoosesDamageTrashFromGrip,
+    ) ?? state.runner.identityId;
+  return openPendingChoose(state, {
+    sourceId: ribsId,
+    chooser: "runner",
+    hiddenFromOpponent: true,
+    prompt: `Titanium Ribs: choose a card to trash for the damage (${pick.picked.length + 1} of ${pick.count}).`,
+    options: left.map((id) => ({
+      id: `ribs:${id}`,
+      label: state.cards[id]!.title,
+      effect: {
+        op: "do" as const,
+        action: {
+          kind: "suffer_chosen_damage" as const,
+          damage: pick.type,
+          amount: pick.amount,
+          damageSourceId: pick.sourceId,
+          beforeCore: pick.beforeCore,
+          count: pick.count,
+          picked: [...pick.picked, id],
+        },
+      },
+    })),
+  });
+}
+
+/** Take one Titanium Ribs pick; the last one trashes them all together. */
+export function resolveRibsPick(
+  state: GameState,
+  pick: RibsDamagePick,
+): "applied" | "flatline" {
+  const picked = pick.picked.filter((id) => state.runner.hand.includes(id));
+  if (picked.length < Math.min(pick.count, state.runner.hand.length)) {
+    if (openRibsPick(state, { ...pick, picked })) return "applied";
+  }
+  return sufferPickedDamage(
+    state,
+    pick.type,
+    pick.amount,
+    pick.sourceId,
+    picked,
+    pick.beforeCore,
+  );
+}
+
+/**
+ * The grip cards for this damage are chosen: trash them together and
+ * finish the damage (CR 10.4.3).
+ */
+function sufferPickedDamage(
+  state: GameState,
+  type: DamageType,
+  amount: number,
+  sourceId: string,
+  picks: string[],
+  beforeCore: number,
+): "applied" | "flatline" {
+  const core = isCoreDamageType(type);
+  let left = amount;
   const lethal = amount > state.runner.hand.length;
   if (lethal) state.turn.lethalDamageSkippingTrashTriggers = true;
   beginGripOrStackTrashBatch(state);

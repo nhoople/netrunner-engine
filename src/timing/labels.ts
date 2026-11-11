@@ -361,6 +361,10 @@ export const CR = {
   },
   cannotPrecedence: { number: "1.2.2", id: "rule_cannot_precedence" },
   actionsOutsidePhase: { number: "5.2.4", id: "rule_actions_outside_action_phase" },
+  /** A card's abilities are active only while the card is active (CR 9.1.7). */
+  abilityActive: { number: "9.1.7", id: "rule_ability_active" },
+  /** A cost can be any card a player must spend; the payer picks it (CR 1.16.1). */
+  cost: { number: "1.16.1", id: "rule_cost" },
   costCheckpoint: { number: "1.16.3", id: "rule_cost_checkpoint" },
   /** A checkpoint occurs immediately after a cost is paid (CR 10.3.4 / 9.11.1a). */
   costPaidCheckpoint: { number: "9.11.1a", id: "rule_cost_paid_checkpoint" },
@@ -388,6 +392,8 @@ export const CR = {
   announceTargets: { number: "1.15.2", id: "rule_announce_targets" },
   /** Unannounced or invalid targets are skipped (CR 1.15.3). */
   targetsGone: { number: "1.15.3", id: "rule_targets_gone" },
+  /** A revealed card is shown to all players, then returns to its previous state (CR 1.21.3). */
+  reveal: { number: "1.21.3", id: "rule_reveal" },
   /** Looking at a card is separate from choosing it (CR 1.21.2). */
   look: { number: "1.21.2", id: "rule_look" },
   /** Increase then lower, then floor at 0 (Ghosttongue event play cost −N¢). */

@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is search.
  * The effect switch in eval.ts dispatches here.
  */
+import { chooseCards } from "../chooseCards.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -685,39 +686,27 @@ case "search_stack_icebreaker_resolve": {
     }
 
 case "search_rd_non_agenda": {
-      const matches = state.corp.deck.filter(
-        (id) => state.cards[id].type !== "agenda",
-      );
-      if (matches.length === 0) {
-        log(state, `Search R&D for non-agenda — none found.`);
-        return { ok: true };
+      // The Corp looks through R&D and picks the card (CR 8.7.1). With a
+      // criterion the Corp may fail to find (CR 8.7.2e).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: state.corp.deck.filter(
+              (id) => state.cards[id].type !== "agenda",
+            ),
+            count: 1,
+            upTo: true,
+            purpose: "resume",
+            label: "add to HQ from R&D",
+            resume: { kind: "search_rd_non_agenda" },
+          }),
+        );
       }
-      const id = matches[0]!;
-      state.corp.deck = state.corp.deck.filter((x) => x !== id);
-      state.corp.hand.push(id);
-      state.cards[id].zone = "corp:hq";
-      state.cards[id].faceup = false;
-      shuffleInPlace(state, state.corp.deck);
-      log(
-        state,
-        `Search R&D — add ${state.cards[id].title} to HQ (non-agenda).`,
-      );
-      return { ok: true };
-    }
-
-case "search_rd_to_hq": {
-      const n = Math.min(action.amount, state.corp.deck.length);
-      for (let i = 0; i < n; i++) {
-        const id = state.corp.deck[0]!;
-        // Prefer first card; for multi-search take sequential tops after shuffle sense:
-        // Deterministic: take first N distinct from current deck order.
-        void id;
-      }
-      const taken: string[] = [];
-      for (let i = 0; i < n; i++) {
-        const id = state.corp.deck.shift();
-        if (!id) break;
-        taken.push(id);
+      const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
+      for (const id of found) {
+        state.corp.deck = state.corp.deck.filter((x) => x !== id);
         state.corp.hand.push(id);
         state.cards[id].zone = "corp:hq";
         state.cards[id].faceup = false;
@@ -725,7 +714,44 @@ case "search_rd_to_hq": {
       shuffleInPlace(state, state.corp.deck);
       log(
         state,
-        `Search R&D — add ${taken.length} card(s) to HQ (${taken.map((id) => state.cards[id].title).join(", ") || "none"}).`,
+        `Search R&D for a non-agenda — add ${found.length} card(s) to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
+      );
+      return { ok: true };
+    }
+
+case "search_rd_to_hq": {
+      // The Corp looks through R&D and picks the cards (CR 8.7.1). A search
+      // for a set number with no criterion must find that many (CR 8.7.2d).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.deck],
+            count: action.amount,
+            ...(action.upTo ? { upTo: true } : {}),
+            purpose: "resume",
+            label: "add to HQ from R&D",
+            resume: { ...action },
+          }),
+        );
+      }
+      const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
+      for (const id of found) {
+        state.corp.deck = state.corp.deck.filter((x) => x !== id);
+        state.corp.hand.push(id);
+        state.cards[id].zone = "corp:hq";
+        state.cards[id].faceup = false;
+      }
+      // R&D is shuffled once the search is complete (CR 8.7.3).
+      shuffleInPlace(state, state.corp.deck);
+      log(
+        state,
+        action.reveal && found.length > 0
+          ? `Search R&D — reveal ${found
+              .map((id) => state.cards[id].title)
+              .join(", ")} and add to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`
+          : `Search R&D — add ${found.length} card(s) to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
       );
       return { ok: true };
     }

@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is add.
  * The effect switch in eval.ts dispatches here.
  */
+import { pickRandomSubset } from "../../state/rng.js";
 import type {
   EffectCtx,
   EvalResult,
@@ -623,38 +624,46 @@ case "add_ice_additional_rez_cost_this_turn": {
     }
 
 case "add_random_grip_to_stack_bottom": {
-      const n = Math.max(0, action.count);
-      const moved: string[] = [];
-      for (let i = 0; i < n && state.runner.hand.length > 0; i++) {
-        moved.push(state.runner.hand.shift()!);
-      }
+      // "at random": drawn from the game's random stream.
+      const moved = pickRandomSubset(
+        state,
+        state.runner.hand,
+        Math.min(Math.max(0, action.count), state.runner.hand.length),
+      );
       for (const id of moved) {
+        state.runner.hand = state.runner.hand.filter((x) => x !== id);
         state.runner.deck.push(id);
         state.cards[id].zone = "runner:stack";
         state.cards[id].faceup = false;
       }
       log(
         state,
-        `Move ${moved.length} card(s) from grip to bottom of stack (v0: first ${n} in hand order).`,
+        `Add ${moved.length} card(s) at random from the grip to the bottom of the stack.`,
       );
       return { ok: true };
     }
 
 case "add_random_grip_to_stack_top": {
-      const n = Math.max(0, action.count);
-      const moved: string[] = [];
-      for (let i = 0; i < n && state.runner.hand.length > 0; i++) {
-        moved.push(state.runner.hand.shift()!);
-      }
-      for (let i = moved.length - 1; i >= 0; i--) {
-        const id = moved[i]!;
+      // Bring Them Home: "Reveal and add 2 cards at random from the grip
+      // to the top of the stack." Both players see the revealed cards.
+      const moved = pickRandomSubset(
+        state,
+        state.runner.hand,
+        Math.min(Math.max(0, action.count), state.runner.hand.length),
+      );
+      for (const id of moved) {
+        state.runner.hand = state.runner.hand.filter((x) => x !== id);
         state.runner.deck.unshift(id);
         state.cards[id].zone = "runner:stack";
         state.cards[id].faceup = false;
       }
       log(
         state,
-        `Move ${moved.length} card(s) from grip to top of stack (v0: first ${n} in hand order).`,
+        moved.length > 0
+          ? `Reveal ${moved
+              .map((id) => state.cards[id]!.title)
+              .join(", ")} at random from the grip — add to the top of the stack (CR ${CR.reveal.number}).`
+          : `No cards in the grip to reveal.`,
       );
       return { ok: true };
     }

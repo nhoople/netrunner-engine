@@ -39,6 +39,7 @@ import {
   applyPrimitive,
 } from "../eval.js";
 import { fx } from "../ir.js";
+import { chooseCards } from "../chooseCards.js";
 import {
   canInstallSetAsideProgram,
   shuffleRunnerSetAsideIntoStack,
@@ -128,127 +129,195 @@ logLine: `${source.title} — may install 1 program or virtual (−${discount}¢
     }
 
 case "resolve_moon_pool": {
-      // RFG self (typically after trashSelf cost left it in Archives).
-      removeCardFromCurrentZone(state, sourceId);
-      if (!state.removedFromGame) state.removedFromGame = [];
-      if (!state.removedFromGame.includes(sourceId)) {
-        state.removedFromGame.push(sourceId);
-      }
-      source.zone = "removed-from-game";
-      source.faceup = true;
-      source.rezzed = false;
-      log(
-        state,
-        `${source.title} is removed from the game (Moon Pool).`,
-      );
-
-      const trashN = Math.min(
-        Math.max(0, action.trashHqMax),
-        state.corp.hand.length,
-      );
-      for (let i = 0; i < trashN; i++) {
-        const id = state.corp.hand.pop()!;
-        state.corp.discardPile.push(id);
-        state.cards[id].zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        state.cards[id].faceup = false;
-        noteCorpCardAddedToArchives(state);
-        log(
-          state,
-          `${source.title} — trash ${state.cards[id].title} from HQ.`,
-        );
-      }
-
-      // The cards just trashed from HQ stay in Archives: revealing is "up
-      // to", and this kind resolves without asking the Corp.
-      const justTrashed = new Set(trashN > 0 ? state.corp.discardPile.slice(-trashN) : []);
-      const facedown = state.corp.discardPile.filter(
-        (id) => !state.cards[id].faceup && !justTrashed.has(id),
-      );
-      const revealN = Math.min(
-        Math.max(0, action.revealArchivesMax),
-        facedown.length,
-      );
-      const revealed: string[] = [];
-      for (let i = 0; i < revealN; i++) {
-        const id = facedown[i]!;
-        revealed.push(id);
-        state.cards[id].faceup = true;
-        state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
-        state.corp.deck.push(id);
-        state.cards[id].zone = "corp:rd";
-        state.cards[id].faceup = false; // facedown once shuffled into R&D
-        log(
-          state,
-          `${source.title} — reveal ${state.cards[id].title} from Archives → R&D.`,
-        );
-      }
-      if (revealN > 0) {
-        shuffleInPlace(state, state.corp.deck);
-      }
-
-      const agendaRevealed = revealed.filter(
-        (id) => state.cards[id].type === "agenda",
-      );
-      for (const _agendaId of agendaRevealed) {
-        let target: string | null = null;
-        for (const server of Object.values(state.servers)) {
-          for (const id of [...server.root, ...server.ice]) {
-            const c = state.cards[id];
-            if (c.type === "agenda" || c.canAdvance) {
-              target = id;
-              break;
-            }
-          }
-          if (target) break;
+      // Each "up to" and each target is the Corp's choice (CR 1.15.2).
+      if (!action.step) {
+        // RFG self (typically after trashSelf cost left it in Archives).
+        removeCardFromCurrentZone(state, sourceId);
+        if (!state.removedFromGame) state.removedFromGame = [];
+        if (!state.removedFromGame.includes(sourceId)) {
+          state.removedFromGame.push(sourceId);
         }
-        if (!target) {
+        source.zone = "removed-from-game";
+        source.faceup = true;
+        source.rezzed = false;
+        log(state, `${source.title} is removed from the game (Moon Pool).`);
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.hand],
+            count: Math.max(0, action.trashHqMax),
+            upTo: true,
+            purpose: "resume",
+            label: "trash from HQ",
+            resume: { ...action, step: "trash" },
+          }),
+        );
+      }
+      if (action.step === "trash") {
+        const picked = (action.cardIds ?? []).filter((id) =>
+          state.corp.hand.includes(id),
+        );
+        for (const id of picked) {
+          state.corp.hand = state.corp.hand.filter((x) => x !== id);
+          state.corp.discardPile.push(id);
+          state.cards[id].zone = "corp:archives";
+          // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+          state.cards[id].faceup = false;
+          noteCorpCardAddedToArchives(state);
+        }
+        log(state, `${source.title} — trash ${picked.length} card(s) from HQ.`);
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: state.corp.discardPile.filter(
+              (id) => !state.cards[id].faceup,
+            ),
+            count: Math.max(0, action.revealArchivesMax),
+            upTo: true,
+            purpose: "resume",
+            label: "reveal from Archives and shuffle into R&D",
+            resume: { ...action, step: "reveal", cardIds: undefined },
+          }),
+        );
+      }
+      if (action.step === "reveal") {
+        const revealed = (action.cardIds ?? []).filter((id) =>
+          state.corp.discardPile.includes(id),
+        );
+        for (const id of revealed) {
+          state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
+          state.corp.deck.push(id);
+          state.cards[id].zone = "corp:rd";
+          // Revealed, then facedown again once in R&D (CR 1.21.3).
+          state.cards[id].faceup = false;
           log(
             state,
-            `${source.title} — agenda revealed; no advanceable card for advancement counter.`,
+            `${source.title} — reveal ${state.cards[id].title} from Archives → R&D.`,
           );
-          continue;
         }
-        const card = state.cards[target]!;
-        card.advancementCounters = (card.advancementCounters ?? 0) + 1;
-        log(
-          state,
-          `${source.title} — place 1 advancement on ${card.title} → ${card.advancementCounters}.`,
-        );
+        if (revealed.length > 0) shuffleInPlace(state, state.corp.deck);
+        const agendas = revealed.filter(
+          (id) => state.cards[id].type === "agenda",
+        ).length;
+        return evalEffect(ctx, {
+          op: "do",
+          action: {
+            ...action,
+            step: "advance",
+            cardIds: undefined,
+            agendasLeft: agendas,
+          },
+        });
       }
+      // step "advance": for each agenda revealed, the Corp may place 1
+      // advancement counter on an installed card of their choice.
+      const left = action.agendasLeft ?? 0;
+      if (left <= 0) return { ok: true };
+      const targets: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.root, ...server.ice]) targets.push(id);
+      }
+      if (targets.length === 0) {
+        log(state, `${source.title} — no installed card for an advancement counter.`);
+        return { ok: true };
+      }
+      const next: Effect = {
+        op: "do",
+        action: { ...action, step: "advance", agendasLeft: left - 1 },
+      };
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        prompt: `${source.title}: place 1 advancement counter on an installed card (${left} left).`,
+        options: [
+          ...targets.map((id) => ({
+            id: `advance:${id}`,
+            label: `Advance ${state.cards[id].title}`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "place_advancement_on_card" as const,
+                    cardId: id,
+                    amount: 1,
+                  },
+                },
+                next,
+              ],
+            },
+          })),
+          { id: "decline", label: "Place none", effect: next },
+        ],
+      });
       return { ok: true };
     }
 
 case "resolve_simulation_reset": {
-      const trashN = Math.min(
-        Math.max(0, action.trashHqMax),
-        state.corp.hand.length,
-      );
-      for (let i = 0; i < trashN; i++) {
-        const id = state.corp.hand.pop()!;
-        state.corp.discardPile.push(id);
-        state.cards[id].zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        state.cards[id].faceup = false;
-        noteCorpCardAddedToArchives(state);
-        log(
-          state,
-          `${source.title} — trash ${state.cards[id].title} from HQ.`,
+      // The Corp chooses the cards trashed and the cards shuffled back
+      // (CR 1.15.2).
+      if (!action.step) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.hand],
+            count: Math.max(0, action.trashHqMax),
+            upTo: true,
+            purpose: "resume",
+            label: "trash from HQ",
+            resume: { ...action, step: "trash" },
+          }),
         );
       }
-      const shuffleN = Math.min(trashN, state.corp.discardPile.length);
-      for (let i = 0; i < shuffleN; i++) {
-        const id = state.corp.discardPile.pop()!;
+      if (action.step === "trash") {
+        const picked = (action.cardIds ?? []).filter((id) =>
+          state.corp.hand.includes(id),
+        );
+        for (const id of picked) {
+          state.corp.hand = state.corp.hand.filter((x) => x !== id);
+          state.corp.discardPile.push(id);
+          state.cards[id].zone = "corp:archives";
+          // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+          state.cards[id].faceup = false;
+          noteCorpCardAddedToArchives(state);
+        }
+        log(state, `${source.title} — trash ${picked.length} card(s) from HQ.`);
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.discardPile],
+            count: picked.length,
+            purpose: "resume",
+            label: "shuffle into R&D from Archives",
+            resume: {
+              ...action,
+              step: "shuffle",
+              cardIds: undefined,
+              trashed: picked.length,
+            },
+          }),
+        );
+      }
+      const trashN = action.trashed ?? 0;
+      const back = (action.cardIds ?? []).filter((id) =>
+        state.corp.discardPile.includes(id),
+      );
+      for (const id of back) {
+        state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
         state.corp.deck.push(id);
         state.cards[id].zone = "corp:rd";
         state.cards[id].faceup = false;
       }
-      if (shuffleN > 0) {
-
+      if (back.length > 0) {
         shuffleInPlace(state, state.corp.deck);
         log(
           state,
-          `${source.title} — shuffle ${shuffleN} from Archives into R&D.`,
+          `${source.title} — shuffle ${back.length} from Archives into R&D.`,
         );
       }
       if (trashN > 0) {
@@ -620,32 +689,11 @@ case "resolve_meeting_of_minds": {
           (c.subtypes ?? []).some((s) => s.toLowerCase() === subtype)
         );
       });
-      const afterRevealGain = (): EvalResult => {
-        const inGrip = state.runner.hand.filter((id) =>
-          (state.cards[id]?.subtypes ?? []).some(
-            (s) => s.toLowerCase() === subtype,
-          ),
-        );
-        if (inGrip.length === 0) {
-          log(
-            state,
-            `Meeting of Minds — no ${subtype} cards in grip to reveal.`,
-          );
-          return { ok: true };
-        }
-        // Reveal any number: offer each subset via sequential yes/no, or
-        // gain 1¢ per matching grip card (deterministic full reveal).
-        const gained = inGrip.length;
-        state.runner.credits += gained;
-        for (const id of inGrip) {
-          state.cards[id]!.faceup = true;
-        }
-        log(
-          state,
-          `Meeting of Minds — reveal ${gained} ${subtype} card(s) in grip, gain ${gained}¢.`,
-        );
-        return { ok: true };
-      };
+      const afterRevealGain = (): EvalResult =>
+        evalEffect(ctx, {
+          op: "do",
+          action: { kind: "reveal_gain", subtype: action.subtype },
+        });
       if (matches.length === 0) {
         shuffleRunnerStack(state);
         log(

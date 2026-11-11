@@ -11,7 +11,12 @@ import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { onRunnerInstalledProgramOrHardware } from "./staticFlags.js";
-import { noteTargetedMarketing } from "./currents.js";
+import { activeCorpCurrentIds, noteTargetedMarketing } from "./currents.js";
+import { chooseCards } from "../effects/chooseCards.js";
+import {
+  deferContinuationAfter,
+  effectResolutionBlocked,
+} from "../effects/continuation.js";
 import { noteStoredConditional } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
@@ -147,6 +152,38 @@ export function fireRemainderOfTurnOnInstallPrintedCostGte(
 }
 
 /**
+ * Housekeeping: "The first time each turn the Runner installs a card, they
+ * trash 1 card from the grip." Any card type counts, the source is a
+ * current in the Corp's play area, and the Runner picks the card
+ * (CR 1.15.2).
+ */
+function noteFirstRunnerInstallThisTurn(state: GameState): void {
+  if (state.turn.runnerInstalledCardThisTurn) return;
+  state.turn.runnerInstalledCardThisTurn = true;
+  for (const id of activeCorpCurrentIds(state)) {
+    const current = state.cards[id];
+    if (!current?.firstRunnerInstallTrashFromGripEachTurn) continue;
+    if (abilitiesSuppressed(state, id)) continue;
+    if (state.runner.hand.length === 0) {
+      log(state, `${current.title} — the grip is empty; nothing to trash.`);
+      continue;
+    }
+    log(state, `${current.title} — the Runner trashes 1 card from the grip.`);
+    const pick = chooseCards({
+      chooser: "runner",
+      candidates: [...state.runner.hand],
+      count: 1,
+      purpose: "trash_grip",
+    });
+    if (effectResolutionBlocked(state)) {
+      deferContinuationAfter(state, { sourceId: id, effects: [pick] });
+    } else {
+      evalEffect({ state, sourceId: id }, pick);
+    }
+  }
+}
+
+/**
  * After a program or hardware is installed, fire
  * `onProgramOrHardwareInstall` on other installed Runner cards / identity.
  * Does not fire for resource installs.
@@ -164,6 +201,7 @@ export function noteProgramOrHardwareInstalled(
   if ((installed.subtypes ?? []).includes("companion")) {
     maybeFireCompanionInstallOrSpendCredits(state);
   }
+  noteFirstRunnerInstallThisTurn(state);
   if (installed.type !== "program" && installed.type !== "hardware") return;
   onRunnerInstalledProgramOrHardware(state);
   if (state.done) return;

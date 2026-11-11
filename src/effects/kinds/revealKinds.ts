@@ -14,6 +14,7 @@ import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { CR } from "../../timing/labels.js";
+import { chooseCards } from "../chooseCards.js";
 import {
   trashCorpCardToArchives,
   trashToHeap,
@@ -580,14 +581,31 @@ case "reveal_gain": {
         );
         return { ok: true };
       }
-      const gained = inGrip.length;
-      state.runner.credits += gained;
-      for (const id of inGrip) {
-        state.cards[id]!.faceup = true;
+      // "Reveal any number": the Runner says which (CR 1.15.2).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: inGrip,
+            count: inGrip.length,
+            upTo: true,
+            purpose: "resume",
+            label: `reveal from the grip (${subtype})`,
+            resume: { kind: "reveal_gain", subtype: action.subtype },
+          }),
+        );
       }
+      const shown = action.cardIds.filter((id) => inGrip.includes(id));
+      state.runner.credits += shown.length;
+      // Revealed cards are shown to both players and stay in the grip (CR 1.21.3).
       log(
         state,
-        `Meeting of Minds — reveal ${gained} ${subtype} card(s) in grip, gain ${gained}¢.`,
+        shown.length > 0
+          ? `Meeting of Minds — reveal ${shown
+              .map((id) => state.cards[id]!.title)
+              .join(", ")} from the grip, gain ${shown.length}¢ (CR ${CR.reveal.number}).`
+          : `Meeting of Minds — reveal no cards.`,
       );
       return { ok: true };
     }

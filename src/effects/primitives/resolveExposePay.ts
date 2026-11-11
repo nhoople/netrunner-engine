@@ -10,7 +10,8 @@ import { fx, type Primitive } from "../ir.js";
 import {
   fireOnAgendaAccessedOrScored,
 } from "../../state/miscConditionalHooks.js";
-import { random, shuffleInPlace } from "../../state/rng.js";
+import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
+import { chooseCards } from "../chooseCards.js";
 
 type PrimResult =
   | { ok: true }
@@ -90,30 +91,35 @@ export function applyKitaraTdatdPrimitive(
         );
         return { ok: true };
       }
-      // Add exactly 5 from Archives to HQ (deterministic: oldest first).
-      const moved: string[] = [];
-      for (let i = 0; i < 5; i++) {
-        const id = archives.shift()!;
-        moved.push(id);
+      // "the Corp adds exactly 5 cards from Archives to HQ": the Corp picks
+      // them (CR 1.15.2).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...archives],
+            count: 5,
+            purpose: "resume",
+            label: "add to HQ from Archives",
+            resume: { kind: "tdatd_glut_cipher" },
+          }),
+        );
+      }
+      const moved = action.cardIds.filter((id) => archives.includes(id));
+      for (const id of moved) {
+        state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
         const c = state.cards[id]!;
         c.zone = "corp:hq";
         c.faceup = false;
         c.rezzed = false;
         state.corp.hand.push(id);
       }
-      log(
-        state,
-        `Glut Cipher — Corp adds 5 from Archives to HQ (${moved.map((id) => state.cards[id]?.title).join(", ")}).`,
-      );
-      // Trash 5 at random from HQ.
-      const hq = [...state.corp.hand];
-      for (let i = hq.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = hq[i]!;
-        hq[i] = hq[j]!;
-        hq[j] = tmp;
-      }
-      const trash = hq.slice(0, 5);
+      log(state, `Glut Cipher — Corp adds ${moved.length} from Archives to HQ.`);
+      if (moved.length < 5) return { ok: true };
+      // Trash 5 at random from HQ. They enter Archives facedown, so the
+      // log does not name them (CR 4.4.6b).
+      const trash = pickRandomSubset(state, state.corp.hand, 5);
       for (const id of trash) {
         const idx = state.corp.hand.indexOf(id);
         if (idx >= 0) state.corp.hand.splice(idx, 1);
@@ -123,8 +129,8 @@ export function applyKitaraTdatdPrimitive(
         c.faceup = false;
         c.rezzed = false;
         state.corp.discardPile.push(id);
-        log(state, `Glut Cipher — trash ${c.title} from HQ at random.`);
       }
+      log(state, `Glut Cipher — trash ${trash.length} from HQ at random.`);
       return { ok: true };
     }
 

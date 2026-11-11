@@ -5,6 +5,8 @@ import { addBreakerStrengthBoostThisRun } from "../../state/lingeringEffects.js"
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, Server, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
+import { chooseCards } from "../chooseCards.js";
+import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
@@ -373,8 +375,22 @@ logLine: `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.l
         log(state, `Metamorph — fewer than 2 installed non-ice cards.`);
         return { ok: true };
       }
-      // Pick first two for deterministic simplification when no multi-select UI.
-      const [a, b] = cards;
+      // The Corp picks the two cards (CR 1.15.2).
+      if (!action.cardIds && cards.length > 2) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: cards,
+            count: 2,
+            purpose: "resume",
+            label: "swap",
+            resume: { kind: "swap_2_non_ice" },
+          }),
+        );
+      }
+      const chosen = (action.cardIds ?? []).filter((id) => cards.includes(id));
+      const [a, b] = chosen.length === 2 ? chosen : cards;
       const ca = state.cards[a!]!;
       const cb = state.cards[b!]!;
       const serverA = serverHoldingRootCard(state, a!);
