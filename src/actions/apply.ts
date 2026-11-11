@@ -1,4 +1,4 @@
-import { endLooksAndReveals } from "../state/reveal.js";
+import { endLooksAndReveals, lookAtChoiceCards } from "../state/reveal.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
 import {
   costCardNeedForAction,
@@ -1630,6 +1630,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     after.chooser === before.chooser
   ) {
     after.look = true;
+    lookAtChoiceCards(result.state);
   }
   if (!after && !result.state.pendingCost) endLooksAndReveals(result.state);
   return result;

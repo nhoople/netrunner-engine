@@ -6,6 +6,7 @@ import {
 } from "../state/checkpointSnapshot.js";
 
 import { log } from "../state/createGame.js";
+import { lookAtChoiceCards } from "../state/reveal.js";
 import {
   addBreakerStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
@@ -1964,6 +1965,7 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
         for (const card of Object.values(ctx.state.cards)) {
           if (card.lookedBy) card.lookedBy = opened.chooser;
         }
+        lookAtChoiceCards(ctx.state);
       }
       return result;
     }

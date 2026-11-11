@@ -80,6 +80,31 @@ export function lookAtCards(
 }
 
 /**
+ * The player making a choice opened by a look or a search is looking at the
+ * deck cards its options name (CR 1.21.2, CR 8.7.1).
+ */
+export function lookAtChoiceCards(state: GameState): void {
+  const choice = state.pendingChoice;
+  if (!choice?.look) return;
+  const named = new Set<string>();
+  const collect = (value: unknown): void => {
+    if (typeof value === "string") {
+      named.add(value);
+      for (const part of value.split(":")) named.add(part);
+    } else if (Array.isArray(value)) value.forEach(collect);
+    else if (value && typeof value === "object") Object.values(value).forEach(collect);
+  };
+  for (const option of choice.options) {
+    collect(option.id);
+    collect(option.effect);
+  }
+  for (const card of Object.values(state.cards)) {
+    if (card.zone !== "corp:rd" && card.zone !== "runner:stack") continue;
+    if (named.has(card.id)) card.lookedBy = choice.chooser;
+  }
+}
+
+/**
  * The resolving ability is finished: nobody is looking any more, and a card
  * in R&D or HQ is neither faceup nor facedown (CR 1.21.6, CR 1.21.1a).
  * Runner cards are left alone. They carry the faceup flag from the start,

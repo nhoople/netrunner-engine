@@ -236,6 +236,15 @@ describe("looking at cards", () => {
       expect(runner).not.toContain(card.title);
       expect(runner).not.toContain(`"${card.id}"`);
     }
+    // The searching player is looking at the cards they may take, and stops
+    // when the search is done (CR 1.21.6).
+    const candidates = s.pendingChoice!.options
+      .map((option) => option.id.split(":")[1])
+      .filter((id): id is string => Boolean(id && s.cards[id]));
+    expect(candidates.length).toBeGreaterThan(0);
+    for (const id of candidates) expect(s.cards[id]?.lookedBy, id).toBe("corp");
+    const done = choose(s, s.pendingChoice!.options[0]!.id);
+    expect(Object.values(done.cards).filter((card) => card.lookedBy)).toEqual([]);
   });
 
   it("leaves no card in R&D or HQ faceup once nothing is pending, and leaves the Runner's cards as dealt", () => {
