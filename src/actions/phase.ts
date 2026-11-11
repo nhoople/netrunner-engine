@@ -37,6 +37,8 @@ import {
   fireOnRunnerDiscardOverMaxHand,
   fireOnRunnerDiscardPhaseEndFlipped,
 } from "../state/miscConditionalHooks.js";
+import { chooseCards } from "../effects/chooseCards.js";
+import { evalEffect } from "../effects/eval.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -75,8 +77,6 @@ export function drawN(
   return commitDraw(state, side, amount).length;
 }
 
-/** Fisher–Yates shuffle (same Math.random pattern as effect primitives). */
-
 function opponentHasPriorityActs(state: GameState): boolean {
   const pw = ensurePriorityWindow(state);
   const opponent: Side = pw.priorityHolder === "corp" ? "runner" : "corp";
@@ -97,7 +97,8 @@ registerEmptyRunPawCloser((state) => {
   if (
     state.timingKey !== "run.initiatePaw" &&
     state.timingKey !== "run.passIcePaw" &&
-    state.timingKey !== "run.afterMovePaw"
+    state.timingKey !== "run.afterMovePaw" &&
+    state.timingKey !== "run.approachServerPaw"
   ) {
     return false;
   }
@@ -269,13 +270,18 @@ export function passWindow(state: GameState): ApplyResult {
   return ok(state);
 }
 
-export function discardPhase(state: GameState): ApplyResult {
+export function discardPhase(
+  state: GameState,
+  cardIds?: string[],
+  /** The player has finished choosing; do not adjust hand size again. */
+  resumed = false,
+): ApplyResult {
   const allowed = actionAllowedHere(state, "discard_to_hand_size");
   if (!allowed.ok) {
     return fail("Not in discard step.", allowed.cites);
   }
   const p = activePlayer(state);
-  if (p.side === "corp") {
+  if (p.side === "corp" && !resumed) {
     const identityId = state.corp.identityId;
     const idCard = state.cards[identityId];
     if (
@@ -309,9 +315,46 @@ export function discardPhase(state: GameState): ApplyResult {
       `${p.side} skips discard step (hand ${p.hand.length}, max ${p.maxHandSize}).`,
     );
   } else {
+    // CR 5.5.4c: the discarding player chooses the cards, and the chosen
+    // cards are discarded simultaneously.
+    const excess = p.hand.length - Math.max(0, p.maxHandSize);
+    let chosen: string[] = [];
+    if (excess > 0) {
+      const named = cardIds ?? state.turn.chosenDiscardIds;
+      state.turn.chosenDiscardIds = undefined;
+      if (!named) {
+        const r = evalEffect(
+          { state, sourceId: p.identityId },
+          chooseCards({
+            chooser: p.side,
+            candidates: [...p.hand],
+            count: excess,
+            purpose: "discard_to_hand_size",
+          }),
+        );
+        if (!r.ok) return fail(r.error, r.cites);
+        // The player is choosing. The step resumes when the choice ends.
+        if (state.pendingChoice) return ok(state);
+        chosen = state.turn.chosenDiscardIds ?? [];
+        state.turn.chosenDiscardIds = undefined;
+      } else {
+        chosen = named;
+      }
+      const distinct = new Set(chosen);
+      if (
+        distinct.size !== excess ||
+        chosen.length !== excess ||
+        chosen.some((id) => !p.hand.includes(id))
+      ) {
+        return fail(
+          `Choose exactly ${excess} card(s) in hand to discard.`,
+          [CR.maxHandSize],
+        );
+      }
+    }
     state.turn.runnerDiscardedToMaxHandIds = [];
-    while (p.hand.length > p.maxHandSize) {
-      const id = p.hand.pop()!;
+    for (const id of chosen) {
+      p.hand = p.hand.filter((handId) => handId !== id);
       p.discardPile.push(id);
       const card = state.cards[id];
       card.zone = p.side === "corp" ? "corp:archives" : "runner:heap";

@@ -14,6 +14,7 @@ import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import {
   fireOnArchivesFacedownTurnedFaceupGte,
 } from "./miscConditionalHooks.js";
+import { shuffleInPlace } from "./rng.js";
 
 /** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
 function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
@@ -542,8 +543,11 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   if (serverId === "hq") {
-    // Access 1 card from HQ (deterministic: last card in hand) + upgrades.
+    // CR 7.3.4a: a card accessed from the Corp's hand is a random
+    // candidate. The hand is put in a random order here and the cards to
+    // access are taken from the end of that order.
     const hqCards = [...state.corp.hand];
+    shuffleInPlace(state, hqCards);
     const primary =
       hqCards.length > 0 ? hqCards[hqCards.length - 1]! : null;
     run.accessCandidates = primary ? [primary, ...upgrades] : [...upgrades];

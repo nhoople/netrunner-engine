@@ -199,6 +199,7 @@ import {
   fireOnCorpBasicClickForCreditOrDraw,
 } from "../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { shuffleInPlace } from "../state/rng.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -206,18 +207,6 @@ function fail(error: string, cites: RuleCite[]): ApplyResult {
 
 function ok(state: GameState): ApplyResult {
   return { ok: true, state };
-}
-
-
-/** Patchwork: trash 1 from grip for a once-per-turn play/install discount. */
-
-function shuffleInPlace(arr: string[]): void {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = arr[i]!;
-    arr[i] = arr[j]!;
-    arr[j] = tmp;
-  }
 }
 
 function openingMulliganSide(state: GameState): Side | null {
@@ -260,7 +249,7 @@ function takeMulligan(state: GameState): ApplyResult {
   }
   p.deck.push(...p.hand);
   p.hand = [];
-  shuffleInPlace(p.deck);
+  shuffleInPlace(state, p.deck);
 
   const n = startingHandSizeFor(state.cards[p.identityId]);
   let drawn = 0;
@@ -1892,7 +1881,13 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
 
   if (next.pendingChoice) {
     if (action.type === "choose_option") {
-      return chooseOption(next, action.optionId);
+      const chosen = chooseOption(next, action.optionId);
+      // The active player finished choosing what to discard: the discard
+      // step now discards those cards together (CR 5.5.4c).
+      if (chosen.ok && next.turn.chosenDiscardIds && !next.pendingChoice) {
+        return discardPhase(next, undefined, true);
+      }
+      return chosen;
     }
     return fail(
       `Pending choice for ${next.pendingChoice.chooser} — resolve with choose_option.`,
@@ -2243,7 +2238,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next.corp.hand.pop();
         next.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
-        hqCard.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        hqCard.faceup = false;
         noteCorpCardAddedToArchives(next);
         log(
           next,
@@ -2261,7 +2257,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
         next.corp.hand.pop();
         next.corp.discardPile.push(hqId);
         hqCard.zone = "corp:archives";
-        hqCard.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        hqCard.faceup = false;
         noteCorpCardAddedToArchives(next);
         log(
           next,
@@ -2983,6 +2980,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         card.faceup = false;
         card.rezzed = false;
         card.hostedCredits = undefined;
+        shuffleInPlace(next, next.corp.deck);
         log(
           next,
           `Runner trashes accessed ${card.title} for ${cost}¢ — shuffled into R&D instead.`,
@@ -3426,7 +3424,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       return fail("No pending end the run.", [CR.endTheRun]);
 
     case "discard_to_hand_size":
-      return discardPhase(next);
+      return discardPhase(next, action.cardIds);
 
     case "choose_option":
       return fail("No pending choice.", [CR.paidAbility]);

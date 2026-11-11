@@ -8,6 +8,7 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -168,7 +169,7 @@ export function applyRedsandSoPrimitive(
       }
       let trashed = 0;
       for (let i = 0; i < n && state.corp.hand.length > 0; i++) {
-        const idx = Math.floor(Math.random() * state.corp.hand.length);
+        const idx = Math.floor(random(state) * state.corp.hand.length);
         const id = state.corp.hand[idx]!;
         trashToArchives(state, id);
         trashed += 1;
@@ -327,7 +328,7 @@ export function applyRedsandSoPrimitive(
       if (programs.length === 0) {
         // shuffle remaining
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           [state.runner.deck[i], state.runner.deck[j]] = [
             state.runner.deck[j]!,
             state.runner.deck[i]!,
@@ -349,7 +350,7 @@ export function applyRedsandSoPrimitive(
       const cardIds = (action.cardIds ?? []).filter((id) => state.cards[id]);
       if (cardIds.length === 0) {
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           [state.runner.deck[i], state.runner.deck[j]] = [
             state.runner.deck[j]!,
             state.runner.deck[i]!,

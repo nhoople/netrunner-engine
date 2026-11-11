@@ -20,7 +20,7 @@ describe("kampala-ascendent", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("Kampala Ascendent v1.141.0 set-complete", () => {

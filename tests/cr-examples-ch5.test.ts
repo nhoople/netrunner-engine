@@ -20,7 +20,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.18");
+  assertCardsPinnedTag("v1.147.19");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -105,6 +105,8 @@ describe("CR examples, chapter 5", () => {
     s.corp.hand = [];
 
     s = must(s, { type: "play_event", cardId: "sh-1", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
 
     const damage = at(s.log, "core damage 1:");
     const trashed = at(s.log, "Stimhack trashed");

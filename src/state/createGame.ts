@@ -3,6 +3,7 @@ import { instantiateCard } from "../cards/load.js";
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { emptyTurnBookkeeping } from "./turn.js";
 import { recomputeRunnerLink } from "./trashHooks.js";
+import { DEFAULT_RNG_SEED, seedRng } from "./rng.js";
 import type {
   CardInstance,
   GameConfig,
@@ -198,10 +199,18 @@ export function createInitialState(
     lastForfeitedAdvancementRequirement: 0,
     winner: null,
     winReason: null,
-    config: { ...DEFAULT_CONFIG, ...config },
+    config: {
+      ...DEFAULT_CONFIG,
+      agendaPointsToWin:
+        config.agendaPointsToWin ?? DEFAULT_CONFIG.agendaPointsToWin,
+      stopAfterFirstCycle:
+        config.stopAfterFirstCycle ?? DEFAULT_CONFIG.stopAfterFirstCycle,
+    },
+    rngState: DEFAULT_RNG_SEED,
     log: ["Game start — opening mulligan (CR 1.6.6a), then Corp turn 1."],
     done: false,
   };
+  if (config.seed !== undefined) seedRng(state, config.seed);
   recomputeRunnerLink(state);
   fireOnGameStartSetup(state);
   return state;

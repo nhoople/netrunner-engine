@@ -41,15 +41,14 @@ import {
 import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { dealDamage, preventPendingDamage } from "../src/state/damage.js";
-import { resetPendingAbilitySeqForTests } from "../src/state/pendingAbilities.js";
-import { resetLingeringSeqForTests, suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/lingeringEffects.js";
 import { currentMark } from "../src/state/msKeywords.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.18");
+  assertCardsPinnedTag("v1.147.19");
 });
 
 describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
@@ -118,7 +117,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Sebastião when the Runner had no tags at the previous checkpoint (CR 9.6.6a)", () => {
-    resetPendingAbilitySeqForTests();
     const s = createInitialState();
     const id = instantiateCard(
       "sebastiao-souza-pessoa-activist-organizer",
@@ -154,7 +152,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("does not mark Sebastião when previous checkpoint had tags (CR 9.6.6a)", () => {
-    resetPendingAbilitySeqForTests();
     const s = createInitialState();
     const id = instantiateCard(
       "sebastiao-souza-pessoa-activist-organizer",
@@ -2794,7 +2791,6 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
 describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
   it("creates pending instances and marks them independent when imminent", () => {
-    resetPendingAbilitySeqForTests();
     const s = createInitialState();
     const inst = createPendingAbilityInstance(s, {
       abilityKey: "test:conditional",
@@ -2817,7 +2813,6 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
   });
 
   it("cancels still-pending instances when the Runner source leaves play (CR 9.6.10)", () => {
-    resetPendingAbilitySeqForTests();
     const s = createInitialState();
     const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
     s.cards["dd-1"] = dealer;
@@ -2845,7 +2840,6 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
   });
 
   it("cancels still-pending instances when the Corp source leaves play (CR 9.6.10)", () => {
-    resetPendingAbilitySeqForTests();
     const s = createInitialState();
     const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
     pad.rezzed = true;
@@ -2878,7 +2872,6 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
   });
 
   it("cancels still-pending instances when the source is blanked (CR 9.6.10)", async () => {
-    resetPendingAbilitySeqForTests();
     const { blankAbilitiesUntilCorpTurnEnd } = await import(
       "../src/state/lingeringEffects.js"
     );
@@ -2912,7 +2905,6 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
   });
 
   it("cancels Hostile Infrastructure pending when blanked before resolve (CR 9.6.10)", () => {
-    resetPendingAbilitySeqForTests();
     const s = createInitialState();
     const hi = instantiateCard(
       "hostile-infrastructure",
@@ -2943,7 +2935,6 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
   });
 
   it("keeps leftover pending off a checkpoint that marks nothing (CR 10.3.2)", () => {
-    resetPendingAbilitySeqForTests();
     const s = createInitialState();
     // Deferred leftover (Amaze-class): still pending from an earlier window.
     const leftover = createPendingAbilityInstance(s, {
@@ -2974,7 +2965,6 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
   });
 
   it("opens a reaction window only for newly marked pending (CR 9.2.8a / 10.3.2)", () => {
-    resetPendingAbilitySeqForTests();
     const s = createInitialState();
     s.cards[s.corp.identityId]!.defId = "weyland-consortium-built-to-last";
     const asset = instantiateCard(
@@ -3033,7 +3023,6 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
 
 describe("lingering effect registry (CR 9.10.1)", () => {
   it("creates independent lingerings and removes them at 10.3.1b", () => {
-    resetLingeringSeqForTests();
     const s = createInitialState();
     const effect = addLingeringEffect(s, {
       createdBy: s.runner.identityId,
@@ -3052,7 +3041,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("expires turn-duration lingerings only for the ended side", () => {
-    resetLingeringSeqForTests();
     const s = createInitialState();
     addLingeringEffect(s, {
       createdBy: s.corp.identityId,
@@ -3069,7 +3057,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers mark designation as a turn-duration lingering (CR 10.11.4)", async () => {
-    resetLingeringSeqForTests();
     const { identifyMark } = await import("../src/state/msKeywords.js");
     const {
       LINGERING_KIND_MARK,
@@ -3098,7 +3085,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers run/encounter strength boosts as lingerings (CR 9.10.1)", async () => {
-    resetLingeringSeqForTests();
     const {
       LINGERING_KIND_BREAKER_STRENGTH_RUN,
       LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
@@ -3175,7 +3161,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers until-checkpoint breaker boosts as lingerings (CR 9.10.1)", async () => {
-    resetLingeringSeqForTests();
     const {
       LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
       lingeringEffectsOfKind,
@@ -3200,7 +3185,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers Corp-turn ability blanks as lingerings (CR 9.10.1)", async () => {
-    resetLingeringSeqForTests();
     const {
       LINGERING_KIND_ABILITY_BLANK,
       lingeringEffectsOfKind,
@@ -3240,7 +3224,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers this-turn strength boosts as turn-duration lingerings (CR 9.10.1)", async () => {
-    resetLingeringSeqForTests();
     const {
       LINGERING_KIND_BREAKER_STRENGTH,
       LINGERING_KIND_ICE_STRENGTH,
@@ -3292,7 +3275,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers runner MU modifiers as a Runner-turn lingering (CR 9.10.1)", async () => {
-    resetLingeringSeqForTests();
     const {
       LINGERING_KIND_RUNNER_MU,
       lingeringEffectsOfKind,
@@ -3330,7 +3312,6 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers granted ice subtypes as a turn-duration lingering (CR 9.10.1)", async () => {
-    resetLingeringSeqForTests();
     const {
       LINGERING_KIND_GRANTED_SUBTYPES,
       lingeringEffectsOfKind,

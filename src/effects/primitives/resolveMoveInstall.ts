@@ -8,20 +8,12 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random, shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-function shuffleDeck(deck: string[]): void {
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = deck[i]!;
-    deck[i] = deck[j]!;
-    deck[j] = tmp;
-  }
-}
 
 /** Compile's run-end ability: the program it installed goes to the bottom of the stack. */
 export function addCompileInstalledToBottom(state: GameState): void {
@@ -168,7 +160,7 @@ export function applyKitaraWinPrimitive(
     case "win_embezzle_named": {
       const hq = [...state.corp.hand];
       for (let i = hq.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = hq[i]!;
         hq[i] = hq[j]!;
         hq[j] = tmp;
@@ -326,7 +318,7 @@ export function applyKitaraWinPrimitive(
       const programs = zoneIds.filter((id) => state.cards[id]?.type === "program");
       if (programs.length === 0) {
         log(state, `Compile — no program in ${action.zone}.`);
-        if (action.zone === "stack") shuffleDeck(state.runner.deck);
+        if (action.zone === "stack") shuffleInPlace(state, state.runner.deck);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -357,7 +349,7 @@ export function applyKitaraWinPrimitive(
       if (state.run) {
         state.run.winCompileInstalledProgramId = action.cardId;
       }
-      if (action.zone === "stack") shuffleDeck(state.runner.deck);
+      if (action.zone === "stack") shuffleInPlace(state, state.runner.deck);
       log(state, `Compile — install ${card.title} ignoring costs.`);
       return { ok: true };
     }
@@ -429,7 +421,7 @@ export function applyKitaraWinPrimitive(
       const ice = state.corp.deck.filter((id) => state.cards[id]?.type === "ice");
       if (ice.length === 0) {
         log(state, `Remote Enforcement — no ice in R&D.`);
-        shuffleDeck(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -501,13 +493,13 @@ export function applyKitaraWinPrimitive(
       }
       const server = state.servers[serverId];
       if (!server) {
-        shuffleDeck(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         return { ok: true };
       }
       const cost = corpInstallCost(ice, server.ice.length);
       if (state.corp.credits < cost) {
         log(state, `Remote Enforcement — cannot pay install cost ${cost}.`);
-        shuffleDeck(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         return { ok: true };
       }
       state.corp.credits -= cost;
@@ -517,7 +509,7 @@ export function applyKitaraWinPrimitive(
       ice.rezzed = true;
       ice.faceup = true;
       server.ice.push(action.iceId);
-      shuffleDeck(state.corp.deck);
+      shuffleInPlace(state, state.corp.deck);
       log(
         state,
         `Remote Enforcement — install and rez ${ice.title} on ${serverId} (paid ${cost}¢ install, ignored rez).`,

@@ -14,6 +14,7 @@ import { fx } from "../effects/ir.js";
 import { startTrace } from "./trace.js";
 import { memoryLimit, usedMemory } from "./turn.js";
 import { openPendingChoose } from "./pendingChoice.js";
+import { pickRandomSubset } from "./rng.js";
 
 
 const noop = (side: Side) => fx.do({ kind: "gain_credits", side, amount: 0 });
@@ -494,13 +495,15 @@ export function onAccessFinishedWithoutStealOrTrash(state: GameState, cardId: st
       log(state, `${maw.title} — HQ is empty.`);
       return;
     }
-    const pick = hq[hq.length - 1]!;
+    // At random, from the seeded stream.
+    const pick = pickRandomSubset(state, hq, 1)[0]!;
     state.corp.hand = hq.filter((x) => x !== pick);
     state.corp.discardPile.push(pick);
     const trashed = state.cards[pick];
     if (trashed) {
       trashed.zone = "corp:archives";
-      trashed.faceup = true;
+      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+      trashed.faceup = false;
     }
     log(state, `${maw.title} — Corp trashes 1 card from HQ at random.`);
     return;

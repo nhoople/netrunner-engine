@@ -9,6 +9,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -148,7 +149,7 @@ export function applyRedsandFmPrimitive(
         log(state, `O₂ Shortage — grip empty; no trash.`);
         return { ok: true };
       }
-      const idx = Math.floor(Math.random() * state.runner.hand.length);
+      const idx = Math.floor(random(state) * state.runner.hand.length);
       const id = state.runner.hand[idx]!;
       state.runner.hand.splice(idx, 1);
       trashToHeap(state, id);

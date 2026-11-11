@@ -10,19 +10,11 @@ import { fx, type Primitive } from "../ir.js";
 import {
   fireOnAgendaAccessedOrScored,
 } from "../../state/miscConditionalHooks.js";
+import { random, shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-function shuffleDeck(deck: string[]): void {
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = deck[i]!;
-    deck[i] = deck[j]!;
-    deck[j] = tmp;
-  }
-}
 
 function installedVirusProgramIds(state: EffectCtx["state"]): string[] {
   return state.runner.installed.filter((id) => {
@@ -116,7 +108,7 @@ export function applyKitaraTdatdPrimitive(
       // Trash 5 at random from HQ.
       const hq = [...state.corp.hand];
       for (let i = hq.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = hq[i]!;
         hq[i] = hq[j]!;
         hq[j] = tmp;
@@ -127,7 +119,8 @@ export function applyKitaraTdatdPrimitive(
         if (idx >= 0) state.corp.hand.splice(idx, 1);
         const c = state.cards[id]!;
         c.zone = "corp:archives";
-        c.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        c.faceup = false;
         c.rezzed = false;
         state.corp.discardPile.push(id);
         log(state, `Glut Cipher — trash ${c.title} from HQ at random.`);
@@ -330,7 +323,7 @@ export function applyKitaraTdatdPrimitive(
         c.advancementCounters = 0;
         state.corp.deck.push(id);
       }
-      shuffleDeck(state.corp.deck);
+      shuffleInPlace(state, state.corp.deck);
       log(
         state,
         `Because I Can — shuffle ${root.length} card(s) from ${serverId} root into R&D.`,
@@ -465,7 +458,7 @@ logLine: `Sadaka — arrange top of R&D.`,
     case "shuffle_sadaka": {
       const cardIds = (action as { cardIds: string[] }).cardIds;
       state.corp.deck = [...cardIds, ...state.corp.deck];
-      shuffleDeck(state.corp.deck);
+      shuffleInPlace(state, state.corp.deck);
       log(state, `Sadaka — shuffle R&D.`);
       return { ok: true };
     }
@@ -497,7 +490,8 @@ logLine: `Sadaka — arrange top of R&D.`,
       state.corp.hand.splice(idx, 1);
       const c = state.cards[cardId]!;
       c.zone = "corp:archives";
-      c.faceup = true;
+      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+      c.faceup = false;
       state.corp.discardPile.push(cardId);
       log(state, `Sadaka — trash ${c.title} from HQ.`);
       const resources = state.runner.installed.filter(

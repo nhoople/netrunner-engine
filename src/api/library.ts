@@ -5,6 +5,7 @@
 import { applyAction } from "../actions/apply.js";
 import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/createGame.js";
+import { seedRng } from "../state/rng.js";
 import { gripRevealed } from "../state/cardDeclarations.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import {
@@ -50,11 +51,13 @@ export function createGame(options: CreateGameOptions = {}): GameState {
       stopAfterFirstCycle:
         options.stopAfterFirstCycle ?? state.config.stopAfterFirstCycle,
     };
+    if (options.seed !== undefined) seedRng(state, options.seed);
     return state;
   }
   return createInitialState({
     agendaPointsToWin: options.agendaPointsToWin ?? 7,
     stopAfterFirstCycle: options.stopAfterFirstCycle ?? false,
+    seed: options.seed,
   });
 }
 
@@ -100,28 +103,93 @@ function lingeringPlayAreaViews(
   return out;
 }
 
+/**
+ * Ids of cards whose face the viewer may not see: cards in the other
+ * player's hand, facedown cards in either deck, facedown cards in Archives,
+ * unrezzed installed Corp cards, and facedown Runner cards
+ * (CR 1.21.1, 4.4.6c).
+ */
+function idsHiddenFrom(state: GameState, viewer: Side): string[] {
+  const other = viewer === "corp" ? state.runner : state.corp;
+  const otherHand = new Set(other.hand);
+  const decks = new Set([...state.corp.deck, ...state.runner.deck]);
+  const handOpen = viewer === "corp" && gripRevealed(state);
+  const hidden: string[] = [];
+  for (const card of Object.values(state.cards)) {
+    if (card.type === "identity") continue;
+    if (decks.has(card.id)) {
+      if (!card.faceup) hidden.push(card.id);
+      continue;
+    }
+    if (card.side === viewer) continue;
+    if (otherHand.has(card.id)) {
+      if (!handOpen) hidden.push(card.id);
+      continue;
+    }
+    if (!(card.faceup || card.rezzed)) hidden.push(card.id);
+  }
+  return hidden;
+}
+
+/** Every string inside an effect tree: the card ids it can name. */
+function stringsIn(value: unknown, out: Set<string>): void {
+  if (typeof value === "string") out.add(value);
+  else if (Array.isArray(value)) for (const item of value) stringsIn(item, out);
+  else if (value && typeof value === "object") {
+    for (const item of Object.values(value)) stringsIn(item, out);
+  }
+}
+
+function idNames(optionId: string, cardId: string): boolean {
+  if (optionId === cardId) return true;
+  return (
+    optionId.endsWith(`:${cardId}`) ||
+    optionId.startsWith(`${cardId}:`) ||
+    optionId.includes(`:${cardId}:`)
+  );
+}
+
+/** Label the other player reads for an option that names a hidden card. */
+function hiddenOptionLabel(optionId: string): string {
+  if (optionId.startsWith("dbs-bottom:")) return "Add a set-aside card to the bottom of R&D";
+  if (optionId.startsWith("cultivate-trash:")) return "Trash a looked card";
+  if (optionId.startsWith("cultivate-hq:")) return "Add a looked card to HQ";
+  if (optionId.startsWith("rd-arrange:")) return "Place a looked card on R&D next";
+  if (optionId.startsWith("raman:")) return "Swap a drawn card with an Archives card";
+  return "Hidden";
+}
+
 function publicPendingChoice(state: GameState, viewer: Side) {
   const choice = state.pendingChoice;
   if (!choice) return null;
   const copy = structuredClone(choice);
   if (viewer === choice.chooser) return copy;
-  copy.options = copy.options.map((option) => {
-    if (option.id.startsWith("dbs-bottom:")) {
-      return { ...option, label: "Add a set-aside card to the bottom of R&D" };
-    }
-    if (option.id.startsWith("cultivate-trash:")) {
-      return { ...option, label: "Trash a looked card" };
-    }
-    if (option.id.startsWith("cultivate-hq:")) {
-      return { ...option, label: "Add a looked card to HQ" };
-    }
-    if (option.id.startsWith("rd-arrange:")) {
-      return { ...option, label: "Place a looked card on R&D next" };
-    }
-    if (option.id.startsWith("raman:")) {
-      return { ...option, label: "Swap a drawn card with an Archives card" };
-    }
-    return option;
+  // The other player cannot pick an option. They do not get what each
+  // option would do, and an option that names a card they may not see is
+  // shown without its id or label (CR 1.21.2).
+  const noEffect = {
+    op: "do" as const,
+    action: { kind: "gain_credits" as const, side: viewer, amount: 0 },
+  };
+  if (choice.shownToOpponent) {
+    copy.options = copy.options.map((option) => ({ ...option, effect: noEffect }));
+    return copy;
+  }
+  const hiddenIds = idsHiddenFrom(state, viewer);
+  const hiddenSet = new Set(hiddenIds);
+  copy.options = copy.options.map((option, index) => {
+    const named = new Set<string>();
+    stringsIn(option.effect, named);
+    const hidden =
+      choice.hiddenFromOpponent === true ||
+      [...named].some((value) => hiddenSet.has(value)) ||
+      hiddenIds.some((id) => idNames(option.id, id));
+    if (!hidden) return { ...option, effect: noEffect };
+    return {
+      id: `hidden:${index}`,
+      label: choice.hiddenFromOpponent ? "Hidden" : hiddenOptionLabel(option.id),
+      effect: noEffect,
+    };
   });
   return copy;
 }

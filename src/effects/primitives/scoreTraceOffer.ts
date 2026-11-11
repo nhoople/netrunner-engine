@@ -9,6 +9,7 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -244,7 +245,7 @@ export function applyLunarAtrPrimitive(
         return { ok: true };
       }
       for (let i = hq.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         [hq[i], hq[j]] = [hq[j]!, hq[i]!];
       }
       const pick = hq.slice(0, Math.min(amount, hq.length));
@@ -252,7 +253,8 @@ export function applyLunarAtrPrimitive(
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
         state.corp.discardPile.push(id);
         state.cards[id]!.zone = "corp:archives";
-        state.cards[id]!.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[id]!.faceup = false;
         log(
           state,
           `Corp discards ${state.cards[id]!.title} from HQ at random.`,

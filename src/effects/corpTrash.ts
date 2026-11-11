@@ -30,6 +30,7 @@ import {
   fireOnRezzedCardTrashed,
   fireOnRunnerTrashFromThisServerRootOrProtecting,
 } from "../state/miscConditionalHooks.js";
+import { shuffleInPlace } from "../state/rng.js";
 
 export function trashToHeap(state: GameState, cardId: string): void {
   moveRunnerCardToHeap(state, cardId);
@@ -128,6 +129,13 @@ export function trashCorpCardToArchives(
   const printedRez = card.rezCost ?? null;
   const zoneBefore = card.zone;
   const wasFromHq = zoneBefore === "corp:hq";
+  // The Runner sees a card they are accessing, a rezzed card, and a faceup
+  // card outside HQ and R&D. A card in HQ or R&D is hidden even if it was
+  // revealed earlier (CR 1.21.3).
+  const fromHiddenZone = wasFromHq || zoneBefore === "corp:rd";
+  const visibleToRunner =
+    state.run?.accessingCardId === cardId ||
+    (!fromHiddenZone && (wasRezzed || Boolean(card.faceup)));
   const wasInstalled = zoneBefore.startsWith("server:");
   if (
     card.playersCannotTrashThisIce &&
@@ -156,6 +164,7 @@ export function trashCorpCardToArchives(
     card.faceup = false;
     card.rezzed = false;
     card.hostedCredits = undefined;
+    shuffleInPlace(state, state.corp.deck);
     log(state, `${card.title} — shuffle into R&D instead of trash.`);
     return;
   }
@@ -187,7 +196,9 @@ export function trashCorpCardToArchives(
   cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
   state.corp.discardPile.push(cardId);
   card.zone = "corp:archives";
-  card.faceup = true;
+  // CR 4.4.6b: faceup in Archives only if the Runner could see the card
+  // when it was trashed.
+  card.faceup = visibleToRunner;
   card.rezzed = false;
   if (
     wasInstalled &&

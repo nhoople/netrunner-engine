@@ -8,6 +8,7 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -23,15 +24,6 @@ function countRezzedNextIce(state: EffectCtx["state"]): number {
     }
   }
   return n;
-}
-
-function shuffleDeck(deck: string[]): void {
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = deck[i]!;
-    deck[i] = deck[j]!;
-    deck[j] = tmp;
-  }
 }
 
 function trashSelfUpgrade(
@@ -85,7 +77,7 @@ function shuffleRunnerCardIntoStack(
   card.faceup = false;
   card.rezzed = false;
   state.runner.deck.push(cardId);
-  shuffleDeck(state.runner.deck);
+  shuffleInPlace(state, state.runner.deck);
   log(state, `Shuffle ${card.title} into the stack.`);
 }
 
@@ -152,7 +144,7 @@ export function applyKitaraCotcPrimitive(
         );
       });
       if (candidates.length === 0) {
-        shuffleDeck(state.runner.deck);
+        shuffleInPlace(state, state.runner.deck);
         log(state, `Crypt — no virus program in stack; shuffle.`);
         return { ok: true };
       }
@@ -181,7 +173,7 @@ export function applyKitaraCotcPrimitive(
           state,
           `Crypt — cannot pay ${cost}¢ to install ${card.title}; shuffle.`,
         );
-        shuffleDeck(state.runner.deck);
+        shuffleInPlace(state, state.runner.deck);
         return { ok: true };
       }
       subtractRunnerCreditPool(state, cost);
@@ -189,7 +181,7 @@ export function applyKitaraCotcPrimitive(
       state.runner.installed.push(cardId);
       card.zone = "runner:installed";
       card.faceup = true;
-      shuffleDeck(state.runner.deck);
+      shuffleInPlace(state, state.runner.deck);
       log(
         state,
         `Crypt — install ${card.title} for ${cost}¢; shuffle stack.`,
@@ -368,7 +360,7 @@ export function applyKitaraCotcPrimitive(
         card.zone = "corp:rd";
         card.faceup = false;
         state.corp.deck.push(cardId);
-        shuffleDeck(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         log(state, `White Hat — shuffle ${card.title} into R&D.`);
       }
       if (remaining <= 0) return { ok: true };
@@ -545,7 +537,7 @@ export function applyKitaraCotcPrimitive(
         card.zone = "corp:rd";
         card.faceup = false;
         state.corp.deck.push(cardId);
-        shuffleDeck(state.corp.deck);
+        shuffleInPlace(state, state.corp.deck);
         log(state, `NEXT Sapphire — shuffle ${card.title} into R&D.`);
       }
       if (remaining <= 0) return { ok: true };

@@ -282,4 +282,55 @@ describe("nested cost unless (CR 1.16.11b)", () => {
     });
     expect(err).toMatch(/not_a_real_cost/);
   });
+  describe("a cost with several parts is paid in full or not at all", () => {
+    const clickAndCredits = (): ReturnType<typeof fx.do> =>
+      fx.do({
+        kind: "unless",
+        payer: "runner",
+        cost: fx.seq(
+          fx.do({ kind: "lose_clicks", side: "runner", amount: 1 }),
+          fx.do({ kind: "lose_credits", side: "runner", amount: 2 }),
+        ),
+        instruction: fx.do({ kind: "end_the_run" }),
+      });
+
+    it("validates", () => {
+      expect(validateEffectTree(clickAndCredits())).toBeNull();
+    });
+
+    it("pays every part and skips the instruction", () => {
+      let s = withRun(5);
+      s.runner.clicks = 2;
+      const r = evalEffect({ state: s, sourceId: "ice-1" }, clickAndCredits());
+      expect(r.ok).toBe(true);
+      expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
+        "unless-instruction",
+        "unless-pay",
+      ]);
+      expect(s.pendingChoice?.options.find((o) => o.id === "unless-pay")?.label).toBe(
+        "Spend 1 [click] and pay 2¢",
+      );
+      s = must(s, { type: "choose_option", optionId: "unless-pay" });
+      expect(s.runner.clicks).toBe(1);
+      expect(s.runner.credits).toBe(3);
+      expect(s.run?.endedTheRun).toBe(false);
+    });
+
+    it("resolves the instruction when one part cannot be paid", () => {
+      const noClicks = withRun(5);
+      noClicks.runner.clicks = 0;
+      expect(evalEffect({ state: noClicks, sourceId: "ice-1" }, clickAndCredits()).ok).toBe(true);
+      expect(noClicks.pendingChoice).toBeNull();
+      expect(noClicks.run?.endedTheRun).toBe(true);
+      expect(noClicks.runner.credits).toBe(5);
+
+      const noCredits = withRun(1);
+      noCredits.runner.clicks = 3;
+      expect(evalEffect({ state: noCredits, sourceId: "ice-1" }, clickAndCredits()).ok).toBe(true);
+      expect(noCredits.pendingChoice).toBeNull();
+      expect(noCredits.run?.endedTheRun).toBe(true);
+      expect(noCredits.runner.clicks).toBe(3);
+      expect(noCredits.runner.credits).toBe(1);
+    });
+  });
 });

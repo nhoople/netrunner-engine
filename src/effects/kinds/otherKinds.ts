@@ -11,6 +11,7 @@ import type {
   Primitive,
 } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
+import { chooseCards } from "../chooseCards.js";
 import {
   effectiveIceSubtypes,
   iceBreakExceptSubtype,
@@ -1987,18 +1988,21 @@ case "pick_revealed": {
     }
 
 case "archives_to_hq": {
-      const n = Math.min(action.amount, state.corp.discardPile.length);
-      for (let i = 0; i < n; i++) {
-        const id = state.corp.discardPile.pop()!;
-        state.corp.hand.push(id);
-        state.cards[id].zone = "corp:hq";
-        state.cards[id].faceup = false;
+      // The Corp may look at every card in Archives (CR 4.4.6c) and
+      // chooses which to add (CR 1.15.2).
+      if (state.corp.discardPile.length === 0) {
+        log(state, `Add a card from Archives to HQ — Archives is empty.`);
+        return { ok: true };
       }
-      log(
-        state,
-        `Add ${n} card(s) from Archives to HQ (CR ${CR.drawing.number}).`,
+      return evalEffect(
+        ctx,
+        chooseCards({
+          chooser: "corp",
+          candidates: [...state.corp.discardPile],
+          count: action.amount,
+          purpose: "archives_to_hq",
+        }),
       );
-      return { ok: true };
     }
 
 case "may_give_runner_credits_then": {
@@ -2618,7 +2622,8 @@ logLine: `HQ to top of R&D — Corp chooses among ${hq.length}.`,
       }
       const id = action.pick === "first" ? hq[0]! : hq[hq.length - 1]!;
       removeCardFromCurrentZone(state, id);
-      state.corp.deck.push(id);
+      // Index 0 is the top of R&D.
+      state.corp.deck.unshift(id);
       state.cards[id].zone = "corp:rd";
       state.cards[id].faceup = false;
       log(

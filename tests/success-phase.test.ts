@@ -23,7 +23,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.18");
+  assertCardsPinnedTag("v1.147.19");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -109,6 +109,8 @@ describe("CR M1 — success ternary (6.8.4a)", () => {
     expect(mid.runner.tags).toBe(0);
 
     s = must(s, { type: "basic_run", serverId: "hq" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.run).toBeNull();
     expect(s.turn.successfulRunThisTurn).toBe(false);
     expect(s.turn.successfulHqRunThisTurn).toBe(false);

@@ -30,7 +30,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.18");
+  assertCardsPinnedTag("v1.147.19");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -208,6 +208,8 @@ describe("confidence smoke — success ternary (Crisium / 6.8.4a)", () => {
     s.runner.clicks = 4;
 
     s = must(s, { type: "basic_run", serverId: "archives" });
+    // The Runner does not jack out (CR 6.9.4c).
+    s = must(s, { type: "continue_run" });
     expect(s.run).toBeNull();
     expect(s.turn.successfulRunThisTurn).toBe(false);
     expect(

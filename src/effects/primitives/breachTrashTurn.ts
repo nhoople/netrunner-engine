@@ -7,6 +7,7 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -61,26 +62,24 @@ logLine: `Keyhole — may instead of breaching R&D.`,
         state,
         `Keyhole — look top ${looked.length}: ${looked.map((id) => state.cards[id]!.title).join(", ") || "none"}.`,
       );
-      const programs = looked.filter((id) => state.cards[id]!.type === "program");
-      if (programs.length === 0) {
-        for (const id of looked) state.corp.deck.unshift(id);
+      // The Runner trashes 1 of the looked cards, whatever its type, then
+      // R&D is shuffled.
+      if (looked.length === 0) {
         state.turn.rdLookedCards = [];
-        log(state, `Keyhole — no program to trash; shuffle R&D.`);
+        shuffleInPlace(state, state.corp.deck);
+        log(state, `Keyhole — R&D is empty; shuffle R&D.`);
         return { ok: true };
       }
-      if (programs.length === 1) {
-        const id = programs[0]!;
-        trashToArchives(state, id);
-        const rest = looked.filter((x) => x !== id);
-        for (const rid of rest) state.corp.deck.unshift(rid);
-        state.turn.rdLookedCards = [];
-        log(state, `Keyhole — trash ${state.cards[id]!.title}; shuffle R&D.`);
-        return { ok: true };
+      if (looked.length === 1) {
+        return applySpinTcPrimitive(ctx, {
+          kind: "trash_looked_program",
+          cardId: looked[0]!,
+        }) ?? { ok: true };
       }
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
-        options: programs.map((id) => ({
+        options: looked.map((id) => ({
           id: `keyhole-trash:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.do({ kind: "trash_looked_program", cardId: id }),
@@ -90,10 +89,14 @@ logLine: `Keyhole — may instead of breaching R&D.`,
     }
     case "trash_looked_program": {
       const id = action.cardId;
-      trashToArchives(state, id);
       const rest = (state.turn.rdLookedCards ?? []).filter((x) => x !== id);
-      for (const rid of rest) state.corp.deck.unshift(rid);
+      for (const rid of rest) {
+        state.corp.deck.unshift(rid);
+        state.cards[rid]!.faceup = false;
+      }
+      trashToArchives(state, id);
       state.turn.rdLookedCards = [];
+      shuffleInPlace(state, state.corp.deck);
       log(state, `Keyhole — trash ${state.cards[id]?.title ?? id}; shuffle R&D.`);
       return { ok: true };
     }

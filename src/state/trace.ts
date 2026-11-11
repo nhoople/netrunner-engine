@@ -13,6 +13,7 @@ import { prepareTraceSpendOrder } from "./cardDeclarations.js";
 import {
   fireOnSuccessfulTraceDuringRun,
 } from "./miscConditionalHooks.js";
+import { nextId } from "./ids.js";
 
 /** Credits available for Corp trace boosts (bank + Making News-class recurring). */
 export function corpCreditsForTrace(state: GameState): number {
@@ -69,8 +70,6 @@ function spendCorpCreditsForTrace(state: GameState, amount: number): void {
   state.corp.credits -= left;
 }
 
-let traceSeq = 0;
-
 export function startTrace(
   state: GameState,
   sourceId: string,
@@ -79,7 +78,7 @@ export function startTrace(
   onFailure?: Effect,
 ): void {
   state.trace = {
-    id: `trace-${++traceSeq}`,
+    id: nextId(state, "trace"),
     sourceId,
     baseStrength: baseStrength + traceBaseBonus(state),
     corpSpent: 0,

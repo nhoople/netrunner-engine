@@ -6,6 +6,7 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -185,7 +186,7 @@ logLine: `Trade-In — gain ${half}¢; search hardware.`,
       state.runner.hand.push(cardId);
       state.cards[cardId]!.zone = "runner:grip";
       state.cards[cardId]!.faceup = true;
-      state.runner.deck.sort(() => Math.random() - 0.5);
+      shuffleInPlace(state, state.runner.deck);
       log(state, `Trade-In — add ${state.cards[cardId]!.title} to grip; shuffle stack.`);
       return { ok: true };
     }

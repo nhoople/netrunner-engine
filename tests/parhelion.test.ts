@@ -47,7 +47,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -187,7 +187,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -275,7 +275,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("PH Concerto", () => {
@@ -333,7 +333,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -415,17 +415,22 @@ describe("parhelion", () => {
 
       const grip0 = s.runner.hand.length;
       s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.runner.hand.length).toBe(grip0);
       s = finishToTakeAction(s);
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      s = must(s, { type: "continue_run" });
       expect(s.runner.hand.length).toBe(grip0 + 1);
       s = finishToTakeAction(s);
       s.runner.clicks = 4;
 
       const grip1 = s.runner.hand.length;
       s = must(s, { type: "basic_run", serverId: "rd" as ServerId });
+      s = must(s, { type: "continue_run" });
+      expect(s.turn.successfulRunThisTurn).toBe(true);
       expect(s.runner.hand.length).toBe(grip1);
     });
   });
@@ -461,6 +466,8 @@ describe("parhelion", () => {
       s.runner.clicks = 4;
 
       s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.pendingChoice?.sourceId).toBe("nga-1");
       s = must(s, { type: "choose_option", optionId: "sabotage" });
       expect(s.cards["nga-1"]!.powerCounters).toBe(2);
@@ -547,6 +554,8 @@ describe("parhelion", () => {
       s.timingKey = "runner.takeAction";
 
       s = must(s, { type: "play_event", cardId: "fin-1", serverId: "rd" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.runner.coreDamage).toBe(1);
       expect(s.run?.attackedServerId).toBe("rd");
       expect(s.run?.bonusAccess).toBe(3);
@@ -597,7 +606,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -664,7 +673,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -769,7 +778,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("PH Gaslight", () => {
@@ -807,7 +816,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -935,7 +944,7 @@ describe("parhelion", () => {
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
     // Pin bump lands with this slice; local CARDS_DATA_ROOT may be ahead.
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -1190,7 +1199,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -1413,7 +1422,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -1502,6 +1511,8 @@ describe("parhelion", () => {
       s.activeSide = "runner";
       s.timingKey = "runner.takeAction";
       s = must(s, { type: "basic_run", serverId: "rd" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.pendingChoice?.chooser).toBe("runner");
       expect(s.run?.wakeImplantPending).toBe(true);
       s = must(s, { type: "choose_option", optionId: "wake-access:2" });
@@ -1563,7 +1574,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -1702,7 +1713,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -1793,13 +1804,13 @@ describe("parhelion", () => {
       expect(s.runner.scoreArea).toContain("ag-1");
       expect(s.pendingChoice?.chooser).toBe("runner");
       expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
-        "damage",
-        "pay",
+        "unless-instruction",
+        "unless-pay",
       ]);
 
       const clicksBefore = s.runner.clicks;
       const creditsBefore = s.runner.credits;
-      s = must(s, { type: "choose_option", optionId: "pay" });
+      s = must(s, { type: "choose_option", optionId: "unless-pay" });
       expect(s.runner.clicks).toBe(clicksBefore - 1);
       expect(s.runner.credits).toBe(creditsBefore - 2);
     });
@@ -1874,7 +1885,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -2003,7 +2014,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -2118,7 +2129,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -2245,7 +2256,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -2443,7 +2454,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -2578,6 +2589,8 @@ describe("parhelion", () => {
       s.timingKey = "runner.takeAction";
       const creditsBefore = s.runner.credits;
       s = must(s, { type: "basic_run", serverId: "archives" });
+      // The Runner does not jack out (CR 6.9.4c).
+      s = must(s, { type: "continue_run" });
       expect(s.run).toBeNull();
       expect(s.turn.infoBountyMarkRunEndUsed).toBe(true);
       expect(s.runner.credits).toBe(creditsBefore + 2);
@@ -2590,7 +2603,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -2806,7 +2819,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -2988,7 +3001,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -3156,6 +3169,13 @@ describe("parhelion", () => {
         }
       }
       expect(s.turn.successfulRunThisTurn).toBe(true);
+      // Pennyshaver and World Tree both trigger on the successful run; the
+      // Runner picks which resolves first (CR 9.2.8d).
+      const treeFirst = s.pendingChoice?.options.find(
+        (o) => o.id.startsWith("trigger:") && o.label === "World Tree",
+      );
+      expect(treeFirst).toBeDefined();
+      s = must(s, { type: "choose_option", optionId: treeFirst!.id });
       expect(s.turn.onSuccessfulRunFiredIds).toContain("wt-3");
       expect(s.pendingChoice?.options.some((o) => o.id === "trash:hw-3")).toBe(
         true,
@@ -3183,7 +3203,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -3356,7 +3376,7 @@ describe("parhelion", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(

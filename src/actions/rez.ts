@@ -52,6 +52,7 @@ import { openPendingChoose } from "../state/pendingChoice.js";
 import {
   fireOnFirstIceRezEachTurn,
 } from "../state/miscConditionalHooks.js";
+import { random } from "../state/rng.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -202,10 +203,9 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     Boolean(state.run) &&
     iceServerId(state, cardId) === state.run!.attackedServerId;
   if (asNonIce) {
-    const paw = currentWindow(state.timingKey);
-    if (paw !== "approach_server_paw" && paw !== "corp_action_paw") {
+    if (!corpMayRez(state.timingKey)) {
       return fail(
-        "This ice may only be rezzed as non-ice during approach-server or Corp action PAWs.",
+        "This ice may be rezzed as a non-ice card only in a window where the Corp may rez.",
         [CR.rezInPaw, CR.rezProcedure],
       );
     }
@@ -658,13 +658,14 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
         );
       }
       const pick =
-        state.corp.hand[Math.floor(Math.random() * state.corp.hand.length)]!;
+        state.corp.hand[Math.floor(random(state) * state.corp.hand.length)]!;
       state.corp.hand = state.corp.hand.filter((id) => id !== pick);
       state.corp.discardPile.push(pick);
       const trashed = state.cards[pick];
       if (trashed) {
         trashed.zone = "corp:archives";
-        trashed.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        trashed.faceup = false;
       }
       log(
         state,

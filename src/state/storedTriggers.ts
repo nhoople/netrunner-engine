@@ -10,12 +10,14 @@ import { log } from "./createGame.js";
 import type {
   CardInstance,
   GameState,
+  PendingAbilityInstance,
   PendingAbilityPayload,
   ServerId,
   Side,
   StoredConditionalEffectKey,
 } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { openPendingChoose } from "./pendingChoice.js";
 import {
   cancelPendingIfSourceInactive,
   closeReactionWindow,
@@ -32,7 +34,8 @@ import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 export type StoredEffectKey = StoredConditionalEffectKey;
 
-function effectFromKey(
+/** The effect a card stores under `key`, or undefined when it has none. */
+export function effectFromKey(
   card: CardInstance,
   key: StoredConditionalEffectKey,
 ): Effect | undefined {
@@ -128,6 +131,107 @@ function effectForConditionalPending(
   return undefined;
 }
 
+function isStoredOrInline(inst: PendingAbilityInstance): boolean {
+  return (
+    inst.payload?.kind === "stored_conditional" ||
+    inst.payload?.kind === "inline_conditional"
+  );
+}
+
+/**
+ * Two pending instances of the same ability on copies of the same card.
+ * Their order cannot change the outcome, so the player is not asked.
+ */
+function sameAbility(
+  state: GameState,
+  a: PendingAbilityInstance,
+  b: PendingAbilityInstance,
+): boolean {
+  if (a.abilityKey !== b.abilityKey) return false;
+  const defA = state.cards[a.sourceId]?.defId;
+  if (defA === undefined || defA !== state.cards[b.sourceId]?.defId) {
+    return false;
+  }
+  if (
+    a.payload?.kind === "stored_conditional" &&
+    b.payload?.kind === "stored_conditional"
+  ) {
+    return a.payload.effectKey === b.payload.effectKey;
+  }
+  if (
+    a.payload?.kind === "inline_conditional" &&
+    b.payload?.kind === "inline_conditional"
+  ) {
+    return (
+      JSON.stringify(a.payload.effect) === JSON.stringify(b.payload.effect)
+    );
+  }
+  return false;
+}
+
+/**
+ * Resolve the stored/inline conditionals among `pendingIds` in reaction
+ * window order. The active player goes first, then the inactive player
+ * (CR 9.2.8b). A player who controls several different pending abilities
+ * chooses which to trigger next, and each resolves fully before the next
+ * is chosen (CR 9.2.8d). Returns true when play pauses for that choice or
+ * for something a resolving ability opened; the rest stay pending.
+ */
+export function resolvePendingInWindowOrder(
+  state: GameState,
+  pendingIds: readonly string[],
+): boolean {
+  for (;;) {
+    cancelPendingIfSourceInactive(
+      state,
+      (inst) => !abilitiesSuppressed(state, inst.sourceId),
+    );
+    const remaining: PendingAbilityInstance[] = [];
+    for (const id of pendingIds) {
+      const p = findPendingAbility(state, id);
+      if (!p || p.status !== "pending" || !isStoredOrInline(p)) continue;
+      // Nothing to trigger: the card no longer carries this ability.
+      if (!effectForConditionalPending(state, p)) {
+        completePendingAbility(state, p.id, "cancelled");
+        continue;
+      }
+      remaining.push(p);
+    }
+    if (remaining.length === 0) return false;
+    const activePlayers = remaining.filter(
+      (p) => p.controller === state.activeSide,
+    );
+    const mine = activePlayers.length > 0 ? activePlayers : remaining;
+    const first = mine[0]!;
+    if (mine.length > 1 && !mine.every((p) => sameAbility(state, p, first))) {
+      if (state.pendingChoice) return true;
+      const chooser = first.controller;
+      openPendingChoose(state, {
+        sourceId:
+          chooser === "corp"
+            ? state.corp.identityId
+            : state.runner.identityId,
+        chooser,
+        prompt: `Choose which pending ability to trigger next (CR ${CR.reactionWindowOrder.number}).`,
+        options: mine.map((p) => ({
+          id: `trigger:${p.id}`,
+          label: state.cards[p.sourceId]?.title ?? p.sourceId,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "resolve_pending_ability" as const,
+              pendingId: p.id,
+            },
+          },
+        })),
+        logLine: `${chooser === "corp" ? "The Corp" : "The Runner"} has ${mine.length} pending abilities and chooses which to trigger next (CR ${CR.reactionWindowPriority.number} / ${CR.reactionWindowOrder.number}).`,
+      });
+      return true;
+    }
+    if (resolveStoredOrInlineConditionalInstance(state, first.id)) return true;
+  }
+}
+
 /**
  * Resolve a fixed set of already-pending stored/inline conditionals in one
  * reaction window (CR 9.2.8a / 9.6.2). Used to resume leftover turn-begin
@@ -148,35 +252,14 @@ export function resolveStoredConditionalPendings(
   for (const pendingId of pendingIds) {
     const inst = findPendingAbility(state, pendingId);
     if (!inst || inst.status !== "pending") continue;
-    if (
-      inst.payload?.kind !== "stored_conditional" &&
-      inst.payload?.kind !== "inline_conditional"
-    ) {
+    if (!isStoredOrInline(inst)) {
       completePendingAbility(state, pendingId, "cancelled");
-      continue;
-    }
-    markPendingAbilityResolving(state, pendingId);
-    const card = state.cards[inst.sourceId];
-    const effect = effectForConditionalPending(state, inst);
-    if (effect && !abilitiesSuppressed(state, inst.sourceId)) {
-      const resolved = evalEffect({ state, sourceId: inst.sourceId }, effect);
-      if (!resolved.ok) {
-        log(
-          state,
-          `${card?.title ?? inst.sourceId} failed: ${resolved.error}`,
-        );
-      }
-    }
-    completePendingAbility(state, pendingId, "done");
-    if (interruptOpen(state)) {
-      closeReactionWindow(state, frame.id);
-      pruneSettledPendingAbilities(state);
-      return true;
     }
   }
+  const paused = resolvePendingInWindowOrder(state, pendingIds);
   closeReactionWindow(state, frame.id);
   pruneSettledPendingAbilities(state);
-  return false;
+  return paused;
 }
 
 /**

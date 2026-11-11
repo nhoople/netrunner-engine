@@ -26,6 +26,7 @@ import {
 import { enterSetAside } from "../../state/zones.js";
 import { resolveBreachReplacement } from "../../timing/breachReplacement.js";
 import { CR } from "../../timing/labels.js";
+import { resolveStoredOrInlineConditionalInstance } from "../../state/storedTriggers.js";
 import {
   deferContinuationBefore,
   effectResolutionBlocked,
@@ -48,6 +49,7 @@ import {
 import {
   fireHostRezStateTriggers,
 } from "../eval.js";
+import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 
 export function applyResolveKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -148,7 +150,8 @@ case "resolve_moon_pool": {
         const id = state.corp.hand.pop()!;
         state.corp.discardPile.push(id);
         state.cards[id].zone = "corp:archives";
-        state.cards[id].faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[id].faceup = false;
         noteCorpCardAddedToArchives(state);
         log(
           state,
@@ -156,8 +159,11 @@ case "resolve_moon_pool": {
         );
       }
 
+      // The cards just trashed from HQ stay in Archives: revealing is "up
+      // to", and this kind resolves without asking the Corp.
+      const justTrashed = new Set(trashN > 0 ? state.corp.discardPile.slice(-trashN) : []);
       const facedown = state.corp.discardPile.filter(
-        (id) => !state.cards[id].faceup,
+        (id) => !state.cards[id].faceup && !justTrashed.has(id),
       );
       const revealN = Math.min(
         Math.max(0, action.revealArchivesMax),
@@ -178,7 +184,7 @@ case "resolve_moon_pool": {
         );
       }
       if (revealN > 0) {
-        state.corp.deck.reverse();
+        shuffleInPlace(state, state.corp.deck);
       }
 
       const agendaRevealed = revealed.filter(
@@ -222,7 +228,8 @@ case "resolve_simulation_reset": {
         const id = state.corp.hand.pop()!;
         state.corp.discardPile.push(id);
         state.cards[id].zone = "corp:archives";
-        state.cards[id].faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[id].faceup = false;
         noteCorpCardAddedToArchives(state);
         log(
           state,
@@ -237,8 +244,8 @@ case "resolve_simulation_reset": {
         state.cards[id].faceup = false;
       }
       if (shuffleN > 0) {
-        // Deterministic "shuffle": reverse then leave (v0; same as moon pool).
-        state.corp.deck.reverse();
+
+        shuffleInPlace(state, state.corp.deck);
         log(
           state,
           `${source.title} — shuffle ${shuffleN} from Archives into R&D.`,
@@ -317,7 +324,7 @@ case "resolve_deep_dive": {
         state.cards[id].zone = "corp:rd";
         state.cards[id].faceup = false;
       }
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       state.corp.corpSetAside = [];
       log(
         state,
@@ -685,8 +692,8 @@ case "resolve_burner": {
         Math.max(0, action.reveal),
         state.corp.hand.length,
       );
-      // v0 deterministic "random": first N cards in HQ order.
-      const revealed = state.corp.hand.slice(0, revealN);
+      // The cards are revealed at random.
+      const revealed = pickRandomSubset(state, [...state.corp.hand], revealN);
       for (const id of revealed) {
         state.cards[id]!.faceup = true;
         log(state, `Reveal ${state.cards[id]!.title} from HQ.`);
@@ -719,6 +726,12 @@ case "resolve_wizard_chest": {
         })),
 logLine: `${source.title} — choose card type.`,
 });
+      return { ok: true };
+    }
+    case "resolve_pending_ability": {
+      // The chosen instance resolves fully before another is chosen
+      // (CR 9.2.8d). The caller resumes the rest of the window afterward.
+      resolveStoredOrInlineConditionalInstance(state, action.pendingId);
       return { ok: true };
     }
     default:

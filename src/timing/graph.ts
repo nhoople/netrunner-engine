@@ -6,7 +6,7 @@ import type {
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
-import { refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
+import { approachServerAbility, refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
 import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
 import { syncSubroutinesFromRecords } from "../effects/abilityRecord.js";
 import { trashCorpCardToArchives } from "../effects/corpTrash.js";
@@ -371,6 +371,10 @@ function noteOpenTurnBeginWaiting(state: GameState): void {
   if (!turnBeginPaused(state)) return;
   const waiting = pendingRunnerTurnBeginIds(state).length;
   if (waiting === 0) return;
+  // The open choice is the order of these abilities, not one of them.
+  if (state.pendingChoice?.options.some((o) => o.id.startsWith("trigger:"))) {
+    return;
+  }
   const openId = state.pendingChoice?.sourceId;
   const title = openId ? state.cards[openId]?.title : undefined;
   if (!title) return;
@@ -1728,10 +1732,17 @@ export const STEPS: Record<string, TimingStepDef> = {
           "Maintenance Access — change attacked server to HQ and approach HQ ice.",
         );
       }
-      return runState.position !== null &&
+      // No ice at the Runner's position: go to the Movement Phase
+      // (CR 6.9.1f). Nothing is passed at 6.9.4a, so it resumes at the
+      // 6.9.4b paid ability window.
+      if (
+        runState.position !== null &&
         runState.position < server.ice.length
-        ? "run.approachIce"
-        : "run.approachServer";
+      ) {
+        return "run.approachIce";
+      }
+      runState.phase = "movement";
+      return "run.passIcePaw";
     },
     {
       onResolve: (s) => {
@@ -3177,6 +3188,9 @@ export const STEPS: Record<string, TimingStepDef> = {
               ...(runState.passedIceIds ?? []),
               iceId,
             ];
+            // CR 6.9.4a: no position more inward than the ice just passed.
+            runState.passedAllIce =
+              pos === s.servers[runState.attackedServerId].ice.length - 1;
             }
             // The Gauntlet: track fully broken ice protecting HQ this run.
             if (
@@ -3694,17 +3708,14 @@ export const STEPS: Record<string, TimingStepDef> = {
       }
       const sid = s.run!.attackedServerId;
       const server = s.servers[sid];
+      // CR 6.9.4g is not a paid ability window. The run stops here only for
+      // an ability that is used when the Runner approaches the server.
       for (const id of server.root) {
         const card = s.cards[id];
-        if (!card.rezzed && (card.type === "upgrade" || card.type === "asset")) {
-          return "run.approachServerPaw";
-        }
         if (
           !abilitiesSuppressed(s, id) &&
           card.rezzed &&
-          (card.paidAbilities ?? []).some((a) =>
-            a.windows.includes("approach_server_paw"),
-          )
+          (card.paidAbilities ?? []).some(approachServerAbility)
         ) {
           return "run.approachServerPaw";
         }
@@ -3718,9 +3729,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             !card.rezzed &&
             !abilitiesSuppressed(s, id) &&
             (card.paidAbilities ?? []).some(
-              (a) =>
-                a.formicaryApproachAnyServer &&
-                a.windows.includes("approach_server_paw"),
+              (a) => a.formicaryApproachAnyServer && approachServerAbility(a),
             )
           ) {
             return "run.approachServerPaw";
@@ -3737,13 +3746,16 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         s.run!.phase = "success";
         s.log.push(`Approach server (appendix 11.4_4_g).`);
-        if (!s.pendingChoice) onPassedAllIce(s);
+        // CR 6.9.4a: passing all ice needs a piece of ice to have been
+        // passed. A server with no ice does not meet the condition.
+        const passedAllIce = Boolean(s.run!.passedAllIce);
+        if (!s.pendingChoice && passedAllIce) onPassedAllIce(s);
         // Awakening Center: whenever the Runner passes all ice protecting
         // this server (this is exactly that moment — position is null and
         // the run has arrived here), may rez 1 hosted bioroid ice for −7¢
         // and force the Runner to encounter it. Fires once per run per
         // upgrade (the run re-enters this step after the forced encounter).
-        if (!s.pendingChoice) {
+        if (!s.pendingChoice && passedAllIce) {
           const sid0 = s.run!.attackedServerId;
           const server0 = s.servers[sid0];
           for (const id of server0.root) {
@@ -3805,7 +3817,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
-        if (!s.pendingChoice && !s.psi) {
+        if (!s.pendingChoice && !s.psi && passedAllIce) {
           notePassAllIceProtectingServer(s, s.run!.attackedServerId);
         }
         // Open Manegarm / Cayambe tax as a pending Runner choice if applicable.
@@ -3936,11 +3948,11 @@ export const STEPS: Record<string, TimingStepDef> = {
     "run.approachServerPaw",
     "sec_appendix_timing_structure_of_a_run_4_g",
     "11.4_4_g",
-    "Paid ability window while approaching the server.",
+    "Abilities used when the Runner approaches the server.",
     "pass",
     (s) =>
       s.run?.endedTheRun ? "run.closePriorityWindows" : "run.success",
-    { allows: ["use_paid_ability", "rez_asset", "pass_window"] },
+    { allows: ["use_paid_ability", "pass_window"] },
   ),
   "run.success": run(
     "run.success",

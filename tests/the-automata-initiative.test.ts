@@ -53,7 +53,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI B-1001 / Umbrella / Pichação / Cybersand / Urban Art", () => {
@@ -201,7 +201,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI Banner / Curupira / Debbie / VSA / Mercury", () => {
@@ -297,7 +297,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI Beatriz / Laser Pointer / M.I.C.", () => {
@@ -347,7 +347,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(
@@ -459,7 +459,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   const frontIr = {
@@ -687,7 +687,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative", () => {
@@ -817,7 +817,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI LilyPAD / Hannah / Armed / Saci / Tatu-Bola", () => {
@@ -972,7 +972,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI Oppo / Epiphany / Pivot / Federal / Wage Workers", () => {
@@ -1205,7 +1205,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must<T extends { ok: boolean }>(
@@ -1470,7 +1470,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI Slash / Audrey / Price / Lago / Angelique", () => {
@@ -1609,7 +1609,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI Solidarity / Eru / Valentão / S-Dobrado", () => {
@@ -1745,7 +1745,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI threat + Mindscaping / Shibboleth / Jaguarundi", () => {
@@ -1807,7 +1807,8 @@ describe("the-automata-initiative", () => {
       );
       expect(r.ok).toBe(true);
       expect(s.corp.hand).toHaveLength(1);
-      expect(s.corp.deck.at(-1)).toBe("h1");
+      // The top of R&D is the card the Corp draws next.
+      expect(s.corp.deck[0]).toBe("h1");
     });
 
     it("threat cond uses max agenda points across players", () => {
@@ -1826,7 +1827,9 @@ describe("the-automata-initiative", () => {
         ice.onEncounter!,
       );
       expect(r.ok).toBe(true);
-      expect(s.pendingChoice?.chooser).toBe("runner");
+      // With no click to spend the Runner cannot pay, so the tag is given (CR 1.16.11b).
+      expect(s.pendingChoice).toBeFalsy();
+      expect(s.runner.tags).toBe(1);
     });
   });
   });
@@ -1836,7 +1839,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   describe("TAI Tree Line / Phoneutria / Slap Vandal / Attini", () => {
@@ -1958,7 +1961,7 @@ describe("the-automata-initiative", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.18");
+    assertCardsPinnedTag("v1.147.19");
   });
 
   function must(

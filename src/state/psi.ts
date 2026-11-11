@@ -13,8 +13,7 @@ import { dealDamage } from "./damage.js";
 import { hostedCreditsSpendableDuringRuns, subtractRunnerCreditPool } from "./costs.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
-
-let psiSeq = 0;
+import { nextId } from "./ids.js";
 
 function secretSpendBannedAmount(state: GameState): number | null {
   for (const id of [
@@ -37,7 +36,7 @@ export function startPsiGame(
   opts?: { corpGuess?: "amount" | "parity" },
 ): void {
   state.psi = {
-    id: `psi-${++psiSeq}`,
+    id: nextId(state, "psi"),
     sourceId,
     maxBid,
     runnerBid: null,

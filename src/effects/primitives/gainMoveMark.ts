@@ -11,6 +11,7 @@ import { CR } from "../../timing/labels.js";
 import { grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -450,12 +451,13 @@ export function applyOacPrimitive(
       state.runner.clicks -= amount;
       const hq = [...state.corp.hand];
       for (let i = 0; i < amount && hq.length > 0; i++) {
-        const idx = Math.floor(Math.random() * hq.length);
+        const idx = Math.floor(random(state) * hq.length);
         const id = hq.splice(idx, 1)[0]!;
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
         const card = state.cards[id]!;
         card.zone = "corp:archives";
-        card.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        card.faceup = false;
         card.rezzed = false;
         state.corp.discardPile.push(id);
         log(state, `Wanton Destruction — trash ${card.title} from HQ.`);

@@ -12,6 +12,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import {
   fireOnPlay,
 } from "../../state/cardLifecycleHooks.js";
+import { random } from "../../state/rng.js";
 
 type PrimResult =
   | { ok: true }
@@ -155,7 +156,8 @@ logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
         state.corp.hand = state.corp.hand.filter((id) => id !== picked);
         state.corp.discardPile.push(picked);
         state.cards[picked]!.zone = "corp:archives";
-        state.cards[picked]!.faceup = true;
+        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+        state.cards[picked]!.faceup = false;
         log(state, `SYN Attack — Corp discards ${state.cards[picked]!.title}.`);
         const left = (action.remaining ?? 1) - 1;
         if (left <= 0 || state.corp.hand.length === 0) return { ok: true };
@@ -533,7 +535,7 @@ logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
       const take = Math.min(n, grip.length);
       // Random bottom
       for (let i = 0; i < take; i++) {
-        const idx = Math.floor(Math.random() * grip.length);
+        const idx = Math.floor(random(state) * grip.length);
         const id = grip.splice(idx, 1)[0]!;
         state.runner.hand = state.runner.hand.filter((x) => x !== id);
         state.runner.deck.push(id);

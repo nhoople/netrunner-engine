@@ -3880,6 +3880,11 @@ export interface TurnBookkeeping {
   corpFlippedIdentityFirstOpMetPending: boolean;
   /** Runner cards discarded to hand size this discard step (Magdalene). */
   runnerDiscardedToMaxHandIds: string[];
+  /**
+   * Cards the active player chose to discard in the discard step
+   * (CR 5.5.4c). Set when the choice finishes; the step then discards them.
+   */
+  chosenDiscardIds?: string[];
   /** Petty Cash: current operation play originated outside HQ. */
   operationPlayedFromNonHq: boolean;
   /** Zwicky: first agenda/operation credit-gain draw offered this turn. */
@@ -4585,6 +4590,12 @@ export interface RunState {
    * NSG Into the Depths ruling on uninstall-during-encounter).
    */
   passedIceIds?: string[];
+  /**
+   * CR 6.9.4a: the Runner passed a piece of ice with no position more
+   * inward. Conditions for passing all ice protecting the server are met
+   * only then; a run on a server with no ice never meets them.
+   */
+  passedAllIce?: boolean;
   /** The Gauntlet: ice protecting HQ fully broken this run. */
   inFullyBrokenHqProtectingIceIds?: string[];
   /** Most recent unrezzed ice id passed (False Echo-class). */
@@ -5322,6 +5333,20 @@ export interface PendingChoice {
   options: Array<{ id: string; label: string; effect: Effect }>;
   /** Corp names how many times a mandatory loop resolves (CR 10.1.6a). */
   loopCount?: boolean;
+  /** What the chooser is deciding, when the options alone do not say. */
+  prompt?: string;
+  /**
+   * The options name cards the other player may not see (HQ, the grip,
+   * facedown cards in Archives). A public view for the other player lists
+   * the options without their ids or labels.
+   */
+  hiddenFromOpponent?: boolean;
+  /**
+   * The other player is looking at the cards the options name, so their
+   * view keeps the option ids and labels (Chronos Protocol looks at the
+   * grip; CR 1.21.2).
+   */
+  shownToOpponent?: boolean;
 }
 
 /**
@@ -5359,6 +5384,11 @@ export interface GameConfig {
    * (legacy vertical-slice demos). Library `createGame` sets false.
    */
   stopAfterFirstCycle: boolean;
+  /**
+   * Seed for the game's random stream. The same seed, setup, and intents
+   * always give the same game. Omit for the fixed default seed.
+   */
+  seed?: number;
 }
 
 export interface GameState {
@@ -5619,6 +5649,20 @@ export interface GameState {
     | "draw"
     | null;
   config: GameConfig;
+  /**
+   * Position in this game's seeded random stream (see `state/rng.ts`).
+   * It predicts every later shuffle and random pick, so a host must never
+   * send it to a seat.
+   */
+  rngState?: number;
+  /** Last number handed out per id prefix (see `state/ids.ts`). */
+  idSeq?: Record<string, number>;
+  /**
+   * Ids of the active cards, oldest first by when each became active.
+   * Kept by the checkpoint so that uniqueness trashes all but the newest
+   * (CR 10.3.1d).
+   */
+  activeOrder?: string[];
   log: string[];
   /** True when the game (or demo cycle) has finished. */
   done: boolean;
@@ -5764,7 +5808,12 @@ export type Action =
     }
   | { type: "choose_option"; optionId: string }
   | { type: "rez_asset"; cardId: string }
-  | { type: "discard_to_hand_size" };
+  /**
+   * The discard step (CR 5.5.4). `cardIds` names the cards to discard when
+   * the hand is over its maximum; without it the engine asks the player
+   * to choose them (CR 5.5.4c).
+   */
+  | { type: "discard_to_hand_size"; cardIds?: string[] };
 
 /** Host intent — same as Action for the pure library API. */
 export type Intent = Action;

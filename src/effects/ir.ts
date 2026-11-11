@@ -316,12 +316,45 @@ export type Primitive =
   | { kind: "increase_hand_size"; side: SideRef; amount: number }
   | {
       kind: "trash_hq";
+      /**
+       * `"random"` trashes cards at random. Any other value has the Corp
+       * choose the cards (CR 1.15.2); `"first"` is kept as a spelling of
+       * that for existing card data.
+       */
       pick: "first" | "choose" | "random";
       amount?: number;
+      /** Trash any number of cards up to `amount`, including none. */
+      upTo?: boolean;
       then?: Effect;
     }
   /** Leaf: trash a specific card from HQ. */
   | { kind: "trash_hq_card"; cardId: string }
+  /**
+   * Follow-up the engine builds while a reaction window asks which pending
+   * ability its controller triggers next (CR 9.2.8d). Not for card data.
+   */
+  | { kind: "resolve_pending_ability"; pendingId: string }
+  /**
+   * Follow-up the engine builds while a player picks cards one at a time
+   * from a zone they can look at (CR 1.15.2). `picked` holds the cards
+   * chosen so far. When `count` cards are picked, or the player stops an
+   * `upTo` pick, all picked cards move at once for `purpose`, then `then`
+   * resolves. Card data does not author this kind.
+   */
+  | {
+      kind: "choose_cards";
+      chooser: "corp" | "runner";
+      candidates: string[];
+      count: number;
+      upTo?: boolean;
+      picked: string[];
+      purpose:
+        | "discard_to_hand_size"
+        | "trash_hq"
+        | "archives_to_hq"
+        | "shuffle_archives_to_rd";
+      then?: Effect;
+    }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
   /**
    * Power Grid Overload: trash 1 installed hardware with install cost ≤
@@ -363,6 +396,7 @@ export type Primitive =
     }
   | { kind: "trash_resource_or_hardware"; pick: "first" | "choose" }
   | { kind: "shuffle_hq_to_rd"; amount: number }
+  /** The Corp chooses up to `amount` cards in Archives; R&D is shuffled. */
   | { kind: "shuffle_archives_to_rd"; amount: number }
   | { kind: "net_damage_agenda_points_this_turn" }
   | { kind: "forbid_scoring_agendas_this_turn" }
@@ -1369,6 +1403,8 @@ export type Primitive =
    * runner_pay_credits, corp_pay_credits, corp_pay_credits_to_prevent,
    * lose_clicks, give_tags, net_damage, core_damage,
    * trash_installed_runner, or shuffle_all_grip_into_stack.
+   * A seq of those is one cost with several parts ("spends [click] and
+   * pays 2 credits"): it is paid in full or not at all.
    * An empty cost (amount ≤ 0) is treated as paid. An unpayable cost
    * resolves the instruction (CR 1.16.1b for tags).
    */
@@ -4089,6 +4125,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "increase_hand_size",
   "trash_hq",
   "trash_hq_card",
+  "resolve_pending_ability",
+  "choose_cards",
   "trash_hardware",
   "trash_hardware_install_cost_lte_last_trace_excess",
   "trash_up_to_n_resources",
@@ -7333,6 +7371,23 @@ export function validateEffectTree(
       if (action.kind === "trash_hq_card") {
         if (typeof action.cardId !== "string") {
           return `${path}.action.cardId: required string`;
+        }
+      }
+      if (action.kind === "resolve_pending_ability") {
+        if (typeof action.pendingId !== "string") {
+          return `${path}.action.pendingId: required string`;
+        }
+      }
+      if (action.kind === "choose_cards") {
+        if (!Array.isArray(action.candidates) || !Array.isArray(action.picked)) {
+          return `${path}.action: candidates and picked are required lists`;
+        }
+        if (typeof action.count !== "number" || action.count < 0) {
+          return `${path}.action.count: required number`;
+        }
+        if (action.then) {
+          const tErr = validateEffectTree(action.then, `${path}.action.then`);
+          if (tErr) return tErr;
         }
       }
       if (action.kind === "may_trash_hq_then") {

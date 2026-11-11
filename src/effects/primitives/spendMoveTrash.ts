@@ -9,6 +9,7 @@ import { evalEffect } from "../eval.js";
 import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -273,7 +274,7 @@ export function applyFlashpointBmPrimitive(
       const card = state.cards[cardId]!;
       card.zone = "corp:rd";
       card.faceup = false;
-      state.corp.deck.reverse();
+      shuffleInPlace(state, state.corp.deck);
       setBmCounter(source, "bmShuffled", bmCounter(source, "bmShuffled") + 1);
       log(state, `Special Report — shuffle ${card.title} into R&D.`);
       return evalEffect(

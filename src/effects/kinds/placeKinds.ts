@@ -19,6 +19,7 @@ import {
   applyPrimitive,
 } from "../eval.js";
 import { fx } from "../ir.js";
+import { random } from "../../state/rng.js";
 
 export function applyPlaceKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -371,7 +372,7 @@ case "place_agenda_hq_or_rd_bottom": {
       }
       // shuffle R&D after searching it (always safe)
       for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         const tmp = state.corp.deck[i]!;
         state.corp.deck[i] = state.corp.deck[j]!;
         state.corp.deck[j] = tmp;

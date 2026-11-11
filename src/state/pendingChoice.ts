@@ -23,6 +23,12 @@ export function openPendingChoose(
     options: PendingChoiceOption[];
     /** Corp names how many times a mandatory loop resolves (CR 10.1.6a). */
     loopCount?: boolean;
+    /** What the chooser is deciding, when the options alone do not say. */
+    prompt?: string;
+    /** The options name hidden cards; the other player may not see them. */
+    hiddenFromOpponent?: boolean;
+    /** The other player is looking at the cards the options name. */
+    shownToOpponent?: boolean;
     logLine?: string;
   },
 ): boolean {
@@ -37,6 +43,9 @@ export function openPendingChoose(
       effect: o.effect,
     })),
     ...(args.loopCount ? { loopCount: true } : {}),
+    ...(args.prompt ? { prompt: args.prompt } : {}),
+    ...(args.hiddenFromOpponent ? { hiddenFromOpponent: true } : {}),
+    ...(args.shownToOpponent ? { shownToOpponent: true } : {}),
   };
   if (args.logLine) state.log.push(args.logLine);
   return true;

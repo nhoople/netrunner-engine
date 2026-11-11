@@ -11,8 +11,8 @@ import {
   dealDamage,
   instantiateCard,
   pickRandomSubset,
+  seedRng,
   setRng,
-  setRngSeed,
 } from "../src/index.js";
 
 beforeAll(() => {
@@ -22,7 +22,6 @@ beforeAll(() => {
 
 beforeEach(() => {
   setRng(null);
-  setRngSeed(1);
 });
 
 describe("CR G1 — random simultaneous damage trash (10.4.2a / 10.4.3)", () => {
@@ -62,8 +61,8 @@ describe("CR G1 — random simultaneous damage trash (10.4.2a / 10.4.3)", () => 
 
   it("multi-point damage selects the set before trashing (simultaneous)", () => {
     const hand = ["w", "x", "y", "z"];
-    setRngSeed(42);
-    const picks = pickRandomSubset(hand, 3);
+    const s = createInitialState({ seed: 42 });
+    const picks = pickRandomSubset(s, hand, 3);
     expect(picks).toHaveLength(3);
     expect(new Set(picks).size).toBe(3);
     for (const id of picks) expect(hand).toContain(id);
@@ -74,7 +73,7 @@ describe("CR G1 — random simultaneous damage trash (10.4.2a / 10.4.3)", () => 
     s = structuredClone(s);
     s.runner.hand = ["only"];
     s.cards["only"] = instantiateCard("sure-gamble", "only", "runner:grip");
-    setRngSeed(7);
+    seedRng(s, 7);
     const r = dealDamage(s, "meat", 2, "src");
     expect(r).toBe("flatline");
     expect(s.winner).toBe("corp");

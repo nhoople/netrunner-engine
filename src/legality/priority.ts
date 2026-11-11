@@ -10,8 +10,7 @@ import type {
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { occurCheckpoint, popCheckpoint, pushCheckpoint } from "./checkpoints.js";
-
-let prioritySeq = 0;
+import { nextId } from "../state/ids.js";
 
 export function currentPriorityWindow(
   state: GameState,
@@ -28,6 +27,9 @@ export function priorityHolderForStep(timingKey: string, activeSide: Side): Side
     case "run.jackOutWindow":
       // Appendix 11.4_4_c. The Runner decides whether to jack out.
       return "runner";
+    case "run.approachServerPaw":
+      // CR 6.9.4g. Only the Corp has abilities used on approaching a server.
+      return "corp";
     default:
       // CR 9.2.1 / 9.2.7a: a paid ability window starts with the active player,
       // the player whose turn it is. During a run that is the Runner.
@@ -53,7 +55,7 @@ export function ensurePriorityWindow(state: GameState): PriorityWindowFrame {
     return existing;
   }
   const pw: PriorityWindowFrame = {
-    id: `pw-${++prioritySeq}`,
+    id: nextId(state, "pw"),
     stepKey: state.timingKey,
     nestDepth: state.priorityStack.length,
     consecutivePasses: 0,

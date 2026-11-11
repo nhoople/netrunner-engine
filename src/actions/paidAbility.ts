@@ -533,13 +533,16 @@ export function usePaidAbility(
       card.rezzed &&
       !!state.run &&
       cardProtectsOtherServer(state, cardId, state.run.attackedServerId);
-    if (approached !== cardId && !scored && !otherServerOk) {
-      return fail("Paid ability source is not the approached ice.", [
-        CR.paidAbility,
-      ]);
-    }
-    if (approached === cardId && !card.rezzed) {
-      return fail("Ice must be rezzed to use this ability.", [CR.paidAbility]);
+    // Any active Corp card may be the source (CR 9.2.7b).
+    const active =
+      card.rezzed || scored || cardId === state.corp.identityId || otherServerOk;
+    if (!active) {
+      return fail(
+        approached === cardId
+          ? "Ice must be rezzed to use this ability."
+          : "Paid ability source is not active.",
+        [CR.paidAbility],
+      );
     }
   }
   if (card.side === "corp" && window === "approach_server_paw") {

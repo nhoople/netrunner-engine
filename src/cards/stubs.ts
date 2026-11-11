@@ -147,7 +147,6 @@ export function corpMayRez(timingKey: string): boolean {
     case "runner.startPaw":
     case "runner.discardPaw":
     case "run.approachPaw":
-    case "run.approachServerPaw":
     case "run.initiatePaw":
     case "run.afterMovePaw":
       return true;

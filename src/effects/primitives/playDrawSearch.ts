@@ -13,6 +13,7 @@ import { playEffectFromCard } from "../abilityRecord.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { random } from "../../state/rng.js";
 
 
 type PrimResult =
@@ -152,7 +153,7 @@ export function applyDadPrimitive(
       if (action.shuffledRd) {
         const rest = state.corp.deck.filter((id) => id !== action.cardId);
         for (let i = rest.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(random(state) * (i + 1));
           [rest[i], rest[j]] = [rest[j]!, rest[i]!];
         }
         // top = index 0; bottom = end
@@ -774,7 +775,7 @@ export function applyDadPrimitive(
     case "shuffle_trash_top_gain_install_cost": {
       const deck = [...state.runner.deck];
       for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(state) * (i + 1));
         [deck[i], deck[j]] = [deck[j]!, deck[i]!];
       }
       state.runner.deck = deck;

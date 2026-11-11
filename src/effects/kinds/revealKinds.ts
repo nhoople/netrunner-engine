@@ -23,6 +23,8 @@ import {
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
+import { random } from "../../state/rng.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 export function applyRevealKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
   const { state, sourceId } = ctx;
@@ -351,7 +353,7 @@ case "reveal_hyoubu_grip_random": {
       }
       const pick =
         state.runner.hand[
-          Math.floor(Math.random() * state.runner.hand.length)
+          Math.floor(random(state) * state.runner.hand.length)
         ]!;
       noteCardRevealed(state, pick, sourceId);
       log(
@@ -608,7 +610,7 @@ case "may_reveal_shuffle_agendas_into_rd": {
       const offer = (remaining: number, exclude: string[]): EvalResult => {
         const left = agendas.filter((id) => !exclude.includes(id));
         if (remaining <= 0 || left.length === 0) {
-          state.corp.deck.reverse();
+          shuffleInPlace(state, state.corp.deck);
           log(state, `Shuffle R&D after agenda reveal.`);
           return { ok: true };
         }
@@ -668,7 +670,7 @@ case "reveal_shuffle_agenda_into_rd": {
         log(state, `Reveal ${card.title} and shuffle into R&D.`);
       }
       if (action.remainingAfter <= 0) {
-        state.corp.deck.reverse();
+        shuffleInPlace(state, state.corp.deck);
         return { ok: true };
       }
       const agendas: string[] = [];
@@ -681,7 +683,7 @@ case "reveal_shuffle_agenda_into_rd": {
         if (state.cards[id]?.type === "agenda") agendas.push(id);
       }
       if (agendas.length === 0) {
-        state.corp.deck.reverse();
+        shuffleInPlace(state, state.corp.deck);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -793,7 +795,7 @@ case "reveal_agenda_hq_or_archives_gain_ap_shuffle": {
         card.rezzed = false;
         const ap = card.agendaPoints ?? 0;
         state.corp.credits += ap;
-        state.corp.deck.reverse();
+        shuffleInPlace(state, state.corp.deck);
         log(
           state,
           `Reveal ${card.title}, gain ${ap}¢ → ${state.corp.credits}¢, shuffle into R&D.`,

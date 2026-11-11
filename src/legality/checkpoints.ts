@@ -133,7 +133,7 @@ import {
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
-import { resolveStoredOrInlineConditionalInstance } from "../state/storedTriggers.js";
+import { resolvePendingInWindowOrder } from "../state/storedTriggers.js";
 import { expireLingeringEffects } from "../state/lingeringEffects.js";
 import { applyMumbadDagPrimitive } from "../effects/primitives/hostResolveLook.js";
 import {
@@ -143,9 +143,8 @@ import {
 import type { PendingAbilityPayload } from "../state/types.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { nextId } from "../state/ids.js";
 
-
-let checkpointSeq = 0;
 
 export function pushCheckpoint(
   state: GameState,
@@ -155,7 +154,7 @@ export function pushCheckpoint(
   openedBy: string,
 ): CheckpointFrame {
   const frame: CheckpointFrame = {
-    id: `cp-${++checkpointSeq}`,
+    id: nextId(state, "cp"),
     kind,
     label,
     cites,
@@ -3527,6 +3526,17 @@ function closeCheckpointReactionWindow(
     ? (state.cards[guardId]?.title ?? "Blackguard")
     : "Blackguard";
 
+  // Card-effect conditionals in this window resolve in player order
+  // (CR 9.2.8b / 9.2.8d). Play abilities marked at 8.6.7e wait for 8.6.7f.
+  const orderedIds = pending
+    .filter(
+      (p) =>
+        (p.payload?.kind === "inline_conditional" ||
+          p.payload?.kind === "stored_conditional") &&
+        !(checkpointKind === "play" && p.abilityKey === "on-play"),
+    )
+    .map((p) => p.id);
+
   for (const inst of pending) {
     // swap_install_trigger stays pending for eval.ts to consume after the
     // checkpoint returns (CR 8.8.4b).
@@ -3551,7 +3561,9 @@ function closeCheckpointReactionWindow(
       inst.payload?.kind === "inline_conditional" ||
       inst.payload?.kind === "stored_conditional"
     ) {
-      if (resolveStoredOrInlineConditionalInstance(state, inst.id)) {
+      // An earlier pass may already have resolved this one out of mark order.
+      if (inst.status !== "pending") continue;
+      if (resolvePendingInWindowOrder(state, orderedIds)) {
         break;
       }
       continue;
@@ -3714,10 +3726,10 @@ function checkAgendaPointWin(state: GameState): void {
 
 /**
  * CR 10.3.1d. Active unique cards that share a name, and installed consoles
- * under one player, keep only the one latest in play order.
+ * under one player, keep only the one that became active most recently.
  */
 function checkUniqueness(state: GameState): void {
-  const active = activeCardsInOrder(state);
+  const active = activeCardsByActivation(state);
   const trashIds = new Set<string>();
   const uniques = new Map<string, CardInstance[]>();
   for (const card of active) {
@@ -3745,6 +3757,8 @@ function checkUniqueness(state: GameState): void {
   for (const id of trashIds) {
     const card = state.cards[id];
     if (!card) continue;
+    // CR 4.4.6b: a Corp card the Runner could see goes to Archives faceup.
+    const visibleToRunner = Boolean(card.rezzed) || Boolean(card.faceup);
     removeCardFromCurrentZone(state, id);
     if (card.side === "runner") {
       card.zone = "runner:heap";
@@ -3752,10 +3766,11 @@ function checkUniqueness(state: GameState): void {
       state.runner.discardPile.push(id);
     } else {
       card.zone = "corp:archives";
-      card.faceup = false;
+      card.faceup = visibleToRunner;
       state.corp.discardPile.push(id);
     }
     card.rezzed = false;
+    state.activeOrder = (state.activeOrder ?? []).filter((x) => x !== id);
     state.log.push(
       `${card.title} trashed for uniqueness (CR ${CR.checkpointUniqueness.number}).`,
     );
@@ -4449,6 +4464,25 @@ function activeCardsInOrder(state: GameState): CardInstance[] {
     for (const id of server.root) add(id, true);
   }
   return out;
+}
+
+/**
+ * Active cards, oldest first by when each became active (CR 10.3.1d).
+ * The state keeps the order: a card that is active now and was not at the
+ * last checkpoint goes to the end, and a card that stopped being active is
+ * dropped, so it counts as new if it becomes active again.
+ */
+function activeCardsByActivation(state: GameState): CardInstance[] {
+  const active = activeCardsInOrder(state);
+  const activeIds = new Set(active.map((card) => card.id));
+  const order = (state.activeOrder ?? []).filter((id) => activeIds.has(id));
+  const known = new Set(order);
+  for (const card of active) {
+    if (!known.has(card.id)) order.push(card.id);
+  }
+  state.activeOrder = order;
+  const rank = new Map(order.map((id, index) => [id, index]));
+  return [...active].sort((a, b) => rank.get(a.id)! - rank.get(b.id)!);
 }
 
 /**
