@@ -1,0 +1,17 @@
+{
+  "_comment": "Shrink-only baseline for tests/cr-example-coverage.test.ts (CR audit tool 1.6). Recorded 2026-11-12 at CR v26.03: examples that no it() title in tests/cr-examples-ch*.test.ts cites. 9.6.4b.ex1 is named only in a comment above a 9.1.8g.ex1 test, so it counts as unreferenced.",
+  "unreferenced": [
+    "1.4.5a.ex1",
+    "1.4.6d.ex1",
+    "1.15.1.ex1",
+    "1.15.1.ex2",
+    "1.15.1.ex3",
+    "1.15.1.ex4",
+    "9.3.3f.ex1",
+    "9.6.4b.ex1",
+    "9.11.2a.ex1",
+    "9.11.2a.ex2",
+    "9.11.4a.ex1",
+    "10.1.5.ex2"
+  ]
+}

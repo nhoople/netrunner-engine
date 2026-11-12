@@ -1,0 +1,6 @@
+{
+  "_comment": "Shrink-only baseline for the citation-existence check in tests/rule-cite-map.test.ts (CR audit tool 1.5a). Recorded 2026-11-12 at engine v1.147.251, CR v26.03. Each entry is `<file> CR <number>` for a literal citation in src/ that is not a rule number at the pin.",
+  "missing": [
+    "src/state/currents.ts CR 3.5.1d"
+  ]
+}
