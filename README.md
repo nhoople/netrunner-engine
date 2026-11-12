@@ -17,7 +17,7 @@ A set-complete shares one semver on cards-data and this engine. The current floo
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.147.22`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.22) | [`v1.147.248`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.248) (maintenance pair, not one shared semver; pins cards v1.147.22; ice uninstalled while it is approached or encountered ends that approach or encounter and the Runner passes its position, the controller of an ability is the player who trashes, and ability installs put ice outermost) |
+| **Current** | [`v1.147.22`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.22) | [`v1.147.249`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.249) (maintenance pair, not one shared semver; pins cards v1.147.22; Project Yagi-Uda swapping the encountered ice into HQ ends the encounter, and it swaps only into a location the card may occupy) |
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 
