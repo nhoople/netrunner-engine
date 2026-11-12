@@ -8,6 +8,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
   assertCardsPinnedTag,
+  checkInvariants,
   assertPinnedTag,
   cardsDataPresent,
   createInitialState,
@@ -15,7 +16,7 @@ import {
   instantiateCard,
   legalActions,
 } from "../src/index.js";
-import type { CardInstance, GameState, ServerId } from "../src/state/types.js";
+import type { CardInstance, GameState } from "../src/state/types.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -66,16 +67,6 @@ const RUNNER_DECK: Record<string, number> = {
   "smartware-distributor": 2,
   "verbal-plasticity": 1,
 };
-
-const WIN_REASONS = new Set([
-  "corp_agenda",
-  "runner_agenda",
-  "flatline",
-  "empty_rd",
-  "corp_alternate",
-  "runner_alternate",
-  "draw",
-]);
 
 function rng(seed: number): () => number {
   let state = seed >>> 0;
@@ -154,114 +145,9 @@ function learnToPlay(seed: number): GameState {
   return state;
 }
 
-function spots(state: GameState): Array<{ id: string; zone: string }> {
-  const out: Array<{ id: string; zone: string }> = [];
-  const add = (ids: readonly string[] | undefined, zone: string) => {
-    for (const id of ids ?? []) out.push({ id, zone });
-  };
-  add(state.corp.deck, "corp:rd");
-  add(state.corp.hand, "corp:hq");
-  add(state.corp.discardPile, "corp:archives");
-  add(state.corp.scoreArea, "corp:score");
-  add(state.corp.playArea, "corp:play-area");
-  add(state.corp.installed, "corp:installed");
-  add(state.corp.setAside, "corp:set-aside");
-  add(state.corp.corpSetAside, "corp:set-aside");
-  add(state.runner.deck, "runner:stack");
-  add(state.runner.hand, "runner:grip");
-  add(state.runner.discardPile, "runner:heap");
-  add(state.runner.scoreArea, "runner:score");
-  add(state.runner.installed, "runner:installed");
-  add(state.runner.playArea, "runner:play-area");
-  add(state.runner.setAside, "runner:set-aside");
-  add(state.runner.additionalIdentities, "runner:outside-game-identities");
-  add(state.removedFromGame, "removed-from-game");
-  for (const server of Object.values(state.servers)) {
-    add(server.ice, `server:${server.id}:ice`);
-    add(server.root, `server:${server.id}:root`);
-  }
-  for (const card of Object.values(state.cards)) {
-    for (const hostedId of card.hostedCardIds ?? []) {
-      out.push({ id: hostedId, zone: `hosted:${card.id}` });
-    }
-  }
-  return out;
-}
-
+/** The state invariants, one line each (src/debug/invariants.ts). */
 function boardProblems(state: GameState): string[] {
-  const problems: string[] = [];
-  if (state.corp.credits < 0 || state.runner.credits < 0) {
-    problems.push(`credits corp=${state.corp.credits} runner=${state.runner.credits}`);
-  }
-  if (state.corp.clicks < 0 || state.runner.clicks < 0) {
-    problems.push(`clicks corp=${state.corp.clicks} runner=${state.runner.clicks}`);
-  }
-  const found = new Map<string, string[]>();
-  for (const spot of spots(state)) {
-    const zones = found.get(spot.id) ?? [];
-    zones.push(spot.zone);
-    found.set(spot.id, zones);
-    if (!state.cards[spot.id]) problems.push(`${spot.id} is listed in ${spot.zone} and is not a card`);
-  }
-  const identities = new Set([state.corp.identityId, state.runner.identityId]);
-  for (const [id, zones] of found) {
-    if (identities.has(id)) {
-      problems.push(`identity ${id} is also in ${zones.join(", ")}`);
-      continue;
-    }
-    if (zones.length > 1) problems.push(`${id} is in ${zones.join(", ")}`);
-  }
-  for (const card of Object.values(state.cards)) {
-    if (identities.has(card.id)) continue;
-    const zones = found.get(card.id);
-    if (!zones) {
-      problems.push(`${card.id} (${card.title}) is in ${card.zone} and in no zone list`);
-      continue;
-    }
-    if (zones.length === 1 && zones[0] !== card.zone) {
-      problems.push(`${card.id} (${card.title}) lists ${zones[0]} but zone is ${card.zone}`);
-    }
-  }
-  for (const id of state.corp.scoreArea) {
-    const card = state.cards[id];
-    if (card && card.zone !== "corp:score") {
-      problems.push(`${card.title} is in the Corp score area with zone ${card.zone}`);
-    }
-  }
-  for (const id of state.runner.scoreArea) {
-    const card = state.cards[id];
-    if (card && card.zone !== "runner:score") {
-      problems.push(`${card.title} is in the Runner score area with zone ${card.zone}`);
-    }
-  }
-  if (state.run) {
-    const server = state.servers[state.run.attackedServerId as ServerId];
-    if (!server) {
-      problems.push(`run attacks missing server ${state.run.attackedServerId}`);
-    } else if (
-      state.run.position !== null &&
-      (state.run.position < 0 || state.run.position >= server.ice.length)
-    ) {
-      problems.push(
-        `run position ${state.run.position} is outside ${server.id} ice (${server.ice.length})`,
-      );
-    }
-  }
-  if (state.winner) {
-    if (!state.winReason || !WIN_REASONS.has(state.winReason)) {
-      problems.push(`winner ${state.winner} has reason ${state.winReason}`);
-    }
-    if (state.winner === "draw" && state.winReason !== "draw") {
-      problems.push(`draw winner has reason ${state.winReason}`);
-    }
-    if (state.winner === "corp" && state.winReason === "runner_agenda") {
-      problems.push("Corp won with the Runner agenda reason");
-    }
-    if (state.winner === "runner" && state.winReason === "corp_agenda") {
-      problems.push("Runner won with the Corp agenda reason");
-    }
-  }
-  return problems;
+  return checkInvariants(state).map((problem) => `${problem.code}: ${problem.message}`);
 }
 
 describe("learn-to-play playout", () => {
