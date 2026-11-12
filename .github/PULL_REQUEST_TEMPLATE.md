@@ -25,3 +25,9 @@ Verdict: clear | clear-with-debt | blocked | n/a — <reason>
 - [ ] New `CR.*` cites (if any) pass bidirectional index check (`tests/cr-cite-map.test.ts`)
 - [ ] New timing graph steps (if any) use stepIds present in pinned `timing-structures.json` (`tests/engine.test.ts`)
 - [ ] Supported-wave pool invariant still holds (`tests/pool-supported-invariant.test.ts`)
+
+## Release
+
+- [ ] None: tests, docs, tooling, or dependencies only
+- [ ] Maintenance release `<tag>` (engine `src/` change); the game pin and the [pin table](https://github.com/nhoople/netrunner#readme) follow
+- [ ] Set-complete pair `<tag>` (cards and engine share the semver)
