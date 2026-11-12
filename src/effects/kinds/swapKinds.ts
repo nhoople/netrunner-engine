@@ -7,6 +7,7 @@ import type {
   EvalResult,
 } from "../eval.js";
 import { iceAtRunnerPosition } from "../../state/runPosition.js";
+import type { GameState, Server } from "../../state/types.js";
 import type {
   Effect,
   Primitive,
@@ -125,6 +126,7 @@ case "swap_yagi_hq_with_attacked_root_or_ice": {
       const options: import("../ir.js").ChoiceOption[] = [];
       for (const hqId of hq) {
         for (const srvId of targets) {
+          if (!canSwapIntoPlaceOf(state, server, hqId, srvId)) continue;
           options.push({
             id: `yagi:${hqId}:${srvId}`,
             label: `Swap ${state.cards[hqId]!.title} (HQ) with ${state.cards[srvId]!.title}`,
@@ -138,6 +140,13 @@ case "swap_yagi_hq_with_attacked_root_or_ice": {
             },
           });
         }
+      }
+      if (options.length === 0) {
+        log(
+          state,
+          `Yagi swap — no HQ card may take the place of a card on ${sid} (CR ${CR.swapOnlyToValidLocation.number}).`,
+        );
+        return { ok: true };
       }
       openPendingChoose(state, { sourceId, chooser: "corp", options,
 logLine: `${source.title} — swap HQ with attacked root/ice.`,
@@ -166,9 +175,20 @@ case "swap_yagi_hq_with_attacked_pick": {
         log(state, `Yagi swap pick — invalid targets.`);
         return { ok: true };
       }
+      if (!canSwapIntoPlaceOf(state, server, hqId, srvId)) {
+        log(
+          state,
+          `Yagi swap pick — ${hqCard.title} cannot take the place of ${srvCard.title} (CR ${CR.swapOnlyToValidLocation.number}).`,
+        );
+        return { ok: true };
+      }
+      const run = state.run;
+      const encounteredOut = run.encounter?.iceId === srvId;
       const wasIce = server.ice.includes(srvId);
       const iceIdx = wasIce ? server.ice.indexOf(srvId) : -1;
       const rootIdx = !wasIce ? server.root.indexOf(srvId) : -1;
+      // The card leaving the server is uninstalled (CR 8.8.4b).
+      trashHostedOnSwapOut(state, srvId);
       state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
       if (wasIce) {
         server.ice[iceIdx] = hqId;
@@ -183,10 +203,25 @@ case "swap_yagi_hq_with_attacked_pick": {
       srvCard.zone = "corp:hq";
       srvCard.rezzed = false;
       srvCard.faceup = false;
-      log(
-        state,
-        `Swap ${hqCard.title} from HQ with ${srvCard.title} on ${sid}. The Runner stays in position (CR ${CR.iceChangeDuringMovement.number}).`,
-      );
+      const swapped = `Swap ${hqCard.title} from HQ with ${srvCard.title} on ${sid}.`;
+      if (encounteredOut) {
+        // The encountered ice was uninstalled: the encounter ends once the
+        // open window completes (CR 6.2.7c). The HQ card fills its position,
+        // so the position still exists (CR 6.2.4).
+        run.encounter!.iceUninstalled = true;
+        log(
+          state,
+          `${swapped} ${srvCard.title} is uninstalled, so the encounter ends (CR ${CR.swapBecomeInstalled.number}, ${CR.encounteredIceLeaves.number}).`,
+        );
+      } else if (run.phase === "initiation" || run.phase === "movement") {
+        log(
+          state,
+          `${swapped} The Runner stays in position (CR ${CR.iceChangeDuringMovement.number}).`,
+        );
+      } else {
+        log(state, `${swapped} (CR ${CR.swapBecomeInstalled.number}).`);
+      }
+      occurSwapCheckpoint(state, sourceId);
       return { ok: true };
     }
 
@@ -395,38 +430,7 @@ case "swap_ice_with_hq": {
       }
       const incoming = state.cards[hqIce];
       const outgoingTitle = source.title;
-      const hosted = new Set<string>(source.hostedCardIds ?? []);
-      for (const [id, card] of Object.entries(state.cards)) {
-        if (card.hostId === sourceId) hosted.add(id);
-      }
-      for (const id of hosted) {
-        const card = state.cards[id];
-        if (!card) continue;
-        log(
-          state,
-          `${card.title} trashed (CR ${CR.swapBecomeInstalled.number}).`,
-        );
-      }
-      releaseHostedCardsOnTrash(state, sourceId);
-      const hostedCounters =
-        (source.advancementCounters ?? 0) +
-        (source.virusCounters ?? 0) +
-        (source.powerCounters ?? 0) +
-        (source.hostedCredits ?? 0);
-      if (hostedCounters > 0) {
-        source.advancementCounters = 0;
-        source.virusCounters = 0;
-        source.powerCounters = 0;
-        source.hostedCredits = 0;
-        log(
-          state,
-          `${hostedCounters} hosted counter(s) trashed (CR ${CR.swapBecomeInstalled.number}).`,
-        );
-      }
-      // Baseline so 10.3.1a can see the zone change (CR 8.8.4b).
-      if (!state.previousCheckpointSnapshot) {
-        commitCheckpointSnapshot(state, null);
-      }
+      trashHostedOnSwapOut(state, sourceId);
       state.corp.hand = state.corp.hand.filter((id) => id !== hqIce);
       // Replace in-place so position is preserved; move outgoing to HQ.
       state.servers[serverId]!.ice[iceIndex] = hqIce;
@@ -439,40 +443,7 @@ case "swap_ice_with_hq": {
       source.faceup = false;
       const gain = action.gainCredits ?? 0;
       log(state, `Swap ${outgoingTitle} with ${incoming.title} from HQ.`);
-      // Install and uninstall conditions are met at the next checkpoint,
-      // before the rest of this ability (CR 8.8.4b). Zone diff at 10.3.1a
-      // marks first-remote-install when the incoming card landed on a remote.
-      occurCheckpoint(
-        state,
-        "instruction",
-        "Swap",
-        [CR.swapBecomeInstalled],
-        sourceId,
-      );
-      {
-        const swapPending = state.pendingAbilities.find(
-          (p) =>
-            p.status === "pending" &&
-            p.payload?.kind === "swap_install_trigger",
-        );
-        if (swapPending) {
-          state.turn.firstRemoteInstallThisTurnUsed = true;
-          swapPending.status = "resolving";
-          swapPending.independentOfSource = true;
-          const idCard = state.cards[state.corp.identityId];
-          if (idCard?.onFirstRemoteInstallThisTurn) {
-            fireOnFirstRemoteInstallThisTurn(state, idCard.id);
-            if (state.pendingChoice) return { ok: true };
-          }
-          swapPending.status = "done";
-          state.pendingAbilities = state.pendingAbilities.filter(
-            (p) =>
-              p.status === "pending" ||
-              p.status === "imminent" ||
-              p.status === "resolving",
-          );
-        }
-      }
+      if (occurSwapCheckpoint(state, sourceId)) return { ok: true };
       if (state.pendingChoice && gain > 0) {
         state.turn.pendingSwapContinuationCredits = gain;
         return { ok: true };
@@ -808,4 +779,104 @@ case "swap_two_installed_ice": {
     default:
       return null;
   }
+}
+
+/**
+ * May `incomingId` take the place of `outgoingId` in `server` (CR 8.8.2)?
+ * Ice takes an ice position. A root takes an upgrade, or an agenda or asset
+ * on a remote, holding no other agenda or asset (CR 3.3.1, 8.5.2b, 8.5.2c).
+ * A card limited to particular servers keeps that limit when swapped
+ * (CR 8.5.12), and a root holds at most one region (CR 3.6.5).
+ */
+function canSwapIntoPlaceOf(
+  state: GameState,
+  server: Server,
+  incomingId: string,
+  outgoingId: string,
+): boolean {
+  const incoming = state.cards[incomingId];
+  if (!incoming) return false;
+  if (server.ice.includes(outgoingId)) return incoming.type === "ice";
+  if (!server.root.includes(outgoingId)) return false;
+  const named = incoming.installServers ?? [];
+  if (named.length && !named.includes(server.id as "hq" | "rd" | "archives")) {
+    return false;
+  }
+  if (incoming.remoteOnly && server.kind !== "remote") return false;
+  const others = server.root
+    .filter((id) => id !== outgoingId)
+    .map((id) => state.cards[id]);
+  if (incoming.type === "upgrade") {
+    const oneOfAKind = (c: (typeof others)[number]) =>
+      (c?.subtypes ?? []).includes("region") || Boolean(c?.limitOnePerServer);
+    return !(oneOfAKind(incoming) && others.some(oneOfAKind));
+  }
+  if (incoming.type !== "agenda" && incoming.type !== "asset") return false;
+  if (server.kind !== "remote" && !named.length) return false;
+  return !others.some((c) => c?.type === "agenda" || c?.type === "asset");
+}
+
+/**
+ * A card swapped out of play is uninstalled: trash the cards and counters it
+ * hosted, and set a checkpoint baseline so 10.3.1a sees the zone change
+ * (CR 8.8.4b). Call before the swap moves the card.
+ */
+function trashHostedOnSwapOut(state: GameState, cardId: string): void {
+  const card = state.cards[cardId];
+  if (!card) return;
+  const hosted = new Set<string>(card.hostedCardIds ?? []);
+  for (const [id, other] of Object.entries(state.cards)) {
+    if (other.hostId === cardId) hosted.add(id);
+  }
+  for (const id of hosted) {
+    const other = state.cards[id];
+    if (!other) continue;
+    log(state, `${other.title} trashed (CR ${CR.swapBecomeInstalled.number}).`);
+  }
+  releaseHostedCardsOnTrash(state, cardId);
+  const hostedCounters =
+    (card.advancementCounters ?? 0) +
+    (card.virusCounters ?? 0) +
+    (card.powerCounters ?? 0) +
+    (card.hostedCredits ?? 0);
+  if (hostedCounters > 0) {
+    card.advancementCounters = 0;
+    card.virusCounters = 0;
+    card.powerCounters = 0;
+    card.hostedCredits = 0;
+    log(
+      state,
+      `${hostedCounters} hosted counter(s) trashed (CR ${CR.swapBecomeInstalled.number}).`,
+    );
+  }
+  if (!state.previousCheckpointSnapshot) {
+    commitCheckpointSnapshot(state, null);
+  }
+}
+
+/**
+ * Install and uninstall conditions of a swap are met at the next checkpoint,
+ * before the rest of the ability (CR 8.8.4b). Zone diff at 10.3.1a marks
+ * first-remote-install when the incoming card landed on a remote. Returns
+ * true when a choice from that trigger is now open.
+ */
+function occurSwapCheckpoint(state: GameState, sourceId: string): boolean {
+  occurCheckpoint(state, "instruction", "Swap", [CR.swapBecomeInstalled], sourceId);
+  const swapPending = state.pendingAbilities.find(
+    (p) => p.status === "pending" && p.payload?.kind === "swap_install_trigger",
+  );
+  if (!swapPending) return false;
+  state.turn.firstRemoteInstallThisTurnUsed = true;
+  swapPending.status = "resolving";
+  swapPending.independentOfSource = true;
+  const idCard = state.cards[state.corp.identityId];
+  if (idCard?.onFirstRemoteInstallThisTurn) {
+    fireOnFirstRemoteInstallThisTurn(state, idCard.id);
+    if (state.pendingChoice) return true;
+  }
+  swapPending.status = "done";
+  state.pendingAbilities = state.pendingAbilities.filter(
+    (p) => p.status === "pending" || p.status === "imminent" || p.status === "resolving",
+  );
+  return false;
 }
