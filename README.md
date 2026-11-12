@@ -17,7 +17,7 @@ A set-complete shares one semver on cards-data and this engine. The current floo
 
 | Pairing | cards-data | engine |
 |---------|------------|--------|
-| **Current** | [`v1.147.22`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.22) | [`v1.147.249`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.249) (maintenance pair, not one shared semver; pins cards v1.147.22; Project Yagi-Uda swapping the encountered ice into HQ ends the encounter, and it swaps only into a location the card may occupy) |
+| **Current** | [`v1.147.22`](https://github.com/nhoople/netrunner-cards-data/releases/tag/v1.147.22) | [`v1.147.250`](https://github.com/nhoople/netrunner-engine/releases/tag/v1.147.250) (maintenance pair, not one shared semver; pins cards v1.147.22; ice that Project Yagi-Uda, Midori, or Mitra Aman swaps out is uninstalled: its hosted cards and counters are trashed, and a swap of the encountered ice ends the encounter) |
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 
