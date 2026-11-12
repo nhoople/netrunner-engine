@@ -120,3 +120,53 @@ describe("Mitra Aman: the swapped-out ice is uninstalled (CR 8.8.4b)", () => {
     expect(s.cards["a"]?.faceup).toBe(true);
   });
 });
+
+describe("Midori through its trigger: the chosen ice is swapped in, not rezzed in HQ", () => {
+  it("choosing the HQ ice runs the swap (the option's own effect)", () => {
+    let s = createInitialState();
+    addCard(s, "enigma", "a", "server:hq:ice", true);
+    s.servers.hq.ice = ["a"];
+    addCard(s, "midori", "mid", "server:hq:root", true);
+    s.servers.hq.root = ["mid"];
+    addCard(s, "ice-wall", "new", "corp:hq");
+    s.corp.hand = ["new"];
+    s.runner.credits = 20;
+    s.runner.clicks = 4;
+    s.corp.credits = 20;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    s = must(s, { type: "basic_run", serverId: "hq" });
+    for (let i = 0; i < 10 && !s.pendingChoice; i += 1) s = must(s, { type: "pass_window" });
+    expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual(["decline", "new"]);
+    s = must(s, { type: "choose_option", optionId: "new" });
+    expect(s.servers.hq.ice).toEqual(["new"]);
+    expect(s.cards["new"]?.zone).toBe("server:hq:ice");
+    expect(s.cards["new"]?.rezzed).toBe(false);
+    expect(s.corp.hand).toContain("a");
+    expect(logged(s)).not.toContain("Rez Ice Wall ignoring all costs");
+  });
+});
+
+describe("a choice keyed by a grip card id resolves its own effect", () => {
+  it("Bahia Bands' install from grip keeps its 1 credit discount", () => {
+    let s = createInitialState();
+    addCard(s, "bahia-bands", "bb", "runner:play");
+    const corroder = addCard(s, "corroder", "cor", "runner:grip");
+    s.runner.hand = ["cor"];
+    s.runner.credits = 10;
+    s.runner.clicks = 4;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    const cost = corroder.installCost;
+    expect(cost).toBeGreaterThan(0);
+    const r = evalEffect(
+      { state: s, sourceId: "bb" },
+      { op: "do", action: { kind: "may_install_from_grip", discount: 1 } },
+    );
+    expect(r.ok).toBe(true);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("cor");
+    s = must(s, { type: "choose_option", optionId: "cor" });
+    expect(s.runner.installed).toContain("cor");
+    expect(s.runner.credits).toBe(10 - (cost - 1));
+  });
+});
