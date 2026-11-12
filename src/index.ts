@@ -474,3 +474,10 @@ export {
   additionalRunInitiateTax,
 } from "./state/runInitiateTax.js";
 export type { RunInitiateTax } from "./state/runInitiateTax.js";
+export {
+  checkInvariants,
+  PROBLEM_RULES,
+} from "./debug/invariants.js";
+export type { Problem, ProblemCode } from "./debug/invariants.js";
+export { setApplyHook } from "./debug/applyHook.js";
+export type { ApplyHook } from "./debug/applyHook.js";

@@ -1,6 +1,7 @@
 import type { Effect } from "../effects/ir.js";
 import { endLooksAndReveals, lookAtChoiceCards } from "../state/reveal.js";
 import { setRunnerPosition } from "../state/runPosition.js";
+import { runApplyHook } from "../debug/applyHook.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
 import {
   costCardNeedForAction,
@@ -1654,6 +1655,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     lookAtChoiceCards(result.state);
   }
   if (!after && !result.state.pendingCost) endLooksAndReveals(result.state);
+  runApplyHook(result.state, action);
   return result;
 }
 
