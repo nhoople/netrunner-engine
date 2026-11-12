@@ -19,7 +19,6 @@ A set-complete shares one semver on cards-data and this engine; between set-comp
 
 Prior set-complete / maintenance tags: [cards Releases](https://github.com/nhoople/netrunner-cards-data/releases) · [engine Releases](https://github.com/nhoople/netrunner-engine/releases).
 
-
 Declared pin: [`data/cards-pin.json`](data/cards-pin.json) (`npm run fetch-cards`). GitHub Releases are cut at **set-complete** (wave pool status → `supported`, advertised host floor) or by **explicit manual** release. Pack IR/wiring work lands as PR merges; pin consumers to a release tag, not `master`. Intermediate progress tags may still exist on GitHub history — prefer the **Current** floor tag above. Maintenance / quality tags (e.g. `v1.34.0`) still publish when consumers should pin past a prior milestone.
 
 ## Requirements
@@ -98,11 +97,7 @@ const view = getPublicView(state, "runner");
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the CR adherence gate (PR template) and CI hard-fails: cite-map (`tests/cr-cite-map.test.ts`), timing `stepId`s (`tests/engine.test.ts`), and supported-wave empty-`unsupported` (`tests/pool-supported-invariant.test.ts`). All run under the default `npm test` job.
-
-Scenario tests ported from [mtgred/netrunner](https://github.com/mtgred/netrunner) follow [`docs/jnet-test-ports.md`](docs/jnet-test-ports.md): quarantined under `tests/jnet/`, native-style titles with the upstream `deftest` name kept as provenance, and a promoted native test for every engine fix they produce.
-
-**Corpus status:** the pinned cards (side and type, deck limits, printings, verified rulings, and format lists; double-sided identity faces, uniqueness, and attribution restored). Title corpus unchanged from **`v1.147.6`** — Magnum Opus complete (**8/8**; `mor` absorbed). Printed link, deck size, influence limit, and influence cost; ice, assets, and upgrades omit a copied install cost. Gateway → Vantage Point, Uprising, Downfall, System Core 2019, Reign and Reverie, FFG Core-forward through Kitara, and Magnum Opus are fully `supported`. Eternal + RAM unique-title Magnum Opus gaps closed. Confidence extras live under `tests/confidence-*.test.ts` / `tests/fixtures/goldens/` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)). Skip `napd`/draft/championship; defer `tdc`. GitHub Releases only at set-complete or explicit manual — not per-slice.
+The pull request process, the CR adherence gate, and the CI checks are in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## CR pin
 
@@ -130,70 +125,10 @@ Cards remain **pure data**. Definitions live in the sibling consumer repo [netru
 
 **Authoritative corpus:** pinned cards `pool.json` — **68/68** waves `supported` (see `corpusOrder` + wave `status` / card counts). Do not treat any shorter README wave list as complete.
 
-Highlights carried from **`v1.147.6`**: printed link, deck size, influence limit, and influence cost. Ice, assets, and upgrades keep `rezCost` and omit a copied `installCost`. Magnum Opus **8/8** (`mor` absorbed); fixtures wave removed (Plascrete under WLA); Gateway → VP, Uprising, Downfall, SC19, RaR, and FFG Core-forward through Kitara all `supported`.
-
-Synthetic `stubs/` / `wave1/` / `wave2/` dirs were removed in cards-data `v0.2.0`; demos use real Gateway/SU21 cards (Ice Wall, Marjanah, Palisade, Hortum, Tithe, Rototurret, …).
-
 ## Effect IR
 
-Hand-authored AST evaluated by `evalEffect` — **not** compiling `nodes.json`.
+Card abilities are a hand-authored effect language evaluated by `evalEffect`, not compiled from the Comprehensive Rules text. The grammar is in [`docs/effect-ir.md`](docs/effect-ir.md).
 
-```text
-Effect ::= seq [Effect…]
-         | do Primitive
-         | if Cond then Effect [else Effect]
-         | prevent jack_out
-         | choose {chooser, options[]}
-
-Primitive ::= end_the_run
-            | gain_credits | lose_credits {side, amount, tally?, then?}
-            | lose_clicks | gain_clicks {side, amount, tally?}
-            | pump_strength {amount, duration?: encounter|run}
-            | fortify_ice | weaken_ice {amount}
-            | net_damage | meat_damage {amount, tally?} | core_damage | brain_damage {amount}
-            | give_tags {amount, tally?}
-            | trash_program | trash_resource {pick: first|choose}
-            | take_hosted_credits | place_hosted_credits {amount}
-         | add_virus_counter | gain_credits_per_virus
-         | increase_hand_size {side, amount}
-         | remove_tags {amount, tally?} | gain_credits_per_advancement | bypass_current_ice
-         | remove_power_counter
-         | sabotage {amount, interactive?}
-         | identify_mark
-         | charge {pick: self|choose|card, cardId?}
-         | bonus_access {amount}
-         | breach_server_when_run_ends {server: hq|rd|archives}
-         | install_from_grip_discount {types[], discount, mayCharge?}
-         | install_grip_card {cardId, discount}
-         | may_charge_card {cardId}
-         | may_derez_installed {excludeSelf?, then?}
-         | may_trash_installed {excludeSelf?, then?}
-         | trash_corp_card {cardId}
-         | spark_of_inspiration_resolve {discount?}
-         | may_trash_other_installed_search_stack_same_type_install {discount}
-         | search_stack_type_install {cardType, discount}
-         | draw {side, amount, tally?}
-         | take_hosted_bad_publicity {amount}
-         | may_flip_archives_ice_resolve_subroutine
-         | flip_archives_ice_resolve_subroutine {iceId, subIndex}
-         | trash_encounter_ice_resolve_subroutine {subIndex}
-         | may_choose_server
-         | set_named_server {serverId}
-         | search_stack_host_virus_or_weapon {max}
-         | host_stack_card_on_source {cardId}
-         | may_add_hosted_card_to_grip
-         | add_hosted_card_to_grip {cardId}
-         | turn_hosted_cards_faceup
-         | host_copy_from_grip {title}
-         | matryoshka_break
-         | matryoshka_break_resolve {amount, hostedId}
-         | trace {strength, onSuccess, onFailure?}
-         | add_agenda_counter {amount}
-```
-
-A `kind` is snake_case and names the procedure: a verb, then the object (`gain_credits`, `trash_program`). `may_` means the player may decline. Amounts, sides, and zones are fields. Do not prefix a kind with a pack code or a card title. The allowed verbs are `PROCEDURE_VERBS` in `src/effects/primitiveNames.ts`.
-
-Card hooks that carry Effect trees: `subroutines[].effect`, `paidAbilities[].effect`, `onRez`, `onPlay`, `onScore`, `onSteal`, `onEncounter`, `onTurnBegin`, `onInstall`, `onFirstTagThisTurn`, `onFirstCoreDamageThisTurn`, `onFirstRdRunBeginThisTurn`, `onFirstArchivesRunBeginThisTurn`, `onFirstVirusInstallThisTurn`, `onFirstSuccessfulMarkRunThisTurn`, `onFirstSuccessfulHqRunThisTurn`, `onProgramOrHardwareInstall`. Threshold field: `onPowerCountersGte` (Environmental Testing). Paid-ability gates include `requireEncounterSubtype` and `requireAttackingMark` (Backstitching mark-run trash-to-bypass).
 ## What the engine does
 
 - Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d)

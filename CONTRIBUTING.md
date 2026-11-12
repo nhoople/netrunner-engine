@@ -11,6 +11,10 @@
 
 When a wave is fully mapped and `pool.json` → `supported`, also run a light **interaction smoke** sample (prevent×cost, blank×host, interrupt chains, etc.). Reusable matrix: [`docs/interaction-smoke-samples.md`](docs/interaction-smoke-samples.md). Gateway→VP already has a one-time corpus pass in `tests/confidence-*.test.ts` ([#193](https://github.com/nhoople/netrunner-engine/pull/193)); re-sample with wave-local cards for the **next** pack.
 
+## Ported scenario tests
+
+Scenario tests ported from [mtgred/netrunner](https://github.com/mtgred/netrunner) follow [`docs/jnet-test-ports.md`](docs/jnet-test-ports.md): quarantined under `tests/jnet/`, native-style titles with the upstream `deftest` name kept as provenance, and a promoted native test for every engine fix they produce.
+
 ## CI hard-fails
 
 | Check | Command / test |
