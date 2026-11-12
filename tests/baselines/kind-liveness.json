@@ -1,0 +1,28 @@
+{
+  "_comment": "Shrink-only baseline for tests/kind-liveness.test.ts (CR audit tool 1.2). Recorded 2026-11-12 at engine v1.147.251, cards v1.147.22. deadKinds: in KNOWN_PRIMITIVE_KINDS, used by no card, built nowhere in src/. noOpChoices: choice builders whose every option effect is gain_credits 0 or an empty seq; all four are resolved by option id in src/actions/apply.ts instead of through the IR.",
+  "deadKinds": [
+    "add_pending_damage",
+    "brain_damage",
+    "give_bad_publicity_unless_corp_pays",
+    "host_stack_card_on_source",
+    "increase_hand_size",
+    "may_breach_instead_eden_shard",
+    "may_breach_instead_keyhole",
+    "may_place_advancement_on_self_meat",
+    "may_swap_drawn",
+    "net_mercur_place_or_draw",
+    "pay_or_net",
+    "refresh_khondi_plaza_recurring",
+    "return_subliminal_from_archives",
+    "rez_installed_paying",
+    "set_skip_breach",
+    "trace_white_hat",
+    "trash_rezzed_copy"
+  ],
+  "noOpChoices": [
+    "src/actions/access.ts#function advanceFromMidAccess",
+    "src/effects/kinds/swapKinds.ts#case swap_two_ice",
+    "src/legality/checkpoints.ts#function offerRootEntry",
+    "src/state/trashHooks.ts#function offerSkorpiosRfgInsteadOfHeap"
+  ]
+}
