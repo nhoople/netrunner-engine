@@ -91,6 +91,8 @@ case "swap_approached_ice_with_hq": {
         log(state, `Midori swap — invalid ice.`);
         return { ok: true };
       }
+      // The approached ice leaves play: it is uninstalled (CR 8.8.4b).
+      trashHostedOnSwapOut(state, approachedId);
       state.corp.hand = state.corp.hand.filter((id) => id !== replacementId);
       state.servers[serverId]!.ice[run.position!] = replacementId;
       replacement.zone = `server:${serverId}:ice`;
@@ -99,10 +101,12 @@ case "swap_approached_ice_with_hq": {
       state.corp.hand.push(approachedId);
       approached.zone = "corp:hq";
       approached.rezzed = false;
+      approached.faceup = false;
       log(
         state,
-        `Midori — swap ${approached.title} with ${replacement.title} from HQ (unrezzed).`,
+        `Midori — swap ${approached.title} with ${replacement.title} from HQ (unrezzed). The Runner approaches the new ice (CR ${CR.swapBecomeInstalled.number}, 6.2.7b).`,
       );
+      if (occurSwapCheckpoint(state, sourceId)) return { ok: true };
       return applyPrimitive(ctx, { kind: "offer_jack_out" });
     }
 
@@ -482,6 +486,8 @@ case "swap_approached_ice_with_hq_or_archives": {
         return { ok: true };
       }
       const visibleToRunner = Boolean(approached.rezzed || approached.faceup);
+      // The approached ice leaves play: it is uninstalled (CR 8.8.4b).
+      trashHostedOnSwapOut(state, approachedId);
       if (fromHq) {
         state.corp.hand = state.corp.hand.filter((id) => id !== replacementId);
       } else {
@@ -497,6 +503,7 @@ case "swap_approached_ice_with_hq_or_archives": {
         state.corp.hand.push(approachedId);
         approached.zone = "corp:hq";
         approached.rezzed = false;
+        approached.faceup = false;
       } else {
         state.corp.discardPile.push(approachedId);
         approached.zone = "corp:archives";
@@ -511,8 +518,9 @@ case "swap_approached_ice_with_hq_or_archives": {
       }
       log(
         state,
-        `Swap approached ${approached.title} with ${replacement.title}.`,
+        `Swap approached ${approached.title} with ${replacement.title}. The Runner approaches the new ice (CR ${CR.swapBecomeInstalled.number}, 6.2.7b).`,
       );
+      occurSwapCheckpoint(state, sourceId);
       return { ok: true };
     }
 
