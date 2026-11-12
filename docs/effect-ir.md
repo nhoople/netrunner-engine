@@ -2,6 +2,8 @@
 
 The grammar of the hand-authored effect language that card definitions use and `evalEffect` runs. Kind names follow the verb rules in [`src/effects/primitiveNames.ts`](../src/effects/primitiveNames.ts), checked by `tests/effect-ir-names.test.ts`.
 
+Every kind, with its fields, how many cards use it, and whether a card or only the engine builds it, is listed in [effect-ir-kinds.md](effect-ir-kinds.md). That file is generated: run `npm run kind-reference` after changing `src/effects/ir.ts`.
+
 Hand-authored AST evaluated by `evalEffect` — **not** compiling `nodes.json`.
 
 ```text

@@ -31,7 +31,8 @@
     "demo:fortify-pump": "tsx src/cli.ts --fortify-pump",
     "demo:tithe": "tsx src/cli.ts --tithe",
     "demo:rototurret": "tsx src/cli.ts --rototurret",
-    "prepare-data": "npm run fetch-cr && npm run fetch-cards"
+    "prepare-data": "npm run fetch-cr && npm run fetch-cards",
+    "kind-reference": "node scripts/build-kind-reference.mjs --write"
   },
   "engines": {
     "node": ">=26"
