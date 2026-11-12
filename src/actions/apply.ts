@@ -1,3 +1,4 @@
+import type { Effect } from "../effects/ir.js";
 import { endLooksAndReveals, lookAtChoiceCards } from "../state/reveal.js";
 import { setRunnerPosition } from "../state/runPosition.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
@@ -381,6 +382,21 @@ function resolveSabotageIntent(
     return cont;
   }
   return ok(state);
+}
+
+/**
+ * A choice option whose effect is the "gain 0" placeholder: the id-keyed
+ * branches of chooseOption carry out what it names (Send a Message's rez).
+ * An option with an effect of its own resolves that effect instead, so a
+ * choice keyed by a card id (Midori's swap) is not taken for a rez or an
+ * install of that card.
+ */
+function isPlaceholderEffect(effect: Effect): boolean {
+  return (
+    effect.op === "do" &&
+    effect.action.kind === "gain_credits" &&
+    (effect.action as { amount?: unknown }).amount === 0
+  );
 }
 
 function chooseOption(state: GameState, optionId: string): ApplyResult {
@@ -874,7 +890,10 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     );
   } else if (
     state.cards[sourceId]?.mayRezIceIgnoringCostsOnScoreOrSteal ||
-    state.cards[optionId]?.type === "ice"
+    (state.cards[optionId]?.type === "ice" &&
+      state.cards[optionId]!.zone.endsWith(":ice") &&
+      !state.cards[optionId]!.rezzed &&
+      isPlaceholderEffect(option.effect))
   ) {
     if (optionId !== "decline" && state.cards[optionId]?.type === "ice") {
       const ice = state.cards[optionId];
@@ -890,7 +909,8 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       state.runner.hand.includes(optionId) &&
       ["program", "hardware", "resource"].includes(
         state.cards[optionId]?.type ?? "",
-      ))
+      ) &&
+      isPlaceholderEffect(option.effect))
   ) {
     if (optionId !== "decline" && state.runner.hand.includes(optionId)) {
       const installed = installRunner(state, optionId);
