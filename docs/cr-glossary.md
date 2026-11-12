@@ -81,7 +81,7 @@ Effect IR `dividends` with `{ n }` places **N** agenda counters for each hosted 
 
 ## Denylist
 
-CI: [`tests/cr-term-denylist.test.ts`](../tests/cr-term-denylist.test.ts) fails if banned aliases from `cr-term-map.json` reappear in `src/`.
+CI: [`tests/term-denylist.test.ts`](../tests/term-denylist.test.ts) fails if banned aliases from `cr-term-map.json` reappear in `src/`.
 
 Cards pin **`v1.147.5+`** ships CR interrupt windows, advancement counters, Elevation `dividends`, Beale-style `place_agenda_counters_past`, and open-location public fields (`playArea`, set-aside `groupId`, `badPublicityFund`, nested `hostedCards`). Older card tags are unsupported by this pin.
 
@@ -91,7 +91,7 @@ See `data/cr-term-map.json` for every unique CR term/subtype (~242). Procedure v
 
 ### Remaining `unmodeled`
 
-None. `tests/cr-term-denylist.test.ts` asserts the unmodeled list stays empty.
+None. `tests/term-denylist.test.ts` asserts the unmodeled list stays empty.
 
 ### Remaining `alias`
 

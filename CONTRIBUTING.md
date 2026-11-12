@@ -29,4 +29,4 @@ Setup: `npm ci && npm run prepare-data && npm run lint && npm run typecheck && n
 
 Development hosts (library API only — no UI/network): `npm run demo:library`, `npm run demo`, `npm run cli:help`.
 
-**Pins today:** CR `v26.03`; cards-data **`v1.147.22`** and engine **`v1.147.251`** (a maintenance pair, not one shared semver). Cards are stored by side and type, with deck limits, printings, verified rulings, and format lists. Title corpus unchanged from `v1.147.6`. Idle until next NSG pack after VP or a CR bump.
+**Pins:** the engine pins cards and CR by release tag in `data/cards-pin.json` and `data/cr-pin.json`. The current versions are in the project [pin table](https://github.com/nhoople/netrunner#readme). The corpus is idle until the next NSG pack or a CR update.
