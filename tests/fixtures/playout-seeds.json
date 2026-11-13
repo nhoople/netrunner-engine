@@ -1,0 +1,237 @@
+{
+  "steps": 200,
+  "entries": [
+    {
+      "format": "learn_to_play_starter",
+      "deckSeed": 1,
+      "step": 24,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "finish_breach at access.stealAgenda: No breach access window."
+    },
+    {
+      "format": "learn_to_play_starter",
+      "deckSeed": 2,
+      "step": 63,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "access_card at access.stealAgenda: No breach access window."
+    },
+    {
+      "format": "learn_to_play_starter",
+      "deckSeed": 4,
+      "step": 138,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "finish_breach at access.stealAgenda: No breach access window."
+    },
+    {
+      "format": "learn_to_play_starter",
+      "deckSeed": 13,
+      "step": 62,
+      "code": "RUN_SERVER_MISSING",
+      "recorded": "2026-11-13",
+      "detail": "run attacks missing server remote-2"
+    },
+    {
+      "format": "learn_to_play_expanded",
+      "deckSeed": 3,
+      "step": 168,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-13",
+      "detail": "corp:nico-campaign:8 (Nico Campaign) is in corp:archives, corp:archives"
+    },
+    {
+      "format": "learn_to_play_expanded",
+      "deckSeed": 4,
+      "step": 59,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-13",
+      "detail": "corp:urtica-cipher:9 (Urtica Cipher) is in corp:archives, corp:archives"
+    },
+    {
+      "format": "learn_to_play_expanded",
+      "deckSeed": 17,
+      "step": 27,
+      "code": "RUN_SERVER_MISSING",
+      "recorded": "2026-11-13",
+      "detail": "run attacks missing server remote-1"
+    },
+    {
+      "format": "system_gateway",
+      "deckSeed": 2,
+      "step": 114,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-13",
+      "detail": "at corp.turnBegins"
+    },
+    {
+      "format": "system_gateway",
+      "deckSeed": 3,
+      "step": 32,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "finish_breach at access.stealAgenda: No breach access window."
+    },
+    {
+      "format": "system_gateway",
+      "deckSeed": 10,
+      "step": 21,
+      "code": "HOST_LINK_MISSING",
+      "recorded": "2026-11-13",
+      "detail": "runner:tranquilizer:32 (Tranquilizer) has hostId corp:pharos:22 (Pharos) but is not in its hosted list (zone runner:installed)"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 1,
+      "step": 38,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-13",
+      "detail": "corp:hype-machine:17 (Hype Machine) is in corp:rd and in no zone list"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 2,
+      "step": 136,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "finish_breach at access.stealAgenda: No breach access window."
+    },
+    {
+      "format": "startup",
+      "deckSeed": 3,
+      "step": 44,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-13",
+      "detail": "at corp.turnBegins"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 4,
+      "step": 5,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-13",
+      "detail": "at corp.turnBegins"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 5,
+      "step": 127,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-13",
+      "detail": "at runner.turnBegins"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 11,
+      "step": 51,
+      "code": "HOST_LINK_MISSING",
+      "recorded": "2026-11-13",
+      "detail": "runner:stowaway:32 (Stowaway) has hostId corp:event-horizon:3 (Event Horizon) but is not in its hosted list (zone runner:installed)"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 11,
+      "step": 90,
+      "code": "RUN_SERVER_MISSING",
+      "recorded": "2026-11-13",
+      "detail": "run attacks missing server remote-1"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 11,
+      "step": 98,
+      "code": "OFF_BOARD_HOSTED",
+      "recorded": "2026-11-13",
+      "detail": "runner:stowaway:32 (Stowaway) is in runner:heap with hostId corp:event-horizon:3"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 11,
+      "step": 126,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "access_card at access.stealAgenda: No breach access window."
+    },
+    {
+      "format": "core",
+      "deckSeed": 1,
+      "step": 84,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-13",
+      "detail": "at corp.turnBegins"
+    },
+    {
+      "format": "core",
+      "deckSeed": 12,
+      "step": 61,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
+    },
+    {
+      "format": "core",
+      "deckSeed": 14,
+      "step": 24,
+      "code": "POSITION_OUT_OF_RANGE",
+      "recorded": "2026-11-13",
+      "detail": "run position 0 is outside hq ice (0)"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 2,
+      "step": 48,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "basic_install at corp.takeAction: Cannot create another remote server."
+    },
+    {
+      "format": "standard",
+      "deckSeed": 14,
+      "step": 60,
+      "code": "HOST_LINK_MISSING",
+      "recorded": "2026-11-13",
+      "detail": "runner:slap-vandal:38 (Slap Vandal) has hostId corp:grubber:13 (Grubber) but is not in its hosted list (zone runner:installed)"
+    },
+    {
+      "format": "standard",
+      "deckSeed": 14,
+      "step": 127,
+      "code": "OFF_BOARD_HOSTED",
+      "recorded": "2026-11-13",
+      "detail": "runner:slap-vandal:38 (Slap Vandal) is in runner:heap with hostId corp:grubber:13"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 1,
+      "step": 6,
+      "code": "REFUSED",
+      "recorded": "2026-11-13",
+      "detail": "basic_install at corp.takeAction: Research Station may only be installed on hq."
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 27,
+      "step": 67,
+      "code": "HOST_NOT_IN_PLAY",
+      "recorded": "2026-11-13",
+      "detail": "runner:ekomind:15 (Ekomind) is hosted on runner:street-peddler:38 (Street Peddler), which is in runner:heap"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 27,
+      "step": 67,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-13",
+      "detail": "runner:rook:35 (Rook) is in runner:set-aside, hosted:runner:street-peddler:38"
+    },
+    {
+      "format": "eternal",
+      "deckSeed": 27,
+      "step": 77,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-13",
+      "detail": "at corp.turnBegins"
+    }
+  ]
+}

@@ -20,6 +20,8 @@
     "test": "vitest run",
     "test:jnet": "vitest run --config vitest.jnet.config.ts",
     "test:watch": "vitest",
+    "playouts": "tsx scripts/playouts.ts",
+    "playouts:nightly": "tsx scripts/playouts.ts --seeds 200",
     "cli": "tsx src/cli.ts",
     "cli:help": "tsx src/cli.ts --help",
     "demo": "tsx src/cli.ts --demo",
