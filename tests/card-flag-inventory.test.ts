@@ -13,7 +13,7 @@
  *     `src/state/types.ts`, except where `instantiateCard` renames it), and
  *   - each top-level property of the pinned `vendor/cards-data/schema.json`.
  *
- * For each entry it records the cards that set it, the sites in `src/` that read
+ * For each entry it records the cards that set it, the sites in `src/` (outside `src/debug/`) that read
  * it, and the effect kinds those readers build. It is written with the
  * TypeScript compiler API and the type checker, not regex: a read is a property
  * access, element access, destructuring or `keyof` string literal that resolves
@@ -500,6 +500,9 @@ function collectReads(
     if (sf.isDeclarationFile) continue;
     const rel = relative(ROOT, sf.fileName).split("\\").join("/");
     if (!rel.startsWith("src/")) continue;
+    // src/debug/ is verification code (the CR audit invariant checker). It reads
+    // card fields to check state, not to give a card its behavior.
+    if (rel.startsWith("src/debug/")) continue;
     const record = (owned: [string, string] | undefined, node: ts.Node): void => {
       if (!owned) return;
       out.push({
