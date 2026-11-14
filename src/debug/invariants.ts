@@ -43,6 +43,8 @@ export type ProblemCode =
   | "ENCOUNTER_ICE_MISMATCH"
   /** A Runner card is marked rezzed (CR 8.1.4f). */
   | "RUNNER_CARD_REZZED"
+  /** A Corp card in R&D, HQ or Archives is marked rezzed (CR 8.1.1, 1.12.1). */
+  | "REZZED_OUTSIDE_PLAY"
   /** A credit pool is below 0 (CR 1.10.3b, 1.10.3c). */
   | "NEGATIVE_CREDITS"
   /** A click count is below 0 (CR 1.11.3b). */
@@ -75,6 +77,7 @@ export const PROBLEM_RULES: Readonly<Record<ProblemCode, readonly string[]>> = {
   POSITION_OUT_OF_RANGE: ["6.2.1", "6.2.5"],
   ENCOUNTER_ICE_MISMATCH: ["6.2.7c", "6.2.7d"],
   RUNNER_CARD_REZZED: ["8.1.4f"],
+  REZZED_OUTSIDE_PLAY: ["8.1.1", "1.12.1", "4.6.7c", "4.6.7d", "1.8.4a"],
   NEGATIVE_CREDITS: ["1.10.3b", "1.10.3c"],
   NEGATIVE_CLICKS: ["1.11.3b"],
   WIN_REASON: ["1.7.1", "1.7.2"],
@@ -120,6 +123,13 @@ function hostZoneAllowed(zone: string): boolean {
     (zone.startsWith("server:") && (zone.endsWith(":ice") || zone.endsWith(":root")))
   );
 }
+
+/**
+ * Corp zones where no card is installed (CR 4.6.7c, 4.6.7d, 1.8.4a), so
+ * none is rezzed (CR 8.1.1). Identities, score areas and the
+ * play area are left out: the engine marks active cards there `rezzed`.
+ */
+const CORP_NOT_INSTALLED = new Set(["corp:rd", "corp:hq", "corp:archives"]);
 
 /** Every zone list in the state, as id → the zones that list it. */
 function zoneLists(state: GameState): Map<string, string[]> {
@@ -201,6 +211,14 @@ export function checkInvariants(state: GameState): Problem[] {
     return state.cards[id]?.zone;
   };
 
+  // CR 9.1.8h: ice encountered while not installed has active subroutines.
+  // The engine marks it rezzed for that encounter (Archangel, Chrysalis).
+  const encounteredOutsidePlay = new Set(
+    [state.run?.encounter?.iceId, state.run?.forceEncounterIceId].filter(
+      (id): id is string => typeof id === "string",
+    ),
+  );
+
   for (const card of Object.values(state.cards)) {
     if (identities.has(card.id)) continue;
     const zones = found.get(card.id) ?? [];
@@ -228,6 +246,21 @@ export function checkInvariants(state: GameState): Problem[] {
     // CR 8.1.4f: Runner cards are never rezzed or unrezzed.
     if (card.side === "runner" && card.rezzed) {
       report("RUNNER_CARD_REZZED", card.id, `${label} is a Runner card marked rezzed`);
+    }
+
+    // CR 8.1.1: only an installed card is rezzed. A card that leaves play
+    // becomes a new object (CR 1.12.1) and does not keep the status. Only a
+    // card listed in the zone its field names is checked: anything else is
+    // a zone problem, reported above.
+    if (
+      card.side === "corp" &&
+      card.rezzed &&
+      zones.length === 1 &&
+      zones[0] === card.zone &&
+      CORP_NOT_INSTALLED.has(card.zone) &&
+      !encounteredOutsidePlay.has(card.id)
+    ) {
+      report("REZZED_OUTSIDE_PLAY", card.id, `${label} is in ${card.zone} and marked rezzed`);
     }
 
     // CR 1.13.4: one host, and both ends of the link agree.

@@ -304,6 +304,21 @@ function turnBeginPaused(state: GameState): boolean {
   );
 }
 
+/**
+ * Ice encountered while not installed is marked rezzed so its subroutines
+ * are active for that encounter (CR 9.1.8h). Once the encounter is over, a
+ * card that is not installed is not rezzed (CR 8.1.1).
+ */
+function clearEncounterOutsidePlayMark(s: GameState, iceId: string | undefined): void {
+  const ice = iceId ? s.cards[iceId] : undefined;
+  if (
+    ice?.rezzed &&
+    (ice.zone === "corp:hq" || ice.zone === "corp:rd" || ice.zone === "corp:archives")
+  ) {
+    ice.rezzed = false;
+  }
+}
+
 /** The run-end instance that stayed pending resolves once (CR 9.12.5d). */
 export function resolveDeferredPersistentAmaze(state: GameState): void {
   const bag = pendingAbilitiesWithStatus(state, "pending").filter(
@@ -3648,6 +3663,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   s.corp.discardPile.push(cid);
                   hosted.zone = "corp:archives";
                   hosted.faceup = true;
+                  hosted.rezzed = false;
                   hosted.hostId = undefined;
                 }
                 ice.hostedCardIds = [];
@@ -3775,6 +3791,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (ice) ice.cannotBreakWithRunnerCardAbilities = false;
           }
         }
+        clearEncounterOutsidePlayMark(s, runState.encounter?.iceId);
         // Banner / VSA encounter-scoped flags clear with encounter teardown.
         s.run!.encounter = null;
         s.run!.usedAbilitiesThisEncounter = [];
@@ -4869,6 +4886,9 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         resolveDeferredPersistentAmaze(s);
         const runState = s.run!;
+        // A run can end during a forced encounter (CR 9.1.8h).
+        clearEncounterOutsidePlayMark(s, runState.encounter?.iceId);
+        clearEncounterOutsidePlayMark(s, runState.forceEncounterIceId);
         if (runState.resumeAfterDelayedOrder) {
           runState.resumeAfterDelayedOrder = false;
         } else {

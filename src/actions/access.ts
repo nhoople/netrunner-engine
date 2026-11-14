@@ -342,6 +342,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       state.corp.discardPile.push(accessingId);
       accessed.zone = "corp:archives";
       accessed.faceup = true;
+      accessed.rezzed = false;
       state.run!.accessingCardId = null;
       if (state.run) state.run.breachStoleOrTrashed = true;
       noteFirstCorpCardTrashEachTurn(state);

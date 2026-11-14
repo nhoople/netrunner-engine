@@ -738,6 +738,8 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
       removeCardFromCurrentZone(state, iceId);
       state.corp.discardPile.push(iceId);
       ice.zone = "corp:archives";
+      // A trashed card is a new object, not installed (CR 1.12.1, 8.1.1).
+      ice.rezzed = false;
       state.runner.credits += 2 * str;
       log(state, `Unregistered S&W — trash ice; gain ${2 * str}¢.`);
       return { ok: true };
