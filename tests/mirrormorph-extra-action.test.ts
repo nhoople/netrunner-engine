@@ -147,12 +147,9 @@ describe("MirrorMorph: take another different action, paying [click] less", () =
     expect(s.turn.extraDifferentAction ?? null).toBeNull();
   });
 
-  it("names the reward by its procedure; the old card-titled kind still works", () => {
+  it("names the reward by its procedure", () => {
     expect(primitiveNameFollowsStandard("take_different_action_paying_click_less")).toBe(true);
-    for (const kind of [
-      "take_different_action_paying_click_less",
-      "mirrormorph_take_different_action_click_discount",
-    ]) {
+    for (const kind of ["take_different_action_paying_click_less"]) {
       const s = mirrormorph(0);
       s.turn.corpActionSequenceThisTurn = ["basic_gain", "basic_draw", "basic_install"];
       s.timingKey = "corp.actionPaw";

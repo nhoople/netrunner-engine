@@ -2144,8 +2144,6 @@ export type Primitive =
   | { kind: "choose_install_cost_set_aside_access_shuffle" }
   | { kind: "set_aside_access_shuffle"; installCost: number }
   | { kind: "access_set_aside"; cardId: string }
-  /** MirrorMorph. Cards pin v1.147.22 writes the old card-titled name. */
-  | { kind: "mirrormorph_take_different_action_click_discount" }
   /**
    * Take another action now, different from the first three this turn,
    * paying [click] less (MirrorMorph: Endless Iteration; CR 5.2.5b).
@@ -3638,7 +3636,6 @@ export type Primitive =
   | { kind: "reveal_oracle_top_match"; cardType: string }
   | { kind: "reveal_score_from_hq" }
   | { kind: "score_agenda_from_hq"; cardId: string }
-  | { kind: "trash_unregistered_rezzed_ice_gain_per_strength" }
   | { kind: "pay_tori_hanzo_instead_net" }
   | { kind: "may_swap_two_installed_ice" }
   | { kind: "corp_pay_credits"; amount: number }
@@ -4514,7 +4511,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "choose_install_cost_set_aside_access_shuffle",
   "set_aside_access_shuffle",
   "access_set_aside",
-  "mirrormorph_take_different_action_click_discount",
   "take_different_action_paying_click_less",
   "add_power_counter",
   "take_hosted_bad_publicity",
@@ -5457,7 +5453,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_oracle_top_match",
   "reveal_score_from_hq",
   "score_agenda_from_hq",
-  "trash_unregistered_rezzed_ice_gain_per_strength",
   "pay_tori_hanzo_instead_net",
   "may_swap_two_installed_ice",
   "corp_pay_credits",

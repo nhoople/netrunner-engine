@@ -210,21 +210,13 @@ describe("Unregistered S&W '35", () => {
     expect(s.pendingChoice ?? null).toBeNull();
   });
 
-  it("the cards composition and the pinned card-titled kind resolve the same", () => {
+  it("the cards composition offers only the rezzed sysop", () => {
     expect(primitiveNameFollowsStandard("choose_card")).toBe(true);
-    for (const effect of [
-      PRINTED,
-      {
-        op: "do",
-        action: { kind: "trash_unregistered_rezzed_ice_gain_per_strength" },
-      } as Effect,
-    ]) {
-      const s = runnerWithSw();
-      corpCard(s, "eli-1-0", "ice-1", "remote-1", "ice", true);
-      corpCard(s, "akitaro-watanabe", "sysop-1", "remote-1", "root", true);
-      const r = evalEffect({ state: s, sourceId: "usw-1" }, effect);
-      expect(r.ok).toBe(true);
-      expect(offered(s)).toEqual(["choose-card:sysop-1"]);
-    }
+    const s = runnerWithSw();
+    corpCard(s, "eli-1-0", "ice-1", "remote-1", "ice", true);
+    corpCard(s, "akitaro-watanabe", "sysop-1", "remote-1", "root", true);
+    const r = evalEffect({ state: s, sourceId: "usw-1" }, PRINTED);
+    expect(r.ok).toBe(true);
+    expect(offered(s)).toEqual(["choose-card:sysop-1"]);
   });
 });

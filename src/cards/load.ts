@@ -1687,43 +1687,11 @@ export interface CardPool {
 let catalogCache: Map<string, CardDef> | null = null;
 let poolCache: CardPool | null = null;
 
-/**
- * Cards pin v1.147.22 writes Unregistered S&W '35's "Use this hardware only
- * if you have made a successful run on HQ this turn" as the static
- * declaration playRequiresSuccessfulHqRunThisTurn, which gates only playing
- * an event. On hardware it restricts using the card's paid abilities
- * (CR 9.3.7a), so carry it onto each paid ability record. Drop this once
- * the cards pin writes requiresSuccessfulHqRunThisTurn on the paid ability.
- */
-function carryHardwareUseRestrictionToPaidAbilities(
-  c: Record<string, unknown>,
-): void {
-  if (c.type !== "hardware" || !Array.isArray(c.abilities)) return;
-  const records = c.abilities as Array<Record<string, unknown>>;
-  const restricted = records.some((record) => {
-    const declaration = record.declaration as
-      | { field?: unknown; value?: unknown }
-      | undefined;
-    return (
-      record.class === "static" &&
-      declaration?.field === "playRequiresSuccessfulHqRunThisTurn" &&
-      declaration.value === true
-    );
-  });
-  if (!restricted) return;
-  for (const record of records) {
-    if (record.class === "paid") {
-      record.requiresSuccessfulHqRunThisTurn ??= true;
-    }
-  }
-}
-
 function validateCardShape(raw: unknown, path: string): CardDef {
   if (!raw || typeof raw !== "object") {
     throw new Error(`${path}: card must be an object`);
   }
   const c = raw as Record<string, unknown>;
-  carryHardwareUseRestrictionToPaidAbilities(c);
   const abilityErr = applyAbilityRecords(c, path);
   if (abilityErr) throw new Error(abilityErr);
   for (const key of ["id", "title", "type", "side"] as const) {

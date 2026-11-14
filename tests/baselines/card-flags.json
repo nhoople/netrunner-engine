@@ -1,5 +1,5 @@
 {
-  "cardsPin": "v1.147.22",
+  "cardsPin": "v1.147.23",
   "counts": {
     "cardDefFlags": 602,
     "cardDefBoolean": 333,
@@ -6956,7 +6956,7 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 1730,
+      "cardCount": 1732,
       "setVia": [
         "field"
       ],
@@ -15455,12 +15455,11 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 4,
+      "cardCount": 3,
       "cards": [
         "bug",
         "emergency-shutdown",
-        "leverage",
-        "unregistered-s-w-35"
+        "leverage"
       ],
       "setVia": [
         "declaration"
