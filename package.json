@@ -34,13 +34,25 @@
     "demo:tithe": "tsx src/cli.ts --tithe",
     "demo:rototurret": "tsx src/cli.ts --rototurret",
     "prepare-data": "npm run fetch-cr && npm run fetch-cards",
-    "kind-reference": "node scripts/build-kind-reference.mjs --write"
+    "kind-reference": "node scripts/build-kind-reference.mjs --write",
+    "mutate:hosting-trash": "stryker run stryker/hosting-trash.config.mjs",
+    "mutate:uninstall": "stryker run stryker/uninstall.config.mjs",
+    "mutate:swap": "stryker run stryker/swap.config.mjs",
+    "mutate:visibility": "stryker run stryker/visibility.config.mjs",
+    "mutate:corp-install": "stryker run stryker/corp-install.config.mjs",
+    "mutate:runner-install": "stryker run stryker/runner-install.config.mjs",
+    "mutate:rez": "stryker run stryker/rez.config.mjs",
+    "mutate:access": "stryker run stryker/access.config.mjs",
+    "mutate:damage": "stryker run stryker/damage.config.mjs",
+    "mutate:card-flags": "stryker run stryker/card-flags.config.mjs"
   },
   "engines": {
     "node": ">=26"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@types/node": "^26.6.6",
     "eslint": "^10.14.0",
     "globals": "^17.14.0",

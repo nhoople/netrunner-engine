@@ -199,7 +199,8 @@
     "localFile": null,
     "status": "deferred",
     "title": "R&D accesses reduced by 1, accessing 1 card",
-    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet.",
+    "classification": "no-board"
   },
   "game.core.access-test/rd-total-accesses-reduced-by-1-accessing-1-deck-1-upgrade": {
     "upstreamFile": "test/clj/game/core/access_test.clj",
@@ -207,7 +208,8 @@
     "localFile": null,
     "status": "deferred",
     "title": "R&D accesses reduced by 1, accessing 1 deck card and 1 upgrade",
-    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet.",
+    "classification": "no-board"
   },
   "game.core.access-test/rd-total-accesses-reduced-by-1-accessing-3-deck": {
     "upstreamFile": "test/clj/game/core/access_test.clj",
@@ -215,7 +217,8 @@
     "localFile": null,
     "status": "deferred",
     "title": "R&D accesses reduced by 1, accessing 3 deck cards",
-    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet.",
+    "classification": "no-board"
   },
   "game.core.access-test/hq-total-accesses-reduced-by-1-accessing-1-card": {
     "upstreamFile": "test/clj/game/core/access_test.clj",
@@ -223,7 +226,8 @@
     "localFile": null,
     "status": "deferred",
     "title": "HQ accesses reduced by 1, accessing 1 card",
-    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet.",
+    "classification": "no-board"
   },
   "game.core.access-test/hq-total-accesses-reduced-by-1-accessing-1-hand-1-upgrade": {
     "upstreamFile": "test/clj/game/core/access_test.clj",
@@ -231,7 +235,8 @@
     "localFile": null,
     "status": "deferred",
     "title": "HQ accesses reduced by 1, accessing 1 hand card and 1 upgrade",
-    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet.",
+    "classification": "no-board"
   },
   "game.core.access-test/hq-total-accesses-reduced-by-1-accessing-2-hand": {
     "upstreamFile": "test/clj/game/core/access_test.clj",
@@ -239,7 +244,8 @@
     "localFile": null,
     "status": "deferred",
     "title": "HQ accesses reduced by 1, accessing 2 hand cards",
-    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet.",
+    "classification": "no-board"
   },
   "game.core.access-test/remote-access": {
     "upstreamFile": "test/clj/game/core/access_test.clj",
@@ -247,7 +253,8 @@
     "localFile": null,
     "status": "deferred",
     "title": "Remote access reduced by 1 and the Ganked!/Ansel 1.0 loop",
-    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet.",
+    "classification": "no-board"
   },
   "game.core.access-test/access-count": {
     "upstreamFile": "test/clj/game/core/access_test.clj",
@@ -255,7 +262,8 @@
     "localFile": null,
     "status": "deferred",
     "title": "Access count bookkeeping for R&D, HQ, and Archives",
-    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet."
+    "reason": "Drives jnet's internal access-bonus / num-cards-to-access helpers directly; no card-sourced equivalent board yet.",
+    "classification": "no-board"
   },
   "game.core.engine-test/trash-currents-test": {
     "upstreamFile": "test/clj/game/core/engine_test.clj",
@@ -289,7 +297,8 @@
     "localFile": null,
     "title": "First trash of a turn, by either side in either order",
     "status": "deferred",
-    "reason": "Reads jnet's internal first-trash predicate directly; no card board exercises it here."
+    "reason": "Reads jnet's internal first-trash predicate directly; no card board exercises it here.",
+    "classification": "no-board"
   },
   "game.core.engine-test/queued-events": {
     "upstreamFile": "test/clj/game/core/engine_test.clj",
@@ -297,7 +306,8 @@
     "localFile": null,
     "title": "Queued event ordering at a checkpoint",
     "status": "deferred",
-    "reason": "Registers synthetic events in jnet's internal event registry; this engine's checkpoints are covered by native timing tests."
+    "reason": "Registers synthetic events in jnet's internal event registry; this engine's checkpoints are covered by native timing tests.",
+    "classification": "no-board"
   },
   "game.core.engine-test/merge-costs-paid": {
     "upstreamFile": "test/clj/game/core/engine_test.clj",
@@ -305,7 +315,8 @@
     "localFile": null,
     "title": "Merging paid-cost records",
     "status": "deferred",
-    "reason": "Calls jnet's internal cost-merge function on synthetic records; no card board."
+    "reason": "Calls jnet's internal cost-merge function on synthetic records; no card board.",
+    "classification": "no-board"
   },
   "game.core.engine-test/trash-existing-programs-test": {
     "upstreamFile": "test/clj/game/core/engine_test.clj",
@@ -337,7 +348,8 @@
     "localFile": null,
     "title": "Merging cost vectors combines and orders costs",
     "status": "deferred",
-    "reason": "Drives jnet's internal merge-costs cost-vector algebra directly; there is no board to port."
+    "reason": "Drives jnet's internal merge-costs cost-vector algebra directly; there is no board to port.",
+    "classification": "no-board"
   },
   "game.core.costs-test/pay-credits": {
     "upstreamFile": "test/clj/game/core/costs_test.clj",
@@ -345,7 +357,8 @@
     "localFile": null,
     "title": "Paying credits writes the correct cost messages",
     "status": "deferred",
-    "reason": "Asserts jnet's exact cost log strings for installs and plays; the boards duplicate the basic-actions batch and the log wording is jnet-internal."
+    "reason": "Asserts jnet's exact cost log strings for installs and plays; the boards duplicate the basic-actions batch and the log wording is jnet-internal.",
+    "classification": "no-board"
   },
   "game.core.costs-test/pump-and-break": {
     "upstreamFile": "test/clj/game/core/costs_test.clj",
@@ -385,7 +398,8 @@
     "localFile": null,
     "title": "Clearing the run prompt does not block later actions",
     "status": "deferred",
-    "reason": "Drives jnet's chat-command system (/close-prompt), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+    "reason": "Drives jnet's chat-command system (/close-prompt), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere.",
+    "classification": "no-board"
   },
   "game.core.actions-test/undo-turn": {
     "upstreamFile": "test/clj/game/core/actions_test.clj",
@@ -393,7 +407,8 @@
     "localFile": null,
     "title": "Undoing a turn restores clicks, credits, and hand",
     "status": "deferred",
-    "reason": "Drives jnet's chat-command system (/undo-turn), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+    "reason": "Drives jnet's chat-command system (/undo-turn), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere.",
+    "classification": "no-board"
   },
   "game.core.actions-test/undo-click": {
     "upstreamFile": "test/clj/game/core/actions_test.clj",
@@ -401,7 +416,8 @@
     "localFile": null,
     "title": "Undoing a click restores the Runner's clicks and credits after a steal",
     "status": "deferred",
-    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere.",
+    "classification": "no-board"
   },
   "game.core.actions-test/undo-click-return-card-from-play-area": {
     "upstreamFile": "test/clj/game/core/actions_test.clj",
@@ -409,7 +425,8 @@
     "localFile": null,
     "title": "Undoing a click returns the played card from the play area",
     "status": "deferred",
-    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere.",
+    "classification": "no-board"
   },
   "game.core.actions-test/undo-click-does-not-return-lockdown-from-play-area": {
     "upstreamFile": "test/clj/game/core/actions_test.clj",
@@ -417,7 +434,8 @@
     "localFile": null,
     "title": "Undoing a click leaves a lockdown current in the play area",
     "status": "deferred",
-    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+    "reason": "Drives jnet's chat-command system (/undo-click), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere.",
+    "classification": "no-board"
   },
   "game.core.actions-test/undo-click-with-bioroid-cost": {
     "upstreamFile": "test/clj/game/core/actions_test.clj",
@@ -435,7 +453,8 @@
     "localFile": null,
     "title": "Counter commands set power, credit, and advancement counters",
     "status": "deferred",
-    "reason": "Drives jnet's chat-command system (/counter and /adv-counter), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+    "reason": "Drives jnet's chat-command system (/counter and /adv-counter), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere.",
+    "classification": "no-board"
   },
   "game.core.actions-test/counter-manipulation-commands-smart": {
     "upstreamFile": "test/clj/game/core/actions_test.clj",
@@ -443,7 +462,8 @@
     "localFile": null,
     "title": "The smart counter command infers the counter type",
     "status": "deferred",
-    "reason": "Drives jnet's chat-command system (/counter), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere."
+    "reason": "Drives jnet's chat-command system (/counter), a manual-play tool with no equivalent in this engine; the surrounding board duplicates scenarios ported elsewhere.",
+    "classification": "no-board"
   },
   "game.core.agendas-test/agenda-points-test": {
     "upstreamFile": "test/clj/game/core/agendas_test.clj",
@@ -451,7 +471,8 @@
     "localFile": null,
     "title": "Agenda points combine printed points, agenda-value effects, and per-side point functions",
     "status": "deferred",
-    "reason": "Drives jnet's internal agenda-points function with synthetic jnet Test Card definitions that exist in no catalog; there is no board to port. Per-side agenda points on a real card are covered by the Global Food Initiative board in the access batch."
+    "reason": "Drives jnet's internal agenda-points function with synthetic jnet Test Card definitions that exist in no catalog; there is no board to port. Per-side agenda points on a real card are covered by the Global Food Initiative board in the access batch.",
+    "classification": "no-board"
   },
   "game.core.abilities-test/combine-abilities": {
     "upstreamFile": "test/clj/game/core/abilities_test.clj",
@@ -459,7 +480,8 @@
     "localFile": null,
     "title": "Combining abilities resolves each combined subroutine in order",
     "status": "deferred",
-    "reason": "Calls jnet's resolve-ability and combine-abilities directly with synthetic subroutines; there is no board to port."
+    "reason": "Calls jnet's resolve-ability and combine-abilities directly with synthetic subroutines; there is no board to port.",
+    "classification": "no-board"
   },
   "game.core.abilities-test/trash-icon": {
     "upstreamFile": "test/clj/game/core/abilities_test.clj",
@@ -467,7 +489,8 @@
     "localFile": null,
     "title": "Every trash ability carries trash-cost metadata",
     "status": "deferred",
-    "reason": "Sweeps jnet's card registry for a metadata invariant; the equivalent check here belongs to the cards-data validation, not an engine board."
+    "reason": "Sweeps jnet's card registry for a metadata invariant; the equivalent check here belongs to the cards-data validation, not an engine board.",
+    "classification": "no-board"
   },
   "game.core.abilities-test/actions-are-documented": {
     "upstreamFile": "test/clj/game/core/abilities_test.clj",
@@ -475,7 +498,8 @@
     "localFile": null,
     "title": "Every click-cost ability is marked as an action",
     "status": "deferred",
-    "reason": "Sweeps jnet's card registry for the :action flag that jnet's undo-click command depends on; that command system has no equivalent here."
+    "reason": "Sweeps jnet's card registry for the :action flag that jnet's undo-click command depends on; that command system has no equivalent here.",
+    "classification": "no-board"
   },
   "game.core.abilities-test/abilities-have-labels": {
     "upstreamFile": "test/clj/game/core/abilities_test.clj",
@@ -483,7 +507,8 @@
     "localFile": null,
     "title": "Every ability and subroutine has a label",
     "status": "deferred",
-    "reason": "Sweeps jnet's card registry for label presence; the equivalent check here belongs to the cards-data schema validation."
+    "reason": "Sweeps jnet's card registry for label presence; the equivalent check here belongs to the cards-data schema validation.",
+    "classification": "no-board"
   },
   "game.core.abilities-test/cost-label": {
     "upstreamFile": "test/clj/game/core/abilities_test.clj",
@@ -491,7 +516,8 @@
     "localFile": null,
     "title": "Generated cost labels include conditional, trash, and X costs",
     "status": "deferred",
-    "reason": "Asserts jnet's generated label strings on Simulchip, Gorman Drip v1, Bankroll, Misdirection, and Lakshmi Smartfabrics; the boards assert no game outcome and label wording is jnet-internal."
+    "reason": "Asserts jnet's generated label strings on Simulchip, Gorman Drip v1, Bankroll, Misdirection, and Lakshmi Smartfabrics; the boards assert no game outcome and label wording is jnet-internal.",
+    "classification": "no-board"
   },
   "game.core.async-test/cards-are-async-test": {
     "upstreamFile": "test/clj/game/core/async_test.clj",
@@ -499,7 +525,8 @@
     "localFile": null,
     "title": "Every card definition completes its event id correctly",
     "status": "deferred",
-    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here.",
+    "classification": "no-board"
   },
   "game.core.async-test/core-fns-are-async-test": {
     "upstreamFile": "test/clj/game/core/async_test.clj",
@@ -507,7 +534,8 @@
     "localFile": null,
     "title": "Every core function completes its event id correctly",
     "status": "deferred",
-    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here.",
+    "classification": "no-board"
   },
   "game.core.async-test/metadata-ignore-works": {
     "upstreamFile": "test/clj/game/core/async_test.clj",
@@ -515,7 +543,8 @@
     "localFile": null,
     "title": "The ignore-async-check metadata opts a definition out",
     "status": "deferred",
-    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here.",
+    "classification": "no-board"
   },
   "game.core.async-test/async-test-defferred-fns-are-correct": {
     "upstreamFile": "test/clj/game/core/async_test.clj",
@@ -523,7 +552,8 @@
     "localFile": null,
     "title": "Deferred function blocks are classified correctly",
     "status": "deferred",
-    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here.",
+    "classification": "no-board"
   },
   "game.core.async-test/async-test-if-block-is-correct?": {
     "upstreamFile": "test/clj/game/core/async_test.clj",
@@ -531,7 +561,8 @@
     "localFile": null,
     "title": "If blocks are classified correctly",
     "status": "deferred",
-    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here.",
+    "classification": "no-board"
   },
   "game.core.async-test/async-test-when-block-is-correct?": {
     "upstreamFile": "test/clj/game/core/async_test.clj",
@@ -539,7 +570,8 @@
     "localFile": null,
     "title": "When blocks are classified correctly",
     "status": "deferred",
-    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here.",
+    "classification": "no-board"
   },
   "game.core.async-test/async-test-case-block-is-correct?": {
     "upstreamFile": "test/clj/game/core/async_test.clj",
@@ -547,7 +579,8 @@
     "localFile": null,
     "title": "Case blocks are classified correctly",
     "status": "deferred",
-    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here.",
+    "classification": "no-board"
   },
   "game.core.async-test/async-test-cond+-is-correct?": {
     "upstreamFile": "test/clj/game/core/async_test.clj",
@@ -555,7 +588,8 @@
     "localFile": null,
     "title": "Cond+ blocks are classified correctly",
     "status": "deferred",
-    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here."
+    "reason": "Static analysis of jnet's Clojure source for its async/eid completion discipline; it tests jnet's codebase tooling, not a game board, and has no equivalent concept here.",
+    "classification": "no-board"
   },
   "game.core.board-test/all-installed": {
     "upstreamFile": "test/clj/game/core/board_test.clj",
@@ -563,7 +597,8 @@
     "localFile": null,
     "title": "All installed cards are found across servers, roots, and hosted cards",
     "status": "deferred",
-    "reason": "Enumerates boards through jnet's internal all-installed helper, which has no equivalent export here; the individual placements (hosted operations, cards hosted on the Runner, Parasite on ice) are exercised by their own card scenarios."
+    "reason": "Enumerates boards through jnet's internal all-installed helper, which has no equivalent export here; the individual placements (hosted operations, cards hosted on the Runner, Parasite on ice) are exercised by their own card scenarios.",
+    "classification": "no-board"
   },
   "game.core.card-test/has-subtype?-test": {
     "upstreamFile": "test/clj/game/core/card_test.clj",
@@ -571,7 +606,8 @@
     "localFile": null,
     "title": "A card has a given subtype",
     "status": "deferred",
-    "reason": "Unit-tests jnet's internal has-subtype? predicate on synthetic card maps; there is no board to port."
+    "reason": "Unit-tests jnet's internal has-subtype? predicate on synthetic card maps; there is no board to port.",
+    "classification": "no-board"
   },
   "game.core.card-test/has-any-subtype?-test": {
     "upstreamFile": "test/clj/game/core/card_test.clj",
@@ -579,7 +615,8 @@
     "localFile": null,
     "title": "A card has any of a set of subtypes",
     "status": "deferred",
-    "reason": "Unit-tests jnet's internal has-any-subtype? predicate on synthetic card maps; there is no board to port."
+    "reason": "Unit-tests jnet's internal has-any-subtype? predicate on synthetic card maps; there is no board to port.",
+    "classification": "no-board"
   },
   "game.core.card-test/has-all-subtypes?-test": {
     "upstreamFile": "test/clj/game/core/card_test.clj",
@@ -587,7 +624,8 @@
     "localFile": null,
     "title": "A card has all of a set of subtypes",
     "status": "deferred",
-    "reason": "Unit-tests jnet's internal has-all-subtypes? predicate on synthetic card maps; there is no board to port."
+    "reason": "Unit-tests jnet's internal has-all-subtypes? predicate on synthetic card maps; there is no board to port.",
+    "classification": "no-board"
   },
   "game.core.change-vals-test/change-test": {
     "upstreamFile": "test/clj/game/core/change_vals_test.clj",
@@ -595,7 +633,8 @@
     "localFile": null,
     "title": "Changing bad publicity, tags, agenda points, link, hand size, and memory tracks base and additional values",
     "status": "deferred",
-    "reason": "Drives jnet's internal change state-mutation function directly on an empty board; the values it exercises change here through card effects and basic actions, not a mutation primitive."
+    "reason": "Drives jnet's internal change state-mutation function directly on an empty board; the values it exercises change here through card effects and basic actions, not a mutation primitive.",
+    "classification": "no-board"
   },
   "game.core.charge-test/charge-test": {
     "upstreamFile": "test/clj/game/core/charge_test.clj",
@@ -611,7 +650,8 @@
     "localFile": null,
     "title": "Gathered effects are filtered by type and sorted active player first",
     "status": "deferred",
-    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, gather-effects, with synthetic Test Cards); there is no board to port."
+    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, gather-effects, with synthetic Test Cards); there is no board to port.",
+    "classification": "no-board"
   },
   "game.core.effects-test/get-effects-test": {
     "upstreamFile": "test/clj/game/core/effects_test.clj",
@@ -619,7 +659,8 @@
     "localFile": null,
     "title": "Effect values resolve statically, by function, and only when their requirement holds",
     "status": "deferred",
-    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, get-effects, with synthetic Test Cards); there is no board to port."
+    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, get-effects, with synthetic Test Cards); there is no board to port.",
+    "classification": "no-board"
   },
   "game.core.effects-test/sum-effects-test": {
     "upstreamFile": "test/clj/game/core/effects_test.clj",
@@ -627,7 +668,8 @@
     "localFile": null,
     "title": "Summed effects total numbers and skip non-numbers",
     "status": "deferred",
-    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, sum-effects, with synthetic Test Cards); there is no board to port."
+    "reason": "Unit-tests jnet's internal lingering-effect registry (register-lingering-effect, sum-effects, with synthetic Test Cards); there is no board to port.",
+    "classification": "no-board"
   },
   "game.core.flags-test/can-score?-test": {
     "upstreamFile": "test/clj/game/core/flags_test.clj",
@@ -635,7 +677,8 @@
     "localFile": null,
     "title": "Scoring requires an agenda whose advancement requirement is met",
     "status": "deferred",
-    "reason": "Unit-tests jnet's internal can-score? flag predicate with a synthetic Test Card; scoring legality here is covered by agenda boards across the ported and native suites."
+    "reason": "Unit-tests jnet's internal can-score? flag predicate with a synthetic Test Card; scoring legality here is covered by agenda boards across the ported and native suites.",
+    "classification": "no-board"
   },
   "game.core.ice-test/auto-pump-and-break-test": {
     "upstreamFile": "test/clj/game/core/ice_test.clj",
@@ -656,7 +699,8 @@
     "localFile": null,
     "title": "Breaking Eli 1.0 with clicks does not create an undo-click checkpoint",
     "status": "deferred",
-    "reason": "Asserts jnet's /undo-click command around the Eli 1.0 click-break; the Eli board without undo is already ported in game.core.actions-test."
+    "reason": "Asserts jnet's /undo-click command around the Eli 1.0 click-break; the Eli board without undo is already ported in game.core.actions-test.",
+    "classification": "no-board"
   },
   "game.core.init-game-test/default-identity": {
     "upstreamFile": "test/clj/game/core/init_game_test.clj",
@@ -688,7 +732,7 @@
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rezzing_test.clj",
     "localFile": "tests/jnet/core-rezzing.test.ts",
-    "title": "Rezzing Advanced Assembly Lines with Surat City Grid then rezzes NGO Front at \u22122",
+    "title": "Rezzing Advanced Assembly Lines with Surat City Grid then rezzes NGO Front at −2",
     "status": "adapted",
     "reason": "Upstream's simultaneous \"Choose a trigger to resolve\" UI between Advanced Assembly Lines' on-rez credits and Surat City Grid is jnet-specific. This engine resolves the on-rez credits automatically and then offers Surat's discounted rez; the board still ends with all three cards rezzed."
   },
@@ -697,210 +741,240 @@
     "upstreamFile": "test/clj/game/core/rezzing_test.clj",
     "title": "get-rez-cost helper variants",
     "status": "deferred",
-    "reason": "Calls jnet's internal get-rez-cost helper on synthetic card maps; no card board."
+    "reason": "Calls jnet's internal get-rez-cost helper on synthetic card maps; no card board.",
+    "classification": "no-board"
   },
   "game.core.mark-test/mark-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/mark_test.clj",
     "title": "Identifying a mark via identify-mark-ability",
     "status": "deferred",
-    "reason": "Calls jnet's internal identify-mark-ability helper; mark boards wait for a later card-driven batch."
+    "reason": "Calls jnet's internal identify-mark-ability helper; mark boards wait for a later card-driven batch.",
+    "classification": "no-board"
   },
   "game.core.memory-test/mu+": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "mu+ helper shapes",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/virus-mu+": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "virus-mu+ helper shapes",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/caissa-mu+": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "caissa-mu+ helper shapes",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/available-mu": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "available-mu arithmetic on synthetic maps",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-init-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu starting values",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-using-mu-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu with used-mu lingering effect",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-greater-than-available-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu when used exceeds available",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-increasing-available-mu-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu when available MU increases",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-virus-increasing-available-virus-mu-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu virus MU increase",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-virus-increasing-available-non-virus-mu-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu non-virus MU with virus used",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-virus-no-available-virus-mu-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu with no virus MU pool",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-virus-using-virus-mu-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu assigning virus MU",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/build-new-mu-virus-using-more-than-available-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "build-new-mu over-assigning virus MU",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/update-mu": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "update-mu change detection",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.memory-test/sufficient-mu?-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/memory_test.clj",
     "title": "sufficient-mu? predicate with Endless Hunger and Akamatsu",
     "status": "deferred",
-    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c)."
+    "reason": "Calls jnet's internal memory helpers and lingering-effect registry; MU install overflow is covered by the promoted Endless Hunger / Corroder board (CR 8.5.6c).",
+    "classification": "no-board"
   },
   "game.core.optional-test/optional-req": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/optional_test.clj",
     "title": "optional ability req nesting",
     "status": "deferred",
-    "reason": "Registers a synthetic optional ability to spy on req evaluation order; no card board."
+    "reason": "Registers a synthetic optional ability to spy on req evaluation order; no card board.",
+    "classification": "no-board"
   },
   "game.core.revealing-test/last-played-or-rezzed": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/revealing_test.clj",
     "title": "last-played-or-rezzed tracking for public diffs",
     "status": "deferred",
-    "reason": "Asserts jnet's client sync field for the last public play/rez; this engine has no equivalent public last-played stamp."
+    "reason": "Asserts jnet's client sync field for the last public play/rez; this engine has no equivalent public last-played stamp.",
+    "classification": "no-board"
   },
   "game.core.sabotage-test/sabotage-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/sabotage_test.clj",
     "title": "sabotage-ability HQ/R&D split resolutions",
     "status": "deferred",
-    "reason": "Calls jnet's internal sabotage-ability helper. Sabotage HQ/R&D splits are covered in the native CR 10.12 examples."
+    "reason": "Calls jnet's internal sabotage-ability helper. Sabotage HQ/R&D splits are covered in the native CR 10.12 examples.",
+    "classification": "no-board"
   },
   "game.core.say-test/trash-button-logs-in-chat": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/say_test.clj",
     "title": "Trash button chat log line",
     "status": "deferred",
-    "reason": "Asserts jnet chat command / UI trash-button wording; no engine board."
+    "reason": "Asserts jnet chat command / UI trash-button wording; no engine board.",
+    "classification": "no-board"
   },
   "game.core.say-test/commands-are-documented-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/say_test.clj",
     "title": "Chat commands are documented",
     "status": "deferred",
-    "reason": "Source-code analysis of jnet's chat command docs; no board."
+    "reason": "Source-code analysis of jnet's chat command docs; no board.",
+    "classification": "no-board"
   },
   "game.core.say-test/chat-commands": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/say_test.clj",
     "title": "Chat command system",
     "status": "deferred",
-    "reason": "jnet chat-command system; deferred with the other chat boards."
+    "reason": "jnet chat-command system; deferred with the other chat boards.",
+    "classification": "no-board"
   },
   "game.core.stats-test/click-count": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/stats_test.clj",
     "title": "click-spent stats counters",
     "status": "deferred",
-    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry."
+    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry.",
+    "classification": "no-board"
   },
   "game.core.stats-test/tags-count": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/stats_test.clj",
     "title": "tag stats counters",
     "status": "deferred",
-    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry."
+    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry.",
+    "classification": "no-board"
   },
   "game.core.stats-test/credits-from-cards": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/stats_test.clj",
     "title": "credits-gained-from-cards stats",
     "status": "deferred",
-    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry."
+    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry.",
+    "classification": "no-board"
   },
   "game.core.stats-test/companion-credits": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/stats_test.clj",
     "title": "companion credit stats",
     "status": "deferred",
-    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry."
+    "reason": "Reads jnet's internal game-stats maps; this engine does not expose an equivalent stats registry.",
+    "classification": "no-board"
   },
   "game.core.subtypes-test/subtypes-for-card-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/subtypes_test.clj",
     "title": "subtypes-for-card helper",
     "status": "deferred",
-    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board."
+    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board.",
+    "classification": "no-board"
   },
   "game.core.subtypes-test/update-subtypes-for-card-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/subtypes_test.clj",
     "title": "update-subtypes-for-card helper",
     "status": "deferred",
-    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board."
+    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board.",
+    "classification": "no-board"
   },
   "game.core.subtypes-test/update-all-subtypes-test": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/subtypes_test.clj",
     "title": "update-all-subtypes helper",
     "status": "deferred",
-    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board."
+    "reason": "Calls jnet's internal subtype registry helpers on synthetic cards; no board.",
+    "classification": "no-board"
   },
   "game.core.rules-test/corp-rez-unique": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -996,7 +1070,8 @@
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "card str test simple",
     "status": "deferred",
-    "reason": "Asserts jnet card-str / chat log formatting; no engine board."
+    "reason": "Asserts jnet card-str / chat log formatting; no engine board.",
+    "classification": "no-board"
   },
   "game.core.rules-test/invalid-score-attempt": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1017,14 +1092,22 @@
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "trash remove per turn restriction",
     "status": "deferred",
-    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land.",
+    "classification": "agrees",
+    "crCite": "1.12.2",
+    "classificationBasis": "code",
+    "classificationNote": "A reinstalled Imp is a new object; src/state/turn.ts drops once-per-turn uses of the old object, so the reinstalled Imp can trash again this turn, as jnet expects."
   },
   "game.core.rules-test/trash-seen-and-unseen": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "trash seen and unseen",
     "status": "deferred",
-    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land.",
+    "classification": "agrees",
+    "crCite": "4.4.6b, 8.5.7",
+    "classificationBasis": "code",
+    "classificationNote": "A Corp card the Runner accessed but left in place goes to Archives facedown when the Corp trashes it; a card the Runner trashed goes faceup. trashCorpCardToArchives keys the face on visibility at the moment of trashing, as jnet expects."
   },
   "game.core.rules-test/reinstall-seen-asset": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1038,14 +1121,16 @@
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "all installed runner test",
     "status": "deferred",
-    "reason": "Calls jnet's all-installed-runner helper on synthetic layouts; no board."
+    "reason": "Calls jnet's all-installed-runner helper on synthetic layouts; no board.",
+    "classification": "no-board"
   },
   "game.core.rules-test/log-accessed-names": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "log accessed names",
     "status": "deferred",
-    "reason": "Asserts jnet card-str / chat log formatting; no engine board."
+    "reason": "Asserts jnet card-str / chat log formatting; no engine board.",
+    "classification": "no-board"
   },
   "game.core.rules-test/run-bad-publicity-credits": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1059,7 +1144,12 @@
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "run psi bad publicity credits",
     "status": "deferred",
-    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land.",
+    "classification": "engine-bug",
+    "crCite": "10.6.2, 10.14.3",
+    "engineBugArea": "none (psi games and bad publicity)",
+    "classificationBasis": "code",
+    "classificationNote": "runnerPsiSpendable counts the credit pool and hosted run credits but not the bad publicity fund, and spendRunnerPsiBid never draws from it. CR 10.6.2 lets the Runner spend the fund during runs, and 10.14.3 lets them bid what they can spend."
   },
   "game.core.rules-test/purge-nested": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1087,56 +1177,72 @@
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "auto pump breakers single pump",
     "status": "deferred",
-    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.rules-test/auto-pump-breakers-multi-pump": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "auto pump breakers multi pump",
     "status": "deferred",
-    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.rules-test/autoresolve-aeneas-with-and-without-autoresolve": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "autoresolve aeneas with and without autoresolve",
     "status": "deferred",
-    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.rules-test/autoresolve-fisk-ftt-with-and-without-autoresolve": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "autoresolve fisk ftt with and without autoresolve",
     "status": "deferred",
-    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.rules-test/autoresolve-ensure-autoresolve-does-not-break-prompts-with-a-req": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "autoresolve ensure autoresolve does not break prompts with a req",
     "status": "deferred",
-    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.rules-test/autoresolve-ctm-autoresolve": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "autoresolve ctm autoresolve",
     "status": "deferred",
-    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards."
+    "reason": "jnet autoresolve / auto-pump UI setting; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.rules-test/no-scoring-after-terminal": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "no scoring after terminal",
     "status": "deferred",
-    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land.",
+    "classification": "engine-bug",
+    "crCite": "5.4.3a, 5.6.2",
+    "engineBugArea": "none (turn structure)",
+    "classificationBasis": "probe",
+    "classificationNote": "Probe: after a terminal IPO the engine sets clicks to 0 and returns to the 5.6.2a (S) window, where score_agenda is legal. CR 5.4.3a skips the remaining action-phase steps, and the discard phase (5.6.3b) has no (S) window."
   },
   "game.core.rules-test/clearing-currents": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "clearing currents",
     "status": "deferred",
-    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land.",
+    "classification": "engine-bug",
+    "crCite": "3.5.1b, 3.7.1b, 8.6.6c",
+    "engineBugArea": "1. Hosting and trash",
+    "classificationBasis": "probe",
+    "classificationNote": "jnet's outcome holds (no Hostile Infrastructure damage when a current is cleared), but every played current is also pushed to its discard pile while staying in the play area: trashActiveCurrentsBeforePlay trashes the new current itself. Already in tests/baselines/invariants.json as MULTIPLE_ZONES on tests/currents.test.ts."
   },
   "game.core.rules-test/simultaneous-trash-effects": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1157,21 +1263,28 @@
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "start of turn phase 12",
     "status": "deferred",
-    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land.",
+    "classification": "no-board"
   },
   "game.core.rules-test/move-removes-icon": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "move removes icon",
     "status": "deferred",
-    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land.",
+    "classification": "no-board"
   },
   "game.core.rules-test/runner-forced-to-discard-below-hand-size-ends-the-game": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/rules_test.clj",
     "title": "runner forced to discard below hand size ends the game",
     "status": "deferred",
-    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land."
+    "reason": "Remaining rules_test board; deferred while the first unique/region/install ports land.",
+    "classification": "engine-bug",
+    "crCite": "1.7.2b",
+    "engineBugArea": "9. Damage",
+    "classificationBasis": "code",
+    "classificationNote": "src/state/damage.ts flatlines the Runner as soon as core damage drops max hand size below 0. CR 1.7.2b flatlines only at the beginning of the discard step, and no discard-step check exists, so a hand size made negative by anything else never flatlines."
   },
   "game.core.runs-test/run-timing-with-ice-and-a-breaker": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1248,7 +1361,11 @@
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "run timing cr 1 4 6 8 2c any other priority window is closed normally",
     "status": "deferred",
-    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land.",
+    "classification": "agrees",
+    "crCite": "6.8.2c",
+    "classificationBasis": "probe",
+    "classificationNote": "Probe: Giordano Memorial Field ends the run and Embolus still loses its power counter from the same successful-run window."
   },
   "game.core.runs-test/replace-access-you-may-only": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1276,98 +1393,124 @@
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "buffered continue buffered continue on approaching ice",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/buffered-continue-buffered-continue-on-encountering-ice": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "buffered continue buffered continue on encountering ice",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/auto-no-action-tower-of-rezzed-ice-runner-breaks-everything-and-automatically-continues-until-approaching-server": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "auto no action tower of rezzed ice runner breaks everything and automatically continues until approaching server",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/auto-no-action-stop-at-unrezzed-ice": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "auto no action stop at unrezzed ice",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/auto-no-action-auto-no-action-on-toggling-setting": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "auto no action auto no action on toggling setting",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/auto-no-action-no-auto-no-action-on-toggling-setting-on-unrezzed-ice": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "auto no action no auto no action on toggling setting on unrezzed ice",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/hide-continue-msg-no-message-for-runner-on-approach": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "hide continue msg no message for runner on approach",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/hide-continue-msg-message-for-corp-on-approach": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "hide continue msg message for corp on approach",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/hide-continue-msg-message-for-runner-on-encounter": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "hide continue msg message for runner on encounter",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/hide-continue-msg-no-message-for-corp-on-encounter": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "hide continue msg no message for corp on encounter",
     "status": "deferred",
-    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards."
+    "reason": "jnet auto-continue / buffered-continue / hide-continue UI; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.runs-test/continue-no-action": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "continue no action",
     "status": "deferred",
-    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land.",
+    "classification": "no-board"
   },
   "game.core.runs-test/multi-access-correct-handling-of-multi-accesses-with-draws-in-between-accesses": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "multi access correct handling of multi accesses with draws in between accesses",
     "status": "deferred",
-    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch."
+    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch.",
+    "classification": "engine-bug",
+    "crCite": "1.2.1 (card text), 9.3.7c",
+    "engineBugArea": "10. Card flags and declarations",
+    "classificationBasis": "probe",
+    "classificationNote": "Probe: Sportsmetal never triggers when an agenda is stolen. src/actions/score.ts calls fireOnAgendaScoredOrStolen with the Runner identity, the rig, and installed Corp cards, never the Corp identity. The native test checks only the card's shape. The board's own expectations (candidates after draws) follow refreshRdDeckCandidate and look right."
   },
   "game.core.runs-test/multi-access-correct-handling-of-multi-accesses-with-shuffle-in-between-accesses": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "multi access correct handling of multi accesses with shuffle in between accesses",
     "status": "deferred",
-    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch."
+    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch.",
+    "classification": "engine-bug",
+    "crCite": "7.4.7, 7.4.7a.ex1",
+    "engineBugArea": "8. Access",
+    "classificationBasis": "probe",
+    "classificationNote": "Probe: stealing Bacterial Programming during a 4-card R&D breach parks the breach at access.stealAgenda with no candidate; legalActions offers finish_breach and applyAction refuses it. This happens even when its ability is declined. The CR 7.4.7a.ex1 test fakes the returned card with a new id, so it doesn't catch this."
   },
   "game.core.runs-test/multi-access-reordering-cards-during-multi-access": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "multi access reordering cards during multi access",
     "status": "deferred",
-    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch."
+    "reason": "Multi-access reorder/draw mid-breach boards wait for a later access batch.",
+    "classification": "engine-bug",
+    "crCite": "1.12.3, 7.4.7a",
+    "engineBugArea": "8. Access",
+    "classificationBasis": "code",
+    "classificationNote": "Cards the Corp rearranges in R&D are new objects (CR 1.12.3, 7.4.7a.ex1), so an already-accessed card can be accessed again. refreshRdDeckCandidate keys eligibility on card id, and ids don't change on a rearrange, so the engine skips it."
   },
   "game.core.runs-test/forced-encounters-forced-encounters-during-run": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1409,7 +1552,11 @@
     "upstreamFile": "test/clj/game/core/runs_test.clj",
     "title": "ice trashed during movement does not reapproach passed ice",
     "status": "deferred",
-    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land."
+    "reason": "Remaining runs_test board; deferred while the first empty-server and Ice Wall ETR ports land.",
+    "classification": "agrees",
+    "crCite": "6.2.7e, 8.5.10",
+    "classificationBasis": "probe",
+    "classificationNote": "Probe: after passing Wall of Static, trashing Ice Wall during Movement leads to an approach of Vanilla, not a re-approach of passed ice."
   },
   "game.core.runs-test/ice-trashed-during-approach-does-not-reapproach-passed-ice": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
@@ -1437,7 +1584,8 @@
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
     "title": "bad publicity works with shift key",
     "status": "deferred",
-    "reason": "Uses jnet select-bad-pub / shift-key UI for bad publicity spend; deferred with other UI boards."
+    "reason": "Uses jnet select-bad-pub / shift-key UI for bad publicity spend; deferred with other UI boards.",
+    "classification": "no-board"
   },
   "game.core.scenarios-test/tread-lightly-vovo-combine-well": {
     "upstreamFile": "test/clj/game/core/scenarios_test.clj",

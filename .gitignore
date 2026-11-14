@@ -6,3 +6,6 @@ dist/
 vendor/cr-data/nodes.json
 # Card corpus; re-fetch with npm run fetch-cards (pins netrunner-cards-data tag).
 vendor/cards-data/
+# Stryker (local mutation runs; see docs/mutation-scores.md)
+.stryker-tmp/
+reports/
