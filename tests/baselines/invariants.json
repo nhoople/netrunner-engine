@@ -565,7 +565,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 6 > returns to Shiro's subroutines after the Runner encounters Chrysalis (CR 6.5.9a.ex1)": [
-      "ENCOUNTER_ICE_MISMATCH",
       "MULTIPLE_ZONES",
       "RUNNER_CARD_REZZED"
     ]
@@ -883,7 +882,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 9 > resolves Archangel's subroutine when encountered from HQ (CR 9.1.8h.ex1)": [
-      "ENCOUNTER_ICE_MISMATCH",
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 9 > resolves In the Groove on every install until the turn ends (CR 9.6.13b.ex1)": [

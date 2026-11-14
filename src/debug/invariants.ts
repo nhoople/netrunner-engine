@@ -45,6 +45,8 @@ export type ProblemCode =
   | "RUNNER_CARD_REZZED"
   /** A Corp card in R&D, HQ or Archives is marked rezzed (CR 8.1.1, 1.12.1). */
   | "REZZED_OUTSIDE_PLAY"
+  /** A Corp card in R&D or HQ is marked faceup when no access, encounter or reveal shows it (CR 1.21.1a, 1.21.6, 7.1.2). */
+  | "FACEUP_IN_HIDDEN_ZONE"
   /** A credit pool is below 0 (CR 1.10.3b, 1.10.3c). */
   | "NEGATIVE_CREDITS"
   /** A click count is below 0 (CR 1.11.3b). */
@@ -78,6 +80,7 @@ export const PROBLEM_RULES: Readonly<Record<ProblemCode, readonly string[]>> = {
   ENCOUNTER_ICE_MISMATCH: ["6.2.7c", "6.2.7d"],
   RUNNER_CARD_REZZED: ["8.1.4f"],
   REZZED_OUTSIDE_PLAY: ["8.1.1", "1.12.1", "4.6.7c", "4.6.7d", "1.8.4a"],
+  FACEUP_IN_HIDDEN_ZONE: ["1.21.1a", "4.1.5", "4.1.6", "1.21.6", "7.1.2"],
   NEGATIVE_CREDITS: ["1.10.3b", "1.10.3c"],
   NEGATIVE_CLICKS: ["1.11.3b"],
   WIN_REASON: ["1.7.1", "1.7.2"],
@@ -130,6 +133,13 @@ function hostZoneAllowed(zone: string): boolean {
  * play area are left out: the engine marks active cards there `rezzed`.
  */
 const CORP_NOT_INSTALLED = new Set(["corp:rd", "corp:hq", "corp:archives"]);
+
+/**
+ * The Corp's hidden and secret zones (CR 4.1.5, 4.1.6). A card there is
+ * neither faceup nor facedown (CR 1.21.1a). Runner zones are left out: the
+ * engine marks every Runner card faceup wherever it is.
+ */
+const CORP_HIDDEN = new Set(["corp:rd", "corp:hq"]);
 
 /** Every zone list in the state, as id → the zones that list it. */
 function zoneLists(state: GameState): Map<string, string[]> {
@@ -212,7 +222,8 @@ export function checkInvariants(state: GameState): Problem[] {
   };
 
   // CR 9.1.8h: ice encountered while not installed has active subroutines.
-  // The engine marks it rezzed for that encounter (Archangel, Chrysalis).
+  // The engine marks it rezzed and faceup for that encounter (Archangel,
+  // Chrysalis).
   const encounteredOutsidePlay = new Set(
     [state.run?.encounter?.iceId, state.run?.forceEncounterIceId].filter(
       (id): id is string => typeof id === "string",
@@ -261,6 +272,25 @@ export function checkInvariants(state: GameState): Problem[] {
       !encounteredOutsidePlay.has(card.id)
     ) {
       report("REZZED_OUTSIDE_PLAY", card.id, `${label} is in ${card.zone} and marked rezzed`);
+    }
+
+    // CR 1.21.1a: a card in a hidden or secret zone is neither faceup nor
+    // facedown, so a Corp card in R&D or HQ is not marked faceup once nobody
+    // may see it. The engine marks faceup the card being accessed while it
+    // may be looked at or must be revealed (CR 7.1.2, 1.21.7), ice the Runner is
+    // encountering there for that encounter (CR 9.1.8h), and a card revealed
+    // by the ability that is still resolving (CR 1.21.6).
+    if (
+      card.side === "corp" &&
+      card.faceup &&
+      zones.length === 1 &&
+      zones[0] === card.zone &&
+      CORP_HIDDEN.has(card.zone) &&
+      card.id !== state.run?.accessingCardId &&
+      !card.revealing &&
+      !encounteredOutsidePlay.has(card.id)
+    ) {
+      report("FACEUP_IN_HIDDEN_ZONE", card.id, `${label} is in ${card.zone} and marked faceup`);
     }
 
     // CR 1.13.4: one host, and both ends of the link agree.
@@ -329,7 +359,10 @@ export function checkInvariants(state: GameState): Problem[] {
       encounter &&
       !encounter.iceUninstalled &&
       !run.positionVacated &&
-      !run.encounterOutsideRun
+      !run.encounterOutsideRun &&
+      // CR 6.5.9a: a forced encounter does not move the Runner, so ice
+      // encountered in HQ, R&D or Archives is not in their position.
+      !CORP_NOT_INSTALLED.has(state.cards[encounter.iceId]?.zone ?? "")
     ) {
       const atPosition = iceAtRunnerPosition(state);
       if (encounter.iceId !== atPosition) {

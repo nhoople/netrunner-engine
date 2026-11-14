@@ -467,7 +467,8 @@ export function applyKitaraCotcPrimitive(
         state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
         state.corp.hand.push(cardId);
         card.zone = "corp:hq";
-        card.faceup = true;
+        // Not revealed: a card in HQ is neither faceup nor facedown (CR 1.21.1a).
+        card.faceup = false;
         log(state, `NEXT Sapphire — add ${card.title} from Archives to HQ.`);
       }
       if (remaining <= 0) return { ok: true };

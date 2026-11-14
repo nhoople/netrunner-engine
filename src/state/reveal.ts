@@ -23,6 +23,7 @@ export function revealCards(
     .map((id) => state.cards[id])
     .filter((card): card is NonNullable<typeof card> => Boolean(card));
   if (cards.length === 0) return;
+  for (const card of cards) card.revealing = true;
   const source = state.cards[sourceId];
   const seq = (state.revealSeq ?? 0) + 1;
   state.revealSeq = seq;
@@ -115,6 +116,7 @@ export function endLooksAndReveals(state: GameState): void {
   const hidden = new Set([...state.corp.deck, ...state.corp.hand]);
   for (const card of Object.values(state.cards)) {
     if (card.lookedBy) delete card.lookedBy;
+    if (card.revealing) delete card.revealing;
     if (card.faceup && hidden.has(card.id)) card.faceup = false;
   }
 }

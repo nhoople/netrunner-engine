@@ -91,7 +91,8 @@ function prepare(def: CardDef): { state: GameState; cardId: string } {
     if (id) {
       state.corp.hand.push(id);
       state.cards[id]!.zone = "corp:hq";
-      state.cards[id]!.faceup = true;
+      // A card in HQ is neither faceup nor facedown (CR 1.21.1a).
+      state.cards[id]!.faceup = false;
     }
   }
   const archived = state.corp.deck.pop();
