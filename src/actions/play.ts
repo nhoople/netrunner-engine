@@ -397,7 +397,8 @@ export function playOperation(
     return fail("Only Corp plays operations.", [CR.playOperation]);
   }
   const card = state.cards[cardId];
-  if (!card || card.type !== "operation") {
+  if (!card) return fail("Unknown card.", [CR.playOperation]);
+  if (card.type !== "operation") {
     return fail("Not an operation.", [CR.playOperation]);
   }
   state.turn.operationPlayedFromNonHq = false;

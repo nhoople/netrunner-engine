@@ -19,6 +19,10 @@ export const CR = {
     id: "corp_basic_action_purge_virus_counters",
   },
   purge: { number: "10.1.2", id: "rule_purge" },
+  /** Players score agendas (CR 1.17.3). */
+  scoreAgenda: { number: "1.17.3", id: "rule_score_steal" },
+  /** Score only an agenda with counters ≥ its advancement requirement. */
+  advancementRequirement: { number: "1.17.3a", id: "rule_advancement_requirement" },
   /** (S) marks a paid ability window in which the Corp can score. */
   scoreInPaidWindow: {
     number: "9.2.7d",
@@ -250,6 +254,8 @@ export const CR = {
   rezInPaw: { number: "8.1.2a", id: "rule_rez_in_paw" },
   inherentRezCost: { number: "8.1.2d", id: "rule_inherent_rez_cost" },
   rezProcedure: { number: "8.1.2e", id: "rule_rez_procedure" },
+  /** To rez is to turn an unrezzed card faceup; a rezzed card is not rezzed again. */
+  rezUnrezzed: { number: "8.1.2", id: "sec_rez" },
   rezIceRestriction: { number: "6.4.3", id: "rule_rez_ice_restriction" },
   /** Derez a rezzed card (CR §8.1.3). */
   derez: { number: "8.1.3", id: "sec_derez" },

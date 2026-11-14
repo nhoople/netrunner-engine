@@ -18176,6 +18176,10 @@
           "kinds": []
         },
         {
+          "site": "src/actions/score.ts#scoreAgendaAction",
+          "kinds": []
+        },
+        {
           "site": "src/api/library.ts#idsHiddenFrom",
           "kinds": []
         },
@@ -23491,6 +23495,10 @@
         },
         {
           "site": "src/actions/score.ts#advanceCard",
+          "kinds": []
+        },
+        {
+          "site": "src/actions/score.ts#scoreAgendaAction",
           "kinds": []
         },
         {

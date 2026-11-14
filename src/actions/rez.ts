@@ -207,6 +207,10 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   if (!card || card.type !== "ice") {
     return fail("Not ice.", [CR.rezProcedure]);
   }
+  // Only an unrezzed card can be rezzed, in any window (CR 8.1.2).
+  if (card.rezzed) {
+    return fail("Ice is already rezzed.", [CR.rezUnrezzed, CR.rezProcedure]);
+  }
   if (state.turn.dagCannotRezCardIds?.includes(cardId)) {
     return fail("Cannot rez this card for the remainder of this turn (Councilman).", [
       CR.rezProcedure,
@@ -238,9 +242,6 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
         CR.rezIceRestriction,
       ]);
     }
-  }
-  if (card.rezzed) {
-    return fail("Ice is already rezzed.", [CR.rezProcedure]);
   }
   // Cyber Threat-class: the Corp cannot rez ice at all during this run.
   // (Candidate filters already hide the action; validation must agree.)
@@ -595,6 +596,14 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
 
 export function rezAsset(state: GameState, cardId: string): ApplyResult {
   const paw = currentWindow(state.timingKey);
+  // The target comes before the window (CR 8.1.2, 8.1.2a).
+  const card = state.cards[cardId];
+  if (!card || (card.type !== "asset" && card.type !== "upgrade")) {
+    return fail("Not an asset/upgrade.", [CR.rezProcedure]);
+  }
+  if (card.rezzed) {
+    return fail("Already rezzed.", [CR.rezUnrezzed, CR.rezProcedure]);
+  }
   if (!corpMayRez(state.timingKey)) {
     return fail(
       "Rez an asset or upgrade only in a paid ability window marked (R).",
@@ -602,17 +611,10 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
     );
   }
   ensurePriorityWindow(state);
-  const card = state.cards[cardId];
-  if (!card || (card.type !== "asset" && card.type !== "upgrade")) {
-    return fail("Not an asset/upgrade.", [CR.rezProcedure]);
-  }
   if (state.turn.dagCannotRezCardIds?.includes(cardId)) {
     return fail("Cannot rez this card for the remainder of this turn (Councilman).", [
       CR.rezProcedure,
     ]);
-  }
-  if (card.rezzed) {
-    return fail("Already rezzed.", [CR.rezProcedure]);
   }
   if (card.rezRequiresTagged && !runnerIsTagged(state)) {
     return fail("Can only be rezzed if the Runner is tagged.", [CR.rezProcedure]);
