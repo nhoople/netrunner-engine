@@ -395,6 +395,8 @@ export function removeCardFromCurrentZone(
     return;
   }
   const card = state.cards[cardId];
+  // A revealed card stays visible only until it moves (CR 1.21.6).
+  if (card?.revealing) delete card.revealing;
   noteIceUninstalled(state, cardId);
   const leftScore =
     state.corp.scoreArea.includes(cardId) ||

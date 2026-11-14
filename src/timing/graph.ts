@@ -305,17 +305,46 @@ function turnBeginPaused(state: GameState): boolean {
 }
 
 /**
- * Ice encountered while not installed is marked rezzed so its subroutines
- * are active for that encounter (CR 9.1.8h). Once the encounter is over, a
- * card that is not installed is not rezzed (CR 8.1.1).
+ * Ice encountered while not installed is marked rezzed and faceup so its
+ * subroutines are active for that encounter (CR 9.1.8h). Once the encounter
+ * is over, a card that is not installed is not rezzed (CR 8.1.1). A card in
+ * HQ or R&D is neither faceup nor facedown (CR 1.21.1a, 4.1.5, 4.1.6) once
+ * the access that showed it is over too (CR 7.1.2, 6.5.9a): `accessOver`
+ * says the run has ended. A card in Archives keeps its faceup status:
+ * Archives is a public zone (CR 4.1.4).
  */
-function clearEncounterOutsidePlayMark(s: GameState, iceId: string | undefined): void {
+function clearEncounterOutsidePlayMark(
+  s: GameState,
+  iceId: string | undefined,
+  accessOver = false,
+): void {
   const ice = iceId ? s.cards[iceId] : undefined;
-  if (
-    ice?.rezzed &&
-    (ice.zone === "corp:hq" || ice.zone === "corp:rd" || ice.zone === "corp:archives")
-  ) {
+  if (!ice) return;
+  const hidden = ice.zone === "corp:hq" || ice.zone === "corp:rd";
+  if (ice.rezzed && (hidden || ice.zone === "corp:archives")) {
     ice.rezzed = false;
+  }
+  if (ice.faceup && hidden && (accessOver || s.run?.accessingCardId !== ice.id)) {
+    ice.faceup = false;
+  }
+}
+
+/**
+ * The access is over (CR 7.2.4). A card accessed in HQ or R&D that is still
+ * there was shown to the Corp (HQ only) for that access (CR 7.1.2) and
+ * revealed for its duration when it must be (CR 1.21.7), and is again
+ * neither faceup nor facedown (CR 1.21.1a). A reveal after this sets the
+ * flag itself (CR 1.21.3).
+ *
+ * Open gap: CR 7.3.1a keeps the card visible to the Runner for the rest of
+ * the breach. The engine has never kept it (`endLooksAndReveals` cleared it
+ * after the access action too), and the flag is shared by both seats.
+ */
+function endAccessVisibility(s: GameState, cardId: string | null | undefined): void {
+  const card = cardId ? s.cards[cardId] : undefined;
+  if (!card?.faceup || card.side !== "corp") return;
+  if (s.corp.hand.includes(card.id) || s.corp.deck.includes(card.id)) {
+    card.faceup = false;
   }
 }
 
@@ -4887,8 +4916,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         resolveDeferredPersistentAmaze(s);
         const runState = s.run!;
         // A run can end during a forced encounter (CR 9.1.8h).
-        clearEncounterOutsidePlayMark(s, runState.encounter?.iceId);
-        clearEncounterOutsidePlayMark(s, runState.forceEncounterIceId);
+        clearEncounterOutsidePlayMark(s, runState.encounter?.iceId, true);
+        clearEncounterOutsidePlayMark(s, runState.forceEncounterIceId, true);
         if (runState.resumeAfterDelayedOrder) {
           runState.resumeAfterDelayedOrder = false;
         } else {
@@ -5532,6 +5561,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "breach.access",
     {
       onResolve: (s) => {
+        endAccessVisibility(s, s.run?.accessingCardId);
         noteFinishAccessRdOncePerTurn(s);
         if ((s.turn.accessAbilityPending ?? []).length > 0) {
           checkpointAfterInstruction(s, "access.complete");

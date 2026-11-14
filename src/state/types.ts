@@ -2857,6 +2857,11 @@ export interface CardInstance {
    * player sees its face, whoever owns it (CR 1.21.2, CR 1.21.6).
    */
   lookedBy?: Side;
+  /**
+   * Revealed by the ability that is resolving. The card stays visible to
+   * both players until that ability finishes or the card moves (CR 1.21.6).
+   */
+  revealing?: true;
   /** Corp installed cards: rezzed vs unrezzed. */
   rezzed: boolean;
   zone: ZoneId;
