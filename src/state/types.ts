@@ -3869,6 +3869,12 @@ export interface TurnBookkeeping {
   /** Corp basic actions completed this turn (Petty Cash gate). */
   corpActionsCompletedThisTurn: number;
   /**
+   * Operations the Corp played this turn, by any means (CR 8.6.1): the basic
+   * action, Petty Cash from Archives, Plutus, and other card abilities.
+   * Nebula Talent Management reads it. Not an action count (CR 5.2.5b).
+   */
+  corpOperationsPlayedThisTurn?: number;
+  /**
    * Clicks spent by the Runner this turn (priority / playRequiresFirstClick).
    * Losing clicks does not increment this (CR 1.11.4).
    */

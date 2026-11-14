@@ -24102,6 +24102,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/cardLifecycleHooks.ts#noteCorpOperationPlayed",
+          "kinds": []
+        },
+        {
           "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         },

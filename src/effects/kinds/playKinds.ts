@@ -241,8 +241,6 @@ case "play_archives_transaction_then_rfg": {
       state.corp.credits -= cost;
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
       enterLingeringPlayArea(state, cardId, "corp");
-      state.turn.corpActionTypeCounts.play_operation =
-        (state.turn.corpActionTypeCounts.play_operation ?? 0) + 1;
       log(state, `Corp plays ${card.title} from Archives for ${cost}¢ (Plutus).`);
       noteCheckpointAndResolvePlay(state, cardId, "effect.play");
       removeCardFromCurrentZone(state, cardId);
@@ -279,8 +277,6 @@ case "play_self_from_archives_then_rfg": {
       state.corp.discardPile = state.corp.discardPile.filter((id) => id !== sourceId);
       enterLingeringPlayArea(state, sourceId, "corp");
       state.turn.operationPlayedFromNonHq = true;
-      state.turn.corpActionTypeCounts.play_operation =
-        (state.turn.corpActionTypeCounts.play_operation ?? 0) + 1;
       log(
         state,
         `Corp plays ${source.title} from Archives for ${cost}¢.`,
