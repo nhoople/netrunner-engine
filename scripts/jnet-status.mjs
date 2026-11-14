@@ -34,7 +34,8 @@ function buildSection() {
   lines.push(
     `${filesInOrder.length} upstream files considered, ${entries.length} scenarios recorded: ` +
       `${byStatus("ported").length} ported, ${byStatus("adapted").length} adapted, ` +
-      `${byStatus("promoted").length} promoted, ${byStatus("deferred").length} deferred. ` +
+      `${byStatus("promoted").length} promoted, ${byStatus("deferred").length} deferred, ` +
+      `${byStatus("disagreement").length} disagreement. ` +
       "The ports run quarantined through `npm run test:jnet`; the native suite stays the required gate.",
   );
   lines.push("");
@@ -76,15 +77,60 @@ function buildSection() {
   lines.push("### Deferred");
   lines.push("");
   lines.push(
-    "No equivalent board here: jnet-internal helpers, registry invariants, the chat-command system, and jnet's own source-code analysis. Full reasons are in `tests/jnet/manifest.json`.",
+    "Not ported. Each deferred scenario is being classified against the pinned CR (CR audit tool 1.8): " +
+      "`no-board` asserts jnet internals, UI, chat commands, log wording, or jnet's own source, so there is no rules reading to compare; " +
+      "`agrees` means this engine already matches jnet and the CR; " +
+      "`engine-bug` means the CR settles the point and this engine is wrong. " +
+      "Full reasons and notes are in `tests/jnet/manifest.json`.",
   );
   lines.push("");
-  lines.push("| Upstream file | Deferred |");
-  lines.push("| --- | ---: |");
+  lines.push("| Upstream file | Deferred | No board | Agrees | Engine bug | Not yet classified |");
+  lines.push("| --- | ---: | ---: | ---: | ---: | ---: |");
+  const deferred = byStatus("deferred");
+  const cls = (file, c) =>
+    deferred.filter((e) => e.upstreamFile === file && (e.classification ?? null) === c).length;
   for (const file of filesInOrder) {
-    const deferred = countFor(file, "deferred");
-    if (deferred === 0) continue;
-    lines.push(`| \`${file}\` | ${deferred} |`);
+    const total = countFor(file, "deferred");
+    if (total === 0) continue;
+    lines.push(
+      `| \`${file}\` | ${total} | ${cls(file, "no-board")} | ${cls(file, "agrees")} | ${cls(file, "engine-bug")} | ${cls(file, null)} |`,
+    );
+  }
+  lines.push("");
+  lines.push("### Disagreements (for a human decision)");
+  lines.push("");
+  lines.push(
+    "jnet and this engine differ on a point the CR leaves silent or unclear. The engine is not changed to match jnet; each entry waits for a decision.",
+  );
+  lines.push("");
+  const disagreements = byStatus("disagreement");
+  if (disagreements.length === 0) {
+    lines.push("None found among the classified scenarios so far.");
+  } else {
+    for (const e of disagreements) {
+      lines.push(`- \`${e.key}\` (CR ${e.crCite}) — ${e.disagreementNote}`);
+    }
+  }
+  lines.push("");
+  lines.push("### Engine bugs found by classification");
+  lines.push("");
+  lines.push("The CR settles these and the engine is wrong. Each is listed under the Phase 3 area that owns the fix.");
+  lines.push("");
+  const bugs = deferred.filter((e) => e.classification === "engine-bug");
+  for (const area of [...new Set(bugs.map((e) => e.engineBugArea))].sort((a, b) => a.localeCompare(b, "en", { numeric: true }))) {
+    lines.push(`- **${area}**`);
+    for (const e of bugs.filter((x) => x.engineBugArea === area)) {
+      lines.push(`  - \`${e.key}\` (CR ${e.crCite}; ${e.classificationBasis}) — ${e.classificationNote}`);
+    }
+  }
+  lines.push("");
+  lines.push("### Not yet classified");
+  lines.push("");
+  const left = deferred.filter((e) => !e.classification);
+  if (left.length === 0) {
+    lines.push("Every deferred scenario is classified.");
+  } else {
+    lines.push(left.map((e) => `\`${e.key}\``).join(", "));
   }
   return lines.join("\n");
 }

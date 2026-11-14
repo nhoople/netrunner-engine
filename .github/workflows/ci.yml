@@ -25,3 +25,22 @@ jobs:
         run: npm run typecheck
       - name: Test
         run: npm test
+
+  # Ported jinteki.net scenarios (tests/jnet/). Informational only: the job
+  # may fail without failing the workflow, and it is not the required `test`
+  # check. See docs/jnet-test-ports.md.
+  jnet:
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ".node-version"
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Prepare pinned data
+        run: npm run prepare-data
+      - name: jnet ports
+        run: npm run test:jnet
