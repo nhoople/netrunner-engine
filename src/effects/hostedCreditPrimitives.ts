@@ -67,6 +67,8 @@ function takeHostedCredits(
       } else {
         state.corp.discardPile.push(sourceId);
         source.zone = "corp:archives";
+        // A trashed card is a new object, not installed (CR 1.12.1, 8.1.1).
+        source.rezzed = false;
       }
       source.faceup = true;
       log(

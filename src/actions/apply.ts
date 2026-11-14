@@ -3195,6 +3195,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         next.corp.discardPile.push(action.cardId);
         card.zone = "corp:archives";
         card.faceup = true;
+        card.rezzed = false;
         log(
           next,
           `Runner trashes accessed ${card.title} for ${cost}¢ (CR ${CR.trashing.number}).`,
@@ -3334,6 +3335,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       next.corp.discardPile.push(accessedId);
       card.zone = "corp:archives";
       card.faceup = true;
+      card.rezzed = false;
       next.run.accessingCardId = null;
       if (carn.accessTrashFromGrip!.oncePerTurn) {
         next.turn.carnivoreAccessTrashUsed = true;
@@ -3378,6 +3380,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       next.corp.discardPile.push(accessedId);
       card.zone = "corp:archives";
       card.faceup = true;
+      card.rezzed = false;
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, card.trashCost ?? 0);
@@ -3407,6 +3410,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       next.corp.discardPile.push(accessedId);
       card.zone = "corp:archives";
       card.faceup = true;
+      card.rezzed = false;
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, 0);
@@ -3454,6 +3458,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       next.corp.discardPile.push(accessedId);
       accessed.zone = "corp:archives";
       accessed.faceup = true;
+      accessed.rezzed = false;
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, accessed.trashCost ?? 0);
@@ -3492,6 +3497,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       next.corp.discardPile.push(accessedId);
       accessed.zone = "corp:archives";
       accessed.faceup = true;
+      accessed.rezzed = false;
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, accessed.trashCost ?? 0);

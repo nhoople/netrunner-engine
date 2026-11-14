@@ -177,6 +177,8 @@ describe("ice uninstalled while it is approached (CR 8.5.10, 6.2.7a)", () => {
     removeCardFromCurrentZone(s, "a");
     s.corp.hand.push("a");
     s.cards["a"]!.zone = "corp:hq";
+    // A card returned to HQ is a new object, not rezzed (CR 1.12.1, 8.1.1).
+    s.cards["a"]!.rezzed = false;
     expect(s.run?.approachedIceUninstalled).toBe(true);
     expect(pass(s).timingKey).toBe("run.jackOutWindow");
   });

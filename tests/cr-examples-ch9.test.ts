@@ -631,6 +631,8 @@ describe("CR examples, chapter 9", () => {
     expect(active).toBeLessThan(resolved);
     expect(resolved).toBeLessThan(trace);
     expect(s.cards["arch-1"]?.zone).toBe("corp:hq");
+    // Its subroutines were active only for that encounter (CR 9.1.8h).
+    expect(s.cards["arch-1"]?.rezzed).toBe(false);
     expect(s.corp.hand).toContain("arch-1");
     expect(s.corp.credits).toBe(2);
     expect(s.log.some((line) => line.includes("Resume access after forced encounter"))).toBe(true);

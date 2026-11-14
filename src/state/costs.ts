@@ -1330,6 +1330,8 @@ export function payCost(
       } else {
         state.corp.discardPile.push(source.id);
         source.zone = "corp:archives";
+        // A trashed card is a new object, not installed (CR 1.12.1, 8.1.1).
+        source.rezzed = false;
       }
       source.faceup = true;
       log(

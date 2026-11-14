@@ -3151,6 +3151,7 @@ case "mitra_aman_approach_ice": {
       state.corp.discardPile.push(sourceId);
       source.zone = "corp:archives";
       source.faceup = true;
+      source.rezzed = false;
       state.corp.credits += 3;
       log(
         state,

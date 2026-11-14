@@ -160,6 +160,7 @@ describe("checkInvariants", () => {
       state.servers.hq.ice = [];
       state.corp.scoreArea.push("corp-ice-1");
       state.cards["corp-ice-1"]!.zone = "corp:score";
+      state.cards["corp-ice-1"]!.rezzed = false;
       host(state, "corp-fill-1", "corp-ice-1");
       expect(codes(state)).toEqual([]);
     });
@@ -202,6 +203,7 @@ describe("checkInvariants", () => {
       state.servers.hq.ice = [];
       state.corp.discardPile.push("corp-ice-1");
       state.cards["corp-ice-1"]!.zone = "corp:archives";
+      state.cards["corp-ice-1"]!.rezzed = false;
       state.run!.positionVacated = true;
       state.run!.encounter!.iceUninstalled = true;
       expect(codes(state)).toEqual([]);
@@ -232,6 +234,23 @@ describe("checkInvariants", () => {
       const state = board();
       state.cards["runner-program-1"]!.rezzed = true;
       expect(codes(state)).toEqual(["RUNNER_CARD_REZZED"]);
+    });
+
+    it("a rezzed Corp card in Archives (CR 8.1.1, 1.12.1): REZZED_OUTSIDE_PLAY", () => {
+      const state = board();
+      state.servers["remote-1"]!.root = [];
+      state.corp.discardPile.push("corp-asset-1");
+      const asset = state.cards["corp-asset-1"]!;
+      asset.zone = "corp:archives";
+      asset.faceup = true;
+      asset.rezzed = true;
+      expect(codes(state)).toEqual(["REZZED_OUTSIDE_PLAY"]);
+    });
+
+    it("a rezzed Corp card in a server root is not flagged (CR 8.1.1)", () => {
+      const state = board();
+      state.cards["corp-asset-1"]!.rezzed = true;
+      expect(codes(state)).toEqual([]);
     });
 
     it("credits below 0 (CR 1.10.3b): NEGATIVE_CREDITS", () => {
