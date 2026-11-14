@@ -21,7 +21,12 @@ import {
 } from "../state/storedTriggers.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
-import { canScoreAgenda, checkWinConditions, scoreAgenda } from "../state/scoring.js";
+import {
+  canScoreAgenda,
+  checkWinConditions,
+  effectiveAdvancementRequirement,
+  scoreAgenda,
+} from "../state/scoring.js";
 import { syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import {
   applyAdvanceIceRecurringTowardAdvance,
@@ -409,6 +414,29 @@ export function fireScoreOrStealSideEffects(
 export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
   if (state.activeSide !== "corp") {
     return fail("Only Corp scores agendas.", [CR.scoringAgenda]);
+  }
+  // The target comes before the window: an agenda that could not be scored
+  // in any window says why (CR 1.17.3, 1.17.3a).
+  const target = state.cards[cardId];
+  if (!target) return fail("Unknown card.", [CR.scoreAgenda]);
+  if (
+    target.type !== "agenda" ||
+    target.side !== "corp" ||
+    !target.zone.startsWith("server:") ||
+    !target.zone.endsWith(":root")
+  ) {
+    return fail("Only an agenda installed in a server root can be scored.", [
+      CR.scoreAgenda,
+      CR.advancementRequirement,
+    ]);
+  }
+  const required = effectiveAdvancementRequirement(state, target);
+  const counters = target.advancementCounters ?? 0;
+  if (counters < required) {
+    return fail(
+      `${target.title} has ${counters} of ${required} advancement counters.`,
+      [CR.advancementRequirement],
+    );
   }
   // CR 1.17.3 / 9.2.7d: scoring is an option in an (S) window, not an action.
   if (!corpMayScore(state.timingKey)) {

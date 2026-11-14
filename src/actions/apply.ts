@@ -2199,18 +2199,20 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
     }
 
     case "basic_remove_tag": {
+      // Whose action it is comes before when (CR 5.2.7g, 5.2.4).
+      if (next.activeSide !== "runner") {
+        return fail("Only the Runner may remove a tag with the basic action.", [
+          CR.runnerBasicRemoveTag,
+          CR.taggedRemoveTag,
+          CR.actionsOutsidePhase,
+        ]);
+      }
       const gate = actionAllowedHere(next, action.type);
       if (!gate.ok) {
         return fail(
           "Basic actions are only legal at the take-action step.",
           gate.cites,
         );
-      }
-      if (next.activeSide !== "runner") {
-        return fail("Only the Runner may remove a tag with the basic action.", [
-          CR.runnerBasicRemoveTag,
-          CR.taggedRemoveTag,
-        ]);
       }
       if (next.runner.tags <= 0) {
         return fail("Runner has no tags to remove.", [
@@ -2331,6 +2333,19 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
     }
 
     case "basic_install": {
+      // Each player installs only their own cards (CR 5.2.6d, 5.2.7d).
+      const installing = next.cards[action.cardId];
+      if (installing && installing.side !== next.activeSide) {
+        return installing.side === "corp"
+          ? fail("Only the Corp installs Corp cards.", [
+              CR.corpBasicInstall,
+              CR.actionsOutsidePhase,
+            ])
+          : fail("Only the Runner installs Runner cards.", [
+              CR.runnerBasicInstall,
+              CR.actionsOutsidePhase,
+            ]);
+      }
       const gate = actionAllowedHere(next, action.type);
       if (!gate.ok) {
         return fail(
@@ -2381,17 +2396,19 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
     }
 
     case "basic_trash_resource": {
+      // Whose action it is comes before when (CR 5.2.6g, 5.2.4).
+      if (next.activeSide !== "corp") {
+        return fail("Only the Corp may trash a resource with the basic action.", [
+          CR.corpBasicTrashResource,
+          CR.actionsOutsidePhase,
+        ]);
+      }
       const gate = actionAllowedHere(next, action.type);
       if (!gate.ok) {
         return fail(
           "Basic actions are only legal at the take-action step.",
           gate.cites,
         );
-      }
-      if (next.activeSide !== "corp") {
-        return fail("Only the Corp may trash a resource with the basic action.", [
-          CR.corpBasicTrashResource,
-        ]);
       }
       if (next.runner.tags <= 0) {
         return fail("Runner must be tagged to trash a resource.", [
