@@ -1581,7 +1581,7 @@ describe("downfall", () => {
       expect(validateEffectTree(def.runEvent!.onSuccessfulRun!)).toBeNull();
     });
 
-    it("MirrorMorph third-distinct tracking field + discount leaf", () => {
+    it("MirrorMorph third-distinct tracking field + extra different action leaf", () => {
       const def = getCardDef("mirrormorph-endless-iteration");
       expect(def.mirrormorphOnThirdDistinctAction).toBeTruthy();
       expect(JSON.stringify(def.mirrormorphOnThirdDistinctAction)).toContain(
@@ -1601,10 +1601,11 @@ describe("downfall", () => {
       expect(mm.mirrormorphTrackDistinctActions).toBe(true);
       const r = evalEffect(
         { state: s, sourceId: "mm-1" },
-        fx.mirrormorphTakeDifferentActionClickDiscount(),
+        fx.takeDifferentActionPayingClickLess(),
       );
       expect(r.ok).toBe(true);
-      expect(s.turn.mirrormorphClickDiscountPending).toBe(true);
+      // Outside the Corp's action phase the Corp does nothing (CR 5.2.4).
+      expect(s.turn.extraDifferentAction ?? null).toBeNull();
     });
 
     it("interaction: Cold Site Server initiate tax still works", () => {

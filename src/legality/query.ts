@@ -6,6 +6,7 @@ import type {
 } from "../state/types.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
 import { costBeginsWithClick } from "../state/costs.js";
+import { extraDifferentActionRefusal } from "../state/corpActionHooks.js";
 import { getStep } from "../timing/machine.js";
 import { CR } from "../timing/labels.js";
 import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
@@ -311,6 +312,17 @@ export function explainAction(
       action,
       reason: "Game marked done.",
       cites: [],
+      window,
+    };
+  }
+
+  const extraRefusal = extraDifferentActionRefusal(state, action);
+  if (extraRefusal) {
+    return {
+      legal: false,
+      action,
+      reason: extraRefusal.error,
+      cites: extraRefusal.cites,
       window,
     };
   }
