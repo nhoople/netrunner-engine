@@ -64,6 +64,18 @@ describe("playout decks", () => {
     if (fourth) expect(deckProblems(pool, { ...corp, cards: [...corp.cards, fourth] }).join()).toContain("CR 1.4.7");
   });
 
+  it("counts neutral influence and not in-faction influence (CR 1.4.5)", () => {
+    const pool = formatPool("startup");
+    const { runner } = decksFor("startup", 1);
+    // Neutral cards are out-of-faction: 3 each of Lucky Find, Baba Yaga and
+    // Ashen Epilogue (2 influence each) is 18, over any 15-influence runner.
+    const neutral = ["lucky-find", "baba-yaga", "ashen-epilogue"].flatMap((id) => [id, id, id]);
+    const deck = { ...runner, cards: [...neutral, ...runner.cards.slice(neutral.length)] };
+    const before = deckProblems(pool, runner).length;
+    expect(before).toBe(0);
+    expect(deckProblems(pool, deck).join()).toMatch(/influence \d+ is over the limit \(CR 1\.4\.5\)/);
+  });
+
   it("varies the decks with the seed", () => {
     const ids = new Set<string>();
     for (let seed = 1; seed <= 10; seed++) ids.add(decksFor("startup", seed).corp.cards.join());

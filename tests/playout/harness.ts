@@ -296,10 +296,18 @@ export function formatPool(format: string): FormatPool {
 
 const NEUTRAL = new Set(["neutral-corp", "neutral-runner"]);
 
+/**
+ * In the identity's faction. Neutral cards are out-of-faction (CR 1.4.5), so
+ * a neutral card is never in-faction and its printed influence counts.
+ */
+function inFaction(def: CardDef, identityFaction: string | undefined): boolean {
+  if (!def.faction || NEUTRAL.has(def.faction)) return false;
+  return def.faction === identityFaction;
+}
+
 function deckEntry(def: CardDef, identityFaction: string | undefined): DeckEntry {
   // Only out-of-faction cards cost influence (CR 1.4.5).
-  const inFaction = def.faction === identityFaction;
-  const influence = inFaction || NEUTRAL.has(def.faction ?? "") ? 0 : def.influence;
+  const influence = inFaction(def, identityFaction) ? 0 : def.influence;
   return {
     defId: def.id,
     influence,
@@ -353,8 +361,11 @@ export function deckProblems(format: FormatPool, deck: Deck): string[] {
     if (!legal.has(id)) problems.push(`${id} is not in ${format.format}`);
     if (def.type === "identity") problems.push(`${id} is an identity (CR 1.4.4)`);
     if (def.side !== identity.side) problems.push(`${id} is from the wrong side (CR 1.4.4)`);
-    const outOfFaction = def.faction !== identity.faction && !NEUTRAL.has(def.faction ?? "");
-    if (outOfFaction && def.influence === undefined) {
+    // Neutral cards print an influence cost of 0; the pinned card data leaves
+    // the field off a few of them (Hedge Fund, PAD Campaign), so only
+    // faction cards are held to this check.
+    const factionCard = !NEUTRAL.has(def.faction ?? "");
+    if (factionCard && !inFaction(def, identity.faction) && def.influence === undefined) {
       problems.push(`${id} is out of faction with no influence cost (CR 1.4.4)`);
     }
     entries.push(deckEntry(def, identity.faction));
@@ -401,8 +412,7 @@ export function randomDeck(format: FormatPool, side: "corp" | "runner", random: 
     const influenceLimit = identity.influenceLimit ?? 15;
     const usable = defs.filter((def) => {
       if (def.type === "identity") return false;
-      const inFaction = def.faction === identity.faction || NEUTRAL.has(def.faction ?? "");
-      return inFaction || def.influence !== undefined;
+      return inFaction(def, identity.faction) || NEUTRAL.has(def.faction ?? "") || def.influence !== undefined;
     });
     const agendas = usable.filter((def) => def.type === "agenda");
     const others = usable.filter((def) => def.type !== "agenda");
@@ -411,8 +421,7 @@ export function randomDeck(format: FormatPool, side: "corp" | "runner", random: 
     let pointTotal = 0;
     let threes = 0;
     let cards = 0;
-    const cost = (def: CardDef) =>
-      def.faction === identity.faction || NEUTRAL.has(def.faction ?? "") ? 0 : (def.influence ?? 0);
+    const cost = (def: CardDef) => (inFaction(def, identity.faction) ? 0 : (def.influence ?? 0));
     const fits = (def: CardDef): boolean => {
       const have = counts.get(def.id) ?? 0;
       if (have >= copyLimit(def)) return false;

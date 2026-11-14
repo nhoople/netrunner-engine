@@ -115,43 +115,35 @@
     },
     {
       "format": "startup",
-      "deckSeed": 5,
-      "step": 127,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-13",
-      "detail": "at runner.turnBegins"
-    },
-    {
-      "format": "startup",
       "deckSeed": 11,
-      "step": 51,
-      "code": "HOST_LINK_MISSING",
-      "recorded": "2026-11-13",
-      "detail": "runner:stowaway:32 (Stowaway) has hostId corp:event-horizon:3 (Event Horizon) but is not in its hosted list (zone runner:installed)"
-    },
-    {
-      "format": "startup",
-      "deckSeed": 11,
-      "step": 90,
+      "step": 154,
       "code": "RUN_SERVER_MISSING",
-      "recorded": "2026-11-13",
+      "recorded": "2026-11-14",
       "detail": "run attacks missing server remote-1"
     },
     {
       "format": "startup",
       "deckSeed": 11,
-      "step": 98,
-      "code": "OFF_BOARD_HOSTED",
-      "recorded": "2026-11-13",
-      "detail": "runner:stowaway:32 (Stowaway) is in runner:heap with hostId corp:event-horizon:3"
+      "step": 182,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-14",
+      "detail": "at runner.turnBegins"
     },
     {
       "format": "startup",
-      "deckSeed": 11,
-      "step": 126,
-      "code": "REFUSED",
-      "recorded": "2026-11-13",
-      "detail": "access_card at access.stealAgenda: No breach access window."
+      "deckSeed": 33,
+      "step": 19,
+      "code": "HOST_LINK_MISSING",
+      "recorded": "2026-11-14",
+      "detail": "runner:stowaway:28 (Stowaway) has hostId corp:paywall:17 (Paywall) but is not in its hosted list (zone runner:installed)"
+    },
+    {
+      "format": "startup",
+      "deckSeed": 33,
+      "step": 186,
+      "code": "OFF_BOARD_HOSTED",
+      "recorded": "2026-11-14",
+      "detail": "runner:stowaway:28 (Stowaway) is in runner:heap with hostId corp:paywall:17"
     },
     {
       "format": "core",
@@ -179,6 +171,14 @@
     },
     {
       "format": "standard",
+      "deckSeed": 1,
+      "step": 191,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-14",
+      "detail": "at corp.turnBegins"
+    },
+    {
+      "format": "standard",
       "deckSeed": 2,
       "step": 48,
       "code": "REFUSED",
@@ -188,18 +188,10 @@
     {
       "format": "standard",
       "deckSeed": 14,
-      "step": 60,
-      "code": "HOST_LINK_MISSING",
-      "recorded": "2026-11-13",
-      "detail": "runner:slap-vandal:38 (Slap Vandal) has hostId corp:grubber:13 (Grubber) but is not in its hosted list (zone runner:installed)"
-    },
-    {
-      "format": "standard",
-      "deckSeed": 14,
-      "step": 127,
-      "code": "OFF_BOARD_HOSTED",
-      "recorded": "2026-11-13",
-      "detail": "runner:slap-vandal:38 (Slap Vandal) is in runner:heap with hostId corp:grubber:13"
+      "step": 71,
+      "code": "NO_LEGAL_ACTION",
+      "recorded": "2026-11-14",
+      "detail": "at corp.turnBegins"
     },
     {
       "format": "eternal",
@@ -212,26 +204,18 @@
     {
       "format": "eternal",
       "deckSeed": 27,
-      "step": 67,
+      "step": 39,
       "code": "HOST_NOT_IN_PLAY",
-      "recorded": "2026-11-13",
-      "detail": "runner:ekomind:15 (Ekomind) is hosted on runner:street-peddler:38 (Street Peddler), which is in runner:heap"
+      "recorded": "2026-11-14",
+      "detail": "runner:diwan:6 (Diwan) is hosted on runner:street-peddler:33 (Street Peddler), which is in runner:heap"
     },
     {
       "format": "eternal",
       "deckSeed": 27,
-      "step": 67,
+      "step": 39,
       "code": "MULTIPLE_ZONES",
-      "recorded": "2026-11-13",
-      "detail": "runner:rook:35 (Rook) is in runner:set-aside, hosted:runner:street-peddler:38"
-    },
-    {
-      "format": "eternal",
-      "deckSeed": 27,
-      "step": 77,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-13",
-      "detail": "at corp.turnBegins"
+      "recorded": "2026-11-14",
+      "detail": "runner:spinal-modem:32 (Spinal Modem) is in runner:set-aside, hosted:runner:street-peddler:33"
     }
   ]
 }
