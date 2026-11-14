@@ -22115,6 +22115,14 @@
           "kinds": []
         },
         {
+          "site": "src/state/corpActionHooks.ts#abandonExtraDifferentAction",
+          "kinds": []
+        },
+        {
+          "site": "src/state/corpActionHooks.ts#beginExtraDifferentAction",
+          "kinds": []
+        },
+        {
           "site": "src/state/corpActionHooks.ts#noteCorpActionType",
           "kinds": []
         },

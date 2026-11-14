@@ -139,7 +139,7 @@ describe("CR examples, chapter 5", () => {
     s.activeSide = "corp";
     noteCorpActionType(s, "play_operation");
     noteCorpActionType(s, "play_operation");
-    expect(s.turn.mirrormorphClickDiscountPending).toBe(false);
+    expect(s.turn.extraDifferentAction ?? null).toBeNull();
     expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(true);
     expect(s.turn.mirrormorphThirdDistinctMetPending).toBe(false);
     expect(s.pendingChoice).toBeNull();
@@ -148,7 +148,7 @@ describe("CR examples, chapter 5", () => {
     noteCorpActionType(s, "advance");
     expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(true);
     expect(s.turn.mirrormorphThirdDistinctMetPending).toBe(false);
-    expect(s.turn.mirrormorphClickDiscountPending).toBe(false);
+    expect(s.turn.extraDifferentAction ?? null).toBeNull();
     expect(s.pendingChoice).toBeNull();
   });
 

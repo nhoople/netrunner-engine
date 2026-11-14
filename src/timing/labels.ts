@@ -388,6 +388,7 @@ export const CR = {
   },
   cannotPrecedence: { number: "1.2.2", id: "rule_cannot_precedence" },
   actionsOutsidePhase: { number: "5.2.4", id: "rule_actions_outside_action_phase" },
+  differentActions: { number: "5.2.5b", id: "rule_defferent_actions" },
   /** A card's abilities are active only while the card is active (CR 9.1.7). */
   abilityActive: { number: "9.1.7", id: "rule_ability_active" },
   /** A cost can be any card a player must spend; the payer picks it (CR 1.16.1). */

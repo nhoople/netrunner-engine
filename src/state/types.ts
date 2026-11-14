@@ -4231,10 +4231,11 @@ export interface TurnBookkeeping {
    */
   mirrormorphThirdDistinctMetPending: boolean;
   /**
-   * MirrorMorph: next Corp action pays 1 click less and must differ from
-   * the three kinds already taken.
+   * MirrorMorph: the Corp is taking another action, paying [click] less. It
+   * must be different from each action in `differentFrom` (CR 5.2.5b). Null
+   * once that action is taken.
    */
-  mirrormorphClickDiscountPending: boolean;
+  extraDifferentAction?: { sourceId: string; differentFrom: string[] } | null;
   /** Gyri Labyrinth: Runner max hand −2 until Corp next turn begins. */
   gyriLabyrinthHandPenalty?: boolean;
 }

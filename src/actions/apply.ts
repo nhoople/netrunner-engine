@@ -97,7 +97,11 @@ import {
   sabotageHqBounds,
 } from "../state/msKeywords.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
-import { noteCorpActionType } from "../state/corpActionHooks.js";
+import {
+  abandonExtraDifferentAction,
+  noteCorpActionType,
+  takeExtraDifferentAction,
+} from "../state/corpActionHooks.js";
 import {
   fireCorpOnTrash,
   moveRunnerCardToHeap,
@@ -2086,6 +2090,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
   if (next.pendingChoice) {
     if (action.type === "choose_option") {
       const chosen = chooseOption(next, action.optionId);
+      if (chosen.ok) openExtraDifferentActionWindow(chosen.state);
       // The active player finished choosing what to discard: the discard
       // step now discards those cards together (CR 5.5.4c).
       if (chosen.ok && next.turn.chosenDiscardIds && !next.pendingChoice) {
@@ -2098,6 +2103,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       [CR.paidAbility],
     );
   }
+
+  // MirrorMorph's extra action must differ from the first three (CR 5.2.5b).
+  const extraRefusal = takeExtraDifferentAction(next, action);
+  if (extraRefusal) return fail(extraRefusal.error, extraRefusal.cites);
 
   switch (action.type) {
     case "pass_window":
@@ -3670,6 +3679,29 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       const _exhaustive: never = action;
       return fail(`Unknown action: ${JSON.stringify(_exhaustive)}`, []);
     }
+  }
+}
+
+/**
+ * MirrorMorph: the Corp chose to take another different action. It is part
+ * of resolving the reward in the reaction window (CR 5.2.2d), so the action
+ * window opens now, before the next paid ability window (CR 5.6.2a).
+ */
+function openExtraDifferentActionWindow(state: GameState): void {
+  if (
+    !state.turn.extraDifferentAction ||
+    state.pendingChoice ||
+    state.timingKey === "corp.takeAction" ||
+    state.activeSide !== "corp" ||
+    state.turnPhase !== "corp_action"
+  ) {
+    return;
+  }
+  const from = state.timingKey;
+  enterStep(state, "corp.takeAction");
+  if (queryLegalActions(state).length === 0) {
+    abandonExtraDifferentAction(state);
+    enterStep(state, from);
   }
 }
 

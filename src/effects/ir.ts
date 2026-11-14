@@ -2135,7 +2135,13 @@ export type Primitive =
   | { kind: "choose_install_cost_set_aside_access_shuffle" }
   | { kind: "set_aside_access_shuffle"; installCost: number }
   | { kind: "access_set_aside"; cardId: string }
+  /** MirrorMorph. Cards pin v1.147.22 writes the old card-titled name. */
   | { kind: "mirrormorph_take_different_action_click_discount" }
+  /**
+   * Take another action now, different from the first three this turn,
+   * paying [click] less (MirrorMorph: Endless Iteration; CR 5.2.5b).
+   */
+  | { kind: "take_different_action_paying_click_less" }
   /** Place N power counters on the source card (not Charge — no ≥1 gate). */
   | { kind: "add_power_counter"; amount: number }
   /**
@@ -4501,6 +4507,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "set_aside_access_shuffle",
   "access_set_aside",
   "mirrormorph_take_different_action_click_discount",
+  "take_different_action_paying_click_less",
   "add_power_counter",
   "take_hosted_bad_publicity",
   "may_host_bad_publicity_then",
@@ -6627,8 +6634,8 @@ export const fx = {
     fx.do({ kind: "name_net_damage_loop" }),
   khusyukChooseInstallCostSetAsideAccessShuffle: (): Effect =>
     fx.do({ kind: "choose_install_cost_set_aside_access_shuffle" }),
-  mirrormorphTakeDifferentActionClickDiscount: (): Effect =>
-    fx.do({ kind: "mirrormorph_take_different_action_click_discount" }),
+  takeDifferentActionPayingClickLess: (): Effect =>
+    fx.do({ kind: "take_different_action_paying_click_less" }),
   addPowerCounter: (amount: number): Effect =>
     fx.do({ kind: "add_power_counter", amount }),
   drawPerPowerCounter: (side: SideRef, per = 1): Effect =>
