@@ -1518,8 +1518,17 @@ export type Primitive =
         | "heap"
         | "archives"
         | "corp_score"
-        | "runner_score";
+        | "runner_score"
+        /** Installed Corp cards in the root of a remote server (CR 1.15.2c). */
+        | "remote_root";
       cardType?: string;
+      /** Only rezzed cards (Unregistered S&W '35). */
+      rezzedOnly?: boolean;
+      /**
+       * Only cards with at least one of these subtypes. A card the chooser
+       * cannot see never matches, so the filter reveals nothing (CR 1.21.2).
+       */
+      includeSubtypes?: string[];
       /** Offer a decline. The decline does not resolve `then`. */
       optional?: boolean;
       then: Effect;
@@ -3630,7 +3639,6 @@ export type Primitive =
   | { kind: "reveal_score_from_hq" }
   | { kind: "score_agenda_from_hq"; cardId: string }
   | { kind: "trash_unregistered_rezzed_ice_gain_per_strength" }
-  | { kind: "trash_unregistered_ice_gain"; iceId: string }
   | { kind: "pay_tori_hanzo_instead_net" }
   | { kind: "may_swap_two_installed_ice" }
   | { kind: "corp_pay_credits"; amount: number }
@@ -5450,7 +5458,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_score_from_hq",
   "score_agenda_from_hq",
   "trash_unregistered_rezzed_ice_gain_per_strength",
-  "trash_unregistered_ice_gain",
   "pay_tori_hanzo_instead_net",
   "may_swap_two_installed_ice",
   "corp_pay_credits",
