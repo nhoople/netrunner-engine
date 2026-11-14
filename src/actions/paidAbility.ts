@@ -1048,7 +1048,11 @@ export function usePaidAbility(
   }
 
   if (card.side === "corp") {
-    noteCorpActionType(state, "use_paid_ability");
+    // CR 5.2.1: only a cost that begins with a click makes this an action.
+    // CR 5.2.5: the same ability on another card is a different action.
+    if (costBeginsWithClick(ability)) {
+      noteCorpActionType(state, `use_paid_ability:${cardId}:${abilityId}`);
+    }
     if (
       ability.usableFromHq ||
       (card.subtypes ?? []).includes("expendable")

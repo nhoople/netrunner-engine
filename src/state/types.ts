@@ -4207,7 +4207,10 @@ export interface TurnBookkeeping {
   corpActionKindsInOrderThisTurn: string[];
   /** Every Corp action this turn, including repeats (CR 5.2.5). */
   corpActionSequenceThisTurn: string[];
-  /** MirrorMorph third-distinct bonus already marked this turn (or locked out). */
+  /**
+   * MirrorMorph can no longer become pending this turn: it already has, or
+   * the first three actions are not all different (CR 5.2.5b.ex1).
+   */
   mirrormorphThirdDistinctFiredThisTurn: boolean;
   /**
    * MirrorMorph: third distinct Corp action met since previous checkpoint;

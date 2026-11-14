@@ -2,7 +2,11 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 
-/** Corp action-type tracking (Wage Workers + MirrorMorph). */
+/**
+ * Corp action tracking (Wage Workers + MirrorMorph). `actionKind` names the
+ * action: the basic action, or the ability and the card it is on. Actions
+ * with the same name are the same action (CR 5.2.5a, 5.2.5b).
+ */
 export function noteCorpActionType(state: GameState, actionKind: string): void {
   if (state.activeSide !== "corp") return;
   const counts = state.turn.corpActionTypeCounts;
@@ -26,7 +30,7 @@ export function noteCorpActionType(state: GameState, actionKind: string): void {
     }
   }
 
-  // MirrorMorph: track distinct action kinds; on third distinct, queue for
+  // MirrorMorph: if the first three actions are all different, queue for
   // the next 10.3.1a scanner pass (phase 3). Wage Workers stay immediate.
   const order = state.turn.corpActionKindsInOrderThisTurn ?? [];
   if (!order.includes(actionKind)) {
@@ -36,21 +40,20 @@ export function noteCorpActionType(state: GameState, actionKind: string): void {
   const sequence = state.turn.corpActionSequenceThisTurn ?? [];
   sequence.push(actionKind);
   state.turn.corpActionSequenceThisTurn = sequence;
-  // The first three actions must all be different. Two matching actions
-  // at the start of the turn make that impossible (CR 5.2.5b).
+  // Only the first three actions count, and they must all be different. A
+  // repeat among them rules the ability out for the turn (CR 5.2.5b.ex1).
   if (
-    sequence.length >= 2 &&
-    sequence[0] === sequence[1] &&
-    !state.turn.mirrormorphThirdDistinctFiredThisTurn
+    sequence.length > 3 ||
+    state.turn.mirrormorphThirdDistinctFiredThisTurn ||
+    state.turn.mirrormorphThirdDistinctMetPending
   ) {
-    state.turn.mirrormorphThirdDistinctFiredThisTurn = true;
-    state.turn.mirrormorphThirdDistinctMetPending = false;
+    return;
   }
-  if (
-    order.length === 3 &&
-    !state.turn.mirrormorphThirdDistinctFiredThisTurn &&
-    !state.turn.mirrormorphThirdDistinctMetPending
-  ) {
+  if (new Set(sequence).size < sequence.length) {
+    state.turn.mirrormorphThirdDistinctFiredThisTurn = true;
+    return;
+  }
+  if (sequence.length === 3) {
     const idCard = state.cards[state.corp.identityId];
     if (
       idCard?.mirrormorphOnThirdDistinctAction &&
