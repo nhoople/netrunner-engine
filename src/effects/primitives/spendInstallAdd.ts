@@ -14,16 +14,6 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { applyChooseCard } from "../chooseCard.js";
-
-const UNREGISTERED_SW35_TRASH: Primitive = {
-  kind: "choose_card",
-  chooser: "runner",
-  zone: "remote_root",
-  rezzedOnly: true,
-  includeSubtypes: ["bioroid", "clone", "executive", "sysop"],
-  then: fx.do({ kind: "trash_corp_card", cardId: "$chosen" }),
-};
 
 
 type PrimResult =
@@ -724,14 +714,6 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
       card.faceup = true;
       log(state, `Plan B — score ${card.title} from HQ.`);
       return { ok: true };
-    }
-    case "trash_unregistered_rezzed_ice_gain_per_strength": {
-      // Cards pin v1.147.22 writes this card-titled kind for Unregistered
-      // S&W '35. It resolves as the printed text, the same composition the
-      // cards data now writes. Drop it once the cards pin writes choose_card
-      // with zone remote_root.
-      // The Runner announces the target before trashing it (CR 1.15.2).
-      return applyChooseCard(ctx, UNREGISTERED_SW35_TRASH)!;
     }
     case "pay_tori_hanzo_instead_net": {
       // Printed: you may pay 2¢ to do 1 core instead. The may/pay is the

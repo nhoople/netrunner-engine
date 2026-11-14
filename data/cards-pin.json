@@ -1,8 +1,8 @@
 {
-  "tag": "v1.147.22",
+  "tag": "v1.147.23",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.22",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.22",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.23",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.23",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "runner/program",
     "runner/resource"
   ],
-  "notes": "Pair cards v1.147.22. Moon Pool, Spin Doctor, and Buffer Drive pay their removal from the game as the cost of the ability (CR 1.16.1). CR pin v26.03."
+  "notes": "Pair cards v1.147.23. \"Lose [click]\" costs are cost.loseClicks (#295), MirrorMorph's reward is take_different_action_paying_click_less (#296), and Unregistered S&W '35 is written as printed (#297). CR pin v26.03."
 }

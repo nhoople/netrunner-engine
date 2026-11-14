@@ -20,7 +20,7 @@ describe("humanitys-shadow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.22");
+    assertCardsPinnedTag("v1.147.23");
   });
 
   describe("HS primitives IR validate", () => {
@@ -63,7 +63,7 @@ describe("humanitys-shadow", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.22");
+    assertCardsPinnedTag("v1.147.23");
   });
 
   describe("Humanity's Shadow v1.92.0 set-complete", () => {

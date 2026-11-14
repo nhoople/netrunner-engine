@@ -2834,9 +2834,6 @@ case "net_named": {
       return { ok: true };
     }
 
-// Cards pin v1.147.22 writes the old card-titled name; drop it once the
-// cards pin writes take_different_action_paying_click_less.
-case "mirrormorph_take_different_action_click_discount":
 case "take_different_action_paying_click_less": {
       beginExtraDifferentAction(state, sourceId);
       return { ok: true };

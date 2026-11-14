@@ -26,7 +26,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.22");
+  assertCardsPinnedTag("v1.147.23");
 });
 
 describe("blanked recurring / server locks (CR 9.12.1d)", () => {

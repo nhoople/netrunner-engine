@@ -19,7 +19,7 @@ const { buildKindReference, KIND_REFERENCE_COMMAND, KIND_REFERENCE_PATH } =
 
 beforeAll(() => {
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
-  assertCardsPinnedTag("v1.147.22");
+  assertCardsPinnedTag("v1.147.23");
 });
 
 describe("Effect IR kind reference", () => {

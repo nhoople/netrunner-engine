@@ -30,7 +30,7 @@
  * Baseline shape (tool 1.2(c) in tests/kind-liveness.test.ts reads `flagKinds`):
  *
  *   {
- *     "cardsPin": "v1.147.22",
+ *     "cardsPin": "v1.147.23",
  *     "counts": {
  *       "cardDefFlags": n,          // optional boolean + number fields on CardDef
  *       "cardDefBoolean": n,
@@ -97,7 +97,7 @@ import {
 } from "../src/cards/load.js";
 import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir.js";
 
-const CARDS_PIN = "v1.147.22";
+const CARDS_PIN = "v1.147.23";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BASELINE_PATH = join(ROOT, "tests/baselines/card-flags.json");
 const CARD_LIST_LIMIT = 40;

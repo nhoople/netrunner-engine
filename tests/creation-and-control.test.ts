@@ -26,7 +26,7 @@ describe("creation-and-control", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.22");
+    assertCardsPinnedTag("v1.147.23");
   });
 
   describe("Alix T4LB07 gain_credits_per_power_counter", () => {
@@ -572,7 +572,7 @@ describe("creation-and-control", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.22");
+    assertCardsPinnedTag("v1.147.23");
   });
 
   describe("Creation and Control v1.95.0 set-complete", () => {
