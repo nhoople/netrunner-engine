@@ -245,7 +245,14 @@ export type PaidAbilityWindow =
 
 /** Cost model for paid abilities / play costs (CR 1.16). */
 export interface CostSpec {
+  /** The [click] that begins the cost; such an ability is an action (CR 5.2.1). */
   clicks?: number;
+  /**
+   * "Lose [click]" as a cost. Losing is not spending (CR 1.11.3b), so this
+   * cost does not begin with a [click] symbol and is not an action (CR 5.2.1,
+   * 5.2.1a). Bioroid ice such as Markus 1.0 write it.
+   */
+  loseClicks?: number;
   credits?: number;
   /** Spend from a card's recurring credit pool. */
   recurringCredits?: number;

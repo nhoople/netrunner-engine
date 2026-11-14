@@ -87,6 +87,8 @@ export function installedProgramsForSimulchipCost(
  * CR 5.2.1: a paid ability is an action when its cost begins with a click.
  * CR 5.2.1a: a click elsewhere in a cost is not an action. This engine stores
  * the leading click on `cost.clicks` (or `clickCost` when `cost` is absent).
+ * A "Lose [click]" cost is `cost.loseClicks`: losing a click is not spending
+ * it (CR 1.11.3b), so it never makes the ability an action.
  */
 export function costBeginsWithClick(ability: PaidAbility): boolean {
   const clicks = ability.cost
@@ -905,7 +907,7 @@ export function canPayCost(
   source?: CardInstance,
 ): boolean {
   const p = side === "corp" ? state.corp : state.runner;
-  if ((cost.clicks ?? 0) > p.clicks) return false;
+  if ((cost.clicks ?? 0) + (cost.loseClicks ?? 0) > p.clicks) return false;
   const creditNeed = cost.credits ?? 0;
   if (side === "runner") {
     if (cost.creditsFromStealthOnly) {
@@ -1072,6 +1074,12 @@ export function payCost(
   const p = side === "corp" ? state.corp : state.runner;
   withCostCheckpoint(state, openedBy, () => {
     p.clicks -= cost.clicks ?? 0;
+    // CR 1.11.3b: a lost click reduces the clicks but is not spent.
+    const lost = cost.loseClicks ?? 0;
+    if (lost > 0) {
+      p.clicks -= lost;
+      log(state, `${side === "corp" ? "Corp" : "Runner"} loses ${lost} [click] as a cost (CR ${CR.spendClicks.number}).`);
+    }
     let creditsLeft = cost.credits ?? 0;
     if (side === "runner") {
       if (cost.creditsFromStealthOnly) {
