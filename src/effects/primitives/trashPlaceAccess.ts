@@ -12,6 +12,7 @@ import {
   recomputeRunnerLink,
 } from "../../state/trashHooks.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
+import { noteCorpOperationPlayed } from "../../state/cardLifecycleHooks.js";
 import { CR } from "../../timing/labels.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { playEffectFromCard } from "../abilityRecord.js";
@@ -493,6 +494,7 @@ logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity fr
         state.corp.deck[j] = tmp;
       }
       enterLingeringPlayArea(state, cardId, "corp");
+      noteCorpOperationPlayed(state, cardId);
       log(state, `Consulting Visit — play ${card.title} from R&D.`);
       const playFx = playEffectFromCard(card);
       if (playFx) {

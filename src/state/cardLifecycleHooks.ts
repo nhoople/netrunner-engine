@@ -92,6 +92,18 @@ export function fireOnPlay(state: GameState, cardId: string): boolean {
 }
 
 /**
+ * CR 8.6.7d: conditions related to playing an operation are met. Counts
+ * every operation played, whether by the basic action or by an ability
+ * (Nebula Talent Management). This is not the Corp's action count: only
+ * the basic action is "Play 1 operation from HQ" (CR 5.2.5b, 5.2.6e).
+ */
+export function noteCorpOperationPlayed(state: GameState, cardId: string): void {
+  if (state.cards[cardId]?.type !== "operation") return;
+  state.turn.corpOperationsPlayedThisTurn =
+    (state.turn.corpOperationsPlayedThisTurn ?? 0) + 1;
+}
+
+/**
  * Nested / effect-path plays (e.g. Accelerated Diagnostics): note onPlay,
  * open the 8.6.7e play checkpoint, then resolve at 8.6.7f.
  */
@@ -100,6 +112,7 @@ export function noteCheckpointAndResolvePlay(
   cardId: string,
   openedBy: string,
 ): boolean {
+  noteCorpOperationPlayed(state, cardId);
   const noted = fireOnPlay(state, cardId);
   occurCheckpoint(
     state,

@@ -1470,7 +1470,7 @@ case "run_unsuccessful":
         state.turn.successfulArchivesRunThisTurn
       );
     case "corp_played_operation_this_turn":
-      return (state.turn.corpActionTypeCounts.play_operation ?? 0) > 0;
+      return (state.turn.corpOperationsPlayedThisTurn ?? 0) > 0;
     case "identity_flipped":
       return Boolean(source.identityFlipped);
     case "identity_unflipped":

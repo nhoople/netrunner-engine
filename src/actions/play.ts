@@ -10,7 +10,7 @@ import {
   fireOnAfterOperationOrExpendable,
 } from "../effects/eval.js";
 import { hasPlayEffect } from "../effects/abilityRecord.js";
-import { fireOnPlay } from "../state/cardLifecycleHooks.js";
+import { fireOnPlay, noteCorpOperationPlayed } from "../state/cardLifecycleHooks.js";
 import { resumePendingStoredConditionals } from "../state/storedTriggers.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
@@ -741,6 +741,7 @@ export function continuePlayedOperation(
   });
   notePlayedCardBecomesActive(state, cardId);
   state.turn.operationPaidWindowOpen = true;
+  noteCorpOperationPlayed(state, cardId);
   noteQuietPlayedOperationConditions(state, cardId);
   if (card.lingerAsCurrent) {
     placeCurrentAfterPlay(state, cardId, "corp");
