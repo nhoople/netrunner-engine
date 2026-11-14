@@ -21,6 +21,7 @@ import { fireSiAfterPaidAbilityClicks } from "../effects/primitives/lookTrashAdd
 import {
   abilityCost,
   abilityNeedsEncounter,
+  encounterBeginsConditional,
   approachedIceMissesStipulation,
   canPayCost,
   costBeginsWithClick,
@@ -354,6 +355,12 @@ export function usePaidAbility(
   const ability = paidAbilityOn(state, cardId, abilityId);
   if (!ability) {
     return fail("Unknown paid ability.", [CR.paidAbility]);
+  }
+  if (encounterBeginsConditional(ability)) {
+    return fail(
+      "This ability triggers when an encounter begins; it is not a paid ability.",
+      [CR.encounterBegins, CR.encounterCondition],
+    );
   }
   // An unrezzed Corp card is inactive, and so are its abilities (CR 9.1.7),
   // except one that rezzes the card itself (CR 9.1.8c; Formicary).

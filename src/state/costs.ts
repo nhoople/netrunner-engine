@@ -175,6 +175,7 @@ export function paidAbilityOpenIn(
   paw: PaidAbility["windows"][number] | null,
 ): boolean {
   if (!paw) return false;
+  if (encounterBeginsConditional(ability)) return false;
   if (paw === "approach_server_paw") return approachServerAbility(ability);
   if (ability.windows.includes(paw)) return true;
   if (runWidePaidAbility(ability) && RUN_PAID_WINDOWS.has(paw)) return true;
@@ -197,6 +198,19 @@ function effectHasKind(effect: unknown, kinds: Set<string>): boolean {
   if (node.then && effectHasKind(node.then, kinds)) return true;
   if (node.else && effectHasKind(node.else, kinds)) return true;
   return (node.effects ?? []).some((child) => effectHasKind(child, kinds));
+}
+
+/**
+ * Security Nexus: "When you encounter a piece of ice, you may…" is an
+ * optional conditional ability whose trigger condition is met when the
+ * encounter begins (CR 6.5.2, 6.9.3a, 9.6.9), not a paid ability. The catalog
+ * declares it as a paid ability; the engine offers it at the start of each
+ * encounter instead, so no paid ability window opens it.
+ */
+const ENCOUNTER_BEGINS_CONDITIONAL_KINDS = new Set(["trace_bypass_or_tag_etr"]);
+
+export function encounterBeginsConditional(ability: PaidAbility): boolean {
+  return effectHasKind(ability.effect, ENCOUNTER_BEGINS_CONDITIONAL_KINDS);
 }
 
 /** Break-during-encounter effects are legal only while an encounter is open. */

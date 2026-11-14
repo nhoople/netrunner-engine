@@ -1,7 +1,8 @@
 /** Data and Destiny (dad) deluxe primitives — v1.115.0. */
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
-import { autoResolveTrace } from "../../state/trace.js";
+import { startTrace } from "../../state/trace.js";
+import { applyEncounterPrimitive } from "../encounterPrimitives.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { placeCurrentAfterPlay } from "../../state/currents.js";
@@ -742,8 +743,11 @@ export function applyDadPrimitive(
     }
 
     case "trace_bypass_or_tag_etr": {
+      // Security Nexus: the Runner chose to use the ability (CR 9.1.6b,
+      // 9.3.6g). The trace is a full attempt: the Corp spends, then the
+      // Runner (CR 10.8.6c–d). The encounter's pending abilities wait for it.
       markAbilityUsed(state, sourceId, "security-nexus-trace");
-      autoResolveTrace(
+      startTrace(
         state,
         sourceId,
         5,
@@ -757,11 +761,10 @@ export function applyDadPrimitive(
     }
 
     case "bypass_encountered_ice": {
-      if (state.run?.encounter) {
-        state.run.encounter = null;
-        log(state, `Security Nexus — bypass encountered ice.`);
-      }
-      return { ok: true };
+      // Security Nexus: bypass aborts the encounter (CR 6.5.8a). Nothing to
+      // bypass if the encounter already ended during the trace.
+      if (!state.run?.encounter) return { ok: true };
+      return applyEncounterPrimitive(ctx, { kind: "bypass_current_ice" }) ?? { ok: true };
     }
 
     case "jak_sinclair_run_without_programs": {
