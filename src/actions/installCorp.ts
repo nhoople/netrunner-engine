@@ -349,6 +349,14 @@ function installCorpInner(
       return fail("Upgrade needs an existing server.", [CR.corpInstallDest]);
     }
   } else if (destination.kind === "remote_root") {
+    // Ice is not installed in the root of a server (CR 3.4.2); it goes to
+    // the outermost position protecting the destination (CR 8.5.2d).
+    if (card.type === "ice") {
+      return fail("Ice is installed protecting a server, not in its root.", [
+        CR.iceNotInRoot,
+        CR.iceProtectsServer,
+      ]);
+    }
     server = state.servers[destination.serverId];
     if (!server) {
       return fail("Unknown server.", [CR.corpInstallDest]);
