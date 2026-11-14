@@ -1,0 +1,13 @@
+{
+  "_comment": "Citation-topic mismatches (CR audit tool 1.5b, tests/cr-citation-topics.test.ts). Each entry is `<file> CR <number> [(CR.<label>)] [<code topic>]`: code about that topic citing a rule whose section never mentions it. Generated; regenerate with UPDATE_CR_CITATION_TOPICS=1 npx vitest run tests/cr-citation-topics.test.ts. Review with cr-checker via tests/generated/cr-citation-topics-review.md.",
+  "mismatches": [
+    "src/api/library.ts CR 1.18.1 [visibility]",
+    "src/effects/kinds/installKinds.ts CR 10.1 [install]",
+    "src/state/cardLifecycleHooks.ts CR 9.3.7d [checkpoint]",
+    "src/state/runInitiateTax.ts CR 1.16.1b [visibility]",
+    "src/state/seatVisibility.ts CR 1.18 [visibility]",
+    "src/state/types.ts CR 1.16.1b [visibility]",
+    "src/state/types.ts CR 1.18.1 [visibility]",
+    "src/timing/graph.ts CR 9.3.7e [position]"
+  ]
+}
