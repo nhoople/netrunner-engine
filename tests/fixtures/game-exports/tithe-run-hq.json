@@ -1,0 +1,1161 @@
+{
+  "format": "netrunner-game-export",
+  "version": 1,
+  "source": {
+    "matchId": "siWwTQgxX4xR",
+    "exportedAt": "2026-11-14T14:45:24.034Z",
+    "engine": "v1.147.252",
+    "cards": "v1.147.22",
+    "cr": "v26.03",
+    "opening": {
+      "seed": 2088187244,
+      "scenario": {
+        "turn": "runner",
+        "turnNumber": 2,
+        "start": "action",
+        "corp": {
+          "identity": "the-syndicate-profit-over-principle",
+          "credits": 5,
+          "deck": [
+            "hedge-fund",
+            "ice-wall",
+            "hedge-fund"
+          ],
+          "hand": [
+            "hedge-fund"
+          ],
+          "installed": [
+            {
+              "card": "tithe",
+              "server": "hq",
+              "slot": "ice",
+              "rezzed": true
+            },
+            {
+              "card": "palisade",
+              "server": "remote-1",
+              "slot": "ice"
+            },
+            {
+              "card": "offworld-office",
+              "server": "remote-1",
+              "slot": "root",
+              "advancements": 1
+            }
+          ]
+        },
+        "runner": {
+          "identity": "the-catalyst-convention-breaker",
+          "credits": 6,
+          "clicks": 4,
+          "deck": [
+            "sure-gamble",
+            "jailbreak"
+          ],
+          "hand": [
+            "sure-gamble"
+          ],
+          "installed": [
+            {
+              "card": "cleaver"
+            }
+          ]
+        }
+      }
+    },
+    "hostEnd": null
+  },
+  "opening": {
+    "turnNumber": 2,
+    "activeSide": "runner",
+    "turnPhase": "runner_action",
+    "corp": {
+      "side": "corp",
+      "clicks": 0,
+      "credits": 5,
+      "maxHandSize": 5,
+      "identityId": "corp-id",
+      "tags": 0,
+      "coreDamage": 0,
+      "link": 0,
+      "memoryLimit": 0,
+      "deck": [
+        "c_a81nfi",
+        "c_1l7zcd",
+        "c_r5wa9m"
+      ],
+      "hand": [
+        "c_ls3l8j"
+      ],
+      "discardPile": [],
+      "scoreArea": [],
+      "installed": [],
+      "playArea": [],
+      "badPublicity": 0
+    },
+    "runner": {
+      "side": "runner",
+      "clicks": 4,
+      "credits": 6,
+      "maxHandSize": 5,
+      "identityId": "runner-id",
+      "tags": 0,
+      "coreDamage": 0,
+      "link": 0,
+      "memoryLimit": 4,
+      "deck": [
+        "r_9ij9ux",
+        "r_wewohy"
+      ],
+      "hand": [
+        "r_ez6cri"
+      ],
+      "discardPile": [],
+      "scoreArea": [],
+      "installed": [
+        "r_70dug0"
+      ],
+      "playArea": []
+    },
+    "cards": {
+      "corp-id": {
+        "id": "corp-id",
+        "defId": "the-syndicate-profit-over-principle",
+        "title": "The Syndicate: Profit over Principle",
+        "type": "identity",
+        "side": "corp",
+        "installCost": 0,
+        "subtypes": [
+          "megacorp"
+        ],
+        "faction": "neutral-corp",
+        "deckLimit": 1,
+        "minimumDeckSize": 30,
+        "unsupported": [],
+        "faceup": true,
+        "rezzed": true,
+        "zone": "corp:hq"
+      },
+      "c_a81nfi": {
+        "id": "c_a81nfi",
+        "defId": "hedge-fund",
+        "title": "Hedge Fund",
+        "type": "operation",
+        "side": "corp",
+        "installCost": 0,
+        "playCost": 5,
+        "subtypes": [
+          "transaction"
+        ],
+        "faction": "neutral-corp",
+        "deckLimit": 3,
+        "unsupported": [],
+        "faceup": false,
+        "rezzed": false,
+        "zone": "corp:rd",
+        "abilities": [
+          {
+            "class": "play",
+            "rule": "9.3.7d",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "gain_credits",
+                "side": "corp",
+                "amount": 9
+              }
+            }
+          }
+        ]
+      },
+      "c_1l7zcd": {
+        "id": "c_1l7zcd",
+        "defId": "ice-wall",
+        "title": "Ice Wall",
+        "type": "ice",
+        "side": "corp",
+        "installCost": 0,
+        "rezCost": 1,
+        "strength": 1,
+        "subtypes": [
+          "barrier"
+        ],
+        "faction": "weyland-consortium",
+        "deckLimit": 3,
+        "strengthPerAdvancement": 1,
+        "canAdvance": true,
+        "influence": 1,
+        "unsupported": [],
+        "faceup": false,
+        "rezzed": false,
+        "zone": "corp:rd",
+        "abilities": [
+          {
+            "class": "static",
+            "rule": "9.3.7a",
+            "declaration": {
+              "field": "canAdvance",
+              "value": true
+            }
+          },
+          {
+            "class": "static",
+            "rule": "9.3.7a",
+            "declaration": {
+              "field": "strengthPerAdvancement",
+              "value": 1
+            }
+          },
+          {
+            "class": "subroutine",
+            "rule": "9.3.7e",
+            "id": "iw-etr",
+            "text": "End the run.",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "end_the_run"
+              }
+            }
+          }
+        ],
+        "subroutines": [
+          {
+            "id": "iw-etr",
+            "text": "End the run.",
+            "effect": {
+              "op": "do",
+              "action": {
+                "kind": "end_the_run"
+              }
+            }
+          }
+        ]
+      },
+      "c_r5wa9m": {
+        "id": "c_r5wa9m",
+        "defId": "hedge-fund",
+        "title": "Hedge Fund",
+        "type": "operation",
+        "side": "corp",
+        "installCost": 0,
+        "playCost": 5,
+        "subtypes": [
+          "transaction"
+        ],
+        "faction": "neutral-corp",
+        "deckLimit": 3,
+        "unsupported": [],
+        "faceup": false,
+        "rezzed": false,
+        "zone": "corp:rd",
+        "abilities": [
+          {
+            "class": "play",
+            "rule": "9.3.7d",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "gain_credits",
+                "side": "corp",
+                "amount": 9
+              }
+            }
+          }
+        ]
+      },
+      "c_ls3l8j": {
+        "id": "c_ls3l8j",
+        "defId": "hedge-fund",
+        "title": "Hedge Fund",
+        "type": "operation",
+        "side": "corp",
+        "installCost": 0,
+        "playCost": 5,
+        "subtypes": [
+          "transaction"
+        ],
+        "faction": "neutral-corp",
+        "deckLimit": 3,
+        "unsupported": [],
+        "faceup": false,
+        "rezzed": false,
+        "zone": "corp:hq",
+        "abilities": [
+          {
+            "class": "play",
+            "rule": "9.3.7d",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "gain_credits",
+                "side": "corp",
+                "amount": 9
+              }
+            }
+          }
+        ]
+      },
+      "c_gtug9n": {
+        "id": "c_gtug9n",
+        "defId": "tithe",
+        "title": "Tithe",
+        "type": "ice",
+        "side": "corp",
+        "installCost": 0,
+        "rezCost": 1,
+        "strength": 1,
+        "subtypes": [
+          "sentry",
+          "ap"
+        ],
+        "faction": "neutral-corp",
+        "deckLimit": 3,
+        "influence": 0,
+        "unsupported": [],
+        "faceup": true,
+        "rezzed": true,
+        "zone": "server:hq:ice",
+        "abilities": [
+          {
+            "class": "subroutine",
+            "rule": "9.3.7e",
+            "id": "tithe-net",
+            "text": "Do 1 net damage.",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "net_damage",
+                "amount": 1
+              }
+            }
+          },
+          {
+            "class": "subroutine",
+            "rule": "9.3.7e",
+            "id": "tithe-gain",
+            "text": "Gain 1¢.",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "gain_credits",
+                "side": "corp",
+                "amount": 1
+              }
+            }
+          }
+        ],
+        "subroutines": [
+          {
+            "id": "tithe-net",
+            "text": "Do 1 net damage.",
+            "effect": {
+              "op": "do",
+              "action": {
+                "kind": "net_damage",
+                "amount": 1
+              }
+            }
+          },
+          {
+            "id": "tithe-gain",
+            "text": "Gain 1¢.",
+            "effect": {
+              "op": "do",
+              "action": {
+                "kind": "gain_credits",
+                "side": "corp",
+                "amount": 1
+              }
+            }
+          }
+        ]
+      },
+      "c_zxsyuh": {
+        "id": "c_zxsyuh",
+        "defId": "palisade",
+        "title": "Palisade",
+        "type": "ice",
+        "side": "corp",
+        "installCost": 0,
+        "rezCost": 3,
+        "strength": 2,
+        "subtypes": [
+          "barrier"
+        ],
+        "strengthBonusProtectingRemote": 2,
+        "faction": "neutral-corp",
+        "deckLimit": 3,
+        "influence": 0,
+        "unsupported": [],
+        "faceup": false,
+        "rezzed": false,
+        "zone": "server:remote-1:ice",
+        "abilities": [
+          {
+            "class": "static",
+            "rule": "9.3.7a",
+            "declaration": {
+              "field": "strengthBonusProtectingRemote",
+              "value": 2
+            }
+          },
+          {
+            "class": "subroutine",
+            "rule": "9.3.7e",
+            "id": "palisade-etr",
+            "text": "End the run.",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "end_the_run"
+              }
+            }
+          }
+        ],
+        "subroutines": [
+          {
+            "id": "palisade-etr",
+            "text": "End the run.",
+            "effect": {
+              "op": "do",
+              "action": {
+                "kind": "end_the_run"
+              }
+            }
+          }
+        ]
+      },
+      "c_ivnkaj": {
+        "id": "c_ivnkaj",
+        "defId": "offworld-office",
+        "title": "Offworld Office",
+        "type": "agenda",
+        "side": "corp",
+        "installCost": 0,
+        "subtypes": [
+          "expansion"
+        ],
+        "agendaPoints": 2,
+        "advancementRequirement": 4,
+        "advancementCounters": 1,
+        "faction": "neutral-corp",
+        "deckLimit": 3,
+        "influence": 0,
+        "unsupported": [],
+        "faceup": false,
+        "rezzed": false,
+        "zone": "server:remote-1:root",
+        "abilities": [
+          {
+            "class": "conditional",
+            "rule": "9.3.7c",
+            "trigger": "score",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "gain_credits",
+                "side": "corp",
+                "amount": 7
+              }
+            }
+          }
+        ],
+        "onScore": {
+          "op": "do",
+          "action": {
+            "kind": "gain_credits",
+            "side": "corp",
+            "amount": 7
+          }
+        }
+      },
+      "runner-id": {
+        "id": "runner-id",
+        "defId": "the-catalyst-convention-breaker",
+        "title": "The Catalyst: Convention Breaker",
+        "type": "identity",
+        "side": "runner",
+        "installCost": 0,
+        "subtypes": [
+          "natural"
+        ],
+        "faction": "neutral-runner",
+        "deckLimit": 1,
+        "link": 0,
+        "minimumDeckSize": 30,
+        "unsupported": [],
+        "faceup": true,
+        "rezzed": true,
+        "zone": "runner:grip",
+        "abilities": [
+          {
+            "class": "static",
+            "rule": "9.3.7a",
+            "declaration": {
+              "field": "link",
+              "value": 0
+            }
+          }
+        ]
+      },
+      "r_9ij9ux": {
+        "id": "r_9ij9ux",
+        "defId": "sure-gamble",
+        "title": "Sure Gamble",
+        "type": "event",
+        "side": "runner",
+        "installCost": 0,
+        "playCost": 5,
+        "faction": "neutral-runner",
+        "deckLimit": 3,
+        "influence": 0,
+        "unsupported": [],
+        "faceup": true,
+        "rezzed": false,
+        "zone": "runner:stack",
+        "abilities": [
+          {
+            "class": "play",
+            "rule": "9.3.7d",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "gain_credits",
+                "side": "runner",
+                "amount": 9
+              }
+            }
+          }
+        ]
+      },
+      "r_wewohy": {
+        "id": "r_wewohy",
+        "defId": "jailbreak",
+        "title": "Jailbreak",
+        "type": "event",
+        "side": "runner",
+        "installCost": 0,
+        "playCost": 0,
+        "subtypes": [
+          "run"
+        ],
+        "faction": "neutral-runner",
+        "runEvent": {
+          "servers": "hq_rd",
+          "bonusAccess": 1,
+          "onSuccessfulRun": {
+            "op": "do",
+            "action": {
+              "kind": "draw",
+              "side": "runner",
+              "amount": 1
+            }
+          }
+        },
+        "deckLimit": 3,
+        "influence": 0,
+        "unsupported": [],
+        "faceup": true,
+        "rezzed": false,
+        "zone": "runner:stack",
+        "abilities": [
+          {
+            "class": "static",
+            "rule": "9.3.7a",
+            "declaration": {
+              "field": "runEvent",
+              "value": {
+                "servers": "hq_rd",
+                "bonusAccess": 1,
+                "onSuccessfulRun": {
+                  "op": "do",
+                  "action": {
+                    "kind": "draw",
+                    "side": "runner",
+                    "amount": 1
+                  }
+                }
+              }
+            }
+          },
+          {
+            "class": "conditional",
+            "rule": "9.3.7c",
+            "trigger": "successful_run",
+            "host": "runEvent",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "draw",
+                "side": "runner",
+                "amount": 1
+              }
+            }
+          }
+        ]
+      },
+      "r_ez6cri": {
+        "id": "r_ez6cri",
+        "defId": "sure-gamble",
+        "title": "Sure Gamble",
+        "type": "event",
+        "side": "runner",
+        "installCost": 0,
+        "playCost": 5,
+        "faction": "neutral-runner",
+        "deckLimit": 3,
+        "influence": 0,
+        "unsupported": [],
+        "faceup": true,
+        "rezzed": false,
+        "zone": "runner:grip",
+        "abilities": [
+          {
+            "class": "play",
+            "rule": "9.3.7d",
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "gain_credits",
+                "side": "runner",
+                "amount": 9
+              }
+            }
+          }
+        ]
+      },
+      "r_70dug0": {
+        "id": "r_70dug0",
+        "defId": "cleaver",
+        "title": "Cleaver",
+        "type": "program",
+        "side": "runner",
+        "installCost": 3,
+        "strength": 3,
+        "subtypes": [
+          "icebreaker",
+          "fracter"
+        ],
+        "memoryCost": 1,
+        "faction": "anarch",
+        "deckLimit": 3,
+        "influence": 2,
+        "unsupported": [],
+        "faceup": true,
+        "rezzed": false,
+        "zone": "runner:installed",
+        "breaker": {
+          "breaksSubtype": "barrier",
+          "strength": 3,
+          "breakCredits": 1,
+          "pumpCredits": 2,
+          "pumpStrength": 1,
+          "breakMaxSubs": 2
+        },
+        "paidAbilities": [
+          {
+            "id": "cleaver-pump",
+            "label": "Pump Cleaver +1 strength",
+            "clickCost": 0,
+            "creditCost": 2,
+            "cost": {
+              "credits": 2
+            },
+            "windows": [
+              "encounter_paw"
+            ],
+            "effect": {
+              "op": "do",
+              "action": {
+                "kind": "pump_strength",
+                "amount": 1
+              }
+            },
+            "flag": "interface"
+          }
+        ],
+        "abilities": [
+          {
+            "class": "static",
+            "rule": "9.3.7a",
+            "flagRule": "9.3.6c",
+            "flag": "interface",
+            "declaration": {
+              "field": "breaker",
+              "value": {
+                "breaksSubtype": "barrier",
+                "strength": 3,
+                "breakCredits": 1,
+                "pumpCredits": 2,
+                "pumpStrength": 1,
+                "breakMaxSubs": 2
+              }
+            }
+          },
+          {
+            "class": "paid",
+            "rule": "9.3.7b",
+            "flagRule": "9.3.6c",
+            "flag": "interface",
+            "id": "cleaver-pump",
+            "label": "Pump Cleaver +1 strength",
+            "cost": {
+              "credits": 2
+            },
+            "windows": [
+              "encounter_paw"
+            ],
+            "instructions": {
+              "op": "do",
+              "action": {
+                "kind": "pump_strength",
+                "amount": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    "servers": {
+      "hq": {
+        "id": "hq",
+        "kind": "central",
+        "ice": [
+          "c_gtug9n"
+        ],
+        "root": []
+      },
+      "rd": {
+        "id": "rd",
+        "kind": "central",
+        "ice": [],
+        "root": []
+      },
+      "archives": {
+        "id": "archives",
+        "kind": "central",
+        "ice": [],
+        "root": []
+      },
+      "remote-1": {
+        "id": "remote-1",
+        "kind": "remote",
+        "ice": [
+          "c_zxsyuh"
+        ],
+        "root": [
+          "c_ivnkaj"
+        ]
+      }
+    },
+    "nextRemoteNumber": 2,
+    "run": null,
+    "badPublicityFund": 0,
+    "timingKey": "runner.takeAction",
+    "timing": {
+      "structure": "runner_turn",
+      "stepId": "sec_appendix_timing_structure_runners_turn_1_f_ii",
+      "stepNumber": "11.3_1_f_ii",
+      "label": "If yes, the Runner takes an action."
+    },
+    "checkpoints": [],
+    "previousCheckpointSnapshot": null,
+    "pendingAbilities": [],
+    "reactionStack": [],
+    "lingeringEffects": [],
+    "priorityStack": [],
+    "restrictions": [],
+    "trace": null,
+    "psi": null,
+    "pendingDamage": null,
+    "pendingExpose": null,
+    "pendingTrashPrevent": null,
+    "pendingTags": null,
+    "pendingEndTheRun": null,
+    "pendingSubroutineBreak": null,
+    "pendingStrengthIncrease": null,
+    "pendingEffectContinuation": null,
+    "pendingTrashProgram": null,
+    "pendingMuProgramInstall": null,
+    "pendingSabotage": null,
+    "pendingChoice": null,
+    "pendingExclusiveChoices": null,
+    "pendingStartRunOnMark": null,
+    "pendingStartRun": null,
+    "pendingStandaloneBreach": null,
+    "pendingStandaloneCardAccess": null,
+    "pendingRunEventStart": null,
+    "pendingPlayedEventTrashId": null,
+    "pendingTerminalOperationId": null,
+    "pendingPlayCostXCardId": null,
+    "playedRunEventId": null,
+    "pendingScoreAgendaId": null,
+    "pendingStealAgendaId": null,
+    "pendingTrashAccessedCardId": null,
+    "pendingRezCardId": null,
+    "deferAfterBasicAction": false,
+    "runnerAllottedClicksDeltaNextTurn": 0,
+    "corpAllottedClicksDeltaNextTurn": 0,
+    "corpCannotAdvanceCardsNextTurn": false,
+    "cannotScoreOrRezUntilNextCorpTurnCardIds": [],
+    "turn": {
+      "successfulRunThisTurn": false,
+      "successfulRunCountThisTurn": 0,
+      "successfulRunLastTurn": false,
+      "unsuccessfulRunThisTurn": false,
+      "hyoubuSecretSpendGainUsedThisTurn": false,
+      "firstPassIceMetPending": false,
+      "bmFirstPassIceUsedThisTurn": false,
+      "bmFirstAdvancedIceEncounterEndMeatUsed": false,
+      "esObelusRunEndUsed": false,
+      "esSufferedCorpDamageThisTurn": false,
+      "esNetMercurStealthUsedThisRun": false,
+      "unsuccessfulRunLastTurn": false,
+      "advertisementRezzedThisTurn": false,
+      "dadDuplicateSubsOnNextIceEncounter": false,
+      "dadPreventWhenEncounteredArmed": false,
+      "dadBlankedCardIds": [],
+      "dadBreakerStrengthBoosts": {},
+      "dadCannotUseProgramsThisRun": false,
+      "dadOwnInstalledTrashedThisTurn": 0,
+      "successfulRunServersThisTurn": [],
+      "successfulRunServersLastTurn": [],
+      "agendaPointsScoredThisTurn": 0,
+      "scoredCardIdsThisTurn": [],
+      "programsInstalledThisTurn": 0,
+      "hardwareInstalledThisTurn": 0,
+      "lastHardwareInstalledId": null,
+      "programsWithVirusPlacedThisTurn": [],
+      "jobConnectionOrHardwareInstallDiscountUsedThisTurn": false,
+      "lastStolenAgendaId": null,
+      "basicDrawsThisTurn": 0,
+      "usedAbilities": [],
+      "installedThisTurn": [],
+      "valInstallTriggerCount": 0,
+      "valClickLossTriggerCount": 0,
+      "valDamageTriggerCount": 0,
+      "valBasicClickDrawTriggerCount": 0,
+      "valSuccessfulRunTriggerCount": 0,
+      "bbPreventAllTagsThisRun": false,
+      "ccAnalogDreamersRun": false,
+      "ccRunnerCannotDraw": false,
+      "ccImmolationScriptUsedThisRun": false,
+      "agendasStolenThisTurn": 0,
+      "uotCannotRezOutermostIce": false,
+      "uotRunnerCardsDrawnThisTurn": 0,
+      "uotChronosNetDamageUsedThisTurn": false,
+      "corpInstalledFromHqThisTurn": false,
+      "firstCorpCardInstallUsedThisTurn": false,
+      "firstCorpCardInstallMetPending": false,
+      "tdatd419FiredThisTurn": false,
+      "rezzedThisTurnIds": [],
+      "sisyphusPassMetPending": false,
+      "sisyphusPassUsedThisTurn": false,
+      "passUnrezzedIceMetPending": false,
+      "passRezzedIceMetPending": false,
+      "passIceOnPassPendingIds": [],
+      "passHostPendingIceIds": [],
+      "passProtectingServerPendingIds": [],
+      "encounterEndPendingIds": [],
+      "encounterEndRezzedThisTurnPendingIds": [],
+      "encounterEndNotFullyBrokenPendingIds": [],
+      "encounterEndPrintedSubBrokenPendingIds": [],
+      "hostEncounterPendingIceIds": [],
+      "encounterRezzedAfterApproachMetPending": false,
+      "approachServerPendingIds": [],
+      "passAllIceProtectingServerPendingIds": [],
+      "bypassPendingSourceIds": [],
+      "approachIcePendingIds": [],
+      "firstSuccessfulRdRunEndMetPending": false,
+      "successfulRunOnRdPendingIds": [],
+      "successfulRunEndOncePendingIds": [],
+      "successfulRunEndPendingIds": [],
+      "otherServerSuccessPendingIds": [],
+      "successfulRunPendingIds": [],
+      "successfulRunServerPending": [],
+      "unsuccessfulRunServerPendingIds": [],
+      "accessAbilityPending": [],
+      "corpActionPhaseEndPending": [],
+      "runnerActionPhaseEndPending": [],
+      "encounterAbilityPending": [],
+      "outsidePoolSpendPending": [],
+      "beforeFirstTurnPending": [],
+      "iceRezAbilityPending": [],
+      "inlineConditionalPending": [],
+      "storedConditionalPending": [],
+      "runBeginPendingIds": [],
+      "corpTurnEndPendingIds": [],
+      "runnerTurnEndPendingIds": [],
+      "scoreTurnEndPendingIds": [],
+      "corpTurnBeginPending": [],
+      "runnerTurnBeginPending": [],
+      "nuvemFirstRdTrashUsedThisTurn": false,
+      "advancedThisTurn": [],
+      "cannotScoreAgendas": false,
+      "cannotAdvanceCards": false,
+      "cannotScoreOrRezCardIds": [],
+      "cannotAccessCardIdsThisTurn": [],
+      "remotesUnlockedByCentralRunThisTurn": false,
+      "patchworkDiscountUsedThisTurn": false,
+      "patchworkPendingDiscountThisAction": 0,
+      "sundewFirstClickSpendFiredThisTurn": false,
+      "sundewRefundServerIdsThisAction": [],
+      "seidrClickDuringRunFiredThisTurn": false,
+      "seidrClickMetPending": false,
+      "corpInstallInProgress": false,
+      "obSuperheavyUsedThisTurn": false,
+      "lastTrashedRezzedPrintedRezCost": null,
+      "lastTrashedOwnProgramInstallCost": null,
+      "lastTraceExcess": null,
+      "lastResolvedTraceStrength": null,
+      "firstRemoteInstallThisTurnUsed": false,
+      "firstRemoteInstallMetPending": false,
+      "triggerRemoteInstallServerId": null,
+      "onTrashSourceServerId": null,
+      "firstRunBeginMetPending": false,
+      "runBeginThisTurnUsed": false,
+      "firstRdRunBeginMetPending": false,
+      "firstArchivesRunBeginMetPending": false,
+      "firstUnsuccessfulRunMetPending": false,
+      "firstSuccessfulHqRunMetPending": false,
+      "firstSuccessfulHqOrRdRunMetPending": false,
+      "firstSuccessfulCentralRunMetPending": false,
+      "firstSuccessfulMarkRunMetPending": false,
+      "daredevilDrawMetPending": false,
+      "installedCardCreditSpendThisTurn": false,
+      "companionInstallOrSpendCreditsFiredThisTurn": false,
+      "tagsGivenThisTurn": 0,
+      "firstTagThisTurnMetPending": false,
+      "firstTagThisTurnUsedThisTurn": false,
+      "runnerCreditPoolEmptyFiredThisTurn": false,
+      "firstCreditPoolEmptyMetPending": false,
+      "firstHardwareInstallMetPending": false,
+      "firstHardwareInstallUsedThisTurn": false,
+      "firstProgramInstallMetPending": false,
+      "firstProgramInstallUsedThisTurn": false,
+      "firstVirusInstallMetPending": false,
+      "firstVirusInstallUsedThisTurn": false,
+      "coreDamageSufferedThisTurn": 0,
+      "damageSufferedThisTurn": 0,
+      "valDamageTriggerPendingCounts": [],
+      "valInstallTriggerPendingCounts": [],
+      "valClickLossTriggerPendingCounts": [],
+      "valBasicClickDrawTriggerPendingCounts": [],
+      "valSuccessfulRunTriggerPendingCounts": [],
+      "vanadisNextPawArmed": false,
+      "ssByAnyMeansActive": false,
+      "ssFirstFullyBreakCreditsFired": false,
+      "respirocytesEmptyGripFiredThisTurn": false,
+      "virusProgramsInstalledThisTurn": 0,
+      "rdRunBegunThisTurn": false,
+      "archivesRunBegunThisTurn": false,
+      "lastAgendaScoredOrStolenServerId": null,
+      "successfulMarkRunThisTurn": false,
+      "hqBreachesThisTurn": 0,
+      "serversRunThisTurn": [],
+      "zahyaRunEndUsed": false,
+      "reneAccessTrashUsed": false,
+      "firstCorpCardTrashUsedThisTurn": false,
+      "firstCorpCardTrashMetPending": false,
+      "firstCorpRootInstallUsedThisTurn": false,
+      "firstCorpRootInstallMetPending": false,
+      "carnivoreAccessTrashUsed": false,
+      "iceRezzedThisTurn": 0,
+      "runEventsPlayedThisTurn": 0,
+      "eventsPlayedThisTurn": 0,
+      "mandatesPlayedThisTurn": 0,
+      "firstEncounterUsedThisTurn": false,
+      "gantulgaEncounterIceId": null,
+      "remotesCreatedThisTurn": 0,
+      "agendaPointsStolenThisTurn": 0,
+      "agendaPointsStolenLastTurn": 0,
+      "runnerStoleOrTrashedCorpCardThisTurn": false,
+      "runnerTrashedOwnInstalledThisTurn": false,
+      "runnerStoleOrTrashedCorpCardLastTurn": false,
+      "runnerTrashedCorpCardThisTurn": false,
+      "runnerTrashedCorpCardLastTurn": false,
+      "firstRunnerStoleOrTrashedUsedThisTurn": false,
+      "firstRunnerStoleOrTrashedMetPending": false,
+      "firstAgendaScoredOrStolenUsedThisTurn": false,
+      "firstAgendaScoredOrStolenMetPending": false,
+      "rezIceForfeitDiscountCardId": null,
+      "corpActionTypeCounts": {},
+      "corpActionsCompletedThisTurn": 0,
+      "runnerClicksSpentThisTurn": 0,
+      "remainderOfTurnOnInstallPrintedCostGte": [],
+      "delayedTurnEndTags": [],
+      "corpFlippedIdentityFirstOpUsedThisTurn": false,
+      "corpFlippedIdentityFirstOpMetPending": false,
+      "runnerDiscardedToMaxHandIds": [],
+      "operationPlayedFromNonHq": false,
+      "zwickyCreditsDrawUsedThisTurn": false,
+      "rdLookedCards": [],
+      "rdArrangePlaced": [],
+      "rdArrangeThenMayDrawIfUnprotected": false,
+      "successfulHqRunThisTurn": false,
+      "successfulHqRunLastTurn": false,
+      "successfulRdRunThisTurn": false,
+      "successfulArchivesRunThisTurn": false,
+      "accessedACardThisTurn": false,
+      "accessedACardLastTurn": false,
+      "paulesCafeInstallUsedThisTurn": false,
+      "bufferDriveGripStackTrashUsedThisTurn": false,
+      "bufferDriveGripStackTrashMetPending": false,
+      "hardwareUsedDuringRunThisTurn": false,
+      "gripOrStackTrashBatchDepth": 0,
+      "pendingGripOrStackTrashBatchIds": [],
+      "lastRunPassedUnrezzedIceIds": [],
+      "currentRunPassedUnrezzedIceIds": [],
+      "runnerMadeRunThisTurn": false,
+      "runnerMadeRunLastTurn": false,
+      "runnerInstalledResourceThisTurn": false,
+      "runnerInstalledResourceLastTurn": false,
+      "subliminalPlayedThisTurn": false,
+      "steveCambridgeUsedThisTurn": false,
+      "bioroidPassedThisTurn": false,
+      "bioroidIcePaidAbilitiesForbidden": false,
+      "iceAdditionalRezCostThisTurn": {},
+      "lastInstalledFromEffectId": null,
+      "pendingBioroidRezDiscount": 0,
+      "onSuccessfulRunFiredIds": [],
+      "onSuccessfulRunEndFiredIds": [],
+      "cannotMakeAnotherRunThisTurn": false,
+      "onFirstAvoidOrRemoveTagFiredIds": [],
+      "firstSuccessfulRdRunEndUsedThisTurn": false,
+      "firstProgramOrHardwareTrashUsedThisTurn": false,
+      "firstProgramOrHardwareTrashMetPending": false,
+      "firstAccessTrashUsedThisTurn": false,
+      "firstAccessTrashMetPending": false,
+      "lastAccessTrashCost": 0,
+      "firstResourcePaidAbilityThisTurn": false,
+      "onFullyBreakFiredIds": [],
+      "mercuryBreachBonusUsedThisTurn": false,
+      "infoBountyMarkRunEndUsed": false,
+      "hostileArchitectureUsedThisTurn": false,
+      "skipDiscardThisTurn": false,
+      "lastAdvancementTargetId": null,
+      "corpCardsAddedToArchivesThisTurn": 0,
+      "brasiliaAbilityUsedIds": [],
+      "lightningPendingDerez": null,
+      "firstCorpOnRemoveTagsThisTurn": false,
+      "ipEnforcementTagsRemoved": 0,
+      "ryoPhoenixFiredThisTurn": false,
+      "doubleOpClickDiscountUsedThisTurn": false,
+      "tungstenBreakCreditUsedThisTurn": false,
+      "stickAndPokeUsedThisTurn": false,
+      "sipaSwapUsedThisTurn": false,
+      "otherServerSuccessAbilityUsedIds": [],
+      "outsidePoolSpendAbilityUsedIds": [],
+      "firstBadPublicityTakeUsedThisTurn": false,
+      "firstBadPublicityMetPending": false,
+      "corpBadPublicityTakeEventsPending": 0,
+      "firstEventTrashedUsedThisTurn": false,
+      "firstEventTrashedMetPending": false,
+      "firstInstallInServerRootUsedIds": [],
+      "onVirusPurgeOncePerTurnFiredIds": [],
+      "climacticBonusAccessOnFirstHqRdBreach": 0,
+      "firstTrashMatchingRunnerIdentityFactionUsedThisTurn": false,
+      "firstTrashMatchingRunnerIdentityFactionMetPending": false,
+      "mlReaverDrawUsedThisTurn": false,
+      "firstInstalledTrashMetPending": false,
+      "sifrUsedThisTurn": false,
+      "sifrHandSizePenaltyActive": false,
+      "sensorNetPendingDerezIds": [],
+      "netQuarantineFirstTraceUsedThisTurn": false,
+      "corpScoredAgendaLastTurn": false,
+      "firstRevealCreditUsedThisTurn": false,
+      "firstRevealMetPending": false,
+      "onWouldDrawOncePerTurnFiredIds": [],
+      "pendingWouldDrawAmount": null,
+      "corpActionKindsInOrderThisTurn": [],
+      "corpActionSequenceThisTurn": [],
+      "mirrormorphThirdDistinctFiredThisTurn": false,
+      "mirrormorphThirdDistinctMetPending": false,
+      "mirrormorphClickDiscountPending": false
+    },
+    "removedFromGame": [],
+    "rfgPrintedTitlesOnAccess": [],
+    "pendingExtraRunnerTurns": 0,
+    "lastForfeitedAgendaPoints": 0,
+    "lastForfeitedAdvancementRequirement": 0,
+    "winner": null,
+    "winReason": null,
+    "config": {
+      "agendaPointsToWin": 6,
+      "stopAfterFirstCycle": false
+    },
+    "rngState": 770215529,
+    "log": [
+      "Scenario start. Runner turn 2."
+    ],
+    "done": false
+  },
+  "steps": [
+    {
+      "action": {
+        "type": "basic_run",
+        "serverId": "hq"
+      },
+      "logSeq": 1
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": 2
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": 3
+    },
+    {
+      "action": {
+        "type": "access_card",
+        "cardId": "c_ls3l8j"
+      },
+      "logSeq": 4
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    }
+  ],
+  "failures": [],
+  "final": {
+    "stateHash": "c3b93cef41a222f57b7a63597b91213a877d1843f71585e168301fcba1c440f5",
+    "timingKey": "runner.takeAction",
+    "turnNumber": 2,
+    "activeSide": "runner",
+    "done": false,
+    "winner": null,
+    "corp": {
+      "credits": 6,
+      "clicks": 0,
+      "hand": 1,
+      "deck": 3,
+      "discard": 0,
+      "score": 0
+    },
+    "runner": {
+      "credits": 6,
+      "clicks": 3,
+      "hand": 0,
+      "deck": 2,
+      "discard": 1,
+      "score": 0,
+      "installed": 1
+    },
+    "invariants": []
+  }
+}
