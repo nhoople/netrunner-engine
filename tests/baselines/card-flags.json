@@ -1630,6 +1630,10 @@
         {
           "site": "src/actions/breakSubroutine.ts#finalizePendingSubroutineBreak",
           "kinds": []
+        },
+        {
+          "site": "src/actions/paidAbility.ts#noteRunnerLostClicksOnCorpIce",
+          "kinds": []
         }
       ],
       "kinds": []
@@ -18160,7 +18164,11 @@
           "kinds": []
         },
         {
-          "site": "src/actions/paidAbility.ts#paidAbilityCostAndPayer",
+          "site": "src/actions/paidAbility.ts#noteRunnerLostClicksOnCorpIce",
+          "kinds": []
+        },
+        {
+          "site": "src/actions/paidAbility.ts#paidAbilityPayer",
           "kinds": []
         },
         {
@@ -20824,6 +20832,10 @@
           "kinds": []
         },
         {
+          "site": "src/actions/paidAbility.ts#noteRunnerLostClicksOnCorpIce",
+          "kinds": []
+        },
+        {
           "site": "src/actions/paidAbility.ts#resolveGeistAfterTrashCost",
           "kinds": []
         },
@@ -23459,6 +23471,10 @@
         },
         {
           "site": "src/actions/installRunner.ts#runnerInstallCost",
+          "kinds": []
+        },
+        {
+          "site": "src/actions/paidAbility.ts#noteRunnerLostClicksOnCorpIce",
           "kinds": []
         },
         {

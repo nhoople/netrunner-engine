@@ -286,6 +286,45 @@ function paidAbilityOn(
   return ability;
 }
 
+/**
+ * Who pays a paid ability's cost. "Only the Runner can use this ability" on
+ * Corp ice (Markus 1.0 and the other bioroids) is paid by the Runner.
+ */
+function paidAbilityPayer(
+  state: GameState,
+  card: CardInstance,
+  ability: PaidAbility,
+): "corp" | "runner" {
+  if (ability.usableByAnyPlayer) return state.activeSide;
+  if (ability.usableByRunnerOnSelfIce) return "runner";
+  return card.side;
+}
+
+/**
+ * The Runner lost [click] to use an ability printed on Corp ice (Markus 1.0:
+ * "Lose [click]: Break 1 subroutine on this ice"). Zed 1.0 and 2.0 check that
+ * the Runner "has lost [click] to break a subroutine during this run", and
+ * Týr adds to the Corp's next allotment, as on the basic bioroid break.
+ */
+function noteRunnerLostClicksOnCorpIce(
+  state: GameState,
+  card: CardInstance,
+  payer: "corp" | "runner",
+  cost: CostSpec,
+): void {
+  if (payer !== "runner" || card.side !== "corp" || card.type !== "ice") return;
+  if ((cost.loseClicks ?? 0) < 1 || !state.run) return;
+  state.run.lostClickToBreakThisRun = true;
+  if (card.bioroidBreakGivesCorpAllottedClickNextTurn) {
+    state.corpAllottedClicksDeltaNextTurn =
+      (state.corpAllottedClicksDeltaNextTurn ?? 0) + 1;
+    log(
+      state,
+      `${card.title} — Corp allotted clicks next turn +1 → pending ${state.corpAllottedClicksDeltaNextTurn} (CR ${CR.corpAllottedClicks.number}).`,
+    );
+  }
+}
+
 /** The cost of a paid ability and who pays it, before the ability is used. */
 export function paidAbilityCostAndPayer(
   state: GameState,
@@ -297,7 +336,7 @@ export function paidAbilityCostAndPayer(
   if (!card || !ability) return null;
   return {
     cost: abilityCost(ability, state, card),
-    payer: ability.usableByAnyPlayer ? state.activeSide : card.side,
+    payer: paidAbilityPayer(state, card, ability),
     card,
   };
 }
@@ -665,9 +704,21 @@ export function usePaidAbility(
   if (card.paidAbilitiesUseStealthCreditsOnly && (cost.credits ?? 0) > 0) {
     cost.creditsFromStealthOnly = true;
   }
-  const payer: "corp" | "runner" = ability.usableByAnyPlayer
-    ? state.activeSide
-    : card.side;
+  const payer = paidAbilityPayer(state, card, ability);
+  // Hákarl 1.0: the Runner cannot use paid abilities printed on bioroid ice
+  // this turn (CR 1.2.2 "cannot" wins).
+  if (
+    payer === "runner" &&
+    card.side === "corp" &&
+    card.type === "ice" &&
+    (card.subtypes ?? []).includes("bioroid") &&
+    state.turn.bioroidIcePaidAbilitiesForbidden
+  ) {
+    return fail(
+      "Runner cannot use paid abilities printed on bioroid ice this turn.",
+      [CR.paidAbility, CR.cannotPrecedence],
+    );
+  }
   if (!canPayCost(state, payer, cost, card)) {
     return fail("Cannot pay ability cost.", [CR.paidAbility, CR.costCheckpoint]);
   }
@@ -870,7 +921,7 @@ export function usePaidAbility(
   const ctx = {
     state,
     sourceId: cardId,
-    payerSide: card.side,
+    payerSide: payer,
   };
 
   if (ability.startsRun) {
@@ -919,6 +970,7 @@ export function usePaidAbility(
   armTrashSetAsideHosted(state, card, cost, ability.effect);
   armTrashSetAsideAdvancements(state, card, cost, ability.effect);
   payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
+  noteRunnerLostClicksOnCorpIce(state, card, payer, cost);
   if (payer === "corp") {
     fireSiAfterPaidAbilityClicks(
       state,
