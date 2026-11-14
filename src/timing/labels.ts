@@ -51,6 +51,10 @@ export const CR = {
   installing: { number: "8.5.1", id: "rule_installing" },
   corpInstallDest: { number: "8.5.2a", id: "rule_corp_install_choose_destination_server" },
   agendaAssetRemote: { number: "8.5.2b", id: "rule_agenda_asset_root_remote_server" },
+  /** Ice is installed protecting the destination server (CR 8.5.2d). */
+  iceProtectsServer: { number: "8.5.2d", id: "rule_ice_outermost_position" },
+  /** Ice is never installed in the root of a server (CR 3.4.2). */
+  iceNotInRoot: { number: "3.4.2", id: "rule_ice_install" },
   drawing: { number: "8.4.1", id: "rule_drawing" },
   /** Set the drawn cards aside before the draw checkpoint (CR 8.4.5a). */
   drawSetAside: { number: "8.4.5a", id: "step_draw_set_aside" },
