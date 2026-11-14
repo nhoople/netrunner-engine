@@ -7561,6 +7561,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "iw-1", broken: [false] },
     } as unknown as GameState["run"];
     runKind(s, "sn-1", "trace_bypass_or_tag_etr");
+    // The trace waits for the Corp and Runner to spend (CR 10.8.6c–d).
+    expect(s.trace?.baseStrength).toBe(5);
+    expect(resolveTrace(s).ok).toBe(true);
     expect(s.runner.tags).toBe(1);
     expect(s.run?.endedTheRun ?? s.run === null).toBeTruthy();
 
@@ -7576,8 +7579,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "iw-2", broken: [false] },
     } as unknown as GameState["run"];
     runKind(s2, "sn-2", "trace_bypass_or_tag_etr");
+    expect(resolveTrace(s2).ok).toBe(true);
     expect(s2.runner.tags).toBe(0);
-    expect(s2.run?.encounter).toBeNull();
+    expect(s2.run?.bypassedIceIds).toContain("iw-2");
   });
 
   it("Broadcast Square: Trace[3] success prevents pending BP; failure takes it", () => {

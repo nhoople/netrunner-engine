@@ -3075,7 +3075,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 },
               ],
-              logLine: `${nexus.title} — may trace at the start of this encounter (CR ${CR.runEndsCloseReactionWindow.number}).`,
+              logLine: `${nexus.title} — may trace at the start of this encounter (CR ${CR.encounterBegins.number}).`,
             });
             break;
           }

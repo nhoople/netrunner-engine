@@ -13776,6 +13776,10 @@
           "kinds": []
         },
         {
+          "site": "src/actions/apply.ts#resumeAfterEncounterStartTrace",
+          "kinds": []
+        },
+        {
           "site": "src/cards/stubs.ts#cardExport",
           "kinds": []
         },

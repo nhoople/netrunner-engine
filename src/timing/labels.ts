@@ -262,6 +262,10 @@ export const CR = {
   derezByAbility: { number: "8.1.3a", id: "rule_derez_by_ability" },
   approachIce: { number: "6.4.1", id: "rule_approach_ice_phase" },
   encounterIce: { number: "6.5.1", id: "rule_encounter_ice_phase" },
+  /** Encountering ice is the Encounter Ice Phase beginning, for trigger conditions (CR 6.5.2). */
+  encounterCondition: { number: "6.5.2", id: "rule_encounter_condition" },
+  /** The encounter begins; encounter conditions are met (CR 6.9.3a). */
+  encounterBegins: { number: "6.9.3a", id: "step_encounter_begins" },
   encounterBreakPaw: { number: "6.5.4", id: "rule_encounter_break_paw" },
   encounterSubResolve: { number: "6.5.5", id: "rule_encounter_sub_resolve" },
   fullyBreak: { number: "6.5.7a", id: "rule_fully_break" },

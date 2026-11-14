@@ -992,6 +992,9 @@ describe("CR examples, chapter 6", () => {
     autoWalk(s);
     expect(s.pendingChoice?.options.map((option) => option.id)).toContain("nexus-trace");
     s = must(s, { type: "choose_option", optionId: "nexus-trace" });
+    // Trace[5] vs link 0, neither player spends (CR 10.8.6c–e).
+    s = must(s, { type: "resolve_trace" });
+    expect(s.runner.tags).toBe(1);
     expect(s.runner.credits).toBe(5);
     expect(s.log.join("\n")).toContain("6.8.2b");
     expect(s.log.join("\n")).not.toContain("pay 3");

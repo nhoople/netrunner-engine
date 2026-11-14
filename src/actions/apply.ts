@@ -233,6 +233,50 @@ function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
 }
 
+/**
+ * Security Nexus traces when the encounter begins (CR 6.5.2, 6.9.3a). Once
+ * that trace is complete (CR 10.8.6f), the encounter's other pending
+ * abilities resolve unless the trace ended the run (CR 6.8.2b) or bypassed
+ * the ice (CR 6.5.8a), and the run continues.
+ */
+function resumeAfterEncounterStartTrace(
+  state: GameState,
+  traceSourceId: string,
+): ApplyResult {
+  const fromNexus = state.cards[traceSourceId]?.paidAbilities?.some(
+    (ability) => ability.id === "security-nexus-trace",
+  );
+  if (!fromNexus || !state.run || state.timingKey !== "run.encounter") {
+    return ok(state);
+  }
+  if (
+    state.pendingChoice ||
+    state.pendingTrashProgram ||
+    state.pendingSabotage ||
+    state.pendingDamage ||
+    state.trace ||
+    state.psi
+  ) {
+    return ok(state);
+  }
+  if (state.run.encounter?.onEncounterPending) resolvePendingOnEncounter(state);
+  if (
+    state.pendingChoice ||
+    state.pendingTrashProgram ||
+    state.pendingSabotage ||
+    state.pendingDamage ||
+    state.trace ||
+    state.psi
+  ) {
+    return ok(state);
+  }
+  autoWalk(state);
+  const cont = advanceRunUntilStop(state);
+  if (!cont.ok) return cont;
+  finishRunReturnToAction(cont.state);
+  return cont;
+}
+
 function ok(state: GameState): ApplyResult {
   return { ok: true, state };
 }
@@ -1063,6 +1107,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   if (
     encounter?.onEncounterPending &&
     !state.pendingChoice &&
+    !state.trace &&
     (state.cards[sourceId]?.chosenIceId === encounter.iceId ||
       state.cards[sourceId]?.paidAbilities?.some(
         (ability) => ability.id === "security-nexus-trace",
@@ -1775,9 +1820,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         return ok(next);
       }
       case "resolve_trace": {
+        const traceSourceId = next.trace.sourceId;
         const r = resolveTrace(next);
         if (!r.ok) return fail(r.error, [CR.trace]);
-        return ok(next);
+        return resumeAfterEncounterStartTrace(next, traceSourceId);
       }
       case "use_paid_ability": {
         return usePaidAbility(
