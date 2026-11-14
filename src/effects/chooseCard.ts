@@ -3,7 +3,13 @@
  * (CR 1.15.2, 1.15.4). Hidden zones stay out of this primitive (CR 1.21.2).
  */
 import { log } from "../state/createGame.js";
-import type { GameState, RuleCite } from "../state/types.js";
+import { isCentral } from "../state/access.js";
+import type {
+  CardInstance,
+  GameState,
+  RuleCite,
+  ServerId,
+} from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
@@ -64,9 +70,17 @@ function visibleIds(
         return [...state.corp.scoreArea];
       case "runner_score":
         return [...state.runner.scoreArea];
+      case "remote_root":
+        return Object.entries(state.servers)
+          .filter(([serverId]) => !isCentral(serverId as ServerId))
+          .flatMap(([, server]) => server.root);
     }
   })();
   return { ids: ids.filter((id) => state.cards[id]) };
+}
+
+function seenBy(card: CardInstance, chooser: "corp" | "runner"): boolean {
+  return card.side === chooser || Boolean(card.rezzed || card.faceup);
 }
 
 export function applyChooseCard(
@@ -80,9 +94,22 @@ export function applyChooseCard(
     return { ok: false, error: zone.error, cites: [CR.look, CR.announceTargets] };
   }
   const want = action.cardType?.toLowerCase();
+  const subtypes = action.includeSubtypes?.map((st) => st.toLowerCase());
   const ids = zone.ids.filter((id) => {
-    if (!want) return true;
-    return state.cards[id]!.type.toLowerCase() === want;
+    const card = state.cards[id]!;
+    if (action.rezzedOnly && !card.rezzed) return false;
+    if (!want && !subtypes?.length) return true;
+    // A type or subtype filter matches only a card the chooser can see, so
+    // the choice does not reveal a facedown card (CR 1.21.2).
+    if (!seenBy(card, action.chooser)) return false;
+    if (want && card.type.toLowerCase() !== want) return false;
+    if (
+      subtypes?.length &&
+      !(card.subtypes ?? []).some((st) => subtypes.includes(st.toLowerCase()))
+    ) {
+      return false;
+    }
+    return true;
   });
   if (ids.length === 0) {
     log(

@@ -8,13 +8,22 @@ import { fireOnPlay } from "../../state/cardLifecycleHooks.js";
 import {
   agendaPointsFor,
   effectiveAdvancementRequirement,
-  removeCardFromCurrentZone,
 } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { applyChooseCard } from "../chooseCard.js";
+
+const UNREGISTERED_SW35_TRASH: Primitive = {
+  kind: "choose_card",
+  chooser: "runner",
+  zone: "remote_root",
+  rezzedOnly: true,
+  includeSubtypes: ["bioroid", "clone", "executive", "sysop"],
+  then: fx.do({ kind: "trash_corp_card", cardId: "$chosen" }),
+};
 
 
 type PrimResult =
@@ -717,32 +726,12 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
       return { ok: true };
     }
     case "trash_unregistered_rezzed_ice_gain_per_strength": {
-      const ice = installedIceIds(state).filter((id) => state.cards[id]?.rezzed);
-      if (ice.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: ice.map((id) => ({
-          id: `unreg:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_unregistered_ice_gain", iceId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "trash_unregistered_ice_gain": {
-      const iceId = action.iceId;
-      const ice = state.cards[iceId];
-      if (!ice?.rezzed) return { ok: true };
-      const str = ice.strength ?? 0;
-      removeCardFromCurrentZone(state, iceId);
-      state.corp.discardPile.push(iceId);
-      ice.zone = "corp:archives";
-      // A trashed card is a new object, not installed (CR 1.12.1, 8.1.1).
-      ice.rezzed = false;
-      state.runner.credits += 2 * str;
-      log(state, `Unregistered S&W — trash ice; gain ${2 * str}¢.`);
-      return { ok: true };
+      // Cards pin v1.147.22 writes this card-titled kind for Unregistered
+      // S&W '35. It resolves as the printed text, the same composition the
+      // cards data now writes. Drop it once the cards pin writes choose_card
+      // with zone remote_root.
+      // The Runner announces the target before trashing it (CR 1.15.2).
+      return applyChooseCard(ctx, UNREGISTERED_SW35_TRASH)!;
     }
     case "pay_tori_hanzo_instead_net": {
       // Printed: you may pay 2¢ to do 1 core instead. The may/pay is the

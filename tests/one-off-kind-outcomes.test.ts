@@ -8250,28 +8250,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.run?.reencounterIceId).toBe("iw-1");
   });
 
-  it("Unregistered S&W '35: trashes rezzed ice and gains 2¢ per strength", () => {
-    const s = createInitialState();
-    put(s, "unregistered-s-w-35", "usw-1", "runner:installed");
-    const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
-    ice.rezzed = true;
-    ice.strength = 3;
-    s.runner.installed = ["usw-1"];
-    s.runner.credits = 2;
-    s.servers["hq"]!.ice = ["iw-1"];
-    runKind(s, "usw-1", "trash_unregistered_rezzed_ice_gain_per_strength");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
-      "unreg:iw-1",
-    ]);
-    const after = applyAction(s, {
-      type: "choose_option",
-      optionId: "unreg:iw-1",
-    });
-    if (!after.ok) throw new Error(after.error);
-    expect(after.state.corp.discardPile).toContain("iw-1");
-    expect(after.state.runner.credits).toBe(8); // 2 + 2*3
-  });
-
   it("Will-o'-the-Wisp: may trash self and a breaker used this run", () => {
     const s = createInitialState();
     put(s, "will-o-the-wisp", "wow-1", "server:hq:root");

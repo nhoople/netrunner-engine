@@ -2935,9 +2935,6 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Unregistered S&W '35: trashes rezzed ice and gains 2¢ per strength": [
-      "RUNNER_CARD_REZZED"
-    ],
     "one-off kind outcomes (batch A: immediate effects) > Virus Breeding Ground: moves 1 virus counter to another card with virus counters": [
       "RUNNER_CARD_REZZED"
     ],

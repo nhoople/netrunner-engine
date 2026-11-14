@@ -18212,6 +18212,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/chooseCard.ts#seenBy",
+          "kinds": []
+        },
+        {
           "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
@@ -18962,10 +18966,6 @@
         },
         {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
           "kinds": []
         },
         {
@@ -19955,6 +19955,10 @@
         },
         {
           "site": "src/cards/stubs.ts#isAiBreaker",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/chooseCard.ts#applyChooseCard",
           "kinds": []
         },
         {
