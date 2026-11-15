@@ -16,7 +16,7 @@ import {
   collectPersistentAmazeTags,
   type RunModifiers,
 } from "../state/runStart.js";
-import { afterBasicAction, closeEmptyRunPaw, enterStep, getStep } from "../timing/machine.js";
+import { afterBasicAction, enterStep, getStep } from "../timing/machine.js";
 import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
@@ -71,7 +71,6 @@ export function advanceRunUntilStop(state: GameState): ApplyResult {
       step.kind === "action" ||
       step.kind === "discard"
     ) {
-      if (closeEmptyRunPaw(state)) continue;
       // Formicary-class 6.8.2c: other frames already on the stack from
       // closePriorityWindows — do not open a duplicate PAW frame.
       if (

@@ -22,6 +22,7 @@ import {
   queryLegality,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/index.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -32,7 +33,7 @@ beforeAll(() => {
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
   if (!result.ok) throw new Error(`${state.timingKey}: ${result.error}`);
-  return result.state;
+  return passIdle(result.state);
 }
 
 function runnerTurn(): GameState {
@@ -299,8 +300,8 @@ describe("approaching the server is not a paid ability window (CR 6.9.4g)", () =
     expect(s.run?.successful).toBe(true);
   });
 
-  it("does not stop when the approach-server cost cannot be paid", () => {
-    const s = runnerTurn();
+  it("gives the Corp the approach-server step even when it cannot pay, and Pass is its only option (CR 9.2.8b)", () => {
+    let s = runnerTurn();
     remote(s, "remote-1");
     inRoot(s, "anoetic-void", "void-1", "remote-1", true);
     s.corp.hand = [];
@@ -319,6 +320,12 @@ describe("approaching the server is not a paid ability window (CR 6.9.4g)", () =
     };
     s.timingKey = "run.approachServer";
     autoWalk(s);
+    // The engine does not close the step because the cost cannot be paid:
+    // the host decides whether to pass for the Corp.
+    expect(s.timingKey).toBe("run.approachServerPaw");
+    expect(queryLegality(s).priority).toBe("corp");
+    expect(queryLegality(s).legal.map((entry) => entry.action.type)).toEqual(["pass_window"]);
+    s = must(s, { type: "pass_window" });
     expect(s.timingKey).not.toBe("run.approachServerPaw");
   });
 });

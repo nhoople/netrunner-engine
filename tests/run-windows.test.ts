@@ -79,6 +79,11 @@ describe("run paid ability windows", () => {
       offers(state, (action) => action.type === "use_paid_ability" && action.cardId === "fg-1"),
     ).toBe(true);
 
+    // CR 9.2.7a, 6.9.4b: the Corp receives priority after the Runner passes,
+    // though it has nothing to use here. The engine does not skip it.
+    state = pass(state);
+    expect(state.timingKey).toBe("run.passIcePaw");
+    expect(queryLegality(state).priority).toBe("corp");
     state = pass(state);
     expect(state.timingKey).toBe("run.jackOutWindow");
     state = pass(state);

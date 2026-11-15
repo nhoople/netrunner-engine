@@ -25,6 +25,7 @@ import {
 } from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { replayTo, type Format } from "./playout/harness.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -36,7 +37,7 @@ beforeAll(() => {
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
   if (!result.ok) throw new Error(`${action.type}: ${result.error}`);
-  return result.state;
+  return passIdle(result.state);
 }
 
 /** Every action legality offers, apply takes (CR 9.2.1: legality is apply's gate). */

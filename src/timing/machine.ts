@@ -219,26 +219,9 @@ export function autoWalk(state: GameState): void {
       enterStep(state, resolveNext(step, state));
       continue;
     }
-    if (tryCloseEmptyRunPaw(state)) continue;
     return;
   }
   throw new Error(`autoWalk exceeded ${MAX_AUTO} steps at ${state.timingKey}`);
-}
-
-/**
- * Empty 11.4_1_e / 11.4_4_b / 11.4_4_e windows both players would only pass.
- * Registered from the pass handler so this module does not import it.
- */
-let tryCloseEmptyRunPaw: (state: GameState) => boolean = () => false;
-
-export function registerEmptyRunPawCloser(
-  closer: (state: GameState) => boolean,
-): void {
-  tryCloseEmptyRunPaw = closer;
-}
-
-export function closeEmptyRunPaw(state: GameState): boolean {
-  return tryCloseEmptyRunPaw(state);
 }
 
 export function afterBasicAction(state: GameState): void {

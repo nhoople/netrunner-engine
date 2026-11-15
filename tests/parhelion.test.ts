@@ -40,6 +40,7 @@ import {
 } from "../src/state/trashHooks.js";
 import { addBreakerStrengthBoostThisRun } from "../src/state/lingeringEffects.js";
 import { clearMark, placeMark } from "../src/state/msKeywords.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 describe("parhelion", () => {
   describe("parhelion-adv-req-reduction", () => {
@@ -56,7 +57,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function installAgenda(
@@ -196,7 +197,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Asmund Pudlat", () => {
@@ -342,7 +343,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function fillGrip(
@@ -615,7 +616,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Distributed Tracing", () => {
@@ -682,7 +683,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
 
@@ -825,7 +826,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Hafrún", () => {
@@ -953,7 +954,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH lose_credits_per_rezzed_subtype + add_from_heap_to_grip IR", () => {
@@ -1208,7 +1209,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function emptyRun(server: ServerId, candidates: string[]) {
@@ -1433,7 +1434,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Hostile Architecture", () => {
@@ -1585,7 +1586,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Hush", () => {
@@ -1724,7 +1725,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Hybrid Release", () => {
@@ -1907,7 +1908,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Issuaq Adaptics", () => {
@@ -2036,7 +2037,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Dr. Vientiane Keeling", () => {
@@ -2151,7 +2152,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Matryoshka", () => {
@@ -2278,7 +2279,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function passUntil(
@@ -2476,7 +2477,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Orca", () => {
@@ -2625,7 +2626,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Raindrops Cut Stone", () => {
@@ -2841,7 +2842,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Simulation Reset", () => {
@@ -3035,7 +3036,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Spark of Inspiration", () => {
@@ -3237,7 +3238,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Tremolo cybernetic break discount", () => {
@@ -3410,7 +3411,7 @@ describe("parhelion", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("PH Tunnel Vision mark-only break", () => {

@@ -38,6 +38,7 @@ import {
   type DeckEntry,
 } from "../../src/index.js";
 import { setApplyHook } from "../../src/debug/applyHook.js";
+import { passIdle } from "../../src/demo/passIdle.js";
 import { fireOnGameStartSetup } from "../../src/state/createGame.js";
 import type { CardDef, CardInstance, GameState } from "../../src/state/types.js";
 
@@ -612,7 +613,14 @@ function play(format: Format, seed: number, steps: number): PlayoutResult {
       failures.push({ code: "REFUSED", step, detail: `${action.type} at ${state.timingKey}: ${result.error}` });
       break;
     }
-    state = result.state;
+    // The driver passes for a seat with nothing to do, where the engine used
+    // to; it is not a pick and does not count as a step (CR 9.2.7a, 9.2.7f).
+    try {
+      state = passIdle(result.state);
+    } catch (error) {
+      failures.push({ code: "CRASH", step, detail: `pass for an idle seat at ${result.state.timingKey}: ${message(error)}` });
+      break;
+    }
     noteInvariants(state, step);
   }
   return {
@@ -639,7 +647,7 @@ export function replayTo(format: Format, seed: number, steps: number): GameState
       if (legal.length === 0) break;
       const result = applyAction(state, pick(legal, random).action);
       if (!result.ok) break;
-      state = result.state;
+      state = passIdle(result.state);
     }
     return state;
   } finally {

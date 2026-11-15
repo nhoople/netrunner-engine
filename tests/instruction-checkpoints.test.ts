@@ -61,6 +61,7 @@ import { mayLookAtHiddenZone } from "../src/state/hiddenSearch.js";
 import { addBreakerStrengthBoostThisRun, addBreakerStrengthBoostThisTurn, addIceStrengthBoostThisTurn, addLingeringEffect, LINGERING_KIND_BREAKER_STRENGTH, LINGERING_KIND_BREAKER_STRENGTH_RUN, LINGERING_KIND_GRANTED_SUBTYPES, LINGERING_KIND_ICE_STRENGTH, LINGERING_KIND_RUNNER_MU } from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/state/types.js";
 import { currentMark, placeMark } from "../src/state/msKeywords.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -72,7 +73,7 @@ beforeAll(() => {
 function must(state: GameState, action: Parameters<typeof applyAction>[1]): GameState {
   const r = applyAction(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-  return r.state;
+  return passIdle(r.state);
 }
 
 function at(lines: string[], fragment: string): number {

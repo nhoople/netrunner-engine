@@ -61,6 +61,7 @@ import {
   syncPaidAbilitiesFromRecords,
   type AbilityRecord,
 } from "../src/effects/abilityRecord.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 describe("midnight-sun", () => {
   describe("midnight-sun-add-power-counter", () => {
@@ -77,7 +78,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS add_power_counter IR (always)", () => {
@@ -292,7 +293,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function anemoneOnRez(): Effect {
@@ -434,7 +435,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS score_self_as_agenda (Backroom Machinations)", () => {
@@ -690,7 +691,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS strengthBonusProtectingArchives (always)", () => {
@@ -877,7 +878,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS strengthBonusPerCoreDamageThisGame (always)", () => {
@@ -1037,7 +1038,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS advancementRequirementEqualsRunnerGrip (Blood in the Water)", () => {
@@ -1116,7 +1117,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   /** Approach PAW with unrezzed ice on a remote; Runner has Cat's Cradle installed. */
@@ -1328,7 +1329,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function withCezve(opts?: {
@@ -1605,7 +1606,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function chekistOnAccess(): Effect {
@@ -1713,7 +1714,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function assertEsaWired(): void {
@@ -1958,7 +1959,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function elivagarOnScore(): Effect {
@@ -2125,7 +2126,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS Envelopment etrSubroutinesPerPowerCounter", () => {
@@ -2268,7 +2269,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function etInstallEffect() {
@@ -2434,7 +2435,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS onFirstVirusInstallThisTurn IR (always)", () => {
@@ -2574,7 +2575,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS eventPlayCostDiscount (always)", () => {
@@ -2721,7 +2722,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function hakarlOnRez(): Effect {
@@ -3002,7 +3003,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   const intoTheDepthsOptions = () => [
@@ -3245,7 +3246,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("cards pin v0.48.0 + Midnight Sun load", () => {
@@ -3549,7 +3550,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   /** Approach PAW with unrezzed Ivik on a remote; optional rezzed code gates elsewhere. */
@@ -3749,7 +3750,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function lightTheFireAbility(): PaidAbility {
@@ -3978,7 +3979,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   /** Ice on HQ, Backstitching-shaped resource in rig; run to encounter PAW. */
@@ -4131,7 +4132,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function assertCardsMarkRunWired(): void {
@@ -4327,7 +4328,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function mestOnEncounter(): Effect {
@@ -4637,7 +4638,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function assertPadmaWired(): void {
@@ -4838,7 +4839,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   /** PAN-Weave printed ability as Effect IR. */
@@ -5003,7 +5004,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS access_one_root_other_server (Pinhole Threading)", () => {
@@ -5126,7 +5127,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS playAdditionalCost IR (always)", () => {
@@ -5261,7 +5262,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   /** Place ice on HQ, put breaker in rig, run to encounter PAW. */
@@ -5448,7 +5449,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   const riggingUpEffect = () =>
@@ -5666,7 +5667,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function midnight3OnScore(): Effect {
@@ -6010,7 +6011,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function svyatogorOnTurnBegin(): Effect {
@@ -6643,7 +6644,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   describe("MS place_advancements advanceable-only (Vasilisa)", () => {
@@ -6793,7 +6794,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function virtuosoMarkEffect() {
@@ -7016,7 +7017,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function vladPlace(): ReturnType<typeof fx.placeAdvancements> {
@@ -7209,7 +7210,7 @@ describe("midnight-sun", () => {
   ) {
     const r = applyAction(state, action);
     if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-    return r.state;
+    return passIdle(r.state);
   }
 
   function assertCardsWiringPresent(): void {

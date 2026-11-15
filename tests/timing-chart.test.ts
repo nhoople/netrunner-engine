@@ -605,7 +605,7 @@ describe("pinned timing charts 11.2 through 11.6", () => {
           installIce(state, false);
         }),
       ),
-    ).toBe("11.4_4_c");
+    ).toBe("11.4_4_b");
 
     expect(
       stop(
@@ -614,7 +614,7 @@ describe("pinned timing charts 11.2 through 11.6", () => {
           state.run!.encounter = { iceId: "corp-ice-1", broken: [true] };
         }),
       ),
-    ).toBe("11.4_4_c");
+    ).toBe("11.4_4_b");
 
     const passing = park("run.passIcePaw", (state) => {
       plantRunnerAbility(state);
@@ -636,8 +636,9 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       ),
     ).toBe("11.4_2_b");
 
-    // An iceless run goes on to the Movement Phase (11.4_1_f_ii), where the
-    // Runner may still jack out (11.4_4_c).
+    // An iceless run goes on to the Movement Phase (11.4_1_f_ii). Its paid
+    // ability window opens before the Runner may jack out (11.4_4_b, CR 6.9.4b):
+    // the engine opens every window, even one where nobody has an option.
     expect(
       stop(
         park("run.initiatePaw", (state) => {
@@ -648,7 +649,7 @@ describe("pinned timing charts 11.2 through 11.6", () => {
           state.corp.hand = [];
         }),
       ),
-    ).toBe("11.4_4_c");
+    ).toBe("11.4_4_b");
   });
 
   it("returns to the paid ability window after the last click (11.2_2_c, 11.3_1_g)", () => {
@@ -707,11 +708,17 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       }
     });
     state = closeWindow(state);
+    expect(state.timing.stepNumber).toBe("11.4_4_b");
+    state = closeWindow(state);
     expect(state.timing.stepNumber).toBe("11.4_4_c");
     const onward = applyAction(state, { type: "continue_run" });
     expect(onward.ok).toBe(true);
     if (!onward.ok) return;
     state = onward.state;
+    // The after-move window opens (CR 6.9.4e) and closes when both players
+    // pass. No card here has an approach-server ability (CR 6.9.4g).
+    expect(state.timing.stepNumber).toBe("11.4_4_e");
+    state = closeWindow(state);
     expect(state.timing.stepNumber).toBe("11.5_4_a");
     expect(state.run?.accessCandidates).toEqual(["corp-asset-1", "corp-fill-1"]);
     expect(state.run?.randomAccessLimit).toBe(2);
