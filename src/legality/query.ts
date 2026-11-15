@@ -217,8 +217,7 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "jack_out":
     case "continue_run":
     case "basic_run":
-    // CR 5.2.7g: removing a tag is a Runner basic action.
-    case "basic_remove_tag":
+    case "basic_remove_tag": // CR 5.2.7g: a Runner basic action.
     case "access_card":
     case "finish_breach":
     case "play_event":
