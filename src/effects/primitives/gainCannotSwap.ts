@@ -2,6 +2,7 @@
 import { resolveChronosFirstNetPick, resolveRibsPick } from "../../state/damage.js";
 import { setRunnerPosition } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
+import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir.js";
 import type { Primitive } from "../ir.js";
@@ -182,6 +183,8 @@ logLine: `Surfer — choose adjacent ice to swap.`,
       for (const id of hosted) {
         const card = state.cards[id];
         if (!card) continue;
+        // Set aside as the [trash] cost was paid (CR 9.5.5): leave set-aside.
+        removeCardFromCurrentZone(state, id);
         card.hostId = undefined;
         card.faceup = true;
         card.zone = "runner:grip";

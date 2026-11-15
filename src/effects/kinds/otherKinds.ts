@@ -1618,7 +1618,9 @@ case "invasion_of_privacy": {
 
 case "invasion_of_privacy_success": {
       const max = Math.max(0, state.turn.lastTraceExcess ?? 0);
-      for (const id of state.runner.hand) state.cards[id]!.faceup = true;
+      // "reveal the grip": shown to both players until the ability ends,
+      // without turning the cards faceup (CR 1.21.3, 1.21.6).
+      revealCards(state, state.runner.hand, sourceId);
       state.turn.invasionPrivacyTrashRemaining = max;
       if (max <= 0) return { ok: true };
       return applyPrimitive(ctx, { kind: "trash_next" });

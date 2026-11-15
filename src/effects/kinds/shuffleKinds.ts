@@ -518,6 +518,8 @@ case "shuffle_hosted_cards_into_stack": {
       for (const id of hosted) {
         const card = state.cards[id];
         if (!card) continue;
+        // Set aside as the [trash] cost was paid (CR 9.5.5): leave set-aside.
+        removeCardFromCurrentZone(state, id);
         card.hostId = undefined;
         card.faceup = false;
         card.zone = "runner:stack";
@@ -538,8 +540,16 @@ case "shuffle_hosted_cards_into_stack": {
     }
 
 case "shuffle_grip_of_type": {
+      // Touch-ups: "choose a card type and reveal the grip. Choose up to 2
+      // revealed cards of that type. The Runner shuffles those cards into
+      // the stack." The Corp chooses (CR 1.15.2); the grip is revealed even
+      // when no card matches (CR 1.21.3).
       const cardType = action.cardType;
-      const maxCards = action.maxCards;
+      revealCards(state, state.runner.hand, sourceId);
+      log(
+        state,
+        `Touch-ups — reveal grip (${state.runner.hand.length} cards).`,
+      );
       const matching = state.runner.hand.filter(
         (id) => state.cards[id]?.type === cardType,
       );
@@ -550,44 +560,17 @@ case "shuffle_grip_of_type": {
         );
         return { ok: true };
       }
-      revealCards(state, state.runner.hand, sourceId);
-      log(
-        state,
-        `Touch-ups — reveal grip (${state.runner.hand.length} cards).`,
+      return evalEffect(
+        ctx,
+        chooseCards({
+          chooser: "corp",
+          candidates: matching,
+          count: action.maxCards,
+          upTo: true,
+          open: true,
+          purpose: "shuffle_grip_to_stack",
+        }),
       );
-      const pickOptions: import("../ir.js").ChoiceOption[] = matching.map((id) => {
-        const c = state.cards[id]!;
-        return {
-          id: `shuffle:${id}`,
-          label: `Shuffle ${c.title} into stack`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "shuffle_grip_card_into_stack" as const,
-              cardId: id,
-            },
-          },
-        };
-      });
-      void maxCards;
-      pickOptions.push({
-        id: "done",
-        label: "Done shuffling",
-        effect: {
-          op: "do" as const,
-          action: {
-            kind: "gain_credits" as const,
-            side: "runner" as const,
-            amount: 0,
-          },
-        },
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: pickOptions,
-      });
-      return { ok: true };
     }
 
 case "shuffle_grip_card_into_stack": {

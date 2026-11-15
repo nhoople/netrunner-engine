@@ -3392,6 +3392,11 @@ export interface TurnBookkeeping {
     logLine: string;
   }>;
   /**
+   * The Runner's turn has begun (appendix 11.3_1_d). Set once, so the step
+   * is not resolved again after a turn-begin ability's choice.
+   */
+  runnerTurnBegan?: boolean;
+  /**
    * Runner turn-begin conditionals met since previous checkpoint; marked
    * pending at the next 10.3.1a (phase 3).
    */

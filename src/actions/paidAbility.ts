@@ -192,10 +192,21 @@ function effectRefersToSourceVirusCounters(effect: unknown): boolean {
   });
 }
 
+/**
+ * Kinds that act on the source's hosted cards. A [trash] cost sets those
+ * cards aside instead of leaving them for the hosted-card checkpoint (CR 9.5.5):
+ * Street Peddler, Read-Write Share, Bookmark.
+ */
+const HOSTED_CARD_KINDS = new Set([
+  "install_hosted",
+  "shuffle_hosted_cards_into_stack",
+  "add_all_hosted_to_grip",
+]);
+
 function effectActsOnHostedCards(effect: unknown): boolean {
   return effectTreeHas(
     effect,
-    (node) => (node as { kind?: string }).kind === "install_hosted",
+    (node) => HOSTED_CARD_KINDS.has((node as { kind?: string }).kind ?? ""),
   );
 }
 

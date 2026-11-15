@@ -301,7 +301,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `choose_breaker_run` | `strengthBonus?: number` | 1 | card |
 | `choose_card` | `chooser: "corp" \| "runner"`, `zone: "hq" \| "grip" \| "installed" \| "heap" \| "archives" \| "corp_score" \| "runner_score" \| "remote_root"`, `cardType?: string`, `rezzedOnly?: boolean`, `includeSubtypes?: string[]`, `optional?: boolean`, `then: Effect` | 1 | card |
 | `choose_card_type_for_encounter` | — | 2 | card |
-| `choose_cards` | `chooser: "corp" \| "runner"`, `candidates: string[]`, `count: number`, `upTo?: boolean`, `picked: string[]`, `purpose: "discard_to_hand_size" \| "trash_hq" \| "archives_to_hq" \| "shuffle_archives_to_rd" \| "shuffle_hq_to_rd" \| "trash_grip" \| "resume"`, `resume?: Primitive`, `label?: string`, `open?: boolean`, `then?: Effect` | 0 | engine |
+| `choose_cards` | `chooser: "corp" \| "runner"`, `candidates: string[]`, `count: number`, `upTo?: boolean`, `picked: string[]`, `purpose: "discard_to_hand_size" \| "trash_hq" \| "archives_to_hq" \| "shuffle_archives_to_rd" \| "shuffle_hq_to_rd" \| "trash_grip" \| "shuffle_grip_to_stack" \| "resume"`, `resume?: Primitive`, `label?: string`, `open?: boolean`, `then?: Effect` | 0 | engine |
 | `choose_exactly_n` | `n: number`, `options: ChoiceOption[]` | 3 | card |
 | `choose_exploratory_romp_card` | `amount: number` | 0 | engine |
 | `choose_forfeit_runner_scored_agenda` | — | 1 | card |

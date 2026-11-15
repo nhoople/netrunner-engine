@@ -356,6 +356,7 @@ export type Primitive =
         | "shuffle_archives_to_rd"
         | "shuffle_hq_to_rd"
         | "trash_grip"
+        | "shuffle_grip_to_stack"
         | "resume";
       /**
        * For `resume`: the instruction that takes the picked cards as its
