@@ -52,6 +52,19 @@ export function advanceRunUntilStop(state: GameState): ApplyResult {
       log(state, `Run begins (appendix ${step.stepNumber}).`);
     }
 
+    // CR 7.2.3–7.2.4: an access step with no card being accessed (it was
+    // stolen or left its zone while a choice, damage or reaction window was
+    // open) has nothing left to resolve, so the access completes (11.6_4).
+    if (
+      step.kind === "access" &&
+      step.key.startsWith("access.") &&
+      state.run &&
+      !state.run.accessingCardId
+    ) {
+      enterStep(state, "access.complete");
+      continue;
+    }
+
     if (
       step.kind === "pass" ||
       step.kind === "access" ||

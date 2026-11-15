@@ -4,26 +4,10 @@
     {
       "format": "learn_to_play_starter",
       "deckSeed": 1,
-      "step": 24,
-      "code": "REFUSED",
-      "recorded": "2026-11-13",
-      "detail": "finish_breach at access.stealAgenda: No breach access window."
-    },
-    {
-      "format": "learn_to_play_starter",
-      "deckSeed": 2,
-      "step": 63,
-      "code": "REFUSED",
-      "recorded": "2026-11-13",
-      "detail": "access_card at access.stealAgenda: No breach access window."
-    },
-    {
-      "format": "learn_to_play_starter",
-      "deckSeed": 4,
-      "step": 138,
-      "code": "REFUSED",
-      "recorded": "2026-11-13",
-      "detail": "finish_breach at access.stealAgenda: No breach access window."
+      "step": 150,
+      "code": "RUN_SERVER_MISSING",
+      "recorded": "2026-11-15",
+      "detail": "run attacks missing server remote-1"
     },
     {
       "format": "learn_to_play_starter",
@@ -59,22 +43,6 @@
     },
     {
       "format": "system_gateway",
-      "deckSeed": 2,
-      "step": 114,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-13",
-      "detail": "at corp.turnBegins"
-    },
-    {
-      "format": "system_gateway",
-      "deckSeed": 3,
-      "step": 32,
-      "code": "REFUSED",
-      "recorded": "2026-11-13",
-      "detail": "finish_breach at access.stealAgenda: No breach access window."
-    },
-    {
-      "format": "system_gateway",
       "deckSeed": 10,
       "step": 21,
       "code": "HOST_LINK_MISSING",
@@ -92,26 +60,18 @@
     {
       "format": "startup",
       "deckSeed": 2,
-      "step": 136,
-      "code": "REFUSED",
-      "recorded": "2026-11-13",
-      "detail": "finish_breach at access.stealAgenda: No breach access window."
-    },
-    {
-      "format": "startup",
-      "deckSeed": 3,
-      "step": 44,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-13",
-      "detail": "at corp.turnBegins"
+      "step": 188,
+      "code": "RUN_SERVER_MISSING",
+      "recorded": "2026-11-15",
+      "detail": "run attacks missing server remote-2"
     },
     {
       "format": "startup",
       "deckSeed": 4,
-      "step": 5,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-13",
-      "detail": "at corp.turnBegins"
+      "step": 132,
+      "code": "RUN_SERVER_MISSING",
+      "recorded": "2026-11-15",
+      "detail": "run attacks missing server remote-2"
     },
     {
       "format": "startup",
@@ -120,14 +80,6 @@
       "code": "RUN_SERVER_MISSING",
       "recorded": "2026-11-14",
       "detail": "run attacks missing server remote-1"
-    },
-    {
-      "format": "startup",
-      "deckSeed": 11,
-      "step": 182,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-14",
-      "detail": "at runner.turnBegins"
     },
     {
       "format": "startup",
@@ -148,10 +100,10 @@
     {
       "format": "core",
       "deckSeed": 1,
-      "step": 84,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-13",
-      "detail": "at corp.turnBegins"
+      "step": 178,
+      "code": "MULTIPLE_ZONES",
+      "recorded": "2026-11-15",
+      "detail": "corp:idiosyncresis:11 (Idiosyncresis) is in corp:archives, corp:archives"
     },
     {
       "format": "core",
@@ -171,14 +123,6 @@
     },
     {
       "format": "standard",
-      "deckSeed": 1,
-      "step": 191,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-14",
-      "detail": "at corp.turnBegins"
-    },
-    {
-      "format": "standard",
       "deckSeed": 2,
       "step": 48,
       "code": "REFUSED",
@@ -188,10 +132,10 @@
     {
       "format": "standard",
       "deckSeed": 14,
-      "step": 71,
-      "code": "NO_LEGAL_ACTION",
-      "recorded": "2026-11-14",
-      "detail": "at corp.turnBegins"
+      "step": 93,
+      "code": "RUN_SERVER_MISSING",
+      "recorded": "2026-11-15",
+      "detail": "run attacks missing server remote-2"
     },
     {
       "format": "eternal",

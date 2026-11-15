@@ -3392,6 +3392,11 @@ export interface TurnBookkeeping {
     logLine: string;
   }>;
   /**
+   * The Corp's turn has begun (appendix 11.2_1_d). Set once, so the step
+   * is not resolved again after a turn-begin ability's choice.
+   */
+  corpTurnBegan?: boolean;
+  /**
    * The Runner's turn has begun (appendix 11.3_1_d). Set once, so the step
    * is not resolved again after a turn-begin ability's choice.
    */

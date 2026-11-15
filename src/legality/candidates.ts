@@ -50,7 +50,11 @@ export function collectCandidateActions(state: GameState): Action[] {
   }
 
   if (step.kind === "access") {
-    addBreachAccessCandidates(state, actions);
+    // Only breach.awaitAccess offers candidates (11.5_4_a); the nested
+    // access steps offer theirs through collectPendingCandidates.
+    if (step.allows?.includes("finish_breach")) {
+      addBreachAccessCandidates(state, actions);
+    }
     return actions;
   }
 
