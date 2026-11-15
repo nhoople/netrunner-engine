@@ -29,4 +29,22 @@ export default tseslint.config(
       "@typescript-eslint/no-empty-object-type": "warn",
     },
   },
+  {
+    // Choose windows open through openPendingChoose, which refuses to
+    // overwrite a pending choice or open one with no options. Clears
+    // (`= null`) stay raw.
+    files: ["src/**/*.ts"],
+    ignores: ["src/state/pendingChoice.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "AssignmentExpression[left.type='MemberExpression'][left.property.name='pendingChoice'][right.type='ObjectExpression']",
+          message:
+            "Open a choice with openPendingChoose (src/state/pendingChoice.ts), not a raw pendingChoice object.",
+        },
+      ],
+    },
+  },
 );

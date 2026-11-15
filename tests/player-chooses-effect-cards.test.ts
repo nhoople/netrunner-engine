@@ -208,6 +208,17 @@ describe("sabotage: the Corp chooses the HQ cards (CR 10.12.2)", () => {
     expect(both.pendingSabotage).toBeNull();
     expect(both.corp.hand).toEqual([]);
     expect(both.corp.deck).toHaveLength(5);
+    // The offer also stops when HQ runs out of cards it may take
+    // (CR 10.12.3a): sabotage 3 with 2 cards in HQ takes at most 2.
+    let u = sabotaged(3, 2, 5);
+    expect(u.pendingChoice?.hiddenFromOpponent).toBe(true);
+    u = must(u, { type: "choose_option", optionId: "sabotage-hq:h-1" });
+    expect(optionIds(u)).toEqual(["sabotage-hq:h-0"]);
+    u = must(u, { type: "choose_option", optionId: "sabotage-hq:h-0" });
+    expect(u.pendingSabotage).toBeNull();
+    expect(u.pendingChoice ?? null).toBeNull();
+    expect(u.corp.hand).toEqual([]);
+    expect(u.corp.deck).toEqual(["r-1", "r-2", "r-3", "r-4"]);
   });
 
   it("does not let the Corp stop short when R&D cannot cover the rest (CR 10.12.3a)", () => {
@@ -217,6 +228,12 @@ describe("sabotage: the Corp chooses the HQ cards (CR 10.12.2)", () => {
     expect(applyAction(s, { type: "resolve_sabotage", hqCardIds: [] }).ok).toBe(false);
     let t = must(s, { type: "choose_option", optionId: "sabotage-hq:h-3" });
     expect(legalActions(t).some((a) => a.type === "resolve_sabotage")).toBe(false);
+    // Each pick re-opens the window without the picked card, hidden from
+    // the Runner (CR 10.12.2).
+    expect(optionIds(t).sort()).toEqual(["sabotage-hq:h-0", "sabotage-hq:h-1", "sabotage-hq:h-2"]);
+    expect(t.pendingChoice?.chooser).toBe("corp");
+    expect(t.pendingChoice?.hiddenFromOpponent).toBe(true);
+    expect(t.pendingChoice?.prompt).toContain("(1 chosen)");
     t = must(t, { type: "choose_option", optionId: "sabotage-hq:h-1" });
     expect(legalActions(t)).toContainEqual({
       type: "resolve_sabotage",
@@ -278,8 +295,15 @@ describe("costs: the payer picks (CR 1.16.1)", () => {
     expect(t.pendingCost?.count).toBe(2);
     expect(t.runner.hand).toHaveLength(3);
     expect(t.cards["pad-1"].zone).toBe("corp:hq");
+    expect(t.pendingChoice?.hiddenFromOpponent).toBe(true);
+    expect(t.pendingChoice?.prompt).toContain("(1 of 2)");
     t = pickCost(t, "g-1");
+    // The window re-opens for the second pick, still hidden from the Corp.
     expect(optionIds(t).sort()).toEqual(["cost-card:g-2", "cost-card:g-3"]);
+    expect(t.pendingChoice?.chooser).toBe("runner");
+    expect(t.pendingChoice?.hiddenFromOpponent).toBe(true);
+    expect(t.pendingChoice?.prompt).toContain("(2 of 2)");
+    expect(optionIds(t)).not.toContain("cost-card-done");
     t = pickCost(t, "g-3");
     expect(t.runner.hand).toEqual(["g-2"]);
     expect(t.cards["pad-1"].zone).toBe("corp:archives");

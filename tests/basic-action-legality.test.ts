@@ -213,6 +213,16 @@ describe("basic action legality", () => {
       optionId: "cost-card:hq-ice-b",
     });
     if (!picked.ok) throw new Error(picked.error);
+    // The window re-opens after the pick: "None" becomes "Done", the picked
+    // ice is no longer offered, and the Runner may see the installed ice.
+    expect(asked.state.pendingChoice?.options.at(-1)?.label).toBe("None");
+    expect(picked.state.pendingChoice?.chooser).toBe("corp");
+    expect(picked.state.pendingChoice?.options.map((o) => [o.id, o.label])).toEqual([
+      ["cost-card:hq-ice-a", asked.state.cards["hq-ice-a"].title],
+      ["cost-card-done", "Done"],
+    ]);
+    expect(picked.state.pendingChoice?.prompt).toContain("(1 chosen)");
+    expect(picked.state.pendingChoice?.hiddenFromOpponent).toBeUndefined();
     const installed = applyIntent(picked.state, {
       type: "choose_option",
       optionId: "cost-card-done",

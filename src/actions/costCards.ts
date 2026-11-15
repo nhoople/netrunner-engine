@@ -8,6 +8,7 @@
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { costCardNeed, type CostCardNeed } from "../state/costs.js";
 import { log } from "../state/createGame.js";
+import { openPendingChoose } from "../state/pendingChoice.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import type { Effect } from "../effects/ir.js";
@@ -213,15 +214,18 @@ function offer(state: GameState): void {
       effect: NO_EFFECT,
     });
   }
-  state.pendingChoice = {
+  // This picker owns the window: a pick is taken by takeCostPick, not
+  // chooseOption, so the previous pick's window is still open here.
+  state.pendingChoice = null;
+  openPendingChoose(state, {
     sourceId: pending.sourceId,
     chooser: pending.payer,
     options,
     prompt: pending.anyNumber
       ? `Choose a card to ${pending.what}, or stop (${pending.picked.length} chosen).`
       : `Choose a card to ${pending.what} (${pending.picked.length + 1} of ${pending.count}).`,
-    ...(pending.hidden ? { hiddenFromOpponent: true } : {}),
-  };
+    hiddenFromOpponent: pending.hidden,
+  });
 }
 
 /**
