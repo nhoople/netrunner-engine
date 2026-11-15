@@ -144,7 +144,9 @@ export function startRun(
   if (!server) {
     return fail("Unknown attacked server.", [CR.announceServer]);
   }
-  const initiateTax = additionalRunInitiateTax(state, serverId);
+  const initiateTax = mods.backupPlanIgnoreAdditionalCosts
+    ? { credits: 0, clicks: 0 }
+    : additionalRunInitiateTax(state, serverId);
   if (initiateTax.requireForfeitAgenda && !mods.hiredHelpAgendaTaxPaid) {
     const agendas = state.runner.scoreArea.filter(
       (id) => !state.cards[id]?.cannotForfeit,
@@ -297,6 +299,8 @@ export function startRun(
     bypassInnermostEncounter: mods.bypassInnermostEncounter,
     bypassSecondEncounterForClick: mods.bypassSecondEncounterForClick,
     bypassFirstEncounterForClicks: mods.bypassFirstEncounterForClicks,
+    backupPlanIgnoreAdditionalCosts: mods.backupPlanIgnoreAdditionalCosts,
+    backupPlanBypassIceId: mods.backupPlanBypassIceId,
     mayRezEventDerezzedIceOnRunEndIgnoreCosts:
       mods.mayRezEventDerezzedIceOnRunEndIgnoreCosts,
     derezProtectingIceOnRunBegin: mods.derezProtectingIceOnRunBegin,

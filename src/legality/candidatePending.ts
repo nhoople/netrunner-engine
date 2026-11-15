@@ -9,6 +9,7 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
+import { applyActionCore } from "../actions/apply.js";
 import {
   stealAdditionalCosts,
   stealNetOrMeatPrevented,
@@ -470,7 +471,8 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           if (
             !damagePrevented &&
             (stealClicks === 0 || state.runner.clicks >= stealClicks) &&
-            (stealCredits === 0 || state.runner.credits >= stealCredits)
+            (stealCredits === 0 || state.runner.credits >= stealCredits) &&
+            (!hasAdditionalCost || stealCostsPayable(state, id))
           ) {
             actions.push({ type: "steal_agenda", cardId: id });
             stealLegal = true;
@@ -659,4 +661,17 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
   }
 
   return null;
+}
+
+/**
+ * The Runner can pay every additional cost to steal this agenda (CR 1.16.1,
+ * 1.16.10b). The costs are effects (SDS Drone Deployment: trash an installed
+ * program), so this tries the steal on a copy: legality offers it only when
+ * apply would take it.
+ */
+function stealCostsPayable(state: GameState, agendaId: string): boolean {
+  return applyActionCore(structuredClone(state), {
+    type: "steal_agenda",
+    cardId: agendaId,
+  }).ok;
 }

@@ -99,6 +99,10 @@ export interface RunModifiers {
    * clicks to bypass.
    */
   bypassFirstEncounterForClicks?: number;
+  /** Always Have a Backup Plan: ignore additional costs to run (CR 1.16.5a). */
+  backupPlanIgnoreAdditionalCosts?: boolean;
+  /** Always Have a Backup Plan: bypass this ice when encountered. */
+  backupPlanBypassIceId?: string;
   redirectSuccessTo?: "hq" | "rd" | "archives";
   redirectSuccessChooseHqOrRd?: boolean;
   skipBreachInstallProgramFromHeap?: boolean;

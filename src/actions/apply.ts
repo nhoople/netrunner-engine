@@ -1296,6 +1296,10 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       if (pending.lastingRfgCopiesOnAccess) {
         mods.lastingRfgCopiesOnAccess = true;
       }
+      if (pending.backupPlanIgnoreAdditionalCosts) {
+        mods.backupPlanIgnoreAdditionalCosts = true;
+        mods.backupPlanBypassIceId = pending.backupPlanBypassIceId;
+      }
       const walked = startRun(state, pending.serverId as import("../state/types.js").ServerId, mods);
       if (!walked.ok) return walked;
       if (walked.state.turn.ohForcedRunCannotJackOut && walked.state.run) {

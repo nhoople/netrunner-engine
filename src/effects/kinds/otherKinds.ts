@@ -2760,20 +2760,11 @@ case "backup_plan_rerun": {
         log(state, `${source.title} — cannot start Backup Plan rerun while a run is active.`);
         return { ok: true };
       }
-      // If run already closed, start a fresh run skeleton with flags.
-      state.run = {
-        attackedServerId: serverId,
-        phase: "initiation",
-        position: null,
-        successful: null,
-        accessedCardIds: [],
-        accessCandidates: [],
-        randomAccessLimit: null,
-        endedTheRun: false,
-        cannotJackOut: false,
-        encounter: null,
-        accessingCardId: null,
-        runSourceId: sourceId,
+      // The run is over: start the new run once this choice resolves,
+      // through the same path as other follow-up runs (startRun).
+      state.pendingStartRun = {
+        sourceId,
+        serverId,
         backupPlanIgnoreAdditionalCosts: true,
         backupPlanBypassIceId: source.chosenIceId,
       };
