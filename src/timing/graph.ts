@@ -1284,6 +1284,18 @@ export const STEPS: Record<string, TimingStepDef> = {
     "runner.actionPaw",
     {
       onResolve: (s) => {
+        // The step comes back here once a turn-begin ability's choice is
+        // answered. The turn began already: the next checkpoint marked one
+        // instance per "when your turn begins" conditional (CR 9.6.6), so do
+        // not note them again. Resolve any that are still pending, then move on.
+        if (s.turn.runnerTurnBegan) {
+          if (pendingRunnerTurnBeginIds(s).length > 0) {
+            checkpointAfterInstruction(s, "runner.turnBegins");
+            noteOpenTurnBeginWaiting(s);
+          }
+          return;
+        }
+        s.turn.runnerTurnBegan = true;
         onRunnerTurnBegan(s);
         s.log.push(`Runner turn begins (appendix 11.3_1_d).`);
         s.turn.leveragePreventRunnerDamage = false;

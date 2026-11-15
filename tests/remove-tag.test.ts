@@ -101,4 +101,17 @@ describe("CR G4 — basic remove tag (5.2.7g / 10.5.4)", () => {
     expect(entry!.cites.some((c) => c.number === "5.2.7g")).toBe(true);
     expect(entry!.cites.some((c) => c.number === "10.5.4")).toBe(true);
   });
+
+  it("offers Remove 1 tag to the Runner, not the system (CR 5.2.7g)", () => {
+    const s = structuredClone(createInitialState());
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    s.runner.clicks = 4;
+    s.runner.credits = 3;
+    s.runner.tags = 1;
+    const entry = queryLegality(s).legal.find(
+      (e) => e.action.type === "basic_remove_tag",
+    );
+    expect(entry?.actor).toBe("runner");
+  });
 });

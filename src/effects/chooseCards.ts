@@ -32,6 +32,8 @@ function verb(purpose: Purpose, label?: string): string {
       return "shuffle into R&D from HQ";
     case "trash_grip":
       return "trash from the grip";
+    case "shuffle_grip_to_stack":
+      return "shuffle into the stack from the grip";
     case "resume":
       return label ?? "choose";
     case "discard_to_hand_size":
@@ -125,6 +127,21 @@ function finish(
         moveRunnerCardToHeap(state, id);
         log(state, `Runner trashes ${title} from the grip (CR ${CR.trashing.number}).`);
       }
+      break;
+    }
+    case "shuffle_grip_to_stack": {
+      for (const id of ids) {
+        const moved = evalEffect(ctx, {
+          op: "do",
+          action: { kind: "shuffle_grip_card_into_stack", cardId: id },
+        });
+        if (!moved.ok) return moved;
+      }
+      shuffleInPlace(state, state.runner.deck);
+      log(
+        state,
+        `Runner shuffles ${ids.length} revealed card(s) from the grip into the stack (CR ${CR.reveal.number}).`,
+      );
       break;
     }
     case "resume": {
