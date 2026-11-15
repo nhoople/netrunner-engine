@@ -83,13 +83,21 @@ function catalog(): { cardKinds: Set<string>; titles: string[] } {
   return { cardKinds, titles: [...titles] };
 }
 
-/** Engine-built kinds that contain a multi-word card title. */
+let titledCache: string[] | undefined;
+
+/** Engine-built kinds that contain a multi-word card title. Memoized: the scan is kinds × titles. */
 function titledEngineKinds(): string[] {
+  if (titledCache) return titledCache;
   const { cardKinds, titles } = catalog();
-  return [...KNOWN_PRIMITIVE_KINDS]
+  const needles = titles.map((t) => `_${t}_`);
+  titledCache = [...KNOWN_PRIMITIVE_KINDS]
     .filter((k) => !cardKinds.has(k))
-    .filter((k) => titles.some((t) => `_${k}_`.includes(`_${t}_`)))
+    .filter((k) => {
+      const hay = `_${k}_`;
+      return needles.some((n) => hay.includes(n));
+    })
     .sort();
+  return titledCache;
 }
 
 /** String kinds src/ builds as an effect action: `fx.do({ kind })`, `action: { kind }`. */
@@ -155,7 +163,7 @@ describe("effect IR names", () => {
     expect(primitiveNameFollowsStandard("swap_raman_rai_resolve")).toBe(true);
     // A card kind is not an engine-built one.
     expect(titled.every((k) => !catalog().cardKinds.has(k))).toBe(true);
-  });
+  }, 60_000);
 
   it("grandfathers only the recorded names that skip the verb rule or name a card", () => {
     expect(legacy, "legacy list must stay sorted").toEqual([...legacy].sort());
