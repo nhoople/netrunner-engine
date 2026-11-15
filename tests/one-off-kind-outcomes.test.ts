@@ -24,6 +24,7 @@ import { onRunnerEventPlayed } from "../src/state/cardDeclarations.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
 import { RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE } from "../src/state/fenris.js";
 import { autoWalk, enterStep } from "../src/timing/machine.js";
+import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -61,8 +62,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "fester", "fester-1", "runner:installed");
     s.runner.installed = ["fester-1"];
     s.corp.credits = 5;
+    coversKind("corp_lose_two_if_can");
+    const before = snapshot(s);
     runKind(s, "fester-1", "corp_lose_two_if_can");
-    expect(s.corp.credits).toBe(3);
+    expectStateDelta(before, s, { "corp.credits": -2 });
     s.corp.credits = 1;
     runKind(s, "fester-1", "corp_lose_two_if_can");
     expect(s.corp.credits).toBe(1);
@@ -118,8 +121,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.scoreArea = ["hri-1"];
     s.runner.credits = 7;
     s.corp.credits = 2;
+    coversKind("gain_credits_equal_to_runner_credits");
+    const before = snapshot(s);
     runKind(s, "hri-1", "gain_credits_equal_to_runner_credits");
-    expect(s.corp.credits).toBe(9);
+    expectStateDelta(before, s, { "corp.credits": 7 });
+    expect(s.runner.credits).toBe(7);
   });
 
   it("Lawyer Up: choosing 2 tags removes them and draws 3", () => {
@@ -192,8 +198,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "corroder", "heap-1", "runner:heap");
     put(s, "sure-gamble", "heap-2", "runner:heap");
     s.runner.discardPile = ["heap-1", "heap-2"];
+    coversKind("rfg_runner_heap");
+    const before = snapshot(s);
     runKind(s, "chronos-1", "rfg_runner_heap");
-    expect(s.runner.discardPile).toEqual([]);
+    expectStateDelta(before, s, { "runner.discardPile": { from: ["heap-1", "heap-2"], to: [] } });
     expect(s.removedFromGame).toEqual(expect.arrayContaining(["heap-1", "heap-2"]));
   });
 
@@ -306,10 +314,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "profiteering", "prof-1", "corp:score");
     s.corp.credits = 5;
+    coversKind("score_profiteering_on");
+    const before = snapshot(s);
     runKind(s, "prof-1", "score_profiteering_on");
     const after = applyAction(s, { type: "choose_option", optionId: "profiteering-2" });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.corp.credits).toBe(15);
+    expectStateDelta(before, after.state, { "corp.credits": 10, "corp.badPublicity": { to: 2 } });
     expect(after.state.corp.badPublicity).toBe(2);
   });
 

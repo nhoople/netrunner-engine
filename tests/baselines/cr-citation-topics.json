@@ -1,5 +1,5 @@
 {
-  "_comment": "Citation-topic mismatches (CR audit tool 1.5b, tests/cr-citation-topics.test.ts). Each entry is `<file> CR <number> [(CR.<label>)] [<code topic>]`: code about that topic citing a rule whose section never mentions it. Generated; regenerate with UPDATE_CR_CITATION_TOPICS=1 npx vitest run tests/cr-citation-topics.test.ts. Review with cr-checker via tests/generated/cr-citation-topics-review.md.",
+  "_comment": "Citation-topic mismatches (CR audit tool 1.5b, tests/cr-citation-topics.test.ts). Each entry is `<file> CR <number> [(CR.<label>)] [<code topic>]`: code about that topic citing a rule whose section never mentions it. Shrink-only: UPDATE_CR_CITATION_TOPICS=1 npx vitest run tests/cr-citation-topics.test.ts removes fixed entries and refuses to add one. reviewed: the cr-checker verdict on each entry (wrong / partly / right = false positive), from the review of tests/generated/cr-citation-topics-review.md on 2026-11-14.",
   "mismatches": [
     "src/api/library.ts CR 1.18.1 [visibility]",
     "src/effects/kinds/installKinds.ts CR 10.1 [install]",
@@ -9,5 +9,15 @@
     "src/state/types.ts CR 1.16.1b [visibility]",
     "src/state/types.ts CR 1.18.1 [visibility]",
     "src/timing/graph.ts CR 9.3.7e [position]"
-  ]
+  ],
+  "reviewed": {
+    "src/api/library.ts CR 1.18.1 [visibility]": "partly: CR 1.18.1 defines advancing, not who sees counters. Drop it; keep 10.2.3a and 10.2.2a, add 4.6.3 (area 4).",
+    "src/effects/kinds/installKinds.ts CR 10.1 [install]": "wrong: Howler's 'ignoring all costs' is CR 1.16.5c; 10.1 is Additional Rules > General (area 5).",
+    "src/state/cardLifecycleHooks.ts CR 9.3.7d [checkpoint]": "right: 9.3.7d defines play abilities, which the function notes; the checkpoint is carried by the 8.6.7e cite. 9.7.1 would be a better companion than 10.3.1a.",
+    "src/state/runInitiateTax.ts CR 1.16.1b [visibility]": "wrong: Earth Station's additional cost to run is CR 6.3.2b (with 1.16.10); 1.16.1b is unpayable costs and 4.6.8f is the remote-server limit (area 4 citation fixes).",
+    "src/state/seatVisibility.ts CR 1.18 [visibility]": "partly: 1.18 is Advancing Cards at v26.03; visibility is CR 1.21 (1.21.1, 1.21.2a). 4.6 and 4.8 are right (area 4).",
+    "src/state/types.ts CR 1.16.1b [visibility]": "wrong at the Earth Station additionalRunInitiateCredits doc: CR 6.3.2b (with 1.16.10). The other 1.16.1b cite in the file (Jesminder preventFirstTagThisTurn) is right (area 4).",
+    "src/state/types.ts CR 1.18.1 [visibility]": "partly: drop 1.18.1 (advancing) from the ice-counter visibility doc; 10.2.3a stands, add 4.6.3 (area 4).",
+    "src/timing/graph.ts CR 9.3.7e [position]": "right: 9.3.7e is the subroutine ability record the code refreshes from; 9.8.2/9.8.3 would add the order rule but the cite is not wrong."
+  }
 }
