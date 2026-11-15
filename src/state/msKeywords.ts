@@ -9,6 +9,7 @@ import {
   LINGERING_KIND_MARK,
   removeLingeringEffectsOfKind,
 } from "./lingeringEffects.js";
+import { openPendingChoose } from "./pendingChoice.js";
 import { maybeFirePowerCountersGte } from "./powerCounters.js";
 import { random } from "./rng.js";
 import { removeCardFromCurrentZone } from "./scoring.js";
@@ -62,7 +63,10 @@ export function offerSabotagePick(state: GameState): void {
     state.pendingChoice = null;
     return;
   }
-  state.pendingChoice = {
+  // This picker owns the window: apply.ts takes a sabotage-hq pick without
+  // chooseOption, so the previous pick's window is still open here.
+  state.pendingChoice = null;
+  openPendingChoose(state, {
     sourceId: pending.sourceId,
     chooser: "corp",
     hiddenFromOpponent: true,
@@ -75,7 +79,7 @@ export function offerSabotagePick(state: GameState): void {
         action: { kind: "gain_credits" as const, side: "corp" as const, amount: 0 },
       },
     })),
-  };
+  });
 }
 
 export function sabotageCites(): RuleCite[] {
