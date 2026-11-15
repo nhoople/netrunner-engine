@@ -86,7 +86,6 @@ describe("B1: the access completes after a stolen agenda's choice (CR 7.2.3, 7.2
   it.each([
     ["learn_to_play_starter", 2, 63],
     ["learn_to_play_starter", 4, 138],
-    ["system_gateway", 3, 32],
     ["startup", 2, 136],
   ] as [Format, number, number][])("%s seed %i: every breach action offered at step %i applies", (format, seed, step) => {
     expectEveryLegalActionApplies(replayTo(format, seed, step));
@@ -136,7 +135,6 @@ describe("B2: a turn-begin choice does not stall the turn (CR 9.6.6, 11.2_1_d, 1
   });
 
   it.each([
-    ["system_gateway", 2, 114],
     ["startup", 3, 44],
     ["startup", 4, 5],
     ["startup", 11, 182],

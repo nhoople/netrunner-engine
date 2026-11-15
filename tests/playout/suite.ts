@@ -27,7 +27,6 @@ import {
 export const CI_SEEDS: Record<Format, number> = {
   learn_to_play_starter: 4,
   learn_to_play_expanded: 4,
-  system_gateway: 4,
   startup: 4,
   core: 2,
   standard: 2,

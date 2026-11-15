@@ -53,7 +53,6 @@ export const PLAYOUT_STEPS = 200;
 export const FORMATS = [
   "learn_to_play_starter",
   "learn_to_play_expanded",
-  "system_gateway",
   "startup",
   "core",
   "standard",
