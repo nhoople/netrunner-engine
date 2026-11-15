@@ -4,7 +4,7 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { iceAtRunnerPosition } from "./runPosition.js";
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
-import { removeCardFromCurrentZone } from "./scoring.js";
+import { moveForfeitedAgendaOutOfGame, removeCardFromCurrentZone } from "./scoring.js";
 import { enterSetAside } from "./zones.js";
 import {
   fireOnRemoveTags,
@@ -13,6 +13,7 @@ import {
 } from "./trashHooks.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 import { fireRunnerCreditPoolEmpty } from "./storedTriggers.js";
+import { noteStoredConditionals } from "./storedConditionalHooks.js";
 
 /**
  * Reduce the Runner's credit pool. The first time it becomes empty each
@@ -1013,6 +1014,11 @@ export function canPayCost(
     const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
     if (!score.some((id) => !state.cards[id]?.cannotForfeit)) return false;
   }
+  if (cost.forfeitSelf) {
+    // Only a scored agenda can be forfeited (CR 8.2.5); unpayable means unusable (CR 1.16.1).
+    const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
+    if (!source || !score.includes(source.id) || source.cannotForfeit) return false;
+  }
   // coreDamage / tags (add) are always payable (may flatline when paid).
   return true;
 }
@@ -1459,21 +1465,44 @@ export function payCost(
         1,
         "first",
       )[0];
-      if (id) {
-        const card = state.cards[id]!;
-        // CR 8.2.5 / 4.9.3 — forfeit moves the agenda to RFG.
-        removeCardFromCurrentZone(state, id);
-        card.zone = "removed-from-game";
-        card.faceup = true;
-        card.rezzed = false;
-        if (!state.removedFromGame) state.removedFromGame = [];
-        if (!state.removedFromGame.includes(id)) {
-          state.removedFromGame.push(id);
-        }
-        log(state, `Forfeit ${card.title} (removed from the game).`);
-      }
+      if (id) forfeitAgendaAsCost(state, id);
+    }
+    if (cost.forfeitSelf && source) {
+      forfeitAgendaAsCost(state, source.id);
     }
   });
+}
+
+/**
+ * Forfeit a scored agenda to pay a cost: it is removed from the game, not
+ * trashed, and its points no longer count (CR 8.2.5, 4.9.3). A "when you
+ * forfeit" ability is noted after the move, and the cost checkpoint marks
+ * and resolves it (CR 1.16.3, 9.6.6), still active in its new zone
+ * (CR 9.1.8g). Only an agenda in the Corp's score area is active; one in
+ * the Runner's score area is not (CR 3.2.3).
+ */
+function forfeitAgendaAsCost(state: GameState, id: string): void {
+  const card = state.cards[id];
+  if (!card) return;
+  const triggers =
+    state.corp.scoreArea.includes(id) &&
+    !!card.onForfeit &&
+    !abilitiesSuppressed(state, id);
+  removeCardFromCurrentZone(state, id);
+  moveForfeitedAgendaOutOfGame(state, id);
+  log(state, `Forfeit ${card.title} as a cost: it is removed from the game (CR ${CR.forfeit.number}).`);
+  if (triggers) {
+    noteStoredConditionals(state, [
+      {
+        abilityKey: "on-forfeit",
+        sourceId: id,
+        controller: "corp",
+        mandatory: true,
+        effectKey: "onForfeit",
+        logLine: `${card.title} becomes pending — forfeited.`,
+      },
+    ]);
+  }
 }
 
 function runnerCardsForHostedSpend(

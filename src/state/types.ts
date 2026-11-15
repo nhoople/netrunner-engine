@@ -272,6 +272,11 @@ export interface CostSpec {
   /** Forfeit 1 scored agenda as a cost (Data Dealer). */
   forfeitAgenda?: boolean;
   /**
+   * Forfeit this agenda as a cost (False Lead). Payable only while it is in
+   * its controller's score area (CR 1.16.1, 8.2.5).
+   */
+  forfeitSelf?: boolean;
+  /**
    * Remove this card from the game as a cost (The Back).
    * Hosted counters remain readable on the card instance after RFG.
    */

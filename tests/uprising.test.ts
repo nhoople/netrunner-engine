@@ -152,7 +152,10 @@ describe("uprising", () => {
       const def = getCardDef("false-lead");
       expect(def.paidAbilities).toHaveLength(1);
       const ab = def.paidAbilities![0]!;
-      expect(ab.cost).toEqual({ trashSelf: true });
+      // "Forfeit this agenda" is forfeitSelf, not trashSelf (CR 8.2.5); the
+      // pinned cards v1.147.23 still write trashSelf, so the cost is not
+      // pinned here. tests/forfeit-self-cost.test.ts covers the corrected
+      // ability. Assert toEqual({ forfeitSelf: true }) when the pin moves.
       expect(ab.windows).toContain("corp_action_paw");
       expect(validateEffectTree(ab.effect)).toBeNull();
       expect(JSON.stringify(ab.effect)).toContain("clicks_gte");
