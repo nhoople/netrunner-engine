@@ -18,8 +18,11 @@
  *   UPDATE_CR_CITATION_TOPICS=1 npx vitest run tests/cr-citation-topics.test.ts
  *
  * The test fails on a mismatch that is not recorded, and on a recorded one
- * that is gone. Phase 2 of the plan stops new mismatches from being
- * recorded once cr-checker has reviewed this baseline.
+ * that is gone. cr-checker reviewed the baseline on 2026-11-14 (Phase 2 of
+ * the CR audit plan); each entry carries its verdict in `reviewed`. Since
+ * then a new mismatch fails: fix the citation. Regenerating only removes
+ * entries, and refuses to add one. A flag cr-checker finds to be a false
+ * positive is added to the baseline by hand, with its verdict.
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -42,6 +45,8 @@ beforeAll(() => {
 });
 
 const BASELINE_PATH = join(ROOT, "tests/baselines/cr-citation-topics.json");
+const readBaseline = (): Baseline =>
+  JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline;
 const REVIEW_PATH = join(ROOT, "tests/generated/cr-citation-topics-review.md");
 const REGENERATE =
   "UPDATE_CR_CITATION_TOPICS=1 npx vitest run tests/cr-citation-topics.test.ts";
@@ -62,16 +67,21 @@ function describeSite(m: TopicMismatch): string {
   );
 }
 
-function baselineJson(keys: string[]): string {
+type Baseline = { mismatches: string[]; reviewed: Record<string, string> };
+
+function baselineJson(keys: string[], reviewed: Record<string, string>): string {
   return (
     JSON.stringify(
       {
         _comment:
           "Citation-topic mismatches (CR audit tool 1.5b, tests/cr-citation-topics.test.ts). " +
           "Each entry is `<file> CR <number> [(CR.<label>)] [<code topic>]`: code about that " +
-          "topic citing a rule whose section never mentions it. Generated; regenerate with " +
-          `${REGENERATE}. Review with cr-checker via tests/generated/cr-citation-topics-review.md.`,
+          "topic citing a rule whose section never mentions it. Shrink-only: " +
+          `${REGENERATE} removes fixed entries and refuses to add one. reviewed: the ` +
+          "cr-checker verdict on each entry (wrong / partly / right = false positive), " +
+          "from the review of tests/generated/cr-citation-topics-review.md on 2026-11-14.",
         mismatches: keys,
+        reviewed: Object.fromEntries(keys.map((k) => [k, reviewed[k]!])),
       },
       null,
       2,
@@ -125,7 +135,17 @@ describe("CR citation topics (CR audit 1.5b)", () => {
   const found = [...new Set(mismatches.map(mismatchKey))].sort();
 
   if (process.env.UPDATE_CR_CITATION_TOPICS) {
-    writeFileSync(BASELINE_PATH, baselineJson(found));
+    const recorded = readBaseline();
+    const added = found.filter((k) => !recorded.mismatches.includes(k));
+    if (added.length > 0) {
+      throw new Error(
+        `refusing to record new citation-topic mismatch(es); fix the citation:\n${mismatches
+          .filter((m) => added.includes(mismatchKey(m)))
+          .map(describeSite)
+          .join("\n")}`,
+      );
+    }
+    writeFileSync(BASELINE_PATH, baselineJson(found, recorded.reviewed));
     mkdirSync(dirname(REVIEW_PATH), { recursive: true });
     writeFileSync(REVIEW_PATH, reviewMarkdown(mismatches));
     for (const m of mismatches) console.log(describeSite(m));
@@ -164,8 +184,7 @@ describe("CR citation topics (CR audit 1.5b)", () => {
     expect(cites118.length - visibility.length).toBeGreaterThan(0);
   });
 
-  const baseline = (): string[] =>
-    (JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as { mismatches: string[] }).mismatches;
+  const baseline = (): string[] => readBaseline().mismatches;
 
   it("fails on a mismatch the baseline does not record", () => {
     const recorded = baseline();
@@ -173,9 +192,18 @@ describe("CR citation topics (CR audit 1.5b)", () => {
     const fresh = mismatches.filter((m) => !recorded.includes(mismatchKey(m)));
     expect(
       fresh.map(describeSite),
-      "CR citation(s) whose rule is about something else: fix the number, or record " +
-        `them for cr-checker review with ${REGENERATE}`,
+      "CR citation(s) whose rule is about something else: fix the number. (A false " +
+        "positive goes in the baseline by hand, with cr-checker's verdict in `reviewed`.)",
     ).toEqual([]);
+  });
+
+  it("every recorded mismatch has a cr-checker verdict", () => {
+    const { mismatches: recorded, reviewed } = readBaseline();
+    expect(
+      recorded.filter((k) => !/^(wrong|partly|right)\b/.test(reviewed[k] ?? "")),
+      "baseline entries without a `reviewed` verdict (wrong / partly / right)",
+    ).toEqual([]);
+    expect(Object.keys(reviewed).sort()).toEqual(recorded);
   });
 
   it("fails on a recorded mismatch that is gone (shrink-only)", () => {

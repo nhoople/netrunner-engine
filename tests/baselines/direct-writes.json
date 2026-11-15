@@ -1,0 +1,758 @@
+{
+  "_comment": "Shrink-only baseline for tests/procedure-write-guard.test.ts (CR audit Phase 2, guard 1). Recorded 2026-11-14 at engine v1.147.257, cards v1.147.24. counts: direct writes to procedure-owned state outside the helper modules, by file and property (see tests/direct-writes.ts). raised: hand edits that raised a count, each with a date and reason.",
+  "raised": [],
+  "counts": {
+    "src/actions/access.ts": {
+      "deck": 1,
+      "discardPile": 1,
+      "hand": 1,
+      "hostId": 1,
+      "hostedCardIds": 2,
+      "ice": 1,
+      "rezzed": 2,
+      "root": 1,
+      "zone": 2
+    },
+    "src/actions/apply.ts": {
+      "deck": 10,
+      "discardPile": 12,
+      "hand": 14,
+      "installed": 1,
+      "removedFromGame": 5,
+      "rezzed": 9,
+      "root": 7,
+      "zone": 19
+    },
+    "src/actions/breakSubroutine.ts": {
+      "deck": 1,
+      "rezzed": 1
+    },
+    "src/actions/installCorp.ts": {
+      "deck": 2,
+      "discardPile": 2,
+      "hand": 2,
+      "hostId": 1,
+      "hostedCardIds": 2,
+      "ice": 1,
+      "position": 2,
+      "rezzed": 4,
+      "root": 2,
+      "zone": 5
+    },
+    "src/actions/installRunner.ts": {
+      "deck": 1,
+      "hand": 2,
+      "hostId": 7,
+      "hostedCardIds": 11,
+      "installed": 2,
+      "zone": 3
+    },
+    "src/actions/phase.ts": {
+      "discardPile": 1,
+      "hand": 1,
+      "zone": 1
+    },
+    "src/actions/play.ts": {
+      "discardPile": 2,
+      "hand": 3,
+      "hostId": 1,
+      "hostedCardIds": 1,
+      "removedFromGame": 2,
+      "zone": 3
+    },
+    "src/actions/rez.ts": {
+      "deck": 1,
+      "discardPile": 1,
+      "hand": 2,
+      "rezzed": 3,
+      "scoreArea": 1,
+      "zone": 2
+    },
+    "src/cards/load.ts": {
+      "rezzed": 1,
+      "zone": 1
+    },
+    "src/cards/shortGame.ts": {
+      "deck": 2,
+      "hand": 1
+    },
+    "src/demo/verticalSlice.ts": {
+      "deck": 1,
+      "hand": 1,
+      "zone": 1
+    },
+    "src/effects/chooseCards.ts": {
+      "deck": 2,
+      "hand": 1,
+      "zone": 3
+    },
+    "src/effects/corpAbilityInstall.ts": {
+      "rezzed": 1
+    },
+    "src/effects/corpInstall.ts": {
+      "discardPile": 2,
+      "hand": 2,
+      "ice": 4,
+      "rezzed": 4,
+      "root": 4,
+      "zone": 8
+    },
+    "src/effects/corpTrash.ts": {
+      "deck": 1,
+      "discardPile": 1,
+      "rezzed": 2,
+      "zone": 2
+    },
+    "src/effects/counterPrimitives.ts": {
+      "discardPile": 4,
+      "removedFromGame": 4,
+      "rezzed": 3,
+      "zone": 6
+    },
+    "src/effects/draw.ts": {
+      "deck": 3,
+      "discardPile": 1,
+      "hand": 4,
+      "zone": 4
+    },
+    "src/effects/eval.ts": {
+      "deck": 4,
+      "discardPile": 2,
+      "hand": 2,
+      "hostId": 2,
+      "installed": 1,
+      "removedFromGame": 2,
+      "zone": 6
+    },
+    "src/effects/hostedCreditPrimitives.ts": {
+      "deck": 1,
+      "discardPile": 2,
+      "rezzed": 2,
+      "zone": 3
+    },
+    "src/effects/kinds/addKinds.ts": {
+      "deck": 8,
+      "discardPile": 6,
+      "hand": 7,
+      "hostId": 3,
+      "hostedCardIds": 1,
+      "installed": 1,
+      "rezzed": 5,
+      "scoreArea": 4,
+      "zone": 14
+    },
+    "src/effects/kinds/derezKinds.ts": {
+      "rezzed": 8
+    },
+    "src/effects/kinds/hostKinds.ts": {
+      "deck": 3,
+      "hand": 7,
+      "hostId": 13,
+      "hostedCardIds": 20,
+      "rezzed": 4,
+      "zone": 11
+    },
+    "src/effects/kinds/installKinds.ts": {
+      "deck": 6,
+      "discardPile": 9,
+      "hand": 15,
+      "hostId": 3,
+      "hostedCardIds": 3,
+      "ice": 18,
+      "installed": 8,
+      "rezzed": 24,
+      "root": 10,
+      "scoreArea": 1,
+      "zone": 38
+    },
+    "src/effects/kinds/lookKinds.ts": {
+      "deck": 14
+    },
+    "src/effects/kinds/moveKinds.ts": {
+      "attackedServerId": 2,
+      "deck": 1,
+      "hand": 1,
+      "ice": 5,
+      "installed": 1,
+      "rezzed": 1,
+      "root": 4,
+      "zone": 6
+    },
+    "src/effects/kinds/otherKinds.ts": {
+      "attackedServerId": 3,
+      "deck": 18,
+      "discardPile": 4,
+      "hand": 9,
+      "hostId": 3,
+      "hostedCardIds": 2,
+      "ice": 2,
+      "installed": 2,
+      "removedFromGame": 10,
+      "rezzed": 8,
+      "scoreArea": 3,
+      "zone": 23
+    },
+    "src/effects/kinds/placeKinds.ts": {
+      "deck": 2,
+      "discardPile": 1,
+      "hand": 2,
+      "root": 1,
+      "zone": 2
+    },
+    "src/effects/kinds/playKinds.ts": {
+      "discardPile": 4,
+      "hand": 2,
+      "removedFromGame": 3,
+      "rezzed": 1,
+      "zone": 4
+    },
+    "src/effects/kinds/resolveKinds.ts": {
+      "deck": 6,
+      "discardPile": 2,
+      "removedFromGame": 4,
+      "rezzed": 3,
+      "zone": 5
+    },
+    "src/effects/kinds/returnKinds.ts": {
+      "deck": 1,
+      "discardPile": 2,
+      "hand": 8,
+      "hostId": 2,
+      "hostedCardIds": 1,
+      "installed": 1,
+      "rezzed": 4,
+      "scoreArea": 1,
+      "zone": 9
+    },
+    "src/effects/kinds/revealKinds.ts": {
+      "deck": 7,
+      "hand": 2,
+      "rezzed": 2,
+      "zone": 5
+    },
+    "src/effects/kinds/rezKinds.ts": {
+      "ice": 2,
+      "rezzed": 9,
+      "zone": 1
+    },
+    "src/effects/kinds/searchKinds.ts": {
+      "deck": 17,
+      "hand": 12,
+      "hostId": 1,
+      "hostedCardIds": 2,
+      "ice": 1,
+      "installed": 1,
+      "rezzed": 1,
+      "root": 1,
+      "zone": 16
+    },
+    "src/effects/kinds/setKinds.ts": {
+      "deck": 1
+    },
+    "src/effects/kinds/shuffleKinds.ts": {
+      "deck": 11,
+      "discardPile": 4,
+      "hand": 4,
+      "hostId": 2,
+      "hostedCardIds": 1,
+      "rezzed": 2,
+      "zone": 11
+    },
+    "src/effects/kinds/swapKinds.ts": {
+      "discardPile": 2,
+      "hand": 10,
+      "rezzed": 11,
+      "root": 5,
+      "zone": 18
+    },
+    "src/effects/kinds/trashKinds.ts": {
+      "deck": 3,
+      "discardPile": 7,
+      "hand": 4,
+      "hostId": 1,
+      "hostedCardIds": 1,
+      "rezzed": 4,
+      "zone": 8
+    },
+    "src/effects/primitives/addResolveInstall.ts": {
+      "discardPile": 1,
+      "hand": 2,
+      "hostId": 3,
+      "installed": 2,
+      "rezzed": 2,
+      "root": 1,
+      "zone": 4
+    },
+    "src/effects/primitives/boostRezTrace.ts": {
+      "deck": 1,
+      "installed": 1,
+      "rezzed": 1,
+      "zone": 1
+    },
+    "src/effects/primitives/breachResolveInstall.ts": {
+      "discardPile": 1,
+      "hand": 1,
+      "hostId": 1,
+      "ice": 1,
+      "installed": 1,
+      "rezzed": 1,
+      "zone": 2
+    },
+    "src/effects/primitives/breachResolveRfg.ts": {
+      "attackedServerId": 2,
+      "discardPile": 1,
+      "hand": 1,
+      "hostId": 2,
+      "hostedCardIds": 3,
+      "installed": 1,
+      "removedFromGame": 2,
+      "zone": 2
+    },
+    "src/effects/primitives/breachTrashTurn.ts": {
+      "deck": 2,
+      "discardPile": 1,
+      "hand": 1,
+      "zone": 1
+    },
+    "src/effects/primitives/chooseGainShuffle.ts": {
+      "attackedServerId": 1,
+      "deck": 6,
+      "discardPile": 3,
+      "hand": 5,
+      "hostId": 1,
+      "rezzed": 2,
+      "zone": 8
+    },
+    "src/effects/primitives/derezDrawChoose.ts": {
+      "deck": 4,
+      "discardPile": 4,
+      "hand": 3,
+      "hostId": 1,
+      "rezzed": 1,
+      "zone": 6
+    },
+    "src/effects/primitives/derezExposePrevent.ts": {
+      "hand": 1,
+      "rezzed": 1,
+      "zone": 1
+    },
+    "src/effects/primitives/derezRfgTrash.ts": {
+      "deck": 4,
+      "discardPile": 1,
+      "hand": 5,
+      "hostId": 4,
+      "hostedCardIds": 4,
+      "ice": 3,
+      "rezzed": 3,
+      "zone": 12
+    },
+    "src/effects/primitives/gainCannotSwap.ts": {
+      "hand": 4,
+      "hostId": 3,
+      "hostedCardIds": 5,
+      "installed": 1,
+      "rezzed": 2,
+      "zone": 4
+    },
+    "src/effects/primitives/gainExposeSearch.ts": {
+      "deck": 8,
+      "discardPile": 6,
+      "hand": 6,
+      "hostId": 5,
+      "installed": 5,
+      "removedFromGame": 2,
+      "rezzed": 2,
+      "zone": 15
+    },
+    "src/effects/primitives/gainMoveMark.ts": {
+      "deck": 1,
+      "discardPile": 2,
+      "hand": 6,
+      "hostId": 3,
+      "ice": 1,
+      "installed": 1,
+      "rezzed": 3,
+      "zone": 8
+    },
+    "src/effects/primitives/givePayTrash.ts": {
+      "deck": 1,
+      "discardPile": 4,
+      "hand": 3,
+      "ice": 1,
+      "installed": 1,
+      "rezzed": 3,
+      "root": 1,
+      "zone": 9
+    },
+    "src/effects/primitives/hostInstallExpose.ts": {
+      "deck": 1,
+      "discardPile": 3,
+      "hand": 2,
+      "hostId": 2,
+      "hostedCardIds": 3,
+      "installed": 1,
+      "rezzed": 4,
+      "root": 1,
+      "zone": 5
+    },
+    "src/effects/primitives/hostResolveLook.ts": {
+      "deck": 2,
+      "discardPile": 2,
+      "hand": 7,
+      "hostId": 1,
+      "hostedCardIds": 2,
+      "installed": 2,
+      "rezzed": 4,
+      "root": 1,
+      "zone": 8
+    },
+    "src/effects/primitives/lookInstallTrash.ts": {
+      "deck": 6,
+      "discardPile": 2,
+      "hand": 1,
+      "installed": 1,
+      "zone": 5
+    },
+    "src/effects/primitives/lookTrashAdd.ts": {
+      "deck": 5,
+      "discardPile": 3,
+      "hand": 4,
+      "zone": 8
+    },
+    "src/effects/primitives/moveSearchInstall.ts": {
+      "deck": 6,
+      "discardPile": 4,
+      "hand": 4,
+      "hostId": 4,
+      "installed": 3,
+      "rezzed": 2,
+      "root": 1,
+      "zone": 8
+    },
+    "src/effects/primitives/playDrawSearch.ts": {
+      "deck": 7,
+      "discardPile": 2,
+      "hand": 2,
+      "installed": 2,
+      "rezzed": 3,
+      "root": 1,
+      "zone": 8
+    },
+    "src/effects/primitives/preventGainSpend.ts": {
+      "deck": 3,
+      "discardPile": 1,
+      "removedFromGame": 4,
+      "rezzed": 1,
+      "root": 1,
+      "zone": 6
+    },
+    "src/effects/primitives/preventInstallDraw.ts": {
+      "deck": 3,
+      "hand": 6,
+      "hostId": 2,
+      "hostedCardIds": 3,
+      "installed": 3,
+      "rezzed": 1,
+      "root": 1,
+      "scoreArea": 1,
+      "zone": 7
+    },
+    "src/effects/primitives/preventMoveChoose.ts": {
+      "deck": 6,
+      "discardPile": 3,
+      "hand": 2,
+      "installed": 2,
+      "root": 1,
+      "zone": 5
+    },
+    "src/effects/primitives/preventSpendTrash.ts": {
+      "deck": 4,
+      "hand": 2,
+      "zone": 2
+    },
+    "src/effects/primitives/redirectSpendName.ts": {
+      "attackedServerId": 1,
+      "deck": 2,
+      "discardPile": 3,
+      "hand": 3,
+      "removedFromGame": 2,
+      "zone": 5
+    },
+    "src/effects/primitives/resolveExposePay.ts": {
+      "deck": 3,
+      "discardPile": 3,
+      "hand": 3,
+      "rezzed": 3,
+      "root": 1,
+      "zone": 4
+    },
+    "src/effects/primitives/resolveMoveInstall.ts": {
+      "attackedServerId": 1,
+      "deck": 2,
+      "discardPile": 2,
+      "hand": 2,
+      "hostId": 3,
+      "installed": 4,
+      "rezzed": 3,
+      "zone": 6
+    },
+    "src/effects/primitives/revealTrashCannot.ts": {
+      "deck": 2,
+      "discardPile": 2,
+      "hand": 3,
+      "hostId": 1,
+      "ice": 1,
+      "rezzed": 1,
+      "zone": 4
+    },
+    "src/effects/primitives/rezBreachPlace.ts": {
+      "deck": 4,
+      "discardPile": 1,
+      "hand": 6,
+      "ice": 1,
+      "rezzed": 3,
+      "root": 1,
+      "zone": 7
+    },
+    "src/effects/primitives/scoreTraceOffer.ts": {
+      "discardPile": 1,
+      "hand": 1,
+      "zone": 1
+    },
+    "src/effects/primitives/searchRevealTrash.ts": {
+      "deck": 4,
+      "discardPile": 1,
+      "hand": 1,
+      "rezzed": 1,
+      "root": 1,
+      "zone": 3
+    },
+    "src/effects/primitives/searchScoreName.ts": {
+      "deck": 2,
+      "hand": 1,
+      "zone": 2
+    },
+    "src/effects/primitives/shuffleInstall.ts": {
+      "deck": 3,
+      "discardPile": 3,
+      "hand": 1,
+      "hostId": 1,
+      "ice": 1,
+      "installed": 1,
+      "removedFromGame": 2,
+      "rezzed": 1,
+      "zone": 4
+    },
+    "src/effects/primitives/shuffleLookPick.ts": {
+      "deck": 4,
+      "discardPile": 3,
+      "hand": 1,
+      "hostId": 2,
+      "hostedCardIds": 3,
+      "rezzed": 3,
+      "root": 2,
+      "scoreArea": 1,
+      "zone": 7
+    },
+    "src/effects/primitives/spendHostPrevent.ts": {
+      "attackedServerId": 1,
+      "discardPile": 1,
+      "hostId": 1,
+      "hostedCardIds": 2,
+      "position": 1,
+      "zone": 4
+    },
+    "src/effects/primitives/spendInstallAdd.ts": {
+      "attackedServerId": 1,
+      "deck": 5,
+      "discardPile": 1,
+      "hand": 6,
+      "rezzed": 1,
+      "scoreArea": 1,
+      "zone": 8
+    },
+    "src/effects/primitives/spendMoveTrash.ts": {
+      "deck": 1,
+      "discardPile": 1,
+      "hand": 1,
+      "rezzed": 1,
+      "zone": 2
+    },
+    "src/effects/primitives/swapNetBreach.ts": {
+      "deck": 1,
+      "rezzed": 1,
+      "root": 1,
+      "scoreArea": 4,
+      "zone": 3
+    },
+    "src/effects/primitives/trashChooseAccess.ts": {
+      "deck": 4,
+      "discardPile": 2,
+      "hand": 3,
+      "hostId": 5,
+      "hostedCardIds": 4,
+      "ice": 1,
+      "rezzed": 4,
+      "zone": 8
+    },
+    "src/effects/primitives/trashForceGain.ts": {
+      "deck": 1,
+      "installed": 1,
+      "zone": 1
+    },
+    "src/effects/primitives/trashGiveSwap.ts": {
+      "deck": 2,
+      "discardPile": 3,
+      "hand": 5,
+      "rezzed": 1,
+      "root": 2,
+      "zone": 7
+    },
+    "src/effects/primitives/trashPlaceAccess.ts": {
+      "deck": 1,
+      "discardPile": 1,
+      "hand": 2,
+      "removedFromGame": 1,
+      "rezzed": 1,
+      "scoreArea": 5,
+      "zone": 5
+    },
+    "src/effects/primitives/trashResolveDerez.ts": {
+      "attackedServerId": 1,
+      "deck": 6,
+      "discardPile": 2,
+      "hand": 2,
+      "hostId": 2,
+      "installed": 1,
+      "rezzed": 1,
+      "zone": 8
+    },
+    "src/effects/primitives/trashResolveTrace.ts": {
+      "deck": 3,
+      "discardPile": 1,
+      "ice": 2,
+      "installed": 1,
+      "rezzed": 3,
+      "zone": 3
+    },
+    "src/effects/runnerInstall.ts": {
+      "deck": 3,
+      "discardPile": 3,
+      "hand": 1,
+      "hostId": 1,
+      "installed": 7,
+      "zone": 10
+    },
+    "src/legality/checkpoints.ts": {
+      "discardPile": 2,
+      "hostId": 1,
+      "hostedCardIds": 1,
+      "ice": 1,
+      "position": 1,
+      "rezzed": 2,
+      "zone": 2
+    },
+    "src/state/access.ts": {
+      "attackedServerId": 1
+    },
+    "src/state/cardDeclarations.ts": {
+      "deck": 5,
+      "discardPile": 8,
+      "hand": 5,
+      "hostId": 1,
+      "hostedCardIds": 2,
+      "installed": 4,
+      "removedFromGame": 2,
+      "rezzed": 2,
+      "scoreArea": 2,
+      "zone": 13
+    },
+    "src/state/costs.ts": {
+      "discardPile": 10,
+      "hand": 4,
+      "hostId": 1,
+      "hostedCardIds": 2,
+      "installed": 2,
+      "removedFromGame": 4,
+      "rezzed": 2,
+      "zone": 13
+    },
+    "src/state/createGame.ts": {
+      "deck": 2,
+      "hand": 2
+    },
+    "src/state/currents.ts": {
+      "discardPile": 1,
+      "zone": 1
+    },
+    "src/state/damage.ts": {
+      "deck": 1,
+      "installed": 1
+    },
+    "src/state/fenris.ts": {
+      "discardPile": 1,
+      "hostId": 3,
+      "hostedCardIds": 3,
+      "installed": 1,
+      "removedFromGame": 1,
+      "zone": 4
+    },
+    "src/state/lockdowns.ts": {
+      "discardPile": 1,
+      "rezzed": 1,
+      "zone": 1
+    },
+    "src/state/msKeywords.ts": {
+      "deck": 1,
+      "discardPile": 1,
+      "rezzed": 1,
+      "zone": 1
+    },
+    "src/state/runPosition.ts": {
+      "ice": 1
+    },
+    "src/state/scoring.ts": {
+      "deck": 2,
+      "discardPile": 2,
+      "hand": 2,
+      "ice": 1,
+      "installed": 1,
+      "removedFromGame": 2,
+      "rezzed": 3,
+      "root": 2,
+      "scoreArea": 6,
+      "zone": 3
+    },
+    "src/state/staticFlags.ts": {
+      "deck": 1,
+      "discardPile": 2,
+      "hand": 1,
+      "installed": 2,
+      "zone": 3
+    },
+    "src/state/trashHooks.ts": {
+      "discardPile": 4,
+      "hostId": 2,
+      "hostedCardIds": 1,
+      "removedFromGame": 2,
+      "rezzed": 2,
+      "zone": 6
+    },
+    "src/state/zones.ts": {
+      "zone": 2
+    },
+    "src/timing/graph.ts": {
+      "attackedServerId": 4,
+      "deck": 5,
+      "discardPile": 12,
+      "hand": 8,
+      "hostId": 6,
+      "hostedCardIds": 3,
+      "ice": 1,
+      "installed": 9,
+      "removedFromGame": 5,
+      "rezzed": 9,
+      "zone": 23
+    }
+  }
+}

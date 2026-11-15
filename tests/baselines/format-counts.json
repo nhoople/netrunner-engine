@@ -1,0 +1,16 @@
+{
+  "_comment": "Card format counts for tests/format-counts.test.ts (CR audit Phase 2, guard 4). history: dated entries; the last one must equal the code. A count may only shrink; an entry that raises one needs a reason saying why the format had to grow. knownPrimitiveKinds = KNOWN_PRIMITIVE_KINDS size; oneCardKinds = kinds exactly one card's JSON uses; cardDefFlags = optional boolean and number CardDef fields (tests/baselines/card-flags.json counts.cardDefFlags).",
+  "history": [
+    {
+      "date": "2026-11-14",
+      "engine": "v1.147.257",
+      "cards": "v1.147.24",
+      "counts": {
+        "knownPrimitiveKinds": 1537,
+        "oneCardKinds": 746,
+        "cardDefFlags": 602
+      },
+      "reason": "Starting baseline (Phase 2)."
+    }
+  ]
+}

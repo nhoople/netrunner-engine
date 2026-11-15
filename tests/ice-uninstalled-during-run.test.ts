@@ -1,8 +1,6 @@
 /**
  * Ice that leaves play during a run (CR 6.2.4, 6.2.6, 6.2.7, 8.5.10).
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -267,29 +265,5 @@ describe("hand-written ice trashes go through the trash procedure (CR 1.14.5)", 
   });
 });
 
-describe("moving the Runner clears an emptied position", () => {
-  it("every assignment to the run position goes through setRunnerPosition", () => {
-    const files: string[] = [];
-    const walk = (dir: string): void => {
-      for (const name of readdirSync(dir)) {
-        const path = join(dir, name);
-        if (statSync(path).isDirectory()) walk(path);
-        else if (path.endsWith(".ts")) files.push(path);
-      }
-    };
-    walk(join(__dirname, "..", "src"));
-    const direct: string[] = [];
-    for (const file of files) {
-      if (file.endsWith(join("state", "runPosition.ts"))) continue;
-      readFileSync(file, "utf8")
-        .split("\n")
-        .forEach((line, index) => {
-          if (!/\b(run|runState)!?\.position = /.test(line)) return;
-          // The install keeps the Runner on the same element (CR 6.2.6).
-          if (line.includes("state.run.position = at;")) return;
-          direct.push(`${file}:${index + 1}`);
-        });
-    }
-    expect(direct).toEqual([]);
-  });
-});
+// The guard that every run position write goes through setRunnerPosition
+// (CR 6.2.4, 6.2.6) is tests/procedure-write-guard.test.ts.

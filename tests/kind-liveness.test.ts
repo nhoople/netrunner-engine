@@ -11,8 +11,11 @@
  *     `src/actions/apply.ts` instead (Tāo Salonga's `swap-a-b` ids); that is
  *     still a procedure hidden from the IR, so they are reported too, with
  *     the dispatch literal in the failure message.
- * (c) Card flags whose consumer builds a no-op kind. Needs the flag-to-kind
- *     map from tool 1.10 (tests/baselines/card-flags.json).
+ * (c) Card flags whose consumer builds a no-op kind. Reads the flag-to-kind
+ *     map and the reader sites from tool 1.10 (tests/baselines/card-flags.json):
+ *     a flag whose reader builds a kind from a no-op `case` in (b), or whose
+ *     reader site is a no-op choice function in (b). Only boolean `CardDef`
+ *     flags count; `title`, `trashCost` and other printed fields are not flags.
  *
  * The baseline tests/baselines/kind-liveness.json may only shrink: a new
  * entry fails, and an entry that is no longer found fails until it is
@@ -42,6 +45,7 @@ const BASELINE_PATH = join(ROOT, "tests/baselines/kind-liveness.json");
 type Baseline = {
   deadKinds: string[];
   noOpChoices: string[];
+  noOpFlags: string[];
 };
 
 function walk(dir: string, ext: string, out: string[] = []): string[] {
@@ -270,6 +274,42 @@ function noOpCardChoices(): string[] {
   return [...out];
 }
 
+// ---------------------------------------------------------------- (c)
+
+type FlagInventory = {
+  flagKinds: Record<string, string[]>;
+  entries: Record<string, { flag: boolean; cardDef: string; readers?: Array<{ site: string; kinds: string[] }> }>;
+};
+
+/**
+ * `flag:<name> -> kind <k>` for a flag whose reader builds a no-op case kind,
+ * and `flag:<name> -> <file>#<function>` for one read inside a no-op choice
+ * function.
+ */
+function noOpFlags(builders: Map<string, string[]>): string[] {
+  const inv = JSON.parse(
+    readFileSync(join(ROOT, "tests/baselines/card-flags.json"), "utf8"),
+  ) as FlagInventory;
+  const noOpKinds = new Set<string>();
+  const noOpFunctions = new Set<string>();
+  for (const key of builders.keys()) {
+    const [file, scope] = key.split("#") as [string, string];
+    if (scope.startsWith("case ")) noOpKinds.add(scope.slice(5));
+    else noOpFunctions.add(`${file}#${scope.slice("function ".length)}`);
+  }
+  const out = new Set<string>();
+  for (const [flag, kinds] of Object.entries(inv.flagKinds)) {
+    for (const k of kinds) if (noOpKinds.has(k)) out.add(`flag:${flag} -> kind ${k}`);
+  }
+  for (const [flag, entry] of Object.entries(inv.entries)) {
+    if (!entry.flag || entry.cardDef !== "boolean") continue;
+    for (const r of entry.readers ?? []) {
+      if (noOpFunctions.has(r.site)) out.add(`flag:${flag} -> ${r.site}`);
+    }
+  }
+  return [...out].sort();
+}
+
 // ---------------------------------------------------------------- test
 
 function readBaseline(): Baseline {
@@ -314,8 +354,12 @@ describe("kind liveness (CR audit 1.2)", () => {
     shrinkOnly(found, readBaseline().noOpChoices, `no-op choice(s)\n${detail}\n`);
   });
 
-  it.todo(
-    "(c) no card flag's consumer builds a no-op kind: needs the flag-to-kind " +
-      "map in tests/baselines/card-flags.json (tool 1.10, P1-h)",
-  );
+  it("(c) no card flag's consumer builds a no-op kind", () => {
+    const found = noOpFlags(noOpChoiceBuilders());
+    // Tāo Salonga: the flag builds swap_two_ice, whose options are all no-ops.
+    expect(found).toContain(
+      "flag:maySwapIceOnAgendaScoredOrStolen -> kind swap_two_ice",
+    );
+    shrinkOnly(found, readBaseline().noOpFlags, "no-op flag consumer(s)");
+  });
 });
