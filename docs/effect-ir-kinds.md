@@ -6,7 +6,7 @@ Every primitive kind the engine knows, with its fields, how many cards use it, a
 
 ## Totals
 
-Card counts are from cards `v1.147.23` (2016 cards).
+Card counts are from cards `v1.147.24` (2016 cards).
 
 | Measure | Count |
 | --- | ---: |
@@ -242,14 +242,14 @@ Card counts are from cards `v1.147.23` (2016 cards).
 | `break_encounter_subroutine` | `requireSubtype?: string`, `requireMinStrength?: number`, `maxSubs?: number`, `payCreditsPerBrokenSub?: number`, `thenIfBroke?: Effect` | 34 | card, engine |
 | `break_etr_subroutine_trash_installed` | — | 1 | card |
 | `break_first_subroutine` | — | 1 | card |
-| `break_host_subroutine` | `maxSubs?: number`, `requireSubtype?: string` | 5 | card |
+| `break_host_subroutine` | `maxSubs?: number`, `requireSubtype?: string` | 4 | card |
 | `break_last_subroutine` | — | 1 | card |
 | `break_matryoshka` | — | 1 | card |
 | `break_resolve` | `amount: number`, `hostedId: string` | 0 | engine |
 | `break_sentry_or_barrier` | — | 1 | card |
 | `break_sentry_or_code_gates` | — | 1 | card |
 | `break_sub_index` | `iceId: string`, `index: number` | 0 | engine |
-| `break_subroutine_on_self` | `amount: number` | 5 | card |
+| `break_subroutine_on_self` | `amount: number` | 6 | card |
 | `runner_break_fast_equal_to_scored_agendas` | — | 1 | card |
 
 <a id="verb-bypass"></a>
