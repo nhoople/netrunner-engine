@@ -147,3 +147,53 @@ describe("B2: a turn-begin choice does not stall the turn (CR 9.6.6, 11.2_1_d, 1
     expectEveryLegalActionApplies(s);
   });
 });
+
+describe("B1: steal is offered only when its additional costs can be paid (CR 1.16.1, 1.16.10b, 7.2.3)", () => {
+  // Standard, seed 179: the Runner accesses SDS Drone Deployment ("as an
+  // additional cost to steal this agenda, the Runner must trash an installed
+  // program") with no program installed.
+  it("SDS Drone Deployment with no installed program: only finishing the access is legal", () => {
+    const s = replayTo("standard", 179, 66);
+    expect(s.timingKey).toBe("access.stealAgenda");
+    const agendaId = s.run!.accessingCardId!;
+    expect(s.cards[agendaId]?.title).toBe("SDS Drone Deployment");
+    expect(s.runner.installed.filter((id) => s.cards[id]?.type === "program")).toEqual([]);
+
+    const steal: Action = { type: "steal_agenda", cardId: agendaId };
+    expect(isActionLegal(s, steal)).toBe(false);
+    expect(applyAction(structuredClone(s), steal).ok).toBe(false);
+    expect(queryLegality(s).legal.map((l) => l.action.type)).toEqual(["finish_access"]);
+
+    const after = must(s, { type: "finish_access" });
+    expect(after.cards[agendaId]?.zone).toBe("corp:rd");
+    expect(after.runner.scoreArea).not.toContain(agendaId);
+    expectEveryLegalActionApplies(after);
+  });
+});
+
+describe("a run-end choice answered after the run is over (CR 6.9.6d, 10.3.6)", () => {
+  // Standard, seed 50: Always Have a Backup Plan offers its rerun at run end.
+  it("declining Always Have a Backup Plan returns the Runner to their action phase", () => {
+    const s = replayTo("standard", 50, 27);
+    expect(s.timingKey).toBe("run.ends");
+    expect(s.run).toBeNull();
+    expect(s.cards[s.pendingChoice!.sourceId!]?.title).toBe("Always Have a Backup Plan");
+    const after = must(s, { type: "choose_option", optionId: "decline-backup" });
+    expect(after.pendingChoice).toBeNull();
+    expect(after.run).toBeNull();
+    expect(after.timingKey).toBe("runner.actionPaw");
+    expectEveryLegalActionApplies(after);
+  });
+
+  it("accepting starts the new run on the attacked server, ignoring additional costs, with no click spent", () => {
+    const s = replayTo("standard", 50, 27);
+    const clicks = s.runner.clicks;
+    const after = must(s, { type: "choose_option", optionId: "backup-rerun" });
+    expect(after.pendingChoice).toBeNull();
+    expect(after.run?.attackedServerId).toBe("hq");
+    expect(after.run?.backupPlanIgnoreAdditionalCosts).toBe(true);
+    expect(after.timingKey.startsWith("run.")).toBe(true);
+    expect(after.runner.clicks).toBe(clicks);
+    expectEveryLegalActionApplies(after);
+  });
+});

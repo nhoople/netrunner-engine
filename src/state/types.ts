@@ -5641,6 +5641,9 @@ export interface GameState {
     forbidCorpRezIceDuringRun?: boolean;
     rfgFirstNonAgendaAccess?: boolean;
     lastingRfgCopiesOnAccess?: boolean;
+    /** Always Have a Backup Plan: ignore additional costs to run; bypass this ice. */
+    backupPlanIgnoreAdditionalCosts?: boolean;
+    backupPlanBypassIceId?: string;
   } | null;
   /**
    * Cataloguer-class: begin a standalone post-run-style breach of this server
@@ -6133,6 +6136,9 @@ export interface PublicView {
     forbidCorpRezIceDuringRun?: boolean;
     rfgFirstNonAgendaAccess?: boolean;
     lastingRfgCopiesOnAccess?: boolean;
+    /** Always Have a Backup Plan: ignore additional costs to run; bypass this ice. */
+    backupPlanIgnoreAdditionalCosts?: boolean;
+    backupPlanBypassIceId?: string;
   } | null;
   pendingScoreAgendaId: string | null;
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */

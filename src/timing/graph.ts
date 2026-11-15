@@ -4936,8 +4936,12 @@ export const STEPS: Record<string, TimingStepDef> = {
     (s) => (s.run?.isPostRunBreach ? "breach.begin" : "runner.actionPaw"),
     {
       onResolve: (s) => {
+        // The step comes back here once a run-end ability's choice is
+        // answered (Always Have a Backup Plan). The run is already over
+        // (CR 6.9.6d), so there is nothing left to resolve; move on.
+        if (!s.run) return;
         resolveDeferredPersistentAmaze(s);
-        const runState = s.run!;
+        const runState = s.run;
         // A run can end during a forced encounter (CR 9.1.8h).
         clearEncounterOutsidePlayMark(s, runState.encounter?.iceId, true);
         clearEncounterOutsidePlayMark(s, runState.forceEncounterIceId, true);
