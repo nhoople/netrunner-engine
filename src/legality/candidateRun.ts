@@ -435,10 +435,26 @@ export function addPaidWindowCandidates(
           continue;
         }
         const cost = abilityCost(ab, state, card);
+        // Same payer as usePaidAbility: "Only the Runner can use this
+        // ability" makes the Runner its controller, so the Runner pays
+        // (CR 1.14.4b, 9.5.1).
         const payer: "corp" | "runner" = ab.usableByAnyPlayer
           ? state.activeSide
-          : card.side;
+          : ab.usableByRunnerOnSelfIce
+            ? "runner"
+            : card.side;
         if (!canPayCost(state, payer, cost, card)) continue;
+        // Hákarl 1.0: the Runner cannot use paid abilities printed on
+        // bioroid ice this turn (CR 1.2.2), as usePaidAbility refuses.
+        if (
+          payer === "runner" &&
+          card.side === "corp" &&
+          card.type === "ice" &&
+          (card.subtypes ?? []).includes("bioroid") &&
+          state.turn.bioroidIcePaidAbilitiesForbidden
+        ) {
+          continue;
+        }
         if (card.side === "runner" && !state.runner.installed.includes(cardId)) {
           // Runner identity and the active run event source are allowed.
           if (

@@ -12,7 +12,11 @@ import { CR } from "../timing/labels.js";
 import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
 import { isForbidden } from "./checkpoints.js";
 import { collectCandidateActions } from "./candidates.js";
-import { currentPriorityWindow, priorityHolderForStep } from "./priority.js";
+import {
+  currentPriorityWindow,
+  paidAbilityActor,
+  priorityHolderForStep,
+} from "./priority.js";
 import { allButNDamageRelevant, firstNetDamageWouldAllows } from "../state/damage.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 
@@ -227,10 +231,8 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "access_rfg_paying_trash_cost":
     case "spend_link":
       return "runner";
-    case "use_paid_ability": {
-      const card = state.cards[action.cardId];
-      return card?.side ?? "system";
-    }
+    case "use_paid_ability":
+      return paidAbilityActor(state, action.cardId, action.abilityId);
     case "use_identity_ability":
       return state.activeSide;
     case "basic_gain_credit":

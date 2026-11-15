@@ -18410,11 +18410,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/priority.ts#actorSideForAction",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/query.ts#actorFor",
+          "site": "src/legality/priority.ts#paidAbilityActor",
           "kinds": []
         },
         {
