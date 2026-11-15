@@ -16,6 +16,7 @@ import {
   playEffectFromCard,
 } from "../src/index.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -25,7 +26,7 @@ beforeAll(() => {
 function must(state: GameState, action: Action): GameState {
   const r = applyIntent(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-  return r.state;
+  return passIdle(r.state);
 }
 
 describe("card corpus system-gateway", () => {

@@ -22,6 +22,7 @@ import {
 } from "../src/index.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 import { STEPS } from "../src/timing/graph.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -33,7 +34,7 @@ beforeAll(() => {
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
   if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
-  return result.state;
+  return passIdle(result.state);
 }
 
 
@@ -111,7 +112,7 @@ function passUntil(
     const before = s.timingKey;
     const result = applyAction(s, { type: "pass_window" });
     if (!result.ok) break;
-    s = result.state;
+    s = passIdle(result.state);
     if (s.timingKey === before && !s.pendingChoice && !s.psi) break;
   }
   return s;

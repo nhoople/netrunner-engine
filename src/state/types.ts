@@ -5255,8 +5255,8 @@ export interface LingeringEffect {
 
 /**
  * Nested paid-ability / priority window frame (CR 9.2.4 / 9.2.4d).
- * Window closes after two consecutive passes (or one pass when the opponent
- * has no legal window actions — auto-pass).
+ * Window closes after two consecutive passes: both players receive priority
+ * (CR 9.2.7a). The jack-out choice closes on the Runner's pass (CR 6.9.4c).
  */
 export interface PriorityWindowFrame {
   id: string;

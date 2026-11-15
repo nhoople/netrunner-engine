@@ -43,6 +43,7 @@ import {
   createShortGameState,
 } from "../src/cards/shortGame.js";
 import { clearMark, currentMark } from "../src/state/msKeywords.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 
 beforeAll(() => {
@@ -55,7 +56,7 @@ beforeAll(() => {
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
   if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
-  return result.state;
+  return passIdle(result.state);
 }
 
 

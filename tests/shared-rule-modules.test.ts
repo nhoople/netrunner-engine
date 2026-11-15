@@ -9,6 +9,7 @@ import {
   queryLegality,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -18,7 +19,7 @@ beforeAll(() => {
 function must(state: GameState, action: Action): GameState {
   const result = applyIntent(state, action);
   if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
-  return result.state;
+  return passIdle(result.state);
 }
 
 function toCorpTakeAction(state: GameState): GameState {

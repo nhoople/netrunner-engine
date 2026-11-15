@@ -3463,6 +3463,10 @@
     "approaching the server is not a paid ability window (CR 6.9.4g) > ends the run when Nisei MK II is used at 6.9.4e": [
       "RUNNER_CARD_REZZED"
     ],
+    "approaching the server is not a paid ability window (CR 6.9.4g) > gives the Corp the approach-server step even when it cannot pay, and Pass is its only option (CR 9.2.8b)": [
+      "MULTIPLE_ZONES",
+      "RUNNER_CARD_REZZED"
+    ],
     "approaching the server is not a paid ability window (CR 6.9.4g) > stops only for an approach-server ability, with the Corp to act": [
       "MULTIPLE_ZONES",
       "RUNNER_CARD_REZZED"

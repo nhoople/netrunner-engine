@@ -22,3 +22,13 @@ problem in `tests/baselines/invariants.json` for this test (see
 | Fixture | What it checks |
 |---|---|
 | `tithe-run-hq.json` | Scenario: Runner runs HQ past a rezzed Tithe. Both subroutines fire (1 net damage trashes the only grip card; the Corp gains 1¢), then the Runner accesses HQ |
+
+## Re-derived steps
+
+`tithe-run-hq.json` was exported when the engine passed for a player with no window act
+(engine v1.147.252). The engine now gives the second player priority in every window
+(CR 9.2.7a), so the steps include the passes the host makes for such a player, each with
+`logSeq: null`. They were derived by replaying the export with the test driver
+`src/demo/passIdle.ts`. The final state differs from the original in one checkpoint id:
+the jack-out choice (CR 6.9.4c) no longer gives the Corp priority, so the checkpoint
+before it (CR 10.3.3) does not occur.

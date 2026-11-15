@@ -23,6 +23,7 @@ import {
 } from "../src/index.js";
 import type { Action, GameState } from "../src/index.js";
 import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -33,7 +34,7 @@ beforeAll(() => {
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
   if (!result.ok) throw new Error(`${state.timingKey}: ${result.error}`);
-  return result.state;
+  return passIdle(result.state);
 }
 
 function put(s: GameState, defId: string, id: string, zone: string) {

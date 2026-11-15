@@ -7,24 +7,16 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { activePlayer, log } from "../state/createGame.js";
 import { geneticsPavilionDrawLimit } from "../state/staticFlags.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
-import { legalActions as queryLegalActions } from "../legality/query.js";
-import { collectCandidateActions } from "../legality/candidates.js";
-import {
-  actorSideForAction,
-  ensurePriorityWindow,
-  isWindowAct,
-  recordPriorityPass,
-} from "../legality/priority.js";
+import { recordPriorityPass } from "../legality/priority.js";
 import {
   actionAllowedHere,
   autoWalk,
   canPass,
   enterStep,
   getStep,
-  registerEmptyRunPawCloser,
   resolveAndAdvance,
 } from "../timing/machine.js";
-import type { ApplyResult, GameState, RuleCite, Side } from "../state/types.js";
+import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
   advanceRunUntilStop,
@@ -76,43 +68,6 @@ export function drawN(
   }
   return commitDraw(state, side, amount).length;
 }
-
-function opponentHasPriorityActs(state: GameState): boolean {
-  const pw = ensurePriorityWindow(state);
-  const opponent: Side = pw.priorityHolder === "corp" ? "runner" : "corp";
-  // Candidates, not the filtered legal list. The other player's rez or paid
-  // ability is not legal until they receive priority (CR 9.2.7a).
-  return collectCandidateActions(state).some((action) => {
-    if (!isWindowAct(action)) return false;
-    return actorSideForAction(action, state) === opponent;
-  });
-}
-
-
-
-let closingEmptyRunPaw = false;
-
-registerEmptyRunPawCloser((state) => {
-  if (closingEmptyRunPaw) return false;
-  if (
-    state.timingKey !== "run.initiatePaw" &&
-    state.timingKey !== "run.passIcePaw" &&
-    state.timingKey !== "run.afterMovePaw" &&
-    state.timingKey !== "run.approachServerPaw"
-  ) {
-    return false;
-  }
-  const legal = queryLegalActions(state);
-  const someoneCanAct = collectCandidateActions(state).some((action) => isWindowAct(action));
-  if (someoneCanAct) return false;
-  if (!legal.some((action) => action.type === "pass_window")) return false;
-  closingEmptyRunPaw = true;
-  try {
-    return passWindow(state).ok;
-  } finally {
-    closingEmptyRunPaw = false;
-  }
-});
 
 /** Forfeit the first scored agenda that can be forfeited. */
 
@@ -244,7 +199,7 @@ export function passWindow(state: GameState): ApplyResult {
         `Encounter break window closes (appendix 11.4_3_b / CR ${CR.encounterBreakPaw.number}).`,
       );
     }
-    const status = recordPriorityPass(state, opponentHasPriorityActs(state));
+    const status = recordPriorityPass(state);
     if (status === "still_open") {
       return ok(state);
     }

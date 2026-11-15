@@ -1109,13 +1109,61 @@
       "action": {
         "type": "pass_window"
       },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
       "logSeq": 2
     },
     {
       "action": {
         "type": "pass_window"
       },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
       "logSeq": 3
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
     },
     {
       "action": {
@@ -1129,11 +1177,17 @@
         "type": "pass_window"
       },
       "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
     }
   ],
   "failures": [],
   "final": {
-    "stateHash": "c3b93cef41a222f57b7a63597b91213a877d1843f71585e168301fcba1c440f5",
+    "stateHash": "23b8919bbd3a1b6c2e986285dd7654e458609935174c886ed1c3e15255acfc56",
     "timingKey": "runner.takeAction",
     "turnNumber": 2,
     "activeSide": "runner",

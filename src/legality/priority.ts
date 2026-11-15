@@ -152,25 +152,21 @@ export function closePriorityWindow(state: GameState, stepKey: string): void {
 }
 
 /**
- * Record a pass. `opponentHasActions` must reflect whether the *other*
- * player has a non-pass act in this window (not the passer).
+ * Record a pass. The other player receives priority (CR 9.2.7a), even when
+ * their only option is to pass (CR 9.2.7f). Whether they could do anything
+ * else may depend on hidden information, such as a facedown card's rez cost
+ * or type (CR 10.2.2a), so the engine never skips them. Passing for such a
+ * player is host policy, not a rule, and the host judges it on open
+ * information.
  */
-export function recordPriorityPass(
-  state: GameState,
-  opponentHasActions: boolean,
-): "still_open" | "step_closed" {
+export function recordPriorityPass(state: GameState): "still_open" | "step_closed" {
   const pw = ensurePriorityWindow(state);
   pw.consecutivePasses += 1;
   const other: Side = pw.priorityHolder === "corp" ? "runner" : "corp";
   pw.priorityHolder = other;
-
-  if (!opponentHasActions && pw.consecutivePasses === 1) {
-    checkpointBeforePriority(state, other);
-    pw.consecutivePasses = 2;
-    state.log.push(
-      `Auto-pass ${other} (no legal window actions) (CR ${CR.priority.number}).`,
-    );
-  }
+  // CR 6.9.4c: whether to jack out is the Runner's choice, not a priority
+  // window, so declining closes the step. The Corp has nothing to do here.
+  if (state.timingKey === "run.jackOutWindow") pw.consecutivePasses = 2;
 
   if (pw.consecutivePasses < 2) {
     state.log.push(

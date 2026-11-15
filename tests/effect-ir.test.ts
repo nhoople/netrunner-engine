@@ -18,6 +18,7 @@ import {
   setupEmptyRemoteWithIce,
 } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) {
@@ -32,7 +33,7 @@ function must(
 ) {
   const r = applyAction(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
-  return r.state;
+  return passIdle(r.state);
 }
 
 describe("effect IR shape", () => {

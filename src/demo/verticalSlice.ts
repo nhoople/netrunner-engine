@@ -16,6 +16,7 @@ import {
 } from "../api/library.js";
 import { getStep } from "../timing/machine.js";
 import type { Action, GameState, ServerId } from "../state/types.js";
+import { passIdle } from "./passIdle.js";
 
 const recorded: Action[] = [];
 let capture = false;
@@ -26,7 +27,7 @@ function must(state: GameState, action: Action): GameState {
     throw new Error(`${result.error} cites=${JSON.stringify(result.cites)}`);
   }
   if (capture) recorded.push(structuredClone(action));
-  return result.state;
+  return passIdle(result.state);
 }
 
 /** Golden fixtures that are a full intent list from a demo game. */

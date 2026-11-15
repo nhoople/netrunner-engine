@@ -20,6 +20,7 @@ import {
 import { iceAtRunnerPosition } from "../src/state/runPosition.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import type { Action, GameState } from "../src/state/types.js";
+import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -31,7 +32,7 @@ beforeAll(() => {
 function must(s: GameState, action: Action): GameState {
   const r = applyAction(s, action);
   if (!r.ok) throw new Error(`${action.type}: ${r.error}`);
-  return r.state;
+  return passIdle(r.state);
 }
 
 const pass = (s: GameState): GameState => must(s, { type: "pass_window" });
