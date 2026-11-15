@@ -32,10 +32,9 @@ beforeAll(() => {
 });
 
 /**
- * N-Pot as the cards release after v1.147.23 writes it: the Markus 1.0
- * pattern. Cards v1.147.23 writes `break_host_subroutine`, a kind for
- * programs hosted on ice, without `usableByRunnerOnSelfIce`. Applying it is
- * a no-op once the pinned catalog carries the fix.
+ * N-Pot as cards v1.147.24 writes it: the Markus 1.0 pattern. Applying it
+ * to the pinned catalog is a no-op; it keeps the test's shape fixed if the
+ * pinned data changes.
  */
 function writeNPotAsPrinted(card: CardInstance): void {
   // Paid abilities are read from the card's ability records.
