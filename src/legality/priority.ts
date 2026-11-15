@@ -5,9 +5,11 @@
 import type {
   Action,
   GameState,
+  PaidAbility,
   PriorityWindowFrame,
   Side,
 } from "../state/types.js";
+import { paidAbilitiesFromCard } from "../effects/abilityRecord.js";
 import { CR } from "../timing/labels.js";
 import { occurCheckpoint, popCheckpoint, pushCheckpoint } from "./checkpoints.js";
 import { nextId } from "../state/ids.js";
@@ -200,6 +202,26 @@ export function isWindowAct(action: Action): boolean {
   }
 }
 
+/**
+ * The player who uses a paid ability. "Only the Runner can use this ability"
+ * on Corp ice (Markus 1.0, Hákarl 1.0, N-Pot, Negotiator) makes the Runner
+ * its controller (CR 1.14.4b), and a player uses paid abilities they control
+ * while they hold priority (CR 9.5.2). Every other paid ability is used by
+ * the controller of its card.
+ */
+export function paidAbilityActor(
+  state: GameState,
+  cardId: string,
+  abilityId: string,
+): Side | "system" {
+  const card = state.cards[cardId];
+  if (!card) return "system";
+  const abilities = paidAbilitiesFromCard(card) as unknown as PaidAbility[];
+  const ability = abilities.find((a) => a.id === abilityId);
+  if (ability?.usableByRunnerOnSelfIce) return "runner";
+  return card.side;
+}
+
 export function actorSideForAction(
   action: Action,
   state: GameState,
@@ -228,10 +250,8 @@ export function actorSideForAction(
     case "access_rfg_paying_trash_cost":
     case "spend_link":
       return "runner";
-    case "use_paid_ability": {
-      const card = state.cards[action.cardId];
-      return card?.side ?? "system";
-    }
+    case "use_paid_ability":
+      return paidAbilityActor(state, action.cardId, action.abilityId);
     case "use_identity_ability":
     case "basic_gain_credit":
     case "basic_draw":
