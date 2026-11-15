@@ -42,14 +42,6 @@
       "detail": "run attacks missing server remote-1"
     },
     {
-      "format": "system_gateway",
-      "deckSeed": 10,
-      "step": 21,
-      "code": "HOST_LINK_MISSING",
-      "recorded": "2026-11-13",
-      "detail": "runner:tranquilizer:32 (Tranquilizer) has hostId corp:pharos:22 (Pharos) but is not in its hosted list (zone runner:installed)"
-    },
-    {
       "format": "startup",
       "deckSeed": 1,
       "step": 38,

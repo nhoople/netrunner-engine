@@ -51,9 +51,8 @@ describe("playout decks", () => {
     const startup = formatPool("startup");
     expect(startup.restriction?.banned).toContain("offworld-office");
     expect(startup.cards).not.toContain("offworld-office");
-    const gateway = formatPool("system_gateway");
     const deck = { identityId: "the-syndicate-profit-over-principle", cards: learnToPlayDecks("starter").corp.cards };
-    expect(deckProblems(gateway, deck).some((p) => p.includes("CR 1.4.1a"))).toBe(true);
+    expect(deckProblems(startup, deck).some((p) => p.includes("CR 1.4.1a"))).toBe(true);
   });
 
   it("flags a deck under the minimum, over influence or over a copy limit (CR 1.4.3, 1.4.5, 1.4.7)", () => {
