@@ -400,6 +400,7 @@ export {
   spendLink,
   boostTrace,
   traceStrength,
+  traceSucceeds,
   runnerTraceLink,
 } from "./state/trace.js";
 export { refillRecurringCredits, abilityCost, payCost, canPayCost, effectiveEventPlayCost, operationAndEventPlayCostIncreaseTotal, eventPlayCostDiscountTotal, firstDoubleOperationClickDiscountAvailable, effectiveOperationExtraClicks, runnerAvailableCredits, spendRunnerCredits, runnerCreditsFor, spendRunnerCreditsFor, isAttackingCentral, isAttackingHq, recurringCreditsForCentralRun, runnerAvailableCreditsForBreaker, hostedCreditsSpendableDuringRuns, hostedCreditsSpendableToUseProgramsDuringRuns } from "./state/costs.js";

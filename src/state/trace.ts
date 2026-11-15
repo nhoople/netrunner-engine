@@ -185,8 +185,17 @@ export function runnerTraceLink(state: GameState): number {
   return base + state.trace.runnerLinkSpent;
 }
 
-/** Resolve the current trace. Success if strength >= runner link strength
- * (CR 10.8).
+/**
+ * Whether a trace succeeds: only if trace strength exceeds link strength.
+ * Link strength equal to or greater than trace strength means the trace is
+ * unsuccessful (CR 10.8.4). Every trace success check goes through here.
+ */
+export function traceSucceeds(strength: number, link: number): boolean {
+  return strength > link;
+}
+
+/** Resolve the current trace: successful only if strength exceeds the
+ * Runner's link strength (CR 10.8.4).
  */
 export function resolveTrace(
   state: GameState,
@@ -195,13 +204,13 @@ export function resolveTrace(
   if (!trace) return { ok: false, error: "No trace in progress." };
   const strength = traceStrength(state);
   const link = runnerTraceLink(state);
-  const success = strength >= link;
+  const success = traceSucceeds(strength, link);
   const excess = Math.max(0, strength - link);
   state.turn.lastTraceExcess = excess;
   state.turn.lastResolvedTraceStrength = strength;
   log(
     state,
-    `Trace resolves: strength ${strength} vs link ${link} → ${success ? "success" : "failure"} (excess ${excess}) (CR ${CR.trace.number}).`,
+    `Trace resolves: strength ${strength} vs link ${link} → ${success ? "success" : "failure"} (excess ${excess}) (CR ${CR.traceCompare.number}).`,
   );
   const effect = success ? trace.onSuccess : trace.onFailure;
   state.trace = null;
