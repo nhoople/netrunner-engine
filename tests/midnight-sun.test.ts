@@ -57,6 +57,10 @@ import { beginCorpTurnFlags } from "../src/state/turn.js";
 import { noteInstalledCardCreditSpend } from "../src/state/costs.js";
 import { beginBreachAccess } from "../src/state/access.js";
 import { currentMark, placeMark } from "../src/state/msKeywords.js";
+import {
+  syncPaidAbilitiesFromRecords,
+  type AbilityRecord,
+} from "../src/effects/abilityRecord.js";
 
 describe("midnight-sun", () => {
   describe("midnight-sun-add-power-counter", () => {
@@ -7067,9 +7071,27 @@ describe("midnight-sun", () => {
       expect(s.cards["vlad-1"].advancementCounters).toBe(2); // cost not paid here
     });
 
-    it("paid ability spends 2 advancements and places 2 on sibling root", () => {
-      let s = createInitialState();
-      s = structuredClone(s);
+    /**
+     * The corrected ability as cards data writes it after
+     * nhoople/netrunner-cards-data#300: the printed cost is only "2 hosted
+     * advancement counters" (CR 6.1.5), so it is not an action (CR 5.2.1)
+     * and is open in every paid ability window (CR 9.2.7b), once per turn
+     * (CR 9.3.6g). The engine pins an older cards release, so it is inline.
+     */
+    const VLAD_PLACE_ABILITY: AbilityRecord = {
+      class: "paid",
+      rule: "9.3.7b",
+      flagRule: "9.3.6g",
+      flag: "once_per_turn",
+      id: "vlad-place",
+      label: "Remove 2 advancements: place 2 on another root card",
+      cost: { advancementCounters: 2 },
+      windows: ["corp_action_paw"],
+      instructions: vladPlace(),
+    } as AbilityRecord;
+
+    function vladState(counters: number) {
+      const s = structuredClone(createInitialState());
       const remote = "remote-1" as ServerId;
       s.servers[remote] = { id: remote, kind: "remote", ice: [], root: [] };
       const vlad = instantiateCard(
@@ -7079,20 +7101,17 @@ describe("midnight-sun", () => {
       );
       vlad.rezzed = true;
       vlad.faceup = true;
-      vlad.advancementCounters = 2;
+      vlad.advancementCounters = counters;
       vlad.unsupported = [];
-      vlad.paidAbilities = [
-        {
-          id: "vlad-move",
-          label: "Remove 2 advancements: place 2 on another root card",
-          clickCost: 1,
-          creditCost: 0,
-          cost: { clicks: 1, advancementCounters: 2 },
-          flag: "once_per_turn",
-          windows: ["corp_action_paw"],
-          effect: vladPlace(),
-        },
+      vlad.abilities = [
+        ...(vlad.abilities ?? []).filter((a) => a.class !== "paid"),
+        structuredClone(VLAD_PLACE_ABILITY),
       ];
+      syncPaidAbilitiesFromRecords(vlad);
+      // The fixture's Runner card is not rezzed (CR 8.1.4f).
+      for (const card of Object.values(s.cards)) {
+        if (card.side === "runner") card.rezzed = false;
+      }
       s.cards["vlad-1"] = vlad;
       const agenda = instantiateCard(
         "hostile-takeover",
@@ -7102,27 +7121,70 @@ describe("midnight-sun", () => {
       agenda.advancementCounters = 1;
       s.cards["ag-1"] = agenda;
       s.servers[remote].root = ["vlad-1", "ag-1"];
+      return s;
+    }
+
+    function vladOffered(s: ReturnType<typeof createInitialState>) {
+      return queryLegality(s).legal.some(
+        (e) =>
+          e.action.type === "use_paid_ability" &&
+          e.action.cardId === "vlad-1" &&
+          e.action.abilityId === "vlad-place",
+      );
+    }
+
+    const useVlad = {
+      type: "use_paid_ability",
+      cardId: "vlad-1",
+      abilityId: "vlad-place",
+    } as const;
+
+    it("moves 2 counters to a sibling root card without spending a click", () => {
+      let s = vladState(2);
+      s.corp.clicks = 3;
+      s.activeSide = "corp";
+      s.timingKey = "corp.actionPaw";
+      expect(vladOffered(s)).toBe(true);
+      s = must(s, useVlad);
+      expect(s.cards["vlad-1"].advancementCounters).toBe(0);
+      expect(s.cards["ag-1"].advancementCounters).toBe(3);
+      expect(s.corp.clicks).toBe(3);
+    });
+
+    it("is usable during the Runner's turn, outside the Corp's action phase", () => {
+      let s = vladState(2);
+      s.corp.clicks = 0;
+      s.runner.clicks = 4;
+      s.activeSide = "runner";
+      s.timingKey = "runner.actionPaw";
+      s = must(s, useVlad);
+      expect(s.cards["vlad-1"].advancementCounters).toBe(0);
+      expect(s.cards["ag-1"].advancementCounters).toBe(3);
+      expect(s.corp.clicks).toBe(0);
+    });
+
+    it("is not offered as a click action at the Corp's take-action step", () => {
+      const s = vladState(2);
       s.corp.clicks = 3;
       s.activeSide = "corp";
       s.timingKey = "corp.takeAction";
+      expect(vladOffered(s)).toBe(false);
+      const r = applyAction(s, useVlad);
+      expect(r.ok).toBe(false);
+    });
 
-      const legal = queryLegality(s).legal;
-      expect(
-        legal.some(
-          (e) =>
-            e.action.type === "use_paid_ability" &&
-            e.action.cardId === "vlad-1" &&
-            e.action.abilityId === "vlad-move",
-        ),
-      ).toBe(true);
-      s = must(s, {
-        type: "use_paid_ability",
-        cardId: "vlad-1",
-        abilityId: "vlad-move",
-      });
-      expect(s.cards["vlad-1"].advancementCounters).toBe(0);
+    it("can be used only once per turn", () => {
+      let s = vladState(4);
+      s.corp.clicks = 3;
+      s.activeSide = "corp";
+      s.timingKey = "corp.actionPaw";
+      s = must(s, useVlad);
+      expect(s.cards["vlad-1"].advancementCounters).toBe(2);
+      expect(vladOffered(s)).toBe(false);
+      const again = applyAction(s, useVlad);
+      expect(again.ok).toBe(false);
+      expect(s.cards["vlad-1"].advancementCounters).toBe(2);
       expect(s.cards["ag-1"].advancementCounters).toBe(3);
-      expect(s.corp.clicks).toBe(2);
     });
 
     it("Vladisibirsk card wiring is fully clear on pin v0.48.0", () => {

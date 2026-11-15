@@ -1887,9 +1887,6 @@
     "midnight-sun > midnight-sun-virtuoso-mark-hq > MS Virtuoso mark-HQ IR (always) > non-mark successful run does not consume the mark trigger": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-vladisibirsk > MS Vladisibirsk same-server place_advancements > paid ability spends 2 advancements and places 2 on sibling root": [
-      "RUNNER_CARD_REZZED"
-    ],
     "midnight-sun > midnight-sun-wiring > MS card JSON wiring > Chastushka end-to-end": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
