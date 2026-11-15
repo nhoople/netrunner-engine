@@ -81,6 +81,7 @@ export type AbilityCost = {
   advancementCounters?: number;
   trashSelf?: boolean;
   forfeitAgenda?: boolean;
+  forfeitSelf?: boolean;
 };
 
 export type AbilityRecord = {

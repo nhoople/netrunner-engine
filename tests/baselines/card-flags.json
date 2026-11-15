@@ -11729,6 +11729,10 @@
         {
           "site": "src/state/cardLifecycleHooks.ts#fireOnForfeit",
           "kinds": []
+        },
+        {
+          "site": "src/state/costs.ts#forfeitAgendaAsCost",
+          "kinds": []
         }
       ],
       "kinds": []
@@ -22147,6 +22151,10 @@
         },
         {
           "site": "src/state/corpTurnBeginHooks.ts#noteOnCorpTurnBeginIfRunnerUntagged",
+          "kinds": []
+        },
+        {
+          "site": "src/state/costs.ts#forfeitAgendaAsCost",
           "kinds": []
         },
         {
