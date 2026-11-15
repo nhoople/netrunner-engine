@@ -3285,7 +3285,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("checkpoints a trace after it initiates and before it resolves (CR 10.8.6b)", () => {
     const s = createInitialState();
-    startTrace(s, s.corp.identityId, 0, fx.gainCredits("corp", 1));
+    // Strength 1 beats link 0; a tie would be unsuccessful (CR 10.8.4).
+    startTrace(s, s.corp.identityId, 1, fx.gainCredits("corp", 1));
 
     const initiated = at(s.log, "Trace initiated");
     const checkpoint = at(s.log, "Checkpoint open [trace]");

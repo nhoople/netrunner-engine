@@ -1023,6 +1023,8 @@ export const CR = {
   traceStrength: { number: "10.8.2", id: "rule_trace_strength" },
   /** Runner spends credits to set link strength (CR §10.8.3). */
   linkStrength: { number: "10.8.3", id: "rule_link_strength" },
+  /** A trace succeeds only if trace strength exceeds link strength (CR §10.8.4). */
+  traceCompare: { number: "10.8.4", id: "rule_compare_trace_and_link_strength" },
   /** Runner may spend credits during the trace attempt (CR §10.8.6d). */
   traceRunnerSpendCredits: {
     number: "10.8.6d",
