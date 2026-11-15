@@ -626,6 +626,29 @@ function play(format: Format, seed: number, steps: number): PlayoutResult {
 }
 
 /**
+ * The state after the first `steps` picks of a playout, for tests that
+ * check one step of a seed by hand. Stops early if the game ends or an
+ * action is refused.
+ */
+export function replayTo(format: Format, seed: number, steps: number): GameState {
+  const previousHook = setApplyHook(null);
+  try {
+    let state = dealMatch(format, seed);
+    const random = rng(seed * 2654435761);
+    for (let step = 0; step < steps && !state.winner && !state.done; step++) {
+      const legal = queryLegality(state).legal;
+      if (legal.length === 0) break;
+      const result = applyAction(state, pick(legal, random).action);
+      if (!result.ok) break;
+      state = result.state;
+    }
+    return state;
+  } finally {
+    setApplyHook(previousHook);
+  }
+}
+
+/**
  * The differences between a playout and its recorded entries. A failure no
  * entry lists is new; an entry that no longer happens must leave the fixture
  * (the fixture only shrinks).

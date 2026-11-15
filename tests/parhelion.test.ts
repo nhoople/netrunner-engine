@@ -1364,7 +1364,9 @@ describe("parhelion", () => {
       expect(s.cards["na-1"].zone).toBe("runner:score");
       expect(s.cards["na-1"].agendaPoints).toBe(-1);
       expect(agendaPointsFor(s, "runner")).toBe(-1);
-      expect(s.servers[remote].root).not.toContain("na-1");
+      // The access completes and the run ends (CR 7.2.4); the emptied
+      // remote then ceases to exist.
+      expect(s.servers[remote]?.root ?? []).not.toContain("na-1");
     });
 
     it("declining scores deals 1 core damage and RFGs", () => {

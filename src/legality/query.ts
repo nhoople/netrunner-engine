@@ -7,7 +7,7 @@ import type {
 import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
 import { costBeginsWithClick } from "../state/costs.js";
 import { extraDifferentActionRefusal } from "../state/corpActionHooks.js";
-import { getStep } from "../timing/machine.js";
+import { actionAllowedHere, getStep } from "../timing/machine.js";
 import { CR } from "../timing/labels.js";
 import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
 import { isForbidden } from "./checkpoints.js";
@@ -785,15 +785,19 @@ function gateAction(
       }
       return { ok: true };
     case "access_card":
-    case "finish_breach":
-      if (step.kind !== "access") {
+    case "finish_breach": {
+      // The same gate applyAction uses, so legality never offers a breach
+      // action apply refuses (CR 7.4, 11.5_4_a).
+      const gate = actionAllowedHere(state, action.type);
+      if (!gate.ok) {
         return {
           ok: false,
           reason: "Access only during breach access window.",
-          cites: [CR.breach],
+          cites: gate.cites,
         };
       }
       return { ok: true };
+    }
     default:
       return { ok: true };
   }

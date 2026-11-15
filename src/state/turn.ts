@@ -308,6 +308,8 @@ export function beginCorpTurnFlags(state: GameState): void {
   }
   state.turn = {
     ...state.turn,
+    // The Corp's turn has not begun yet (11.2_1_d comes after this step).
+    corpTurnBegan: false,
     // Runner's just-ended turn success becomes "last turn" for Corp ops (Public Trail).
     successfulRunLastTurn: state.turn.successfulRunThisTurn,
     successfulHqRunLastTurn: state.turn.successfulHqRunThisTurn,

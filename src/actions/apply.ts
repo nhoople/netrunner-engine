@@ -1704,6 +1704,11 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     lookAtChoiceCards(result.state);
   }
   if (!after && !result.state.pendingCost) endLooksAndReveals(result.state);
+  // An action can leave the timing walk parked on an auto step: a choice
+  // opened by "when your turn begins" (11.2_1_d, 11.3_1_d) holds its step
+  // until answered. The steps of a timing structure progress in sequence
+  // (CR 9.2.2), so walk on to the next step where a player acts.
+  if (!result.state.done) autoWalk(result.state);
   runApplyHook(result.state, action);
   return result;
 }

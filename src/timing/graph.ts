@@ -387,7 +387,7 @@ export function resolveDeferredPersistentAmaze(state: GameState): void {
  */
 export function resumeRunnerTurnBeginAbilities(state: GameState): void {
   if (turnBeginPaused(state)) return;
-  const rest = pendingRunnerTurnBeginIds(state);
+  const rest = pendingTurnBeginIds(state);
   if (rest.length === 0) return;
   resolveStoredConditionalPendings(state, rest);
   noteOpenTurnBeginWaiting(state);
@@ -400,7 +400,7 @@ function isRunnerTurnBeginPendingKey(abilityKey: string): boolean {
   );
 }
 
-function pendingRunnerTurnBeginIds(state: GameState): string[] {
+function pendingTurnBeginIds(state: GameState): string[] {
   return pendingAbilitiesWithStatus(state, "pending")
     .filter(
       (p) =>
@@ -414,7 +414,7 @@ function pendingRunnerTurnBeginIds(state: GameState): string[] {
 /** Log when one turn-begin ability is open and later ones remain pending. */
 function noteOpenTurnBeginWaiting(state: GameState): void {
   if (!turnBeginPaused(state)) return;
-  const waiting = pendingRunnerTurnBeginIds(state).length;
+  const waiting = pendingTurnBeginIds(state).length;
   if (waiting === 0) return;
   // The open choice is the order of these abilities, not one of them.
   if (state.pendingChoice?.options.some((o) => o.id.startsWith("trigger:"))) {
@@ -934,6 +934,17 @@ export const STEPS: Record<string, TimingStepDef> = {
     "corp.mandatoryDraw",
     {
       onResolve: (s) => {
+        // The step comes back here once a turn-begin ability's choice is
+        // answered. The turn began already: its "when your turn begins"
+        // conditionals were marked once (CR 9.6.6), so do not note them
+        // again. Resolve any still pending, then move on.
+        if (s.turn.corpTurnBegan) {
+          if (pendingTurnBeginIds(s).length > 0) {
+            checkpointAfterInstruction(s, "corp.turnBegins");
+          }
+          return;
+        }
+        s.turn.corpTurnBegan = true;
         s.log.push(`Corp turn begins (appendix 11.2_1_d).`);
         noteCorpTenninTurnBegin(s);
         if (s.corpCannotAdvanceCardsNextTurn) {
@@ -1289,7 +1300,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // instance per "when your turn begins" conditional (CR 9.6.6), so do
         // not note them again. Resolve any that are still pending, then move on.
         if (s.turn.runnerTurnBegan) {
-          if (pendingRunnerTurnBeginIds(s).length > 0) {
+          if (pendingTurnBeginIds(s).length > 0) {
             checkpointAfterInstruction(s, "runner.turnBegins");
             noteOpenTurnBeginWaiting(s);
           }
