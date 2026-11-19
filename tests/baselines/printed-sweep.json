@@ -1,0 +1,477 @@
+{
+  "cardsPin": "v1.147.24",
+  "crPin": "v26.03",
+  "sessions": [
+    {
+      "id": "S1a",
+      "cycle": "system-gateway",
+      "cards": 77
+    }
+  ],
+  "cards": {
+    "above-the-law": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On score, may trash 1 installed resource."
+    },
+    "amaze-amusements": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Unique; persistent: when a run on this server ends with an agenda stolen, give 2 tags."
+    },
+    "anoetic-void": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Unique; on approaching this server, may pay 2 credits and trash 2 HQ cards to end the run."
+    },
+    "ansel-1-0": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Bioroid click break (generic by subtype); trash 1 installed Runner card; may install from HQ or Archives; no steal or trash this run."
+    },
+    "ballista": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Trash 1 installed program or end the run (Corp chooses)."
+    },
+    "botulus": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Installs only on ice; 1 virus counter on install and turn begin; spend 1 to break 1 subroutine on host."
+    },
+    "bran-1-0": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Bioroid click break (generic by subtype); may install ice from HQ or Archives inward ignoring all costs; end the run twice."
+    },
+    "buzzsaw": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Decoder 3 strength: 1 credit breaks up to 2 code gate subroutines; 3 credits +1 strength."
+    },
+    "carmen": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Killer 2 strength: 1 credit breaks 1 sentry subroutine, 2 credits +3 strength; costs 2 less after a successful run this turn."
+    },
+    "carnivore": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "+1 MU; once per turn, trash 2 grip cards to trash the accessed card; console (unique, console limit)."
+    },
+    "clearinghouse": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Advanceable; at turn begin, may trash it for 1 meat damage per advancement counter."
+    },
+    "cleaver": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Fracter 3 strength: 1 credit breaks up to 2 barrier subroutines; 2 credits +1 strength."
+    },
+    "conduit": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "Whenever a successful run on R&D ends, you may place 1 virus counter",
+        "Run R&D: access X additional cards, X = hosted virus counters"
+      ],
+      "note": "The counter trigger is successful_run (6.9.5a, before the breach) instead of the run ending (6.9.6d). X is read at run start instead of at the start of the R&D breach. The two errors hide each other today and must be fixed together.",
+      "cr": [
+        "6.8.5",
+        "6.9.5a",
+        "6.9.6d"
+      ]
+    },
+    "cookbook": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you install a virus program, you may place 1 virus counter on it"
+      ],
+      "note": "Hard-coded in installRunner (fireCookbookOnVirusInstall): always places the counter, never goes pending, cannot be declined or ordered against other install triggers (Tranquilizer), and ignores blanking.",
+      "cr": [
+        "9.6.9",
+        "9.6.6",
+        "9.2.8d"
+      ]
+    },
+    "creative-commission": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Gain 5 credits; lose a click if any remain."
+    },
+    "diviner": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "Do 1 net damage; end the run if the trashed card's printed play or install cost is odd"
+      ],
+      "note": "The end-the-run check uses grip_count_odd (the Runner's grip size is odd). It should check the printed cost of the card the damage trashed (X counts as 0), and end nothing if no card was trashed.",
+      "cr": [
+        "10.4.2a",
+        "1.2.1"
+      ]
+    },
+    "docklands-pass": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Unique; first HQ breach each turn accesses 1 more card."
+    },
+    "dzmz-optimizer": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "+1 MU; first program installed each turn costs 1 less."
+    },
+    "echelon": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Killer 0 strength, +1 per installed icebreaker; 1 credit breaks 1 sentry subroutine; 3 credits +2 strength."
+    },
+    "fermenter": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "1 virus counter on install and turn begin; click, trash: gain 2 credits per hosted virus counter."
+    },
+    "funhouse": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On encounter, end the run unless the Runner takes 1 tag; subroutine: 1 tag unless the Runner pays 4."
+    },
+    "government-subsidy": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Gain 15 credits."
+    },
+    "haas-bioroid-precision-design": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "+1 maximum hand size; on scoring an agenda, may add 1 card from Archives to HQ."
+    },
+    "hansei-review": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Gain 10 credits; trash 1 card from HQ if any."
+    },
+    "hedge-fund": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Gain 9 credits."
+    },
+    "jailbreak": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Run HQ or R&D; if successful draw 1 and access 1 more card."
+    },
+    "jinteki-restoring-humanity": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "When the Corp's discard phase ends (turn-end step), gain 1 credit if Archives has a facedown card."
+    },
+    "karuna": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Do 2 net damage, Runner may jack out; do 2 net damage."
+    },
+    "leech": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Virus counter on each successful central run; spend 1: encountered ice -1 strength this encounter."
+    },
+    "longevity-serum": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On score, trash any number of HQ cards, then shuffle up to 3 from Archives into R&D."
+    },
+    "luminal-transubstantiation": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On score, gain 3 clicks and cannot score agendas this turn."
+    },
+    "malapert-data-vault": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you score an agenda from the root of this server, you may search R&D for 1 non-agenda card and reveal it"
+      ],
+      "note": "The score hook is mandatory, so declining still searches and shuffles R&D; search_rd_non_agenda never reveals the found card to the Runner; and the hook does not check blanking.",
+      "cr": [
+        "9.6.9a",
+        "8.7.3",
+        "8.7.2c",
+        "1.21.3"
+      ]
+    },
+    "manegarm-skunkworks": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Unique; on approaching this server, end the run unless the Runner spends 2 clicks or pays 5 credits."
+    },
+    "marjanah": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Fracter 1 strength: 2 credits (1 after a successful run this turn) breaks 1 barrier subroutine; 1 credit +1 strength."
+    },
+    "mayfly": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "AI 1 strength: 1 credit breaks 1 subroutine and trashes Mayfly when the run ends; 1 credit +1 strength."
+    },
+    "mutual-favor": {
+      "cycle": "system-gateway",
+      "result": "filed",
+      "abilities": [
+        "If you made a successful run this turn, you may install that program; if you do not, add it to your grip"
+      ],
+      "note": "Area 6 (Runner install): search_stack_icebreaker_resolve installs inline (raw credits, no MU check, no install-cost modifiers, no install procedure) and installs without offering the choice. Search, reveal and shuffle match. cr-checker: CR 8.5.16, 8.5.6c, 9.6.9c."
+    },
+    "nbn-reality-plus": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "First tag each turn: gain 2 credits or draw 2."
+    },
+    "neurospike": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Net damage equal to printed agenda points of agendas scored this turn."
+    },
+    "nico-campaign": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Loads 9 credits on rez; take 3 at turn begin; when empty, trashed and Corp draws 1."
+    },
+    "offworld-office": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On score, gain 7 credits."
+    },
+    "orbital-superiority": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On score, 4 meat damage if the Runner is tagged, else 1 tag."
+    },
+    "overclock": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Place 5 credits on the event, then run any server, hosted credits spendable during the run."
+    },
+    "palisade": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "+2 strength protecting a remote; end the run."
+    },
+    "pantograph": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "+1 MU; on score or steal gain 1 credit then may install 1 card from the grip (flag builds may_install_from_grip); console."
+    },
+    "pennyshaver": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "+1 MU; credit on each successful run; click: place 1 then take all; console."
+    },
+    "pharos": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Advanceable; +5 strength at 3 or more advancements; give 1 tag, end the run, end the run."
+    },
+    "ping": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "When you rez this ice during a run against this server, give the Runner 1 tag"
+      ],
+      "note": "The rez trigger has no condition, so any rez tags the Runner, including outside a run or during a run on another server.",
+      "cr": [
+        "9.6.5c",
+        "4.6.6i"
+      ]
+    },
+    "predictive-planogram": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Gain 3 or draw 3; both if the Runner is tagged."
+    },
+    "public-trail": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Play only after a successful run last turn; 1 tag unless the Runner pays 8."
+    },
+    "red-team": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Loads 12 credits, trashed when empty; click: run a central not run this turn, if successful take 3."
+    },
+    "regolith-mining-license": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Loads 15 credits on rez, trashed when empty; click: take 3."
+    },
+    "rene-loup-arcemont-party-animal": {
+      "cycle": "system-gateway",
+      "result": "filed",
+      "abilities": [
+        "The first time each turn you trash a card you are accessing, gain 1 credit and draw 1 card"
+      ],
+      "note": "Area 8 (access): the gain and draw is inline in only the pay-trash-cost access path. Carnivore, virus and other access-trash paths never trigger it or mark the turn's first trash; it resolves at once rather than pending, and does not check blanking. Fix at the shared access-trash point. cr-checker: CR 9.3.2b, 1.19.1, 9.6.2."
+    },
+    "retribution": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Play only if the Runner is tagged; trash 1 installed program or hardware."
+    },
+    "seamless-launch": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "Place 2 advancement counters on 1 installed card that you did not install this turn"
+      ],
+      "note": "preferNotInstalledThisTurn falls back to cards installed this turn when no other target exists; targets are limited to advanceable Corp cards, but placing counters is not advancing; and no pick is set, so the first candidate is used without a choice.",
+      "cr": [
+        "1.15.2",
+        "1.15.2b",
+        "1.18.2",
+        "1.2.4"
+      ]
+    },
+    "send-a-message": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On score or steal, may rez 1 installed ice ignoring all costs (flag builds rez_ice_ignoring_costs)."
+    },
+    "smartware-distributor": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "When your turn begins, take 1 credit"
+      ],
+      "note": "Modelled as a second click ability (click: take 1 hosted credit). The printed text is a turn-begins conditional ability with no cost.",
+      "cr": [
+        "9.3.7b",
+        "9.3.7c",
+        "5.1.4a",
+        "1.10.4a"
+      ]
+    },
+    "spin-doctor": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Unique; draw 2 on rez; remove from the game: shuffle up to 2 from Archives into R&D. The IR lists only corp_action_paw, but a no-click paid ability opens in every regular paid-ability window (cr-checker: CR 9.2.7b)."
+    },
+    "sprint": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Draw 3, then shuffle 2 cards from HQ into R&D."
+    },
+    "superconducting-hub": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On score, may draw 2; +2 maximum hand size."
+    },
+    "sure-gamble": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Gain 9 credits."
+    },
+    "t400-memory-diamond": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "+1 MU and +1 maximum hand size."
+    },
+    "tao-salonga-telepresence-magician": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Whenever an agenda is scored or stolen, may swap 2 installed ice (flag builds swap_two_ice)."
+    },
+    "telework-contract": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Loads 9 credits, trashed when empty; once per turn, click: take 3."
+    },
+    "the-catalyst-convention-breaker": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Starter game only; no abilities."
+    },
+    "the-syndicate-profit-over-principle": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Starter game only; no abilities."
+    },
+    "tithe": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Do 1 net damage; gain 1 credit."
+    },
+    "tomorrows-headline": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "On score or steal, give the Runner 1 tag."
+    },
+    "tranquilizer": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Installs only on ice; 1 virus counter on install and turn begin, then derez host at 3 or more."
+    },
+    "tread-lightly": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Run any server; ice rez cost +3 during that run."
+    },
+    "unity": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Decoder 1 strength: 1 credit breaks 1 code gate subroutine; 1 credit +X strength, X = installed icebreakers."
+    },
+    "urtica-cipher": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "When the Runner accesses this asset while it is installed, do 2 net damage plus 1 per advancement counter"
+      ],
+      "note": "The card has no onAccessRequiresInstalled flag, so the damage also fires when it is accessed in HQ, R&D or Archives.",
+      "cr": [
+        "7.1.3",
+        "9.6.5c"
+      ]
+    },
+    "verbal-plasticity": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Unique; first basic draw action each turn draws 2 instead."
+    },
+    "vrcation": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Draw 4; lose a click if any remain."
+    },
+    "weyland-consortium-built-to-last": {
+      "cycle": "system-gateway",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you advance a card, gain 2 credits if it had no advancement counters"
+      ],
+      "note": "The engine-side hook (src/legality/checkpoints.ts) reads any advancement-counter increase from 0, so placing or moving counters (Seamless Launch) also gains 2 credits. Only advancing should.",
+      "cr": [
+        "1.18.1",
+        "1.18.2",
+        "9.6.6a"
+      ]
+    },
+    "whitespace": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Runner loses 3 credits; end the run if the Runner has 6 credits or less."
+    },
+    "wildcat-strike": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Corp chooses: Runner gains 6 credits or draws 4."
+    },
+    "zahya-sadeghi-versatile-smuggler": {
+      "cycle": "system-gateway",
+      "result": "matches",
+      "note": "Once per turn, when an HQ or R&D run ends, may gain 1 credit per card accessed."
+    }
+  }
+}
