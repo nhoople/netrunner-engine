@@ -1,0 +1,16 @@
+# Prettier formats TypeScript, JavaScript, YAML and config JSON.
+# Data, generated files and other repos' checkouts are never reformatted.
+dist/
+node_modules/
+vendor/
+deps/
+reports/
+.stryker-tmp/
+coverage/
+package-lock.json
+# Pins and the CR term map are data.
+data/
+# Test baselines, goldens, fixtures and generated coverage are written by scripts.
+tests/**/*.json
+# Docs keep their hand-written tables and wrapping.
+*.md
