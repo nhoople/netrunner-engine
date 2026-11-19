@@ -356,7 +356,7 @@
     "spin-doctor": {
       "cycle": "system-gateway",
       "result": "matches",
-      "note": "Unique; draw 2 on rez; remove from the game: shuffle up to 2 from Archives into R&D. The IR lists only corp_action_paw, but a no-click paid ability opens in every regular paid-ability window (cr-checker: CR 9.2.7b)."
+      "note": "Unique; draw 2 on rez; remove from the game: shuffle up to 2 from Archives into R&D. The IR's windows list only corp_action_paw, but the engine opens a no-click paid ability in every regular paid-ability window (paidAbilityOpenIn in src/state/costs.ts; checked: Runner action, run initiation, approach and encounter windows all open), as CR 9.2.7b requires."
     },
     "sprint": {
       "cycle": "system-gateway",
