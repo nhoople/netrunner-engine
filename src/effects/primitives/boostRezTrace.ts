@@ -1,18 +1,17 @@
 /** The Source (ts) Lunar pack primitives. */
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { trashCorpCardToArchives } from "../corpTrash.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
 import { addIceStrengthBoostThisTurn } from "../../state/lingeringEffects.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { chargeableInstalledIds, chargeCard } from "../../state/msKeywords.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -126,7 +125,7 @@ export function applyLunarTsPrimitive(
         return { ok: true };
       }
       if (installed.length === 1) {
-        moveRunnerCardToHeap(state, installed[0]!);
+        trashCard(state, installed[0]!);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -254,7 +253,7 @@ export function applyLunarTsPrimitive(
       for (const id of toTrash) {
         const card = state.cards[id];
         if (!card) continue;
-        trashCorpCardToArchives(state, id, "corp");
+        trashCard(state, id, { by: "corp" });
         if (card.zone !== "corp:archives") continue;
         trashed += 1;
         log(state, `Self-destruct — trash ${card.title}.`);

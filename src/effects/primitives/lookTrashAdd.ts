@@ -2,7 +2,6 @@
 import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
@@ -10,6 +9,7 @@ import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -101,7 +101,7 @@ export function applyMumbadSiPrimitive(
       }
       looked.splice(idx, 1);
       state.turn.siStackLookedCards = looked;
-      moveRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId);
       log(
         state,
         `Making an Entrance — trash ${state.cards[cardId]!.title} from looked cards.`,
@@ -210,7 +210,7 @@ export function applyMumbadSiPrimitive(
         if (!c || c.defId !== defId) continue;
         revealCards(state, [c.id], sourceId);
         log(state, `Salem's Hospitality — reveal ${c.title}.`);
-        moveRunnerCardToHeap(state, id);
+        trashCard(state, id);
         trashed += 1;
       }
       for (const id of state.runner.hand) {
@@ -529,7 +529,7 @@ export function trashRandomGripForPersonalityProfiles(
   }
   const idx = Math.floor(random(state) * state.runner.hand.length);
   const trashId = state.runner.hand[idx]!;
-  moveRunnerCardToHeap(state, trashId);
+  trashCard(state, trashId);
   log(
     state,
     `${card.title} — Runner trashes ${state.cards[trashId]!.title} from grip at random.`,

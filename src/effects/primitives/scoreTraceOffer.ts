@@ -4,12 +4,12 @@ import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { syncCorpHandSizeSubroutines } from "../../state/handSizeSubroutines.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { discardCard, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -24,7 +24,7 @@ function trashRunnerProgramChoose(ctx: EffectCtx, label: string): PrimResult {
     return { ok: true };
   }
   if (programs.length === 1) {
-    moveRunnerCardToHeap(state, programs[0]!);
+    trashCard(state, programs[0]!);
     log(state, `${label} — trash ${state.cards[programs[0]!]!.title}.`);
     return { ok: true };
   }
@@ -216,7 +216,7 @@ export function applyLunarAtrPrimitive(
         for (const id of [...state.runner.installed]) {
           const res = state.cards[id];
           if (!res?.trashSelfWhenRunnerTagged) continue;
-          moveRunnerCardToHeap(state, id);
+          trashCard(state, id);
           log(state, `${res.title} — trashed (Runner is tagged).`);
         }
       }
@@ -228,7 +228,7 @@ export function applyLunarAtrPrimitive(
         log(state, `Snatch and Grab — connection already gone.`);
         return { ok: true };
       }
-      moveRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId);
       log(state, `Snatch and Grab — trash ${state.cards[cardId]!.title}.`);
       return { ok: true };
     }
@@ -245,11 +245,8 @@ export function applyLunarAtrPrimitive(
       }
       const pick = hq.slice(0, Math.min(amount, hq.length));
       for (const id of pick) {
-        state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.discardPile.push(id);
-        state.cards[id]!.zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        state.cards[id]!.faceup = false;
+        // A discard, not a trash (CR 1.19.3); facedown from HQ (CR 4.4.6b).
+        discardCard(state, id);
         log(
           state,
           `Corp discards ${state.cards[id]!.title} from HQ at random.`,

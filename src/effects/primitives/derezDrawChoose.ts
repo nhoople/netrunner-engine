@@ -3,7 +3,6 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/lingeringEffects.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
@@ -12,28 +11,14 @@ import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnPlay } from "../../state/cardLifecycleHooks.js";
 import { random } from "../../state/rng.js";
+import {
+  controllerOf,
+  discardCard,
+  trashCard,
+} from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashToHeap(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "runner:heap";
-  card.hostId = undefined;
-  state.runner.discardPile.push(cardId);
-}
-
-function trashToArchives(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "corp:archives";
-  card.faceup = true;
-  card.rezzed = false;
-  state.corp.discardPile.push(cardId);
-}
 
 function installedIce(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
@@ -154,11 +139,8 @@ export function applyRedsandTdPrimitive(
       const picked = action.cardId;
       if (picked) {
         if (!state.corp.hand.includes(picked)) return { ok: true };
-        state.corp.hand = state.corp.hand.filter((id) => id !== picked);
-        state.corp.discardPile.push(picked);
-        state.cards[picked]!.zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        state.cards[picked]!.faceup = false;
+        // A discard, not a trash (CR 1.19.3); facedown from HQ (CR 4.4.6b).
+        discardCard(state, picked);
         log(state, `SYN Attack — Corp discards ${state.cards[picked]!.title}.`);
         const left = (action.remaining ?? 1) - 1;
         if (left <= 0 || state.corp.hand.length === 0) return { ok: true };
@@ -504,7 +486,7 @@ export function applyRedsandTdPrimitive(
       enterLingeringPlayArea(state, cardId, "runner");
       fireOnPlay(state, cardId);
       // Events go to heap after play unless otherwise stated
-      trashToHeap(state, cardId);
+      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(state, `The Shadow Net — play ${card.title} from heap.`);
       return { ok: true };
     }
@@ -615,7 +597,8 @@ export function applyRedsandTdPrimitive(
 
     case "jack_out": {
       state.corp.credits += 5;
-      if (source) trashToArchives(state, sourceId);
+      if (source)
+        trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
       if (state.run) {
         state.run.endedTheRun = true;
         state.run.successful = false;

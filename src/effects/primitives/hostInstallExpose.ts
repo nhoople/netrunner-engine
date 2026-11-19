@@ -7,6 +7,8 @@ import { fireOnInstall } from "../../state/cardLifecycleHooks.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -30,11 +32,9 @@ export function applySansanUwPrimitive(
         }
         state.runner.deck.shift();
         const card = state.cards[top]!;
-        card.hostId = sourceId;
+        hostCard(state, card.id, sourceId, { installed: true });
         card.faceup = false;
         card.zone = `hosted:${sourceId}`;
-        if (!source.hostedCardIds) source.hostedCardIds = [];
-        source.hostedCardIds.push(top);
         log(state, `${source.title} hosts a card facedown from stack.`);
       }
       return { ok: true };
@@ -90,13 +90,10 @@ export function applySansanUwPrimitive(
         return { ok: true };
       }
       subtractRunnerCreditPool(state, cost);
-      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
-        (id) => id !== cardId,
-      );
       state.runner.setAside = (state.runner.setAside ?? []).filter(
         (id) => id !== cardId,
       );
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "runner:installed";
       card.faceup = true;
       state.runner.installed.push(cardId);
@@ -151,10 +148,7 @@ export function applySansanUwPrimitive(
             break;
           }
         }
-        card.zone = "corp:archives";
-        card.rezzed = false;
-        card.faceup = true;
-        state.corp.discardPile.push(cardId);
+        trashCard(state, cardId, { by: "runner" });
         log(state, `Drive By — trash exposed ${card.title}.`);
       } else {
         log(state, `Drive By — exposed ${card.title} (not asset/upgrade).`);

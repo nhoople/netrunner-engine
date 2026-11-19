@@ -10,6 +10,7 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -108,7 +109,7 @@ export function applyKitaraKaPrimitive(
       const idx = state.runner.discardPile.indexOf(action.cardId);
       if (idx >= 0) state.runner.discardPile.splice(idx, 1);
       card.zone = "runner:installed";
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       state.runner.installed.push(action.cardId);
       log(state, `Reclaim — install ${card.title} for ${cost}¢.`);
       return { ok: true };

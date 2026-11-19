@@ -3,7 +3,6 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 /** The Devil and the Dragon (tdatd) Kitara pack primitives — v1.139.0. */
 import { log } from "../../state/createGame.js";
 import { beginExpose } from "../../state/expose.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
@@ -11,6 +10,7 @@ import { fx, type Primitive } from "../ir.js";
 import { fireOnAgendaAccessedOrScored } from "../../state/miscConditionalHooks.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -122,14 +122,9 @@ export function applyKitaraTdatdPrimitive(
       // log does not name them (CR 4.4.6b).
       const trash = pickRandomSubset(state, state.corp.hand, 5);
       for (const id of trash) {
-        const idx = state.corp.hand.indexOf(id);
-        if (idx >= 0) state.corp.hand.splice(idx, 1);
-        const c = state.cards[id]!;
-        c.zone = "corp:archives";
+        // "They trash": the Corp carries it out (CR 1.14.5).
         // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        c.faceup = false;
-        c.rezzed = false;
-        state.corp.discardPile.push(id);
+        trashCard(state, id, { by: "corp" });
       }
       log(state, `Glut Cipher — trash ${trash.length} from HQ at random.`);
       return { ok: true };
@@ -492,12 +487,9 @@ export function applyKitaraTdatdPrimitive(
       const cardId = (action as { cardId: string }).cardId;
       const idx = state.corp.hand.indexOf(cardId);
       if (idx < 0) return { ok: true };
-      state.corp.hand.splice(idx, 1);
       const c = state.cards[cardId]!;
-      c.zone = "corp:archives";
       // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-      c.faceup = false;
-      state.corp.discardPile.push(cardId);
+      trashCard(state, cardId, { by: "corp" });
       log(state, `Sadaka — trash ${c.title} from HQ.`);
       const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
@@ -524,7 +516,7 @@ export function applyKitaraTdatdPrimitive(
     case "trash_sadaka_resource": {
       const cardId = (action as { cardId: string }).cardId;
       if (!state.runner.installed.includes(cardId)) return { ok: true };
-      moveRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId);
       log(state, `Sadaka — trash resource ${state.cards[cardId]?.title}.`);
       return { ok: true };
     }

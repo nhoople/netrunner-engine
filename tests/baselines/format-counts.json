@@ -11,6 +11,17 @@
         "cardDefFlags": 602
       },
       "reason": "Starting baseline (Phase 2)."
+    },
+    {
+      "date": "2026-11-19",
+      "engine": "v1.147.264",
+      "cards": "v1.147.24",
+      "counts": {
+        "knownPrimitiveKinds": 1535,
+        "oneCardKinds": 746,
+        "cardDefFlags": 602
+      },
+      "reason": "CR audit area 1: host_self_as_condition replaces three engine-built host-as-condition continuations."
     }
   ]
 }

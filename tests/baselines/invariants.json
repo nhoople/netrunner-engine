@@ -148,7 +148,6 @@
     ],
     "later turn steps > resolves turn end, approach, pass, breach, run end, and access": [
       "IDENTITY_IN_ZONE_LIST",
-      "MULTIPLE_ZONES",
       "RUNNER_CARD_REZZED"
     ],
     "later turn steps > scores an agenda from its server and steals an accessed agenda": [
@@ -156,7 +155,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "paid-ability choices stay on the step that allowed them > refuses a paid ability with no window open, and keeps a choice on that step": [
-      "HOST_LINK_MISSING",
       "MULTIPLE_ZONES",
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
@@ -349,7 +347,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 1 > can install a connection hosted on Off-Campus Apartment (CR 1.13.6a.ex1)": [
-      "MULTIPLE_ZONES",
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -368,7 +365,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 1 > does not discount a program hosted on Leprechaun for Dhegdheer's reduction (CR 1.13.9.ex1)": [
-      "MULTIPLE_ZONES",
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -406,9 +402,6 @@
     ],
     "CR examples, chapter 1 > resolves Ob Superheavy Logistics before Azef Protocol is scored (CR 1.16.10c.ex1)": [
       "NO_ZONE",
-      "RUNNER_CARD_REZZED"
-    ],
-    "CR examples, chapter 1 > sets the threat level to the higher agenda-point total (CR 1.17.1a.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 1 > shuffles Accelerated Beta Test's remaining cards when The Foundry searches R&D (CR 1.12.3.ex1)": [
@@ -555,7 +548,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 6 > moves Rook only to ice in the same position counted from the innermost (CR 6.2.3.ex1)": [
-      "HOST_LINK_MISSING",
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 6 > moves innermost Bullfrog to outermost Archives and continues the run there (CR 6.2.7d.ex1)": [
@@ -624,7 +616,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 8 > installs Dhegdheer first so Mass Install can host the next program (CR 8.5.5.ex1)": [
-      "HOST_LINK_MISSING",
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -632,7 +623,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 8 > leaves Botulus hosted on Palisade when Thimblerig swaps with it (CR 8.8.3a.ex1)": [
-      "HOST_LINK_MISSING",
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -741,7 +731,6 @@
     ],
     "CR examples, chapter 9 > drops Puffer's static strength when a power counter is removed (CR 9.4.4.ex1)": [
       "ENCOUNTER_ICE_MISMATCH",
-      "HOST_LINK_MISSING",
       "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
     ],
@@ -754,7 +743,6 @@
     ],
     "CR examples, chapter 9 > ends Gebrselassie's replaced duration at the next checkpoint once it leaves the host (CR 9.9.9a.ex1)": [
       "ENCOUNTER_ICE_MISMATCH",
-      "HOST_LINK_MISSING",
       "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
     ],
@@ -775,8 +763,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 9 > installs one hosted card from Street Peddler and trashes the other two (CR 9.5.5.ex2)": [
-      "HOST_NOT_IN_PLAY",
-      "MULTIPLE_ZONES",
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 9 > interrupts an imminent draw with The Class Act before cards are drawn (CR 9.9.3d.ex1)": [
@@ -1064,7 +1050,6 @@
   },
   "tests/gateway-harden.test.ts": {
     "Gateway harden pass 2 > Botulus installs on ice and breaks host sub with virus": [
-      "HOST_LINK_MISSING",
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -2012,7 +1997,6 @@
       "ZONE_MISMATCH"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Bishop: hosts on ice that is not already hosting a Caïssa": [
-      "HOST_LINK_MISSING",
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Bloo Moose: removing a heap card from the game gains 2 credits": [
@@ -2242,13 +2226,9 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Glenn Station: adds its hosted card to HQ": [
-      "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Glenn Station: hosts a card from HQ facedown": [
-      "HOST_LINK_MISSING",
-      "HOST_NOT_IN_PLAY",
-      "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Grappling Hook: breaks all but one chosen subroutine": [
@@ -2415,7 +2395,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Magnet: Corp chooses which hosted program to host on itself": [
-      "HOST_LINK_MISSING",
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Malia Z0L0K4: chooses an installed non-virtual resource to blank": [
@@ -2440,7 +2419,6 @@
     ],
     "one-off kind outcomes (batch A: immediate effects) > Matryoshka: spends credits and turns a hosted copy facedown to break X": [
       "ENCOUNTER_ICE_MISMATCH",
-      "HOSTED_BACKLINK_MISSING",
       "ICE_NOT_IN_SERVER",
       "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
@@ -2806,7 +2784,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Spree: hosts an installed trojan on ice protecting the attacked server": [
-      "HOST_LINK_MISSING",
       "NO_ZONE",
       "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
@@ -3067,7 +3044,6 @@
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-hush-flux > PH Flux Capacitor > offers may-charge on first break during host encounter": [
-      "HOST_LINK_MISSING",
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-hybrid-thule-reprise > PH Hybrid Release > wires may_install_facedown_from_archives onScore": [
@@ -3103,8 +3079,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-nanisivik-zato > PH Nanisivik Grid > may_flip opens Corp choice; flip resolves Archives ice sub": [
-      "NO_ZONE",
-      "RUNNER_CARD_REZZED"
+      "NO_ZONE"
     ],
     "parhelion > parhelion-nanisivik-zato > PH ZATO City Grid > offers trash-to-resolve on encounter; trash resolves sub": [
       "RUNNER_CARD_REZZED"
@@ -3204,8 +3179,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "pay-or-penalty cards are nested costs (CR 1.16.11b) > measured-response > resolves the instruction when the Runner declines to pay": [
-      "NO_ZONE",
-      "RUNNER_CARD_REZZED"
+      "NO_ZONE"
     ],
     "pay-or-penalty cards are nested costs (CR 1.16.11b) > public-trail > lets the Runner pay the whole cost instead": [
       "NO_ZONE",
@@ -3228,8 +3202,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "pay-or-penalty cards are nested costs (CR 1.16.11b) > thule-subsea-safety-below > resolves the instruction when the Runner declines to pay": [
-      "NO_ZONE",
-      "RUNNER_CARD_REZZED"
+      "NO_ZONE"
     ],
     "the Corp chooses which HQ cards a card trashes (CR 1.15.2) > Anemone trashes the HQ card the Corp picks": [
       "NO_ZONE",
@@ -3521,9 +3494,6 @@
   "tests/snare-tag-interrupt.test.ts": {
     "CR C4 — Snare tag interrupt before damage (9.1.2a) > accepting tags then continues into net damage": [
       "RUNNER_CARD_REZZED"
-    ],
-    "CR C4 — Snare tag interrupt before damage (9.1.2a) > parks on pendingTags then continues seq into net damage": [
-      "RUNNER_CARD_REZZED"
     ]
   },
   "tests/static-flags.test.ts": {
@@ -3631,8 +3601,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "the-automata-initiative > tai-front-balanced-chrys-tucana-starlit > TAI v0.85 IR wiring (engine) > Front Company: first Archives run unprotected → 2 net damage": [
-      "NO_ZONE",
-      "RUNNER_CARD_REZZED"
+      "NO_ZONE"
     ],
     "the-automata-initiative > tai-hermes-salvo-monkey-capy-ablative > TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative > install_from_hq_or_archives excludeAgenda skips agendas": [
       "RUNNER_CARD_REZZED"

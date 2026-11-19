@@ -4,35 +4,16 @@ import { setRunnerPosition } from "../../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashToHeap(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "runner:heap";
-  card.hostId = undefined;
-  state.runner.discardPile.push(cardId);
-}
-
-function trashToArchives(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "corp:archives";
-  card.faceup = true;
-  card.rezzed = false;
-  state.corp.discardPile.push(cardId);
-}
 
 function installedRunnerCards(state: EffectCtx["state"]): string[] {
   return [...state.runner.installed].filter((id) => state.cards[id]);
@@ -254,7 +235,7 @@ export function applyRedsandBawPrimitive(
       if (!state.cards[cardId] || !state.runner.installed.includes(cardId)) {
         return { ok: true };
       }
-      trashToHeap(state, cardId);
+      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(state, `Warroid Tracker — trash ${state.cards[cardId]?.title}.`);
       return { ok: true };
     }
@@ -409,7 +390,7 @@ export function applyRedsandBawPrimitive(
     case "runner_trash_standoff_after": {
       const cardId = (action as { cardId: string }).cardId;
       if (state.runner.installed.includes(cardId)) {
-        trashToHeap(state, cardId);
+        trashCard(state, cardId, { by: controllerOf(state, sourceId) });
         log(state, `Standoff — Runner trashes ${state.cards[cardId]?.title}.`);
       }
       const corpInstalled = installedCorpCards(state);
@@ -437,7 +418,7 @@ export function applyRedsandBawPrimitive(
     case "corp_trash": {
       const cardId = (action as { cardId: string }).cardId;
       if (state.cards[cardId]) {
-        trashToArchives(state, cardId);
+        trashCard(state, cardId, { by: controllerOf(state, sourceId) });
         log(state, `Standoff — Corp trashes ${state.cards[cardId]?.title}.`);
       }
       return { ok: true };
@@ -557,7 +538,7 @@ export function applyRedsandBawPrimitive(
       }
       log(state, `Bug-Out Bag — draw ${n}, then trash.`);
       if (state.runner.installed.includes(sourceId)) {
-        trashToHeap(state, sourceId);
+        trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
       }
       return { ok: true };
     }

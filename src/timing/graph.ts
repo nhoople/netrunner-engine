@@ -19,7 +19,6 @@ import {
   fireHostRezStateTriggers,
 } from "../effects/eval.js";
 import { syncSubroutinesFromRecords } from "../effects/abilityRecord.js";
-import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import type { Effect } from "../effects/ir.js";
 import {
   armNestedBreachIfPending,
@@ -190,7 +189,6 @@ import {
 import { lingeringPlayAreaIds } from "../state/zones.js";
 import { noteRunnerClickLose } from "../state/clickHooks.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
-import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   cancelPendingIfSourceInactive,
@@ -202,6 +200,8 @@ import {
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
+import { trashCard } from "../state/procedures/trash.js";
+import { unhostCard } from "../state/procedures/host.js";
 
 const TLDR_COPY_SUFFIX = "-tldr-copy";
 
@@ -1524,12 +1524,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (!s.runner.installed.includes(id)) continue;
           const card = s.cards[id];
           s.runner.installed = s.runner.installed.filter((x) => x !== id);
-          for (const hid of [...s.runner.installed]) {
-            const h = s.cards[hid];
-            if (h?.hostId === id) h.hostId = undefined;
-          }
           if (card) {
-            card.hostId = undefined;
+            unhostCard(s, card.id);
             card.zone = "removed-from-game";
             card.faceup = true;
           }
@@ -1634,11 +1630,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const hid of [...(host.hostedCardIds ?? [])]) {
             const hosted = s.cards[hid];
             if (!hosted || hosted.type !== "program") continue;
-            host.hostedCardIds = (host.hostedCardIds ?? []).filter(
-              (x) => x !== hid,
-            );
-            hosted.hostId = undefined;
-            moveRunnerCardToHeap(s, hid);
+            unhostCard(s, hosted.id);
+            trashCard(s, hid);
             s.log.push(
               `${host.title} — trash hosted ${hosted.title} at turn end.`,
             );
@@ -3706,10 +3699,8 @@ export const STEPS: Record<string, TimingStepDef> = {
                   `${br.title} — remove 1 virus counter (broke a subroutine).`,
                 );
               } else {
-                removeCardFromCurrentZone(s, bid);
-                s.runner.discardPile.push(bid);
-                br.zone = "runner:heap";
-                br.faceup = true;
+                // Its own ability trashes it (CR 1.14.5).
+                trashCard(s, bid, { by: "runner" });
                 s.log.push(
                   `${br.title} — trash (broke a subroutine; no virus counters).`,
                 );
@@ -3730,14 +3721,11 @@ export const STEPS: Record<string, TimingStepDef> = {
                     : undefined;
                   if (!n) continue;
                   for (let i = 0; i < n; i++) {
-                    const top = s.runner.deck.shift();
+                    const top = s.runner.deck[0];
                     if (!top) break;
-                    s.runner.discardPile.push(top);
                     const tc = s.cards[top];
-                    if (tc) {
-                      tc.zone = "runner:heap";
-                      tc.faceup = true;
-                    }
+                    // The upgrade's ability: the Corp trashes it (CR 1.14.5).
+                    trashCard(s, top, { by: "corp" });
                     s.log.push(
                       `${up!.title} — trash top of stack (${tc?.title ?? top}).`,
                     );
@@ -3747,23 +3735,10 @@ export const STEPS: Record<string, TimingStepDef> = {
               for (const hid of ice.hostedCardIds ?? []) {
                 const cond = s.cards[hid];
                 if (!cond?.trashHostIfAllSubsBrokenThisEncounter) continue;
-                removeCardFromCurrentZone(s, iceId);
-                s.corp.discardPile.push(iceId);
-                ice.zone = "corp:archives";
-                ice.faceup = true;
-                ice.rezzed = false;
-                // Hosted condition goes with the ice to Archives.
-                for (const cid of [...(ice.hostedCardIds ?? [])]) {
-                  const hosted = s.cards[cid];
-                  if (!hosted) continue;
-                  removeCardFromCurrentZone(s, cid);
-                  s.corp.discardPile.push(cid);
-                  hosted.zone = "corp:archives";
-                  hosted.faceup = true;
-                  hosted.rezzed = false;
-                  hosted.hostId = undefined;
-                }
-                ice.hostedCardIds = [];
+                // The hosted condition's ability: the Corp trashes the ice
+                // (CR 1.14.5). The condition stays hosted and the next
+                // checkpoint trashes it (CR 1.13.13, 10.3.1g).
+                trashCard(s, iceId, { by: "corp" });
                 s.log.push(
                   `${cond.title} — trash host ${ice.title} (all subroutines broken).`,
                 );
@@ -4961,7 +4936,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             if (abilitiesSuppressed(s, id)) continue;
             const c = s.cards[id];
             if (c?.trashSelfOnUnsuccessfulRunThisTurn) {
-              moveRunnerCardToHeap(s, id);
+              trashCard(s, id);
               s.log.push(`${c.title} — trashed (unsuccessful run).`);
             }
           }
@@ -5075,11 +5050,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           const br = s.cards[breakerId];
           if (!br?.trashAfterBreakingThisRun) continue;
           if (!s.runner.installed.includes(breakerId)) continue;
-          const idx = s.runner.installed.indexOf(breakerId);
-          s.runner.installed.splice(idx, 1);
-          s.runner.discardPile.push(breakerId);
-          br.zone = "runner:heap";
-          br.faceup = true;
+          // Its own ability trashes it (CR 1.14.5).
+          trashCard(s, breakerId, { by: "runner" });
           s.log.push(`${br.title} trashed — broke a subroutine this run.`);
         }
         // Hafrún / Unsmiling: clear run-scoped break restrictions
@@ -5195,7 +5167,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (runSrcCard?.rfgSelfOnRunEnd) {
             removeCardFromCurrentZone(s, runSrc);
             runSrcCard.zone = "removed-from-game";
-            runSrcCard.hostId = undefined;
+            unhostCard(s, runSrcCard.id);
             s.log.push(
               `${runSrcCard.title} — remove from the game (run ended).`,
             );
@@ -5206,10 +5178,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const pid of [...(runState.dianaInstalledProgramIds ?? [])]) {
             const prog = s.cards[pid];
             if (!prog || prog.zone !== "runner:installed") continue;
-            removeCardFromCurrentZone(s, pid);
-            s.runner.discardPile.push(pid);
-            prog.zone = "runner:heap";
-            prog.faceup = true;
+            trashCard(s, pid, { by: "runner" });
             s.log.push(
               `Diana's Hunt — trash ${prog.title} (installed this run ignoring costs).`,
             );
@@ -5295,11 +5264,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             s.runner.installed.includes(arissanaId) &&
             !(prog.subtypes ?? []).includes(unlessSubtype)
           ) {
-            const idx = s.runner.installed.indexOf(arissanaId);
-            s.runner.installed.splice(idx, 1);
-            s.runner.discardPile.push(arissanaId);
-            prog.zone = "runner:heap";
-            prog.faceup = true;
+            trashCard(s, arissanaId, { by: "runner" });
             s.log.push(
               `${prog.title} trashed at run end — not a ${unlessSubtype}.`,
             );
@@ -5323,17 +5288,13 @@ export const STEPS: Record<string, TimingStepDef> = {
             }
           }
           if (howler) {
-            for (const server of Object.values(s.servers)) {
-              const idx = server.ice.indexOf(runState.howlerId);
-              if (idx >= 0) {
-                server.ice.splice(idx, 1);
-                s.corp.discardPile.push(runState.howlerId);
-                howler.zone = "corp:archives";
-                howler.rezzed = false;
-                howler.faceup = true;
-                s.log.push(`${howler.title} trashed at run end (CR 10.2).`);
-                break;
-              }
+            const installed = Object.values(s.servers).some((server) =>
+              server.ice.includes(runState.howlerId!),
+            );
+            if (installed) {
+              // Its own ability trashes it (CR 1.14.5).
+              trashCard(s, runState.howlerId, { by: "corp" });
+              s.log.push(`${howler.title} trashed at run end (CR 10.2).`);
             }
           }
         }
@@ -5342,20 +5303,9 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const iceId of runState.awakeningCenterHostedIceIds ?? []) {
           const ice = s.cards[iceId];
           if (!ice) continue;
-          const hostId = ice.hostId;
-          if (hostId) {
-            const host = s.cards[hostId];
-            if (host) {
-              host.hostedCardIds = (host.hostedCardIds ?? []).filter(
-                (id) => id !== iceId,
-              );
-            }
-          }
-          ice.hostId = undefined;
-          s.corp.discardPile.push(iceId);
-          ice.zone = "corp:archives";
-          ice.rezzed = false;
-          ice.faceup = true;
+          // Awakening Center's ability: the Corp trashes the hosted ice
+          // (CR 1.14.5).
+          trashCard(s, iceId, { by: "corp" });
           s.log.push(`${ice.title} trashed at run end (Awakening Center).`);
         }
         const postBreach = runState.breachWhenRunEnds;
@@ -5806,7 +5756,7 @@ export const STEPS: Record<string, TimingStepDef> = {
               s,
               `${ice.title} is trashed — its own name means this ice (CR ${CR.selfReference.number}).`,
             );
-            trashCorpCardToArchives(s, kitsuneId, "corp");
+            trashCard(s, kitsuneId, { by: "corp" });
           }
         }
         s.log.push(`Breach complete (appendix 11.5_7).`);

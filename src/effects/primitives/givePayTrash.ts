@@ -8,6 +8,7 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -57,15 +58,12 @@ function trashTopOfRd(
   label: string,
 ): void {
   for (let i = 0; i < n; i++) {
-    const top = state.corp.deck.shift();
+    const top = state.corp.deck[0];
     if (!top) break;
-    state.corp.discardPile.push(top);
     const c = state.cards[top];
-    if (c) {
-      c.zone = "corp:archives";
-      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-      c.faceup = false;
-    }
+    // "Force the Corp to trash": the Corp carries it out (CR 1.14.5).
+    // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+    trashCard(state, top, { by: "corp" });
     log(state, `${label} — trash ${c?.title ?? top} from R&D.`);
   }
 }
@@ -203,14 +201,8 @@ export function applyRedsandCdPrimitive(
         log(state, `Dummy Box — card no longer in grip.`);
         return { ok: true };
       }
-      state.runner.hand.splice(idx, 1);
-      removeCardFromCurrentZone(state, id);
-      state.runner.discardPile.push(id);
       const c = state.cards[id];
-      if (c) {
-        c.zone = "runner:heap";
-        c.faceup = true;
-      }
+      trashCard(state, id, { by: "runner", cause: "cost" });
       preventPendingInstalledTrash(state);
       log(
         state,

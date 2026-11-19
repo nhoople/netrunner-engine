@@ -3,17 +3,12 @@
  */
 
 import { dealDamage } from "./damage.js";
-import { maybeOpenTrashPrevent } from "./trashPrevent.js";
 import { log } from "./createGame.js";
-import { returnHostedIdentityToOutsideGame } from "./fenris.js";
-import { recomputeRunnerMaxHandSize } from "./handSize.js";
-import { removeCardFromCurrentZone } from "./scoring.js";
+import { trashCard } from "./procedures/trash.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
 import { abilitiesSuppressed } from "./abilities.js";
-import { cancelPendingIfSourceInactive } from "./pendingAbilities.js";
-import { onInstalledProgramTrashed } from "./staticFlags.js";
 import { type StoredConditionalMark } from "./storedTriggers.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
@@ -109,7 +104,7 @@ function skorpiosIdentity(state: GameState): CardInstance | undefined {
 }
 
 /** Corp may remove this trashed Runner card from the game instead of the heap. */
-function offerSkorpiosRfgInsteadOfHeap(
+export function offerSkorpiosRfgInsteadOfHeap(
   state: GameState,
   card: CardInstance,
   fromZone: string,
@@ -148,99 +143,36 @@ function offerSkorpiosRfgInsteadOfHeap(
   return true;
 }
 
-/** Skorpios chose the destination of a trashed Runner card (CR 9.1.8b). */
-export function resolveSkorpiosTrash(state: GameState, optionId: string): void {
-  const pending = state.turn.pendingSkorpiosTrash;
-  if (!pending) return;
-  state.turn.pendingSkorpiosTrash = undefined;
-  const card = state.cards[pending.cardId];
-  if (!card) return;
-  if (optionId.startsWith("skorpios-rfg:")) {
-    state.turn.skorpiosRfgUsedThisTurn = true;
-    card.zone = "removed-from-game";
-    card.faceup = true;
-    if (!state.removedFromGame.includes(card.id)) {
-      state.removedFromGame.push(card.id);
+/**
+ * Bookkeeping when an installed Runner card is about to be trashed (Death and
+ * Taxes, per-encounter trash limits). Called by `trashCard` before the card
+ * moves (`src/state/procedures/trash.ts`).
+ */
+export function noteRunnerInstalledCardTrashing(state: GameState): void {
+  state.turn.runnerTrashedOwnInstalledThisTurn = true;
+  fireCotcOnRunnerInstalledTrashed(state);
+  const enc = state.run?.encounter;
+  if (enc?.iceId) {
+    const ice = state.cards[enc.iceId];
+    if (ice?.maxInstalledRunnerTrashesPerEncounter) {
+      enc.installedRunnerTrashesThisEncounter =
+        (enc.installedRunnerTrashesThisEncounter ?? 0) + 1;
     }
-    const idCard = state.cards[state.corp.identityId];
-    log(
-      state,
-      `${idCard?.title ?? "Skorpios"} removes ${card.title} from the game instead of adding it to the heap.`,
-    );
-    log(
-      state,
-      `${card.title} is not active (CR ${CR.abilityActiveInZone.number}).`,
-    );
-    return;
   }
-  arriveRunnerCardInHeap(state, card, pending.fromZone, pending.wasInstalled);
 }
 
-/** Move a Runner card to the heap, firing grip/stack trash triggers. */
-export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  const fromZone = card.zone;
-  const wasInstalled =
-    fromZone === "runner:installed" || state.runner.installed.includes(cardId);
-  if (maybeOpenTrashPrevent(state, cardId)) {
-    return;
-  }
-  releaseHostedCardsOnTrash(state, cardId);
-  if (wasInstalled) {
-    state.turn.runnerTrashedOwnInstalledThisTurn = true;
-    fireCotcOnRunnerInstalledTrashed(state);
-    const enc = state.run?.encounter;
-    if (enc?.iceId) {
-      const ice = state.cards[enc.iceId];
-      if (ice?.maxInstalledRunnerTrashesPerEncounter) {
-        enc.installedRunnerTrashesThisEncounter =
-          (enc.installedRunnerTrashesThisEncounter ?? 0) + 1;
-      }
-    }
-  }
-  removeCardFromCurrentZone(state, cardId);
-  // CR 9.6.10: still-pending instances for this source die when it leaves
-  // play (including turn-begin leftovers on the bag; CR 9.6.5d). Scoped to
-  // cardId so other cards' pendings (and later on-trash triggers for this
-  // card) are untouched.
-  cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
-  if (wasInstalled && card.type === "program") onInstalledProgramTrashed(state);
-  if (wasInstalled && card.type === "program") onInstalledProgramTrashed(state);
-  // Nanuq-class: uninstall → RFG instead of heap.
-  if (wasInstalled && card.rfgOnUninstall) {
-    card.zone = "removed-from-game";
-    card.faceup = true;
-    if (!state.removedFromGame.includes(cardId)) {
-      state.removedFromGame.push(cardId);
-    }
-    log(
-      state,
-      `${card.title} removed from the game on uninstall (CR ${CR.trashing.number}).`,
-    );
-    fireOnUninstall(state, card);
-    return;
-  }
-  if (wasInstalled && card.onUninstall) {
-    fireOnUninstall(state, card);
-  }
-  if (offerSkorpiosRfgInsteadOfHeap(state, card, fromZone, wasInstalled)) {
-    return;
-  }
-  arriveRunnerCardInHeap(state, card, fromZone, wasInstalled);
-}
-
-function arriveRunnerCardInHeap(
+/**
+ * Trash triggers for a Runner card that has just arrived in the heap
+ * (CR 1.19.1). `trashCard` places the card, then calls this.
+ */
+export function noteRunnerCardTrashedToHeap(
   state: GameState,
   card: CardInstance,
   fromZone: string,
   wasInstalled: boolean,
 ): void {
   const cardId = card.id;
-  state.runner.discardPile.push(cardId);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
   fireOnTrashFromGripOrStack(state, card, fromZone);
   // Tri-maf / Rolodex-class: onTrash when Runner card hits heap — note for 10.3.1a.
   if (card.onTrash) {
@@ -351,67 +283,6 @@ export function noteFirstInstallInServerRootThisTurn(
   noteAndCheckpointStored(state, items, "install.firstInServerRoot");
 }
 
-/**
- * When a host is trashed, hosted Corp cards go to Archives (faceup, not
- * installed); hosted Runner cards go to the heap — except hosted identities
- * on Fenris-class hosts, which return to the outside-game pile (CR 1.5.4b).
- */
-export function releaseHostedCardsOnTrash(
-  state: GameState,
-  hostId: string,
-): void {
-  const host = state.cards[hostId];
-  if (host?.hostedCardIds?.length) {
-    const hosted = [...host.hostedCardIds];
-    host.hostedCardIds = [];
-    for (const id of hosted) {
-      const card = state.cards[id];
-      if (!card) continue;
-      if (
-        card.type === "identity" &&
-        (host.returnHostedIdentityToOutsideGameOnUninstall ||
-          host.gainsTextOfHostedIdentity)
-      ) {
-        returnHostedIdentityToOutsideGame(state, hostId, id);
-        continue;
-      }
-      card.hostId = undefined;
-      if (card.side === "corp") {
-        if (!state.corp.discardPile.includes(id)) {
-          state.corp.discardPile.push(id);
-        }
-        card.zone = "corp:archives";
-        card.faceup = true;
-        card.rezzed = false;
-        log(
-          state,
-          `${card.title} — hosted on ${host.title}; moves to Archives.`,
-        );
-      } else {
-        if (!state.runner.discardPile.includes(id)) {
-          state.runner.discardPile.push(id);
-        }
-        card.zone = "runner:heap";
-        card.faceup = true;
-        log(state, `${card.title} — hosted on ${host.title}; moves to heap.`);
-      }
-    }
-  }
-  // Hackerspace-class: installed resources hosted via hostId also leave play.
-  const hostedInstalled = state.runner.installed.filter(
-    (id) => id !== hostId && state.cards[id]?.hostId === hostId,
-  );
-  for (const id of hostedInstalled) {
-    const card = state.cards[id];
-    if (!card) continue;
-    card.hostId = undefined;
-    moveRunnerCardToHeap(state, id);
-  }
-  if (hostedInstalled.length > 0) {
-    recomputeRunnerMaxHandSize(state);
-  }
-}
-
 function fireOnTrashFromGripOrStack(
   state: GameState,
   card: CardInstance,
@@ -454,7 +325,7 @@ function fireOnTrashFromGripOrStack(
   );
 }
 
-function fireOnUninstall(state: GameState, card: CardInstance): void {
+export function fireOnUninstall(state: GameState, card: CardInstance): void {
   if (!card.onUninstall) return;
   noteAndCheckpointStored(
     state,
@@ -543,6 +414,7 @@ function flushGripOrStackTrashBatch(state: GameState): void {
 export function noteFirstCorpCardTrashEachTurn(
   state: GameState,
   trashedBy: "corp" | "runner" = "runner",
+  setTriggersMarkedByCaller = false,
 ): void {
   noteRunnerStoleOrTrashedCorpCard(state);
   // A later Corp trash does not undo an earlier Runner trash this turn.
@@ -550,7 +422,9 @@ export function noteFirstCorpCardTrashEachTurn(
   // Hostile Infrastructure meets its trigger only when the Runner trashes
   // the Corp card (CR 1.14.5a).
   if (trashedBy !== "runner") return;
-  for (const server of Object.values(state.servers)) {
+  for (const server of setTriggersMarkedByCaller
+    ? []
+    : Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
@@ -900,19 +774,10 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     if (card.side === "runner" && !state.runner.installed.includes(id))
       continue;
     if (card.side === "corp" && !card.zone.startsWith("server:")) continue;
-    if (card.side === "runner") {
-      moveRunnerCardToHeap(state, id);
-      log(state, `${card.title} trashed by virus purge.`);
-    } else {
-      removeCardFromCurrentZone(state, id);
-      cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== id);
-      state.corp.discardPile.push(id);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      card.rezzed = false;
-      log(state, `${card.title} trashed by virus purge.`);
-      fireCorpOnTrash(state, id);
-    }
+    // The card's own ability trashes it, so its controller trashes it
+    // (CR 1.14.5).
+    trashCard(state, id, { by: card.side });
+    log(state, `${card.title} trashed by virus purge.`);
   }
 }
 

@@ -11,13 +11,12 @@ import { log } from "../state/createGame.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
-import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { trashCorpCardToArchives } from "./corpTrash.js";
 import { deferContinuationAfter } from "./continuation.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -82,7 +81,7 @@ function finish(
     case "trash_hq": {
       for (const id of ids) {
         if (!state.corp.hand.includes(id)) continue;
-        trashCorpCardToArchives(state, id, "corp");
+        trashCard(state, id, { by: "corp" });
       }
       log(
         state,
@@ -123,7 +122,7 @@ function finish(
       for (const id of ids) {
         if (!state.runner.hand.includes(id)) continue;
         const title = state.cards[id]!.title;
-        moveRunnerCardToHeap(state, id);
+        trashCard(state, id);
         log(
           state,
           `Runner trashes ${title} from the grip (CR ${CR.trashing.number}).`,

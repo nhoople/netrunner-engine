@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { hostCard } from "../src/state/procedures/host.js";
 import {
   applyAction,
   assertCardsPinnedTag,
@@ -3660,7 +3661,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Glenn Station: hosts a card from HQ facedown", () => {
     const s = createInitialState();
-    put(s, "glenn-station", "gs-1", "remote:1:root");
+    put(s, "glenn-station", "gs-1", "server:hq:root");
+    s.servers["hq"]!.root = ["gs-1"];
     put(s, "hedge-fund", "hq-1", "corp:hand");
     s.corp.hand = ["hq-1"];
     runKind(s, "gs-1", "glenn_host_from_hq");
@@ -3741,9 +3743,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Glenn Station: adds its hosted card to HQ", () => {
     const s = createInitialState();
-    put(s, "glenn-station", "gs-1", "remote:1:root");
-    const hosted = put(s, "hedge-fund", "hq-1", "hosted:gs-1");
-    hosted.hostId = "gs-1";
+    put(s, "glenn-station", "gs-1", "server:hq:root");
+    s.servers["hq"]!.root = ["gs-1"];
+    put(s, "hedge-fund", "hq-1", "hosted:gs-1");
+    hostCard(s, "hq-1", "gs-1");
     s.corp.hand = [];
     runKind(s, "gs-1", "glenn_retrieve_to_hq");
     const after = applyAction(s, {
@@ -5061,7 +5064,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.installed = ["mat-1"];
     const hosted = put(s, "matryoshka", "mat-host", "hosted:mat-1");
     hosted.faceup = true;
-    mat.hostedCardIds = ["mat-host"];
+    hostCard(s, "mat-host", mat.id);
     s.runner.credits = 3;
     const ice = put(s, "enigma", "en-1", "server:hq:ice");
     ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
@@ -5382,9 +5385,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["archives"]!.ice = ["en-1"];
     const a = put(s, "corroder", "prog-a", "runner:installed");
     const b = put(s, "datasucker", "prog-b", "runner:installed");
-    a.hostId = "iw-1";
-    b.hostId = "en-1";
     s.runner.installed = ["prog-a", "prog-b"];
+    hostCard(s, a.id, "iw-1", { installed: true });
+    hostCard(s, b.id, "en-1", { installed: true });
     runKind(s, "mag-1", "host_ice_program_on_self");
     expect(s.pendingChoice?.chooser).toBe("corp");
     const after = applyAction(s, {

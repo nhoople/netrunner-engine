@@ -24,15 +24,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const areas = {
   "hosting-trash": {
     title: "1. Hosting and trash",
-    mutate: [
-      "src/state/trashHooks.ts",
-      "src/state/trashPrevent.ts",
-      "src/effects/corpTrash.ts",
-      "src/effects/kinds/trashKinds.ts",
-      "src/state/hostDuration.ts",
-    ],
+    mutate: ["src/state/procedures/host.ts", "src/state/procedures/trash.ts"],
     tests: ["tests/*trash*.test.ts", "tests/*host*.test.ts"],
-    grep: /releaseHostedCardsOnTrash|moveRunnerCardToHeap|trashCorpCardToArchives|\b10\.3\.1g\b|Off-Campus Apartment|Personal Workshop|Street Peddler/,
+    grep: /\btrashCard\(|\bhostCard\(|\bunhostCard\(|\b10\.3\.1g\b|\b1\.13\.1[23]\b|\b4\.4\.6b\b|Off-Campus Apartment|Personal Workshop|Street Peddler|Sacrificial Construct|Skorpios|Marilyn Campaign|Director Haas/,
   },
   uninstall: {
     title: "2. Uninstall, ice removal, run position, rearrange",

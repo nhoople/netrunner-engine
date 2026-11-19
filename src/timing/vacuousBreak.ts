@@ -3,10 +3,10 @@
  * Forked trashes the first ice of the named subtype once every subroutine
  * on it is broken, including when it has none.
  */
-import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import { log } from "../state/createGame.js";
 import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 export function noteVacuousFullBreak(state: GameState): void {
   const run = state.run;
@@ -34,5 +34,5 @@ export function noteVacuousFullBreak(state: GameState): void {
     state,
     `${ice.title} is trashed — every subroutine is broken (CR ${CR.vacuousAll.number}).`,
   );
-  trashCorpCardToArchives(state, enc.iceId, "runner");
+  trashCard(state, enc.iceId, { by: "runner" });
 }

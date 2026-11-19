@@ -6,6 +6,7 @@
  * for that reason, and the encounter and card checks clear once the requirement is met.
  * Conditional abilities run from the turn step that fires them.
  */
+import { hostCard } from "../src/state/procedures/host.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -1186,7 +1187,7 @@ describe("later turn steps", () => {
             spec.field === "onBreachHqIfHostingCorpCard" &&
             state.corp.hand[0]
           ) {
-            card.hostedCardIds = [state.corp.hand[0]];
+            hostCard(state, state.corp.hand[0], cardId);
           }
         }
         if (spec.step === "breach.awaitAccess" && state.run) {

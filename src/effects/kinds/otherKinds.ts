@@ -68,18 +68,11 @@ import {
   stealAgenda,
 } from "../../state/scoring.js";
 import { effectiveRunnerTags } from "../../state/tags.js";
-import {
-  recomputeRunnerLink,
-  releaseHostedCardsOnTrash,
-} from "../../state/trashHooks.js";
+import { recomputeRunnerLink } from "../../state/trashHooks.js";
 import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import { enterSetAside } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
-import {
-  maybeTrashHostsAtStrengthLte,
-  trashCorpCardToArchives,
-  trashToHeap,
-} from "../corpTrash.js";
+import { maybeTrashHostsAtStrengthLte } from "../corpTrash.js";
 import { drawCards } from "../draw.js";
 import {
   fireAfterBreakSubroutineHooks,
@@ -105,6 +98,8 @@ import {
 } from "../runnerInstall.js";
 
 import { fireOnFullyBreak, fireOnForfeit, fireOnAccess } from "../eval.js";
+import { trashCard } from "../../state/procedures/trash.js";
+import { hostCard } from "../../state/procedures/host.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -795,14 +790,11 @@ export function applyOtherKinds(
       ice.faceup = true;
       // Move source onto ice as hosted condition.
       removeCardFromCurrentZone(state, sourceId);
-      source.hostId = action.iceId;
+      hostCard(state, source.id, action.iceId, { installed: true });
       source.zone = `hosted:${action.iceId}`;
       source.faceup = true;
       source.rezzed = true;
       source.convertedInto = "counter";
-      if (!ice.hostedCardIds) ice.hostedCardIds = [];
-      if (!ice.hostedCardIds.includes(sourceId))
-        ice.hostedCardIds.push(sourceId);
       log(
         state,
         `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
@@ -1515,7 +1507,7 @@ export function applyOtherKinds(
       state.runner.installed = state.runner.installed.filter(
         (id) => id !== sourceId,
       );
-      trashToHeap(state, sourceId);
+      trashCard(state, sourceId);
       log(state, `Trash ${source.title}.`);
       if (matches.length === 0) {
         log(state, `Copycat — no other rezzed copy to jump to.`);
@@ -1586,7 +1578,7 @@ export function applyOtherKinds(
           iceId: nextId,
         });
       }
-      trashToHeap(state, sourceId);
+      trashCard(state, sourceId);
       const isCaissa = (id: string) => {
         const c = state.cards[id];
         return (
@@ -3154,12 +3146,8 @@ export function applyOtherKinds(
     }
 
     case "mitra_aman_approach_ice": {
-      releaseHostedCardsOnTrash(state, sourceId);
-      removeCardFromCurrentZone(state, sourceId);
-      state.corp.discardPile.push(sourceId);
-      source.zone = "corp:archives";
-      source.faceup = true;
-      source.rezzed = false;
+      // Its own ability trashes it, so the Corp does (CR 1.14.5).
+      trashCard(state, sourceId, { by: "corp", cause: "cost" });
       state.corp.credits += 3;
       log(state, `Mitra Aman trashed → gain 3¢ (${state.corp.credits}¢).`);
       const run = state.run;
@@ -3425,7 +3413,7 @@ export function applyOtherKinds(
           state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
             (x) => x !== id,
           );
-          trashCorpCardToArchives(state, id, source.side);
+          trashCard(state, id, { by: source.side });
           log(state, `ABT — trash ${state.cards[id]!.title}.`);
         }
         state.turn.rdLookedCards = [];
@@ -3554,7 +3542,7 @@ export function applyOtherKinds(
       if (playable.length === 0 || action.done) {
         // A card the Corp did not play was never seen by the Runner, so it
         // goes to Archives facedown (CR 4.4.6b).
-        for (const id of looked) trashCorpCardToArchives(state, id, "corp");
+        for (const id of looked) trashCard(state, id, { by: "corp" });
         if (looked.length > 0) {
           log(
             state,
@@ -3833,7 +3821,7 @@ export function applyOtherKinds(
       }
       if (others.length === 1) {
         const iceId = others[0]!;
-        source.hostId = iceId;
+        hostCard(state, source.id, iceId, { installed: true });
         log(state, `${source.title} hosts on ${state.cards[iceId]!.title}.`);
         return { ok: true };
       }
@@ -3870,7 +3858,7 @@ export function applyOtherKinds(
         log(state, `Rehost — ${ice.title} is not installed.`);
         return { ok: true };
       }
-      source.hostId = action.iceId;
+      hostCard(state, source.id, action.iceId, { installed: true });
       log(state, `${source.title} hosts on ${ice.title}.`);
       return { ok: true };
     }

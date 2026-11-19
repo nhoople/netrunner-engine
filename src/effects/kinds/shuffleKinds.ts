@@ -22,6 +22,7 @@ import {
 import { random } from "../../state/rng.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
+import { unhostAllFrom, unhostCard } from "../../state/procedures/host.js";
 
 export function applyShuffleKinds(
   ctx: EffectCtx,
@@ -497,7 +498,7 @@ export function applyShuffleKinds(
         return { ok: true };
       }
       removeCardFromCurrentZone(state, cardId);
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       state.runner.deck.push(cardId);
       card.zone = "runner:stack";
       card.faceup = false;
@@ -515,13 +516,13 @@ export function applyShuffleKinds(
 
     case "shuffle_hosted_cards_into_stack": {
       const hosted = [...(source.hostedCardIds ?? [])];
-      source.hostedCardIds = [];
+      unhostAllFrom(state, source.id);
       for (const id of hosted) {
         const card = state.cards[id];
         if (!card) continue;
         // Set aside as the [trash] cost was paid (CR 9.5.5): leave set-aside.
         removeCardFromCurrentZone(state, id);
-        card.hostId = undefined;
+        unhostCard(state, card.id);
         card.faceup = false;
         card.zone = "runner:stack";
         state.runner.deck.push(id);

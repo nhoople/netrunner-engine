@@ -2,22 +2,15 @@
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
-import type { GameState, RuleCite, ServerId } from "../../state/types.js";
+import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-
-function trashCorpToArchives(state: GameState, cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.corp.discardPile.push(cardId);
-  card.zone = "corp:archives";
-  card.faceup = true;
-  card.rezzed = false;
-}
+import {
+  controllerOf,
+  discardCard,
+  trashCard,
+} from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -221,7 +214,7 @@ export function applyMumbadBfPrimitive(
         const id = targets[0]!;
         const card = state.cards[id]!;
         const gainAmt = card.trashCost ?? 0;
-        trashCorpToArchives(state, id);
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
         state.corp.credits += gainAmt;
         log(state, `Product Recall — trash ${card.title}; gain ${gainAmt}¢.`);
         return { ok: true };
@@ -250,7 +243,7 @@ export function applyMumbadBfPrimitive(
       const card = state.cards[id];
       if (!card?.rezzed) return { ok: true };
       const gainAmt = card.trashCost ?? 0;
-      trashCorpToArchives(state, id);
+      trashCard(state, id, { by: controllerOf(state, sourceId) });
       state.corp.credits += gainAmt;
       log(state, `Product Recall — trash ${card.title}; gain ${gainAmt}¢.`);
       return { ok: true };
@@ -272,8 +265,8 @@ export function applyMumbadBfPrimitive(
     case "draw_then_discard_down_to_hand_size_continue": {
       const cardId = action.cardId;
       if (!cardId || !state.runner.hand.includes(cardId)) return { ok: true };
-      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      moveRunnerCardToHeap(state, cardId);
+      // A discard, not a trash (CR 1.19.3).
+      discardCard(state, cardId);
       log(state, `Harvester — Runner discards ${state.cards[cardId]!.title}.`);
       return offerDiscardDownToHandSize(ctx);
     }

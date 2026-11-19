@@ -2,6 +2,7 @@
  * Comprehensive Rules examples from chapter 9.
  * Each test plays that example's board.
  */
+import { hostCard } from "../src/state/procedures/host.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -36,9 +37,9 @@ import { noteProgramOrHardwareInstalled } from "../src/state/programHardwareInst
 import { onRunnerTurnEnds } from "../src/state/staticFlags.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
-import { moveRunnerCardToHeap } from "../src/state/trashHooks.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { passIdle } from "../src/demo/passIdle.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -785,9 +786,9 @@ describe("CR examples, chapter 9", () => {
       },
     ];
     const geb = instantiateCard("gebrselassie", "geb-1", "runner:installed");
-    geb.hostId = "puf-1";
     s.cards["puf-1"] = puffer;
     s.cards["geb-1"] = geb;
+    hostCard(s, "geb-1", "puf-1", { installed: true });
     s.runner.installed = ["puf-1", "geb-1"];
     s.runner.credits = 5;
     s.runner.clicks = 1;
@@ -1760,7 +1761,7 @@ describe("CR examples, chapter 9", () => {
     ]);
     expect(s.runner.tags).toBe(0);
 
-    moveRunnerCardToHeap(s, "jb-1");
+    trashCard(s, "jb-1");
     expect(s.runner.installed).not.toContain("jb-1");
     expect(s.cards["jb-1"]?.zone).toBe("runner:heap");
 
@@ -2610,7 +2611,7 @@ describe("CR examples, chapter 9", () => {
     s.cards["sc-1"] = construct;
     s.runner.installed.push("hb-1", "sc-1");
 
-    moveRunnerCardToHeap(s, "hb-1");
+    trashCard(s, "hb-1");
     expect(s.pendingTrashPrevent?.pendingInterruptIds).toEqual(["hb-1"]);
     expect(s.cards["hb-1"]?.zone).toBe("runner:installed");
     const offered = legalActions(s);
@@ -3229,9 +3230,9 @@ describe("CR examples, chapter 9", () => {
       },
     ];
     const geb = instantiateCard("gebrselassie", "geb-1", "runner:installed");
-    geb.hostId = "puf-1";
     s.cards["puf-1"] = puffer;
     s.cards["geb-1"] = geb;
+    hostCard(s, "geb-1", "puf-1", { installed: true });
     s.runner.installed = ["puf-1", "geb-1"];
     s.runner.credits = 5;
     s.activeSide = "runner";
@@ -3258,7 +3259,7 @@ describe("CR examples, chapter 9", () => {
     s.run = null;
     expect(breakerStrength(s, "puf-1")).toBe(4);
 
-    moveRunnerCardToHeap(s, "geb-1");
+    trashCard(s, "geb-1");
     expect(breakerStrength(s, "puf-1")).toBe(4);
     expect(s.log.join("\n")).toContain(
       CR.replacementStaticMustRemainActive.number,

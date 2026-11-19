@@ -362,11 +362,19 @@ export {
 export type { ActiveExpectedReplacement } from "./state/replacements.js";
 export { applyBreakerStrengthIncrease } from "./state/strengthIncrease.js";
 export type { PendingStrengthIncrease } from "./state/types.js";
+export { purgeVirusCounters } from "./state/trashHooks.js";
 export {
-  moveRunnerCardToHeap,
-  purgeVirusCounters,
-  releaseHostedCardsOnTrash,
-} from "./state/trashHooks.js";
+  discardCard,
+  trashCard,
+  type TrashBy,
+  type TrashCause,
+  type TrashOptions,
+} from "./state/procedures/trash.js";
+export {
+  hostCard,
+  unhostCard,
+  type HostOptions,
+} from "./state/procedures/host.js";
 export {
   runnerAbilityCarrierIds,
   legalFenrisHostIds,

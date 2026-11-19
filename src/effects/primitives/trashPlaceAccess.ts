@@ -8,7 +8,6 @@ import {
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import {
   fireOnAgendaAddedToRunnerScore,
-  moveRunnerCardToHeap,
   recomputeRunnerLink,
 } from "../../state/trashHooks.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
@@ -20,6 +19,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -113,7 +113,7 @@ export function applyMumbadTlmPrimitive(
       const hand = [...state.runner.hand];
       for (const id of hand) {
         state.runner.hand = state.runner.hand.filter((x) => x !== id);
-        moveRunnerCardToHeap(state, id);
+        trashCard(state, id);
       }
       log(
         state,
@@ -370,7 +370,7 @@ export function applyMumbadTlmPrimitive(
         log(state, `Waiver — reveal ${card.title} (cost ${cost}).`);
         if (typeof cost === "number" && cost <= excess) {
           state.runner.hand = state.runner.hand.filter((x) => x !== id);
-          moveRunnerCardToHeap(state, id);
+          trashCard(state, id);
           log(state, `Waiver — trash ${card.title} (cost ≤ ${excess}).`);
         }
       }

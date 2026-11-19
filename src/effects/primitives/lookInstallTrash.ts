@@ -8,31 +8,10 @@ import { grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashRunnerCardToHeap(
-  state: EffectCtx["state"],
-  cardId: string,
-): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.runner.discardPile.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
-}
-
-function trashCorpTopRd(state: EffectCtx["state"]): string | null {
-  if (state.corp.deck.length === 0) return null;
-  const id = state.corp.deck.pop()!;
-  state.corp.discardPile.push(id);
-  const card = state.cards[id]!;
-  card.zone = "corp:archives";
-  card.faceup = true;
-  return id;
-}
 
 export function applyFlashpointInPrimitive(
   ctx: EffectCtx,
@@ -112,7 +91,7 @@ export function applyFlashpointInPrimitive(
       for (const id of rest) {
         if (!state.runner.deck.includes(id)) continue;
         state.runner.deck = state.runner.deck.filter((x) => x !== id);
-        trashRunnerCardToHeap(state, id);
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
       }
       if (rest.length > 0) {
         log(
@@ -128,7 +107,7 @@ export function applyFlashpointInPrimitive(
       for (const id of lookedIds) {
         if (!state.runner.deck.includes(id)) continue;
         state.runner.deck = state.runner.deck.filter((x) => x !== id);
-        trashRunnerCardToHeap(state, id);
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
       }
       log(state, `Frantic Coding — trash ${lookedIds.length} looked card(s).`);
       return { ok: true };
@@ -191,8 +170,8 @@ export function applyFlashpointInPrimitive(
           id: `wetwork-host:${id}`,
           label: `Host on ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "host_on_ice_as_condition_on",
-            iceId: id,
+            kind: "host_self_as_condition",
+            hostId: id,
           }),
         })),
         logLine: `${source?.title ?? "Wetwork"} — choose rezzed bioroid ice to host on.`,
@@ -359,6 +338,3 @@ export function applyFlashpointInPrimitive(
       return null;
   }
 }
-
-// Re-export helper used only for typing silence when trash_top is already known.
-void trashCorpTopRd;

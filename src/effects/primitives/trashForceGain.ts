@@ -3,12 +3,12 @@ import { CR } from "../../timing/labels.js";
 import { log } from "../../state/createGame.js";
 import { addIceStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
 import { startTrace } from "../../state/trace.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect, grantAbilityCredits } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -29,7 +29,7 @@ export function applyFlashpoint23sPrimitive(
         return { ok: true };
       }
       const apply = (cardId: string): PrimResult => {
-        moveRunnerCardToHeap(state, cardId);
+        trashCard(state, cardId);
         const iceId = state.run?.encounter?.iceId;
         if (iceId && state.run) {
           addIceStrengthBoostThisEncounter(state, {
@@ -67,7 +67,7 @@ export function applyFlashpoint23sPrimitive(
       const cardId = action.cardId;
       const amount = action.amount ?? 2;
       if (!state.runner.hand.includes(cardId)) return { ok: true };
-      moveRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId);
       const iceId = state.run?.encounter?.iceId;
       if (iceId && state.run) {
         addIceStrengthBoostThisEncounter(state, {

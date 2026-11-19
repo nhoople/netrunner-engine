@@ -4,7 +4,6 @@ import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
 import { dealDamage } from "../../state/damage.js";
 import { recomputeRunnerMaxHandSize } from "../../state/handSize.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { mayAdvanceInstalledCard } from "../../state/advanceable.js";
 import { applyIdentityFace } from "../../state/identityFace.js";
 import { memoryLimit, usedMemory } from "../../state/turn.js";
@@ -15,6 +14,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -85,7 +85,7 @@ export function applySansanValPrimitive(
       const taken = action.cardIds.filter((id) => copies.includes(id));
       for (const id of taken) {
         state.runner.deck = state.runner.deck.filter((x) => x !== id);
-        moveRunnerCardToHeap(state, id);
+        trashCard(state, id);
       }
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
         const j = Math.floor(random(state) * (i + 1));
@@ -171,7 +171,7 @@ export function applySansanValPrimitive(
           cites: [],
         };
       }
-      moveRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId);
       log(state, `NEXT Gold — trash ${card.title}.`);
       if (remaining > 0) {
         const progs = installedPrograms(state);

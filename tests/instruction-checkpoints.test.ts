@@ -1393,7 +1393,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s = must(s, { type: "choose_option", optionId: "swap" });
 
     const trashed = at(s.log, "Botulus trashed");
-    expect(s.log[trashed]).toContain(CR.swapBecomeInstalled.number);
+    // Swapped out, the host is uninstalled; the checkpoint trashes what it
+    // hosted (CR 8.8.4b, 1.13.13, 10.3.1g).
+    expect(s.log[trashed]).toContain(CR.checkpointHostedOnUninstalled.number);
     expect(s.cards["bot-1"]?.zone).toBe("runner:heap");
     expect(s.cards["bot-1"]?.hostId).toBeUndefined();
     expect(s.runner.discardPile).toContain("bot-1");
@@ -2568,7 +2570,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       { state: s, sourceId: "sb-1" },
       {
         op: "do",
-        action: { kind: "host_on_ice_as_condition_on", iceId: "ice-1" },
+        action: { kind: "host_self_as_condition", hostId: "ice-1" },
       },
     );
     expect(hosted.ok).toBe(true);

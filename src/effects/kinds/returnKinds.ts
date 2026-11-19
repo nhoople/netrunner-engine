@@ -12,6 +12,7 @@ import {
 } from "../../state/scoring.js";
 import { returnRdLookedToDeckTop } from "../eval.js";
 import { fx } from "../ir.js";
+import { unhostCard } from "../../state/procedures/host.js";
 
 export function applyReturnKinds(
   ctx: EffectCtx,
@@ -247,10 +248,9 @@ export function applyReturnKinds(
         return { ok: true };
       }
       const take = hosted.slice(0, 2);
-      source.hostedCardIds = hosted.filter((id) => !take.includes(id));
       for (const id of take) {
         const card = state.cards[id]!;
-        card.hostId = undefined;
+        unhostCard(state, card.id);
         card.zone = "corp:hq";
         card.faceup = false;
         state.corp.hand.push(id);
@@ -307,7 +307,7 @@ export function applyReturnKinds(
       }
       removeCardFromCurrentZone(state, id);
       // Clear trojan host link when bouncing.
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       state.runner.hand.push(id);
       card.zone = "runner:grip";
       card.faceup = true;

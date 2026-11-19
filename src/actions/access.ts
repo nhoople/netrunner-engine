@@ -11,10 +11,7 @@ import {
   fireAfterAgendaStolenHooks,
   fireOnSteal,
 } from "../state/cardLifecycleHooks.js";
-import {
-  noteAccessTrash,
-  noteFirstCorpCardTrashEachTurn,
-} from "../state/trashHooks.js";
+import { noteAccessTrash } from "../state/trashHooks.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
 import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
@@ -32,6 +29,8 @@ import { fireScoreOrStealSideEffects } from "./score.js";
 import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";
 import { applyActionCore } from "./apply.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { hostCard } from "../state/procedures/host.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -334,24 +333,10 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       !state.run!.cannotStealOrTrash &&
       accessed
     ) {
-      const serverId = state.run!.attackedServerId;
-      const server = state.servers[serverId];
-      if (server) {
-        server.root = server.root.filter((id) => id !== accessingId);
-      }
-      state.corp.hand = state.corp.hand.filter((id) => id !== accessingId);
-      state.corp.deck = state.corp.deck.filter((id) => id !== accessingId);
-      // Also strip from ice arrays if accessing ice (rare for access).
-      if (server) {
-        server.ice = server.ice.filter((id) => id !== accessingId);
-      }
-      state.corp.discardPile.push(accessingId);
-      accessed.zone = "corp:archives";
-      accessed.faceup = true;
-      accessed.rezzed = false;
+      // The Runner's event trashes the accessed card (CR 1.14.5, 7.1.5).
+      trashCard(state, accessingId, { by: "runner", cause: "access" });
       state.run!.accessingCardId = null;
       if (state.run) state.run.breachStoleOrTrashed = true;
-      noteFirstCorpCardTrashEachTurn(state);
       noteAccessTrash(state, 0);
       log(
         state,
@@ -400,12 +385,10 @@ export function hostCorpCardFaceupOn(
   const card = state.cards[cardId]!;
   removeCardFromCurrentZone(state, cardId);
   // Also strip from Archives / access tracking zones already covered.
-  card.hostId = hostId;
+  hostCard(state, card.id, hostId, { installed: true });
   card.zone = `hosted:${hostId}`;
   card.faceup = true;
   card.rezzed = false;
-  if (!host.hostedCardIds) host.hostedCardIds = [];
-  host.hostedCardIds.push(cardId);
   log(state, `${host.title} hosts ${card.title} faceup (not installed).`);
 }
 

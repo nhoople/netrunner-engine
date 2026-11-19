@@ -19,8 +19,8 @@ import {
   refreshRdDeckCandidate,
 } from "../src/state/access.js";
 import { applyRunAccessRestrictions } from "../src/state/accessFilter.js";
-import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -352,7 +352,7 @@ describe("CR examples, chapter 7", () => {
     breach(s, "archives");
     beginBreachAccess(s);
     s = must(s, { type: "access_card", cardId: "up-1" });
-    trashCorpCardToArchives(s, "up-1");
+    trashCard(s, "up-1");
     expect(s.run?.accessCandidates).toContain("up-1");
     enterStep(s, "breach.awaitAccess");
     expect(s.log.join("\n")).toContain("7.4.5");

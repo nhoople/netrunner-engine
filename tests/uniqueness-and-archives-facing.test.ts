@@ -20,8 +20,8 @@ import {
 import type { Effect } from "../src/index.js";
 import { onAccessFinishedWithoutStealOrTrash } from "../src/state/cardDeclarations.js";
 import type { GameState } from "../src/index.js";
-import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -214,7 +214,7 @@ describe("a trashed Corp card faces up only if the Runner could see it (CR 4.4.6
     const card = instantiateCard("hostile-takeover", "h-1", "corp:hq");
     s.cards["h-1"] = card;
     s.corp.hand.push("h-1");
-    trashCorpCardToArchives(s, "h-1", "corp");
+    trashCard(s, "h-1", { by: "corp" });
     expect(card.zone).toBe("corp:archives");
     expect(card.faceup).toBe(false);
     const view = getPublicView(s, "runner");
@@ -227,14 +227,14 @@ describe("a trashed Corp card faces up only if the Runner could see it (CR 4.4.6
     card.faceup = true;
     s.cards["h-1"] = card;
     s.corp.hand.push("h-1");
-    trashCorpCardToArchives(s, "h-1", "corp");
+    trashCard(s, "h-1", { by: "corp" });
     expect(card.faceup).toBe(false);
   });
 
   it("is facedown when an unrezzed installed card is trashed", () => {
     const s = createInitialState();
     const card = remoteWith(s, "remote-1", "pad-campaign", "pad-1", false);
-    trashCorpCardToArchives(s, "pad-1", "corp");
+    trashCard(s, "pad-1", { by: "corp" });
     expect(card.zone).toBe("corp:archives");
     expect(card.faceup).toBe(false);
   });
@@ -242,7 +242,7 @@ describe("a trashed Corp card faces up only if the Runner could see it (CR 4.4.6
   it("is faceup when a rezzed installed card is trashed", () => {
     const s = createInitialState();
     const card = remoteWith(s, "remote-1", "pad-campaign", "pad-1", true);
-    trashCorpCardToArchives(s, "pad-1", "corp");
+    trashCard(s, "pad-1", { by: "corp" });
     expect(card.zone).toBe("corp:archives");
     expect(card.faceup).toBe(true);
   });
@@ -265,7 +265,7 @@ describe("a trashed Corp card faces up only if the Runner could see it (CR 4.4.6
       cannotJackOut: false,
       accessingCardId: "h-1",
     };
-    trashCorpCardToArchives(s, "h-1", "runner");
+    trashCard(s, "h-1", { by: "runner" });
     expect(card.zone).toBe("corp:archives");
     expect(card.faceup).toBe(true);
   });

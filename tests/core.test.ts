@@ -12,7 +12,6 @@ import {
   getCardDef,
   instantiateCard,
   validateEffectTree,
-  moveRunnerCardToHeap,
   fx,
   playEffectFromCard,
 } from "../src/index.js";
@@ -25,6 +24,7 @@ import {
   maybeOpenTrashPrevent,
   preventPendingInstalledTrash,
 } from "../src/state/trashPrevent.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 describe("core", () => {
   describe("core-final-7-clears", () => {
@@ -302,7 +302,7 @@ describe("core", () => {
 
         // After prevent, a fresh trash with no interrupt payable goes through.
         s.runner.installed = s.runner.installed.filter((id) => id !== "sc");
-        moveRunnerCardToHeap(s, "mo");
+        trashCard(s, "mo");
         expect(s.runner.discardPile).toContain("mo");
       });
     });

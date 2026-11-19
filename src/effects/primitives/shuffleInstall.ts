@@ -9,6 +9,7 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnInstall } from "../../state/cardLifecycleHooks.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -168,7 +169,7 @@ export function applyMagnumOpusPrimitive(
       state.runner.installed.push(sourceId);
       source.zone = "runner:installed";
       source.faceup = true;
-      source.hostId = undefined;
+      unhostCard(state, source.id);
       if ((source.hostedCreditsOnInstall ?? 0) > 0) {
         source.hostedCredits = source.hostedCreditsOnInstall;
       }

@@ -2,12 +2,12 @@
 import { lookAtCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -58,7 +58,7 @@ export function applyMumbadKgPrimitive(
       for (let i = 0; i < prevent; i++) {
         const top = state.runner.deck.shift();
         if (!top) break;
-        moveRunnerCardToHeap(state, top);
+        trashCard(state, top);
       }
       log(
         state,

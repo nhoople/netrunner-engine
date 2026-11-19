@@ -13,20 +13,11 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { unhostCard } from "../../state/procedures/host.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  card.zone = "runner:heap";
-  card.hostId = undefined;
-  card.faceup = true;
-  state.runner.discardPile.push(cardId);
-}
 
 function exposeIceAndMaybeBounce(
   state: EffectCtx["state"],
@@ -73,7 +64,7 @@ export function applyKitaraDtwnPrimitive(
 
     case "dtwn_wari": {
       // Trash self first, then name subtype + choose ice to expose.
-      trashRunnerInstalled(state, sourceId);
+      trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
       const subtypes = ["sentry", "code gate", "barrier"];
       openPendingChoose(state, {
         sourceId,
@@ -302,11 +293,8 @@ export function applyKitaraDtwnPrimitive(
     case "trash_emergent_one": {
       const id = action.cardId;
       if (!state.runner.hand.includes(id)) return { ok: true };
-      state.runner.hand = state.runner.hand.filter((x) => x !== id);
       const card = state.cards[id]!;
-      card.zone = "runner:heap";
-      card.faceup = true;
-      state.runner.discardPile.push(id);
+      trashCard(state, id, { by: "runner" });
       log(state, `Emergent Creativity — trash ${card.title} from grip.`);
       return (
         applyKitaraDtwnPrimitive(ctx, {
@@ -528,10 +516,9 @@ export function applyKitaraDtwnPrimitive(
       const id = action.cardId;
       (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked =
         looked.filter((x) => x !== id);
-      state.corp.discardPile.push(id);
-      state.cards[id]!.zone = "corp:archives";
-      // Trashed from R&D by the Corp: facedown, and not named (CR 4.4.6b).
-      state.cards[id]!.faceup = false;
+      // The Corp's agenda trashes it (CR 1.14.5).
+      // Trashed from R&D: facedown, and not named (CR 4.4.6b).
+      trashCard(state, id, { by: "corp", faceup: false });
       log(state, `Bacterial Programming — trash 1 card.`);
       return (
         applyKitaraDtwnPrimitive(ctx, {
@@ -546,10 +533,8 @@ export function applyKitaraDtwnPrimitive(
         state.cards[id]!.zone = "corp:hq";
       }
       for (const id of action.toTrash) {
-        state.corp.discardPile.push(id);
-        state.cards[id]!.zone = "corp:archives";
         // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        state.cards[id]!.faceup = false;
+        trashCard(state, id, { by: "corp", faceup: false });
       }
       // "arrange the rest in any order": with more than one card left the
       // Corp picks the order (CR 1.15.2).
@@ -644,12 +629,8 @@ export function applyKitaraDtwnPrimitive(
       const id = action.cardId;
       if (!state.runner.installed.includes(id)) return { ok: true };
       state.runner.installed = state.runner.installed.filter((x) => x !== id);
-      for (const hid of [...state.runner.installed]) {
-        const c = state.cards[hid];
-        if (c?.hostId === id) c.hostId = undefined;
-      }
       const card = state.cards[id]!;
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "runner:stack";
       card.faceup = false;
       state.runner.deck.unshift(id);
@@ -729,11 +710,8 @@ export function applyKitaraDtwnPrimitive(
     case "trash_distract_hq_one": {
       const id = action.cardId;
       if (state.corp.hand.includes(id)) {
-        state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.discardPile.push(id);
-        state.cards[id]!.zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        state.cards[id]!.faceup = false;
+        // Facedown from HQ (CR 4.4.6b).
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
         log(
           state,
           `Distract the Masses — trash ${state.cards[id]!.title} from HQ.`,

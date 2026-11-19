@@ -4,13 +4,14 @@ import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
 import { startPsiGame } from "../../state/psi.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { chooseCards } from "../chooseCards.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { trashCard } from "../../state/procedures/trash.js";
+import { unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -24,14 +25,9 @@ function trashTopOfRd(
   for (let i = 0; i < n; i++) {
     const top = state.corp.deck[0];
     if (!top) break;
-    state.corp.deck.shift();
-    state.corp.discardPile.push(top);
-    const card = state.cards[top];
-    if (card) {
-      card.zone = "corp:archives";
-      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-      card.faceup = false;
-    }
+    // "Force the Corp to trash": the Corp carries it out (CR 1.14.5).
+    // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+    trashCard(state, top, { by: "corp" });
     trashed += 1;
   }
   log(state, `${label} — trash ${trashed} card(s) from top of R&D.`);
@@ -93,7 +89,7 @@ export function applyMumbadFtmPrimitive(
       if (resources.length === 1) {
         const resId = resources[0]!;
         const title = state.cards[resId]!.title;
-        moveRunnerCardToHeap(state, resId);
+        trashCard(state, resId);
         log(state, `Trash own ${subtype} resource ${title}.`);
         return { ok: true };
       }
@@ -115,7 +111,7 @@ export function applyMumbadFtmPrimitive(
     case "trash_own_resource_with_subtype_resolve": {
       const cardId = action.cardId;
       if (!state.runner.installed.includes(cardId)) return { ok: true };
-      moveRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId);
       log(state, `Trash own resource ${state.cards[cardId]!.title}.`);
       return { ok: true };
     }
@@ -145,7 +141,7 @@ export function applyMumbadFtmPrimitive(
       ice.zone = "corp:hq";
       ice.rezzed = false;
       ice.faceup = false;
-      ice.hostId = undefined;
+      unhostCard(state, ice.id);
       state.corp.hand.push(iceId);
       log(state, `Ankusa — add fully broken barrier ${ice.title} to HQ.`);
       return { ok: true };
@@ -243,7 +239,7 @@ export function applyMumbadFtmPrimitive(
         return { ok: true };
       }
       if (matches.length === 1) {
-        moveRunnerCardToHeap(state, matches[0]!);
+        trashCard(state, matches[0]!);
         log(state, `Ibrahim Salem — trash ${state.cards[matches[0]!]!.title}.`);
         return { ok: true };
       }
@@ -264,7 +260,7 @@ export function applyMumbadFtmPrimitive(
 
     case "trash_resolve": {
       if (!state.runner.hand.includes(action.cardId)) return { ok: true };
-      moveRunnerCardToHeap(state, action.cardId);
+      trashCard(state, action.cardId);
       log(state, `Ibrahim Salem — trash ${state.cards[action.cardId]!.title}.`);
       return { ok: true };
     }
@@ -279,13 +275,7 @@ export function applyMumbadFtmPrimitive(
         };
       }
       for (const id of hq) {
-        state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.discardPile.push(id);
-        const card = state.cards[id];
-        if (card) {
-          card.zone = "corp:archives";
-          card.faceup = true;
-        }
+        trashCard(state, id, { by: "corp" });
       }
       log(state, `Election Day — trash ${hq.length} card(s) from HQ.`);
       const drawN = action.amount ?? 5;

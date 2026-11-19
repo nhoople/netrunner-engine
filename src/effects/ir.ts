@@ -1703,7 +1703,15 @@ export type Primitive =
    */
   | { kind: "host_on_ice_as_condition" }
   /** Leaf: host source on chosen ice as condition. */
-  | { kind: "host_on_ice_as_condition_on"; iceId: string }
+  | {
+      /**
+       * The source converts itself into a condition counter and hosts itself
+       * on `hostId` (CR 10.1.4, 1.13.1). Engine-built after the card's
+       * choice of host (Wetwork Refit, Rover Algorithm, On the Lam).
+       */
+      kind: "host_self_as_condition";
+      hostId: string;
+    }
   /**
    * Mâché: place power on source equal to the trash cost of the card just
    * trashed while accessed (`turn.lastAccessTrashCost`).
@@ -2622,7 +2630,12 @@ export type Primitive =
   | { kind: "tallie_perrault_on_ops_trashed" }
   | { kind: "give_bad_publicity_and_tag" }
   | { kind: "trash_exec_sysop_clone_remove_bp" }
-  | { kind: "trash_installed_corp_card"; cardId: string }
+  | {
+      kind: "trash_installed_corp_card";
+      cardId: string;
+      /** The ability revealed the card, so it goes to Archives faceup (CR 1.21.6, 4.4.6b). */
+      revealed?: boolean;
+    }
   | { kind: "swap_with_hq" }
   | { kind: "swap_execute"; hqCardId: string }
   /** Double Time — Singularity replace-breach trash root. */
@@ -3102,7 +3115,6 @@ export type Primitive =
   /** Martial Law (ml) Flashpoint */
   | { kind: "spend_mkultra_pump_and_break" }
   | { kind: "host_on_installed_resource_as_condition" }
-  | { kind: "host_on_installed_resource_as_condition_on"; resourceId: string }
   | { kind: "prevent_tags_or_damage"; max?: number }
   | { kind: "trash_one_program_used_this_run_cannot_prevent" }
   | { kind: "trash_program_cannot_prevent"; cardId: string }
@@ -3375,7 +3387,6 @@ export type Primitive =
   | { kind: "host_on_agenda" }
   | { kind: "resolve_transparency_initiative_host"; agendaId: string }
   | { kind: "host_on_rezzed_ice_as_condition" }
-  | { kind: "host_on_rezzed_ice_as_condition_on"; iceId: string }
   /** Crimson Dust (cd) Red Sand #6 */
   | {
       kind: "give_bad_publicity_unless_corp_pays";
@@ -5155,7 +5166,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "top_hat_access_instead_of_breach",
   "spend_mkultra_pump_and_break",
   "host_on_installed_resource_as_condition",
-  "host_on_installed_resource_as_condition_on",
   "prevent_tags_or_damage",
   "trash_one_program_used_this_run_cannot_prevent",
   "trash_program_cannot_prevent",
@@ -5333,7 +5343,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "host_on_agenda",
   "resolve_transparency_initiative_host",
   "host_on_rezzed_ice_as_condition",
-  "host_on_rezzed_ice_as_condition_on",
   "give_bad_publicity_unless_corp_pays",
   "corp_pay_credits_to_prevent",
   "trash_top_rd_equal_damage_suffered_this_turn",
@@ -5775,7 +5784,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "place_advancements_then_access_unless_pay",
   "access_installed_card",
   "host_on_ice_as_condition",
-  "host_on_ice_as_condition_on",
+  "host_self_as_condition",
   "add_power_counter_equal_to_last_access_trash_cost",
   "install_up_to_from_heap_facedown",
   "install_up_to_from_heap_facedown_continue",

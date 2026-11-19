@@ -54,6 +54,7 @@ import { CR } from "../timing/labels.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { fireOnFirstIceRezEachTurn } from "../state/miscConditionalHooks.js";
 import { random } from "../state/rng.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -672,14 +673,10 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
       }
       const pick =
         state.corp.hand[Math.floor(random(state) * state.corp.hand.length)]!;
-      state.corp.hand = state.corp.hand.filter((id) => id !== pick);
-      state.corp.discardPile.push(pick);
       const trashed = state.cards[pick];
-      if (trashed) {
-        trashed.zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        trashed.faceup = false;
-      }
+      // An additional cost to rez, paid by the Corp; facedown from HQ
+      // (CR 1.16.1a, 4.4.6b).
+      trashCard(state, pick, { by: "corp", cause: "cost" });
       log(
         state,
         `Hacktivist Meeting — randomly trash ${trashed?.title ?? pick} from HQ.`,

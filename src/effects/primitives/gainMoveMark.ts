@@ -9,7 +9,6 @@ import { emptyRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage, removePendingDamageEntirely } from "../../state/damage.js";
 import { autoResolveTrace } from "../../state/trace.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { memoryLimit, usedMemory } from "../../state/turn.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
@@ -17,6 +16,8 @@ import { grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
+import { hostCard, unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -115,7 +116,7 @@ export function applyOacPrimitive(
       }
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
       card.zone = `hosted:${sourceId}`;
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.rezzed = false;
       log(state, `Glenn Station — host ${card.title} facedown.`);
       return { ok: true };
@@ -151,7 +152,7 @@ export function applyOacPrimitive(
           cites: [],
         };
       }
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "corp:hq";
       state.corp.hand.push(cardId);
       log(state, `Glenn Station — add ${card.title} to HQ.`);
@@ -403,12 +404,8 @@ export function applyOacPrimitive(
       // Trash HQ copy to Archives (reveal implied).
       const card = state.cards[trashId];
       if (card) {
-        state.corp.hand = state.corp.hand.filter((id) => id !== trashId);
-        card.zone = "corp:archives";
-        state.corp.discardPile.push(trashId);
-        card.zone = "corp:archives";
-        card.faceup = true;
-        card.rezzed = false;
+        // "Reveal and trash": revealed, so faceup (CR 1.21.6, 4.4.6b).
+        trashCard(state, trashId, { by: "corp", faceup: true });
         log(state, `The Twins — trash ${card.title} from HQ.`);
       }
       if (state.run) {
@@ -452,13 +449,10 @@ export function applyOacPrimitive(
       for (let i = 0; i < amount && hq.length > 0; i++) {
         const idx = Math.floor(random(state) * hq.length);
         const id = hq.splice(idx, 1)[0]!;
-        state.corp.hand = state.corp.hand.filter((x) => x !== id);
         const card = state.cards[id]!;
-        card.zone = "corp:archives";
+        // "Force the Corp to trash": the Corp carries it out (CR 1.14.5).
         // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        card.faceup = false;
-        card.rezzed = false;
-        state.corp.discardPile.push(id);
+        trashCard(state, id, { by: "corp" });
         log(state, `Wanton Destruction — trash ${card.title} from HQ.`);
       }
       return { ok: true };
@@ -498,7 +492,7 @@ export function applyOacPrimitive(
       state.runner.installed = state.runner.installed.filter(
         (id) => id !== cardId,
       );
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "runner:grip";
       state.runner.hand.push(cardId);
       log(state, `Uninstall — ${card.title} to grip.`);
@@ -525,7 +519,7 @@ export function applyOacPrimitive(
 
     case "trash_chop_bot_then_choose": {
       const cardId = (action as { cardId: string }).cardId;
-      moveRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId);
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
@@ -573,16 +567,16 @@ export function applyOacPrimitive(
         const c = state.cards[id];
         if (!c) continue;
         if (c.type === "hardware") {
-          moveRunnerCardToHeap(state, id);
+          trashCard(state, id);
         } else if (
           c.type === "resource" &&
           !(c.subtypes ?? []).includes("virtual")
         ) {
-          moveRunnerCardToHeap(state, id);
+          trashCard(state, id);
         }
       }
       for (const id of [...state.runner.hand]) {
-        moveRunnerCardToHeap(state, id);
+        trashCard(state, id);
       }
       emptyRunnerCreditPool(state);
       if (state.runner.tags > 0) {

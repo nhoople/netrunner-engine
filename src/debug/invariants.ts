@@ -31,7 +31,7 @@ export type ProblemCode =
   | "HOST_LINK_MISSING"
   /** The host lists the card in `hostedCardIds` but the card's `hostId` differs (CR 1.13.4). */
   | "HOSTED_BACKLINK_MISSING"
-  /** A hosted card's host is not installed, in the play area or in a score area (CR 1.13.1a, 10.3.1g). */
+  /** A hosted card's host is not installed, in the play area or in a score area (CR 1.13.1a, 10.3.1g), and the card is not set aside by the host's trash ability (CR 9.5.5). */
   | "HOST_NOT_IN_PLAY"
   /** A card in a deck, hand, discard pile or score area is hosted (CR 1.13.12). */
   | "OFF_BOARD_HOSTED"
@@ -73,7 +73,7 @@ export const PROBLEM_RULES: Readonly<Record<ProblemCode, readonly string[]>> = {
   HOST_MISSING: ["1.13.1"],
   HOST_LINK_MISSING: ["1.13.4", "4.1.7c"],
   HOSTED_BACKLINK_MISSING: ["1.13.4"],
-  HOST_NOT_IN_PLAY: ["1.13.1a", "10.3.1g"],
+  HOST_NOT_IN_PLAY: ["1.13.1a", "10.3.1g", "9.5.5"],
   OFF_BOARD_HOSTED: ["1.13.12"],
   RUN_SERVER_MISSING: ["4.6.8e"],
   POSITION_OUT_OF_RANGE: ["6.2.1", "6.2.5"],
@@ -174,8 +174,17 @@ function zoneLists(state: GameState): Map<string, string[]> {
     add(server.ice, `server:${server.id}:ice`);
     add(server.root, `server:${server.id}:root`);
   }
+  // A host's list is a zone only for cards hosted without being installed
+  // (`zone` is `hosted:<host>`). A card installed onto a host stays in its
+  // install zone: hosted and installed are distinct, not exclusive states
+  // (CR 1.13.2, 1.13.12), so the list is then a link, checked below.
   for (const card of Object.values(state.cards)) {
-    add(card.hostedCardIds, `hosted:${card.id}`);
+    add(
+      card.hostedCardIds?.filter(
+        (id) => state.cards[id]?.zone === `hosted:${card.id}`,
+      ),
+      `hosted:${card.id}`,
+    );
   }
   return found;
 }
@@ -356,10 +365,15 @@ export function checkInvariants(state: GameState): Problem[] {
           );
         }
         // CR 1.13.1a, 10.3.1g: a host is in the play area or a score area.
+        // A card set aside by its host's trash ability is still hosted
+        // while that ability resolves (CR 9.5.5).
         const hostPlace = identities.has(host.id)
           ? "identity"
           : placeOf(host.id);
+        const setAsideByTrashAbility =
+          card.zone === "runner:set-aside" || card.zone === "corp:set-aside";
         if (
+          !setAsideByTrashAbility &&
           hostPlace !== "identity" &&
           (!hostPlace || !hostZoneAllowed(hostPlace))
         ) {

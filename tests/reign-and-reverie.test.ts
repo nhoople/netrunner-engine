@@ -2,6 +2,8 @@
  * reign-and-reverie play tests.
  */
 import { describe, expect, it, beforeAll } from "vitest";
+import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 import {
   assertCardsPinnedTag,
   assertPinnedTag,
@@ -16,7 +18,6 @@ import {
   validateEffectTree,
   legalFenrisHostIds,
   abilitiesSuppressed,
-  releaseHostedCardsOnTrash,
   runnerAbilityCarrierIds,
   RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE,
   playEffectFromCard,
@@ -977,7 +978,10 @@ describe("reign-and-reverie", () => {
         expect(s.runner.hand.length).toBeGreaterThanOrEqual(beforeHand);
         expect(s.runner.tags).toBeGreaterThanOrEqual(beforeTags);
 
-        releaseHostedCardsOnTrash(s, fenrisId);
+        // The hosted identity waits for the checkpoint (CR 1.13.13, 10.3.1g),
+        // which returns it to the outside-game pile (CR 1.5.4b).
+        trashCard(s, fenrisId);
+        checkpointAfterInstruction(s, "test.trash");
         expect(s.runner.additionalIdentities).toContain(hostedId);
         expect(s.cards[hostedId]!.zone).toBe(
           RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE,
@@ -1042,7 +1046,10 @@ describe("reign-and-reverie", () => {
         expect(s.cards[fenrisId]!.firstIceRezCostIncrease).toBe(1);
         expect(runnerAbilityCarrierIds(s)).toContain(fenrisId);
 
-        releaseHostedCardsOnTrash(s, fenrisId);
+        // The hosted identity waits for the checkpoint (CR 1.13.13, 10.3.1g),
+        // which returns it to the outside-game pile (CR 1.5.4b).
+        trashCard(s, fenrisId);
+        checkpointAfterInstruction(s, "test.trash");
         expect(s.cards[fenrisId]!.firstIceRezCostIncrease).toBeUndefined();
         expect(runnerAbilityCarrierIds(s)).toEqual(["runner-id"]);
       });

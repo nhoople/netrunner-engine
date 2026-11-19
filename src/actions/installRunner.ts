@@ -28,10 +28,7 @@ import {
   noteJobConnectionOrHardwareInstalled,
 } from "../state/azInstallDiscount.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
-import {
-  moveRunnerCardToHeap,
-  recomputeRunnerLink,
-} from "../state/trashHooks.js";
+import { recomputeRunnerLink } from "../state/trashHooks.js";
 import {
   cardBecameNewObject,
   effectiveMemoryCost,
@@ -49,6 +46,8 @@ import { CR } from "../timing/labels.js";
 import { fireOnInstallWithoutSpendingCredits } from "../state/miscConditionalHooks.js";
 import { resolveRunnerInstallCostDelta } from "../state/continuousCosts.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { trashCard } from "../state/procedures/trash.js";
+import { hostCard, unhostCard } from "../state/procedures/host.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -124,7 +123,8 @@ function trashExistingConsoles(state: GameState, keepId: string): void {
   });
   for (const id of toTrash) {
     const card = state.cards[id];
-    moveRunnerCardToHeap(state, id);
+    // The Runner trashes it, and it cannot be prevented (CR 3.8.5b).
+    trashCard(state, id, { by: "runner", preventable: false });
     log(
       state,
       `Trash ${card.title} — console limit (CR ${CR.trashing.number}).`,
@@ -231,7 +231,7 @@ export function installRunner(
     if (!found) {
       return fail("Host ice is not installed.", [CR.runnerBasicInstall]);
     }
-    card.hostId = destination.iceId;
+    hostCard(state, card.id, destination.iceId, { installed: true });
   } else if (destination && destination.kind === "host_ice") {
     return fail("Only trojans install hosted on ice.", [CR.runnerBasicInstall]);
   } else if (destination && destination.kind === "host_card") {
@@ -262,9 +262,7 @@ export function installRunner(
           CR.runnerBasicInstall,
         ]);
       }
-      card.hostId = destination.hostId;
-      if (!host.hostedCardIds) host.hostedCardIds = [];
-      host.hostedCardIds.push(cardId);
+      hostCard(state, card.id, destination.hostId, { installed: true });
     } else if (host.hostsAnyProgramMemoryCostLte !== undefined) {
       const max = host.maxHostedCards ?? 1;
       const have = (host.hostedCardIds ?? []).length;
@@ -281,9 +279,7 @@ export function installRunner(
           [CR.runnerBasicInstall],
         );
       }
-      card.hostId = destination.hostId;
-      if (!host.hostedCardIds) host.hostedCardIds = [];
-      host.hostedCardIds.push(cardId);
+      hostCard(state, card.id, destination.hostId, { installed: true });
     } else if (host.daemonHost) {
       if (card.type !== "program") {
         return fail("Only programs may host on a daemon.", [
@@ -315,9 +311,7 @@ export function installRunner(
           ]);
         }
       }
-      card.hostId = destination.hostId;
-      if (!host.hostedCardIds) host.hostedCardIds = [];
-      host.hostedCardIds.push(cardId);
+      hostCard(state, card.id, destination.hostId, { installed: true });
     } else if (host.hostsUniqueCompanionOrConnectionResources) {
       if (card.type !== "resource" || !card.unique) {
         return fail("Only unique companion/connection resources host here.", [
@@ -330,7 +324,7 @@ export function installRunner(
           CR.runnerBasicInstall,
         ]);
       }
-      card.hostId = destination.hostId;
+      hostCard(state, card.id, destination.hostId, { installed: true });
     } else if (host.hostsConnectionResources) {
       if (
         card.type !== "resource" ||
@@ -340,9 +334,7 @@ export function installRunner(
           CR.runnerBasicInstall,
         ]);
       }
-      card.hostId = destination.hostId;
-      if (!host.hostedCardIds) host.hostedCardIds = [];
-      host.hostedCardIds.push(cardId);
+      hostCard(state, card.id, destination.hostId, { installed: true });
       const drawN = host.drawOnHostConnectionInstall ?? 0;
       if (drawN > 0) {
         for (let i = 0; i < drawN; i++) {
@@ -425,29 +417,17 @@ export function installRunner(
   if (handIdx >= 0) {
     state.runner.hand.splice(handIdx, 1);
   } else if (blingHostId) {
-    const host = state.cards[blingHostId]!;
-    host.hostedCardIds = (host.hostedCardIds ?? []).filter(
-      (id) => id !== cardId,
-    );
-    card.hostId = undefined;
+    unhostCard(state, card.id);
   }
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
   cardBecameNewObject(state, cardId);
   if (card.hostId && state.cards[card.hostId]?.personalWorkshop) {
-    state.runner.installed = state.runner.installed.filter(
-      (id) => id !== cardId,
-    );
-    card.zone = `hosted:${card.hostId}`;
+    // Hosted with power counters, not installed (CR 1.13.2a).
+    hostCard(state, cardId, card.hostId);
     card.powerCounters = card.installCost;
     card.powerHosted = true;
-    if (!state.cards[card.hostId]!.hostedCardIds) {
-      state.cards[card.hostId]!.hostedCardIds = [];
-    }
-    if (!state.cards[card.hostId]!.hostedCardIds!.includes(cardId)) {
-      state.cards[card.hostId]!.hostedCardIds!.push(cardId);
-    }
   }
   if (card.type === "program" || card.type === "hardware") {
     onProgramOrHardwareInstalled(state, cardId);
@@ -690,17 +670,18 @@ export function resolveMuProgramTrash(
       CR.trashing,
     ]);
   }
-  const trashCard = state.cards[trashId];
-  if (trashCard?.type !== "program") {
+  const trashed = state.cards[trashId];
+  if (trashed?.type !== "program") {
     return fail("Choose an installed program to trash.", [
       CR.installTrashProgramsForMemory,
       CR.trashing,
     ]);
   }
-  moveRunnerCardToHeap(state, trashId);
+  // The Runner trashes programs for the memory limit (CR 3.9.3c).
+  trashCard(state, trashId, { by: "runner" });
   log(
     state,
-    `Trash ${trashCard.title} for memory (CR ${CR.installTrashProgramsForMemory.number}).`,
+    `Trash ${trashed.title} for memory (CR ${CR.installTrashProgramsForMemory.number}).`,
   );
   const need = effectiveMemoryCost(state, pending.cardId);
   if (usedMemory(state) + need > memoryLimit(state)) {

@@ -40,6 +40,7 @@ import {
 import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { hostCard } from "../../state/procedures/host.js";
 
 export function applySearchKinds(
   ctx: EffectCtx,
@@ -1063,14 +1064,12 @@ export function applySearchKinds(
         );
         return { ok: true };
       }
-      if (!source.hostedCardIds) source.hostedCardIds = [];
       for (const id of picks) {
         state.runner.deck = state.runner.deck.filter((x) => x !== id);
         const card = state.cards[id]!;
-        card.hostId = sourceId;
+        hostCard(state, card.id, sourceId, { installed: true });
         card.faceup = true;
         card.zone = `hosted:${sourceId}`;
-        source.hostedCardIds.push(id);
         log(
           state,
           `${source.title} hosts ${card.title} faceup (not installed).`,

@@ -12,10 +12,9 @@ import {
   removeCardFromCurrentZone,
   checkWinConditions,
 } from "../../state/scoring.js";
-import {
-  fireOnAgendaAddedToRunnerScore,
-  moveRunnerCardToHeap,
-} from "../../state/trashHooks.js";
+import { trashCard } from "../../state/procedures/trash.js";
+import { unhostCard } from "../../state/procedures/host.js";
+import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
 import { CR } from "../../timing/labels.js";
 
 export function applyAddKinds(
@@ -363,10 +362,10 @@ export function applyAddKinds(
       for (const id of [...state.runner.installed]) {
         const c = state.cards[id];
         if (c?.hostId === cardId) {
-          c.hostId = undefined;
+          unhostCard(state, c.id);
         }
       }
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "runner:grip";
       card.rezzed = false;
       state.runner.hand.push(cardId);
@@ -378,7 +377,7 @@ export function applyAddKinds(
       const hosted = source.hostedCardIds ?? [];
       if (hosted.length === 0) {
         if (source.trashWhenNoHostedCards) {
-          moveRunnerCardToHeap(state, sourceId);
+          trashCard(state, sourceId);
           log(state, `${source.title} trashed — no hosted cards.`);
         }
         return { ok: true };
@@ -419,9 +418,8 @@ export function applyAddKinds(
         log(state, `Add hosted to grip — ${action.cardId} not hosted.`);
         return { ok: true };
       }
-      source.hostedCardIds = hosted.filter((id) => id !== action.cardId);
       const card = state.cards[action.cardId]!;
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "runner:grip";
       card.faceup = true;
       state.runner.hand.push(action.cardId);
@@ -430,7 +428,7 @@ export function applyAddKinds(
         (source.hostedCardIds?.length ?? 0) === 0 &&
         source.trashWhenNoHostedCards
       ) {
-        moveRunnerCardToHeap(state, sourceId);
+        trashCard(state, sourceId);
         log(state, `${source.title} trashed — no hosted cards remain.`);
       }
       return { ok: true };

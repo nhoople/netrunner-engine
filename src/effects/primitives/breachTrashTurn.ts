@@ -1,28 +1,16 @@
 /** True Colors (tc) Spin pack primitives. */
 import { log } from "../../state/createGame.js";
 import { drawCards } from "../draw.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import {
-  moveRunnerCardToHeap,
-  noteCorpCardAddedToArchives,
-} from "../../state/trashHooks.js";
-import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { lookAtCards } from "../../state/reveal.js";
+import type { RuleCite } from "../../state/types.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashToArchives(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  state.corp.discardPile.push(cardId);
-  state.cards[cardId]!.zone = "corp:archives";
-  state.cards[cardId]!.faceup = true;
-  noteCorpCardAddedToArchives(state);
-}
 
 export function applySpinTcPrimitive(
   ctx: EffectCtx,
@@ -89,7 +77,7 @@ export function applySpinTcPrimitive(
         state.corp.deck.unshift(rid);
         state.cards[rid]!.faceup = false;
       }
-      trashToArchives(state, id);
+      trashCard(state, id, { by: controllerOf(state, sourceId) });
       state.turn.rdLookedCards = [];
       shuffleInPlace(state, state.corp.deck);
       log(
@@ -171,7 +159,7 @@ export function applySpinTcPrimitive(
       const id = action.cardId;
       const title = state.cards[id]?.title;
       state.runner.hand = state.runner.hand.filter((x) => x !== id);
-      moveRunnerCardToHeap(state, id);
+      trashCard(state, id);
       const hasInstalledDupe = state.runner.installed.some(
         (rid) => state.cards[rid]?.title === title,
       );

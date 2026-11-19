@@ -1,19 +1,15 @@
 /**
- * Trashing a Corp card to Archives, and the hooks that fire when it leaves
- * play. Runner heap trash and Corp trash choices still call these.
+ * The hooks that fire when a Corp card is trashed to Archives. The trash
+ * itself is `trashCard` in `src/state/procedures/trash.ts`.
  */
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import { CR } from "../timing/labels.js";
-import {
-  agendaPointsFor,
-  removeCardFromCurrentZone,
-} from "../state/scoring.js";
+import { agendaPointsFor } from "../state/scoring.js";
 import {
   fireCorpOnTrash,
   fireCotcOnCorpCardTrashed,
   fireRonaldFiveOnCorpTrash,
-  moveRunnerCardToHeap,
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
   noteTrashMatchingRunnerIdentityFaction,
@@ -26,18 +22,11 @@ import {
 } from "../state/cardDeclarations.js";
 import { evalEffect } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
-import { cancelPendingIfSourceInactive } from "../state/pendingAbilities.js";
-import { noteStoredConditionals } from "../state/storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import { trashCard } from "../state/procedures/trash.js";
 import {
   fireOnRezzedCardTrashed,
   fireOnRunnerTrashFromThisServerRootOrProtecting,
 } from "../state/miscConditionalHooks.js";
-import { shuffleInPlace } from "../state/rng.js";
-
-export function trashToHeap(state: GameState, cardId: string): void {
-  moveRunnerCardToHeap(state, cardId);
-}
 
 function maybeFireThreatGiveTagsOnRezzedTrash(
   state: GameState,
@@ -93,7 +82,7 @@ export function maybeTrashHostsAtStrengthLte(state: GameState): void {
     if (trashed.has(hostId)) continue;
     trashed.add(hostId);
     // The Runner controls the hosted card's ability (CR 1.14.5).
-    trashCorpCardToArchives(state, hostId, "runner");
+    trashCard(state, hostId, { by: "runner" });
     log(
       state,
       `Trash ${host.title} — host strength ${str} ≤ parasite threshold (CR ${CR.trashing.number}).`,
@@ -126,90 +115,40 @@ function noteStaticConditionResolvedWithNoEffect(
   );
 }
 
+/** What a Corp card was before `trashCard` moved it to Archives. */
+export interface CorpTrashOrigin {
+  trashedBy: "corp" | "runner" | null;
+  zoneBefore: string;
+  wasRezzed: boolean;
+  printedRez: number | null;
+  /** The caller marks the set's "whenever the Runner trashes" triggers. */
+  simultaneousSet?: boolean;
+  /**
+   * `false` when a replacement sent the trashed card somewhere other than
+   * Archives (Marilyn Campaign, Director Haas). It is still trashed, so the
+   * trash triggers fire, but nothing entered Archives.
+   */
+  inArchives?: boolean;
+}
+
 /**
- * `trashedBy` is the player who carries out the trash: the controller of the
- * ability, unless its text names the other player (CR 1.14.5). Conditions
- * that care who trashed a card read it, not whose turn it is (CR 1.14.5a).
+ * Trash triggers for a Corp card that has just arrived in Archives
+ * (CR 1.19.1). `trashCard` (`src/state/procedures/trash.ts`) places the card,
+ * then calls this. Conditions that care who trashed a card read `trashedBy`,
+ * not whose turn it is (CR 1.14.5a).
  */
-export function trashCorpCardToArchives(
+export function noteCorpCardTrashedToArchives(
   state: GameState,
   cardId: string,
-  trashedBy: "corp" | "runner",
+  origin: CorpTrashOrigin,
 ): void {
+  const { trashedBy, zoneBefore, wasRezzed, printedRez } = origin;
   const card = state.cards[cardId];
-  const wasRezzed = Boolean(card.rezzed);
-  const printedRez = card.rezCost ?? null;
-  const zoneBefore = card.zone;
-  const wasFromHq = zoneBefore === "corp:hq";
-  // The Runner sees a card they are accessing, a rezzed card, and a faceup
-  // card outside HQ and R&D. A card in HQ or R&D is hidden even if it was
-  // revealed earlier (CR 1.21.3).
-  const fromHiddenZone = wasFromHq || zoneBefore === "corp:rd";
-  const visibleToRunner =
-    state.run?.accessingCardId === cardId ||
-    (!fromHiddenZone && (wasRezzed || Boolean(card.faceup)));
   const wasInstalled = zoneBefore.startsWith("server:");
+  const wasFromHq = zoneBefore === "corp:hq";
+  const inArchives = origin.inArchives ?? true;
   if (
-    card.playersCannotTrashThisIce &&
-    zoneBefore.endsWith(":ice") &&
-    !abilitiesSuppressed(state, cardId)
-  ) {
-    log(state, `Players cannot trash ${card.title}.`);
-    return;
-  }
-  // Kessleroid: Runner cannot trash while rezzed.
-  if (runnerCannotTrashWhileRezzed(state, cardId) && trashedBy === "runner") {
-    log(state, `Cannot trash rezzed ${card.title}.`);
-    return;
-  }
-  maybeFireThreatGiveTagsOnRezzedTrash(state, card, wasRezzed);
-  // Marilyn Campaign: when would be trashed, may shuffle into R&D instead.
-  if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
-    removeCardFromCurrentZone(state, cardId);
-    // CR 9.6.10: still-pending instances for this source die when it leaves play.
-    cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
-    state.corp.deck.push(cardId);
-    card.zone = "corp:rd";
-    card.faceup = false;
-    card.rezzed = false;
-    card.hostedCredits = undefined;
-    shuffleInPlace(state, state.corp.deck);
-    log(state, `${card.title} — shuffle into R&D instead of trash.`);
-    return;
-  }
-  // Director Haas: while trashed and being accessed by the Runner, add to
-  // the Runner's score area as an agenda instead of moving to Archives.
-  if (card.onTrashWhileAccessed && state.run?.accessingCardId === cardId) {
-    noteStoredConditionals(
-      state,
-      [
-        {
-          abilityKey: "on-trash-while-accessed",
-          sourceId: cardId,
-          controller: "corp",
-          mandatory: true,
-          effectKey: "onTrashWhileAccessed",
-          logLine: `${card.title} becomes pending — trashed while accessed.`,
-        },
-      ],
-      { independentOfSource: true },
-    );
-    if ((state.turn.storedConditionalPending ?? []).length > 0) {
-      checkpointAfterInstruction(state, "corp.trash.whileAccessed");
-    }
-    return;
-  }
-  removeCardFromCurrentZone(state, cardId);
-  // CR 9.6.10: still-pending instances for this source die when it leaves
-  // play. Scoped to cardId so later on-trash triggers for this card remain.
-  cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
-  state.corp.discardPile.push(cardId);
-  card.zone = "corp:archives";
-  // CR 4.4.6b: faceup in Archives only if the Runner could see the card
-  // when it was trashed.
-  card.faceup = visibleToRunner;
-  card.rezzed = false;
-  if (
+    inArchives &&
     wasInstalled &&
     state.run?.attackedServerId === "archives" &&
     !state.run.accessCandidates.includes(cardId)
@@ -220,7 +159,7 @@ export function trashCorpCardToArchives(
       `${card.title} enters Archives as a new object and is a candidate (CR ${CR.candidatesLeavingServer.number}).`,
     );
   }
-  noteCorpCardAddedToArchives(state);
+  if (inArchives) noteCorpCardAddedToArchives(state);
   if (wasInstalled) {
     onInstalledCorpCardTrashed(state, card, wasRezzed);
     if (trashedBy === "runner") {
@@ -235,17 +174,68 @@ export function trashCorpCardToArchives(
   state.turn.onTrashSourceServerId = zoneMatch
     ? (zoneMatch[1] as import("../state/types.js").ServerId)
     : null;
-  fireCorpOnTrash(state, cardId);
+  // Hostile Infrastructure's "whenever the Runner trashes a Corp card" sees
+  // its own trash too. In a simultaneous set the caller marks one instance
+  // per card, this one included (CR 9.1.8g.ex1), so it is not noted again.
+  if (!(
+    origin.simultaneousSet && card.netDamageWheneverRunnerTrashesCorpCard
+  )) {
+    fireCorpOnTrash(state, cardId);
+  }
   fireRonaldFiveOnCorpTrash(state);
   fireCotcOnCorpCardTrashed(state);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);
   state.turn.onTrashSourceServerId = null;
-  noteFirstCorpCardTrashEachTurn(state, trashedBy);
+  noteFirstCorpCardTrashEachTurn(
+    state,
+    trashedBy ?? "corp",
+    origin.simultaneousSet,
+  );
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
   maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);
-  maybeFireWarroidTracker(state, wasInstalled, trashedBy, zoneBefore);
+  if (!origin.simultaneousSet) {
+    maybeFireWarroidTracker(state, wasInstalled, trashedBy, zoneBefore);
+  }
   maybeFireAuCoOnHqTrash(state, wasFromHq);
+}
+
+/**
+ * Corp-side "cannot be trashed" checks, before the trash begins: Players
+ * cannot trash this ice, and Kessleroid-class "the Runner cannot trash this
+ * while rezzed". Returns the log line when the trash does not happen.
+ */
+export function corpTrashRefused(
+  state: GameState,
+  cardId: string,
+  trashedBy: "corp" | "runner" | null,
+): string | null {
+  const card = state.cards[cardId];
+  if (
+    card.playersCannotTrashThisIce &&
+    card.zone.endsWith(":ice") &&
+    !abilitiesSuppressed(state, cardId)
+  ) {
+    return `Players cannot trash ${card.title}.`;
+  }
+  if (runnerCannotTrashWhileRezzed(state, cardId) && trashedBy === "runner") {
+    return `Cannot trash rezzed ${card.title}.`;
+  }
+  return null;
+}
+
+/**
+ * Threat assets: "When the Runner trashes this asset (while it is rezzed)".
+ * Only a Runner trash meets it (CR 1.14.5a).
+ */
+export function maybeFireThreatOnTrash(
+  state: GameState,
+  cardId: string,
+  trashedBy: "corp" | "runner" | null,
+): void {
+  if (trashedBy !== "runner") return;
+  const card = state.cards[cardId];
+  maybeFireThreatGiveTagsOnRezzedTrash(state, card, Boolean(card.rezzed));
 }
 
 function maybeFireHostileArchitecture(
@@ -308,7 +298,7 @@ function maybeFireYakovCredits(
 function maybeFireWarroidTracker(
   state: GameState,
   wasInstalled: boolean,
-  trashedBy: "corp" | "runner",
+  trashedBy: "corp" | "runner" | null,
   zoneBefore: string,
 ): void {
   if (!wasInstalled) return;

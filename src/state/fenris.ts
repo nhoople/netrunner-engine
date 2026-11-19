@@ -8,6 +8,7 @@ import type { CardInstance, GameState } from "./types.js";
 import { log } from "./createGame.js";
 import { applyIdentityFace } from "./identityFace.js";
 import { CR } from "../timing/labels.js";
+import { hostCard, unhostCard } from "./procedures/host.js";
 
 export const RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE =
   "runner:outside-game-identities" as const;
@@ -115,13 +116,9 @@ export function hostFenrisIdentity(
   const hosted = state.cards[identityId]!;
   const pile = ensureAdditionalIdentities(state);
   state.runner.additionalIdentities = pile.filter((id) => id !== identityId);
-  hosted.hostId = fenrisId;
+  hostCard(state, hosted.id, fenrisId, { installed: true });
   hosted.zone = `hosted:${fenrisId}`;
   hosted.faceup = true;
-  if (!fenris.hostedCardIds) fenris.hostedCardIds = [];
-  if (!fenris.hostedCardIds.includes(identityId)) {
-    fenris.hostedCardIds.push(identityId);
-  }
   if (fenris.gainsTextOfHostedIdentity) {
     syncFenrisGainsTextFromHosted(fenris, hosted);
   }
@@ -142,13 +139,13 @@ export function returnHostedIdentityToOutsideGame(
   const host = state.cards[hostId];
   const identity = state.cards[identityId];
   if (!identity) return;
-  identity.hostId = undefined;
+  unhostCard(state, identity.id);
   identity.zone = RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE;
   identity.faceup = true;
   const pile = ensureAdditionalIdentities(state);
   if (!pile.includes(identityId)) pile.push(identityId);
   if (host?.hostedCardIds) {
-    host.hostedCardIds = host.hostedCardIds.filter((id) => id !== identityId);
+    unhostCard(state, identityId);
   }
   if (
     host?.gainsTextOfHostedIdentity ||
@@ -225,7 +222,7 @@ export function switchRunnerIdentity(
   applyIdentityFace(neu);
   neu.zone = "runner:grip";
   neu.faceup = true;
-  neu.hostId = undefined;
+  unhostCard(state, neu.id);
   state.runner.identityId = newIdentityId;
   // Caller recomputes Runner link (avoid fenris ↔ trashHooks cycle).
   log(

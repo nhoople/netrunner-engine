@@ -193,7 +193,19 @@ describe("checkInvariants", () => {
       state.cards["runner-fill-1"]!.zone = "runner:heap";
       state.cards["runner-fill-1"]!.hostId = "runner-program-1";
       state.cards["runner-program-1"]!.hostedCardIds = ["runner-fill-1"];
-      expect(codes(state)).toEqual(["MULTIPLE_ZONES", "OFF_BOARD_HOSTED"]);
+      // The host's list is a zone only for a card whose zone is
+      // `hosted:<host>` (CR 1.13.2), so this is one problem, not two.
+      expect(codes(state)).toEqual(["OFF_BOARD_HOSTED"]);
+    });
+
+    it("a card installed onto a host is in one zone (CR 1.13.2)", () => {
+      const state = board();
+      state.runner.deck.splice(state.runner.deck.indexOf("runner-fill-1"), 1);
+      state.runner.installed.push("runner-fill-1");
+      state.cards["runner-fill-1"]!.zone = "runner:installed";
+      state.cards["runner-fill-1"]!.hostId = "runner-program-1";
+      state.cards["runner-program-1"]!.hostedCardIds = ["runner-fill-1"];
+      expect(codes(state)).toEqual([]);
     });
   });
 

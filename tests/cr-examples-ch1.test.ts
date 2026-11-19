@@ -15,7 +15,6 @@ import {
   getCardDef,
   validateEffectTree,
 } from "../src/index.js";
-import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import { onAccessed } from "../src/state/cardDeclarations.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { runnerPsiSpendable } from "../src/state/psi.js";
@@ -27,6 +26,7 @@ import {
 } from "../src/state/turn.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -468,7 +468,7 @@ describe("CR examples, chapter 1", () => {
     };
     enterStep(s, "breach.awaitAccess");
     const accessed = must(s, { type: "access_card", cardId: "top-1" });
-    trashCorpCardToArchives(accessed, "top-1");
+    trashCard(accessed, "top-1");
     expect(accessed.run?.accessedCardIds).toContain("top-1");
     expect(accessed.run?.randomAccessLimit).toBe(1);
     expect(accessed.corp.deck).not.toContain("top-1");
@@ -880,7 +880,7 @@ describe("CR examples, chapter 1", () => {
     };
     s.runner.hand = ["runner-program-1", "runner-fill-1", "runner-fill-2"];
     s.activeSide = "runner";
-    trashCorpCardToArchives(s, "pad-1", "runner");
+    trashCard(s, "pad-1", { by: "runner" });
     const dealt =
       (s.pendingDamage?.remaining ?? 0) > 0 || s.runner.hand.length < 3;
     expect(dealt).toBe(true);

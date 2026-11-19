@@ -19,22 +19,6 @@
     },
     {
       "format": "learn_to_play_expanded",
-      "deckSeed": 3,
-      "step": 168,
-      "code": "MULTIPLE_ZONES",
-      "recorded": "2026-11-13",
-      "detail": "corp:nico-campaign:8 (Nico Campaign) is in corp:archives, corp:archives"
-    },
-    {
-      "format": "learn_to_play_expanded",
-      "deckSeed": 4,
-      "step": 59,
-      "code": "MULTIPLE_ZONES",
-      "recorded": "2026-11-13",
-      "detail": "corp:urtica-cipher:9 (Urtica Cipher) is in corp:archives, corp:archives"
-    },
-    {
-      "format": "learn_to_play_expanded",
       "deckSeed": 17,
       "step": 27,
       "code": "RUN_SERVER_MISSING",
@@ -59,43 +43,11 @@
     },
     {
       "format": "startup",
-      "deckSeed": 4,
-      "step": 132,
-      "code": "RUN_SERVER_MISSING",
-      "recorded": "2026-11-15",
-      "detail": "run attacks missing server remote-2"
-    },
-    {
-      "format": "startup",
       "deckSeed": 11,
       "step": 154,
       "code": "RUN_SERVER_MISSING",
       "recorded": "2026-11-14",
       "detail": "run attacks missing server remote-1"
-    },
-    {
-      "format": "startup",
-      "deckSeed": 33,
-      "step": 19,
-      "code": "HOST_LINK_MISSING",
-      "recorded": "2026-11-14",
-      "detail": "runner:stowaway:28 (Stowaway) has hostId corp:paywall:17 (Paywall) but is not in its hosted list (zone runner:installed)"
-    },
-    {
-      "format": "startup",
-      "deckSeed": 33,
-      "step": 186,
-      "code": "OFF_BOARD_HOSTED",
-      "recorded": "2026-11-14",
-      "detail": "runner:stowaway:28 (Stowaway) is in runner:heap with hostId corp:paywall:17"
-    },
-    {
-      "format": "core",
-      "deckSeed": 1,
-      "step": 178,
-      "code": "MULTIPLE_ZONES",
-      "recorded": "2026-11-15",
-      "detail": "corp:idiosyncresis:11 (Idiosyncresis) is in corp:archives, corp:archives"
     },
     {
       "format": "core",
@@ -136,22 +88,6 @@
       "code": "REFUSED",
       "recorded": "2026-11-13",
       "detail": "basic_install at corp.takeAction: Research Station may only be installed on hq."
-    },
-    {
-      "format": "eternal",
-      "deckSeed": 27,
-      "step": 39,
-      "code": "HOST_NOT_IN_PLAY",
-      "recorded": "2026-11-14",
-      "detail": "runner:diwan:6 (Diwan) is hosted on runner:street-peddler:33 (Street Peddler), which is in runner:heap"
-    },
-    {
-      "format": "eternal",
-      "deckSeed": 27,
-      "step": 39,
-      "code": "MULTIPLE_ZONES",
-      "recorded": "2026-11-14",
-      "detail": "runner:spinal-modem:32 (Spinal Modem) is in runner:set-aside, hosted:runner:street-peddler:33"
     }
   ]
 }

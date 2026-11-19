@@ -3,7 +3,6 @@ import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { GameState, RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
@@ -11,19 +10,11 @@ import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { hostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashCorpToArchives(state: GameState, cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.corp.discardPile.push(cardId);
-  card.zone = "corp:archives";
-  card.faceup = true;
-  card.rezzed = false;
-}
 
 function serverIdHostingCard(
   state: GameState,
@@ -86,13 +77,9 @@ export function applyMumbadDagPrimitive(
       }
       if (!source) return { ok: true };
       removeCardFromCurrentZone(state, sourceId);
-      source.hostId = agendaId;
+      hostCard(state, source.id, agendaId, { installed: true });
       source.zone = `hosted:${agendaId}`;
       source.faceup = true;
-      if (!agenda.hostedCardIds) agenda.hostedCardIds = [];
-      if (!agenda.hostedCardIds.includes(sourceId)) {
-        agenda.hostedCardIds.push(sourceId);
-      }
       log(
         state,
         `Political Graffiti — host on ${agenda.title} (−1 agenda point while hosted; trash on virus purge).`,
@@ -178,7 +165,7 @@ export function applyMumbadDagPrimitive(
         return { ok: true };
       }
       subtractRunnerCreditPool(state, x);
-      trashCorpToArchives(state, cardId);
+      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(state, `Political Operative — pay ${x}¢; trash ${card.title}.`);
       return { ok: true };
     }
@@ -548,7 +535,7 @@ export function applyMumbadDagPrimitive(
         ...(state.turn.dagCannotRezCardIds ?? []),
         rezzedId,
       ];
-      moveRunnerCardToHeap(state, sourceId);
+      trashCard(state, sourceId);
       log(
         state,
         `Councilman — pay ${cost}¢; derez ${rezzed.title}; cannot rez again this turn.`,
