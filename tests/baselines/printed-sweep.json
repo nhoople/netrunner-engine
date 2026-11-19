@@ -71,7 +71,7 @@
       "abilities": [
         "The first time the Runner trashes an installed Corp card during each of their turns, they may spend [click]"
       ],
-      "note": "The trigger first_corp_card_trash_each_turn is met by any Corp card the Runner trashes (cards accessed in HQ or R&D too), with no installed check and no Runner-turn check. It also shares one first-time flag with the any-Corp-card users (Solidarity Badge, Demolisher, AR-Enhanced Security), so an HQ access trash uses up its first time. NBN: Controlling the Message has the same gap.",
+      "note": "Engine#948 split the trash trigger: onFirstInstalledCorpCardTrashEachTurn has its own first-time record, and only a Runner trash meets either. Paired cut A: move the card to the trigger first_installed_corp_card_trash_each_turn with a Runner-turn condition (a new runner_turn cond). NBN: Controlling the Message moves to the same trigger.",
       "cr": [
         "9.6.5c",
         "1.2.1"
@@ -79,16 +79,18 @@
     },
     "aircheck": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "While this event is active, you can spend hosted credits, and you cannot lose or spend credits from your credit pool",
         "When that run ends, if it was successful, you may run a remote server"
       ],
-      "note": "The 4 hosted credits and the pool lock live on the first run's state (state.run.eventCredits, blockCreditPoolSpendAndLose). The remote run started by may_start_run carries neither, so the Runner can spend pool credits there and loses the leftover hosted credits, though Aircheck is still active until that run ends. The lock also drops in the run-end window between the runs.",
+      "note": "Leftover hosted credits go back onto Aircheck when its run ends; the pool lock holds while Aircheck is in the play area (runnerCreditPoolLocked), and the follow-up run gets the credits and the lock.",
       "cr": [
         "8.6.5",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "its hosted credits and the credit pool lock carry into the remote run while it is active (CR 8.6.5)"
     },
     "akhet": {
       "cycle": "ashes",
@@ -143,16 +145,11 @@
     },
     "ansel-2-0": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Lose [click][click]: Break up to 2 subroutines on this ice. Only the Runner can use this ability."
       ],
-      "note": "No paid ability and no bioroidBreakMaxSubs, so the engine's generic bioroid break lets the Runner spend 1 click to break 1 subroutine; the printed 2-click break of up to 2 is not offered. The printed cost is lose, not spend. The four subroutines match.",
-      "cr": [
-        "1.2.1",
-        "9.5.1",
-        "1.11.3b"
-      ]
+      "note": "area 11 (breaking): the generic bioroid break in candidateRun.ts offers spend [click]: break 1 on any bioroid; Ansel's printed lose [click][click]: break up to 2 is not offered (the plan's existing area 11 finding on break_bioroid_subroutine). The four subroutines match. cr-checker: CR 1.2.1, 9.5.1, 1.11.3b."
     },
     "anthill-excavation-contract": {
       "cycle": "elevation",
@@ -160,7 +157,7 @@
       "abilities": [
         "When it is empty, trash it"
       ],
-      "note": "The IR has no trashWhenHostedCreditsEmpty, so the asset stays installed after its 8 loaded credits are taken (probe). Needs the flag in card JSON, as Launch Campaign has.",
+      "note": "The IR has no trashWhenHostedCreditsEmpty, so the asset stays installed after its 8 loaded credits are taken. Paired cut A: add the flag, as Launch Campaign has.",
       "cr": [
         "10.9.1",
         "10.9.2"
@@ -429,7 +426,7 @@
         "The first time each turn you steal or trash a Corp card, place 1 power counter",
         "you may remove 2 hosted power counters to sabotage 3"
       ],
-      "note": "area 1 (trash hooks): noteFirstCorpCardTrashEachTurn calls noteRunnerStoleOrTrashedCorpCard before its trashedBy check, so a Corp card the Corp trashes meets the trigger (Epiphany Analytica shares it). Also area 12: remove_power_counter removes what is there and sabotage resolves with fewer than 2 counters. cr-checker: CR 1.14.5a, 1.16.11a, 1.16.1."
+      "note": "area 12: remove_power_counter removes what is there and sabotage resolves with fewer than 2 counters (CR 1.16.11a, 1.16.1). The area 1 half (the Corp trashing its own card met the trigger, CR 1.14.5a) is fixed in engine#948."
     },
     "calvin-b4l3y": {
       "cycle": "ashes",
@@ -587,7 +584,7 @@
         "Whenever a successful run on R&D ends, you may place 1 virus counter",
         "Run R&D: access X additional cards, X = hosted virus counters"
       ],
-      "note": "The counter trigger is successful_run (6.9.5a, before the breach) instead of the run ending (6.9.6d). X is read at run start instead of at the start of the R&D breach. The two errors hide each other today and must be fixed together.",
+      "note": "The counter trigger is successful_run (6.9.5a, before the breach) instead of the run ending (6.9.6d), and X is read at run start instead of at the R&D breach. The two errors hide each other. Paired cut A: change the trigger in the card data and read X at the breach in the engine, together.",
       "cr": [
         "6.8.5",
         "6.9.5a",
@@ -601,16 +598,18 @@
     },
     "cookbook": {
       "cycle": "system-gateway",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever you install a virus program, you may place 1 virus counter on it"
       ],
-      "note": "Hard-coded in installRunner (fireCookbookOnVirusInstall): always places the counter, never goes pending, cannot be declined or ordered against other install triggers (Tranquilizer), and ignores blanking.",
+      "note": "fireCookbookOnVirusInstall now notes a pending conditional (place or decline) at the next checkpoint, so it can be ordered against other install triggers, and skips a blank Cookbook.",
       "cr": [
         "9.6.9",
         "9.6.6",
         "9.2.8d"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "is a may: the Runner can decline the virus counter, and it becomes pending instead of applying at once (CR 9.6.9)"
     },
     "cordyceps": {
       "cycle": "ashes",
@@ -757,7 +756,7 @@
       "abilities": [
         "Do 1 net damage; end the run if the trashed card's printed play or install cost is odd"
       ],
-      "note": "The end-the-run check uses grip_count_odd (the Runner's grip size is odd). It should check the printed cost of the card the damage trashed (X counts as 0), and end nothing if no card was trashed.",
+      "note": "The end-the-run check uses grip_count_odd. Paired cut A: a cond on the printed play or install cost of the card the damage trashed (X counts as 0; nothing trashed ends nothing).",
       "cr": [
         "10.4.2a",
         "1.2.1"
@@ -835,17 +834,11 @@
     },
     "embedded-reporting": {
       "cycle": "elevation",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "When your discard phase ends, you may remove 1 hosted agenda counter to search R&D for 1 operation and reveal it"
       ],
-      "note": "search_rd_operation_to_top_rd takes the first operation in R&D: the Corp cannot choose which, or choose to find nothing. It also leaves the card's faceup flag set on top of R&D (not shown to the Runner today, but stale). Lily Lockwell uses the same kind.",
-      "cr": [
-        "8.7.2",
-        "8.7.2e",
-        "1.15.2",
-        "1.21.1a"
-      ]
+      "note": "area 13 (search): search_rd_operation_to_top_rd takes the first operation in R&D, with no Corp choice and no option to find nothing, and leaves a stale faceup flag. Lily Lockwell shares the kind. cr-checker: CR 8.7.2, 8.7.2e, 1.15.2, 1.21.1a."
     },
     "empiricist": {
       "cycle": "elevation",
@@ -906,7 +899,7 @@
       "abilities": [
         "[trash]: End the run. Use this ability only during a run against this server."
       ],
-      "note": "The windows list only approach_paw, encounter_paw and approach_server_paw, leaving out run initiation, after passing ice and after moving inward, so the ability is narrower than printed. The two subroutines match. The action validator's missing server check is listed under Found, not fixed.",
+      "note": "The paid ability's windows leave out run initiation, after passing ice and after moving inward. Paired cut A: list every run window. The two subroutines match.",
       "cr": [
         "1.16.1c",
         "1.2.1"
@@ -919,16 +912,18 @@
     },
     "ezam": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Each piece of ice gets +1 strength for the remainder of this run."
       ],
-      "note": "fortify_all_ice adds an encounter-duration lingering effect (addIceStrengthBoostThisEncounter), so the +1 ends with ezaM's encounter and later ice in the run never gets it; with no run it does nothing. The swap and the look subroutine match. The same kind is used by Red Tape and Tributary (later cycles).",
+      "note": "fortify_all_ice creates one run-duration lingering effect that every piece of ice reads (Red Tape and Tributary share the kind and print the same duration). With no run it creates nothing (CR 9.10.4).",
       "cr": [
         "9.10.1",
         "6.8.5",
         "3.4.4a"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "its +1 strength lasts for the remainder of the run, not just ezaM's encounter (CR 9.10.1)"
     },
     "f2p": {
       "cycle": "ashes",
@@ -964,16 +959,18 @@
     },
     "flagship": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Persistent → During each run against this server, the Runner cannot access more than 1 card other than this upgrade."
       ],
-      "note": "The access cap has no persistent flag, and src/state/accessFilter.ts reads it only from rezzed cards in the attacked server's root, so if the Runner trashes Flagship while accessing it, the cap stops for the rest of the run. Unique, HQ or R&D only and no successful runs match.",
+      "note": "When the Runner trashes a rezzed Flagship they are accessing, its cap is recorded on the run (persistentAccessCaps) and applies for the rest of that run. The persistent flag in the card data is added in paired cut A (label only).",
       "cr": [
         "9.3.6e",
         "9.12.5a",
         "9.12.5c"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "its access cap persists for the rest of the run after the Runner trashes it while accessing it (CR 9.12.5a)"
     },
     "flip-switch": {
       "cycle": "ashes",
@@ -1031,7 +1028,7 @@
       "abilities": [
         "Whenever you encounter a piece of ice, if the Corp has 15[credit] or more, you may trash this resource to bypass that ice"
       ],
-      "note": "Modelled as a paid ability in encounter_paw. The printed text is a conditional ability that becomes pending when the encounter begins, so the bypass comes before the Corp's when-encountered abilities resolve; from the paid window it comes too late. The 15-credit check also belongs to the trigger condition, not the moment of use.",
+      "note": "Modelled as a paid ability in encounter_paw; the printed text is a conditional ability pending when the encounter begins, with the 15-credit check in its trigger condition. Paired cut A: make it a conditional ability on encounter.",
       "cr": [
         "9.3.2b",
         "6.9.3a",
@@ -1309,17 +1306,11 @@
     },
     "ip-enforcement": {
       "cycle": "elevation",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Install 1 agenda from the Runner's score area with a printed agenda point value equal to X"
       ],
-      "note": "install_runner_score_agenda_on_server places the agenda inline with faceup = true, offers only existing remotes (no new remote; with none it errors after the tags are removed), takes the agenda out of the score area before checking the server, and ignores an agenda or asset already in that root. Unsettled: the pinned cards data has no play cost for it; NRDB lists the cost as X and jnet charges X credits, while the engine charges 0.",
-      "cr": [
-        "8.5.2",
-        "8.5.2a",
-        "8.5.6a",
-        "1.16.2c"
-      ]
+      "note": "area 5 (Corp install): install_runner_score_agenda_on_server places the agenda inline and faceup, offers no new remote, takes it out of the score area before checking the server, and skips the root trash. Paired cut A: the play cost. The pinned card data has none; the NSG catalog has cost null (how it stores X) and jnet charges X credits; confirm against the printed card before adding it. cr-checker: CR 8.5.2, 8.5.2a, 8.5.6a, 1.16.2c."
     },
     "isolation": {
       "cycle": "ashes",
@@ -1381,16 +1372,12 @@
     },
     "key-performance-indicators": {
       "cycle": "elevation",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Install 1 piece of ice from HQ, ignoring all costs",
         "Place 1 advancement counter on an installed card you can advance"
       ],
-      "note": "place_advancements has no pick, so the first candidate gets the counter with no Corp choice. install_ice_from_hq_ignore_costs lists only existing servers, never a new remote (area 5 owns that install copy).",
-      "cr": [
-        "1.15.2",
-        "8.5.2a"
-      ]
+      "note": "area 5 (Corp install): install_ice_from_hq_ignore_costs lists only existing servers, never a new remote. The place_advancements half is fixed in engine#948 (the Corp chooses, no Decline). cr-checker: CR 8.5.2a."
     },
     "khusyuk": {
       "cycle": "ashes",
@@ -1444,17 +1431,19 @@
     },
     "lampades": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Access → Hosted power counter, pay the printed rez or play cost of the card you are accessing: Trash that card."
       ],
-      "note": "The cost is rezCost ?? playCost ?? 0 (apply.ts, access.ts, candidatePending.ts), so an accessed agenda, which has neither cost, is trashed for a power counter and 0 credits. A cost that does not exist cannot be paid. 3 power counters on install and stealth-only spending match.",
+      "note": "The access ability needs a printed rez or play cost (printedRezOrPlayCost). An accessed agenda has neither, so the ability is not offered and is refused.",
       "cr": [
         "1.16.1",
         "7.1.5a",
         "2.3.3",
         "2.3.5"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "cannot trash an accessed agenda, which has no printed rez or play cost to pay (CR 1.16.1)"
     },
     "lamplighter": {
       "cycle": "elevation",
@@ -1513,7 +1502,7 @@
       "abilities": [
         "Do 2 net damage unless the Runner jacks out."
       ],
-      "note": "The jack-out option resolves end_the_run, so it skips the jack-out restriction check (a Runner who cannot jack out can still end the run) and jack-out triggers. Confirms the 1.12 finding. Karunā uses offer_jack_out for this. The other two subroutines match.",
+      "note": "The jack-out option resolves end_the_run, skipping jack-out restrictions and triggers. Paired cut A: use offer_jack_out, as Karunā does. Confirms the 1.12 finding.",
       "cr": [
         "6.1.5",
         "1.16.11b",
@@ -1560,15 +1549,17 @@
     },
     "madani": {
       "cycle": "elevation",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[click]: Host any number of programs from your grip faceup on this hardware"
       ],
-      "note": "host_all_programs_from_grip hosts every program in the grip; the Runner cannot choose how many or which.",
+      "note": "host_all_programs_from_grip lets the Runner pick any number of programs, none included, and hosts them through hostCard without installing them. The kind name is renamed in paired cut A.",
       "cr": [
         "1.2.1",
         "1.15.2"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "hosts only the programs the Runner chooses, faceup and not installed (CR 1.15.2, 1.13.2a)"
     },
     "magdalene-keino-chemutai-cryptarchitect": {
       "cycle": "elevation",
@@ -1589,7 +1580,7 @@
       "abilities": [
         "Whenever you make a successful run on HQ, you may trash this hardware to derez 1 installed Corp card"
       ],
-      "note": "After the trash, may_derez_installed opens the choice for the Corp (hard-coded chooser) and adds a Decline. The Runner controls the ability, chooses the card, and must derez once the cost is paid. Hakarl 1.0, Warm Reception, Stegodon MK IV and Élivágár Bifurcation share the kind, so the chooser should become a field.",
+      "note": "Engine#948 makes may_derez_installed's chooser the ability's controller, so the Runner chooses. Paired cut A: after the trash cost is paid, derez without the Decline (a non-may derez kind).",
       "cr": [
         "1.14.4",
         "1.15.2",
@@ -1598,16 +1589,18 @@
     },
     "mahkota-langit-grid": {
       "cycle": "elevation",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "You can spend hosted credits to rez assets in the root of this server and ice protecting this server"
       ],
-      "note": "The host-server recurring helpers in src/cards/stubs.ts have no type filter, so the credits also pay for rezzing upgrades in the root. They also stay spendable while Mahkota is derezzed, because its persistent flag passes the rezzed check.",
+      "note": "The rez_host_server spend accepts only an asset in the root or ice protecting the server, and only while Mahkota is rezzed (its persistent flag is for the trash cost bonus).",
       "cr": [
         "1.2.1",
         "9.3.6e",
         "1.8.4a"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "its hosted credits pay to rez an asset in its root, not an upgrade, and only while it is rezzed (CR 1.2.1)"
     },
     "maintenance-access": {
       "cycle": "elevation",
@@ -1621,17 +1614,19 @@
     },
     "malapert-data-vault": {
       "cycle": "system-gateway",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever you score an agenda from the root of this server, you may search R&D for 1 non-agenda card and reveal it"
       ],
-      "note": "The score hook is mandatory, so declining still searches and shuffles R&D; search_rd_non_agenda never reveals the found card to the Runner; and the hook does not check blanking.",
+      "note": "The score hook offers search or decline, skips a blank vault, and search_rd_non_agenda reveals the found card.",
       "cr": [
         "9.6.9a",
         "8.7.3",
         "8.7.2c",
         "1.21.3"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "the Corp may decline the search, and the card it finds is revealed (CR 9.6.9a, 8.7.3)"
     },
     "manegarm-skunkworks": {
       "cycle": "system-gateway",
@@ -1810,7 +1805,7 @@
         "Resolve 1 subroutine on a rezzed sentry",
         "Resolve 1 subroutine on another rezzed code gate"
       ],
-      "note": "may_install_from_archives_ignore_costs offers assets, agendas and upgrades too (Project Ingatan's 'install 1 card' is right to use it, so this needs an ice-only field) and no new remote for ice. may_resolve_subroutine_on_rezzed_ice adds a Decline whenever a subtype is set; the two resolve subroutines are not optional.",
+      "note": "may_install_from_archives_ignore_costs offers any card type, and may_resolve_subroutine_on_rezzed_ice adds a Decline the subroutines do not print. Paired cut A: an ice-only field on the install and a non-may resolve kind. No new remote for ice is area 5.",
       "cr": [
         "1.2.1",
         "8.5.2a",
@@ -2086,7 +2081,7 @@
       "abilities": [
         "When you rez this ice during a run against this server, give the Runner 1 tag"
       ],
-      "note": "The rez trigger has no condition, so any rez tags the Runner, including outside a run or during a run on another server.",
+      "note": "The rez trigger has no condition, so any rez tags the Runner. Paired cut A: a condition for a rez during a run against this server.",
       "cr": [
         "9.6.5c",
         "4.6.6i"
@@ -2106,15 +2101,17 @@
     },
     "plutus": {
       "cycle": "elevation",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "As an additional cost to rez this asset, forfeit 1 agenda or reveal and trash 3 cards from HQ"
       ],
-      "note": "The trash-3 option uses trash_hq with no reveal, so the Runner never sees the cards and they go to Archives facedown.",
+      "note": "pay_rez_additional_cost's trash-3 option uses trash_hq with reveal: the chosen cards are revealed and trashed faceup.",
       "cr": [
         "1.21.3",
         "4.4.6b"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "the trash-3 rez cost reveals the HQ cards, so they go to Archives faceup (CR 1.21.3, 4.4.6b)"
     },
     "poetri-luxury-brands-all-the-rage": {
       "cycle": "elevation",
@@ -2204,7 +2201,7 @@
       "abilities": [
         "you may pay 1[credit] to place 1 advancement counter on an unrezzed card you can advance"
       ],
-      "note": "area 11 (costs): the pay-1 option is not gated on having 1 credit. Also area 12: place_advancements with pick choose offers a Decline after the credit is paid. cr-checker: CR 1.16.11a, 1.16.1."
+      "note": "area 11 (costs): the pay-1 option is not gated on having 1 credit. cr-checker: CR 1.16.11a, 1.16.1. The area 12 half (place_advancements' Decline after paying) is fixed in engine#948."
     },
     "public-access-plaza": {
       "cycle": "elevation",
@@ -2413,15 +2410,17 @@
     },
     "ryo-phoenix-ono-out-of-the-ashes": {
       "cycle": "elevation",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "gain 1[credit] and the Corp trashes 1 card from HQ"
       ],
-      "note": "ryo_phoenix_on_successful_run trashes a random HQ card. The text makes the Corp choose; nothing says random.",
+      "note": "ryo_phoenix_on_successful_run now uses trash_hq with the Corp's choice instead of a random card.",
       "cr": [
         "1.15.2",
         "1.15.2c"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "the Corp chooses which card it trashes from HQ, not a random one (CR 1.15.2)"
     },
     "sacrifice-zone-expansion": {
       "cycle": "vantage-point",
@@ -2445,16 +2444,18 @@
     },
     "scapegoat": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Choose 1 installed Runner card. The Runner shuffles it into the stack."
       ],
-      "note": "shuffle_installed_runner_into_stack offers every Runner card with a hostId, including cards hosted but not installed (Read-Write Share's facedown cards). The Runner's mode choice, Corp's card choice and Runner's shuffle match.",
+      "note": "shuffle_installed_runner_into_stack offers only cards in the Runner's installed zone, hosted installed cards included; a card hosted without being installed is no longer offered.",
       "cr": [
         "1.13.2",
         "1.13.2a",
         "1.14.5"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "offers only installed Runner cards, not a card Read-Write Share hosts without installing (CR 1.13.2a)"
     },
     "scapenet": {
       "cycle": "ashes",
@@ -2488,7 +2489,7 @@
       "abilities": [
         "Place 2 advancement counters on 1 installed card that you did not install this turn"
       ],
-      "note": "preferNotInstalledThisTurn falls back to cards installed this turn when no other target exists; targets are limited to advanceable Corp cards, but placing counters is not advancing; and no pick is set, so the first candidate is used without a choice.",
+      "note": "Engine#948 gives place_advancements a Corp choice. Paired cut A: preferNotInstalledThisTurn falls back to cards installed this turn (needs a strict field), and candidates are limited to advanceable cards though placing is not advancing (needs an any-installed field).",
       "cr": [
         "1.15.2",
         "1.15.2b",
@@ -2533,7 +2534,7 @@
       "abilities": [
         "you may remove 1 hosted agenda counter to place 2 advancement counters on 1 installed card"
       ],
-      "note": "place_advancements limits candidates to agendas and advanceable cards; the text allows any installed card. It also offers a Decline after the agenda counter is removed (that Decline is the shared place_advancements behaviour, area 12).",
+      "note": "Engine#948 removes place_advancements' Decline after the agenda counter is paid. Paired cut A: candidates are limited to advanceable cards; the text allows any installed card (an any-installed field).",
       "cr": [
         "1.18.2",
         "1.16.11a"
@@ -2584,16 +2585,18 @@
     },
     "sipa": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "The first time each turn you pass the outermost piece of ice protecting a server after fully breaking it, you may swap it with another installed piece of ice."
       ],
-      "note": "The conditional is noted with Sipa as its source, and may_swap_ice_with_other_installed swaps the source, finds Sipa is not installed ice and does nothing, so no swap ever happens. It is also modelled as a static and skipped when any choice is open.",
+      "note": "may_swap_ice_with_other_installed takes the passed ice as iceId, so the swap happens. The hook is noted even when another choice is open, and skips a blank Sipa.",
       "cr": [
         "1.2.1",
         "8.8.2",
         "9.3.7c"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "after the Runner fully breaks and passes the outermost ice, they may swap that ice with another installed piece of ice (CR 8.8.2)"
     },
     "sleipnir": {
       "cycle": "vantage-point",
@@ -2606,7 +2609,7 @@
       "abilities": [
         "When your turn begins, take 1 credit"
       ],
-      "note": "Modelled as a second click ability (click: take 1 hosted credit). The printed text is a turn-begins conditional ability with no cost.",
+      "note": "Modelled as a second click ability. Paired cut A: a turn-begins conditional ability that takes 1 credit, with no cost.",
       "cr": [
         "9.3.7b",
         "9.3.7c",
@@ -2694,15 +2697,17 @@
     },
     "stowaway": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever you make a successful run on this server, gain 2[credit]."
       ],
-      "note": "Stowaway is in runner.installed, and the successful-run loop over every installed Runner card queues it on any server; the host-server loop in graph.ts is redundant. It gains 2 on successful runs anywhere. Install only on ice matches.",
+      "note": "The successful-run loop over installed Runner cards skips cards hosted on ice; the host-server loop queues Stowaway only for runs on its own server.",
       "cr": [
         "4.6.6k",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "gains 2 credits only on a successful run on the server its ice protects (CR 4.6.6k)"
     },
     "superconducting-hub": {
       "cycle": "system-gateway",
@@ -2736,16 +2741,12 @@
     },
     "syailendra": {
       "cycle": "elevation",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "When the Runner encounters this ice, if it has 3 or more hosted advancement counters, you may place 1 advancement counter on an installed card you can advance",
         "[subroutine] You may place 1 advancement counter on an installed card you can advance"
       ],
-      "note": "Both use place_advancements with no pick, so the counter goes on the first candidate with no Corp choice. Minor: the 3-counter check is part of the trigger condition but is read at resolution.",
-      "cr": [
-        "1.15.2",
-        "9.6.5c"
-      ]
+      "note": "area 10 (declarations): the 3-counter check is part of the trigger condition (CR 9.6.5c), but a conditional ability's condition is an if read at resolution for every card. The place_advancements pick is fixed in engine#948."
     },
     "synapse-global-faster-than-thought": {
       "cycle": "elevation",
@@ -2835,7 +2836,7 @@
         "+1 MU (not printed)",
         "The first time each turn you break a subroutine on a piece of ice with 0 or less strength, gain 1[credit]."
       ],
-      "note": "Declares muBonus 1, which the card does not print. The credit gain is inline in the break kind: it is added at once instead of becoming a pending conditional, and does not check whether the card's abilities are suppressed. Unique and -1 strength to each ice match.",
+      "note": "Engine#948 makes the first-break credit a pending conditional and skips a blank Tailor in break_encounter_subroutine. Paired cut A: remove the muBonus 1 the card does not print. Area 11: the basic break action (breakSubroutine.ts) never gives the credit; the break helper owns it.",
       "cr": [
         "1.2.1",
         "1.20.2",
@@ -2890,17 +2891,11 @@
     },
     "tocsin": {
       "cycle": "vantage-point",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "[click], 1[credit], reveal and trash this ice from HQ: Search R&D for up to 1 barrier and up to 1 sentry and reveal them. Add those cards to HQ."
       ],
-      "note": "search_rd_up_to_one_each_subtype_to_hq takes the first barrier and first sentry in R&D order: no Corp choice and no option to find fewer; it also adds them to HQ before shuffling. The reveal in the cost is missing for every expendable card (Found, not fixed). The three subroutines match.",
-      "cr": [
-        "8.7.2",
-        "8.7.2e",
-        "8.7.3",
-        "1.21.3"
-      ]
+      "note": "area 13 (search): search_rd_up_to_one_each_subtype_to_hq takes the first barrier and sentry, with no Corp choice or option to find fewer, and adds them before the shuffle. Area 4: the reveal in the expendable cost is missing for every expendable card. The three subroutines match. cr-checker: CR 8.7.2, 8.7.2e, 8.7.3, 1.21.3."
     },
     "tomorrows-headline": {
       "cycle": "system-gateway",
@@ -2929,7 +2924,7 @@
       "abilities": [
         "Place 2 advancement counters on 1 installed card you can advance. If you do, choose a card type and reveal the grip"
       ],
-      "note": "Already in the plan's findings, area 13: the reveal does not depend on 'If you do', and choose_type_shuffle_grip offers a Decline. Confirmed: place_advancements with pick choose also offers a Decline (area 12)."
+      "note": "Already in the plan's findings, area 13: the reveal does not depend on 'If you do', and choose_type_shuffle_grip offers a Decline. The place_advancements Decline (area 12) is fixed in engine#948."
     },
     "touchstone": {
       "cycle": "vantage-point",
@@ -3047,7 +3042,7 @@
       "abilities": [
         "When the Runner accesses this asset while it is installed, do 2 net damage plus 1 per advancement counter"
       ],
-      "note": "The card has no onAccessRequiresInstalled flag, so the damage also fires when it is accessed in HQ, R&D or Archives.",
+      "note": "The card has no onAccessRequiresInstalled flag, so the damage also fires when it is accessed in HQ, R&D or Archives. Paired cut A: add the flag.",
       "cr": [
         "7.1.3",
         "9.6.5c"
@@ -3176,16 +3171,18 @@
     },
     "weyland-consortium-built-to-last": {
       "cycle": "system-gateway",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever you advance a card, gain 2 credits if it had no advancement counters"
       ],
-      "note": "The engine-side hook (src/legality/checkpoints.ts) reads any advancement-counter increase from 0, so placing or moving counters (Seamless Launch) also gains 2 credits. Only advancing should.",
+      "note": "The 10.3.1a hook reads only cards advanced since the previous checkpoint (advanceCard, and Success's advance), so placing or moving counters no longer gains 2.",
       "cr": [
         "1.18.1",
         "1.18.2",
         "9.6.6a"
-      ]
+      ],
+      "fixedIn": "engine#948",
+      "test": "placing counters with Seamless Launch is not advancing, so it gains nothing (CR 1.18.2)"
     },
     "whistleblower": {
       "cycle": "ashes",
