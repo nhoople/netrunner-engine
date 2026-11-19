@@ -10,6 +10,8 @@ import {
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
+import { abilitiesSuppressed } from "../../state/abilities.js";
+import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
 import { chooseCards } from "../chooseCards.js";
 import {
   effectiveIceSubtypes,
@@ -2305,7 +2307,10 @@ export function applyOtherKinds(
         enc.brokePrintedSubWithDecoder = true;
       }
       maybeFireFluxFirstBreakCharge(state);
-      // Tungsten Tailor: first break this turn on ice with strength ≤ N → +1¢.
+      // The Tungsten Tailor: "The first time each turn you break a
+      // subroutine on a piece of ice with 0 or less strength, gain 1¢." A
+      // conditional ability: it becomes pending at the next checkpoint
+      // (CR 9.3.2b) and a blank Tailor does nothing (CR 9.6.2).
       if (!state.turn.tungstenBreakCreditUsedThisTurn) {
         const iceStr = iceStrength(state, enc.iceId);
         for (const rid of state.runner.installed) {
@@ -2313,13 +2318,20 @@ export function applyOtherKinds(
           if (rc?.gainCreditOnBreakIceStrengthLteOncePerTurn === undefined) {
             continue;
           }
+          if (abilitiesSuppressed(state, rid)) continue;
           if (iceStr <= rc.gainCreditOnBreakIceStrengthLteOncePerTurn) {
             state.turn.tungstenBreakCreditUsedThisTurn = true;
-            state.runner.credits += 1;
-            log(
-              state,
-              `${rc.title} — gain 1¢ (break on ice strength ${iceStr}).`,
-            );
+            noteInlineConditional(state, {
+              cardId: rid,
+              abilityKey: "gain-credit-on-break-ice-strength-lte",
+              controller: "runner",
+              mandatory: true,
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "runner", amount: 1 },
+              },
+              logLine: `${rc.title} becomes pending — broke a subroutine on ice with strength ${iceStr}.`,
+            });
             break;
           }
         }

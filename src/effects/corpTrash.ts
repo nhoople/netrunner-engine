@@ -160,6 +160,20 @@ export function noteCorpCardTrashedToArchives(
     );
   }
   if (inArchives) noteCorpCardAddedToArchives(state);
+  // Persistent (CR 9.12.5a): when the Runner trashes a rezzed card they are
+  // accessing, its persistent abilities last until the run ends. Flagship's
+  // access cap is the only one the engine models; it is printed persistent.
+  if (
+    trashedBy === "runner" &&
+    wasRezzed &&
+    state.run?.accessingCardId === cardId &&
+    card.maxAccessOtherThanSelf !== undefined
+  ) {
+    state.run.persistentAccessCaps = {
+      ...(state.run.persistentAccessCaps ?? {}),
+      [cardId]: card.maxAccessOtherThanSelf,
+    };
+  }
   if (wasInstalled) {
     onInstalledCorpCardTrashed(state, card, wasRezzed);
     if (trashedBy === "runner") {

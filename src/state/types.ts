@@ -4894,6 +4894,12 @@ export interface RunState {
   forbiddenAccessCardIds?: string[];
   /** Candidates removed by an access cap, restored if that cap ends (CR 7.4.2a). */
   prunedAccessCandidateIds?: string[];
+  /**
+   * Flagship: access caps that persist for the rest of the run after the
+   * Runner trashed the rezzed card while accessing it (CR 9.12.5a), by
+   * source id.
+   */
+  persistentAccessCaps?: Record<string, number>;
   /** Arissana: program installed via identity ability this run. */
   identityInstalledProgramId?: string;
   /** Trash identityInstalledProgramId at run end unless this subtype. */
