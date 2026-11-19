@@ -557,7 +557,7 @@
       "cr-examples-ch9.test.ts › checks Underworld Contact's link after The Supplier installs Dyson Mem Chip (CR 9.6.5d.ex1)"
     ],
     "9.6.6a.ex1": [
-      "cr-examples-ch9.test.ts › gains 2 credits when Shipment from SanSan advances a card that had none (CR 9.6.6a.ex1)"
+      "cr-examples-ch9.test.ts › gains 2 credits when the Corp advances a card that had none (CR 9.6.6a.ex1)"
     ],
     "9.6.7d.ex1": [
       "cr-examples-ch9.test.ts › resolves Parasite once when Architect cannot be trashed (CR 9.6.7d.ex1)"

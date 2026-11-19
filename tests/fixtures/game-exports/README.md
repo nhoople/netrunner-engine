@@ -33,7 +33,7 @@ problem in `tests/baselines/invariants.json` for this test (see
 the jack-out choice (CR 6.9.4c) no longer gives the Corp priority, so the checkpoint
 before it (CR 10.3.3) does not occur.
 
-Engine PF-S1 (the printed-text sweep S1 fixes) added two turn fields
-(`firstInstalledCorpCardTrashUsedThisTurn`, `firstInstalledCorpCardTrashMetPending`).
-The replayed state with those two fields removed hashes to the old final hash, so only
-the hash was updated.
+Engine PF-S1 (the printed-text sweep S1 fixes) added three turn fields
+(`firstInstalledCorpCardTrashUsedThisTurn`, `firstInstalledCorpCardTrashMetPending`,
+`advancedSincePreviousCheckpoint`). The replayed state with those three fields removed
+hashes to the old final hash, so only the hash was updated.

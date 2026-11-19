@@ -15,7 +15,7 @@
       "string": 13
     },
     "entries": 863,
-    "withKindBuildingReader": 48,
+    "withKindBuildingReader": 49,
     "unread": 15,
     "unset": 19
   },
@@ -55,6 +55,9 @@
     ],
     "flipIdentityOnSuccessfulCentralRun": [
       "flip_identity"
+    ],
+    "gainCreditOnBreakIceStrengthLteOncePerTurn": [
+      "gain_credits"
     ],
     "gainsEtrSubroutineWhileCurrentActive": [
       "end_the_run"
@@ -4669,10 +4672,14 @@
       "readers": [
         {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
+          "kinds": [
+            "gain_credits"
+          ]
         }
       ],
-      "kinds": []
+      "kinds": [
+        "gain_credits"
+      ]
     },
     "gainCreditOnCorpTurnEndIfArchivesHasFacedown": {
       "cardDef": "number",
@@ -7920,6 +7927,10 @@
         "declaration"
       ],
       "readers": [
+        {
+          "site": "src/effects/corpTrash.ts#noteCorpCardTrashedToArchives",
+          "kinds": []
+        },
         {
           "site": "src/state/accessFilter.ts#applyMaxAccessOtherThanSelf",
           "kinds": []

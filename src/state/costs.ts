@@ -339,9 +339,7 @@ export function recurringCreditsForCentralRun(state: GameState): number {
  * pool "while this event is active" (CR 8.6.5): from its play until it
  * leaves the play area, including between its run and the follow-up run.
  */
-export function activeCreditLockEvent(
-  state: GameState,
-): CardInstance | null {
+export function activeCreditLockEvent(state: GameState): CardInstance | null {
   const id = state.playedRunEventId;
   const card = id ? state.cards[id] : undefined;
   if (!card || card.zone !== "runner:play-area") return null;
@@ -364,9 +362,7 @@ export function runnerCreditPoolLocked(state: GameState): boolean {
  * Aircheck-class runs omit the bank (cannot spend from credit pool).
  */
 export function runnerAvailableCredits(state: GameState): number {
-  const bank = runnerCreditPoolLocked(state)
-    ? 0
-    : state.runner.credits;
+  const bank = runnerCreditPoolLocked(state) ? 0 : state.runner.credits;
   return (
     bank +
     (state.run ? (state.run.eventCredits ?? 0) : 0) +

@@ -507,9 +507,7 @@ export function applyPlaceKinds(
       target.advancementCounters = prior + action.amount;
       state.turn.lastAdvancementTargetId = action.cardId;
       if (action.advance) {
-        (state.turn.advancedSincePreviousCheckpoint ??= []).push(
-          action.cardId,
-        );
+        (state.turn.advancedSincePreviousCheckpoint ??= []).push(action.cardId);
       }
       if (action.cannotScoreTargetThisTurn) {
         if (!state.turn.cannotScoreOrRezCardIds.includes(action.cardId)) {

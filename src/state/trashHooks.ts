@@ -454,11 +454,13 @@ export function noteFirstCorpCardTrashEachTurn(
 
 /** One "first time each turn the Runner trashes a Corp card" record. */
 export interface FirstCorpCardTrashRecord {
-  hook: "onFirstCorpCardTrashEachTurn" | "onFirstInstalledCorpCardTrashEachTurn";
-  used: "firstCorpCardTrashUsedThisTurn" | "firstInstalledCorpCardTrashUsedThisTurn";
+  hook:
+    "onFirstCorpCardTrashEachTurn" | "onFirstInstalledCorpCardTrashEachTurn";
+  used:
+    | "firstCorpCardTrashUsedThisTurn"
+    | "firstInstalledCorpCardTrashUsedThisTurn";
   pending:
-    | "firstCorpCardTrashMetPending"
-    | "firstInstalledCorpCardTrashMetPending";
+    "firstCorpCardTrashMetPending" | "firstInstalledCorpCardTrashMetPending";
 }
 
 export const FIRST_CORP_CARD_TRASH_ANY: FirstCorpCardTrashRecord = {

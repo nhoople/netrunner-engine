@@ -379,7 +379,11 @@ export function fireScoreOrStealSideEffects(
               {
                 id: "decline",
                 label: "Decline",
-                effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+                effect: fx.do({
+                  kind: "gain_credits",
+                  side: "corp",
+                  amount: 0,
+                }),
               },
             ],
           },

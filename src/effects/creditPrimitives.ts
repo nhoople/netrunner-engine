@@ -140,11 +140,7 @@ export function applyCreditPrimitive(
           cites: [CR.gainCredits],
         };
       }
-      if (
-        side === "runner" &&
-        runnerCreditPoolLocked(state) &&
-        amount > 0
-      ) {
+      if (side === "runner" && runnerCreditPoolLocked(state) && amount > 0) {
         log(
           state,
           `Runner cannot lose credits from credit pool (Aircheck-class block).`,

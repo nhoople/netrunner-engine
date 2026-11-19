@@ -6631,7 +6631,10 @@ export const fx = {
         : {}),
     }),
   searchRdNonAgenda: (reveal = false): Effect =>
-    fx.do({ kind: "search_rd_non_agenda", ...(reveal ? { reveal: true } : {}) }),
+    fx.do({
+      kind: "search_rd_non_agenda",
+      ...(reveal ? { reveal: true } : {}),
+    }),
   searchRdToHq: (amount = 1): Effect =>
     fx.do({ kind: "search_rd_to_hq", amount }),
   swapTwoIce: (): Effect => fx.do({ kind: "swap_two_ice" }),
