@@ -1,4 +1,5 @@
 /** Sovereign Sight (ss) Kitara pack primitives — v1.136.0. */
+import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { addOutermostIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
@@ -191,6 +192,8 @@ export function applyKitaraSsPrimitive(
       if (!card || !server) return { ok: true };
       const handIdx = state.corp.hand.indexOf(action.cardId);
       if (handIdx < 0) return { ok: true };
+      if (action.asIce && iceInstallCapRefuses(state, card))
+        return { ok: true };
       state.corp.hand.splice(handIdx, 1);
       card.rezzed = false;
       card.faceup = false;

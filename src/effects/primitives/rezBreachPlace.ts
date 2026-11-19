@@ -1,4 +1,5 @@
 /** Business First (bf) Mumbad pack primitives — v1.117.0. */
+import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -332,6 +333,7 @@ export function applyMumbadBfPrimitive(
       const id = action.cardId;
       if (!state.corp.hand.includes(id)) return { ok: true };
       const card = state.cards[id]!;
+      if (iceInstallCapRefuses(state, card)) return { ok: true };
       const serverId = nextRemoteId(state);
       state.servers[serverId] = {
         id: serverId,

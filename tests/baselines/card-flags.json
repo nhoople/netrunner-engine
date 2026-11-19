@@ -1751,7 +1751,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#corpIdentityAbilitiesBlanked",
+          "site": "src/state/currents.ts#currentsBlankingCorpIdentity",
           "kinds": []
         }
       ],
@@ -1801,7 +1801,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#runnerIdentityAbilitiesBlanked",
+          "site": "src/state/currents.ts#currentsBlankingRunnerIdentity",
           "kinds": []
         }
       ],
@@ -3132,7 +3132,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#corpHandSizeFromBadPublicity",
+          "site": "src/state/currents.ts#corpHandSizeFromCurrents",
           "kinds": []
         }
       ],
@@ -5423,6 +5423,10 @@
         },
         {
           "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "kinds": []
+        },
+        {
+          "site": "src/state/handSize.ts#effectiveCorpMaxHandSize",
           "kinds": []
         }
       ],
@@ -18344,6 +18348,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/currents.ts#corpIceInstalledThisTurn",
+          "kinds": []
+        },
+        {
           "site": "src/state/currents.ts#trashCurrent",
           "kinds": []
         },
@@ -18420,6 +18428,10 @@
         },
         {
           "site": "src/state/seatVisibility.ts#openFace",
+          "kinds": []
+        },
+        {
+          "site": "src/state/staticFlags.ts#corpIceInstallBlockReason",
           "kinds": []
         },
         {
@@ -22380,6 +22392,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/staticFlags.ts#iceInstallCapRefuses",
+          "kinds": []
+        },
+        {
           "site": "src/state/staticFlags.ts#installBlockReason",
           "kinds": []
         },
@@ -24031,6 +24047,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/currents.ts#corpIceInstalledThisTurn",
+          "kinds": []
+        },
+        {
           "site": "src/state/damage.ts#chromeParlorPreventsInstallDamage",
           "kinds": []
         },
@@ -24088,6 +24108,10 @@
         },
         {
           "site": "src/state/seatVisibility.ts#openFace",
+          "kinds": []
+        },
+        {
+          "site": "src/state/staticFlags.ts#corpIceInstallBlockReason",
           "kinds": []
         },
         {

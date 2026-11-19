@@ -11,6 +11,7 @@ import {
   spendCreditsForInstall,
 } from "../state/costs.js";
 import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
+import { iceInstallCapRefuses } from "../state/staticFlags.js";
 import { cardBecameNewObject } from "../state/turn.js";
 import type { GameState, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -55,6 +56,7 @@ export function applyCorpInstallPrimitive(
         log(state, `Install from HQ — card not in HQ.`);
         return { ok: true };
       }
+      if (iceInstallCapRefuses(state, card)) return { ok: true };
       const cost = corpInstallCost(card, 0);
       if (creditsAvailableForInstall(state, "corp") < cost) {
         log(state, `Install from HQ — cannot afford ${cost}¢.`);
@@ -156,6 +158,7 @@ export function applyCorpInstallPrimitive(
         log(state, `Archives install paying — card not in Archives.`);
         return { ok: true };
       }
+      if (iceInstallCapRefuses(state, card)) return { ok: true };
       const cost = corpInstallCost(
         card,
         card.type === "ice" ? dest.ice.length : 0,
@@ -209,6 +212,7 @@ export function applyCorpInstallPrimitive(
         log(state, `Archives install — card not in Archives.`);
         return { ok: true };
       }
+      if (iceInstallCapRefuses(state, card)) return { ok: true };
       state.corp.discardPile = state.corp.discardPile.filter(
         (id) => id !== cardId,
       );
@@ -250,6 +254,7 @@ export function applyCorpInstallPrimitive(
         log(state, `HQ install — card not in HQ.`);
         return { ok: true };
       }
+      if (iceInstallCapRefuses(state, card)) return { ok: true };
       if (card.type !== "ice" && dest.kind !== "remote") {
         log(state, `HQ install — non-ice must target a remote server.`);
         return { ok: true };

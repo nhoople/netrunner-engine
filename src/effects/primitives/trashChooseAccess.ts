@@ -1,4 +1,5 @@
 /** Station One (so) Red Sand pack primitives — v1.129.0. */
+import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
@@ -480,6 +481,7 @@ export function applyRedsandSoPrimitive(
       if (!state.run || source?.type !== "ice") return { ok: true };
       const iceId = action.cardId;
       if (!iceId || !state.corp.hand.includes(iceId)) return { ok: true };
+      if (iceInstallCapRefuses(state, state.cards[iceId])) return { ok: true };
       const serverId = state.run.attackedServerId;
       const server = state.servers[serverId];
       const pos = server.ice.indexOf(sourceId);

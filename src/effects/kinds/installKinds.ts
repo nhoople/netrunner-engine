@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is install.
  * The effect switch in eval.ts dispatches here.
  */
+import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { revealCards } from "../../state/reveal.js";
 import {
   applyInstallCorpCard,
@@ -344,6 +345,10 @@ export function applyInstallKinds(
         returnRdLookedToDeckTop(state);
         return { ok: true };
       }
+      if (iceInstallCapRefuses(state, card)) {
+        returnRdLookedToDeckTop(state);
+        return { ok: true };
+      }
       state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
         (x) => x !== cardId,
       );
@@ -455,6 +460,7 @@ export function applyInstallKinds(
         log(state, `Install ice from R&D — not in R&D.`);
         return { ok: true };
       }
+      if (iceInstallCapRefuses(state, card)) return { ok: true };
       const discount = Math.max(0, action.totalDiscount ?? 0);
       const installCost = corpInstallCost(card, host.ice.length);
       const rezCost = card.rezCost ?? 0;
@@ -550,6 +556,7 @@ export function applyInstallKinds(
       for (const pick of eligible) {
         if (installed >= max) break;
         const card = state.cards[pick];
+        if (iceInstallCapRefuses(state, card)) continue;
         const cost = corpInstallCost(card, 0);
         if (state.corp.credits < cost) {
           log(
@@ -722,6 +729,7 @@ export function applyInstallKinds(
         return { ok: true };
       }
       if (!candidates.includes(chosen)) return { ok: true };
+      if (iceInstallCapRefuses(state, state.cards[chosen])) return { ok: true };
       const iceFromHq = chosen;
       state.corp.hand = state.corp.hand.filter((id) => id !== iceFromHq);
       state.corp.discardPile = state.corp.discardPile.filter(
@@ -799,6 +807,7 @@ export function applyInstallKinds(
       const server = state.servers[serverId];
       const pos = server.ice.indexOf(sourceId);
       if (pos < 0) return { ok: true };
+      if (iceInstallCapRefuses(state, card)) return { ok: true };
       const fromHq = state.corp.hand.includes(id);
       if (fromHq) {
         state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
@@ -1027,6 +1036,7 @@ export function applyInstallKinds(
         log(state, `Reanimation — ice not in Archives.`);
         return { ok: true };
       }
+      if (iceInstallCapRefuses(state, card)) return { ok: true };
       const discount = Math.max(0, action.totalDiscount ?? 0);
       const destPreview =
         action.serverId === "new-remote"
@@ -1520,7 +1530,9 @@ export function applyInstallKinds(
           if (dest) {
             const asIce = Boolean(action.asIce) || card.type === "ice";
             const cost = corpInstallCost(card, asIce ? dest.ice.length : 0);
-            if (creditsAvailableForInstall(state, "corp") < cost) {
+            if (iceInstallCapRefuses(state, card)) {
+              // Not installed; the cap is already logged.
+            } else if (creditsAvailableForInstall(state, "corp") < cost) {
               log(state, `Install from HQ — cannot afford ${cost}¢.`);
             } else {
               spendCreditsForInstall(state, "corp", cost);
@@ -1689,6 +1701,10 @@ export function applyInstallKinds(
       state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
         (x) => x !== cardId,
       );
+      if (iceInstallCapRefuses(state, card)) {
+        trashCorpCardToArchives(state, cardId, source.side);
+        return { ok: true };
+      }
       let serverId = action.serverId as import("../../state/types.js").ServerId;
       if (action.serverId === "__new_remote__") {
         const remoteNum = state.nextRemoteNumber++;

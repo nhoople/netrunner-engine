@@ -2,6 +2,7 @@
  * Pure library API for hosts (CLI, tests, future online Project).
  * No sockets / HTTP / UI — intents in, state out.
  */
+import { effectiveMaxHandSize } from "../state/handSize.js";
 import { applyAction } from "../actions/apply.js";
 import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/createGame.js";
@@ -319,7 +320,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       tags: self.tags,
       coreDamage: self.coreDamage,
       link: self.link,
-      maxHandSize: self.maxHandSize,
+      maxHandSize: effectiveMaxHandSize(state, side),
       hand: [...self.hand],
       handCount: self.hand.length,
       deckCount: self.deck.length,
@@ -337,7 +338,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       tags: opp.tags,
       coreDamage: opp.coreDamage,
       link: opp.link,
-      maxHandSize: opp.maxHandSize,
+      maxHandSize: effectiveMaxHandSize(state, oppSide),
       handCount: opp.hand.length,
       revealedHand:
         oppSide === "runner" && gripRevealed(state)

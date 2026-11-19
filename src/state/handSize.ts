@@ -3,6 +3,7 @@
 import type { GameState } from "./types.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { agendaPointHandSize } from "./staticFlags.js";
+import { corpHandSizeFromCurrents } from "./currents.js";
 
 /**
  * Base 5 − brain damage, plus installed Runner `handSizeBonus` /
@@ -80,4 +81,30 @@ export function computeRunnerMaxHandSize(state: GameState): number {
 
 export function recomputeRunnerMaxHandSize(state: GameState): void {
   state.runner.maxHandSize = computeRunnerMaxHandSize(state);
+}
+
+/**
+ * The Corp's maximum hand size now (CR 5.5.3b), applied in CR 9.12.1a order:
+ * Cerebral Imaging sets it to the Corp's credits, then Itinerant Protesters
+ * lowers it by 1 per bad publicity. It is computed, not stored, so each
+ * effect ends as soon as its source leaves play or loses its abilities. It
+ * may be negative (CR 1.1.3); the discard step treats that as 0.
+ */
+export function effectiveCorpMaxHandSize(state: GameState): number {
+  const identityId = state.corp.identityId;
+  const setToCredits =
+    Boolean(state.cards[identityId]?.handSizeEqualsCredits) &&
+    !abilitiesSuppressed(state, identityId);
+  const base = setToCredits ? state.corp.credits : state.corp.maxHandSize;
+  return base + corpHandSizeFromCurrents(state);
+}
+
+/** A side's maximum hand size now (CR 5.5.3). */
+export function effectiveMaxHandSize(
+  state: GameState,
+  side: "corp" | "runner",
+): number {
+  return side === "corp"
+    ? effectiveCorpMaxHandSize(state)
+    : state.runner.maxHandSize;
 }

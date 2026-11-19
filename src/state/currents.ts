@@ -107,32 +107,32 @@ export function sumRunnerFirstRunAdditionalCost(state: GameState): number {
   return n;
 }
 
-/**
- * Cerebral Static: the Runner's identity loses its printed abilities.
- *
- * @public Kept for knip: nothing calls this yet, so the card's effect never
- * applies. It is the only reader of the card's flag. Wiring it in is a rules
- * change left for a CR audit fix, not the dead-code sweep.
- */
-export function runnerIdentityAbilitiesBlanked(state: GameState): boolean {
-  for (const id of activeCorpCurrentIds(state)) {
-    if (state.cards[id]?.blankRunnerIdentityPrintedAbilities) return true;
-  }
-  return false;
+/** Active currents on both sides (a current is in either play area). */
+function allActiveCurrentIds(state: GameState): string[] {
+  return [...activeCorpCurrentIds(state), ...activeRunnerCurrentIds(state)];
 }
 
 /**
- * Employee Strike: the Corp's identity loses its printed abilities.
- *
- * @public Kept for knip: nothing calls this yet, so the card's effect never
- * applies. It is the only reader of the card's flag. Wiring it in is a rules
- * change left for a CR audit fix, not the dead-code sweep.
+ * Cerebral Static: "The Runner's identity loses its printed abilities."
+ * Returns the active currents with that ability. A card that loses an
+ * ability ignores it completely (CR 9.1.9, 9.1.9a). The blanking stops when
+ * the current is trashed (CR 3.5.1b).
  */
-export function corpIdentityAbilitiesBlanked(state: GameState): boolean {
-  for (const id of activeRunnerCurrentIds(state)) {
-    if (state.cards[id]?.blankCorpIdentityPrintedAbilities) return true;
-  }
-  return false;
+export function currentsBlankingRunnerIdentity(state: GameState): string[] {
+  return allActiveCurrentIds(state).filter(
+    (id) => state.cards[id]?.blankRunnerIdentityPrintedAbilities,
+  );
+}
+
+/**
+ * Employee Strike: "The Corp's identity loses its printed abilities."
+ * Returns the active currents with that ability (CR 9.1.9, 9.1.9a). The
+ * blanking stops when the current is trashed (CR 3.7.1b).
+ */
+export function currentsBlankingCorpIdentity(state: GameState): string[] {
+  return allActiveCurrentIds(state).filter(
+    (id) => state.cards[id]?.blankCorpIdentityPrintedAbilities,
+  );
 }
 
 export function runnerCannotPlayCurrentEvents(state: GameState): boolean {
@@ -158,22 +158,46 @@ export function runnerCannotPlayCurrentEvents(state: GameState): boolean {
 }
 
 /**
- * Unscheduled Maintenance: the Corp cannot install more than 1 piece of ice each turn.
- *
- * @public Kept for knip: nothing calls this yet, so the card's effect never
- * applies. It is the only reader of the card's flag. Wiring it in is a rules
- * change left for a CR audit fix, not the dead-code sweep.
+ * Unscheduled Maintenance: "The Corp cannot install more than 1 piece of ice
+ * each turn." Returns the lowest cap among active currents, or null when no
+ * current limits ice installs. A "cannot" wins over any ability that would
+ * allow it (CR 1.2.2).
  */
 export function corpMaxIceInstallsPerTurnFromCurrents(
   state: GameState,
 ): number | null {
   let min: number | null = null;
-  for (const id of activeCorpCurrentIds(state)) {
+  for (const id of allActiveCurrentIds(state)) {
+    if (abilitiesSuppressed(state, id)) continue;
     const cap = state.cards[id]?.corpMaxIceInstallsPerTurn;
     if (cap == null) continue;
     min = min == null ? cap : Math.min(min, cap);
   }
   return min;
+}
+
+/**
+ * Itinerant Protesters: "The Corp gets −1 maximum hand size for each bad
+ * publicity they have." Returns the change to the Corp's maximum hand size
+ * from active currents (CR 5.5.3b: abilities can modify it directly).
+ */
+export function corpHandSizeFromCurrents(state: GameState): number {
+  const bp = state.corp.badPublicity ?? 0;
+  if (bp === 0) return 0;
+  let delta = 0;
+  for (const id of allActiveCurrentIds(state)) {
+    if (abilitiesSuppressed(state, id)) continue;
+    delta += (state.cards[id]?.corpHandSizeBonusPerBadPublicity ?? 0) * bp;
+  }
+  return delta;
+}
+
+/** Corp ice installed so far this turn, for Unscheduled Maintenance. */
+export function corpIceInstalledThisTurn(state: GameState): number {
+  return (state.turn.installedThisTurn ?? []).filter((id) => {
+    const card = state.cards[id];
+    return card?.side === "corp" && card.type === "ice";
+  }).length;
 }
 
 function trashCurrent(state: GameState, id: string, reason: string): void {
@@ -195,12 +219,14 @@ function trashCurrent(state: GameState, id: string, reason: string): void {
  * stays in play until another current operation or event is played
  * (CR 3.5.1b, CR 3.7.1b), whichever side plays it.
  */
-function trashActiveCurrentsBeforePlay(state: GameState): void {
-  const ids = [
-    ...activeCorpCurrentIds(state),
-    ...activeRunnerCurrentIds(state),
-  ];
-  for (const id of ids) {
+function trashActiveCurrentsBeforePlay(
+  state: GameState,
+  playedId: string,
+): void {
+  for (const id of allActiveCurrentIds(state)) {
+    // The played card is already in the play area while it resolves
+    // (CR 8.6.7a); it is the new current, not "another" one to trash.
+    if (id === playedId) continue;
     trashCurrent(state, id, "another current played");
   }
 }
@@ -252,7 +278,7 @@ export function placeCurrentAfterPlay(
 ): void {
   const card = state.cards[cardId];
   if (!card) return;
-  trashActiveCurrentsBeforePlay(state);
+  trashActiveCurrentsBeforePlay(state, cardId);
   enterLingeringPlayArea(state, cardId, side);
   log(
     state,

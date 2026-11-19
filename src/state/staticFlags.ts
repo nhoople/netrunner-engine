@@ -10,6 +10,10 @@ import { CR } from "../timing/labels.js";
 import { fireWouldTakeBadPublicity } from "./storedTriggers.js";
 import { fireFirstBadPublicityTake } from "./badPublicityHooks.js";
 import { onIceRezzed } from "./cardDeclarations.js";
+import {
+  corpIceInstalledThisTurn,
+  corpMaxIceInstallsPerTurnFromCurrents,
+} from "./currents.js";
 
 function rezzedWith<K extends keyof CardInstance>(
   state: GameState,
@@ -234,7 +238,41 @@ export function installBlockReason(
   ) {
     return `${card.title} can only be installed in the root of HQ or R&D.`;
   }
+  const iceCap = corpIceInstallBlockReason(state, card);
+  if (iceCap) return iceCap;
   return null;
+}
+
+/**
+ * Unscheduled Maintenance: the Corp cannot install more than the capped
+ * number of ice each turn (CR 1.2.2: "cannot" wins).
+ */
+export function corpIceInstallBlockReason(
+  state: GameState,
+  card: CardInstance,
+): string | null {
+  if (card.side !== "corp" || card.type !== "ice") return null;
+  const cap = corpMaxIceInstallsPerTurnFromCurrents(state);
+  if (cap == null || corpIceInstalledThisTurn(state) < cap) return null;
+  return `The Corp cannot install more than ${cap} piece${cap === 1 ? "" : "s"} of ice this turn.`;
+}
+
+/**
+ * For installs made by abilities: true when the ice cap refuses this
+ * install, after logging why. The install does not happen (CR 1.2.2).
+ */
+export function iceInstallCapRefuses(
+  state: GameState,
+  card: CardInstance | undefined,
+): boolean {
+  if (!card) return false;
+  const reason = corpIceInstallBlockReason(state, card);
+  if (!reason) return false;
+  log(
+    state,
+    `${card.title} is not installed: ${reason} (CR ${CR.cannotPrecedence.number}).`,
+  );
+  return true;
 }
 
 export function traceBaseBonus(state: GameState): number {
@@ -331,24 +369,6 @@ export function agendaPointHandSize(state: GameState): number {
     const card = state.cards[id];
     if (card?.handSizeEqualsAgendaPoints)
       bonus += agendaPointsFor(state, "runner");
-  }
-  return bonus;
-}
-
-/**
- * Itinerant Protesters: the Corp gets -1 maximum hand size for each bad publicity.
- *
- * @public Kept for knip: nothing calls this yet, so the card's effect never
- * applies. It is the only reader of the card's flag. Wiring it in is a rules
- * change left for a CR audit fix, not the dead-code sweep.
- */
-export function corpHandSizeFromBadPublicity(state: GameState): number {
-  let bonus = 0;
-  const bp = state.corp.badPublicity ?? 0;
-  for (const id of state.runner.installed) {
-    if (abilitiesSuppressed(state, id)) continue;
-    const per = state.cards[id]?.corpHandSizeBonusPerBadPublicity ?? 0;
-    bonus += per * bp;
   }
   return bonus;
 }

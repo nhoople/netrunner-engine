@@ -2,6 +2,7 @@
  * Priority windows, passing priority, and the discard phase.
  * Drawing one card is shared with the basic draw action.
  */
+import { effectiveMaxHandSize } from "../state/handSize.js";
 import { commitDraw, holdCorpDrawForDbs } from "../effects/draw.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { activePlayer, log } from "../state/createGame.js";
@@ -242,10 +243,10 @@ export function discardPhase(
       idCard?.handSizeEqualsCredits &&
       !abilitiesSuppressed(state, identityId)
     ) {
-      state.corp.maxHandSize = state.corp.credits;
+      // Computed in effectiveCorpMaxHandSize; logged here for the table.
       log(
         state,
-        `${idCard.title}: Corp max hand size = credits (${state.corp.maxHandSize}) (CR ${CR.maxHandSize.number}).`,
+        `${idCard.title}: Corp max hand size = credits (${state.corp.credits}) (CR ${CR.maxHandSize.number}).`,
       );
     }
     // Lewi Guilherme: Corp max hand size −N while installed.
@@ -262,16 +263,17 @@ export function discardPhase(
       );
     }
   }
+  const maxHand = effectiveMaxHandSize(state, p.side);
   if (state.turn.skipDiscardThisTurn) {
     state.turn.skipDiscardThisTurn = false;
     log(
       state,
-      `${p.side} skips discard step (hand ${p.hand.length}, max ${p.maxHandSize}).`,
+      `${p.side} skips discard step (hand ${p.hand.length}, max ${maxHand}).`,
     );
   } else {
     // CR 5.5.4c: the discarding player chooses the cards, and the chosen
     // cards are discarded simultaneously.
-    const excess = p.hand.length - Math.max(0, p.maxHandSize);
+    const excess = p.hand.length - Math.max(0, maxHand);
     let chosen: string[] = [];
     if (excess > 0) {
       const named = cardIds ?? state.turn.chosenDiscardIds;
@@ -318,7 +320,7 @@ export function discardPhase(
     }
     log(
       state,
-      `${p.side} discards to hand size ${p.maxHandSize} (CR ${CR.maxHandSize.number}).`,
+      `${p.side} discards to hand size ${maxHand} (CR ${CR.maxHandSize.number}).`,
     );
     if (p.side === "runner") {
       const idCard = state.cards[state.runner.identityId];
