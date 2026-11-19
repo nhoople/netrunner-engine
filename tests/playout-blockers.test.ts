@@ -98,8 +98,6 @@ describe("B1: the access completes after a stolen agenda's choice (CR 7.2.3, 7.2
     (format, seed, step) => {
       expectEveryLegalActionApplies(replayTo(format, seed, step));
     },
-    // A replay of up to 200 steps, like the playout suites.
-    60_000,
   );
 });
 
@@ -163,8 +161,6 @@ describe("B2: a turn-begin choice does not stall the turn (CR 9.6.6, 11.2_1_d, 1
       );
       expectEveryLegalActionApplies(s);
     },
-    // A replay of up to 200 steps, like the playout suites.
-    60_000,
   );
 });
 
