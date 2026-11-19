@@ -1,4 +1,5 @@
 import { revealCards } from "../../state/reveal.js";
+import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 /** Magnum Opus (mo) primitives — v1.142.0. */
 import { log } from "../../state/createGame.js";
@@ -276,6 +277,7 @@ export function applyMagnumOpusPrimitive(
         log(state, `Timely Public Release — install failed.`);
         return { ok: true };
       }
+      if (iceInstallCapRefuses(state, ice)) return { ok: true };
       if (action.from === "hq") {
         if (!state.corp.hand.includes(action.iceId)) return { ok: true };
         state.corp.hand = state.corp.hand.filter((id) => id !== action.iceId);

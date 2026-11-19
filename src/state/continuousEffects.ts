@@ -9,6 +9,10 @@ import {
   LINGERING_KIND_GRANTED_SUBTYPES,
 } from "./lingeringEffects.js";
 import type { GameState } from "./types.js";
+import {
+  currentsBlankingCorpIdentity,
+  currentsBlankingRunnerIdentity,
+} from "./currents.js";
 
 /** One blanking-class continuous/lingering effect waiting to apply. */
 export interface BlankingEffect {
@@ -100,6 +104,23 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
       id: `blank-identities:${sourceId}`,
       sourceId,
       targetIds: [state.corp.identityId, state.runner.identityId],
+    });
+  }
+
+  // Cerebral Static / Employee Strike: an active current makes an identity
+  // lose its printed abilities (CR 9.1.9a) until the current is trashed.
+  for (const id of currentsBlankingRunnerIdentity(state)) {
+    effects.push({
+      id: `current-blank-runner-id:${id}`,
+      sourceId: id,
+      targetIds: [state.runner.identityId],
+    });
+  }
+  for (const id of currentsBlankingCorpIdentity(state)) {
+    effects.push({
+      id: `current-blank-corp-id:${id}`,
+      sourceId: id,
+      targetIds: [state.corp.identityId],
     });
   }
 

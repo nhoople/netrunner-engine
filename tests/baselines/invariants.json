@@ -951,12 +951,10 @@
   },
   "tests/currents.test.ts": {
     "currents > playing a Corp current trashes the Runner current (CR 3.7.1b)": [
-      "MULTIPLE_ZONES",
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
     "currents > playing a Runner current trashes the Corp current (CR 3.5.1b)": [
-      "MULTIPLE_ZONES",
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ]

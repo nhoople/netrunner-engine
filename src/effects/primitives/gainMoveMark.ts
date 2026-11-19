@@ -1,4 +1,5 @@
 /** Order and Chaos (oac) deluxe primitives. */
+import { effectiveCorpMaxHandSize } from "../../state/handSize.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import {
   addOutermostIce,
@@ -545,7 +546,7 @@ export function applyOacPrimitive(
     }
 
     case "draw_if_hq_full": {
-      const max = state.corp.maxHandSize;
+      const max = effectiveCorpMaxHandSize(state);
       if (state.corp.hand.length === max) {
         // draw 1 for runner
         if (state.runner.deck.length > 0) {

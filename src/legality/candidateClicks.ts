@@ -39,6 +39,7 @@ import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { hasActiveLockdown } from "../state/lockdowns.js";
 import { corpMayScore } from "../cards/stubs.js";
+import { corpIceInstallBlockReason } from "../state/staticFlags.js";
 import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { isForbidden } from "./checkpoints.js";
 import type { TimingStepDef } from "../timing/graph.js";
@@ -436,7 +437,7 @@ export function addClickActionCandidates(
               offerTrashFirst(destination);
             }
           }
-          if (card.type === "ice") {
+          if (card.type === "ice" && !corpIceInstallBlockReason(state, card)) {
             actions.push({
               type: "basic_install",
               cardId: id,
