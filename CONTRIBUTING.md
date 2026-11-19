@@ -19,6 +19,7 @@ Scenario tests ported from [mtgred/netrunner](https://github.com/mtgred/netrunne
 
 | Check | Command / test |
 |-------|----------------|
+| Prettier formatting (`.prettierrc.json`; fix with `npm run format`) | `npm run format:check` |
 | ESLint (recommended + typescript-eslint) | `npm run lint` |
 | TypeScript (`tsc --noEmit`) | `npm run typecheck` |
 | Bidirectional CR cite map (`CR.*` ↔ pinned `index.json`) | `tests/cr-cite-map.test.ts` (`npm test`) |
@@ -29,7 +30,7 @@ Confidence extras (`tests/confidence-*.test.ts`, goldens under `tests/fixtures/g
 
 Do **not** invent a CR→AST compiler. IR stays hand-authored.
 
-Setup: `npm ci && npm run prepare-data && npm run lint && npm run typecheck && npm test`.
+Setup: `npm ci && npm run prepare-data && npm run format:check && npm run lint && npm run typecheck && npm test`.
 
 Development hosts (library API only — no UI/network): `npm run demo:library`, `npm run demo`, `npm run cli:help`.
 

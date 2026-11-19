@@ -1,6 +1,7 @@
 import eslint from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
+import prettierConfig from "eslint-config-prettier";
 
 export default tseslint.config(
   {
@@ -47,4 +48,6 @@ export default tseslint.config(
       ],
     },
   },
+  // Last: turn off the stylistic rules Prettier owns, so the two never disagree.
+  prettierConfig,
 );

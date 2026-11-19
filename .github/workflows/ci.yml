@@ -19,6 +19,8 @@ jobs:
         run: npm ci
       - name: Prepare pinned data
         run: npm run prepare-data
+      - name: Format check (Prettier)
+        run: npm run format:check
       - name: Lint
         run: npm run lint
       - name: Typecheck
