@@ -3,7 +3,6 @@
  * at the moment that declaration describes.
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import { subtractRunnerCreditPool } from "./costs.js";
 import { noteTargetedMarketing } from "./currents.js";
 import { noteAzmariNamedTypeMatch } from "./programHardwareInstall.js";
@@ -16,6 +15,8 @@ import { startTrace } from "./trace.js";
 import { memoryLimit, usedMemory } from "./turn.js";
 import { openPendingChoose } from "./pendingChoice.js";
 import { pickRandomSubset } from "./rng.js";
+import { trashCard } from "./procedures/trash.js";
+import { unhostCard } from "./procedures/host.js";
 
 const noop = (side: Side) => fx.do({ kind: "gain_credits", side, amount: 0 });
 
@@ -355,7 +356,7 @@ export function notePowerCounters(state: GameState, card: CardInstance): void {
     card.zone.startsWith("server:")
   ) {
     // The card's own ability trashes it, so the Corp does (CR 1.14.5).
-    trashCorpCardToArchives(state, card.id, "corp");
+    trashCard(state, card.id, { by: "corp" });
     log(state, `${card.title} is trashed — power counters are empty.`);
   }
 }
@@ -389,10 +390,7 @@ export function onRunnerTurnBegan(state: GameState): void {
         );
       }
       if ((guest.powerCounters ?? 0) <= 0) {
-        host.hostedCardIds = (host.hostedCardIds ?? []).filter(
-          (x) => x !== hid,
-        );
-        guest.hostId = undefined;
+        unhostCard(state, guest.id);
         state.runner.installed.push(hid);
         guest.zone = "runner:installed";
         guest.faceup = true;
@@ -560,14 +558,9 @@ export function onAccessFinishedWithoutStealOrTrash(
     }
     // At random, from the seeded stream.
     const pick = pickRandomSubset(state, hq, 1)[0]!;
-    state.corp.hand = hq.filter((x) => x !== pick);
-    state.corp.discardPile.push(pick);
-    const trashed = state.cards[pick];
-    if (trashed) {
-      trashed.zone = "corp:archives";
-      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-      trashed.faceup = false;
-    }
+    // "Force the Corp to trash": the Corp carries it out (CR 1.14.5).
+    // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+    trashCard(state, pick, { by: "corp" });
     log(state, `${maw.title} — Corp trashes 1 card from HQ at random.`);
     return;
   }
@@ -972,11 +965,7 @@ function removeInstalled(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  for (const other of Object.values(state.cards)) {
-    if (other.hostedCardIds) {
-      other.hostedCardIds = other.hostedCardIds.filter((id) => id !== cardId);
-    }
-  }
+  unhostCard(state, cardId);
 }
 
 export function resolveDeclaration(
@@ -986,13 +975,8 @@ export function resolveDeclaration(
   if (optionId === "decl:decline") return "ok";
   if (optionId.startsWith("decl:aesop:")) {
     const cardId = optionId.slice("decl:aesop:".length);
-    removeInstalled(state, cardId);
-    const trashed = state.cards[cardId];
-    if (trashed) {
-      state.runner.discardPile.push(cardId);
-      trashed.zone = "runner:heap";
-      trashed.faceup = true;
-    }
+    // Aesop's Pawnshop: the Runner trashes it (CR 1.14.5).
+    trashCard(state, cardId, { by: "runner" });
     state.runner.credits += 3;
     log(
       state,
@@ -1021,13 +1005,8 @@ export function resolveDeclaration(
   }
   if (optionId.startsWith("decl:gpi-jack:")) {
     const sourceId = optionId.slice("decl:gpi-jack:".length);
-    removeInstalled(state, sourceId);
-    const card = state.cards[sourceId];
-    if (card) {
-      state.runner.discardPile.push(sourceId);
-      card.zone = "runner:heap";
-      card.faceup = true;
-    }
+    // Trashing GPI Net Tap is the cost of jacking out (CR 1.16.1a).
+    trashCard(state, sourceId, { by: "runner", cause: "cost" });
     return "jackout";
   }
   if (optionId.startsWith("decl:engolo:")) {
@@ -1083,16 +1062,8 @@ export function resolveDeclaration(
     if (source && card) {
       spendVirusCounters(state, source, cost);
       state.turn.khumaloUsedThisTurn = true;
-      state.corp.hand = state.corp.hand.filter((id) => id !== card.id);
-      state.corp.deck = state.corp.deck.filter((id) => id !== card.id);
-      state.corp.discardPile = state.corp.discardPile.filter(
-        (id) => id !== card.id,
-      );
-      if (!state.corp.discardPile.includes(card.id))
-        state.corp.discardPile.push(card.id);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      card.rezzed = false;
+      // Khumalo: the Runner trashes the card they are accessing (CR 7.1.5).
+      trashCard(state, card.id, { by: "runner", cause: "access" });
       if (state.run) state.run.breachStoleOrTrashed = true;
       log(state, `${source.title} trashes ${card.title}.`);
     }
@@ -1133,7 +1104,7 @@ export function resolveDeclaration(
     const ice = iceId ? state.cards[iceId] : undefined;
     if (ice) {
       // Hippo is the Runner's card, so the Runner trashes the ice (CR 1.14.5).
-      trashCorpCardToArchives(state, ice.id, "runner");
+      trashCard(state, ice.id, { by: "runner" });
       log(state, `${ice.title} is trashed.`);
     }
     return "ok";

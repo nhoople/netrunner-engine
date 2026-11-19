@@ -9,7 +9,6 @@ import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone, stealAgenda } from "../../state/scoring.js";
-import { trashCorpCardToArchives } from "../corpTrash.js";
 import {
   memoryLimit,
   usedMemory,
@@ -41,6 +40,7 @@ import {
 
 import { fireHostRezStateTriggers } from "../eval.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 export function applyResolveKinds(
   ctx: EffectCtx,
@@ -157,7 +157,7 @@ export function applyResolveKinds(
           state.corp.hand.includes(id),
         );
         // The Corp trashes them (CR 1.14.5); from HQ they go facedown (CR 4.4.6b).
-        for (const id of picked) trashCorpCardToArchives(state, id, "corp");
+        for (const id of picked) trashCard(state, id, { by: "corp" });
         log(state, `${source.title} — trash ${picked.length} card(s) from HQ.`);
         return evalEffect(
           ctx,
@@ -283,7 +283,7 @@ export function applyResolveKinds(
           state.corp.hand.includes(id),
         );
         // The Corp trashes them (CR 1.14.5); from HQ they go facedown (CR 4.4.6b).
-        for (const id of picked) trashCorpCardToArchives(state, id, "corp");
+        for (const id of picked) trashCard(state, id, { by: "corp" });
         log(state, `${source.title} — trash ${picked.length} card(s) from HQ.`);
         return evalEffect(
           ctx,

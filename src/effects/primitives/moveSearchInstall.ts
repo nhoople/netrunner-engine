@@ -3,13 +3,13 @@ import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removePendingDamageEntirely } from "../../state/damage.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -23,20 +23,6 @@ function countRezzedNextIce(state: EffectCtx["state"]): number {
     }
   }
   return n;
-}
-
-function trashSelfUpgrade(state: EffectCtx["state"], sourceId: string): void {
-  const card = state.cards[sourceId];
-  if (!card) return;
-  for (const server of Object.values(state.servers)) {
-    server.root = server.root.filter((id) => id !== sourceId);
-  }
-  card.zone = "corp:archives";
-  card.rezzed = false;
-  card.faceup = true;
-  if (!state.corp.discardPile.includes(sourceId)) {
-    state.corp.discardPile.push(sourceId);
-  }
 }
 
 function installedRunnerCardIds(state: EffectCtx["state"]): string[] {
@@ -64,11 +50,7 @@ function shuffleRunnerCardIntoStack(
   const card = state.cards[cardId];
   if (!card) return;
   state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  for (const id of [...state.runner.installed]) {
-    const h = state.cards[id];
-    if (h?.hostId === cardId) h.hostId = undefined;
-  }
-  card.hostId = undefined;
+  unhostCard(state, card.id);
   card.zone = "runner:stack";
   card.faceup = false;
   card.rezzed = false;
@@ -601,7 +583,7 @@ export function applyKitaraCotcPrimitive(
         log(state, `Code Replicator — no passed ice.`);
         return { ok: true };
       }
-      trashSelfUpgrade(state, sourceId);
+      trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
       state.run.reencounterIceId = iceId;
       state.run.cotcCodeReplicatorMayJackOut = true;
       log(
@@ -629,7 +611,7 @@ export function applyKitaraCotcPrimitive(
       for (let i = 0; i < mill; i++) {
         const top = state.runner.deck.shift();
         if (!top) break;
-        moveRunnerCardToHeap(state, top);
+        trashCard(state, top);
       }
       log(
         state,
@@ -750,18 +732,7 @@ export function applyKitaraCotcPrimitive(
       const card = state.cards[cardId];
       if (!card || !state.runner.installed.includes(cardId))
         return { ok: true };
-      removeCardFromCurrentZone(state, cardId);
-      state.runner.installed = state.runner.installed.filter(
-        (id) => id !== cardId,
-      );
-      for (const id of [...state.runner.installed]) {
-        const h = state.cards[id];
-        if (h?.hostId === cardId) h.hostId = undefined;
-      }
-      card.hostId = undefined;
-      card.zone = "runner:heap";
-      card.faceup = true;
-      state.runner.discardPile.push(cardId);
+      trashCard(state, cardId, { by: "corp" });
       log(state, `Trojan Horse — trash ${card.title}.`);
       return { ok: true };
     }

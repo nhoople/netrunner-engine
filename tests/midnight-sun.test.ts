@@ -58,10 +58,7 @@ import {
   firePowerOnHarmonicIceRez,
   syncEtrPerPowerCounterSubs,
 } from "../src/state/powerCounters.js";
-import {
-  moveRunnerCardToHeap,
-  purgeVirusCounters,
-} from "../src/state/trashHooks.js";
+import { purgeVirusCounters } from "../src/state/trashHooks.js";
 import { beginCorpTurnFlags } from "../src/state/turn.js";
 import { noteInstalledCardCreditSpend } from "../src/state/costs.js";
 import { beginBreachAccess } from "../src/state/access.js";
@@ -71,6 +68,7 @@ import {
   type AbilityRecord,
 } from "../src/effects/abilityRecord.js";
 import { passIdle } from "../src/demo/passIdle.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 describe("midnight-sun", () => {
   describe("midnight-sun-add-power-counter", () => {
@@ -2306,7 +2304,7 @@ describe("midnight-sun", () => {
         for (const id of ["d1", "d2", "d3"]) {
           s.cards[id] = instantiateCard("sure-gamble", id, "runner:stack");
         }
-        moveRunnerCardToHeap(s, "sk-1");
+        trashCard(s, "sk-1");
         expect(s.runner.discardPile).toContain("sk-1");
         expect(s.pendingChoice).not.toBeNull();
         expect(s.pendingChoice!.chooser).toBe("runner");

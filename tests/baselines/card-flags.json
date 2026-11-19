@@ -2456,10 +2456,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezRfgTrash.ts#applyRedsandFmPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/legality/checkpoints.ts#hostedOnForbiddenHost",
           "kinds": []
         }
@@ -5192,6 +5188,10 @@
       ],
       "readers": [
         {
+          "site": "src/legality/checkpoints.ts#trashHostedCard",
+          "kinds": []
+        },
+        {
           "site": "src/state/fenris.ts#hostFenrisIdentity",
           "kinds": []
         },
@@ -5201,10 +5201,6 @@
         },
         {
           "site": "src/state/fenris.ts#runnerAbilityCarrierIds",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#releaseHostedCardsOnTrash",
           "kinds": []
         }
       ],
@@ -5837,10 +5833,6 @@
       "readers": [
         {
           "site": "src/cards/stubs.ts#effectiveIceStrength",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezRfgTrash.ts#applyRedsandFmPrimitive",
           "kinds": []
         }
       ],
@@ -6621,10 +6613,6 @@
         },
         {
           "site": "src/effects/primitives/chooseGainShuffle.ts#canAdvance",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezRfgTrash.ts#applyRedsandFmPrimitive",
           "kinds": []
         },
         {
@@ -8052,7 +8040,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#moveRunnerCardToHeap",
+          "site": "src/state/trashHooks.ts#noteRunnerInstalledCardTrashing",
           "kinds": []
         }
       ],
@@ -8649,15 +8637,11 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#trashCorpCardToArchives",
-          "kinds": []
-        },
-        {
           "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#trashCorpCard",
           "kinds": []
         }
       ],
@@ -9292,6 +9276,10 @@
         "declaration"
       ],
       "readers": [
+        {
+          "site": "src/effects/corpTrash.ts#noteCorpCardTrashedToArchives",
+          "kinds": []
+        },
         {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
           "kinds": []
@@ -13221,15 +13209,15 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#trashByCheckpoint",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#arriveRunnerCardInHeap",
+          "site": "src/state/procedures/trash.ts#trashByCheckpoint",
           "kinds": []
         },
         {
           "site": "src/state/trashHooks.ts#fireCorpOnTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/state/trashHooks.ts#noteRunnerCardTrashedToHeap",
           "kinds": []
         }
       ],
@@ -13272,7 +13260,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#trashCorpCardToArchives",
+          "site": "src/state/procedures/trash.ts#trashCorpCard",
           "kinds": []
         }
       ],
@@ -13435,11 +13423,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/trashHooks.ts#fireOnUninstall",
+          "site": "src/state/procedures/trash.ts#trashRunnerCard",
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#moveRunnerCardToHeap",
+          "site": "src/state/trashHooks.ts#fireOnUninstall",
           "kinds": []
         }
       ],
@@ -15606,11 +15594,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#maybeTrashHostsAtStrengthLte",
+          "site": "src/effects/corpTrash.ts#corpTrashRefused",
           "kinds": []
         },
         {
-          "site": "src/effects/corpTrash.ts#trashCorpCardToArchives",
+          "site": "src/effects/corpTrash.ts#maybeTrashHostsAtStrengthLte",
           "kinds": []
         }
       ],
@@ -16683,11 +16671,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/fenris.ts#returnHostedIdentityToOutsideGame",
+          "site": "src/legality/checkpoints.ts#trashHostedCard",
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#releaseHostedCardsOnTrash",
+          "site": "src/state/fenris.ts#returnHostedIdentityToOutsideGame",
           "kinds": []
         }
       ],
@@ -16993,10 +16981,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpTrash.ts#trashCorpCardToArchives",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/installKinds.ts#applyInstallKinds",
           "kinds": []
         },
@@ -17076,6 +17060,10 @@
         },
         {
           "site": "src/state/cardDeclarations.ts#onAccessed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#trashCorpCard",
           "kinds": []
         },
         {
@@ -17346,7 +17334,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/trashHooks.ts#moveRunnerCardToHeap",
+          "site": "src/state/procedures/trash.ts#trashRunnerCard",
           "kinds": []
         },
         {
@@ -18061,10 +18049,6 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#chooseTrashProgram",
-          "kinds": []
-        },
-        {
           "site": "src/actions/apply.ts#useIdentityAbility",
           "kinds": []
         },
@@ -18154,6 +18138,10 @@
         },
         {
           "site": "src/effects/kinds/chooseKinds.ts#applyChooseKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
         {
@@ -18316,10 +18304,6 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#trashByCheckpoint",
-          "kinds": []
-        },
-        {
           "site": "src/legality/priority.ts#paidAbilityActor",
           "kinds": []
         },
@@ -18403,6 +18387,26 @@
           "kinds": []
         },
         {
+          "site": "src/state/procedures/trash.ts#controllerOf",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#discardCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#placeInDiscardPile",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#trashByCheckpoint",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#trashCard",
+          "kinds": []
+        },
+        {
           "site": "src/state/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
           "kinds": []
         },
@@ -18440,10 +18444,6 @@
         },
         {
           "site": "src/state/trashHooks.ts#purgeVirusCounters",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#releaseHostedCardsOnTrash",
           "kinds": []
         },
         {
@@ -20597,10 +20597,6 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
-          "kinds": []
-        },
-        {
           "site": "src/effects/corpTrash.ts#maybeFireThreatGiveTagsOnRezzedTrash",
           "kinds": []
         }
@@ -20920,6 +20916,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/corpTrash.ts#corpTrashRefused",
+          "kinds": []
+        },
+        {
           "site": "src/effects/corpTrash.ts#maybeFireAuCoOnHqTrash",
           "kinds": []
         },
@@ -20944,7 +20944,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpTrash.ts#trashCorpCardToArchives",
+          "site": "src/effects/corpTrash.ts#noteCorpCardTrashedToArchives",
           "kinds": []
         },
         {
@@ -21816,10 +21816,6 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#trashByCheckpoint",
-          "kinds": []
-        },
-        {
           "site": "src/legality/query.ts#gateAction",
           "kinds": []
         },
@@ -22300,6 +22296,22 @@
           "kinds": []
         },
         {
+          "site": "src/state/procedures/trash.ts#resolveSkorpiosTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#trashByCheckpoint",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#trashCorpCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#trashRunnerCard",
+          "kinds": []
+        },
+        {
           "site": "src/state/programHardwareInstall.ts#fireHardwareInstallOrTrash.consider",
           "kinds": []
         },
@@ -22480,10 +22492,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#arriveRunnerCardInHeap",
-          "kinds": []
-        },
-        {
           "site": "src/state/trashHooks.ts#endGripOrStackTrashBatch",
           "kinds": []
         },
@@ -22524,10 +22532,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#moveRunnerCardToHeap",
-          "kinds": []
-        },
-        {
           "site": "src/state/trashHooks.ts#noteAccessTrash",
           "kinds": []
         },
@@ -22536,19 +22540,15 @@
           "kinds": []
         },
         {
+          "site": "src/state/trashHooks.ts#noteRunnerCardTrashedToHeap",
+          "kinds": []
+        },
+        {
           "site": "src/state/trashHooks.ts#offerSkorpiosRfgInsteadOfHeap",
           "kinds": []
         },
         {
           "site": "src/state/trashHooks.ts#purgeVirusCounters",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#releaseHostedCardsOnTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#resolveSkorpiosTrash",
           "kinds": []
         },
         {
@@ -23943,6 +23943,10 @@
           "kinds": []
         },
         {
+          "site": "src/legality/checkpoints.ts#trashHostedCard",
+          "kinds": []
+        },
+        {
           "site": "src/state/advanceable.ts#mayAdvanceInstalledCard",
           "kinds": []
         },
@@ -24087,6 +24091,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/procedures/trash.ts#trashRunnerCard",
+          "kinds": []
+        },
+        {
           "site": "src/state/programHardwareInstall.ts#noteAzmariNamedTypeMatch",
           "kinds": []
         },
@@ -24134,19 +24142,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#arriveRunnerCardInHeap",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#moveRunnerCardToHeap",
-          "kinds": []
-        },
-        {
           "site": "src/state/trashHooks.ts#noteFirstProgramOrHardwareTrashEachTurn",
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#releaseHostedCardsOnTrash",
+          "site": "src/state/trashHooks.ts#noteRunnerCardTrashedToHeap",
           "kinds": []
         },
         {

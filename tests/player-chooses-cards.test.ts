@@ -22,8 +22,8 @@ import {
   validateEffectTree,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/index.js";
-import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import { passIdle } from "../src/demo/passIdle.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -360,7 +360,7 @@ describe("shuffles and random picks use the seeded stream", () => {
         ice: [],
         root: ["mc-1"],
       };
-      trashCorpCardToArchives(s, "mc-1", "corp");
+      trashCard(s, "mc-1", { by: "corp" });
       expect(s.corp.deck).toContain("mc-1");
       positions.add(s.corp.deck.indexOf("mc-1"));
     }

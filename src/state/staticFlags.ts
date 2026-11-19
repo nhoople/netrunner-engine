@@ -2,6 +2,7 @@
  * Static declarations the loader copies onto a card. Each function runs at
  * the moment that declaration names.
  */
+import { trashCard } from "./procedures/trash.js";
 import { log } from "./createGame.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { agendaPointsFor } from "./scoring.js";
@@ -128,10 +129,8 @@ export function onRunnerTurnEnds(state: GameState): void {
     );
     for (const hid of hosted) {
       const prog = state.cards[hid]!;
-      state.runner.installed = state.runner.installed.filter((x) => x !== hid);
-      state.runner.discardPile.push(hid);
-      prog.zone = "runner:heap";
-      prog.faceup = true;
+      // The host's own ability trashes it, so the Runner does (CR 1.14.5).
+      trashCard(state, hid, { by: "runner" });
       log(state, `${card.title} — trash hosted ${prog.title}.`);
     }
   }
@@ -166,19 +165,19 @@ export function onInstalledCorpCardTrashed(
   }
 }
 
-export function onInstalledProgramTrashed(state: GameState): void {
+export function onInstalledProgramTrashed(
+  state: GameState,
+  trash: (cardId: string) => void,
+): void {
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.trashSelfWhenInstalledProgramTrashed) continue;
-    state.runner.installed = state.runner.installed.filter((x) => x !== id);
-    state.runner.discardPile.push(id);
-    card.zone = "runner:heap";
-    card.faceup = true;
     log(
       state,
       `${card.title} — trash (an installed program was trashed) (CR ${CR.trashing.number}).`,
     );
+    trash(id);
   }
 }
 

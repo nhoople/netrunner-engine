@@ -13,14 +13,12 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import {
-  maybeTrashHostsAtStrengthLte,
-  trashCorpCardToArchives,
-} from "../src/effects/corpTrash.js";
+import { maybeTrashHostsAtStrengthLte } from "../src/effects/corpTrash.js";
 import { iceAtRunnerPosition } from "../src/state/runPosition.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -76,7 +74,7 @@ const logged = (s: GameState): string => s.log.join("\n");
 describe("ice uninstalled while it is encountered (CR 8.5.10, 6.2.7c)", () => {
   it("ends the encounter once the window is completed; no subroutine resolves", () => {
     const s = encountering(runOnHq(), "a");
-    trashCorpCardToArchives(s, "a", "runner");
+    trashCard(s, "a", { by: "runner" });
     // The open paid ability window is completed first.
     expect(s.timingKey).toBe("run.encounterPaw");
     expect(s.run?.encounter?.iceUninstalled).toBe(true);
@@ -96,7 +94,7 @@ describe("ice uninstalled while it is encountered (CR 8.5.10, 6.2.7c)", () => {
 
   it("the run continues with an approach of the next ice inward", () => {
     let s = encountering(runOnHq(), "a");
-    trashCorpCardToArchives(s, "a", "runner");
+    trashCard(s, "a", { by: "runner" });
     s = pass(s);
     expect(s.timingKey).toBe("run.jackOutWindow");
     s = must(s, { type: "continue_run" });
@@ -114,7 +112,7 @@ describe("ice uninstalled while it is encountered (CR 8.5.10, 6.2.7c)", () => {
     s.servers["hq"]!.ice = ["a"];
     s.cards["b"]!.zone = "corp:archives";
     s.cards["c"]!.zone = "corp:archives";
-    trashCorpCardToArchives(s, "a", "runner");
+    trashCard(s, "a", { by: "runner" });
     s = pass(s);
     expect(s.run?.passedAllIce).toBe(true);
     s = must(s, { type: "continue_run" });
@@ -154,7 +152,7 @@ describe("ice uninstalled while it is approached (CR 8.5.10, 6.2.7a)", () => {
   it("ends the approach once the window is completed; the Runner does not encounter the next ice unapproached", () => {
     const s = runOnHq();
     expect(s.timingKey).toBe("run.approachPaw");
-    trashCorpCardToArchives(s, "a", "runner");
+    trashCard(s, "a", { by: "runner" });
     expect(s.timingKey).toBe("run.approachPaw");
     expect(s.run?.approachedIceUninstalled).toBe(true);
     let t = pass(s);
@@ -171,7 +169,7 @@ describe("ice uninstalled while it is approached (CR 8.5.10, 6.2.7a)", () => {
 
   it("the Corp cannot rez the next ice inward as the approached ice", () => {
     const s = runOnHq({ b: false });
-    trashCorpCardToArchives(s, "a", "runner");
+    trashCard(s, "a", { by: "runner" });
     const rez = applyAction(s, { type: "rez_ice", cardId: "b" });
     expect(rez.ok).toBe(false);
   });
@@ -192,7 +190,7 @@ describe("the Runner's position is an element, not an index (CR 6.2.4, 6.2.6)", 
   it("ice outward of the Runner leaving does not move them", () => {
     const s = encountering(runOnHq({ a: false }), "b");
     expect(s.run?.position).toBe(1);
-    trashCorpCardToArchives(s, "a", "corp");
+    trashCard(s, "a", { by: "corp" });
     expect(s.servers["hq"]!.ice).toEqual(["b", "c"]);
     expect(iceAtRunnerPosition(s)).toBe("b");
     expect(s.run?.encounter?.iceUninstalled ?? false).toBe(false);
@@ -200,7 +198,7 @@ describe("the Runner's position is an element, not an index (CR 6.2.4, 6.2.6)", 
 
   it("ice inward of the Runner leaving changes what they will approach (CR 6.2.6b)", () => {
     const s = encountering(runOnHq({ a: false }), "b");
-    trashCorpCardToArchives(s, "c", "corp");
+    trashCard(s, "c", { by: "corp" });
     expect(iceAtRunnerPosition(s)).toBe("b");
     expect(s.run?.positionVacated ?? false).toBe(false);
   });
@@ -224,7 +222,7 @@ describe("the Runner's position is an element, not an index (CR 6.2.4, 6.2.6)", 
       encounter: null,
     };
     s.activeSide = "runner";
-    trashCorpCardToArchives(s, "a", "runner");
+    trashCard(s, "a", { by: "runner" });
     expect(s.run.positionVacated).toBe(true);
     expect(s.run.approachedIceUninstalled ?? false).toBe(false);
     expect(iceAtRunnerPosition(s)).toBeNull();
@@ -234,8 +232,8 @@ describe("the Runner's position is an element, not an index (CR 6.2.4, 6.2.6)", 
 
   it("a second removal inward of an emptied position leaves it emptied", () => {
     const s = encountering(runOnHq(), "a");
-    trashCorpCardToArchives(s, "a", "runner");
-    trashCorpCardToArchives(s, "b", "runner");
+    trashCard(s, "a", { by: "runner" });
+    trashCard(s, "b", { by: "runner" });
     expect(s.run?.positionVacated).toBe(true);
     expect(s.servers["hq"]!.ice).toEqual(["c"]);
     expect(s.run?.position).toBe(0);

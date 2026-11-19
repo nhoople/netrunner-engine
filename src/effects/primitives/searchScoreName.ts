@@ -1,17 +1,16 @@
 /** The Spaces Between (tsb) Lunar pack primitives. */
 import { revealCards } from "../../state/reveal.js";
-import { trashCorpCardToArchives } from "../corpTrash.js";
 import { loadCardCatalog } from "../../cards/load.js";
 import { log } from "../../state/createGame.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -232,10 +231,10 @@ export function applyLunarTsbPrimitive(
       const trashSelf = () => {
         const up = state.cards[sourceId];
         if (!up || !up.zone.startsWith("server:")) return;
-        trashCorpCardToArchives(state, sourceId, "corp");
+        trashCard(state, sourceId, { by: "corp" });
       };
       if (used.length === 1) {
-        moveRunnerCardToHeap(state, used[0]!);
+        trashCard(state, used[0]!);
         trashSelf();
         log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
         return { ok: true };
@@ -257,12 +256,12 @@ export function applyLunarTsbPrimitive(
     case "resolve_will_o_wisp_breaker": {
       const cardId = (action as { cardId: string }).cardId;
       if (state.runner.installed.includes(cardId)) {
-        moveRunnerCardToHeap(state, cardId);
+        trashCard(state, cardId);
       }
       const up = state.cards[sourceId];
       if (up) {
         if (up.zone.startsWith("server:")) {
-          trashCorpCardToArchives(state, sourceId, "corp");
+          trashCard(state, sourceId, { by: "corp" });
         }
         log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
       }

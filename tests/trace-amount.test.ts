@@ -240,11 +240,14 @@ describe("trace-amount", () => {
         s = structuredClone(s);
         s.runner.link = 0;
         s.corp.credits = 5;
+        // Hardware with no link, so the Runner's link stays 0.
         const hw = instantiateCard("the-toolbox", "hw-1", "runner:installed");
+        hw.link = 0;
         hw.installCost = 2;
         s.cards["hw-1"] = hw;
         const hw2 = instantiateCard("the-toolbox", "hw-2", "runner:installed");
         hw2.installCost = 9;
+        hw2.link = 0;
         s.cards["hw-2"] = hw2;
         s.runner.installed = ["hw-1", "hw-2"];
         startTrace(

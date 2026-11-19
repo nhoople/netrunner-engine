@@ -16,6 +16,11 @@ import {
   firstDecl,
 } from "../../state/continuousSubs.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import {
+  hostCard,
+  unhostAllFrom,
+  unhostCard,
+} from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -150,11 +155,9 @@ export function applySansanUotPrimitive(
       if (have >= max) return { ok: true };
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = false;
       card.zone = `hosted:${sourceId}`;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(cardId);
       state.turn.uotBookmarkHostRemaining =
         (state.turn.uotBookmarkHostRemaining ?? 1) - 1;
       log(state, `${source.title} hosts a card facedown from grip.`);
@@ -170,13 +173,13 @@ export function applySansanUotPrimitive(
 
     case "add_all_hosted_to_grip": {
       const hosted = [...(source.hostedCardIds ?? [])];
-      source.hostedCardIds = [];
+      unhostAllFrom(state, source.id);
       for (const id of hosted) {
         const card = state.cards[id];
         if (!card) continue;
         // Set aside as the [trash] cost was paid (CR 9.5.5): leave set-aside.
         removeCardFromCurrentZone(state, id);
-        card.hostId = undefined;
+        unhostCard(state, card.id);
         card.faceup = true;
         card.zone = "runner:grip";
         state.runner.hand.push(id);
@@ -380,12 +383,10 @@ export function applySansanUotPrimitive(
       }
       state.corp.credits -= cost;
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.zone = `hosted:${sourceId}`;
       card.faceup = true;
       card.rezzed = true;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(cardId);
       syncAllTourGuideSubs(state);
       log(
         state,

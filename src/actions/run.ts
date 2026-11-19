@@ -23,11 +23,11 @@ import type {
   RuleCite,
   ServerId,
 } from "../state/types.js";
-import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
 import { fireOnRunDeclaredOnThisServerIfTagged } from "../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { random } from "../state/rng.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -122,7 +122,7 @@ export function finishRunReturnToAction(state: GameState): void {
       state.playedRunEventId = null;
       const card = state.cards[eventId];
       if (card && card.zone === "runner:play-area" && !card.lingerAsCurrent) {
-        moveRunnerCardToHeap(state, eventId);
+        trashCard(state, eventId);
         log(state, `${card.title} trashed (CR ${CR.trashPlayedCard.number}).`);
       }
       log(state, `Play effect complete (CR ${CR.playComplete.number}).`);
@@ -575,7 +575,7 @@ function offerPortAnsonTrash(state: GameState): boolean {
     notePortAnsonResolved(state, sourceId);
     const progId = programs[0]!;
     const title = state.cards[progId]!.title;
-    moveRunnerCardToHeap(state, progId);
+    trashCard(state, progId);
     log(
       state,
       `${source.title} — Runner trashes ${title} (CR ${CR.jackingOut.number}).`,
@@ -617,7 +617,7 @@ export function resolvePortAnsonProgramTrash(
   notePortAnsonResolved(state, sourceId);
   const title = state.cards[cardId]!.title;
   const sourceTitle = state.cards[sourceId]!.title;
-  moveRunnerCardToHeap(state, cardId);
+  trashCard(state, cardId);
   log(
     state,
     `${sourceTitle} — Runner trashes ${title} (CR ${CR.jackingOut.number}).`,

@@ -12,13 +12,11 @@ import {
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
-import {
-  maybeTrashHostsAtStrengthLte,
-  trashCorpCardToArchives,
-} from "./corpTrash.js";
+import { maybeTrashHostsAtStrengthLte } from "./corpTrash.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
 import { fireOnPowerCountersEmpty } from "../state/miscConditionalHooks.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 export function applyCounterPrimitive(
   ctx: EffectCtx,
@@ -76,7 +74,7 @@ export function applyCounterPrimitive(
             `${source.title} trashes host ${host.title} (${source.virusCounters} virus).`,
           );
           // The Runner controls the hosted program's ability (CR 1.14.5).
-          trashCorpCardToArchives(state, hostId, "runner");
+          trashCard(state, hostId, { by: "runner" });
         }
       }
       maybeTrashHostsAtStrengthLte(state);
@@ -129,17 +127,8 @@ export function applyCounterPrimitive(
         if (source.onPowerCountersEmpty) {
           fireOnPowerCountersEmpty(state, sourceId);
         }
-        removeCardFromCurrentZone(state, sourceId);
-        if (source.side === "runner") {
-          state.runner.discardPile.push(sourceId);
-          source.zone = "runner:heap";
-        } else {
-          state.corp.discardPile.push(sourceId);
-          source.zone = "corp:archives";
-          // A trashed card is a new object, not installed (CR 1.12.1, 8.1.1).
-          source.rezzed = false;
-        }
-        source.faceup = true;
+        // Its own ability trashes it (CR 1.14.5).
+        trashCard(state, sourceId, { by: source.side });
         log(
           state,
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
@@ -185,17 +174,8 @@ export function applyCounterPrimitive(
         recomputeRunnerMaxHandSize(state);
       }
       if (source.trashWhenPowerEmpty && have > 0) {
-        removeCardFromCurrentZone(state, sourceId);
-        if (source.side === "runner") {
-          state.runner.discardPile.push(sourceId);
-          source.zone = "runner:heap";
-        } else {
-          state.corp.discardPile.push(sourceId);
-          source.zone = "corp:archives";
-          // A trashed card is a new object, not installed (CR 1.12.1, 8.1.1).
-          source.rezzed = false;
-        }
-        source.faceup = true;
+        // Its own ability trashes it (CR 1.14.5).
+        trashCard(state, sourceId, { by: source.side });
         log(
           state,
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,

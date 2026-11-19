@@ -20,7 +20,6 @@ import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
 } from "../state/programHardwareInstall.js";
-import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { effectiveMemoryCost, memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState } from "../state/types.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
@@ -32,6 +31,8 @@ import { CR } from "../timing/labels.js";
 import { type EvalResult } from "./eval.js";
 import { fireOnInstallProgramFromHeap } from "../state/miscConditionalHooks.js";
 import { shuffleInPlace } from "../state/rng.js";
+import { hostCard } from "../state/procedures/host.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 function countInstalledIcebreakersForCost(state: GameState): number {
   return state.runner.installed.filter(
@@ -89,10 +90,8 @@ function trashOtherConsoles(state: GameState, keepId: string): void {
   });
   for (const id of toTrash) {
     const card = state.cards[id];
-    removeCardFromCurrentZone(state, id);
-    state.runner.discardPile.push(id);
-    card.zone = "runner:heap";
-    card.faceup = true;
+    // Cannot be prevented (CR 3.8.5b); the Runner trashes it.
+    trashCard(state, id, { by: "runner", preventable: false });
     log(state, `Trash ${card.title} (console limit; CR 3.8.5b).`);
   }
 }
@@ -175,7 +174,7 @@ export function installGripCardDiscounted(
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
-  if (hostId) card.hostId = hostId;
+  if (hostId) hostCard(state, card.id, hostId, { installed: true });
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -455,10 +454,7 @@ export function installStackProgramPaying(
       shuffleRunnerStack(state);
       return { ok: true };
     }
-    removeCardFromCurrentZone(state, gripId);
-    state.runner.discardPile.push(gripId);
-    trashed.zone = "runner:heap";
-    trashed.faceup = true;
+    trashCard(state, gripId, { by: "runner", cause: "cost" });
     state.turn.patchworkDiscountUsedThisTurn = true;
     cost = Math.max(0, full - patchwork);
     log(

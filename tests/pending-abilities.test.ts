@@ -26,7 +26,6 @@ import {
   instantiateCard,
   setPrintedPlay,
   markPendingAbilityImminent,
-  moveRunnerCardToHeap,
   occurCheckpoint,
   openPendingTags,
   pendingAbilitiesWithStatus,
@@ -38,11 +37,11 @@ import {
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
   preventPendingTags,
 } from "../src/index.js";
-import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import { dealDamage, preventPendingDamage } from "../src/state/damage.js";
 import { suppressAbilities } from "../src/state/lingeringEffects.js";
 import { currentMark } from "../src/state/msKeywords.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -2761,7 +2760,7 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
     });
     markPendingAbilityImminent(s, imminent.id);
 
-    moveRunnerCardToHeap(s, "dd-1");
+    trashCard(s, "dd-1");
     expect(pending.status).toBe("cancelled");
     expect(imminent.status).toBe("imminent");
     expect(
@@ -2793,7 +2792,7 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
     });
     markPendingAbilityImminent(s, imminent.id);
 
-    trashCorpCardToArchives(s, "pad-1");
+    trashCard(s, "pad-1");
     expect(pending.status).toBe("cancelled");
     expect(imminent.status).toBe("imminent");
     expect(
@@ -3593,12 +3592,11 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
   });
 
   it("marks onTrash pending when a Runner card hits the heap", async () => {
-    const { moveRunnerCardToHeap } = await import("../src/state/trashHooks.js");
     const s = createInitialState();
     const rolodex = instantiateCard("rolodex", "rolo-1", "runner:installed");
     s.cards["rolo-1"] = rolodex;
     s.runner.installed = ["rolo-1"];
-    moveRunnerCardToHeap(s, "rolo-1");
+    trashCard(s, "rolo-1");
     expect(
       s.log.some(
         (line) => line.includes("Rolodex") && line.includes("becomes pending"),

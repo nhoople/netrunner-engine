@@ -1,8 +1,6 @@
 /** Up and Over (uao) Lunar pack primitives. */
 import { revealCards } from "../../state/reveal.js";
-import { trashCorpCardToArchives } from "../corpTrash.js";
 import { log } from "../../state/createGame.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import {
   canPayCost,
   emptyRunnerCreditPool,
@@ -14,6 +12,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -39,7 +38,7 @@ export function applyLunarUaoPrimitive(
         if (source?.type === "ice") {
           // The ice's own subroutine trashes it (CR 1.14.5); the encounter
           // then ends (CR 6.2.7c).
-          trashCorpCardToArchives(state, sourceId, "corp");
+          trashCard(state, sourceId, { by: "corp" });
         }
       } else if (state.runner.credits > 0) {
         subtractRunnerCreditPool(state, 1);
@@ -115,7 +114,7 @@ export function applyLunarUaoPrimitive(
       const toGrip: string[] = [];
       for (const id of revealed) {
         if (state.cards[id]?.type === "program") {
-          moveRunnerCardToHeap(state, id);
+          trashCard(state, id);
           gained += 1;
         } else {
           toGrip.push(id);
@@ -164,7 +163,7 @@ export function applyLunarUaoPrimitive(
       const card = state.cards[cardId];
       if (!card || card.type !== "hardware") return { ok: true };
       const half = Math.floor((card.installCost ?? 0) / 2);
-      moveRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId);
       state.turn.tradeInCredits = half;
       log(state, `Trade-In — trashed ${card.title} for ${half}¢ (recorded).`);
       return { ok: true };

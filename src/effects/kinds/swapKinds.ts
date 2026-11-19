@@ -11,7 +11,6 @@ import { commitCheckpointSnapshot } from "../../state/checkpointSnapshot.js";
 import { log } from "../../state/createGame.js";
 import { fireOnFirstRemoteInstallThisTurn } from "../../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { releaseHostedCardsOnTrash } from "../../state/trashHooks.js";
 import { CR } from "../../timing/labels.js";
 import { evalEffect, applyPrimitive } from "../eval.js";
 
@@ -842,9 +841,13 @@ function trashHostedOnSwapOut(state: GameState, cardId: string): void {
   for (const id of hosted) {
     const other = state.cards[id];
     if (!other) continue;
-    log(state, `${other.title} trashed (CR ${CR.swapBecomeInstalled.number}).`);
+    // The hosted cards keep their link; the next checkpoint trashes them
+    // (CR 8.8.4b, 1.13.13, 10.3.1g).
+    log(
+      state,
+      `${other.title} will be trashed at the next checkpoint (CR ${CR.swapBecomeInstalled.number}).`,
+    );
   }
-  releaseHostedCardsOnTrash(state, cardId);
   const hostedCounters =
     (card.advancementCounters ?? 0) +
     (card.virusCounters ?? 0) +

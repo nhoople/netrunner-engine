@@ -20,12 +20,12 @@ import {
 } from "../src/index.js";
 import { fx } from "../src/effects/ir.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
-import { moveRunnerCardToHeap } from "../src/state/trashHooks.js";
 import {
   maybeOpenTrashPrevent,
   triggerPendingTrashInterrupt,
 } from "../src/state/trashPrevent.js";
 import { passIdle } from "../src/demo/passIdle.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -143,7 +143,7 @@ describe("CR examples, chapter 8", () => {
     expect(prevented.cards["d99-1"]?.powerCounters ?? 0).toBe(0);
     expect(prevented.turn.firstProgramOrHardwareTrashUsedThisTurn).toBeFalsy();
     expect(prevented.pendingChoice).toBeNull();
-    moveRunnerCardToHeap(prevented, "prog-1");
+    trashCard(prevented, "prog-1");
     expect(prevented.turn.firstProgramOrHardwareTrashMetPending).toBe(true);
     expect(prevented.pendingChoice).toBeNull();
     occurCheckpoint(

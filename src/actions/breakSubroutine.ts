@@ -35,7 +35,6 @@ import {
   subtractRunnerCreditPool,
 } from "../state/costs.js";
 import { noteHardwareUsedDuringRun } from "./paidAbility.js";
-import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
@@ -47,6 +46,7 @@ import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
 } from "../state/replacements.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -359,7 +359,7 @@ export function breakSubroutine(
       for (let i = 0; i < chiyashiN; i++) {
         if (state.runner.deck.length === 0) break;
         const top = state.runner.deck.shift()!;
-        moveRunnerCardToHeap(state, top);
+        trashCard(state, top);
       }
       log(
         state,

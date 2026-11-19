@@ -27,7 +27,6 @@ import {
   spendCreditsForInstall,
 } from "../state/costs.js";
 import {
-  removeCardFromCurrentZone,
   canScoreAgenda,
   agendaPointsFor,
   effectiveAdvancementRequirement,
@@ -117,7 +116,6 @@ import { applyTracePrimitive } from "./tracePrimitives.js";
 import { applyClickPrimitive } from "./clickPrimitives.js";
 import { applyPsiPrimitive } from "./psiPrimitives.js";
 import { applyBadPublicityPrimitive } from "./badPublicityPrimitives.js";
-import { trashCorpCardToArchives, trashToHeap } from "./corpTrash.js";
 import { applyCorpInstallPrimitive } from "./corpInstall.js";
 import { applyCounterPrimitive } from "./counterPrimitives.js";
 import { applyEncounterPrimitive } from "./encounterPrimitives.js";
@@ -167,6 +165,8 @@ import {
   fireOnRez,
 } from "../state/cardLifecycleHooks.js";
 import { random, shuffleInPlace } from "../state/rng.js";
+import { trashCard } from "../state/procedures/trash.js";
+import { hostCard } from "../state/procedures/host.js";
 export {
   fireOnBypassTriggers,
   fireHostRezStateTriggers,
@@ -207,10 +207,8 @@ function maybeFireDadianaChaconZeroCredits(state: GameState): void {
     const card = state.cards[rid];
     const n = card?.trashSelfAndMeatDamageWhenCreditsZero;
     if (typeof n !== "number" || n <= 0) continue;
-    removeCardFromCurrentZone(state, rid);
-    card!.zone = "runner:heap";
-    card!.hostId = undefined;
-    state.runner.discardPile.push(rid);
+    // Its own ability trashes it (CR 1.14.5).
+    trashCard(state, rid, { by: "runner" });
     log(state, `${card!.title} trashed (0 credits).`);
     const r = evalEffect(
       { state, sourceId: rid },
@@ -835,7 +833,7 @@ export function finishMuseInstall(
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
-  if (hostId) card.hostId = hostId;
+  if (hostId) hostCard(state, card.id, hostId, { installed: true });
   if ((card.recurringCreditsMax ?? 0) > 0) {
     card.recurringCredits = card.recurringCreditsMax;
   }
@@ -1555,7 +1553,7 @@ export function pendingTrashAmong(
   }
   const id = candidates[0]!;
   const title = state.cards[id].title;
-  trashToHeap(state, id);
+  trashCard(state, id);
   log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
   return { ok: true };
 }
@@ -1663,7 +1661,7 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   const run = applyRunPrimitive(
     ctx,
     action,
-    trashCorpCardToArchives,
+    (s, id, by) => trashCard(s, id, { by }),
     canPayTakeTagsNestedCost,
   );
   if (run) return run;

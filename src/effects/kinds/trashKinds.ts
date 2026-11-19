@@ -7,7 +7,6 @@ import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
-import { trashCorpCardFacedownToArchives } from "../../state/msKeywords.js";
 import {
   cancelPendingIfSourceInactive,
   closeReactionWindow,
@@ -20,14 +19,6 @@ import {
 } from "../../state/pendingAbilities.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { pickRandomSubset } from "../../state/rng.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import {
-  moveRunnerCardToHeap,
-  noteCorpCardAddedToArchives,
-  releaseHostedCardsOnTrash,
-} from "../../state/trashHooks.js";
-import { CR } from "../../timing/labels.js";
-import { trashCorpCardToArchives, trashToHeap } from "../corpTrash.js";
 import { drawCards } from "../draw.js";
 import { chooseCards } from "../chooseCards.js";
 import {
@@ -48,6 +39,9 @@ import {
 } from "../runnerInstall.js";
 
 import { fireHostRezStateTriggers } from "../eval.js";
+import { CR } from "../../timing/labels.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { unhostAllFrom, unhostCard } from "../../state/procedures/host.js";
 
 export function applyTrashKinds(
   ctx: EffectCtx,
@@ -119,7 +113,7 @@ export function applyTrashKinds(
       }
       const progId = programs[0]!;
       const title = state.cards[progId].title;
-      trashToHeap(state, progId);
+      trashCard(state, progId);
       if (state.pendingTrashPrevent) {
         log(
           state,
@@ -150,7 +144,7 @@ export function applyTrashKinds(
       }
       for (const id of [...targets]) {
         const title = state.cards[id]!.title;
-        trashToHeap(state, id);
+        trashCard(state, id);
         log(
           state,
           `Trash installed resource ${title} (CR ${CR.trashing.number}).`,
@@ -186,7 +180,7 @@ export function applyTrashKinds(
       }
       const resId = targets[0]!;
       const title = state.cards[resId]!.title;
-      trashToHeap(state, resId);
+      trashCard(state, resId);
       log(
         state,
         `Trash installed ${action.subtype} resource ${title} (CR ${CR.trashing.number}).`,
@@ -280,9 +274,9 @@ export function applyTrashKinds(
       const resId = resources[0]!;
       const title = state.cards[resId].title;
       if (action.cannotPrevent) {
-        trashToHeap(state, resId);
+        trashCard(state, resId);
       } else {
-        trashToHeap(state, resId);
+        trashCard(state, resId);
       }
       log(
         state,
@@ -305,7 +299,7 @@ export function applyTrashKinds(
       if (resources.length === 1) {
         const resId = resources[0]!;
         const title = state.cards[resId].title;
-        trashToHeap(state, resId);
+        trashCard(state, resId);
         log(state, `Trash own resource ${title} (CR ${CR.trashing.number}).`);
         return { ok: true };
       }
@@ -340,7 +334,7 @@ export function applyTrashKinds(
         const progId = programs[0]!;
         const title = state.cards[progId].title;
         const cost = state.cards[progId].installCost;
-        trashToHeap(state, progId);
+        trashCard(state, progId);
         state.turn.lastTrashedOwnProgramInstallCost = cost;
         log(state, `Trash own program ${title} (CR ${CR.trashing.number}).`);
         return { ok: true };
@@ -372,7 +366,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       looked.splice(idx, 1);
-      trashToHeap(state, action.cardId);
+      trashCard(state, action.cardId);
       log(state, `Trash ${state.cards[action.cardId]!.title} from stack look.`);
       state.turn.rdLookedCards = looked;
       if (looked.length === 0) {
@@ -485,7 +479,7 @@ export function applyTrashKinds(
       }
       const id = targets[0]!;
       const title = state.cards[id]!.title;
-      trashToHeap(state, id);
+      trashCard(state, id);
       log(
         state,
         `Trash ${title} (virtual resource or link) (CR ${CR.trashing.number}).`,
@@ -503,7 +497,7 @@ export function applyTrashKinds(
       if (action.pick === "random") {
         const picks = pickRandomSubset(state, hq, Math.min(amount, hq.length));
         for (const id of picks) {
-          trashCorpCardToArchives(state, id, "corp");
+          trashCard(state, id, { by: "corp" });
           log(
             state,
             `Trash ${state.cards[id].title} from HQ at random (CR ${CR.trashing.number}).`,
@@ -534,7 +528,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const title = state.cards[action.cardId]!.title;
-      trashCorpCardToArchives(state, action.cardId, action.by ?? source.side);
+      trashCard(state, action.cardId, { by: action.by ?? source.side });
       log(state, `Trash ${title} from HQ (CR ${CR.trashing.number}).`);
       return { ok: true };
     }
@@ -567,7 +561,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const id = hw[0]!;
-      trashToHeap(state, id);
+      trashCard(state, id);
       log(
         state,
         `Trash installed hardware ${state.cards[id].title} (CR ${CR.trashing.number}).`,
@@ -604,7 +598,7 @@ export function applyTrashKinds(
         );
       }
       const id = hw[0]!;
-      trashToHeap(state, id);
+      trashCard(state, id);
       log(
         state,
         `Trash installed hardware ${state.cards[id].title} (install ≤${maxCost}) (CR ${CR.trashing.number}).`,
@@ -684,7 +678,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const id = cands[0]!;
-      trashToHeap(state, id);
+      trashCard(state, id);
       log(
         state,
         `Trash installed ${state.cards[id].title} (CR ${CR.trashing.number}).`,
@@ -713,7 +707,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const id = cands[0]!;
-      trashToHeap(state, id);
+      trashCard(state, id);
       log(
         state,
         `Trash installed ${state.cards[id].title} (CR ${CR.trashing.number}).`,
@@ -737,7 +731,7 @@ export function applyTrashKinds(
       if (programs.length === 1) {
         const pick = programs[0]!;
         const title = state.cards[pick]!.title;
-        trashToHeap(state, pick);
+        trashCard(state, pick);
         log(
           state,
           `Trash installed program ${title} (CR ${CR.trashing.number}).`,
@@ -891,7 +885,7 @@ export function applyTrashKinds(
         log(state, `False Echo — no passed ice.`);
         return { ok: true };
       }
-      trashToHeap(state, sourceId);
+      trashCard(state, sourceId);
       const ice = state.cards[iceId];
       if (!ice || ice.type !== "ice") return { ok: true };
       const cost = ice.rezCost ?? 0;
@@ -1034,7 +1028,7 @@ export function applyTrashKinds(
       const cardId = action.cardId;
       if (!state.runner.hand.includes(cardId)) return { ok: true };
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      trashToHeap(state, cardId);
+      trashCard(state, cardId);
       // Invasion of Privacy's chain counts down via trash_next; other
       // callers (e.g. Snoop) trash directly without that loop.
       const rem = state.turn.invasionPrivacyTrashRemaining ?? 0;
@@ -1045,7 +1039,7 @@ export function applyTrashKinds(
     case "trash_installed_runner_card": {
       const cardId = action.cardId;
       if (!state.runner.installed.includes(cardId)) return { ok: true };
-      trashToHeap(state, cardId);
+      trashCard(state, cardId);
       state.turn.projectAresTrashedCount =
         (state.turn.projectAresTrashedCount ?? 0) + 1;
       state.turn.projectAresTrashRemaining = Math.max(
@@ -1064,7 +1058,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       state.turn.rdLookedCards.splice(idx, 1);
-      trashCorpCardToArchives(state, cardId, source.side);
+      trashCard(state, cardId, { by: source.side });
       log(state, `Cultivate — trash a looked card.`);
       if (state.turn.rdLookedCards.length === 0) {
         return { ok: true };
@@ -1073,16 +1067,8 @@ export function applyTrashKinds(
     }
 
     case "trash_self": {
-      releaseHostedCardsOnTrash(state, sourceId);
-      if (source.side === "corp") {
-        trashCorpCardToArchives(state, sourceId, "corp");
-        log(state, `${source.title} trashed (CR ${CR.trashing.number}).`);
-        return { ok: true };
-      }
-      removeCardFromCurrentZone(state, sourceId);
-      state.runner.discardPile.push(sourceId);
-      source.zone = "runner:heap";
-      source.faceup = true;
+      // Its own ability trashes it, so its controller does (CR 1.14.5).
+      trashCard(state, sourceId, { by: source.side });
       log(state, `${source.title} trashed (CR ${CR.trashing.number}).`);
       return { ok: true };
     }
@@ -1122,14 +1108,18 @@ export function applyTrashKinds(
       }
       const server = state.servers[sid];
       const rootIds = [...server.root];
-      const infrastructure = rootIds.filter((id) => {
-        const card = state.cards[id];
-        return (
-          Boolean(card?.rezzed) &&
-          (card?.netDamageWheneverRunnerTrashesCorpCard ?? 0) > 0 &&
-          !abilitiesSuppressed(state, id)
-        );
-      });
+      // Every active Hostile Infrastructure sees each card of the set, the
+      // trashed ones and those in other servers alike (CR 9.12.2a, 9.1.8g).
+      const infrastructure = Object.values(state.servers)
+        .flatMap((other) => [...other.root, ...other.ice])
+        .filter((id) => {
+          const card = state.cards[id];
+          return (
+            Boolean(card?.rezzed) &&
+            (card?.netDamageWheneverRunnerTrashesCorpCard ?? 0) > 0 &&
+            !abilitiesSuppressed(state, id)
+          );
+        });
       const atLeastOne = rootIds.filter((id) => {
         const card = state.cards[id];
         return (
@@ -1140,11 +1130,10 @@ export function applyTrashKinds(
       });
       for (const id of rootIds) {
         const card = state.cards[id];
-        removeCardFromCurrentZone(state, id);
-        state.corp.discardPile.push(id);
-        card.zone = "corp:archives";
-        card.faceup = true;
-        card.rezzed = false;
+        trashCard(state, id, {
+          by: controllerOf(state, sourceId),
+          simultaneousSet: true,
+        });
         log(
           state,
           `Trash ${card.title} from ${sid} root (CR ${CR.trashing.number}).`,
@@ -1274,7 +1263,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const id = cands[0]!;
-      trashToHeap(state, id);
+      trashCard(state, id);
       log(
         state,
         `Trash installed ${state.cards[id].title} (CR ${CR.trashing.number}).`,
@@ -1306,7 +1295,7 @@ export function applyTrashKinds(
         );
       }
       const id = cands[0]!;
-      trashToHeap(state, id);
+      trashCard(state, id);
       log(
         state,
         `Trash installed ${state.cards[id].title} (≤${maxCost}¢) (CR ${CR.trashing.number}).`,
@@ -1359,7 +1348,7 @@ export function applyTrashKinds(
         log(state, `Trash grip to draw — card not in grip.`);
         return { ok: true };
       }
-      moveRunnerCardToHeap(state, id);
+      trashCard(state, id);
       const drawn = drawCards(state, "runner", 1);
       log(state, `Trash ${state.cards[id]!.title} from grip; draw ${drawn}.`);
       return { ok: true };
@@ -1380,7 +1369,7 @@ export function applyTrashKinds(
             cites: [CR.playEvent],
           };
         }
-        moveRunnerCardToHeap(state, id);
+        trashCard(state, id);
         log(state, `Trash ${state.cards[id]!.title} from grip as cost.`);
       }
       return { ok: true };
@@ -1494,7 +1483,7 @@ export function applyTrashKinds(
         log(state, `Trash grip — card not in grip.`);
         return { ok: true };
       }
-      moveRunnerCardToHeap(state, id);
+      trashCard(state, id);
       log(state, `Trash ${state.cards[id]!.title} from grip.`);
       return { ok: true };
     }
@@ -1552,7 +1541,7 @@ export function applyTrashKinds(
         log(state, `Trash grip hardware — not hardware in grip.`);
         return { ok: true };
       }
-      moveRunnerCardToHeap(state, id);
+      trashCard(state, id);
       source.hostedCredits = (source.hostedCredits ?? 0) + action.amount;
       log(
         state,
@@ -1651,7 +1640,7 @@ export function applyTrashKinds(
         log(state, `Climactic trash ice — not ice.`);
         return { ok: true };
       }
-      trashCorpCardToArchives(state, action.cardId, source.side);
+      trashCard(state, action.cardId, { by: source.side });
       log(state, `Climactic Showdown — trash ${ice.title}.`);
       return { ok: true };
     }
@@ -1725,7 +1714,7 @@ export function applyTrashKinds(
         );
         return { ok: true };
       }
-      trashCorpCardToArchives(state, action.cardId, source.side);
+      trashCard(state, action.cardId, { by: source.side });
       log(state, `Trash ${card.title} (CR ${CR.trashing.number}).`);
       return { ok: true };
     }
@@ -1998,7 +1987,7 @@ export function applyTrashKinds(
         log(state, `Trash rezzed ice — invalid target.`);
         return { ok: true };
       }
-      trashCorpCardToArchives(state, action.cardId, source.side);
+      trashCard(state, action.cardId, { by: source.side });
       state.corp.credits += action.amount;
       log(
         state,
@@ -2013,22 +2002,22 @@ export function applyTrashKinds(
       state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
         (x) => x !== id,
       );
-      trashCorpCardToArchives(state, id, source.side);
+      trashCard(state, id, { by: source.side });
       log(state, `ABT — trash ${state.cards[id]!.title}.`);
       return { ok: true };
     }
 
     case "trash_all_hosted_cards": {
       const hosted = [...(source.hostedCardIds ?? [])];
-      source.hostedCardIds = [];
+      unhostAllFrom(state, source.id);
       for (const id of hosted) {
         const card = state.cards[id];
         if (!card) continue;
-        card.hostId = undefined;
+        unhostCard(state, card.id);
         if (card.side === "runner") {
-          moveRunnerCardToHeap(state, id);
+          trashCard(state, id);
         } else {
-          trashCorpCardToArchives(state, id, source.side);
+          trashCard(state, id, { by: source.side });
         }
         log(state, `${source.title} — trash hosted ${card.title}.`);
       }
@@ -2045,7 +2034,7 @@ export function applyTrashKinds(
       for (const id of top) {
         const card = state.cards[id]!;
         if (id === action.cardId) {
-          trashCorpCardToArchives(state, id, source.side);
+          trashCard(state, id, { by: source.side });
           log(state, `${source.title} — trash ${card.title} from R&D.`);
         } else {
           card.zone = "corp:hq";
@@ -2072,7 +2061,7 @@ export function applyTrashKinds(
       const apply = (id: string): EvalResult => {
         const card = state.cards[id];
         if (!card) return { ok: true };
-        trashCorpCardToArchives(state, id, source.side);
+        trashCard(state, id, { by: source.side });
         log(state, `Trash unrezzed ${card.title} (passed last run).`);
         return { ok: true };
       };
@@ -2103,7 +2092,7 @@ export function applyTrashKinds(
       ) {
         return { ok: true };
       }
-      trashCorpCardToArchives(state, id, source.side);
+      trashCard(state, id, { by: source.side });
       log(state, `Trash unrezzed ${card.title} (passed last run).`);
       return { ok: true };
     }
@@ -2191,11 +2180,7 @@ export function applyTrashKinds(
       // for the rest of this ability (CR 4.6.6i).
       ice.thisServerWhileResolving = state.run?.attackedServerId;
       // Trash ice; mark all subs broken so the encounter does not keep firing.
-      removeCardFromCurrentZone(state, enc.iceId);
-      state.corp.discardPile.push(enc.iceId);
-      ice.zone = "corp:archives";
-      ice.faceup = true;
-      ice.rezzed = false;
+      trashCard(state, enc.iceId, { by: "corp", cause: "cost" });
       enc.broken = (ice.subroutines ?? []).map(() => true);
       log(state, `Trash ${ice.title}; resolve "${sub.text}" (ZATO City Grid).`);
       const resolved = evalEffect({ state, sourceId: enc.iceId }, sub.effect);
@@ -2218,7 +2203,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const ice = state.cards[iceId]!;
-      trashCorpCardToArchives(state, iceId, source.side);
+      trashCard(state, iceId, { by: source.side });
       log(
         state,
         `Trash encountered ${ice.title} (strength ${str} ≤ ${action.maxStrength}) (CR ${CR.trashing.number}).`,
@@ -2258,7 +2243,7 @@ export function applyTrashKinds(
         state,
         `Aesop's Pawnshop — trash ${card.title}, gain ${action.amount}¢.`,
       );
-      trashToHeap(state, cardId);
+      trashCard(state, cardId);
       state.runner.credits += action.amount;
       return { ok: true };
     }
@@ -2269,7 +2254,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const topId = state.runner.deck[0]!;
-      moveRunnerCardToHeap(state, topId);
+      trashCard(state, topId);
       log(
         state,
         `${source.title} — trash top of stack (${state.cards[topId]?.title ?? topId}).`,
@@ -2282,8 +2267,9 @@ export function applyTrashKinds(
         log(state, `${source.title} — trash top of R&D: R&D empty.`);
         return { ok: true };
       }
-      const topId = state.corp.deck.shift()!;
-      trashCorpCardFacedownToArchives(state, topId);
+      const topId = state.corp.deck[0]!;
+      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+      trashCard(state, topId, { by: controllerOf(state, sourceId) });
       log(
         state,
         `${source.title} — trash top of R&D (${state.cards[topId]?.title ?? topId}).`,
@@ -2298,7 +2284,7 @@ export function applyTrashKinds(
       const milled: string[] = [];
       for (let i = 0; i < count && state.runner.deck.length > 0; i++) {
         const id = state.runner.deck[0]!;
-        moveRunnerCardToHeap(state, id);
+        trashCard(state, id);
         milled.push(id);
       }
       log(
@@ -2418,7 +2404,7 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const title = state.cards[action.cardId]!.title;
-      trashToHeap(state, action.cardId);
+      trashCard(state, action.cardId);
       log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
       return { ok: true };
     }
@@ -2430,7 +2416,7 @@ export function applyTrashKinds(
       }
       const title = state.cards[action.cardId]!.title;
       const cost = state.cards[action.cardId]!.installCost;
-      trashToHeap(state, action.cardId);
+      trashCard(state, action.cardId);
       state.turn.lastTrashedOwnProgramInstallCost = cost;
       log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
       return { ok: true };
@@ -2477,12 +2463,8 @@ export function applyTrashKinds(
       const apply = (hqId: string): EvalResult => {
         if (!state.corp.hand.includes(hqId)) return { ok: true };
         const hqCard = state.cards[hqId]!;
-        state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
-        state.corp.discardPile.push(hqId);
-        hqCard.zone = "corp:archives";
         // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        hqCard.faceup = false;
-        noteCorpCardAddedToArchives(state);
+        trashCard(state, hqId, { by: "corp", cause: "cost" });
         if (state.run) {
           state.run.reencounterIceId = iceId;
           state.run.pendingReencounterIceId = undefined;
@@ -2520,12 +2502,8 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const hqCard = state.cards[hqId]!;
-      state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
-      state.corp.discardPile.push(hqId);
-      hqCard.zone = "corp:archives";
       // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-      hqCard.faceup = false;
-      noteCorpCardAddedToArchives(state);
+      trashCard(state, hqId, { by: "corp", cause: "cost" });
       state.run.reencounterIceId = state.run.pendingReencounterIceId;
       state.run.pendingReencounterIceId = undefined;
       log(
@@ -2539,17 +2517,7 @@ export function applyTrashKinds(
       // Capture host server before trash (Ganked! leaves the root).
       const host = serverHostingCard(state, sourceId);
       const serverId = host?.id ?? state.run?.attackedServerId;
-      releaseHostedCardsOnTrash(state, sourceId);
-      removeCardFromCurrentZone(state, sourceId);
-      if (source.side === "runner") {
-        state.runner.discardPile.push(sourceId);
-        source.zone = "runner:heap";
-      } else {
-        state.corp.discardPile.push(sourceId);
-        source.zone = "corp:archives";
-      }
-      source.faceup = true;
-      source.rezzed = false;
+      trashCard(state, sourceId, { by: source.side });
       log(state, `${source.title} trashed (CR ${CR.trashing.number}).`);
       if (!serverId || !state.run) {
         log(
@@ -2605,7 +2573,7 @@ export function applyTrashKinds(
       );
       for (const id of picks) {
         const title = state.cards[id]!.title;
-        trashToHeap(state, id);
+        trashCard(state, id);
         log(
           state,
           `Trash ${title} from grip at random (CR ${CR.trashing.number}).`,
@@ -2626,7 +2594,7 @@ export function applyTrashKinds(
       if (installed.length === 1) {
         const id = installed[0]!;
         const title = state.cards[id]!.title;
-        trashToHeap(state, id);
+        trashCard(state, id);
         log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
         return { ok: true };
       }
@@ -2650,7 +2618,7 @@ export function applyTrashKinds(
       let trashed = 0;
       for (let i = 0; i < action.amount && state.corp.deck.length > 0; i++) {
         const id = state.corp.deck.shift()!; // top of R&D is index 0
-        trashCorpCardToArchives(state, id, source.side);
+        trashCard(state, id, { by: source.side });
         trashed++;
       }
       log(state, `Power Shutdown — trash ${trashed} from top of R&D.`);

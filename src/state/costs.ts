@@ -9,11 +9,7 @@ import {
   removeCardFromCurrentZone,
 } from "./scoring.js";
 import { enterSetAside } from "./zones.js";
-import {
-  fireOnRemoveTags,
-  fireOnTakeTagsWhenUntagged,
-  moveRunnerCardToHeap,
-} from "./trashHooks.js";
+import { fireOnRemoveTags, fireOnTakeTagsWhenUntagged } from "./trashHooks.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 import { fireRunnerCreditPoolEmpty } from "./storedTriggers.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
@@ -52,6 +48,8 @@ import {
 } from "../legality/checkpoints.js";
 import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 import { effectiveIceStrength } from "../cards/stubs.js";
+import { trashCard } from "./procedures/trash.js";
+import { hostCard } from "./procedures/host.js";
 
 /**
  * First time each turn the Runner spends credits from an installed card,
@@ -604,12 +602,9 @@ function takeFromHostedCreditsDuringRuns(
       noteOutsideCreditPoolSpendDuringRun(state);
       if ((card.hostedCredits ?? 0) <= 0) {
         // Penumbral Toolkit-class: trash when empty.
-        const idx = state.runner.installed.indexOf(id);
-        if (idx >= 0) {
-          state.runner.installed.splice(idx, 1);
-          state.runner.discardPile.push(id);
-          card.zone = "runner:heap";
-          card.faceup = true;
+        if (state.runner.installed.includes(id)) {
+          // Its own ability trashes it (CR 1.14.5).
+          trashCard(state, id, { by: "runner" });
           log(state, `${card.title} trashed — hosted credits empty.`);
         }
       }
@@ -1082,7 +1077,6 @@ export function releaseSetAsideHostedCards(state: GameState): void {
   const pending = state.resolvingSetAsideHosted;
   if (!pending) return;
   state.resolvingSetAsideHosted = undefined;
-  const source = state.cards[pending.sourceId];
   let restored = 0;
   for (const id of pending.cardIds) {
     const card = state.cards[id];
@@ -1097,11 +1091,7 @@ export function releaseSetAsideHostedCards(state: GameState): void {
       state.corp.corpSetAside = state.corp.corpSetAside.filter((x) => x !== id);
     }
     card.zone = `hosted:${pending.sourceId}`;
-    card.hostId = pending.sourceId;
-    if (source) {
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      if (!source.hostedCardIds.includes(id)) source.hostedCardIds.push(id);
-    }
+    hostCard(state, card.id, pending.sourceId, { installed: true });
     restored += 1;
   }
   if (restored === 0) return;
@@ -1272,15 +1262,8 @@ export function payCost(
         `Spend ${cost.powerCounters} power counter(s) from ${source.title} → ${source.powerCounters}.`,
       );
       if (source.trashWhenPowerEmpty && (source.powerCounters ?? 0) <= 0) {
-        removeCardFromCurrentZone(state, source.id);
-        if (source.side === "runner") {
-          state.runner.discardPile.push(source.id);
-          source.zone = "runner:heap";
-        } else {
-          state.corp.discardPile.push(source.id);
-          source.zone = "corp:archives";
-        }
-        source.faceup = true;
+        // Its own ability trashes it (CR 1.14.5).
+        trashCard(state, source.id, { by: source.side });
         log(
           state,
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
@@ -1314,12 +1297,9 @@ export function payCost(
         cost.trashFromHq ?? 0,
         "last",
       )) {
-        state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.discardPile.push(id);
         const c = state.cards[id];
-        c.zone = "corp:archives";
         // The Runner could not see a card in HQ, so it is facedown (CR 4.4.6b).
-        c.faceup = false;
+        trashCard(state, id, { by: "corp", cause: "cost" });
         log(state, `Trash ${c.title} from HQ as cost.`);
       }
     }
@@ -1330,22 +1310,16 @@ export function payCost(
         cost.trashFromGrip ?? 0,
         "last",
       )) {
-        state.runner.hand = state.runner.hand.filter((x) => x !== id);
-        state.runner.discardPile.push(id);
         const c = state.cards[id];
-        c.zone = "runner:heap";
-        c.faceup = true;
+        trashCard(state, id, { by: "runner", cause: "cost" });
         log(state, `Trash ${c.title} from grip as cost.`);
       }
     }
     if (cost.trashEntireGrip) {
       const grip = [...state.runner.hand];
-      state.runner.hand = [];
       for (const id of grip) {
-        state.runner.discardPile.push(id);
         const c = state.cards[id];
-        c.zone = "runner:heap";
-        c.faceup = true;
+        trashCard(state, id, { by: "runner", cause: "cost" });
         log(state, `Trash ${c.title} from grip as cost (entire grip).`);
       }
       if (grip.length === 0) {
@@ -1360,11 +1334,8 @@ export function payCost(
         "first",
       )[0];
       if (id) {
-        state.runner.hand = state.runner.hand.filter((cid) => cid !== id);
-        state.runner.discardPile.push(id);
         const c = state.cards[id];
-        c.zone = "runner:heap";
-        c.faceup = true;
+        trashCard(state, id, { by: "runner", cause: "cost" });
         log(state, `Trash ${c.title} (program) from grip as cost.`);
       }
     }
@@ -1374,7 +1345,7 @@ export function payCost(
         const pick = takeCostCards(state, programs, 1, "first")[0];
         if (pick) {
           const prog = state.cards[pick]!;
-          moveRunnerCardToHeap(state, pick);
+          trashCard(state, pick, { by: "runner", cause: "cost" });
           log(
             state,
             `Trash ${prog.title} as additional cost (Simulchip-class; CR ${CR.trashing.number}).`,
@@ -1388,17 +1359,8 @@ export function payCost(
       }
     }
     if (cost.trashSelf && source) {
-      removeCardFromCurrentZone(state, source.id);
-      if (source.side === "runner") {
-        state.runner.discardPile.push(source.id);
-        source.zone = "runner:heap";
-      } else {
-        state.corp.discardPile.push(source.id);
-        source.zone = "corp:archives";
-        // A trashed card is a new object, not installed (CR 1.12.1, 8.1.1).
-        source.rezzed = false;
-      }
-      source.faceup = true;
+      // The {trash} cost: no interrupt cancels it (CR 1.16.1a, 1.19.4).
+      trashCard(state, source.id, { by: source.side, cause: "cost" });
       log(state, `${source.title} trashed as cost (CR ${CR.trashing.number}).`);
       const setAside = state.pendingTrashSetAsideVirus;
       if (setAside?.sourceId === source.id) {
@@ -1873,12 +1835,9 @@ export function spendRunnerCreditsFor(
         noteInstalledCardCreditSpend(state, card);
         // Miss Bones-class: trash when hosted credits empty.
         if ((card.hostedCredits ?? 0) <= 0) {
-          const idx = state.runner.installed.indexOf(card.id);
-          if (idx >= 0) {
-            state.runner.installed.splice(idx, 1);
-            state.runner.discardPile.push(card.id);
-            card.zone = "runner:heap";
-            card.faceup = true;
+          if (state.runner.installed.includes(card.id)) {
+            // Its own ability trashes it (CR 1.14.5).
+            trashCard(state, card.id, { by: "runner" });
             log(state, `${card.title} trashed — hosted credits empty.`);
           }
         }

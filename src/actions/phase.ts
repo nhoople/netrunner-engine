@@ -32,6 +32,7 @@ import {
 } from "../state/miscConditionalHooks.js";
 import { chooseCards } from "../effects/chooseCards.js";
 import { evalEffect } from "../effects/eval.js";
+import { discardCard } from "../state/procedures/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -309,11 +310,8 @@ export function discardPhase(
     }
     state.turn.runnerDiscardedToMaxHandIds = [];
     for (const id of chosen) {
-      p.hand = p.hand.filter((handId) => handId !== id);
-      p.discardPile.push(id);
-      const card = state.cards[id];
-      card.zone = p.side === "corp" ? "corp:archives" : "runner:heap";
-      if (p.side === "corp") card.faceup = false;
+      // A discard, not a trash (CR 1.19.3, 5.5.2b); facedown from HQ.
+      discardCard(state, id);
       if (p.side === "runner") {
         state.turn.runnerDiscardedToMaxHandIds.push(id);
       }

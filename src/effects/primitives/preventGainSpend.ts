@@ -11,21 +11,10 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashRunnerCardToHeap(
-  state: EffectCtx["state"],
-  cardId: string,
-): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.runner.discardPile.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
-}
 
 function rfgCard(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
@@ -427,7 +416,7 @@ export function applyFlashpointQuPrimitive(
       }
       if (viruses.length === 1 || action.pick === "first") {
         const id = viruses[0]!;
-        trashRunnerCardToHeap(state, id);
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
         log(state, `Macrophage — trash virus ${state.cards[id]!.title}.`);
         return { ok: true };
       }
@@ -447,7 +436,7 @@ export function applyFlashpointQuPrimitive(
       const cardId = action.cardId;
       if (!cardId || !state.runner.installed.includes(cardId))
         return { ok: true };
-      trashRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(state, `Macrophage — trash virus ${state.cards[cardId]!.title}.`);
       return { ok: true };
     }

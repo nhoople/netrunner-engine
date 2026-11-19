@@ -2,7 +2,6 @@
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
@@ -10,19 +9,10 @@ import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashCorpInstalled(state: EffectCtx["state"], cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.corp.discardPile.push(cardId);
-  card.zone = "corp:archives";
-  card.faceup = true;
-  card.rezzed = false;
-}
 
 /** Ephemeral counters on source for multi-step BM paid choices. */
 function bmCounter(
@@ -330,7 +320,7 @@ export function applyFlashpointBmPrimitive(
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card?.rezzed) return { ok: true };
-      trashCorpInstalled(state, cardId);
+      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       state.corp.credits += 3;
       setBmCounter(
         source,

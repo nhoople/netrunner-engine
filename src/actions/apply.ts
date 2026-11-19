@@ -31,7 +31,6 @@ import {
   firstClickMustIsActive,
 } from "../state/firstClickMust.js";
 import { basicDrawBonus, remoteRootAccessTax } from "../state/staticFlags.js";
-import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import {
   onTagsRemoved,
   resolveDeclaration,
@@ -104,12 +103,7 @@ import {
   takeExtraDifferentAction,
 } from "../state/corpActionHooks.js";
 import {
-  fireCorpOnTrash,
-  moveRunnerCardToHeap,
   noteAccessTrash,
-  resolveSkorpiosTrash,
-  noteCorpCardAddedToArchives,
-  noteFirstCorpCardTrashEachTurn,
   fireMeatDamageWhenRunnerTakesTags,
 } from "../state/trashHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
@@ -223,6 +217,7 @@ import {
 } from "../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
+import { trashCard, resolveSkorpiosTrash } from "../state/procedures/trash.js";
 
 /** The payer's pick for a one-card cost, or the last card when not asked. */
 function chosenCostCard(state: GameState, pool: readonly string[]): string {
@@ -367,21 +362,8 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
     return fail("That card is not a legal trash target.", [CR.trashing]);
   }
   const card = state.cards[cardId];
-  if (card.side === "corp") {
-    const handIdx = state.corp.hand.indexOf(cardId);
-    if (handIdx >= 0) state.corp.hand.splice(handIdx, 1);
-    state.corp.discardPile.push(cardId);
-    card.zone = "corp:archives";
-    card.faceup = true;
-  } else {
-    const handIdx = state.runner.hand.indexOf(cardId);
-    if (handIdx >= 0) state.runner.hand.splice(handIdx, 1);
-    const rigIdx = state.runner.installed.indexOf(cardId);
-    if (rigIdx >= 0) state.runner.installed.splice(rigIdx, 1);
-    state.runner.discardPile.push(cardId);
-    card.zone = "runner:heap";
-    card.faceup = true;
-  }
+  // A subroutine's "trash a program": the Corp carries it out (CR 1.14.5).
+  trashCard(state, cardId, { by: "corp" });
   state.pendingTrashProgram = null;
   log(state, `Trashes ${card.title} (CR ${CR.trashing.number}).`);
   // Resume the run graph from the current auto step (resolveSub).
@@ -826,7 +808,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
           ice?.rezzed && chosen && ice.title === chosen.title && id !== cardId,
         );
       });
-    if (copyId) trashCorpCardToArchives(state, copyId, "runner");
+    if (copyId) trashCard(state, copyId, { by: "runner" });
     const at = state.run.accessCandidates.indexOf(cardId);
     if (at >= 0) state.run.accessCandidates.splice(at, 1);
     state.run.immolationScriptAccessReplace = false;
@@ -2003,7 +1985,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       return ok(next);
     }
     if (action.type === "accept_installed_trash") {
-      acceptPendingInstalledTrash(next, moveRunnerCardToHeap);
+      acceptPendingInstalledTrash(next, (s, id) => trashCard(s, id));
       resumePendingEffectContinuation(next);
       return ok(next);
     }
@@ -2583,12 +2565,8 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         }
         const hqId = chosenCostCard(next, next.corp.hand);
         const hqCard = next.cards[hqId]!;
-        next.corp.hand = next.corp.hand.filter((x) => x !== hqId);
-        next.corp.discardPile.push(hqId);
-        hqCard.zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        hqCard.faceup = false;
-        noteCorpCardAddedToArchives(next);
+        // An additional cost; facedown from HQ (CR 1.16.1a, 4.4.6b).
+        trashCard(next, hqId, { by: "corp", cause: "cost" });
         log(
           next,
           `Threat ${threatCost} — trash ${hqCard.title} from HQ as additional cost.`,
@@ -2602,12 +2580,8 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         }
         const hqId = chosenCostCard(next, next.corp.hand);
         const hqCard = next.cards[hqId]!;
-        next.corp.hand = next.corp.hand.filter((x) => x !== hqId);
-        next.corp.discardPile.push(hqId);
-        hqCard.zone = "corp:archives";
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        hqCard.faceup = false;
-        noteCorpCardAddedToArchives(next);
+        // An additional cost; facedown from HQ (CR 1.16.1a, 4.4.6b).
+        trashCard(next, hqId, { by: "corp", cause: "cost" });
         log(
           next,
           `Sebastião — trash ${hqCard.title} from HQ as additional cost.`,
@@ -2639,7 +2613,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       next.corp.credits -= pay;
       const bad = spendClick(next);
       if (bad) return bad;
-      moveRunnerCardToHeap(next, action.cardId);
+      trashCard(next, action.cardId);
       log(
         next,
         `Corp trashes ${target.title} with the basic action (CR ${CR.corpBasicTrashResource.number}).`,
@@ -3296,7 +3270,6 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (runnerCannotTrashWhileRezzed(next, action.cardId)) {
         return fail(`Cannot trash rezzed ${card.title}.`, [CR.trashing]);
       }
-      const wasRezzedForThreat = Boolean(card.rezzed);
       if (card.trashAdditionalCost) {
         if (next.pendingTrashAccessedCardId === action.cardId) {
           next.pendingTrashAccessedCardId = null;
@@ -3335,52 +3308,16 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         return fail("Insufficient credits to trash.", [CR.trashing]);
       }
       spendRunnerCreditsFor(next, cost, purpose);
-      // Marilyn: may shuffle into R&D instead of Archives.
-      const serverId = next.run.attackedServerId;
-      const server = next.servers[serverId];
-      server.root = server.root.filter((id) => id !== action.cardId);
-      next.corp.hand = next.corp.hand.filter((id) => id !== action.cardId);
-      next.corp.deck = next.corp.deck.filter((id) => id !== action.cardId);
-      if (card.mayShuffleIntoRdWhenTrashed) {
-        next.corp.deck.push(action.cardId);
-        card.zone = "corp:rd";
-        card.faceup = false;
-        card.rezzed = false;
-        card.hostedCredits = undefined;
-        shuffleInPlace(next, next.corp.deck);
-        log(
-          next,
-          `Runner trashes accessed ${card.title} for ${cost}¢ — shuffled into R&D instead.`,
-        );
-      } else {
-        next.corp.discardPile.push(action.cardId);
-        card.zone = "corp:archives";
-        card.faceup = true;
-        card.rezzed = false;
-        log(
-          next,
-          `Runner trashes accessed ${card.title} for ${cost}¢ (CR ${CR.trashing.number}).`,
-        );
-      }
+      // The trash procedure runs Marilyn Campaign's and Director Haas's
+      // replacements, faces the card up (the Runner is accessing it,
+      // CR 4.4.6b) and fires the trash triggers (CR 7.1.5, 1.19.1).
+      trashCard(next, action.cardId, { by: "runner", cause: "access" });
+      log(
+        next,
+        `Runner trashes accessed ${card.title} for ${cost}¢ (CR ${CR.trashing.number}).`,
+      );
       next.run.accessingCardId = null;
-      fireCorpOnTrash(next, action.cardId);
-      noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, cost);
-      // Public Access Plaza: Threat N → tag when Runner trashes while rezzed.
-      const threatTrash = card.threatGiveTagsOnRezzedTrash;
-      if (threatTrash && wasRezzedForThreat) {
-        const threatPts = Math.max(
-          agendaPointsFor(next, "corp"),
-          agendaPointsFor(next, "runner"),
-        );
-        if (threatPts >= threatTrash.level) {
-          next.runner.tags += threatTrash.tags;
-          log(
-            next,
-            `${card.title} — Threat ${threatTrash.level}: give Runner ${threatTrash.tags} tag(s) → ${next.runner.tags}.`,
-          );
-        }
-      }
       // René: first access-trash each turn → gain ¢ + draw
       const idCard = next.cards[next.runner.identityId];
       const gain = idCard?.onAccessTrashGain;
@@ -3483,26 +3420,16 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         ...others.slice(others.length - Math.max(0, n - named.length)),
       ].slice(0, n);
       for (const gid of gripCost) {
-        next.runner.hand = next.runner.hand.filter((x) => x !== gid);
-        next.runner.discardPile.push(gid);
-        next.cards[gid].zone = "runner:heap";
-        next.cards[gid].faceup = true;
+        trashCard(next, gid, { by: "runner", cause: "cost" });
       }
       const accessedId = next.run.accessingCardId;
       const card = next.cards[accessedId];
-      const server = next.servers[sid];
-      server.root = server.root.filter((id) => id !== accessedId);
-      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
-      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discardPile.push(accessedId);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      card.rezzed = false;
+      // The Runner trashes the card they are accessing (CR 7.1.5, 1.19.1).
+      trashCard(next, accessedId, { by: "runner", cause: "access" });
       next.run.accessingCardId = null;
       if (carn.accessTrashFromGrip!.oncePerTurn) {
         next.turn.carnivoreAccessTrashUsed = true;
       }
-      noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, card.trashCost ?? 0);
       log(
         next,
@@ -3535,16 +3462,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       markAbilityUsed(next, imp.id, "imp-access-trash");
       const accessedId = action.cardId;
       const card = next.cards[accessedId];
-      const server = next.servers[next.run.attackedServerId];
-      server.root = server.root.filter((id) => id !== accessedId);
-      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
-      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discardPile.push(accessedId);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      card.rezzed = false;
+      // The Runner trashes the card they are accessing (CR 7.1.5, 1.19.1).
+      trashCard(next, accessedId, { by: "runner", cause: "access" });
       next.run.accessingCardId = null;
-      noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, card.trashCost ?? 0);
       log(next, `Imp — spend virus counter to trash accessed ${card.title}.`);
       return completeAccessAndContinue(next);
@@ -3562,16 +3482,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       }
       const accessedId = action.cardId;
       const card = next.cards[accessedId];
-      const server = next.servers[next.run.attackedServerId];
-      server.root = server.root.filter((id) => id !== accessedId);
-      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
-      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discardPile.push(accessedId);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      card.rezzed = false;
+      // The Runner trashes the card they are accessing (CR 7.1.5, 1.19.1).
+      trashCard(next, accessedId, { by: "runner", cause: "access" });
       next.run.accessingCardId = null;
-      noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, 0);
       log(next, `Demolition Run — trash accessed ${card.title} for 0¢.`);
       return completeAccessAndContinue(next);
@@ -3607,16 +3520,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       lamp.powerCounters = (lamp.powerCounters ?? 0) - 1;
       payCost(next, "runner", stealthCost, "lampades-access-trash", lamp);
       const accessedId = action.cardId;
-      const server = next.servers[next.run.attackedServerId];
-      server.root = server.root.filter((id) => id !== accessedId);
-      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
-      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discardPile.push(accessedId);
-      accessed.zone = "corp:archives";
-      accessed.faceup = true;
-      accessed.rezzed = false;
+      // The Runner trashes the card they are accessing (CR 7.1.5, 1.19.1).
+      trashCard(next, accessedId, { by: "runner", cause: "access" });
       next.run.accessingCardId = null;
-      noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, accessed.trashCost ?? 0);
       log(
         next,
@@ -3644,18 +3550,11 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       ) {
         return fail("Gourmand trash not available.", [CR.trashing]);
       }
-      moveRunnerCardToHeap(next, action.gourmandId);
+      trashCard(next, action.gourmandId, { by: "runner", cause: "cost" });
       const accessedId = action.cardId;
-      const server = next.servers[next.run.attackedServerId];
-      server.root = server.root.filter((id) => id !== accessedId);
-      next.corp.hand = next.corp.hand.filter((id) => id !== accessedId);
-      next.corp.deck = next.corp.deck.filter((id) => id !== accessedId);
-      next.corp.discardPile.push(accessedId);
-      accessed.zone = "corp:archives";
-      accessed.faceup = true;
-      accessed.rezzed = false;
+      // The Runner trashes the card they are accessing (CR 7.1.5, 1.19.1).
+      trashCard(next, accessedId, { by: "runner", cause: "access" });
       next.run.accessingCardId = null;
-      noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, accessed.trashCost ?? 0);
       const drew = drawOne(next, "runner") ? 1 : 0;
       log(
@@ -3784,7 +3683,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.pendingTrashPrevent) {
         return fail("No pending installed trash.", [CR.trashing]);
       }
-      acceptPendingInstalledTrash(next, moveRunnerCardToHeap);
+      acceptPendingInstalledTrash(next, (s, id) => trashCard(s, id));
       return ok(next);
     case "trigger_pending_trash_interrupt":
       return fail("No pending installed trash.", [

@@ -31,10 +31,7 @@ import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
 } from "../../state/programHardwareInstall.js";
-import {
-  moveRunnerCardToHeap,
-  noteFirstInstallInServerRootThisTurn,
-} from "../../state/trashHooks.js";
+import { noteFirstInstallInServerRootThisTurn } from "../../state/trashHooks.js";
 import {
   memoryLimit,
   usedMemory,
@@ -43,7 +40,6 @@ import {
 import { noteVirusProgramInstalled } from "../../state/virusInstall.js";
 import { CR } from "../../timing/labels.js";
 import { corpCardInstallable, resolveInstallServerId } from "../corpInstall.js";
-import { trashCorpCardToArchives } from "../corpTrash.js";
 import {
   fireIceRezDuringRunHooks,
   museZoneCards,
@@ -71,6 +67,8 @@ import {
 
 import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
+import { unhostCard } from "../../state/procedures/host.js";
 
 export function applyInstallKinds(
   ctx: EffectCtx,
@@ -925,7 +923,8 @@ export function applyInstallKinds(
         for (const rid of [...state.runner.installed]) {
           const other = state.cards[rid];
           if ((other?.subtypes ?? []).includes("console")) {
-            moveRunnerCardToHeap(state, rid);
+            // Cannot be prevented (CR 3.8.5b).
+            trashCard(state, rid, { by: "runner", preventable: false });
           }
         }
       }
@@ -1391,10 +1390,7 @@ export function applyInstallKinds(
         return { ok: true };
       }
       subtractRunnerCreditPool(state, cost);
-      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
-        (id) => id !== cardId,
-      );
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "runner:installed";
       card.faceup = true;
       state.runner.installed.push(cardId);
@@ -1483,10 +1479,7 @@ export function applyInstallKinds(
         return { ok: true };
       }
       subtractRunnerCreditPool(state, cost);
-      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
-        (id) => id !== cardId,
-      );
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "runner:installed";
       card.faceup = true;
       state.runner.installed.push(cardId);
@@ -1702,7 +1695,7 @@ export function applyInstallKinds(
         (x) => x !== cardId,
       );
       if (iceInstallCapRefuses(state, card)) {
-        trashCorpCardToArchives(state, cardId, source.side);
+        trashCard(state, cardId, { by: source.side });
         return { ok: true };
       }
       let serverId = action.serverId as import("../../state/types.js").ServerId;
@@ -1719,7 +1712,7 @@ export function applyInstallKinds(
       }
       const dest = state.servers[serverId];
       if (!dest) {
-        trashCorpCardToArchives(state, cardId, source.side);
+        trashCard(state, cardId, { by: source.side });
         return { ok: true };
       }
       dest.ice.unshift(cardId);
@@ -3543,10 +3536,7 @@ export function applyInstallKinds(
           return { ok: true };
         }
       }
-      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
-        (id) => id !== cardId,
-      );
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.powerCounters = undefined;
       card.zone = "runner:installed";
       card.faceup = true;

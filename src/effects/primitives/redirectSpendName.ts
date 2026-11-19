@@ -2,25 +2,16 @@
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.runner.discardPile.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
-}
 
 function rfgFromHeap(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
@@ -164,7 +155,8 @@ export function applyFlashpointEsPrimitive(
     case "trash_hellion_beta_pick": {
       const cardId = action.cardId;
       const remaining = action.remaining ?? 0;
-      if (cardId) trashRunnerInstalled(state, cardId);
+      if (cardId)
+        trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(
         state,
         `Hellion Beta Test — trash ${state.cards[cardId!]?.title ?? cardId}.`,
@@ -300,12 +292,10 @@ export function applyFlashpointEsPrimitive(
           const toTrash = shuffled.slice(0, prevent);
           const toShuffle = shuffled.slice(prevent);
           for (const id of toTrash) {
-            state.corp.hand = state.corp.hand.filter((x) => x !== id);
-            state.corp.discardPile.push(id);
+            // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
+            trashCard(state, id, { by: controllerOf(state, sourceId) });
             const c = state.cards[id];
             if (c) {
-              c.zone = "corp:archives";
-              // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
               c.faceup = false;
             }
           }

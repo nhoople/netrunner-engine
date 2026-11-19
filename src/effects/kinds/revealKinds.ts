@@ -10,10 +10,10 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { CR } from "../../timing/labels.js";
 import { chooseCards } from "../chooseCards.js";
-import { trashCorpCardToArchives, trashToHeap } from "../corpTrash.js";
 import { noteCardRevealed, evalEffect, applyPrimitive } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 export function applyRevealKinds(
   ctx: EffectCtx,
@@ -38,7 +38,7 @@ export function applyRevealKinds(
         card.type === "hardware" ||
         card.type === "resource";
       if (!canInstall) {
-        trashToHeap(state, top);
+        trashCard(state, top);
         log(state, `Eureka! — trash ${card.title} (cannot install).`);
         return { ok: true };
       }
@@ -294,7 +294,7 @@ export function applyRevealKinds(
         return { ok: true };
       }
       state.turn.rdLookedCards.splice(idx, 1);
-      trashCorpCardToArchives(state, cardId, source.side);
+      trashCard(state, cardId, { by: source.side });
       log(state, `${source.title} — trash ${state.cards[cardId]!.title}.`);
       // Remaining revealed cards return to top of R&D in relative order
       // (first revealed stays top).

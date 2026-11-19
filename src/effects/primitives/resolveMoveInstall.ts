@@ -2,7 +2,6 @@
 import { revealCards } from "../../state/reveal.js";
 import { addOutermostIce, setRunnerPosition } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { corpInstallCost } from "../../state/costs.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
@@ -11,6 +10,8 @@ import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
+import { hostCard, unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -24,7 +25,7 @@ function addCompileInstalledToBottom(state: GameState): void {
   const idx = state.runner.installed.indexOf(id);
   if (idx >= 0) state.runner.installed.splice(idx, 1);
   card.zone = "runner:stack";
-  card.hostId = undefined;
+  unhostCard(state, card.id);
   state.runner.deck.push(id);
   log(state, `Compile — add ${card.title} to bottom of stack.`);
 }
@@ -43,11 +44,8 @@ function resolveIndependentSourceTrash(state: GameState, cardId: string): void {
     );
     return;
   }
-  const idx = state.runner.installed.indexOf(cardId);
-  if (idx >= 0) state.runner.installed.splice(idx, 1);
-  state.runner.discardPile.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
+  // Its own ability trashes it, so the Runner does (CR 1.14.5).
+  trashCard(state, cardId, { by: "runner" });
   log(state, `${card.title} trashed — broke a subroutine this run.`);
 }
 
@@ -173,12 +171,8 @@ export function applyKitaraWinPrimitive(
         revealCards(state, [c.id], sourceId);
         log(state, `Embezzle — reveal ${c.title} from HQ.`);
         if (c.type === action.cardType) {
-          const idx = state.corp.hand.indexOf(id);
-          if (idx >= 0) state.corp.hand.splice(idx, 1);
-          c.zone = "corp:archives";
-          c.faceup = true;
-          c.rezzed = false;
-          state.corp.discardPile.push(id);
+          // Revealed, so faceup (CR 1.21.6, 4.4.6b).
+          trashCard(state, id, { by: "runner" });
           trashed += 1;
           log(state, `Embezzle — trash ${c.title}.`);
         }
@@ -195,7 +189,7 @@ export function applyKitaraWinPrimitive(
         log(state, `Slipstream — no passed ice context.`);
         return { ok: true };
       }
-      moveRunnerCardToHeap(state, sourceId);
+      trashCard(state, sourceId);
       const passedId = state.run.lastPassedRezzedIceId;
       let passedPos = -1;
       let passedServer: import("../../state/types.js").ServerId | null = null;
@@ -292,7 +286,7 @@ export function applyKitaraWinPrimitive(
       const host = state.cards[action.cardId];
       const mod = state.cards[sourceId];
       if (!host || !mod) return { ok: true };
-      mod.hostId = action.cardId;
+      hostCard(state, mod.id, action.cardId, { installed: true });
       log(state, `Gebrselassie — host on ${host.title}.`);
       return { ok: true };
     }
@@ -420,7 +414,7 @@ export function applyKitaraWinPrimitive(
       if (take <= 0) return { ok: true };
       state.runner.credits += take;
       source.hostedCredits = 0;
-      moveRunnerCardToHeap(state, sourceId);
+      trashCard(state, sourceId);
       log(state, `Jackpot! — take ${take}¢ and trash.`);
       return { ok: true };
     }
@@ -609,7 +603,7 @@ export function applyKitaraWinPrimitive(
       const idx = state.runner.installed.indexOf(action.cardId);
       if (idx >= 0) state.runner.installed.splice(idx, 1);
       card.zone = "runner:grip";
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       state.runner.hand.push(action.cardId);
       log(state, `Intake — add ${card.title} to grip.`);
       return { ok: true };

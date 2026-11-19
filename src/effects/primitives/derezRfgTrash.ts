@@ -1,6 +1,5 @@
 /** Free Mars (fm) Red Sand pack primitives — v1.133.0. */
 import { revealCards } from "../../state/reveal.js";
-import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, Server, ServerId } from "../../state/types.js";
@@ -9,28 +8,20 @@ import { chooseCards } from "../chooseCards.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashToHeap(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "runner:heap";
-  card.hostId = undefined;
-  state.runner.discardPile.push(cardId);
-}
 
 function rfgCard(state: EffectCtx["state"], cardId: string): void {
   removeCardFromCurrentZone(state, cardId);
   const card = state.cards[cardId];
   if (!card) return;
   card.zone = "removed-from-game";
-  card.hostId = undefined;
+  unhostCard(state, card.id);
   card.rezzed = false;
 }
 
@@ -150,7 +141,7 @@ export function applyRedsandFmPrimitive(
       const idx = Math.floor(random(state) * state.runner.hand.length);
       const id = state.runner.hand[idx]!;
       state.runner.hand.splice(idx, 1);
-      trashToHeap(state, id);
+      trashCard(state, id, { by: controllerOf(state, sourceId) });
       log(
         state,
         `O₂ Shortage — Runner trashes ${state.cards[id]?.title ?? id} at random.`,
@@ -558,7 +549,7 @@ export function applyRedsandFmPrimitive(
       // Trash the newly chosen ones already in trashed that are still installed.
       for (const id of trashed) {
         if (!state.runner.installed.includes(id)) continue;
-        trashToHeap(state, id);
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
         state.runner.credits += 1;
       }
       if (remaining.length === 0) {
@@ -687,11 +678,9 @@ export function applyRedsandFmPrimitive(
         agenda.subtypes = [...(agenda.subtypes ?? []), "public"];
       }
       removeCardFromCurrentZone(state, sourceId);
-      source.hostId = agendaId;
+      hostCard(state, source.id, agendaId, { installed: true });
       source.zone = `hosted:${agendaId}`;
       source.faceup = true;
-      if (!agenda.hostedCardIds) agenda.hostedCardIds = [];
-      agenda.hostedCardIds.push(sourceId);
       // Copy onAdvance onto host path via hosted cards; also set gainCreditsOnAdvance.
       agenda.gainCreditsOnAdvance = (agenda.gainCreditsOnAdvance ?? 0) + 1;
       log(
@@ -719,35 +708,11 @@ export function applyRedsandFmPrimitive(
           id: `rover:${id}`,
           label: `Host on ${state.cards[id]?.title ?? id}`,
           effect: fx.do({
-            kind: "host_on_rezzed_ice_as_condition_on",
-            iceId: id,
+            kind: "host_self_as_condition",
+            hostId: id,
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "host_on_rezzed_ice_as_condition_on": {
-      const iceId = action.iceId;
-      const ice = state.cards[iceId];
-      if (!ice || !source) return { ok: true };
-      if (ice.cannotHostCards && !abilitiesSuppressed(state, iceId)) {
-        log(state, `${ice.title} cannot host cards.`);
-        return { ok: true };
-      }
-      removeCardFromCurrentZone(state, sourceId);
-      source.hostId = iceId;
-      source.zone = `hosted:${iceId}`;
-      source.faceup = true;
-      source.hostStrengthPerPowerCounter =
-        source.hostStrengthPerPowerCounter ??
-        (source.defId
-          ? getCardDef(source.defId)?.hostStrengthPerPowerCounter
-          : undefined) ??
-        1;
-      if (!ice.hostedCardIds) ice.hostedCardIds = [];
-      ice.hostedCardIds.push(sourceId);
-      log(state, `Rover Algorithm — host on ${ice.title}.`);
       return { ok: true };
     }
 

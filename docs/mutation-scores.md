@@ -24,7 +24,28 @@ A score is killed ÷ (killed + survived + no coverage). "Covered" leaves out the
 
 | Area | Date | Engine | Mutants | Killed | Survived | No coverage | Score | Covered score |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1. Hosting and trash (start) | 2026-11-19 | area 1 branch, first draft | 319 | 183 | 98 | 38 | 57.37% | 65.12% |
+| 1. Hosting and trash (close) | 2026-11-19 | area 1 PR | 317 | 282 | 33 | 2 | 88.96% | 89.52% |
 | 3. Swap | 2026-11-13 | v1.147.252 | 1335 | 429 | 279 | 627 | 32.13% | 60.59% |
+
+## 1. Hosting and trash (2026-11-19)
+
+Files mutated: `src/state/procedures/host.ts` (`hostCard`, `unhostCard`, `unhostAllFrom`) and `src/state/procedures/trash.ts` (`trashCard`, `discardCard`, the checkpoint trash and Skorpios). The area had no shared helper before, so the start score is the first draft of the new modules against the area's tests. Adding the branch tests in `tests/hosting-and-trash.test.ts` raised it from 57.37% to 88.96%.
+
+| File | Score | Covered | Killed | Survived | No coverage |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `host.ts` | 91.84% | 91.84% | 45 | 4 | 0 |
+| `trash.ts` | 88.43% | 89.10% | 237 | 29 | 2 |
+
+### What survives
+
+No survivor changes the zone, face, host link, prevention window, or trash trigger of a CR-cited branch (CR 1.13.4, 1.13.12, 1.13.13, 1.16.1a, 4.4.6b, 4.4.7b, 9.6.10, 10.3.1g). The 33 survivors are:
+
+- **Log text** (11): the Skorpios, Nanuq, Marilyn Campaign and refusal log lines, and the checkpoint `why` suffix.
+- **Equivalent guards** (13): `if (!card) return` on ids the callers already checked, `hostCard`'s "already hosted elsewhere" test (`unhostCard` is idempotent), the duplicate-push guard, `removedFromGame` duplicate guard, the `wasInstalled` second clause (`runner:installed` and the installed list agree once the invariant holds), the checkpoint's `activeOrder` fallback, and `by: "runner"` on Q-Coherence Chip's self-trash (no condition reads `by` on a Runner card).
+- **Director Haas's pending record** (7): `controller`, `mandatory`, `independentOfSource` and the checkpoint guard. Haas's ability resolves in the same instruction, so no test observes these fields. Area 9 (prevention and pending abilities) can add a test that holds the record open.
+- **Marilyn Campaign's `unhostCard`** (1): Marilyn is never hosted in any card's text.
+- **The checkpoint's `wasInstalled` recompute guard** (1): recomputing link and hand size when nothing changed is harmless.
 
 ## 3. Swap (baseline, 2026-11-13)
 

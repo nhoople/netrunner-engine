@@ -4,7 +4,6 @@ import { log } from "../../state/createGame.js";
 import { startTrace } from "../../state/trace.js";
 import { applyEncounterPrimitive } from "../encounterPrimitives.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import { placeCurrentAfterPlay } from "../../state/currents.js";
 import { markAbilityUsed } from "../../state/turn.js";
 import { corpInstallCost } from "../../state/costs.js";
@@ -15,6 +14,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -378,8 +378,7 @@ export function applyDadPrimitive(
 
     case "trash_all_resources": {
       for (const id of [...state.runner.installed]) {
-        if (state.cards[id]?.type === "resource")
-          moveRunnerCardToHeap(state, id);
+        if (state.cards[id]?.type === "resource") trashCard(state, id);
       }
       log(state, `The All-Seeing I — trash all resources.`);
       return { ok: true };
@@ -427,11 +426,7 @@ export function applyDadPrimitive(
       for (const id of installedCorpIds(state)) {
         const c = state.cards[id];
         if (!c) continue;
-        removeCardFromCurrentZone(state, id);
-        state.corp.discardPile.push(id);
-        c.zone = "corp:archives";
-        c.faceup = true;
-        c.rezzed = false;
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
       }
       log(state, `Apocalypse — trash all installed Corp cards.`);
       return { ok: true };
@@ -468,7 +463,7 @@ export function applyDadPrimitive(
     }
 
     case "trash_own_installed": {
-      moveRunnerCardToHeap(state, action.cardId);
+      trashCard(state, action.cardId);
       state.turn.dadOwnInstalledTrashedThisTurn =
         (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) + 1;
       if ((state.turn.dadOwnInstalledTrashedThisTurn ?? 0) === 1) {
@@ -610,7 +605,7 @@ export function applyDadPrimitive(
     case "dad_independent_thinking_continue": {
       const trashed = [...action.trashed];
       const last = trashed[trashed.length - 1]!;
-      moveRunnerCardToHeap(state, last);
+      trashCard(state, last);
       if (action.remainingPicks <= 0) {
         openPendingChoose(state, {
           sourceId,
@@ -804,9 +799,7 @@ export function applyDadPrimitive(
       }
       const card = state.cards[top]!;
       const gainAmt = card.installCost ?? 0;
-      state.runner.discardPile.push(top);
-      card.zone = "runner:heap";
-      card.faceup = true;
+      trashCard(state, top, { by: "runner" });
       state.runner.credits += gainAmt;
       log(
         state,

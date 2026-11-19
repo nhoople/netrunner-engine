@@ -4,7 +4,6 @@ import { openPendingChoose } from "./pendingChoice.js";
 import type { Effect } from "../effects/ir.js";
 import { log } from "./createGame.js";
 import {
-  moveRunnerCardToHeap,
   beginGripOrStackTrashBatch,
   endGripOrStackTrashBatch,
 } from "./trashHooks.js";
@@ -22,6 +21,7 @@ import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
 } from "./replacements.js";
+import { trashCard } from "./procedures/trash.js";
 
 function noteAndCheckpointStored(
   state: GameState,
@@ -35,7 +35,7 @@ function noteAndCheckpointStored(
 }
 
 function trashToHeap(state: GameState, cardId: string): void {
-  moveRunnerCardToHeap(state, cardId);
+  trashCard(state, cardId);
 }
 
 /** Titanium Ribs-class: Runner chooses which grip cards damage trashes. */
@@ -949,7 +949,7 @@ export function preventAllPendingNetOrMeat(
   state.runner.installed = state.runner.installed.filter(
     (id) => id !== sourceId,
   );
-  moveRunnerCardToHeap(state, sourceId);
+  trashCard(state, sourceId);
   log(state, `${title} — trashed (cannot pay ${pay}¢).`);
 }
 

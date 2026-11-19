@@ -15,7 +15,6 @@ import {
   fireOnRemoveTags,
   fireOnTakeTagsWhenUntagged,
   fireMeatDamageWhenRunnerTakesTags,
-  moveRunnerCardToHeap,
 } from "../state/trashHooks.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -23,6 +22,7 @@ import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
 import { fireOnFirstTagThisTurn } from "../state/miscConditionalHooks.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -115,7 +115,7 @@ function giveTags(
       if (abilitiesSuppressed(state, id)) continue;
       const res = state.cards[id];
       if (!res?.trashSelfWhenRunnerTagged) continue;
-      moveRunnerCardToHeap(state, id);
+      trashCard(state, id);
       log(state, `${res.title} — trashed (Runner is tagged).`);
     }
   }

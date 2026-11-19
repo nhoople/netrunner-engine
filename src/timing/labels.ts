@@ -1011,6 +1011,7 @@ export const CR = {
     id: "rule_bad_publicity_gone_in_run_ends_phase",
   },
   trashing: { number: "1.19.1", id: "rule_trashing" },
+  cardToCounter: { number: "10.1.4", id: "rule_card_to_counter" },
   scoringAgenda: { number: "1.17.6", id: "rule_agenda_scored" },
   stealingAgenda: { number: "1.17.7", id: "rule_agenda_stolen" },
   corpWinAgenda: { number: "1.7.2a", id: "rule_win_agenda_points" },

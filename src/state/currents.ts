@@ -4,7 +4,6 @@
  */
 import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
-import { moveRunnerCardToHeap } from "./trashHooks.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import {
@@ -12,6 +11,7 @@ import {
   leaveLingeringPlayAreaBag,
   lingeringPlayAreaIds,
 } from "./zones.js";
+import { trashCard } from "./procedures/trash.js";
 
 export function isCurrentCard(card: CardInstance | undefined): boolean {
   return Boolean(card?.lingerAsCurrent || card?.subtypes?.includes("current"));
@@ -203,32 +203,32 @@ export function corpIceInstalledThisTurn(state: GameState): number {
 function trashCurrent(state: GameState, id: string, reason: string): void {
   const card = state.cards[id];
   if (!card || !inLingeringPlayArea(card)) return;
-  if (card.side === "corp") {
-    leaveLingeringPlayAreaBag(state, id);
-    card.zone = "corp:archives";
-    card.faceup = true;
-    if (!state.corp.discardPile.includes(id)) state.corp.discardPile.push(id);
-  } else {
-    moveRunnerCardToHeap(state, id);
-  }
+  // The current's controller trashes it, as if completing its resolution
+  // (CR 10.3.1b.ex2).
+  if (card.side === "corp") leaveLingeringPlayAreaBag(state, id);
+  trashCard(state, id, { by: card.side });
   log(state, `${card.title} trashed (${reason}; current ends).`);
 }
 
 /**
- * Trash every active current before a new current is played. A current
- * stays in play until another current operation or event is played
- * (CR 3.5.1b, CR 3.7.1b), whichever side plays it.
+ * End every active current when a new current is played. A current stays
+ * in play until another current operation or event is played, whichever
+ * side plays it; then it is trashed during the next checkpoint (CR 3.5.1b,
+ * CR 3.7.1b, 8.6.6c, 10.3.1b). It is not trashed here.
  */
-function trashActiveCurrentsBeforePlay(
-  state: GameState,
-  playedId: string,
-): void {
-  for (const id of allActiveCurrentIds(state)) {
-    // The played card is already in the play area while it resolves
-    // (CR 8.6.7a); it is the new current, not "another" one to trash.
-    if (id === playedId) continue;
-    trashCurrent(state, id, "another current played");
-  }
+function endActiveCurrentsOnPlay(state: GameState, playedId: string): void {
+  // The played card is already in the play area while it resolves
+  // (CR 8.6.7a); it is the new current, not "another" one to trash.
+  const ids = allActiveCurrentIds(state).filter((id) => id !== playedId);
+  markCurrentDurationPassed(state, ids);
+}
+
+/** The next checkpoint trashes these currents (CR 10.3.1b). */
+function markCurrentDurationPassed(state: GameState, ids: string[]): void {
+  if (ids.length === 0) return;
+  state.turn.durationPassedCardIds = [
+    ...new Set([...(state.turn.durationPassedCardIds ?? []), ...ids]),
+  ];
 }
 
 /**
@@ -240,10 +240,7 @@ export function trashCorpCurrentsOnAgendaStolen(state: GameState): void {
     ...activeCorpCurrentIds(state),
     ...activeRunnerCurrentIds(state),
   ].filter((id) => state.cards[id]?.currentTrashOnAgendaStolen);
-  if (ids.length === 0) return;
-  state.turn.durationPassedCardIds = [
-    ...new Set([...(state.turn.durationPassedCardIds ?? []), ...ids]),
-  ];
+  markCurrentDurationPassed(state, ids);
 }
 
 /** Trash currents whose duration has passed (CR 10.3.1b). */
@@ -260,15 +257,13 @@ export function trashDurationPassedCurrents(state: GameState): number {
   return removed;
 }
 
+/** Scoring an agenda ends these currents; the next checkpoint trashes them (CR 10.3.1b). */
 export function trashCurrentsOnAgendaScored(state: GameState): void {
-  for (const id of [
+  const ids = [
     ...activeCorpCurrentIds(state),
     ...activeRunnerCurrentIds(state),
-  ]) {
-    if (state.cards[id]?.currentTrashOnAgendaScored) {
-      trashCurrent(state, id, "agenda scored");
-    }
-  }
+  ].filter((id) => state.cards[id]?.currentTrashOnAgendaScored);
+  markCurrentDurationPassed(state, ids);
 }
 
 export function placeCurrentAfterPlay(
@@ -278,7 +273,7 @@ export function placeCurrentAfterPlay(
 ): void {
   const card = state.cards[cardId];
   if (!card) return;
-  trashActiveCurrentsBeforePlay(state, cardId);
+  endActiveCurrentsOnPlay(state, cardId);
   enterLingeringPlayArea(state, cardId, side);
   log(
     state,

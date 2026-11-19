@@ -1,14 +1,13 @@
 /** First Contact (fc) Lunar pack primitives. */
 import { log } from "../../state/createGame.js";
-import {
-  moveRunnerCardToHeap,
-  recomputeRunnerLink,
-} from "../../state/trashHooks.js";
+import { recomputeRunnerLink } from "../../state/trashHooks.js";
 import { canPayCost, payCost } from "../../state/costs.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { trashCard } from "../../state/procedures/trash.js";
+import { hostCard, unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -153,7 +152,7 @@ export function applyLunarFcPrimitive(
       );
       for (let i = 0; i < n && hw.length > 0; i++) {
         const id = hw.shift()!;
-        moveRunnerCardToHeap(state, id);
+        trashCard(state, id);
         log(state, `Shattered Remains — trash ${state.cards[id]!.title}.`);
       }
       return { ok: true };
@@ -165,7 +164,7 @@ export function applyLunarFcPrimitive(
         return { ok: true };
       }
       if (progs.length === 1) {
-        moveRunnerCardToHeap(state, progs[0]!);
+        trashCard(state, progs[0]!);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -207,9 +206,7 @@ export function applyLunarFcPrimitive(
       const card = state.cards[cardId];
       if (!host || !card) return { ok: true };
       state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
-      card.hostId = sourceId;
-      if (!host.hostedCardIds) host.hostedCardIds = [];
-      host.hostedCardIds.push(cardId);
+      hostCard(state, card.id, sourceId, { installed: true });
       log(state, `The Supplier — host ${card.title}.`);
       return { ok: true };
     }
@@ -245,8 +242,7 @@ export function applyLunarFcPrimitive(
         return { ok: false, error: "Cannot pay install cost.", cites: [] };
       }
       payCost(state, "runner", { credits: cost }, "supplier-install", card);
-      host.hostedCardIds = host.hostedCardIds!.filter((x) => x !== cardId);
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       state.runner.installed.push(cardId);
       card.zone = "runner:installed";
       card.faceup = true;

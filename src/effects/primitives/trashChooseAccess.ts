@@ -11,28 +11,11 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashToArchives(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "corp:archives";
-  card.faceup = true;
-  card.rezzed = false;
-  state.corp.discardPile.push(cardId);
-}
-
-function trashToHeap(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "runner:heap";
-  card.hostId = undefined;
-  state.runner.discardPile.push(cardId);
-}
 
 function installedCorpCards(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
@@ -141,7 +124,7 @@ export function applyRedsandSoPrimitive(
       if (!cardId || !state.runner.hand.includes(cardId)) {
         return { ok: true };
       }
-      trashToHeap(state, cardId);
+      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(state, `Severnius — trash ${state.cards[cardId]?.title ?? cardId}.`);
       return { ok: true };
     }
@@ -171,7 +154,7 @@ export function applyRedsandSoPrimitive(
       for (let i = 0; i < n && state.corp.hand.length > 0; i++) {
         const idx = Math.floor(random(state) * state.corp.hand.length);
         const id = state.corp.hand[idx]!;
-        trashToArchives(state, id);
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
         trashed += 1;
       }
       log(state, `Clan Vengeance — trash ${trashed} from HQ at random.`);
@@ -404,11 +387,9 @@ export function applyRedsandSoPrimitive(
       if (!card) return { ok: true };
       // Remove from deck if still there
       state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = true;
       card.zone = `hosted:${sourceId}`;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(cardId);
       log(state, `Customized Secretary hosts ${card.title}.`);
       return { ok: true };
     }
@@ -418,7 +399,7 @@ export function applyRedsandSoPrimitive(
         const card = state.cards[id];
         if (!card) continue;
         card.zone = "runner:stack";
-        card.hostId = undefined;
+        unhostCard(state, card.id);
         state.runner.deck.push(id);
       }
       return { ok: true };
@@ -529,7 +510,7 @@ export function applyRedsandSoPrimitive(
       card.zone = "corp:hq";
       card.rezzed = false;
       card.faceup = false;
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.advancementCounters = 0;
       state.corp.hand.push(cardId);
       log(state, `Replanting — add ${card.title} to HQ.`);
@@ -663,13 +644,11 @@ export function applyRedsandSoPrimitive(
       if (!host) return { ok: true };
       // Remove MCA from play-area / wherever
       removeCardFromCurrentZone(state, sourceId);
-      source.hostId = hostId;
+      hostCard(state, source.id, hostId, { installed: true });
       source.zone = `hosted:${hostId}`;
       source.faceup = true;
       source.mcaInformantCondition = true;
       source.additionalTagsWhileHosted = 1;
-      if (!host.hostedCardIds) host.hostedCardIds = [];
-      host.hostedCardIds.push(sourceId);
       host.mcaInformantHosted = true;
       // Host gains [click], 2¢: trash this resource.
       if (!host.paidAbilities) host.paidAbilities = [];

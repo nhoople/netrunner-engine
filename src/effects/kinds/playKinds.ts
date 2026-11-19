@@ -13,12 +13,12 @@ import { log } from "../../state/createGame.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../../state/identityFlipHooks.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { noteCorpCardAddedToArchives } from "../../state/trashHooks.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { fireOnAfterOperationOrExpendable } from "../eval.js";
 
 import { noteCheckpointAndResolvePlay } from "../eval.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 export function applyPlayKinds(
   ctx: EffectCtx,
@@ -106,11 +106,8 @@ export function applyPlayKinds(
         return { ok: true };
       }
       state.corp.credits -= cost;
-      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-      state.corp.discardPile.push(cardId);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      noteCorpCardAddedToArchives(state);
+      // The played operation is trashed by the Corp (CR 3.5.1, 8.6.7g).
+      trashCard(state, cardId, { by: "corp", faceup: true });
       log(state, `Corp plays ${card.title} from HQ for ${cost}¢.`);
       noteCheckpointAndResolvePlay(state, cardId, "effect.play");
       return { ok: true };
@@ -429,10 +426,8 @@ export function applyPlayKinds(
         };
       }
       state.corp.credits -= cost;
-      state.corp.hand.splice(idx, 1);
-      state.corp.discardPile.push(cardId);
-      card.zone = "corp:archives";
-      card.faceup = true;
+      // The played operation is trashed by the Corp (CR 3.5.1, 8.6.7g).
+      trashCard(state, cardId, { by: "corp", faceup: true });
       if ((card.subtypes ?? []).includes("mandate")) {
         state.turn.mandatesPlayedThisTurn =
           (state.turn.mandatesPlayedThisTurn ?? 0) + 1;

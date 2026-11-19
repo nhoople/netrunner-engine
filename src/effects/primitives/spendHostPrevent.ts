@@ -6,35 +6,22 @@ import {
 } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashRunnerCardToHeap(
-  state: EffectCtx["state"],
-  cardId: string,
-): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.runner.discardPile.push(cardId);
-  card.zone = "runner:heap";
-  card.faceup = true;
-}
 
 export function applyFlashpointMlPrimitive(
   ctx: EffectCtx,
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
     case "spend_mkultra_pump_and_break": {
@@ -85,30 +72,11 @@ export function applyFlashpointMlPrimitive(
           id: `host:${id}`,
           label: `Host on ${state.cards[id]!.title}`,
           effect: fx.do({
-            kind: "host_on_installed_resource_as_condition_on",
-            resourceId: id,
+            kind: "host_self_as_condition",
+            hostId: id,
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "host_on_installed_resource_as_condition_on": {
-      const resourceId = action.resourceId;
-      const host = state.cards[resourceId];
-      if (!host || host.type !== "resource") {
-        log(state, `On the Lam — invalid host resource.`);
-        return { ok: true };
-      }
-      removeCardFromCurrentZone(state, sourceId);
-      source.hostId = resourceId;
-      source.zone = `hosted:${resourceId}`;
-      source.faceup = true;
-      if (!host.hostedCardIds) host.hostedCardIds = [];
-      if (!host.hostedCardIds.includes(sourceId)) {
-        host.hostedCardIds.push(sourceId);
-      }
-      log(state, `Host ${source.title} on ${host.title} as a condition.`);
       return { ok: true };
     }
 
@@ -170,7 +138,10 @@ export function applyFlashpointMlPrimitive(
       }
       if (candidates.length === 1) {
         const id = candidates[0]!;
-        trashRunnerCardToHeap(state, id);
+        trashCard(state, id, {
+          by: controllerOf(state, sourceId),
+          preventable: false,
+        });
         log(
           state,
           `Cold Read — trash ${state.cards[id]!.title} (cannot prevent).`,
@@ -198,7 +169,10 @@ export function applyFlashpointMlPrimitive(
         log(state, `Cold Read — program not installed.`);
         return { ok: true };
       }
-      trashRunnerCardToHeap(state, cardId);
+      trashCard(state, cardId, {
+        by: controllerOf(state, sourceId),
+        preventable: false,
+      });
       log(
         state,
         `Cold Read — trash ${state.cards[cardId]!.title} (cannot prevent).`,

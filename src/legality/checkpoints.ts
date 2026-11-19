@@ -1,4 +1,3 @@
-import { noteStoredConditional } from "../state/storedConditionalHooks.js";
 import type {
   CardInstance,
   CheckpointFrame,
@@ -22,11 +21,7 @@ import {
 } from "../effects/sansanValHooks.js";
 import { firstUnsuccessfulRunSourceIds } from "../state/unsuccessfulRunHooks.js";
 import { firstSuccessfulRunSourceIds } from "../state/firstSuccessfulRunHooks.js";
-import {
-  agendaPointsFor,
-  checkWinConditions,
-  removeCardFromCurrentZone,
-} from "../state/scoring.js";
+import { agendaPointsFor, checkWinConditions } from "../state/scoring.js";
 import { trashDurationPassedCurrents } from "../state/currents.js";
 import { removeRevertedHostDurations } from "../state/hostDuration.js";
 import { clearAppliedReplacements } from "../state/replacements.js";
@@ -142,7 +137,11 @@ import {
   ramanRaiCanOfferSwap,
 } from "../effects/primitives/lookTrashAdd.js";
 import type { PendingAbilityPayload } from "../state/types.js";
-import { runnerAbilityCarrierIds } from "../state/fenris.js";
+import {
+  returnHostedIdentityToOutsideGame,
+  runnerAbilityCarrierIds,
+} from "../state/fenris.js";
+import { trashCard } from "../state/procedures/trash.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { nextId } from "../state/ids.js";
 
@@ -3735,11 +3734,9 @@ function checkUniqueness(state: GameState): void {
 }
 
 /**
- * A checkpoint trashes a card (CR 10.3.1d, 10.3.1e, 10.3.1f, 10.3.1g). No
- * player trashes it, so abilities about a player trashing a card are not
- * met. The card's own "when this card is trashed" ability is: it is noted
- * here and marked pending at 10.3.1a of the next checkpoint (CR 10.3.1a,
- * 9.6.13c).
+ * A checkpoint trashes a card (CR 10.3.1d, 10.3.1e, 10.3.1f, 10.3.1g). The
+ * procedure is `trashCard` with `cause: "checkpoint"`: no player trashes it,
+ * and the card's own "when trashed" ability is noted for 10.3.1a.
  */
 function trashByCheckpoint(
   state: GameState,
@@ -3747,46 +3744,7 @@ function trashByCheckpoint(
   cite: RuleCite,
   why = "",
 ): void {
-  const card = state.cards[id];
-  if (!card) return;
-  // CR 4.4.6b: a Corp card the Runner could see goes to Archives faceup.
-  const visibleToRunner = Boolean(card.rezzed) || Boolean(card.faceup);
-  if (card.hostId) {
-    const host = state.cards[card.hostId];
-    if (host?.hostedCardIds) {
-      host.hostedCardIds = host.hostedCardIds.filter(
-        (hostedId) => hostedId !== id,
-      );
-    }
-    card.hostId = undefined;
-  }
-  removeCardFromCurrentZone(state, id);
-  // CR 9.6.10: pending instances from this source end when it leaves play.
-  cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== id);
-  if (card.side === "runner") {
-    card.zone = "runner:heap";
-    card.faceup = true;
-    state.runner.discardPile.push(id);
-  } else {
-    card.zone = "corp:archives";
-    card.faceup = visibleToRunner;
-    state.corp.discardPile.push(id);
-  }
-  card.rezzed = false;
-  state.activeOrder = (state.activeOrder ?? []).filter((x) => x !== id);
-  state.log.push(`${card.title} trashed${why} (CR ${cite.number}).`);
-  if (card.onTrash) {
-    noteStoredConditional(state, {
-      cardId: id,
-      abilityKey: "on-trash",
-      effectKey: "onTrash",
-      controller: card.side,
-      mandatory: true,
-      logLine: `${card.title} becomes pending — trashed.`,
-      independentOfSource: true,
-    });
-    state.turn.checkpointTrashNoted = true;
-  }
+  trashCard(state, id, { cause: "checkpoint", cite, why });
 }
 
 /**
@@ -4218,6 +4176,19 @@ function trashHostedCard(
   id: string,
   cite: RuleCite = CR.checkpointHostedOnUninstalled,
 ): void {
+  const card = state.cards[id];
+  const host = card?.hostId ? state.cards[card.hostId] : undefined;
+  // A hosted identity on a Fenris-class host returns to the outside-game
+  // pile instead (CR 1.5.4b).
+  if (
+    card?.type === "identity" &&
+    host &&
+    (host.returnHostedIdentityToOutsideGameOnUninstall ||
+      host.gainsTextOfHostedIdentity)
+  ) {
+    returnHostedIdentityToOutsideGame(state, host.id, id);
+    return;
+  }
   trashByCheckpoint(state, id, cite);
 }
 

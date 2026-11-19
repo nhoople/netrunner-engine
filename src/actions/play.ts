@@ -42,11 +42,6 @@ import { hasActiveLockdown } from "../state/lockdowns.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import {
-  moveRunnerCardToHeap,
-  noteCorpCardAddedToArchives,
-} from "../state/trashHooks.js";
-import { agendaPointsFor } from "../state/scoring.js";
-import {
   enterLingeringPlayArea,
   leaveLingeringPlayAreaBag,
 } from "../state/zones.js";
@@ -66,6 +61,9 @@ import { hostedPlayableAsGrip } from "./installRunner.js";
 import { finishRunReturnToAction, startRun } from "./run.js";
 import { spendClick } from "./spendClick.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
+import { agendaPointsFor } from "../state/scoring.js";
+import { trashCard } from "../state/procedures/trash.js";
+import { unhostCard } from "../state/procedures/host.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -112,11 +110,8 @@ export function applyPatchworkDiscount(
   if (idx < 0) {
     return { ok: false, error: "Patchwork trash target not in grip." };
   }
-  state.runner.hand.splice(idx, 1);
   const trashed = state.cards[trashGripCardId]!;
-  state.runner.discardPile.push(trashGripCardId);
-  trashed.zone = "runner:heap";
-  trashed.faceup = true;
+  trashCard(state, trashGripCardId, { by: "runner", cause: "cost" });
   state.turn.patchworkDiscountUsedThisTurn = true;
   log(
     state,
@@ -254,13 +249,7 @@ function placeEventInPlayArea(
   if (handIdx >= 0) {
     state.runner.hand.splice(handIdx, 1);
   } else if (blingHostId) {
-    const host = state.cards[blingHostId];
-    if (host) {
-      host.hostedCardIds = (host.hostedCardIds ?? []).filter(
-        (id) => id !== cardId,
-      );
-    }
-    card.hostId = undefined;
+    unhostCard(state, card.id);
   }
   enterLingeringPlayArea(state, cardId, "runner");
   log(
@@ -285,10 +274,8 @@ function trashPlayedOperation(state: GameState, cardId: string): void {
   }
   if (card.lingerAsCurrent || card.rfgInsteadOfTrashing) return;
   leaveLingeringPlayAreaBag(state, cardId);
-  state.corp.discardPile.push(cardId);
-  card.zone = "corp:archives";
-  card.faceup = true;
-  noteCorpCardAddedToArchives(state);
+  // The Corp trashes its operation once it resolves (CR 3.5.1, 8.6.7g).
+  trashCard(state, cardId, { by: "corp" });
   fireGrayBlackOpsTrashedHooks(state, cardId);
   log(state, `${card.title} trashed (CR ${CR.trashPlayedCard.number}).`);
 }
@@ -362,7 +349,7 @@ function trashPlayedEvent(state: GameState, cardId: string): void {
     );
     return;
   }
-  moveRunnerCardToHeap(state, cardId);
+  trashCard(state, cardId);
   log(state, `${card.title} trashed (CR ${CR.trashPlayedCard.number}).`);
 }
 

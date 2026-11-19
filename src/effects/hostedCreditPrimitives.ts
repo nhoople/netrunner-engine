@@ -4,13 +4,12 @@
  */
 import { log } from "../state/createGame.js";
 import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
-import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
-import { shuffleInPlace } from "../state/rng.js";
+import { trashCard } from "../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -46,29 +45,10 @@ function takeHostedCredits(
       (side === "corp" && source.zone.startsWith("server:"));
     if (!stillInstalled) {
       // Already trashed as a cost (Cybersand); do not double-archive.
-    } else if (side === "corp" && source.mayShuffleIntoRdWhenTrashed) {
-      removeCardFromCurrentZone(state, sourceId);
-      state.corp.deck.push(sourceId);
-      source.zone = "corp:rd";
-      source.faceup = false;
-      source.rezzed = false;
-      shuffleInPlace(state, state.corp.deck);
-      log(
-        state,
-        `${source.title} — shuffle into R&D instead of trash (hosted empty).`,
-      );
     } else {
-      removeCardFromCurrentZone(state, sourceId);
-      if (side === "runner") {
-        state.runner.discardPile.push(sourceId);
-        source.zone = "runner:heap";
-      } else {
-        state.corp.discardPile.push(sourceId);
-        source.zone = "corp:archives";
-        // A trashed card is a new object, not installed (CR 1.12.1, 8.1.1).
-        source.rezzed = false;
-      }
-      source.faceup = true;
+      // Its own ability trashes it (CR 1.14.5). The procedure runs Marilyn
+      // Campaign's shuffle-into-R&D replacement.
+      trashCard(state, sourceId, { by: side });
       log(
         state,
         `${source.title} trashed — hosted credits empty (CR ${CR.trashing.number}).`,

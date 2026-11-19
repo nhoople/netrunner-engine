@@ -13,28 +13,11 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { unhostCard } from "../../state/procedures/host.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashToHeap(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "runner:heap";
-  card.hostId = undefined;
-  state.runner.discardPile.push(cardId);
-}
-
-function trashToArchives(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "corp:archives";
-  card.faceup = true;
-  card.rezzed = false;
-  state.corp.discardPile.push(cardId);
-}
 
 function installedIce(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
@@ -150,13 +133,13 @@ export function applyRedsandEasPrimitive(
       const amount = Math.max(0, action.amount ?? 0);
       if (state.runner.deck.length > 0) {
         const top = state.runner.deck.shift()!;
-        trashToHeap(state, top);
+        trashCard(state, top, { by: controllerOf(state, sourceId) });
         log(state, `Persephone — trash ${state.cards[top]?.title} from stack.`);
       }
       for (let i = 0; i < amount; i++) {
         if (state.corp.deck.length === 0) break;
         const top = state.corp.deck.shift()!;
-        trashToArchives(state, top);
+        trashCard(state, top, { by: controllerOf(state, sourceId) });
         log(state, `Persephone — trash ${state.cards[top]?.title} from R&D.`);
       }
       return { ok: true };
@@ -229,7 +212,7 @@ export function applyRedsandEasPrimitive(
         0;
       removeCardFromCurrentZone(state, rfgId);
       rfg.zone = "removed-from-game";
-      rfg.hostId = undefined;
+      unhostCard(state, rfg.id);
       log(state, `Rosetta 2.0 — remove ${rfg.title} from the game.`);
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
@@ -360,7 +343,7 @@ export function applyRedsandEasPrimitive(
         log(state, `AgInfusion — approached ice must be unrezzed.`);
         return { ok: true };
       }
-      trashToArchives(state, iceId!);
+      trashCard(state, iceId!, { by: controllerOf(state, sourceId) });
       log(state, `AgInfusion — trash approached ${ice.title}.`);
       const attacked = run.attackedServerId;
       const servers = (Object.keys(state.servers) as ServerId[]).filter(
@@ -501,7 +484,7 @@ export function applyRedsandEasPrimitive(
     case "trash_hq_place_total_2_advancements": {
       const hq = [...state.corp.hand];
       for (const id of hq) {
-        trashToArchives(state, id);
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
       }
       log(state, `Audacity — trash all cards from HQ (${hq.length}).`);
       const advanceable = installedCorpCards(state).filter((id) =>

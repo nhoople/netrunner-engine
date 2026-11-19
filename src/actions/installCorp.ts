@@ -39,8 +39,9 @@ import { CR } from "../timing/labels.js";
 import { installBlockReason } from "../state/staticFlags.js";
 import { onCorpCardInstalledInRemote } from "../state/cardDeclarations.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
-import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import { fireOnInstallFromNonHq } from "../state/miscConditionalHooks.js";
+import { trashCard } from "../state/procedures/trash.js";
+import { hostCard } from "../state/procedures/host.js";
 
 /** How an install differs from the basic action. */
 export interface CorpInstallOptions {
@@ -304,13 +305,11 @@ function installCorpInner(
       return fail("Host upgrade is not installed.", [CR.corpBasicInstall]);
     }
     leaveSourceZone();
-    card.hostId = destination.hostId;
+    hostCard(state, card.id, destination.hostId, { installed: true });
     card.zone = `hosted:${destination.hostId}`;
     card.rezzed = false;
     card.faceup = false;
     card.advancementCounters = card.advancementCounters ?? 0;
-    if (!host.hostedCardIds) host.hostedCardIds = [];
-    host.hostedCardIds.push(cardId);
     log(
       state,
       `Corp installs ${card.title} hosted on ${host.title}, ignoring install cost.`,
@@ -428,7 +427,7 @@ function installCorpInner(
       const gone = state.cards[id];
       if (!gone) continue;
       const seen = Boolean(gone.rezzed) || Boolean(gone.faceup);
-      trashCorpCardToArchives(state, id, "corp");
+      trashCard(state, id, { by: "corp" });
       log(
         state,
         seen
@@ -659,11 +658,11 @@ function trashExistingRegions(
   });
   for (const id of toTrash) {
     const card = state.cards[id];
-    server.root = server.root.filter((x) => x !== id);
-    state.corp.discardPile.push(id);
-    card.zone = "corp:archives";
-    card.faceup = true;
-    card.rezzed = false;
+    // A trash during the install keeps its installed face (CR 8.5.7).
+    trashCard(state, id, {
+      by: "corp",
+      faceup: Boolean(card.rezzed) || Boolean(card.faceup),
+    });
     log(
       state,
       `Trash ${card.title} — region limit (CR ${CR.trashing.number}).`,

@@ -21,9 +21,9 @@ import {
 } from "../src/state/lingeringEffects.js";
 
 import { breakerStrength } from "../src/effects/iceStrength.js";
-import { moveRunnerCardToHeap } from "../src/state/trashHooks.js";
 import { CR } from "../src/timing/labels.js";
 import type { GameState } from "../src/index.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -109,7 +109,7 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
       ).ok,
     ).toBe(true);
 
-    moveRunnerCardToHeap(s, "gdp-1");
+    trashCard(s, "gdp-1");
     // Strength read syncs host-duration replacements (CR 9.9.9a).
     // Corroder 2 + encounter pump 2 (host +1 gone with Gamedragon).
     expect(breakerStrength(s, "corr-1")).toBe(4);
@@ -154,7 +154,7 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
     const mid = breakerStrength(s, "corr-1"); // 2 base + 1 host + 2 pump
     expect(mid).toBe(5);
 
-    moveRunnerCardToHeap(s, "gdp-1");
+    trashCard(s, "gdp-1");
     // Host bonus gone; pump held until checkpoint (CR 9.9.9a.ex1).
     expect(breakerStrength(s, "corr-1")).toBe(4);
     expect(s.log.join("\n")).toContain(

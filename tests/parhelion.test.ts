@@ -1,6 +1,7 @@
 /**
  * parhelion play tests.
  */
+import { hostCard } from "../src/state/procedures/host.js";
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   applyAction,
@@ -27,10 +28,10 @@ import { canScoreAgenda } from "../src/state/scoring.js";
 import type { ServerId } from "../src/state/types.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/handSize.js";
 import { resolveAndAdvance } from "../src/timing/machine.js";
-import { moveRunnerCardToHeap } from "../src/state/trashHooks.js";
 import { addBreakerStrengthBoostThisRun } from "../src/state/lingeringEffects.js";
 import { clearMark, placeMark } from "../src/state/msKeywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
+import { trashCard } from "../src/state/procedures/trash.js";
 
 describe("parhelion", () => {
   describe("parhelion-adv-req-reduction", () => {
@@ -1704,7 +1705,6 @@ describe("parhelion", () => {
           "flux-1",
           "runner:installed",
         );
-        flux.hostId = "ice-1";
         s.cards["flux-1"] = flux;
         const orca = instantiateCard("orca", "orca-1", "runner:installed");
         s.cards["orca-1"] = orca;
@@ -1719,6 +1719,7 @@ describe("parhelion", () => {
         ];
         s.cards["ice-1"] = ice;
         s.servers.hq.ice = ["ice-1"];
+        hostCard(s, "flux-1", "ice-1", { installed: true });
         s.runner.credits = 20;
         s.runner.clicks = 4;
         s.activeSide = "runner";
@@ -3644,7 +3645,7 @@ describe("parhelion", () => {
         n.unsupported = [];
         s.cards["nan-1"] = n;
         s.runner.installed = ["nan-1"];
-        moveRunnerCardToHeap(s, "nan-1");
+        trashCard(s, "nan-1");
         expect(s.runner.installed).not.toContain("nan-1");
         expect(s.runner.discardPile).not.toContain("nan-1");
         expect(s.removedFromGame).toContain("nan-1");

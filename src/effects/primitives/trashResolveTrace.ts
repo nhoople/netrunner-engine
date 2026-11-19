@@ -9,7 +9,6 @@ import {
 } from "../../state/lingeringEffects.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
 import type { GameState, RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
@@ -18,6 +17,7 @@ import { chooseCards } from "../chooseCards.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -36,7 +36,7 @@ function trashRunnerHardwareChoose(ctx: EffectCtx, label: string): PrimResult {
     return { ok: true };
   }
   if (hw.length === 1) {
-    moveRunnerCardToHeap(state, hw[0]!);
+    trashCard(state, hw[0]!);
     log(state, `${label} — trash ${state.cards[hw[0]!]!.title}.`);
     return { ok: true };
   }
@@ -160,13 +160,7 @@ export function applyLunarUpPrimitive(
       )?.[0] as ServerId;
       const index = state.servers[serverId].ice.indexOf(iceId);
       state.turn.mutateTrashedIce = { iceId, serverId, index };
-      removeCardFromCurrentZone(state, iceId);
-      state.servers[serverId].ice = state.servers[serverId].ice.filter(
-        (x) => x !== iceId,
-      );
-      state.cards[iceId]!.rezzed = false;
-      state.cards[iceId]!.zone = "corp:archives";
-      state.corp.discardPile.push(iceId);
+      trashCard(state, iceId, { by: "corp", cause: "cost" });
       log(
         state,
         `Mutate — trashed ${state.cards[iceId]!.title} as additional cost.`,

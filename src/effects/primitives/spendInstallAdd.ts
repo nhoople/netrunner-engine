@@ -14,6 +14,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -674,8 +675,7 @@ export function applySpinHapPrimitive(
           `Oracle May — draw ${state.cards[top]!.title} and gain 2¢ → ${state.runner.credits}¢.`,
         );
       } else {
-        state.runner.discardPile.push(top);
-        state.cards[top]!.zone = "runner:heap";
+        trashCard(state, top, { by: "runner" });
         log(state, `Oracle May — trash ${state.cards[top]!.title}.`);
       }
       return { ok: true };

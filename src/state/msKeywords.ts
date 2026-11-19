@@ -12,7 +12,6 @@ import {
 import { openPendingChoose } from "./pendingChoice.js";
 import { maybeFirePowerCountersGte } from "./powerCounters.js";
 import { random } from "./rng.js";
-import { removeCardFromCurrentZone } from "./scoring.js";
 import type {
   CentralServerId,
   GameState,
@@ -21,20 +20,19 @@ import type {
   ServerId,
 } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { trashCard } from "./procedures/trash.js";
 
 const CENTRAL_SERVERS: CentralServerId[] = ["hq", "rd", "archives"];
 
-/** Trash a Corp card to Archives facedown (sabotage, CR 10.12.2a). */
-export function trashCorpCardFacedownToArchives(
+/**
+ * Sabotage: the Corp trashes the card, and it enters Archives facedown
+ * (CR 10.12.2a).
+ */
+function trashCorpCardFacedownToArchives(
   state: GameState,
   cardId: string,
 ): void {
-  const card = state.cards[cardId];
-  removeCardFromCurrentZone(state, cardId);
-  state.corp.discardPile.push(cardId);
-  card.zone = "corp:archives";
-  card.faceup = false;
-  card.rezzed = false;
+  trashCard(state, cardId, { by: "corp", faceup: false });
 }
 
 /** How many HQ cards a pending sabotage must and may take (CR 10.12.3a). */

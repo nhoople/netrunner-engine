@@ -12,6 +12,7 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { CR } from "../../timing/labels.js";
 import { applyPrimitive } from "../eval.js";
+import { hostCard } from "../../state/procedures/host.js";
 
 export function applyHostKinds(
   ctx: EffectCtx,
@@ -33,14 +34,11 @@ export function applyHostKinds(
       ice.rezzed = true;
       ice.faceup = true;
       removeCardFromCurrentZone(state, sourceId);
-      source.hostId = action.iceId;
+      hostCard(state, source.id, action.iceId, { installed: true });
       source.zone = `hosted:${action.iceId}`;
       source.faceup = true;
       source.rezzed = true;
       source.convertedInto = "counter";
-      if (!ice.hostedCardIds) ice.hostedCardIds = [];
-      if (!ice.hostedCardIds.includes(sourceId))
-        ice.hostedCardIds.push(sourceId);
       log(
         state,
         `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
@@ -108,11 +106,9 @@ export function applyHostKinds(
         (id) => id !== action.cardId,
       );
       const card = state.cards[action.cardId]!;
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = false;
       card.zone = `hosted:${sourceId}`;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(action.cardId);
       log(state, `${source.title} hosts a card facedown from grip.`);
       // Draw 1
       if (state.runner.deck.length === 0) {
@@ -134,14 +130,12 @@ export function applyHostKinds(
         log(state, `${source.title} — no programs in grip to host.`);
         return { ok: true };
       }
-      if (!source.hostedCardIds) source.hostedCardIds = [];
       for (const id of programs) {
         state.runner.hand = state.runner.hand.filter((x) => x !== id);
         const card = state.cards[id]!;
-        card.hostId = sourceId;
+        hostCard(state, card.id, sourceId, { installed: true });
         card.faceup = true;
         card.zone = `hosted:${sourceId}`;
-        source.hostedCardIds.push(id);
       }
       log(
         state,
@@ -217,11 +211,9 @@ export function applyHostKinds(
       state.runner.hand = state.runner.hand.filter(
         (id) => id !== action.cardId,
       );
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = true;
       card.zone = `hosted:${sourceId}`;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(action.cardId);
       log(state, `${source.title} hosts ${card.title} faceup from grip.`);
       return { ok: true };
     }
@@ -232,7 +224,7 @@ export function applyHostKinds(
         log(state, `host_hardware_on_icebreaker — invalid icebreaker.`);
         return { ok: true };
       }
-      source.hostId = action.icebreakerId;
+      hostCard(state, source.id, action.icebreakerId, { installed: true });
       if (source.hostGainsAiSubtype) {
         const subs = new Set(br.subtypes ?? []);
         subs.add("ai");
@@ -288,11 +280,9 @@ export function applyHostKinds(
       }
       state.runner.deck.shift();
       const card = state.cards[top]!;
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = true;
       card.zone = `hosted:${sourceId}`;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(top);
       log(state, `${source.title} hosts ${card.title} from stack faceup.`);
       return { ok: true };
     }
@@ -361,12 +351,10 @@ export function applyHostKinds(
       const cardId = hq[hq.length - 1]!;
       state.corp.hand = hq.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = true;
       card.rezzed = false;
       card.zone = `hosted:${sourceId}`;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(cardId);
       log(state, `${source.title} hosts ${card.title} from HQ faceup.`);
       return { ok: true };
     }
@@ -378,11 +366,9 @@ export function applyHostKinds(
       }
       state.runner.deck = state.runner.deck.filter((x) => x !== action.cardId);
       const card = state.cards[action.cardId]!;
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = true;
       card.zone = `hosted:${sourceId}`;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(action.cardId);
       log(state, `${source.title} hosts ${card.title} faceup (not installed).`);
       return { ok: true };
     }
@@ -397,11 +383,9 @@ export function applyHostKinds(
       }
       state.runner.hand = state.runner.hand.filter((id) => id !== match);
       const card = state.cards[match]!;
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = true;
       card.zone = `hosted:${sourceId}`;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(match);
       log(state, `${source.title} hosts ${card.title} faceup (not installed).`);
       return { ok: true };
     }
@@ -457,7 +441,7 @@ export function applyHostKinds(
         return { ok: true };
       }
       const prog = state.cards[chosenId]!;
-      prog.hostId = sourceId;
+      hostCard(state, prog.id, sourceId, { installed: true });
       // Magnet blanks hosted programs via continuous 9.12 (hostedProgramsLoseAbilities),
       // not an abilitiesBlanked stamp (CR 9.12.1d/e; not 9.10.1).
       // Still-pending instances die when the ability is blanked (CR 9.6.10).
@@ -524,7 +508,7 @@ export function applyHostKinds(
         log(state, `host_program_on_ice — invalid targets.`);
         return { ok: true };
       }
-      prog.hostId = action.iceId;
+      hostCard(state, prog.id, action.iceId, { installed: true });
       log(state, `Host ${prog.title} on ${ice.title}.`);
       return { ok: true };
     }
@@ -570,12 +554,10 @@ export function applyHostKinds(
       state.runner.hand = state.runner.hand.filter(
         (id) => id !== action.cardId,
       );
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.faceup = true;
       card.zone = `hosted:${sourceId}`;
       card.powerCounters = Math.max(0, card.installCost ?? 0);
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(action.cardId);
       log(
         state,
         `${source.title} hosts ${card.title} with ${card.powerCounters} power (install cost).`,
@@ -609,8 +591,8 @@ export function applyHostKinds(
           effect: {
             op: "do" as const,
             action: {
-              kind: "host_on_ice_as_condition_on" as const,
-              iceId: id,
+              kind: "host_self_as_condition" as const,
+              hostId: id,
             },
           },
         })),
@@ -619,28 +601,22 @@ export function applyHostKinds(
       return { ok: true };
     }
 
-    case "host_on_ice_as_condition_on": {
-      const ice = state.cards[action.iceId];
-      if (!ice || ice.type !== "ice") {
-        log(state, `Host as condition — invalid ice.`);
+    case "host_self_as_condition": {
+      // Condition counters: CR 10.1.4. Hosting: CR 1.13.1, 1.13.12.
+      const host = state.cards[action.hostId];
+      if (!host || !source) return { ok: true };
+      if (host.cannotHostCards && !abilitiesSuppressed(state, action.hostId)) {
+        log(state, `${host.title} cannot host cards.`);
         return { ok: true };
       }
-      if (ice.cannotHostCards && !abilitiesSuppressed(state, action.iceId)) {
-        log(state, `${ice.title} cannot host cards.`);
-        return { ok: true };
-      }
-      removeCardFromCurrentZone(state, sourceId);
-      source.hostId = action.iceId;
-      source.zone = `hosted:${action.iceId}`;
-      source.faceup = true;
-      source.rezzed = true;
+      hostCard(state, sourceId, action.hostId, { faceup: true });
       source.convertedInto = "counter";
-      if (!ice.hostedCardIds) ice.hostedCardIds = [];
-      if (!ice.hostedCardIds.includes(sourceId))
-        ice.hostedCardIds.push(sourceId);
+      // The engine marks an active Corp card rezzed; a Runner card is never
+      // rezzed (CR 8.1.4f).
+      if (source.side === "corp") source.rezzed = true;
       log(
         state,
-        `Host ${source.title} on ${ice.title} as a condition counter.`,
+        `Host ${source.title} on ${host.title} as a condition counter (CR ${CR.cardToCounter.number}).`,
       );
       return { ok: true };
     }

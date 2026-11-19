@@ -9,6 +9,7 @@ import { evalEffect } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { hostCard, unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -166,11 +167,9 @@ export function applySansanBbPrimitive(
         };
       }
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      card.hostId = sourceId;
+      hostCard(state, card.id, sourceId, { installed: true });
       card.zone = `hosted:${sourceId}`;
       card.faceup = true;
-      if (!source.hostedCardIds) source.hostedCardIds = [];
-      source.hostedCardIds.push(cardId);
       // Still counts as installed for MU — add to rig while hosted.
       if (!state.runner.installed.includes(cardId))
         state.runner.installed.push(cardId);
@@ -228,13 +227,10 @@ export function applySansanBbPrimitive(
           cites: [],
         };
       }
-      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
-        (id) => id !== cardId,
-      );
       state.runner.installed = state.runner.installed.filter(
         (id) => id !== cardId,
       );
-      card.hostId = undefined;
+      unhostCard(state, card.id);
       card.zone = "runner:grip";
       state.runner.hand.push(cardId);
       log(state, `London Library — add ${card.title} to grip.`);

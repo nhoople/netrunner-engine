@@ -3,7 +3,6 @@ import { log } from "../../state/createGame.js";
 import { startPsiGame } from "../../state/psi.js";
 import { startTrace } from "../../state/trace.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { noteCorpCardAddedToArchives } from "../../state/trashHooks.js";
 import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
@@ -11,6 +10,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { applySpinTcPrimitive } from "./breachTrashTurn.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -94,11 +94,8 @@ export function applySpinFalDtPrimitive(
       }
       if (cands.length === 1) {
         const id = cands[0]!;
-        removeCardFromCurrentZone(state, id);
-        state.corp.discardPile.push(id);
-        state.cards[id]!.zone = "corp:archives";
-        state.cards[id]!.faceup = true;
-        noteCorpCardAddedToArchives(state);
+        // "Reveal and trash": revealed, so faceup (CR 1.21.6, 4.4.6b).
+        trashCard(state, id, { by: "corp", faceup: true });
         log(state, `Restoring Face — trash ${state.cards[id]!.title}.`);
         return applySpinTcPrimitive(ctx, {
           kind: "remove_bad_publicity_up_to",
@@ -112,7 +109,11 @@ export function applySpinFalDtPrimitive(
           id: `restoring-face:${id}`,
           label: `Trash ${state.cards[id]!.title}`,
           effect: fx.seq(
-            fx.do({ kind: "trash_installed_corp_card", cardId: id }),
+            fx.do({
+              kind: "trash_installed_corp_card",
+              cardId: id,
+              revealed: true,
+            }),
             fx.do({ kind: "remove_bad_publicity_up_to", max: 2 }),
           ),
         })),
@@ -124,11 +125,11 @@ export function applySpinFalDtPrimitive(
       const id = action.cardId;
       const card = state.cards[id];
       if (!card || card.side !== "corp") return { ok: true };
-      removeCardFromCurrentZone(state, id);
-      state.corp.discardPile.push(id);
-      card.zone = "corp:archives";
-      card.faceup = true;
-      noteCorpCardAddedToArchives(state);
+      // A card the ability revealed goes to Archives faceup (CR 1.21.6, 4.4.6b).
+      trashCard(state, id, {
+        by: controllerOf(state, sourceId),
+        faceup: action.revealed ? true : undefined,
+      });
       log(state, `Trash installed ${card.title}.`);
       return { ok: true };
     }

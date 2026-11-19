@@ -3,12 +3,13 @@ import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { addOutermostIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
+import { unhostCard } from "../../state/procedures/host.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -25,26 +26,11 @@ function serverIdForInstalledCorpCard(
   return null;
 }
 
-function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  card.zone = "runner:heap";
-  card.hostId = undefined;
-  card.faceup = true;
-  state.runner.discardPile.push(cardId);
-}
-
 function addInstalledToGrip(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card || !state.runner.installed.includes(cardId)) return;
   state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  for (const id of [...state.runner.installed]) {
-    const c = state.cards[id];
-    if (c?.hostId === cardId) c.hostId = undefined;
-  }
-  card.hostId = undefined;
+  unhostCard(state, card.id);
   card.zone = "runner:grip";
   card.faceup = true;
   card.rezzed = false;
@@ -125,7 +111,7 @@ export function applyKitaraSsPrimitive(
       card.faceup = true;
       log(state, `Assimilator — turn ${card.title} faceup.`);
       if (card.type === "event") {
-        trashRunnerInstalled(state, action.cardId);
+        trashCard(state, action.cardId, { by: controllerOf(state, sourceId) });
         log(state, `Assimilator — trash event ${card.title}.`);
       }
       return { ok: true };
@@ -374,7 +360,7 @@ export function applyKitaraSsPrimitive(
     }
 
     case "trash_wake_up_call": {
-      trashRunnerInstalled(state, action.cardId);
+      trashCard(state, action.cardId, { by: controllerOf(state, sourceId) });
       log(
         state,
         `Wake Up Call — trash ${state.cards[action.cardId]?.title ?? action.cardId}.`,

@@ -2,15 +2,14 @@
 import { lookAtCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import {
-  fireOnAgendaAddedToRunnerScore,
-  moveRunnerCardToHeap,
-} from "../../state/trashHooks.js";
+import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import { trashCard } from "../../state/procedures/trash.js";
+import { hostCard, unhostCard } from "../../state/procedures/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -175,7 +174,7 @@ export function applySansanOhPrimitive(
         });
         return { ok: true };
       }
-      moveRunnerCardToHeap(state, targets[0]!);
+      trashCard(state, targets[0]!);
       return { ok: true };
     }
 
@@ -400,10 +399,8 @@ export function applySansanOhPrimitive(
           break;
         }
       }
-      card.zone = "corp:archives";
-      card.faceup = true;
-      card.rezzed = false;
-      state.corp.discardPile.push(cardId);
+      // The Corp's operation trashes the card (CR 1.14.5).
+      trashCard(state, cardId, { by: "corp" });
       log(
         state,
         `Back Channels — trash ${card.title} (${adv} adv) → gain ${gain}¢.`,
@@ -458,12 +455,10 @@ export function applySansanOhPrimitive(
       state.servers[serverId]!.root.push(agendaId);
       // Host condition counter on agenda.
       removeCardFromCurrentZone(state, sourceId);
-      source.hostId = agendaId;
+      hostCard(state, source.id, agendaId, { installed: true });
       source.zone = `hosted:${agendaId}`;
       source.faceup = true;
       source.castingCallCondition = true;
-      if (!agenda.hostedCardIds) agenda.hostedCardIds = [];
-      agenda.hostedCardIds.push(sourceId);
       agenda.onAccessGiveTags = (agenda.onAccessGiveTags ?? 0) + 2;
       log(
         state,
@@ -482,10 +477,7 @@ export function applySansanOhPrimitive(
       }
       const agendaId = hosted[0]!;
       const agenda = state.cards[agendaId]!;
-      source.hostedCardIds = (source.hostedCardIds ?? []).filter(
-        (id) => id !== agendaId,
-      );
-      agenda.hostId = undefined;
+      unhostCard(state, agenda.id);
       removeCardFromCurrentZone(state, agendaId);
       state.runner.scoreArea.push(agendaId);
       agenda.zone = "runner:score";

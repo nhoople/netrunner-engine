@@ -7,6 +7,7 @@ import { log } from "./createGame.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { leaveLingeringPlayAreaBag, lingeringPlayAreaIds } from "./zones.js";
+import { trashCard } from "./procedures/trash.js";
 
 /** True when the card is a lockdown subtype. */
 function isLockdownCard(card: CardInstance | undefined): boolean {
@@ -95,12 +96,8 @@ export function trashActiveLockdownsAtCorpTurnBegin(state: GameState): void {
     const card = state.cards[id];
     if (!card) continue;
     leaveLingeringPlayAreaBag(state, id);
-    card.zone = "corp:archives";
-    card.faceup = true;
-    card.rezzed = false;
-    if (!state.corp.discardPile.includes(id)) {
-      state.corp.discardPile.push(id);
-    }
+    // The lockdown's controller trashes it once its duration ends (CR 3.5.1c).
+    trashCard(state, id, { by: "corp" });
     log(
       state,
       `${card.title} trashed at Corp turn begin (lockdown linger ends; CR ${CR.lockdownOperation.number} / ${CR.playNotTrashedUntil.number}).`,
