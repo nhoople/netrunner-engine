@@ -72,7 +72,7 @@ export const LINGERING_KIND_ICE_STRENGTH_ENCOUNTER = "ice_strength_encounter";
  * Each piece of ice gets +N strength for the remainder of this run
  * (ezaM, Red Tape, Tributary; CR 9.10.1). Payload: `{ amount: number }`.
  */
-export const LINGERING_KIND_ALL_ICE_STRENGTH_RUN = "all_ice_strength_run";
+const LINGERING_KIND_ALL_ICE_STRENGTH_RUN = "all_ice_strength_run";
 
 /**
  * Icebreaker strength boost until the next checkpoint (CR 9.10.1 /
