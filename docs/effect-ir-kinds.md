@@ -1076,7 +1076,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `place_advancement_on_root_of_this_server` | — | 1 | card |
 | `place_advancement_on_self` | `amount?: number` | 1 | card |
 | `place_advancement_resolve` | `cardId: string` | 0 | engine |
-| `place_advancements` | `amount: number`, `preferNotInstalledThisTurn?: boolean`, `sameServerRootAsSource?: boolean`, `sameServerRootOrIceAsSource?: boolean`, `onlyIceProtectingSourceServerWithNoAdvancements?: boolean`, `onlyIceProtectingSourceServer?: boolean`, `bonusAmountIfNoCorpInstallFromHqThisTurn?: number`, `excludeSelf?: boolean`, `anyInstalledIce?: boolean`, `onlyRemoteRoot?: boolean`, `thenMayScore?: boolean`, `then?: Effect`, `pick?: "first" \| "choose"`, `cannotScoreTargetThisTurn?: boolean`, `unrezzedOnly?: boolean`, `faceupOnly?: boolean` | 31 | card, engine |
+| `place_advancements` | `amount: number`, `preferNotInstalledThisTurn?: boolean`, `sameServerRootAsSource?: boolean`, `sameServerRootOrIceAsSource?: boolean`, `onlyIceProtectingSourceServerWithNoAdvancements?: boolean`, `onlyIceProtectingSourceServer?: boolean`, `bonusAmountIfNoCorpInstallFromHqThisTurn?: number`, `excludeSelf?: boolean`, `anyInstalledIce?: boolean`, `onlyRemoteRoot?: boolean`, `thenMayScore?: boolean`, `then?: Effect`, `pick?: "choose"`, `cannotScoreTargetThisTurn?: boolean`, `unrezzedOnly?: boolean`, `faceupOnly?: boolean` | 31 | card, engine |
 | `place_advancements_on` | `cardId: string`, `amount: number`, `cannotScoreTargetThisTurn?: boolean`, `then?: Effect` | 0 | engine |
 | `place_advancements_on_forfeit` | `agendaPoints?: number` | 0 | engine |
 | `place_advancements_on_self_per_faceup_archive_types` | `base?: number` | 1 | card |

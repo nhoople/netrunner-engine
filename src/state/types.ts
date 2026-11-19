@@ -799,6 +799,11 @@ export interface CardInstance {
    */
   onFirstCorpCardTrashEachTurn?: Effect;
   /**
+   * Effect IR the first time each turn the Runner trashes an installed Corp
+   * card (Aggressive Trendsetting, NBN: Controlling the Message).
+   */
+  onFirstInstalledCorpCardTrashEachTurn?: Effect;
+  /**
    * Corp identity: first time each turn the Runner steals or trashes a Corp
    * card (Epiphany Analytica).
    */
@@ -3415,6 +3420,12 @@ export interface TurnBookkeeping {
   nuvemFirstRdTrashUsedThisTurn: boolean;
   /** Card ids that received an advancement this turn (Issuaq Adaptics). */
   advancedThisTurn: string[];
+  /**
+   * Card ids advanced (CR 1.18.1) since the previous checkpoint. Placing
+   * advancement counters is not advancing (CR 1.18.2). Built to Last reads
+   * it at 10.3.1a and the checkpoint clears it.
+   */
+  advancedSincePreviousCheckpoint: string[];
   cannotScoreAgendas: boolean;
   /** Efficiency Committee: cannot advance any card for the remainder of this turn. */
   cannotAdvanceCards: boolean;
@@ -3727,6 +3738,13 @@ export interface TurnBookkeeping {
    * (phase 3).
    */
   firstCorpCardTrashMetPending: boolean;
+  /**
+   * Aggressive Trendsetting / Controlling the Message: the first installed
+   * Corp card the Runner trashes this turn already fired (CR 9.6.5c).
+   */
+  firstInstalledCorpCardTrashUsedThisTurn: boolean;
+  /** Installed variant of `firstCorpCardTrashMetPending`. */
+  firstInstalledCorpCardTrashMetPending: boolean;
   /** Lago Paranoá-class: first Corp root-install already marked this turn. */
   firstCorpRootInstallUsedThisTurn: boolean;
   /**
@@ -5046,6 +5064,7 @@ export type StoredConditionalEffectKey =
   | "onFirstEventTrashedThisTurn"
   | "onFirstInstallInThisServerRootThisTurn"
   | "onFirstCorpCardTrashEachTurn"
+  | "onFirstInstalledCorpCardTrashEachTurn"
   | "onFirstAccessTrashEachTurn"
   | "onAccessTrash"
   | "onTakeTagsWhenUntagged"

@@ -516,7 +516,7 @@ export function applyTrashKinds(
           candidates: hq,
           count: amount,
           upTo: action.upTo,
-          purpose: "trash_hq",
+          purpose: action.reveal ? "reveal_trash_hq" : "trash_hq",
           then: action.then,
         }),
       );

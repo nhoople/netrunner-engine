@@ -410,18 +410,27 @@ function flushGripOrStackTrashBatch(state: GameState): void {
   }
 }
 
-/** Solidarity Badge-class: first Runner trash of a Corp card each turn. */
+/**
+ * Solidarity Badge-class: first Runner trash of a Corp card each turn.
+ *
+ * Only a Runner trash meets these trigger conditions (CR 1.14.5a): the
+ * Corp trashing its own card is not "the Runner trashes" or "you trash".
+ * "Installed" is part of the trigger condition (CR 9.6.5c), so the first
+ * installed Corp card the Runner trashes has its own first-time record
+ * (Aggressive Trendsetting, NBN: Controlling the Message); a card accessed
+ * in HQ or R&D meets only the any-card record (Solidarity Badge).
+ */
 export function noteFirstCorpCardTrashEachTurn(
   state: GameState,
   trashedBy: "corp" | "runner" = "runner",
   setTriggersMarkedByCaller = false,
+  wasInstalled = false,
 ): void {
+  if (trashedBy !== "runner") return;
   noteRunnerStoleOrTrashedCorpCard(state);
-  // A later Corp trash does not undo an earlier Runner trash this turn.
-  if (trashedBy === "runner") state.turn.runnerTrashedCorpCardThisTurn = true;
+  state.turn.runnerTrashedCorpCardThisTurn = true;
   // Hostile Infrastructure meets its trigger only when the Runner trashes
   // the Corp card (CR 1.14.5a).
-  if (trashedBy !== "runner") return;
   for (const server of setTriggersMarkedByCaller
     ? []
     : Object.values(state.servers)) {
@@ -437,25 +446,54 @@ export function noteFirstCorpCardTrashEachTurn(
   }
   // First-trash conditionals mark at 10.3.1a (phase 3). Hostile net damage
   // above stays immediate (continuous trigger while resolving the trash).
-  if (state.turn.firstCorpCardTrashUsedThisTurn) return;
-  if (state.turn.firstCorpCardTrashMetPending) return;
-  for (const id of [...state.runner.installed]) {
+  noteFirstCorpCardTrashRecord(state, FIRST_CORP_CARD_TRASH_ANY);
+  if (wasInstalled) {
+    noteFirstCorpCardTrashRecord(state, FIRST_CORP_CARD_TRASH_INSTALLED);
+  }
+}
+
+/** One "first time each turn the Runner trashes a Corp card" record. */
+export interface FirstCorpCardTrashRecord {
+  hook: "onFirstCorpCardTrashEachTurn" | "onFirstInstalledCorpCardTrashEachTurn";
+  used: "firstCorpCardTrashUsedThisTurn" | "firstInstalledCorpCardTrashUsedThisTurn";
+  pending:
+    | "firstCorpCardTrashMetPending"
+    | "firstInstalledCorpCardTrashMetPending";
+}
+
+export const FIRST_CORP_CARD_TRASH_ANY: FirstCorpCardTrashRecord = {
+  hook: "onFirstCorpCardTrashEachTurn",
+  used: "firstCorpCardTrashUsedThisTurn",
+  pending: "firstCorpCardTrashMetPending",
+};
+
+export const FIRST_CORP_CARD_TRASH_INSTALLED: FirstCorpCardTrashRecord = {
+  hook: "onFirstInstalledCorpCardTrashEachTurn",
+  used: "firstInstalledCorpCardTrashUsedThisTurn",
+  pending: "firstInstalledCorpCardTrashMetPending",
+};
+
+/** Sources that may hold a first-Corp-card-trash hook, in marking order. */
+export function firstCorpCardTrashSources(state: GameState): string[] {
+  return [
+    ...state.runner.installed,
+    ...state.corp.scoreArea,
+    state.corp.identityId,
+  ];
+}
+
+function noteFirstCorpCardTrashRecord(
+  state: GameState,
+  record: FirstCorpCardTrashRecord,
+): void {
+  if (state.turn[record.used]) return;
+  if (state.turn[record.pending]) return;
+  for (const id of firstCorpCardTrashSources(state)) {
     if (abilitiesSuppressed(state, id)) continue;
-    if (state.cards[id]?.onFirstCorpCardTrashEachTurn) {
-      state.turn.firstCorpCardTrashMetPending = true;
+    if (state.cards[id]?.[record.hook]) {
+      state.turn[record.pending] = true;
       return;
     }
-  }
-  for (const id of [...state.corp.scoreArea]) {
-    if (abilitiesSuppressed(state, id)) continue;
-    if (state.cards[id]?.onFirstCorpCardTrashEachTurn) {
-      state.turn.firstCorpCardTrashMetPending = true;
-      return;
-    }
-  }
-  const idCard = state.cards[state.corp.identityId];
-  if (idCard?.onFirstCorpCardTrashEachTurn) {
-    state.turn.firstCorpCardTrashMetPending = true;
   }
 }
 

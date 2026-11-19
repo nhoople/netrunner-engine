@@ -3723,9 +3723,10 @@ export function applyOtherKinds(
       state.turn.ryoPhoenixFiredThisTurn = true;
       state.runner.credits += 1;
       log(state, `${source.title} — gain 1¢ (successful run after sub).`);
+      // "The Corp trashes 1 card from HQ": the Corp chooses (CR 1.15.2).
       return applyPrimitive(ctx, {
         kind: "trash_hq",
-        pick: "random",
+        pick: "choose",
         amount: 1,
       });
     }

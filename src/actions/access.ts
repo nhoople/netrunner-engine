@@ -165,8 +165,9 @@ function hasInteractiveMidAccess(state: GameState): boolean {
         c?.accessTrashPayingPrintedCostFromStealth &&
         (c.powerCounters ?? 0) >= 1
       ) {
-        const printed = card.rezCost ?? card.playCost ?? 0;
+        const printed = printedRezOrPlayCost(card);
         if (
+          printed !== null &&
           canPayCost(
             state,
             "runner",
@@ -187,6 +188,20 @@ function hasInteractiveMidAccess(state: GameState): boolean {
     }
   }
   return false;
+}
+
+/**
+ * Lampades: "pay the printed rez or play cost of the card you are
+ * accessing". A card with neither (an agenda) has no such cost, and a cost
+ * that does not exist cannot be paid (CR 1.16.1, 2.3.3, 2.3.5).
+ */
+export function printedRezOrPlayCost(card: {
+  rezCost?: number;
+  playCost?: number;
+}): number | null {
+  if (typeof card.rezCost === "number") return card.rezCost;
+  if (typeof card.playCost === "number") return card.playCost;
+  return null;
 }
 
 /** Finish nested 11.6 after trash / steal / skip — enter access.complete then walk. */

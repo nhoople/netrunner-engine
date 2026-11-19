@@ -10869,11 +10869,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#noteFirstCorpCardTrashEachTurn",
+          "site": "src/state/trashHooks.ts#FIRST_CORP_CARD_TRASH_ANY",
           "kinds": []
         }
       ],
@@ -18280,6 +18276,10 @@
           "kinds": []
         },
         {
+          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrashRecord",
+          "kinds": []
+        },
+        {
           "site": "src/legality/checkpoints.ts#markFirstUnsuccessfulRun",
           "kinds": []
         },
@@ -21632,7 +21632,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrash",
+          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrashRecord",
           "kinds": []
         },
         {

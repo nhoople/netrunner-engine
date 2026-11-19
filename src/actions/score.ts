@@ -132,6 +132,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
   });
   const prior = card.advancementCounters ?? 0;
   card.advancementCounters = prior + 1;
+  (state.turn.advancedSincePreviousCheckpoint ??= []).push(cardId);
   const serverId = card.zone.split(":")[1] as ServerId;
   const firstOnThisServer = !state.turn.advancedThisTurn.some((id) => {
     const other = state.cards[id];

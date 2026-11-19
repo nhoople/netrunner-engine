@@ -190,6 +190,7 @@ export function noteCorpCardTrashedToArchives(
     state,
     trashedBy ?? "corp",
     origin.simultaneousSet,
+    wasInstalled,
   );
   maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
   maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);

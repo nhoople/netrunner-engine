@@ -1,3 +1,9 @@
+import {
+  FIRST_CORP_CARD_TRASH_ANY,
+  FIRST_CORP_CARD_TRASH_INSTALLED,
+  firstCorpCardTrashSources,
+  type FirstCorpCardTrashRecord,
+} from "../state/trashHooks.js";
 import type {
   CardInstance,
   CheckpointFrame,
@@ -592,7 +598,8 @@ function markFirstRunnerStoleOrTrashed(
 }
 
 /**
- * Solidarity Badge / Controlling the Message: first Corp card trashed by the
+ * Solidarity Badge / Aggressive Trendsetting: first Corp card (and first
+ * installed Corp card) trashed by the
  * Runner this turn (phase 3 — marked at 10.3.1a from the turn flag set by
  * trashHooks). Marks every eligible Runner installed, Corp score-area, and
  * Corp identity source.
@@ -603,68 +610,53 @@ function markFirstCorpCardTrash(state: GameState, diff: CheckpointDiff): void {
     diff,
     PREDICATE_FIRST_CORP_CARD_TRASH,
   );
-  if (match.kind !== "first_corp_card_trash" || !match.matched) {
-    state.turn.firstCorpCardTrashMetPending = false;
-    return;
+  if (match.kind === "first_corp_card_trash" && match.matched) {
+    markFirstCorpCardTrashRecord(state, FIRST_CORP_CARD_TRASH_ANY);
   }
   state.turn.firstCorpCardTrashMetPending = false;
+  if (
+    state.turn.firstInstalledCorpCardTrashMetPending &&
+    !state.turn.firstInstalledCorpCardTrashUsedThisTurn
+  ) {
+    markFirstCorpCardTrashRecord(state, FIRST_CORP_CARD_TRASH_INSTALLED);
+  }
+  state.turn.firstInstalledCorpCardTrashMetPending = false;
+}
+
+/**
+ * Mark every active source of one first-Corp-card-trash record pending
+ * (CR 9.6.5a): Runner installed cards, Corp score area, Corp identity.
+ */
+function markFirstCorpCardTrashRecord(
+  state: GameState,
+  record: FirstCorpCardTrashRecord,
+): void {
   let any = false;
-  for (const id of [...state.runner.installed]) {
+  for (const id of firstCorpCardTrashSources(state)) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
-    if (!card?.onFirstCorpCardTrashEachTurn) continue;
+    if (!card?.[record.hook]) continue;
     any = true;
     createPendingAbilityInstance(state, {
-      abilityKey: "on-first-corp-card-trash",
+      abilityKey:
+        record.hook === "onFirstCorpCardTrashEachTurn"
+          ? "on-first-corp-card-trash"
+          : "on-first-installed-corp-card-trash",
       sourceId: id,
-      controller: "runner",
+      controller: card.side,
       mandatory: true,
       payload: {
         kind: "stored_conditional",
-        effectKey: "onFirstCorpCardTrashEachTurn",
+        effectKey: record.hook,
       } satisfies PendingAbilityPayload,
     });
     state.log.push(
-      `${card.title} becomes pending — first Corp card trashed this turn.`,
+      record.hook === "onFirstCorpCardTrashEachTurn"
+        ? `${card.title} becomes pending — first Corp card trashed this turn.`
+        : `${card.title} becomes pending — first installed Corp card trashed this turn.`,
     );
   }
-  for (const id of [...state.corp.scoreArea]) {
-    if (abilitiesSuppressed(state, id)) continue;
-    const card = state.cards[id];
-    if (!card?.onFirstCorpCardTrashEachTurn) continue;
-    any = true;
-    createPendingAbilityInstance(state, {
-      abilityKey: "on-first-corp-card-trash",
-      sourceId: id,
-      controller: "corp",
-      mandatory: true,
-      payload: {
-        kind: "stored_conditional",
-        effectKey: "onFirstCorpCardTrashEachTurn",
-      } satisfies PendingAbilityPayload,
-    });
-    state.log.push(
-      `${card.title} becomes pending — first Corp card trashed this turn.`,
-    );
-  }
-  const idCard = state.cards[state.corp.identityId];
-  if (idCard?.onFirstCorpCardTrashEachTurn) {
-    any = true;
-    createPendingAbilityInstance(state, {
-      abilityKey: "on-first-corp-card-trash",
-      sourceId: idCard.id,
-      controller: "corp",
-      mandatory: true,
-      payload: {
-        kind: "stored_conditional",
-        effectKey: "onFirstCorpCardTrashEachTurn",
-      } satisfies PendingAbilityPayload,
-    });
-    state.log.push(
-      `${idCard.title} becomes pending — first Corp card trashed this turn.`,
-    );
-  }
-  if (any) state.turn.firstCorpCardTrashUsedThisTurn = true;
+  if (any) state.turn[record.used] = true;
 }
 
 /**
@@ -2927,13 +2919,18 @@ function markRunnerStoredConditionals(
 }
 
 /**
- * Built to Last: advancement-from-zero predicate (CR 9.6.6a) evaluated at
- * 10.3.1a via the declarative trigger layer (fidelity phase 2).
+ * Built to Last: "Whenever you advance a card, gain 2 if it had no
+ * advancement counters". The advancement-from-zero predicate (CR 9.6.6a) is
+ * evaluated at 10.3.1a, limited to cards the Corp advanced since the
+ * previous checkpoint: placing or moving counters is not advancing
+ * (CR 1.18.1, 1.18.2).
  */
 function markBuiltToLastFromCheckpointDiff(
   state: GameState,
   diff: CheckpointDiff,
 ): void {
+  const advanced = state.turn.advancedSincePreviousCheckpoint ?? [];
+  state.turn.advancedSincePreviousCheckpoint = [];
   const match = evaluateTriggerPredicate(
     state,
     diff,
@@ -2950,7 +2947,7 @@ function markBuiltToLastFromCheckpointDiff(
   if (abilitiesSuppressed(state, idCard.id)) return;
   for (const cardId of match.cardIds) {
     const card = state.cards[cardId];
-    if (!card) continue;
+    if (!card || !advanced.includes(cardId)) continue;
     createPendingAbilityInstance(state, {
       abilityKey: "built-to-last-had-no-advancement",
       sourceId: idCard.id,

@@ -197,6 +197,7 @@ import {
   heliamphoraHostInsteadAvailable,
   hostCorpCardFaceupOn,
   payStealAdditionalCosts,
+  printedRezOrPlayCost,
   stealAdditionalCosts,
   stealAdditionalCreditsForAgenda,
   stealNetOrMeatPrevented,
@@ -3507,7 +3508,12 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         return fail("Lampades trash not available.", [CR.trashing]);
       }
       const accessed = next.cards[action.cardId];
-      const printed = accessed?.rezCost ?? accessed?.playCost ?? 0;
+      const printed = accessed ? printedRezOrPlayCost(accessed) : null;
+      if (printed === null) {
+        return fail("That card has no printed rez or play cost.", [
+          CR.trashing,
+        ]);
+      }
       const stealthCost = {
         credits: printed,
         creditsFromStealthOnly: true as const,

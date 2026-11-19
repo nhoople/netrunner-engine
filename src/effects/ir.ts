@@ -331,6 +331,11 @@ export type Primitive =
       amount?: number;
       /** Trash any number of cards up to `amount`, including none. */
       upTo?: boolean;
+      /**
+       * Reveal the chosen cards before trashing them, so they go to
+       * Archives faceup (Plutus's rez cost; CR 1.21.3, 4.4.6b).
+       */
+      reveal?: boolean;
       then?: Effect;
     }
   /** Leaf: trash a specific card from HQ. */
@@ -358,6 +363,7 @@ export type Primitive =
       purpose:
         | "discard_to_hand_size"
         | "trash_hq"
+        | "reveal_trash_hq"
         | "archives_to_hq"
         | "shuffle_archives_to_rd"
         | "shuffle_hq_to_rd"
@@ -475,8 +481,11 @@ export type Primitive =
       thenMayScore?: boolean;
       /** Continuation after place (and after thenMayScore choice, if any). */
       then?: Effect;
-      /** Sericulture / PT Untaian: choose target (default `first`). */
-      pick?: "first" | "choose";
+      /**
+       * Kept for card data. The Corp always chooses the target when more
+       * than one card qualifies (CR 1.15.2), with no Decline.
+       */
+      pick?: "choose";
       /** Push target into cannotScoreOrRezCardIds after placing. */
       cannotScoreTargetThisTurn?: boolean;
       /** Only unrezzed installed cards. */

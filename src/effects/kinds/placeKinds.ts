@@ -7,6 +7,7 @@ import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
+import { CR } from "../../timing/labels.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import {
   finishPlaceAdvancementsOnTarget,
@@ -200,8 +201,10 @@ export function applyPlaceKinds(
         if (action.then) return evalEffect(ctx, action.then);
         return { ok: true };
       }
-      const pickMode = action.pick ?? "first";
-      if (pickMode === "choose" && candidates.length > 1) {
+      // The Corp chooses which card gets the counters (CR 1.15.2). Placing
+      // is not optional once it resolves; a card that prints "you may"
+      // wraps this in its own choice (CR 1.15.2e).
+      if (candidates.length > 1) {
         const options: Array<{ id: string; label: string; effect: Effect }> =
           candidates.map((id) => ({
             id: `adv:${id}`,
@@ -221,21 +224,11 @@ export function applyPlaceKinds(
               },
             },
           }));
-        options.push({
-          id: "decline",
-          label: "Decline",
-          effect: action.then
-            ? structuredClone(action.then)
-            : {
-                op: "do",
-                action: { kind: "gain_credits", side: "corp", amount: 0 },
-              },
-        });
         openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options,
-          logLine: `${source.title} — choose card for advancements.`,
+          logLine: `${source.title} — choose card for advancements (CR ${CR.announceTargets.number}).`,
         });
         return { ok: true };
       }

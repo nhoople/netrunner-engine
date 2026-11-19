@@ -365,6 +365,15 @@ function endAccessVisibility(
 }
 
 /** The run-end instance that stayed pending resolves once (CR 9.12.5d). */
+
+/** The card is hosted on a piece of installed ice. */
+function isHostedOnIce(s: GameState, cardId: string): boolean {
+  const hostId = s.cards[cardId]?.hostId;
+  if (!hostId) return false;
+  const host = s.cards[hostId];
+  return host?.type === "ice" && host.zone.endsWith(":ice");
+}
+
 export function resolveDeferredPersistentAmaze(state: GameState): void {
   const bag = pendingAbilitiesWithStatus(state, "pending").filter(
     (p) => p.payload?.kind === "amaze_give_tags",
@@ -4479,6 +4488,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           queueSuccessfulRun(s.runner.identityId);
 
           for (const id of s.runner.installed) {
+            // A Runner card hosted on ice (Stowaway) means "this server":
+            // the host-server loop below queues it only for runs on the
+            // server its ice protects (CR 4.6.6k).
+            if (isHostedOnIce(s, id)) continue;
             queueSuccessfulRun(id);
           }
           if ((s.turn.successfulRunPendingIds ?? []).length > 0) {
