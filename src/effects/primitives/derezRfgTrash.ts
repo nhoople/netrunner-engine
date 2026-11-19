@@ -2,7 +2,6 @@
 import { revealCards } from "../../state/reveal.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
-import { addBreakerStrengthBoostThisRun } from "../../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, Server, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
@@ -13,7 +12,6 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
-
 
 type PrimResult =
   | { ok: true }
@@ -35,10 +33,6 @@ function rfgCard(state: EffectCtx["state"], cardId: string): void {
   card.zone = "removed-from-game";
   card.hostId = undefined;
   card.rezzed = false;
-}
-
-function installedPrograms(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => state.cards[id]?.type === "program");
 }
 
 function serverHoldingRootCard(
@@ -752,29 +746,3 @@ logLine: `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.l
       return null;
   }
 }
-
-export function applyLeanAndMeanStrengthBonus(state: EffectCtx["state"]): void {
-  if (!state.run) return;
-  const spec = state.run.icebreakerStrengthBonusIfInstalledProgramsLte;
-  if (!spec) return;
-  if (installedPrograms(state).length > spec.programsMax) return;
-  for (const id of state.runner.installed) {
-    const c = state.cards[id];
-    if (!c) continue;
-    const isBreaker =
-      Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
-    if (!isBreaker) continue;
-    addBreakerStrengthBoostThisRun(state, {
-      createdBy: state.runner.identityId,
-      breakerId: id,
-      amount: spec.bonus,
-    });
-  }
-  log(
-    state,
-    `Lean and Mean — icebreakers +${spec.bonus} strength (≤${spec.programsMax} programs).`,
-  );
-}
-
-/** Unused helper kept for typecheck of Effect import in tooling. */
-export function _fmUnusedEffect(_e: Effect): void {}

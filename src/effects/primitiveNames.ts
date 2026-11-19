@@ -11,7 +11,7 @@
  * while a choice is open. They are not the name of the printed ability.
  */
 
-export const PACK_CODE_PREFIXES: ReadonlySet<string> = new Set([
+const PACK_CODE_PREFIXES: ReadonlySet<string> = new Set([
   "au",
   "ber",
   "cotc",
@@ -33,7 +33,7 @@ export const PACK_CODE_PREFIXES: ReadonlySet<string> = new Set([
 ]);
 
 /** First word of a procedure name, after optional may_ / corp_ / runner_. */
-export const PROCEDURE_VERBS: ReadonlySet<string> = new Set([
+const PROCEDURE_VERBS: ReadonlySet<string> = new Set([
   "access",
   "add",
   "advance",

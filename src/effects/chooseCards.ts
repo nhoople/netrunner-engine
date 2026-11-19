@@ -23,7 +23,7 @@ type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
 
-export type ChooseCards = Extract<Primitive, { kind: "choose_cards" }>;
+type ChooseCards = Extract<Primitive, { kind: "choose_cards" }>;
 type Purpose = ChooseCards["purpose"];
 
 function verb(purpose: Purpose, label?: string): string {

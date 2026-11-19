@@ -7,7 +7,7 @@ import { abilitiesSuppressed } from "./abilities.js";
 import type { CardInstance, GameState } from "./types.js";
 
 /** True when the card is hardware or a job/connection resource. */
-export function isJobConnectionOrHardware(card: CardInstance): boolean {
+function isJobConnectionOrHardware(card: CardInstance): boolean {
   if (card.type === "hardware") return true;
   if (card.type === "resource") {
     const st = card.subtypes ?? [];

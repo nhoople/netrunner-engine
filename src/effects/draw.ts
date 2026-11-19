@@ -121,20 +121,6 @@ export function commitDraw(
   return setAside;
 }
 
-/** Drop a drawn card from hand or from the still-open draw set-aside. */
-export function removeDrawnCard(state: GameState, cardId: string): boolean {
-  if (state.corp.hand.includes(cardId)) {
-    state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-    return true;
-  }
-  const pending = state.pendingDrawSetAside;
-  if (pending?.cardIds.includes(cardId)) {
-    pending.cardIds = pending.cardIds.filter((id) => id !== cardId);
-    return true;
-  }
-  return false;
-}
-
 /** 8.4.5c once the draw checkpoint's reaction window has closed. */
 export function finishPendingDraw(state: GameState): void {
   const pending = state.pendingDrawSetAside;

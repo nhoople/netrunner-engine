@@ -1,8 +1,6 @@
 import type { Action, GameState, RuleCite } from "../state/types.js";
 import { maybeFireFirstEmptyGripTriggers } from "../state/damage.js";
 import {
-  CORP_STEPS,
-  RUNNER_STEPS,
   STEPS,
   cursorFrom,
   type TimingStepDef,
@@ -363,11 +361,3 @@ export function actionAllowedHere(
 export function canPass(state: GameState): boolean {
   return getStep(state).kind === "pass";
 }
-
-/** Convenience for tests / describe: appendix ids for key windows. */
-export const WINDOW_CITES = {
-  corpActionPaw: CORP_STEPS.actionPaw,
-  runnerActionPaw: RUNNER_STEPS.actionPaw,
-  corpTakeAction: CORP_STEPS.takeAction,
-  runnerTakeAction: RUNNER_STEPS.takeAction,
-} as const;

@@ -23,7 +23,7 @@ import ts from "typescript";
 export const ROOT = process.cwd();
 
 /** Owning state type → properties whose writes are procedure-owned. */
-export const TRACKED: Record<string, readonly string[]> = {
+const TRACKED: Record<string, readonly string[]> = {
   CardInstance: ["zone", "hostId", "hostedCardIds", "rezzed"],
   Server: ["ice", "root"],
   PlayerState: ["installed", "hand", "deck", "discardPile", "scoreArea"],
@@ -51,7 +51,7 @@ const MUTATORS = new Set([
   "copyWithin",
 ]);
 
-export type WriteKind = "assign" | "update" | "delete" | "mutate" | "assign-object";
+type WriteKind = "assign" | "update" | "delete" | "mutate" | "assign-object";
 
 export type DirectWrite = {
   file: string;

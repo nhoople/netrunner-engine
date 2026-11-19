@@ -23,6 +23,8 @@ jobs:
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
+      - name: Dead code (knip)
+        run: npm run knip
       - name: Test
         run: npm test
 

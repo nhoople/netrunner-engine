@@ -112,7 +112,7 @@
     "src/effects/draw.ts": {
       "deck": 3,
       "discardPile": 1,
-      "hand": 4,
+      "hand": 3,
       "zone": 4
     },
     "src/effects/eval.ts": {
@@ -358,11 +358,10 @@
       "deck": 8,
       "discardPile": 6,
       "hand": 6,
-      "hostId": 5,
-      "installed": 5,
-      "removedFromGame": 2,
+      "hostId": 3,
+      "installed": 4,
       "rezzed": 2,
-      "zone": 15
+      "zone": 14
     },
     "src/effects/primitives/gainMoveMark.ts": {
       "deck": 1,
@@ -539,9 +538,8 @@
       "hostId": 1,
       "ice": 1,
       "installed": 1,
-      "removedFromGame": 2,
       "rezzed": 1,
-      "zone": 4
+      "zone": 3
     },
     "src/effects/primitives/shuffleLookPick.ts": {
       "deck": 4,

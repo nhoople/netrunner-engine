@@ -15,7 +15,7 @@
       "string": 13
     },
     "entries": 863,
-    "withKindBuildingReader": 49,
+    "withKindBuildingReader": 48,
     "unread": 15,
     "unset": 19
   },
@@ -136,10 +136,6 @@
     ],
     "patronChooseServerDrawInsteadOfBreach": [
       "choose_patron_server"
-    ],
-    "placeAdvancementOnSufferMeatDamage": [
-      "gain_credits",
-      "place_advancement_on_card"
     ],
     "playCost": [
       "accelerated_diagnostics"
@@ -2074,10 +2070,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezRfgTrash.ts#applyLeanAndMeanStrengthBonus",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
           "kinds": []
         },
@@ -2127,10 +2119,6 @@
         },
         {
           "site": "src/state/continuousCosts.ts#countInstalledIcebreakers",
-          "kinds": []
-        },
-        {
-          "site": "src/state/turn.ts#icebreakerCount",
           "kinds": []
         }
       ],
@@ -4924,10 +4912,6 @@
       "readers": [
         {
           "site": "src/effects/eval.ts#fireAfterBreakSubroutineHooks",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/addResolveInstall.ts#maybeFireGainCreditsOnFirstFullyBreak",
           "kinds": []
         }
       ],
@@ -9860,10 +9844,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#fireOnApproachServer",
-          "kinds": []
-        },
-        {
           "site": "src/timing/graph.ts#STEPS.onResolve",
           "kinds": []
         }
@@ -10527,10 +10507,6 @@
         {
           "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfRezzed",
           "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterEndIfRezzed",
-          "kinds": []
         }
       ],
       "kinds": []
@@ -10551,10 +10527,6 @@
         },
         {
           "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfNotFullyBroken",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterEndIfNotFullyBroken",
           "kinds": []
         },
         {
@@ -10583,10 +10555,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterEndIfPrintedSubroutineBroken",
-          "kinds": []
-        },
-        {
           "site": "src/timing/graph.ts#STEPS.onResolve",
           "kinds": []
         }
@@ -10609,10 +10577,6 @@
         },
         {
           "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfRezzedThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterEndIfRezzedThisTurn",
           "kinds": []
         },
         {
@@ -10658,10 +10622,6 @@
         },
         {
           "site": "src/state/hostEncounterHooks.ts#noteEncounterRezzedAfterApproach",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterRezzedAfterApproach",
           "kinds": []
         },
         {
@@ -11198,10 +11158,6 @@
         {
           "site": "src/state/firstEncounterPassHooks.ts#noteFirstPassIce",
           "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstPassIceEachTurn",
-          "kinds": []
         }
       ],
       "kinds": []
@@ -11222,10 +11178,6 @@
         },
         {
           "site": "src/state/firstEncounterPassHooks.ts#noteSisyphusFirstPass",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstPassRezzedCodeGateOrSentryThisTurn",
           "kinds": []
         }
       ],
@@ -11479,10 +11431,6 @@
         {
           "site": "src/state/firstSuccessfulRunHooks.ts#noteFirstSuccessfulCentralRun",
           "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstSuccessfulCentralRunThisTurn",
-          "kinds": []
         }
       ],
       "kinds": []
@@ -11503,10 +11451,6 @@
         },
         {
           "site": "src/state/firstSuccessfulRunHooks.ts#noteFirstSuccessfulHqOrRdRun",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstSuccessfulHqOrRdRunThisTurn",
           "kinds": []
         }
       ],
@@ -11559,10 +11503,6 @@
         {
           "site": "src/state/firstSuccessfulRunHooks.ts#noteFirstSuccessfulMarkRun",
           "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstSuccessfulMarkRunThisTurn",
-          "kinds": []
         }
       ],
       "kinds": []
@@ -11583,10 +11523,6 @@
         },
         {
           "site": "src/state/approachIceHooks.ts#noteFirstSuccessfulRunOnRdEnds",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstSuccessfulRunOnRdEndsThisTurn",
           "kinds": []
         }
       ],
@@ -11618,10 +11554,6 @@
         },
         {
           "site": "src/legality/checkpoints.ts#markValSuccessfulRunTriggers",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstSuccessfulRunThisTurn",
           "kinds": []
         }
       ],
@@ -11681,10 +11613,6 @@
       "readers": [
         {
           "site": "src/legality/checkpoints.ts#markFirstUnsuccessfulRun",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstUnsuccessfulRunThisTurn",
           "kinds": []
         },
         {
@@ -11979,10 +11907,6 @@
         {
           "site": "src/state/hostEncounterHooks.ts#noteHostEncounter",
           "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnHostEncounter",
-          "kinds": []
         }
       ],
       "kinds": []
@@ -12226,10 +12150,6 @@
         },
         {
           "site": "src/state/approachServerHooks.ts#notePassAllIceProtectingServer",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnPassAllIceProtectingServer",
           "kinds": []
         }
       ],
@@ -12718,10 +12638,6 @@
           ]
         },
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#firePersonalityProfilesTrashRandomGrip",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/lookTrashAdd.ts#trashRandomGripForPersonalityProfiles",
           "kinds": []
         }
@@ -12906,10 +12822,6 @@
       ],
       "setVia": [],
       "readers": [
-        {
-          "site": "src/state/miscConditionalHooks.ts#fireOnSpendCreditsOutsidePoolDuringRunOncePerTurn",
-          "kinds": []
-        },
         {
           "site": "src/state/outsidePoolSpend.ts#noteOutsidePoolSpendTriggers",
           "kinds": []
@@ -14139,21 +14051,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/addResolveInstall.ts#maybeOfferAdvancementOnMeatDamage",
-          "kinds": [
-            "gain_credits",
-            "place_advancement_on_card"
-          ]
-        },
-        {
           "site": "src/state/damage.ts#sufferPickedDamage",
           "kinds": []
         }
       ],
-      "kinds": [
-        "gain_credits",
-        "place_advancement_on_card"
-      ]
+      "kinds": []
     },
     "placePowerCounterOnAnyCardRez": {
       "cardDef": "boolean",
@@ -18509,10 +18411,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstSuccessfulRunThisTurn",
-          "kinds": []
-        },
-        {
           "site": "src/state/scoring.ts#canScoreAgenda",
           "kinds": []
         },
@@ -20089,10 +19987,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezRfgTrash.ts#applyLeanAndMeanStrengthBonus",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/derezRfgTrash.ts#applyRedsandFmPrimitive",
           "kinds": []
         },
@@ -20496,10 +20390,6 @@
         },
         {
           "site": "src/state/staticFlags.ts#installBlockReason",
-          "kinds": []
-        },
-        {
-          "site": "src/state/turn.ts#icebreakerCount",
           "kinds": []
         },
         {
@@ -21298,14 +21188,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/addResolveInstall.ts#maybeFireGainCreditsOnFirstFullyBreak",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/addResolveInstall.ts#maybeOfferAdvancementOnMeatDamage",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/addResolveInstall.ts#maybeOfferGainCreditsOnExpose",
           "kinds": []
         },
@@ -21371,10 +21253,6 @@
         },
         {
           "site": "src/effects/primitives/gainExposeSearch.ts#exposeIceAndMaybeBounce",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainExposeSearch.ts#rfgKabonesaTrackedAtTurnEnd",
           "kinds": []
         },
         {
@@ -22451,38 +22329,6 @@
         },
         {
           "site": "src/state/reveal.ts#revealCards",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnApproachServer",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterEndIfNotFullyBroken",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterEndIfPrintedSubroutineBroken",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterEndIfRezzed",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterEndIfRezzedThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnEncounterRezzedAfterApproach",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstPassIceEachTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstPassRezzedCodeGateOrSentryThisTurn",
           "kinds": []
         },
         {
@@ -23781,10 +23627,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezRfgTrash.ts#installedPrograms",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/derezRfgTrash.ts#rootCanHold",
           "kinds": []
         },
@@ -23794,10 +23636,6 @@
         },
         {
           "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive.addInstallable",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainCannotSwap.ts#countRezzedAssets",
           "kinds": []
         },
         {

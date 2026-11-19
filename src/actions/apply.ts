@@ -355,8 +355,6 @@ function emptyRemoteExists(state: GameState): Server | undefined {
   );
 }
 
-
-
 function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
   const pending = state.pendingTrashProgram;
   if (!pending) {
@@ -1624,8 +1622,6 @@ function swapIcePositions(state: GameState, a: string, b: string): void {
   state.cards[a].zone = `server:${serverB.id}:ice`;
   state.cards[b].zone = `server:${serverA.id}:ice`;
 }
-
-
 
 function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
   const idCard =
@@ -3758,11 +3754,6 @@ function openExtraDifferentActionWindow(state: GameState): void {
     abandonExtraDifferentAction(state);
     enterStep(state, from);
   }
-}
-
-/** List legal actions at the current timing graph node. */
-export function legalActions(state: GameState): Action[] {
-  return queryLegalActions(state);
 }
 
 export function describeState(state: GameState): string {

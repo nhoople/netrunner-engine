@@ -19,7 +19,7 @@ function isGenetics(card: { subtypes?: string[] } | undefined): boolean {
  * Whether any installed Runner card would mark for this Valley ordinal
  * (genetics respect Gene Conditioning Shoppe).
  */
-export function valTriggerWouldMark(
+function valTriggerWouldMark(
   state: GameState,
   effectKey: StoredConditionalEffectKey,
   ordinal: number,

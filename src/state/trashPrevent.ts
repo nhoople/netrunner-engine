@@ -13,7 +13,7 @@ export type TrashInterruptResult =
   | { ok: true }
   | { ok: false; error: string; cites: { number: string; id: string }[] };
 
-export function hasPayableTrashInterrupt(state: GameState): boolean {
+function hasPayableTrashInterrupt(state: GameState): boolean {
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];

@@ -107,27 +107,6 @@ const BREAKER_STRENGTH_KINDS = new Set([
   LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
 ]);
 
-/** True when the registry has a non-expired pump for this breaker. */
-export function hasLingeringBreakerStrength(
-  state: GameState,
-  breakerId: string,
-): boolean {
-  for (const e of state.lingeringEffects) {
-    if (e.expired) continue;
-    if (!BREAKER_STRENGTH_KINDS.has(e.kind)) continue;
-    if (e.kind === LINGERING_KIND_BREAKER_STRENGTH_RUN && !state.run) continue;
-    if (
-      e.kind === LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER &&
-      !state.run?.encounter
-    ) {
-      continue;
-    }
-    const payload = e.payload as { breakerId?: string } | undefined;
-    if (payload?.breakerId === breakerId) return true;
-  }
-  return false;
-}
-
 /**
  * Temporary breaker strength from the lingering registry (CR 9.10.1).
  * Registry is authoritative after framework migration M2.

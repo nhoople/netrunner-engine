@@ -27,7 +27,7 @@ import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { runnerIsTagged } from "../state/tags.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
-import { applyCardDef, getCardDef, instantiateCard } from "./load.js";
+import { applyCardDef, getCardDef } from "./load.js";
 
 /** Snapshot a card def for assertions (title, strength, abilities, …). */
 export function cardExport(defId: string) {
@@ -830,7 +830,6 @@ export function rezCostDiscountIfAgendaScoredOrStolenThisTurn(
   return scored || stolen ? amount : 0;
 }
 
-
 export function iceBlocksAiBreak(state: GameState, iceId: string): boolean {
   if (abilitiesSuppressed(state, iceId)) return false;
   const ice = state.cards[iceId];
@@ -931,7 +930,7 @@ export function runnerTrashCostForCard(
 }
 
 /** Sum of Encryption Protocol-class trash-cost bonuses from rezzed Corp cards. */
-export function installedCardsTrashCostBonusTotal(state: GameState): number {
+function installedCardsTrashCostBonusTotal(state: GameState): number {
   let bonus = 0;
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
@@ -1101,5 +1100,3 @@ export function applyAdvanceThisServerRecurringTowardAdvance(
   }
   return left;
 }
-
-export { instantiateCard, getCardDef, applyCardDef };

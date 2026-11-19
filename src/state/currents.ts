@@ -107,6 +107,13 @@ export function sumRunnerFirstRunAdditionalCost(state: GameState): number {
   return n;
 }
 
+/**
+ * Cerebral Static: the Runner's identity loses its printed abilities.
+ *
+ * @public Kept for knip: nothing calls this yet, so the card's effect never
+ * applies. It is the only reader of the card's flag. Wiring it in is a rules
+ * change left for a CR audit fix, not the dead-code sweep.
+ */
 export function runnerIdentityAbilitiesBlanked(state: GameState): boolean {
   for (const id of activeCorpCurrentIds(state)) {
     if (state.cards[id]?.blankRunnerIdentityPrintedAbilities) return true;
@@ -114,6 +121,13 @@ export function runnerIdentityAbilitiesBlanked(state: GameState): boolean {
   return false;
 }
 
+/**
+ * Employee Strike: the Corp's identity loses its printed abilities.
+ *
+ * @public Kept for knip: nothing calls this yet, so the card's effect never
+ * applies. It is the only reader of the card's flag. Wiring it in is a rules
+ * change left for a CR audit fix, not the dead-code sweep.
+ */
 export function corpIdentityAbilitiesBlanked(state: GameState): boolean {
   for (const id of activeRunnerCurrentIds(state)) {
     if (state.cards[id]?.blankCorpIdentityPrintedAbilities) return true;
@@ -143,6 +157,13 @@ export function runnerCannotPlayCurrentEvents(state: GameState): boolean {
   return false;
 }
 
+/**
+ * Unscheduled Maintenance: the Corp cannot install more than 1 piece of ice each turn.
+ *
+ * @public Kept for knip: nothing calls this yet, so the card's effect never
+ * applies. It is the only reader of the card's flag. Wiring it in is a rules
+ * change left for a CR audit fix, not the dead-code sweep.
+ */
 export function corpMaxIceInstallsPerTurnFromCurrents(state: GameState): number | null {
   let min: number | null = null;
   for (const id of activeCorpCurrentIds(state)) {
@@ -172,7 +193,7 @@ function trashCurrent(state: GameState, id: string, reason: string): void {
  * stays in play until another current operation or event is played
  * (CR 3.5.1b, CR 3.7.1b), whichever side plays it.
  */
-export function trashActiveCurrentsBeforePlay(state: GameState): void {
+function trashActiveCurrentsBeforePlay(state: GameState): void {
   const ids = [...activeCorpCurrentIds(state), ...activeRunnerCurrentIds(state)];
   for (const id of ids) {
     trashCurrent(state, id, "another current played");

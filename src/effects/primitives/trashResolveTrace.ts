@@ -56,7 +56,7 @@ function trashRunnerHardwareChoose(
 }
 
 /** Ask the Corp where the next granted subroutine goes (CR 9.8.2c). */
-export function offerSubroutineInsertChoice(state: GameState): void {
+function offerSubroutineInsertChoice(state: GameState): void {
   const run = state.run;
   const next = run?.pendingSubroutineInserts?.[0];
   const iceId = run?.encounter?.iceId;

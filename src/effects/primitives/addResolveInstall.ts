@@ -9,7 +9,6 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
@@ -461,38 +460,6 @@ logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.tit
   }
 }
 
-/** Hook: By Any Means forced trash + meat on non-Archives access. */
-export function maybeApplyByAnyMeansOnAccess(
-  state: EffectCtx["state"],
-): { trash: boolean; meat: number } | null {
-  if (!state.turn.ssByAnyMeansActive) return null;
-  const run = state.run;
-  if (!run?.accessingCardId) return null;
-  if (run.attackedServerId === "archives") return null;
-  return { trash: true, meat: 1 };
-}
-
-/** Fire Cyberdelia-class first fully-break credits. */
-export function maybeFireGainCreditsOnFirstFullyBreak(
-  state: EffectCtx["state"],
-): void {
-  if (!state.run?.encounter?.broken.every(Boolean)) return;
-  if (state.turn.ssFirstFullyBreakCreditsFired) return;
-  for (const id of state.runner.installed) {
-    if (abilitiesSuppressed(state, id)) continue;
-    const c = state.cards[id];
-    const n = c?.gainCreditsOnFirstFullyBreakEachTurn;
-    if (!c || typeof n !== "number" || n <= 0) continue;
-    state.turn.ssFirstFullyBreakCreditsFired = true;
-    state.runner.credits += n;
-    log(
-      state,
-      `${c.title} — gain ${n}¢ (first full break this turn) → ${state.runner.credits}¢.`,
-    );
-    return;
-  }
-}
-
 /** Zamba-class: may gain credits when a Corp card is exposed. */
 export function maybeOfferGainCreditsOnExpose(
   state: EffectCtx["state"],
@@ -522,40 +489,5 @@ export function maybeOfferGainCreditsOnExpose(
 logLine: `${c.title} — may gain ${n}¢ (Corp card exposed).`,
 });
     return;
-  }
-}
-
-/** Reconstruction Contract: may place advancement on meat damage. */
-export function maybeOfferAdvancementOnMeatDamage(
-  state: EffectCtx["state"],
-): void {
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.root) {
-      const c = state.cards[id];
-      if (!c?.rezzed || !c.placeAdvancementOnSufferMeatDamage) continue;
-      if (state.pendingChoice) return;
-      openPendingChoose(state, {
-        sourceId: id,
-        chooser: "corp",
-        options: [
-          {
-            id: "accept",
-            label: `Place 1 advancement on ${c.title}`,
-            effect: fx.do({
-              kind: "place_advancement_on_card",
-              cardId: id,
-              amount: 1,
-            }),
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-logLine: `${c.title} — may place 1 advancement (meat damage).`,
-});
-      return;
-    }
   }
 }

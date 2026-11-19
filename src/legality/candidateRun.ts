@@ -81,7 +81,7 @@ function breakCostFor(state: GameState, breakerId: string): number {
 }
 
 
-export function listServers(state: GameState): Server[] {
+function listServers(state: GameState): Server[] {
   return Object.values(state.servers);
 }
 

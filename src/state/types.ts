@@ -4267,7 +4267,7 @@ export type TurnPhase =
   | "runner_action"
   | "runner_discard";
 
-export type RunPhase =
+type RunPhase =
   | "initiation"
   | "approach_ice"
   | "encounter"
@@ -4277,7 +4277,7 @@ export type RunPhase =
   | "access"
   | "ends";
 
-export interface EncounterState {
+interface EncounterState {
   iceId: string;
   /**
    * The encountered ice was uninstalled. The encounter ends once any open
@@ -5287,7 +5287,7 @@ export interface TraceState {
 }
 
 /** Cards a cost has its payer pick, and the action waiting on them. */
-export interface PendingCost {
+interface PendingCost {
   action: Action;
   payer: Side;
   candidates: string[];
@@ -5305,7 +5305,7 @@ export interface PendingCost {
 }
 
 /** Interactive psi game (Adrian Seis; v0 sequential bids). */
-export interface PsiState {
+interface PsiState {
   id: string;
   sourceId: string;
   maxBid: number;
@@ -5322,7 +5322,7 @@ export interface PsiState {
 }
 
 /** Opened for a `tag_interrupt` (Decoy-class avoid/prevent tags). */
-export interface PendingTags {
+interface PendingTags {
   remaining: number;
   sourceId: string;
   /** Installed Runner cards when this interrupt window opened (CR 9.9.4d). */
@@ -5335,7 +5335,7 @@ export interface PendingTags {
  * Opened for an `end_the_run_interrupt` (Lucky Charm-class). Corp card
  * ability attempted to end the run; interrupt may prevent it.
  */
-export interface PendingEndTheRun {
+interface PendingEndTheRun {
   sourceId: string;
   /** True when the ETR came from a Corp card ability (subs count). */
   fromCorpCardAbility: boolean;
@@ -5351,7 +5351,7 @@ export interface PendingEndTheRun {
  * `prevent_pending_subroutine_break` Effect IR leaf; the dispatcher then
  * finalizes (does not mark the subroutine broken) instead of completing it.
  */
-export interface PendingSubroutineBreak {
+interface PendingSubroutineBreak {
   iceId: string;
   subIndex: number;
   prevented?: boolean;
@@ -5370,7 +5370,7 @@ export interface PendingEffectContinuation {
   followedBy?: PendingEffectContinuation;
 }
 
-export interface PendingDamage {
+interface PendingDamage {
   type: DamageType;
   remaining: number;
   sourceId: string;
@@ -5399,7 +5399,7 @@ export interface PendingDamage {
 }
 
 /** Corp chooses which program to trash (e.g. Rototurret). */
-export interface PendingTrashProgram {
+interface PendingTrashProgram {
   sourceId: string;
   candidates: string[];
   /** Who chooses the card to trash (CR 1.14.5). */
@@ -5407,7 +5407,7 @@ export interface PendingTrashProgram {
 }
 
 /** Corp resolves sabotage N by choosing HQ cards; remainder from R&D top (CR §10.12). */
-export interface PendingSabotage {
+interface PendingSabotage {
   sourceId: string;
   amount: number;
   /** HQ cards the Corp has picked so far (CR 10.12.2). Corp-only. */
@@ -5415,7 +5415,7 @@ export interface PendingSabotage {
 }
 
 /** Host chooses among effect IR options (Ballista, Funhouse, etc.). */
-export interface PendingChoice {
+interface PendingChoice {
   sourceId: string;
   chooser: Side;
   options: Array<{ id: string; label: string; effect: Effect }>;
@@ -5450,7 +5450,7 @@ export interface PendingChoice {
  * resolution (including nested charge/search choices), remaining unused
  * options are re-offered until `remaining` is 0.
  */
-export interface PendingExclusiveChoices {
+interface PendingExclusiveChoices {
   sourceId: string;
   chooser: Side;
   options: Array<{ id: string; label: string; effect: Effect }>;

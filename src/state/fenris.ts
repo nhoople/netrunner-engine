@@ -13,7 +13,7 @@ export const RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE =
   "runner:outside-game-identities" as const;
 
 /** Ability-bearing fields Fenris copies from a hosted g-mod identity. */
-export const FENRIS_GAINS_TEXT_KEYS = [
+const FENRIS_GAINS_TEXT_KEYS = [
   "muBonus",
   "onFirstSuccessfulCentralRunThisTurn",
   "onTurnBegin",
@@ -25,8 +25,6 @@ export const FENRIS_GAINS_TEXT_KEYS = [
   "connectionBasicTrashAdditionalCostTrashHq",
   "steveCambridge",
 ] as const;
-
-export type FenrisGainsTextKey = (typeof FENRIS_GAINS_TEXT_KEYS)[number];
 
 /**
  * Primary Runner identity plus installed cards that gained identity text
@@ -79,7 +77,7 @@ export function legalFenrisHostIds(
 }
 
 /** Clear ability fields Fenris previously gained from a hosted identity. */
-export function clearFenrisGainedText(fenris: CardInstance): void {
+function clearFenrisGainedText(fenris: CardInstance): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const f = fenris as any;
   for (const key of FENRIS_GAINS_TEXT_KEYS) {
@@ -88,7 +86,7 @@ export function clearFenrisGainedText(fenris: CardInstance): void {
 }
 
 /** Copy ability-bearing fields from hosted identity onto Fenris. */
-export function syncFenrisGainsTextFromHosted(
+function syncFenrisGainsTextFromHosted(
   fenris: CardInstance,
   hosted: CardInstance,
 ): void {

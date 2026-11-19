@@ -30,7 +30,7 @@ type CanPayTakeTags = (state: GameState, amount: number) => boolean;
  * An empty cost does not resolve the instruction. An unpayable cost
  * resolves it immediately (CR 1.16.1b when the caller marks it unpayable).
  */
-export function offerNestedUnless(
+function offerNestedUnless(
   ctx: EffectCtx,
   opts: {
     payer: "corp" | "runner";

@@ -4,7 +4,7 @@
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 
-export type BeforeFirstTurnPendingMark = {
+type BeforeFirstTurnPendingMark = {
   cardId: string;
   abilityKey: string;
   effectKey: StoredConditionalEffectKey;

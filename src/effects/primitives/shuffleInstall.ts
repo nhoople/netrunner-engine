@@ -2,7 +2,6 @@ import { revealCards } from "../../state/reveal.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 /** Magnum Opus (mo) primitives — v1.142.0. */
 import { log } from "../../state/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
@@ -335,21 +334,5 @@ logLine: `Timely Public Release — choose position on ${action.serverId}.`,
 
     default:
       return null;
-  }
-}
-
-/** Helper exported for Watch the World Burn access RFG. */
-export function rfgAccessedCorpCard(
-  state: EffectCtx["state"],
-  cardId: string,
-): void {
-  removeCardFromCurrentZone(state, cardId);
-  const card = state.cards[cardId];
-  if (!card) return;
-  card.zone = "removed-from-game";
-  card.faceup = true;
-  if (!state.removedFromGame) state.removedFromGame = [];
-  if (!state.removedFromGame.includes(cardId)) {
-    state.removedFromGame.push(cardId);
   }
 }

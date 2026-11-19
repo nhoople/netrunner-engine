@@ -73,7 +73,7 @@ export function noteCorpActionType(state: GameState, actionKind: string): void {
  * The name `noteCorpActionType` gives the action an intent takes from the
  * Corp's action window, or null when the intent is not a Corp action there.
  */
-export function corpActionKindForIntent(
+function corpActionKindForIntent(
   state: GameState,
   action: Action,
 ): string | null {

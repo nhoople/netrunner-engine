@@ -11,7 +11,6 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
@@ -28,26 +27,6 @@ function trashRunnerInstalled(
   card.hostId = undefined;
   card.faceup = true;
   state.runner.discardPile.push(cardId);
-}
-
-function rfgRunnerInstalled(
-  state: EffectCtx["state"],
-  cardId: string,
-): void {
-  const card = state.cards[cardId];
-  if (!card || !state.runner.installed.includes(cardId)) return;
-  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  for (const id of [...state.runner.installed]) {
-    const c = state.cards[id];
-    if (c?.hostId === cardId) c.hostId = undefined;
-  }
-  card.hostId = undefined;
-  card.zone = "removed-from-game";
-  card.faceup = true;
-  if (!state.removedFromGame) state.removedFromGame = [];
-  if (!state.removedFromGame.includes(cardId)) {
-    state.removedFromGame.push(cardId);
-  }
 }
 
 function exposeIceAndMaybeBounce(
@@ -874,20 +853,5 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
     default:
       return null;
   }
-}
-
-/** Kabonesa Wu: RFG tracked installs still in installed at runner turn end. */
-export function rfgKabonesaTrackedAtTurnEnd(state: EffectCtx["state"]): void {
-  const ids = state.turn.dtwnKabonesaTrackedInstallIds ?? [];
-  for (const id of ids) {
-    if (state.runner.installed.includes(id)) {
-      rfgRunnerInstalled(state, id);
-      log(
-        state,
-        `Kabonesa Wu — remove ${state.cards[id]?.title ?? id} from the game.`,
-      );
-    }
-  }
-  state.turn.dtwnKabonesaTrackedInstallIds = [];
 }
 

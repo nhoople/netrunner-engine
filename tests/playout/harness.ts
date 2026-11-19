@@ -61,7 +61,7 @@ export const FORMATS = [
 ] as const;
 export type Format = (typeof FORMATS)[number];
 
-export type FailureCode = "CRASH" | "REFUSED" | "NO_LEGAL_ACTION" | string;
+type FailureCode = "CRASH" | "REFUSED" | "NO_LEGAL_ACTION" | string;
 
 export interface Failure {
   code: FailureCode;
@@ -98,7 +98,7 @@ export function failureKey(f: { code: string; step: number }): string {
 // ---------------------------------------------------------------- random
 
 /** mulberry32, the same stream the engine and the game use. */
-export function rng(seed: number): () => number {
+function rng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -400,7 +400,7 @@ export function deckProblems(format: FormatPool, deck: Deck): string[] {
  * agenda band (CR 1.4.6), then fills with non-agenda cards. A draft that
  * cannot finish is thrown away and redrafted from the same stream.
  */
-export function randomDeck(format: FormatPool, side: "corp" | "runner", random: () => number): Deck {
+function randomDeck(format: FormatPool, side: "corp" | "runner", random: () => number): Deck {
   const catalog = loadCardCatalog();
   const defs = format.cards.map((id) => catalog.get(id)!).filter((def) => def.side === side);
   const identities = defs.filter((def) => def.type === "identity" && !STARTER_IDENTITIES.has(def.id));
@@ -481,7 +481,7 @@ export function decksFor(format: Format, seed: number): { corp: Deck; runner: De
  * Learn to play lists play to 6 agenda points, as the game does; random decks
  * play to 7 (CR 1.7.2).
  */
-export function dealMatch(format: Format, seed: number): GameState {
+function dealMatch(format: Format, seed: number): GameState {
   const decks = decksFor(format, seed);
   const learnToPlay = format.startsWith("learn_to_play");
   const state = createInitialState({

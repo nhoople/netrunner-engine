@@ -14,23 +14,9 @@ import {
 } from "../../state/continuousSubs.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
-
-
-function countRezzedAssets(state: EffectCtx["state"]): number {
-  let n = 0;
-  for (const c of Object.values(state.cards)) {
-    if (!c?.rezzed || c.type !== "asset") continue;
-    // Installed in a server root or hosted on Worlds Plaza-class.
-    if ((c.zone ?? "").includes(":root") || (c.zone ?? "").startsWith("hosted:")) {
-      n += 1;
-    }
-  }
-  return n;
-}
 
 export function syncAllTourGuideSubs(state: EffectCtx["state"]): void {
   for (const server of Object.values(state.servers)) {
@@ -510,10 +496,4 @@ function offerBookmarkHostChoice(ctx: EffectCtx): PrimResult {
 logLine: `${source.title} — host from grip (${remaining} remaining capacity).`,
 });
   return { ok: true };
-}
-
-export function countRezzedAssetsForTourGuide(
-  state: EffectCtx["state"],
-): number {
-  return countRezzedAssets(state);
 }

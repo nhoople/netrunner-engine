@@ -64,7 +64,7 @@ function optionalLikeCards(
  * copy of the game. `trashFirst` marks a destination that holds cards the
  * Corp may trash first.
  */
-export function corpAbilityInstallDestinations(
+function corpAbilityInstallDestinations(
   state: GameState,
   action: InstallCorpCard,
 ): Array<{ serverId: string; trashFirst: boolean; needsTrash: boolean }> {

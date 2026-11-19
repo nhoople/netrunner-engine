@@ -24,7 +24,7 @@ import {
 } from "./harness.js";
 
 /** Per-format CI seed counts. `npm run playouts` plays more. */
-export const CI_SEEDS: Record<Format, number> = {
+const CI_SEEDS: Record<Format, number> = {
   learn_to_play_starter: 4,
   learn_to_play_expanded: 4,
   startup: 4,

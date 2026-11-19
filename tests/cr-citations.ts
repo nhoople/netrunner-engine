@@ -39,7 +39,7 @@ export function rel(file: string): string {
 }
 
 // `CR 8.5.11`, `CR 1.21.1–1.21.6`, `CR 7.2.1, 7.2.2 / 7.3`, `CR 9`.
-export const CR_NUM = String.raw`\d+(?:\.\d+)+[a-z]?|\d+(?![\d.])`;
+const CR_NUM = String.raw`\d+(?:\.\d+)+[a-z]?|\d+(?![\d.])`;
 const CITE_SOURCE = String.raw`\bCR\s+((?:${CR_NUM})(?:\s*(?:,|–|—|-|/|&|and|or)\s*(?:${CR_NUM}))*)`;
 
 export type LiteralCitation = {
@@ -77,7 +77,7 @@ export function loadNodes(): CrNode[] {
 }
 
 /** `CR.<key>` → rule number, from src/timing/labels.ts. */
-export function labelNumbers(): Map<string, string> {
+function labelNumbers(): Map<string, string> {
   return new Map(
     (Object.entries(CR) as Array<[string, { number: string }]>).map(
       ([k, v]) => [k, v.number],
@@ -95,7 +95,7 @@ export function labelNumbers(): Map<string, string> {
  * enough that code about one of them and a rule that never mentions it
  * clearly differ.
  */
-export const PLAN_TOPICS: Record<string, RegExp> = {
+const PLAN_TOPICS: Record<string, RegExp> = {
   visibility:
     /\b(?:visib\w*|visible|invisible|hidden|hide|hides|face ?up|face ?down|faces?|reveal(?:s|ed|ing)?|expos(?:e|es|ed|ing)|look(?:s|ed|ing)? at|secret|(?:may|can|cannot|can't|not) see|sees)\b/,
   swap: /\bswap\w*/,
@@ -162,7 +162,7 @@ const GENERIC = new Set(
 );
 
 /** Lowercase word → crude stem, so "advancing" and "advance" agree. */
-export function stem(word: string): string {
+function stem(word: string): string {
   let w = word.toLowerCase();
   for (let i = 0; i < 2; i++) {
     const s = w.replace(/(?:ment|ing|ed|es|s|e)$/, "");
@@ -173,7 +173,7 @@ export function stem(word: string): string {
 }
 
 /** camelCase / snake_case / prose → lowercase words. */
-export function words(text: string): string[] {
+function words(text: string): string[] {
   return (
     text
       .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
@@ -184,7 +184,7 @@ export function words(text: string): string[] {
 }
 
 /** Plain, lowercase prose for topic matching (identifiers split). */
-export function prose(text: string): string {
+function prose(text: string): string {
   return words(text).join(" ");
 }
 
@@ -281,7 +281,7 @@ function planOnly(topics: Set<string>): Set<string> {
   return new Set([...topics].filter((t) => !t.startsWith("§")));
 }
 
-export type RuleTopics = {
+type RuleTopics = {
   /** What the rule is about: its own text, its titles, and its section. */
   core: Set<string>;
   /** `§` topics named in the rule's own text (code citations only). */
@@ -302,7 +302,7 @@ function isRare(model: TopicModel, st: string): boolean {
 
 const ruleTopicCache = new WeakMap<TopicModel, Map<string, RuleTopics>>();
 
-export function ruleTopics(model: TopicModel, number: string): RuleTopics | null {
+function ruleTopics(model: TopicModel, number: string): RuleTopics | null {
   let cache = ruleTopicCache.get(model);
   if (!cache) ruleTopicCache.set(model, (cache = new Map()));
   const hit = cache.get(number);
@@ -471,7 +471,7 @@ const FUNCTION_DECL = [
 const NOT_A_FUNCTION = new Set(["if", "for", "while", "switch", "catch", "return", "function"]);
 
 /** The nearest function-like declaration at or above `lineNo`: its name and line. */
-export function enclosingFunction(
+function enclosingFunction(
   lines: string[],
   lineNo: number,
 ): { name: string; line: number } {

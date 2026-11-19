@@ -123,7 +123,7 @@ export function maybeGrantSystemSeizureRunDuration(
 }
 
 /** Active duration replacement for this icebreaker, if any (CR 9.9.9). */
-export function activeStrengthDurationReplacement(
+function activeStrengthDurationReplacement(
   state: GameState,
   breakerId: string,
 ): StrengthDurationReplacement | undefined {

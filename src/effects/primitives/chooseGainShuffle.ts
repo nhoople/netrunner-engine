@@ -5,13 +5,12 @@ import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
+import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
-
 
 type PrimResult =
   | { ok: true }
@@ -57,18 +56,6 @@ function canAdvance(state: EffectCtx["state"], cardId: string): boolean {
   if (c.canAdvance) return true;
   const def = c.defId ? getCardDef(c.defId) : undefined;
   return Boolean(def?.canAdvance);
-}
-
-function serverHostingCard(
-  state: EffectCtx["state"],
-  cardId: string,
-): ServerId | null {
-  for (const [sid, server] of Object.entries(state.servers)) {
-    if (server.root.includes(cardId) || server.ice.includes(cardId)) {
-      return sid as ServerId;
-    }
-  }
-  return null;
 }
 
 function iceProtectingHqCount(state: EffectCtx["state"]): number {
@@ -574,11 +561,4 @@ export function applyRedsandBawPrimitive(
     default:
       return null;
   }
-}
-
-export function serverOfCard(
-  state: EffectCtx["state"],
-  cardId: string,
-): ServerId | null {
-  return serverHostingCard(state, cardId);
 }

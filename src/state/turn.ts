@@ -624,13 +624,6 @@ export function wasAbilityUsedThisEncounter(
   );
 }
 
-export function icebreakerCount(state: GameState): number {
-  return state.runner.installed.filter((id) => {
-    const c = state.cards[id];
-    return Boolean(c?.breaker) || (c?.subtypes ?? []).includes("icebreaker");
-  }).length;
-}
-
 /**
  * Effective MU cost for a program (Key Master cloud: 0 while link ≥ threshold).
  * Uses recomputed printed link (`state.runner.link`).
@@ -723,7 +716,7 @@ function isCaissaProgram(state: GameState, programId: string): boolean {
   return subs.some((s) => s.includes("caissa") || s.includes("caïssa"));
 }
 
-export function caissaMuBonusAvailable(state: GameState): number {
+function caissaMuBonusAvailable(state: GameState): number {
   let pool = 0;
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;

@@ -34,7 +34,7 @@ export function accountSiphonReplacesBreach(state: GameState): boolean {
   );
 }
 
-export function showingOffReplacesBreach(state: GameState): boolean {
+function showingOffReplacesBreach(state: GameState): boolean {
   return Boolean(
     state.run?.accessFromBottomOfRd && state.run.attackedServerId === "rd",
   );

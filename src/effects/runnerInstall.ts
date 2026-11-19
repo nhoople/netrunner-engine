@@ -39,7 +39,7 @@ import {
 } from "../state/miscConditionalHooks.js";
 import { shuffleInPlace } from "../state/rng.js";
 
-export function countInstalledIcebreakersForCost(state: GameState): number {
+function countInstalledIcebreakersForCost(state: GameState): number {
   return state.runner.installed.filter(
     (id) =>
       Boolean(state.cards[id].breaker) ||
@@ -91,7 +91,7 @@ export function gripInstallCostAfterDiscount(
   return Math.max(0, cost - discount);
 }
 
-export function trashOtherConsoles(state: GameState, keepId: string): void {
+function trashOtherConsoles(state: GameState, keepId: string): void {
   const toTrash = state.runner.installed.filter((id) => {
     if (id === keepId) return false;
     return (state.cards[id].subtypes ?? []).includes("console");
@@ -344,7 +344,7 @@ export function shuffleRunnerStack(state: GameState): void {
   shuffleInPlace(state, state.runner.deck);
 }
 
-export function stackProgramInstallCost(
+function stackProgramInstallCost(
   state: GameState,
   card: GameState["cards"][string],
 ): number {
@@ -400,7 +400,7 @@ function patchworkInstallDiscount(state: GameState): number {
   return discount;
 }
 
-export function canInstallStackProgram(
+function canInstallStackProgram(
   state: GameState,
   cardId: string,
 ): boolean {
@@ -542,7 +542,7 @@ export function stackCardInstallCost(
   return gripInstallCostAfterDiscount(state, card, discount);
 }
 
-export function canInstallStackCard(
+function canInstallStackCard(
   state: GameState,
   cardId: string,
   discount: number,

@@ -111,7 +111,7 @@ export function nestPriorityAfterAbility(
  * Close the innermost priority window frame.
  * Returns true if the stack is now empty.
  */
-export function closeInnermostPriorityWindow(state: GameState): boolean {
+function closeInnermostPriorityWindow(state: GameState): boolean {
   const pw = state.priorityStack.pop();
   if (!pw) return true;
   const frame = pushCheckpoint(

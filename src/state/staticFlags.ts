@@ -317,6 +317,13 @@ export function agendaPointHandSize(state: GameState): number {
   return bonus;
 }
 
+/**
+ * Itinerant Protesters: the Corp gets -1 maximum hand size for each bad publicity.
+ *
+ * @public Kept for knip: nothing calls this yet, so the card's effect never
+ * applies. It is the only reader of the card's flag. Wiring it in is a rules
+ * change left for a CR audit fix, not the dead-code sweep.
+ */
 export function corpHandSizeFromBadPublicity(state: GameState): number {
   let bonus = 0;
   const bp = state.corp.badPublicity ?? 0;

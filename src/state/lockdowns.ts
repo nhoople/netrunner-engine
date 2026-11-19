@@ -12,7 +12,7 @@ import {
 } from "./zones.js";
 
 /** True when the card is a lockdown subtype. */
-export function isLockdownCard(card: CardInstance | undefined): boolean {
+function isLockdownCard(card: CardInstance | undefined): boolean {
   return Boolean(card?.subtypes?.includes("lockdown"));
 }
 

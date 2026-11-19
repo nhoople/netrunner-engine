@@ -17,7 +17,7 @@ export type SideRef = "corp" | "runner" | "payer" | "controller";
  * `per` defaults to 1. `base` is added before the product.
  * `side: "source"` uses the card that is resolving.
  */
-export const CREDIT_TALLY_COUNTS = [
+const CREDIT_TALLY_COUNTS = [
   "source_advancement_counters",
   "source_power_counters",
   "source_virus_counters",
@@ -38,7 +38,7 @@ export const CREDIT_TALLY_COUNTS = [
   "runner_heap_subtype",
 ] as const;
 
-export type CreditTallyCount = (typeof CREDIT_TALLY_COUNTS)[number];
+type CreditTallyCount = (typeof CREDIT_TALLY_COUNTS)[number];
 
 export type CreditTally = {
   count: CreditTallyCount;
@@ -5760,14 +5760,14 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "prevent_current_ice_on_encounter",
 ]);
 
-export const KNOWN_EFFECT_OPS = new Set([
+const KNOWN_EFFECT_OPS = new Set([
   "seq",
   "do",
   "if",
   "prevent",
   "choose",
 ]);
-export const KNOWN_COND_OPS = new Set([
+const KNOWN_COND_OPS = new Set([
   "true",
   "false",
   "during_run",
