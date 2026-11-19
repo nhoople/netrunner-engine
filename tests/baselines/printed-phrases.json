@@ -1,0 +1,57 @@
+{
+  "cardsPin": "v1.147.24",
+  "counts": {
+    "cards": 2016,
+    "cardsWithHits": 14,
+    "hits": 15,
+    "kindsInCorpus": 905,
+    "kindsCovered": 706,
+    "phraseRules": 61,
+    "kindPhrases": 18
+  },
+  "entries": {
+    "architect": [
+      "look_top_n_rd_may_install_and_rez_ignore_costs: no \"rez\""
+    ],
+    "cerebral-cast": [
+      "net_damage: no \"net damage\""
+    ],
+    "executive-wiretaps": [
+      "reveal_hq_gain_credits: no \"[credit]\"",
+      "reveal_hq_gain_credits: no \"gain or take\""
+    ],
+    "flip-switch": [
+      "end_the_run: no \"end the run\""
+    ],
+    "flower-sermon": [
+      "look_top_rd_may_advance_may_bottom: no \"advance\""
+    ],
+    "globalsec-security-clearance": [
+      "reveal_top_of_rd: no \"reveal\""
+    ],
+    "grndl-power-unleashed": [
+      "gain_credits: no \"gain or take\""
+    ],
+    "hermes": [
+      "draw: no \"draw\""
+    ],
+    "lionsmane": [
+      "end_the_run: no \"end the run\""
+    ],
+    "officer-frank": [
+      "corp_discard_random_from_hq: no \"discard\""
+    ],
+    "oracle-may": [
+      "choose_type_reveal_install: no \"install\""
+    ],
+    "pawn": [
+      "advance_caissa_host_inward_or_install [flag caissaAdvanceOnSuccessfulRun]: no \"advance\""
+    ],
+    "the-future-perfect": [
+      "net_damage: no \"net damage\""
+    ],
+    "tri-maf-contact": [
+      "give_tags: no \"tag\""
+    ]
+  }
+}
