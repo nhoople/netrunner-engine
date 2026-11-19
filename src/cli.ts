@@ -103,7 +103,9 @@ function printPins(): void {
     assertCardsPinnedTag(cards.tag);
     console.log("            vendor/cards-data present.");
   } else {
-    console.log("            vendor/cards-data missing — run npm run fetch-cards");
+    console.log(
+      "            vendor/cards-data missing — run npm run fetch-cards",
+    );
   }
 }
 
@@ -243,10 +245,7 @@ function demo(): void {
 }
 
 function main(): void {
-  if (
-    process.argv.includes("--help") ||
-    process.argv.includes("-h")
-  ) {
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
     printHelp();
     return;
   }

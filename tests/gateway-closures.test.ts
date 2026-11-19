@@ -116,7 +116,9 @@ describe("Gateway partial closures", () => {
   it("Retribution requires tagged Runner and may trash hardware", () => {
     const def = getCardDef("retribution");
     expect(def.playRequiresTagged).toBe(true);
-    expect(playEffectFromCard(def)).toEqual(fx.trashProgramOrHardware("choose"));
+    expect(playEffectFromCard(def)).toEqual(
+      fx.trashProgramOrHardware("choose"),
+    );
   });
 
   it("Echelon gains strength per icebreaker", () => {
@@ -135,10 +137,7 @@ describe("Gateway partial closures", () => {
     expect(getCardDef("diviner").unsupported ?? []).toEqual([]);
     const sub = getCardDef("diviner").subroutines![0]!;
     expect(sub.effect).toEqual(
-      fx.seq(
-        fx.netDamage(1),
-        fx.if({ op: "grip_count_odd" }, fx.etr()),
-      ),
+      fx.seq(fx.netDamage(1), fx.if({ op: "grip_count_odd" }, fx.etr())),
     );
   });
 
@@ -150,10 +149,13 @@ describe("Gateway partial closures", () => {
 
   it("Mayfly and Zahya / René fields load", () => {
     expect(getCardDef("mayfly").trashAfterBreakingThisRun).toBe(true);
-    expect(getCardDef("zahya-sadeghi-versatile-smuggler").creditsPerAccessOnCentralRunEnd).toBe(
-      true,
-    );
-    expect(getCardDef("rene-loup-arcemont-party-animal").onAccessTrashGain).toEqual({
+    expect(
+      getCardDef("zahya-sadeghi-versatile-smuggler")
+        .creditsPerAccessOnCentralRunEnd,
+    ).toBe(true);
+    expect(
+      getCardDef("rene-loup-arcemont-party-animal").onAccessTrashGain,
+    ).toEqual({
       credits: 1,
       draw: 1,
       oncePerTurn: true,

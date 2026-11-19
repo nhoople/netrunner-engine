@@ -12,10 +12,8 @@ import { abilityCreditTally } from "./creditTally.js";
 import type { Primitive } from "./ir.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applyBadPublicityPrimitive(
   ctx: EffectCtx,
@@ -63,8 +61,8 @@ export function applyBadPublicityPrimitive(
             },
           },
         ],
-logLine: `${source.title} — may host ${amount} bad publicity.`,
-});
+        logLine: `${source.title} — may host ${amount} bad publicity.`,
+      });
       return { ok: true };
     }
     case "host_bad_publicity": {

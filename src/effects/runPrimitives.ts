@@ -16,12 +16,14 @@ import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-type TrashCorpCard = (state: GameState, cardId: string, trashedBy: "corp" | "runner") => void;
+type TrashCorpCard = (
+  state: GameState,
+  cardId: string,
+  trashedBy: "corp" | "runner",
+) => void;
 
 type CanPayTakeTags = (state: GameState, amount: number) => boolean;
 
@@ -51,19 +53,15 @@ function offerNestedUnless(
   }
   const afterChoice = (effect: Effect): Effect => ({
     op: "seq",
-    effects: [
-      { op: "do", action: { kind: "end_choice_instruction" } },
-      effect,
-    ],
+    effects: [{ op: "do", action: { kind: "end_choice_instruction" } }, effect],
   });
   const pay = { ...opts.pay, effect: afterChoice(opts.pay.effect) };
   const instruction = {
     ...opts.instruction,
     effect: afterChoice(opts.instruction.effect),
   };
-  const options = opts.payFirst === false
-    ? [instruction, pay]
-    : [pay, instruction];
+  const options =
+    opts.payFirst === false ? [instruction, pay] : [pay, instruction];
   openPendingChoose(state, { sourceId, chooser: opts.payer, options });
   if (opts.offerLog) log(state, opts.offerLog);
   return { ok: true };
@@ -135,7 +133,8 @@ function nestedCostPart(
       }
       if (
         (prim.kind === "runner_pay_credits" && payer !== "runner") ||
-        ((prim.kind === "corp_pay_credits" || prim.kind === "corp_pay_credits_to_prevent") &&
+        ((prim.kind === "corp_pay_credits" ||
+          prim.kind === "corp_pay_credits_to_prevent") &&
           payer !== "corp")
       ) {
         return {
@@ -364,7 +363,10 @@ function endTheRun(ctx: EffectCtx): PrimResult {
           effect: {
             op: "seq",
             effects: [
-              { op: "do", action: { kind: "reveal_trash_random_from_hq", amount: rootN } },
+              {
+                op: "do",
+                action: { kind: "reveal_trash_random_from_hq", amount: rootN },
+              },
               { op: "do", action: { kind: "end_the_run" } },
             ],
           },
@@ -372,7 +374,10 @@ function endTheRun(ctx: EffectCtx): PrimResult {
         {
           id: "end-run-decline",
           label: "Do not: the run does not end",
-          effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 0 } },
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
         },
       ],
       logLine: `Shred — the run does not end unless the Corp reveals and trashes ${rootN} card(s) from HQ at random (CR ${CR.nestedCostUnless.number}).`,
@@ -391,10 +396,7 @@ function endTheRun(ctx: EffectCtx): PrimResult {
   }
   state.run.endedTheRun = true;
   state.run.successful = false;
-  log(
-    state,
-    `End the run (CR ${CR.endTheRun.number}) — run is unsuccessful.`,
-  );
+  log(state, `End the run (CR ${CR.endTheRun.number}) — run is unsuccessful.`);
   return { ok: true };
 }
 
@@ -429,7 +431,10 @@ export function applyRunPrimitive(
         const card = state.cards[id]!;
         if (card.zone === "corp:archives") card.faceup = true;
       }
-      log(state, `The Corp reveals and trashes ${picks.length} card(s) from HQ at random.`);
+      log(
+        state,
+        `The Corp reveals and trashes ${picks.length} card(s) from HQ at random.`,
+      );
       return { ok: true };
     }
     case "forbid_end_the_run_this_encounter": {

@@ -26,13 +26,23 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { countWrites, ROOT, scanDirectWrites, type WriteCounts } from "./direct-writes.js";
+import {
+  countWrites,
+  ROOT,
+  scanDirectWrites,
+  type WriteCounts,
+} from "./direct-writes.js";
 
 const BASELINE_PATH = join(ROOT, "tests/baselines/direct-writes.json");
-const REGENERATE = "UPDATE_DIRECT_WRITES=1 npx vitest run tests/procedure-write-guard.test.ts";
+const REGENERATE =
+  "UPDATE_DIRECT_WRITES=1 npx vitest run tests/procedure-write-guard.test.ts";
 
 /** Helper modules allowed to write the listed properties ("*" = every tracked property). */
-const ALLOWLIST: Array<{ path: string; properties: readonly string[] | "*"; why: string }> = [
+const ALLOWLIST: Array<{
+  path: string;
+  properties: readonly string[] | "*";
+  why: string;
+}> = [
   {
     path: "src/state/procedures/",
     properties: "*",
@@ -55,7 +65,12 @@ function allowed(file: string, property: string): boolean {
 
 type Baseline = {
   _comment: string;
-  raised: Array<{ date: string; file: string; property: string; reason: string }>;
+  raised: Array<{
+    date: string;
+    file: string;
+    property: string;
+    reason: string;
+  }>;
   counts: WriteCounts;
 };
 
@@ -78,25 +93,42 @@ function flatten(c: WriteCounts): Map<string, number> {
 if (process.env.UPDATE_DIRECT_WRITES) {
   const base = readBaseline();
   const before = flatten(base.counts);
-  const raised = [...flatten(found)].filter(([k, n]) => n > (before.get(k) ?? 0));
+  const raised = [...flatten(found)].filter(
+    ([k, n]) => n > (before.get(k) ?? 0),
+  );
   if (raised.length > 0) {
     throw new Error(
       `refusing to raise direct-write counts: ${raised.map(([k, n]) => `${k} ${before.get(k) ?? 0}→${n}`).join(", ")}`,
     );
   }
-  writeFileSync(BASELINE_PATH, JSON.stringify({ ...base, counts: found }, null, 2) + "\n");
+  writeFileSync(
+    BASELINE_PATH,
+    JSON.stringify({ ...base, counts: found }, null, 2) + "\n",
+  );
 }
 
 describe("procedure write guard (CR audit Phase 2)", () => {
   it("sees assignments through casts, compound assignment, mutators and reassignment", () => {
     const at = (file: string, property: string, text: RegExp): boolean =>
-      writes.some((w) => w.file === file && w.property === property && text.test(w.text));
+      writes.some(
+        (w) => w.file === file && w.property === property && text.test(w.text),
+      );
     // Mind Game's redirect writes −1 through a cast (CR 6.2.4).
-    expect(at("src/effects/primitives/spendHostPrevent.ts", "position", /as \{ position/)).toBe(true);
+    expect(
+      at(
+        "src/effects/primitives/spendHostPrevent.ts",
+        "position",
+        /as \{ position/,
+      ),
+    ).toBe(true);
     expect(at("src/legality/checkpoints.ts", "position", /-=/)).toBe(true);
     expect(at("src/state/runPosition.ts", "position", /\+= 1/)).toBe(true);
-    expect(writes.some((w) => w.kind === "mutate" && w.property === "discardPile")).toBe(true);
-    expect(writes.some((w) => w.kind === "assign" && /\.filter\(/.test(w.text))).toBe(true);
+    expect(
+      writes.some((w) => w.kind === "mutate" && w.property === "discardPile"),
+    ).toBe(true);
+    expect(
+      writes.some((w) => w.kind === "assign" && /\.filter\(/.test(w.text)),
+    ).toBe(true);
   });
 
   it("does not count a public-view object's fields", () => {
@@ -127,7 +159,10 @@ describe("procedure write guard (CR audit Phase 2)", () => {
     const stale = [...flatten(readBaseline().counts)]
       .filter(([k, n]) => (now.get(k) ?? 0) < n)
       .map(([k, n]) => `${k}: ${now.get(k) ?? 0} < ${n}`);
-    expect(stale, `direct writes removed: lower the baseline with ${REGENERATE}`).toEqual([]);
+    expect(
+      stale,
+      `direct writes removed: lower the baseline with ${REGENERATE}`,
+    ).toEqual([]);
   });
 
   it("every raised count has a date and a reason", () => {
@@ -140,7 +175,9 @@ describe("procedure write guard (CR audit Phase 2)", () => {
   it("run position writes outside runPosition.ts are the recorded ones (CR 6.2.4, 6.2.6)", () => {
     // Was the regex guard in tests/ice-uninstalled-during-run.test.ts, which
     // missed `+=`, `-=` and cast writes.
-    const position = outside.filter((w) => w.property === "position").map((w) => w.file);
+    const position = outside
+      .filter((w) => w.property === "position")
+      .map((w) => w.file);
     expect(position.sort()).toEqual([
       // The install keeps the Runner on the same element (CR 6.2.6).
       "src/actions/installCorp.ts",

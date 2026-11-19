@@ -2,14 +2,8 @@
  * Primitive kinds whose procedure is choose.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
@@ -25,14 +19,17 @@ import {
 } from "../eval.js";
 import { breakerStrength } from "../iceStrength.js";
 
-export function applyChooseKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyChooseKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "choose_server_corp_trash_ice_protecting": {
-      const servers = (Object.keys(state.servers) as import("../../state/types.js").ServerId[]).filter(
-        (sid) => (state.servers[sid]?.ice.length ?? 0) > 0,
-      );
+    case "choose_server_corp_trash_ice_protecting": {
+      const servers = (
+        Object.keys(state.servers) as import("../../state/types.js").ServerId[]
+      ).filter((sid) => (state.servers[sid]?.ice.length ?? 0) > 0);
       if (servers.length === 0) {
         log(state, `${source.title} — no servers with ice.`);
         return { ok: true };
@@ -51,12 +48,12 @@ case "choose_server_corp_trash_ice_protecting": {
             },
           },
         })),
-logLine: `${source.title} — choose a server.`,
-});
+        logLine: `${source.title} — choose a server.`,
+      });
       return { ok: true };
     }
 
-case "choose_forfeit_runner_scored_agenda": {
+    case "choose_forfeit_runner_scored_agenda": {
       const agendas = state.runner.scoreArea.filter(
         (id) => !state.cards[id]?.cannotForfeit,
       );
@@ -87,12 +84,12 @@ case "choose_forfeit_runner_scored_agenda": {
             },
           },
         })),
-logLine: `${source.title} — forfeit a scored agenda.`,
-});
+        logLine: `${source.title} — forfeit a scored agenda.`,
+      });
       return { ok: true };
     }
 
-case "choose_type_reveal_gain_etr_unless_tag_for_run": {
+    case "choose_type_reveal_gain_etr_unless_tag_for_run": {
       if (!state.run?.encounter || state.run.encounter.iceId !== sourceId) {
         log(state, `Peeping Tom — no encounter on this ice.`);
         return { ok: true };
@@ -117,12 +114,12 @@ case "choose_type_reveal_gain_etr_unless_tag_for_run": {
             },
           },
         })),
-logLine: `${source.title} — choose a card type, reveal grip, gain ETR-unless-tag subs for the run.`,
-});
+        logLine: `${source.title} — choose a card type, reveal grip, gain ETR-unless-tag subs for the run.`,
+      });
       return { ok: true };
     }
 
-case "choose_installed_runner_may_access": {
+    case "choose_installed_runner_may_access": {
       const installed: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
@@ -149,17 +146,18 @@ case "choose_installed_runner_may_access": {
             },
           },
         })),
-logLine: `${source.title} — choose 1 installed card.`,
-});
+        logLine: `${source.title} — choose 1 installed card.`,
+      });
       return { ok: true };
     }
 
-case "choose_rezzed_bioroid_forbid_runner_break": {
+    case "choose_rezzed_bioroid_forbid_runner_break": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
           const c = state.cards[id];
-          if (c?.rezzed && (c.subtypes ?? []).includes("bioroid")) targets.push(id);
+          if (c?.rezzed && (c.subtypes ?? []).includes("bioroid"))
+            targets.push(id);
         }
       }
       if (targets.length === 0) {
@@ -175,7 +173,7 @@ case "choose_rezzed_bioroid_forbid_runner_break": {
         );
         return { ok: true };
       }
-      
+
       // Use a dedicated leaf via encoding in option effect as gain 0 then set flag in chooseOption — simpler: use custom option ids handled in chooseOption OR set via a new primitive set_flag.
       // Rebuild options with a seq that uses a new micro-primitive: encode as choose that evaluates a do with kind we handle specially.
       // Simpler approach: set flag synchronously on choose via option id prefix in chooseOption.
@@ -196,12 +194,12 @@ case "choose_rezzed_bioroid_forbid_runner_break": {
             },
           })),
         ],
-logLine: `${source.title} — choose a rezzed bioroid ice (CR ${CR.paidAbility.number}).`,
-});
+        logLine: `${source.title} — choose a rezzed bioroid ice (CR ${CR.paidAbility.number}).`,
+      });
       return { ok: true };
     }
 
-case "may_corp_choose_climactic_server_trash_ice_else_bonus_access": {
+    case "may_corp_choose_climactic_server_trash_ice_else_bonus_access": {
       const iced: string[] = [];
       for (const [sid, server] of Object.entries(state.servers)) {
         if (server.ice.length > 0) iced.push(sid);
@@ -226,12 +224,12 @@ case "may_corp_choose_climactic_server_trash_ice_else_bonus_access": {
             },
           },
         })),
-logLine: `${source.title} — choose a server protected by ice.`,
-});
+        logLine: `${source.title} — choose a server protected by ice.`,
+      });
       return { ok: true };
     }
 
-case "choose_install_cost_set_aside_access_shuffle": {
+    case "choose_install_cost_set_aside_access_shuffle": {
       const costs = new Set<number>();
       for (const id of state.runner.installed) {
         const c = state.cards[id];
@@ -260,12 +258,12 @@ case "choose_install_cost_set_aside_access_shuffle": {
             },
           },
         })),
-logLine: `${source.title} — choose a printed install cost.`,
-});
+        logLine: `${source.title} — choose a printed install cost.`,
+      });
       return { ok: true };
     }
 
-case "choose_exploratory_romp_card": {
+    case "choose_exploratory_romp_card": {
       if (state.run) state.run.skipBreach = true;
       const server = state.run?.attackedServerId
         ? state.servers[state.run.attackedServerId]
@@ -298,12 +296,12 @@ case "choose_exploratory_romp_card": {
             },
           },
         })),
-logLine: `Exploratory Romp — choose a card to remove advancements from.`,
-});
+        logLine: `Exploratory Romp — choose a card to remove advancements from.`,
+      });
       return { ok: true };
     }
 
-case "choose_type_shuffle_grip": {
+    case "choose_type_shuffle_grip": {
       const types = ["program", "hardware", "resource", "event"] as const;
       const options: import("../ir.js").ChoiceOption[] = types.map((t) => ({
         id: `type:${t}`,
@@ -333,12 +331,12 @@ case "choose_type_shuffle_grip": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — choose a card type to shuffle from grip.`,
-});
+        logLine: `${source.title} — choose a card type to shuffle from grip.`,
+      });
       return { ok: true };
     }
 
-case "may_choose_server": {
+    case "may_choose_server": {
       const servers = Object.keys(state.servers);
       if (servers.length === 0) {
         log(state, `${source.title} — no servers to name.`);
@@ -369,12 +367,12 @@ case "may_choose_server": {
             },
           },
         ],
-logLine: `${source.title} — may choose a server.`,
-});
+        logLine: `${source.title} — may choose a server.`,
+      });
       return { ok: true };
     }
 
-case "choose_server": {
+    case "choose_server": {
       const servers = Object.keys(state.servers);
       if (servers.length === 0) {
         log(state, `${source.title} — no servers to choose.`);
@@ -391,12 +389,12 @@ case "choose_server": {
             action: { kind: "set_chosen_server" as const, serverId },
           },
         })),
-logLine: `${source.title} — choose a server.`,
-});
+        logLine: `${source.title} — choose a server.`,
+      });
       return { ok: true };
     }
 
-case "choose_server_runner": {
+    case "choose_server_runner": {
       const servers = Object.keys(state.servers);
       if (servers.length === 0) {
         log(state, `${source.title} — no servers to choose.`);
@@ -413,12 +411,12 @@ case "choose_server_runner": {
             action: { kind: "set_chosen_server" as const, serverId },
           },
         })),
-logLine: `${source.title} — choose a server.`,
-});
+        logLine: `${source.title} — choose a server.`,
+      });
       return { ok: true };
     }
 
-case "choose_next_design_server": {
+    case "choose_next_design_server": {
       const remaining = Math.max(0, action.remaining);
       const usedServerIds = action.usedServerIds ?? [];
       const cardId = action.cardId;
@@ -469,13 +467,16 @@ case "choose_next_design_server": {
           },
         },
       ];
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — choose a server to protect with ${card.title}.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — choose a server to protect with ${card.title}.`,
+      });
       return { ok: true };
     }
 
-case "choose_grant_encounter_ice_subtype": {
+    case "choose_grant_encounter_ice_subtype": {
       if (!state.run?.encounter) {
         log(state, `${source.title} — grant subtype: no encounter.`);
         return { ok: true };
@@ -495,12 +496,12 @@ case "choose_grant_encounter_ice_subtype": {
             },
           },
         })),
-logLine: `${source.title} — choose an ice subtype for the encounter.`,
-});
+        logLine: `${source.title} — choose an ice subtype for the encounter.`,
+      });
       return { ok: true };
     }
 
-case "choose_exactly_n": {
+    case "choose_exactly_n": {
       return startExclusiveChoicesExactlyN(
         state,
         sourceId,
@@ -510,13 +511,11 @@ case "choose_exactly_n": {
       );
     }
 
-case "choose_icebreaker_gain_strength_this_turn": {
+    case "choose_icebreaker_gain_strength_this_turn": {
       const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== "program") return false;
-        return (
-          Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker")
-        );
+        return Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
       });
       if (targets.length === 0) {
         log(state, `${source.title} — no icebreaker to boost.`);
@@ -550,12 +549,12 @@ case "choose_icebreaker_gain_strength_this_turn": {
             },
           },
         })),
-logLine: `${source.title} — choose an icebreaker for +${action.amount} strength this turn.`,
-});
+        logLine: `${source.title} — choose an icebreaker for +${action.amount} strength this turn.`,
+      });
       return { ok: true };
     }
 
-case "choose_ice_additional_rez_cost_this_turn": {
+    case "choose_ice_additional_rez_cost_this_turn": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -591,12 +590,12 @@ case "choose_ice_additional_rez_cost_this_turn": {
             },
           },
         })),
-logLine: `${source.title} — choose ice for +${action.amount}¢ rez this turn.`,
-});
+        logLine: `${source.title} — choose ice for +${action.amount}¢ rez this turn.`,
+      });
       return { ok: true };
     }
 
-case "choose_card_type_for_encounter": {
+    case "choose_card_type_for_encounter": {
       if (!state.run?.encounter) {
         log(state, `Choose card type — no encounter.`);
         return { ok: true };
@@ -621,12 +620,12 @@ case "choose_card_type_for_encounter": {
             },
           },
         })),
-logLine: `${source.title} — choose a card type for this encounter.`,
-});
+        logLine: `${source.title} — choose a card type for this encounter.`,
+      });
       return { ok: true };
     }
 
-case "choose_lycian_subtypes": {
+    case "choose_lycian_subtypes": {
       const options = ["barrier", "code gate", "sentry"];
       openPendingChoose(state, {
         sourceId,
@@ -643,12 +642,12 @@ case "choose_lycian_subtypes": {
             },
           },
         })),
-logLine: `${source.title} — choose 1 or more subtypes (barrier / code gate / sentry).`,
-});
+        logLine: `${source.title} — choose 1 or more subtypes (barrier / code gate / sentry).`,
+      });
       return { ok: true };
     }
 
-case "choose_server_rearrange_ice": {
+    case "choose_server_rearrange_ice": {
       const servers = Object.values(state.servers).filter(
         (s) => s.ice.length >= 2,
       );
@@ -671,12 +670,12 @@ case "choose_server_rearrange_ice": {
             },
           },
         })),
-logLine: `${source.title} — choose a server to rearrange ice.`,
-});
+        logLine: `${source.title} — choose a server to rearrange ice.`,
+      });
       return { ok: true };
     }
 
-case "choose_ice_gain_credits_per_advancement": {
+    case "choose_ice_gain_credits_per_advancement": {
       const iceIds: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) iceIds.push(id);
@@ -703,12 +702,12 @@ case "choose_ice_gain_credits_per_advancement": {
             },
           };
         }),
-logLine: `${source.title} — choose ice; gain ¢ equal to advancements.`,
-});
+        logLine: `${source.title} — choose ice; gain ¢ equal to advancements.`,
+      });
       return { ok: true };
     }
 
-case "choose_one_subtype_until_derez": {
+    case "choose_one_subtype_until_derez": {
       const options = ["barrier", "code gate", "sentry"];
       openPendingChoose(state, {
         sourceId,
@@ -724,12 +723,12 @@ case "choose_one_subtype_until_derez": {
             },
           },
         })),
-logLine: `${source.title} — choose sentry, code gate, or barrier until derezzed.`,
-});
+        logLine: `${source.title} — choose sentry, code gate, or barrier until derezzed.`,
+      });
       return { ok: true };
     }
 
-case "choose_remote": {
+    case "choose_remote": {
       const remaining = Math.max(0, action.remaining);
       if (remaining <= 0) return { ok: true };
       const installable = state.corp.hand.filter((id) => {
@@ -787,12 +786,12 @@ case "choose_remote": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — choose a single remote for up to ${remaining} install(s).`,
-});
+        logLine: `${source.title} — choose a single remote for up to ${remaining} install(s).`,
+      });
       return { ok: true };
     }
 
-case "may_choose_other_rezzed_ice_encounter_then_resume_source": {
+    case "may_choose_other_rezzed_ice_encounter_then_resume_source": {
       if (!state.run) {
         log(state, `${source.title} — no run for nested encounter.`);
         return { ok: true };
@@ -832,8 +831,8 @@ case "may_choose_other_rezzed_ice_encounter_then_resume_source": {
             },
           })),
         ],
-logLine: `${source.title} — may choose another rezzed ice to force encounter.`,
-});
+        logLine: `${source.title} — may choose another rezzed ice to force encounter.`,
+      });
       return { ok: true };
     }
     default:

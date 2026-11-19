@@ -8,15 +8,12 @@ import type { GameState, RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
-import {
-  fireOnAgendaAccessedOrScored,
-} from "../../state/miscConditionalHooks.js";
+import { fireOnAgendaAccessedOrScored } from "../../state/miscConditionalHooks.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function installedVirusProgramIds(state: EffectCtx["state"]): string[] {
   return state.runner.installed.filter((id) => {
@@ -116,7 +113,10 @@ export function applyKitaraTdatdPrimitive(
         c.rezzed = false;
         state.corp.hand.push(id);
       }
-      log(state, `Glut Cipher — Corp adds ${moved.length} from Archives to HQ.`);
+      log(
+        state,
+        `Glut Cipher — Corp adds ${moved.length} from Archives to HQ.`,
+      );
       if (moved.length < 5) return { ok: true };
       // Trash 5 at random from HQ. They enter Archives facedown, so the
       // log does not name them (CR 4.4.6b).
@@ -361,10 +361,7 @@ export function applyKitaraTdatdPrimitive(
       const target = state.cards[cardId];
       if (!target) return { ok: true };
       if (source) source.tdatdMaliaBlankTargetId = cardId;
-      log(
-        state,
-        `Malia Z0L0K4 — ${target.title} loses printed abilities.`,
-      );
+      log(state, `Malia Z0L0K4 — ${target.title} loses printed abilities.`);
       return { ok: true };
     }
 
@@ -391,7 +388,10 @@ export function applyKitaraTdatdPrimitive(
     case "lose_tempus_clicks": {
       const lose = Math.min(2, state.runner.clicks);
       state.runner.clicks -= lose;
-      log(state, `Tempus — Runner loses ${lose} click(s) → ${state.runner.clicks}.`);
+      log(
+        state,
+        `Tempus — Runner loses ${lose} click(s) → ${state.runner.clicks}.`,
+      );
       return { ok: true };
     }
 
@@ -455,8 +455,8 @@ export function applyKitaraTdatdPrimitive(
           label: `Place ${state.cards[id]!.title} on top next`,
           effect: fx.do({ kind: "pick_rd_arrange", cardId: id }),
         })),
-logLine: `Sadaka — arrange top of R&D.`,
-});
+        logLine: `Sadaka — arrange top of R&D.`,
+      });
       return { ok: true };
     }
 

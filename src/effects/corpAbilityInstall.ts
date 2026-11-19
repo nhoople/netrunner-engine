@@ -13,7 +13,11 @@ import { fireOnRez } from "../state/cardLifecycleHooks.js";
 import { cloneState, log } from "../state/createGame.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { revealCards } from "../state/reveal.js";
-import type { GameState, InstallDestination, ServerId } from "../state/types.js";
+import type {
+  GameState,
+  InstallDestination,
+  ServerId,
+} from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { chooseCards } from "./chooseCards.js";
 import type { EffectCtx, EvalResult } from "./eval.js";
@@ -24,7 +28,12 @@ export type InstallCorpCard = Extract<Primitive, { kind: "install_corp_card" }>;
 const NEW_REMOTE = "__new_remote__";
 
 function installable(type: string | undefined): boolean {
-  return type === "agenda" || type === "asset" || type === "ice" || type === "upgrade";
+  return (
+    type === "agenda" ||
+    type === "asset" ||
+    type === "ice" ||
+    type === "upgrade"
+  );
 }
 
 function destinationFor(
@@ -70,7 +79,11 @@ function corpAbilityInstallDestinations(
 ): Array<{ serverId: string; trashFirst: boolean; needsTrash: boolean }> {
   const card = state.cards[action.cardId];
   if (!card || !installable(card.type)) return [];
-  const out: Array<{ serverId: string; trashFirst: boolean; needsTrash: boolean }> = [];
+  const out: Array<{
+    serverId: string;
+    trashFirst: boolean;
+    needsTrash: boolean;
+  }> = [];
   const works = (serverId: string, trashFirstIds: string[]): boolean => {
     const trial = cloneState(state);
     return installCorp(
@@ -96,9 +109,13 @@ function corpAbilityInstallDestinations(
 }
 
 /** Rez an installed card, ignoring all costs (CR 8.5.15). */
-export function rezInstalledIgnoringCosts(state: GameState, cardId: string): void {
+export function rezInstalledIgnoringCosts(
+  state: GameState,
+  cardId: string,
+): void {
   const card = state.cards[cardId];
-  if (!card || !card.zone.startsWith("server:") || card.type === "agenda") return;
+  if (!card || !card.zone.startsWith("server:") || card.type === "agenda")
+    return;
   card.rezzed = true;
   card.faceup = true;
   if ((card.hostedCreditsOnInstall ?? 0) > 0) {
@@ -110,7 +127,10 @@ export function rezInstalledIgnoringCosts(state: GameState, cardId: string): voi
   if ((card.badPublicityCountersOnRez ?? 0) > 0) {
     card.badPublicityCounters = card.badPublicityCountersOnRez;
   }
-  log(state, `Rez ${card.title}, ignoring costs (CR ${CR.installAndRez.number}).`);
+  log(
+    state,
+    `Rez ${card.title}, ignoring costs (CR ${CR.installAndRez.number}).`,
+  );
   fireOnRez(state, cardId);
 }
 
@@ -119,7 +139,11 @@ export function rezInstalledIgnoringCosts(state: GameState, cardId: string): voi
  * Corp need not pay an additional cost to rez (CR 1.16.4c); in both cases
  * the installed card is revealed instead (CR 8.5.13d).
  */
-function rezAfterInstall(state: GameState, sourceId: string, cardId: string): void {
+function rezAfterInstall(
+  state: GameState,
+  sourceId: string,
+  cardId: string,
+): void {
   const card = state.cards[cardId];
   if (!card || !card.zone.startsWith("server:")) return;
   if (card.type === "agenda") {
@@ -158,7 +182,10 @@ function rezAfterInstall(state: GameState, sourceId: string, cardId: string): vo
           effects: [
             {
               op: "do" as const,
-              action: { kind: "forfeit_scored_agenda" as const, cardId: agendaId },
+              action: {
+                kind: "forfeit_scored_agenda" as const,
+                cardId: agendaId,
+              },
             },
             {
               op: "do" as const,
@@ -197,7 +224,10 @@ export function applyInstallCorpCard(
     state.corp.discardPile.includes(action.cardId) ||
     state.corp.deck.includes(action.cardId);
   if (!card || !reachable || !installable(card.type)) {
-    log(state, `Install — that card cannot be installed (CR ${CR.installing.number}).`);
+    log(
+      state,
+      `Install — that card cannot be installed (CR ${CR.installing.number}).`,
+    );
     return { ok: true };
   }
 

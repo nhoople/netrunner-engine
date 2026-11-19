@@ -16,9 +16,7 @@ import type { GameState, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
-import {
-  fireOnInstallFromNonHq,
-} from "../state/miscConditionalHooks.js";
+import { fireOnInstallFromNonHq } from "../state/miscConditionalHooks.js";
 
 export function corpCardInstallable(type: string): boolean {
   return (
@@ -138,7 +136,10 @@ export function applyCorpInstallPrimitive(
             },
           ],
         });
-        log(state, `May remove 1 tag to place 1 advancement on installed card.`);
+        log(
+          state,
+          `May remove 1 tag to place 1 advancement on installed card.`,
+        );
       }
       return { ok: true };
     }
@@ -167,7 +168,9 @@ export function applyCorpInstallPrimitive(
         };
       }
       state.corp.credits -= cost;
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
       if (card.type === "ice") {
         dest.ice.unshift(cardId);
         card.zone = `server:${destId}:ice`;
@@ -206,7 +209,9 @@ export function applyCorpInstallPrimitive(
         log(state, `Archives install — card not in Archives.`);
         return { ok: true };
       }
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
       if (card.type === "ice") {
         dest.ice.unshift(cardId);
         card.zone = `server:${destId}:ice`;

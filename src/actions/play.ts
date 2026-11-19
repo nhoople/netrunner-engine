@@ -10,7 +10,10 @@ import {
   fireOnAfterOperationOrExpendable,
 } from "../effects/eval.js";
 import { hasPlayEffect } from "../effects/abilityRecord.js";
-import { fireOnPlay, noteCorpOperationPlayed } from "../state/cardLifecycleHooks.js";
+import {
+  fireOnPlay,
+  noteCorpOperationPlayed,
+} from "../state/cardLifecycleHooks.js";
 import { resumePendingStoredConditionals } from "../state/storedTriggers.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
@@ -18,7 +21,10 @@ import {
   fireSiAfterCorpRezOrPlay,
   fireSiAfterPaidAbilityClicks,
 } from "../effects/primitives/lookTrashAdd.js";
-import { occurCheckpoint, withCostCheckpoint } from "../legality/checkpoints.js";
+import {
+  occurCheckpoint,
+  withCostCheckpoint,
+} from "../legality/checkpoints.js";
 import {
   isCurrentCard,
   placeCurrentAfterPlay,
@@ -44,9 +50,17 @@ import {
   enterLingeringPlayArea,
   leaveLingeringPlayAreaBag,
 } from "../state/zones.js";
-import { isServerAllowedForSpec, modifiersFromStartsRun } from "../state/runStart.js";
+import {
+  isServerAllowedForSpec,
+  modifiersFromStartsRun,
+} from "../state/runStart.js";
 import { afterBasicAction } from "../timing/machine.js";
-import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
+import type {
+  ApplyResult,
+  GameState,
+  RuleCite,
+  ServerId,
+} from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { hostedPlayableAsGrip } from "./installRunner.js";
 import { finishRunReturnToAction, startRun } from "./run.js";
@@ -83,7 +97,10 @@ export function applyPatchworkDiscount(
     return { ok: false, error: "Patchwork discount already used this turn." };
   }
   if (trashGripCardId === playingOrInstallingId) {
-    return { ok: false, error: "Cannot trash the card being played/installed." };
+    return {
+      ok: false,
+      error: "Cannot trash the card being played/installed.",
+    };
   }
   const pw = patchworkDiscountSource(state);
   const amount = pw?.amount ?? 0;
@@ -155,7 +172,10 @@ function notePlayedCardBecomesActive(state: GameState, cardId: string): void {
 }
 
 /** CR 8.6.7d. Report when no played condition is waiting on this operation. */
-function noteQuietPlayedOperationConditions(state: GameState, cardId: string): void {
+function noteQuietPlayedOperationConditions(
+  state: GameState,
+  cardId: string,
+): void {
   const card = state.cards[cardId];
   if (!card) return;
   if ((card.subtypes ?? []).includes("transaction")) {
@@ -170,7 +190,10 @@ function noteQuietPlayedOperationConditions(state: GameState, cardId: string): v
 }
 
 /** CR 8.6.7d. Report when no played condition is waiting on this event. */
-function noteQuietPlayedEventConditions(state: GameState, cardId: string): void {
+function noteQuietPlayedEventConditions(
+  state: GameState,
+  cardId: string,
+): void {
   const card = state.cards[cardId];
   if (!card || !eventPlayedConditionsAreQuiet(state, card)) return;
   log(
@@ -207,11 +230,13 @@ function eventPlayedConditionsAreQuiet(
     for (const other of Object.values(state.cards)) {
       if (other.zone !== "corp:play-area") continue;
       if (abilitiesSuppressed(state, other.id)) continue;
-      if ((other.corpGainsCreditsOnFirstRunnerEventEachTurn ?? 0) > 0) return false;
+      if ((other.corpGainsCreditsOnFirstRunnerEventEachTurn ?? 0) > 0)
+        return false;
     }
     for (const id of state.runner.installed) {
       if (abilitiesSuppressed(state, id)) continue;
-      if (state.cards[id]?.hostedCreditsOnFirstEventPlayOncePerTurn) return false;
+      if (state.cards[id]?.hostedCreditsOnFirstEventPlayOncePerTurn)
+        return false;
     }
   }
   return true;
@@ -231,7 +256,9 @@ function placeEventInPlayArea(
   } else if (blingHostId) {
     const host = state.cards[blingHostId];
     if (host) {
-      host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
+      host.hostedCardIds = (host.hostedCardIds ?? []).filter(
+        (id) => id !== cardId,
+      );
     }
     card.hostId = undefined;
   }
@@ -267,7 +294,10 @@ function trashPlayedOperation(state: GameState, cardId: string): void {
 }
 
 /** CR 8.6.7h. Report when no after-resolve condition is waiting on this play. */
-function noteQuietAfterOperationResolve(state: GameState, cardId: string): void {
+function noteQuietAfterOperationResolve(
+  state: GameState,
+  cardId: string,
+): void {
   if (!operationAfterResolveIsQuiet(state, cardId)) return;
   log(
     state,
@@ -277,10 +307,7 @@ function noteQuietAfterOperationResolve(state: GameState, cardId: string): void 
 
 /** CR 8.6.7i. The play procedure has finished. */
 export function notePlayEffectComplete(state: GameState): void {
-  log(
-    state,
-    `Play effect complete (CR ${CR.playComplete.number}).`,
-  );
+  log(state, `Play effect complete (CR ${CR.playComplete.number}).`);
 }
 
 /** CR 8.6.7h. Report when no after-resolve condition is waiting on this event. */
@@ -291,7 +318,10 @@ function noteQuietAfterEventResolve(state: GameState): void {
   );
 }
 
-function operationAfterResolveIsQuiet(state: GameState, cardId: string): boolean {
+function operationAfterResolveIsQuiet(
+  state: GameState,
+  cardId: string,
+): boolean {
   const played = state.cards[cardId];
   const idCard = state.cards[state.corp.identityId];
   if (idCard?.onAfterOperationOrExpendable) return false;
@@ -307,9 +337,7 @@ function operationAfterResolveIsQuiet(state: GameState, cardId: string): boolean
       const cardFaction = played.faction;
       const isSelf = cardId === rid;
       const isOutOfFaction =
-        Boolean(idFaction) &&
-        Boolean(cardFaction) &&
-        cardFaction !== idFaction;
+        Boolean(idFaction) && Boolean(cardFaction) && cardFaction !== idFaction;
       if (isSelf || isOutOfFaction) return false;
     }
   }
@@ -359,7 +387,9 @@ export function settleDeferredPlayedEvent(state: GameState): void {
     }
     state.turn.remainderOfTurnOnInstallPrintedCostGte.push({
       min: card.remainderOfTurnOnInstallPrintedCostGte.min,
-      effect: structuredClone(card.remainderOfTurnOnInstallPrintedCostGte.effect),
+      effect: structuredClone(
+        card.remainderOfTurnOnInstallPrintedCostGte.effect,
+      ),
       sourceId: cardId,
     });
     log(
@@ -420,16 +450,17 @@ export function playOperation(
     card.playRequiresSuccessfulRunLastTurn &&
     !state.turn.successfulRunLastTurn
   ) {
-    return fail("Play requires a successful run last turn.", [CR.playOperation]);
+    return fail("Play requires a successful run last turn.", [
+      CR.playOperation,
+    ]);
   }
   if (
     card.playRequiresNoSuccessfulRunLastTurn &&
     state.turn.successfulRunLastTurn
   ) {
-    return fail(
-      "Play requires the Runner made no successful run last turn.",
-      [CR.playOperation],
-    );
+    return fail("Play requires the Runner made no successful run last turn.", [
+      CR.playOperation,
+    ]);
   }
   if (
     card.playRequiresUnsuccessfulRunLastTurn &&
@@ -443,10 +474,9 @@ export function playOperation(
     card.playRequiresRunnerAccessedCardLastTurn &&
     !state.turn.accessedACardLastTurn
   ) {
-    return fail(
-      "Play requires the Runner accessed a card last turn.",
-      [CR.playOperation],
-    );
+    return fail("Play requires the Runner accessed a card last turn.", [
+      CR.playOperation,
+    ]);
   }
   if (
     card.playRequiresRunnerMadeRunLastTurn &&
@@ -479,10 +509,9 @@ export function playOperation(
       (id) => state.cards[id]?.type === "agenda",
     );
     if (!hasAgenda) {
-      return fail(
-        "Play requires an agenda in the Runner's score area.",
-        [CR.playOperation],
-      );
+      return fail("Play requires an agenda in the Runner's score area.", [
+        CR.playOperation,
+      ]);
     }
   }
   if (
@@ -552,9 +581,10 @@ export function playOperation(
   }
   if (card.playRequiresRunnerHasInstalledCard) {
     if (state.runner.installed.length === 0) {
-      return fail("Play requires the Runner to have at least 1 installed card.", [
-        CR.playOperation,
-      ]);
+      return fail(
+        "Play requires the Runner to have at least 1 installed card.",
+        [CR.playOperation],
+      );
     }
   }
   if (card.playRequiresCorpHasInstalledCard) {
@@ -566,10 +596,9 @@ export function playOperation(
       }
     }
     if (!hasInstalled) {
-      return fail(
-        "Play requires the Corp to have at least 1 installed card.",
-        [CR.playOperation],
-      );
+      return fail("Play requires the Corp to have at least 1 installed card.", [
+        CR.playOperation,
+      ]);
     }
   }
   if (card.playRequiresScoredAgendaNotInstalledThisTurn) {
@@ -666,7 +695,9 @@ export function playOperation(
     const increase = operationAndEventPlayCostIncreaseTotal(state);
     const maxX = state.corp.credits - increase;
     if (maxX < 0) {
-      return fail("Insufficient credits to play operation.", [CR.playOperation]);
+      return fail("Insufficient credits to play operation.", [
+        CR.playOperation,
+      ]);
     }
     if (maxX === 0) {
       return continuePlayedOperation(state, cardId, increase, 0);
@@ -755,10 +786,7 @@ export function continuePlayedOperation(
     log(state, `${card.title} is removed from the game instead of trashing.`);
   }
   if (card.playAdditionalCost) {
-    const r = evalEffect(
-      { state, sourceId: cardId },
-      card.playAdditionalCost,
-    );
+    const r = evalEffect({ state, sourceId: cardId }, card.playAdditionalCost);
     if (!r.ok) return fail(r.error, r.cites);
     log(
       state,
@@ -777,10 +805,7 @@ export function continuePlayedOperation(
       const bonus = idCard?.gainCreditOnTransactionPlayed ?? 0;
       if (bonus > 0) {
         state.corp.credits += bonus;
-        log(
-          state,
-          `${idCard!.title} — gain ${bonus}¢ (transaction played).`,
-        );
+        log(state, `${idCard!.title} — gain ${bonus}¢ (transaction played).`);
       }
     }
     if (hasPlayEffect(card) && isFirstSubliminal) {
@@ -823,10 +848,7 @@ export function continuePlayedOperation(
     const bonus = idCard?.gainCreditOnTransactionPlayed ?? 0;
     if (bonus > 0) {
       state.corp.credits += bonus;
-      log(
-        state,
-        `${idCard!.title} — gain ${bonus}¢ (transaction played).`,
-      );
+      log(state, `${idCard!.title} — gain ${bonus}¢ (transaction played).`);
     }
   }
   if (hasPlayEffect(card)) {
@@ -880,30 +902,34 @@ export function playEvent(
   }
   const handIdx = state.runner.hand.indexOf(cardId);
   const blingHostId = handIdx < 0 ? hostedPlayableAsGrip(state, cardId) : null;
-  if (handIdx < 0 && !blingHostId) return fail("Event not in grip.", [CR.playEvent]);
-  if (
-    isCurrentCard(card) &&
-    runnerCannotPlayCurrentEvents(state)
-  ) {
-    return fail("Cannot play current events while The News Now Hour is active.", [
-      CR.playEvent,
-    ]);
+  if (handIdx < 0 && !blingHostId)
+    return fail("Event not in grip.", [CR.playEvent]);
+  if (isCurrentCard(card) && runnerCannotPlayCurrentEvents(state)) {
+    return fail(
+      "Cannot play current events while The News Now Hour is active.",
+      [CR.playEvent],
+    );
   }
   if (
     card.playOnlyIfRunnerStoleAgendaLastTurn &&
     (state.turn.agendaPointsStolenLastTurn ?? 0) <= 0
   ) {
-    return fail("Play requires the Runner stole an agenda last turn.", [CR.playEvent]);
+    return fail("Play requires the Runner stole an agenda last turn.", [
+      CR.playEvent,
+    ]);
   }
   if (card.playRequiresInstalledSubtype) {
     const need = card.playRequiresInstalledSubtype.toLowerCase();
     const has = state.runner.installed.some((id) =>
-      (state.cards[id]?.subtypes ?? []).some((sub) => sub.toLowerCase() === need),
+      (state.cards[id]?.subtypes ?? []).some(
+        (sub) => sub.toLowerCase() === need,
+      ),
     );
     if (!has) {
-      return fail(`Play requires an installed ${card.playRequiresInstalledSubtype}.`, [
-        CR.playEvent,
-      ]);
+      return fail(
+        `Play requires an installed ${card.playRequiresInstalledSubtype}.`,
+        [CR.playEvent],
+      );
     }
   }
   if (
@@ -926,10 +952,9 @@ export function playEvent(
       state.turn.successfulArchivesRunThisTurn
     )
   ) {
-    return fail(
-      "Play requires a successful central run this turn.",
-      [CR.playEvent],
-    );
+    return fail("Play requires a successful central run this turn.", [
+      CR.playEvent,
+    ]);
   }
   if (
     card.playRequiresSuccessfulAllCentralsThisTurn &&
@@ -960,7 +985,9 @@ export function playEvent(
     card.playRequiresCorpBadPublicityGte &&
     (state.corp.badPublicity ?? 0) < card.playRequiresCorpBadPublicityGte
   ) {
-    return fail("Play requires the Corp to have bad publicity.", [CR.playEvent]);
+    return fail("Play requires the Corp to have bad publicity.", [
+      CR.playEvent,
+    ]);
   }
   if (
     card.playRequiresInstalledResource &&
@@ -1018,18 +1045,15 @@ export function playEvent(
     card.playRequiresNoSuccessfulRunLastTurn &&
     state.turn.successfulRunLastTurn
   ) {
-    return fail(
-      "Play requires the Runner made no successful run last turn.",
-      [CR.playEvent],
-    );
+    return fail("Play requires the Runner made no successful run last turn.", [
+      CR.playEvent,
+    ]);
   }
   if (
     card.playRequiresUnsuccessfulRunLastTurn &&
     !state.turn.unsuccessfulRunLastTurn
   ) {
-    return fail("Play requires an unsuccessful run last turn.", [
-      CR.playEvent,
-    ]);
+    return fail("Play requires an unsuccessful run last turn.", [CR.playEvent]);
   }
   if (
     card.playRequiresFirstClick &&
@@ -1114,14 +1138,23 @@ export function playEvent(
       options: Array.from({ length: maxX + 1 }, (_, x) => ({
         id: `bribery-x:${x}`,
         label: `X = ${x}`,
-        effect: { op: "do" as const, action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 } },
+        effect: {
+          op: "do" as const,
+          action: {
+            kind: "gain_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+          },
+        },
       })),
     });
     return ok(state);
   }
   state.turn.playingEventId = cardId;
   state.turn.clicksWhenEventPlayBegan = state.runner.clicks;
-  const printedCost = card.briberyPlayCostX ? (state.turn.briberyX ?? 0) : card.playCost;
+  const printedCost = card.briberyPlayCostX
+    ? (state.turn.briberyX ?? 0)
+    : card.playCost;
   const cost = effectiveEventPlayCost(state, printedCost, card);
   if (runnerCreditsFor(state, "play_event") < cost) {
     state.turn.patchworkPendingDiscountThisAction = 0;
@@ -1146,10 +1179,7 @@ export function playEvent(
   placeEventInPlayArea(state, cardId, blingHostId);
   withCostCheckpoint(state, "play_event", () => {
     spendRunnerCreditsFor(state, cost, "play_event");
-    log(
-      state,
-      `Play cost of ${cost}¢ paid (CR ${CR.playCostStep.number}).`,
-    );
+    log(state, `Play cost of ${cost}¢ paid (CR ${CR.playCostStep.number}).`);
   });
   state.turn.patchworkPendingDiscountThisAction = 0;
   notePlayedCardBecomesActive(state, cardId);
@@ -1162,10 +1192,7 @@ export function playEvent(
     card.powerCounters = card.powerCountersOnPlay;
   }
   if (card.playAdditionalCost) {
-    const r = evalEffect(
-      { state, sourceId: cardId },
-      card.playAdditionalCost,
-    );
+    const r = evalEffect({ state, sourceId: cardId }, card.playAdditionalCost);
     if (!r.ok) return fail(r.error, r.cites);
     log(
       state,
@@ -1343,7 +1370,9 @@ export function playEvent(
     }
     state.turn.remainderOfTurnOnInstallPrintedCostGte.push({
       min: card.remainderOfTurnOnInstallPrintedCostGte.min,
-      effect: structuredClone(card.remainderOfTurnOnInstallPrintedCostGte.effect),
+      effect: structuredClone(
+        card.remainderOfTurnOnInstallPrintedCostGte.effect,
+      ),
       sourceId: cardId,
     });
     log(
@@ -1370,4 +1399,3 @@ export function playEvent(
   afterBasicAction(state);
   return ok(state);
 }
-

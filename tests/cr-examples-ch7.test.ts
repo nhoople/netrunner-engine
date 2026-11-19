@@ -14,7 +14,10 @@ import {
   evalEffect,
   instantiateCard,
 } from "../src/index.js";
-import { beginBreachAccess, refreshRdDeckCandidate } from "../src/state/access.js";
+import {
+  beginBreachAccess,
+  refreshRdDeckCandidate,
+} from "../src/state/access.js";
 import { applyRunAccessRestrictions } from "../src/state/accessFilter.js";
 import { trashCorpCardToArchives } from "../src/effects/corpTrash.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
@@ -28,7 +31,8 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return result.state;
 }
 
@@ -68,13 +72,19 @@ describe("CR examples, chapter 7", () => {
     s.run!.accessedCardIds = ["scatter-1", "palisade-1"];
     const known = evalEffect(
       { state: s, sourceId: s.corp.identityId },
-      { op: "do", action: { kind: "install_hq_card_paying_costs", cardId: "palisade-1" } },
+      {
+        op: "do",
+        action: { kind: "install_hq_card_paying_costs", cardId: "palisade-1" },
+      },
     );
     expect(known.ok).toBe(true);
     expect(s.log.join("\n")).toContain("The Runner knows this is Palisade");
     const hidden = evalEffect(
       { state: s, sourceId: s.corp.identityId },
-      { op: "do", action: { kind: "install_hq_card_paying_costs", cardId: "unknown-1" } },
+      {
+        op: "do",
+        action: { kind: "install_hq_card_paying_costs", cardId: "unknown-1" },
+      },
     );
     expect(hidden.ok).toBe(true);
     expect(s.log.join("\n")).toContain("Install an unknown card from HQ");
@@ -83,7 +93,11 @@ describe("CR examples, chapter 7", () => {
 
   it("does not count an Archives Interface replacement toward Zahya's accesses (CR 7.3.6.ex1)", () => {
     let s = createInitialState();
-    const face = instantiateCard("archives-interface", "ai-1", "runner:installed");
+    const face = instantiateCard(
+      "archives-interface",
+      "ai-1",
+      "runner:installed",
+    );
     const first = instantiateCard("hedge-fund", "arch-1", "corp:archives");
     first.title = "Replacement Target";
     const second = instantiateCard("hedge-fund", "arch-2", "corp:archives");
@@ -97,10 +111,9 @@ describe("CR examples, chapter 7", () => {
     breach(s, "archives");
     beginBreachAccess(s);
     s = must(s, { type: "access_card", cardId: "arch-1" });
-    expect(s.pendingChoice?.options.map((option) => option.id) ?? s.log.slice(-8)).toEqual([
-      "archives-rfg:arch-1",
-      "archives-access:arch-1",
-    ]);
+    expect(
+      s.pendingChoice?.options.map((option) => option.id) ?? s.log.slice(-8),
+    ).toEqual(["archives-rfg:arch-1", "archives-access:arch-1"]);
     s = must(s, { type: "choose_option", optionId: "archives-rfg:arch-1" });
     expect(s.run?.accessedCardIds).not.toContain("arch-1");
     expect(s.removedFromGame).toContain("arch-1");
@@ -137,7 +150,11 @@ describe("CR examples, chapter 7", () => {
   it("finishes the current breach before Raymond Flint's HQ breach begins (CR 7.3.8.ex1)", () => {
     const s = createInitialState();
     const agenda = instantiateCard("clone-retirement", "clone-1", "corp:hq");
-    const flint = instantiateCard("raymond-flint", "flint-1", "runner:installed");
+    const flint = instantiateCard(
+      "raymond-flint",
+      "flint-1",
+      "runner:installed",
+    );
     s.cards["clone-1"] = agenda;
     s.cards["flint-1"] = flint;
     s.runner.installed = ["flint-1"];
@@ -161,8 +178,16 @@ describe("CR examples, chapter 7", () => {
 
   it("leaves Ash as the only access candidate after the trace (CR 7.4.2.ex1)", () => {
     const s = createInitialState();
-    const ash = instantiateCard("ash-2x3zb9cy", "ash-1", "server:remote-1:root");
-    const other = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const ash = instantiateCard(
+      "ash-2x3zb9cy",
+      "ash-1",
+      "server:remote-1:root",
+    );
+    const other = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     ash.rezzed = true;
     ash.faceup = true;
     other.rezzed = true;
@@ -188,7 +213,11 @@ describe("CR examples, chapter 7", () => {
     const flagship = instantiateCard("flagship", "flag-1", "server:hq:root");
     flagship.rezzed = true;
     flagship.faceup = true;
-    const docklands = instantiateCard("docklands-pass", "dock-1", "runner:installed");
+    const docklands = instantiateCard(
+      "docklands-pass",
+      "dock-1",
+      "runner:installed",
+    );
     const seen = instantiateCard("hedge-fund", "hq-seen", "corp:hq");
     const other = instantiateCard("hedge-fund", "hq-other", "corp:hq");
     s.cards["flag-1"] = flagship;
@@ -200,7 +229,9 @@ describe("CR examples, chapter 7", () => {
     s.corp.hand = ["hq-other", "hq-seen"];
     breach(s, "hq");
     beginBreachAccess(s);
-    expect(s.run?.accessCandidates).toEqual(expect.arrayContaining(["hq-seen", "hq-other", "flag-1"]));
+    expect(s.run?.accessCandidates).toEqual(
+      expect.arrayContaining(["hq-seen", "hq-other", "flag-1"]),
+    );
     s = must(s, { type: "access_card", cardId: "hq-seen" });
     expect(s.run?.accessCandidates).not.toContain("hq-other");
     expect(s.run?.accessCandidates).toContain("flag-1");
@@ -218,7 +249,11 @@ describe("CR examples, chapter 7", () => {
     const flagship = instantiateCard("flagship", "flag-1", "server:hq:root");
     flagship.rezzed = true;
     flagship.faceup = true;
-    const docklands = instantiateCard("docklands-pass", "dock-1", "runner:installed");
+    const docklands = instantiateCard(
+      "docklands-pass",
+      "dock-1",
+      "runner:installed",
+    );
     const prior = instantiateCard("hedge-fund", "hq-prior", "corp:hq");
     const a = instantiateCard("hedge-fund", "hq-a", "corp:hq");
     const b = instantiateCard("hedge-fund", "hq-b", "corp:hq");
@@ -238,7 +273,9 @@ describe("CR examples, chapter 7", () => {
     expect(s.run?.randomAccessLimit).toBeGreaterThanOrEqual(2);
     flagship.rezzed = false;
     applyRunAccessRestrictions(s);
-    expect(s.run?.accessCandidates).toEqual(expect.arrayContaining(["hq-a", "hq-b"]));
+    expect(s.run?.accessCandidates).toEqual(
+      expect.arrayContaining(["hq-a", "hq-b"]),
+    );
     expect(s.run?.accessCandidates).not.toContain("hq-prior");
     expect(s.run?.randomAccessLimit).toBeGreaterThanOrEqual(2);
   });
@@ -257,7 +294,10 @@ describe("CR examples, chapter 7", () => {
     s.run!.immolationScriptAccessReplace = true;
     beginBreachAccess(s);
     s = must(s, { type: "access_card", cardId: "arch-ice" });
-    s = must(s, { type: "choose_option", optionId: "immolation-replace:arch-ice" });
+    s = must(s, {
+      type: "choose_option",
+      optionId: "immolation-replace:arch-ice",
+    });
     expect(s.run?.accessedCardIds).not.toContain("arch-ice");
     expect(s.run?.accessCandidates).not.toContain("arch-ice");
     expect(s.corp.discardPile).toContain("rezzed-ice");
@@ -267,7 +307,11 @@ describe("CR examples, chapter 7", () => {
   it("drops a remote card from the candidates when the Runner declines Gagarin's cost (CR 7.4.3.ex2)", () => {
     let s = createInitialState();
     s.cards[s.corp.identityId]!.additionalCreditsToAccessRemoteRoot = 1;
-    const asset = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const asset = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     asset.rezzed = true;
     asset.faceup = true;
     s.cards["pad-1"] = asset;
@@ -281,7 +325,10 @@ describe("CR examples, chapter 7", () => {
     breach(s, "remote-1");
     beginBreachAccess(s);
     s = must(s, { type: "access_card", cardId: "pad-1" });
-    s = must(s, { type: "choose_option", optionId: "access-tax-decline:pad-1" });
+    s = must(s, {
+      type: "choose_option",
+      optionId: "access-tax-decline:pad-1",
+    });
     expect(s.run?.accessedCardIds).not.toContain("pad-1");
     expect(s.run?.accessCandidates).not.toContain("pad-1");
     expect(s.log.join("\n")).toContain("7.4.3");
@@ -289,7 +336,11 @@ describe("CR examples, chapter 7", () => {
 
   it("accesses an upgrade again after it is trashed into Archives during that breach (CR 7.4.5.ex1)", () => {
     let s = createInitialState();
-    const upgrade = instantiateCard("ash-2x3zb9cy", "up-1", "server:archives:root");
+    const upgrade = instantiateCard(
+      "ash-2x3zb9cy",
+      "up-1",
+      "server:archives:root",
+    );
     upgrade.rezzed = true;
     upgrade.faceup = true;
     upgrade.trashCost = 0;
@@ -306,7 +357,9 @@ describe("CR examples, chapter 7", () => {
     enterStep(s, "breach.awaitAccess");
     expect(s.log.join("\n")).toContain("7.4.5");
     s = must(s, { type: "access_card", cardId: "up-1" });
-    expect(s.run?.accessedCardIds.filter((id) => id === "up-1")).toHaveLength(2);
+    expect(s.run?.accessedCardIds.filter((id) => id === "up-1")).toHaveLength(
+      2,
+    );
   });
 
   it("accesses Celebrity Gift again when Bacterial Programming leaves a new copy on top (CR 7.4.7a.ex1)", () => {
@@ -317,7 +370,11 @@ describe("CR examples, chapter 7", () => {
     agenda.title = "Bacterial Programming";
     s.cards["gift-1"] = gift;
     s.cards["agenda-1"] = agenda;
-    s.corp.deck = ["gift-1", "agenda-1", ...s.corp.deck.filter((id) => id !== "gift-1" && id !== "agenda-1")];
+    s.corp.deck = [
+      "gift-1",
+      "agenda-1",
+      ...s.corp.deck.filter((id) => id !== "gift-1" && id !== "agenda-1"),
+    ];
     breach(s, "rd");
     s.run!.bonusAccess = 2;
     beginBreachAccess(s);
@@ -329,7 +386,10 @@ describe("CR examples, chapter 7", () => {
     const giftAgain = instantiateCard("hedge-fund", "gift-2", "corp:rd");
     giftAgain.title = "Celebrity Gift";
     next.cards["gift-2"] = giftAgain;
-    next.corp.deck = ["gift-2", ...next.corp.deck.filter((id) => id !== "gift-2")];
+    next.corp.deck = [
+      "gift-2",
+      ...next.corp.deck.filter((id) => id !== "gift-2"),
+    ];
     refreshRdDeckCandidate(next);
     expect(next.run?.accessCandidates[0]).toBe("gift-2");
     expect(next.run?.accessedCardIds).toContain("gift-1");

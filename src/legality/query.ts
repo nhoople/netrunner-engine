@@ -1,9 +1,4 @@
-import type {
-  Action,
-  GameState,
-  RuleCite,
-  Side,
-} from "../state/types.js";
+import type { Action, GameState, RuleCite, Side } from "../state/types.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
 import { costBeginsWithClick } from "../state/costs.js";
 import { extraDifferentActionRefusal } from "../state/corpActionHooks.js";
@@ -17,7 +12,10 @@ import {
   paidAbilityActor,
   priorityHolderForStep,
 } from "./priority.js";
-import { allButNDamageRelevant, firstNetDamageWouldAllows } from "../state/damage.js";
+import {
+  allButNDamageRelevant,
+  firstNetDamageWouldAllows,
+} from "../state/damage.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 
 interface WindowInfo {
@@ -118,7 +116,11 @@ function citesForAction(action: Action): RuleCite[] {
     case "rez_ice":
       return [CR.rezInPaw, CR.rezIceRestriction, CR.rezProcedure];
     case "break_subroutine":
-      return [CR.encounterBreakPaw, CR.fullyBreak, CR.icebreakerInterfaceStrength];
+      return [
+        CR.encounterBreakPaw,
+        CR.fullyBreak,
+        CR.icebreakerInterfaceStrength,
+      ];
     case "break_bioroid_subroutine":
     case "break_bioroid_subroutines":
       return [CR.encounterBreakPaw, CR.fullyBreak, CR.spendClicks];
@@ -332,7 +334,9 @@ export function explainAction(
 
   // Cannot precedence (CR 1.2.2)
   const forbidKey =
-    action.type === "continue_run" ? null : (action.type as ForbiddenActionLike);
+    action.type === "continue_run"
+      ? null
+      : (action.type as ForbiddenActionLike);
   if (forbidKey && isForbiddenActionType(forbidKey)) {
     const restriction = isForbidden(state, forbidKey);
     if (restriction) {
@@ -364,7 +368,8 @@ export function explainAction(
     return {
       legal: false,
       action,
-      reason: "Action is not available in this window (missing target, resources, or side).",
+      reason:
+        "Action is not available in this window (missing target, resources, or side).",
       cites: citesForAction(action),
       window,
     };
@@ -381,9 +386,7 @@ export function explainAction(
 
 type ForbiddenActionLike = Parameters<typeof isForbidden>[1];
 
-function isForbiddenActionType(
-  t: string,
-): t is ForbiddenActionLike {
+function isForbiddenActionType(t: string): t is ForbiddenActionLike {
   return [
     "jack_out",
     "basic_run",
@@ -466,7 +469,9 @@ function gateAction(
             ? state.corp.identityId
             : state.runner.identityId
         ];
-      const ab = idCard?.paidAbilities?.find((item) => item.id === action.abilityId);
+      const ab = idCard?.paidAbilities?.find(
+        (item) => item.id === action.abilityId,
+      );
       const atTake =
         state.timingKey === "corp.takeAction" ||
         state.timingKey === "runner.takeAction";
@@ -481,8 +486,7 @@ function gateAction(
       if (ab && !costBeginsWithClick(ab) && atTake) {
         return {
           ok: false,
-          reason:
-            "This identity ability is used in a paid ability window.",
+          reason: "This identity ability is used in a paid ability window.",
           cites: [CR.identityAbility],
         };
       }
@@ -592,7 +596,8 @@ function gateAction(
       if (pending.trashExpected === false) {
         return {
           ok: false,
-          reason: "That trash interrupt is still pending but is no longer relevant.",
+          reason:
+            "That trash interrupt is still pending but is no longer relevant.",
           cites: [CR.conditionalInterruptStillRelevant],
         };
       }
@@ -611,7 +616,8 @@ function gateAction(
       if (!corpMayRez(state.timingKey) && !state.pendingSubroutineBreak) {
         return {
           ok: false,
-          reason: "Rez an asset or upgrade only in a paid ability window marked (R).",
+          reason:
+            "Rez an asset or upgrade only in a paid ability window marked (R).",
           cites: [CR.rezInPaw],
         };
       }
@@ -658,14 +664,11 @@ function gateAction(
       const ab = state.cards[action.cardId]?.paidAbilities?.find(
         (a) => a.id === action.abilityId,
       );
-      if (
-        ab &&
-        state.pendingDamage &&
-        !allButNDamageRelevant(state, ab)
-      ) {
+      if (ab && state.pendingDamage && !allButNDamageRelevant(state, ab)) {
         return {
           ok: false,
-          reason: "Prevent all but 1 is relevant only when net damage is 2 or more.",
+          reason:
+            "Prevent all but 1 is relevant only when net damage is 2 or more.",
           cites: [CR.preventAllButOne],
         };
       }
@@ -748,7 +751,8 @@ function gateAction(
       if (state.timingKey !== "run.jackOutWindow") {
         return {
           ok: false,
-          reason: "Jack out / continue only during movement jack-out step (11.4_4_c).",
+          reason:
+            "Jack out / continue only during movement jack-out step (11.4_4_c).",
           cites: [CR.jackOutMovement, CR.jackOutAfterPass],
         };
       }
@@ -770,7 +774,8 @@ function gateAction(
       ) {
         return {
           ok: false,
-          reason: "Mulligan choices are only legal during opening mulligan (CR 1.6.6a).",
+          reason:
+            "Mulligan choices are only legal during opening mulligan (CR 1.6.6a).",
           cites: [CR.mulligan],
         };
       }

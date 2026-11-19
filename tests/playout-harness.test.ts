@@ -4,7 +4,11 @@
  * is shrink-only.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { cardsDataPresent, crDataPresent, loadCardCatalog } from "../src/index.js";
+import {
+  cardsDataPresent,
+  crDataPresent,
+  loadCardCatalog,
+} from "../src/index.js";
 import {
   FORMATS,
   compareWithSeeds,
@@ -33,8 +37,14 @@ describe("playout decks", () => {
     expect(expanded.corp.cards).toHaveLength(44);
     expect(expanded.runner.cards).toHaveLength(40);
     const catalog = loadCardCatalog();
-    for (const deck of [starter.corp, starter.runner, expanded.corp, expanded.runner]) {
-      for (const id of [deck.identityId, ...deck.cards]) expect(catalog.has(id), id).toBe(true);
+    for (const deck of [
+      starter.corp,
+      starter.runner,
+      expanded.corp,
+      expanded.runner,
+    ]) {
+      for (const id of [deck.identityId, ...deck.cards])
+        expect(catalog.has(id), id).toBe(true);
     }
   });
 
@@ -43,7 +53,9 @@ describe("playout decks", () => {
     for (let seed = 1; seed <= 25; seed++) {
       const decks = decksFor(format as Format, seed);
       expect(deckProblems(pool, decks.corp), `corp seed ${seed}`).toEqual([]);
-      expect(deckProblems(pool, decks.runner), `runner seed ${seed}`).toEqual([]);
+      expect(deckProblems(pool, decks.runner), `runner seed ${seed}`).toEqual(
+        [],
+      );
     }
   });
 
@@ -51,16 +63,28 @@ describe("playout decks", () => {
     const startup = formatPool("startup");
     expect(startup.restriction?.banned).toContain("offworld-office");
     expect(startup.cards).not.toContain("offworld-office");
-    const deck = { identityId: "the-syndicate-profit-over-principle", cards: learnToPlayDecks("starter").corp.cards };
-    expect(deckProblems(startup, deck).some((p) => p.includes("CR 1.4.1a"))).toBe(true);
+    const deck = {
+      identityId: "the-syndicate-profit-over-principle",
+      cards: learnToPlayDecks("starter").corp.cards,
+    };
+    expect(
+      deckProblems(startup, deck).some((p) => p.includes("CR 1.4.1a")),
+    ).toBe(true);
   });
 
   it("flags a deck under the minimum, over influence or over a copy limit (CR 1.4.3, 1.4.5, 1.4.7)", () => {
     const pool = formatPool("startup");
     const { corp } = decksFor("startup", 1);
-    expect(deckProblems(pool, { ...corp, cards: corp.cards.slice(1) }).join()).toContain("CR 1.4.3");
-    const fourth = corp.cards.find((id) => corp.cards.filter((c) => c === id).length === 3);
-    if (fourth) expect(deckProblems(pool, { ...corp, cards: [...corp.cards, fourth] }).join()).toContain("CR 1.4.7");
+    expect(
+      deckProblems(pool, { ...corp, cards: corp.cards.slice(1) }).join(),
+    ).toContain("CR 1.4.3");
+    const fourth = corp.cards.find(
+      (id) => corp.cards.filter((c) => c === id).length === 3,
+    );
+    if (fourth)
+      expect(
+        deckProblems(pool, { ...corp, cards: [...corp.cards, fourth] }).join(),
+      ).toContain("CR 1.4.7");
   });
 
   it("counts neutral influence and not in-faction influence (CR 1.4.5)", () => {
@@ -68,16 +92,24 @@ describe("playout decks", () => {
     const { runner } = decksFor("startup", 1);
     // Neutral cards are out-of-faction: 3 each of Lucky Find, Baba Yaga and
     // Ashen Epilogue (2 influence each) is 18, over any 15-influence runner.
-    const neutral = ["lucky-find", "baba-yaga", "ashen-epilogue"].flatMap((id) => [id, id, id]);
-    const deck = { ...runner, cards: [...neutral, ...runner.cards.slice(neutral.length)] };
+    const neutral = ["lucky-find", "baba-yaga", "ashen-epilogue"].flatMap(
+      (id) => [id, id, id],
+    );
+    const deck = {
+      ...runner,
+      cards: [...neutral, ...runner.cards.slice(neutral.length)],
+    };
     const before = deckProblems(pool, runner).length;
     expect(before).toBe(0);
-    expect(deckProblems(pool, deck).join()).toMatch(/influence \d+ is over the limit \(CR 1\.4\.5\)/);
+    expect(deckProblems(pool, deck).join()).toMatch(
+      /influence \d+ is over the limit \(CR 1\.4\.5\)/,
+    );
   });
 
   it("varies the decks with the seed", () => {
     const ids = new Set<string>();
-    for (let seed = 1; seed <= 10; seed++) ids.add(decksFor("startup", seed).corp.cards.join());
+    for (let seed = 1; seed <= 10; seed++)
+      ids.add(decksFor("startup", seed).corp.cards.join());
     expect(ids.size).toBeGreaterThan(5);
   });
 });
@@ -96,9 +128,18 @@ describe("playout replay", () => {
       failures: [{ code: "REFUSED", step: 4, detail: "x" }],
     };
     expect(compareWithSeeds(result, [])).toHaveLength(1);
-    const entry = { format: "startup" as const, deckSeed: 99, code: "REFUSED", step: 4, recorded: "2026-11-13", detail: "x" };
+    const entry = {
+      format: "startup" as const,
+      deckSeed: 99,
+      code: "REFUSED",
+      step: 4,
+      recorded: "2026-11-13",
+      detail: "x",
+    };
     expect(compareWithSeeds(result, [entry])).toEqual([]);
-    expect(compareWithSeeds({ ...result, failures: [] }, [entry])).toHaveLength(1);
+    expect(compareWithSeeds({ ...result, failures: [] }, [entry])).toHaveLength(
+      1,
+    );
   });
 
   it("records every fixture entry with a known format, a date and a step in budget", () => {

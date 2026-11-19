@@ -30,7 +30,11 @@ beforeAll(() => {
 function mirrormorph(): GameState {
   const s = createInitialState();
   const id = s.corp.identityId;
-  s.cards[id] = instantiateCard("mirrormorph-endless-iteration", id, "corp:identity");
+  s.cards[id] = instantiateCard(
+    "mirrormorph-endless-iteration",
+    id,
+    "corp:identity",
+  );
   // The default board's program is not rezzed (CR 8.1.4f).
   s.cards["runner-program-1"]!.rezzed = false;
   s.activeSide = "corp";
@@ -38,12 +42,22 @@ function mirrormorph(): GameState {
 }
 
 /** A rezzed card alone in the root of `server`. */
-function rezzedIn(s: GameState, defId: string, id: string, server: string): void {
+function rezzedIn(
+  s: GameState,
+  defId: string,
+  id: string,
+  server: string,
+): void {
   const card = instantiateCard(defId, id, `server:${server}:root`);
   card.rezzed = true;
   card.faceup = true;
   s.cards[id] = card;
-  s.servers[server] = { id: server, kind: "remote", ice: [], root: [id] } as GameState["servers"][string];
+  s.servers[server] = {
+    id: server,
+    kind: "remote",
+    ice: [],
+    root: [id],
+  } as GameState["servers"][string];
 }
 
 /** Take `action` from the Corp's action window. */
@@ -55,7 +69,9 @@ function take(s: GameState, action: Action): GameState {
 }
 
 function morphBecamePending(s: GameState): boolean {
-  return s.log.some((line) => line.includes("MirrorMorph") && line.includes("becomes pending"));
+  return s.log.some(
+    (line) => line.includes("MirrorMorph") && line.includes("becomes pending"),
+  );
 }
 
 describe("MirrorMorph counts only the first three actions", () => {
@@ -96,8 +112,16 @@ describe("MirrorMorph counts only the first three actions", () => {
     s.cards["rml-2"]!.hostedCredits = 15;
     s.nextRemoteNumber = 3;
     s.corp.clicks = 3;
-    s = take(s, { type: "use_paid_ability", cardId: "rml-1", abilityId: "regolith-take" });
-    s = take(s, { type: "use_paid_ability", cardId: "rml-2", abilityId: "regolith-take" });
+    s = take(s, {
+      type: "use_paid_ability",
+      cardId: "rml-1",
+      abilityId: "regolith-take",
+    });
+    s = take(s, {
+      type: "use_paid_ability",
+      cardId: "rml-2",
+      abilityId: "regolith-take",
+    });
     expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(false);
     s = take(s, { type: "basic_gain_credit" });
     expect(morphBecamePending(s)).toBe(true);

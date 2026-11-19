@@ -10,8 +10,7 @@ import type { EffectCtx } from "./eval.js";
 import type { Primitive } from "./ir.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applyTracePrimitive(
   ctx: EffectCtx,

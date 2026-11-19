@@ -1,5 +1,8 @@
 /** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
-import { corpInstallCost, subtractRunnerCreditPool } from "../../state/costs.js";
+import {
+  corpInstallCost,
+  subtractRunnerCreditPool,
+} from "../../state/costs.js";
 import { addOutermostIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
@@ -12,13 +15,9 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function trashRunnerInstalled(
-  state: EffectCtx["state"],
-  cardId: string,
-): void {
+function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
@@ -84,8 +83,8 @@ export function applyKitaraDtwnPrimitive(
           label: `Name ${sub}`,
           effect: fx.do({ kind: "dtwn_wari_name_subtype", subtype: sub }),
         })),
-logLine: `Wari — trash self; name sentry, code gate, or barrier.`,
-});
+        logLine: `Wari — trash self; name sentry, code gate, or barrier.`,
+      });
       return { ok: true };
     }
 
@@ -126,9 +125,7 @@ logLine: `Wari — trash self; name sentry, code gate, or barrier.`,
     case "search_kabonesa_install": {
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
-        return (
-          c?.type === "program" && !(c.subtypes ?? []).includes("virus")
-        );
+        return c?.type === "program" && !(c.subtypes ?? []).includes("virus");
       });
       if (matches.length === 0) {
         for (let i = state.runner.deck.length - 1; i > 0; i--) {
@@ -151,8 +148,8 @@ logLine: `Wari — trash self; name sentry, code gate, or barrier.`,
             cardId: id,
           }),
         })),
-logLine: `${source?.title ?? "Kabonesa Wu"} — search stack.`,
-});
+        logLine: `${source?.title ?? "Kabonesa Wu"} — search stack.`,
+      });
       return { ok: true };
     }
 
@@ -195,9 +192,7 @@ logLine: `${source?.title ?? "Kabonesa Wu"} — search stack.`,
       const breakers = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         return (
-          c?.breaker &&
-          !(c.subtypes ?? []).includes("ai") &&
-          id !== sourceId
+          c?.breaker && !(c.subtypes ?? []).includes("ai") && id !== sourceId
         );
       });
       // Also allow pumping other breakers; include self if non-AI (Takobi is not a breaker).
@@ -230,10 +225,7 @@ logLine: `${source?.title ?? "Kabonesa Wu"} — search stack.`,
         breakerId: action.cardId,
         amount,
       });
-      log(
-        state,
-        `Takobi — ${card.title} +${amount} strength this encounter.`,
-      );
+      log(state, `Takobi — ${card.title} +${amount} strength this encounter.`);
       return { ok: true };
     }
 
@@ -270,8 +262,8 @@ logLine: `${source?.title ?? "Kabonesa Wu"} — search stack.`,
             }),
           },
         ],
-logLine: `Emergent Creativity — trash from grip then search stack.`,
-});
+        logLine: `Emergent Creativity — trash from grip then search stack.`,
+      });
       return { ok: true };
     }
 
@@ -316,10 +308,12 @@ logLine: `Emergent Creativity — trash from grip then search stack.`,
       card.faceup = true;
       state.runner.discardPile.push(id);
       log(state, `Emergent Creativity — trash ${card.title} from grip.`);
-      return applyKitaraDtwnPrimitive(ctx, {
-        kind: "trash_emergent_continue",
-        trashedCost: action.trashedCost,
-      }) ?? { ok: true };
+      return (
+        applyKitaraDtwnPrimitive(ctx, {
+          kind: "trash_emergent_continue",
+          trashedCost: action.trashedCost,
+        }) ?? { ok: true }
+      );
     }
 
     case "search_emergent_install": {
@@ -388,9 +382,12 @@ logLine: `Emergent Creativity — trash from grip then search stack.`,
         label: `Name ${n}`,
         effect: fx.do({ kind: "dtwn_rng_key_set_number", named: n }),
       }));
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `RNG Key — name a number.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `RNG Key — name a number.`,
+      });
       return { ok: true };
     }
 
@@ -399,7 +396,10 @@ logLine: `RNG Key — name a number.`,
       state.run.dtwnRngKeyNamedNumber = action.named;
       state.run.dtwnRngKeySourceId = sourceId;
       state.run.dtwnRngKeyPendingReveal = true;
-      log(state, `RNG Key — named ${action.named}; reveal next access this run.`);
+      log(
+        state,
+        `RNG Key — named ${action.named}; reveal next access this run.`,
+      );
       return { ok: true };
     }
 
@@ -454,8 +454,8 @@ logLine: `RNG Key — name a number.`,
             effect: fx.do({ kind: "dtwn_bacterial_partition" }),
           },
         ],
-logLine: `Bacterial Programming — look at top ${n} of R&D.`,
-});
+        logLine: `Bacterial Programming — look at top ${n} of R&D.`,
+      });
       return { ok: true };
     }
 
@@ -514,9 +514,11 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       state.cards[id]!.zone = "corp:hq";
       state.cards[id]!.faceup = false;
       log(state, `Bacterial Programming — add 1 card to HQ.`);
-      return applyKitaraDtwnPrimitive(ctx, {
-        kind: "dtwn_bacterial_partition",
-      }) ?? { ok: true };
+      return (
+        applyKitaraDtwnPrimitive(ctx, {
+          kind: "dtwn_bacterial_partition",
+        }) ?? { ok: true }
+      );
     }
 
     case "trash_bacterial_one": {
@@ -531,9 +533,11 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       // Trashed from R&D by the Corp: facedown, and not named (CR 4.4.6b).
       state.cards[id]!.faceup = false;
       log(state, `Bacterial Programming — trash 1 card.`);
-      return applyKitaraDtwnPrimitive(ctx, {
-        kind: "dtwn_bacterial_partition",
-      }) ?? { ok: true };
+      return (
+        applyKitaraDtwnPrimitive(ctx, {
+          kind: "dtwn_bacterial_partition",
+        }) ?? { ok: true }
+      );
     }
 
     case "dtwn_bacterial_finish": {
@@ -550,7 +554,8 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       // "arrange the rest in any order": with more than one card left the
       // Corp picks the order (CR 1.15.2).
       if (action.arrange.length > 1 && state.turn.rdLookedCards.length === 0) {
-        delete (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked;
+        delete (source as { dtwnBacterialLooked?: string[] })
+          .dtwnBacterialLooked;
         state.turn.rdLookedCards = [...action.arrange];
         state.turn.rdArrangePlaced = [];
         return offerRdArrangeChoice(state, sourceId);
@@ -569,7 +574,10 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
 
     case "forbid_install_remainder_of_turn": {
       state.turn.dtwnRunnerCannotInstall = true;
-      log(state, `Jua — Runner cannot install cards for the remainder of the turn.`);
+      log(
+        state,
+        `Jua — Runner cannot install cards for the remainder of the turn.`,
+      );
       return { ok: true };
     }
 
@@ -726,7 +734,10 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
         state.cards[id]!.zone = "corp:archives";
         // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
         state.cards[id]!.faceup = false;
-        log(state, `Distract the Masses — trash ${state.cards[id]!.title} from HQ.`);
+        log(
+          state,
+          `Distract the Masses — trash ${state.cards[id]!.title} from HQ.`,
+        );
       }
       if (action.remainingAfter > 0) {
         const hq = [...state.corp.hand];
@@ -754,10 +765,12 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
         openPendingChoose(state, { sourceId, chooser: "corp", options });
         return { ok: true };
       }
-      return applyKitaraDtwnPrimitive(ctx, {
-        kind: "shuffle_distract_archives",
-        remaining: 2,
-      }) ?? { ok: true };
+      return (
+        applyKitaraDtwnPrimitive(ctx, {
+          kind: "shuffle_distract_archives",
+          remaining: 2,
+        }) ?? { ok: true }
+      );
     }
 
     case "shuffle_distract_archives": {
@@ -804,10 +817,12 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
         state.corp.deck[j] = tmp;
       }
       if (action.remainingAfter > 0) {
-        return applyKitaraDtwnPrimitive(ctx, {
-          kind: "shuffle_distract_archives",
-          remaining: action.remainingAfter,
-        }) ?? { ok: true };
+        return (
+          applyKitaraDtwnPrimitive(ctx, {
+            kind: "shuffle_distract_archives",
+            remaining: action.remainingAfter,
+          }) ?? { ok: true }
+        );
       }
       return { ok: true };
     }
@@ -817,7 +832,8 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       const serverId = action.serverId as ServerId;
       const server = state.servers[serverId];
       const ice = state.cards[iceId];
-      const setAside = state.pendingDrawSetAside?.cardIds.includes(iceId) ?? false;
+      const setAside =
+        state.pendingDrawSetAside?.cardIds.includes(iceId) ?? false;
       if (!server || !ice || (!state.corp.hand.includes(iceId) && !setAside)) {
         return { ok: true };
       }
@@ -834,9 +850,8 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       if (state.corp.hand.includes(iceId)) {
         state.corp.hand = state.corp.hand.filter((x) => x !== iceId);
       } else if (state.pendingDrawSetAside) {
-        state.pendingDrawSetAside.cardIds = state.pendingDrawSetAside.cardIds.filter(
-          (id) => id !== iceId,
-        );
+        state.pendingDrawSetAside.cardIds =
+          state.pendingDrawSetAside.cardIds.filter((id) => id !== iceId);
       }
       // Outermost, as the text names no other position (CR 6.2.2a).
       addOutermostIce(state, serverId, iceId);
@@ -854,4 +869,3 @@ logLine: `Bacterial Programming — look at top ${n} of R&D.`,
       return null;
   }
 }
-

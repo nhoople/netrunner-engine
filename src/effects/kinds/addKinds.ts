@@ -4,14 +4,8 @@
  */
 import { revealCards } from "../../state/reveal.js";
 import { pickRandomSubset } from "../../state/rng.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import {
@@ -24,11 +18,14 @@ import {
 } from "../../state/trashHooks.js";
 import { CR } from "../../timing/labels.js";
 
-export function applyAddKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyAddKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "add_to_runner_score_as_agenda": {
+    case "add_to_runner_score_as_agenda": {
       const pts = action.agendaPoints ?? source.agendaPoints ?? 0;
       source.agendaPoints = pts;
       if (action.addSubtypes?.length) {
@@ -59,7 +56,7 @@ case "add_to_runner_score_as_agenda": {
       return { ok: true };
     }
 
-case "add_to_corp_score_as_agenda": {
+    case "add_to_corp_score_as_agenda": {
       const pts = action.agendaPoints;
       source.agendaPoints = pts;
       if (action.cannotForfeit) source.cannotForfeit = true;
@@ -80,7 +77,7 @@ case "add_to_corp_score_as_agenda": {
       return { ok: true };
     }
 
-case "may_add_archives_card_to_rd_top": {
+    case "may_add_archives_card_to_rd_top": {
       const archives = [...state.corp.discardPile];
       if (archives.length === 0) {
         log(state, `${source.title} — Archives empty.`);
@@ -107,13 +104,16 @@ case "may_add_archives_card_to_rd_top": {
           },
         })),
       ];
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may add 1 Archives card to top of R&D.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may add 1 Archives card to top of R&D.`,
+      });
       return { ok: true };
     }
 
-case "add_archives_card_to_rd_top": {
+    case "add_archives_card_to_rd_top": {
       const id = action.cardId;
       if (!state.corp.discardPile.includes(id)) {
         log(state, `Add Archives to R&D — card not in Archives.`);
@@ -128,7 +128,7 @@ case "add_archives_card_to_rd_top": {
       return { ok: true };
     }
 
-case "add_from_heap_to_grip": {
+    case "add_from_heap_to_grip": {
       const moveToGrip = (id: string): { ok: true } => {
         const idx = state.runner.discardPile.indexOf(id);
         if (idx < 0) {
@@ -175,20 +175,18 @@ case "add_from_heap_to_grip": {
               },
             },
           })),
-logLine: `Choose a card in the heap to add to grip.`,
-});
+          logLine: `Choose a card in the heap to add to grip.`,
+        });
         return { ok: true };
       }
       return moveToGrip(heap[0]!);
     }
 
-case "may_add_hq_agenda_ap_lte_to_score": {
+    case "may_add_hq_agenda_ap_lte_to_score": {
       const maxAp = Math.max(0, action.maxAgendaPoints);
       const candidates = state.corp.hand.filter((id) => {
         const c = state.cards[id];
-        return (
-          c?.type === "agenda" && (c.agendaPoints ?? 0) <= maxAp
-        );
+        return c?.type === "agenda" && (c.agendaPoints ?? 0) <= maxAp;
       });
       if (candidates.length === 0) {
         log(
@@ -221,14 +219,18 @@ case "may_add_hq_agenda_ap_lte_to_score": {
             },
           })),
         ],
-logLine: `${source.title} — may add an HQ agenda (≤${maxAp} AP) to the score area.`,
-});
+        logLine: `${source.title} — may add an HQ agenda (≤${maxAp} AP) to the score area.`,
+      });
       return { ok: true };
     }
 
-case "add_hq_agenda_to_score": {
+    case "add_hq_agenda_to_score": {
       const card = state.cards[action.cardId];
-      if (!card || card.type !== "agenda" || !state.corp.hand.includes(action.cardId)) {
+      if (
+        !card ||
+        card.type !== "agenda" ||
+        !state.corp.hand.includes(action.cardId)
+      ) {
         log(state, `Add HQ agenda to score — card not an HQ agenda.`);
         return { ok: true };
       }
@@ -246,7 +248,7 @@ case "add_hq_agenda_to_score": {
       return { ok: true };
     }
 
-case "may_add_archives_card_to_rd_top_or_bottom": {
+    case "may_add_archives_card_to_rd_top_or_bottom": {
       const archives = [...state.corp.discardPile];
       if (archives.length === 0) {
         log(state, `${source.title} — Archives empty.`);
@@ -289,20 +291,25 @@ case "may_add_archives_card_to_rd_top_or_bottom": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may move Archives card to R&D.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may move Archives card to R&D.`,
+      });
       return { ok: true };
     }
 
-case "add_archives_card_to_rd": {
+    case "add_archives_card_to_rd": {
       const cardId = action.cardId;
       if (!state.corp.discardPile.includes(cardId)) {
         log(state, `Archives→R&D — card not in Archives.`);
         return { ok: true };
       }
       const card = state.cards[cardId]!;
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
       if (action.position === "top") {
         state.corp.deck.unshift(cardId);
       } else {
@@ -317,7 +324,7 @@ case "add_archives_card_to_rd": {
       return { ok: true };
     }
 
-case "add_installed_runner_to_grip": {
+    case "add_installed_runner_to_grip": {
       const targets = [...state.runner.installed];
       if (targets.length === 0) {
         log(state, `${source.title} — no installed Runner cards.`);
@@ -337,19 +344,21 @@ case "add_installed_runner_to_grip": {
             },
           },
         })),
-logLine: `${source.title} — choose installed Runner card for grip.`,
-});
+        logLine: `${source.title} — choose installed Runner card for grip.`,
+      });
       return { ok: true };
     }
 
-case "add_installed_runner_card_to_grip": {
+    case "add_installed_runner_card_to_grip": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.runner.installed.includes(cardId)) {
         log(state, `Add to grip — card not installed.`);
         return { ok: true };
       }
-      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter(
+        (id) => id !== cardId,
+      );
       // Unhost hosted cards if any host relationship.
       for (const id of [...state.runner.installed]) {
         const c = state.cards[id];
@@ -365,7 +374,7 @@ case "add_installed_runner_card_to_grip": {
       return { ok: true };
     }
 
-case "may_add_hosted_card_to_grip": {
+    case "may_add_hosted_card_to_grip": {
       const hosted = source.hostedCardIds ?? [];
       if (hosted.length === 0) {
         if (source.trashWhenNoHostedCards) {
@@ -399,12 +408,12 @@ case "may_add_hosted_card_to_grip": {
             },
           },
         ],
-logLine: `${source.title} — may add 1 hosted card to grip.`,
-});
+        logLine: `${source.title} — may add 1 hosted card to grip.`,
+      });
       return { ok: true };
     }
 
-case "add_hosted_card_to_grip": {
+    case "add_hosted_card_to_grip": {
       const hosted = source.hostedCardIds ?? [];
       if (!hosted.includes(action.cardId)) {
         log(state, `Add hosted to grip — ${action.cardId} not hosted.`);
@@ -427,10 +436,8 @@ case "add_hosted_card_to_grip": {
       return { ok: true };
     }
 
-case "may_add_from_heap_to_stack_bottom": {
-      const typeFilter = action.types?.length
-        ? new Set(action.types)
-        : null;
+    case "may_add_from_heap_to_stack_bottom": {
+      const typeFilter = action.types?.length ? new Set(action.types) : null;
       const candidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
@@ -471,12 +478,12 @@ case "may_add_from_heap_to_stack_bottom": {
             },
           },
         ],
-logLine: `${source.title} — may add from heap to bottom of stack.`,
-});
+        logLine: `${source.title} — may add from heap to bottom of stack.`,
+      });
       return { ok: true };
     }
 
-case "add_from_heap_to_stack_bottom": {
+    case "add_from_heap_to_stack_bottom": {
       const id = action.cardId;
       const idx = state.runner.discardPile.indexOf(id);
       if (idx < 0) {
@@ -491,7 +498,7 @@ case "add_from_heap_to_stack_bottom": {
       return { ok: true };
     }
 
-case "may_add_from_heap_to_stack_top": {
+    case "may_add_from_heap_to_stack_top": {
       const candidates = [...state.runner.discardPile];
       if (candidates.length === 0) {
         log(state, `${source.title} — may add from heap to stack top: none.`);
@@ -525,12 +532,12 @@ case "may_add_from_heap_to_stack_top": {
             },
           },
         ],
-logLine: `${source.title} — may add from heap to top of stack.`,
-});
+        logLine: `${source.title} — may add from heap to top of stack.`,
+      });
       return { ok: true };
     }
 
-case "add_from_heap_to_stack_top": {
+    case "add_from_heap_to_stack_top": {
       const id = action.cardId;
       const idx = state.runner.discardPile.indexOf(id);
       if (idx < 0) {
@@ -545,7 +552,7 @@ case "add_from_heap_to_stack_top": {
       return { ok: true };
     }
 
-case "may_add_one_of_card_ids_to_stack_bottom": {
+    case "may_add_one_of_card_ids_to_stack_bottom": {
       const ids = (
         action.cardIds ??
         state.turn.pendingGripOrStackTrashBatchIds ??
@@ -585,12 +592,12 @@ case "may_add_one_of_card_ids_to_stack_bottom": {
             },
           },
         ],
-logLine: `${source.title} — may add 1 of the trashed cards to bottom of stack.`,
-});
+        logLine: `${source.title} — may add 1 of the trashed cards to bottom of stack.`,
+      });
       return { ok: true };
     }
 
-case "add_card_id_to_stack_bottom": {
+    case "add_card_id_to_stack_bottom": {
       const id = action.cardId;
       const idx = state.runner.discardPile.indexOf(id);
       if (idx < 0) {
@@ -605,26 +612,20 @@ case "add_card_id_to_stack_bottom": {
       return { ok: true };
     }
 
-case "add_ice_additional_rez_cost_this_turn": {
+    case "add_ice_additional_rez_cost_this_turn": {
       const target = state.cards[action.cardId];
       if (!target) {
-        log(
-          state,
-          `Add ice rez cost — unknown card ${action.cardId}.`,
-        );
+        log(state, `Add ice rez cost — unknown card ${action.cardId}.`);
         return { ok: true };
       }
       state.turn.iceAdditionalRezCostThisTurn[action.cardId] =
         (state.turn.iceAdditionalRezCostThisTurn[action.cardId] ?? 0) +
         action.amount;
-      log(
-        state,
-        `${target.title} costs +${action.amount}¢ to rez this turn.`,
-      );
+      log(state, `${target.title} costs +${action.amount}¢ to rez this turn.`);
       return { ok: true };
     }
 
-case "add_random_grip_to_stack_bottom": {
+    case "add_random_grip_to_stack_bottom": {
       // "at random": drawn from the game's random stream.
       const moved = pickRandomSubset(
         state,
@@ -644,7 +645,7 @@ case "add_random_grip_to_stack_bottom": {
       return { ok: true };
     }
 
-case "add_random_grip_to_stack_top": {
+    case "add_random_grip_to_stack_top": {
       // Bring Them Home: "Reveal and add 2 cards at random from the grip
       // to the top of the stack." Both players see the revealed cards.
       const moved = pickRandomSubset(
@@ -668,7 +669,7 @@ case "add_random_grip_to_stack_top": {
       return { ok: true };
     }
 
-case "add_installed_resource_to_stack_top": {
+    case "add_installed_resource_to_stack_top": {
       const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
       );
@@ -693,12 +694,12 @@ case "add_installed_resource_to_stack_top": {
             },
           };
         }),
-logLine: `${source.title} — choose an installed resource for stack top.`,
-});
+        logLine: `${source.title} — choose an installed resource for stack top.`,
+      });
       return { ok: true };
     }
 
-case "add_installed_program_to_stack_top": {
+    case "add_installed_program_to_stack_top": {
       const programs = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "program",
       );
@@ -723,12 +724,12 @@ case "add_installed_program_to_stack_top": {
             },
           };
         }),
-logLine: `${source.title} — choose an installed program for stack top.`,
-});
+        logLine: `${source.title} — choose an installed program for stack top.`,
+      });
       return { ok: true };
     }
 
-case "add_agenda_counters_equal_to_bad_publicity": {
+    case "add_agenda_counters_equal_to_bad_publicity": {
       const n = state.corp.badPublicity ?? 0;
       source.agendaCounters = (source.agendaCounters ?? 0) + n;
       log(
@@ -738,7 +739,7 @@ case "add_agenda_counters_equal_to_bad_publicity": {
       return { ok: true };
     }
 
-case "add_agenda_from_hq_to_score_worth_exact_hosted_power": {
+    case "add_agenda_from_hq_to_score_worth_exact_hosted_power": {
       const pts = source.powerCounters ?? 0;
       const candidates = state.corp.hand.filter(
         (id) => state.cards[id]?.type === "agenda",
@@ -762,12 +763,12 @@ case "add_agenda_from_hq_to_score_worth_exact_hosted_power": {
             },
           },
         })),
-logLine: `${source.title} — add an HQ agenda worth ${pts} AP (hosted power).`,
-});
+        logLine: `${source.title} — add an HQ agenda worth ${pts} AP (hosted power).`,
+      });
       return { ok: true };
     }
 
-case "add_hq_agenda_to_score_with_agenda_points": {
+    case "add_hq_agenda_to_score_with_agenda_points": {
       const card = state.cards[action.cardId];
       if (
         !card ||
@@ -785,15 +786,12 @@ case "add_hq_agenda_to_score_with_agenda_points": {
       card.rezzed = true;
       card.agendaPoints = pts;
       state.turn.agendaPointsScoredThisTurn += pts;
-      log(
-        state,
-        `Add ${card.title} from HQ to Corp score area (${pts} AP).`,
-      );
+      log(state, `Add ${card.title} from HQ to Corp score area (${pts} AP).`);
       checkWinConditions(state);
       return { ok: true };
     }
 
-case "add_power_counter_equal_to_last_access_trash_cost": {
+    case "add_power_counter_equal_to_last_access_trash_cost": {
       const n = Math.max(0, state.turn.lastAccessTrashCost ?? 0);
       if (n <= 0) {
         log(state, `${source.title} — trash cost 0; no power placed.`);

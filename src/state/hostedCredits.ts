@@ -19,7 +19,8 @@ import type { GameState } from "./types.js";
  */
 export function directHostedTakeFromEmpty(
   hostedCredits: number | undefined,
-  effect: { op?: string; action?: { kind?: string; amount?: number } } | undefined,
+  effect:
+    { op?: string; action?: { kind?: string; amount?: number } } | undefined,
 ): boolean {
   if (effect?.op !== "do") return false;
   if (effect.action?.kind !== "take_hosted_credits") return false;
@@ -44,9 +45,6 @@ export function maybeFireHostedCreditsGte(
   );
   const r = evalEffect({ state, sourceId: cardId }, effect);
   if (!r.ok) {
-    log(
-      state,
-      `onHostedCreditsGte failed on ${card.title}: ${r.error}`,
-    );
+    log(state, `onHostedCreditsGte failed on ${card.title}: ${r.error}`);
   }
 }

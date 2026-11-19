@@ -167,7 +167,10 @@ export function pushCheckpoint(
   return frame;
 }
 
-export function popCheckpoint(state: GameState, expectedId?: string): CheckpointFrame | null {
+export function popCheckpoint(
+  state: GameState,
+  expectedId?: string,
+): CheckpointFrame | null {
   const frame = state.checkpoints.pop() ?? null;
   if (!frame) return null;
   if (expectedId && frame.id !== expectedId) {
@@ -214,7 +217,10 @@ export function occurCheckpoint(
 }
 
 /** CR 10.3.1f through CR 10.3.1l, then the frame closes. */
-function finishCheckpointAfterRestrictions(state: GameState, frameId: string): void {
+function finishCheckpointAfterRestrictions(
+  state: GameState,
+  frameId: string,
+): void {
   checkHostedOnAgenda(state);
   checkHostedOnUninstalled(state);
   checkRemoteServers(state);
@@ -252,10 +258,7 @@ function finishCheckpointAfterRestrictions(state: GameState, frameId: string): v
  * (CR 9.6.4b) via the exposed_since_previous predicate. An open expose-up-to
  * instruction defers the checkpoint until that instruction finishes.
  */
-function settleBlackguardExposes(
-  state: GameState,
-  diff: CheckpointDiff,
-): void {
+function settleBlackguardExposes(state: GameState, diff: CheckpointDiff): void {
   if (state.turn.deferBlackguardCheckpoint) return;
   const match = evaluateTriggerPredicate(
     state,
@@ -299,9 +302,7 @@ function resolveBlackguardPendingInstance(
   }
   const cost = card.rezCost ?? card.installCost ?? 0;
   if (cost < 0 || state.corp.credits < cost) {
-    state.log.push(
-      `${title} — Corp cannot rez ${card.title} (need ${cost}¢).`,
-    );
+    state.log.push(`${title} — Corp cannot rez ${card.title} (need ${cost}¢).`);
     return;
   }
   state.corp.credits -= cost;
@@ -356,7 +357,8 @@ function markDrawConditionals(state: GameState, diff: CheckpointDiff): void {
       for (const server of Object.values(state.servers)) {
         for (const sourceId of server.root) {
           const asset = state.cards[sourceId];
-          if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall) continue;
+          if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall)
+            continue;
           createPendingAbilityInstance(state, {
             abilityKey: "political-dealings:may-install-drawn-agenda",
             sourceId,
@@ -596,10 +598,7 @@ function markFirstRunnerStoleOrTrashed(
  * trashHooks). Marks every eligible Runner installed, Corp score-area, and
  * Corp identity source.
  */
-function markFirstCorpCardTrash(
-  state: GameState,
-  diff: CheckpointDiff,
-): void {
+function markFirstCorpCardTrash(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
     state,
     diff,
@@ -715,10 +714,7 @@ function markFirstProgramOrHardwareTrash(
  * Mâché: first access trash this turn (phase 3 — marked at 10.3.1a from the
  * turn flag set by trashHooks). Marks every eligible Runner installed source.
  */
-function markFirstAccessTrash(
-  state: GameState,
-  diff: CheckpointDiff,
-): void {
+function markFirstAccessTrash(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
     state,
     diff,
@@ -901,10 +897,7 @@ function markFirstGripOrStackTrashBatch(
  * 10.3.1a from the turn flag set by trashHooks). Draw is inline because the
  * pin declares a static field, not Effect IR.
  */
-function markFirstInstalledTrash(
-  state: GameState,
-  diff: CheckpointDiff,
-): void {
+function markFirstInstalledTrash(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
     state,
     diff,
@@ -974,19 +967,14 @@ function markFirstTagThisTurn(state: GameState, diff: CheckpointDiff): void {
       effectKey: "onFirstTagThisTurn",
     } satisfies PendingAbilityPayload,
   });
-  state.log.push(
-    `${idCard.title} becomes pending — first tag this turn.`,
-  );
+  state.log.push(`${idCard.title} becomes pending — first tag this turn.`);
 }
 
 /**
  * Hyoubu Institute: first reveal this turn (phase 3 — marked at 10.3.1a from
  * the turn flag set by reveal hooks).
  */
-function markFirstRevealThisTurn(
-  state: GameState,
-  diff: CheckpointDiff,
-): void {
+function markFirstRevealThisTurn(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
     state,
     diff,
@@ -1013,9 +1001,7 @@ function markFirstRevealThisTurn(
       effectKey: "onFirstRevealEachTurn",
     } satisfies PendingAbilityPayload,
   });
-  state.log.push(
-    `${idCard.title} becomes pending — first reveal this turn.`,
-  );
+  state.log.push(`${idCard.title} becomes pending — first reveal this turn.`);
 }
 
 /**
@@ -1057,8 +1043,8 @@ function markFirstCreditPoolEmpty(
         effectKey: "onFirstRunnerCreditPoolEmptyThisTurn",
       } satisfies PendingAbilityPayload,
     });
-  state.log.push(
-    `${source.title} becomes pending — the Runner's credit pool is empty for the first time this turn (CR 1.10).`,
+    state.log.push(
+      `${source.title} becomes pending — the Runner's credit pool is empty for the first time this turn (CR 1.10).`,
     );
   }
 }
@@ -1168,10 +1154,7 @@ function markFirstHardwareInstall(
 /**
  * LilyPAD first program install (phase 3 — marked at 10.3.1a from MetPending).
  */
-function markFirstProgramInstall(
-  state: GameState,
-  diff: CheckpointDiff,
-): void {
+function markFirstProgramInstall(state: GameState, diff: CheckpointDiff): void {
   const match = evaluateTriggerPredicate(
     state,
     diff,
@@ -1415,7 +1398,11 @@ function markFirstSuccessfulRunFamily(
   },
 ): void {
   const match = evaluateTriggerPredicate(state, diff, args.predicate);
-  if (match.kind !== args.predicate.kind || !("matched" in match) || !match.matched) {
+  if (
+    match.kind !== args.predicate.kind ||
+    !("matched" in match) ||
+    !match.matched
+  ) {
     state.turn[args.metPendingKey] = false;
     return;
   }
@@ -1433,9 +1420,7 @@ function markFirstSuccessfulRunFamily(
         effectKey: args.effectKey,
       } satisfies PendingAbilityPayload,
     });
-    state.log.push(
-      `${card.title} becomes pending — ${args.logSuffix}.`,
-    );
+    state.log.push(`${card.title} becomes pending — ${args.logSuffix}.`);
   }
 }
 
@@ -1523,29 +1508,20 @@ function markFirstEncounterEachRun(
         effectKey: "onFirstEncounterEachRun",
       } satisfies PendingAbilityPayload,
     });
-    state.log.push(
-      `${card.title} becomes pending — first encounter this run.`,
-    );
+    state.log.push(`${card.title} becomes pending — first encounter this run.`);
   }
 }
 
 /** Khan: first ice passed this turn (phase 3). */
 function markFirstPassIce(state: GameState, diff: CheckpointDiff): void {
-  const match = evaluateTriggerPredicate(
-    state,
-    diff,
-    PREDICATE_FIRST_PASS_ICE,
-  );
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_FIRST_PASS_ICE);
   if (match.kind !== "first_pass_ice" || !match.matched) {
     state.turn.firstPassIceMetPending = false;
     return;
   }
   state.turn.firstPassIceMetPending = false;
   const khan = state.cards[state.runner.identityId];
-  if (
-    !khan?.onFirstPassIceEachTurn ||
-    abilitiesSuppressed(state, khan.id)
-  ) {
+  if (!khan?.onFirstPassIceEachTurn || abilitiesSuppressed(state, khan.id)) {
     return;
   }
   state.turn.bmFirstPassIceUsedThisTurn = true;
@@ -1559,9 +1535,7 @@ function markFirstPassIce(state: GameState, diff: CheckpointDiff): void {
       effectKey: "onFirstPassIceEachTurn",
     } satisfies PendingAbilityPayload,
   });
-  state.log.push(
-    `${khan.title} becomes pending — first ice passed this turn.`,
-  );
+  state.log.push(`${khan.title} becomes pending — first ice passed this turn.`);
 }
 
 /** Runner onPassUnrezzedIce (phase 3). */
@@ -1675,9 +1649,7 @@ function markPassHost(state: GameState, diff: CheckpointDiff): void {
           effectKey: "onPassHost",
         } satisfies PendingAbilityPayload,
       });
-      state.log.push(
-        `${hostee.title} becomes pending — host ice passed.`,
-      );
+      state.log.push(`${hostee.title} becomes pending — host ice passed.`);
     }
   }
 }
@@ -1903,9 +1875,7 @@ function markHostEncounter(state: GameState, diff: CheckpointDiff): void {
           effectKey: "onHostEncounter",
         } satisfies PendingAbilityPayload,
       });
-      state.log.push(
-        `${hosted.title} becomes pending — host ice encountered.`,
-      );
+      state.log.push(`${hosted.title} becomes pending — host ice encountered.`);
     }
   }
 }
@@ -1971,9 +1941,7 @@ function markApproachServer(state: GameState, diff: CheckpointDiff): void {
         effectKey: "onApproachServer",
       } satisfies PendingAbilityPayload,
     });
-    state.log.push(
-      `${card.title} becomes pending — server approached.`,
-    );
+    state.log.push(`${card.title} becomes pending — server approached.`);
   }
 }
 
@@ -2076,9 +2044,7 @@ function markApproachIce(state: GameState, diff: CheckpointDiff): void {
         effectKey: "onApproachIce",
       } satisfies PendingAbilityPayload,
     });
-    state.log.push(
-      `${card.title} becomes pending — ice approached.`,
-    );
+    state.log.push(`${card.title} becomes pending — ice approached.`);
   }
 }
 
@@ -2145,9 +2111,7 @@ function markSuccessfulRunOnRd(state: GameState, diff: CheckpointDiff): void {
         effectKey: "onSuccessfulRunOnRd",
       } satisfies PendingAbilityPayload,
     });
-    state.log.push(
-      `${card.title} becomes pending — successful run on R&D.`,
-    );
+    state.log.push(`${card.title} becomes pending — successful run on R&D.`);
   }
 }
 
@@ -2181,9 +2145,7 @@ function markSuccessfulRunEndOnce(
         effectKey: "onSuccessfulRunEndOncePerTurn",
       } satisfies PendingAbilityPayload,
     });
-    state.log.push(
-      `${card.title} becomes pending — successful run ends.`,
-    );
+    state.log.push(`${card.title} becomes pending — successful run ends.`);
   }
 }
 
@@ -2214,9 +2176,7 @@ function markSuccessfulRunEnd(state: GameState, diff: CheckpointDiff): void {
         effectKey: "onSuccessfulRunEnd",
       } satisfies PendingAbilityPayload,
     });
-    state.log.push(
-      `${card.title} becomes pending — successful run ends.`,
-    );
+    state.log.push(`${card.title} becomes pending — successful run ends.`);
   }
 }
 
@@ -2256,11 +2216,7 @@ function markOtherServerSuccess(state: GameState, diff: CheckpointDiff): void {
 
 /** onSuccessfulRun (phase 3). */
 function markSuccessfulRun(state: GameState, diff: CheckpointDiff): void {
-  const match = evaluateTriggerPredicate(
-    state,
-    diff,
-    PREDICATE_SUCCESSFUL_RUN,
-  );
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_SUCCESSFUL_RUN);
   if (match.kind !== "successful_run" || match.cardIds.length === 0) {
     state.turn.successfulRunPendingIds = [];
     return;
@@ -2407,7 +2363,10 @@ function markInlineConditional(state: GameState, diff: CheckpointDiff): void {
 }
 
 /** Off-graph stored Effect-key conditionals (phase 3). */
-function markStoredConditionalNote(state: GameState, diff: CheckpointDiff): void {
+function markStoredConditionalNote(
+  state: GameState,
+  diff: CheckpointDiff,
+): void {
   const match = evaluateTriggerPredicate(
     state,
     diff,
@@ -2633,11 +2592,7 @@ function markRunnerActionPhaseEnd(
 
 /** Access-step conditionals (phase 3). */
 function markAccessAbility(state: GameState, diff: CheckpointDiff): void {
-  const match = evaluateTriggerPredicate(
-    state,
-    diff,
-    PREDICATE_ACCESS_ABILITY,
-  );
+  const match = evaluateTriggerPredicate(state, diff, PREDICATE_ACCESS_ABILITY);
   if (match.kind !== "access_ability" || match.marks.length === 0) {
     state.turn.accessAbilityPending = [];
     return;
@@ -2985,7 +2940,10 @@ function markBuiltToLastFromCheckpointDiff(
     diff,
     PREDICATE_ADVANCEMENT_FROM_ZERO,
   );
-  if (match.kind !== "advancement_increased_from_zero" || match.cardIds.length === 0) {
+  if (
+    match.kind !== "advancement_increased_from_zero" ||
+    match.cardIds.length === 0
+  ) {
     return;
   }
   const idCard = state.cards[state.corp.identityId];
@@ -3179,8 +3137,7 @@ function markEachCorpBadPublicityTake(
     diff,
     PREDICATE_EACH_CORP_BAD_PUBLICITY_TAKE,
   );
-  const count =
-    match.kind === "each_corp_bad_publicity_take" ? match.count : 0;
+  const count = match.kind === "each_corp_bad_publicity_take" ? match.count : 0;
   state.turn.corpBadPublicityTakeEventsPending = 0;
   if (count <= 0) return;
   for (let i = 0; i < count; i++) {
@@ -3501,8 +3458,7 @@ function closeCheckpointReactionWindow(
   const pending = newlyMarkedIds
     .map((id) => state.pendingAbilities.find((p) => p.id === id))
     .filter(
-      (p): p is NonNullable<typeof p> =>
-        Boolean(p) && p!.status === "pending",
+      (p): p is NonNullable<typeof p> => Boolean(p) && p!.status === "pending",
     );
   if (pending.length === 0) {
     state.log.push(
@@ -3609,9 +3565,7 @@ function closeCheckpointReactionWindow(
           },
         );
         if (r && !r.ok) {
-          state.log.push(
-            `Political Dealings failed: ${r.error}`,
-          );
+          state.log.push(`Political Dealings failed: ${r.error}`);
           completePendingAbility(state, inst.id, "done");
           continue;
         }
@@ -3800,7 +3754,9 @@ function trashByCheckpoint(
   if (card.hostId) {
     const host = state.cards[card.hostId];
     if (host?.hostedCardIds) {
-      host.hostedCardIds = host.hostedCardIds.filter((hostedId) => hostedId !== id);
+      host.hostedCardIds = host.hostedCardIds.filter(
+        (hostedId) => hostedId !== id,
+      );
     }
     card.hostId = undefined;
   }
@@ -3879,14 +3835,13 @@ function checkCardRestrictions(state: GameState): boolean {
     options: plans.map((plan) => ({
       id: restrictionOptionId(plan),
       label: restrictionPlanLabel(state, plan),
-      effect: { op: "do", action: { kind: "gain_credits", side: chooser, amount: 0 } },
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: chooser, amount: 0 },
+      },
     })),
   });
-  const who = both
-    ? "active player"
-    : chooser === "runner"
-      ? "Runner"
-      : "Corp";
+  const who = both ? "active player" : chooser === "runner" ? "Runner" : "Corp";
   state.log.push(
     `Card restrictions checked (CR ${cite}); the ${who} chooses which set to trash.`,
   );
@@ -3894,7 +3849,10 @@ function checkCardRestrictions(state: GameState): boolean {
 }
 
 /** The chosen set is trashed, then the checkpoint continues at CR 10.3.1f. */
-export function resolveRestrictionChoice(state: GameState, optionId: string): void {
+export function resolveRestrictionChoice(
+  state: GameState,
+  optionId: string,
+): void {
   const body = optionId.slice("restrict:".length);
   const bar = body.indexOf("|");
   const mem = bar === -1 ? body : body.slice(0, bar);
@@ -3919,7 +3877,8 @@ function checkHostedOnAgenda(state: GameState): void {
   for (const { agendaId, hostedIds } of departed) {
     const agenda = state.cards[agendaId];
     if (!agenda) continue;
-    if (agenda.zone === "corp:score" || agenda.zone === "runner:score") continue;
+    if (agenda.zone === "corp:score" || agenda.zone === "runner:score")
+      continue;
     for (const id of hostedIds) {
       if (!state.cards[id]) continue;
       trashHostedCard(state, id, CR.checkpointHostedOnAgenda);
@@ -3985,7 +3944,8 @@ function checkRemoteServers(state: GameState): void {
     state.log.push(
       `${server.id} ceased to exist (CR ${CR.checkpointRemoteServer.number}).`,
     );
-    if (state.run?.attackedServerId === server.id) noteAttackedServerCeased(state);
+    if (state.run?.attackedServerId === server.id)
+      noteAttackedServerCeased(state);
   }
 }
 
@@ -4103,12 +4063,18 @@ function offerRootEntry(state: GameState, ids: string[]): void {
       {
         id: `root-access:yes:${cardId}`,
         label: "The card that entered the root becomes a candidate for access",
-        effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        },
       },
       {
         id: `root-access:no:${cardId}`,
         label: "The card that entered the root does not become a candidate",
-        effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        },
       },
     ],
   });
@@ -4381,14 +4347,14 @@ function restrictionPlanLabel(state: GameState, plan: RestrictionPlan): string {
   const parts: string[] = [];
   if (plan.programs.length > 0) {
     parts.push(
-      plan.programs
-        .map((id) => state.cards[id]?.title ?? id)
-        .join(" and "),
+      plan.programs.map((id) => state.cards[id]?.title ?? id).join(" and "),
     );
   }
   if (plan.keep !== null) {
     const dropped = Object.values(state.servers)
-      .filter((server) => server.kind === "remote" && !plan.keep?.includes(server.id))
+      .filter(
+        (server) => server.kind === "remote" && !plan.keep?.includes(server.id),
+      )
       .map((server) => server.id);
     parts.push(
       dropped.length > 0
@@ -4399,7 +4365,10 @@ function restrictionPlanLabel(state: GameState, plan: RestrictionPlan): string {
   return `Trash ${parts.join("; ")}`;
 }
 
-function restrictionSetsMixSides(state: GameState, plans: RestrictionPlan[]): boolean {
+function restrictionSetsMixSides(
+  state: GameState,
+  plans: RestrictionPlan[],
+): boolean {
   const sides = new Set<Side>();
   for (const id of cardsInRestrictionPlans(state, plans)) {
     const side = state.cards[id]?.side;
@@ -4417,7 +4386,10 @@ function restrictionChooser(state: GameState, plans: RestrictionPlan[]): Side {
   return "runner";
 }
 
-function cardsInRestrictionPlans(state: GameState, plans: RestrictionPlan[]): string[] {
+function cardsInRestrictionPlans(
+  state: GameState,
+  plans: RestrictionPlan[],
+): string[] {
   const ids = new Set<string>();
   for (const plan of plans) {
     for (const id of plan.programs) ids.add(id);
@@ -4439,7 +4411,8 @@ function applyRestrictionPlan(state: GameState, plan: RestrictionPlan): void {
   const keep = new Set(plan.keep);
   for (const server of Object.values(state.servers)) {
     if (server.kind !== "remote" || keep.has(server.id)) continue;
-    for (const id of [...server.ice, ...server.root]) trashRestrictionCard(state, id);
+    for (const id of [...server.ice, ...server.root])
+      trashRestrictionCard(state, id);
     delete state.servers[server.id];
   }
 }
@@ -4613,7 +4586,11 @@ export function checkpointAfterDrawPhase(state: GameState): void {
     state,
     "timing",
     "Outside the draw phase",
-    [CR.checkpointAfterTimingStructure, CR.turnTimingStructure, CR.corpTurnPhases],
+    [
+      CR.checkpointAfterTimingStructure,
+      CR.turnTimingStructure,
+      CR.corpTurnPhases,
+    ],
     state.timingKey,
   );
 }
@@ -4627,7 +4604,11 @@ export function checkpointAfterRunnerActionPhase(state: GameState): void {
     state,
     "timing",
     "Outside the Runner's action phase",
-    [CR.checkpointAfterTimingStructure, CR.turnTimingStructure, CR.runnerTurnPhases],
+    [
+      CR.checkpointAfterTimingStructure,
+      CR.turnTimingStructure,
+      CR.runnerTurnPhases,
+    ],
     state.timingKey,
   );
 }
@@ -4641,7 +4622,11 @@ export function checkpointAfterActionPhase(state: GameState): void {
     state,
     "timing",
     "Outside the action phase",
-    [CR.checkpointAfterTimingStructure, CR.turnTimingStructure, CR.corpTurnPhases],
+    [
+      CR.checkpointAfterTimingStructure,
+      CR.turnTimingStructure,
+      CR.corpTurnPhases,
+    ],
     state.timingKey,
   );
 }
@@ -4780,7 +4765,10 @@ export function checkpointAfterRun(state: GameState): void {
  * A finished timing-structure step is one instruction (CR 9.11.2).
  * The checkpoint occurs immediately, before the next instruction is imminent (CR 10.3.5).
  */
-export function checkpointAfterInstruction(state: GameState, openedBy: string): void {
+export function checkpointAfterInstruction(
+  state: GameState,
+  openedBy: string,
+): void {
   occurCheckpoint(
     state,
     "instruction",

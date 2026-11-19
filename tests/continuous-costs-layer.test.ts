@@ -34,7 +34,11 @@ describe("continuous cost layer (M5 residual)", () => {
       ice: ["wall-1"],
       root: ["vovo-1"],
     };
-    const vovo = instantiateCard("vovo-ozetti", "vovo-1", "server:remote-1:root");
+    const vovo = instantiateCard(
+      "vovo-ozetti",
+      "vovo-1",
+      "server:remote-1:root",
+    );
     vovo.rezzed = true;
     s.cards["vovo-1"] = vovo;
 

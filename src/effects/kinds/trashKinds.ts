@@ -2,14 +2,8 @@
  * Primitive kinds whose procedure is trash.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
@@ -33,10 +27,7 @@ import {
   releaseHostedCardsOnTrash,
 } from "../../state/trashHooks.js";
 import { CR } from "../../timing/labels.js";
-import {
-  trashCorpCardToArchives,
-  trashToHeap,
-} from "../corpTrash.js";
+import { trashCorpCardToArchives, trashToHeap } from "../corpTrash.js";
 import { drawCards } from "../draw.js";
 import { chooseCards } from "../chooseCards.js";
 import {
@@ -56,15 +47,16 @@ import {
   gripInstallCostAfterDiscount,
 } from "../runnerInstall.js";
 
-import {
-  fireHostRezStateTriggers,
-} from "../eval.js";
+import { fireHostRezStateTriggers } from "../eval.js";
 
-export function applyTrashKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyTrashKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "trash_program": {
+    case "trash_program": {
       const encIce = state.run?.encounter?.iceId;
       if (
         encIce === sourceId &&
@@ -142,7 +134,7 @@ case "trash_program": {
       return { ok: true };
     }
 
-case "trash_installed_resources_with_any_subtype": {
+    case "trash_installed_resources_with_any_subtype": {
       const want = new Set(action.subtypes.map((s) => s.toLowerCase()));
       const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
@@ -167,7 +159,7 @@ case "trash_installed_resources_with_any_subtype": {
       return { ok: true };
     }
 
-case "trash_installed_resource_with_subtype": {
+    case "trash_installed_resource_with_subtype": {
       const want = action.subtype.toLowerCase();
       const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
@@ -202,7 +194,7 @@ case "trash_installed_resource_with_subtype": {
       return { ok: true };
     }
 
-case "trash_ice_rezzed_this_run": {
+    case "trash_ice_rezzed_this_run": {
       const ids = state.run?.iceRezzedThisRunIds ?? [];
       const targets = ids.filter((id) => {
         const c = state.cards[id];
@@ -232,8 +224,8 @@ case "trash_ice_rezzed_this_run": {
               action: { kind: "trash_corp_card" as const, cardId: id },
             },
           })),
-logLine: `Trash ice rezzed this run — Runner chooses among ${targets.length}.`,
-});
+          logLine: `Trash ice rezzed this run — Runner chooses among ${targets.length}.`,
+        });
         return { ok: true };
       }
       const iceId = targets[0]!;
@@ -243,11 +235,14 @@ logLine: `Trash ice rezzed this run — Runner chooses among ${targets.length}.`
         cardId: iceId,
       });
       if (!r.ok) return r;
-      log(state, `Trash ice ${title} rezzed this run (CR ${CR.trashing.number}).`);
+      log(
+        state,
+        `Trash ice ${title} rezzed this run (CR ${CR.trashing.number}).`,
+      );
       return { ok: true };
     }
 
-case "trash_resource": {
+    case "trash_resource": {
       const encIce = state.run?.encounter?.iceId;
       if (
         encIce === sourceId &&
@@ -296,7 +291,7 @@ case "trash_resource": {
       return { ok: true };
     }
 
-case "trash_own_resource": {
+    case "trash_own_resource": {
       const resources = state.runner.installed.filter(
         (id) => state.cards[id].type === "resource",
       );
@@ -311,10 +306,7 @@ case "trash_own_resource": {
         const resId = resources[0]!;
         const title = state.cards[resId].title;
         trashToHeap(state, resId);
-        log(
-          state,
-          `Trash own resource ${title} (CR ${CR.trashing.number}).`,
-        );
+        log(state, `Trash own resource ${title} (CR ${CR.trashing.number}).`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -328,12 +320,12 @@ case "trash_own_resource": {
             action: { kind: "trash_runner_rig_card" as const, cardId: id },
           },
         })),
-logLine: `${source.title} — Runner must trash an installed resource (CR ${CR.trashing.number}).`,
-});
+        logLine: `${source.title} — Runner must trash an installed resource (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_own_program": {
+    case "trash_own_program": {
       const programs = state.runner.installed.filter(
         (id) => state.cards[id].type === "program",
       );
@@ -350,10 +342,7 @@ case "trash_own_program": {
         const cost = state.cards[progId].installCost;
         trashToHeap(state, progId);
         state.turn.lastTrashedOwnProgramInstallCost = cost;
-        log(
-          state,
-          `Trash own program ${title} (CR ${CR.trashing.number}).`,
-        );
+        log(state, `Trash own program ${title} (CR ${CR.trashing.number}).`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -370,12 +359,12 @@ case "trash_own_program": {
             },
           },
         })),
-logLine: `${source.title} — Runner must trash an installed program (CR ${CR.trashing.number}).`,
-});
+        logLine: `${source.title} — Runner must trash an installed program (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_data_hound_looked": {
+    case "trash_data_hound_looked": {
       const looked = state.turn.rdLookedCards ?? [];
       const idx = looked.indexOf(action.cardId);
       if (idx < 0) {
@@ -384,10 +373,7 @@ case "trash_data_hound_looked": {
       }
       looked.splice(idx, 1);
       trashToHeap(state, action.cardId);
-      log(
-        state,
-        `Trash ${state.cards[action.cardId]!.title} from stack look.`,
-      );
+      log(state, `Trash ${state.cards[action.cardId]!.title} from stack look.`);
       state.turn.rdLookedCards = looked;
       if (looked.length === 0) {
         return { ok: true };
@@ -421,12 +407,12 @@ case "trash_data_hound_looked": {
             },
           })),
         ],
-logLine: `${source.title} — arrange remaining looked cards.`,
-});
+        logLine: `${source.title} — arrange remaining looked cards.`,
+      });
       return { ok: true };
     }
 
-case "corp_trash_ice_protecting_server": {
+    case "corp_trash_ice_protecting_server": {
       const sid = action.serverId as import("../../state/types.js").ServerId;
       const ice = [...(state.servers[sid]?.ice ?? [])];
       if (ice.length === 0) {
@@ -450,12 +436,12 @@ case "corp_trash_ice_protecting_server": {
             action: { kind: "corp_trash_ice_card" as const, cardId: id },
           },
         })),
-logLine: `${source.title} — Corp trashes 1 ice protecting ${action.serverId}.`,
-});
+        logLine: `${source.title} — Corp trashes 1 ice protecting ${action.serverId}.`,
+      });
       return { ok: true };
     }
 
-case "corp_trash_ice_card": {
+    case "corp_trash_ice_card": {
       const card = state.cards[action.cardId];
       if (!card || card.type !== "ice") {
         log(state, `Corp trash ice — invalid target.`);
@@ -470,7 +456,7 @@ case "corp_trash_ice_card": {
       return { ok: true };
     }
 
-case "trash_virtual_resource_or_link_card": {
+    case "trash_virtual_resource_or_link_card": {
       const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
@@ -507,7 +493,7 @@ case "trash_virtual_resource_or_link_card": {
       return { ok: true };
     }
 
-case "trash_hq": {
+    case "trash_hq": {
       const hq = [...state.corp.hand];
       if (hq.length === 0) {
         log(state, `Trash from HQ — HQ empty (CR ${CR.trashing.number}).`);
@@ -542,21 +528,18 @@ case "trash_hq": {
       );
     }
 
-case "trash_hq_card": {
+    case "trash_hq_card": {
       if (!state.corp.hand.includes(action.cardId)) {
         log(state, `Trash HQ card — not in HQ.`);
         return { ok: true };
       }
       const title = state.cards[action.cardId]!.title;
       trashCorpCardToArchives(state, action.cardId, action.by ?? source.side);
-      log(
-        state,
-        `Trash ${title} from HQ (CR ${CR.trashing.number}).`,
-      );
+      log(state, `Trash ${title} from HQ (CR ${CR.trashing.number}).`);
       return { ok: true };
     }
 
-case "trash_hardware": {
+    case "trash_hardware": {
       const encIce = state.run?.encounter?.iceId;
       if (
         encIce === sourceId &&
@@ -577,7 +560,10 @@ case "trash_hardware": {
         return pendingTrashAmong(state, sourceId, hw, "hardware");
       }
       if (hw.length === 0) {
-        log(state, `Trash hardware — none installed (CR ${CR.trashing.number}).`);
+        log(
+          state,
+          `Trash hardware — none installed (CR ${CR.trashing.number}).`,
+        );
         return { ok: true };
       }
       const id = hw[0]!;
@@ -589,7 +575,7 @@ case "trash_hardware": {
       return { ok: true };
     }
 
-case "trash_hardware_install_cost_lte_last_trace_excess": {
+    case "trash_hardware_install_cost_lte_last_trace_excess": {
       const maxCost = state.turn.lastTraceExcess;
       if (maxCost === null || maxCost === undefined) {
         log(
@@ -600,9 +586,7 @@ case "trash_hardware_install_cost_lte_last_trace_excess": {
       }
       const hw = state.runner.installed.filter((id) => {
         const c = state.cards[id];
-        return (
-          c?.type === "hardware" && (c.installCost ?? 0) <= maxCost
-        );
+        return c?.type === "hardware" && (c.installCost ?? 0) <= maxCost;
       });
       if (hw.length === 0) {
         log(
@@ -628,7 +612,7 @@ case "trash_hardware_install_cost_lte_last_trace_excess": {
       return { ok: true };
     }
 
-case "trash_up_to_n_resources": {
+    case "trash_up_to_n_resources": {
       const remaining =
         typeof action.remaining === "number" ? action.remaining : action.n;
       if (remaining <= 0) return { ok: true };
@@ -675,24 +659,22 @@ case "trash_up_to_n_resources": {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may trash up to ${remaining} more resource(s).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may trash up to ${remaining} more resource(s).`,
+      });
       return { ok: true };
     }
 
-case "trash_program_or_hardware": {
+    case "trash_program_or_hardware": {
       const cands = state.runner.installed.filter((id) => {
         const t = state.cards[id].type;
         return t === "program" || t === "hardware";
       });
       if (action.pick === "choose" || cands.length > 1) {
-        return pendingTrashAmong(
-          state,
-          sourceId,
-          cands,
-          "program or hardware",
-        );
+        return pendingTrashAmong(state, sourceId, cands, "program or hardware");
       }
       if (cands.length === 0) {
         log(
@@ -710,7 +692,7 @@ case "trash_program_or_hardware": {
       return { ok: true };
     }
 
-case "trash_resource_or_hardware": {
+    case "trash_resource_or_hardware": {
       const cands = state.runner.installed.filter((id) => {
         const typ = state.cards[id].type;
         return typ === "resource" || typ === "hardware";
@@ -739,7 +721,7 @@ case "trash_resource_or_hardware": {
       return { ok: true };
     }
 
-case "trash_n_programs_remaining": {
+    case "trash_n_programs_remaining": {
       const remaining = Math.max(0, action.remaining ?? 0);
       if (remaining <= 0) return { ok: true };
       const programs = state.runner.installed.filter(
@@ -794,12 +776,12 @@ case "trash_n_programs_remaining": {
             ],
           },
         })),
-logLine: `Trash programs — choose among ${programs.length} (${remaining} remaining; CR ${CR.trashing.number}).`,
-});
+        logLine: `Trash programs — choose among ${programs.length} (${remaining} remaining; CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_any_rezzed_give_tags": {
+    case "trash_any_rezzed_give_tags": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.ice, ...server.root]) {
@@ -852,12 +834,12 @@ case "trash_any_rezzed_give_tags": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — trash any number of rezzed cards, 1 tag each (CR ${CR.trashing.number}, ${CR.tags.number}).`,
-});
+        logLine: `${source.title} — trash any number of rezzed cards, 1 tag each (CR ${CR.trashing.number}, ${CR.tags.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_any_number_from_hq": {
+    case "trash_any_number_from_hq": {
       const hq = [...state.corp.hand];
       if (hq.length === 0) {
         log(state, `${source.title} — trash any from HQ: HQ empty.`);
@@ -892,13 +874,16 @@ case "trash_any_number_from_hq": {
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — trash any number of cards from HQ (CR ${CR.trashing.number}).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — trash any number of cards from HQ (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_then_corp_rez_or_hq": {
+    case "trash_then_corp_rez_or_hq": {
       const iceId =
         state.run?.lastPassedUnrezzedIceId ??
         state.turn.currentRunPassedUnrezzedIceIds?.at(-1);
@@ -937,13 +922,16 @@ case "trash_then_corp_rez_or_hq": {
           action: { kind: "move_unrezzed_ice_to_hq", iceId },
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `False Echo — Corp must rez ${ice.title} by paying its costs, or add it to HQ (CR ${CR.mustNotForceAdditionalCost.number}).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `False Echo — Corp must rez ${ice.title} by paying its costs, or add it to HQ (CR ${CR.mustNotForceAdditionalCost.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_project_ares_next": {
+    case "trash_project_ares_next": {
       const remaining = state.turn.projectAresTrashRemaining ?? 0;
       if (remaining <= 0) {
         if ((state.turn.projectAresTrashedCount ?? 0) > 0) {
@@ -994,7 +982,7 @@ case "trash_project_ares_next": {
       return { ok: true };
     }
 
-case "trash_next": {
+    case "trash_next": {
       const remaining = state.turn.invasionPrivacyTrashRemaining ?? 0;
       if (remaining <= 0) return { ok: true };
       const targets = state.runner.hand.filter((id) => {
@@ -1042,7 +1030,7 @@ case "trash_next": {
       return { ok: true };
     }
 
-case "trash_from_grip": {
+    case "trash_from_grip": {
       const cardId = action.cardId;
       if (!state.runner.hand.includes(cardId)) return { ok: true };
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
@@ -1054,7 +1042,7 @@ case "trash_from_grip": {
       return { ok: true };
     }
 
-case "trash_installed_runner_card": {
+    case "trash_installed_runner_card": {
       const cardId = action.cardId;
       if (!state.runner.installed.includes(cardId)) return { ok: true };
       trashToHeap(state, cardId);
@@ -1068,7 +1056,7 @@ case "trash_installed_runner_card": {
       return { ok: true };
     }
 
-case "trash_cultivate_looked": {
+    case "trash_cultivate_looked": {
       const cardId = action.cardId;
       const idx = state.turn.rdLookedCards.indexOf(cardId);
       if (idx < 0) {
@@ -1084,7 +1072,7 @@ case "trash_cultivate_looked": {
       return offerCultivateHqChoice(state, sourceId);
     }
 
-case "trash_self": {
+    case "trash_self": {
       releaseHostedCardsOnTrash(state, sourceId);
       if (source.side === "corp") {
         trashCorpCardToArchives(state, sourceId, "corp");
@@ -1099,7 +1087,7 @@ case "trash_self": {
       return { ok: true };
     }
 
-case "trash_self_and_derez_host": {
+    case "trash_self_and_derez_host": {
       const hostId = source.hostId;
       const trashed = applyPrimitive(ctx, { kind: "trash_self" });
       if (!trashed.ok) return trashed;
@@ -1126,7 +1114,7 @@ case "trash_self_and_derez_host": {
       return { ok: true };
     }
 
-case "trash_attacked_server_root": {
+    case "trash_attacked_server_root": {
       const sid = state.run?.attackedServerId;
       if (!sid) {
         log(state, `Trash attacked-server root — no run.`);
@@ -1242,10 +1230,8 @@ case "trash_attacked_server_root": {
         }
         if (inst.payload?.kind === "stored_conditional") {
           const card = state.cards[inst.sourceId];
-          const effect =
-            card?.[
-              inst.payload.effectKey as keyof typeof card
-            ] as import("../ir.js").Effect | undefined;
+          const effect = card?.[inst.payload.effectKey as keyof typeof card] as
+            import("../ir.js").Effect | undefined;
           if (effect) {
             const tracked = evalEffect(
               { state, sourceId: inst.sourceId },
@@ -1273,10 +1259,15 @@ case "trash_attacked_server_root": {
       return { ok: true };
     }
 
-case "trash_installed_runner": {
+    case "trash_installed_runner": {
       const cands = [...state.runner.installed];
       if (action.pick === "choose" || cands.length > 1) {
-        return pendingTrashAmong(state, sourceId, cands, "installed Runner card");
+        return pendingTrashAmong(
+          state,
+          sourceId,
+          cands,
+          "installed Runner card",
+        );
       }
       if (cands.length === 0) {
         log(state, `Trash installed Runner card — none installed.`);
@@ -1291,7 +1282,7 @@ case "trash_installed_runner": {
       return { ok: true };
     }
 
-case "trash_installed_runner_lte_last_trashed_rez": {
+    case "trash_installed_runner_lte_last_trashed_rez": {
       const maxCost = state.turn.lastTrashedRezzedPrintedRezCost;
       if (maxCost === null || maxCost === undefined) {
         log(state, `Trash Runner ≤ rez — no last trashed rez cost.`);
@@ -1303,10 +1294,7 @@ case "trash_installed_runner_lte_last_trashed_rez": {
         return cost <= maxCost;
       });
       if (cands.length === 0) {
-        log(
-          state,
-          `Trash Runner ≤ ${maxCost}¢ install — none eligible.`,
-        );
+        log(state, `Trash Runner ≤ ${maxCost}¢ install — none eligible.`);
         return { ok: true };
       }
       if (action.pick === "choose" && cands.length > 1) {
@@ -1326,7 +1314,7 @@ case "trash_installed_runner_lte_last_trashed_rez": {
       return { ok: true };
     }
 
-case "may_trash_from_grip_to_draw": {
+    case "may_trash_from_grip_to_draw": {
       const grip = [...state.runner.hand];
       if (grip.length === 0) {
         log(state, `May trash from grip to draw — grip empty.`);
@@ -1360,12 +1348,12 @@ case "may_trash_from_grip_to_draw": {
             },
           },
         ],
-logLine: `May trash 1 from grip to draw 1.`,
-});
+        logLine: `May trash 1 from grip to draw 1.`,
+      });
       return { ok: true };
     }
 
-case "trash_grip_card_draw": {
+    case "trash_grip_card_draw": {
       const id = action.cardId;
       if (!state.runner.hand.includes(id)) {
         log(state, `Trash grip to draw — card not in grip.`);
@@ -1373,14 +1361,11 @@ case "trash_grip_card_draw": {
       }
       moveRunnerCardToHeap(state, id);
       const drawn = drawCards(state, "runner", 1);
-      log(
-        state,
-        `Trash ${state.cards[id]!.title} from grip; draw ${drawn}.`,
-      );
+      log(state, `Trash ${state.cards[id]!.title} from grip; draw ${drawn}.`);
       return { ok: true };
     }
 
-case "trash_n_from_grip": {
+    case "trash_n_from_grip": {
       const n = Math.max(0, action.amount ?? 0);
       // The Runner's picks for this cost come with the action (CR 1.16.1).
       const named = (state.costCardIds ?? []).filter((id) =>
@@ -1401,7 +1386,7 @@ case "trash_n_from_grip": {
       return { ok: true };
     }
 
-case "trash_up_to_grip_cards_gain_credits_each": {
+    case "trash_up_to_grip_cards_gain_credits_each": {
       const remaining = Math.max(0, action.remaining);
       const typeFilter = action.types?.length ? new Set(action.types) : null;
       const candidates = state.runner.hand.filter((id) => {
@@ -1458,13 +1443,16 @@ case "trash_up_to_grip_cards_gain_credits_each": {
         label: "Done",
         effect: { op: "do", action: { kind: "gain_credits", side, amount: 0 } },
       });
-      openPendingChoose(state, { sourceId, chooser: side, options,
-logLine: `${source.title} — trash up to ${remaining} matching grip card(s) for ${action.per}¢ each (CR ${CR.trashing.number}).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: side,
+        options,
+        logLine: `${source.title} — trash up to ${remaining} matching grip card(s) for ${action.per}¢ each (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "may_trash_one_from_grip": {
+    case "may_trash_one_from_grip": {
       const grip = [...state.runner.hand];
       if (grip.length === 0) {
         log(state, `May trash from grip — grip empty.`);
@@ -1495,12 +1483,12 @@ case "may_trash_one_from_grip": {
             },
           },
         ],
-logLine: `May trash 1 card from the grip.`,
-});
+        logLine: `May trash 1 card from the grip.`,
+      });
       return { ok: true };
     }
 
-case "trash_grip_card": {
+    case "trash_grip_card": {
       const id = action.cardId;
       if (!state.runner.hand.includes(id)) {
         log(state, `Trash grip — card not in grip.`);
@@ -1511,7 +1499,7 @@ case "trash_grip_card": {
       return { ok: true };
     }
 
-case "may_trash_hardware_from_grip_place_hosted_credits": {
+    case "may_trash_hardware_from_grip_place_hosted_credits": {
       const hardware = state.runner.hand.filter(
         (id) => state.cards[id]?.type === "hardware",
       );
@@ -1552,12 +1540,12 @@ case "may_trash_hardware_from_grip_place_hosted_credits": {
             },
           },
         ],
-logLine: `${source.title} — may trash 1 hardware from grip to place ${amount}¢.`,
-});
+        logLine: `${source.title} — may trash 1 hardware from grip to place ${amount}¢.`,
+      });
       return { ok: true };
     }
 
-case "trash_grip_hardware_place_hosted_credits": {
+    case "trash_grip_hardware_place_hosted_credits": {
       const id = action.cardId;
       const card = state.cards[id];
       if (!state.runner.hand.includes(id) || card?.type !== "hardware") {
@@ -1573,7 +1561,7 @@ case "trash_grip_hardware_place_hosted_credits": {
       return { ok: true };
     }
 
-case "may_trash_hq_then": {
+    case "may_trash_hq_then": {
       const hq = [...state.corp.hand];
       if (hq.length === 0) {
         log(state, `${source.title} — may trash HQ: HQ empty.`);
@@ -1610,12 +1598,12 @@ case "may_trash_hq_then": {
         sourceId,
         chooser: "corp",
         options: chooseOpts,
-logLine: `${source.title} — may trash 1 card from HQ.`,
-});
+        logLine: `${source.title} — may trash 1 card from HQ.`,
+      });
       return { ok: true };
     }
 
-case "may_corp_trash_climactic_ice": {
+    case "may_corp_trash_climactic_ice": {
       const sid = action.serverId as import("../../state/types.js").ServerId;
       const server = state.servers[sid];
       const iceIds = server?.ice ?? [];
@@ -1652,12 +1640,12 @@ case "may_corp_trash_climactic_ice": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — Corp may trash 1 ice protecting ${sid}.`,
-});
+        logLine: `${source.title} — Corp may trash 1 ice protecting ${sid}.`,
+      });
       return { ok: true };
     }
 
-case "trash_climactic_ice": {
+    case "trash_climactic_ice": {
       const ice = state.cards[action.cardId];
       if (!ice || ice.type !== "ice") {
         log(state, `Climactic trash ice — not ice.`);
@@ -1668,7 +1656,7 @@ case "trash_climactic_ice": {
       return { ok: true };
     }
 
-case "may_trash_name_agenda_steal_ignore_costs": {
+    case "may_trash_name_agenda_steal_ignore_costs": {
       if (!state.run) {
         log(state, `${source.title} — no run for Whistleblower.`);
         return { ok: true };
@@ -1714,12 +1702,12 @@ case "may_trash_name_agenda_steal_ignore_costs": {
             },
           })),
         ],
-logLine: `${source.title} — may trash to name an agenda for steal-ignore-costs.`,
-});
+        logLine: `${source.title} — may trash to name an agenda for steal-ignore-costs.`,
+      });
       return { ok: true };
     }
 
-case "trash_corp_card": {
+    case "trash_corp_card": {
       const card = state.cards[action.cardId];
       if (!card || card.side !== "corp") {
         log(
@@ -1738,14 +1726,11 @@ case "trash_corp_card": {
         return { ok: true };
       }
       trashCorpCardToArchives(state, action.cardId, source.side);
-      log(
-        state,
-        `Trash ${card.title} (CR ${CR.trashing.number}).`,
-      );
+      log(state, `Trash ${card.title} (CR ${CR.trashing.number}).`);
       return { ok: true };
     }
 
-case "trash_installed": {
+    case "trash_installed": {
       const targets = trashInstalledLegalTargets(state, sourceId, action);
       if (targets.length === 0) {
         return {
@@ -1776,12 +1761,12 @@ case "trash_installed": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — must trash an installed Corp card (CR ${CR.trashing.number}).`,
-});
+        logLine: `${source.title} — must trash an installed Corp card (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_n_installed_corp": {
+    case "trash_n_installed_corp": {
       const count = Math.max(1, action.count);
       const targets = trashInstalledLegalTargets(state, sourceId, {});
       if (targets.length < count) {
@@ -1807,12 +1792,12 @@ case "trash_n_installed_corp": {
             },
           },
         })),
-logLine: `${source.title} — trash ${count} installed Corp card(s) (${action.chooser} chooses).`,
-});
+        logLine: `${source.title} — trash ${count} installed Corp card(s) (${action.chooser} chooses).`,
+      });
       return { ok: true };
     }
 
-case "trash_corp_card_then_trash_n": {
+    case "trash_corp_card_then_trash_n": {
       const trash = applyPrimitive(ctx, {
         kind: "trash_corp_card",
         cardId: action.cardId,
@@ -1826,7 +1811,7 @@ case "trash_corp_card_then_trash_n": {
       });
     }
 
-case "may_trash_installed": {
+    case "may_trash_installed": {
       const excludeSelf = action.excludeSelf !== false;
       const rezzedOnly = Boolean(action.rezzedOnly);
       const targets: string[] = [];
@@ -1876,12 +1861,12 @@ case "may_trash_installed": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — may trash another installed card (CR ${CR.trashing.number}).`,
-});
+        logLine: `${source.title} — may trash another installed card (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_must_installed": {
+    case "trash_must_installed": {
       const excludeSelf = action.excludeSelf !== false;
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -1918,12 +1903,12 @@ case "trash_must_installed": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — must trash another installed card (CR ${CR.trashing.number}).`,
-});
+        logLine: `${source.title} — must trash another installed card (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_rezzed_accessed": {
+    case "trash_rezzed_accessed": {
       const run = state.run;
       if (!run) {
         log(state, `Charm Offensive — no run at run end.`);
@@ -1964,12 +1949,12 @@ case "trash_rezzed_accessed": {
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-logLine: `Charm Offensive — may trash 1 rezzed copy of an accessed card.`,
-});
+        logLine: `Charm Offensive — may trash 1 rezzed copy of an accessed card.`,
+      });
       return { ok: true };
     }
 
-case "trash_rezzed_ice_gain_credits": {
+    case "trash_rezzed_ice_gain_credits": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -2002,12 +1987,12 @@ case "trash_rezzed_ice_gain_credits": {
             },
           },
         })),
-logLine: `${source.title} — choose a rezzed ice to trash.`,
-});
+        logLine: `${source.title} — choose a rezzed ice to trash.`,
+      });
       return { ok: true };
     }
 
-case "trash_rezzed_ice_gain_credits_resolve": {
+    case "trash_rezzed_ice_gain_credits_resolve": {
       const card = state.cards[action.cardId];
       if (!card?.rezzed || card.type !== "ice") {
         log(state, `Trash rezzed ice — invalid target.`);
@@ -2022,7 +2007,7 @@ case "trash_rezzed_ice_gain_credits_resolve": {
       return { ok: true };
     }
 
-case "trash_looked": {
+    case "trash_looked": {
       const id = action.cardId;
       if (!state.turn.rdLookedCards.includes(id)) return { ok: true };
       state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
@@ -2033,7 +2018,7 @@ case "trash_looked": {
       return { ok: true };
     }
 
-case "trash_all_hosted_cards": {
+    case "trash_all_hosted_cards": {
       const hosted = [...(source.hostedCardIds ?? [])];
       source.hostedCardIds = [];
       for (const id of hosted) {
@@ -2050,7 +2035,7 @@ case "trash_all_hosted_cards": {
       return { ok: true };
     }
 
-case "trash_co_looked_rd_card": {
+    case "trash_co_looked_rd_card": {
       const top = state.corp.deck.slice(0, 3);
       if (!top.includes(action.cardId)) {
         log(state, `au_co_trash_looked_rd_card — card not in looked set.`);
@@ -2072,7 +2057,7 @@ case "trash_co_looked_rd_card": {
       return { ok: true };
     }
 
-case "trash_passed_unrezzed_ice": {
+    case "trash_passed_unrezzed_ice": {
       // En Passant: trash 1 unrezzed ice passed during the last run (CR 1.2.1).
       const ids = (state.turn.lastRunPassedUnrezzedIceIds ?? []).filter(
         (id) => {
@@ -2107,7 +2092,7 @@ case "trash_passed_unrezzed_ice": {
       return { ok: true };
     }
 
-case "trash_passed_unrezzed_ice_resolve": {
+    case "trash_passed_unrezzed_ice_resolve": {
       const id = action.cardId;
       const card = state.cards[id];
       if (
@@ -2123,7 +2108,7 @@ case "trash_passed_unrezzed_ice_resolve": {
       return { ok: true };
     }
 
-case "may_trash_other_installed_gain_printed_install_and_draw": {
+    case "may_trash_other_installed_gain_printed_install_and_draw": {
       const targets = state.runner.installed.filter((id) => id !== sourceId);
       if (targets.length === 0) {
         log(state, `${source.title} — no other installed cards to trash.`);
@@ -2181,12 +2166,12 @@ case "may_trash_other_installed_gain_printed_install_and_draw": {
         sourceId,
         chooser: "runner",
         options,
-logLine: `${source.title} — may trash another installed card for printed install cost.`,
-});
+        logLine: `${source.title} — may trash another installed card for printed install cost.`,
+      });
       return { ok: true };
     }
 
-case "trash_encounter_ice_resolve_subroutine": {
+    case "trash_encounter_ice_resolve_subroutine": {
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `Trash encounter ice — no encounter.`);
@@ -2212,16 +2197,13 @@ case "trash_encounter_ice_resolve_subroutine": {
       ice.faceup = true;
       ice.rezzed = false;
       enc.broken = (ice.subroutines ?? []).map(() => true);
-      log(
-        state,
-        `Trash ${ice.title}; resolve "${sub.text}" (ZATO City Grid).`,
-      );
+      log(state, `Trash ${ice.title}; resolve "${sub.text}" (ZATO City Grid).`);
       const resolved = evalEffect({ state, sourceId: enc.iceId }, sub.effect);
       ice.thisServerWhileResolving = undefined;
       return resolved;
     }
 
-case "trash_encounter_ice_if_strength_lte": {
+    case "trash_encounter_ice_if_strength_lte": {
       const iceId = state.run?.encounter?.iceId;
       if (!iceId) {
         log(state, `Trash encounter ice — no encounter.`);
@@ -2244,7 +2226,7 @@ case "trash_encounter_ice_if_strength_lte": {
       return { ok: true };
     }
 
-case "trash_aesop_for_credits": {
+    case "trash_aesop_for_credits": {
       const owned = state.runner.installed.filter((id) => id !== sourceId);
       if (owned.length === 0) {
         log(state, `Aesop's Pawnshop — no other installed card.`);
@@ -2267,7 +2249,7 @@ case "trash_aesop_for_credits": {
       return { ok: true };
     }
 
-case "trash_aesop_for_credits_resolve": {
+    case "trash_aesop_for_credits_resolve": {
       const cardId = action.cardId;
       if (!state.runner.installed.includes(cardId)) return { ok: true };
       const card = state.cards[cardId];
@@ -2281,7 +2263,7 @@ case "trash_aesop_for_credits_resolve": {
       return { ok: true };
     }
 
-case "trash_top_of_stack": {
+    case "trash_top_of_stack": {
       if (state.runner.deck.length === 0) {
         log(state, `${source.title} — trash top of stack: stack empty.`);
         return { ok: true };
@@ -2295,7 +2277,7 @@ case "trash_top_of_stack": {
       return { ok: true };
     }
 
-case "trash_top_of_rd": {
+    case "trash_top_of_rd": {
       if (state.corp.deck.length === 0) {
         log(state, `${source.title} — trash top of R&D: R&D empty.`);
         return { ok: true };
@@ -2310,7 +2292,7 @@ case "trash_top_of_rd": {
       return { ok: true };
     }
 
-case "trash_top_n_may_install_discount": {
+    case "trash_top_n_may_install_discount": {
       const count = Math.max(0, action.count);
       const discount = Math.max(0, action.discount);
       const milled: string[] = [];
@@ -2362,12 +2344,12 @@ case "trash_top_n_may_install_discount": {
         sourceId,
         chooser: "runner",
         options,
-logLine: `${source.title} — may install 1 of ${candidates.length} milled card(s) (${discount}¢ discount).`,
-});
+        logLine: `${source.title} — may install 1 of ${candidates.length} milled card(s) (${discount}¢ discount).`,
+      });
       return { ok: true };
     }
 
-case "may_trash_other_installed_search_stack_same_type_install": {
+    case "may_trash_other_installed_search_stack_same_type_install": {
       const discount = Math.max(0, action.discount);
       const targets = state.runner.installed.filter((id) => id !== sourceId);
       if (targets.length === 0) {
@@ -2425,26 +2407,23 @@ case "may_trash_other_installed_search_stack_same_type_install": {
         sourceId,
         chooser: "runner",
         options,
-logLine: `${source.title} — may trash another installed card to search stack.`,
-});
+        logLine: `${source.title} — may trash another installed card to search stack.`,
+      });
       return { ok: true };
     }
 
-case "trash_runner_rig_card": {
+    case "trash_runner_rig_card": {
       if (!state.runner.installed.includes(action.cardId)) {
         log(state, `Trash runner card — ${action.cardId} not installed.`);
         return { ok: true };
       }
       const title = state.cards[action.cardId]!.title;
       trashToHeap(state, action.cardId);
-      log(
-        state,
-        `Trash installed ${title} (CR ${CR.trashing.number}).`,
-      );
+      log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
       return { ok: true };
     }
 
-case "trash_runner_rig_card_record_program_cost": {
+    case "trash_runner_rig_card_record_program_cost": {
       if (!state.runner.installed.includes(action.cardId)) {
         log(state, `Trash runner card — ${action.cardId} not installed.`);
         return { ok: true };
@@ -2453,14 +2432,11 @@ case "trash_runner_rig_card_record_program_cost": {
       const cost = state.cards[action.cardId]!.installCost;
       trashToHeap(state, action.cardId);
       state.turn.lastTrashedOwnProgramInstallCost = cost;
-      log(
-        state,
-        `Trash installed ${title} (CR ${CR.trashing.number}).`,
-      );
+      log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
       return { ok: true };
     }
 
-case "trash_type_may_pay_3_prevent": {
+    case "trash_type_may_pay_3_prevent": {
       const types: Array<import("../../state/types.js").CardType> = [
         "event",
         "hardware",
@@ -2481,12 +2457,12 @@ case "trash_type_may_pay_3_prevent": {
             },
           },
         })),
-logLine: `${source.title} — choose a Runner card type.`,
-});
+        logLine: `${source.title} — choose a Runner card type.`,
+      });
       return { ok: true };
     }
 
-case "trash_hq_reencounter_passed_ice": {
+    case "trash_hq_reencounter_passed_ice": {
       // Sisyphus Protocol: Corp chooses which HQ card to trash (CR 1.2.1).
       if (!state.run?.pendingReencounterIceId) {
         log(state, `Reencounter — no pending ice.`);
@@ -2533,7 +2509,7 @@ case "trash_hq_reencounter_passed_ice": {
       return { ok: true };
     }
 
-case "trash_hq_reencounter_passed_ice_resolve": {
+    case "trash_hq_reencounter_passed_ice_resolve": {
       if (!state.run?.pendingReencounterIceId) {
         log(state, `Reencounter — no pending ice.`);
         return { ok: true };
@@ -2559,7 +2535,7 @@ case "trash_hq_reencounter_passed_ice_resolve": {
       return { ok: true };
     }
 
-case "trash_self_choose_rezzed_protecting_ice_encounter": {
+    case "trash_self_choose_rezzed_protecting_ice_encounter": {
       // Capture host server before trash (Ganked! leaves the root).
       const host = serverHostingCard(state, sourceId);
       const serverId = host?.id ?? state.run?.attackedServerId;
@@ -2611,12 +2587,12 @@ case "trash_self_choose_rezzed_protecting_ice_encounter": {
             action: { kind: "set_reencounter_ice" as const, iceId: id },
           },
         })),
-logLine: `${source.title} — choose rezzed ice protecting ${serverId} for encounter.`,
-});
+        logLine: `${source.title} — choose rezzed ice protecting ${serverId} for encounter.`,
+      });
       return { ok: true };
     }
 
-case "trash_random_from_grip": {
+    case "trash_random_from_grip": {
       const n = Math.max(0, action.amount ?? 0);
       if (n <= 0 || state.runner.hand.length === 0) {
         log(state, `Trash random from grip — nothing to trash.`);
@@ -2638,7 +2614,7 @@ case "trash_random_from_grip": {
       return { ok: true };
     }
 
-case "trash_must_own_installed": {
+    case "trash_must_own_installed": {
       const installed = [...state.runner.installed];
       if (installed.length === 0) {
         return {
@@ -2651,10 +2627,7 @@ case "trash_must_own_installed": {
         const id = installed[0]!;
         const title = state.cards[id]!.title;
         trashToHeap(state, id);
-        log(
-          state,
-          `Trash installed ${title} (CR ${CR.trashing.number}).`,
-        );
+        log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -2668,12 +2641,12 @@ case "trash_must_own_installed": {
             action: { kind: "trash_runner_rig_card" as const, cardId: id },
           },
         })),
-logLine: `${source.title} — Runner must trash 1 installed card (CR ${CR.trashing.number}).`,
-});
+        logLine: `${source.title} — Runner must trash 1 installed card (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
-case "trash_rd": {
+    case "trash_rd": {
       let trashed = 0;
       for (let i = 0; i < action.amount && state.corp.deck.length > 0; i++) {
         const id = state.corp.deck.shift()!; // top of R&D is index 0
@@ -2687,7 +2660,7 @@ case "trash_rd": {
       });
     }
 
-case "trash_runner_install_lte": {
+    case "trash_runner_install_lte": {
       const maxCost = action.maxInstallCost;
       const candidates = state.runner.installed.filter((id) => {
         const c = state.cards[id]!;

@@ -8,7 +8,6 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 function trashCorpToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
@@ -20,8 +19,7 @@ function trashCorpToArchives(state: GameState, cardId: string): void {
 }
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function nextRemoteId(state: EffectCtx["state"]): ServerId {
   let n = 1;
@@ -59,8 +57,8 @@ function offerCbiRaidHqToRd(ctx: EffectCtx): PrimResult {
       label: `Top of R&D: ${state.cards[id]!.title}`,
       effect: fx.do({ kind: "place_hq_on_top_rd_continue", cardId: id }),
     })),
-logLine: `CBI Raid — Corp chooses next HQ card for top of R&D (${hq.length} left).`,
-});
+    logLine: `CBI Raid — Corp chooses next HQ card for top of R&D (${hq.length} left).`,
+  });
   return { ok: true };
 }
 
@@ -302,7 +300,9 @@ export function applyMumbadBfPrimitive(
     case "install_from_hq_new_remote": {
       const eligible = state.corp.hand.filter((id) => {
         const t = state.cards[id]?.type;
-        return t === "asset" || t === "agenda" || t === "upgrade" || t === "ice";
+        return (
+          t === "asset" || t === "agenda" || t === "upgrade" || t === "ice"
+        );
       });
       if (eligible.length === 0) {
         log(state, `New Construction — no installable HQ card.`);
@@ -339,7 +339,10 @@ export function applyMumbadBfPrimitive(
         root: [],
         ice: [],
       };
-      state.nextRemoteNumber = Math.max(state.nextRemoteNumber, Number(serverId.replace("remote-", "")) + 1);
+      state.nextRemoteNumber = Math.max(
+        state.nextRemoteNumber,
+        Number(serverId.replace("remote-", "")) + 1,
+      );
       state.corp.hand = state.corp.hand.filter((x) => x !== id);
       if (card.type === "ice") {
         state.servers[serverId]!.ice.push(id);

@@ -21,7 +21,12 @@ import {
 import type { Effect } from "../src/effects/ir.js";
 import type { EvalResult } from "../src/effects/eval.js";
 import type { CardDef } from "../src/cards/load.js";
-import type { CardType, GameState, ServerId, ZoneId } from "../src/state/types.js";
+import type {
+  CardType,
+  GameState,
+  ServerId,
+  ZoneId,
+} from "../src/state/types.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -36,13 +41,15 @@ function isEffect(value: unknown): value is Effect {
 
 function treesOf(def: CardDef): Array<[string, Effect]> {
   const trees: Array<[string, Effect]> = [];
-  if (isEffect(playEffectFromCard(def))) trees.push(["onPlay", playEffectFromCard(def)]);
+  if (isEffect(playEffectFromCard(def)))
+    trees.push(["onPlay", playEffectFromCard(def)]);
   if (isEffect(def.onRez)) trees.push(["onRez", def.onRez]);
   for (const [index, sub] of (def.subroutines ?? []).entries()) {
     if (isEffect(sub.effect)) trees.push([`subroutines[${index}]`, sub.effect]);
   }
   for (const [index, ability] of (def.paidAbilities ?? []).entries()) {
-    if (isEffect(ability.effect)) trees.push([`paidAbilities[${index}]`, ability.effect]);
+    if (isEffect(ability.effect))
+      trees.push([`paidAbilities[${index}]`, ability.effect]);
   }
   return trees;
 }
@@ -57,7 +64,10 @@ function runTrees(
   for (const [label, effect] of trees) {
     state.pendingChoice = null;
     try {
-      const result: EvalResult = evalEffect({ state, sourceId: "subject" }, effect);
+      const result: EvalResult = evalEffect(
+        { state, sourceId: "subject" },
+        effect,
+      );
       if (!result.ok && result.error.startsWith("Unhandled primitive")) {
         failures.push(`${defId} ${board} ${label}: ${result.error}`);
       }
@@ -103,7 +113,9 @@ function richBoard(): GameState {
     state.cards[heaped]!.zone = "runner:heap";
   }
 
-  state.runner.hand = state.runner.hand.filter((id) => id !== "runner-program-1");
+  state.runner.hand = state.runner.hand.filter(
+    (id) => id !== "runner-program-1",
+  );
   state.runner.installed.push("runner-program-1");
   state.cards["runner-program-1"]!.zone = "runner:installed";
 
@@ -144,13 +156,16 @@ function seat(state: GameState, def: CardDef, zone: ZoneId): void {
   else if (zone === "runner:score") state.runner.scoreArea.push("subject");
   else if (zone === "runner:installed") state.runner.installed.push("subject");
   else if (zone === "server:hq:ice") state.servers.hq.ice.unshift("subject");
-  else if (zone === "server:remote-1:ice") state.servers["remote-1"]!.ice.unshift("subject");
-  else if (zone === "server:remote-1:root") state.servers["remote-1"]!.root.unshift("subject");
+  else if (zone === "server:remote-1:ice")
+    state.servers["remote-1"]!.ice.unshift("subject");
+  else if (zone === "server:remote-1:root")
+    state.servers["remote-1"]!.root.unshift("subject");
 }
 
 function installedZone(def: CardDef): ZoneId {
   if (def.type === "ice") return "server:remote-1:ice";
-  if (def.type === "agenda") return def.side === "corp" ? "corp:score" : "runner:score";
+  if (def.type === "agenda")
+    return def.side === "corp" ? "corp:score" : "runner:score";
   if (def.side === "corp") return "server:remote-1:root";
   return "runner:installed";
 }
@@ -183,7 +198,11 @@ function openRun(
   };
 }
 
-function accessCard(state: GameState, serverId: ServerId, cardId: string): void {
+function accessCard(
+  state: GameState,
+  serverId: ServerId,
+  cardId: string,
+): void {
   openRun(state, serverId, "access", null);
   state.run!.accessCandidates = [cardId];
   state.run!.accessingCardId = cardId;
@@ -208,7 +227,8 @@ describe("each card's printed abilities execute", () => {
         try {
           evalEffect({ state, sourceId: "card" }, effect);
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
+          const message =
+            error instanceof Error ? error.message : String(error);
           failures.push(`${def.id} ${label}: ${message}`);
         }
       }
@@ -216,87 +236,98 @@ describe("each card's printed abilities execute", () => {
     expect(failures).toEqual([]);
   });
 
-  it(
-    "evaluates those trees on a hand, an install, a run, and a breach",
-    () => {
-      const base = richBoard();
-      const failures: string[] = [];
-      for (const def of loadCardCatalog(true).values()) {
-        const all = treesOf(def);
-        if (all.length === 0) continue;
-        const play = all.filter(([label]) => label === "onPlay");
-        const rez = all.filter(([label]) => label === "onRez");
-        const subs = all.filter(([label]) => label.startsWith("subroutines"));
-        const paid = all.filter(([label]) => label.startsWith("paidAbilities"));
+  it("evaluates those trees on a hand, an install, a run, and a breach", () => {
+    const base = richBoard();
+    const failures: string[] = [];
+    for (const def of loadCardCatalog(true).values()) {
+      const all = treesOf(def);
+      if (all.length === 0) continue;
+      const play = all.filter(([label]) => label === "onPlay");
+      const rez = all.filter(([label]) => label === "onRez");
+      const subs = all.filter(([label]) => label.startsWith("subroutines"));
+      const paid = all.filter(([label]) => label.startsWith("paidAbilities"));
 
-        const hand = structuredClone(base) as GameState;
-        seat(hand, def, def.side === "corp" ? "corp:hq" : "runner:grip");
-        runTrees(hand, def.id, [...play, ...paid], failures, "hand");
+      const hand = structuredClone(base) as GameState;
+      seat(hand, def, def.side === "corp" ? "corp:hq" : "runner:grip");
+      runTrees(hand, def.id, [...play, ...paid], failures, "hand");
 
-        if (INSTALLED.has(def.type)) {
-          const installed = structuredClone(base) as GameState;
-          seat(installed, def, installedZone(def));
-          runTrees(installed, def.id, [...rez, ...paid], failures, "installed");
+      if (INSTALLED.has(def.type)) {
+        const installed = structuredClone(base) as GameState;
+        seat(installed, def, installedZone(def));
+        runTrees(installed, def.id, [...rez, ...paid], failures, "installed");
 
-          const during = structuredClone(base) as GameState;
-          seat(during, def, def.type === "ice" ? "server:remote-1:ice" : installedZone(def));
-          openRun(during, "hq", "encounter", "corp-ice-1");
-          runTrees(during, def.id, paid, failures, "during-run");
-        }
-
-        if (def.type === "ice") {
-          const encountered = structuredClone(base) as GameState;
-          seat(encountered, def, "server:hq:ice");
-          openRun(encountered, "hq", "encounter", "subject");
-          runTrees(encountered, def.id, [...subs, ...paid], failures, "encounter");
-        }
-
-        const breaches: Array<[string, ServerId, ZoneId]> = [
-          ["breach-hq", "hq", "corp:hq"],
-          ["breach-rd", "rd", "corp:rd"],
-          ["breach-archives", "archives", "corp:archives"],
-          ["breach-remote", "remote-1", "server:remote-1:root"],
-        ];
-        for (const [name, serverId, zone] of breaches) {
-          const state = structuredClone(base) as GameState;
-          const watching =
-            name === "breach-hq"
-              ? (state.corp.hand[0] ?? "corp-asset-1")
-              : name === "breach-rd"
-                ? (state.corp.deck[0] ?? "corp-asset-1")
-                : name === "breach-archives"
-                  ? (state.corp.discardPile[0] ?? "corp-asset-1")
-                  : "corp-asset-1";
-          const corpCard = def.side === "corp" && def.type !== "identity";
-          const inZone =
-            corpCard &&
-            (name !== "breach-remote" || def.type === "asset" || def.type === "upgrade" || def.type === "agenda");
-          if (inZone && name === "breach-hq" && def.type === "ice") {
-            seat(state, def, "server:hq:ice");
-            accessCard(state, serverId, watching);
-          } else if (inZone) {
-            seat(state, def, zone);
-            accessCard(state, serverId, "subject");
-          } else if (INSTALLED.has(def.type)) {
-            seat(state, def, installedZone(def));
-            accessCard(state, serverId, watching);
-          } else {
-            seat(state, def, def.side === "corp" ? "corp:hq" : "runner:grip");
-            accessCard(state, serverId, watching);
-          }
-          if (name === "breach-rd" && state.run) {
-            const top = state.corp.deck[0];
-            if (top && state.run.accessingCardId === "subject") state.run.accessCandidates = [top];
-          }
-          if (name === "breach-archives") {
-            const accessed = state.run?.accessingCardId;
-            if (accessed && state.cards[accessed]) state.cards[accessed]!.faceup = true;
-          }
-          runTrees(state, def.id, paid, failures, name);
-        }
+        const during = structuredClone(base) as GameState;
+        seat(
+          during,
+          def,
+          def.type === "ice" ? "server:remote-1:ice" : installedZone(def),
+        );
+        openRun(during, "hq", "encounter", "corp-ice-1");
+        runTrees(during, def.id, paid, failures, "during-run");
       }
-      expect(failures).toEqual([]);
-    },
-    60_000,
-  );
+
+      if (def.type === "ice") {
+        const encountered = structuredClone(base) as GameState;
+        seat(encountered, def, "server:hq:ice");
+        openRun(encountered, "hq", "encounter", "subject");
+        runTrees(
+          encountered,
+          def.id,
+          [...subs, ...paid],
+          failures,
+          "encounter",
+        );
+      }
+
+      const breaches: Array<[string, ServerId, ZoneId]> = [
+        ["breach-hq", "hq", "corp:hq"],
+        ["breach-rd", "rd", "corp:rd"],
+        ["breach-archives", "archives", "corp:archives"],
+        ["breach-remote", "remote-1", "server:remote-1:root"],
+      ];
+      for (const [name, serverId, zone] of breaches) {
+        const state = structuredClone(base) as GameState;
+        const watching =
+          name === "breach-hq"
+            ? (state.corp.hand[0] ?? "corp-asset-1")
+            : name === "breach-rd"
+              ? (state.corp.deck[0] ?? "corp-asset-1")
+              : name === "breach-archives"
+                ? (state.corp.discardPile[0] ?? "corp-asset-1")
+                : "corp-asset-1";
+        const corpCard = def.side === "corp" && def.type !== "identity";
+        const inZone =
+          corpCard &&
+          (name !== "breach-remote" ||
+            def.type === "asset" ||
+            def.type === "upgrade" ||
+            def.type === "agenda");
+        if (inZone && name === "breach-hq" && def.type === "ice") {
+          seat(state, def, "server:hq:ice");
+          accessCard(state, serverId, watching);
+        } else if (inZone) {
+          seat(state, def, zone);
+          accessCard(state, serverId, "subject");
+        } else if (INSTALLED.has(def.type)) {
+          seat(state, def, installedZone(def));
+          accessCard(state, serverId, watching);
+        } else {
+          seat(state, def, def.side === "corp" ? "corp:hq" : "runner:grip");
+          accessCard(state, serverId, watching);
+        }
+        if (name === "breach-rd" && state.run) {
+          const top = state.corp.deck[0];
+          if (top && state.run.accessingCardId === "subject")
+            state.run.accessCandidates = [top];
+        }
+        if (name === "breach-archives") {
+          const accessed = state.run?.accessingCardId;
+          if (accessed && state.cards[accessed])
+            state.cards[accessed]!.faceup = true;
+        }
+        runTrees(state, def.id, paid, failures, name);
+      }
+    }
+    expect(failures).toEqual([]);
+  }, 60_000);
 });

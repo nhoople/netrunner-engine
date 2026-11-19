@@ -16,11 +16,7 @@ import {
 import { RESTRICTION_FIELDS } from "../src/effects/abilityRecord.js";
 import type { AbilityRecord } from "../src/effects/abilityRecord.js";
 
-const WRITERS = new Set([
-  "abilityRecord.ts",
-  "load.ts",
-  "types.ts",
-]);
+const WRITERS = new Set(["abilityRecord.ts", "load.ts", "types.ts"]);
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -50,7 +46,11 @@ function readerText(): string {
   return files.map((path) => readFileSync(path, "utf8")).join("\n");
 }
 
-function note(hooks: Map<string, string[]>, hook: string, cardId: string): void {
+function note(
+  hooks: Map<string, string[]>,
+  hook: string,
+  cardId: string,
+): void {
   const ids = hooks.get(hook) ?? [];
   if (ids.length < 3) ids.push(cardId);
   hooks.set(hook, ids);
@@ -83,7 +83,9 @@ describe("ability hooks are read by a procedure", () => {
 
     const readers = readerText();
     const dead: string[] = [];
-    for (const [hook, ids] of [...hooks.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    for (const [hook, ids] of [...hooks.entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    )) {
       const pattern = new RegExp(`\\b${hook}\\b`);
       if (pattern.test(readers)) continue;
       dead.push(`${hook} (${ids.join(", ")})`);

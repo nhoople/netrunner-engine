@@ -18,9 +18,7 @@ export function isCurrentCard(card: CardInstance | undefined): boolean {
 }
 
 function inLingeringPlayArea(card: CardInstance | undefined): boolean {
-  return (
-    card?.zone === "corp:play-area" || card?.zone === "runner:play-area"
-  );
+  return card?.zone === "corp:play-area" || card?.zone === "runner:play-area";
 }
 
 export function activeCorpCurrentIds(state: GameState): string[] {
@@ -33,7 +31,8 @@ export function activeCorpCurrentIds(state: GameState): string[] {
   }
   for (const card of Object.values(state.cards)) {
     if (seen.has(card.id)) continue;
-    if (card.zone === "corp:play-area" && isCurrentCard(card)) out.push(card.id);
+    if (card.zone === "corp:play-area" && isCurrentCard(card))
+      out.push(card.id);
   }
   return out;
 }
@@ -48,7 +47,8 @@ export function activeRunnerCurrentIds(state: GameState): string[] {
   }
   for (const card of Object.values(state.cards)) {
     if (seen.has(card.id)) continue;
-    if (card.zone === "runner:play-area" && isCurrentCard(card)) out.push(card.id);
+    if (card.zone === "runner:play-area" && isCurrentCard(card))
+      out.push(card.id);
   }
   return out;
 }
@@ -164,7 +164,9 @@ export function runnerCannotPlayCurrentEvents(state: GameState): boolean {
  * applies. It is the only reader of the card's flag. Wiring it in is a rules
  * change left for a CR audit fix, not the dead-code sweep.
  */
-export function corpMaxIceInstallsPerTurnFromCurrents(state: GameState): number | null {
+export function corpMaxIceInstallsPerTurnFromCurrents(
+  state: GameState,
+): number | null {
   let min: number | null = null;
   for (const id of activeCorpCurrentIds(state)) {
     const cap = state.cards[id]?.corpMaxIceInstallsPerTurn;
@@ -194,7 +196,10 @@ function trashCurrent(state: GameState, id: string, reason: string): void {
  * (CR 3.5.1b, CR 3.7.1b), whichever side plays it.
  */
 function trashActiveCurrentsBeforePlay(state: GameState): void {
-  const ids = [...activeCorpCurrentIds(state), ...activeRunnerCurrentIds(state)];
+  const ids = [
+    ...activeCorpCurrentIds(state),
+    ...activeRunnerCurrentIds(state),
+  ];
   for (const id of ids) {
     trashCurrent(state, id, "another current played");
   }
@@ -230,7 +235,10 @@ export function trashDurationPassedCurrents(state: GameState): number {
 }
 
 export function trashCurrentsOnAgendaScored(state: GameState): void {
-  for (const id of [...activeCorpCurrentIds(state), ...activeRunnerCurrentIds(state)]) {
+  for (const id of [
+    ...activeCorpCurrentIds(state),
+    ...activeRunnerCurrentIds(state),
+  ]) {
     if (state.cards[id]?.currentTrashOnAgendaScored) {
       trashCurrent(state, id, "agenda scored");
     }

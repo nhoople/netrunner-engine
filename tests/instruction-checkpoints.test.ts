@@ -58,7 +58,17 @@ import { drawCards } from "../src/effects/draw.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import { mayLookAtHiddenZone } from "../src/state/hiddenSearch.js";
-import { addBreakerStrengthBoostThisRun, addBreakerStrengthBoostThisTurn, addIceStrengthBoostThisTurn, addLingeringEffect, LINGERING_KIND_BREAKER_STRENGTH, LINGERING_KIND_BREAKER_STRENGTH_RUN, LINGERING_KIND_GRANTED_SUBTYPES, LINGERING_KIND_ICE_STRENGTH, LINGERING_KIND_RUNNER_MU } from "../src/state/lingeringEffects.js";
+import {
+  addBreakerStrengthBoostThisRun,
+  addBreakerStrengthBoostThisTurn,
+  addIceStrengthBoostThisTurn,
+  addLingeringEffect,
+  LINGERING_KIND_BREAKER_STRENGTH,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  LINGERING_KIND_GRANTED_SUBTYPES,
+  LINGERING_KIND_ICE_STRENGTH,
+  LINGERING_KIND_RUNNER_MU,
+} from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/state/types.js";
 import { currentMark, placeMark } from "../src/state/msKeywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
@@ -70,7 +80,10 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.147.24");
 });
 
-function must(state: GameState, action: Parameters<typeof applyAction>[1]): GameState {
+function must(
+  state: GameState,
+  action: Parameters<typeof applyAction>[1],
+): GameState {
   const r = applyAction(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
   return passIdle(r.state);
@@ -107,8 +120,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.log[cost]).toContain(CR.costPaidCheckpoint.number);
     expect(s.log[play]).toContain(CR.playCheckpoint.number);
     expect(s.log[play]).toContain(CR.playPause.number);
-    expect(s.log.some((line) => line.includes("Checkpoint close [cost]"))).toBe(true);
-    expect(s.log.some((line) => line.includes("Checkpoint close [play]"))).toBe(true);
+    expect(s.log.some((line) => line.includes("Checkpoint close [cost]"))).toBe(
+      true,
+    );
+    expect(s.log.some((line) => line.includes("Checkpoint close [play]"))).toBe(
+      true,
+    );
     expect(s.checkpoints).toHaveLength(0);
     expect(s.runner.credits).toBe(9);
   });
@@ -155,7 +172,10 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s = must(s, { type: "play_event", cardId: "bs-1" });
 
     const gain = at(s.log, "runner gains 1¢");
-    const between = at(s.log, "Checkpoint open [instruction] Between instructions");
+    const between = at(
+      s.log,
+      "Checkpoint open [instruction] Between instructions",
+    );
     const aside = at(s.log, "Set aside 2");
     expect(s.log[between]).toContain(CR.resolveAbility.number);
     expect(gain).toBeLessThan(between);
@@ -211,7 +231,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("ends Drug Dealer's turn-begin ability when Aesop's Pawnshop trashes it (CR 9.6.10)", () => {
     let s = createInitialState();
-    const aesop = instantiateCard("aesops-pawnshop", "aesop-1", "runner:installed");
+    const aesop = instantiateCard(
+      "aesops-pawnshop",
+      "aesop-1",
+      "runner:installed",
+    );
     const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
     s.cards["aesop-1"] = aesop;
     s.cards["dd-1"] = dealer;
@@ -297,10 +321,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     };
     passUntil("Encounter Enigma");
 
-    const gained = at(
-      s.log,
-      "Enigma gains a second copy of each subroutine",
-    );
+    const gained = at(s.log, "Enigma gains a second copy of each subroutine");
     expect(s.log[gained]).toContain(CR.subroutinesDuplicated.number);
     expect(s.cards["en-1"]?.subroutines?.map((sub) => sub.text)).toEqual([
       "The Runner loses [click], if able.",
@@ -394,7 +415,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
     for (let i = 0; i < 24; i++) {
       autoWalk(s);
-      if (s.pendingChoice?.options.some((option) => option.id.startsWith("resolve-next:"))) {
+      if (
+        s.pendingChoice?.options.some((option) =>
+          option.id.startsWith("resolve-next:"),
+        )
+      ) {
         break;
       }
       const passed = applyAction(s, { type: "pass_window" });
@@ -416,7 +441,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(ordered).toBeLessThan(ended);
     expect(
       s.log.some((line) =>
-        line.includes('Resolve subroutine "The Runner loses [click], if able."'),
+        line.includes(
+          'Resolve subroutine "The Runner loses [click], if able."',
+        ),
       ),
     ).toBe(false);
     expect(s.runner.clicks).toBe(4);
@@ -499,7 +526,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("keeps AMAZE's pending run-end ability after AMAZE is trashed (CR 9.12.5d)", () => {
     const s = createInitialState();
-    const amaze = instantiateCard("amaze-amusements", "amaze-1", "corp:archives");
+    const amaze = instantiateCard(
+      "amaze-amusements",
+      "amaze-1",
+      "corp:archives",
+    );
     amaze.rezzed = false;
     amaze.faceup = true;
     s.cards["amaze-1"] = amaze;
@@ -533,7 +564,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       const s = createInitialState();
       const echo = instantiateCard("false-echo", "echo-1", "runner:installed");
       const archer = instantiateCard("archer", "arch-1", "server:hq:ice");
-      const agenda = instantiateCard("hostile-takeover", "agenda-1", "corp:scored");
+      const agenda = instantiateCard(
+        "hostile-takeover",
+        "agenda-1",
+        "corp:scored",
+      );
       s.cards["echo-1"] = echo;
       s.cards["arch-1"] = archer;
       s.cards["agenda-1"] = agenda;
@@ -575,7 +610,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     // A forfeited agenda is removed from the game (CR 8.2.5).
     expect(rezzed.corp.discardPile).not.toContain("agenda-1");
     expect(rezzed.removedFromGame).toContain("agenda-1");
-    expect(rezzed.log.join("\n")).toContain(CR.mustNotForceAdditionalCost.number);
+    expect(rezzed.log.join("\n")).toContain(
+      CR.mustNotForceAdditionalCost.number,
+    );
 
     const broke = start();
     broke.corp.credits = 3;
@@ -584,7 +621,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       fx.do({ kind: "trash_then_corp_rez_or_hq" }),
     );
     expect(onlyHq.ok).toBe(true);
-    expect(broke.pendingChoice?.options.map((option) => option.id)).toEqual(["hq"]);
+    expect(broke.pendingChoice?.options.map((option) => option.id)).toEqual([
+      "hq",
+    ]);
   });
 
   it("lets the Runner choose a minimal memory set after Bad Times (CR 10.3.1e)", () => {
@@ -605,16 +644,22 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       payload: { delta: -2 },
     });
     const from = s.log.length;
-    occurCheckpoint(s, "timing", "Bad Times", [CR.checkpointCardRestrictions], "test");
+    occurCheckpoint(
+      s,
+      "timing",
+      "Bad Times",
+      [CR.checkpointCardRestrictions],
+      "test",
+    );
     expect(s.checkpoints).toHaveLength(1);
     expect(s.pendingChoice?.chooser).toBe("runner");
     expect(s.pendingChoice?.options.map((option) => option.id).sort()).toEqual([
       "restrict:mu-1,mu-2|*",
       "restrict:mu-3|*",
     ]);
-    expect(s.log.slice(from).some((line) => line.includes("Hosted on agendas"))).toBe(
-      false,
-    );
+    expect(
+      s.log.slice(from).some((line) => line.includes("Hosted on agendas")),
+    ).toBe(false);
     expect(s.log.join("\n")).toContain(
       `Card restrictions checked (CR ${CR.checkpointCardRestrictions.number}); the Runner chooses which set to trash.`,
     );
@@ -649,7 +694,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       kind: LINGERING_KIND_RUNNER_MU,
       payload: { delta: -2 },
     });
-    occurCheckpoint(s, "timing", "Bad Times", [CR.checkpointCardRestrictions], "test");
+    occurCheckpoint(
+      s,
+      "timing",
+      "Bad Times",
+      [CR.checkpointCardRestrictions],
+      "test",
+    );
     expect(s.pendingChoice).toBeNull();
     expect(s.checkpoints).toHaveLength(0);
     expect(s.cards["mu-1"]?.zone).toBe("runner:heap");
@@ -661,21 +712,48 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const identity = s.cards[s.corp.identityId];
     if (!identity) throw new Error("missing corp identity");
     identity.maxRemoteServers = 1;
-    const first = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
-    const second = instantiateCard("pad-campaign", "pad-2", "server:remote-2:root");
+    const first = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
+    const second = instantiateCard(
+      "pad-campaign",
+      "pad-2",
+      "server:remote-2:root",
+    );
     first.rezzed = true;
     second.rezzed = true;
     s.cards["pad-1"] = first;
     s.cards["pad-2"] = second;
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["pad-1"] };
-    s.servers["remote-2"] = { id: "remote-2", kind: "remote", ice: [], root: ["pad-2"] };
-    occurCheckpoint(s, "timing", "remote limit", [CR.checkpointCardRestrictions], "test");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1"],
+    };
+    s.servers["remote-2"] = {
+      id: "remote-2",
+      kind: "remote",
+      ice: [],
+      root: ["pad-2"],
+    };
+    occurCheckpoint(
+      s,
+      "timing",
+      "remote limit",
+      [CR.checkpointCardRestrictions],
+      "test",
+    );
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((option) => option.id).sort()).toEqual([
       "restrict:|remote-1",
       "restrict:|remote-2",
     ]);
-    const kept = must(s, { type: "choose_option", optionId: "restrict:|remote-1" });
+    const kept = must(s, {
+      type: "choose_option",
+      optionId: "restrict:|remote-1",
+    });
     expect(kept.servers["remote-1"]?.root).toEqual(["pad-1"]);
     expect(kept.servers["remote-2"]).toBeUndefined();
     expect(kept.cards["pad-2"]?.zone).toBe("corp:archives");
@@ -711,17 +789,28 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     );
     expect(installed.ok).toBe(true);
     // The Corp picks the card and the breached root (CR 8.5.16b).
-    let placed = must(s, { type: "choose_option", optionId: "choose-card:pad-1" });
-    placed = must(placed, { type: "choose_option", optionId: "install-dest:hq" });
+    let placed = must(s, {
+      type: "choose_option",
+      optionId: "choose-card:pad-1",
+    });
+    placed = must(placed, {
+      type: "choose_option",
+      optionId: "install-dest:hq",
+    });
     expect(placed.servers.hq.root).toContain("pad-1");
     expect(placed.pendingChoice?.options.map((option) => option.id)).toEqual([
       "root-access:yes:pad-1",
       "root-access:no:pad-1",
     ]);
-    const added = must(placed, { type: "choose_option", optionId: "root-access:yes:pad-1" });
+    const added = must(placed, {
+      type: "choose_option",
+      optionId: "root-access:yes:pad-1",
+    });
     expect(added.run?.accessCandidates).toContain("pad-1");
     expect(added.pendingChoice).toBeNull();
-    expect(added.log.join("\n")).toContain(CR.checkpointCardEnteringRoot.number);
+    expect(added.log.join("\n")).toContain(
+      CR.checkpointCardEnteringRoot.number,
+    );
   });
 
   it("leaves Drafter's install out of the breach when the Runner declines (CR 10.3.1j)", () => {
@@ -748,9 +837,18 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       { state: s, sourceId: "drafter-1" },
       fx.do({ kind: "install_from_hq_or_archives" }),
     );
-    let placed = must(s, { type: "choose_option", optionId: "choose-card:pad-2" });
-    placed = must(placed, { type: "choose_option", optionId: "install-dest:hq" });
-    const declined = must(placed, { type: "choose_option", optionId: "root-access:no:pad-2" });
+    let placed = must(s, {
+      type: "choose_option",
+      optionId: "choose-card:pad-2",
+    });
+    placed = must(placed, {
+      type: "choose_option",
+      optionId: "install-dest:hq",
+    });
+    const declined = must(placed, {
+      type: "choose_option",
+      optionId: "root-access:no:pad-2",
+    });
     expect(declined.servers.hq.root).toContain("pad-2");
     expect(declined.run?.accessCandidates).toEqual(["already"]);
   });
@@ -906,7 +1004,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.timingKey = "corp.takeAction";
 
     s = must(s, { type: "play_operation", cardId: "rt-1" });
-    expect(s.pendingChoice?.options.some((o) => o.id === "play-cost-x:1")).toBe(true);
+    expect(s.pendingChoice?.options.some((o) => o.id === "play-cost-x:1")).toBe(
+      true,
+    );
     expect(s.corp.credits).toBe(3);
     expect(s.cards["rt-1"]?.zone).toBe("corp:play-area");
 
@@ -1097,7 +1197,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.timingKey = "runner.takeAction";
 
     s = must(s, { type: "play_event", cardId: "so-1" });
-    expect(s.pendingChoice?.options.some((o) => o.id === "search-fail-to-find")).toBe(true);
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "search-fail-to-find"),
+    ).toBe(true);
     expect(mayLookAtHiddenZone(s, "runner")).toBe(true);
     expect(mayLookAtHiddenZone(s, "corp")).toBe(false);
     expect(s.runner.deck).toContain("co-1");
@@ -1110,7 +1212,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(failed).toBeLessThan(ended);
     expect(ended).toBeLessThan(complete);
     expect(s.log[failed]).toContain(CR.failToFind.number);
-    expect(s.log.some((line) => line.includes("Corroder revealed"))).toBe(false);
+    expect(s.log.some((line) => line.includes("Corroder revealed"))).toBe(
+      false,
+    );
     expect(s.runner.deck).toContain("co-1");
     expect(s.cards["co-1"]?.zone).toBe("runner:stack");
     expect(mayLookAtHiddenZone(s, "runner")).toBe(false);
@@ -1159,7 +1263,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("makes Personality Profiles pending after Special Order shuffles, before Corroder is revealed (CR 8.7.5)", () => {
     let s = createInitialState();
-    const profiles = instantiateCard("personality-profiles", "pp-1", "corp:score");
+    const profiles = instantiateCard(
+      "personality-profiles",
+      "pp-1",
+      "corp:score",
+    );
     const ev = instantiateCard("special-order", "so-1", "runner:grip");
     const gamble = instantiateCard("sure-gamble", "sg-1", "runner:grip");
     const breaker = instantiateCard("corroder", "co-1", "runner:stack");
@@ -1201,7 +1309,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const mitra = instantiateCard("mitra-aman", "ma-1", "server:remote-1:root");
     mitra.rezzed = true;
     mitra.faceup = true;
-    const palisade = instantiateCard("palisade", "pal-1", "server:remote-1:ice");
+    const palisade = instantiateCard(
+      "palisade",
+      "pal-1",
+      "server:remote-1:ice",
+    );
     palisade.rezzed = true;
     palisade.faceup = true;
     const wall = instantiateCard("ice-wall", "iw-1", "corp:archives");
@@ -1310,7 +1422,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     );
     dbs.rezzed = true;
     dbs.faceup = true;
-    const raman = instantiateCard("raman-rai", "raman-1", "server:remote-2:root");
+    const raman = instantiateCard(
+      "raman-rai",
+      "raman-1",
+      "server:remote-2:root",
+    );
     raman.rezzed = true;
     raman.faceup = true;
     const wrap = instantiateCard("wraparound", "wrap-1", "corp:rd");
@@ -1755,12 +1871,17 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
     const aside = at(s.log, `Set aside 1 (CR ${CR.drawSetAside.number})`);
     const checkpoint = at(s.log, "Checkpoint open [draw]");
-    const added = at(s.log, `Add set-aside card to hand (CR ${CR.drawAddToHand.number})`);
+    const added = at(
+      s.log,
+      `Add set-aside card to hand (CR ${CR.drawAddToHand.number})`,
+    );
     expect(aside).toBeLessThan(checkpoint);
     expect(checkpoint).toBeLessThan(added);
     expect(s.log[checkpoint]).toContain(CR.drawCheckpoint.number);
     expect(s.log[checkpoint]).toContain(CR.drawPause.number);
-    expect(s.log.some((line) => line.includes("Checkpoint close [draw]"))).toBe(true);
+    expect(s.log.some((line) => line.includes("Checkpoint close [draw]"))).toBe(
+      true,
+    );
     expect(s.checkpoints).toHaveLength(0);
     expect(s.runner.deck).toHaveLength(deckBefore - 1);
     expect(s.runner.hand).toHaveLength(handBefore + 1);
@@ -1781,8 +1902,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
     const aside = at(s.log, `Set aside 2 (CR ${CR.drawSetAside.number})`);
     const checkpoint = at(s.log, "Checkpoint open [draw]");
-    const added = at(s.log, `Add 2 set-aside cards to hand (CR ${CR.drawAddToHand.number})`);
-    expect(s.log.filter((line) => line.includes("Checkpoint open [draw]"))).toHaveLength(1);
+    const added = at(
+      s.log,
+      `Add 2 set-aside cards to hand (CR ${CR.drawAddToHand.number})`,
+    );
+    expect(
+      s.log.filter((line) => line.includes("Checkpoint open [draw]")),
+    ).toHaveLength(1);
     expect(aside).toBeLessThan(checkpoint);
     expect(checkpoint).toBeLessThan(added);
     expect(s.log[checkpoint]).toContain(CR.drawCheckpoint.number);
@@ -1796,13 +1922,18 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const effectHand = effect.runner.hand.length;
     const n = drawCards(effect, "runner", 2);
     expect(n).toBe(2);
-    const effectAside = at(effect.log, `Set aside 2 (CR ${CR.drawSetAside.number})`);
+    const effectAside = at(
+      effect.log,
+      `Set aside 2 (CR ${CR.drawSetAside.number})`,
+    );
     const effectCheckpoint = at(effect.log, "Checkpoint open [draw]");
     const effectAdded = at(
       effect.log,
       `Add 2 set-aside cards to hand (CR ${CR.drawAddToHand.number})`,
     );
-    expect(effect.log.filter((line) => line.includes("Checkpoint open [draw]"))).toHaveLength(1);
+    expect(
+      effect.log.filter((line) => line.includes("Checkpoint open [draw]")),
+    ).toHaveLength(1);
     expect(effectAside).toBeLessThan(effectCheckpoint);
     expect(effectCheckpoint).toBeLessThan(effectAdded);
     expect(effect.checkpoints).toHaveLength(0);
@@ -1812,7 +1943,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("reveals a Find the Truth draw after the checkpoint and before the card enters hand (CR 10.3.2)", () => {
     let s = createInitialState();
-    const truth = instantiateCard("find-the-truth", "ftt-1", "runner:installed");
+    const truth = instantiateCard(
+      "find-the-truth",
+      "ftt-1",
+      "runner:installed",
+    );
     s.cards["ftt-1"] = truth;
     s.runner.installed.push("ftt-1");
     const topId = s.runner.deck[0]!;
@@ -1824,9 +1959,15 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s = must(s, { type: "basic_draw" });
 
     const closed = at(s.log, "Checkpoint close [draw]");
-    const window = at(s.log, `Reaction window (CR ${CR.checkpointReaction.number})`);
+    const window = at(
+      s.log,
+      `Reaction window (CR ${CR.checkpointReaction.number})`,
+    );
     const reveal = at(s.log, `Find the Truth — reveal drawn card: ${title}`);
-    const added = at(s.log, `Add set-aside card to hand (CR ${CR.drawAddToHand.number})`);
+    const added = at(
+      s.log,
+      `Add set-aside card to hand (CR ${CR.drawAddToHand.number})`,
+    );
     expect(closed).toBeLessThan(window);
     expect(window).toBeLessThan(reveal);
     expect(reveal).toBeLessThan(added);
@@ -1843,7 +1984,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       ice: [],
       root: [],
     };
-    const dealings = instantiateCard("political-dealings", "pd-1", "server:remote-1:root");
+    const dealings = instantiateCard(
+      "political-dealings",
+      "pd-1",
+      "server:remote-1:root",
+    );
     dealings.rezzed = true;
     dealings.faceup = true;
     s.cards["pd-1"] = dealings;
@@ -1855,16 +2000,27 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const n = drawCards(s, "corp", 1);
     expect(n).toBe(1);
     const closed = at(s.log, "Checkpoint close [draw]");
-    const window = at(s.log, `Reaction window (CR ${CR.checkpointReaction.number})`);
+    const window = at(
+      s.log,
+      `Reaction window (CR ${CR.checkpointReaction.number})`,
+    );
     expect(closed).toBeLessThan(window);
-    expect(s.log.some((line) => line.includes("Add set-aside card to hand"))).toBe(false);
+    expect(
+      s.log.some((line) => line.includes("Add set-aside card to hand")),
+    ).toBe(false);
     expect(s.corp.hand).not.toContain("ag-1");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["pd:install", "pd:decline"]);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "pd:install",
+      "pd:decline",
+    ]);
 
     s = must(s, { type: "choose_option", optionId: "pd:decline" });
     expect(s.pendingChoice).toBeNull();
     expect(s.pendingDrawSetAside ?? null).toBeNull();
-    const added = at(s.log, `Add set-aside card to hand (CR ${CR.drawAddToHand.number})`);
+    const added = at(
+      s.log,
+      `Add set-aside card to hand (CR ${CR.drawAddToHand.number})`,
+    );
     expect(added).toBeGreaterThan(window);
     expect(s.corp.hand).toContain("ag-1");
   });
@@ -1877,7 +2033,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       ice: [],
       root: [],
     };
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     pad.rezzed = false;
     pad.faceup = false;
     s.cards["pad-1"] = pad;
@@ -1899,7 +2059,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s = must(s, { type: "pass_window" });
     const pass = at(s.log, "Pass priority → corp");
     const second = s.log.findIndex(
-      (line, i) => i > pass && line.includes(CR.checkpointBeforePriority.number),
+      (line, i) =>
+        i > pass && line.includes(CR.checkpointBeforePriority.number),
     );
     expect(second).toBeGreaterThan(pass);
     expect(s.log[second]).toContain("Before corp receives priority");
@@ -1926,7 +2087,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const finished = at(lines, "Checkpoint open [instruction]");
     const priority = at(lines, CR.checkpointBeforePriority.number);
     const closed = lines.findIndex(
-      (line, i) => i > finished && line.includes("Checkpoint close [instruction]"),
+      (line, i) =>
+        i > finished && line.includes("Checkpoint close [instruction]"),
     );
     expect(gain).toBeLessThan(finished);
     expect(finished).toBeLessThan(closed);
@@ -1955,7 +2117,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const opened = at(lines, "Checkpoint open [instruction]");
     const checked = at(lines, "Conditional abilities checked");
     const closed = lines.findIndex(
-      (line, i) => i > opened && line.includes("Checkpoint close [instruction]"),
+      (line, i) =>
+        i > opened && line.includes("Checkpoint close [instruction]"),
     );
     expect(opened).toBeLessThan(checked);
     expect(checked).toBeLessThan(closed);
@@ -1979,7 +2142,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const checked = at(lines, "Conditional abilities checked");
     const durations = at(lines, "Duration abilities checked");
     const closed = lines.findIndex(
-      (line, i) => i > durations && line.includes("Checkpoint close [instruction]"),
+      (line, i) =>
+        i > durations && line.includes("Checkpoint close [instruction]"),
     );
     expect(checked).toBeLessThan(durations);
     expect(durations).toBeLessThan(closed);
@@ -2003,7 +2167,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const durations = at(lines, "Duration abilities checked");
     const agendas = at(lines, "Agenda points checked");
     const closed = lines.findIndex(
-      (line, i) => i > agendas && line.includes("Checkpoint close [instruction]"),
+      (line, i) =>
+        i > agendas && line.includes("Checkpoint close [instruction]"),
     );
     expect(durations).toBeLessThan(agendas);
     expect(agendas).toBeLessThan(closed);
@@ -2030,7 +2195,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const agendas = at(lines, "Agenda points checked");
     const uniqueness = at(lines, "Uniqueness checked");
     const closed = lines.findIndex(
-      (line, i) => i > uniqueness && line.includes("Checkpoint close [instruction]"),
+      (line, i) =>
+        i > uniqueness && line.includes("Checkpoint close [instruction]"),
     );
     expect(agendas).toBeLessThan(uniqueness);
     expect(uniqueness).toBeLessThan(closed);
@@ -2113,7 +2279,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     );
     expect(agendas).toBeLessThan(uninstalled);
     expect(uninstalled).toBeLessThan(closed);
-    expect(lines[uninstalled]).toContain(CR.checkpointHostedOnUninstalled.number);
+    expect(lines[uninstalled]).toContain(
+      CR.checkpointHostedOnUninstalled.number,
+    );
     expect(lines[uninstalled]).toContain("nothing trashed");
     expect(s.runner.installed).toHaveLength(0);
     expect(s.checkpoints).toHaveLength(0);
@@ -2189,8 +2357,7 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const vacant = at(lines, "Vacant positions checked");
     const root = at(lines, "Cards entering a root during a breach checked");
     const closed = lines.findIndex(
-      (line, i) =>
-        i > root && line.includes("Checkpoint close [instruction]"),
+      (line, i) => i > root && line.includes("Checkpoint close [instruction]"),
     );
     expect(vacant).toBeLessThan(root);
     expect(root).toBeLessThan(closed);
@@ -2216,13 +2383,14 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const root = at(lines, "Cards entering a root during a breach checked");
     const piles = at(lines, "Discard pile cards checked");
     const closed = lines.findIndex(
-      (line, i) =>
-        i > piles && line.includes("Checkpoint close [instruction]"),
+      (line, i) => i > piles && line.includes("Checkpoint close [instruction]"),
     );
     expect(root).toBeLessThan(piles);
     expect(piles).toBeLessThan(closed);
     expect(lines[piles]).toContain(CR.checkpointDiscardPileCards.number);
-    expect(lines[piles]).toContain("nothing returns to its printed characteristics");
+    expect(lines[piles]).toContain(
+      "nothing returns to its printed characteristics",
+    );
     expect(s.corp.discardPile).toHaveLength(0);
     expect(s.runner.discardPile).toHaveLength(0);
     expect(s.checkpoints).toHaveLength(0);
@@ -2323,7 +2491,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       s.lingeringEffects.some(
         (effect) =>
           effect.kind === LINGERING_KIND_GRANTED_SUBTYPES &&
-          (effect.payload as { subtypes?: string[] }).subtypes?.[0] === "sentry",
+          (effect.payload as { subtypes?: string[] }).subtypes?.[0] ===
+            "sentry",
       ),
     ).toBe(true);
     s = must(s, { type: "pass_window" });
@@ -2397,7 +2566,10 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s.servers.hq.ice = ["ice-1"];
     const hosted = evalEffect(
       { state: s, sourceId: "sb-1" },
-      { op: "do", action: { kind: "host_on_ice_as_condition_on", iceId: "ice-1" } },
+      {
+        op: "do",
+        action: { kind: "host_on_ice_as_condition_on", iceId: "ice-1" },
+      },
     );
     expect(hosted.ok).toBe(true);
     expect(s.cards["sb-1"]!.convertedInto).toBe("counter");
@@ -2414,7 +2586,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.corp.discardPile).toContain("sb-1");
     expect(s.cards["sb-1"]!.convertedInto).toBeUndefined();
     expect(s.cards["sb-1"]!.type).toBe("operation");
-    expect(s.log.join("\n")).toContain("returns to its printed characteristics");
+    expect(s.log.join("\n")).toContain(
+      "returns to its printed characteristics",
+    );
   });
 
   it("records a card scored as an agenda and restores it in Archives (CR 10.3.1k)", () => {
@@ -2442,7 +2616,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["hf-1"]!.convertedInto).toBeUndefined();
     expect(s.cards["hf-1"]!.type).toBe("operation");
     expect(s.cards["hf-1"]!.agendaPoints).toBeUndefined();
-    expect(s.log.join("\n")).toContain("returns to its printed characteristics");
+    expect(s.log.join("\n")).toContain(
+      "returns to its printed characteristics",
+    );
   });
 
   it("trashes a card hosted on an agenda that left a score area (CR 10.3.1f)", () => {
@@ -2453,7 +2629,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
-    const agenda = instantiateCard("priority-requisition", "ag-1", "runner:score");
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "ag-1",
+      "runner:score",
+    );
     const hosted = instantiateCard("ice-wall", "wall-1", "hosted:ag-1");
     hosted.hostId = "ag-1";
     agenda.hostedCardIds = ["wall-1"];
@@ -2482,7 +2662,12 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: [] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
     s = must(s, { type: "basic_gain_credit" });
     expect(s.servers["remote-1"]).toBeUndefined();
     expect(s.log.join("\n")).toContain(
@@ -2582,7 +2767,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["ice-1"]!.type).toBe("ice");
     expect(s.cards["ice-1"]!.convertedInto).toBeUndefined();
     expect(s.cards["ice-1"]!.subtypes).toContain("barrier");
-    expect(s.log.join("\n")).toContain("returns to its printed characteristics");
+    expect(s.log.join("\n")).toContain(
+      "returns to its printed characteristics",
+    );
   });
 
   it("returns counters on a discarded card to the bank (CR 10.3.1l)", () => {
@@ -2667,7 +2854,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const complete = at(lines, "Run complete");
     const outsidePhase = at(lines, "Outside the Run Ends phase");
     const phaseClosed = lines.findIndex(
-      (line, i) => i > outsidePhase && line.includes("Checkpoint close [timing]"),
+      (line, i) =>
+        i > outsidePhase && line.includes("Checkpoint close [timing]"),
     );
     const outsideRun = at(lines, "Outside the run");
     expect(complete).toBeLessThan(outsidePhase);
@@ -2676,7 +2864,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(lines[complete]).toContain("11.4_6_d");
     expect(lines[complete]).toContain("successful");
     expect(lines[outsidePhase]).toContain("Checkpoint open [timing]");
-    expect(lines[outsidePhase]).toContain(CR.checkpointAfterTimingStructure.number);
+    expect(lines[outsidePhase]).toContain(
+      CR.checkpointAfterTimingStructure.number,
+    );
     expect(lines[outsidePhase]).toContain(CR.runTimingStructure.number);
     expect(lines[outsidePhase]).toContain(CR.runPhases.number);
     expect(lines[outsidePhase]).toContain(CR.runEndsPhase.number);
@@ -2866,7 +3056,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const breach = at(lines, "Breach complete");
     const outsideBreach = at(lines, "Outside the breach");
     const closed = lines.findIndex(
-      (line, i) => i > outsideBreach && line.includes("Checkpoint close [timing]"),
+      (line, i) =>
+        i > outsideBreach && line.includes("Checkpoint close [timing]"),
     );
     const runComplete = at(lines, "Run complete");
     const outsideRun = at(lines, "Outside the run");
@@ -2876,7 +3067,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(runComplete).toBeLessThan(outsideRun);
     expect(lines[breach]).toContain("11.5_7");
     expect(lines[outsideBreach]).toContain("Checkpoint open [timing]");
-    expect(lines[outsideBreach]).toContain(CR.checkpointAfterTimingStructure.number);
+    expect(lines[outsideBreach]).toContain(
+      CR.checkpointAfterTimingStructure.number,
+    );
     expect(lines[outsideBreach]).toContain(CR.breachTimingStructure.number);
     expect(lines[outsideBreach]).toContain("← run");
     expect(s.checkpoints).toHaveLength(0);
@@ -2897,7 +3090,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const breach = at(lines, "Breach complete");
     const outsideBreach = at(lines, "Outside the breach");
     const breachClosed = lines.findIndex(
-      (line, i) => i > outsideBreach && line.includes("Checkpoint close [timing]"),
+      (line, i) =>
+        i > outsideBreach && line.includes("Checkpoint close [timing]"),
     );
     const outside = at(lines, "Outside the success phase");
     const closed = lines.findIndex(
@@ -2928,7 +3122,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       ice: [],
       root: [],
     };
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     delete pad.trashCost;
     s.cards["pad-1"] = pad;
     s.servers["remote-1"].root = ["pad-1"];
@@ -2948,7 +3146,8 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const access = at(lines, "Access complete");
     const outsideAccess = at(lines, "Outside the access");
     const closed = lines.findIndex(
-      (line, i) => i > outsideAccess && line.includes("Checkpoint close [timing]"),
+      (line, i) =>
+        i > outsideAccess && line.includes("Checkpoint close [timing]"),
     );
     const breach = at(lines, "Breach complete");
     const outsideBreach = at(lines, "Outside the breach");
@@ -2959,7 +3158,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(lines[access]).toContain(CR.accessComplete.number);
     expect(lines[access]).toContain("11.6_4");
     expect(lines[outsideAccess]).toContain("Checkpoint open [timing]");
-    expect(lines[outsideAccess]).toContain(CR.checkpointAfterTimingStructure.number);
+    expect(lines[outsideAccess]).toContain(
+      CR.checkpointAfterTimingStructure.number,
+    );
     expect(lines[outsideAccess]).toContain(CR.accessTimingStructure.number);
     expect(lines[outsideAccess]).toContain("← breach");
     expect(s.checkpoints).toHaveLength(0);
@@ -3067,7 +3268,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.timingKey).toBe("corp.discard");
     expect(s.timing.structure).toBe("corp_turn");
     expect(s.timing.stepNumber).toBe("11.2_3_a");
-    expect(s.log.some((line) => line.includes("discards to hand size"))).toBe(false);
+    expect(s.log.some((line) => line.includes("discards to hand size"))).toBe(
+      false,
+    );
     const outside = at(s.log, "Outside the action phase");
     const closed = s.log.findIndex(
       (line, i) => i > outside && line.includes("Checkpoint close [timing]"),
@@ -3119,7 +3322,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
         line.includes("Outside the Runner's action phase") &&
         line.includes("← runner.discard"),
     );
-    expect(outside, "Outside the Runner's action phase").toBeGreaterThanOrEqual(0);
+    expect(outside, "Outside the Runner's action phase").toBeGreaterThanOrEqual(
+      0,
+    );
     const closed = s.log.findIndex(
       (line, i) => i > outside && line.includes("Checkpoint close [timing]"),
     );
@@ -3327,8 +3532,16 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       };
       return s;
     };
-    const installGrid = (s: GameState, server: "hq" | "rd", rezzed: boolean) => {
-      const grid = instantiateCard("port-anson-grid", "anson-1", `server:${server}:root`);
+    const installGrid = (
+      s: GameState,
+      server: "hq" | "rd",
+      rezzed: boolean,
+    ) => {
+      const grid = instantiateCard(
+        "port-anson-grid",
+        "anson-1",
+        `server:${server}:root`,
+      );
       grid.rezzed = rezzed;
       grid.faceup = rezzed;
       s.cards["anson-1"] = grid;
@@ -3359,11 +3572,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     const offered = must(choose, { type: "jack_out" });
     expect(offered.run).not.toBeNull();
     expect(offered.pendingChoice?.chooser).toBe("runner");
-    expect(offered.pendingChoice?.options.map((option) => option.id).sort()).toEqual([
-      "anson:chisel-1",
-      "anson:ff-1",
-    ]);
-    const picked = must(offered, { type: "choose_option", optionId: "anson:chisel-1" });
+    expect(
+      offered.pendingChoice?.options.map((option) => option.id).sort(),
+    ).toEqual(["anson:chisel-1", "anson:ff-1"]);
+    const picked = must(offered, {
+      type: "choose_option",
+      optionId: "anson:chisel-1",
+    });
     expect(picked.runner.discardPile).toContain("chisel-1");
     expect(picked.runner.installed).toContain("ff-1");
     expect(picked.run).toBeNull();
@@ -3388,7 +3603,11 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       const s = createInitialState();
       const jackpot = instantiateCard("jackpot", "jp-1", "runner:installed");
       jackpot.hostedCredits = 3;
-      const agenda = instantiateCard("priority-requisition", "ag-1", "server:hq:root");
+      const agenda = instantiateCard(
+        "priority-requisition",
+        "ag-1",
+        "server:hq:root",
+      );
       s.cards["jp-1"] = jackpot;
       s.cards["ag-1"] = agenda;
       s.runner.installed = ["jp-1"];
@@ -3418,7 +3637,10 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
     const leave = setup();
     stealAgenda(leave, "ag-1");
-    const declined = must(leave, { type: "choose_option", optionId: "decline" });
+    const declined = must(leave, {
+      type: "choose_option",
+      optionId: "decline",
+    });
     expect(declined.runner.credits).toBe(5);
     expect(declined.runner.installed).toContain("jp-1");
     expect(declined.cards["jp-1"]?.hostedCredits).toBe(3);

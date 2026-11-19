@@ -49,11 +49,17 @@ function isRedirect(text: string): boolean {
 describe("timing appendix", () => {
   it("gives every appendix instruction a graph step", () => {
     const nodes = JSON.parse(
-      readFileSync(join(process.cwd(), "vendor/cr-data/timing-structures.json"), "utf8"),
+      readFileSync(
+        join(process.cwd(), "vendor/cr-data/timing-structures.json"),
+        "utf8",
+      ),
     ) as TimingNode[];
     const stepIds = new Set(Object.values(STEPS).map((step) => step.stepId));
     const missing = nodes
-      .filter((node) => node.kind === "timing_structure" && node.child_ids.length === 0)
+      .filter(
+        (node) =>
+          node.kind === "timing_structure" && node.child_ids.length === 0,
+      )
       .filter((node) => !isRedirect(node.text_plain))
       .map((node) => node.id)
       .filter((id) => !stepIds.has(id))

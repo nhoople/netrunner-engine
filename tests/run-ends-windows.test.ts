@@ -79,8 +79,12 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
     autoWalk(s);
 
     const log = s.log.join("\n");
-    expect(log).toMatch(/Close paid ability window @ run\.approachServerPaw \(CR 6\.8\.2a/);
-    expect(log).toMatch(/Open priority window\(s\) remain for completion without new structures \(CR 6\.8\.2c/);
+    expect(log).toMatch(
+      /Close paid ability window @ run\.approachServerPaw \(CR 6\.8\.2a/,
+    );
+    expect(log).toMatch(
+      /Open priority window\(s\) remain for completion without new structures \(CR 6\.8\.2c/,
+    );
     expect(s.timingKey).toBe("run.completeOtherPriorityWindows");
     expect(s.run!.forbidNewTimingStructures).toBe(true);
     expect(s.priorityStack).toHaveLength(1);
@@ -90,9 +94,9 @@ describe("CR optional — 11.4_6_a multi-window drainage (6.8.2a–c)", () => {
     expect(s.log.join("\n")).toMatch(
       /Complete open priority window @ run\.formicaryPending without new structures \(CR 6\.8\.2c/,
     );
-    expect(s.priorityStack.every((pw) => pw.stepKey !== "run.formicaryPending")).toBe(
-      true,
-    );
+    expect(
+      s.priorityStack.every((pw) => pw.stepKey !== "run.formicaryPending"),
+    ).toBe(true);
     expect(s.run).toBeNull();
   });
 });

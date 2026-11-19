@@ -26,7 +26,10 @@ import {
   enhancedLoginProtocolClick,
   sumRunnerFirstRunAdditionalCost,
 } from "../state/currents.js";
-import { firstClickMustBlocks, firstClickMustIsActive } from "../state/firstClickMust.js";
+import {
+  firstClickMustBlocks,
+  firstClickMustIsActive,
+} from "../state/firstClickMust.js";
 import { basicDrawBonus, remoteRootAccessTax } from "../state/staticFlags.js";
 import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import {
@@ -81,9 +84,7 @@ import {
   acceptPendingTags,
   conditionalInterruptRequiresActiveAtOpen,
 } from "../state/tags.js";
-import {
-  acceptPendingExpose,
-} from "../state/expose.js";
+import { acceptPendingExpose } from "../state/expose.js";
 import {
   acceptPendingInstalledTrash,
   triggerPendingTrashInterrupt,
@@ -308,7 +309,9 @@ function keepStartingHand(state: GameState): ApplyResult {
 function takeMulligan(state: GameState): ApplyResult {
   const side = openingMulliganSide(state);
   if (!side) {
-    return fail("mulligan is only legal during opening mulligan.", [CR.mulligan]);
+    return fail("mulligan is only legal during opening mulligan.", [
+      CR.mulligan,
+    ]);
   }
   const p = side === "corp" ? state.corp : state.runner;
   const deckZone = side === "corp" ? "corp:rd" : "runner:stack";
@@ -380,10 +383,7 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
     card.faceup = true;
   }
   state.pendingTrashProgram = null;
-  log(
-    state,
-    `Trashes ${card.title} (CR ${CR.trashing.number}).`,
-  );
+  log(state, `Trashes ${card.title} (CR ${CR.trashing.number}).`);
   // Resume the run graph from the current auto step (resolveSub).
   const step = getStep(state);
   if (step.kind === "auto" || step.kind === "branch") {
@@ -456,7 +456,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   if (pending.loopCount && optionId.startsWith("loop-times:")) {
     const times = Number(optionId.slice("loop-times:".length));
     if (!Number.isInteger(times) || times < 0) {
-      return fail("Choose how many times the loop resolves.", [CR.mandatoryLoop]);
+      return fail("Choose how many times the loop resolves.", [
+        CR.mandatoryLoop,
+      ]);
     }
     state.pendingChoice = null;
     log(
@@ -465,7 +467,11 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     );
     return ok(state);
   }
-  if (optionId.startsWith("decl:") || optionId.startsWith("bribery-x:") || optionId.startsWith("install-x:")) {
+  if (
+    optionId.startsWith("decl:") ||
+    optionId.startsWith("bribery-x:") ||
+    optionId.startsWith("install-x:")
+  ) {
     state.pendingChoice = null;
     if (optionId.startsWith("bribery-x:")) {
       const x = Number(optionId.slice("bribery-x:".length));
@@ -478,7 +484,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       const x = Number(optionId.slice("install-x:".length));
       state.turn.installCostX = x;
       state.turn.installCostXCardId = pending.sourceId;
-      const destination = state.turn.installCostXDestination ?? { kind: "installed" };
+      const destination = state.turn.installCostXDestination ?? {
+        kind: "installed",
+      };
       state.turn.installCostXDestination = undefined;
       const installed = installRunner(state, pending.sourceId, destination);
       if (!installed.ok) return installed;
@@ -500,7 +508,10 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         (candidate) => (candidate.cost?.clicks ?? candidate.clickCost ?? 0) > 0,
       );
       if (!installedId || !ability) return ok(state);
-      state.turn.deepRedAbility = { cardId: installedId, abilityId: ability.id };
+      state.turn.deepRedAbility = {
+        cardId: installedId,
+        abilityId: ability.id,
+      };
       return usePaidAbility(state, installedId, ability.id);
     }
     const outcome = resolveDeclaration(state, optionId);
@@ -573,7 +584,10 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
   if (optionId.startsWith("diwan:")) {
     const serverId = optionId.slice("diwan:".length);
-    if (!serverId || !pending.options.some((option) => option.id === optionId)) {
+    if (
+      !serverId ||
+      !pending.options.some((option) => option.id === optionId)
+    ) {
       return fail("Choose a server.", [CR.runnerBasicInstall]);
     }
     state.pendingChoice = null;
@@ -583,7 +597,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   if (optionId.startsWith("subtype:")) {
     const subtype = optionId.slice("subtype:".length);
     if (!subtype || !pending.options.some((option) => option.id === optionId)) {
-      return fail("Choose barrier, code gate, or sentry.", [CR.runnerBasicInstall]);
+      return fail("Choose barrier, code gate, or sentry.", [
+        CR.runnerBasicInstall,
+      ]);
     }
     state.pendingChoice = null;
     chooseBreakerSubtype(state, pending.sourceId, subtype);
@@ -654,12 +670,18 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       return fail("No card is being accessed.", [CR.trashing]);
     }
     return applyActionCore(state, {
-      type: optionId === "must-trash:pay" ? "trash_accessed" : "access_trash_with_virus",
+      type:
+        optionId === "must-trash:pay"
+          ? "trash_accessed"
+          : "access_trash_with_virus",
       cardId,
     });
   }
 
-  if (optionId === "first-run-cost:pay" || optionId === "first-run-cost:decline") {
+  if (
+    optionId === "first-run-cost:pay" ||
+    optionId === "first-run-cost:decline"
+  ) {
     const serverId = state.turn.pendingFirstRunServerId;
     state.turn.pendingFirstRunServerId = undefined;
     if (optionId === "first-run-cost:decline") {
@@ -671,7 +693,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       return ok(state);
     }
     if (!serverId) {
-      return fail("No run is waiting on the additional cost.", [CR.runnerBasicRun]);
+      return fail("No run is waiting on the additional cost.", [
+        CR.runnerBasicRun,
+      ]);
     }
     state.turn.payingFirstRunAdditionalCost = true;
     return applyActionCore(state, { type: "basic_run", serverId });
@@ -713,7 +737,10 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return continuePlayedOperation(state, sourceId, cost);
   }
 
-  if (optionId === "subcontract-done" || optionId.startsWith("subcontract-play:")) {
+  if (
+    optionId === "subcontract-done" ||
+    optionId.startsWith("subcontract-play:")
+  ) {
     if (optionId.startsWith("subcontract-play:")) {
       const cardId = optionId.slice("subcontract-play:".length);
       state.turn.ftmSubcontractRemaining = Math.max(
@@ -795,7 +822,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       .flatMap((server) => server.ice)
       .find((id) => {
         const ice = state.cards[id];
-        return Boolean(ice?.rezzed && chosen && ice.title === chosen.title && id !== cardId);
+        return Boolean(
+          ice?.rezzed && chosen && ice.title === chosen.title && id !== cardId,
+        );
       });
     if (copyId) trashCorpCardToArchives(state, copyId, "runner");
     const at = state.run.accessCandidates.indexOf(cardId);
@@ -824,11 +853,17 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const at = state.run.accessCandidates.indexOf(cardId);
     if (at >= 0) state.run.accessCandidates.splice(at, 1);
     if (card) {
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
-      if (!state.removedFromGame.includes(cardId)) state.removedFromGame.push(cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
+      if (!state.removedFromGame.includes(cardId))
+        state.removedFromGame.push(cardId);
       card.zone = "removed-from-game";
       card.faceup = true;
-      log(state, `${card.title} is removed from the game instead of being accessed.`);
+      log(
+        state,
+        `${card.title} is removed from the game instead of being accessed.`,
+      );
     }
     state.pendingChoice = null;
     return ok(state);
@@ -846,7 +881,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const card = state.cards[cardId];
     const tax = card ? remoteRootAccessTax(state, card) : 0;
     if (state.runner.credits < tax) {
-      return fail("Cannot pay the additional cost to access.", [CR.candidatesAlreadyAccessed]);
+      return fail("Cannot pay the additional cost to access.", [
+        CR.candidatesAlreadyAccessed,
+      ]);
     }
     state.runner.credits -= tax;
     state.run.accessTaxPaidFor = cardId;
@@ -872,18 +909,27 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     const cardId = optionId.slice("heliamphora-host:".length);
     if (!state.run) return fail("No run for Heliamphora.", [CR.breach]);
     const heliId = sourceId;
-    if (!state.run.accessCandidates.includes(cardId) && !state.corp.discardPile.includes(cardId)) {
+    if (
+      !state.run.accessCandidates.includes(cardId) &&
+      !state.corp.discardPile.includes(cardId)
+    ) {
       // Still allow if only in discard (candidate list may lag).
     }
     const idx = state.run.accessCandidates.indexOf(cardId);
     if (idx >= 0) state.run.accessCandidates.splice(idx, 1);
     if (state.run.randomAccessLimit !== null) {
-      state.run.randomAccessLimit = Math.max(0, state.run.randomAccessLimit - 1);
+      state.run.randomAccessLimit = Math.max(
+        0,
+        state.run.randomAccessLimit - 1,
+      );
     }
     hostCorpCardFaceupOn(state, heliId, cardId);
     state.run.heliamphoraHostInsteadUsedThisBreach = true;
     state.run.pendingHeliamphoraAccessCardId = undefined;
-    log(state, `Chose "${option.label}" on ${state.cards[heliId]?.title ?? heliId}.`);
+    log(
+      state,
+      `Chose "${option.label}" on ${state.cards[heliId]?.title ?? heliId}.`,
+    );
     enterStep(state, "breach.access");
     autoWalk(state);
     const cont = advanceRunUntilStop(state);
@@ -898,14 +944,16 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     // Mark so access_card won't re-offer: clear availability by setting used? No —
     // decline does not consume the once-per-breach. Use pending flag: access_card
     // skips offer when pendingHeliamphoraAccessCardId is already set to this card.
-    log(state, `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`);
+    log(
+      state,
+      `Chose "${option.label}" on ${state.cards[sourceId]?.title ?? sourceId}.`,
+    );
     return applyActionCore(state, { type: "access_card", cardId });
   }
 
   const exclusive = state.pendingExclusiveChoices;
   const isExclusivePick =
-    exclusive !== null &&
-    exclusive.options.some((o) => o.id === optionId);
+    exclusive !== null && exclusive.options.some((o) => o.id === optionId);
   if (isExclusivePick && exclusive) {
     if (!exclusive.usedIds.includes(optionId)) {
       exclusive.usedIds.push(optionId);
@@ -1115,7 +1163,8 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   }
   if (
     state.turn.pendingSkorpiosTrash &&
-    (optionId.startsWith("skorpios-rfg:") || optionId.startsWith("skorpios-heap:"))
+    (optionId.startsWith("skorpios-rfg:") ||
+      optionId.startsWith("skorpios-heap:"))
   ) {
     resolveSkorpiosTrash(state, optionId);
   }
@@ -1298,7 +1347,11 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         mods.backupPlanIgnoreAdditionalCosts = true;
         mods.backupPlanBypassIceId = pending.backupPlanBypassIceId;
       }
-      const walked = startRun(state, pending.serverId as import("../state/types.js").ServerId, mods);
+      const walked = startRun(
+        state,
+        pending.serverId as import("../state/types.js").ServerId,
+        mods,
+      );
       if (!walked.ok) return walked;
       if (walked.state.turn.ohForcedRunCannotJackOut && walked.state.run) {
         walked.state.run.cannotJackOut = true;
@@ -1521,7 +1574,10 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     state.pendingStandaloneBreach = null;
     const sid = pending.serverId;
     if (state.servers[sid]) {
-      log(state, `Standalone breach of ${sid} begins (CR ${CR.breach.number}).`);
+      log(
+        state,
+        `Standalone breach of ${sid} begins (CR ${CR.breach.number}).`,
+      );
       state.run = {
         attackedServerId: sid,
         phase: "breach",
@@ -1723,7 +1779,11 @@ export function applyActionCore(state: GameState, action: Action): ApplyResult {
         state.pendingCost.into === "trashFirstIds"
           ? "Choose the cards to trash before installing first."
           : "Choose the cards for the cost first.",
-        [state.pendingCost.into === "trashFirstIds" ? CR.installTrashLikeCards : CR.cost],
+        [
+          state.pendingCost.into === "trashFirstIds"
+            ? CR.installTrashLikeCards
+            : CR.cost,
+        ],
       );
     }
     const picking = cloneState(state);
@@ -1957,7 +2017,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
     if (action.type === "use_paid_ability") {
       const bornDuringWindow = Boolean(
         next.pendingTags.activeAtOpen &&
-          !next.pendingTags.activeAtOpen.includes(action.cardId),
+        !next.pendingTags.activeAtOpen.includes(action.cardId),
       );
       if (
         bornDuringWindow &&
@@ -2195,7 +2255,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         `${next.activeSide} gains 1 credit (CR ${cite.number}, ${CR.gainCredits.number}).`,
       );
       // CPC Generator: first Runner basic gain-credit each turn → Corp gains 1¢.
-      if (next.activeSide === "runner" && !next.turn.cpcGeneratorFiredThisTurn) {
+      if (
+        next.activeSide === "runner" &&
+        !next.turn.cpcGeneratorFiredThisTurn
+      ) {
         for (const server of Object.values(next.servers)) {
           for (const id of server.root) {
             if (abilitiesSuppressed(next, id)) continue;
@@ -2242,7 +2305,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         ]);
       }
       if (next.corp.clicks < 3) {
-        return fail("Purge costs 3 clicks.", [CR.corpBasicPurge, CR.spendClicks]);
+        return fail("Purge costs 3 clicks.", [
+          CR.corpBasicPurge,
+          CR.spendClicks,
+        ]);
       }
       for (let i = 0; i < 3; i++) {
         const bad = spendClick(next);
@@ -2319,11 +2385,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       }
       const cite =
         next.activeSide === "corp" ? CR.corpBasicDraw : CR.runnerBasicDraw;
-      let drawAmount = 1 + (next.activeSide === "runner" ? basicDrawBonus(next) : 0);
-      if (
-        next.activeSide === "runner" &&
-        next.turn.basicDrawsThisTurn === 0
-      ) {
+      let drawAmount =
+        1 + (next.activeSide === "runner" ? basicDrawBonus(next) : 0);
+      if (next.activeSide === "runner" && next.turn.basicDrawsThisTurn === 0) {
         let extra = 0;
         let sourceTitle: string | undefined;
         for (const id of next.runner.installed) {
@@ -2414,9 +2478,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         );
       }
       if (next.activeSide === "runner" && next.turn.dtwnRunnerCannotInstall) {
-        return fail("Runner cannot install cards for the remainder of the turn (Jua).", [
-          CR.runnerBasicInstall,
-        ]);
+        return fail(
+          "Runner cannot install cards for the remainder of the turn (Jua).",
+          [CR.runnerBasicInstall],
+        );
       }
       const bad = spendClick(next);
       if (bad) return bad;
@@ -2438,9 +2503,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
               action.destination.kind === "host_ice" ||
               action.destination.kind === "host_card"
             ? installRunner(next, action.cardId, action.destination)
-            : fail("Runner installs go to the installed area or a legal host.", [
-                CR.runnerBasicInstall,
-              ]);
+            : fail(
+                "Runner installs go to the installed area or a legal host.",
+                [CR.runnerBasicInstall],
+              );
       next.turn.patchworkPendingDiscountThisAction = 0;
       if (!result.ok) return result;
       if (next.activeSide === "corp") {
@@ -2458,10 +2524,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
     case "basic_trash_resource": {
       // Whose action it is comes before when (CR 5.2.6g, 5.2.4).
       if (next.activeSide !== "corp") {
-        return fail("Only the Corp may trash a resource with the basic action.", [
-          CR.corpBasicTrashResource,
-          CR.actionsOutsidePhase,
-        ]);
+        return fail(
+          "Only the Corp may trash a resource with the basic action.",
+          [CR.corpBasicTrashResource, CR.actionsOutsidePhase],
+        );
       }
       const gate = actionAllowedHere(next, action.type);
       if (!gate.ok) {
@@ -2488,8 +2554,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       }
       if (target.corpCannotTrashWhileOtherResourceInstalled) {
         const other = next.runner.installed.some(
-          (id) =>
-            id !== action.cardId && next.cards[id]?.type === "resource",
+          (id) => id !== action.cardId && next.cards[id]?.type === "resource",
         );
         if (other) {
           return fail(
@@ -2511,10 +2576,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       });
       if (typeof threatCost === "number" && threat >= threatCost) {
         if (next.corp.hand.length < 1) {
-          return fail(
-            "Threat additional cost: must trash 1 card from HQ.",
-            [CR.corpBasicTrashResource, CR.trashing],
-          );
+          return fail("Threat additional cost: must trash 1 card from HQ.", [
+            CR.corpBasicTrashResource,
+            CR.trashing,
+          ]);
         }
         const hqId = chosenCostCard(next, next.corp.hand);
         const hqCard = next.cards[hqId]!;
@@ -2567,7 +2632,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       }
       const pay = basicTrashResourceCreditCost(next);
       if (next.corp.credits < pay) {
-        return fail(`Need ${pay}¢ to trash a resource.`, [CR.corpBasicTrashResource]);
+        return fail(`Need ${pay}¢ to trash a resource.`, [
+          CR.corpBasicTrashResource,
+        ]);
       }
       next.corp.credits -= pay;
       const bad = spendClick(next);
@@ -2593,9 +2660,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           gate.cites,
         );
       }
-      if (
-        !isRunTargetAllowed(next, action.serverId)
-      ) {
+      if (!isRunTargetAllowed(next, action.serverId)) {
         return fail(
           "The first run each turn cannot be made against a remote server.",
           [CR.runnerBasicRun],
@@ -2644,8 +2709,8 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
               },
             },
           ],
-logLine: `The first click must be a run — the additional ${extra}¢ can be declined (CR ${CR.mustNotForceAdditionalCost.number}).`,
-});
+          logLine: `The first click must be a run — the additional ${extra}¢ can be declined (CR ${CR.mustNotForceAdditionalCost.number}).`,
+        });
         return ok(next);
       }
       if (extra > 0 && next.runner.credits < extra) {
@@ -2758,7 +2823,11 @@ logLine: `The first click must be a run — the additional ${extra}¢ can be dec
         const copy = Object.values(next.servers).some((server) =>
           server.ice.some((id) => {
             const ice = next.cards[id];
-            return Boolean(ice?.rezzed && ice.title === preview.title && id !== action.cardId);
+            return Boolean(
+              ice?.rezzed &&
+              ice.title === preview.title &&
+              id !== action.cardId,
+            );
           }),
         );
         if (copy) {
@@ -2770,16 +2839,22 @@ logLine: `The first click must be a run — the additional ${extra}¢ can be dec
               {
                 id: `immolation-replace:${action.cardId}`,
                 label: `Trash a rezzed copy of ${preview.title} instead`,
-                effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+                effect: {
+                  op: "do",
+                  action: { kind: "gain_credits", side: "runner", amount: 0 },
+                },
               },
               {
                 id: `immolation-access:${action.cardId}`,
                 label: "Access it",
-                effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+                effect: {
+                  op: "do",
+                  action: { kind: "gain_credits", side: "runner", amount: 0 },
+                },
               },
             ],
-logLine: `Immolation Script — may trash a rezzed copy of ${preview.title} instead of accessing it (CR ${CR.candidatesAlreadyAccessed.number}).`,
-});
+            logLine: `Immolation Script — may trash a rezzed copy of ${preview.title} instead of accessing it (CR ${CR.candidatesAlreadyAccessed.number}).`,
+          });
           return ok(next);
         }
       }
@@ -2800,16 +2875,22 @@ logLine: `Immolation Script — may trash a rezzed copy of ${preview.title} inst
               {
                 id: `archives-rfg:${action.cardId}`,
                 label: `Remove ${preview.title} from the game`,
-                effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+                effect: {
+                  op: "do",
+                  action: { kind: "gain_credits", side: "runner", amount: 0 },
+                },
               },
               {
                 id: `archives-access:${action.cardId}`,
                 label: "Access it",
-                effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+                effect: {
+                  op: "do",
+                  action: { kind: "gain_credits", side: "runner", amount: 0 },
+                },
               },
             ],
-logLine: `${next.cards[faceId]!.title} — may remove ${preview.title} from the game instead of accessing it.`,
-});
+            logLine: `${next.cards[faceId]!.title} — may remove ${preview.title} from the game instead of accessing it.`,
+          });
           return ok(next);
         }
       }
@@ -2817,24 +2898,40 @@ logLine: `${next.cards[faceId]!.title} — may remove ${preview.title} from the 
       if (tax > 0 && next.run.accessTaxPaidFor !== action.cardId) {
         const options = [
           ...(next.runner.credits >= tax
-            ? [{
-                id: `access-tax-pay:${action.cardId}`,
-                label: `Pay ${tax}¢`,
-                effect: { op: "do" as const, action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 } },
-              }]
+            ? [
+                {
+                  id: `access-tax-pay:${action.cardId}`,
+                  label: `Pay ${tax}¢`,
+                  effect: {
+                    op: "do" as const,
+                    action: {
+                      kind: "gain_credits" as const,
+                      side: "runner" as const,
+                      amount: 0,
+                    },
+                  },
+                },
+              ]
             : []),
           {
             id: `access-tax-decline:${action.cardId}`,
             label: "Decline to pay",
-            effect: { op: "do" as const, action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 } },
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
+            },
           },
         ];
         openPendingChoose(next, {
           sourceId: next.corp.identityId,
           chooser: "runner",
           options,
-logLine: `${next.cards[next.corp.identityId]?.title ?? "Corp"} — pay ${tax}¢ to access ${preview?.title ?? action.cardId}, or it ceases to be a candidate (CR ${CR.candidatesAlreadyAccessed.number}).`,
-});
+          logLine: `${next.cards[next.corp.identityId]?.title ?? "Corp"} — pay ${tax}¢ to access ${preview?.title ?? action.cardId}, or it ceases to be a candidate (CR ${CR.candidatesAlreadyAccessed.number}).`,
+        });
         return ok(next);
       }
       // Heliamphora: [interrupt] before Archives access resolves.
@@ -2867,8 +2964,8 @@ logLine: `${next.cards[next.corp.identityId]?.title ?? "Corp"} — pay ${tax}¢ 
               },
             },
           ],
-logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessing.`,
-});
+          logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessing.`,
+        });
         return ok(next);
       }
       next.run.pendingHeliamphoraAccessCardId = undefined;
@@ -2877,7 +2974,10 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       next.run.accessingCardId = action.cardId;
       next.turn.accessedACardThisTurn = true;
       if (next.run.randomAccessLimit !== null) {
-        next.run.randomAccessLimit = Math.max(0, next.run.randomAccessLimit - 1);
+        next.run.randomAccessLimit = Math.max(
+          0,
+          next.run.randomAccessLimit - 1,
+        );
       }
       // Flagship: re-apply other-than-self access cap after each access.
       applyRunAccessRestrictions(next);
@@ -2926,10 +3026,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         }
       }
       // Franchise City: agendas accessed from R&D must be revealed.
-      if (
-        card.type === "agenda" &&
-        next.run.attackedServerId === "rd"
-      ) {
+      if (card.type === "agenda" && next.run.attackedServerId === "rd") {
         for (const server of Object.values(next.servers)) {
           for (const id of server.root) {
             if (abilitiesSuppressed(next, id)) continue;
@@ -2998,23 +3095,14 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         ) {
           log(next, `${card.title} onAccess skipped — accessed from Archives.`);
         } else if (card.onAccessRequiresRezzed && !card.rezzed) {
-          log(
-            next,
-            `${card.title} onAccess skipped — requires rezzed.`,
-          );
+          log(next, `${card.title} onAccess skipped — requires rezzed.`);
         } else if (
           card.onAccessRequiresInstalled &&
           !card.zone.endsWith(":root")
         ) {
-          log(
-            next,
-            `${card.title} onAccess skipped — requires installed.`,
-          );
+          log(next, `${card.title} onAccess skipped — requires installed.`);
         } else if (abilitiesSuppressed(next, action.cardId)) {
-          log(
-            next,
-            `${card.title} onAccess skipped — abilities blanked.`,
-          );
+          log(next, `${card.title} onAccess skipped — abilities blanked.`);
         } else {
           fireOnAccess(next, action.cardId);
         }
@@ -3050,7 +3138,11 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
             next,
             `Watch the World Burn — remove ${card.title} from the game.`,
           );
-          if (next.pendingChoice || next.pendingDamage || next.pendingTrashProgram) {
+          if (
+            next.pendingChoice ||
+            next.pendingDamage ||
+            next.pendingTrashProgram
+          ) {
             return ok(next);
           }
           return completeAccessAndContinue(next);
@@ -3125,19 +3217,12 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
         Boolean(next.run.whistleblowerNamedTitle) &&
         agenda?.title === next.run.whistleblowerNamedTitle;
       if (whistleblowerIgnore) {
-        log(
-          next,
-          `Whistleblower — steal ${agenda.title} ignoring all costs.`,
-        );
+        log(next, `Whistleblower — steal ${agenda.title} ignoring all costs.`);
         next.run.whistleblowerNamedTitle = undefined;
         return completeStealAgenda(next, action);
       }
       if (
-        stealNetOrMeatPrevented(
-          next,
-          action.cardId,
-          next.run.attackedServerId,
-        )
+        stealNetOrMeatPrevented(next, action.cardId, next.run.attackedServerId)
       ) {
         return fail(
           `Cannot suffer the damage to steal ${agenda?.title ?? action.cardId}.`,
@@ -3165,10 +3250,9 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       );
       if (stealCredits > 0) {
         if (next.runner.credits < stealCredits) {
-          return fail(
-            `Must pay ${stealCredits}¢ to steal ${agenda.title}.`,
-            [CR.stealingAgenda],
-          );
+          return fail(`Must pay ${stealCredits}¢ to steal ${agenda.title}.`, [
+            CR.stealingAgenda,
+          ]);
         }
         subtractRunnerCreditPool(next, stealCredits);
         log(
@@ -3210,10 +3294,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       }
       const card = next.cards[action.cardId];
       if (runnerCannotTrashWhileRezzed(next, action.cardId)) {
-        return fail(
-          `Cannot trash rezzed ${card.title}.`,
-          [CR.trashing],
-        );
+        return fail(`Cannot trash rezzed ${card.title}.`, [CR.trashing]);
       }
       const wasRezzedForThreat = Boolean(card.rezzed);
       if (card.trashAdditionalCost) {
@@ -3243,7 +3324,10 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       ) {
         cost = 0;
         next.turn.firstAccessedOperationTrashedFreeThisTurn = true;
-        log(next, `${kim.title} — first accessed operation is trashed for free.`);
+        log(
+          next,
+          `${kim.title} — first accessed operation is trashed for free.`,
+        );
       }
       const purpose =
         card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
@@ -3382,7 +3466,8 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
           if (!c || abilitiesSuppressed(next, c.id)) return false;
           const spec = c.accessTrashFromGrip;
           if (!spec) return false;
-          if (spec.oncePerTurn && next.turn.carnivoreAccessTrashUsed) return false;
+          if (spec.oncePerTurn && next.turn.carnivoreAccessTrashUsed)
+            return false;
           return next.runner.hand.length >= spec.gripCards;
         });
       if (!carn) {
@@ -3461,10 +3546,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, card.trashCost ?? 0);
-      log(
-        next,
-        `Imp — spend virus counter to trash accessed ${card.title}.`,
-      );
+      log(next, `Imp — spend virus counter to trash accessed ${card.title}.`);
       return completeAccessAndContinue(next);
     }
 
@@ -3491,10 +3573,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       next.run.accessingCardId = null;
       noteFirstCorpCardTrashEachTurn(next);
       noteAccessTrash(next, 0);
-      log(
-        next,
-        `Demolition Run — trash accessed ${card.title} for 0¢.`,
-      );
+      log(next, `Demolition Run — trash accessed ${card.title} for 0¢.`);
       return completeAccessAndContinue(next);
     }
 
@@ -3638,10 +3717,7 @@ logLine: `${next.cards[heliId]!.title} — may host ${title} instead of accessin
       }
       hostCorpCardFaceupOn(next, action.hostId, action.cardId);
       next.run.accessingCardId = null;
-      log(
-        next,
-        `${host.title} — host accessed agenda ${accessed.title}.`,
-      );
+      log(next, `${host.title} — host accessed agenda ${accessed.title}.`);
       return completeAccessAndContinue(next);
     }
 
@@ -3766,7 +3842,10 @@ export function describeState(state: GameState): string {
     `Servers: ${listServers(state)
       .map((s) => {
         const iceDesc = s.ice
-          .map((id) => `${state.cards[id].title}${state.cards[id].rezzed ? "*" : ""}`)
+          .map(
+            (id) =>
+              `${state.cards[id].title}${state.cards[id].rezzed ? "*" : ""}`,
+          )
           .join("|");
         return `${s.id}[ice=${iceDesc || "—"},root=${s.root.length}]`;
       })

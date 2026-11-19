@@ -2,40 +2,43 @@
  * Primitive kinds whose procedure is forbid.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 
-export function applyForbidKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyForbidKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "forbid_scoring_agendas_this_turn": {
+    case "forbid_scoring_agendas_this_turn": {
       state.turn.cannotScoreAgendas = true;
       log(state, `Cannot score agendas for the remainder of this turn.`);
       return { ok: true };
     }
 
-case "forbid_advance_this_turn": {
+    case "forbid_advance_this_turn": {
       state.turn.cannotAdvanceCards = true;
       log(state, `Cannot advance cards for the remainder of this turn.`);
       return { ok: true };
     }
 
-case "forbid_steal_trash_this_run": {
+    case "forbid_steal_trash_this_run": {
       if (state.run) {
         state.run.cannotStealOrTrash = true;
-        log(state, `Runner cannot steal or trash Corp cards for the remainder of this run.`);
+        log(
+          state,
+          `Runner cannot steal or trash Corp cards for the remainder of this run.`,
+        );
       }
       return { ok: true };
     }
 
-case "forbid_runner_break_on_source": {
+    case "forbid_runner_break_on_source": {
       source.cannotBreakWithRunnerCardAbilities = true;
       if (state.run?.encounter?.iceId === sourceId) {
         state.run.encounter.forbidRunnerBreakThisEncounter = true;
@@ -47,7 +50,7 @@ case "forbid_runner_break_on_source": {
       return { ok: true };
     }
 
-case "forbid_installed_runner_break_for_run": {
+    case "forbid_installed_runner_break_for_run": {
       const cands = [...state.runner.installed];
       if (cands.length === 0) {
         log(state, `${source.title} — no installed Runner cards to forbid.`);
@@ -76,12 +79,12 @@ case "forbid_installed_runner_break_for_run": {
             },
           },
         })),
-logLine: `${source.title} — choose installed Runner card to forbid break.`,
-});
+        logLine: `${source.title} — choose installed Runner card to forbid break.`,
+      });
       return { ok: true };
     }
 
-case "forbid_runner_card_break_for_run": {
+    case "forbid_runner_card_break_for_run": {
       const card = state.cards[action.cardId];
       if (!card || !state.runner.installed.includes(action.cardId)) {
         log(state, `Forbid break — card not installed.`);
@@ -95,7 +98,7 @@ case "forbid_runner_card_break_for_run": {
       return { ok: true };
     }
 
-case "forbid_steal_trash_title_this_run": {
+    case "forbid_steal_trash_title_this_run": {
       if (!state.run) return { ok: true };
       const titles = state.run.forbidStealTrashTitles ?? [];
       if (!titles.includes(action.title)) titles.push(action.title);
@@ -107,7 +110,7 @@ case "forbid_steal_trash_title_this_run": {
       return { ok: true };
     }
 
-case "forbid_bioroid_ice_paid_abilities_this_turn": {
+    case "forbid_bioroid_ice_paid_abilities_this_turn": {
       state.turn.bioroidIcePaidAbilitiesForbidden = true;
       log(
         state,
@@ -116,7 +119,7 @@ case "forbid_bioroid_ice_paid_abilities_this_turn": {
       return { ok: true };
     }
 
-case "forbid_runner_runs_this_turn": {
+    case "forbid_runner_runs_this_turn": {
       state.turn.cannotMakeAnotherRunThisTurn = true;
       log(state, `${source.title} — Runner cannot make another run this turn.`);
       return { ok: true };

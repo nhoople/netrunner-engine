@@ -12,10 +12,8 @@ import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashCorpToArchives(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
@@ -181,10 +179,7 @@ export function applyMumbadDagPrimitive(
       }
       subtractRunnerCreditPool(state, x);
       trashCorpToArchives(state, cardId);
-      log(
-        state,
-        `Political Operative — pay ${x}¢; trash ${card.title}.`,
-      );
+      log(state, `Political Operative — pay ${x}¢; trash ${card.title}.`);
       return { ok: true };
     }
 
@@ -223,11 +218,14 @@ export function applyMumbadDagPrimitive(
 
     case "swap_with_grip_subtype_resolve": {
       const gripId = action.cardId;
-      if (!source || !state.runner.installed.includes(sourceId)) return { ok: true };
+      if (!source || !state.runner.installed.includes(sourceId))
+        return { ok: true };
       if (!state.runner.hand.includes(gripId)) return { ok: true };
       const gripCard = state.cards[gripId]!;
       // Uninstall source → grip
-      state.runner.installed = state.runner.installed.filter((id) => id !== sourceId);
+      state.runner.installed = state.runner.installed.filter(
+        (id) => id !== sourceId,
+      );
       state.runner.hand.push(sourceId);
       source.zone = "runner:grip";
       source.faceup = true;
@@ -236,10 +234,7 @@ export function applyMumbadDagPrimitive(
       state.runner.installed.push(gripId);
       gripCard.zone = "runner:installed";
       gripCard.faceup = true;
-      log(
-        state,
-        `${source.title} — swap with ${gripCard.title} from grip.`,
-      );
+      log(state, `${source.title} — swap with ${gripCard.title} from grip.`);
       return { ok: true };
     }
 
@@ -324,12 +319,11 @@ export function applyMumbadDagPrimitive(
       const card = state.cards[cardId]!;
       if (!card.faceup) {
         revealCards(state, [card.id], sourceId);
-        log(
-          state,
-          `Reveal ${card.title} (CR ${CR.revealFromHidden.number}).`,
-        );
+        log(state, `Reveal ${card.title} (CR ${CR.revealFromHidden.number}).`);
       }
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
       state.corp.hand.push(cardId);
       card.zone = "corp:hq";
       card.faceup = false;
@@ -383,8 +377,13 @@ export function applyMumbadDagPrimitive(
 
     case "may_install_drawn_agenda": {
       const agendaId = action.cardId;
-      const setAside = state.pendingDrawSetAside?.cardIds.includes(agendaId) ?? false;
-      if (!state.corp.hand.includes(agendaId) && !setAside && state.corp.deck.includes(agendaId)) {
+      const setAside =
+        state.pendingDrawSetAside?.cardIds.includes(agendaId) ?? false;
+      if (
+        !state.corp.hand.includes(agendaId) &&
+        !setAside &&
+        state.corp.deck.includes(agendaId)
+      ) {
         return { ok: true };
       }
       if (!state.cards[agendaId]) return { ok: true };
@@ -414,14 +413,14 @@ export function applyMumbadDagPrimitive(
     case "install_agenda": {
       const agendaId = action.cardId;
       const inHand = state.corp.hand.includes(agendaId);
-      const setAside = state.pendingDrawSetAside?.cardIds.includes(agendaId) ?? false;
+      const setAside =
+        state.pendingDrawSetAside?.cardIds.includes(agendaId) ?? false;
       if (!inHand && !setAside) return { ok: true };
       if (inHand) {
         state.corp.hand = state.corp.hand.filter((id) => id !== agendaId);
       } else if (state.pendingDrawSetAside) {
-        state.pendingDrawSetAside.cardIds = state.pendingDrawSetAside.cardIds.filter(
-          (id) => id !== agendaId,
-        );
+        state.pendingDrawSetAside.cardIds =
+          state.pendingDrawSetAside.cardIds.filter((id) => id !== agendaId);
       }
       const agenda = state.cards[agendaId]!;
       let n = 1;
@@ -475,8 +474,8 @@ export function applyMumbadDagPrimitive(
             }),
           };
         }),
-logLine: `Mumbad City Hall — choose an alliance from R&D.`,
-});
+        logLine: `Mumbad City Hall — choose an alliance from R&D.`,
+      });
       return { ok: true };
     }
 
@@ -625,10 +624,7 @@ logLine: `Mumbad City Hall — choose an alliance from R&D.`,
 }
 
 /** Fire Councilman / Surat after Corp rezzes an installed card. */
-export function fireDagAfterCorpRez(
-  state: GameState,
-  rezzedId: string,
-): void {
+export function fireDagAfterCorpRez(state: GameState, rezzedId: string): void {
   const rezzed = state.cards[rezzedId];
   if (!rezzed?.rezzed) return;
 

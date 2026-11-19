@@ -57,7 +57,7 @@ function setupRun(s: GameState): GameState {
 function driveToEncounter(s: GameState): GameState {
   for (let i = 0; i < 40; i++) {
     autoWalk(s);
-    if (s.log.some((line) => line.includes("gains 3 \"Do 1 core damage.\""))) {
+    if (s.log.some((line) => line.includes('gains 3 "Do 1 core damage."'))) {
       return s;
     }
     const passed = applyAction(s, { type: "pass_window" });

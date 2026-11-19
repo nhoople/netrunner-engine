@@ -3,36 +3,26 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { lookAtCards, revealCards } from "../../state/reveal.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { CR } from "../../timing/labels.js";
 import { chooseCards } from "../chooseCards.js";
-import {
-  trashCorpCardToArchives,
-  trashToHeap,
-} from "../corpTrash.js";
-import {
-  noteCardRevealed,
-  evalEffect,
-  applyPrimitive,
-} from "../eval.js";
+import { trashCorpCardToArchives, trashToHeap } from "../corpTrash.js";
+import { noteCardRevealed, evalEffect, applyPrimitive } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-export function applyRevealKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyRevealKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "reveal_install_or_trash": {
+    case "reveal_install_or_trash": {
       const discount = Math.max(0, action.discount ?? 0);
       const top = state.runner.deck[0];
       if (!top) {
@@ -81,7 +71,7 @@ case "reveal_install_or_trash": {
       return { ok: true };
     }
 
-case "may_reveal_peek_rd_top_for_chosen_type_gain": {
+    case "may_reveal_peek_rd_top_for_chosen_type_gain": {
       const chosen = action.cardType;
       const credits = action.credits ?? 0;
       if (state.corp.deck.length === 0) {
@@ -96,43 +86,46 @@ case "may_reveal_peek_rd_top_for_chosen_type_gain": {
         log(state, `Type does not match — leave card on top of R&D.`);
         return { ok: true };
       }
-      if (!openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "reveal-gain",
-            label: `Reveal ${top.title} and gain ${credits}¢`,
-            effect: {
-              op: "seq",
-              effects: [
-                { op: "do", action: { kind: "reveal_top_of_rd" } },
-                {
-                  op: "do",
-                  action: {
-                    kind: "gain_credits",
-                    side: "corp",
-                    amount: credits,
+      if (
+        !openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options: [
+            {
+              id: "reveal-gain",
+              label: `Reveal ${top.title} and gain ${credits}¢`,
+              effect: {
+                op: "seq",
+                effects: [
+                  { op: "do", action: { kind: "reveal_top_of_rd" } },
+                  {
+                    op: "do",
+                    action: {
+                      kind: "gain_credits",
+                      side: "corp",
+                      amount: credits,
+                    },
                   },
-                },
-              ],
+                ],
+              },
             },
-          },
-          {
-            id: "decline",
-            label: "Decline to reveal",
-            effect: {
-              op: "do",
-              action: { kind: "gain_credits", side: "corp", amount: 0 },
+            {
+              id: "decline",
+              label: "Decline to reveal",
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "corp", amount: 0 },
+              },
             },
-          },
-        ],
-      })) return { ok: true };
+          ],
+        })
+      )
+        return { ok: true };
       log(state, `The Corp may reveal the card and gain ${credits}¢.`);
       return { ok: true };
     }
 
-case "reveal_corp_hand_card": {
+    case "reveal_corp_hand_card": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.corp.hand.includes(cardId)) {
@@ -145,7 +138,7 @@ case "reveal_corp_hand_card": {
       return { ok: true };
     }
 
-case "may_corp_reveal_agenda_from_hq": {
+    case "may_corp_reveal_agenda_from_hq": {
       const agendas = state.corp.hand.filter(
         (id) => state.cards[id].type === "agenda",
       );
@@ -188,12 +181,12 @@ case "may_corp_reveal_agenda_from_hq": {
                 },
           },
         ],
-logLine: `Corp may reveal an agenda from HQ.`,
-});
+        logLine: `Corp may reveal an agenda from HQ.`,
+      });
       return { ok: true };
     }
 
-case "reveal_installed_to_verify": {
+    case "reveal_installed_to_verify": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       // Shown to both players, and it stays facedown (CR 1.21.3a).
@@ -208,7 +201,7 @@ case "reveal_installed_to_verify": {
       return { ok: true };
     }
 
-case "reveal_top_stack_to_grip_place_hosted_credits": {
+    case "reveal_top_stack_to_grip_place_hosted_credits": {
       const top = state.runner.deck[0];
       if (!top) {
         log(state, `Reveal top of stack — empty.`);
@@ -216,8 +209,7 @@ case "reveal_top_stack_to_grip_place_hosted_credits": {
       }
       state.runner.deck.shift();
       const card = state.cards[top]!;
-      const cost =
-        card.playCost ?? card.installCost ?? 0;
+      const cost = card.playCost ?? card.installCost ?? 0;
       source.hostedCredits = (source.hostedCredits ?? 0) + cost;
       state.runner.hand.push(top);
       card.zone = "runner:grip";
@@ -230,7 +222,7 @@ case "reveal_top_stack_to_grip_place_hosted_credits": {
       return { ok: true };
     }
 
-case "reveal_top_n_rd": {
+    case "reveal_top_n_rd": {
       const n = Math.max(0, action.n ?? 1);
       const top = state.corp.deck.slice(0, Math.min(n, state.corp.deck.length));
       if (top.length === 0) {
@@ -244,7 +236,7 @@ case "reveal_top_n_rd": {
       return { ok: true };
     }
 
-case "reveal_top_n_rd_trash_one": {
+    case "reveal_top_n_rd_trash_one": {
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
         return {
@@ -289,12 +281,12 @@ case "reveal_top_n_rd_trash_one": {
             },
           },
         })),
-logLine: `${source.title} — choose 1 revealed card to trash.`,
-});
+        logLine: `${source.title} — choose 1 revealed card to trash.`,
+      });
       return { ok: true };
     }
 
-case "reveal_top_n_rd_trash_picked": {
+    case "reveal_top_n_rd_trash_picked": {
       const cardId = action.cardId;
       const idx = state.turn.rdLookedCards.indexOf(cardId);
       if (idx < 0) {
@@ -317,7 +309,7 @@ case "reveal_top_n_rd_trash_picked": {
       return { ok: true };
     }
 
-case "reveal_hyoubu_grip_random_or_stack_top": {
+    case "reveal_hyoubu_grip_random_or_stack_top": {
       const gripOk = state.runner.hand.length > 0;
       const stackOk = state.runner.deck.length > 0;
       if (!gripOk && !stackOk) {
@@ -349,12 +341,12 @@ case "reveal_hyoubu_grip_random_or_stack_top": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — choose grip-random or stack-top reveal.`,
-});
+        logLine: `${source.title} — choose grip-random or stack-top reveal.`,
+      });
       return { ok: true };
     }
 
-case "reveal_hyoubu_grip_random": {
+    case "reveal_hyoubu_grip_random": {
       if (state.runner.hand.length === 0) {
         log(state, `${source.title} — grip empty.`);
         return { ok: true };
@@ -372,7 +364,7 @@ case "reveal_hyoubu_grip_random": {
       return { ok: true };
     }
 
-case "reveal_hyoubu_stack_top": {
+    case "reveal_hyoubu_stack_top": {
       const top = state.runner.deck[0];
       if (!top) {
         log(state, `${source.title} — stack empty.`);
@@ -387,7 +379,7 @@ case "reveal_hyoubu_stack_top": {
       return { ok: true };
     }
 
-case "reveal_hq_forbid_steal_trash_copies_this_run": {
+    case "reveal_hq_forbid_steal_trash_copies_this_run": {
       if (!state.run) {
         log(state, `${source.title} — reveal HQ requires an active run.`);
         return { ok: true };
@@ -420,12 +412,12 @@ case "reveal_hq_forbid_steal_trash_copies_this_run": {
             ],
           },
         })),
-logLine: `${source.title} — reveal 1 card in HQ.`,
-});
+        logLine: `${source.title} — reveal 1 card in HQ.`,
+      });
       return { ok: true };
     }
 
-case "reveal_hq_gain_credits": {
+    case "reveal_hq_gain_credits": {
       // "Reveal up to N cards in HQ": the Corp says which, and how many
       // (CR 1.15.2). "Reveal all cards in HQ" leaves nothing to choose; the
       // card data writes it as 99.
@@ -461,7 +453,7 @@ case "reveal_hq_gain_credits": {
       return { ok: true };
     }
 
-case "reveal_runner_stack_top_to_grip": {
+    case "reveal_runner_stack_top_to_grip": {
       const cardId = action.cardId;
       if (state.runner.deck[0] !== cardId) {
         log(state, `Reveal stack top — card is no longer on top.`);
@@ -477,7 +469,7 @@ case "reveal_runner_stack_top_to_grip": {
       return { ok: true };
     }
 
-case "reveal_top_of_rd": {
+    case "reveal_top_of_rd": {
       const topId = state.corp.deck[0];
       if (!topId) {
         log(state, `${source.title} — reveal top of R&D: empty.`);
@@ -493,7 +485,7 @@ case "reveal_top_of_rd": {
       return { ok: true };
     }
 
-case "reveal_top_n": {
+    case "reveal_top_n": {
       const n = Math.max(0, action.n ?? 0);
       const revealed = state.runner.deck.splice(
         0,
@@ -534,12 +526,12 @@ case "reveal_top_n": {
             },
           };
         }),
-logLine: `${source.title} — Corp chooses 1 of ${revealed.length} revealed card(s).`,
-});
+        logLine: `${source.title} — Corp chooses 1 of ${revealed.length} revealed card(s).`,
+      });
       return { ok: true };
     }
 
-case "reveal_grip_may_trash_chosen_encounter_type": {
+    case "reveal_grip_may_trash_chosen_encounter_type": {
       const grip = [...state.runner.hand];
       revealCards(state, grip, sourceId);
       log(state, `${source.title} — reveal grip (${grip.length}).`);
@@ -548,9 +540,7 @@ case "reveal_grip_may_trash_chosen_encounter_type": {
         log(state, `Reveal grip — no encounter card type chosen.`);
         return { ok: true };
       }
-      const matches = grip.filter(
-        (id) => state.cards[id]?.type === chosen,
-      );
+      const matches = grip.filter((id) => state.cards[id]?.type === chosen);
       const options: Array<{ id: string; label: string; effect: Effect }> = [
         {
           id: "decline-trash",
@@ -572,19 +562,19 @@ case "reveal_grip_may_trash_chosen_encounter_type": {
         });
       }
       if (matches.length === 0) {
-        log(
-          state,
-          `${source.title} — no revealed ${chosen} cards to trash.`,
-        );
+        log(state, `${source.title} — no revealed ${chosen} cards to trash.`);
         return { ok: true };
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may trash 1 revealed ${chosen}.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may trash 1 revealed ${chosen}.`,
+      });
       return { ok: true };
     }
 
-case "reveal_may_advance": {
+    case "reveal_may_advance": {
       const types: Array<import("../../state/types.js").CardType> = [
         "event",
         "hardware",
@@ -605,12 +595,12 @@ case "reveal_may_advance": {
             },
           },
         })),
-logLine: `${source.title} — choose a card type.`,
-});
+        logLine: `${source.title} — choose a card type.`,
+      });
       return { ok: true };
     }
 
-case "reveal_gain": {
+    case "reveal_gain": {
       const subtype = action.subtype.toLowerCase();
       const inGrip = state.runner.hand.filter((id) =>
         (state.cards[id]?.subtypes ?? []).some(
@@ -618,10 +608,7 @@ case "reveal_gain": {
         ),
       );
       if (inGrip.length === 0) {
-        log(
-          state,
-          `Meeting of Minds — no ${subtype} cards in grip to reveal.`,
-        );
+        log(state, `Meeting of Minds — no ${subtype} cards in grip to reveal.`);
         return { ok: true };
       }
       // "Reveal any number": the Runner says which (CR 1.15.2).
@@ -652,7 +639,7 @@ case "reveal_gain": {
       return { ok: true };
     }
 
-case "may_reveal_shuffle_agendas_into_rd": {
+    case "may_reveal_shuffle_agendas_into_rd": {
       const max = Math.max(0, action.max);
       const creditsEach = action.creditsEach ?? 0;
       const agendas: string[] = [];
@@ -701,14 +688,14 @@ case "may_reveal_shuffle_agendas_into_rd": {
               },
             })),
           ],
-logLine: `Reveal up to ${remaining} agenda(s) in HQ/Archives and shuffle into R&D.`,
-});
+          logLine: `Reveal up to ${remaining} agenda(s) in HQ/Archives and shuffle into R&D.`,
+        });
         return { ok: true };
       };
       return offer(max, []);
     }
 
-case "reveal_shuffle_agenda_into_rd": {
+    case "reveal_shuffle_agenda_into_rd": {
       const card = state.cards[action.cardId];
       if (!card || card.type !== "agenda") {
         log(state, `Reveal/shuffle agenda — not an agenda.`);
@@ -779,7 +766,7 @@ case "reveal_shuffle_agenda_into_rd": {
       return { ok: true };
     }
 
-case "reveal_hq_subtype_install_and_rez_ignore_costs": {
+    case "reveal_hq_subtype_install_and_rez_ignore_costs": {
       const subtype = action.subtype.toLowerCase();
       const iceInHq = state.corp.hand.filter((id) => {
         const c = state.cards[id];
@@ -790,10 +777,7 @@ case "reveal_hq_subtype_install_and_rez_ignore_costs": {
       });
       const servers = Object.values(state.servers);
       if (iceInHq.length === 0 || servers.length === 0) {
-        log(
-          state,
-          `Reveal HQ ${action.subtype} — none in HQ (or no server).`,
-        );
+        log(state, `Reveal HQ ${action.subtype} — none in HQ (or no server).`);
         return { ok: true };
       }
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
@@ -826,13 +810,16 @@ case "reveal_hq_subtype_install_and_rez_ignore_costs": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Reveal a ${action.subtype} from HQ; install and rez ignoring all costs.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Reveal a ${action.subtype} from HQ; install and rez ignoring all costs.`,
+      });
       return { ok: true };
     }
 
-case "reveal_agenda_hq_or_archives_gain_ap_shuffle": {
+    case "reveal_agenda_hq_or_archives_gain_ap_shuffle": {
       const agendas: string[] = [];
       for (const id of state.corp.hand) {
         if (state.cards[id]?.type === "agenda") agendas.push(id);
@@ -883,12 +870,12 @@ case "reveal_agenda_hq_or_archives_gain_ap_shuffle": {
             },
           },
         })),
-logLine: `${source.title} — choose an agenda in HQ or Archives to reveal.`,
-});
+        logLine: `${source.title} — choose an agenda in HQ or Archives to reveal.`,
+      });
       return { ok: true };
     }
 
-case "reveal_top_stack_may_install_program_or_hardware": {
+    case "reveal_top_stack_may_install_program_or_hardware": {
       const top = state.runner.deck[0];
       if (!top) {
         log(state, `Reveal top of stack — empty.`);
@@ -931,12 +918,12 @@ case "reveal_top_stack_may_install_program_or_hardware": {
             },
           },
         ],
-logLine: `${source.title} — may install revealed ${card.title} from stack.`,
-});
+        logLine: `${source.title} — may install revealed ${card.title} from stack.`,
+      });
       return { ok: true };
     }
 
-case "reveal_top_rd_corp_may_draw": {
+    case "reveal_top_rd_corp_may_draw": {
       if (state.corp.deck.length === 0) {
         log(state, `${source.title} — R&D empty.`);
         return { ok: true };
@@ -972,19 +959,25 @@ case "reveal_top_rd_corp_may_draw": {
       return { ok: true };
     }
 
-case "reveal_grip": {
+    case "reveal_grip": {
       revealCards(state, state.runner.hand, sourceId);
-      log(state, `${source.title} — reveal grip (${state.runner.hand.length}).`);
+      log(
+        state,
+        `${source.title} — reveal grip (${state.runner.hand.length}).`,
+      );
       return { ok: true };
     }
 
-case "reveal_grip_may_trash_one": {
+    case "reveal_grip_may_trash_one": {
       if (state.runner.hand.length === 0) {
         log(state, `${source.title} — grip empty.`);
         return { ok: true };
       }
       revealCards(state, state.runner.hand, sourceId);
-      log(state, `${source.title} — reveal grip (${state.runner.hand.length}).`);
+      log(
+        state,
+        `${source.title} — reveal grip (${state.runner.hand.length}).`,
+      );
       if (state.runner.hand.length === 1) {
         return applyPrimitive(ctx, {
           kind: "trash_from_grip",

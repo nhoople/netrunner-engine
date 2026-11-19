@@ -10,8 +10,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function serverIdForInstalledCorpCard(
   state: EffectCtx["state"],
@@ -25,10 +24,7 @@ function serverIdForInstalledCorpCard(
   return null;
 }
 
-function trashRunnerInstalled(
-  state: EffectCtx["state"],
-  cardId: string,
-): void {
+function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
@@ -91,8 +87,8 @@ export function applyKitaraSsPrimitive(
         sourceId,
         chooser: "runner",
         options,
-logLine: `${source?.title ?? "Puffer"} — add or remove 1 power counter.`,
-});
+        logLine: `${source?.title ?? "Puffer"} — add or remove 1 power counter.`,
+      });
       return { ok: true };
     }
 
@@ -102,7 +98,10 @@ logLine: `${source?.title ?? "Puffer"} — add or remove 1 power counter.`,
         return c && c.faceup === false;
       });
       if (facedown.length === 0) {
-        log(state, `${source?.title ?? "Assimilator"} — no facedown installed cards.`);
+        log(
+          state,
+          `${source?.title ?? "Assimilator"} — no facedown installed cards.`,
+        );
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -177,9 +176,12 @@ logLine: `${source?.title ?? "Puffer"} — add or remove 1 power counter.`,
           });
         }
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source?.title ?? "Asa Group"} — may install non-agenda same server (${serverId}).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source?.title ?? "Asa Group"} — may install non-agenda same server (${serverId}).`,
+      });
       return { ok: true };
     }
 
@@ -213,7 +215,10 @@ logLine: `${source?.title ?? "Asa Group"} — may install non-agenda same server
       const n = Math.max(1, action.amount ?? 2);
       const targets = [...state.runner.installed];
       if (targets.length === 0) {
-        log(state, `${source?.title ?? "Self-Growth Program"} — no installed Runner cards.`);
+        log(
+          state,
+          `${source?.title ?? "Self-Growth Program"} — no installed Runner cards.`,
+        );
         return { ok: true };
       }
       // Offer choosing up to n cards; if fewer exist, take all via sequential choices.
@@ -229,14 +234,17 @@ logLine: `${source?.title ?? "Asa Group"} — may install non-agenda same server
             remaining: n - 1,
           }),
         })),
-logLine: `${source?.title ?? "Self-Growth Program"} — add ${n} installed Runner card(s) to grip.`,
-});
+        logLine: `${source?.title ?? "Self-Growth Program"} — add ${n} installed Runner card(s) to grip.`,
+      });
       return { ok: true };
     }
 
     case "add_n_installed_runner_to_grip_pick": {
       addInstalledToGrip(state, action.cardId);
-      log(state, `Add ${state.cards[action.cardId]?.title ?? action.cardId} to the grip.`);
+      log(
+        state,
+        `Add ${state.cards[action.cardId]?.title ?? action.cardId} to the grip.`,
+      );
       const remaining = action.remaining ?? 0;
       if (remaining <= 0) return { ok: true };
       const targets = [...state.runner.installed];
@@ -266,14 +274,20 @@ logLine: `${source?.title ?? "Self-Growth Program"} — add ${n} installed Runne
         }
       }
       if (!serverId) {
-        log(state, `${source?.title ?? "Calibration Testing"} — not in a server root.`);
+        log(
+          state,
+          `${source?.title ?? "Calibration Testing"} — not in a server root.`,
+        );
         return { ok: true };
       }
       const root = (state.servers[serverId]?.root ?? []).filter(
         (id) => id !== sourceId,
       );
       if (root.length === 0) {
-        log(state, `${source?.title ?? "Calibration Testing"} — no other root cards.`);
+        log(
+          state,
+          `${source?.title ?? "Calibration Testing"} — no other root cards.`,
+        );
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -295,7 +309,8 @@ logLine: `${source?.title ?? "Self-Growth Program"} — add ${n} installed Runne
     case "place_advancement_on_card": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      card.advancementCounters = (card.advancementCounters ?? 0) + (action.amount ?? 1);
+      card.advancementCounters =
+        (card.advancementCounters ?? 0) + (action.amount ?? 1);
       log(
         state,
         `Place ${action.amount ?? 1} advancement on ${card.title} → ${card.advancementCounters}.`,
@@ -350,8 +365,8 @@ logLine: `${source?.title ?? "Self-Growth Program"} — add ${n} installed Runne
             effect: fx.do({ kind: "meat_damage", amount: 4 }),
           },
         ],
-logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.title} or 4 meat.`,
-});
+        logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.title} or 4 meat.`,
+      });
       return { ok: true };
     }
 
@@ -371,7 +386,10 @@ logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.tit
           ? aside.count
           : (source?.advancementCounters ?? 0);
       if (have <= 0) {
-        log(state, `${source?.title ?? "Reconstruction Contract"} — no advancements.`);
+        log(
+          state,
+          `${source?.title ?? "Reconstruction Contract"} — no advancements.`,
+        );
         return { ok: true };
       }
       const dests: string[] = [];
@@ -388,7 +406,10 @@ logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.tit
         }
       }
       if (dests.length === 0) {
-        log(state, `${source?.title ?? "Reconstruction Contract"} — no advanceable cards.`);
+        log(
+          state,
+          `${source?.title ?? "Reconstruction Contract"} — no advanceable cards.`,
+        );
         return { ok: true };
       }
       const options: { id: string; label: string; effect: Effect }[] = [];
@@ -422,7 +443,8 @@ logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.tit
         `Interrupt window — ${move} advancement counter(s) onto ${dest.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
       );
       if (fromAside && aside) aside.count -= move;
-      else source.advancementCounters = (source.advancementCounters ?? 0) - move;
+      else
+        source.advancementCounters = (source.advancementCounters ?? 0) - move;
       dest.advancementCounters = (dest.advancementCounters ?? 0) + move;
       log(
         state,
@@ -461,9 +483,7 @@ logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.tit
 }
 
 /** Zamba-class: may gain credits when a Corp card is exposed. */
-export function maybeOfferGainCreditsOnExpose(
-  state: EffectCtx["state"],
-): void {
+export function maybeOfferGainCreditsOnExpose(state: EffectCtx["state"]): void {
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
@@ -486,8 +506,8 @@ export function maybeOfferGainCreditsOnExpose(
           effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
         },
       ],
-logLine: `${c.title} — may gain ${n}¢ (Corp card exposed).`,
-});
+      logLine: `${c.title} — may gain ${n}¢ (Corp card exposed).`,
+    });
     return;
   }
 }

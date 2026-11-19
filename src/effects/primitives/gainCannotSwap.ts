@@ -1,5 +1,8 @@
 /** The Universe of Tomorrow (uot) SanSan pack primitives. */
-import { resolveChronosFirstNetPick, resolveRibsPick } from "../../state/damage.js";
+import {
+  resolveChronosFirstNetPick,
+  resolveRibsPick,
+} from "../../state/damage.js";
 import { setRunnerPosition } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -15,8 +18,7 @@ import {
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function syncAllTourGuideSubs(state: EffectCtx["state"]): void {
   for (const server of Object.values(state.servers)) {
@@ -64,7 +66,10 @@ export function applySansanUotPrimitive(
         return { ok: true };
       }
       const ice = state.cards[iceId];
-      if (!ice || !(ice.subtypes ?? []).some((s) => s.toLowerCase() === "barrier")) {
+      if (
+        !ice ||
+        !(ice.subtypes ?? []).some((s) => s.toLowerCase() === "barrier")
+      ) {
         log(state, `Surfer — not encountering barrier.`);
         return { ok: true };
       }
@@ -97,8 +102,8 @@ export function applySansanUotPrimitive(
             },
           };
         }),
-logLine: `Surfer — choose adjacent ice to swap.`,
-});
+        logLine: `Surfer — choose adjacent ice to swap.`,
+      });
       return { ok: true };
     }
 
@@ -188,7 +193,11 @@ logLine: `Surfer — choose adjacent ice to swap.`,
       const candidates = state.runner.hand.filter((id) => {
         const c = state.cards[id];
         if (!c) return false;
-        if (c.type !== "program" && c.type !== "hardware" && c.type !== "resource") {
+        if (
+          c.type !== "program" &&
+          c.type !== "hardware" &&
+          c.type !== "resource"
+        ) {
           return false;
         }
         return (c.installCost ?? 0) <= counters;
@@ -211,8 +220,8 @@ logLine: `Surfer — choose adjacent ice to swap.`,
             },
           },
         })),
-logLine: `DaVinci — choose grip card to install (≤ ${counters}).`,
-});
+        logLine: `DaVinci — choose grip card to install (≤ ${counters}).`,
+      });
       return { ok: true };
     }
 
@@ -225,10 +234,7 @@ logLine: `DaVinci — choose grip card to install (≤ ${counters}).`,
       card.zone = "runner:installed";
       card.faceup = true;
       card.rezzed = true;
-      log(
-        state,
-        `DaVinci — install ${card.title} ignoring install cost.`,
-      );
+      log(state, `DaVinci — install ${card.title} ignoring install cost.`);
       return { ok: true };
     }
 
@@ -316,9 +322,12 @@ logLine: `DaVinci — choose grip card to install (≤ ${counters}).`,
         log(state, `Team Sponsorship — no installable card in HQ/Archives.`);
         return { ok: true };
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Team Sponsorship — may install from HQ or Archives ignoring install cost.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Team Sponsorship — may install from HQ or Archives ignoring install cost.`,
+      });
       return { ok: true };
     }
 
@@ -429,8 +438,8 @@ logLine: `Team Sponsorship — may install from HQ or Archives ignoring install 
             },
           },
         })),
-logLine: `${source.title} — search R&D for a card to add to HQ.`,
-});
+        logLine: `${source.title} — search R&D for a card to add to HQ.`,
+      });
       return { ok: true };
     }
 
@@ -448,7 +457,10 @@ logLine: `${source.title} — search R&D for a card to add to HQ.`,
 
     case "trash_chronos_pick": {
       // An empty id is the Corp selecting no card.
-      resolveChronosFirstNetPick(state, action.cardId === "" ? null : action.cardId);
+      resolveChronosFirstNetPick(
+        state,
+        action.cardId === "" ? null : action.cardId,
+      );
       return { ok: true };
     }
 
@@ -493,7 +505,7 @@ function offerBookmarkHostChoice(ctx: EffectCtx): PrimResult {
         },
       },
     ],
-logLine: `${source.title} — host from grip (${remaining} remaining capacity).`,
-});
+    logLine: `${source.title} — host from grip (${remaining} remaining capacity).`,
+  });
   return { ok: true };
 }

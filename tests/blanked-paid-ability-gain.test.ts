@@ -41,9 +41,9 @@ describe("blanked paid-ability gain (CR 9.12.1d)", () => {
 
     suppressAbilities(s, baba.id);
     expect(abilitiesSuppressed(s, "baba-1")).toBe(true);
-    expect(paidAbilitiesIncludingHosted(s, baba).map((a) => a.id)).not.toContain(
-      "gordian-pump",
-    );
+    expect(
+      paidAbilitiesIncludingHosted(s, baba).map((a) => a.id),
+    ).not.toContain("gordian-pump");
     const refused = usePaidAbility(s, "baba-1", "gordian-pump");
     expect(refused.ok).toBe(false);
   });

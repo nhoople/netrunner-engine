@@ -20,9 +20,7 @@ import {
   onRunnerDrew,
 } from "../state/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
-import {
-  fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn,
-} from "../state/miscConditionalHooks.js";
+import { fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn } from "../state/miscConditionalHooks.js";
 
 /** Class Act-class: installed unblanked would-draw interrupt source. */
 export function classActWouldDrawSource(state: GameState): string | null {
@@ -191,13 +189,18 @@ function openDbsBottomChoice(state: GameState, cardIds: string[]): void {
   );
 }
 
-function addSetAsideToHand(state: GameState, side: Side, cardIds: string[]): void {
+function addSetAsideToHand(
+  state: GameState,
+  side: Side,
+  cardIds: string[],
+): void {
   const p = side === "corp" ? state.corp : state.runner;
   const added: string[] = [];
   for (const cardId of cardIds) {
     const card = state.cards[cardId];
     if (!card || p.hand.includes(cardId)) continue;
-    if (card.zone.startsWith("server:") || card.zone === "removed-from-game") continue;
+    if (card.zone.startsWith("server:") || card.zone === "removed-from-game")
+      continue;
     leaveDrawSetAside(state, cardId);
     p.hand.push(cardId);
     card.zone = side === "corp" ? "corp:hq" : "runner:grip";
@@ -218,7 +221,11 @@ function addSetAsideToHand(state: GameState, side: Side, cardIds: string[]): voi
   }
 }
 
-export function drawCards(state: GameState, side: Side, amount: number): number {
+export function drawCards(
+  state: GameState,
+  side: Side,
+  amount: number,
+): number {
   if (side === "runner" && state.turn.ccRunnerCannotDraw) {
     return 0;
   }
@@ -305,7 +312,9 @@ export function applyDrawPrimitive(
       const revealed = Boolean(card.faceup);
       pending.cardIds = pending.cardIds.filter((id) => id !== cardId);
       state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
       state.corp.deck.push(cardId);
       card.zone = "corp:rd";

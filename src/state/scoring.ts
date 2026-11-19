@@ -14,10 +14,7 @@ import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { noteIceUninstalled } from "./runPosition.js";
 import { onAgendaScored, runnerHeapLocked } from "./cardDeclarations.js";
-import {
-  allocateEffectIdentity,
-  tryApplyReplacement,
-} from "./replacements.js";
+import { allocateEffectIdentity, tryApplyReplacement } from "./replacements.js";
 
 export function agendaPointsFor(state: GameState, side: Side): number {
   const p = side === "corp" ? state.corp : state.runner;
@@ -51,8 +48,7 @@ export function checkWinConditions(state: GameState): void {
   const corpId = state.cards[state.corp.identityId];
   const bothMod = corpId?.agendaPointsToWinModifierBoth ?? 0;
   const baseNeed = Math.max(1, state.config.agendaPointsToWin + bothMod);
-  const reductionPer =
-    corpId?.agendaPointsToWinReductionPerPowerCounter ?? 0;
+  const reductionPer = corpId?.agendaPointsToWinReductionPerPowerCounter ?? 0;
   const corpNeed = Math.max(
     1,
     baseNeed - reductionPer * (corpId?.powerCounters ?? 0),
@@ -147,7 +143,10 @@ export function checkWinConditions(state: GameState): void {
   }
   // Flatline: brain damage >= max hand size, or meat/net emptied grip while
   // still owing damage — handled in damage module by setting winReason.
-  if (state.runner.coreDamage >= state.runner.maxHandSize + state.runner.coreDamage) {
+  if (
+    state.runner.coreDamage >=
+    state.runner.maxHandSize + state.runner.coreDamage
+  ) {
     // maxHandSize already reduced by brain damage in applyBrainDamage
   }
   if (state.winReason === "flatline") {
@@ -199,10 +198,7 @@ export function effectiveAdvancementRequirement(
         if (id === card.id) continue;
         if (abilitiesSuppressed(state, id)) continue;
         const up = state.cards[id];
-        if (
-          up?.rezzed &&
-          (up.advancementRequirementReduction ?? 0) > 0
-        ) {
+        if (up?.rezzed && (up.advancementRequirementReduction ?? 0) > 0) {
           req -= up.advancementRequirementReduction ?? 0;
         }
       }
@@ -256,10 +252,7 @@ export function effectiveAdvancementRequirement(
   return Math.max(0, req);
 }
 
-export function canScoreAgenda(
-  state: GameState,
-  card: CardInstance,
-): boolean {
+export function canScoreAgenda(state: GameState, card: CardInstance): boolean {
   if (card.type !== "agenda") return false;
   if (card.side !== "corp") return false;
   const req = effectiveAdvancementRequirement(state, card);
@@ -354,7 +347,8 @@ export function stealAgenda(state: GameState, cardId: string): void {
       : (card.agendaPoints ?? 0) +
         (card.agendaPointsPerAgendaCounter ?? 0) * (card.agendaCounters ?? 0);
   state.turn.agendaPointsStolenThisTurn += pts;
-  state.turn.agendasStolenThisTurn = (state.turn.agendasStolenThisTurn ?? 0) + 1;
+  state.turn.agendasStolenThisTurn =
+    (state.turn.agendasStolenThisTurn ?? 0) + 1;
   noteRunnerStoleOrTrashedCorpCard(state);
   log(
     state,
@@ -383,7 +377,8 @@ export function moveForfeitedAgendaOutOfGame(
   card.faceup = true;
   card.rezzed = false;
   if (!state.removedFromGame) state.removedFromGame = [];
-  if (!state.removedFromGame.includes(cardId)) state.removedFromGame.push(cardId);
+  if (!state.removedFromGame.includes(cardId))
+    state.removedFromGame.push(cardId);
 }
 
 export function removeCardFromCurrentZone(
@@ -423,11 +418,15 @@ export function removeCardFromCurrentZone(
   state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
   state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
   state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-  state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
+  state.runner.discardPile = state.runner.discardPile.filter(
+    (id) => id !== cardId,
+  );
   state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
   state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
   state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== cardId);
-  state.corp.playArea = (state.corp.playArea ?? []).filter((id) => id !== cardId);
+  state.corp.playArea = (state.corp.playArea ?? []).filter(
+    (id) => id !== cardId,
+  );
   state.runner.playArea = (state.runner.playArea ?? []).filter(
     (id) => id !== cardId,
   );

@@ -43,9 +43,11 @@ describe("invariants baseline", () => {
       for (const [name, codes] of Object.entries(tests)) {
         const where = `${file} > ${name}`;
         if (codes.length === 0) bad.push(`${where}: empty`);
-        if (codes.join() !== [...new Set(codes)].sort().join()) bad.push(`${where}: unsorted or duplicate`);
+        if (codes.join() !== [...new Set(codes)].sort().join())
+          bad.push(`${where}: unsorted or duplicate`);
         for (const code of codes) {
-          if (!(code in PROBLEM_RULES)) bad.push(`${where}: unknown code ${code}`);
+          if (!(code in PROBLEM_RULES))
+            bad.push(`${where}: unknown code ${code}`);
         }
       }
     }

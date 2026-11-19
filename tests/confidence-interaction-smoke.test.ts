@@ -187,9 +187,9 @@ describe("confidence smoke — cannot × basic action (prevent jack_out)", () =>
     expect(expl.legal).toBe(false);
     if (expl.legal) return;
     expect(expl.cites.map((c) => c.id)).toContain(CR.cannotPrecedence.id);
-    expect(queryLegality(s).legal.some((e) => e.action.type === "jack_out")).toBe(
-      false,
-    );
+    expect(
+      queryLegality(s).legal.some((e) => e.action.type === "jack_out"),
+    ).toBe(false);
   });
 });
 

@@ -53,22 +53,17 @@ import {
 } from "../state/lockdowns.js";
 import type { PaidAbilityWindow } from "../state/types.js";
 import type { TimingStepDef } from "../timing/graph.js";
-import {
-  hasAbilityFlag,
-  threatValue,
-} from "../effects/abilityRecord.js";
+import { hasAbilityFlag, threatValue } from "../effects/abilityRecord.js";
 
 function breakCostFor(state: GameState, breakerId: string): number {
   const br = state.cards[breakerId].breaker!;
-  let cost = br.breakCredits + (state.run?.kgIcebreakerBreakAdditionalCost ?? 0);
+  let cost =
+    br.breakCredits + (state.run?.kgIcebreakerBreakAdditionalCost ?? 0);
   if (
     br.breakCreditsDiscountIfSuccessfulRunThisTurn &&
     state.turn.successfulRunThisTurn
   ) {
-    cost = Math.max(
-      0,
-      cost - br.breakCreditsDiscountIfSuccessfulRunThisTurn,
-    );
+    cost = Math.max(0, cost - br.breakCreditsDiscountIfSuccessfulRunThisTurn);
   }
   if (br.breakCreditsDiscountPerInstalledSubtype) {
     const { subtype, amount } = br.breakCreditsDiscountPerInstalledSubtype;
@@ -79,7 +74,6 @@ function breakCostFor(state: GameState, breakerId: string): number {
   }
   return cost + midwayStationBreakTax(state);
 }
-
 
 function listServers(state: GameState): Server[] {
   return Object.values(state.servers);
@@ -105,8 +99,7 @@ export function addApproachIceCandidates(
       if (state.turn.iceRezzedThisTurn === 0) {
         for (const carrierId of runnerAbilityCarrierIds(state)) {
           if (abilitiesSuppressed(state, carrierId)) continue;
-          increase +=
-            state.cards[carrierId]?.firstIceRezCostIncrease ?? 0;
+          increase += state.cards[carrierId]?.firstIceRezCostIncrease ?? 0;
         }
       }
       const discount =
@@ -153,23 +146,23 @@ export function addApproachIceCandidates(
         ) {
           // skip
         } else {
-        const agendaDisc = ice.rezCostCreditDiscountOnForfeitAgenda ?? 0;
-        const discountedCost = Math.max(0, cost - agendaDisc);
-        let rezIceRecurring = 0;
-        for (const c of Object.values(state.cards)) {
-          if (c.side !== "corp" || !c.rezzed) continue;
-          if (abilitiesSuppressed(state, c.id)) continue;
-          if (!(c.recurringSpendFor ?? []).includes("rez_ice")) continue;
-          rezIceRecurring += c.recurringCredits ?? 0;
-        }
-        const canPay =
-          state.corp.credits + rezIceRecurring >= cost ||
-          (agendaDisc > 0 &&
-            state.corp.scoreArea.length > 0 &&
-            state.corp.credits + rezIceRecurring >= discountedCost);
-        if (canPay) {
-          actions.push({ type: "rez_ice", cardId: iceId });
-        }
+          const agendaDisc = ice.rezCostCreditDiscountOnForfeitAgenda ?? 0;
+          const discountedCost = Math.max(0, cost - agendaDisc);
+          let rezIceRecurring = 0;
+          for (const c of Object.values(state.cards)) {
+            if (c.side !== "corp" || !c.rezzed) continue;
+            if (abilitiesSuppressed(state, c.id)) continue;
+            if (!(c.recurringSpendFor ?? []).includes("rez_ice")) continue;
+            rezIceRecurring += c.recurringCredits ?? 0;
+          }
+          const canPay =
+            state.corp.credits + rezIceRecurring >= cost ||
+            (agendaDisc > 0 &&
+              state.corp.scoreArea.length > 0 &&
+              state.corp.credits + rezIceRecurring >= discountedCost);
+          if (canPay) {
+            actions.push({ type: "rez_ice", cardId: iceId });
+          }
         }
       }
     }
@@ -235,8 +228,13 @@ export function addPaidWindowCandidates(
         if (ab.onlyDuringOwnTurn && state.activeSide !== card.side) continue;
         if (ab.requireDuringRun && !state.run) continue;
         if (ab.forbidDuringRun && state.run) continue;
-        if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq") continue;
-        if (ab.onlyDuringArchivesRun && state.run?.attackedServerId !== "archives") continue;
+        if (ab.onlyDuringHqRun && state.run?.attackedServerId !== "hq")
+          continue;
+        if (
+          ab.onlyDuringArchivesRun &&
+          state.run?.attackedServerId !== "archives"
+        )
+          continue;
         if (
           hasAbilityFlag(ab.flag, "once_per_turn") &&
           wasAbilityUsed(state, cardId, ab.id)
@@ -372,8 +370,7 @@ export function addPaidWindowCandidates(
           const n = state.runner.installed.filter((id) => {
             const c = state.cards[id];
             return (
-              c?.type === "resource" &&
-              (c.subtypes ?? []).includes("virtual")
+              c?.type === "resource" && (c.subtypes ?? []).includes("virtual")
             );
           }).length;
           if (n < ab.requireInstalledVirtualResourcesGte) continue;
@@ -455,7 +452,10 @@ export function addPaidWindowCandidates(
         ) {
           continue;
         }
-        if (card.side === "runner" && !state.runner.installed.includes(cardId)) {
+        if (
+          card.side === "runner" &&
+          !state.runner.installed.includes(cardId)
+        ) {
           // Runner identity and the active run event source are allowed.
           if (
             cardId !== state.runner.identityId &&
@@ -490,10 +490,7 @@ export function addPaidWindowCandidates(
             if (!card.rezzed || !state.servers[sid]?.ice.includes(cardId)) {
               continue;
             }
-          } else if (
-            !card.rezzed &&
-            cardId !== state.corp.identityId
-          ) {
+          } else if (!card.rezzed && cardId !== state.corp.identityId) {
             // Any active Corp card may be the source (CR 9.2.7b).
             continue;
           }
@@ -553,8 +550,7 @@ export function addPaidWindowCandidates(
     if (
       paw === "encounter_paw" ||
       paw === "runner_action_paw" ||
-      (state.run &&
-        (paw === "approach_paw" || paw === "approach_server_paw"))
+      (state.run && (paw === "approach_paw" || paw === "approach_server_paw"))
     ) {
       for (const id of state.runner.installed) consider(id);
       if (state.run?.runSourceId) consider(state.run.runSourceId);
@@ -655,14 +651,15 @@ export function addPaidWindowCandidates(
               );
               const canForfeit =
                 !card.rezAdditionalCostForfeitAgenda ||
-                state.corp.scoreArea.some((sid) => !state.cards[sid]?.cannotForfeit);
+                state.corp.scoreArea.some(
+                  (sid) => !state.cards[sid]?.cannotForfeit,
+                );
               if (
                 state.corp.credits >= cost &&
                 canForfeit &&
                 !state.turn.cannotScoreOrRezCardIds.includes(id) &&
                 !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(id) &&
-                (!card.rezOnlyDuringCorpTurn ||
-                  state.activeSide === "corp") &&
+                (!card.rezOnlyDuringCorpTurn || state.activeSide === "corp") &&
                 (!card.rezRequiresTagged || runnerIsTagged(state))
               ) {
                 actions.push({ type: "rez_asset", cardId: id });
@@ -797,7 +794,7 @@ export function addPaidWindowCandidates(
     }
   }
 
-    if (step.key === "run.encounterPaw" && state.run?.encounter) {
+  if (step.key === "run.encounterPaw" && state.run?.encounter) {
     const enc = state.run.encounter;
     const iceStr = effectiveIceStrength(state, enc.iceId);
     const iceSubs = effectiveIceSubtypes(state, enc.iceId);
@@ -818,11 +815,9 @@ export function addPaidWindowCandidates(
         }
         const iceCard = state.cards[enc.iceId];
         let maxPrinted = iceCard?.maxPrintedSubsBreakablePerEncounter;
-        const atAdv = iceCard?.maxPrintedSubsBreakablePerEncounterAtAdvancements;
-        if (
-          atAdv &&
-          (iceCard?.advancementCounters ?? 0) >= atAdv.threshold
-        ) {
+        const atAdv =
+          iceCard?.maxPrintedSubsBreakablePerEncounterAtAdvancements;
+        if (atAdv && (iceCard?.advancementCounters ?? 0) >= atAdv.threshold) {
           maxPrinted = atAdv.max;
         }
         const exceptSub = iceCard?.maxPrintedSubsBreakExceptSubtype;
@@ -971,19 +966,17 @@ export function addBreachAccessCandidates(
   state: GameState,
   actions: Action[],
 ): void {
-    const remaining = state.run?.randomAccessLimit;
-    const cands = state.run?.accessCandidates ?? [];
-    for (const id of cands) {
-      if (remaining !== null && remaining !== undefined && remaining <= 0) break;
-      actions.push({ type: "access_card", cardId: id });
-    }
-    if (
-      cands.length === 0 ||
-      remaining === 0 ||
-      (remaining !== null &&
-        remaining !== undefined &&
-        remaining <= 0)
-    ) {
-      actions.push({ type: "finish_breach" });
-    }
+  const remaining = state.run?.randomAccessLimit;
+  const cands = state.run?.accessCandidates ?? [];
+  for (const id of cands) {
+    if (remaining !== null && remaining !== undefined && remaining <= 0) break;
+    actions.push({ type: "access_card", cardId: id });
+  }
+  if (
+    cands.length === 0 ||
+    remaining === 0 ||
+    (remaining !== null && remaining !== undefined && remaining <= 0)
+  ) {
+    actions.push({ type: "finish_breach" });
+  }
 }

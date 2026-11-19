@@ -43,7 +43,12 @@ function put(s: GameState, defId: string, id: string, zone: string): void {
   s.cards[id] = instantiateCard(defId, id, zone);
 }
 
-function run(s: GameState, sourceId: string, kind: string, extra: object): void {
+function run(
+  s: GameState,
+  sourceId: string,
+  kind: string,
+  extra: object,
+): void {
   const r = evalEffect({ state: s, sourceId }, fx.do({ kind, ...extra }));
   if (!r.ok) throw new Error(`${kind}: ${r.error ?? "failed"}`);
 }
@@ -66,7 +71,10 @@ describe("ability installs put ice outermost (CR 6.2.2a)", () => {
     put(s, "restore", "restore-1", "corp:play");
     put(s, "enigma", "new", "corp:archives");
     s.corp.discardPile = ["new"];
-    run(s, "restore-1", "install_rez_resolve", { cardId: "new", serverId: "remote-1" });
+    run(s, "restore-1", "install_rez_resolve", {
+      cardId: "new",
+      serverId: "remote-1",
+    });
     expect(s.servers["remote-1"]!.ice).toEqual(["new", "outer", "inner"]);
     expect(s.cards["new"]?.rezzed).toBe(true);
   });
@@ -76,7 +84,10 @@ describe("ability installs put ice outermost (CR 6.2.2a)", () => {
     put(s, "remote-enforcement", "re-1", "corp:score");
     put(s, "enigma", "new", "corp:rd");
     s.corp.deck = ["new"];
-    run(s, "re-1", "install_remote_enforcement", { iceId: "new", serverId: "remote-1" });
+    run(s, "re-1", "install_remote_enforcement", {
+      iceId: "new",
+      serverId: "remote-1",
+    });
     expect(s.servers["remote-1"]!.ice).toEqual(["new", "outer", "inner"]);
   });
 
@@ -86,7 +97,10 @@ describe("ability installs put ice outermost (CR 6.2.2a)", () => {
     s.servers["remote-1"]!.root = ["jinja-1"];
     put(s, "enigma", "new", "corp:hq");
     s.corp.hand = ["new"];
-    run(s, "jinja-1", "install_jinja_drawn_ice", { cardId: "new", serverId: "remote-1" });
+    run(s, "jinja-1", "install_jinja_drawn_ice", {
+      cardId: "new",
+      serverId: "remote-1",
+    });
     expect(s.servers["remote-1"]!.ice).toEqual(["new", "outer", "inner"]);
   });
 
@@ -111,7 +125,10 @@ describe("ability installs put ice outermost (CR 6.2.2a)", () => {
       position: 1,
       encounter: { iceId: "inner", broken: [false] },
     } as GameState["run"];
-    run(s, "jinja-1", "install_jinja_drawn_ice", { cardId: "new", serverId: "remote-1" });
+    run(s, "jinja-1", "install_jinja_drawn_ice", {
+      cardId: "new",
+      serverId: "remote-1",
+    });
     expect(s.servers["remote-1"]!.ice[s.run!.position!]).toBe("inner");
   });
 });

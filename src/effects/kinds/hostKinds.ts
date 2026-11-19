@@ -2,31 +2,25 @@
  * Primitive kinds whose procedure is host.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
-import {
-  hostFenrisIdentity,
-  legalFenrisHostIds,
-} from "../../state/fenris.js";
+import { hostFenrisIdentity, legalFenrisHostIds } from "../../state/fenris.js";
 import { cancelPendingIfSourceInactive } from "../../state/pendingAbilities.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { CR } from "../../timing/labels.js";
 import { applyPrimitive } from "../eval.js";
 
-export function applyHostKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyHostKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "host_on_ice": {
+    case "host_on_ice": {
       const ice = state.cards[action.iceId];
       if (
         !ice ||
@@ -45,7 +39,8 @@ case "host_on_ice": {
       source.rezzed = true;
       source.convertedInto = "counter";
       if (!ice.hostedCardIds) ice.hostedCardIds = [];
-      if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
+      if (!ice.hostedCardIds.includes(sourceId))
+        ice.hostedCardIds.push(sourceId);
       log(
         state,
         `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
@@ -53,7 +48,7 @@ case "host_on_ice": {
       return { ok: true };
     }
 
-case "may_host_one_from_grip_facedown_then_draw": {
+    case "may_host_one_from_grip_facedown_then_draw": {
       const max = source.maxHostedCards ?? Infinity;
       const have = source.hostedCardIds?.length ?? 0;
       if (have >= max) {
@@ -93,12 +88,12 @@ case "may_host_one_from_grip_facedown_then_draw": {
             },
           },
         ],
-logLine: `${source.title} — may host 1 from grip facedown to draw 1.`,
-});
+        logLine: `${source.title} — may host 1 from grip facedown to draw 1.`,
+      });
       return { ok: true };
     }
 
-case "host_grip_card_facedown_then_draw": {
+    case "host_grip_card_facedown_then_draw": {
       const max = source.maxHostedCards ?? Infinity;
       const have = source.hostedCardIds?.length ?? 0;
       if (have >= max) {
@@ -109,7 +104,9 @@ case "host_grip_card_facedown_then_draw": {
         log(state, `Host from grip — ${action.cardId} not in grip.`);
         return { ok: true };
       }
-      state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
+      state.runner.hand = state.runner.hand.filter(
+        (id) => id !== action.cardId,
+      );
       const card = state.cards[action.cardId]!;
       card.hostId = sourceId;
       card.faceup = false;
@@ -129,7 +126,7 @@ case "host_grip_card_facedown_then_draw": {
       return { ok: true };
     }
 
-case "host_all_programs_from_grip": {
+    case "host_all_programs_from_grip": {
       const programs = state.runner.hand.filter(
         (id) => state.cards[id]?.type === "program",
       );
@@ -153,7 +150,7 @@ case "host_all_programs_from_grip": {
       return { ok: true };
     }
 
-case "may_host_one_program_or_hardware_from_grip_faceup": {
+    case "may_host_one_program_or_hardware_from_grip_faceup": {
       const max = source.maxHostedCards ?? Infinity;
       const have = source.hostedCardIds?.length ?? 0;
       if (have >= max) {
@@ -196,12 +193,12 @@ case "may_host_one_program_or_hardware_from_grip_faceup": {
             },
           },
         ],
-logLine: `${source.title} — may host 1 program or hardware from grip faceup.`,
-});
+        logLine: `${source.title} — may host 1 program or hardware from grip faceup.`,
+      });
       return { ok: true };
     }
 
-case "host_grip_program_or_hardware_faceup": {
+    case "host_grip_program_or_hardware_faceup": {
       const max = source.maxHostedCards ?? Infinity;
       const have = source.hostedCardIds?.length ?? 0;
       if (have >= max) {
@@ -217,7 +214,9 @@ case "host_grip_program_or_hardware_faceup": {
         log(state, `Host from grip — not a program or hardware.`);
         return { ok: true };
       }
-      state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
+      state.runner.hand = state.runner.hand.filter(
+        (id) => id !== action.cardId,
+      );
       card.hostId = sourceId;
       card.faceup = true;
       card.zone = `hosted:${sourceId}`;
@@ -227,7 +226,7 @@ case "host_grip_program_or_hardware_faceup": {
       return { ok: true };
     }
 
-case "host_hardware_on_icebreaker": {
+    case "host_hardware_on_icebreaker": {
       const br = state.cards[action.icebreakerId];
       if (!br || !state.runner.installed.includes(action.icebreakerId)) {
         log(state, `host_hardware_on_icebreaker — invalid icebreaker.`);
@@ -281,7 +280,7 @@ case "host_hardware_on_icebreaker": {
       return { ok: true };
     }
 
-case "host_top_of_stack_on_source": {
+    case "host_top_of_stack_on_source": {
       const top = state.runner.deck[0];
       if (!top) {
         log(state, `${source.title} — stack empty; cannot host.`);
@@ -298,7 +297,7 @@ case "host_top_of_stack_on_source": {
       return { ok: true };
     }
 
-case "host_gmod_identity_from_outside_game": {
+    case "host_gmod_identity_from_outside_game": {
       const requireMismatch =
         action.requireFactionMismatchWithRunnerIdentity !== false;
       const candidates = legalFenrisHostIds(state, requireMismatch);
@@ -333,12 +332,12 @@ case "host_gmod_identity_from_outside_game": {
             },
           },
         })),
-logLine: `${source.title} — choose a g-mod identity to host (CR 1.5.4a).`,
-});
+        logLine: `${source.title} — choose a g-mod identity to host (CR 1.5.4a).`,
+      });
       return { ok: true };
     }
 
-case "host_gmod_identity": {
+    case "host_gmod_identity": {
       const requireMismatch =
         action.requireFactionMismatchWithRunnerIdentity !== false;
       const candidates = legalFenrisHostIds(state, requireMismatch);
@@ -353,7 +352,7 @@ case "host_gmod_identity": {
       return { ok: true };
     }
 
-case "host_random_hq": {
+    case "host_random_hq": {
       const hq = state.corp.hand;
       if (hq.length === 0) {
         log(state, `${source.title} — HQ empty.`);
@@ -372,7 +371,7 @@ case "host_random_hq": {
       return { ok: true };
     }
 
-case "host_stack_card_on_source": {
+    case "host_stack_card_on_source": {
       if (!state.runner.deck.includes(action.cardId)) {
         log(state, `Host stack card — ${action.cardId} not in stack.`);
         return { ok: true };
@@ -384,22 +383,16 @@ case "host_stack_card_on_source": {
       card.zone = `hosted:${sourceId}`;
       if (!source.hostedCardIds) source.hostedCardIds = [];
       source.hostedCardIds.push(action.cardId);
-      log(
-        state,
-        `${source.title} hosts ${card.title} faceup (not installed).`,
-      );
+      log(state, `${source.title} hosts ${card.title} faceup (not installed).`);
       return { ok: true };
     }
 
-case "host_copy_from_grip": {
+    case "host_copy_from_grip": {
       const match = state.runner.hand.find(
         (id) => state.cards[id]?.title === action.title,
       );
       if (!match) {
-        log(
-          state,
-          `${source.title} — no ${action.title} in grip to host.`,
-        );
+        log(state, `${source.title} — no ${action.title} in grip to host.`);
         return { ok: true };
       }
       state.runner.hand = state.runner.hand.filter((id) => id !== match);
@@ -409,14 +402,11 @@ case "host_copy_from_grip": {
       card.zone = `hosted:${sourceId}`;
       if (!source.hostedCardIds) source.hostedCardIds = [];
       source.hostedCardIds.push(match);
-      log(
-        state,
-        `${source.title} hosts ${card.title} faceup (not installed).`,
-      );
+      log(state, `${source.title} hosts ${card.title} faceup (not installed).`);
       return { ok: true };
     }
 
-case "host_ice_program_on_self": {
+    case "host_ice_program_on_self": {
       // Magnet: choose 1 installed program hosted on another ice (printed).
       const hosted: string[] = [];
       for (const id of Object.keys(state.cards)) {
@@ -460,7 +450,10 @@ case "host_ice_program_on_self": {
         return { ok: true };
       }
       if (!hosted.includes(chosenId)) {
-        log(state, `${source.title} — chosen program is not a valid host target.`);
+        log(
+          state,
+          `${source.title} — chosen program is not a valid host target.`,
+        );
         return { ok: true };
       }
       const prog = state.cards[chosenId]!;
@@ -472,22 +465,19 @@ case "host_ice_program_on_self": {
         state,
         (inst) => inst.sourceId !== chosenId,
       );
-      log(
-        state,
-        `${source.title} hosts ${prog.title} (abilities blanked).`,
-      );
+      log(state, `${source.title} hosts ${prog.title} (abilities blanked).`);
       return { ok: true };
     }
 
-case "host_installed_trojan_on_attacked_ice": {
+    case "host_installed_trojan_on_attacked_ice": {
       if (!state.run) {
         log(state, `host trojan — no active run.`);
         return { ok: true };
       }
       const sid = state.run.attackedServerId;
       const iceIds = state.servers[sid]?.ice ?? [];
-      const trojans = state.runner.installed.filter(
-        (id) => (state.cards[id]?.subtypes ?? []).includes("trojan"),
+      const trojans = state.runner.installed.filter((id) =>
+        (state.cards[id]?.subtypes ?? []).includes("trojan"),
       );
       if (iceIds.length === 0 || trojans.length === 0) {
         log(state, `host trojan — no ice or no installed trojan.`);
@@ -518,13 +508,16 @@ case "host_installed_trojan_on_attacked_ice": {
           action: { kind: "gain_credits", side: "runner", amount: 0 },
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — host an installed trojan on attacked ice.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — host an installed trojan on attacked ice.`,
+      });
       return { ok: true };
     }
 
-case "host_program_on_ice": {
+    case "host_program_on_ice": {
       const prog = state.cards[action.programId];
       const ice = state.cards[action.iceId];
       if (!prog || !ice || !state.runner.installed.includes(action.programId)) {
@@ -536,7 +529,7 @@ case "host_program_on_ice": {
       return { ok: true };
     }
 
-case "host_grip_program_or_hardware_with_power_equal_install_cost": {
+    case "host_grip_program_or_hardware_with_power_equal_install_cost": {
       const grip = state.runner.hand.filter((id) => {
         const t = state.cards[id]?.type;
         return t === "program" || t === "hardware";
@@ -559,12 +552,12 @@ case "host_grip_program_or_hardware_with_power_equal_install_cost": {
             },
           },
         })),
-logLine: `${source.title} — host a program or hardware from grip with power = install cost.`,
-});
+        logLine: `${source.title} — host a program or hardware from grip with power = install cost.`,
+      });
       return { ok: true };
     }
 
-case "host_grip_pw_card_with_power_equal_install_cost": {
+    case "host_grip_pw_card_with_power_equal_install_cost": {
       if (!state.runner.hand.includes(action.cardId)) {
         log(state, `Personal Workshop host — ${action.cardId} not in grip.`);
         return { ok: true };
@@ -574,7 +567,9 @@ case "host_grip_pw_card_with_power_equal_install_cost": {
         log(state, `Personal Workshop host — not a program or hardware.`);
         return { ok: true };
       }
-      state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
+      state.runner.hand = state.runner.hand.filter(
+        (id) => id !== action.cardId,
+      );
       card.hostId = sourceId;
       card.faceup = true;
       card.zone = `hosted:${sourceId}`;
@@ -594,7 +589,7 @@ case "host_grip_pw_card_with_power_equal_install_cost": {
       return { ok: true };
     }
 
-case "host_on_ice_as_condition": {
+    case "host_on_ice_as_condition": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -619,12 +614,12 @@ case "host_on_ice_as_condition": {
             },
           },
         })),
-logLine: `${source.title} — choose ice to host as condition counter.`,
-});
+        logLine: `${source.title} — choose ice to host as condition counter.`,
+      });
       return { ok: true };
     }
 
-case "host_on_ice_as_condition_on": {
+    case "host_on_ice_as_condition_on": {
       const ice = state.cards[action.iceId];
       if (!ice || ice.type !== "ice") {
         log(state, `Host as condition — invalid ice.`);
@@ -641,7 +636,8 @@ case "host_on_ice_as_condition_on": {
       source.rezzed = true;
       source.convertedInto = "counter";
       if (!ice.hostedCardIds) ice.hostedCardIds = [];
-      if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
+      if (!ice.hostedCardIds.includes(sourceId))
+        ice.hostedCardIds.push(sourceId);
       log(
         state,
         `Host ${source.title} on ${ice.title} as a condition counter.`,

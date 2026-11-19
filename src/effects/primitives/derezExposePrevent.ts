@@ -10,13 +10,12 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function remoteServerCount(state: EffectCtx["state"]): number {
-  return Object.keys(state.servers).filter((id) => id.startsWith("remote")).length;
+  return Object.keys(state.servers).filter((id) => id.startsWith("remote"))
+    .length;
 }
 
 function rezzedIceIds(state: EffectCtx["state"]): string[] {
@@ -52,7 +51,14 @@ export function applyRedsandDcPrimitive(
         log(state, `Exploit — no rezzed ice to derez.`);
         return { ok: true };
       }
-      return evalEffect(ctx, fx.do({ kind: "derez_up_to_ice_continue", remaining: max, cardIds: ice }));
+      return evalEffect(
+        ctx,
+        fx.do({
+          kind: "derez_up_to_ice_continue",
+          remaining: max,
+          cardIds: ice,
+        }),
+      );
     }
 
     case "derez_up_to_ice_continue": {
@@ -64,8 +70,8 @@ export function applyRedsandDcPrimitive(
       if (remaining <= 0 || cardIds.length === 0) {
         return { ok: true };
       }
-      const options: { id: string; label: string; effect: Effect }[] = cardIds.map(
-        (id) => ({
+      const options: { id: string; label: string; effect: Effect }[] =
+        cardIds.map((id) => ({
           id: `derez:${id}`,
           label: `Derez ${state.cards[id]!.title}`,
           effect: {
@@ -79,8 +85,7 @@ export function applyRedsandDcPrimitive(
               }),
             ],
           },
-        }),
-      );
+        }));
       options.push({
         id: "done",
         label: "Done",
@@ -99,7 +104,10 @@ export function applyRedsandDcPrimitive(
       });
       if (candidates.length === 0) {
         log(state, `Spot the Prey — no non-ice card to expose; still run.`);
-        return evalEffect(ctx, fx.do({ kind: "may_start_run", servers: "any" }));
+        return evalEffect(
+          ctx,
+          fx.do({ kind: "may_start_run", servers: "any" }),
+        );
       }
       openPendingChoose(state, {
         sourceId,
@@ -156,25 +164,22 @@ export function applyRedsandDcPrimitive(
         log(state, `NEXT Wave 2 — no rezzed NEXT ice.`);
         return { ok: true };
       }
-      return evalEffect(
-        ctx,
-        {
-          op: "choose",
-          chooser: "corp",
-          options: [
-            {
-              id: "accept",
-              label: "Do 1 core damage",
-              effect: fx.do({ kind: "core_damage", amount: 1 }),
-            },
-            {
-              id: "decline",
-              label: "Decline",
-              effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-            },
-          ],
-        },
-      );
+      return evalEffect(ctx, {
+        op: "choose",
+        chooser: "corp",
+        options: [
+          {
+            id: "accept",
+            label: "Do 1 core damage",
+            effect: fx.do({ kind: "core_damage", amount: 1 }),
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+          },
+        ],
+      });
     }
 
     case "add_facedown_archives_to_hq_per_advancement": {
@@ -366,7 +371,10 @@ export function applyRedsandDcPrimitive(
         return { ok: true };
       }
       state.run.forbidInstallsUntilRunEnd = true;
-      log(state, `Signal Jamming — cards cannot be installed until the run ends.`);
+      log(
+        state,
+        `Signal Jamming — cards cannot be installed until the run ends.`,
+      );
       return { ok: true };
     }
 
@@ -414,7 +422,10 @@ export function applyRedsandDcPrimitive(
       const n = remoteServerCount(state);
       source.recurringCreditsMax = n;
       source.recurringCredits = n;
-      log(state, `Khondi Plaza — recurring credits set to ${n} (remote servers).`);
+      log(
+        state,
+        `Khondi Plaza — recurring credits set to ${n} (remote servers).`,
+      );
       return { ok: true };
     }
 

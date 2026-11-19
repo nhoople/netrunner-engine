@@ -10,14 +10,11 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import {
-  fireOnPlay,
-} from "../../state/cardLifecycleHooks.js";
+import { fireOnPlay } from "../../state/cardLifecycleHooks.js";
 import { random } from "../../state/rng.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   removeCardFromCurrentZone(state, cardId);
@@ -141,9 +138,12 @@ export function applyRedsandTdPrimitive(
           effect: fx.do({ kind: "choose_syn_attack_discard", remaining: 2 }),
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
+      });
       return { ok: true };
     }
 
@@ -244,7 +244,9 @@ logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
     }
 
     case "derez_remote_ice": {
-      const candidates = remoteIce(state).filter((id) => state.cards[id]?.rezzed);
+      const candidates = remoteIce(state).filter(
+        (id) => state.cards[id]?.rezzed,
+      );
       if (candidates.length === 0) {
         log(state, `Maxwell James — no rezzed remote ice.`);
         return { ok: true };
@@ -373,9 +375,7 @@ logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
         return { ok: true };
       }
       revealCards(state, top, sourceId);
-      const programs = top.filter(
-        (id) => state.cards[id]?.type === "program",
-      );
+      const programs = top.filter((id) => state.cards[id]?.type === "program");
       const rest = top.filter((id) => !programs.includes(id));
       // Remove revealed from deck temporarily
       state.runner.deck = state.runner.deck.slice(top.length);
@@ -498,7 +498,9 @@ logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
       const card = state.cards[cardId];
       if (!card || card.type !== "event") return { ok: true };
       // Remove from heap and fire onPlay ignoring costs
-      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
+      state.runner.discardPile = state.runner.discardPile.filter(
+        (id) => id !== cardId,
+      );
       enterLingeringPlayArea(state, cardId, "runner");
       fireOnPlay(state, cardId);
       // Events go to heap after play unless otherwise stated

@@ -58,7 +58,11 @@ describe("blanked hosted credits (CR 9.12.1d)", () => {
   it("drops Trickster Taka use-program hosted pool while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const taka = instantiateCard("trickster-taka", "taka-1", "runner:installed");
+    const taka = instantiateCard(
+      "trickster-taka",
+      "taka-1",
+      "runner:installed",
+    );
     taka.hostedCredits = 2;
     s.cards["taka-1"] = taka;
     s.runner.installed = ["taka-1"];

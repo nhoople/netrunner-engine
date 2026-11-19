@@ -66,7 +66,11 @@ describe("blanked continuous rez/trash costs (CR 9.12.1d)", () => {
       ice: ["wall-1"],
       root: ["vovo-1"],
     };
-    const vovo = instantiateCard("vovo-ozetti", "vovo-1", "server:remote-1:root");
+    const vovo = instantiateCard(
+      "vovo-ozetti",
+      "vovo-1",
+      "server:remote-1:root",
+    );
     vovo.rezzed = true;
     s.cards["vovo-1"] = vovo;
 
@@ -92,7 +96,11 @@ describe("blanked continuous rez/trash costs (CR 9.12.1d)", () => {
   it("drops Demolisher trash-cost reduction while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     pad.rezzed = true;
     s.cards["pad-1"] = pad;
     s.servers["remote-1"] = {

@@ -9,7 +9,6 @@ import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
-
 export type BreachReplacementMode =
   | "security_testing"
   | "account_siphon"
@@ -85,7 +84,10 @@ export function openBreachReplacementChoice(state: GameState): void {
         label: "Apply Security Testing",
         effect: {
           op: "do",
-          action: { kind: "resolve_breach_replacement", mode: "security_testing" },
+          action: {
+            kind: "resolve_breach_replacement",
+            mode: "security_testing",
+          },
         },
       },
       {
@@ -93,7 +95,10 @@ export function openBreachReplacementChoice(state: GameState): void {
         label: "Apply Account Siphon",
         effect: {
           op: "do",
-          action: { kind: "resolve_breach_replacement", mode: "account_siphon" },
+          action: {
+            kind: "resolve_breach_replacement",
+            mode: "account_siphon",
+          },
         },
       },
     );
@@ -116,7 +121,10 @@ export function openBreachReplacementChoice(state: GameState): void {
         label: "Apply Showing Off first",
         effect: {
           op: "do",
-          action: { kind: "resolve_breach_replacement", mode: "showing_off_first" },
+          action: {
+            kind: "resolve_breach_replacement",
+            mode: "showing_off_first",
+          },
         },
       },
     );

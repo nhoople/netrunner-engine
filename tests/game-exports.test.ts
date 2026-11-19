@@ -4,7 +4,12 @@
  */
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { assertCardsPinnedTag, assertPinnedTag, cardsDataPresent, crDataPresent } from "../src/index.js";
+import {
+  assertCardsPinnedTag,
+  assertPinnedTag,
+  cardsDataPresent,
+  crDataPresent,
+} from "../src/index.js";
 import {
   GAME_EXPORTS_DIR,
   compareGameExport,
@@ -40,9 +45,18 @@ describe("game exports", () => {
     const fixture = readGameExport(join(GAME_EXPORTS_DIR, "tithe-run-hq.json"));
     // Drop the last step: the final state no longer matches.
     const short = { ...fixture, steps: fixture.steps.slice(0, -1) };
-    expect(compareGameExport(short, replayGameExport(short)).some((e) => e.includes("final"))).toBe(true);
+    expect(
+      compareGameExport(short, replayGameExport(short)).some((e) =>
+        e.includes("final"),
+      ),
+    ).toBe(true);
     // A step the engine refuses ends the replay as REFUSED, as in a playout.
-    const refused = { ...fixture, steps: [{ action: { type: "access_card", cardId: "nope" } as never, logSeq: 1 }] };
+    const refused = {
+      ...fixture,
+      steps: [
+        { action: { type: "access_card", cardId: "nope" } as never, logSeq: 1 },
+      ],
+    };
     expect(compareGameExport(refused, replayGameExport(refused))).toEqual([
       expect.stringMatching(/^new failure REFUSED@0: access_card/),
     ]);
@@ -59,6 +73,8 @@ describe("game exports", () => {
   it("hashes a state the same after a JSON round trip", () => {
     const fixture = readGameExport(join(GAME_EXPORTS_DIR, "tithe-run-hq.json"));
     const replay = replayGameExport(fixture);
-    expect(stateHash(JSON.parse(JSON.stringify(replay.state)))).toBe(stateHash(replay.state));
+    expect(stateHash(JSON.parse(JSON.stringify(replay.state)))).toBe(
+      stateHash(replay.state),
+    );
   });
 });

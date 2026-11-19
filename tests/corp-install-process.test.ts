@@ -66,7 +66,13 @@ function archives(s: GameState, cards: Array<[string, string, boolean]>): void {
   }
 }
 
-function ice(s: GameState, defId: string, id: string, serverId: string, rezzed: boolean) {
+function ice(
+  s: GameState,
+  defId: string,
+  id: string,
+  serverId: string,
+  rezzed: boolean,
+) {
   if (!s.servers[serverId]) {
     s.servers[serverId] = { id: serverId, kind: "remote", ice: [], root: [] };
   }
@@ -78,7 +84,13 @@ function ice(s: GameState, defId: string, id: string, serverId: string, rezzed: 
   return card;
 }
 
-function rooted(s: GameState, defId: string, id: string, serverId: string, rezzed: boolean) {
+function rooted(
+  s: GameState,
+  defId: string,
+  id: string,
+  serverId: string,
+  rezzed: boolean,
+) {
   if (!s.servers[serverId]) {
     s.servers[serverId] = { id: serverId, kind: "remote", ice: [], root: [] };
     s.nextRemoteNumber = Math.max(s.nextRemoteNumber, 2);
@@ -91,8 +103,16 @@ function rooted(s: GameState, defId: string, id: string, serverId: string, rezze
   return card;
 }
 
-function run(s: GameState, sourceId: string, kind: string, extra: object = {}): void {
-  const r = evalEffect({ state: s, sourceId }, fx.do({ kind, ...extra } as never));
+function run(
+  s: GameState,
+  sourceId: string,
+  kind: string,
+  extra: object = {},
+): void {
+  const r = evalEffect(
+    { state: s, sourceId },
+    fx.do({ kind, ...extra } as never),
+  );
   if (!r.ok) throw new Error(`${kind}: ${r.error}`);
 }
 
@@ -111,7 +131,8 @@ function corpTurn(): GameState {
 const logged = (s: GameState): string => s.log.join("\n");
 const choose = (s: GameState, optionId: string): GameState =>
   must(s, { type: "choose_option", optionId });
-const pick = (s: GameState, cardId: string): GameState => choose(s, `choose-card:${cardId}`);
+const pick = (s: GameState, cardId: string): GameState =>
+  choose(s, `choose-card:${cardId}`);
 const optionIds = (s: GameState): string[] =>
   (s.pendingChoice?.options ?? []).map((o) => o.id);
 
@@ -176,7 +197,9 @@ describe("an ability installs a Corp card: the Corp says where (CR 8.5.16b)", ()
     // The unrezzed ice is facedown in Archives and its name is not logged.
     expect(t.cards["outer"].zone).toBe("corp:archives");
     expect(t.cards["outer"].faceup).toBe(false);
-    expect(logged(t)).toContain("trashes a facedown card from hq before installing");
+    expect(logged(t)).toContain(
+      "trashes a facedown card from hq before installing",
+    );
   });
 
   it("an instruction without 'may' has no way to decline (Interns)", () => {
@@ -187,7 +210,10 @@ describe("an ability installs a Corp card: the Corp says where (CR 8.5.16b)", ()
       required: true,
       ignoreInstallCost: true,
     });
-    expect(optionIds(s)).toEqual(["choose-card:new-ice", "choose-card:old-asset"]);
+    expect(optionIds(s)).toEqual([
+      "choose-card:new-ice",
+      "choose-card:old-asset",
+    ]);
     // An asset with no remote server to go to opens a new one.
     const t = pick(s, "old-asset");
     expect(t.cards["old-asset"].zone).toMatch(/^server:remote-\d+:root$/);
@@ -267,7 +293,9 @@ describe("an ability install during a run (CR 6.2.6)", () => {
 
   it("new ice goes outermost and the Runner keeps their ice (CR 6.2.6a)", () => {
     const s = encounter();
-    run(s, "drafter", "install_from_hq_or_archives", { ignoreInstallCost: true });
+    run(s, "drafter", "install_from_hq_or_archives", {
+      ignoreInstallCost: true,
+    });
     const t = choose(pick(s, "new-ice"), "install-dest:hq");
     expect(t.servers.hq.ice).toEqual(["new-ice", "outer", "drafter", "inner"]);
     expect(t.servers.hq.ice[t.run!.position!]).toBe("drafter");
@@ -276,7 +304,9 @@ describe("an ability install during a run (CR 6.2.6)", () => {
 
   it("other ice can be trashed first; the Runner's position follows their ice", () => {
     const s = encounter();
-    run(s, "drafter", "install_from_hq_or_archives", { ignoreInstallCost: true });
+    run(s, "drafter", "install_from_hq_or_archives", {
+      ignoreInstallCost: true,
+    });
     let t = choose(pick(s, "new-ice"), "install-dest-trash:hq");
     // Any of the ice can go, the ice in the Runner's position included
     // (CR 8.5.6b).
@@ -298,7 +328,9 @@ describe("an ability install during a run (CR 6.2.6)", () => {
 
   it("trashing the Runner's own ice first empties their position (CR 8.5.10, 6.2.6a.ex1)", () => {
     const s = encounter();
-    run(s, "drafter", "install_from_hq_or_archives", { ignoreInstallCost: true });
+    run(s, "drafter", "install_from_hq_or_archives", {
+      ignoreInstallCost: true,
+    });
     let t = choose(pick(s, "new-ice"), "install-dest-trash:hq");
     t = pick(t, "outer");
     t = pick(t, "drafter");
@@ -328,7 +360,10 @@ describe("install and rez (CR 8.5.15, 8.5.13d)", () => {
   it("the Corp may pay Archer's additional cost; the agenda leaves the game (CR 8.2.5)", () => {
     const s = trustOperation(true);
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(optionIds(s)).toEqual(["install-rez-forfeit:scored", "install-rez-decline"]);
+    expect(optionIds(s)).toEqual([
+      "install-rez-forfeit:scored",
+      "install-rez-decline",
+    ]);
     const t = choose(s, "install-rez-forfeit:scored");
     expect(t.cards["archer"].rezzed).toBe(true);
     expect(t.corp.scoreArea).toEqual([]);
@@ -434,7 +469,11 @@ describe("Keyhole (card text: no 'may')", () => {
 });
 
 describe("card definitions say whether the install cost is paid (CR 1.2.1)", () => {
-  function resolve(s: GameState, sourceId: string, effect: Effect | undefined): void {
+  function resolve(
+    s: GameState,
+    sourceId: string,
+    effect: Effect | undefined,
+  ): void {
     if (!effect) throw new Error("The card has no such ability");
     const r = evalEffect({ state: s, sourceId }, effect);
     if (!r.ok) throw new Error(r.error);
@@ -496,7 +535,10 @@ describe("card definitions for searches and modes (CR 1.2.1)", () => {
     deck(s, 5);
     put(s, "graft", "graft-1", "corp:score").faceup = true;
     s.corp.scoreArea = ["graft-1"];
-    const r = evalEffect({ state: s, sourceId: "graft-1" }, getCardDef("graft").onScore!);
+    const r = evalEffect(
+      { state: s, sourceId: "graft-1" },
+      getCardDef("graft").onScore!,
+    );
     if (!r.ok) throw new Error(r.error);
     let t = choose(s, "accept");
     t = pick(t, "rd-0");
@@ -533,7 +575,9 @@ describe("card definitions for searches and modes (CR 1.2.1)", () => {
 
   it("Key Performance Indicators: drawing and shuffling a card back is one mode of four", () => {
     const effect = playEffectFromCard(getCardDef("key-performance-indicators"));
-    const action = (effect as { action: { n: number; options: Array<{ id: string }> } }).action;
+    const action = (
+      effect as { action: { n: number; options: Array<{ id: string }> } }
+    ).action;
     expect(action.n).toBe(2);
     expect(action.options.map((o) => o.id)).toEqual([
       "draw-shuffle",
@@ -544,7 +588,11 @@ describe("card definitions for searches and modes (CR 1.2.1)", () => {
   });
 
   it("Keyhole's card definition has no 'may'", () => {
-    expect(JSON.stringify(getCardDef("keyhole"))).not.toContain("may_breach_instead_keyhole");
-    expect(JSON.stringify(getCardDef("keyhole"))).toContain("breach_instead_keyhole");
+    expect(JSON.stringify(getCardDef("keyhole"))).not.toContain(
+      "may_breach_instead_keyhole",
+    );
+    expect(JSON.stringify(getCardDef("keyhole"))).toContain(
+      "breach_instead_keyhole",
+    );
   });
 });

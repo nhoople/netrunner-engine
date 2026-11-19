@@ -30,13 +30,13 @@ export function deferContinuationAfter(
 export function effectResolutionBlocked(state: GameState): boolean {
   return Boolean(
     state.pendingChoice ||
-      state.pendingTrashProgram ||
-      state.pendingSabotage ||
-      state.pendingDamage ||
-      state.pendingTags ||
-      state.pendingExpose ||
-      state.pendingTrashPrevent ||
-      state.trace ||
-      state.psi,
+    state.pendingTrashProgram ||
+    state.pendingSabotage ||
+    state.pendingDamage ||
+    state.pendingTags ||
+    state.pendingExpose ||
+    state.pendingTrashPrevent ||
+    state.trace ||
+    state.psi,
   );
 }

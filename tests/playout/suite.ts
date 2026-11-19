@@ -43,8 +43,15 @@ export function describePlayouts(formats: readonly Format[]): void {
 
   const seeds = readSeeds();
   for (const format of formats) {
-    const pinned = seeds.entries.filter((e) => e.format === format).map((e) => e.deckSeed);
-    const list = [...new Set([...Array.from({ length: CI_SEEDS[format] }, (_, i) => i + 1), ...pinned])];
+    const pinned = seeds.entries
+      .filter((e) => e.format === format)
+      .map((e) => e.deckSeed);
+    const list = [
+      ...new Set([
+        ...Array.from({ length: CI_SEEDS[format] }, (_, i) => i + 1),
+        ...pinned,
+      ]),
+    ];
     list.sort((a, b) => a - b);
     describe(`playout ${format}`, () => {
       for (const seed of list) {

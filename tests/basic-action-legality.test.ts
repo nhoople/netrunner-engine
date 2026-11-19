@@ -1,5 +1,11 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { applyIntent, assertPinnedTag, crDataPresent, createGame, queryLegality } from "../src/index.js";
+import {
+  applyIntent,
+  assertPinnedTag,
+  crDataPresent,
+  createGame,
+  queryLegality,
+} from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
 
 beforeAll(() => {
@@ -28,8 +34,8 @@ function toCorpTakeAction(state: GameState): GameState {
 }
 
 function ofType(state: GameState, type: Action["type"]): Action[] {
-  return queryLegality(state).legal
-    .map((entry) => entry.action)
+  return queryLegality(state)
+    .legal.map((entry) => entry.action)
     .filter((action) => action.type === type);
 }
 
@@ -69,9 +75,15 @@ describe("basic action legality", () => {
 
     hold(state, "corp-fill-3");
     state.cards["corp-fill-3"].type = "operation";
-    expect(ofType(state, "play_operation").some((action) => action.cardId === "corp-fill-3")).toBe(true);
     expect(
-      ofType(state, "basic_install").some((action) => action.cardId === "corp-fill-3"),
+      ofType(state, "play_operation").some(
+        (action) => action.cardId === "corp-fill-3",
+      ),
+    ).toBe(true);
+    expect(
+      ofType(state, "basic_install").some(
+        (action) => action.cardId === "corp-fill-3",
+      ),
     ).toBe(false);
 
     const upgrade = structuredClone(state.cards["corp-asset-1"]);
@@ -112,7 +124,10 @@ describe("basic action legality", () => {
     const trash = ofType(state, "basic_trash_resource");
     expect(trash.map((action) => action.cardId)).toEqual([resource.id]);
     const before = state.corp.credits;
-    const trashed = must(state, { type: "basic_trash_resource", cardId: resource.id });
+    const trashed = must(state, {
+      type: "basic_trash_resource",
+      cardId: resource.id,
+    });
     expect(trashed.corp.credits).toBe(before - 2);
   });
 
@@ -217,7 +232,9 @@ describe("basic action legality", () => {
     // ice is no longer offered, and the Runner may see the installed ice.
     expect(asked.state.pendingChoice?.options.at(-1)?.label).toBe("None");
     expect(picked.state.pendingChoice?.chooser).toBe("corp");
-    expect(picked.state.pendingChoice?.options.map((o) => [o.id, o.label])).toEqual([
+    expect(
+      picked.state.pendingChoice?.options.map((o) => [o.id, o.label]),
+    ).toEqual([
       ["cost-card:hq-ice-a", asked.state.cards["hq-ice-a"].title],
       ["cost-card-done", "Done"],
     ]);
@@ -271,7 +288,10 @@ describe("basic action legality", () => {
     const install = {
       type: "basic_install" as const,
       cardId: "corp-asset-1",
-      destination: { kind: "remote_root" as const, serverId: "remote-1" as const },
+      destination: {
+        kind: "remote_root" as const,
+        serverId: "remote-1" as const,
+      },
     };
     expect(ofType(state, "basic_install")).toContainEqual(install);
     const done = applyIntent(state, install);
@@ -318,14 +338,18 @@ describe("basic action legality", () => {
     hold(state, event.id);
 
     const installs = ofType(state, "basic_install");
-    expect(installs.some((action) => action.cardId === "runner-program-1")).toBe(true);
+    expect(
+      installs.some((action) => action.cardId === "runner-program-1"),
+    ).toBe(true);
     expect(installs.some((action) => action.cardId === event.id)).toBe(false);
-    expect(ofType(state, "play_event").some((action) => action.cardId === event.id)).toBe(true);
-    expect(ofType(state, "basic_run").map((action) => action.serverId).sort()).toEqual([
-      "archives",
-      "hq",
-      "rd",
-    ]);
+    expect(
+      ofType(state, "play_event").some((action) => action.cardId === event.id),
+    ).toBe(true);
+    expect(
+      ofType(state, "basic_run")
+        .map((action) => action.serverId)
+        .sort(),
+    ).toEqual(["archives", "hq", "rd"]);
 
     expect(ofType(state, "basic_remove_tag")).toHaveLength(0);
     state.runner.tags = 1;

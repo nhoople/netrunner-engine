@@ -22,7 +22,11 @@ import {
   resolveIceRezCostIncrease,
   resolveIceRezCostReduction,
 } from "../state/continuousCosts.js";
-import { addRestriction, trashCardsOnForbiddenHosts, withCostCheckpoint } from "../legality/checkpoints.js";
+import {
+  addRestriction,
+  trashCardsOnForbiddenHosts,
+  withCostCheckpoint,
+} from "../legality/checkpoints.js";
 import {
   ensurePriorityWindow,
   nestPriorityAfterAbility,
@@ -33,10 +37,7 @@ import {
   fireIceRezDuringRunHooks,
   fireOnAnyIceRez,
 } from "../effects/eval.js";
-import {
-  fireOnForfeit,
-  fireOnRez,
-} from "../state/cardLifecycleHooks.js";
+import { fireOnForfeit, fireOnRez } from "../state/cardLifecycleHooks.js";
 import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
 import { fireDagAfterCorpRez } from "../effects/primitives/hostResolveLook.js";
 import { fireSiAfterCorpRezOrPlay } from "../effects/primitives/lookTrashAdd.js";
@@ -51,9 +52,7 @@ import { runnerIsTagged } from "../state/tags.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
-import {
-  fireOnFirstIceRezEachTurn,
-} from "../state/miscConditionalHooks.js";
+import { fireOnFirstIceRezEachTurn } from "../state/miscConditionalHooks.js";
 import { random } from "../state/rng.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
@@ -65,7 +64,10 @@ function ok(state: GameState): ApplyResult {
 }
 
 /** Hernando Cortez-class: ice rez +subroutine-count when Corp credits ≥ threshold. */
-export function hernandoIceRezSurcharge(state: GameState, cardId: string): number {
+export function hernandoIceRezSurcharge(
+  state: GameState,
+  cardId: string,
+): number {
   const ice = state.cards[cardId];
   if (!ice || ice.type !== "ice") return 0;
   const subs = ice.subroutines?.length ?? 0;
@@ -164,7 +166,10 @@ function forfeitSpecificAgenda(state: GameState, id: string): void {
     }
   }
   moveForfeitedAgendaOutOfGame(state, id);
-  log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
+  log(
+    state,
+    `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`,
+  );
 }
 
 export { forfeitSpecificAgenda };
@@ -185,17 +190,16 @@ export function derezCostTargets(state: GameState, cardId: string): string[] {
 }
 
 function forfeitAgenda(state: GameState): void {
-  const pool = state.corp.scoreArea.filter((x) => !state.cards[x]?.cannotForfeit);
+  const pool = state.corp.scoreArea.filter(
+    (x) => !state.cards[x]?.cannotForfeit,
+  );
   // The Corp's pick for this cost comes with the action (CR 1.16.1).
   const id = (state.costCardIds ?? []).find((x) => pool.includes(x)) ?? pool[0];
   if (!id) return;
   forfeitSpecificAgenda(state, id);
 }
 
-function iceServerId(
-  state: GameState,
-  iceId: string,
-): string | null {
+function iceServerId(state: GameState, iceId: string): string | null {
   for (const [sid, server] of Object.entries(state.servers)) {
     if (server.ice.includes(iceId)) return sid;
   }
@@ -212,9 +216,10 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     return fail("Ice is already rezzed.", [CR.rezUnrezzed, CR.rezProcedure]);
   }
   if (state.turn.dagCannotRezCardIds?.includes(cardId)) {
-    return fail("Cannot rez this card for the remainder of this turn (Councilman).", [
-      CR.rezProcedure,
-    ]);
+    return fail(
+      "Cannot rez this card for the remainder of this turn (Councilman).",
+      [CR.rezProcedure],
+    );
   }
   const asNonIce =
     Boolean(card.rezAsNonIceDuringRunsOnServer) &&
@@ -246,9 +251,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   // Cyber Threat-class: the Corp cannot rez ice at all during this run.
   // (Candidate filters already hide the action; validation must agree.)
   if (state.run?.forbidCorpRezIceDuringRun && card.type === "ice") {
-    return fail("The Corp cannot rez ice during this run.", [
-      CR.rezProcedure,
-    ]);
+    return fail("The Corp cannot rez ice during this run.", [CR.rezProcedure]);
   }
   // DDoS: Corp cannot rez the outermost piece of ice during a run this turn.
   if (state.turn.uotCannotRezOutermostIce && state.run) {
@@ -381,14 +384,14 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     const subtype = card.rezAdditionalCostDerezSubtype;
     const targets = derezCostTargets(state, cardId);
     if (targets.length === 0) {
-      return fail(
-        `Rez requires derezzing another rezzed ${subtype} ice.`,
-        [CR.rezProcedure],
-      );
+      return fail(`Rez requires derezzing another rezzed ${subtype} ice.`, [
+        CR.rezProcedure,
+      ]);
     }
     // The Corp's pick comes with the action (CR 1.16.1).
     derezTarget =
-      (state.costCardIds ?? []).find((id) => targets.includes(id)) ?? targets[0]!;
+      (state.costCardIds ?? []).find((id) => targets.includes(id)) ??
+      targets[0]!;
   }
   // Valentão-class: additional rez cost Effect (may open a choice).
   if (card.rezAdditionalCost) {
@@ -396,10 +399,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
       state.pendingRezCardId = null;
     } else {
       state.pendingRezCardId = cardId;
-      const r = evalEffect(
-        { state, sourceId: cardId },
-        card.rezAdditionalCost,
-      );
+      const r = evalEffect({ state, sourceId: cardId }, card.rezAdditionalCost);
       if (!r.ok) {
         state.pendingRezCardId = null;
         return fail(r.error, r.cites);
@@ -414,10 +414,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
         if (state.pendingChoice.options.length === 1) {
           const only = state.pendingChoice.options[0]!;
           state.pendingChoice = null;
-          const paid = evalEffect(
-            { state, sourceId: cardId },
-            only.effect,
-          );
+          const paid = evalEffect({ state, sourceId: cardId }, only.effect);
           if (!paid.ok) {
             state.pendingRezCardId = null;
             return fail(paid.error, paid.cites);
@@ -459,7 +456,11 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   card.faceup = true;
   trashCardsOnForbiddenHosts(state);
   onCardRezzed(state, card);
-  if (state.run && state.timingKey === "run.approachPaw" && card.type === "ice") {
+  if (
+    state.run &&
+    state.timingKey === "run.approachPaw" &&
+    card.type === "ice"
+  ) {
     state.run.iceRezzedDuringApproachId = cardId;
   }
   if (state.turn.socialEngineeringMarkedIce === cardId) {
@@ -612,12 +613,15 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
   }
   ensurePriorityWindow(state);
   if (state.turn.dagCannotRezCardIds?.includes(cardId)) {
-    return fail("Cannot rez this card for the remainder of this turn (Councilman).", [
-      CR.rezProcedure,
-    ]);
+    return fail(
+      "Cannot rez this card for the remainder of this turn (Councilman).",
+      [CR.rezProcedure],
+    );
   }
   if (card.rezRequiresTagged && !runnerIsTagged(state)) {
-    return fail("Can only be rezzed if the Runner is tagged.", [CR.rezProcedure]);
+    return fail("Can only be rezzed if the Runner is tagged.", [
+      CR.rezProcedure,
+    ]);
   }
   if (
     state.turn.cannotScoreOrRezCardIds.includes(cardId) ||
@@ -735,10 +739,7 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
   }
   if ((card.powerCountersOnRez ?? 0) > 0) {
     card.powerCounters = card.powerCountersOnRez;
-    log(
-      state,
-      `Load ${card.powerCounters} power counter(s) on ${card.title}.`,
-    );
+    log(state, `Load ${card.powerCounters} power counter(s) on ${card.title}.`);
   }
   if (card.rezSpendCreditsForPowerCounters) {
     const max = card.rezSpendCreditsForPowerCounters.max;

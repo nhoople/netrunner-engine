@@ -14,7 +14,11 @@ import {
   instantiateCard,
   occurCheckpoint,
 } from "../src/index.js";
-import { LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER, LINGERING_KIND_BREAKER_STRENGTH_RUN, lingeringBreakerStrengthOfKind } from "../src/state/lingeringEffects.js";
+import {
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  lingeringBreakerStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
 
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { moveRunnerCardToHeap } from "../src/state/trashHooks.js";
@@ -63,8 +67,20 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
         fx.do({ kind: "pump_strength", amount: 2 }),
       ).ok,
     ).toBe(true);
-    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(2);
-    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(0);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "corr-1",
+        LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "corr-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(0);
     expect(
       s.turn.hostDurationReplacements?.some((r) => r.replacedTo === "run"),
     ).toBe(true);
@@ -97,9 +113,23 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
     // Strength read syncs host-duration replacements (CR 9.9.9a).
     // Corroder 2 + encounter pump 2 (host +1 gone with Gamedragon).
     expect(breakerStrength(s, "corr-1")).toBe(4);
-    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
-    expect(lingeringBreakerStrengthOfKind(s, "corr-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(0);
-    expect(s.log.join("\n")).toContain(CR.replacementStaticMustRemainActive.number);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "corr-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "corr-1",
+        LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(0);
+    expect(s.log.join("\n")).toContain(
+      CR.replacementStaticMustRemainActive.number,
+    );
   });
 
   it("ends the boost at the next checkpoint when the encounter already ended", () => {
@@ -127,11 +157,17 @@ describe("Gamedragon Pro duration replacement (CR 9.9.9a)", () => {
     moveRunnerCardToHeap(s, "gdp-1");
     // Host bonus gone; pump held until checkpoint (CR 9.9.9a.ex1).
     expect(breakerStrength(s, "corr-1")).toBe(4);
-    expect(s.log.join("\n")).toContain(CR.replacementStaticMustRemainActive.number);
+    expect(s.log.join("\n")).toContain(
+      CR.replacementStaticMustRemainActive.number,
+    );
 
-    occurCheckpoint(s, "timing", "after Gamedragon leaves", [
-      CR.checkpointDurationAbilities,
-    ], "test");
+    occurCheckpoint(
+      s,
+      "timing",
+      "after Gamedragon leaves",
+      [CR.checkpointDurationAbilities],
+      "test",
+    );
     expect(breakerStrength(s, "corr-1")).toBe(2);
   });
 });

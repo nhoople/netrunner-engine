@@ -2,10 +2,7 @@
  * Primitive kinds whose procedure is set.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
 import { setRunnerPosition } from "../../state/runPosition.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
@@ -13,11 +10,14 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { enterSetAside } from "../../state/zones.js";
 import { serverHostingCard } from "../eval.js";
 
-export function applySetKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applySetKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "set_rez_ice_forfeit_discount": {
+    case "set_rez_ice_forfeit_discount": {
       if (action.forfeit) {
         state.turn.rezIceForfeitDiscountCardId = action.cardId;
       } else {
@@ -32,7 +32,7 @@ case "set_rez_ice_forfeit_discount": {
       return { ok: true };
     }
 
-case "set_aside_access_shuffle": {
+    case "set_aside_access_shuffle": {
       const cost = action.installCost;
       const matching = state.runner.installed.filter(
         (id) => (state.cards[id]?.installCost ?? 0) === cost,
@@ -70,30 +70,31 @@ case "set_aside_access_shuffle": {
             },
           },
         })),
-logLine: `${source.title} — set aside top ${aside.length} of R&D (cost ${cost}); access 1.`,
-});
+        logLine: `${source.title} — set aside top ${aside.length} of R&D (cost ${cost}); access 1.`,
+      });
       return { ok: true };
     }
 
-case "set_skip_breach": {
+    case "set_skip_breach": {
       if (state.run) state.run.skipBreach = true;
       return { ok: true };
     }
 
-case "set_named_server": {
-      source.namedServerId = action.serverId as import("../../state/types.js").ServerId;
+    case "set_named_server": {
+      source.namedServerId =
+        action.serverId as import("../../state/types.js").ServerId;
       log(state, `${source.title} names ${action.serverId}.`);
       return { ok: true };
     }
 
-case "set_chosen_server": {
+    case "set_chosen_server": {
       source.chosenServerId =
         action.serverId as import("../../state/types.js").ServerId;
       log(state, `${source.title} chooses ${action.serverId}.`);
       return { ok: true };
     }
 
-case "set_encounter_chosen_card_type": {
+    case "set_encounter_chosen_card_type": {
       if (!state.run?.encounter) {
         log(state, `Set encounter card type — no encounter.`);
         return { ok: true };
@@ -106,7 +107,7 @@ case "set_encounter_chosen_card_type": {
       return { ok: true };
     }
 
-case "set_run_skip_breach": {
+    case "set_run_skip_breach": {
       if (!state.run) {
         log(state, `set_run_skip_breach — no active run.`);
         return { ok: true };
@@ -116,7 +117,7 @@ case "set_run_skip_breach": {
       return { ok: true };
     }
 
-case "set_reencounter_ice": {
+    case "set_reencounter_ice": {
       if (!state.run) {
         log(state, `set_reencounter_ice — no run.`);
         return { ok: true };
@@ -158,14 +159,11 @@ case "set_reencounter_ice": {
       if (state.run.accessingCardId) {
         state.run.resumeAccessAfterReencounter = true;
       }
-      log(
-        state,
-        `Runner will encounter ${ice.title} (Ganked!/reencounter).`,
-      );
+      log(state, `Runner will encounter ${ice.title} (Ganked!/reencounter).`);
       return { ok: true };
     }
 
-case "set_nested_encounter_then_resume_source": {
+    case "set_nested_encounter_then_resume_source": {
       if (!state.run) {
         log(state, `set_nested_encounter_then_resume_source — no run.`);
         return { ok: true };

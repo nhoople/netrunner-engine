@@ -41,7 +41,8 @@ function runnerTurn(): GameState {
   s.corp.credits = 5;
   s.priorityStack = [];
   // The default opening marks a Runner program rezzed; Runner cards are not (CR 8.1.4f).
-  for (const card of Object.values(s.cards)) if (card.side === "runner") card.rezzed = false;
+  for (const card of Object.values(s.cards))
+    if (card.side === "runner") card.rezzed = false;
   return s;
 }
 
@@ -58,7 +59,12 @@ describe("the Corp receives priority after the Runner passes (CR 9.2.7a)", () =>
   /** A Runner's turn with one facedown card in a remote root. */
   function withFacedownRemote(defId: string, rezCost?: number): GameState {
     const s = runnerTurn();
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["hidden-1"] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["hidden-1"],
+    };
     const card = instantiateCard(defId, "hidden-1", "server:remote-1:root");
     card.rezzed = false;
     card.faceup = false;
@@ -90,7 +96,9 @@ describe("the Corp receives priority after the Runner passes (CR 9.2.7a)", () =>
     expect(offers(after.agenda!, "rez_asset")).toBe(false);
     // The Corp passes and the window closes (CR 9.2.7a).
     for (const s of Object.values(after)) {
-      expect(seen(must(s, { type: "pass_window" }))).toBe("runner.takeAction:runner");
+      expect(seen(must(s, { type: "pass_window" }))).toBe(
+        "runner.takeAction:runner",
+      );
     }
   });
 
@@ -123,7 +131,8 @@ describe("the Corp receives priority after the Runner passes (CR 9.2.7a)", () =>
   it("closes the jack-out choice on the Runner's decision alone (CR 6.9.4c)", () => {
     let s = runnerTurn();
     s = must(s, { type: "basic_run", serverId: "archives" });
-    for (let i = 0; i < 8 && s.timingKey !== "run.jackOutWindow"; i++) s = must(s, { type: "pass_window" });
+    for (let i = 0; i < 8 && s.timingKey !== "run.jackOutWindow"; i++)
+      s = must(s, { type: "pass_window" });
     expect(seen(s)).toBe("run.jackOutWindow:runner");
     s = must(s, { type: "pass_window" });
     expect(s.timingKey).not.toBe("run.jackOutWindow");

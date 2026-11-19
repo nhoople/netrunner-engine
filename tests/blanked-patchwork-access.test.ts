@@ -53,8 +53,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
 
     const active = s.runner.installed.some(
       (id) =>
-        !abilitiesSuppressed(s, id) &&
-        s.cards[id]?.revealCorpBasicActionDraws,
+        !abilitiesSuppressed(s, id) && s.cards[id]?.revealCorpBasicActionDraws,
     );
     expect(active).toBe(true);
     suppressAbilities(s, cd.id);
@@ -112,11 +111,7 @@ describe("blanked Patchwork / access helpers (CR 9.12.1d)", () => {
   it("drops Salsette Slums RFG while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const slums = instantiateCard(
-      "salsette-slums",
-      "ss-1",
-      "runner:installed",
-    );
+    const slums = instantiateCard("salsette-slums", "ss-1", "runner:installed");
     s.cards["ss-1"] = slums;
     s.runner.installed = ["ss-1"];
 

@@ -53,7 +53,10 @@ const HANDLERS = [
   applyTrashKinds,
 ] as const;
 
-export function applyCoreKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyCoreKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   for (const handle of HANDLERS) {
     const result = handle(ctx, action);
     if (result) return result;

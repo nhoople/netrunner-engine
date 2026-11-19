@@ -85,9 +85,9 @@ describe("blanked Fenris / Film Critic / CPC / LTI (CR 9.12.1d)", () => {
     s.servers.hq.root = ["lti-1"];
 
     syncLongTermInvestment(s, lti);
-    expect((lti.paidAbilities ?? []).some((a) => a.id.includes("take-hosted"))).toBe(
-      true,
-    );
+    expect(
+      (lti.paidAbilities ?? []).some((a) => a.id.includes("take-hosted")),
+    ).toBe(true);
 
     // Blanked cards are not synced from candidateClicks; clear then confirm
     // the suppress gate would skip re-sync.

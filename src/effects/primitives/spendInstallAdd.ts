@@ -15,10 +15,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function offerSparedSubroutineChoice(
   state: EffectCtx["state"],
@@ -179,7 +177,11 @@ export function applySpinHapPrimitive(
         options: cands.map((id) => ({
           id: `tennin:${id}`,
           label: `Place 1 advancement on ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "place_advancements_on", cardId: id, amount: 1 }),
+          effect: fx.do({
+            kind: "place_advancements_on",
+            cardId: id,
+            amount: 1,
+          }),
         })),
       });
       return { ok: true };
@@ -270,8 +272,7 @@ export function applySpinHapPrimitive(
       if (idx < 0) return { ok: true };
       state.corp.hand.splice(idx, 1);
       const card = state.cards[cardId]!;
-      const sid =
-        `remote-${state.nextRemoteNumber++}` as ServerId;
+      const sid = `remote-${state.nextRemoteNumber++}` as ServerId;
       state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [cardId] };
       card.zone = `server:${sid}:root`;
       card.faceup = false;
@@ -365,10 +366,10 @@ export function applySpinHapPrimitive(
             effect: breach,
           },
         ],
-logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
+        logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
           cannotAccessRoot ? " without root access" : ""
         }.`,
-});
+      });
       return { ok: true };
     }
     case "breach_server_during_encounter": {
@@ -412,7 +413,10 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
     }
     case "inazuma_lock_breaking_next_encounter": {
       if (state.run) state.run.inazumaLockNextEncounter = true;
-      log(state, `Inazuma — next encounter cannot break subroutines on encountered ice.`);
+      log(
+        state,
+        `Inazuma — next encounter cannot break subroutines on encountered ice.`,
+      );
       return { ok: true };
     }
     case "forbid_jack_out_until_next_encounter": {
@@ -679,8 +683,7 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
     case "reveal_score_from_hq": {
       // Printed: score an HQ agenda whose advancement requirement is ≤ the
       // number of advancement tokens on Plan B (CR 1.2.1: card text wins).
-      const planBAdv =
-        state.cards[sourceId]?.advancementCounters ?? 0;
+      const planBAdv = state.cards[sourceId]?.advancementCounters ?? 0;
       const agendas = state.corp.hand.filter((id) => {
         const c = state.cards[id];
         return (
@@ -761,7 +764,11 @@ logLine: `Corp may pay ${credits}¢ or the Runner breaches ${server}${
           });
         }
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options: opts.slice(0, 12) });
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options: opts.slice(0, 12),
+      });
       return { ok: true };
     }
     case "corp_pay_credits": {

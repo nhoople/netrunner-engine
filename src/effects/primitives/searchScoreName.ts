@@ -13,10 +13,8 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applyLunarTsbPrimitive(
   ctx: EffectCtx,
@@ -197,7 +195,10 @@ export function applyLunarTsbPrimitive(
       if (!card || n <= 0) return { ok: true };
       card.hostedCredits = (card.hostedCredits ?? 0) - n;
       state.corp.credits += n;
-      log(state, `Sealed Vault — take ${n}¢ to pool (${card.hostedCredits} hosted).`);
+      log(
+        state,
+        `Sealed Vault — take ${n}¢ to pool (${card.hostedCredits} hosted).`,
+      );
       return { ok: true };
     }
     case "trash_will_o_wisp_breaker_used": {
@@ -273,7 +274,10 @@ export function applyLunarTsbPrimitive(
       const gain = runs * 2;
       if (gain > 0) {
         state.runner.credits += gain;
-        log(state, `Three Steps Ahead — gain ${gain}¢ (${runs} successful runs).`);
+        log(
+          state,
+          `Three Steps Ahead — gain ${gain}¢ (${runs} successful runs).`,
+        );
       }
       return { ok: true };
     }

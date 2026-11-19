@@ -3,7 +3,12 @@
  * Vendored fetch of Comprehensive Rules JSON pinned to tag v26.03.
  * See data/cr-pin.json and README.md.
  */
-import { createWriteStream, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  createWriteStream,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";

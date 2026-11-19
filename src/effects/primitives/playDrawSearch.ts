@@ -16,10 +16,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function installedRunnerIds(state: EffectCtx["state"]): string[] {
   return [...state.runner.installed];
@@ -48,14 +46,14 @@ export function applyDadPrimitive(
 
   switch (action.kind) {
     case "play_current_from_hq_or_archives": {
-      const cands = [...new Set([...state.corp.hand, ...state.corp.discardPile])].filter(
-        (id) => {
-          const c = state.cards[id];
-          return (
-            c?.type === "operation" && (c.subtypes ?? []).includes("current")
-          );
-        },
-      );
+      const cands = [
+        ...new Set([...state.corp.hand, ...state.corp.discardPile]),
+      ].filter((id) => {
+        const c = state.cards[id];
+        return (
+          c?.type === "operation" && (c.subtypes ?? []).includes("current")
+        );
+      });
       if (cands.length === 0) {
         log(state, `${source?.title ?? "Sol"} — no current to play.`);
         return { ok: true };
@@ -257,13 +255,16 @@ export function applyDadPrimitive(
 
     case "install_and_rez_x_advertisements_from_hq_or_archives": {
       const x = state.turn.lastPlayCostX ?? 0;
-      const ads = [...state.corp.hand, ...state.corp.discardPile].filter((id) => {
-        const card = state.cards[id];
-        if (!card || !(card.subtypes ?? []).includes("advertisement")) return false;
-        if (card.type === "agenda") return false;
-        const cost = corpInstallCost(card, 0) + (card.rezCost ?? 0);
-        return state.corp.credits >= cost;
-      });
+      const ads = [...state.corp.hand, ...state.corp.discardPile].filter(
+        (id) => {
+          const card = state.cards[id];
+          if (!card || !(card.subtypes ?? []).includes("advertisement"))
+            return false;
+          if (card.type === "agenda") return false;
+          const cost = corpInstallCost(card, 0) + (card.rezCost ?? 0);
+          return state.corp.credits >= cost;
+        },
+      );
       if (x <= 0 || ads.length === 0) {
         log(state, `Ad Blitz — nothing to install (X=${x}).`);
         return { ok: true };
@@ -292,7 +293,12 @@ export function applyDadPrimitive(
         state.corp.credits -= cost;
         removeCardFromCurrentZone(state, action.cardId);
         const remoteKey = nextRemoteId(state);
-        state.servers[remoteKey] = { id: remoteKey, kind: "remote", ice: [], root: [] };
+        state.servers[remoteKey] = {
+          id: remoteKey,
+          kind: "remote",
+          ice: [],
+          root: [],
+        };
         state.servers[remoteKey]!.root.push(action.cardId);
         card.zone = `server:${remoteKey}:root`;
         card.rezzed = true;
@@ -372,7 +378,8 @@ export function applyDadPrimitive(
 
     case "trash_all_resources": {
       for (const id of [...state.runner.installed]) {
-        if (state.cards[id]?.type === "resource") moveRunnerCardToHeap(state, id);
+        if (state.cards[id]?.type === "resource")
+          moveRunnerCardToHeap(state, id);
       }
       log(state, `The All-Seeing I — trash all resources.`);
       return { ok: true };
@@ -464,9 +471,7 @@ export function applyDadPrimitive(
       moveRunnerCardToHeap(state, action.cardId);
       state.turn.dadOwnInstalledTrashedThisTurn =
         (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) + 1;
-      if (
-        (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) === 1
-      ) {
+      if ((state.turn.dadOwnInstalledTrashedThisTurn ?? 0) === 1) {
         for (const id of state.runner.installed) {
           if (abilitiesSuppressed(state, id)) continue;
           const c = state.cards[id];
@@ -543,7 +548,11 @@ export function applyDadPrimitive(
 
     case "break_sub_index": {
       const enc = state.run?.encounter;
-      if (enc && enc.iceId === action.iceId && enc.broken[action.index] !== undefined) {
+      if (
+        enc &&
+        enc.iceId === action.iceId &&
+        enc.broken[action.index] !== undefined
+      ) {
         enc.broken[action.index] = true;
         log(state, `Break subroutine on ${state.cards[action.iceId]?.title}.`);
       }
@@ -695,7 +704,9 @@ export function applyDadPrimitive(
       const link = state.runner.link ?? 0;
       const breakers = installedRunnerIds(state).filter((id) => {
         const c = state.cards[id];
-        return Boolean(c?.breaker) || (c?.subtypes ?? []).includes("icebreaker");
+        return (
+          Boolean(c?.breaker) || (c?.subtypes ?? []).includes("icebreaker")
+        );
       });
       const clouds = breakers.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("cloud"),
@@ -764,7 +775,11 @@ export function applyDadPrimitive(
       // Security Nexus: bypass aborts the encounter (CR 6.5.8a). Nothing to
       // bypass if the encounter already ended during the trace.
       if (!state.run?.encounter) return { ok: true };
-      return applyEncounterPrimitive(ctx, { kind: "bypass_current_ice" }) ?? { ok: true };
+      return (
+        applyEncounterPrimitive(ctx, { kind: "bypass_current_ice" }) ?? {
+          ok: true,
+        }
+      );
     }
 
     case "jak_sinclair_run_without_programs": {

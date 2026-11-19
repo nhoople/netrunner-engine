@@ -1,7 +1,5 @@
 export type { Cond, Effect, Primitive } from "./ir.js";
-export type {
-  AbilityRecord,
-} from "./abilityRecord.js";
+export type { AbilityRecord } from "./abilityRecord.js";
 export {
   applyAbilityRecords,
   hasPlayEffect,
@@ -17,14 +15,5 @@ export {
   triggerToHook,
   validateAbilityRecord,
 } from "./abilityRecord.js";
-export {
-  fx,
-  effectContains,
-  validateCond,
-  validateEffectTree,
-} from "./ir.js";
-export {
-  evalEffect,
-  validatePaidEffect,
-  type EffectCtx,
-} from "./eval.js";
+export { fx, effectContains, validateCond, validateEffectTree } from "./ir.js";
+export { evalEffect, validatePaidEffect, type EffectCtx } from "./eval.js";

@@ -7,8 +7,7 @@ import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applyPsiPrimitive(
   ctx: EffectCtx,
@@ -24,13 +23,7 @@ export function applyPsiPrimitive(
       } as Effect;
       const matchFx = action.ifBidsMatch ?? noop;
       const differFx = action.ifBidsDiffer ?? noop;
-      startPsiGame(
-        state,
-        sourceId,
-        action.maxBid,
-        differFx,
-        matchFx,
-      );
+      startPsiGame(state, sourceId, action.maxBid, differFx, matchFx);
       return { ok: true };
     }
     default:

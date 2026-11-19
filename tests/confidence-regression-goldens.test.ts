@@ -48,7 +48,12 @@ type GoldenSnapshot = {
     endedTheRun: boolean;
   };
   corp: { credits: number; clicks: number; scoreLen: number };
-  runner: { credits: number; clicks: number; tags: number; installedLen: number };
+  runner: {
+    credits: number;
+    clicks: number;
+    tags: number;
+    installedLen: number;
+  };
   /** Ordered unique appendix / rule numbers seen in the log. */
   windowAndCiteNumbers: string[];
   logMarkers: string[];
@@ -57,14 +62,20 @@ type GoldenSnapshot = {
 function windowAndCiteNumbers(log: string[]): string[] {
   const found = new Set<string>();
   for (const line of log) {
-    for (const m of line.matchAll(/\b(\d+\.\d+(?:\.\d+[a-z]?)?(?:_\d+[a-z_]*)*)\b/g)) {
+    for (const m of line.matchAll(
+      /\b(\d+\.\d+(?:\.\d+[a-z]?)?(?:_\d+[a-z_]*)*)\b/g,
+    )) {
       found.add(m[1]!);
     }
   }
   return [...found].sort();
 }
 
-function snapshot(name: string, s: GameState, markers: string[]): GoldenSnapshot {
+function snapshot(
+  name: string,
+  s: GameState,
+  markers: string[],
+): GoldenSnapshot {
   const step = getStep(s);
   return {
     name,
@@ -124,11 +135,17 @@ describe("regression goldens — full-run transcripts", () => {
       for (const intent of steps) state = must(state, intent);
       const markers =
         name === "vertical-slice-decline-rez"
-          ? [CR.corpBasicInstall.number, CR.successfulRun.number, "No access candidates"]
+          ? [
+              CR.corpBasicInstall.number,
+              CR.successfulRun.number,
+              "No access candidates",
+            ]
           : name === "ice-break-success"
             ? [CR.rezInPaw.number, CR.successfulRun.number]
             : [CR.endTheRun.number, CR.unsuccessfulRun.number];
-      expect(snapshot(name, state, markers)).toEqual(snapshot(name, run(), markers));
+      expect(snapshot(name, state, markers)).toEqual(
+        snapshot(name, run(), markers),
+      );
       expect(steps.length).toBeGreaterThan(0);
     }
   });

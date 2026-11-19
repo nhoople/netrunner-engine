@@ -40,10 +40,7 @@ function valTriggerWouldMark(
 
 /** Valley first/second-each-turn families marked at 10.3.1a (phase 3). */
 export type ValRunnerTriggerFamily =
-  | "damage"
-  | "install"
-  | "click_loss"
-  | "basic_click_draw";
+  "damage" | "install" | "click_loss" | "basic_click_draw";
 
 export const VAL_RUNNER_TRIGGER_CONFIG = {
   damage: {

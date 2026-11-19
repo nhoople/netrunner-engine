@@ -84,7 +84,13 @@
  * `CardDef`/`CardInstance` (deck checks take `DeckEntry`). A read through such a
  * type counts and names the type in `mirrors`.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
@@ -146,7 +152,9 @@ interface Inventory {
 
 const sorted = <T>(xs: Iterable<T>): T[] => [...new Set(xs)].sort();
 
-function sortedRecord<T>(rec: Map<string, T> | Record<string, T>): Record<string, T> {
+function sortedRecord<T>(
+  rec: Map<string, T> | Record<string, T>,
+): Record<string, T> {
   const entries = rec instanceof Map ? [...rec.entries()] : Object.entries(rec);
   entries.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
   return Object.fromEntries(entries);
@@ -157,17 +165,24 @@ function sortedRecord<T>(rec: Map<string, T> | Record<string, T>): Record<string
 
 function createProgram(): ts.Program {
   const configPath = join(ROOT, "tsconfig.json");
-  const parsed = ts.getParsedCommandLineOfConfigFile(configPath, {}, {
-    ...ts.sys,
-    onUnRecoverableConfigFileDiagnostic: (d) => {
-      throw new Error(ts.flattenDiagnosticMessageText(d.messageText, "\n"));
+  const parsed = ts.getParsedCommandLineOfConfigFile(
+    configPath,
+    {},
+    {
+      ...ts.sys,
+      onUnRecoverableConfigFileDiagnostic: (d) => {
+        throw new Error(ts.flattenDiagnosticMessageText(d.messageText, "\n"));
+      },
     },
-  });
+  );
   if (!parsed) throw new Error("tsconfig.json did not parse");
   return ts.createProgram(parsed.fileNames, parsed.options);
 }
 
-function findInterface(sf: ts.SourceFile, name: string): ts.InterfaceDeclaration {
+function findInterface(
+  sf: ts.SourceFile,
+  name: string,
+): ts.InterfaceDeclaration {
   let found: ts.InterfaceDeclaration | undefined;
   ts.forEachChild(sf, (n) => {
     if (ts.isInterfaceDeclaration(n) && n.name.text === name) found = n;
@@ -221,7 +236,8 @@ function instanceTargets(sf: ts.SourceFile): Map<string, Set<string>> {
   const out = new Map<string, Set<string>>();
   const note = (target: string, value: ts.Node): void => {
     const walk = (x: ts.Node): void => {
-      if (ts.isBinaryExpression(x) && COMPARISONS.has(x.operatorToken.kind)) return;
+      if (ts.isBinaryExpression(x) && COMPARISONS.has(x.operatorToken.kind))
+        return;
       if (ts.isConditionalExpression(x)) {
         walk(x.whenTrue);
         walk(x.whenFalse);
@@ -250,7 +266,8 @@ function instanceTargets(sf: ts.SourceFile): Map<string, Set<string>> {
       ts.isObjectLiteralExpression(n.initializer)
     ) {
       for (const p of n.initializer.properties) {
-        if (ts.isPropertyAssignment(p) && ts.isIdentifier(p.name)) note(p.name.text, p.initializer);
+        if (ts.isPropertyAssignment(p) && ts.isIdentifier(p.name))
+          note(p.name.text, p.initializer);
       }
       return;
     }
@@ -305,7 +322,8 @@ function fxBuilderKinds(sf: ts.SourceFile): Map<string, Set<string>> {
       }
     }
   });
-  if (!fxObj) throw new Error("fx builder object not found in src/effects/ir.ts");
+  if (!fxObj)
+    throw new Error("fx builder object not found in src/effects/ir.ts");
   const direct = new Map<string, Set<string>>();
   const calls = new Map<string, Set<string>>();
   for (const p of fxObj.properties) {
@@ -339,7 +357,8 @@ function fxBuilderKinds(sf: ts.SourceFile): Map<string, Set<string>> {
     seen.delete(name);
     return out;
   };
-  for (const name of direct.keys()) resolved.set(name, resolve(name, new Set()));
+  for (const name of direct.keys())
+    resolved.set(name, resolve(name, new Set()));
   return resolved;
 }
 
@@ -366,14 +385,21 @@ function guardedRegion(read: ts.Node): ts.Node[] {
   let child: ts.Node = read;
   let negated = false;
   for (let p = read.parent; p; child = p, p = p.parent) {
-    if (ts.isPrefixUnaryExpression(p) && p.operator === ts.SyntaxKind.ExclamationToken) {
+    if (
+      ts.isPrefixUnaryExpression(p) &&
+      p.operator === ts.SyntaxKind.ExclamationToken
+    ) {
       negated = !negated;
       continue;
     }
     if (ts.isIfStatement(p) && child === p.expression) {
       if (negated && isJump(p.thenStatement)) {
         const parent = p.parent;
-        if (ts.isBlock(parent) || ts.isSourceFile(parent) || ts.isCaseClause(parent)) {
+        if (
+          ts.isBlock(parent) ||
+          ts.isSourceFile(parent) ||
+          ts.isCaseClause(parent)
+        ) {
           const stmts = parent.statements;
           return stmts.slice(stmts.indexOf(p) + 1);
         }
@@ -384,12 +410,16 @@ function guardedRegion(read: ts.Node): ts.Node[] {
     if (ts.isConditionalExpression(p) && child === p.condition) {
       return [negated ? p.whenFalse : p.whenTrue];
     }
-    if (ts.isStatement(p) || ts.isFunctionLike(p) || ts.isSourceFile(p)) return [p];
+    if (ts.isStatement(p) || ts.isFunctionLike(p) || ts.isSourceFile(p))
+      return [p];
   }
   return [];
 }
 
-function kindsIn(nodes: ts.Node[], fxKinds: Map<string, Set<string>>): Set<string> {
+function kindsIn(
+  nodes: ts.Node[],
+  fxKinds: Map<string, Set<string>>,
+): Set<string> {
   const out = new Set<string>();
   const walk = (x: ts.Node): void => {
     if (isKindLiteralProp(x)) {
@@ -409,18 +439,25 @@ function enclosingName(n: ts.Node): string {
   for (let p: ts.Node | undefined = n.parent; p; p = p.parent) {
     let name: string | undefined;
     if (
-      (ts.isFunctionDeclaration(p) || ts.isMethodDeclaration(p) || ts.isClassDeclaration(p)) &&
+      (ts.isFunctionDeclaration(p) ||
+        ts.isMethodDeclaration(p) ||
+        ts.isClassDeclaration(p)) &&
       p.name
     ) {
       name = p.name.getText();
     } else if (
       (ts.isArrowFunction(p) || ts.isFunctionExpression(p)) &&
       p.parent &&
-      (ts.isVariableDeclaration(p.parent) || ts.isPropertyAssignment(p.parent)) &&
+      (ts.isVariableDeclaration(p.parent) ||
+        ts.isPropertyAssignment(p.parent)) &&
       ts.isIdentifier(p.parent.name)
     ) {
       name = p.parent.name.text;
-    } else if (ts.isVariableDeclaration(p) && ts.isIdentifier(p.name) && ts.isSourceFile(p.parent.parent.parent)) {
+    } else if (
+      ts.isVariableDeclaration(p) &&
+      ts.isIdentifier(p.name) &&
+      ts.isSourceFile(p.parent.parent.parent)
+    ) {
       name = p.name.text;
     }
     if (name) names.unshift(name);
@@ -431,7 +468,11 @@ function enclosingName(n: ts.Node): string {
 function isWriteTarget(n: ts.Node): boolean {
   const p = n.parent;
   if (!p) return false;
-  if (ts.isBinaryExpression(p) && p.left === n && p.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+  if (
+    ts.isBinaryExpression(p) &&
+    p.left === n &&
+    p.operatorToken.kind === ts.SyntaxKind.EqualsToken
+  ) {
     return true;
   }
   if (ts.isDeleteExpression(p)) return true;
@@ -456,7 +497,9 @@ function collectReads(
   const checker = program.getTypeChecker();
   const out: ReadSite[] = [];
   // Union property symbols (CardInstance | OtherView) keep every part's declaration.
-  const ownedField = (sym: ts.Symbol | undefined): [string, string] | undefined => {
+  const ownedField = (
+    sym: ts.Symbol | undefined,
+  ): [string, string] | undefined => {
     if (!sym) return undefined;
     for (const d of sym.declarations ?? []) {
       const owner = owners.get(d);
@@ -488,11 +531,13 @@ function collectReads(
   // itself, so also check the parameter's declared type.
   const declaredParamType = (lit: ts.Expression): ts.Type | undefined => {
     const call = lit.parent;
-    if (!call || !(ts.isCallExpression(call) || ts.isNewExpression(call))) return undefined;
+    if (!call || !(ts.isCallExpression(call) || ts.isNewExpression(call)))
+      return undefined;
     const index = call.arguments?.indexOf(lit) ?? -1;
     if (index < 0) return undefined;
     const decl = checker.getResolvedSignature(call)?.getDeclaration();
-    const param = decl && "parameters" in decl ? decl.parameters[index] : undefined;
+    const param =
+      decl && "parameters" in decl ? decl.parameters[index] : undefined;
     return param?.type ? checker.getTypeFromTypeNode(param.type) : undefined;
   };
 
@@ -503,7 +548,10 @@ function collectReads(
     // src/debug/ is verification code (the CR audit invariant checker). It reads
     // card fields to check state, not to give a card its behavior.
     if (rel.startsWith("src/debug/")) continue;
-    const record = (owned: [string, string] | undefined, node: ts.Node): void => {
+    const record = (
+      owned: [string, string] | undefined,
+      node: ts.Node,
+    ): void => {
       if (!owned) return;
       out.push({
         field: owned[0],
@@ -516,10 +564,17 @@ function collectReads(
       if (skip.has(n)) return;
       if (ts.isTypeNode(n) && !ts.isExpressionWithTypeArguments(n)) return;
       if (ts.isPropertyAccessExpression(n)) {
-        if (!isWriteTarget(n)) record(ownedField(checker.getSymbolAtLocation(n.name)), n);
-      } else if (ts.isElementAccessExpression(n) && ts.isStringLiteralLike(n.argumentExpression)) {
+        if (!isWriteTarget(n))
+          record(ownedField(checker.getSymbolAtLocation(n.name)), n);
+      } else if (
+        ts.isElementAccessExpression(n) &&
+        ts.isStringLiteralLike(n.argumentExpression)
+      ) {
         if (!isWriteTarget(n)) {
-          record(ownedField(checker.getSymbolAtLocation(n.argumentExpression)), n);
+          record(
+            ownedField(checker.getSymbolAtLocation(n.argumentExpression)),
+            n,
+          );
         }
       } else if (
         ts.isBindingElement(n) &&
@@ -528,12 +583,21 @@ function collectReads(
         const key = n.propertyName ?? n.name;
         if (ts.isIdentifier(key)) {
           const parentType = checker.getTypeAtLocation(n.parent);
-          record(ownedField(checker.getPropertyOfType(parentType, key.text)), n);
+          record(
+            ownedField(checker.getPropertyOfType(parentType, key.text)),
+            n,
+          );
         }
-      } else if (ts.isStringLiteralLike(n) && !ts.isElementAccessExpression(n.parent)) {
+      } else if (
+        ts.isStringLiteralLike(n) &&
+        !ts.isElementAccessExpression(n.parent)
+      ) {
         const field = head(n.text);
         if (cardKeys.has(field) && ts.isExpression(n)) {
-          if (isCardKeyUnion(checker.getContextualType(n)) || isCardKeyUnion(declaredParamType(n))) {
+          if (
+            isCardKeyUnion(checker.getContextualType(n)) ||
+            isCardKeyUnion(declaredParamType(n))
+          ) {
             record([field, "CardInstance"], n);
           }
         }
@@ -556,7 +620,10 @@ function rawCards(): Map<string, Record<string, unknown>> {
     if (!existsSync(d)) continue;
     for (const file of readdirSync(d)) {
       if (!file.endsWith(".json") || file.startsWith("_")) continue;
-      const raw = JSON.parse(readFileSync(join(d, file), "utf8")) as Record<string, unknown>;
+      const raw = JSON.parse(readFileSync(join(d, file), "utf8")) as Record<
+        string,
+        unknown
+      >;
       out.set(String(raw.id), raw);
     }
   }
@@ -596,7 +663,8 @@ function buildInventory(): Inventory {
   const loadSf = program.getSourceFile(join(ROOT, "src/cards/load.ts"));
   const typesSf = program.getSourceFile(join(ROOT, "src/state/types.ts"));
   const irSf = program.getSourceFile(join(ROOT, "src/effects/ir.ts"));
-  if (!loadSf || !typesSf || !irSf) throw new Error("engine sources missing from program");
+  if (!loadSf || !typesSf || !irSf)
+    throw new Error("engine sources missing from program");
 
   const cardDef = findInterface(loadSf, "CardDef");
   const cardInstance = findInterface(typesSf, "CardInstance");
@@ -628,7 +696,8 @@ function buildInventory(): Inventory {
   // Readers: CardDef members, and the CardInstance members the loader copies them to.
   // A def field the loader never names is spread or cloned onto the same name.
   const targets = instanceTargets(loadSf);
-  const instanceOf = (field: string): string[] => sorted(targets.get(field) ?? [field]);
+  const instanceOf = (field: string): string[] =>
+    sorted(targets.get(field) ?? [field]);
   const owners = new Map<ts.Declaration, string>();
   for (const m of cardDef.members) owners.set(m, "CardDef");
   for (const m of cardInstance.members) owners.set(m, "CardInstance");
@@ -644,7 +713,9 @@ function buildInventory(): Inventory {
     if (n && ts.isPropertySignature(m) && m.questionToken) optionalDef.add(n);
   }
   for (const n of schemaProps.keys()) optionalDef.add(n);
-  const mirrorMembers = (members: ts.NodeArray<ts.TypeElement>): ts.PropertySignature[] =>
+  const mirrorMembers = (
+    members: ts.NodeArray<ts.TypeElement>,
+  ): ts.PropertySignature[] =>
     members.filter((m): m is ts.PropertySignature => {
       const n = memberName(m);
       return (
@@ -655,7 +726,8 @@ function buildInventory(): Inventory {
       );
     });
   for (const sf of program.getSourceFiles()) {
-    if (sf.isDeclarationFile || !relative(ROOT, sf.fileName).startsWith("src")) continue;
+    if (sf.isDeclarationFile || !relative(ROOT, sf.fileName).startsWith("src"))
+      continue;
     const visit = (n: ts.Node): void => {
       let members: ts.NodeArray<ts.TypeElement> | undefined;
       let label = "";
@@ -665,11 +737,20 @@ function buildInventory(): Inventory {
       } else if (ts.isTypeLiteralNode(n)) {
         members = n.members;
         let p: ts.Node = n.parent;
-        while (p && !ts.isTypeAliasDeclaration(p) && !ts.isParameter(p) && !ts.isPropertySignature(p) && !ts.isSourceFile(p)) {
+        while (
+          p &&
+          !ts.isTypeAliasDeclaration(p) &&
+          !ts.isParameter(p) &&
+          !ts.isPropertySignature(p) &&
+          !ts.isSourceFile(p)
+        ) {
           p = p.parent;
         }
         label =
-          p && (ts.isTypeAliasDeclaration(p) || ts.isParameter(p) || ts.isPropertySignature(p)) &&
+          p &&
+          (ts.isTypeAliasDeclaration(p) ||
+            ts.isParameter(p) ||
+            ts.isPropertySignature(p)) &&
           ts.isIdentifier(p.name)
             ? `{${p.name.text}}`
             : "{}";
@@ -678,7 +759,8 @@ function buildInventory(): Inventory {
         const hits = mirrorMembers(members);
         if (hits.length > 0 && hits.length * 2 >= members.length) {
           const rel = relative(ROOT, sf.fileName).split("\\").join("/");
-          for (const m of hits) if (!owners.has(m)) owners.set(m, `${rel}#${label}`);
+          for (const m of hits)
+            if (!owners.has(m)) owners.set(m, `${rel}#${label}`);
         }
       }
       ts.forEachChild(n, visit);
@@ -704,9 +786,13 @@ function buildInventory(): Inventory {
   const nameSet = new Set(names);
   const instanceToEntries = new Map<string, string[]>();
   for (const n of names) {
-    for (const i of instanceOf(n)) instanceToEntries.set(i, [...(instanceToEntries.get(i) ?? []), n]);
+    for (const i of instanceOf(n))
+      instanceToEntries.set(i, [...(instanceToEntries.get(i) ?? []), n]);
   }
-  const readersByEntry = new Map<string, Map<string, { kinds: Set<string>; mirrors: Set<string> }>>();
+  const readersByEntry = new Map<
+    string,
+    Map<string, { kinds: Set<string>; mirrors: Set<string> }>
+  >();
   for (const r of reads) {
     const hit = new Set<string>();
     if (r.owner === "CardInstance") {
@@ -716,9 +802,13 @@ function buildInventory(): Inventory {
     }
     for (const e of hit) {
       const bySite = readersByEntry.get(e) ?? new Map();
-      const slot = bySite.get(r.site) ?? { kinds: new Set<string>(), mirrors: new Set<string>() };
+      const slot = bySite.get(r.site) ?? {
+        kinds: new Set<string>(),
+        mirrors: new Set<string>(),
+      };
       for (const k of r.kinds) slot.kinds.add(k);
-      if (r.owner !== "CardDef" && r.owner !== "CardInstance") slot.mirrors.add(r.owner);
+      if (r.owner !== "CardDef" && r.owner !== "CardInstance")
+        slot.mirrors.add(r.owner);
       bySite.set(r.site, slot);
       readersByEntry.set(e, bySite);
     }
@@ -732,7 +822,8 @@ function buildInventory(): Inventory {
     const cards: string[] = [];
     const via = new Set<SetVia>();
     for (const [id, def] of catalog) {
-      if ((def as unknown as Record<string, unknown>)[name] === undefined) continue;
+      if ((def as unknown as Record<string, unknown>)[name] === undefined)
+        continue;
       cards.push(id);
       const raw = raws.get(id);
       if (raw) for (const v of setVia(raw, name)) via.add(v);
@@ -760,7 +851,9 @@ function buildInventory(): Inventory {
       cardDef: cardDefKind,
       schema: schemaKind,
       flag,
-      ...(inst.length !== 1 || inst[0] !== name ? { instanceFields: inst } : {}),
+      ...(inst.length !== 1 || inst[0] !== name
+        ? { instanceFields: inst }
+        : {}),
       cardCount: cards.length,
       ...(cards.length <= CARD_LIST_LIMIT ? { cards } : {}),
       setVia: sorted(via),
@@ -771,11 +864,13 @@ function buildInventory(): Inventory {
   }
 
   const flagKinds = new Map<string, string[]>();
-  for (const [name, e] of entries) if (e.kinds.length) flagKinds.set(name, e.kinds);
+  for (const [name, e] of entries)
+    if (e.kinds.length) flagKinds.set(name, e.kinds);
   const unread = names.filter((n) => entries.get(n)!.readers.length === 0);
   const unset = names.filter((n) => entries.get(n)!.cardCount === 0);
   const schemaByType: Record<string, number> = {};
-  for (const t of schemaProps.values()) schemaByType[t] = (schemaByType[t] ?? 0) + 1;
+  for (const t of schemaProps.values())
+    schemaByType[t] = (schemaByType[t] ?? 0) + 1;
   const flagValues = [...flagFields.values()];
 
   return {
@@ -836,7 +931,9 @@ describe("card flag inventory (CR audit tool 1.10)", () => {
       kinds: ["swap_two_ice"],
     });
     expect(e.kinds).toContain("swap_two_ice");
-    expect(inv.flagKinds.maySwapIceOnAgendaScoredOrStolen).toContain("swap_two_ice");
+    expect(inv.flagKinds.maySwapIceOnAgendaScoredOrStolen).toContain(
+      "swap_two_ice",
+    );
   });
 
   it("is deterministic", () => {
@@ -849,14 +946,25 @@ describe("card flag inventory (CR audit tool 1.10)", () => {
       "The flag baseline only shrinks (plan area 10: no new flag for a one-off). " +
       "Use a declared ability or a field on an existing kind, or rerun with " +
       "UPDATE_CARD_FLAGS=1 ALLOW_CARD_FLAG_GROWTH=1 and explain why in the PR";
-    expect(added(Object.keys(inv.entries), Object.keys(baseline.entries)), `new entries. ${hint}`).toEqual([]);
-    expect(added(inv.unread, baseline.unread), `newly unread entries. ${hint}`).toEqual([]);
-    expect(added(inv.unset, baseline.unset), `newly unset entries. ${hint}`).toEqual([]);
+    expect(
+      added(Object.keys(inv.entries), Object.keys(baseline.entries)),
+      `new entries. ${hint}`,
+    ).toEqual([]);
+    expect(
+      added(inv.unread, baseline.unread),
+      `newly unread entries. ${hint}`,
+    ).toEqual([]);
+    expect(
+      added(inv.unset, baseline.unset),
+      `newly unset entries. ${hint}`,
+    ).toEqual([]);
   };
 
   it("only shrinks: no new entry, unread entry or unset entry", () => {
     if (!baseline && !UPDATE) {
-      throw new Error(`Missing ${relative(ROOT, BASELINE_PATH)}; run with UPDATE_CARD_FLAGS=1`);
+      throw new Error(
+        `Missing ${relative(ROOT, BASELINE_PATH)}; run with UPDATE_CARD_FLAGS=1`,
+      );
     }
     expectNoGrowth();
   });
@@ -869,8 +977,14 @@ describe("card flag inventory (CR audit tool 1.10)", () => {
       writeFileSync(BASELINE_PATH, text);
       return;
     }
-    expect(baseline, "missing baseline; run with UPDATE_CARD_FLAGS=1").toBeDefined();
-    const removed = added(Object.keys(baseline!.entries), Object.keys(inv.entries));
+    expect(
+      baseline,
+      "missing baseline; run with UPDATE_CARD_FLAGS=1",
+    ).toBeDefined();
+    const removed = added(
+      Object.keys(baseline!.entries),
+      Object.keys(inv.entries),
+    );
     expect(
       removed,
       "entries left the inventory; regenerate with UPDATE_CARD_FLAGS=1 npx vitest run tests/card-flag-inventory.test.ts",

@@ -35,11 +35,7 @@ describe("jnet ports — core rezzing", () => {
   // jnet: game.core.rezzing-test/simultaneous-rez-test
   it("rezzing Advanced Assembly Lines with Surat City Grid then rezzes NGO Front at −2", () => {
     let state = newGame({
-      corpHand: [
-        "Advanced Assembly Lines",
-        "Surat City Grid",
-        "NGO Front",
-      ],
+      corpHand: ["Advanced Assembly Lines", "Surat City Grid", "NGO Front"],
       corpCredits: 10,
     });
     state = playFromHand(state, "corp", "Surat City Grid");
@@ -66,12 +62,12 @@ describe("jnet ports — core rezzing", () => {
     expect(state.corp.credits).toBe(before - 1 + 3);
     expect(state.cards[aalInstalled]?.rezzed).toBe(true);
     expect(
-      state.pendingChoice?.options.some((o) =>
-        o.label.includes("NGO Front"),
-      ),
+      state.pendingChoice?.options.some((o) => o.label.includes("NGO Front")),
     ).toBe(true);
     state = clickPrompt(state, "NGO Front");
-    const ngo = Object.values(state.cards).find((c) => c.title === "NGO Front")!;
+    const ngo = Object.values(state.cards).find(
+      (c) => c.title === "NGO Front",
+    )!;
     expect(ngo.rezzed).toBe(true);
     expect(state.cards[suratId]?.rezzed).toBe(true);
   });

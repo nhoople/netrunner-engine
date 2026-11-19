@@ -12,12 +12,14 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function trashTopOfRd(state: EffectCtx["state"], n: number, label: string): void {
+function trashTopOfRd(
+  state: EffectCtx["state"],
+  n: number,
+  label: string,
+): void {
   let trashed = 0;
   for (let i = 0; i < n; i++) {
     const top = state.corp.deck[0];
@@ -79,9 +81,7 @@ export function applyMumbadFtmPrimitive(
       const subtype = action.subtype;
       const resources = state.runner.installed.filter((id) => {
         const c = state.cards[id];
-        return (
-          c?.type === "resource" && (c.subtypes ?? []).includes(subtype)
-        );
+        return c?.type === "resource" && (c.subtypes ?? []).includes(subtype);
       });
       if (resources.length === 0) {
         return {
@@ -147,10 +147,7 @@ export function applyMumbadFtmPrimitive(
       ice.faceup = false;
       ice.hostId = undefined;
       state.corp.hand.push(iceId);
-      log(
-        state,
-        `Ankusa — add fully broken barrier ${ice.title} to HQ.`,
-      );
+      log(state, `Ankusa — add fully broken barrier ${ice.title} to HQ.`);
       return { ok: true };
     }
 
@@ -242,18 +239,12 @@ export function applyMumbadFtmPrimitive(
         state.cards[id]!.faceup = true;
       }
       if (matches.length === 0) {
-        log(
-          state,
-          `Ibrahim Salem — no ${action.cardType} in grip.`,
-        );
+        log(state, `Ibrahim Salem — no ${action.cardType} in grip.`);
         return { ok: true };
       }
       if (matches.length === 1) {
         moveRunnerCardToHeap(state, matches[0]!);
-        log(
-          state,
-          `Ibrahim Salem — trash ${state.cards[matches[0]!]!.title}.`,
-        );
+        log(state, `Ibrahim Salem — trash ${state.cards[matches[0]!]!.title}.`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -274,10 +265,7 @@ export function applyMumbadFtmPrimitive(
     case "trash_resolve": {
       if (!state.runner.hand.includes(action.cardId)) return { ok: true };
       moveRunnerCardToHeap(state, action.cardId);
-      log(
-        state,
-        `Ibrahim Salem — trash ${state.cards[action.cardId]!.title}.`,
-      );
+      log(state, `Ibrahim Salem — trash ${state.cards[action.cardId]!.title}.`);
       return { ok: true };
     }
 

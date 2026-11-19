@@ -21,10 +21,8 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function rfgCard(ctx: EffectCtx, cardId: string): void {
   const { state } = ctx;
@@ -73,8 +71,8 @@ function offerInfoSiftAssign(ctx: EffectCtx): PrimResult {
         }),
       },
     ],
-logLine: `Information Sifting — Corp assigns ${title} (${remaining.length} left).`,
-});
+    logLine: `Information Sifting — Corp assigns ${title} (${remaining.length} left).`,
+  });
   return { ok: true };
 }
 
@@ -98,8 +96,8 @@ function offerInfoSiftRunnerPick(ctx: EffectCtx): PrimResult {
         effect: fx.do({ kind: "access_pile", pile: "b" }),
       },
     ],
-logLine: `Information Sifting — Runner chooses a pile (${pileA.length}/${pileB.length}).`,
-});
+    logLine: `Information Sifting — Runner chooses a pile (${pileA.length}/${pileB.length}).`,
+  });
   return { ok: true };
 }
 
@@ -301,8 +299,8 @@ export function applyMumbadTlmPrimitive(
             cardId,
           }),
         })),
-logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity from outside the game (CR ${CR.additionalIdentity.number}).`,
-});
+        logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity from outside the game (CR ${CR.additionalIdentity.number}).`,
+      });
       return { ok: true };
     }
     case "rebirth_switch_to_identity": {
@@ -527,8 +525,8 @@ logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity fr
           label: `Run ${serverId}`,
           effect: fx.do({ kind: "queue_start_run", serverId }),
         })),
-logLine: `Out of the Ashes — remove from game; make a run.`,
-});
+        logLine: `Out of the Ashes — remove from game; make a run.`,
+      });
       return { ok: true };
     }
 

@@ -401,7 +401,10 @@ describe("jnet ports — core access", () => {
     let state = newGame({
       corpDeck: qty("Hedge Fund", 5),
       corpHand: ["Hedge Fund"],
-      corpDiscard: ["Global Food Initiative", ...qty("Blue Level Clearance", 3)],
+      corpDiscard: [
+        "Global Food Initiative",
+        ...qty("Blue Level Clearance", 3),
+      ],
     });
     state = takeCredits(state, "corp");
     state = runToAccess(state, "archives");
@@ -413,9 +416,9 @@ describe("jnet ports — core access", () => {
       }
       state = finishAccess(state);
     }
-    expect(
-      state.runner.scoreArea.map((id) => state.cards[id]?.title),
-    ).toEqual(["Global Food Initiative"]);
+    expect(state.runner.scoreArea.map((id) => state.cards[id]?.title)).toEqual([
+      "Global Food Initiative",
+    ]);
     expect(state.run).toBeNull();
   });
 

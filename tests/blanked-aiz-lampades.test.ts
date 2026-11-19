@@ -12,9 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { amazonIndustrialZoneDiscount } from "../src/actions/installCorp.js";
-import {
-  hacktivistMeetingRequiresHqTrash,
-} from "../src/actions/rez.js";
+import { hacktivistMeetingRequiresHqTrash } from "../src/actions/rez.js";
 import { clotForbidsScoreAgendaInstalledThisTurn } from "../src/actions/score.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 import type { ServerId } from "../src/index.js";
@@ -48,11 +46,7 @@ describe("blanked AIZ / Hacktivist / Lampades / Gourmand (CR 9.12.1d)", () => {
   it("drops Hacktivist Meeting HQ-trash lock while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const hm = instantiateCard(
-      "hacktivist-meeting",
-      "hm-1",
-      "corp:play-area",
-    );
+    const hm = instantiateCard("hacktivist-meeting", "hm-1", "corp:play-area");
     s.cards["hm-1"] = hm;
     s.corp.playArea = ["hm-1"];
 

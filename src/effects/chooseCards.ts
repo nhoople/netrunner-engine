@@ -20,8 +20,7 @@ import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 type ChooseCards = Extract<Primitive, { kind: "choose_cards" }>;
 type Purpose = ChooseCards["purpose"];
@@ -125,7 +124,10 @@ function finish(
         if (!state.runner.hand.includes(id)) continue;
         const title = state.cards[id]!.title;
         moveRunnerCardToHeap(state, id);
-        log(state, `Runner trashes ${title} from the grip (CR ${CR.trashing.number}).`);
+        log(
+          state,
+          `Runner trashes ${title} from the grip (CR ${CR.trashing.number}).`,
+        );
       }
       break;
     }
@@ -148,7 +150,10 @@ function finish(
       if (!action.resume) break;
       const resumed = evalEffect(ctx, {
         op: "do",
-        action: { ...structuredClone(action.resume), cardIds: ids } as Primitive,
+        action: {
+          ...structuredClone(action.resume),
+          cardIds: ids,
+        } as Primitive,
       });
       if (!resumed.ok) return resumed;
       break;
@@ -187,7 +192,8 @@ export function applyChooseCards(
   const left = action.candidates.filter(
     (id) => state.cards[id] && !action.picked.includes(id),
   );
-  const need = Math.min(action.count, action.candidates.length) - action.picked.length;
+  const need =
+    Math.min(action.count, action.candidates.length) - action.picked.length;
   if (need <= 0 || left.length === 0) return finish(ctx, action, evalEffect);
 
   // Nothing to decide: every remaining card must be taken, or the remaining
@@ -205,16 +211,15 @@ export function applyChooseCards(
     }
   }
 
-  const options: Array<{ id: string; label: string; effect: Effect }> = left.map(
-    (id) => ({
+  const options: Array<{ id: string; label: string; effect: Effect }> =
+    left.map((id) => ({
       id: `choose-card:${id}`,
       label: state.cards[id]!.title,
       effect: {
         op: "do",
         action: { ...structuredClone(action), picked: [...action.picked, id] },
       },
-    }),
-  );
+    }));
   if (action.upTo) {
     options.push({
       id: "choose-cards-done",

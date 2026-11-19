@@ -40,7 +40,10 @@ function offersBasicCredit(state: GameState): boolean {
 
 describe("click abilities are actions", () => {
   it("offers Regolith beside basic actions at take-action, not in the paid ability window", () => {
-    const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
+    const state = createGame({
+      stopAfterFirstCycle: false,
+      agendaPointsToWin: 7,
+    });
     const regolith = instantiateCard(
       "regolith-mining-license",
       "reg-1",
@@ -100,7 +103,10 @@ describe("click abilities are actions", () => {
   });
 
   it("keeps a zero-click action-window ability in the paid ability window", () => {
-    const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
+    const state = createGame({
+      stopAfterFirstCycle: false,
+      agendaPointsToWin: 7,
+    });
     const lead = instantiateCard("false-lead", "fl-1", "corp:score");
     lead.rezzed = true;
     state.cards["fl-1"] = lead;
@@ -117,7 +123,10 @@ describe("click abilities are actions", () => {
   });
 
   it("still enforces once per turn when the click ability is an action", () => {
-    const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
+    const state = createGame({
+      stopAfterFirstCycle: false,
+      agendaPointsToWin: 7,
+    });
     const telework = instantiateCard(
       "telework-contract",
       "tw-1",

@@ -49,11 +49,11 @@ export function applyEncounterPrimitive(
       }
       // Mark all subs broken and skip to movement via ended encounter.
       state.run.encounter.broken = (ice.subroutines ?? []).map(() => true);
-      state.run.bypassedIceIds = [
-        ...(state.run.bypassedIceIds ?? []),
-        iceId,
-      ];
-      log(state, `Bypass ${ice.title} (encounter ends without resolving subs).`);
+      state.run.bypassedIceIds = [...(state.run.bypassedIceIds ?? []), iceId];
+      log(
+        state,
+        `Bypass ${ice.title} (encounter ends without resolving subs).`,
+      );
       fireOnBypassTriggers(state, iceId);
       if (ice.rezzed) fireOnEncounterEnd(state, iceId);
       return { ok: true };

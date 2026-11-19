@@ -58,7 +58,9 @@ describe("choose_card (CR 1.15.2)", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("corp");
-    const agenda = s.pendingChoice?.options.find((o) => o.id === "choose-card:agenda-1");
+    const agenda = s.pendingChoice?.options.find(
+      (o) => o.id === "choose-card:agenda-1",
+    );
     expect(agenda?.label).toBe("Hostile Takeover");
     expect(agenda?.effect).toEqual(
       fx.do({ kind: "trash_hq_card", cardId: "agenda-1" }),
@@ -97,9 +99,9 @@ describe("choose_card (CR 1.15.2)", () => {
         then: fx.do({ kind: "trash_hq_card", cardId: "$chosen" }),
       }),
     );
-    expect(s.pendingChoice?.options.some((o) => o.id === "choose-card-decline")).toBe(
-      true,
-    );
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "choose-card-decline"),
+    ).toBe(true);
     s = must(s, { type: "choose_option", optionId: "choose-card-decline" });
     expect(s.corp.hand).toEqual(["agenda-1", "op-1"]);
   });

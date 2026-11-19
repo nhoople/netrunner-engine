@@ -6,7 +6,10 @@ import { defineConfig } from "vitest/config";
 import { testFilesFor } from "./areas.mjs";
 
 const area = process.env.STRYKER_AREA;
-if (!area) throw new Error("STRYKER_AREA is not set; run through `npm run mutate:<area>`");
+if (!area)
+  throw new Error(
+    "STRYKER_AREA is not set; run through `npm run mutate:<area>`",
+  );
 
 export default defineConfig({
   test: {

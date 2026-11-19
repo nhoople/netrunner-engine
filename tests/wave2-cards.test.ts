@@ -49,7 +49,29 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
 
   it("loads reprint cards under system-update-2021 / system-gateway waves", () => {
     const catalog = loadCardCatalog(true);
-    const corpus = 1589 + 18 /*ftm*/ + 20 /*23s*/ + 20 /*bm*/ + 20 /*es*/ + 18 /*in*/ + 20 /*ml*/ + 20 /*qu*/ + 20 /*dc*/ + 20 /*so*/ + 43 /*td*/ + 20 /*eas*/ + 20 /*baw*/ + 20 /*fm*/ + 20 /*cd*/ + 20 /*ss*/ + 20 /*dtwn*/ + 20 /*cotc*/ + 20 /*tdatd*/ + 20 /*win*/ + 20 /*ka*/ + 8 /*mo*/; // +49 Core; … +18 KG; +19 BF; … +18 UAO; +17 ATR; +19 TS; +55 OAC; +56 RaR; …
+    const corpus =
+      1589 +
+      18 /*ftm*/ +
+      20 /*23s*/ +
+      20 /*bm*/ +
+      20 /*es*/ +
+      18 /*in*/ +
+      20 /*ml*/ +
+      20 /*qu*/ +
+      20 /*dc*/ +
+      20 /*so*/ +
+      43 /*td*/ +
+      20 /*eas*/ +
+      20 /*baw*/ +
+      20 /*fm*/ +
+      20 /*cd*/ +
+      20 /*ss*/ +
+      20 /*dtwn*/ +
+      20 /*cotc*/ +
+      20 /*tdatd*/ +
+      20 /*win*/ +
+      20 /*ka*/ +
+      8; /*mo*/ // +49 Core; … +18 KG; +19 BF; … +18 UAO; +17 ATR; +19 TS; +55 OAC; +56 RaR; …
     expect(catalog.size).toBe(corpus);
     for (const id of [
       "sure-gamble",
@@ -66,7 +88,8 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
       expect(catalog.has(id), id).toBe(true);
       const def = catalog.get(id)!;
       expect(["system-gateway", "system-update-2021"]).toContain(def.wave);
-      if (playEffectFromCard(def)) expect(validateEffectTree(playEffectFromCard(def))).toBeNull();
+      if (playEffectFromCard(def))
+        expect(validateEffectTree(playEffectFromCard(def))).toBeNull();
       if (def.onScore) expect(validateEffectTree(def.onScore)).toBeNull();
     }
   });
@@ -75,7 +98,9 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
     expect(playEffectFromCard(getCardDef("sure-gamble"))).toEqual(
       fx.gainCredits("runner", 9),
     );
-    expect(playEffectFromCard(getCardDef("diesel"))).toEqual(fx.draw("runner", 3));
+    expect(playEffectFromCard(getCardDef("diesel"))).toEqual(
+      fx.draw("runner", 3),
+    );
   });
 
   it("Gordian / Carmen break code gate and sentry respectively", () => {
@@ -95,7 +120,11 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
     expect(def.unsupported ?? []).toEqual([]);
 
     let s = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
-    const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:remote-1:root",
+    );
     agenda.advancementCounters = 2;
     s = structuredClone(s);
     s.cards["ht-1"] = agenda;
@@ -145,7 +174,11 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     const iceId = remote.ice[0]!;
-    const puw = instantiateCard("pop-up-window", iceId, `server:${remote.id}:ice`);
+    const puw = instantiateCard(
+      "pop-up-window",
+      iceId,
+      `server:${remote.id}:ice`,
+    );
     s = structuredClone(s);
     s.cards[iceId] = puw;
     const gordian = instantiateCard(
@@ -179,6 +212,8 @@ describe("SU21 reprint / classic cards (post-wave cleanup)", () => {
       subIndex: 0,
     });
     s = must(s, { type: "pass_window" });
-    expect(s.run?.successful === true || s.timingKey.includes("run")).toBe(true);
+    expect(s.run?.successful === true || s.timingKey.includes("run")).toBe(
+      true,
+    );
   });
 });

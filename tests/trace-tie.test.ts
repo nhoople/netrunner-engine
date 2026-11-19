@@ -72,7 +72,9 @@ describe("CR 10.8.4 — trace vs link strength", () => {
     expect(s.runner.tags).toBe(0);
     expect(s.runner.credits).toBe(credits - 2 + 1);
     expect(s.turn.lastTraceExcess).toBe(0);
-    expect(s.log.some((l) => l.includes("→ failure") && l.includes("10.8.4"))).toBe(true);
+    expect(
+      s.log.some((l) => l.includes("→ failure") && l.includes("10.8.4")),
+    ).toBe(true);
   });
 
   it("interactive trace: one more strength than link succeeds", () => {
@@ -88,7 +90,13 @@ describe("CR 10.8.4 — trace vs link strength", () => {
   it("autoResolveTrace: a tie is unsuccessful and fires only the failure ability", () => {
     const s = fresh(2);
     const credits = s.runner.credits;
-    const r = autoResolveTrace(s, "corp-id", 2, fx.giveTags(1), fx.gainCredits("runner", 1));
+    const r = autoResolveTrace(
+      s,
+      "corp-id",
+      2,
+      fx.giveTags(1),
+      fx.gainCredits("runner", 1),
+    );
     expect(r.ok).toBe(true);
     expect(s.trace).toBeNull();
     expect(s.runner.tags).toBe(0);
@@ -98,14 +106,23 @@ describe("CR 10.8.4 — trace vs link strength", () => {
   it("autoResolveTrace: strength above link succeeds", () => {
     const s = fresh(1);
     const credits = s.runner.credits;
-    const r = autoResolveTrace(s, "corp-id", 2, fx.giveTags(1), fx.gainCredits("runner", 1));
+    const r = autoResolveTrace(
+      s,
+      "corp-id",
+      2,
+      fx.giveTags(1),
+      fx.gainCredits("runner", 1),
+    );
     expect(r.ok).toBe(true);
     expect(s.runner.tags).toBe(1);
     expect(s.runner.credits).toBe(credits);
   });
 
   it("a tie does not fire 'whenever there is a successful trace' (Aryabhata Tech)", () => {
-    for (const [strength, fires] of [[1, false], [2, true]] as const) {
+    for (const [strength, fires] of [
+      [1, false],
+      [2, true],
+    ] as const) {
       const s = fresh(1);
       const hq = s.servers.hq!;
       s.cards["aryabhata"] = {

@@ -11,7 +11,11 @@ describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
     let s = createInitialState();
     s = structuredClone(s);
     // Fixture with the field — not docklands-pass defId.
-    const pass = instantiateCard("aesops-pawnshop", "pass-1", "runner:installed");
+    const pass = instantiateCard(
+      "aesops-pawnshop",
+      "pass-1",
+      "runner:installed",
+    );
     pass.bonusAccessOnFirstHqBreachThisTurn = 1;
     pass.title = "Test HQ Pass";
     s.cards["pass-1"] = pass;

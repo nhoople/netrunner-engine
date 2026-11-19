@@ -12,10 +12,8 @@ import type { Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applySansanOhPrimitive(
   ctx: EffectCtx,
@@ -36,7 +34,9 @@ export function applySansanOhPrimitive(
       const heap = [...state.runner.discardPile];
       if (heap.length <= n) {
         for (const id of heap) {
-          state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
+          state.runner.discardPile = state.runner.discardPile.filter(
+            (x) => x !== id,
+          );
           const c = state.cards[id]!;
           c.zone = "runner:stack";
           c.faceup = false;
@@ -64,8 +64,8 @@ export function applySansanOhPrimitive(
             },
           },
         })),
-logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
-});
+        logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
+      });
       return { ok: true };
     }
 
@@ -76,7 +76,9 @@ logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
         log(state, `Trope — invalid shuffle pick.`);
         return { ok: true };
       }
-      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
+      state.runner.discardPile = state.runner.discardPile.filter(
+        (id) => id !== cardId,
+      );
       const c = state.cards[cardId]!;
       c.zone = "runner:stack";
       c.faceup = false;
@@ -232,7 +234,8 @@ logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
     case "oh_place_advancements_on": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      card.advancementCounters = (card.advancementCounters ?? 0) + action.amount;
+      card.advancementCounters =
+        (card.advancementCounters ?? 0) + action.amount;
       log(
         state,
         `${source.title} — place ${action.amount} advancement(s) on ${card.title} → ${card.advancementCounters}.`,
@@ -349,10 +352,7 @@ logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
         serverId,
       };
       state.turn.ohForcedRunCannotJackOut = true;
-      log(
-        state,
-        `An Offer — Runner runs ${serverId} (cannot jack out).`,
-      );
+      log(state, `An Offer — Runner runs ${serverId} (cannot jack out).`);
       return { ok: true };
     }
 
@@ -445,7 +445,12 @@ logLine: `${source.title} — choose ${n} heap card(s) to shuffle.`,
       let remoteIdx = 1;
       while (state.servers[`remote-${remoteIdx}` as ServerId]) remoteIdx += 1;
       const serverId = `remote-${remoteIdx}` as ServerId;
-      state.servers[serverId] = { id: serverId, kind: "remote", ice: [], root: [] };
+      state.servers[serverId] = {
+        id: serverId,
+        kind: "remote",
+        ice: [],
+        root: [],
+      };
       state.corp.hand = state.corp.hand.filter((id) => id !== agendaId);
       agenda.zone = `server:${serverId}:root`;
       agenda.faceup = true;

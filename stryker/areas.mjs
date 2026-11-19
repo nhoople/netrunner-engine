@@ -46,14 +46,21 @@ export const areas = {
   },
   swap: {
     title: "3. Swap",
-    mutate: ["src/effects/kinds/swapKinds.ts", "src/effects/primitives/swapNetBreach.ts"],
+    mutate: [
+      "src/effects/kinds/swapKinds.ts",
+      "src/effects/primitives/swapNetBreach.ts",
+    ],
     tests: ["tests/*swap*.test.ts"],
     grep: /\b8\.8\.[1-4]|Yagi-Uda|Daruma|Sakai|Surfer|Inversificator|Allele|Nihongai|Turntable|Midori|Mitra Aman|Tāo Salonga|\bswap_/,
   },
   visibility: {
     title: "4. Visibility",
     mutate: ["src/state/seatVisibility.ts", "src/api/library.ts"],
-    tests: ["tests/*public-view*.test.ts", "tests/*visib*.test.ts", "tests/*seat*.test.ts"],
+    tests: [
+      "tests/*public-view*.test.ts",
+      "tests/*visib*.test.ts",
+      "tests/*seat*.test.ts",
+    ],
     grep: /getPublicView|seatVisibility|\b(1\.21\.[1-6]|10\.2\.[1-3])/,
   },
   "corp-install": {
@@ -74,7 +81,10 @@ export const areas = {
       "src/state/programHardwareInstall.ts",
       "src/state/virusInstall.ts",
     ],
-    tests: ["tests/program-install-memory.test.ts", "tests/*runner-install*.test.ts"],
+    tests: [
+      "tests/program-install-memory.test.ts",
+      "tests/*runner-install*.test.ts",
+    ],
     grep: /installRunner|\b8\.5\.6|Street Peddler|Hayley|Compile|DaVinci|Rosetta/,
   },
   rez: {
@@ -85,7 +95,11 @@ export const areas = {
   },
   access: {
     title: "8. Access",
-    mutate: ["src/actions/access.ts", "src/state/access.ts", "src/state/accessFilter.ts"],
+    mutate: [
+      "src/actions/access.ts",
+      "src/state/access.ts",
+      "src/state/accessFilter.ts",
+    ],
     tests: ["tests/*access*.test.ts"],
     grep: /\baccess_card\b|\b7\.[1-5]\.|Khusyuk|Deep Dive|Detente/,
   },
@@ -126,7 +140,9 @@ export const sourceScanTests = new Set([
 ]);
 
 function globToRegExp(glob) {
-  const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]*");
+  const escaped = glob
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*/g, "[^/]*");
   return new RegExp(`^${escaped}$`);
 }
 

@@ -7,7 +7,9 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = join(import.meta.dirname, "..");
-const map = JSON.parse(readFileSync(join(root, "data/cr-term-map.json"), "utf8")) as {
+const map = JSON.parse(
+  readFileSync(join(root, "data/cr-term-map.json"), "utf8"),
+) as {
   terms: Array<{ term: string; status: string; aliasesBanned?: string[] }>;
 };
 
@@ -53,7 +55,8 @@ const ALLOW_PATH_PARTS = [
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
-    if (name === "node_modules" || name === "dist" || name === "vendor") continue;
+    if (name === "node_modules" || name === "dist" || name === "vendor")
+      continue;
     const p = join(dir, name);
     if (statSync(p).isDirectory()) walk(p, out);
     else if (/\.(ts|tsx|mjs|js)$/.test(name)) out.push(p);

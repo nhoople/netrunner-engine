@@ -95,7 +95,11 @@ describe("blanked Underway / Tour Guide / SYNC (CR 9.12.1d)", () => {
     tg.rezzed = true;
     s.cards["tg-1"] = tg;
     s.servers.hq.ice = ["tg-1"];
-    const asset = instantiateCard("pad-campaign", "pc-1", "server:remote-1:root");
+    const asset = instantiateCard(
+      "pad-campaign",
+      "pc-1",
+      "server:remote-1:root",
+    );
     asset.rezzed = true;
     s.cards["pc-1"] = asset;
     s.servers["remote-1"] = {
@@ -111,7 +115,9 @@ describe("blanked Underway / Tour Guide / SYNC (CR 9.12.1d)", () => {
 
     suppressAbilities(s, tg.id);
     syncAllTourGuideSubs(s);
-    expect((tg.subroutines ?? []).length).toBe((tg.baseSubroutines ?? []).length);
+    expect((tg.subroutines ?? []).length).toBe(
+      (tg.baseSubroutines ?? []).length,
+    );
   });
 
   it("drops SYNC remove-tag surcharge while blanked", () => {

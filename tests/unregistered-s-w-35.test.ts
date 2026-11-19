@@ -145,7 +145,10 @@ describe("Unregistered S&W '35", () => {
     corpCard(s, "chairman-hiro", "exec-1", "remote-1", "root", true);
     let after = act(s, USE);
     const credits = after.runner.credits;
-    after = act(after, { type: "choose_option", optionId: "choose-card:exec-1" });
+    after = act(after, {
+      type: "choose_option",
+      optionId: "choose-card:exec-1",
+    });
     // The emptied remote server ceases to exist (CR 4.6.8e).
     expect(after.servers["remote-1"]?.root ?? []).not.toContain("exec-1");
     expect(after.corp.discardPile).toContain("exec-1");
@@ -196,16 +199,22 @@ describe("Unregistered S&W '35", () => {
   it("a subtype filter does not match a facedown card the chooser cannot see (CR 1.21.2)", () => {
     const s = runnerWithSw();
     corpCard(s, "akitaro-watanabe", "hidden-1", "remote-1", "root", false);
-    const r = evalEffect({ state: s, sourceId: "usw-1" }, {
-      op: "do",
-      action: {
-        kind: "choose_card",
-        chooser: "runner",
-        zone: "remote_root",
-        includeSubtypes: ["sysop"],
-        then: { op: "do", action: { kind: "trash_corp_card", cardId: "$chosen" } },
+    const r = evalEffect(
+      { state: s, sourceId: "usw-1" },
+      {
+        op: "do",
+        action: {
+          kind: "choose_card",
+          chooser: "runner",
+          zone: "remote_root",
+          includeSubtypes: ["sysop"],
+          then: {
+            op: "do",
+            action: { kind: "trash_corp_card", cardId: "$chosen" },
+          },
+        },
       },
-    });
+    );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice ?? null).toBeNull();
   });

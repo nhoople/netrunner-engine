@@ -1,6 +1,9 @@
 /** Order and Chaos (oac) deluxe primitives. */
 import { abilitiesSuppressed } from "../../state/abilities.js";
-import { addOutermostIce, iceAtRunnerPosition } from "../../state/runPosition.js";
+import {
+  addOutermostIce,
+  iceAtRunnerPosition,
+} from "../../state/runPosition.js";
 import { emptyRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage, removePendingDamageEntirely } from "../../state/damage.js";
@@ -14,10 +17,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function serverIdForCard(
   state: EffectCtx["state"],
@@ -37,9 +38,7 @@ function installedIceIds(state: EffectCtx["state"]): string[] {
   return out;
 }
 
-function advanceableInstalled(
-  state: EffectCtx["state"],
-): string[] {
+function advanceableInstalled(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
@@ -346,7 +345,8 @@ export function applyOacPrimitive(
       const amount = (action as { amount: number }).amount;
       if (state.run) {
         const run = state.run as { checkpointMeatOnSuccess?: number };
-        run.checkpointMeatOnSuccess = (run.checkpointMeatOnSuccess ?? 0) + amount;
+        run.checkpointMeatOnSuccess =
+          (run.checkpointMeatOnSuccess ?? 0) + amount;
         log(
           state,
           `Checkpoint — schedule ${amount} meat damage if this run is successful.`,
@@ -366,8 +366,7 @@ export function applyOacPrimitive(
     }
 
     case "trash_twins_hq_copy_reencounter": {
-      const atPosition =
-        iceAtRunnerPosition(state);
+      const atPosition = iceAtRunnerPosition(state);
       const iceId = state.run?.encounter?.iceId ?? atPosition;
       if (!iceId) {
         log(state, `The Twins — no passed ice.`);
@@ -489,9 +488,15 @@ export function applyOacPrimitive(
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
       if (!card || !state.runner.installed.includes(cardId)) {
-        return { ok: false, error: "Uninstall target not installed.", cites: [] };
+        return {
+          ok: false,
+          error: "Uninstall target not installed.",
+          cites: [],
+        };
       }
-      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter(
+        (id) => id !== cardId,
+      );
       card.hostId = undefined;
       card.zone = "runner:grip";
       state.runner.hand.push(cardId);
@@ -607,8 +612,7 @@ export function applyOacPrimitive(
         return { ok: true };
       }
       const cands = state.runner.installed.filter(
-        (id) =>
-          id !== sourceId && (state.cards[id]?.virusCounters ?? 0) >= 1,
+        (id) => id !== sourceId && (state.cards[id]?.virusCounters ?? 0) >= 1,
       );
       if (cands.length === 0) {
         log(state, `Virus Breeding Ground — no other card with virus.`);
@@ -644,7 +648,9 @@ export function applyOacPrimitive(
         return { ok: true };
       }
       state.runner.clicks -= 1;
-      (state.runner as { qianjuPreventTagUntilNextTurn?: boolean }).qianjuPreventTagUntilNextTurn = true;
+      (
+        state.runner as { qianjuPreventTagUntilNextTurn?: boolean }
+      ).qianjuPreventTagUntilNextTurn = true;
       log(state, `Qianju PT — lose [click]; prevent 1 tag until next turn.`);
       return { ok: true };
     }

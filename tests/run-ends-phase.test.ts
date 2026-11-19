@@ -137,8 +137,7 @@ describe("CR G6 residual — Run Ends Phase (11.4_6_a–d)", () => {
 
     expect(
       s.log.some(
-        (l) =>
-          l.includes("not declared unsuccessful") && l.includes("6.8.4a"),
+        (l) => l.includes("not declared unsuccessful") && l.includes("6.8.4a"),
       ),
     ).toBe(true);
     expect(s.log.some((l) => l.includes("Run declared unsuccessful"))).toBe(

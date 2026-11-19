@@ -9,10 +9,8 @@ import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "./labels.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
-
 type OrderResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function streetMagicId(state: GameState): string | undefined {
   for (const id of state.runner.installed) {
@@ -98,7 +96,10 @@ export function takeNextSubroutineIndex(state: GameState): number {
   if (!enc) return -1;
   const order = state.run?.subroutineResolveOrder;
   if (order && order.iceId === enc.iceId) {
-    while (order.indexes.length > 0 && enc.broken[order.indexes[0]!] !== false) {
+    while (
+      order.indexes.length > 0 &&
+      enc.broken[order.indexes[0]!] !== false
+    ) {
       order.indexes.shift();
     }
     if (order.indexes.length > 0) {
@@ -135,7 +136,8 @@ export function chooseNextSubroutineToResolve(
     openNextPick(state, pending.sourceId);
     return { ok: true };
   }
-  if (pending.remaining.length === 1) pending.picked.push(pending.remaining[0]!);
+  if (pending.remaining.length === 1)
+    pending.picked.push(pending.remaining[0]!);
   finishOrder(state, pending.sourceId);
   return { ok: true };
 }

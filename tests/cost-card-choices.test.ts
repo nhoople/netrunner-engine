@@ -189,8 +189,12 @@ describe("a cost that trashes from HQ asks the Corp which card (CR 1.16.1)", () 
   });
 
   it("refuses a named card that is not in HQ, or the wrong number", () => {
-    expect(applyAction(whampoa(), { ...use, costCardIds: ["arch-1"] }).ok).toBe(false);
-    expect(applyAction(whampoa(), { ...use, costCardIds: ["h-1", "h-2"] }).ok).toBe(false);
+    expect(applyAction(whampoa(), { ...use, costCardIds: ["arch-1"] }).ok).toBe(
+      false,
+    );
+    expect(
+      applyAction(whampoa(), { ...use, costCardIds: ["h-1", "h-2"] }).ok,
+    ).toBe(false);
     expect(applyAction(whampoa(), { ...use, costCardIds: [] }).ok).toBe(false);
   });
 
@@ -223,7 +227,11 @@ describe("a cost that trashes from HQ asks the Corp which card (CR 1.16.1)", () 
       ["hedge-fund", "h-1"],
       ["ice-wall", "h-2"],
     ]);
-    s = must(s, { type: "use_paid_ability", cardId: "hel-1", abilityId: "helheim-boost" });
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "hel-1",
+      abilityId: "helheim-boost",
+    });
     expect(s.pendingCost?.payer).toBe("corp");
     expect(s.run?.encounter?.iceId).toBe("wall-1");
     s = pickCost(s, "h-2");
@@ -312,7 +320,9 @@ describe("a cost that trashes from the grip asks the Runner which card (CR 1.16.
     expect(optionIds(after).sort()).toEqual(["cost-card:p-1", "cost-card:p-2"]);
     // Installed programs are open information: the Corp sees the options.
     expect(
-      getPublicView(after, "corp").pendingChoice?.options.map((o) => o.id).sort(),
+      getPublicView(after, "corp")
+        .pendingChoice?.options.map((o) => o.id)
+        .sort(),
     ).toEqual(["cost-card:p-1", "cost-card:p-2"]);
     after = pickCost(after, "p-2");
     expect(after.cards["p-2"].zone).toBe("runner:heap");

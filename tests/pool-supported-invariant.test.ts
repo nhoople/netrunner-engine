@@ -73,7 +73,9 @@ describe("supported-wave pool invariant", () => {
       for (const id of wave.cards) {
         const printed = getCardDef(id).wave;
         if (!printed || !pool.waves[printed]?.cards.includes(id)) {
-          failures.push(`${waveName}/${id}: printed wave ${printed ?? "missing"}`);
+          failures.push(
+            `${waveName}/${id}: printed wave ${printed ?? "missing"}`,
+          );
         }
       }
     }

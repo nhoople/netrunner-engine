@@ -58,7 +58,9 @@ describe("Jeitinho heap install on bypass (CR 9.6.2)", () => {
         line.includes("bypass"),
     );
     expect(pendingIdx).toBeGreaterThanOrEqual(0);
-    expect(s.log.join("\n")).toContain(CR.checkpointConditionalAbilities.number);
+    expect(s.log.join("\n")).toContain(
+      CR.checkpointConditionalAbilities.number,
+    );
     expect(s.pendingChoice?.sourceId).toBe("jei-1");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
       "install-from-heap",

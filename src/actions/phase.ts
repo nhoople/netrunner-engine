@@ -104,8 +104,7 @@ export function passWindow(state: GameState): ApplyResult {
   }
 
   const step = getStep(state);
-  const inRunOrBreach =
-    step.structure === "run" || step.structure === "breach";
+  const inRunOrBreach = step.structure === "run" || step.structure === "breach";
 
   if (step.key === "corp.mandatoryDraw") {
     // Daily Business Show: first draw +1 then put 1 drawn on bottom of R&D.
@@ -301,10 +300,9 @@ export function discardPhase(
         chosen.length !== excess ||
         chosen.some((id) => !p.hand.includes(id))
       ) {
-        return fail(
-          `Choose exactly ${excess} card(s) in hand to discard.`,
-          [CR.maxHandSize],
-        );
+        return fail(`Choose exactly ${excess} card(s) in hand to discard.`, [
+          CR.maxHandSize,
+        ]);
       }
     }
     state.turn.runnerDiscardedToMaxHandIds = [];
@@ -376,5 +374,3 @@ export function discardPhase(
   autoWalk(state);
   return ok(state);
 }
-
-

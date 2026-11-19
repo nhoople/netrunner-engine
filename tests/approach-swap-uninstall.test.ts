@@ -33,7 +33,13 @@ function must(s: GameState, action: Action): GameState {
 
 const logged = (s: GameState): string => s.log.join("\n");
 
-function addCard(s: GameState, def: string, id: string, zone: string, rezzed = false) {
+function addCard(
+  s: GameState,
+  def: string,
+  id: string,
+  zone: string,
+  rezzed = false,
+) {
   const card = instantiateCard(def, id, zone);
   card.rezzed = rezzed;
   card.faceup = rezzed;
@@ -75,8 +81,16 @@ function approachingHostedIce(upgrade: "midori" | "mitra-aman"): GameState {
   return s;
 }
 
-function swap(s: GameState, kind: "swap_approached_ice_with_hq" | "swap_approached_ice_with_hq_or_archives", replacementIceId: string) {
-  return evalEffect({ state: s, sourceId: "up" }, { op: "do", action: { kind, replacementIceId } });
+function swap(
+  s: GameState,
+  kind:
+    "swap_approached_ice_with_hq" | "swap_approached_ice_with_hq_or_archives",
+  replacementIceId: string,
+) {
+  return evalEffect(
+    { state: s, sourceId: "up" },
+    { op: "do", action: { kind, replacementIceId } },
+  );
 }
 
 function expectUninstalled(s: GameState, to: "corp:hq" | "corp:archives") {
@@ -105,7 +119,9 @@ describe("Midori: the swapped-out ice is uninstalled (CR 8.8.4b)", () => {
 describe("Mitra Aman: the swapped-out ice is uninstalled (CR 8.8.4b)", () => {
   it("from HQ: trashes its hosted cards and counters", () => {
     const s = approachingHostedIce("mitra-aman");
-    expect(swap(s, "swap_approached_ice_with_hq_or_archives", "new").ok).toBe(true);
+    expect(swap(s, "swap_approached_ice_with_hq_or_archives", "new").ok).toBe(
+      true,
+    );
     expectUninstalled(s, "corp:hq");
     expect(iceAtRunnerPosition(s)).toBe("new");
     expect(s.cards["a"]?.faceup).toBe(false);
@@ -113,7 +129,9 @@ describe("Mitra Aman: the swapped-out ice is uninstalled (CR 8.8.4b)", () => {
 
   it("from Archives: trashes its hosted cards and counters, and the ice enters Archives faceup", () => {
     const s = approachingHostedIce("mitra-aman");
-    expect(swap(s, "swap_approached_ice_with_hq_or_archives", "old").ok).toBe(true);
+    expect(swap(s, "swap_approached_ice_with_hq_or_archives", "old").ok).toBe(
+      true,
+    );
     expectUninstalled(s, "corp:archives");
     expect(iceAtRunnerPosition(s)).toBe("old");
     // It was rezzed, so the Runner had seen it (CR 8.8.4a).
@@ -136,8 +154,12 @@ describe("Midori through its trigger: the chosen ice is swapped in, not rezzed i
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
     s = must(s, { type: "basic_run", serverId: "hq" });
-    for (let i = 0; i < 10 && !s.pendingChoice; i += 1) s = must(s, { type: "pass_window" });
-    expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual(["decline", "new"]);
+    for (let i = 0; i < 10 && !s.pendingChoice; i += 1)
+      s = must(s, { type: "pass_window" });
+    expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
+      "decline",
+      "new",
+    ]);
     s = must(s, { type: "choose_option", optionId: "new" });
     expect(s.servers.hq.ice).toEqual(["new"]);
     expect(s.cards["new"]?.zone).toBe("server:hq:ice");

@@ -7,7 +7,12 @@
  * declaration is written back onto that object. A card that still has only
  * the old hook is left alone.
  */
-import { validateCond, validateEffectTree, type Cond, type Effect } from "./ir.js";
+import {
+  validateCond,
+  validateEffectTree,
+  type Cond,
+  type Effect,
+} from "./ir.js";
 
 const ABILITY_CLASSES = [
   "static",
@@ -145,8 +150,9 @@ export function hookToTrigger(hook: string): string {
 export function triggerToHook(trigger: string): string {
   const exact = EXACT_TRIGGERS[trigger];
   if (exact) return exact;
-  const camel = trigger.replace(/(^|_)([a-z])/g, (_match, _sep, letter: string) =>
-    letter.toUpperCase(),
+  const camel = trigger.replace(
+    /(^|_)([a-z])/g,
+    (_match, _sep, letter: string) => letter.toUpperCase(),
   );
   return `on${camel}`;
 }
@@ -193,7 +199,9 @@ export function setPrintedPlay(
   card: { abilities?: AbilityRecord[]; onPlay?: Effect },
   effect: Effect,
 ): void {
-  const rest = (card.abilities ?? []).filter((ability) => ability.class !== "play");
+  const rest = (card.abilities ?? []).filter(
+    (ability) => ability.class !== "play",
+  );
   card.abilities = [
     ...rest,
     {
@@ -225,7 +233,12 @@ export function materializePaidAbilitiesFromRecords(
     const record = abilities[i]!;
     const label = `abilities[${i}]`;
     const effect = withCondition(record);
-    if (record.class === "conditional" && effect && record.trigger && record.host) {
+    if (
+      record.class === "conditional" &&
+      effect &&
+      record.trigger &&
+      record.host
+    ) {
       if (record.hostAbility) {
         writeHostedAbility(
           paid,
@@ -422,9 +435,21 @@ export function applyAbilityRecords(
 
     if (record.class === "play") {
       // The record is the play text (CR 9.3.7d). Readers use playEffectFromCard.
-    } else if (record.class === "conditional" && effect && record.trigger && record.host) {
+    } else if (
+      record.class === "conditional" &&
+      effect &&
+      record.trigger &&
+      record.host
+    ) {
       const hostErr = record.hostAbility
-        ? writeHostedAbility(paid, record.hostAbility, record.host, record.trigger, effect, label)
+        ? writeHostedAbility(
+            paid,
+            record.hostAbility,
+            record.host,
+            record.trigger,
+            effect,
+            label,
+          )
         : writeHosted(card, record.host, record.trigger, effect, label);
       if (hostErr) return hostErr;
     } else if (
@@ -471,7 +496,10 @@ export function applyAbilityRecords(
   return null;
 }
 
-export function validateAbilityRecord(ability: unknown, path: string): string | null {
+export function validateAbilityRecord(
+  ability: unknown,
+  path: string,
+): string | null {
   if (!ability || typeof ability !== "object") return `${path}: not an object`;
   const record = ability as AbilityRecord;
   if (!CLASS_SET.has(record.class)) {
@@ -487,7 +515,9 @@ export function validateAbilityRecord(ability: unknown, path: string): string | 
   }
   if (record.flagRule !== undefined) {
     const expected = expectedFlagRules(record.flag);
-    const actual = Array.isArray(record.flagRule) ? record.flagRule : [record.flagRule];
+    const actual = Array.isArray(record.flagRule)
+      ? record.flagRule
+      : [record.flagRule];
     if (actual.join(",") !== expected.join(",")) {
       return `${path}.flagRule: expected ${expected.join(", ") || "none"}`;
     }
@@ -501,7 +531,10 @@ export function validateAbilityRecord(ability: unknown, path: string): string | 
     }
   }
   if (record.hostAbility !== undefined) {
-    if (typeof record.hostAbility !== "string" || record.hostAbility.length === 0) {
+    if (
+      typeof record.hostAbility !== "string" ||
+      record.hostAbility.length === 0
+    ) {
       return `${path}.hostAbility: invalid`;
     }
     if (record.class !== "conditional" || record.host === undefined) {
@@ -536,7 +569,10 @@ export function validateAbilityRecord(ability: unknown, path: string): string | 
     if (record.instructions) {
       return `${path}: a static ability cannot contain instructions (CR 9.3.7a)`;
     }
-    if (!record.declaration && !(record.restrictions && record.restrictions.length)) {
+    if (
+      !record.declaration &&
+      !(record.restrictions && record.restrictions.length)
+    ) {
       return `${path}: a static ability needs a declaration or a restriction`;
     }
     if (record.declaration) {
@@ -550,7 +586,8 @@ export function validateAbilityRecord(ability: unknown, path: string): string | 
     if (!record.cost || typeof record.cost !== "object") {
       return `${path}: a paid ability needs a cost (CR 9.3.7b)`;
     }
-    if (!record.instructions) return `${path}: a paid ability needs instructions`;
+    if (!record.instructions)
+      return `${path}: a paid ability needs instructions`;
     if (!record.windows || record.windows.length === 0) {
       return `${path}: a paid ability needs a window`;
     }
@@ -589,9 +626,12 @@ function hasFlag(flag: AbilityFlagValue | undefined, word: string): boolean {
   return hasAbilityFlag(flag, word);
 }
 
-export function threatValue(flag: AbilityFlagValue | undefined): number | undefined {
+export function threatValue(
+  flag: AbilityFlagValue | undefined,
+): number | undefined {
   for (const item of flagList(flag)) {
-    if (item && typeof item === "object" && "threat" in item) return item.threat;
+    if (item && typeof item === "object" && "threat" in item)
+      return item.threat;
   }
   return undefined;
 }
@@ -606,7 +646,10 @@ export function canonicalizeAbilityFlags(ability: {
   requiresThreat?: number;
 }): void {
   const words = flagList(ability.flag);
-  if (ability.oncePerTurn === true && !hasAbilityFlag(ability.flag, "once_per_turn")) {
+  if (
+    ability.oncePerTurn === true &&
+    !hasAbilityFlag(ability.flag, "once_per_turn")
+  ) {
     words.push("once_per_turn");
   }
   const threat = ability.requiresThreat;
@@ -625,7 +668,10 @@ function expectedFlagRules(flag: AbilityFlagValue | undefined): string[] {
   );
 }
 
-function validateFlag(flag: AbilityFlagValue | undefined, path: string): string | null {
+function validateFlag(
+  flag: AbilityFlagValue | undefined,
+  path: string,
+): string | null {
   if (flag === undefined) return null;
   const items = flagList(flag);
   if (items.length === 0) return `${path}.flag: unknown`;
@@ -633,7 +679,8 @@ function validateFlag(flag: AbilityFlagValue | undefined, path: string): string 
   let threats = 0;
   for (const item of items) {
     if (typeof item === "string") {
-      if (!FLAG_WORDS.has(item) || seen.has(item)) return `${path}.flag: unknown`;
+      if (!FLAG_WORDS.has(item) || seen.has(item))
+        return `${path}.flag: unknown`;
       seen.add(item);
       continue;
     }
@@ -710,7 +757,10 @@ const PAID_SKIP = new Set([
   "host",
 ]);
 
-function toPaidAbility(record: AbilityRecord, effect: Effect): Record<string, unknown> {
+function toPaidAbility(
+  record: AbilityRecord,
+  effect: Effect,
+): Record<string, unknown> {
   const raw = record.cost ?? {};
   const cost: AbilityCost = { ...raw };
   if (cost.clicks === 0) delete cost.clicks;
@@ -728,7 +778,13 @@ function toPaidAbility(record: AbilityRecord, effect: Effect): Record<string, un
   for (const [key, value] of Object.entries(record)) {
     if (!PAID_SKIP.has(key)) paid[key] = value;
   }
-  canonicalizeAbilityFlags(paid as { flag?: AbilityFlagValue; oncePerTurn?: boolean; requiresThreat?: number });
+  canonicalizeAbilityFlags(
+    paid as {
+      flag?: AbilityFlagValue;
+      oncePerTurn?: boolean;
+      requiresThreat?: number;
+    },
+  );
   return paid;
 }
 
@@ -748,7 +804,10 @@ const SUB_SKIP = new Set([
   "host",
 ]);
 
-function toSubroutine(record: AbilityRecord, effect: Effect): Record<string, unknown> {
+function toSubroutine(
+  record: AbilityRecord,
+  effect: Effect,
+): Record<string, unknown> {
   const sub: Record<string, unknown> = {
     id: record.id ?? "sub",
     text: record.text ?? "",
@@ -758,6 +817,12 @@ function toSubroutine(record: AbilityRecord, effect: Effect): Record<string, unk
   for (const [key, value] of Object.entries(record)) {
     if (!SUB_SKIP.has(key) && key !== "id" && key !== "text") sub[key] = value;
   }
-  canonicalizeAbilityFlags(sub as { flag?: AbilityFlagValue; oncePerTurn?: boolean; requiresThreat?: number });
+  canonicalizeAbilityFlags(
+    sub as {
+      flag?: AbilityFlagValue;
+      oncePerTurn?: boolean;
+      requiresThreat?: number;
+    },
+  );
   return sub;
 }

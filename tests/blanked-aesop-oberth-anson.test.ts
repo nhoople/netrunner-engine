@@ -126,7 +126,11 @@ describe("blanked Aesop / Oberth / Anson (CR 9.12.1d)", () => {
     const arch = instantiateCard("the-archivist", "ta-1", "runner:installed");
     s.cards["ta-1"] = arch;
     s.runner.installed = ["ta-1"];
-    const agenda = instantiateCard("priority-requisition", "pr-1", "corp:score");
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "pr-1",
+      "corp:score",
+    );
     agenda.subtypes = ["initiative"];
     s.cards["pr-1"] = agenda;
     s.corp.scoreArea = ["pr-1"];

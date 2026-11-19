@@ -25,7 +25,8 @@ import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir.js";
 
 const ROOT = process.cwd();
 const BASELINE_PATH = join(ROOT, "tests/baselines/kind-effect-coverage.json");
-const REGENERATE = "UPDATE_KIND_COVERAGE=1 npx vitest run tests/kind-effect-coverage.test.ts";
+const REGENERATE =
+  "UPDATE_KIND_COVERAGE=1 npx vitest run tests/kind-effect-coverage.test.ts";
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -41,7 +42,8 @@ function walk(dir: string, out: string[] = []): string[] {
 function calleeName(call: ts.CallExpression): string {
   let e: ts.Expression = call.expression;
   // it.each(...)(...), it.only, test.skip, …
-  while (ts.isCallExpression(e) || ts.isPropertyAccessExpression(e)) e = e.expression;
+  while (ts.isCallExpression(e) || ts.isPropertyAccessExpression(e))
+    e = e.expression;
   return ts.isIdentifier(e) ? e.text : "";
 }
 
@@ -49,7 +51,11 @@ function contains(node: ts.Node, name: string): boolean {
   let hit = false;
   const visit = (n: ts.Node): void => {
     if (hit) return;
-    if (ts.isCallExpression(n) && ts.isIdentifier(n.expression) && n.expression.text === name) {
+    if (
+      ts.isCallExpression(n) &&
+      ts.isIdentifier(n.expression) &&
+      n.expression.text === name
+    ) {
       hit = true;
       return;
     }
@@ -59,7 +65,13 @@ function contains(node: ts.Node, name: string): boolean {
   return hit;
 }
 
-type Registration = { file: string; line: number; kind: string; ok: boolean; why?: string };
+type Registration = {
+  file: string;
+  line: number;
+  kind: string;
+  ok: boolean;
+  why?: string;
+};
 
 function registrations(): Registration[] {
   const out: Registration[] = [];
@@ -75,17 +87,33 @@ function registrations(): Registration[] {
         node.expression.text === "coversKind" &&
         !ts.isFunctionDeclaration(node.parent)
       ) {
-        const line = sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
+        const line =
+          sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
         const arg = node.arguments[0];
         if (!arg || !ts.isStringLiteralLike(arg)) {
-          out.push({ file, line, kind: "?", ok: false, why: "argument is not a string literal" });
+          out.push({
+            file,
+            line,
+            kind: "?",
+            ok: false,
+            why: "argument is not a string literal",
+          });
         } else {
           let p: ts.Node | undefined = node.parent;
-          while (p && !(ts.isCallExpression(p) && ["it", "test"].includes(calleeName(p)))) {
+          while (
+            p &&
+            !(ts.isCallExpression(p) && ["it", "test"].includes(calleeName(p)))
+          ) {
             p = p.parent;
           }
           if (!p) {
-            out.push({ file, line, kind: arg.text, ok: false, why: "not inside an it()" });
+            out.push({
+              file,
+              line,
+              kind: arg.text,
+              ok: false,
+              why: "not inside an it()",
+            });
           } else if (!contains(p, "expectStateDelta")) {
             out.push({
               file,
@@ -108,10 +136,13 @@ function registrations(): Registration[] {
 
 const regs = registrations().filter((r) => r.file !== "tests/kind-coverage.ts");
 const covered = new Set(regs.filter((r) => r.ok).map((r) => r.kind));
-const uncovered = [...KNOWN_PRIMITIVE_KINDS].filter((k) => !covered.has(k)).sort();
+const uncovered = [...KNOWN_PRIMITIVE_KINDS]
+  .filter((k) => !covered.has(k))
+  .sort();
 
 type Baseline = { _comment: string; uncovered: string[] };
-const readBaseline = (): Baseline => JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline;
+const readBaseline = (): Baseline =>
+  JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline;
 
 if (process.env.UPDATE_KIND_COVERAGE) {
   const base = readBaseline();
@@ -119,12 +150,17 @@ if (process.env.UPDATE_KIND_COVERAGE) {
   if (added.length > 0) {
     throw new Error(`refusing to add uncovered kind(s): ${added.join(", ")}`);
   }
-  writeFileSync(BASELINE_PATH, JSON.stringify({ ...base, uncovered }, null, 2) + "\n");
+  writeFileSync(
+    BASELINE_PATH,
+    JSON.stringify({ ...base, uncovered }, null, 2) + "\n",
+  );
 }
 
 describe("kind effect coverage (CR audit Phase 2)", () => {
   it("every coversKind() names a known kind and sits in an it() that asserts a state change", () => {
-    expect(regs.length, "no coversKind() registrations found").toBeGreaterThan(0);
+    expect(regs.length, "no coversKind() registrations found").toBeGreaterThan(
+      0,
+    );
     const bad = regs
       .filter((r) => !r.ok || !KNOWN_PRIMITIVE_KINDS.has(r.kind))
       .map((r) => `${r.file}:${r.line} ${r.kind}: ${r.why ?? "unknown kind"}`);

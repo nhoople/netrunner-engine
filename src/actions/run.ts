@@ -17,12 +17,15 @@ import {
   type RunModifiers,
 } from "../state/runStart.js";
 import { afterBasicAction, enterStep, getStep } from "../timing/machine.js";
-import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
+import type {
+  ApplyResult,
+  GameState,
+  RuleCite,
+  ServerId,
+} from "../state/types.js";
 import { moveRunnerCardToHeap } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
-import {
-  fireOnRunDeclaredOnThisServerIfTagged,
-} from "../state/miscConditionalHooks.js";
+import { fireOnRunDeclaredOnThisServerIfTagged } from "../state/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { random } from "../state/rng.js";
 
@@ -124,7 +127,9 @@ export function finishRunReturnToAction(state: GameState): void {
       }
       log(state, `Play effect complete (CR ${CR.playComplete.number}).`);
     }
-    state.restrictions = state.restrictions.filter((r) => r.forbid !== "jack_out");
+    state.restrictions = state.restrictions.filter(
+      (r) => r.forbid !== "jack_out",
+    );
     afterBasicAction(state);
   }
 }
@@ -254,7 +259,8 @@ export function startRun(
     for (const id of state.servers[serverId]?.root ?? []) {
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
-      const refund = card?.refundCreditsIfRunBeginsOnThisServerDuringClickAction;
+      const refund =
+        card?.refundCreditsIfRunBeginsOnThisServerDuringClickAction;
       if (!card?.rezzed || !refund) continue;
       const pay = Math.min(refund, state.corp.credits);
       state.corp.credits -= pay;
@@ -353,7 +359,8 @@ export function startRun(
     ?.betaBuildPendingTrackId;
   if (pending) {
     state.run.betaBuildTrackedInstallId = pending;
-    delete (src as { betaBuildPendingTrackId?: string }).betaBuildPendingTrackId;
+    delete (src as { betaBuildPendingTrackId?: string })
+      .betaBuildPendingTrackId;
   }
   state.turn.runnerMadeRunThisTurn = true;
   state.turn.currentRunPassedUnrezzedIceIds = [];
@@ -428,7 +435,6 @@ export function startRun(
   return advanceRunUntilStop(state);
 }
 
-
 /** Ancestral Imager-class: net damage amounts on jack out from scored agendas. */
 export function ancestralImagerJackOutDamage(
   state: GameState,
@@ -483,7 +489,10 @@ export function jackOut(state: GameState): ApplyResult {
     const n = card?.gainCreditsOnJackOut;
     if (typeof n === "number" && n > 0) {
       state.runner.credits += n;
-      log(state, `${card!.title} — gain ${n}¢ on jack out → ${state.runner.credits}¢.`);
+      log(
+        state,
+        `${card!.title} — gain ${n}¢ on jack out → ${state.runner.credits}¢.`,
+      );
     }
     // Reflection: reveal 1 random HQ card on jack out.
     if (card?.revealRandomHqOnJackOut && state.corp.hand.length > 0) {
@@ -616,4 +625,3 @@ export function resolvePortAnsonProgramTrash(
   if (offerPortAnsonTrash(state)) return ok(state);
   return finishJackOut(state);
 }
-

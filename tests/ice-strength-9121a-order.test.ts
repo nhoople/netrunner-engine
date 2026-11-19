@@ -82,7 +82,11 @@ describe("ice strength order (CR 9.12.1a)", () => {
     wall.rezzed = true;
     s.cards["wall-1"] = wall;
     s.servers.hq.ice = ["wall-1"];
-    const carver = instantiateCard("ice-carver", "carver-1", "runner:installed");
+    const carver = instantiateCard(
+      "ice-carver",
+      "carver-1",
+      "runner:installed",
+    );
     const sifr = instantiateCard("sifr", "sifr-1", "runner:installed");
     s.cards["carver-1"] = carver;
     s.cards["sifr-1"] = sifr;

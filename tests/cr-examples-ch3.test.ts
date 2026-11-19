@@ -25,8 +25,6 @@ beforeAll(() => {
 });
 
 describe("CR examples, chapter 3", () => {
-
-
   it("lowers Archangel for the encounter when Gang Sign starts no run (CR 3.4.4a.ex1)", () => {
     const s = createInitialState();
     const arch = instantiateCard("archangel", "arch-1", "corp:hq");
@@ -62,8 +60,7 @@ describe("CR examples, chapter 3", () => {
     expect(iceStrength(s, "arch-1")).toBe(printed);
   });
 
-
-    it("drops Corroder's encounter pump when the encounter ends (CR 3.9.5b.ex1)", () => {
+  it("drops Corroder's encounter pump when the encounter ends (CR 3.9.5b.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -92,12 +89,17 @@ describe("CR examples, chapter 3", () => {
     );
     expect(pumped.ok).toBe(true);
     expect(breakerStrength(s, "co-1")).toBe(before + 1);
-    occurCheckpoint(s, "test", "after encounter", [CR.encounterIcePhase], "test");
+    occurCheckpoint(
+      s,
+      "test",
+      "after encounter",
+      [CR.encounterIcePhase],
+      "test",
+    );
     expect(breakerStrength(s, "co-1")).toBe(before);
   });
 
-
-    it("keeps Gordian Blade's pump for the remainder of the run (CR 3.9.5c.ex1)", () => {
+  it("keeps Gordian Blade's pump for the remainder of the run (CR 3.9.5c.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -124,14 +126,19 @@ describe("CR examples, chapter 3", () => {
       fx.do({ kind: "pump_strength", amount: 1, duration: "run" }),
     );
     expect(pumped.ok).toBe(true);
-    occurCheckpoint(s, "test", "after encounter", [CR.encounterIcePhase], "test");
+    occurCheckpoint(
+      s,
+      "test",
+      "after encounter",
+      [CR.encounterIcePhase],
+      "test",
+    );
     expect(breakerStrength(s, "gb-1")).toBe(before + 1);
     s.run = null;
     expect(breakerStrength(s, "gb-1")).toBe(before);
   });
 
-
-    it("ends Corroder's pump at the next checkpoint when there is no encounter (CR 3.9.5d.ex1)", () => {
+  it("ends Corroder's pump at the next checkpoint when there is no encounter (CR 3.9.5d.ex1)", () => {
     const s = createInitialState();
     const breaker = instantiateCard("corroder", "co-1", "runner:installed");
     s.cards["co-1"] = breaker;
@@ -143,11 +150,18 @@ describe("CR examples, chapter 3", () => {
     );
     expect(pumped.ok).toBe(true);
     expect(breakerStrength(s, "co-1")).toBe(before + 1);
-    expect(s.log.some((line) => line.includes(CR.icebreakerStrengthOutsideEncounter.number))).toBe(
-      true,
+    expect(
+      s.log.some((line) =>
+        line.includes(CR.icebreakerStrengthOutsideEncounter.number),
+      ),
+    ).toBe(true);
+    occurCheckpoint(
+      s,
+      "test",
+      "checkpoint",
+      [CR.checkpointDurationAbilities],
+      "test",
     );
-    occurCheckpoint(s, "test", "checkpoint", [CR.checkpointDurationAbilities], "test");
     expect(breakerStrength(s, "co-1")).toBe(before);
   });
-
 });

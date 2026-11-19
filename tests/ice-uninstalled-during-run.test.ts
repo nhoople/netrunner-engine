@@ -38,7 +38,9 @@ function must(s: GameState, action: Action): GameState {
 const pass = (s: GameState): GameState => must(s, { type: "pass_window" });
 
 /** HQ protected by Ice Wall (outermost), Enigma, Ice Wall (innermost). */
-function runOnHq(rezzed: { a?: boolean; b?: boolean; c?: boolean } = {}): GameState {
+function runOnHq(
+  rezzed: { a?: boolean; b?: boolean; c?: boolean } = {},
+): GameState {
   const s = createInitialState();
   for (const [id, def] of [
     ["a", "ice-wall"],
@@ -62,7 +64,8 @@ function runOnHq(rezzed: { a?: boolean; b?: boolean; c?: boolean } = {}): GameSt
 
 function encountering(s: GameState, iceId: string): GameState {
   let t = s;
-  for (let i = 0; i < 12 && t.run?.encounter?.iceId !== iceId; i += 1) t = pass(t);
+  for (let i = 0; i < 12 && t.run?.encounter?.iceId !== iceId; i += 1)
+    t = pass(t);
   expect(t.run?.encounter?.iceId).toBe(iceId);
   expect(t.timingKey).toBe("run.encounterPaw");
   return t;
@@ -97,7 +100,8 @@ describe("ice uninstalled while it is encountered (CR 8.5.10, 6.2.7c)", () => {
     s = pass(s);
     expect(s.timingKey).toBe("run.jackOutWindow");
     s = must(s, { type: "continue_run" });
-    for (let i = 0; i < 4 && s.timingKey !== "run.approachPaw"; i += 1) s = pass(s);
+    for (let i = 0; i < 4 && s.timingKey !== "run.approachPaw"; i += 1)
+      s = pass(s);
     expect(s.timingKey).toBe("run.approachPaw");
     expect(s.run?.positionVacated ?? false).toBe(false);
     expect(iceAtRunnerPosition(s)).toBe("b");
@@ -159,7 +163,8 @@ describe("ice uninstalled while it is approached (CR 8.5.10, 6.2.7a)", () => {
     expect(t.run?.passedIceIds ?? []).toEqual([]);
     expect(logged(t)).toContain("6.2.7a");
     t = must(t, { type: "continue_run" });
-    for (let i = 0; i < 4 && t.timingKey !== "run.approachPaw"; i += 1) t = pass(t);
+    for (let i = 0; i < 4 && t.timingKey !== "run.approachPaw"; i += 1)
+      t = pass(t);
     expect(iceAtRunnerPosition(t)).toBe("b");
     expect(logged(t)).toContain("Approach ice Enigma");
   });

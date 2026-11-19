@@ -15,7 +15,10 @@ import {
 import { computeRunnerMaxHandSize } from "../src/state/handSize.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { runnerInstallCost } from "../src/actions/installRunner.js";
-import { agendaPointMu, agendaPointHandSize } from "../src/state/staticFlags.js";
+import {
+  agendaPointMu,
+  agendaPointHandSize,
+} from "../src/state/staticFlags.js";
 import { suppressAbilities } from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
@@ -41,7 +44,11 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
   it("drops Chairman Hiro runner hand-size penalty while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const hiro = instantiateCard("chairman-hiro", "hiro-1", "server:remote-1:root");
+    const hiro = instantiateCard(
+      "chairman-hiro",
+      "hiro-1",
+      "server:remote-1:root",
+    );
     hiro.rezzed = true;
     s.cards["hiro-1"] = hiro;
     s.servers["remote-1"] = {
@@ -79,7 +86,11 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     const chip = instantiateCard("brain-chip", "bc-1", "runner:installed");
     s.cards["bc-1"] = chip;
     s.runner.installed = ["bc-1"];
-    const agenda = instantiateCard("priority-requisition", "ag-1", "runner:score");
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "ag-1",
+      "runner:score",
+    );
     s.cards["ag-1"] = agenda;
     s.runner.scoreArea = ["ag-1"];
 
@@ -165,7 +176,11 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
 
     let s2 = createInitialState();
     s2 = structuredClone(s2);
-    const dh2 = instantiateCard("director-haas", "dh-2", "server:remote-1:root");
+    const dh2 = instantiateCard(
+      "director-haas",
+      "dh-2",
+      "server:remote-1:root",
+    );
     dh2.rezzed = true;
     suppressAbilities(s2, dh2.id);
     s2.cards["dh-2"] = dh2;
@@ -186,7 +201,11 @@ describe("blanked continuous numerics (CR 9.12.1d)", () => {
     const chip = instantiateCard("brain-chip", "bc-1", "runner:installed");
     s.cards["bc-1"] = chip;
     s.runner.installed = ["bc-1"];
-    const agenda = instantiateCard("priority-requisition", "ag-1", "runner:score");
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "ag-1",
+      "runner:score",
+    );
     s.cards["ag-1"] = agenda;
     s.runner.scoreArea = ["ag-1"];
 

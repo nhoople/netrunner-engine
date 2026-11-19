@@ -35,9 +35,9 @@ describe("blanked Pad Tap / Sweep / expose Zamba (CR 9.12.1d)", () => {
     const pad = instantiateCard("pad-tap", "pad-1", "runner:installed");
     s.cards["pad-1"] = pad;
     s.runner.installed = ["pad-1"];
-    expect(
-      pad.mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn,
-    ).toBe(true);
+    expect(pad.mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn).toBe(
+      true,
+    );
 
     onCorpAbilityGainedCredits(s);
     expect(s.pendingChoice?.sourceId).toBe("pad-1");

@@ -32,9 +32,17 @@ beforeAll(() => {
 function mirrormorph(clicks: number): GameState {
   const s = createInitialState();
   const id = s.corp.identityId;
-  s.cards[id] = instantiateCard("mirrormorph-endless-iteration", id, "corp:identity");
+  s.cards[id] = instantiateCard(
+    "mirrormorph-endless-iteration",
+    id,
+    "corp:identity",
+  );
   s.cards["runner-program-1"]!.rezzed = false;
-  const rml = instantiateCard("regolith-mining-license", "rml-1", "server:remote-1:root");
+  const rml = instantiateCard(
+    "regolith-mining-license",
+    "rml-1",
+    "server:remote-1:root",
+  );
   rml.rezzed = true;
   rml.faceup = true;
   rml.hostedCredits = 15;
@@ -69,7 +77,11 @@ function take(s: GameState, action: Action): GameState {
 /** Three different actions, then pick the extra action. */
 function chooseExtraAction(clicks: number): GameState {
   let s = mirrormorph(clicks);
-  s = take(s, { type: "use_paid_ability", cardId: "rml-1", abilityId: "regolith-take" });
+  s = take(s, {
+    type: "use_paid_ability",
+    cardId: "rml-1",
+    abilityId: "regolith-take",
+  });
   s = take(s, { type: "basic_gain_credit" });
   s = take(s, { type: "basic_draw" });
   expect(s.pendingChoice?.options.map((o) => o.id)).toContain("extra-action");
@@ -119,7 +131,11 @@ describe("MirrorMorph: take another different action, paying [click] less", () =
 
   it("does nothing when no different action can be taken (CR 1.16.1)", () => {
     let s = mirrormorph(3);
-    s = take(s, { type: "use_paid_ability", cardId: "rml-1", abilityId: "regolith-take" });
+    s = take(s, {
+      type: "use_paid_ability",
+      cardId: "rml-1",
+      abilityId: "regolith-take",
+    });
     s = take(s, { type: "basic_gain_credit" });
     s = take(s, { type: "basic_draw" });
     // Nothing else to do: no operation or card to install in HQ.
@@ -132,12 +148,18 @@ describe("MirrorMorph: take another different action, paying [click] less", () =
     expect(s.turn.extraDifferentAction ?? null).toBeNull();
     expect(s.corp.clicks).toBe(0);
     expect(s.timingKey).not.toBe("corp.takeAction");
-    expect(s.log.some((line) => line.includes("no different action can be taken"))).toBe(true);
+    expect(
+      s.log.some((line) => line.includes("no different action can be taken")),
+    ).toBe(true);
   });
 
   it("gaining 1[credit] instead takes no extra action", () => {
     let s = mirrormorph(3);
-    s = take(s, { type: "use_paid_ability", cardId: "rml-1", abilityId: "regolith-take" });
+    s = take(s, {
+      type: "use_paid_ability",
+      cardId: "rml-1",
+      abilityId: "regolith-take",
+    });
     s = take(s, { type: "basic_gain_credit" });
     s = take(s, { type: "basic_draw" });
     const credits = s.corp.credits;
@@ -148,16 +170,25 @@ describe("MirrorMorph: take another different action, paying [click] less", () =
   });
 
   it("names the reward by its procedure", () => {
-    expect(primitiveNameFollowsStandard("take_different_action_paying_click_less")).toBe(true);
+    expect(
+      primitiveNameFollowsStandard("take_different_action_paying_click_less"),
+    ).toBe(true);
     for (const kind of ["take_different_action_paying_click_less"]) {
       const s = mirrormorph(0);
-      s.turn.corpActionSequenceThisTurn = ["basic_gain", "basic_draw", "basic_install"];
+      s.turn.corpActionSequenceThisTurn = [
+        "basic_gain",
+        "basic_draw",
+        "basic_install",
+      ];
       s.timingKey = "corp.actionPaw";
       s.turnPhase = "corp_action";
-      const r = evalEffect({ state: s, sourceId: s.corp.identityId }, {
-        op: "do",
-        action: { kind } as never,
-      });
+      const r = evalEffect(
+        { state: s, sourceId: s.corp.identityId },
+        {
+          op: "do",
+          action: { kind } as never,
+        },
+      );
       expect(r.ok, kind).toBe(true);
       expect(s.turn.extraDifferentAction?.differentFrom).toEqual([
         "basic_gain",

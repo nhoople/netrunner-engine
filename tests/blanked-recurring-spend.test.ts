@@ -14,9 +14,7 @@ import {
   runnerCreditsFor,
   spendRunnerCreditsFor,
 } from "../src/index.js";
-import {
-  applyRezIceRecurringTowardCorpRez,
-} from "../src/cards/stubs.js";
+import { applyRezIceRecurringTowardCorpRez } from "../src/cards/stubs.js";
 import { creditsAvailableForInstall } from "../src/state/costs.js";
 import { firstClickMustIsActive } from "../src/state/firstClickMust.js";
 import { corpCreditsForTrace } from "../src/state/trace.js";
@@ -122,7 +120,11 @@ describe("blanked recurring spend / first-* (CR 9.12.1d)", () => {
   it("drops Always Be Running first-click must while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const abr = instantiateCard("always-be-running", "abr-1", "runner:installed");
+    const abr = instantiateCard(
+      "always-be-running",
+      "abr-1",
+      "runner:installed",
+    );
     s.cards["abr-1"] = abr;
     s.runner.installed = ["abr-1"];
     s.activeSide = "runner";

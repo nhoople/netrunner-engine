@@ -56,7 +56,11 @@ export function literalCitations(text: string): LiteralCitation[] {
   for (const m of text.matchAll(new RegExp(CITE_SOURCE, "g"))) {
     const listStart = m.index + m[0].length - m[1]!.length;
     for (const n of m[1]!.matchAll(new RegExp(CR_NUM, "g"))) {
-      out.push({ number: n[0], index: m.index, numberIndex: listStart + n.index });
+      out.push({
+        number: n[0],
+        index: m.index,
+        numberIndex: listStart + n.index,
+      });
     }
   }
   return out;
@@ -64,7 +68,9 @@ export function literalCitations(text: string): LiteralCitation[] {
 
 export function loadIndexNumbers(): Record<string, string> {
   return (
-    JSON.parse(readFileSync(join(ROOT, "vendor/cr-data/index.json"), "utf8")) as {
+    JSON.parse(
+      readFileSync(join(ROOT, "vendor/cr-data/index.json"), "utf8"),
+    ) as {
       numbers: Record<string, string>;
     }
   ).numbers;
@@ -248,15 +254,25 @@ export function buildTopicModel(nodes: CrNode[]): TopicModel {
       for (const term of sectionTerms.get(num) ?? []) {
         const t = prose(term);
         if (!t || (t.split(" ").length === 1 && GENERIC.has(t))) continue;
-        if (Object.values(PLAN_TOPICS).some((r) => r.test(t)) || NOT_WIDENED.has(t)) continue;
-        res.push(new RegExp(String.raw`\b${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\b`));
+        if (
+          Object.values(PLAN_TOPICS).some((r) => r.test(t)) ||
+          NOT_WIDENED.has(t)
+        )
+          continue;
+        res.push(
+          new RegExp(
+            String.raw`\b${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\b`,
+          ),
+        );
       }
     }
     plan.push([topic, res]);
   }
   const df = new Map<string, number>();
   for (const n of nodes) {
-    for (const st of new Set(words(`${n.title ?? ""} ${n.text_plain ?? ""}`).map(stem))) {
+    for (const st of new Set(
+      words(`${n.title ?? ""} ${n.text_plain ?? ""}`).map(stem),
+    )) {
       df.set(st, (df.get(st) ?? 0) + 1);
     }
   }
@@ -297,7 +313,9 @@ type RuleTopics = {
 const RARE_DF = 12;
 
 function isRare(model: TopicModel, st: string): boolean {
-  return st.length >= 4 && !GENERIC.has(st) && (model.df.get(st) ?? 0) <= RARE_DF;
+  return (
+    st.length >= 4 && !GENERIC.has(st) && (model.df.get(st) ?? 0) <= RARE_DF
+  );
 }
 
 const ruleTopicCache = new WeakMap<TopicModel, Map<string, RuleTopics>>();
@@ -313,7 +331,11 @@ function ruleTopics(model: TopicModel, number: string): RuleTopics | null {
   const coreText: string[] = [node.title ?? "", node.text_plain ?? ""];
   const titles: string[] = [];
   const core = new Set<string>();
-  for (let n: CrNode | undefined = node; n; n = n.parent_id ? model.byId.get(n.parent_id) : undefined) {
+  for (
+    let n: CrNode | undefined = node;
+    n;
+    n = n.parent_id ? model.byId.get(n.parent_id) : undefined
+  ) {
     if (n !== node) {
       coreText.push(n.title ?? "");
       if (n.kind === "subsection") coreText.push(n.text_plain ?? "");
@@ -328,25 +350,36 @@ function ruleTopics(model: TopicModel, number: string): RuleTopics | null {
   const rare = new Set<string>();
   const parent = node.parent_id ? model.byId.get(node.parent_id) : undefined;
   for (const d of [...subtree(node, model.byId), ...(parent ? [parent] : [])]) {
-    for (const st of words(`${d.title ?? ""} ${d.text_plain ?? ""}`).map(stem)) {
+    for (const st of words(`${d.title ?? ""} ${d.text_plain ?? ""}`).map(
+      stem,
+    )) {
       if (isRare(model, st)) rare.add(st);
     }
   }
   let section: CrNode = node;
-  while (section.kind !== "section" && section.kind !== "chapter" && section.parent_id) {
+  while (
+    section.kind !== "section" &&
+    section.kind !== "chapter" &&
+    section.parent_id
+  ) {
     section = model.byId.get(section.parent_id)!;
   }
   for (const d of subtree(section, model.byId)) {
-    for (const t of planOnly(topicsOf(model, `${d.title ?? ""} ${d.text_plain ?? ""}`))) {
+    for (const t of planOnly(
+      topicsOf(model, `${d.title ?? ""} ${d.text_plain ?? ""}`),
+    )) {
       scope.add(t);
     }
   }
   const mentions = new Set(
-    [...topicsOf(model, `${node.title ?? ""} ${node.text_plain ?? ""}`)].filter((t) =>
-      t.startsWith("§"),
+    [...topicsOf(model, `${node.title ?? ""} ${node.text_plain ?? ""}`)].filter(
+      (t) => t.startsWith("§"),
     ),
   );
-  const own = node.kind === "section" || node.kind === "chapter" ? "" : ` › ${node.number}`;
+  const own =
+    node.kind === "section" || node.kind === "chapter"
+      ? ""
+      : ` › ${node.number}`;
   const out = { core, mentions, rare, scope, title: titles.join(" › ") + own };
   cache.set(number, out);
   return out;
@@ -413,7 +446,10 @@ function commentBlock(
   for (let i = first; i <= last; i++) {
     const raw = i === lineNo && trailing ? own.slice(commentStart) : lines[i]!;
     const prefix = MARKER.exec(raw)![0].length;
-    const part = raw.slice(prefix).replace(/\s*\*\/\s*$/, "").trimEnd();
+    const part = raw
+      .slice(prefix)
+      .replace(/\s*\*\/\s*$/, "")
+      .trimEnd();
     if (i === lineNo) {
       const inLine = col - (trailing ? commentStart : 0) - prefix;
       at = length + Math.max(0, Math.min(part.length, inLine));
@@ -425,7 +461,10 @@ function commentBlock(
 }
 
 /** The sentence of `text` that contains offset `at`, and where it starts. */
-function sentenceAt(text: string, at: number): { sentence: string; start: number } {
+function sentenceAt(
+  text: string,
+  at: number,
+): { sentence: string; start: number } {
   const ends = [...text.matchAll(/[.;!?](?=\s|$)/g)].map((m) => m.index);
   let start = 0;
   let end = text.length;
@@ -468,7 +507,15 @@ const FUNCTION_DECL = [
   /^\s*["']?([\w$]+)["']?\s*:\s*(?:async\s*)?(?:\([^)]*\)|[\w$]+)\s*(?::[^=]+)?=>/,
   /^\s+(?:(?:public|private|protected|static|async)\s+)*([\w$]+)\s*\([^;]*\)\s*(?::\s*[^{;]+)?\{\s*$/,
 ];
-const NOT_A_FUNCTION = new Set(["if", "for", "while", "switch", "catch", "return", "function"]);
+const NOT_A_FUNCTION = new Set([
+  "if",
+  "for",
+  "while",
+  "switch",
+  "catch",
+  "return",
+  "function",
+]);
 
 /** The nearest function-like declaration at or above `lineNo`: its name and line. */
 function enclosingFunction(
@@ -522,7 +569,8 @@ export function scanCitations(): Citation[] {
     const text = readFileSync(file, "utf8");
     const lines = text.split("\n");
     const lineStarts: number[] = [0];
-    for (let i = 0; i < text.length; i++) if (text[i] === "\n") lineStarts.push(i + 1);
+    for (let i = 0; i < text.length; i++)
+      if (text[i] === "\n") lineStarts.push(i + 1);
     const lineOf = (offset: number): number => {
       let lo = 0;
       let hi = lineStarts.length - 1;
@@ -547,17 +595,29 @@ export function scanCitations(): Citation[] {
       }
       return `${fn.name} ${parts.join(" ")}`;
     };
-    type Ctx = { where: "comment" | "code"; subject: string; context: string; group: string };
+    type Ctx = {
+      where: "comment" | "code";
+      subject: string;
+      context: string;
+      group: string;
+    };
     const contextAt = (offset: number): Ctx => {
       const lineNo = lineOf(offset);
       const line = lines[lineNo]!;
       const col = offset - lineStarts[lineNo]!;
       const tc = trailingCommentStart(line);
       if (COMMENT_LINE.test(line) || (tc >= 0 && tc < col)) {
-        const block = commentBlock(lines, lineNo, col, COMMENT_LINE.test(line) ? -1 : tc);
+        const block = commentBlock(
+          lines,
+          lineNo,
+          col,
+          COMMENT_LINE.test(line) ? -1 : tc,
+        );
         const { sentence, start } = sentenceAt(block.text, block.at);
-        const full = words(stripCitations(sentence)).length < 4 ? block.text : sentence;
-        const clause = full === sentence ? clauseAt(sentence, block.at - start) : full;
+        const full =
+          words(stripCitations(sentence)).length < 4 ? block.text : sentence;
+        const clause =
+          full === sentence ? clauseAt(sentence, block.at - start) : full;
         return {
           where: "comment",
           subject: stripCitations(clause),
@@ -579,7 +639,13 @@ export function scanCitations(): Citation[] {
       // `CR 11.2_3_d` names an appendix timing step, not rule 11.2.
       if (text[c.numberIndex + c.number.length] === "_") continue;
       const { group, ...ctx } = contextAt(c.index);
-      const cite: Citation = { file: path, line: lineOf(c.numberIndex) + 1, number: c.number, ...ctx, siblings: [] };
+      const cite: Citation = {
+        file: path,
+        line: lineOf(c.numberIndex) + 1,
+        number: c.number,
+        ...ctx,
+        siblings: [],
+      };
       groups.set(cite, group);
       mine.push(cite);
     }
@@ -587,13 +653,22 @@ export function scanCitations(): Citation[] {
       const number = labels.get(m[1]!);
       if (!number) continue;
       const { group, ...ctx } = contextAt(m.index);
-      const cite: Citation = { file: path, line: lineOf(m.index) + 1, number, label: `CR.${m[1]}`, ...ctx, siblings: [] };
+      const cite: Citation = {
+        file: path,
+        line: lineOf(m.index) + 1,
+        number,
+        label: `CR.${m[1]}`,
+        ...ctx,
+        siblings: [],
+      };
       groups.set(cite, group);
       mine.push(cite);
     }
     if (path === "src/timing/labels.ts") {
       for (const [key, number] of labels) {
-        const lineNo = lines.findIndex((l) => new RegExp(String.raw`^\s*${key}:\s*\{`).test(l));
+        const lineNo = lines.findIndex((l) =>
+          new RegExp(String.raw`^\s*${key}:\s*\{`).test(l),
+        );
         if (lineNo < 0) continue;
         const doc: string[] = [];
         for (let i = lineNo - 1; i >= 0 && COMMENT_LINE.test(lines[i]!); i--) {
@@ -617,10 +692,14 @@ export function scanCitations(): Citation[] {
     for (const c of mine) {
       const near = mine.filter((o) =>
         c.where === "code" && o.where === "code"
-          ? Math.abs(o.line - c.line) <= SIBLING_LINES && o.subject === c.subject
-          : o.line === c.line || (groups.has(c) && groups.get(o) === groups.get(c)),
+          ? Math.abs(o.line - c.line) <= SIBLING_LINES &&
+            o.subject === c.subject
+          : o.line === c.line ||
+            (groups.has(c) && groups.get(o) === groups.get(c)),
       );
-      c.siblings = [...new Set(near.map((o) => o.number))].filter((n) => n !== c.number);
+      c.siblings = [...new Set(near.map((o) => o.number))].filter(
+        (n) => n !== c.number,
+      );
     }
     out.push(...mine);
   }
@@ -644,14 +723,19 @@ const ANY_TOPIC = /^1\.2(?:\.|$)/;
  * subject from the enclosing function, and a sibling citation on the same
  * line that matches the code clears them.
  */
-export function topicMismatch(model: TopicModel, c: Citation): TopicMismatch | null {
+export function topicMismatch(
+  model: TopicModel,
+  c: Citation,
+): TopicMismatch | null {
   if (ANY_TOPIC.test(c.number)) return null;
   const rule = ruleTopics(model, c.number);
   if (!rule) return null; // existence is tool 1.5a
   const subject = topicsOf(model, c.subject);
   const all = new Set([...subject, ...topicsOf(model, c.context)]);
   const overlaps = (r: RuleTopics): boolean =>
-    [...all].some((t) => r.core.has(t) || (c.where === "code" && r.mentions.has(t)));
+    [...all].some(
+      (t) => r.core.has(t) || (c.where === "code" && r.mentions.has(t)),
+    );
   if (overlaps(rule)) return null;
   if (words(c.context).some((w) => rule.rare.has(stem(w)))) return null;
   const home = (t: string, n: string): boolean => {

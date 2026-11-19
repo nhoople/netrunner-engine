@@ -26,7 +26,11 @@ function offers(state: GameState, pred: (action: Action) => boolean): boolean {
   return queryLegality(state).legal.some((entry) => pred(entry.action));
 }
 
-function ready(state: GameState, timingKey: string, side: "corp" | "runner"): GameState {
+function ready(
+  state: GameState,
+  timingKey: string,
+  side: "corp" | "runner",
+): GameState {
   state.activeSide = side;
   state.timingKey = timingKey;
   return state;
@@ -34,8 +38,15 @@ function ready(state: GameState, timingKey: string, side: "corp" | "runner"): Ga
 
 describe("action-phase windows", () => {
   it("scores in an (S) window and not while taking an action", () => {
-    const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
-    const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
+    const state = createGame({
+      stopAfterFirstCycle: false,
+      agendaPointsToWin: 7,
+    });
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:remote-1:root",
+    );
     agenda.advancementCounters = 2;
     state.cards["ht-1"] = agenda;
     state.servers["remote-1"] = {
@@ -48,21 +59,41 @@ describe("action-phase windows", () => {
     state.corp.credits = 5;
 
     ready(state, "corp.actionPaw", "corp");
-    expect(offers(state, (action) => action.type === "score_agenda" && action.cardId === "ht-1")).toBe(true);
-    expect(offers(state, (action) => action.type === "basic_gain_credit")).toBe(false);
+    expect(
+      offers(
+        state,
+        (action) => action.type === "score_agenda" && action.cardId === "ht-1",
+      ),
+    ).toBe(true);
+    expect(offers(state, (action) => action.type === "basic_gain_credit")).toBe(
+      false,
+    );
 
     ready(state, "corp.drawPaw", "corp");
-    expect(offers(state, (action) => action.type === "score_agenda")).toBe(true);
-    expect(offers(state, (action) => action.type === "basic_gain_credit")).toBe(false);
+    expect(offers(state, (action) => action.type === "score_agenda")).toBe(
+      true,
+    );
+    expect(offers(state, (action) => action.type === "basic_gain_credit")).toBe(
+      false,
+    );
 
     ready(state, "corp.discardPaw", "corp");
-    expect(offers(state, (action) => action.type === "score_agenda")).toBe(false);
+    expect(offers(state, (action) => action.type === "score_agenda")).toBe(
+      false,
+    );
 
     ready(state, "corp.takeAction", "corp");
-    expect(offers(state, (action) => action.type === "score_agenda")).toBe(false);
-    expect(offers(state, (action) => action.type === "basic_gain_credit")).toBe(true);
+    expect(offers(state, (action) => action.type === "score_agenda")).toBe(
+      false,
+    );
+    expect(offers(state, (action) => action.type === "basic_gain_credit")).toBe(
+      true,
+    );
 
-    const refused = applyIntent(state, { type: "score_agenda", cardId: "ht-1" });
+    const refused = applyIntent(state, {
+      type: "score_agenda",
+      cardId: "ht-1",
+    });
     expect(refused.ok).toBe(false);
 
     ready(state, "corp.actionPaw", "corp");
@@ -75,7 +106,10 @@ describe("action-phase windows", () => {
   });
 
   it("offers a click identity ability only while taking an action", () => {
-    const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
+    const state = createGame({
+      stopAfterFirstCycle: false,
+      agendaPointsToWin: 7,
+    });
     const identity = state.cards[state.corp.identityId]!;
     identity.paidAbilities = [
       {
@@ -85,7 +119,10 @@ describe("action-phase windows", () => {
         creditCost: 0,
         cost: { clicks: 1 },
         windows: ["corp_action_paw"],
-        effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 1 } },
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 1 },
+        },
       },
       {
         id: "id-paid",
@@ -94,23 +131,56 @@ describe("action-phase windows", () => {
         creditCost: 1,
         cost: { credits: 1 },
         windows: ["corp_action_paw"],
-        effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 0 } },
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "corp", amount: 0 },
+        },
       },
     ];
     state.corp.clicks = 3;
     state.corp.credits = 5;
 
     ready(state, "corp.takeAction", "corp");
-    expect(offers(state, (action) => action.type === "use_identity_ability" && action.abilityId === "id-click")).toBe(true);
-    expect(offers(state, (action) => action.type === "use_identity_ability" && action.abilityId === "id-paid")).toBe(false);
+    expect(
+      offers(
+        state,
+        (action) =>
+          action.type === "use_identity_ability" &&
+          action.abilityId === "id-click",
+      ),
+    ).toBe(true);
+    expect(
+      offers(
+        state,
+        (action) =>
+          action.type === "use_identity_ability" &&
+          action.abilityId === "id-paid",
+      ),
+    ).toBe(false);
 
     ready(state, "corp.actionPaw", "corp");
-    expect(offers(state, (action) => action.type === "use_identity_ability" && action.abilityId === "id-click")).toBe(false);
-    expect(offers(state, (action) => action.type === "use_paid_ability" && action.abilityId === "id-paid")).toBe(true);
+    expect(
+      offers(
+        state,
+        (action) =>
+          action.type === "use_identity_ability" &&
+          action.abilityId === "id-click",
+      ),
+    ).toBe(false);
+    expect(
+      offers(
+        state,
+        (action) =>
+          action.type === "use_paid_ability" && action.abilityId === "id-paid",
+      ),
+    ).toBe(true);
   });
 
   it("purges virus counters as a three-click Corp action", () => {
-    const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
+    const state = createGame({
+      stopAfterFirstCycle: false,
+      agendaPointsToWin: 7,
+    });
     const virus = instantiateCard("fermenter", "ferm-1", "runner:installed");
     virus.virusCounters = 4;
     state.cards["ferm-1"] = virus;
@@ -118,12 +188,18 @@ describe("action-phase windows", () => {
     state.corp.clicks = 3;
 
     ready(state, "corp.actionPaw", "corp");
-    expect(offers(state, (action) => action.type === "basic_purge_virus")).toBe(false);
+    expect(offers(state, (action) => action.type === "basic_purge_virus")).toBe(
+      false,
+    );
 
     ready(state, "corp.takeAction", "corp");
-    expect(offers(state, (action) => action.type === "basic_purge_virus")).toBe(true);
+    expect(offers(state, (action) => action.type === "basic_purge_virus")).toBe(
+      true,
+    );
     state.corp.clicks = 2;
-    expect(offers(state, (action) => action.type === "basic_purge_virus")).toBe(false);
+    expect(offers(state, (action) => action.type === "basic_purge_virus")).toBe(
+      false,
+    );
 
     state.corp.clicks = 4;
     const purged = applyIntent(state, { type: "basic_purge_virus" });
@@ -134,17 +210,26 @@ describe("action-phase windows", () => {
   });
 
   it("stops on the Corp draw paid ability window", () => {
-    const opened = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
+    const opened = createGame({
+      stopAfterFirstCycle: false,
+      agendaPointsToWin: 7,
+    });
     const corpKept = applyIntent(opened, { type: "keep_starting_hand" });
     if (!corpKept.ok) throw new Error(corpKept.error);
-    const runnerKept = applyIntent(corpKept.state, { type: "keep_starting_hand" });
+    const runnerKept = applyIntent(corpKept.state, {
+      type: "keep_starting_hand",
+    });
     if (!runnerKept.ok) throw new Error(runnerKept.error);
     expect(runnerKept.state.timingKey).toBe("corp.gainClicks");
     const drawWindow = applyIntent(runnerKept.state, { type: "pass_window" });
     if (!drawWindow.ok) throw new Error(drawWindow.error);
     expect(drawWindow.state.timingKey).toBe("corp.drawPaw");
-    expect(offers(drawWindow.state, (action) => action.type === "pass_window")).toBe(true);
-    expect(offers(drawWindow.state, (action) => action.type === "basic_gain_credit")).toBe(false);
+    expect(
+      offers(drawWindow.state, (action) => action.type === "pass_window"),
+    ).toBe(true);
+    expect(
+      offers(drawWindow.state, (action) => action.type === "basic_gain_credit"),
+    ).toBe(false);
     expect(drawWindow.state.timing.stepNumber).toBe("11.2_1_b");
   });
 });

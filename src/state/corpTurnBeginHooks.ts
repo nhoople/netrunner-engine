@@ -13,10 +13,7 @@ type CorpTurnBeginPendingMark = {
   logLine: string;
 };
 
-function pushMark(
-  state: GameState,
-  mark: CorpTurnBeginPendingMark,
-): void {
+function pushMark(state: GameState, mark: CorpTurnBeginPendingMark): void {
   if (!state.turn.corpTurnBeginPending) {
     state.turn.corpTurnBeginPending = [];
   }

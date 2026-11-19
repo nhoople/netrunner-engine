@@ -28,7 +28,9 @@ import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {
   if (!crDataPresent()) {
-    throw new Error("Run `npm run fetch-cr` before tests (needs network once).");
+    throw new Error(
+      "Run `npm run fetch-cr` before tests (needs network once).",
+    );
   }
   assertPinnedTag("v26.03");
   assertPinnedFilesPresent();
@@ -170,9 +172,13 @@ describe("basic action legality", () => {
     const r = applyAction(cur, { type: "basic_gain_credit" });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.state.log.some((line) => line.includes(CR.corpBasicCredit.number))).toBe(true);
     expect(
-      r.state.log.some((line) => line.includes(CR.checkpointBeforePriority.number)),
+      r.state.log.some((line) => line.includes(CR.corpBasicCredit.number)),
+    ).toBe(true);
+    expect(
+      r.state.log.some((line) =>
+        line.includes(CR.checkpointBeforePriority.number),
+      ),
     ).toBe(true);
     expect(r.state.log.at(-1)).toContain(CR.checkpointReaction.number);
     expect(r.state.log.at(-1)).toContain("stays closed");
@@ -227,7 +233,11 @@ describe("ice / rez / break / jack-out", () => {
     expect(log).toContain(CR.endTheRun.number);
     expect(log).toContain("unsuccessful");
     expect(log).not.toContain("Run successful");
-    expect(s.timingKey === "runner.actionPaw" || s.timingKey === "runner.takeAction" || s.timingKey === "runner.actionPhaseEnd").toBe(true);
+    expect(
+      s.timingKey === "runner.actionPaw" ||
+        s.timingKey === "runner.takeAction" ||
+        s.timingKey === "runner.actionPhaseEnd",
+    ).toBe(true);
   });
 
   it("rez + break with Marjanah then continue → successful empty breach", () => {

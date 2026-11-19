@@ -16,7 +16,11 @@ beforeAll(() => {
   loadCardCatalog(true);
 });
 
-function installRunnerCard(state: GameState, defId: string, id: string): GameState {
+function installRunnerCard(
+  state: GameState,
+  defId: string,
+  id: string,
+): GameState {
   const card = instantiateCard(defId, id, "runner:grip");
   const next = structuredClone(state);
   next.cards[id] = card;
@@ -37,13 +41,19 @@ function installRunnerCard(state: GameState, defId: string, id: string): GameSta
 
 function offersTake(state: GameState, abilityId: string): boolean {
   return queryLegality(state).legal.some(
-    (entry) => entry.action.type === "use_paid_ability" && entry.action.abilityId === abilityId,
+    (entry) =>
+      entry.action.type === "use_paid_ability" &&
+      entry.action.abilityId === abilityId,
   );
 }
 
 describe("hosted credits", () => {
   it("does not offer or accept a take from an empty card, and does not trash it", () => {
-    let s = installRunnerCard(setupEmptyRemoteWithIce(), "smartware-distributor", "sw-1");
+    let s = installRunnerCard(
+      setupEmptyRemoteWithIce(),
+      "smartware-distributor",
+      "sw-1",
+    );
     expect(s.cards["sw-1"].hostedCredits).toBeUndefined();
     expect(offersTake(s, "smartware-take")).toBe(false);
     const refused = applyIntent(s, {
@@ -77,7 +87,11 @@ describe("hosted credits", () => {
   });
 
   it("trashes a card flagged to trash when a take empties it", () => {
-    const s = installRunnerCard(setupEmptyRemoteWithIce(), "smartware-distributor", "sw-1");
+    const s = installRunnerCard(
+      setupEmptyRemoteWithIce(),
+      "smartware-distributor",
+      "sw-1",
+    );
     s.cards["sw-1"].trashWhenHostedCreditsEmpty = true;
     s.cards["sw-1"].hostedCredits = 1;
     const last = applyIntent(s, {
@@ -91,7 +105,11 @@ describe("hosted credits", () => {
   });
 
   it("still allows a place-then-take ability from an empty card", () => {
-    const s = installRunnerCard(setupEmptyRemoteWithIce(), "pennyshaver", "penny-1");
+    const s = installRunnerCard(
+      setupEmptyRemoteWithIce(),
+      "pennyshaver",
+      "penny-1",
+    );
     expect(s.cards["penny-1"].hostedCredits).toBeUndefined();
     const before = s.runner.credits;
     const paid = applyIntent(s, {

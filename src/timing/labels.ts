@@ -7,7 +7,10 @@ export const CR = {
   /** Identity abilities before taking your first turn (placeholder step). */
   beforeFirstTurn: { number: "1.6.7a", id: "rule_before_first_turn" },
   corpAllottedClicks: { number: "1.11.2a", id: "rule_corp_allotted_clicks" },
-  runnerAllottedClicks: { number: "1.11.2b", id: "rule_runner_allotted_clicks" },
+  runnerAllottedClicks: {
+    number: "1.11.2b",
+    id: "rule_runner_allotted_clicks",
+  },
   basicActions: { number: "5.2.3", id: "rule_basic_actions" },
   corpBasicCredit: { number: "5.2.6b", id: "rule_corp_basic_action_credit" },
   corpBasicDraw: { number: "5.2.6c", id: "rule_corp_basic_action_draw" },
@@ -22,7 +25,10 @@ export const CR = {
   /** Players score agendas (CR 1.17.3). */
   scoreAgenda: { number: "1.17.3", id: "rule_score_steal" },
   /** Score only an agenda with counters ≥ its advancement requirement. */
-  advancementRequirement: { number: "1.17.3a", id: "rule_advancement_requirement" },
+  advancementRequirement: {
+    number: "1.17.3a",
+    id: "rule_advancement_requirement",
+  },
   /** (S) marks a paid ability window in which the Corp can score. */
   scoreInPaidWindow: {
     number: "9.2.7d",
@@ -53,8 +59,14 @@ export const CR = {
   /** Arrange / rearrange an ordered set among their current locations. */
   arrangeOrRearrange: { number: "8.3.1", id: "rule_arrange_rearrange" },
   installing: { number: "8.5.1", id: "rule_installing" },
-  corpInstallDest: { number: "8.5.2a", id: "rule_corp_install_choose_destination_server" },
-  agendaAssetRemote: { number: "8.5.2b", id: "rule_agenda_asset_root_remote_server" },
+  corpInstallDest: {
+    number: "8.5.2a",
+    id: "rule_corp_install_choose_destination_server",
+  },
+  agendaAssetRemote: {
+    number: "8.5.2b",
+    id: "rule_agenda_asset_root_remote_server",
+  },
   /** Ice is installed protecting the destination server (CR 8.5.2d). */
   iceProtectsServer: { number: "8.5.2d", id: "rule_ice_outermost_position" },
   /** Ice is never installed in the root of a server (CR 3.4.2). */
@@ -391,7 +403,10 @@ export const CR = {
     id: "sec_appendix_timing_structure_of_a_run_6_d",
   },
   cannotPrecedence: { number: "1.2.2", id: "rule_cannot_precedence" },
-  actionsOutsidePhase: { number: "5.2.4", id: "rule_actions_outside_action_phase" },
+  actionsOutsidePhase: {
+    number: "5.2.4",
+    id: "rule_actions_outside_action_phase",
+  },
   differentActions: { number: "5.2.5b", id: "rule_defferent_actions" },
   /** A card's abilities are active only while the card is active (CR 9.1.7). */
   abilityActive: { number: "9.1.7", id: "rule_ability_active" },
@@ -419,7 +434,10 @@ export const CR = {
     number: "1.13.13",
     id: "rule_trash_hosted_objects_when_host_trashed",
   },
-  triggerByPlayer: { number: "1.14.5a", id: "rule_trigger_condition_effect_by_player" },
+  triggerByPlayer: {
+    number: "1.14.5a",
+    id: "rule_trigger_condition_effect_by_player",
+  },
   /** Announce targets before the instruction is imminent (CR 1.15.2). */
   announceTargets: { number: "1.15.2", id: "rule_announce_targets" },
   /** Unannounced or invalid targets are skipped (CR 1.15.3). */
@@ -429,7 +447,10 @@ export const CR = {
   /** Looking at a card is separate from choosing it (CR 1.21.2). */
   look: { number: "1.21.2", id: "rule_look" },
   /** Cards in hidden or secret zones are neither faceup nor facedown (CR 1.21.1a). */
-  hiddenZoneFacing: { number: "1.21.1a", id: "rule_hidden_secret_faceup_facedown" },
+  hiddenZoneFacing: {
+    number: "1.21.1a",
+    id: "rule_hidden_secret_faceup_facedown",
+  },
   /** A looked-at or revealed card stays visible until the ability finishes or the card moves (CR 1.21.6). */
   remainVisible: { number: "1.21.6", id: "rule_remain_visible" },
   /** Increase then lower, then floor at 0 (Ghosttongue event play cost −N¢). */
@@ -442,7 +463,10 @@ export const CR = {
   installCostByType: { number: "8.5.11a", id: "rule_install_cost_link" },
   playCost: { number: "1.16.7", id: "rule_play_cost" },
   eventPlayCost: { number: "3.7.2", id: "rule_event_play_cost" },
-  timingCheckpoint: { number: "9.11.1b", id: "rule_checkpoint_timing_structure" },
+  timingCheckpoint: {
+    number: "9.11.1b",
+    id: "rule_checkpoint_timing_structure",
+  },
   /** A draw may pause at its checkpoint (CR 9.11.1c). */
   drawPause: { number: "9.11.1c", id: "rule_draw_checkpoint" },
   /** After a checkpoint, pending conditional abilities get a reaction window (CR 10.3.2). */
@@ -613,7 +637,10 @@ export const CR = {
     id: "rule_accessing_timing_structure",
   },
   /** A paid ability window starts with the active player. */
-  abilityWindowPriority: { number: "9.2.7a", id: "rule_ability_window_priority" },
+  abilityWindowPriority: {
+    number: "9.2.7a",
+    id: "rule_ability_window_priority",
+  },
   /** A reaction window gives the active player priority first, then the inactive player (CR 9.2.8b). */
   reactionWindowPriority: {
     number: "9.2.8b",
@@ -1024,7 +1051,10 @@ export const CR = {
   /** Runner spends credits to set link strength (CR §10.8.3). */
   linkStrength: { number: "10.8.3", id: "rule_link_strength" },
   /** A trace succeeds only if trace strength exceeds link strength (CR §10.8.4). */
-  traceCompare: { number: "10.8.4", id: "rule_compare_trace_and_link_strength" },
+  traceCompare: {
+    number: "10.8.4",
+    id: "rule_compare_trace_and_link_strength",
+  },
   /** Runner may spend credits during the trace attempt (CR §10.8.6d). */
   traceRunnerSpendCredits: {
     number: "10.8.6d",
@@ -1185,7 +1215,6 @@ export const CR = {
    */
   independentEffects: { number: "9.12.1e", id: "rule_independent_effects" },
 } as const;
-
 
 export {
   CORP_STEPS,

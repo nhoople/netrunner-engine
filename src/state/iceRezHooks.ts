@@ -19,10 +19,7 @@ type IceRezAbilityPendingMark = {
   logLine: string;
 };
 
-function pushMark(
-  state: GameState,
-  mark: IceRezAbilityPendingMark,
-): void {
+function pushMark(state: GameState, mark: IceRezAbilityPendingMark): void {
   if (!state.turn.iceRezAbilityPending) {
     state.turn.iceRezAbilityPending = [];
   }

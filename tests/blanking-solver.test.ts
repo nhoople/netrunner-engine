@@ -90,5 +90,4 @@ describe("CR 9.12 — practical blanking dependency solver", () => {
     suppressAbilities(s, "res-1");
     expect(abilitiesSuppressed(s, "res-1")).toBe(true);
   });
-
 });

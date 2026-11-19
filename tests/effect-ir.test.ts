@@ -190,7 +190,8 @@ describe("prevent jack_out via onRez IR", () => {
     expect(
       s.log.some(
         (l) =>
-          l.includes("Cannot jack_out") && l.includes(CR.cannotPrecedence.number),
+          l.includes("Cannot jack_out") &&
+          l.includes(CR.cannotPrecedence.number),
       ),
     ).toBe(true);
   });

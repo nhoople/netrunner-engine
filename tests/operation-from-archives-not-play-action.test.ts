@@ -50,7 +50,10 @@ function playedAnOperation(s: GameState): boolean {
     {
       op: "if",
       cond: { op: "corp_played_operation_this_turn" },
-      then: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 1 } },
+      then: {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: 1 },
+      },
     },
   );
   if (!r.ok) throw new Error(r.error);
@@ -65,7 +68,11 @@ describe("operations played from Archives by a card ability", () => {
     s.cards["pc-1"] = instantiateCard("petty-cash", "pc-1", "corp:archives");
     s.corp.discardPile = ["pc-1"];
     expect(playedAnOperation(s)).toBe(false);
-    s = take(s, { type: "use_paid_ability", cardId: "pc-1", abilityId: "petty-cash-archives" });
+    s = take(s, {
+      type: "use_paid_ability",
+      cardId: "pc-1",
+      abilityId: "petty-cash-archives",
+    });
     expect(s.turn.corpActionSequenceThisTurn).toEqual([
       "use_paid_ability:pc-1:petty-cash-archives",
     ]);
@@ -81,11 +88,17 @@ describe("operations played from Archives by a card ability", () => {
     s.cards["hf-1"] = instantiateCard("hedge-fund", "hf-1", "corp:hq");
     s.corp.hand.push("hf-1");
     // Petty Cash first: it plays only before the Corp finishes an action.
-    s = take(s, { type: "use_paid_ability", cardId: "pc-1", abilityId: "petty-cash-archives" });
+    s = take(s, {
+      type: "use_paid_ability",
+      cardId: "pc-1",
+      abilityId: "petty-cash-archives",
+    });
     expect(s.cards["pc-1"]?.zone).toBe("removed-from-game");
     s = take(s, { type: "play_operation", cardId: "hf-1" });
     expect(s.turn.corpActionTypeCounts.play_operation).toBe(1);
-    expect(s.turn.corpActionTypeCounts["use_paid_ability:pc-1:petty-cash-archives"]).toBe(1);
+    expect(
+      s.turn.corpActionTypeCounts["use_paid_ability:pc-1:petty-cash-archives"],
+    ).toBe(1);
   });
 
   it("Plutus's turn-begin play is not an action (CR 5.2.1)", () => {
@@ -105,7 +118,10 @@ describe("operations played from Archives by a card ability", () => {
     s.corp.discardPile = ["pc-1"];
     const r = evalEffect(
       { state: s, sourceId: "pl-1" },
-      { op: "do", action: { kind: "play_archives_transaction_then_rfg", cardId: "pc-1" } },
+      {
+        op: "do",
+        action: { kind: "play_archives_transaction_then_rfg", cardId: "pc-1" },
+      },
     );
     if (!r.ok) throw new Error(r.error);
     expect(s.cards["pc-1"]?.zone).toBe("removed-from-game");

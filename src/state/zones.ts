@@ -98,10 +98,7 @@ export function playAreaCardIds(state: GameState, side?: Side): string[] {
 }
 
 /** Ids in the non-installed play-area partition (ops/events/currents/lockdowns). */
-export function lingeringPlayAreaIds(
-  state: GameState,
-  side: Side,
-): string[] {
+export function lingeringPlayAreaIds(state: GameState, side: Side): string[] {
   const bag = side === "corp" ? state.corp.playArea : state.runner.playArea;
   return [...(bag ?? [])];
 }

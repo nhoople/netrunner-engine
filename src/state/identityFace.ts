@@ -23,7 +23,9 @@ function activeIdentityFaceIndex(card: CardInstance): number {
 }
 
 /** The face record currently faceup, when the identity stores faces. */
-export function activeIdentityFace(card: CardInstance): IdentityFace | undefined {
+export function activeIdentityFace(
+  card: CardInstance,
+): IdentityFace | undefined {
   return card.identityFaces?.[activeIdentityFaceIndex(card)];
 }
 

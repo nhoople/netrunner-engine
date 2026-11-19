@@ -24,8 +24,10 @@ beforeAll(() => {
 });
 
 describe("CR examples, chapter 4", () => {
-
-  function encounterRun(serverId: "hq", iceId: string): NonNullable<GameState["run"]> {
+  function encounterRun(
+    serverId: "hq",
+    iceId: string,
+  ): NonNullable<GameState["run"]> {
     return {
       attackedServerId: serverId,
       phase: "encounter",
@@ -41,7 +43,6 @@ describe("CR examples, chapter 4", () => {
     };
   }
 
-
   it("reveals facedown Fast Break before Clone Suffrage Movement adds it to HQ (CR 4.1.2a.ex1)", () => {
     const s = createInitialState();
     const fast = instantiateCard("fast-break", "fb-1", "corp:archives");
@@ -53,7 +54,9 @@ describe("CR examples, chapter 4", () => {
       { op: "do", action: { kind: "may_add_operation_from_archives_to_hq" } },
     );
     expect(moved.ok).toBe(true);
-    const reveal = s.log.findIndex((line) => line.includes("Reveal Fast Break"));
+    const reveal = s.log.findIndex((line) =>
+      line.includes("Reveal Fast Break"),
+    );
     const added = s.log.findIndex((line) => line.includes("add Fast Break"));
     expect(reveal).toBeGreaterThan(-1);
     expect(added).toBeGreaterThan(reveal);
@@ -62,11 +65,13 @@ describe("CR examples, chapter 4", () => {
     expect(s.corp.discardPile).not.toContain("fb-1");
   });
 
-
-
   it("does not trace when Warroid Tracker is the card the Runner trashed (CR 4.6.6i.ex1)", () => {
     const s = createInitialState();
-    const warroid = instantiateCard("warroid-tracker", "war-1", "server:hq:root");
+    const warroid = instantiateCard(
+      "warroid-tracker",
+      "war-1",
+      "server:hq:root",
+    );
     warroid.rezzed = true;
     const program = instantiateCard("corroder", "prog-1", "runner:installed");
     s.cards["war-1"] = warroid;
@@ -84,9 +89,6 @@ describe("CR examples, chapter 4", () => {
     expect(s.pendingChoice).toBeNull();
   });
 
-
-
-
   it("counts ice on the server Border Control left, not Border Control itself (CR 4.6.6i.ex2)", () => {
     const s = createInitialState();
     const border = instantiateCard("border-control", "bc-1", "server:hq:ice");
@@ -100,15 +102,15 @@ describe("CR examples, chapter 4", () => {
     s.run = encounterRun("hq", "bc-1");
     const resolved = evalEffect(
       { state: s, sourceId: "bc-1" },
-      { op: "do", action: { kind: "trash_encounter_ice_resolve_subroutine", subIndex: 0 } },
+      {
+        op: "do",
+        action: { kind: "trash_encounter_ice_resolve_subroutine", subIndex: 0 },
+      },
     );
     expect(resolved.ok).toBe(true);
     expect(s.corp.discardPile).toContain("bc-1");
     expect(s.corp.credits).toBe(1);
   });
-
-
-
 
   it("counts Archives ice when Nanisivik resolves Border Control already in Archives (CR 4.6.6i.ex3)", () => {
     const s = createInitialState();
@@ -138,13 +140,15 @@ describe("CR examples, chapter 4", () => {
     expect(s.corp.credits).toBe(3);
   });
 
-
-
-
-    it("refuses a second remote while Earth Station's limit is already met (CR 4.6.8f.ex1)", () => {
+  it("refuses a second remote while Earth Station's limit is already met (CR 4.6.8f.ex1)", () => {
     const s = createInitialState();
     s.cards[s.corp.identityId]!.maxRemoteServers = 1;
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: [] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
     const pad = instantiateCard("pad-campaign", "pad-1", "corp:hq");
     s.cards["pad-1"] = pad;
     s.corp.hand = ["pad-1"];
@@ -158,14 +162,18 @@ describe("CR examples, chapter 4", () => {
       destination: { kind: "new_remote" },
     });
     expect(refused.ok).toBe(false);
-    expect(Object.values(s.servers).filter((server) => server.kind === "remote")).toHaveLength(1);
+    expect(
+      Object.values(s.servers).filter((server) => server.kind === "remote"),
+    ).toHaveLength(1);
   });
-
-
 
   it("draws for Exile when Test Run installs a program from the heap (CR 4.8.3.ex1)", () => {
     const s = createInitialState();
-    const exile = instantiateCard("exile-streethawk", "exile-1", "runner:identity");
+    const exile = instantiateCard(
+      "exile-streethawk",
+      "exile-1",
+      "runner:identity",
+    );
     s.cards["exile-1"] = exile;
     s.runner.identityId = "exile-1";
     const program = instantiateCard("corroder", "prog-1", "runner:heap");
@@ -185,11 +193,13 @@ describe("CR examples, chapter 4", () => {
     expect(s.runner.deck).toHaveLength(deckBefore - 1);
   });
 
-
-
   it("sets Daily Business Show's draw aside facedown so the Runner is not told which card was bottomed (CR 4.8.7.ex1)", () => {
     const s = createInitialState();
-    const show = instantiateCard("daily-business-show", "dbs-1", "server:hq:root");
+    const show = instantiateCard(
+      "daily-business-show",
+      "dbs-1",
+      "server:hq:root",
+    );
     show.rezzed = true;
     const accessed = instantiateCard("hedge-fund", "accessed-1", "corp:rd");
     accessed.faceup = false;
@@ -211,19 +221,27 @@ describe("CR examples, chapter 4", () => {
     expect(mid.corp.hand).not.toContain("accessed-1");
     const runner = getPublicView(mid, "runner");
     const corp = getPublicView(mid, "corp");
-    const runnerLabels = runner.pendingChoice?.options.map((option) => option.label).join("\n") ?? "";
-    const corpLabels = corp.pendingChoice?.options.map((option) => option.label).join("\n") ?? "";
+    const runnerLabels =
+      runner.pendingChoice?.options.map((option) => option.label).join("\n") ??
+      "";
+    const corpLabels =
+      corp.pendingChoice?.options.map((option) => option.label).join("\n") ??
+      "";
     expect(runnerLabels).not.toContain("Hedge Fund");
     expect(runnerLabels).not.toContain("Other Card");
     expect(corpLabels).toContain("Hedge Fund");
     const setAside = runner.setAside ?? [];
     expect(setAside.some((card) => card.title === "Hedge Fund")).toBe(false);
-    const chosen = applyAction(mid, { type: "choose_option", optionId: "dbs-bottom:accessed-1" });
+    const chosen = applyAction(mid, {
+      type: "choose_option",
+      optionId: "dbs-bottom:accessed-1",
+    });
     if (!chosen.ok) throw new Error(chosen.error);
     expect(chosen.state.corp.deck.at(-1)).toBe("accessed-1");
     expect(chosen.state.corp.hand).toContain("other-1");
     expect(chosen.state.log.join("\n")).toContain("add a card to the bottom");
-    expect(chosen.state.log.join("\n")).not.toContain("add Hedge Fund to the bottom");
+    expect(chosen.state.log.join("\n")).not.toContain(
+      "add Hedge Fund to the bottom",
+    );
   });
-
 });

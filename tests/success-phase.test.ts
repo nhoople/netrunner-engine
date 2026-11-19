@@ -146,10 +146,7 @@ describe("CR M1 — success ternary (6.8.4a)", () => {
       cannotJackOut: false,
       accessingCardId: null,
     };
-    const r = evalEffect(
-      { state: s, sourceId: "corp-ice-1" },
-      fx.etr(),
-    );
+    const r = evalEffect({ state: s, sourceId: "corp-ice-1" }, fx.etr());
     expect(r.ok).toBe(true);
     expect(s.run!.successful).toBe(false);
     expect(s.run!.endedTheRun).toBe(true);

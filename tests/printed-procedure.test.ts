@@ -43,22 +43,33 @@ function caseBodies(): Map<string, string> {
     const marks = [...source.matchAll(/case "([^"]+)":/g)];
     for (let i = 0; i < marks.length; i++) {
       const start = marks[i]!.index ?? 0;
-      const end = i + 1 < marks.length ? (marks[i + 1]!.index ?? source.length) : source.length;
+      const end =
+        i + 1 < marks.length
+          ? (marks[i + 1]!.index ?? source.length)
+          : source.length;
       const kind = marks[i]![1]!;
-      bodies.set(kind, `${bodies.get(kind) ?? ""}\n${source.slice(start, end)}`);
+      bodies.set(
+        kind,
+        `${bodies.get(kind) ?? ""}\n${source.slice(start, end)}`,
+      );
     }
   }
   return bodies;
 }
 
-function kindsThatReach(bodies: Map<string, string>, roots: string[]): Set<string> {
+function kindsThatReach(
+  bodies: Map<string, string>,
+  roots: string[],
+): Set<string> {
   const reached = new Set(roots);
   let grew = true;
   while (grew) {
     grew = false;
     for (const [kind, body] of bodies) {
       if (reached.has(kind)) continue;
-      const callsShared = [...reached].some((target) => body.includes(`kind: "${target}"`));
+      const callsShared = [...reached].some((target) =>
+        body.includes(`kind: "${target}"`),
+      );
       const callsDrawFn =
         roots.includes("draw") &&
         (body.includes("drawCards(") ||
@@ -107,11 +118,14 @@ describe("printed instructions use the shared procedure", () => {
       const needs: Array<[string, Set<string>]> = [];
       if (/\bSabotage\b/.test(text)) needs.push(["Sabotage", sabotage]);
       if (/\bCharge\b/.test(text)) needs.push(["Charge", charge]);
-      if (/identify the mark/i.test(text)) needs.push(["identify the mark", mark]);
+      if (/identify the mark/i.test(text))
+        needs.push(["identify the mark", mark]);
       if (instructsDraw(text)) needs.push(["draw", draw]);
       for (const [name, allowed] of needs) {
         if ([...found].some((kind) => allowed.has(kind))) continue;
-        failures.push(`${cardId}: ${name} in ${JSON.stringify(text)} uses ${[...found].join(", ") || "no primitive"}`);
+        failures.push(
+          `${cardId}: ${name} in ${JSON.stringify(text)} uses ${[...found].join(", ") || "no primitive"}`,
+        );
       }
     }
 
@@ -122,7 +136,9 @@ describe("printed instructions use the shared procedure", () => {
         return;
       }
       const obj = value as Record<string, unknown>;
-      const text = [obj.text, obj.label].filter((item) => typeof item === "string").join(" ");
+      const text = [obj.text, obj.label]
+        .filter((item) => typeof item === "string")
+        .join(" ");
       if (text) check(cardId, text, obj.effect ?? obj.instructions ?? obj);
       for (const child of Object.values(obj)) visit(cardId, child);
     }

@@ -333,11 +333,11 @@ export function fireOnDiscardPhaseEnd(
   checkpointAfterInstruction(state, "phase.discardEnd");
   return Boolean(
     state.pendingChoice ||
-      state.pendingTags ||
-      state.pendingDamage ||
-      state.psi ||
-      state.trace ||
-      state.done,
+    state.pendingTags ||
+    state.pendingDamage ||
+    state.psi ||
+    state.trace ||
+    state.done,
   );
 }
 

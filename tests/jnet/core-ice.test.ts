@@ -69,9 +69,7 @@ describe("jnet ports — core ice", () => {
         state = must(state, { type: "pass_window" });
         continue;
       }
-      throw new Error(
-        `Never reached approach rez window (${state.timingKey})`,
-      );
+      throw new Error(`Never reached approach rez window (${state.timingKey})`);
     }
     state = rezCard(state, tour.id);
     expect(state.cards[tour.id]?.subroutines?.length ?? 0).toBe(1);

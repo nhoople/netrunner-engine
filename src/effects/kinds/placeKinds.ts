@@ -3,14 +3,8 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { revealCards } from "../../state/reveal.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -22,15 +16,20 @@ import {
 import { fx } from "../ir.js";
 import { random } from "../../state/rng.js";
 
-export function applyPlaceKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyPlaceKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "place_virus_on_program_that_received_virus_this_turn": {
+    case "place_virus_on_program_that_received_virus_this_turn": {
       const ids = (state.turn.programsWithVirusPlacedThisTurn ?? []).filter(
         (id) => {
           const c = state.cards[id];
-          return c && c.type === "program" && state.runner.installed.includes(id);
+          return (
+            c && c.type === "program" && state.runner.installed.includes(id)
+          );
         },
       );
       if (ids.length === 0) {
@@ -59,12 +58,12 @@ case "place_virus_on_program_that_received_virus_this_turn": {
             },
           },
         })),
-logLine: `${source.title} — choose a program that received virus this turn.`,
-});
+        logLine: `${source.title} — choose a program that received virus this turn.`,
+      });
       return { ok: true };
     }
 
-case "place_virus_on_program": {
+    case "place_virus_on_program": {
       const card = state.cards[action.cardId];
       if (!card || card.type !== "program") {
         log(state, `Place virus — invalid program.`);
@@ -87,7 +86,7 @@ case "place_virus_on_program": {
       return { ok: true };
     }
 
-case "place_advancements": {
+    case "place_advancements": {
       const installed: string[] = [];
       if (action.anyInstalledIce) {
         for (const server of Object.values(state.servers)) {
@@ -232,9 +231,12 @@ case "place_advancements": {
                 action: { kind: "gain_credits", side: "corp", amount: 0 },
               },
         });
-        openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — choose card for advancements.`,
-});
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options,
+          logLine: `${source.title} — choose card for advancements.`,
+        });
         return { ok: true };
       }
       return finishPlaceAdvancementsOnTarget(
@@ -246,7 +248,7 @@ logLine: `${source.title} — choose card for advancements.`,
       );
     }
 
-case "place_advancements_on_self_per_faceup_archive_types": {
+    case "place_advancements_on_self_per_faceup_archive_types": {
       const types = new Set<string>();
       for (const id of state.corp.discardPile) {
         const c = state.cards[id];
@@ -261,7 +263,7 @@ case "place_advancements_on_self_per_faceup_archive_types": {
       return { ok: true };
     }
 
-case "place_up_to": {
+    case "place_up_to": {
       const max = Math.max(0, action.max ?? 0);
       const creditsPer = Math.max(0, action.creditsPer ?? 0);
       const targets: string[] = [];
@@ -301,13 +303,16 @@ case "place_up_to": {
           });
         }
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — place up to ${max} advancements on an unrezzed remote-root card.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — place up to ${max} advancements on an unrezzed remote-root card.`,
+      });
       return { ok: true };
     }
 
-case "place_on": {
+    case "place_on": {
       const target = state.cards[action.cardId];
       if (!target) {
         log(state, `Queen's Gambit — unknown card ${action.cardId}.`);
@@ -329,13 +334,11 @@ case "place_on": {
       return { ok: true };
     }
 
-case "place_agenda_counters_past": {
+    case "place_agenda_counters_past": {
       const past = action.past;
       const per = action.per ?? 1;
       const adv =
-        source.scoreBeginAdvancementCounters ??
-        source.advancementCounters ??
-        0;
+        source.scoreBeginAdvancementCounters ?? source.advancementCounters ?? 0;
       const over = Math.max(0, adv - past);
       const n = Math.floor(over / per);
       source.agendaCounters = (source.agendaCounters ?? 0) + n;
@@ -346,7 +349,7 @@ case "place_agenda_counters_past": {
       return { ok: true };
     }
 
-case "place_agenda_hq_or_rd_bottom": {
+    case "place_agenda_hq_or_rd_bottom": {
       const id = action.cardId;
       const card = state.cards[id];
       if (!card || card.type !== "agenda") {
@@ -383,7 +386,7 @@ case "place_agenda_hq_or_rd_bottom": {
       return { ok: true };
     }
 
-case "place_advancements_per_iced_rooted_remote": {
+    case "place_advancements_per_iced_rooted_remote": {
       let amount = 0;
       for (const server of Object.values(state.servers)) {
         if (server.kind !== "remote") continue;
@@ -430,12 +433,12 @@ case "place_advancements_per_iced_rooted_remote": {
             },
           },
         })),
-logLine: `${source.title} — choose advanceable card (${amount} iced rooted remote(s)).`,
-});
+        logLine: `${source.title} — choose advanceable card (${amount} iced rooted remote(s)).`,
+      });
       return { ok: true };
     }
 
-case "place_advancements_x_from_tags": {
+    case "place_advancements_x_from_tags": {
       // Printed: "X must be equal to or less than the number of tags the
       // Runner has. Place X advancement counters on 1 installed card you
       // can advance." The Corp chooses both X and the target.
@@ -473,7 +476,7 @@ case "place_advancements_x_from_tags": {
       return { ok: true };
     }
 
-case "place_advancements_x_from_tags_resolve": {
+    case "place_advancements_x_from_tags_resolve": {
       const cardId = action.cardId;
       const x = action.amount;
       const t = cardId ? state.cards[cardId] : undefined;
@@ -487,7 +490,7 @@ case "place_advancements_x_from_tags_resolve": {
       return { ok: true };
     }
 
-case "place_event_credits": {
+    case "place_event_credits": {
       if (!state.run) {
         log(state, `place_event_credits — no active run.`);
         return { ok: true };
@@ -500,7 +503,7 @@ case "place_event_credits": {
       return { ok: true };
     }
 
-case "place_advancements_on": {
+    case "place_advancements_on": {
       const target = state.cards[action.cardId];
       if (!target) {
         log(state, `Place advancements — unknown card ${action.cardId}.`);
@@ -523,7 +526,7 @@ case "place_advancements_on": {
       return { ok: true };
     }
 
-case "place_adv_on_ice": {
+    case "place_adv_on_ice": {
       const target = state.cards[action.cardId];
       if (target?.type === "ice") {
         target.advancementCounters = (target.advancementCounters ?? 0) + 1;
@@ -542,7 +545,7 @@ case "place_adv_on_ice": {
       });
     }
 
-case "place_advancements_on_up_to": {
+    case "place_advancements_on_up_to": {
       const amountEach = Math.max(0, action.amountEach);
       const maxCards = Math.max(0, action.maxCards);
       if (amountEach <= 0 || maxCards <= 0) {
@@ -559,7 +562,10 @@ case "place_advancements_on_up_to": {
         }
       }
       if (candidates.length === 0) {
-        log(state, `Place advancements on up to ${maxCards} — no eligible cards.`);
+        log(
+          state,
+          `Place advancements on up to ${maxCards} — no eligible cards.`,
+        );
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -589,12 +595,12 @@ case "place_advancements_on_up_to": {
             },
           })),
         ],
-logLine: `Place ${amountEach} advancement(s) on each of up to ${maxCards} card(s).`,
-});
+        logLine: `Place ${amountEach} advancement(s) on each of up to ${maxCards} card(s).`,
+      });
       return { ok: true };
     }
 
-case "place_advancements_on_up_to_continue": {
+    case "place_advancements_on_up_to_continue": {
       // Internal follow-up for place_advancements_on_up_to (not in card IR).
       const target = state.cards[action.cardId];
       if (target) {
@@ -647,7 +653,7 @@ case "place_advancements_on_up_to_continue": {
       return { ok: true };
     }
 
-case "may_place_up_to_advancements_on_remote_root_then_access_unless_pay": {
+    case "may_place_up_to_advancements_on_remote_root_then_access_unless_pay": {
       const maxAdv = Math.max(0, action.maxAdvancements);
       const credits = Math.max(0, action.credits);
       const targets: string[] = [];
@@ -687,13 +693,16 @@ case "may_place_up_to_advancements_on_remote_root_then_access_unless_pay": {
           });
         }
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may place up to ${maxAdv} advancements, then Runner accesses unless pays ${credits}¢.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may place up to ${maxAdv} advancements, then Runner accesses unless pays ${credits}¢.`,
+      });
       return { ok: true };
     }
 
-case "place_advancements_then_access_unless_pay": {
+    case "place_advancements_then_access_unless_pay": {
       const placeR = applyPrimitive(ctx, {
         kind: "place_advancements_on",
         cardId: action.cardId,
@@ -731,8 +740,8 @@ case "place_advancements_then_access_unless_pay": {
               },
             },
           ],
-logLine: `Runner accesses ${title} unless they pay ${credits}¢.`,
-});
+          logLine: `Runner accesses ${title} unless they pay ${credits}¢.`,
+        });
         return { ok: true };
       }
       return applyPrimitive(ctx, {

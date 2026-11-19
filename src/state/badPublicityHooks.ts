@@ -12,7 +12,10 @@ import type { GameState } from "./types.js";
  *
  * Pending marks are owned by `markConditionalAbilities` (phase 3).
  */
-export function fireFirstBadPublicityTake(state: GameState, amount: number): void {
+export function fireFirstBadPublicityTake(
+  state: GameState,
+  amount: number,
+): void {
   if (amount <= 0) return;
 
   let hasEachTake = false;

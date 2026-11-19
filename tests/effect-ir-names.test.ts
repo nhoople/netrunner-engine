@@ -23,7 +23,10 @@ import {
   cardsDataPresent,
   crDataPresent,
 } from "../src/index.js";
-import { KNOWN_PRIMITIVE_KINDS, validateEffectTree } from "../src/effects/ir.js";
+import {
+  KNOWN_PRIMITIVE_KINDS,
+  validateEffectTree,
+} from "../src/effects/ir.js";
 import { primitiveNameFollowsStandard } from "../src/effects/primitiveNames.js";
 
 beforeAll(() => {
@@ -36,7 +39,10 @@ beforeAll(() => {
 const ROOT = process.cwd();
 
 const legacy = JSON.parse(
-  readFileSync(new URL("./effect-ir-legacy-names.json", import.meta.url), "utf8"),
+  readFileSync(
+    new URL("./effect-ir-legacy-names.json", import.meta.url),
+    "utf8",
+  ),
 ) as string[];
 
 function walk(dir: string, ext: string, out: string[] = []): string[] {
@@ -66,7 +72,9 @@ function catalog(): { cardKinds: Set<string>; titles: string[] } {
   const titles = new Set<string>();
   for (const side of ["corp", "runner"]) {
     for (const file of walk(join(ROOT, "vendor/cards-data", side), ".json")) {
-      const card = JSON.parse(readFileSync(file, "utf8")) as { title?: unknown };
+      const card = JSON.parse(readFileSync(file, "utf8")) as {
+        title?: unknown;
+      };
       collectKinds(card, cardKinds);
       if (typeof card.title !== "string") continue;
       const slug = card.title
@@ -104,7 +112,11 @@ function titledEngineKinds(): string[] {
 function engineBuiltKinds(): Map<string, string> {
   const out = new Map<string, string>();
   const strip = (e: ts.Expression): ts.Expression => {
-    while (ts.isAsExpression(e) || ts.isParenthesizedExpression(e) || ts.isSatisfiesExpression(e)) {
+    while (
+      ts.isAsExpression(e) ||
+      ts.isParenthesizedExpression(e) ||
+      ts.isSatisfiesExpression(e)
+    ) {
       e = e.expression;
     }
     return e;
@@ -115,13 +127,21 @@ function engineBuiltKinds(): Map<string, string> {
     for (const p of o.properties) {
       if (!ts.isPropertyAssignment(p) || p.name.getText() !== "kind") continue;
       const v = strip(p.initializer);
-      const values = ts.isConditionalExpression(v) ? [v.whenTrue, v.whenFalse].map(strip) : [v];
-      for (const x of values) if (ts.isStringLiteralLike(x)) out.set(x.text, file);
+      const values = ts.isConditionalExpression(v)
+        ? [v.whenTrue, v.whenFalse].map(strip)
+        : [v];
+      for (const x of values)
+        if (ts.isStringLiteralLike(x)) out.set(x.text, file);
     }
   };
   for (const path of walk(join(ROOT, "src"), ".ts")) {
     const file = path.slice(ROOT.length + 1);
-    const sf = ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.Latest, true);
+    const sf = ts.createSourceFile(
+      path,
+      readFileSync(path, "utf8"),
+      ts.ScriptTarget.Latest,
+      true,
+    );
     const visit = (n: ts.Node): void => {
       if (
         ts.isCallExpression(n) &&
@@ -133,7 +153,8 @@ function engineBuiltKinds(): Map<string, string> {
       ) {
         kindsOf(n.arguments[0], file);
       }
-      if (ts.isPropertyAssignment(n) && n.name.getText() === "action") kindsOf(n.initializer, file);
+      if (ts.isPropertyAssignment(n) && n.name.getText() === "action")
+        kindsOf(n.initializer, file);
       ts.forEachChild(n, visit);
     };
     visit(sf);
@@ -152,7 +173,9 @@ describe("effect IR names", () => {
     const built = engineBuiltKinds();
     expect(built.size).toBeGreaterThan(500);
     expect(
-      [...built].filter(([k]) => !KNOWN_PRIMITIVE_KINDS.has(k)).map(([k, f]) => `${f}: ${k}`),
+      [...built]
+        .filter(([k]) => !KNOWN_PRIMITIVE_KINDS.has(k))
+        .map(([k, f]) => `${f}: ${k}`),
     ).toEqual([]);
   });
 
@@ -169,7 +192,9 @@ describe("effect IR names", () => {
     expect(legacy, "legacy list must stay sorted").toEqual([...legacy].sort());
     const actual = [
       ...new Set([
-        ...[...KNOWN_PRIMITIVE_KINDS].filter((kind) => !primitiveNameFollowsStandard(kind)),
+        ...[...KNOWN_PRIMITIVE_KINDS].filter(
+          (kind) => !primitiveNameFollowsStandard(kind),
+        ),
         ...titledEngineKinds(),
       ]),
     ].sort();
@@ -180,7 +205,10 @@ describe("effect IR names", () => {
       "new kind name(s) that skip the procedure verb or carry a card title: rename " +
         "(verb then object; the card title goes in the comment)",
     ).toEqual([]);
-    expect(gone, "renamed or removed: drop from tests/effect-ir-legacy-names.json").toEqual([]);
+    expect(
+      gone,
+      "renamed or removed: drop from tests/effect-ir-legacy-names.json",
+    ).toEqual([]);
   });
 
   it("rejects a pack-code kind that is no longer in the catalog", () => {

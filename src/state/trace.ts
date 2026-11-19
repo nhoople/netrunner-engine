@@ -7,12 +7,14 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
-import { runnerCreditsFor, spendRunnerCreditsFor, subtractRunnerCreditPool } from "./costs.js";
+import {
+  runnerCreditsFor,
+  spendRunnerCreditsFor,
+  subtractRunnerCreditPool,
+} from "./costs.js";
 import { traceBaseBonus } from "./staticFlags.js";
 import { prepareTraceSpendOrder } from "./cardDeclarations.js";
-import {
-  fireOnSuccessfulTraceDuringRun,
-} from "./miscConditionalHooks.js";
+import { fireOnSuccessfulTraceDuringRun } from "./miscConditionalHooks.js";
 import { nextId } from "./ids.js";
 
 /** Credits available for Corp trace boosts (bank + Making News-class recurring). */
@@ -164,7 +166,10 @@ export function spendLink(state: GameState, amount: number): string | null {
   if (nqGain && amount >= 2) {
     const gain = Math.floor(amount / 2);
     state.corp.credits += gain;
-    log(state, `Net Quarantine — Corp gains ${gain}¢ (Runner spent ${amount}¢ for link).`);
+    log(
+      state,
+      `Net Quarantine — Corp gains ${gain}¢ (Runner spent ${amount}¢ for link).`,
+    );
   }
   log(
     state,
@@ -221,7 +226,8 @@ export function resolveTrace(
     for (const server of Object.values(state.servers)) {
       for (const rid of [...server.root, ...server.ice]) {
         const card = state.cards[rid];
-        if (!card?.rezzed || !card.onAnySuccessfulTraceGainAndRunnerLose) continue;
+        if (!card?.rezzed || !card.onAnySuccessfulTraceGainAndRunnerLose)
+          continue;
         const { gain, lose } = card.onAnySuccessfulTraceGainAndRunnerLose;
         state.corp.credits += gain;
         const lost = Math.min(lose, state.runner.credits);

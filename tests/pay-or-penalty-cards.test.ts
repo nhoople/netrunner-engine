@@ -46,7 +46,9 @@ interface Row {
 
 function hook(id: string, key: string): () => Effect {
   return () => {
-    const effect = (getCardDef(id) as unknown as Record<string, Effect | undefined>)[key];
+    const effect = (
+      getCardDef(id) as unknown as Record<string, Effect | undefined>
+    )[key];
     if (!effect) throw new Error(`${id} has no ${key}`);
     return effect;
   };
@@ -76,7 +78,11 @@ const ROWS: Row[] = [
     clicks: 1,
     penalty: tagged,
     prepare: (s) => {
-      const agenda = instantiateCard("hostile-takeover", "ag-threat", "corp:score");
+      const agenda = instantiateCard(
+        "hostile-takeover",
+        "ag-threat",
+        "corp:score",
+      );
       agenda.agendaPoints = 4;
       s.cards["ag-threat"] = agenda;
       s.corp.scoreArea = ["ag-threat"];
@@ -90,7 +96,11 @@ const ROWS: Row[] = [
     penalty: (s) => s.runner.discardPile.length === 4,
     prepare: (s) => {
       for (let i = 0; i < 5; i++) {
-        s.cards[`grip-${i}`] = instantiateCard("sure-gamble", `grip-${i}`, "runner:grip");
+        s.cards[`grip-${i}`] = instantiateCard(
+          "sure-gamble",
+          `grip-${i}`,
+          "runner:grip",
+        );
         s.runner.hand.push(`grip-${i}`);
       }
     },
@@ -134,7 +144,8 @@ const ROWS: Row[] = [
     zone: "corp:score",
     effect: hook("aggressive-trendsetting", "onFirstCorpCardTrashEachTurn"),
     clicks: 1,
-    penalty: (s) => s.log.some((l) => /allotted|additional \[click\]|next turn/i.test(l)),
+    penalty: (s) =>
+      s.log.some((l) => /allotted|additional \[click\]|next turn/i.test(l)),
   },
 ];
 
@@ -202,7 +213,11 @@ describe("pay-or-penalty cards are nested costs (CR 1.16.11b)", () => {
 });
 
 describe("the Corp chooses which HQ cards a card trashes (CR 1.15.2)", () => {
-  function corpWithHq(sourceDef: string, zone: string, titles: string[]): GameState {
+  function corpWithHq(
+    sourceDef: string,
+    zone: string,
+    titles: string[],
+  ): GameState {
     const s = structuredClone(createInitialState());
     s.cards["src"] = instantiateCard(sourceDef, "src", zone);
     s.corp.hand = [];
@@ -214,8 +229,15 @@ describe("the Corp chooses which HQ cards a card trashes (CR 1.15.2)", () => {
   }
 
   it("Hansei Review trashes the card the Corp picks", () => {
-    let s = corpWithHq("hansei-review", "corp:play-area", ["hedge-fund", "ice-wall", "pad-campaign"]);
-    const r = evalEffect({ state: s, sourceId: "src" }, playEffectFromCard(getCardDef("hansei-review"))!);
+    let s = corpWithHq("hansei-review", "corp:play-area", [
+      "hedge-fund",
+      "ice-wall",
+      "pad-campaign",
+    ]);
+    const r = evalEffect(
+      { state: s, sourceId: "src" },
+      playEffectFromCard(getCardDef("hansei-review"))!,
+    );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
@@ -231,11 +253,19 @@ describe("the Corp chooses which HQ cards a card trashes (CR 1.15.2)", () => {
   });
 
   it("Longevity Serum lets the Corp trash any number, including none", () => {
-    const effect = (getCardDef("longevity-serum") as unknown as { onScore: Effect }).onScore;
-    let s = corpWithHq("longevity-serum", "corp:score", ["hedge-fund", "ice-wall", "pad-campaign"]);
+    const effect = (
+      getCardDef("longevity-serum") as unknown as { onScore: Effect }
+    ).onScore;
+    let s = corpWithHq("longevity-serum", "corp:score", [
+      "hedge-fund",
+      "ice-wall",
+      "pad-campaign",
+    ]);
     evalEffect({ state: s, sourceId: "src" }, effect);
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(s.pendingChoice?.options.some((o) => o.id === "choose-cards-done")).toBe(true);
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "choose-cards-done"),
+    ).toBe(true);
     s = must(s, { type: "choose_option", optionId: "choose-card:hq-2" });
     s = must(s, { type: "choose_option", optionId: "choose-card:hq-0" });
     s = must(s, { type: "choose_option", optionId: "choose-cards-done" });
@@ -243,14 +273,18 @@ describe("the Corp chooses which HQ cards a card trashes (CR 1.15.2)", () => {
     expect(s.cards["hq-0"].zone).toBe("corp:archives");
     expect(s.cards["hq-2"].zone).toBe("corp:archives");
 
-    let none = corpWithHq("longevity-serum", "corp:score", ["hedge-fund", "ice-wall"]);
+    let none = corpWithHq("longevity-serum", "corp:score", [
+      "hedge-fund",
+      "ice-wall",
+    ]);
     evalEffect({ state: none, sourceId: "src" }, effect);
     none = must(none, { type: "choose_option", optionId: "choose-cards-done" });
     expect(none.corp.hand).toEqual(["hq-0", "hq-1"]);
   });
 
   it("Anemone trashes the HQ card the Corp picks", () => {
-    const effect = (getCardDef("anemone") as unknown as { onRez: Effect }).onRez;
+    const effect = (getCardDef("anemone") as unknown as { onRez: Effect })
+      .onRez;
     let s = corpWithHq("anemone", "server:hq:ice", ["hedge-fund", "ice-wall"]);
     s.run = {
       attackedServerId: "hq",
@@ -268,7 +302,11 @@ describe("the Corp chooses which HQ cards a card trashes (CR 1.15.2)", () => {
     s.servers.hq.ice = ["src"];
     s.runner.hand = [];
     for (let i = 0; i < 3; i++) {
-      s.cards[`grip-${i}`] = instantiateCard("sure-gamble", `grip-${i}`, "runner:grip");
+      s.cards[`grip-${i}`] = instantiateCard(
+        "sure-gamble",
+        `grip-${i}`,
+        "runner:grip",
+      );
       s.runner.hand.push(`grip-${i}`);
     }
     evalEffect({ state: s, sourceId: "src" }, effect);

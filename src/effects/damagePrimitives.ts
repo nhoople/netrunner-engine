@@ -3,17 +3,20 @@
  * eval.ts. Run-unless-damage and card-specific loops stay in the switch.
  */
 import { log } from "../state/createGame.js";
-import { dealDamage, preventPendingDamage, addPendingDamage, preventAllPendingNetOrMeat } from "../state/damage.js";
+import {
+  dealDamage,
+  preventPendingDamage,
+  addPendingDamage,
+  preventAllPendingNetOrMeat,
+} from "../state/damage.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import { fx, type Effect, type Primitive } from "./ir.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 type EvalEffect = (ctx: EffectCtx, effect: Effect) => PrimResult;
 
@@ -81,7 +84,9 @@ export function applyDamagePrimitive(
     case "net_damage_1_plus_copies_of_source_title_in_other_score_area": {
       const title = source.title;
       const inRunnerScore = state.runner.scoreArea.includes(sourceId);
-      const otherScore = inRunnerScore ? state.corp.scoreArea : state.runner.scoreArea;
+      const otherScore = inRunnerScore
+        ? state.corp.scoreArea
+        : state.runner.scoreArea;
       const copies = otherScore.filter(
         (id) => state.cards[id]?.title === title,
       ).length;
@@ -127,9 +132,12 @@ export function applyDamagePrimitive(
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may remove up to ${maxRemove} power counter(s), then net damage.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may remove up to ${maxRemove} power counter(s), then net damage.`,
+      });
       return { ok: true };
     }
     case "net_damage_agenda_points_this_turn": {
@@ -183,8 +191,8 @@ logLine: `${source.title} — may remove up to ${maxRemove} power counter(s), th
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — may pay ${action.amount}¢ to do ${action.damage} core damage.`,
-});
+        logLine: `${source.title} — may pay ${action.amount}¢ to do ${action.damage} core damage.`,
+      });
       return { ok: true };
     }
     case "may_pay_credits_for_core_damage_per_advancement": {
@@ -230,8 +238,8 @@ logLine: `${source.title} — may pay ${action.amount}¢ to do ${action.damage} 
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — may pay ${action.amount}¢ to do ${damage} core damage (per advancement).`,
-});
+        logLine: `${source.title} — may pay ${action.amount}¢ to do ${damage} core damage (per advancement).`,
+      });
       return { ok: true };
     }
     case "may_pay_credits_for_net_damage_per_advancement": {
@@ -276,8 +284,8 @@ logLine: `${source.title} — may pay ${action.amount}¢ to do ${damage} core da
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — may pay ${action.amount}¢ to do ${damage} net damage (${per} per advancement).`,
-});
+        logLine: `${source.title} — may pay ${action.amount}¢ to do ${damage} net damage (${per} per advancement).`,
+      });
       return { ok: true };
     }
     case "net_damage_up_to_tags": {
@@ -348,9 +356,12 @@ logLine: `${source.title} — may pay ${action.amount}¢ to do ${damage} net dam
           action: { kind: "gain_credits", side: "corp", amount: 0 },
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may pay ${action.amount}¢ to do ${iceCount} core damage (ice protecting server).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may pay ${action.amount}¢ to do ${iceCount} core damage (ice protecting server).`,
+      });
       return { ok: true };
     }
     default:

@@ -65,7 +65,8 @@ function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) walk(path, out);
-    else if (entry.name.endsWith(".ts") && !entry.name.endsWith(".d.ts")) out.push(path);
+    else if (entry.name.endsWith(".ts") && !entry.name.endsWith(".d.ts"))
+      out.push(path);
   }
   return out.sort();
 }
@@ -88,7 +89,11 @@ function strip(node: ts.Expression): ts.Expression {
   }
 }
 
-function typeNames(checker: ts.TypeChecker, type: ts.Type, out = new Set<string>()): Set<string> {
+function typeNames(
+  checker: ts.TypeChecker,
+  type: ts.Type,
+  out = new Set<string>(),
+): Set<string> {
   const t = checker.getNonNullableType(type);
   if (t.isUnionOrIntersection()) {
     for (const member of t.types) typeNames(checker, member, out);
@@ -100,14 +105,20 @@ function typeNames(checker: ts.TypeChecker, type: ts.Type, out = new Set<string>
 }
 
 /** The tracked property a target expression names, if its receiver is an owning type. */
-function trackedProperty(checker: ts.TypeChecker, target: ts.Expression): string | null {
+function trackedProperty(
+  checker: ts.TypeChecker,
+  target: ts.Expression,
+): string | null {
   const t = strip(target);
   let name: string;
   let receiver: ts.Expression;
   if (ts.isPropertyAccessExpression(t)) {
     name = t.name.text;
     receiver = t.expression;
-  } else if (ts.isElementAccessExpression(t) && ts.isStringLiteralLike(t.argumentExpression)) {
+  } else if (
+    ts.isElementAccessExpression(t) &&
+    ts.isStringLiteralLike(t.argumentExpression)
+  ) {
     name = t.argumentExpression.text;
     receiver = t.expression;
   } else {
@@ -140,7 +151,10 @@ function program(): { program: ts.Program; files: string[] } {
   const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, ROOT);
   const files = walk(join(ROOT, "src"));
   cached = {
-    program: ts.createProgram({ rootNames: files, options: { ...parsed.options, noEmit: true } }),
+    program: ts.createProgram({
+      rootNames: files,
+      options: { ...parsed.options, noEmit: true },
+    }),
     files,
   };
   return cached;
@@ -166,7 +180,10 @@ export function scanDirectWrites(): DirectWrite[] {
       });
     };
     const visit = (node: ts.Node): void => {
-      if (ts.isBinaryExpression(node) && ASSIGNMENT_OPERATORS.has(node.operatorToken.kind)) {
+      if (
+        ts.isBinaryExpression(node) &&
+        ASSIGNMENT_OPERATORS.has(node.operatorToken.kind)
+      ) {
         const lhs = strip(node.left);
         const p = trackedProperty(checker, lhs);
         if (p) record(node, p, "assign");
@@ -179,7 +196,8 @@ export function scanDirectWrites(): DirectWrite[] {
           record(node, trackedProperty(checker, lhs.expression)!, "mutate");
         }
       } else if (
-        (ts.isPrefixUnaryExpression(node) || ts.isPostfixUnaryExpression(node)) &&
+        (ts.isPrefixUnaryExpression(node) ||
+          ts.isPostfixUnaryExpression(node)) &&
         (node.operator === ts.SyntaxKind.PlusPlusToken ||
           node.operator === ts.SyntaxKind.MinusMinusToken)
       ) {
@@ -200,13 +218,17 @@ export function scanDirectWrites(): DirectWrite[] {
             callee.expression.text === "Object" &&
             node.arguments.length >= 2
           ) {
-            const owners = typeNames(checker, checker.getTypeAtLocation(strip(node.arguments[0]!)));
+            const owners = typeNames(
+              checker,
+              checker.getTypeAtLocation(strip(node.arguments[0]!)),
+            );
             for (const arg of node.arguments.slice(1)) {
               const lit = strip(arg);
               if (!ts.isObjectLiteralExpression(lit)) continue;
               for (const prop of lit.properties) {
                 const name =
-                  prop.name && (ts.isIdentifier(prop.name) || ts.isStringLiteral(prop.name))
+                  prop.name &&
+                  (ts.isIdentifier(prop.name) || ts.isStringLiteral(prop.name))
                     ? prop.name.text
                     : null;
                 if (!name) continue;
@@ -238,7 +260,8 @@ export function countWrites(writes: DirectWrite[]): WriteCounts {
   const sorted: WriteCounts = {};
   for (const file of Object.keys(counts).sort()) {
     sorted[file] = {};
-    for (const p of Object.keys(counts[file]!).sort()) sorted[file]![p] = counts[file]![p]!;
+    for (const p of Object.keys(counts[file]!).sort())
+      sorted[file]![p] = counts[file]![p]!;
   }
   return sorted;
 }

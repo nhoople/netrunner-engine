@@ -11,10 +11,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashCorpInstalled(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
@@ -97,7 +95,8 @@ export function applyFlashpointBmPrimitive(
       const enc = state.run.encounter;
       if (!enc) return { ok: true };
       const ice = state.cards[enc.iceId];
-      if (!ice || !(ice.subtypes ?? []).includes("barrier")) return { ok: true };
+      if (!ice || !(ice.subtypes ?? []).includes("barrier"))
+        return { ok: true };
       // Printed: then, if this can interface with the barrier, break up to X
       // (CR 1.2.1). Strength via shared CR 9.12.1a calculator (lingerings).
       const str = breakerStrength(state, sourceId);
@@ -277,10 +276,7 @@ export function applyFlashpointBmPrimitive(
       shuffleInPlace(state, state.corp.deck);
       setBmCounter(source, "bmShuffled", bmCounter(source, "bmShuffled") + 1);
       log(state, `Special Report — shuffle ${card.title} into R&D.`);
-      return evalEffect(
-        ctx,
-        fx.do({ kind: "shuffle_any_hq_draw" }),
-      );
+      return evalEffect(ctx, fx.do({ kind: "shuffle_any_hq_draw" }));
     }
 
     case "draw_shuffled": {
@@ -336,12 +332,13 @@ export function applyFlashpointBmPrimitive(
       if (!card?.rezzed) return { ok: true };
       trashCorpInstalled(state, cardId);
       state.corp.credits += 3;
-      setBmCounter(source, "bmLiquidated", bmCounter(source, "bmLiquidated") + 1);
-      log(state, `Liquidation — trash ${card.title}; gain 3¢.`);
-      return evalEffect(
-        ctx,
-        fx.do({ kind: "trash_any_rezzed_gain_3_each" }),
+      setBmCounter(
+        source,
+        "bmLiquidated",
+        bmCounter(source, "bmLiquidated") + 1,
       );
+      log(state, `Liquidation — trash ${card.title}; gain 3¢.`);
+      return evalEffect(ctx, fx.do({ kind: "trash_any_rezzed_gain_3_each" }));
     }
 
     case "lose_2_per_resource_or_trash": {
@@ -374,8 +371,8 @@ export function applyFlashpointBmPrimitive(
         sourceId,
         chooser: "runner",
         options,
-logLine: `Financial Collapse — Runner loses ${lose}¢ or trashes a resource to prevent.`,
-});
+        logLine: `Financial Collapse — Runner loses ${lose}¢ or trashes a resource to prevent.`,
+      });
       return { ok: true };
     }
 

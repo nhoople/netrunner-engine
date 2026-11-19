@@ -10,10 +10,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
@@ -27,7 +25,9 @@ function trashRunnerInstalled(state: EffectCtx["state"], cardId: string): void {
 function rfgFromHeap(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
-  state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
+  state.runner.discardPile = state.runner.discardPile.filter(
+    (id) => id !== cardId,
+  );
   card.zone = "removed-from-game";
   card.faceup = true;
   state.removedFromGame = state.removedFromGame ?? [];
@@ -47,10 +47,7 @@ export function applyFlashpointEsPrimitive(
     case "redirect_omar_success": {
       const sid = action.serverId as "hq" | "rd";
       if (state.run && (sid === "hq" || sid === "rd")) {
-        log(
-          state,
-          `Omar Keung — change attacked server to ${sid}.`,
-        );
+        log(state, `Omar Keung — change attacked server to ${sid}.`);
         state.run.attackedServerId = sid;
       }
       return { ok: true };
@@ -125,7 +122,8 @@ export function applyFlashpointEsPrimitive(
       const defId = action.defId;
       if (!defId) return { ok: true };
       const matches = state.runner.discardPile.filter(
-        (id) => state.cards[id]?.defId === defId || state.cards[id]?.id === defId,
+        (id) =>
+          state.cards[id]?.defId === defId || state.cards[id]?.id === defId,
       );
       for (const id of [...matches]) {
         rfgFromHeap(state, id);
@@ -378,10 +376,7 @@ export function applyFlashpointEsPrimitive(
 
     case "net_mercur_place_credit": {
       source.hostedCredits = (source.hostedCredits ?? 0) + 1;
-      log(
-        state,
-        `Net Mercur — place 1¢ → ${source.hostedCredits} hosted.`,
-      );
+      log(state, `Net Mercur — place 1¢ → ${source.hostedCredits} hosted.`);
       return { ok: true };
     }
 

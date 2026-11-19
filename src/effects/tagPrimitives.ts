@@ -22,13 +22,10 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
-import {
-  fireOnFirstTagThisTurn,
-} from "../state/miscConditionalHooks.js";
+import { fireOnFirstTagThisTurn } from "../state/miscConditionalHooks.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 type EvalEffect = (ctx: EffectCtx, effect: Effect) => PrimResult;
 
@@ -60,7 +57,8 @@ export function canPayTakeTagsNestedCost(
   if (!preventSrc) return true;
   const duringRun = Boolean(state.run && !state.run.isPostRunBreach);
   // First tag during a run would be fully prevented for amount === 1.
-  if (duringRun && state.turn.tagsGivenThisTurn === 0 && amount === 1) return false;
+  if (duringRun && state.turn.tagsGivenThisTurn === 0 && amount === 1)
+    return false;
   return true;
 }
 

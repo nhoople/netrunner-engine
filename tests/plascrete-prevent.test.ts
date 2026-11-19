@@ -48,7 +48,9 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
     const def = getCardDef("plascrete-carapace");
     expect(def.powerCountersOnInstall).toBe(4);
     expect(def.trashWhenPowerEmpty).toBe(true);
-    const ab = def.paidAbilities?.find((a) => a.id === "plascrete-prevent-meat");
+    const ab = def.paidAbilities?.find(
+      (a) => a.id === "plascrete-prevent-meat",
+    );
     expect(ab?.windows).toContain("damage_interrupt");
     expect(ab?.requirePendingDamageTypes).toEqual(["meat"]);
     expect(ab?.requireDuringRun).toBeFalsy();
@@ -59,7 +61,11 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
     s = structuredClone(s);
 
     if (hasPlascreteDef()) {
-      const pc = instantiateCard("plascrete-carapace", "pc", "runner:installed");
+      const pc = instantiateCard(
+        "plascrete-carapace",
+        "pc",
+        "runner:installed",
+      );
       pc.powerCounters = pc.powerCountersOnInstall ?? 4;
       s.cards["pc"] = pc;
     } else {
@@ -160,10 +166,7 @@ describe("CR optional — Plascrete meat prevent interrupt", () => {
     s.runner.hand = ["h1"];
     s.cards["h1"] = instantiateCard("sure-gamble", "h1", "runner:grip");
 
-    const r = evalEffect(
-      { state: s, sourceId: "src" },
-      fx.netDamage(1),
-    );
+    const r = evalEffect({ state: s, sourceId: "src" }, fx.netDamage(1));
     expect(r.ok).toBe(true);
     // No payable interrupt for net → damage applies immediately.
     expect(s.pendingDamage).toBeNull();

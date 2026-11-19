@@ -50,7 +50,10 @@ describe("blanked run-tax / advancement / Corp hand size (CR 9.12.1d)", () => {
     expect(tax.credits).toBe(2);
     expect(tax.clicks).toBe(2);
     suppressAbilities(s, cold.id);
-    expect(additionalRunInitiateTax(s, "hq")).toEqual({ credits: 0, clicks: 0 });
+    expect(additionalRunInitiateTax(s, "hq")).toEqual({
+      credits: 0,
+      clicks: 0,
+    });
   });
 
   it("drops SanSan City Grid advancement reduction while blanked", () => {

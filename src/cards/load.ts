@@ -13,10 +13,7 @@ import {
   type AbilityFlagValue,
   type AbilityRecord,
 } from "../effects/abilityRecord.js";
-import {
-  validateEffectTree,
-  type Effect,
-} from "../effects/ir.js";
+import { validateEffectTree, type Effect } from "../effects/ir.js";
 import type {
   BreakerAbility,
   CardInstance,
@@ -638,7 +635,10 @@ export interface CardDef {
   /** Sorocaban Blade: max installed Runner trashes this ice can cause per encounter. */
   maxInstalledRunnerTrashesPerEncounter?: number;
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
-  maxPrintedSubsBreakablePerEncounterAtAdvancements?: { threshold: number; max: number };
+  maxPrintedSubsBreakablePerEncounterAtAdvancements?: {
+    threshold: number;
+    max: number;
+  };
   handSizeBonus?: number;
   /** +N max hand size per hosted power counter. */
   handSizePerPowerCounter?: number;
@@ -982,24 +982,24 @@ export interface CardDef {
     | "run_central"
     | "rez_host_server"
     | "rez_ice"
-  /** Mumba Temple: spend recurring credits to rez any card. */
-  | "rez"
-  | "use_program"
-  | "use_decoder"
-  | "use_fracter"
-  | "use_killer"
-  | "use_hardware"
+    /** Mumba Temple: spend recurring credits to rez any card. */
+    | "rez"
+    | "use_program"
+    | "use_decoder"
+    | "use_fracter"
+    | "use_killer"
+    | "use_hardware"
     | "trace"
     | "install_virus"
-  | "install_hardware"
-  /** Sahasrara: spend recurring credits to install programs. */
-  | "install_program"
-  | "basic_remove_tag"
-  | "advance_ice"
-  /** Pheromones: spend recurring credits during runs on HQ. */
-  | "run_hq"
-  /** Simone Diego: spend recurring to advance cards in root/protecting this server. */
-  | "advance_cards_this_server"
+    | "install_hardware"
+    /** Sahasrara: spend recurring credits to install programs. */
+    | "install_program"
+    | "basic_remove_tag"
+    | "advance_ice"
+    /** Pheromones: spend recurring credits during runs on HQ. */
+    | "run_hq"
+    /** Simone Diego: spend recurring to advance cards in root/protecting this server. */
+    | "advance_cards_this_server"
   >;
   /** Net Police: recurring max equals Runner link on refill/rez. */
   recurringCreditsMaxEqualsRunnerLink?: boolean;
@@ -1257,7 +1257,10 @@ export interface CardDef {
   /** Panchatantra */
   onEncounterAnyIceOncePerTurn?: Effect;
   /** Heritage Committee (deckbuilding) */
-  zeroInfluenceIfNonAllianceFactionCardsGte?: { faction: string; threshold: number };
+  zeroInfluenceIfNonAllianceFactionCardsGte?: {
+    faction: string;
+    threshold: number;
+  };
   /** Mumbad City Grid */
   onPassIceProtectingThisServerMaySwap?: boolean;
   /** Mumba Temple (deckbuilding) */
@@ -1678,10 +1681,7 @@ export interface CardPool {
   description: string;
   agendaPointsToWinDefault: number;
   corpusOrder?: string[];
-  waves: Record<
-    string,
-    { status: string; notes?: string; cards: string[] }
-  >;
+  waves: Record<string, { status: string; notes?: string; cards: string[] }>;
 }
 
 let catalogCache: Map<string, CardDef> | null = null;
@@ -1745,7 +1745,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     checkEffect(re.onRunEnd, "runEvent.onRunEnd");
     checkEffect(re.onFirstEncounterThisRun, "runEvent.onFirstEncounterThisRun");
   }
-  checkEffect(c.onInstallWithoutSpendingCredits, "onInstallWithoutSpendingCredits");
+  checkEffect(
+    c.onInstallWithoutSpendingCredits,
+    "onInstallWithoutSpendingCredits",
+  );
   checkEffect(c.onAccessFaceupInstalledAgenda, "onAccessFaceupInstalledAgenda");
   checkEffect(c.onCorpTurnEnd, "onCorpTurnEnd");
   checkEffect(c.onDiscardPhaseEnd, "onDiscardPhaseEnd");
@@ -1783,7 +1786,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onPlay, "onPlay");
   checkEffect(c.playAdditionalCost, "playAdditionalCost");
   checkEffect(c.onScore, "onScore");
-  checkEffect(c.onGrayOrBlackOpsTrashedAfterResolve, "onGrayOrBlackOpsTrashedAfterResolve");
+  checkEffect(
+    c.onGrayOrBlackOpsTrashedAfterResolve,
+    "onGrayOrBlackOpsTrashedAfterResolve",
+  );
   checkEffect(c.onPassAllIceProtectingServer, "onPassAllIceProtectingServer");
   checkEffect(c.onSuccessfulRunThisServer, "onSuccessfulRunThisServer");
   checkEffect(c.onWouldTakeBadPublicity, "onWouldTakeBadPublicity");
@@ -1797,7 +1803,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onSteal, "onSteal");
   checkEffect(c.onAgendaStolen, "onAgendaStolen");
-  checkEffect(c.onPassRezzedIceProtectingThisServer, "onPassRezzedIceProtectingThisServer");
+  checkEffect(
+    c.onPassRezzedIceProtectingThisServer,
+    "onPassRezzedIceProtectingThisServer",
+  );
   checkEffect(c.onOtherAgendaStolen, "onOtherAgendaStolen");
   checkEffect(c.onFullyBreakOncePerTurn, "onFullyBreakOncePerTurn");
   checkEffect(c.onFullyBreak, "onFullyBreak");
@@ -1855,9 +1864,13 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onHostDerezzed, "onHostDerezzed");
   checkEffect(c.onHostEncounter, "onHostEncounter");
   checkEffect(c.onApproachServer, "onApproachServer");
-  checkEffect(c.onRunDeclaredOnThisServerIfTagged, "onRunDeclaredOnThisServerIfTagged");
+  checkEffect(
+    c.onRunDeclaredOnThisServerIfTagged,
+    "onRunDeclaredOnThisServerIfTagged",
+  );
   checkEffect(c.onApproachIce, "onApproachIce");
-  const flippedHooks = c.identityFlippedHooks as CardDef["identityFlippedHooks"];
+  const flippedHooks =
+    c.identityFlippedHooks as CardDef["identityFlippedHooks"];
   if (flippedHooks?.onFirstOperationPlayThisTurn) {
     checkEffect(
       flippedHooks.onFirstOperationPlayThisTurn,
@@ -1929,10 +1942,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstAvoidOrRemoveTagThisTurn,
     "onFirstAvoidOrRemoveTagThisTurn",
   );
-  checkEffect(
-    c.onAgendaScoredFromThisServer,
-    "onAgendaScoredFromThisServer",
-  );
+  checkEffect(c.onAgendaScoredFromThisServer, "onAgendaScoredFromThisServer");
   checkEffect(
     c.onFirstSuccessfulRunOnRdEndsThisTurn,
     "onFirstSuccessfulRunOnRdEndsThisTurn",
@@ -1947,16 +1957,28 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onSuccessfulRunOnThisServer, "onSuccessfulRunOnThisServer");
   checkEffect(c.onRunnerTurnBegin, "onRunnerTurnBegin");
   checkEffect(c.onEachCorpBadPublicityTake, "onEachCorpBadPublicityTake");
-  checkEffect(c.onCorpTurnBeginIfRunnerUntagged, "onCorpTurnBeginIfRunnerUntagged");
-  checkEffect(c.onTurnBeginIfCorpNoBadPublicity, "onTurnBeginIfCorpNoBadPublicity");
+  checkEffect(
+    c.onCorpTurnBeginIfRunnerUntagged,
+    "onCorpTurnBeginIfRunnerUntagged",
+  );
+  checkEffect(
+    c.onTurnBeginIfCorpNoBadPublicity,
+    "onTurnBeginIfCorpNoBadPublicity",
+  );
   checkEffect(c.onPowerCountersEmpty, "onPowerCountersEmpty");
   checkEffect(c.onPassUnrezzedIce, "onPassUnrezzedIce");
-  checkEffect(c.onCorpBasicClickForCreditOrDraw, "onCorpBasicClickForCreditOrDraw");
+  checkEffect(
+    c.onCorpBasicClickForCreditOrDraw,
+    "onCorpBasicClickForCreditOrDraw",
+  );
   checkEffect(
     c.onFirstGripOrStackTrashBatchEachTurn,
     "onFirstGripOrStackTrashBatchEachTurn",
   );
-  checkEffect(c.onFirstResourcePaidAbilityEachTurn, "onFirstResourcePaidAbilityEachTurn");
+  checkEffect(
+    c.onFirstResourcePaidAbilityEachTurn,
+    "onFirstResourcePaidAbilityEachTurn",
+  );
   checkEffect(c.onSuccessfulRun, "onSuccessfulRun");
   checkEffect(c.onSuccessfulRunOnRd, "onSuccessfulRunOnRd");
   checkEffect(c.onSuccessfulTraceDuringRun, "onSuccessfulTraceDuringRun");
@@ -2006,10 +2028,15 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onVirusPurge, "onVirusPurge");
   checkEffect(c.onBreachHqIfHostingCorpCard, "onBreachHqIfHostingCorpCard");
   checkEffect(c.onBreachRd, "onBreachRd");
-  if (c.accessHostNonAgendaFaceup && typeof c.accessHostNonAgendaFaceup === "object") {
+  if (
+    c.accessHostNonAgendaFaceup &&
+    typeof c.accessHostNonAgendaFaceup === "object"
+  ) {
     const ah = c.accessHostNonAgendaFaceup as { creditCost?: unknown };
     if (typeof ah.creditCost !== "number" || ah.creditCost < 0) {
-      throw new Error(`${path}.accessHostNonAgendaFaceup.creditCost must be a non-negative number`);
+      throw new Error(
+        `${path}.accessHostNonAgendaFaceup.creditCost must be a non-negative number`,
+      );
     }
   }
   if (
@@ -2037,7 +2064,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onRezzedCardTrashed, "onRezzedCardTrashed");
   checkEffect(c.onFirstTagThisTurn, "onFirstTagThisTurn");
   checkEffect(c.onTakeTagsWhenUntagged, "onTakeTagsWhenUntagged");
-  checkEffect(c.onEncounterEndIfRezzedThisTurn, "onEncounterEndIfRezzedThisTurn");
+  checkEffect(
+    c.onEncounterEndIfRezzedThisTurn,
+    "onEncounterEndIfRezzedThisTurn",
+  );
   checkEffect(c.onEncounterEnd, "onEncounterEnd");
   checkEffect(c.onAfterOperationOrExpendable, "onAfterOperationOrExpendable");
   checkEffect(
@@ -2047,7 +2077,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstCoreDamageThisTurn, "onFirstCoreDamageThisTurn");
   checkEffect(c.onInstallProgramFromHeap, "onInstallProgramFromHeap");
   checkEffect(c.onSufferCoreDamage, "onSufferCoreDamage");
-  checkEffect(c.onHostFullyBrokenThisEncounter, "onHostFullyBrokenThisEncounter");
+  checkEffect(
+    c.onHostFullyBrokenThisEncounter,
+    "onHostFullyBrokenThisEncounter",
+  );
   checkEffect(c.onFirstRdRunBeginThisTurn, "onFirstRdRunBeginThisTurn");
   checkEffect(
     c.onFirstArchivesRunBeginThisTurn,
@@ -2064,7 +2097,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   checkEffect(c.onFirstRemoteInstallThisTurn, "onFirstRemoteInstallThisTurn");
   checkEffect(c.onFirstVirusInstallThisTurn, "onFirstVirusInstallThisTurn");
   checkEffect(c.onVirusProgramInstall, "onVirusProgramInstall");
-  checkEffect(c.onFirstCorpCardInstallEachTurn, "onFirstCorpCardInstallEachTurn");
+  checkEffect(
+    c.onFirstCorpCardInstallEachTurn,
+    "onFirstCorpCardInstallEachTurn",
+  );
   if (
     c.remainderOfTurnOnInstallPrintedCostGte &&
     typeof c.remainderOfTurnOnInstallPrintedCostGte === "object"
@@ -2100,10 +2136,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onFirstSuccessfulCentralRunThisTurn,
     "onFirstSuccessfulCentralRunThisTurn",
   );
-  checkEffect(
-    c.onFirstSuccessfulRunThisTurn,
-    "onFirstSuccessfulRunThisTurn",
-  );
+  checkEffect(c.onFirstSuccessfulRunThisTurn, "onFirstSuccessfulRunThisTurn");
   checkEffect(
     c.onFirstUnsuccessfulRunThisTurn,
     "onFirstUnsuccessfulRunThisTurn",
@@ -2114,10 +2147,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     "onFirstClickLossEachTurnExceptPaidAbility",
   );
   checkEffect(c.onFirstDamageEachTurn, "onFirstDamageEachTurn");
-  checkEffect(
-    c.onFirstBasicClickDrawEachTurn,
-    "onFirstBasicClickDrawEachTurn",
-  );
+  checkEffect(c.onFirstBasicClickDrawEachTurn, "onFirstBasicClickDrawEachTurn");
   checkEffect(c.onFullyBreakProtectingIce, "onFullyBreakProtectingIce");
   if (Array.isArray(c.identityFaceOptions)) {
     for (let i = 0; i < c.identityFaceOptions.length; i++) {
@@ -2127,7 +2157,9 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   if (c.identityFaces !== undefined) {
     if (!Array.isArray(c.identityFaces) || c.identityFaces.length < 2) {
-      throw new Error(`${path}: identityFaces must list at least two faces (CR 3.1.1a)`);
+      throw new Error(
+        `${path}: identityFaces must list at least two faces (CR 3.1.1a)`,
+      );
     }
     for (let i = 0; i < c.identityFaces.length; i++) {
       const face = c.identityFaces[i] as {
@@ -2136,16 +2168,25 @@ function validateCardShape(raw: unknown, path: string): CardDef {
         link?: unknown;
       };
       if (typeof face?.title !== "string" || !face.title) {
-        throw new Error(`${path}: identityFaces[${i}].title must be a non-empty string`);
+        throw new Error(
+          `${path}: identityFaces[${i}].title must be a non-empty string`,
+        );
       }
       if (
         !Array.isArray(face?.subtypes) ||
         !face.subtypes.every((name) => typeof name === "string")
       ) {
-        throw new Error(`${path}: identityFaces[${i}].subtypes must be strings`);
+        throw new Error(
+          `${path}: identityFaces[${i}].subtypes must be strings`,
+        );
       }
-      if (face?.link !== undefined && (typeof face.link !== "number" || face.link < 0)) {
-        throw new Error(`${path}: identityFaces[${i}].link must be a number >= 0`);
+      if (
+        face?.link !== undefined &&
+        (typeof face.link !== "number" || face.link < 0)
+      ) {
+        throw new Error(
+          `${path}: identityFaces[${i}].link must be a number >= 0`,
+        );
       }
     }
   }
@@ -2167,7 +2208,9 @@ function validateCardShape(raw: unknown, path: string): CardDef {
       effect?: unknown;
     };
     if (typeof gte.amount !== "number" || gte.amount < 0) {
-      throw new Error(`${path}.onPowerCountersGte.amount must be a non-negative number`);
+      throw new Error(
+        `${path}.onPowerCountersGte.amount must be a non-negative number`,
+      );
     }
     checkEffect(gte.effect, "onPowerCountersGte.effect");
   }
@@ -2196,8 +2239,6 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   }
   return c as unknown as CardDef;
 }
-
-
 
 function loadAllCardFiles(): Map<string, CardDef> {
   const map = new Map<string, CardDef>();
@@ -2297,7 +2338,8 @@ export function instantiateCard(
       def.advancementRequirementIncreasePerCorpBadPublicity,
     advancementCounters: def.type === "agenda" ? 0 : undefined,
     recurringCreditsMax: def.recurringCreditsMax,
-    recurringCreditsMaxEqualsRunnerLink: def.recurringCreditsMaxEqualsRunnerLink,
+    recurringCreditsMaxEqualsRunnerLink:
+      def.recurringCreditsMaxEqualsRunnerLink,
     recurringCreditsMaxEqualsVirusCounters:
       def.recurringCreditsMaxEqualsVirusCounters,
     recurringCreditsMaxEqualsRemoteServers:
@@ -2360,8 +2402,7 @@ export function instantiateCard(
     powerCounterOnDamageOrTrashFromHq: def.powerCounterOnDamageOrTrashFromHq,
     mayInstallAgendasFaceup: def.mayInstallAgendasFaceup,
     rfgOnUninstall: def.rfgOnUninstall,
-    memoryCost:
-      def.memoryCost ?? (def.type === "program" ? 1 : undefined),
+    memoryCost: def.memoryCost ?? (def.type === "program" ? 1 : undefined),
     memoryCostZeroIfLinkGte: def.memoryCostZeroIfLinkGte,
     muBonus: def.muBonus,
     muBonusOnlyForCaissaPrograms: def.muBonusOnlyForCaissaPrograms,
@@ -2416,12 +2457,10 @@ export function instantiateCard(
     faction: typeof def.faction === "string" ? def.faction : undefined,
     blankIdentitiesWhileResolving: def.blankIdentitiesWhileResolving,
     playRequiresRunnerAgendaPointsGte: def.playRequiresRunnerAgendaPointsGte,
-    playRequiresSuccessfulRunLastTurn:
-      def.playRequiresSuccessfulRunLastTurn,
+    playRequiresSuccessfulRunLastTurn: def.playRequiresSuccessfulRunLastTurn,
     playRequiresUnsuccessfulRunLastTurn:
       def.playRequiresUnsuccessfulRunLastTurn,
-    playRequiresRunnerMadeRunLastTurn:
-      def.playRequiresRunnerMadeRunLastTurn,
+    playRequiresRunnerMadeRunLastTurn: def.playRequiresRunnerMadeRunLastTurn,
     playRequiresRunnerInstalledResourceLastTurn:
       def.playRequiresRunnerInstalledResourceLastTurn,
     iceStrengthBonusForSubtype: def.iceStrengthBonusForSubtype
@@ -2465,12 +2504,14 @@ export function instantiateCard(
       def.bioroidBreakGivesCorpAllottedClickNextTurn,
     bioroidBreakMaxSubs: def.bioroidBreakMaxSubs,
     paidAbilitiesUseStealthCreditsOnly: def.paidAbilitiesUseStealthCreditsOnly,
-    onSuccessfulHqRunMayPayForBonusAccess: def.onSuccessfulHqRunMayPayForBonusAccess
-      ? { ...def.onSuccessfulHqRunMayPayForBonusAccess }
-      : undefined,
-    onSuccessfulRdRunMayPayForBonusAccess: def.onSuccessfulRdRunMayPayForBonusAccess
-      ? { ...def.onSuccessfulRdRunMayPayForBonusAccess }
-      : undefined,
+    onSuccessfulHqRunMayPayForBonusAccess:
+      def.onSuccessfulHqRunMayPayForBonusAccess
+        ? { ...def.onSuccessfulHqRunMayPayForBonusAccess }
+        : undefined,
+    onSuccessfulRdRunMayPayForBonusAccess:
+      def.onSuccessfulRdRunMayPayForBonusAccess
+        ? { ...def.onSuccessfulRdRunMayPayForBonusAccess }
+        : undefined,
     meatDamageOnInstalledCorpTrashOncePerTurn:
       def.meatDamageOnInstalledCorpTrashOncePerTurn,
     maySpendPowerCountersForBonusRdAccess:
@@ -2528,9 +2569,10 @@ export function instantiateCard(
       : undefined,
     iceRezCostIncreaseProtectingHostedServer:
       def.iceRezCostIncreaseProtectingHostedServer,
-    strengthBonusPerRezzedIceWithSubtype: def.strengthBonusPerRezzedIceWithSubtype
-      ? { ...def.strengthBonusPerRezzedIceWithSubtype }
-      : undefined,
+    strengthBonusPerRezzedIceWithSubtype:
+      def.strengthBonusPerRezzedIceWithSubtype
+        ? { ...def.strengthBonusPerRezzedIceWithSubtype }
+        : undefined,
     iceRezCostReductionProtectingThisServer:
       def.iceRezCostReductionProtectingThisServer,
     iceRezCostReductionPerAgendaCounter:
@@ -2581,8 +2623,10 @@ export function instantiateCard(
     lingerAsCurrent: def.lingerAsCurrent,
     currentTrashOnAgendaStolen: def.currentTrashOnAgendaStolen,
     currentTrashOnAgendaScored: def.currentTrashOnAgendaScored,
-    runnerFirstRunEachTurnAdditionalCost: def.runnerFirstRunEachTurnAdditionalCost,
-    blankRunnerIdentityPrintedAbilities: def.blankRunnerIdentityPrintedAbilities,
+    runnerFirstRunEachTurnAdditionalCost:
+      def.runnerFirstRunEachTurnAdditionalCost,
+    blankRunnerIdentityPrintedAbilities:
+      def.blankRunnerIdentityPrintedAbilities,
     limitOnePerServer: def.limitOnePerServer,
     runnerLosesAllCreditsOnClickLossDuringRunOnThisServer:
       def.runnerLosesAllCreditsOnClickLossDuringRunOnThisServer,
@@ -2598,9 +2642,10 @@ export function instantiateCard(
     runnerCannotPlayCurrentEvents: def.runnerCannotPlayCurrentEvents,
     morphOddAdvancementSubtypeSwap: def.morphOddAdvancementSubtypeSwap,
     supplierHost: def.supplierHost,
-    onFirstRunnerCreditPoolEmptyThisTurn: def.onFirstRunnerCreditPoolEmptyThisTurn
-      ? structuredClone(def.onFirstRunnerCreditPoolEmptyThisTurn)
-      : undefined,
+    onFirstRunnerCreditPoolEmptyThisTurn:
+      def.onFirstRunnerCreditPoolEmptyThisTurn
+        ? structuredClone(def.onFirstRunnerCreditPoolEmptyThisTurn)
+        : undefined,
     onGripArchivesSuccessInstallSelfIgnoringCosts:
       def.onGripArchivesSuccessInstallSelfIgnoringCosts,
     trashSelfWhenRunnerTagged: def.trashSelfWhenRunnerTagged,
@@ -2619,7 +2664,8 @@ export function instantiateCard(
     strengthBonusPerUnusedMu: def.strengthBonusPerUnusedMu,
     briberyPlayCostX: def.briberyPlayCostX,
     gainCreditsOnJackOut: def.gainCreditsOnJackOut,
-    additionalCreditsToAccessRemoteRoot: def.additionalCreditsToAccessRemoteRoot,
+    additionalCreditsToAccessRemoteRoot:
+      def.additionalCreditsToAccessRemoteRoot,
     rezCostReductionPerAdvancement: def.rezCostReductionPerAdvancement,
     gainCreditsOnSpendAgendaCounter: def.gainCreditsOnSpendAgendaCounter,
     badPublicityOnRez: def.badPublicityOnRez,
@@ -2687,8 +2733,10 @@ export function instantiateCard(
     mayHostAccessedAgenda: def.mayHostAccessedAgenda,
     countsAsTagged: def.countsAsTagged,
     preventAllMeatDamage: def.preventAllMeatDamage,
-    runnerLosesClickWhenTrashesCorpCard: def.runnerLosesClickWhenTrashesCorpCard,
-    cannotStealMoreThanOneAgendaPerTurn: def.cannotStealMoreThanOneAgendaPerTurn,
+    runnerLosesClickWhenTrashesCorpCard:
+      def.runnerLosesClickWhenTrashesCorpCard,
+    cannotStealMoreThanOneAgendaPerTurn:
+      def.cannotStealMoreThanOneAgendaPerTurn,
     cannotStealUnlessCopyInRunnerScore: def.cannotStealUnlessCopyInRunnerScore,
     placeAdvancementOnAnotherOnAdvance: def.placeAdvancementOnAnotherOnAdvance
       ? { ...def.placeAdvancementOnAnotherOnAdvance }
@@ -2704,31 +2752,43 @@ export function instantiateCard(
       ? { ...def.addSelfToCorpScoreOnAgendaAccess }
       : undefined,
     hostAssetsOnly: def.hostAssetsOnly,
-    basicRemoveTagAdditionalCostCreditsWhileUnflipped: def.basicRemoveTagAdditionalCostCreditsWhileUnflipped,
-    basicTrashResourceCreditReductionWhileFlipped: def.basicTrashResourceCreditReductionWhileFlipped,
+    basicRemoveTagAdditionalCostCreditsWhileUnflipped:
+      def.basicRemoveTagAdditionalCostCreditsWhileUnflipped,
+    basicTrashResourceCreditReductionWhileFlipped:
+      def.basicTrashResourceCreditReductionWhileFlipped,
     subroutineTraceBaseStrengthBonus: def.subroutineTraceBaseStrengthBonus,
     assetsGainSubtype: def.assetsGainSubtype,
-    addToCorpScoreOnAccessIfRunnerTagged: def.addToCorpScoreOnAccessIfRunnerTagged,
+    addToCorpScoreOnAccessIfRunnerTagged:
+      def.addToCorpScoreOnAccessIfRunnerTagged,
     runnerAllottedClicksBonus: def.runnerAllottedClicksBonus,
-    gainsEtrSubroutineWhileCurrentActive: def.gainsEtrSubroutineWhileCurrentActive,
+    gainsEtrSubroutineWhileCurrentActive:
+      def.gainsEtrSubroutineWhileCurrentActive,
     strengthBonusPerRunnerTag: def.strengthBonusPerRunnerTag,
     playAdditionalCostForfeitAgenda: def.playAdditionalCostForfeitAgenda,
-    runnerSpendsFirstForTracesDuringRun: def.runnerSpendsFirstForTracesDuringRun,
-    traceBaseStrengthBonusDuringRunOnThisServer: def.traceBaseStrengthBonusDuringRunOnThisServer,
+    runnerSpendsFirstForTracesDuringRun:
+      def.runnerSpendsFirstForTracesDuringRun,
+    traceBaseStrengthBonusDuringRunOnThisServer:
+      def.traceBaseStrengthBonusDuringRunOnThisServer,
     cannotInstallNonVirtualResources: def.cannotInstallNonVirtualResources,
-    turnFacedownInsteadOfHeapWhenTrashed: def.turnFacedownInsteadOfHeapWhenTrashed,
-    gainCreditsOnFirstOwnInstalledTrashEachTurn: def.gainCreditsOnFirstOwnInstalledTrashEachTurn,
+    turnFacedownInsteadOfHeapWhenTrashed:
+      def.turnFacedownInsteadOfHeapWhenTrashed,
+    gainCreditsOnFirstOwnInstalledTrashEachTurn:
+      def.gainCreditsOnFirstOwnInstalledTrashEachTurn,
     startWithDirectiveCards: def.startWithDirectiveCards,
     muEqualsAgendaPoints: def.muEqualsAgendaPoints,
     handSizeEqualsAgendaPoints: def.handSizeEqualsAgendaPoints,
     firstClickMustBeRunOrRunEvent: def.firstClickMustBeRunOrRunEvent,
-    mustTrashFirstAccessedCardWithTrashCostEachTurn: def.mustTrashFirstAccessedCardWithTrashCostEachTurn,
-    drawAtTurnEndIfGripBelowMaxHandSize: def.drawAtTurnEndIfGripBelowMaxHandSize,
+    mustTrashFirstAccessedCardWithTrashCostEachTurn:
+      def.mustTrashFirstAccessedCardWithTrashCostEachTurn,
+    drawAtTurnEndIfGripBelowMaxHandSize:
+      def.drawAtTurnEndIfGripBelowMaxHandSize,
     installRequiresLinkGte: def.installRequiresLinkGte,
     installCostReductionPerLink: def.installCostReductionPerLink,
     blankCorpIdentityPrintedAbilities: def.blankCorpIdentityPrintedAbilities,
-    hostedCreditsOnProgramOrHardwareInstall: def.hostedCreditsOnProgramOrHardwareInstall,
-    runnerChoosesUnbrokenSubroutineOrder: def.runnerChoosesUnbrokenSubroutineOrder,
+    hostedCreditsOnProgramOrHardwareInstall:
+      def.hostedCreditsOnProgramOrHardwareInstall,
+    runnerChoosesUnbrokenSubroutineOrder:
+      def.runnerChoosesUnbrokenSubroutineOrder,
     breakOnAtMostOneIcePerRun: def.breakOnAtMostOneIcePerRun,
     onFinishAccessRdOncePerTurn: def.onFinishAccessRdOncePerTurn
       ? structuredClone(def.onFinishAccessRdOncePerTurn)
@@ -2736,22 +2796,28 @@ export function instantiateCard(
     onEncounterAnyIceOncePerTurn: def.onEncounterAnyIceOncePerTurn
       ? structuredClone(def.onEncounterAnyIceOncePerTurn)
       : undefined,
-    zeroInfluenceIfNonAllianceFactionCardsGte: def.zeroInfluenceIfNonAllianceFactionCardsGte
-      ? { ...def.zeroInfluenceIfNonAllianceFactionCardsGte }
-      : undefined,
-    onPassIceProtectingThisServerMaySwap: def.onPassIceProtectingThisServerMaySwap,
+    zeroInfluenceIfNonAllianceFactionCardsGte:
+      def.zeroInfluenceIfNonAllianceFactionCardsGte
+        ? { ...def.zeroInfluenceIfNonAllianceFactionCardsGte }
+        : undefined,
+    onPassIceProtectingThisServerMaySwap:
+      def.onPassIceProtectingThisServerMaySwap,
     zeroInfluenceIfIceInDeckLte: def.zeroInfluenceIfIceInDeckLte,
     zeroInfluenceIfCardsInDeckGte: def.zeroInfluenceIfCardsInDeckGte,
     chooseServerOnInstall: def.chooseServerOnInstall,
-    additionalCreditCostToInstallInChosenServer: def.additionalCreditCostToInstallInChosenServer,
+    additionalCreditCostToInstallInChosenServer:
+      def.additionalCreditCostToInstallInChosenServer,
     gainCreditOnTrashAbilityUse: def.gainCreditOnTrashAbilityUse,
-    daemonHostMaxMuFromInstalledCopiesOfSelf: def.daemonHostMaxMuFromInstalledCopiesOfSelf,
+    daemonHostMaxMuFromInstalledCopiesOfSelf:
+      def.daemonHostMaxMuFromInstalledCopiesOfSelf,
     hostedProgramMemoryDoesNotCount: def.hostedProgramMemoryDoesNotCount,
     corpAdditionalBadPublicity: def.corpAdditionalBadPublicity,
-    corpAdditionalBadPublicityCannotBeRemoved: def.corpAdditionalBadPublicityCannotBeRemoved,
+    corpAdditionalBadPublicityCannotBeRemoved:
+      def.corpAdditionalBadPublicityCannotBeRemoved,
     playRequiresInstalledSubtype: def.playRequiresInstalledSubtype,
     placePowerCounterOnAnyCardRez: def.placePowerCounterOnAnyCardRez,
-    gainCreditOnFirstRunnerDrawEachTurn: def.gainCreditOnFirstRunnerDrawEachTurn,
+    gainCreditOnFirstRunnerDrawEachTurn:
+      def.gainCreditOnFirstRunnerDrawEachTurn,
     onAdvance: def.onAdvance ? structuredClone(def.onAdvance) : undefined,
     zeroInfluenceIfCardCopiesGte: def.zeroInfluenceIfCardCopiesGte
       ? { ...def.zeroInfluenceIfCardCopiesGte }
@@ -2785,14 +2851,17 @@ export function instantiateCard(
       def.gainClickFirstTimeSpendClicksGteOnSameActionEachTurn,
     onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn:
       def.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
-    onAnySuccessfulTraceGainAndRunnerLose: def.onAnySuccessfulTraceGainAndRunnerLose
-      ? { ...def.onAnySuccessfulTraceGainAndRunnerLose }
-      : undefined,
+    onAnySuccessfulTraceGainAndRunnerLose:
+      def.onAnySuccessfulTraceGainAndRunnerLose
+        ? { ...def.onAnySuccessfulTraceGainAndRunnerLose }
+        : undefined,
     onRezOrPlayOutOfFactionGainCredits: def.onRezOrPlayOutOfFactionGainCredits,
     zeroInfluenceIfAssetsInDeckGte: def.zeroInfluenceIfAssetsInDeckGte,
-    mustTrashWhenAccessedWhileInstalled: def.mustTrashWhenAccessedWhileInstalled,
+    mustTrashWhenAccessedWhileInstalled:
+      def.mustTrashWhenAccessedWhileInstalled,
     heapOnTurnBeginMayRfgSelfToMakeRun: def.heapOnTurnBeginMayRfgSelfToMakeRun,
-    autoPreventNetOrMeatDamagePayOrTrash: def.autoPreventNetOrMeatDamagePayOrTrash,
+    autoPreventNetOrMeatDamagePayOrTrash:
+      def.autoPreventNetOrMeatDamagePayOrTrash,
     placePowerOnHqOrRdRunEndIfNoAgendaStolen:
       def.placePowerOnHqOrRdRunEndIfNoAgendaStolen,
     firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess:
@@ -2800,7 +2869,8 @@ export function instantiateCard(
     onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced:
       def.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced,
     corpCannotWinExceptFlatline: def.corpCannotWinExceptFlatline,
-    playRequiresAgendaInRunnerScoreArea: def.playRequiresAgendaInRunnerScoreArea,
+    playRequiresAgendaInRunnerScoreArea:
+      def.playRequiresAgendaInRunnerScoreArea,
     revealGripWhileRunnerTagged: def.revealGripWhileRunnerTagged,
     hostAssetsOrAgendas: def.hostAssetsOrAgendas,
     trashCostIncreasePerHostedCard: def.trashCostIncreasePerHostedCard,
@@ -2820,7 +2890,8 @@ export function instantiateCard(
     onUnsuccessfulRunOnThisServer: def.onUnsuccessfulRunOnThisServer
       ? structuredClone(def.onUnsuccessfulRunOnThisServer)
       : undefined,
-    firstIceRezCostReductionPerRunnerTag: def.firstIceRezCostReductionPerRunnerTag,
+    firstIceRezCostReductionPerRunnerTag:
+      def.firstIceRezCostReductionPerRunnerTag,
     onTurnBeginIfRunnerTagged: def.onTurnBeginIfRunnerTagged
       ? structuredClone(def.onTurnBeginIfRunnerTagged)
       : undefined,
@@ -2852,7 +2923,8 @@ export function instantiateCard(
     resourceInstallCostIncrease: def.resourceInstallCostIncrease,
     bonusAccessOnHqBreachPerFullyBrokenProtectingIce:
       def.bonusAccessOnHqBreachPerFullyBrokenProtectingIce,
-    mayInsteadOfBreachRdAccessOneOfTopN: def.mayInsteadOfBreachRdAccessOneOfTopN,
+    mayInsteadOfBreachRdAccessOneOfTopN:
+      def.mayInsteadOfBreachRdAccessOneOfTopN,
     secretSpendCannotEqual: def.secretSpendCannotEqual,
     meatDamageWhenSecretSpendAmountsDiffer:
       def.meatDamageWhenSecretSpendAmountsDiffer,
@@ -2927,7 +2999,8 @@ export function instantiateCard(
       def.skorpiosRfgOneTrashedRunnerCardOncePerTurn,
     onTrashWhileRezzedTakeBadPublicity: def.onTrashWhileRezzedTakeBadPublicity,
     meatDamageWhenRunnerTakesTags: def.meatDamageWhenRunnerTakesTags,
-    playOnlyIfRunnerStoleAgendaLastTurn: def.playOnlyIfRunnerStoleAgendaLastTurn,
+    playOnlyIfRunnerStoleAgendaLastTurn:
+      def.playOnlyIfRunnerStoleAgendaLastTurn,
     longTermInvestmentGainAbilityAtHostedCredits:
       def.longTermInvestmentGainAbilityAtHostedCredits,
     strengthBonusPerSubroutineOnEncounteredBarrier:
@@ -2935,7 +3008,8 @@ export function instantiateCard(
     aeneasInformantRevealGainOnAccessWithoutTrash:
       def.aeneasInformantRevealGainOnAccessWithoutTrash,
     hostGainsAiSubtype: def.hostGainsAiSubtype,
-    hostGainsLoseClickBreakAnySubroutine: def.hostGainsLoseClickBreakAnySubroutine,
+    hostGainsLoseClickBreakAnySubroutine:
+      def.hostGainsLoseClickBreakAnySubroutine,
     hostGainsPumpAbility: def.hostGainsPumpAbility
       ? { ...def.hostGainsPumpAbility }
       : undefined,
@@ -2957,9 +3031,10 @@ export function instantiateCard(
     onTurnEndIfGripEmptyDrawPerPowerThenTrash:
       def.onTurnEndIfGripEmptyDrawPerPowerThenTrash,
     gainCreditsOnFirstDerezIceEachTurn: def.gainCreditsOnFirstDerezIceEachTurn,
-    drawOnFirstRunEachTurnIfServerIceGte: def.drawOnFirstRunEachTurnIfServerIceGte
-      ? { ...def.drawOnFirstRunEachTurnIfServerIceGte }
-      : undefined,
+    drawOnFirstRunEachTurnIfServerIceGte:
+      def.drawOnFirstRunEachTurnIfServerIceGte
+        ? { ...def.drawOnFirstRunEachTurnIfServerIceGte }
+        : undefined,
     fullyBreakNextEncounterFirstNSubsDoNotResolve:
       def.fullyBreakNextEncounterFirstNSubsDoNotResolve,
     onRunnerTrashFromThisServerRootOrProtecting:
@@ -3035,9 +3110,10 @@ export function instantiateCard(
     accessTrashNonAgendaWithVirusEqualPrintedCost:
       def.accessTrashNonAgendaWithVirusEqualPrintedCost,
     trashHostAtVirus: def.trashHostAtVirus,
-    onEncounterMayPayCreditsGrantIceSubtype: def.onEncounterMayPayCreditsGrantIceSubtype
-      ? { ...def.onEncounterMayPayCreditsGrantIceSubtype }
-      : undefined,
+    onEncounterMayPayCreditsGrantIceSubtype:
+      def.onEncounterMayPayCreditsGrantIceSubtype
+        ? { ...def.onEncounterMayPayCreditsGrantIceSubtype }
+        : undefined,
     hostIcebreakerStrengthIncreasesLastRemainderOfTurn:
       def.hostIcebreakerStrengthIncreasesLastRemainderOfTurn,
     hqOrRdRootOnly: def.hqOrRdRootOnly,
@@ -3051,7 +3127,8 @@ export function instantiateCard(
       def.mayRfgSelfToTrashOutermostIceOnFirstFullBreakEachTurn,
     mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn:
       def.mayGainCreditOnFirstCorpCardAbilityCreditGainEachTurn,
-    spendHostedCreditsToUseHostedProgram: def.spendHostedCreditsToUseHostedProgram,
+    spendHostedCreditsToUseHostedProgram:
+      def.spendHostedCreditsToUseHostedProgram,
     trashHostedProgramAtEndOfTurnIfHostedCreditsUsed:
       def.trashHostedProgramAtEndOfTurnIfHostedCreditsUsed,
     placePowerOnFirstSuccessfulRemoteRunEndIfBreachedNoSteal:
@@ -3063,7 +3140,8 @@ export function instantiateCard(
     mayTagOnFirstRunEventOrIcebreakerInstallEachTurn:
       def.mayTagOnFirstRunEventOrIcebreakerInstallEachTurn,
     daemonHostVirusProgramsOnly: def.daemonHostVirusProgramsOnly,
-    preventOneVirusPurgeOnHostedProgram: def.preventOneVirusPurgeOnHostedProgram,
+    preventOneVirusPurgeOnHostedProgram:
+      def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
     archivesAccessMayRfgInstead: def.archivesAccessMayRfgInstead
       ? { ...def.archivesAccessMayRfgInstead }
@@ -3085,9 +3163,7 @@ export function instantiateCard(
     scoreWhenPowerEmpty: def.scoreWhenPowerEmpty
       ? structuredClone(def.scoreWhenPowerEmpty)
       : undefined,
-    installServers: def.installServers
-      ? [...def.installServers]
-      : undefined,
+    installServers: def.installServers ? [...def.installServers] : undefined,
     daemonHost: def.daemonHost,
     daemonHostMaxMu: def.daemonHostMaxMu,
     daemonHostExcludeIcebreaker: def.daemonHostExcludeIcebreaker,
@@ -3262,58 +3338,56 @@ export function instantiateCard(
     card.breaker = { ...def.breaker };
   }
   if (def.paidAbilities) {
-    card.paidAbilities = def.paidAbilities.map(
-      (a): PaidAbility => ({
-        ...a,
-        clickCost: a.clickCost ?? a.cost?.clicks ?? 0,
-        creditCost: a.creditCost ?? a.cost?.credits ?? 0,
-        cost: a.cost ? { ...a.cost } : undefined,
-        windows: [...a.windows],
-        effect: structuredClone(a.effect),
-        oncePerTurn: a.oncePerTurn,
-        oncePerRun: a.oncePerRun,
-        oncePerEncounter: a.oncePerEncounter,
-        usableByRunnerOnSelfIce: a.usableByRunnerOnSelfIce,
-        usableFromHq: a.usableFromHq,
-        usableFromArchives: a.usableFromArchives,
-        usableByAnyPlayer: a.usableByAnyPlayer,
-        usableFromRunnerScoreArea: a.usableFromRunnerScoreArea,
-        requireProtectingHostServer: a.requireProtectingHostServer,
-        requiresAdvancements: a.requiresAdvancements,
-        requiresThreat: a.requiresThreat,
-        requiresSuccessfulRdRunThisTurn: a.requiresSuccessfulRdRunThisTurn,
-        requiresSuccessfulHqRunThisTurn: a.requiresSuccessfulHqRunThisTurn,
-        requiresRezzedIce: a.requiresRezzedIce,
-        requiresSuccessfulAllCentralsThisTurn:
-          a.requiresSuccessfulAllCentralsThisTurn,
-        requiresUntagged: a.requiresUntagged,
-        requireRunnerTagged: a.requireRunnerTagged,
-        requiresActiveRun: a.requiresActiveRun,
-        requireOtherServer: a.requireOtherServer,
-        requireThisServer: a.requireThisServer,
-        onlyDuringArchivesRun: a.onlyDuringArchivesRun,
-        requireRunnerClicksEq: a.requireRunnerClicksEq,
-        requireEncounterSubtype: a.requireEncounterSubtype,
-        requireEncounterChosenIce: a.requireEncounterChosenIce,
-        requireAttackingMark: a.requireAttackingMark,
-        requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
-        requireFullyBrokenThisEncounter: a.requireFullyBrokenThisEncounter,
-        requireSufferedCorpDamageThisTurn: a.requireSufferedCorpDamageThisTurn,
-        requireSufferedMeatDamageThisTurn: a.requireSufferedMeatDamageThisTurn,
-        requireSufferedAnyDamageThisTurn: a.requireSufferedAnyDamageThisTurn,
-        requireNextPawAfterDamage: a.requireNextPawAfterDamage,
-        requireDuringRun: a.requireDuringRun,
-        forbidDuringRun: a.forbidDuringRun,
-        onlyDuringOwnTurn: a.onlyDuringOwnTurn,
-        formicaryApproachAnyServer: a.formicaryApproachAnyServer,
-        requirePendingDamageTypes: a.requirePendingDamageTypes
-          ? [...a.requirePendingDamageTypes]
-          : undefined,
-        oncePerPendingDamageInstance: a.oncePerPendingDamageInstance,
-        requiresCorpCreditsGte: a.requiresCorpCreditsGte,
-        startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
-      }),
-    );
+    card.paidAbilities = def.paidAbilities.map((a): PaidAbility => ({
+      ...a,
+      clickCost: a.clickCost ?? a.cost?.clicks ?? 0,
+      creditCost: a.creditCost ?? a.cost?.credits ?? 0,
+      cost: a.cost ? { ...a.cost } : undefined,
+      windows: [...a.windows],
+      effect: structuredClone(a.effect),
+      oncePerTurn: a.oncePerTurn,
+      oncePerRun: a.oncePerRun,
+      oncePerEncounter: a.oncePerEncounter,
+      usableByRunnerOnSelfIce: a.usableByRunnerOnSelfIce,
+      usableFromHq: a.usableFromHq,
+      usableFromArchives: a.usableFromArchives,
+      usableByAnyPlayer: a.usableByAnyPlayer,
+      usableFromRunnerScoreArea: a.usableFromRunnerScoreArea,
+      requireProtectingHostServer: a.requireProtectingHostServer,
+      requiresAdvancements: a.requiresAdvancements,
+      requiresThreat: a.requiresThreat,
+      requiresSuccessfulRdRunThisTurn: a.requiresSuccessfulRdRunThisTurn,
+      requiresSuccessfulHqRunThisTurn: a.requiresSuccessfulHqRunThisTurn,
+      requiresRezzedIce: a.requiresRezzedIce,
+      requiresSuccessfulAllCentralsThisTurn:
+        a.requiresSuccessfulAllCentralsThisTurn,
+      requiresUntagged: a.requiresUntagged,
+      requireRunnerTagged: a.requireRunnerTagged,
+      requiresActiveRun: a.requiresActiveRun,
+      requireOtherServer: a.requireOtherServer,
+      requireThisServer: a.requireThisServer,
+      onlyDuringArchivesRun: a.onlyDuringArchivesRun,
+      requireRunnerClicksEq: a.requireRunnerClicksEq,
+      requireEncounterSubtype: a.requireEncounterSubtype,
+      requireEncounterChosenIce: a.requireEncounterChosenIce,
+      requireAttackingMark: a.requireAttackingMark,
+      requireBrokenSubThisEncounter: a.requireBrokenSubThisEncounter,
+      requireFullyBrokenThisEncounter: a.requireFullyBrokenThisEncounter,
+      requireSufferedCorpDamageThisTurn: a.requireSufferedCorpDamageThisTurn,
+      requireSufferedMeatDamageThisTurn: a.requireSufferedMeatDamageThisTurn,
+      requireSufferedAnyDamageThisTurn: a.requireSufferedAnyDamageThisTurn,
+      requireNextPawAfterDamage: a.requireNextPawAfterDamage,
+      requireDuringRun: a.requireDuringRun,
+      forbidDuringRun: a.forbidDuringRun,
+      onlyDuringOwnTurn: a.onlyDuringOwnTurn,
+      formicaryApproachAnyServer: a.formicaryApproachAnyServer,
+      requirePendingDamageTypes: a.requirePendingDamageTypes
+        ? [...a.requirePendingDamageTypes]
+        : undefined,
+      oncePerPendingDamageInstance: a.oncePerPendingDamageInstance,
+      requiresCorpCreditsGte: a.requiresCorpCreditsGte,
+      startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
+    }));
     for (const ab of card.paidAbilities) {
       canonicalizeAbilityFlags(ab);
     }
@@ -3333,7 +3407,10 @@ export function instantiateCard(
         clickCost: 0,
         creditCost: 0,
         windows: ["damage_interrupt"],
-        effect: { op: "do", action: { kind: "prevent_all_pending_net_or_meat" } },
+        effect: {
+          op: "do",
+          action: { kind: "prevent_all_pending_net_or_meat" },
+        },
       },
     ];
   }
@@ -3346,16 +3423,14 @@ export function instantiateCard(
   if ((card.abilities ?? []).some((a) => a.class === "subroutine")) {
     syncSubroutinesFromRecords(card);
   } else if (def.subroutines) {
-    card.subroutines = def.subroutines.map(
-      (s): Subroutine => ({
-        id: s.id,
-        text: s.text,
-        effect: structuredClone(s.effect),
-        ...(s.requireLostClickToBreakThisRun
-          ? { requireLostClickToBreakThisRun: true }
-          : {}),
-      }),
-    );
+    card.subroutines = def.subroutines.map((s): Subroutine => ({
+      id: s.id,
+      text: s.text,
+      effect: structuredClone(s.effect),
+      ...(s.requireLostClickToBreakThisRun
+        ? { requireLostClickToBreakThisRun: true }
+        : {}),
+    }));
   }
   if (def.onPlay) card.onPlay = structuredClone(def.onPlay);
   if (def.playAdditionalCost) {
@@ -3958,8 +4033,9 @@ export function instantiateCard(
     );
   }
   if (def.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun) {
-    card.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun =
-      structuredClone(def.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun);
+    card.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun = structuredClone(
+      def.onCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun,
+    );
   }
   if (def.onFirstRemoteInstallThisTurn) {
     card.onFirstRemoteInstallThisTurn = structuredClone(
@@ -4067,10 +4143,14 @@ export function instantiateCard(
     card.onAgendaScoredOrStolen = structuredClone(def.onAgendaScoredOrStolen);
   }
   if (def.onAgendaAccessedOrScored) {
-    card.onAgendaAccessedOrScored = structuredClone(def.onAgendaAccessedOrScored);
+    card.onAgendaAccessedOrScored = structuredClone(
+      def.onAgendaAccessedOrScored,
+    );
   }
   if (def.onAgendaAddedToRunnerScore) {
-    card.onAgendaAddedToRunnerScore = structuredClone(def.onAgendaAddedToRunnerScore);
+    card.onAgendaAddedToRunnerScore = structuredClone(
+      def.onAgendaAddedToRunnerScore,
+    );
   }
   if (def.onScoreTurnEnd) {
     card.onScoreTurnEnd = structuredClone(def.onScoreTurnEnd);
@@ -4079,7 +4159,9 @@ export function instantiateCard(
     card.onAccessWhileInstalled = structuredClone(def.onAccessWhileInstalled);
   }
   if (def.onAccessWhileUninstalled) {
-    card.onAccessWhileUninstalled = structuredClone(def.onAccessWhileUninstalled);
+    card.onAccessWhileUninstalled = structuredClone(
+      def.onAccessWhileUninstalled,
+    );
   }
   if (def.onAccessNotFromRd) {
     card.onAccessNotFromRd = structuredClone(def.onAccessNotFromRd);
@@ -4107,15 +4189,15 @@ export function instantiateCard(
     card.onAgendaStolen = structuredClone(def.onAgendaStolen);
   }
   if (def.onPassRezzedIceProtectingThisServer) {
-    card.onPassRezzedIceProtectingThisServer = structuredClone(def.onPassRezzedIceProtectingThisServer);
+    card.onPassRezzedIceProtectingThisServer = structuredClone(
+      def.onPassRezzedIceProtectingThisServer,
+    );
   }
   if (def.onOtherAgendaStolen) {
     card.onOtherAgendaStolen = structuredClone(def.onOtherAgendaStolen);
   }
   if (def.onFullyBreakOncePerTurn) {
-    card.onFullyBreakOncePerTurn = structuredClone(
-      def.onFullyBreakOncePerTurn,
-    );
+    card.onFullyBreakOncePerTurn = structuredClone(def.onFullyBreakOncePerTurn);
   }
   if (def.onFullyBreak) {
     card.onFullyBreak = structuredClone(def.onFullyBreak);
@@ -4137,7 +4219,9 @@ export function instantiateCard(
   if (def.remainderOfTurnOnInstallPrintedCostGte) {
     card.remainderOfTurnOnInstallPrintedCostGte = {
       min: def.remainderOfTurnOnInstallPrintedCostGte.min,
-      effect: structuredClone(def.remainderOfTurnOnInstallPrintedCostGte.effect),
+      effect: structuredClone(
+        def.remainderOfTurnOnInstallPrintedCostGte.effect,
+      ),
     };
   }
   if (def.firstEncounterGainsSubroutine) {
@@ -4233,13 +4317,17 @@ export function instantiateCard(
     card.onFirstIceRezEachTurn = structuredClone(def.onFirstIceRezEachTurn);
   }
   if (def.onSuccessfulRunOnThisServer) {
-    card.onSuccessfulRunOnThisServer = structuredClone(def.onSuccessfulRunOnThisServer);
+    card.onSuccessfulRunOnThisServer = structuredClone(
+      def.onSuccessfulRunOnThisServer,
+    );
   }
   if (def.onRunnerTurnBegin) {
     card.onRunnerTurnBegin = structuredClone(def.onRunnerTurnBegin);
   }
   if (def.onEachCorpBadPublicityTake) {
-    card.onEachCorpBadPublicityTake = structuredClone(def.onEachCorpBadPublicityTake);
+    card.onEachCorpBadPublicityTake = structuredClone(
+      def.onEachCorpBadPublicityTake,
+    );
   }
   if (def.onCorpTurnBeginIfRunnerUntagged) {
     card.onCorpTurnBeginIfRunnerUntagged = structuredClone(
@@ -4259,7 +4347,8 @@ export function instantiateCard(
       def.ignoreAdditionalCostFirstDoubleEventEachTurn;
   }
   if (def.strengthBonusIfOutermostOnServer !== undefined) {
-    card.strengthBonusIfOutermostOnServer = def.strengthBonusIfOutermostOnServer;
+    card.strengthBonusIfOutermostOnServer =
+      def.strengthBonusIfOutermostOnServer;
   }
   if (def.onFirstGripOrStackTrashBatchEachTurn) {
     card.onFirstGripOrStackTrashBatchEachTurn = structuredClone(

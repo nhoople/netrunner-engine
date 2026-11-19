@@ -1,6 +1,9 @@
 /** Martial Law (ml) Flashpoint pack primitives — v1.126.0. */
 import { revealCards } from "../../state/reveal.js";
-import { corpInstallCost, subtractRunnerCreditPool } from "../../state/costs.js";
+import {
+  corpInstallCost,
+  subtractRunnerCreditPool,
+} from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -11,12 +14,13 @@ import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function trashRunnerCardToHeap(state: EffectCtx["state"], cardId: string): void {
+function trashRunnerCardToHeap(
+  state: EffectCtx["state"],
+  cardId: string,
+): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
@@ -52,10 +56,7 @@ export function applyFlashpointMlPrimitive(
       const str = breakerStrength(state, sourceId);
       const iceStr = iceStrength(state, enc.iceId);
       if (str < iceStr) {
-        log(
-          state,
-          `MKUltra — cannot interface (str ${str} < ice ${iceStr}).`,
-        );
+        log(state, `MKUltra — cannot interface (str ${str} < ice ${iceStr}).`);
         return { ok: true };
       }
       const unbroken = enc.broken
@@ -64,10 +65,7 @@ export function applyFlashpointMlPrimitive(
       const toBreak = unbroken.slice(0, 2);
       for (const i of toBreak) enc.broken[i] = true;
       if (toBreak.length > 0) {
-        log(
-          state,
-          `MKUltra — break ${toBreak.length} sentry subroutine(s).`,
-        );
+        log(state, `MKUltra — break ${toBreak.length} sentry subroutine(s).`);
       }
       return { ok: true };
     }
@@ -315,7 +313,9 @@ export function applyFlashpointMlPrimitive(
       if (remaining <= 0) return { ok: true };
       const installable = state.corp.discardPile.filter((id) => {
         const t = state.cards[id]?.type;
-        return t === "agenda" || t === "asset" || t === "ice" || t === "upgrade";
+        return (
+          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
+        );
       });
       const options: { id: string; label: string; effect: Effect }[] = [
         {
@@ -392,9 +392,12 @@ export function applyFlashpointMlPrimitive(
           });
         }
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Friends in High Places — install up to ${remaining} from Archives (paying).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Friends in High Places — install up to ${remaining} from Archives (paying).`,
+      });
       return { ok: true };
     }
 
@@ -502,9 +505,12 @@ logLine: `Friends in High Places — install up to ${remaining} from Archives (p
         label: "Decline swap",
         effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Nihongai Grid — choose R&D↔HQ swap.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Nihongai Grid — choose R&D↔HQ swap.`,
+      });
       return { ok: true };
     }
 

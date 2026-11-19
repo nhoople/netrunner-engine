@@ -26,10 +26,10 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return passIdle(result.state);
 }
-
 
 function at(lines: string[], fragment: string): number {
   const i = lines.findIndex((line) => line.includes(fragment));
@@ -38,10 +38,13 @@ function at(lines: string[], fragment: string): number {
 }
 
 describe("CR examples, chapter 5", () => {
-
-    it("treats Professional Contacts as an action and Eli's click-break as an encounter ability (CR 5.2.1a.ex1)", () => {
+  it("treats Professional Contacts as an action and Eli's click-break as an encounter ability (CR 5.2.1a.ex1)", () => {
     const s = createInitialState();
-    const contacts = instantiateCard("professional-contacts", "pc-1", "runner:installed");
+    const contacts = instantiateCard(
+      "professional-contacts",
+      "pc-1",
+      "runner:installed",
+    );
     s.cards["pc-1"] = contacts;
     s.runner.installed = ["pc-1"];
     s.runner.clicks = 1;
@@ -82,13 +85,14 @@ describe("CR examples, chapter 5", () => {
       type: "break_bioroid_subroutine",
       subIndex: 0,
     });
-    expect(broken.run?.encounter && "broken" in broken.run.encounter
-      ? broken.run.encounter.broken[0]
-      : false).toBe(true);
+    expect(
+      broken.run?.encounter && "broken" in broken.run.encounter
+        ? broken.run.encounter.broken[0]
+        : false,
+    ).toBe(true);
     expect(broken.timingKey).toBe("run.encounterPaw");
     expect(broken.runner.clicks).toBe(0);
   });
-
 
   it("completes Stimhack's play after the run, the core damage, and the trash (CR 5.2.2b.ex1)", () => {
     let s = createInitialState();
@@ -127,7 +131,6 @@ describe("CR examples, chapter 5", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-
   it("does not offer MirrorMorph after two play-operation actions (CR 5.2.5b.ex1)", () => {
     const s = createInitialState();
     const morph = instantiateCard(
@@ -152,6 +155,4 @@ describe("CR examples, chapter 5", () => {
     expect(s.turn.extraDifferentAction ?? null).toBeNull();
     expect(s.pendingChoice).toBeNull();
   });
-
-
 });

@@ -38,8 +38,18 @@ beforeAll(() => {
 const ROOT = process.cwd();
 const BASELINE_PATH = join(ROOT, "tests/baselines/format-counts.json");
 
-type Counts = { knownPrimitiveKinds: number; oneCardKinds: number; cardDefFlags: number };
-type Entry = { date: string; engine: string; cards: string; counts: Counts; reason: string };
+type Counts = {
+  knownPrimitiveKinds: number;
+  oneCardKinds: number;
+  cardDefFlags: number;
+};
+type Entry = {
+  date: string;
+  engine: string;
+  cards: string;
+  counts: Counts;
+  reason: string;
+};
 type Baseline = { _comment: string; history: Entry[] };
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -88,7 +98,8 @@ function current(): Counts {
   };
 }
 
-const readBaseline = (): Baseline => JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline;
+const readBaseline = (): Baseline =>
+  JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline;
 const KEYS = ["knownPrimitiveKinds", "oneCardKinds", "cardDefFlags"] as const;
 
 if (process.env.UPDATE_FORMAT_COUNTS) {
@@ -101,8 +112,12 @@ if (process.env.UPDATE_FORMAT_COUNTS) {
       `refusing to record a raised count (${raised.join(", ")}); add the entry by hand with a reason`,
     );
   }
-  const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as { version: string };
-  const cards = JSON.parse(readFileSync(join(ROOT, "vendor/cards-data/PIN.json"), "utf8")) as {
+  const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as {
+    version: string;
+  };
+  const cards = JSON.parse(
+    readFileSync(join(ROOT, "vendor/cards-data/PIN.json"), "utf8"),
+  ) as {
     tag: string;
   };
   base.history.push({
@@ -124,7 +139,9 @@ describe("card format counts (CR audit Phase 2)", () => {
       expect(e.reason.length, JSON.stringify(e)).toBeGreaterThan(0);
       if (i === 0) return;
       const prev = history[i - 1]!;
-      expect(e.date >= prev.date, `history out of order at ${e.date}`).toBe(true);
+      expect(e.date >= prev.date, `history out of order at ${e.date}`).toBe(
+        true,
+      );
       const raised = KEYS.filter((k) => e.counts[k] > prev.counts[k]);
       if (raised.length > 0) {
         expect(
@@ -139,8 +156,12 @@ describe("card format counts (CR audit Phase 2)", () => {
   it("the counts match the last recorded entry (they may only shrink)", () => {
     const last = readBaseline().history.at(-1)!.counts;
     const now = current();
-    const up = KEYS.filter((k) => now[k] > last[k]).map((k) => `${k}: ${last[k]} → ${now[k]}`);
-    const down = KEYS.filter((k) => now[k] < last[k]).map((k) => `${k}: ${last[k]} → ${now[k]}`);
+    const up = KEYS.filter((k) => now[k] > last[k]).map(
+      (k) => `${k}: ${last[k]} → ${now[k]}`,
+    );
+    const down = KEYS.filter((k) => now[k] < last[k]).map(
+      (k) => `${k}: ${last[k]} → ${now[k]}`,
+    );
     expect(
       up,
       "the card format grew: merge into an existing kind or field instead, or add a " +

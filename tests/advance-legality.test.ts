@@ -1,5 +1,11 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { applyIntent, assertPinnedTag, crDataPresent, createGame, queryLegality } from "../src/index.js";
+import {
+  applyIntent,
+  assertPinnedTag,
+  crDataPresent,
+  createGame,
+  queryLegality,
+} from "../src/index.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 
 beforeAll(() => {
@@ -28,7 +34,12 @@ function toCorpTakeAction(state: GameState): GameState {
 }
 
 function pull(state: GameState, id: string): void {
-  for (const pile of [state.corp.hand, state.corp.deck, state.corp.discardPile, state.corp.installed]) {
+  for (const pile of [
+    state.corp.hand,
+    state.corp.deck,
+    state.corp.discardPile,
+    state.corp.installed,
+  ]) {
     const index = pile.indexOf(id);
     if (index >= 0) pile.splice(index, 1);
   }
@@ -46,7 +57,12 @@ function install(
 ): void {
   pull(state, id);
   if (!state.servers[serverId]) {
-    state.servers[serverId] = { id: serverId, kind: "remote", ice: [], root: [] };
+    state.servers[serverId] = {
+      id: serverId,
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
   }
   const card = state.cards[id];
   card.zone = `${serverId}:${pile}`;
@@ -105,14 +121,20 @@ describe("basic advance targets (CR 1.18.3)", () => {
     state.cards[woodcutter.id] = woodcutter;
     install(state, woodcutter.id, "remote-3", "ice");
 
-    const targets = queryLegality(state).legal
-      .filter((entry) => entry.action.type === "advance")
+    const targets = queryLegality(state)
+      .legal.filter((entry) => entry.action.type === "advance")
       .map((entry) => entry.action.cardId)
       .sort();
-    expect(targets).toEqual(["advanceable-asset", "advanceable-upgrade", "corp-fill-1", "corp-ice-1"]);
+    expect(targets).toEqual([
+      "advanceable-asset",
+      "advanceable-upgrade",
+      "corp-fill-1",
+      "corp-ice-1",
+    ]);
 
     const refused = applyIntent(state, { type: "advance", cardId: asset.id });
     expect(refused.ok).toBe(false);
-    if (!refused.ok) expect(refused.cites.some((cite) => cite.number === "1.18.3")).toBe(true);
+    if (!refused.ok)
+      expect(refused.cites.some((cite) => cite.number === "1.18.3")).toBe(true);
   });
 });

@@ -20,10 +20,7 @@ import {
   fireAfterBreakSubroutineHooks,
   maybeFireFluxFirstBreakCharge,
 } from "../effects/eval.js";
-import {
-  fireOnFullyBreak,
-  fireOnRez,
-} from "../state/cardLifecycleHooks.js";
+import { fireOnFullyBreak, fireOnRez } from "../state/cardLifecycleHooks.js";
 import {
   effectiveBreakerStrength,
   effectiveIceStrength,
@@ -69,10 +66,7 @@ export function midwayStationBreakTax(state: GameState): number {
   for (const rid of server.root) {
     if (abilitiesSuppressed(state, rid)) continue;
     const up = state.cards[rid];
-    if (
-      up?.rezzed &&
-      up.runnerIcebreakerAbilityAdditionalCostOnThisServer
-    ) {
+    if (up?.rezzed && up.runnerIcebreakerAbilityAdditionalCostOnThisServer) {
       tax += up.runnerIcebreakerAbilityAdditionalCostOnThisServer;
     }
   }
@@ -126,18 +120,14 @@ export function breakSubroutine(
     const prior = used[breakerId];
     const encIce = state.run.encounter.iceId;
     if (prior && prior !== encIce) {
-      return fail(
-        `Cannot use ${breaker.title} on more than one ice per run.`,
-        [CR.encounterBreakPaw],
-      );
+      return fail(`Cannot use ${breaker.title} on more than one ice per run.`, [
+        CR.encounterBreakPaw,
+      ]);
     }
   }
   let maxPrinted = ice.maxPrintedSubsBreakablePerEncounter;
   const atAdv = ice.maxPrintedSubsBreakablePerEncounterAtAdvancements;
-  if (
-    atAdv &&
-    (ice.advancementCounters ?? 0) >= atAdv.threshold
-  ) {
+  if (atAdv && (ice.advancementCounters ?? 0) >= atAdv.threshold) {
     maxPrinted = atAdv.max;
   }
   const exceptSub = ice.maxPrintedSubsBreakExceptSubtype;
@@ -155,10 +145,9 @@ export function breakSubroutine(
   }
   if (breaker.breaker.breakRequiresAttackingMark) {
     if (!state.run || state.run.attackedServerId !== currentMark(state)) {
-      return fail(
-        `${breaker.title} can only break ice protecting the mark.`,
-        [CR.encounterBreakPaw],
-      );
+      return fail(`${breaker.title} can only break ice protecting the mark.`, [
+        CR.encounterBreakPaw,
+      ]);
     }
   }
   if (typeof breaker.breaker.breakRequiresIceStrengthLte === "number") {
@@ -180,7 +169,9 @@ export function breakSubroutine(
       );
     }
   }
-  if (typeof breaker.breaker.breakRequiresIceExactSubroutineCount === "number") {
+  if (
+    typeof breaker.breaker.breakRequiresIceExactSubroutineCount === "number"
+  ) {
     const need = breaker.breaker.breakRequiresIceExactSubroutineCount;
     const count = (ice.subroutines ?? []).length;
     if (count !== need) {
@@ -246,10 +237,9 @@ export function breakSubroutine(
         state.runner.installed.includes(c.id),
     );
     if (!hasTrojan) {
-      return fail(
-        `${breaker.title} can only interface ice hosting a trojan.`,
-        [CR.encounterBreakPaw],
-      );
+      return fail(`${breaker.title} can only interface ice hosting a trojan.`, [
+        CR.encounterBreakPaw,
+      ]);
     }
   }
   if (breaker.interfaceRequiresEqualStrength) {
@@ -275,7 +265,9 @@ export function breakSubroutine(
     }
     cost = 0;
   } else {
-    cost = breaker.breaker.breakCredits + (state.run?.kgIcebreakerBreakAdditionalCost ?? 0);
+    cost =
+      breaker.breaker.breakCredits +
+      (state.run?.kgIcebreakerBreakAdditionalCost ?? 0);
     if (
       breaker.breaker.breakCreditsDiscountIfSuccessfulRunThisTurn &&
       state.turn.successfulRunThisTurn
@@ -388,7 +380,8 @@ export function breakSubroutine(
     return ok(state);
   }
   // Curupira: every full break.
-  if (run.encounter.broken.every(Boolean)) onFullBreak(state, run.encounter.iceId);
+  if (run.encounter.broken.every(Boolean))
+    onFullBreak(state, run.encounter.iceId);
   if (breaker.onFullyBreak && run.encounter.broken.every(Boolean)) {
     fireOnFullyBreak(state, breakerId);
     if (state.pendingChoice) return ok(state);
@@ -443,10 +436,7 @@ function maybeFireOnHostFullyBrokenThisEncounter(state: GameState): void {
     if (fired.includes(id)) continue;
     fired.push(id);
     enc.hostFullyBrokenFiredIds = fired;
-    log(
-      state,
-      `${card.title} — host ice fully broken this encounter.`,
-    );
+    log(state, `${card.title} — host ice fully broken this encounter.`);
     fireOnHostFullyBrokenThisEncounter(state, id);
     if (state.pendingChoice || state.done) return;
   }
@@ -639,7 +629,10 @@ export function breakBioroidSubroutine(
   if (run.encounter.broken[subIndex]) {
     return fail("Subroutine already broken.", [CR.fullyBreak]);
   }
-  if (subs[subIndex].requireLostClickToBreakThisRun && !run.lostClickToBreakThisRun) {
+  if (
+    subs[subIndex].requireLostClickToBreakThisRun &&
+    !run.lostClickToBreakThisRun
+  ) {
     return fail(
       "This subroutine cannot be broken unless the Runner has spent [click] to break a subroutine on a bioroid this run.",
       [CR.encounterBreakPaw],
@@ -783,4 +776,3 @@ export function breakBioroidSubroutines(
   nestPriorityAfterAbility(state, "break_bioroid_subroutines");
   return ok(state);
 }
-

@@ -36,8 +36,14 @@ function pass(state: GameState): GameState {
 describe("run paid ability windows", () => {
   it("opens 11.4_1_e, 11.4_4_b, and 11.4_4_e, and keeps break abilities on the encounter", () => {
     let state = setupEmptyRemoteWithIce();
-    const remote = Object.values(state.servers).find((server) => server.kind === "remote")!;
-    const pad = instantiateCard("pad-campaign", "pad-1", `server:${remote.id}:root`);
+    const remote = Object.values(state.servers).find(
+      (server) => server.kind === "remote",
+    )!;
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      `server:${remote.id}:root`,
+    );
     state.cards["pad-1"] = pad;
     remote.root.push("pad-1");
     const fallGuy = instantiateCard("fall-guy", "fg-1", "runner:installed");
@@ -48,25 +54,43 @@ describe("run paid ability windows", () => {
     state.runner.installed.push("gh-1");
     state.corp.credits = 10;
 
-    const started = applyIntent(state, { type: "basic_run", serverId: remote.id });
+    const started = applyIntent(state, {
+      type: "basic_run",
+      serverId: remote.id,
+    });
     expect(started.ok).toBe(true);
     if (!started.ok) return;
     state = started.state;
 
     expect(state.timingKey).toBe("run.initiatePaw");
     expect(state.timing.stepNumber).toBe("11.4_1_e");
-    expect(offers(state, (action) => action.type === "score_agenda")).toBe(false);
+    expect(offers(state, (action) => action.type === "score_agenda")).toBe(
+      false,
+    );
     expect(offers(state, (action) => action.type === "rez_ice")).toBe(false);
     expect(
-      offers(state, (action) => action.type === "use_paid_ability" && action.cardId === "fg-1"),
+      offers(
+        state,
+        (action) =>
+          action.type === "use_paid_ability" && action.cardId === "fg-1",
+      ),
     ).toBe(true);
     expect(
-      offers(state, (action) => action.type === "use_paid_ability" && action.cardId === "gh-1"),
+      offers(
+        state,
+        (action) =>
+          action.type === "use_paid_ability" && action.cardId === "gh-1",
+      ),
     ).toBe(false);
     // CR 9.2.7a: the Runner has priority first. The Corp rezzes after that pass.
     expect(offers(state, (action) => action.type === "rez_asset")).toBe(false);
     state = pass(state);
-    expect(offers(state, (action) => action.type === "rez_asset" && action.cardId === "pad-1")).toBe(true);
+    expect(
+      offers(
+        state,
+        (action) => action.type === "rez_asset" && action.cardId === "pad-1",
+      ),
+    ).toBe(true);
 
     state = pass(state);
     expect(state.timingKey).toBe("run.approachPaw");
@@ -76,7 +100,11 @@ describe("run paid ability windows", () => {
     expect(state.timing.stepNumber).toBe("11.4_4_b");
     expect(offers(state, (action) => action.type === "rez_asset")).toBe(false);
     expect(
-      offers(state, (action) => action.type === "use_paid_ability" && action.cardId === "fg-1"),
+      offers(
+        state,
+        (action) =>
+          action.type === "use_paid_ability" && action.cardId === "fg-1",
+      ),
     ).toBe(true);
 
     // CR 9.2.7a, 6.9.4b: the Corp receives priority after the Runner passes,
@@ -91,7 +119,12 @@ describe("run paid ability windows", () => {
     expect(state.timing.stepNumber).toBe("11.4_4_e");
     expect(offers(state, (action) => action.type === "rez_asset")).toBe(false);
     state = pass(state);
-    expect(offers(state, (action) => action.type === "rez_asset" && action.cardId === "pad-1")).toBe(true);
+    expect(
+      offers(
+        state,
+        (action) => action.type === "rez_asset" && action.cardId === "pad-1",
+      ),
+    ).toBe(true);
     expect(offers(state, (action) => action.type === "rez_ice")).toBe(false);
   });
 });

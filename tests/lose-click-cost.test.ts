@@ -14,7 +14,11 @@ import {
   loadCardCatalog,
 } from "../src/index.js";
 import { findPaidAbility } from "../src/actions/paidAbility.js";
-import { canPayCost, costBeginsWithClick, payCost } from "../src/state/costs.js";
+import {
+  canPayCost,
+  costBeginsWithClick,
+  payCost,
+} from "../src/state/costs.js";
 import type { GameState, PaidAbility } from "../src/state/types.js";
 
 beforeAll(() => {
@@ -31,7 +35,10 @@ function ability(cost: PaidAbility["cost"]): PaidAbility {
     creditCost: 0,
     cost,
     windows: ["corp_action_paw"],
-    effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 1 } },
+    effect: {
+      op: "do",
+      action: { kind: "gain_credits", side: "corp", amount: 1 },
+    },
   } as PaidAbility;
 }
 
@@ -39,7 +46,11 @@ function ability(cost: PaidAbility["cost"]): PaidAbility {
 function corpWithAbility(cost: PaidAbility["cost"]): GameState {
   const s = createInitialState();
   const id = s.corp.identityId;
-  s.cards[id] = instantiateCard("mirrormorph-endless-iteration", id, "corp:identity");
+  s.cards[id] = instantiateCard(
+    "mirrormorph-endless-iteration",
+    id,
+    "corp:identity",
+  );
   s.cards["runner-program-1"]!.rezzed = false;
   const card = instantiateCard("sealed-vault", "sv-1", "server:remote-1:root");
   card.rezzed = true;
@@ -131,7 +142,10 @@ function encounterMarkus(): GameState {
   markus.rezzed = true;
   markus.faceup = true;
   // The card data after the cards release that writes loseClicks.
-  for (const record of (markus.abilities ?? []) as { id?: string; cost?: unknown }[]) {
+  for (const record of (markus.abilities ?? []) as {
+    id?: string;
+    cost?: unknown;
+  }[]) {
     if (record.id === "markus-break") record.cost = { loseClicks: 1 };
   }
   const brk = markus.paidAbilities!.find((a) => a.id === "markus-break")!;

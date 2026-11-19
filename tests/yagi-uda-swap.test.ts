@@ -33,7 +33,13 @@ function must(s: GameState, action: Action): GameState {
 const pass = (s: GameState): GameState => must(s, { type: "pass_window" });
 const logged = (s: GameState): string => s.log.join("\n");
 
-function addCard(s: GameState, def: string, id: string, zone: string, rezzed = false) {
+function addCard(
+  s: GameState,
+  def: string,
+  id: string,
+  zone: string,
+  rezzed = false,
+) {
   const card = instantiateCard(def, id, zone);
   card.rezzed = rezzed;
   card.faceup = rezzed;
@@ -54,7 +60,8 @@ function runOn(
   addCard(s, "ice-wall", "a", `server:${serverId}:ice`, true);
   addCard(s, "enigma", "b", `server:${serverId}:ice`, true);
   s.servers[serverId]!.ice = ["a", "b"];
-  for (const [def, id] of root) addCard(s, def, id, `server:${serverId}:root`, true);
+  for (const [def, id] of root)
+    addCard(s, def, id, `server:${serverId}:root`, true);
   s.servers[serverId]!.root = root.map(([, id]) => id);
   for (const [def, id] of hand) addCard(s, def, id, "corp:hq");
   s.corp.hand = hand.map(([, id]) => id);
@@ -68,7 +75,8 @@ function runOn(
 
 function encountering(s: GameState, iceId: string): GameState {
   let t = s;
-  for (let i = 0; i < 12 && t.run?.encounter?.iceId !== iceId; i += 1) t = pass(t);
+  for (let i = 0; i < 12 && t.run?.encounter?.iceId !== iceId; i += 1)
+    t = pass(t);
   expect(t.run?.encounter?.iceId).toBe(iceId);
   expect(t.timingKey).toBe("run.encounterPaw");
   return t;
@@ -77,7 +85,14 @@ function encountering(s: GameState, iceId: string): GameState {
 function pick(s: GameState, hqCardId: string, serverCardId: string) {
   return evalEffect(
     { state: s, sourceId: "yagi" },
-    { op: "do", action: { kind: "swap_yagi_hq_with_attacked_pick", hqCardId, serverCardId } },
+    {
+      op: "do",
+      action: {
+        kind: "swap_yagi_hq_with_attacked_pick",
+        hqCardId,
+        serverCardId,
+      },
+    },
   );
 }
 
@@ -115,7 +130,8 @@ describe("Project Yagi-Uda swaps the encountered ice into HQ (CR 8.8.4b, 6.2.7c)
     pick(s, "new", "a");
     s = pass(s);
     s = must(s, { type: "continue_run" });
-    for (let i = 0; i < 4 && s.timingKey !== "run.approachPaw"; i += 1) s = pass(s);
+    for (let i = 0; i < 4 && s.timingKey !== "run.approachPaw"; i += 1)
+      s = pass(s);
     expect(s.timingKey).toBe("run.approachPaw");
     expect(s.run?.position).toBe(1);
     expect(iceAtRunnerPosition(s)).toBe("b");
@@ -139,11 +155,7 @@ describe("Project Yagi-Uda only swaps a card into a location it may occupy (CR 8
       "a",
     );
     expect(offeredPairs(s)).toEqual(
-      [
-        "yagi:h-ice:a",
-        "yagi:h-ice:b",
-        "yagi:h-upg:r-upg",
-      ].sort(),
+      ["yagi:h-ice:a", "yagi:h-ice:b", "yagi:h-upg:r-upg"].sort(),
     );
   });
 
@@ -197,7 +209,10 @@ describe("Project Yagi-Uda only swaps a card into a location it may occupy (CR 8
   });
 
   it("a pick that names an illegal pair changes nothing", () => {
-    const s = encountering(runOn("hq", [["hostile-takeover", "h-agenda"]]), "a");
+    const s = encountering(
+      runOn("hq", [["hostile-takeover", "h-agenda"]]),
+      "a",
+    );
     expect(pick(s, "h-agenda", "a").ok).toBe(true);
     expect(s.servers.hq.ice).toEqual(["a", "b"]);
     expect(s.corp.hand).toEqual(["h-agenda"]);

@@ -11,10 +11,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashToArchives(state: EffectCtx["state"], cardId: string): void {
   removeCardFromCurrentZone(state, cardId);
@@ -212,10 +210,7 @@ export function applyRedsandSoPrimitive(
     case "counter_surveillance_on_success": {
       const tags = effectiveRunnerTags(state);
       if (tags <= 0) {
-        log(
-          state,
-          `Counter Surveillance — no tags; cannot pay; no access.`,
-        );
+        log(state, `Counter Surveillance — no tags; cannot pay; no access.`);
         return { ok: true };
       }
       if (state.runner.credits < tags) {
@@ -707,9 +702,12 @@ export function applyRedsandSoPrimitive(
         label: "Trash the top card of the stack",
         effect: fx.do({ kind: "trash_top_of_stack" }),
       });
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `Clyde Van Rite — Runner must pay 1¢ or trash top of stack.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `Clyde Van Rite — Runner must pay 1¢ or trash top of stack.`,
+      });
       return { ok: true };
     }
 
@@ -721,10 +719,7 @@ logLine: `Clyde Van Rite — Runner must pay 1¢ or trash top of stack.`,
       if (x > 0) {
         state.corp.badPublicity = (state.corp.badPublicity ?? 0) - x;
         state.corp.credits += x;
-        log(
-          state,
-          `Sacrifice — remove ${x} bad publicity; gain ${x}¢.`,
-        );
+        log(state, `Sacrifice — remove ${x} bad publicity; gain ${x}¢.`);
       } else {
         log(state, `Sacrifice — no bad publicity to remove.`);
       }

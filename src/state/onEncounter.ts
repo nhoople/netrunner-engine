@@ -31,7 +31,11 @@ export function securityNexusTraceOffered(state: GameState): boolean {
   for (const rid of state.runner.installed) {
     if (abilitiesSuppressed(state, rid)) continue;
     const card = state.cards[rid];
-    if (!card?.paidAbilities?.some((ability) => ability.id === "security-nexus-trace")) {
+    if (
+      !card?.paidAbilities?.some(
+        (ability) => ability.id === "security-nexus-trace",
+      )
+    ) {
       continue;
     }
     if (wasAbilityUsed(state, rid, "security-nexus-trace")) continue;
@@ -40,7 +44,10 @@ export function securityNexusTraceOffered(state: GameState): boolean {
   return false;
 }
 
-export function chosenIceBypassOffered(state: GameState, iceId: string): boolean {
+export function chosenIceBypassOffered(
+  state: GameState,
+  iceId: string,
+): boolean {
   if ((state.run?.bypassedIceIds ?? []).includes(iceId)) return false;
   if (state.turn.ftmRiggedResultsBypassIceId === iceId) return true;
   const n = state.cards[iceId]?.subroutines?.length ?? 0;

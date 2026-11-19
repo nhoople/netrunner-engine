@@ -26,7 +26,8 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return result.state;
 }
 
@@ -55,7 +56,10 @@ function hostWithFacedownCards(
 
 describe("[trash] abilities that act on hosted cards set them aside (CR 9.5.5)", () => {
   it("Read-Write Share [trash] shuffles the facedown hosted cards into the stack, not the heap (CR 9.5.5, 4.1.5)", () => {
-    let s = hostWithFacedownCards("read-write-share", ["diesel", "sure-gamble"]);
+    let s = hostWithFacedownCards("read-write-share", [
+      "diesel",
+      "sure-gamble",
+    ]);
     const deckBefore = s.runner.deck.length;
     s = must(s, {
       type: "use_paid_ability",
@@ -77,7 +81,11 @@ describe("[trash] abilities that act on hosted cards set them aside (CR 9.5.5)",
   });
 
   it("Bookmark [trash] adds the hosted cards to the grip, not the heap (CR 9.5.5)", () => {
-    let s = hostWithFacedownCards("bookmark", ["diesel", "sure-gamble", "dirty-laundry"]);
+    let s = hostWithFacedownCards("bookmark", [
+      "diesel",
+      "sure-gamble",
+      "dirty-laundry",
+    ]);
     const handBefore = s.runner.hand.length;
     s = must(s, {
       type: "use_paid_ability",
@@ -90,7 +98,9 @@ describe("[trash] abilities that act on hosted cards set them aside (CR 9.5.5)",
       expect(s.cards[id]?.hostId).toBeUndefined();
       expect(s.runner.discardPile).not.toContain(id);
     }
-    expect(s.runner.hand).toEqual(expect.arrayContaining(["h-0", "h-1", "h-2"]));
+    expect(s.runner.hand).toEqual(
+      expect.arrayContaining(["h-0", "h-1", "h-2"]),
+    );
     expect(s.runner.hand).toHaveLength(handBefore + 3);
     expect(s.runner.setAside ?? []).toEqual([]);
     expect(s.resolvingSetAsideHosted).toBeUndefined();
@@ -129,9 +139,12 @@ describe("Touch-ups (CR 1.15.2, 1.21.3)", () => {
     const deckBefore = s.runner.deck.length;
     s = touchUpsChoosesType(s, "event");
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(s.reveals?.at(-1)?.cards.map((c) => c.defId).sort()).toEqual(
-      ["corroder", "diesel", "dirty-laundry", "sure-gamble"],
-    );
+    expect(
+      s.reveals
+        ?.at(-1)
+        ?.cards.map((c) => c.defId)
+        .sort(),
+    ).toEqual(["corroder", "diesel", "dirty-laundry", "sure-gamble"]);
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
       expect.arrayContaining(["choose-card:g-1", "choose-card:g-3"]),
     );
@@ -173,7 +186,11 @@ describe("Invasion of Privacy reveals the grip (CR 1.21.3, 1.21.6)", () => {
       s.cards[id] = card;
       s.runner.hand.push(id);
     }
-    s.cards["iop-1"] = instantiateCard("invasion-of-privacy", "iop-1", "corp:play-area");
+    s.cards["iop-1"] = instantiateCard(
+      "invasion-of-privacy",
+      "iop-1",
+      "corp:play-area",
+    );
     s.corp.playArea = [...(s.corp.playArea ?? []), "iop-1"];
     s.turn.lastTraceExcess = 2;
     const r = evalEffect(
@@ -182,17 +199,22 @@ describe("Invasion of Privacy reveals the grip (CR 1.21.3, 1.21.6)", () => {
     );
     if (!r.ok) throw new Error(r.error);
 
-    expect(s.reveals?.at(-1)?.cards.map((c) => c.defId).sort()).toEqual(
-      ["corroder", "daily-casts", "sure-gamble"],
-    );
+    expect(
+      s.reveals
+        ?.at(-1)
+        ?.cards.map((c) => c.defId)
+        .sort(),
+    ).toEqual(["corroder", "daily-casts", "sure-gamble"]);
     for (const id of ["g-1", "g-2", "g-3"]) {
       expect(s.cards[id]?.revealing).toBe(true);
       expect(s.cards[id]?.faceup).toBe(false);
     }
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
-      ["trash:g-1", "trash:g-2", "done"],
-    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "trash:g-1",
+      "trash:g-2",
+      "done",
+    ]);
 
     s = must(s, { type: "choose_option", optionId: "trash:g-1" });
     s = must(s, { type: "choose_option", optionId: "done" });
@@ -207,11 +229,18 @@ describe("Invasion of Privacy reveals the grip (CR 1.21.3, 1.21.6)", () => {
 });
 
 describe("Apex: Invasive Predator turn-begin ability (CR 9.6.6)", () => {
-  function apexTurnBegins(extraInstalled: string[] = [], heap: string[] = []): GameState {
+  function apexTurnBegins(
+    extraInstalled: string[] = [],
+    heap: string[] = [],
+  ): GameState {
     const s = createInitialState();
     s.cards["runner-program-1"]!.rezzed = false;
     delete s.cards[s.runner.identityId];
-    s.cards["apex-1"] = instantiateCard("apex-invasive-predator", "apex-1", "runner:identity");
+    s.cards["apex-1"] = instantiateCard(
+      "apex-invasive-predator",
+      "apex-1",
+      "runner:identity",
+    );
     s.runner.identityId = "apex-1";
     for (const defId of extraInstalled) {
       const id = `${defId}-1`;
@@ -249,7 +278,9 @@ describe("Apex: Invasive Predator turn-begin ability (CR 9.6.6)", () => {
     expect(s.pendingChoice).toBeNull();
     expect(s.timingKey).not.toBe("runner.turnBegins");
     expect(
-      s.log.filter((l) => l.includes("Apex: Invasive Predator becomes pending")),
+      s.log.filter((l) =>
+        l.includes("Apex: Invasive Predator becomes pending"),
+      ),
     ).toHaveLength(1);
   });
 
@@ -271,13 +302,22 @@ describe("Apex: Invasive Predator turn-begin ability (CR 9.6.6)", () => {
       const order = s.pendingChoice.options.find(
         (o) => o.id.startsWith("trigger:") && o.label.startsWith("Apex"),
       );
-      s = answer(s, order ? order.id : apexChoice(s) ? "decline" : s.pendingChoice.options[0]!.id);
+      s = answer(
+        s,
+        order
+          ? order.id
+          : apexChoice(s)
+            ? "decline"
+            : s.pendingChoice.options[0]!.id,
+      );
     }
     expect(s.pendingChoice).toBeNull();
     expect(s.timingKey).not.toBe("runner.turnBegins");
     expect(s.runner.credits).toBe(4);
     expect(
-      s.log.filter((l) => l.includes("Apex: Invasive Predator becomes pending")),
+      s.log.filter((l) =>
+        l.includes("Apex: Invasive Predator becomes pending"),
+      ),
     ).toHaveLength(1);
   });
 

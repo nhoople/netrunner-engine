@@ -28,7 +28,10 @@ export function applyRunAccessRestrictions(state: GameState): void {
     run.attackedServerId !== "rd" &&
     (run.prunedAccessCandidateIds?.length ?? 0) === 0
   ) {
-    run.randomAccessLimit = Math.min(run.randomAccessLimit, run.accessCandidates.length);
+    run.randomAccessLimit = Math.min(
+      run.randomAccessLimit,
+      run.accessCandidates.length,
+    );
   }
 }
 
@@ -48,7 +51,9 @@ export function applyMaxAccessOtherThanSelf(state: GameState): void {
     const card = state.cards[id];
     if (!card?.rezzed || card.maxAccessOtherThanSelf === undefined) continue;
     const maxOther = card.maxAccessOtherThanSelf;
-    const accessedOther = run.accessedCardIds.filter((cid) => cid !== id).length;
+    const accessedOther = run.accessedCardIds.filter(
+      (cid) => cid !== id,
+    ).length;
     if (accessedOther >= maxOther) {
       capped = true;
       const removed = run.accessCandidates.filter((cid) => cid !== id);
@@ -72,7 +77,8 @@ export function applyMaxAccessOtherThanSelf(state: GameState): void {
       ...(run.attackedServerId === "hq" ? state.corp.hand : []),
     ];
     for (const id of pool) {
-      if (run.accessedCardIds.includes(id) || run.accessCandidates.includes(id)) continue;
+      if (run.accessedCardIds.includes(id) || run.accessCandidates.includes(id))
+        continue;
       const stillHere =
         state.corp.hand.includes(id) ||
         server.root.includes(id) ||

@@ -68,7 +68,9 @@ export interface CheckpointDiff {
  * When there is no previous snapshot (game start), every present card counts
  * as a zone change so early checkpoints still have a comparable baseline.
  */
-export function diffAgainstPreviousCheckpoint(state: GameState): CheckpointDiff {
+export function diffAgainstPreviousCheckpoint(
+  state: GameState,
+): CheckpointDiff {
   const prev = state.previousCheckpointSnapshot?.facts;
   const now = captureCheckpointFacts(state);
   if (!prev) {
@@ -78,8 +80,12 @@ export function diffAgainstPreviousCheckpoint(state: GameState): CheckpointDiff 
     }
     return {
       zoneChangedIds: Object.keys(now.cardZones),
-      faceupChangedIds: Object.keys(now.cardFaceup).filter((id) => now.cardFaceup[id]),
-      rezzedChangedIds: Object.keys(now.cardRezzed).filter((id) => now.cardRezzed[id]),
+      faceupChangedIds: Object.keys(now.cardFaceup).filter(
+        (id) => now.cardFaceup[id],
+      ),
+      rezzedChangedIds: Object.keys(now.cardRezzed).filter(
+        (id) => now.cardRezzed[id],
+      ),
       // No prior 10.3.1a baseline — cannot evaluate "had" (CR 9.6.6a).
       advancementIncreasedFromZeroIds: [],
       // All recorded exposures are "since" no previous checkpoint.

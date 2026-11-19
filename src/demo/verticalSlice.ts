@@ -79,9 +79,7 @@ function throughNewRunPaws(state: GameState): GameState {
 }
 
 function beginRun(state: GameState, serverId: ServerId): GameState {
-  return throughNewRunPaws(
-    must(state, { type: "basic_run", serverId }),
-  );
+  return throughNewRunPaws(must(state, { type: "basic_run", serverId }));
 }
 
 /** Close every open pass step until a player must choose an action or discard. */
@@ -477,7 +475,9 @@ export function runLibraryApiSlice(): {
   if (legality.legal.length === 0) {
     throw new Error("Expected legal intents at Corp takeAction");
   }
-  const gain = legality.legal.find((e) => e.action.type === "basic_gain_credit");
+  const gain = legality.legal.find(
+    (e) => e.action.type === "basic_gain_credit",
+  );
   if (!gain) throw new Error("Expected basic_gain_credit among legal intents");
   state = must(state, gain.action);
   const runnerView = getPublicView(state, "runner");

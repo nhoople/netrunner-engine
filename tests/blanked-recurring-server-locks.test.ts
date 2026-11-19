@@ -68,7 +68,11 @@ describe("blanked recurring / server locks (CR 9.12.1d)", () => {
   it("drops Off the Grid run block while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const otg = instantiateCard("off-the-grid", "otg-1", "server:remote-1:root");
+    const otg = instantiateCard(
+      "off-the-grid",
+      "otg-1",
+      "server:remote-1:root",
+    );
     otg.rezzed = true;
     s.cards["otg-1"] = otg;
     s.servers["remote-1"] = {

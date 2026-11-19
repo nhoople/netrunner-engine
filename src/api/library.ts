@@ -153,11 +153,15 @@ function takenFromDeck(state: GameState, card: CardInstance): boolean {
 }
 
 /** Titles of the cards in or taken from a deck that the viewer may not see. */
-function hiddenDeckTitles(state: GameState, hiddenIds: readonly string[]): string[] {
+function hiddenDeckTitles(
+  state: GameState,
+  hiddenIds: readonly string[],
+): string[] {
   const titles = new Set<string>();
   for (const id of hiddenIds) {
     const card = state.cards[id];
-    if (card && (card.zone === "corp:rd" || card.zone === "runner:stack")) titles.add(card.title);
+    if (card && (card.zone === "corp:rd" || card.zone === "runner:stack"))
+      titles.add(card.title);
   }
   return [...titles];
 }
@@ -182,11 +186,14 @@ function idNames(optionId: string, cardId: string): boolean {
 
 /** Label the other player reads for an option that names a hidden card. */
 function hiddenOptionLabel(optionId: string): string {
-  if (optionId.startsWith("dbs-bottom:")) return "Add a set-aside card to the bottom of R&D";
+  if (optionId.startsWith("dbs-bottom:"))
+    return "Add a set-aside card to the bottom of R&D";
   if (optionId.startsWith("cultivate-trash:")) return "Trash a looked card";
   if (optionId.startsWith("cultivate-hq:")) return "Add a looked card to HQ";
-  if (optionId.startsWith("rd-arrange:")) return "Place a looked card on R&D next";
-  if (optionId.startsWith("raman:")) return "Swap a drawn card with an Archives card";
+  if (optionId.startsWith("rd-arrange:"))
+    return "Place a looked card on R&D next";
+  if (optionId.startsWith("raman:"))
+    return "Swap a drawn card with an Archives card";
   return "Hidden";
 }
 
@@ -212,7 +219,9 @@ export function pendingOptionHiddenFromOpponent(
     [...named].some((value) => hiddenSet.has(value)) ||
     hiddenIds.some((id) => idNames(option.id, id)) ||
     (choice.look === true &&
-      hiddenDeckTitles(state, hiddenIds).some((title) => option.label.includes(title)))
+      hiddenDeckTitles(state, hiddenIds).some((title) =>
+        option.label.includes(title),
+      ))
   );
 }
 
@@ -229,7 +238,10 @@ function publicPendingChoice(state: GameState, viewer: Side) {
     action: { kind: "gain_credits" as const, side: viewer, amount: 0 },
   };
   if (choice.shownToOpponent) {
-    copy.options = copy.options.map((option) => ({ ...option, effect: noEffect }));
+    copy.options = copy.options.map((option) => ({
+      ...option,
+      effect: noEffect,
+    }));
     return copy;
   }
   const hiddenIds = idsHiddenFrom(state, viewer);
@@ -248,7 +260,9 @@ function publicPendingChoice(state: GameState, viewer: Side) {
     if (!hidden) return { ...option, effect: noEffect };
     return {
       id: `hidden:${index}`,
-      label: choice.hiddenFromOpponent ? "Hidden" : hiddenOptionLabel(option.id),
+      label: choice.hiddenFromOpponent
+        ? "Hidden"
+        : hiddenOptionLabel(option.id),
       effect: noEffect,
     };
   });
@@ -326,7 +340,9 @@ export function getPublicView(state: GameState, side: Side): PublicView {
       maxHandSize: opp.maxHandSize,
       handCount: opp.hand.length,
       revealedHand:
-        oppSide === "runner" && gripRevealed(state) ? [...state.runner.hand] : undefined,
+        oppSide === "runner" && gripRevealed(state)
+          ? [...state.runner.hand]
+          : undefined,
       deckCount: opp.deck.length,
       discardPileFaceup: opp.discardPile.filter((id) => state.cards[id].faceup),
       scoreArea: [...opp.scoreArea],
@@ -360,7 +376,8 @@ export function getPublicView(state: GameState, side: Side): PublicView {
         const hostedPublic = (card.hostedCardIds ?? []).some(
           (hid) => state.cards[hid]?.hostAgendaGainsPublic,
         );
-        const visible = card.rezzed || card.faceup || side === "corp" || hostedPublic;
+        const visible =
+          card.rezzed || card.faceup || side === "corp" || hostedPublic;
         return {
           id,
           title: visible ? card.title : null,
@@ -377,9 +394,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingDamage: state.pendingDamage
       ? structuredClone(state.pendingDamage)
       : null,
-    pendingTags: state.pendingTags
-      ? structuredClone(state.pendingTags)
-      : null,
+    pendingTags: state.pendingTags ? structuredClone(state.pendingTags) : null,
     pendingEndTheRun: state.pendingEndTheRun
       ? structuredClone(state.pendingEndTheRun)
       : null,
@@ -400,7 +415,9 @@ export function getPublicView(state: GameState, side: Side): PublicView {
         }
       : null,
     reveals: structuredClone(state.reveals ?? []),
-    looks: structuredClone((state.looks ?? []).filter((event) => event.by === side)),
+    looks: structuredClone(
+      (state.looks ?? []).filter((event) => event.by === side),
+    ),
     pendingChoice: publicPendingChoice(state, side),
     pendingExclusiveChoices: state.pendingExclusiveChoices
       ? structuredClone(state.pendingExclusiveChoices)

@@ -24,9 +24,13 @@ describe("mutation areas", () => {
       expect(area.mutate.filter((f) => !existsSync(f))).toEqual([]);
       const tests = (testFilesFor as (n: string) => string[])(name);
       expect(tests.length).toBeGreaterThan(0);
-      expect(tests.filter((t) => (sourceScanTests as Set<string>).has(t))).toEqual([]);
+      expect(
+        tests.filter((t) => (sourceScanTests as Set<string>).has(t)),
+      ).toEqual([]);
       expect(existsSync(`stryker/${name}.config.mjs`)).toBe(true);
-      expect(pkg.scripts[`mutate:${name}`]).toBe(`stryker run stryker/${name}.config.mjs`);
+      expect(pkg.scripts[`mutate:${name}`]).toBe(
+        `stryker run stryker/${name}.config.mjs`,
+      );
     });
   }
 });

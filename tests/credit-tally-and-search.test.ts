@@ -33,10 +33,7 @@ describe("credit tallies", () => {
     const s = structuredClone(createInitialState());
     s.runner.tags = 3;
     const before = s.corp.credits;
-    const r = evalEffect(
-      { state: s, sourceId: s.corp.identityId },
-      effect,
-    );
+    const r = evalEffect({ state: s, sourceId: s.corp.identityId }, effect);
     expect(r.ok).toBe(true);
     expect(s.corp.credits).toBe(before + 6);
     expect(s.log.some((l) => l.includes("gains 6¢"))).toBe(true);
@@ -126,7 +123,11 @@ describe("credit tallies", () => {
 describe("damage, tag, and draw tallies", () => {
   it("deals 2 net damage plus 1 per advancement as one net_damage", () => {
     const s = structuredClone(createInitialState());
-    const asset = instantiateCard("urtica-cipher", "u-1", "server:remote-1:root");
+    const asset = instantiateCard(
+      "urtica-cipher",
+      "u-1",
+      "server:remote-1:root",
+    );
     asset.advancementCounters = 3;
     s.cards["u-1"] = asset;
     s.runner.hand = [];
@@ -155,7 +156,11 @@ describe("damage, tag, and draw tallies", () => {
 
   it("does not deal damage when the tally is 0", () => {
     const s = structuredClone(createInitialState());
-    const asset = instantiateCard("gene-splicer", "g-1", "server:remote-1:root");
+    const asset = instantiateCard(
+      "gene-splicer",
+      "g-1",
+      "server:remote-1:root",
+    );
     asset.advancementCounters = 0;
     s.cards["g-1"] = asset;
     s.runner.hand = ["grip-1"];
@@ -233,7 +238,6 @@ describe("damage, tag, and draw tallies", () => {
     expect(s.runner.hand).toEqual(["d1", "d2", "d3"]);
     expect(s.log.filter((l) => l.includes("draws"))).toHaveLength(1);
   });
-
 });
 
 describe("unless costs", () => {
@@ -272,7 +276,9 @@ describe("search R&D by card type", () => {
     expect(r.ok).toBe(true);
     expect(s.corp.hand).toContain("ice-1");
     // Revealed, then hidden again in HQ (CR 1.21.3, CR 1.21.1a).
-    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Ice Wall"]);
+    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual([
+      "Ice Wall",
+    ]);
     expect(s.cards["ice-1"]!.faceup).toBe(false);
     expect(s.corp.deck).toEqual(["ag-1", "op-1"]);
   });
@@ -310,10 +316,7 @@ describe("search R&D by card type", () => {
     s.cards["op-1"] = op;
     s.cards["ag-1"] = agenda;
     s.corp.deck = ["op-1", "ag-1"];
-    evalEffect(
-      { state: s, sourceId: s.corp.identityId },
-      effect,
-    );
+    evalEffect({ state: s, sourceId: s.corp.identityId }, effect);
     expect(s.corp.deck).toEqual(["ag-1", "op-1"]);
   });
 
@@ -343,7 +346,11 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
         kind: "gain_clicks" as const,
         side: "corp" as const,
         amount: 0,
-        tally: { count: "runner_score" as const, per: 1, side: "corp" as const },
+        tally: {
+          count: "runner_score" as const,
+          per: 1,
+          side: "corp" as const,
+        },
       },
     };
     expect(validateEffectTree(effect)).toBeNull();
@@ -498,7 +505,6 @@ describe("click, bad publicity, passed ice, and heap tallies", () => {
     expect(empty.runner.credits).toBe(emptyBefore);
     expect(empty.log.some((l) => l.includes("gains"))).toBe(false);
   });
-
 });
 
 describe("Vicsek net damage and tags", () => {
@@ -540,7 +546,6 @@ describe("Vicsek net damage and tags", () => {
       false,
     );
   });
-
 });
 
 describe("remove every tag", () => {
@@ -558,10 +563,7 @@ describe("remove every tag", () => {
   it("does not remove tags when the Runner has none", () => {
     const s = structuredClone(createInitialState());
     s.runner.tags = 0;
-    evalEffect(
-      { state: s, sourceId: s.runner.identityId },
-      fx.removeAllTags(),
-    );
+    evalEffect({ state: s, sourceId: s.runner.identityId }, fx.removeAllTags());
     expect(s.runner.tags).toBe(0);
     expect(s.log.some((l) => l.includes("Remove"))).toBe(false);
   });
@@ -581,5 +583,4 @@ describe("remove every tag", () => {
     );
     expect(s.runner.tags).toBe(3);
   });
-
 });

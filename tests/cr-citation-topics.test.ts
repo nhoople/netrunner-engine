@@ -69,7 +69,10 @@ function describeSite(m: TopicMismatch): string {
 
 type Baseline = { mismatches: string[]; reviewed: Record<string, string> };
 
-function baselineJson(keys: string[], reviewed: Record<string, string>): string {
+function baselineJson(
+  keys: string[],
+  reviewed: Record<string, string>,
+): string {
   return (
     JSON.stringify(
       {
@@ -92,9 +95,11 @@ function baselineJson(keys: string[], reviewed: Record<string, string>): string 
 /** cr-checker review list: mismatches grouped by cited number, most frequent first. */
 function reviewMarkdown(mismatches: TopicMismatch[]): string {
   const groups = new Map<string, TopicMismatch[]>();
-  for (const m of mismatches) groups.set(m.number, [...(groups.get(m.number) ?? []), m]);
+  for (const m of mismatches)
+    groups.set(m.number, [...(groups.get(m.number) ?? []), m]);
   const ordered = [...groups.entries()].sort(
-    ([a, x], [b, y]) => y.length - x.length || a.localeCompare(b, "en", { numeric: true }),
+    ([a, x], [b, y]) =>
+      y.length - x.length || a.localeCompare(b, "en", { numeric: true }),
   );
   const out: string[] = [
     "# CR citation topics: cr-checker review list",
@@ -104,14 +109,16 @@ function reviewMarkdown(mismatches: TopicMismatch[]): string {
     "",
     "Each group is one cited rule number, most flagged sites first. Run the cr-checker agent over",
     "the top groups: for each site, say whether the citation is wrong, and which rule fits. Line",
-    "numbers are left out so edits elsewhere do not churn this file; `grep -n \"CR <number>\" <file>`",
+    'numbers are left out so edits elsewhere do not churn this file; `grep -n "CR <number>" <file>`',
     "finds the site.",
     "",
     `${mismatches.length} sites in ${ordered.length} groups.`,
     "",
   ];
   ordered.forEach(([number, ms], i) => {
-    out.push(`## ${i + 1}. CR ${number} — ${ms.length} site${ms.length === 1 ? "" : "s"}`);
+    out.push(
+      `## ${i + 1}. CR ${number} — ${ms.length} site${ms.length === 1 ? "" : "s"}`,
+    );
     out.push("");
     out.push(`Rule: ${ms[0]!.ruleTitle}`);
     out.push("");
@@ -168,8 +175,12 @@ describe("CR citation topics (CR audit 1.5b)", () => {
   });
 
   it("flags every CR 1.18 citation used for card visibility (now CR 1.21)", () => {
-    const cites118 = citations.filter((c) => /^1\.18(?:\.|$)/.test(c.number) && !c.label);
-    const visibility = cites118.filter((c) => topicsOf(model, c.subject).has("visibility"));
+    const cites118 = citations.filter(
+      (c) => /^1\.18(?:\.|$)/.test(c.number) && !c.label,
+    );
+    const visibility = cites118.filter((c) =>
+      topicsOf(model, c.subject).has("visibility"),
+    );
     const flagged = mismatches.filter((m) => /^1\.18(?:\.|$)/.test(m.number));
     expect(visibility.map((c) => `${c.file} ${c.number}`).sort()).toEqual([
       "src/api/library.ts 1.18.1",
@@ -179,7 +190,9 @@ describe("CR citation topics (CR audit 1.5b)", () => {
     expect(flagged.map((m) => `${m.file}:${m.line}`).sort()).toEqual(
       visibility.map((c) => `${c.file}:${c.line}`).sort(),
     );
-    expect(flagged.every((m) => m.topic.split("+").includes("visibility"))).toBe(true);
+    expect(
+      flagged.every((m) => m.topic.split("+").includes("visibility")),
+    ).toBe(true);
     // The other CR 1.18 citations are about advancing, and are not flagged.
     expect(cites118.length - visibility.length).toBeGreaterThan(0);
   });
@@ -200,7 +213,9 @@ describe("CR citation topics (CR audit 1.5b)", () => {
   it("every recorded mismatch has a cr-checker verdict", () => {
     const { mismatches: recorded, reviewed } = readBaseline();
     expect(
-      recorded.filter((k) => !/^(wrong|partly|right)\b/.test(reviewed[k] ?? "")),
+      recorded.filter(
+        (k) => !/^(wrong|partly|right)\b/.test(reviewed[k] ?? ""),
+      ),
       "baseline entries without a `reviewed` verdict (wrong / partly / right)",
     ).toEqual([]);
     expect(Object.keys(reviewed).sort()).toEqual(recorded);

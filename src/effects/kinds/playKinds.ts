@@ -2,10 +2,7 @@
  * Primitive kinds whose procedure is play.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import {
   corpInstallCost,
@@ -21,15 +18,16 @@ import { enterLingeringPlayArea } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { fireOnAfterOperationOrExpendable } from "../eval.js";
 
-import {
-  noteCheckpointAndResolvePlay,
-} from "../eval.js";
+import { noteCheckpointAndResolvePlay } from "../eval.js";
 
-export function applyPlayKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyPlayKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "may_play_or_install_from_hq": {
+    case "may_play_or_install_from_hq": {
       const installEligible = state.corp.hand.filter((id) => {
         const t = state.cards[id].type;
         return (
@@ -44,8 +42,7 @@ case "may_play_or_install_from_hq": {
       const playableOps = state.corp.hand.filter((id) => {
         const c = state.cards[id];
         return (
-          c.type === "operation" &&
-          state.corp.credits >= (c.playCost ?? 0)
+          c.type === "operation" && state.corp.credits >= (c.playCost ?? 0)
         );
       });
       if (affordableInstall.length === 0 && playableOps.length === 0) {
@@ -87,12 +84,12 @@ case "may_play_or_install_from_hq": {
             },
           })),
         ],
-logLine: `May play an operation or install from HQ.`,
-});
+        logLine: `May play an operation or install from HQ.`,
+      });
       return { ok: true };
     }
 
-case "play_hq_operation_paying_costs": {
+    case "play_hq_operation_paying_costs": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || card.type !== "operation") {
@@ -119,13 +116,16 @@ case "play_hq_operation_paying_costs": {
       return { ok: true };
     }
 
-case "may_play_event_from_heap": {
+    case "may_play_event_from_heap": {
       const candidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         return c?.type === "event" && state.runner.credits >= (c.playCost ?? 0);
       });
       if (candidates.length === 0) {
-        log(state, `${source.title} — may play event from heap: none affordable.`);
+        log(
+          state,
+          `${source.title} — may play event from heap: none affordable.`,
+        );
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -148,19 +148,27 @@ case "may_play_event_from_heap": {
             label: "Decline",
             effect: {
               op: "do" as const,
-              action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
             },
           },
         ],
-logLine: `${source.title} — may play an event from the heap.`,
-});
+        logLine: `${source.title} — may play an event from the heap.`,
+      });
       return { ok: true };
     }
 
-case "play_heap_event_card": {
+    case "play_heap_event_card": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      if (!card || card.type !== "event" || !state.runner.discardPile.includes(cardId)) {
+      if (
+        !card ||
+        card.type !== "event" ||
+        !state.runner.discardPile.includes(cardId)
+      ) {
         log(state, `play_heap_event_card — ${cardId} not in heap.`);
         return { ok: true };
       }
@@ -173,17 +181,19 @@ case "play_heap_event_card": {
         };
       }
       subtractRunnerCreditPool(state, cost);
-      log(state, `Runner plays ${card.title} from heap for ${cost}¢ (CR ${CR.playEvent.number}).`);
+      log(
+        state,
+        `Runner plays ${card.title} from heap for ${cost}¢ (CR ${CR.playEvent.number}).`,
+      );
       noteCheckpointAndResolvePlay(state, cardId, "effect.play");
       return { ok: true };
     }
 
-case "may_play_transaction_from_archives": {
+    case "may_play_transaction_from_archives": {
       const ops = state.corp.discardPile.filter((id) => {
         const c = state.cards[id];
         return (
-          c?.type === "operation" &&
-          (c.subtypes ?? []).includes("transaction")
+          c?.type === "operation" && (c.subtypes ?? []).includes("transaction")
         );
       });
       if (ops.length === 0) {
@@ -214,12 +224,12 @@ case "may_play_transaction_from_archives": {
             },
           })),
         ],
-logLine: `Plutus — may play 1 transaction operation from Archives.`,
-});
+        logLine: `Plutus — may play 1 transaction operation from Archives.`,
+      });
       return { ok: true };
     }
 
-case "play_archives_transaction_then_rfg": {
+    case "play_archives_transaction_then_rfg": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (
@@ -239,9 +249,14 @@ case "play_archives_transaction_then_rfg": {
         };
       }
       state.corp.credits -= cost;
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
       enterLingeringPlayArea(state, cardId, "corp");
-      log(state, `Corp plays ${card.title} from Archives for ${cost}¢ (Plutus).`);
+      log(
+        state,
+        `Corp plays ${card.title} from Archives for ${cost}¢ (Plutus).`,
+      );
       noteCheckpointAndResolvePlay(state, cardId, "effect.play");
       removeCardFromCurrentZone(state, cardId);
       card.zone = "removed-from-game";
@@ -253,8 +268,11 @@ case "play_archives_transaction_then_rfg": {
       return { ok: true };
     }
 
-case "play_self_from_archives_then_rfg": {
-      if (!state.corp.discardPile.includes(sourceId) || source.type !== "operation") {
+    case "play_self_from_archives_then_rfg": {
+      if (
+        !state.corp.discardPile.includes(sourceId) ||
+        source.type !== "operation"
+      ) {
         log(state, `play_self_from_archives_then_rfg — not in Archives.`);
         return { ok: true };
       }
@@ -274,13 +292,12 @@ case "play_self_from_archives_then_rfg": {
         };
       }
       state.corp.credits -= cost;
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== sourceId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== sourceId,
+      );
       enterLingeringPlayArea(state, sourceId, "corp");
       state.turn.operationPlayedFromNonHq = true;
-      log(
-        state,
-        `Corp plays ${source.title} from Archives for ${cost}¢.`,
-      );
+      log(state, `Corp plays ${source.title} from Archives for ${cost}¢.`);
       noteCheckpointAndResolvePlay(state, sourceId, "effect.play");
       state.turn.operationPlayedFromNonHq = false;
       log(
@@ -301,7 +318,7 @@ case "play_self_from_archives_then_rfg": {
       return { ok: true };
     }
 
-case "may_play_operation_from_hq": {
+    case "may_play_operation_from_hq": {
       const ops = state.corp.hand.filter(
         (id) => state.cards[id]?.type === "operation",
       );
@@ -340,12 +357,12 @@ case "may_play_operation_from_hq": {
             },
           },
         ],
-logLine: `${source.title} — may play an operation from HQ.`,
-});
+        logLine: `${source.title} — may play an operation from HQ.`,
+      });
       return { ok: true };
     }
 
-case "may_play_nonterminal_operation_from_hq": {
+    case "may_play_nonterminal_operation_from_hq": {
       const ops = state.corp.hand.filter((id) => {
         const c = state.cards[id];
         return (
@@ -389,12 +406,12 @@ case "may_play_nonterminal_operation_from_hq": {
             },
           },
         ],
-logLine: `${source.title} — may play a non-terminal operation from HQ.`,
-});
+        logLine: `${source.title} — may play a non-terminal operation from HQ.`,
+      });
       return { ok: true };
     }
 
-case "play_hq_operation_card": {
+    case "play_hq_operation_card": {
       // Minimal play: pay playCost from Corp credits and eval onPlay (no click).
       const cardId = action.cardId;
       const card = state.cards[cardId];

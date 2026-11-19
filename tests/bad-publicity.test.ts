@@ -57,15 +57,17 @@ describe("CR G5 — bad publicity fund (11.4_1_b / 10.6.2)", () => {
     s = must(s, { type: "continue_run" });
     // During or after the empty-archives run walk, fund was filled then cleared.
     expect(
-      s.log.some((l) =>
-        l.includes("Fill bad publicity fund with 2¢") &&
-        l.includes("10.6.3a"),
+      s.log.some(
+        (l) =>
+          l.includes("Fill bad publicity fund with 2¢") &&
+          l.includes("10.6.3a"),
       ),
     ).toBe(true);
     expect(
-      s.log.some((l) =>
-        l.includes("Return 2¢ from bad publicity fund") ||
-        l.includes("Return") && l.includes("bad publicity fund"),
+      s.log.some(
+        (l) =>
+          l.includes("Return 2¢ from bad publicity fund") ||
+          (l.includes("Return") && l.includes("bad publicity fund")),
       ),
     ).toBe(true);
     expect(s.badPublicityFund).toBe(0);
@@ -96,8 +98,8 @@ describe("CR G5 — bad publicity fund (11.4_1_b / 10.6.2)", () => {
     // Prefer BP fund before bank after other special pools.
     expect(s.badPublicityFund).toBe(1);
     expect(s.runner.credits).toBe(1);
-    expect(
-      s.log.some((l) => l.includes(CR.badPublicityFund.number)),
-    ).toBe(true);
+    expect(s.log.some((l) => l.includes(CR.badPublicityFund.number))).toBe(
+      true,
+    );
   });
 });

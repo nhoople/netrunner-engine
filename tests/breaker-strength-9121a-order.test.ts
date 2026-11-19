@@ -13,7 +13,10 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
-import { addBreakerStrengthBoostThisEncounter, suppressAbilities } from "../src/state/lingeringEffects.js";
+import {
+  addBreakerStrengthBoostThisEncounter,
+  suppressAbilities,
+} from "../src/state/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/index.js";
 
 beforeAll(() => {

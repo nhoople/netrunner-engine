@@ -11,14 +11,14 @@ import {
   crDataPresent,
   instantiateCard,
 } from "../src/index.js";
-import {
-  basicDrawBonus,
-  traceBaseBonus,
-} from "../src/state/staticFlags.js";
+import { basicDrawBonus, traceBaseBonus } from "../src/state/staticFlags.js";
 import { applyMaxAccessOtherThanSelf } from "../src/state/accessFilter.js";
 import { effectiveMemoryCost } from "../src/state/turn.js";
 import type { GameState, ServerId } from "../src/index.js";
-import { clearSuppressedAbilities, suppressAbilities } from "../src/state/lingeringEffects.js";
+import {
+  clearSuppressedAbilities,
+  suppressAbilities,
+} from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -76,7 +76,8 @@ describe("blanked draw / trace / access / MU cost (CR 9.12.1d)", () => {
       s = structuredClone(s);
       const flag = instantiateCard("flagship", "fl-1", "server:remote-1:root");
       flag.rezzed = true;
-      if (blanked) suppressAbilities(s, flag.id); else clearSuppressedAbilities(s, flag.id);
+      if (blanked) suppressAbilities(s, flag.id);
+      else clearSuppressedAbilities(s, flag.id);
       s.cards["fl-1"] = flag;
       const agenda = instantiateCard(
         "priority-requisition",

@@ -9,10 +9,8 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function installedIceIds(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
@@ -53,7 +51,11 @@ function swapIcePositions(
   return true;
 }
 
-function trashTopOfRd(state: EffectCtx["state"], n: number, label: string): void {
+function trashTopOfRd(
+  state: EffectCtx["state"],
+  n: number,
+  label: string,
+): void {
   for (let i = 0; i < n; i++) {
     const top = state.corp.deck.shift();
     if (!top) break;
@@ -99,8 +101,8 @@ export function applyRedsandCdPrimitive(
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or take ${amount} bad publicity.`,
-});
+        logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or take ${amount} bad publicity.`,
+      });
       return { ok: true };
     }
 
@@ -113,11 +115,7 @@ logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or
 
     case "trash_top_rd_equal_damage_suffered_this_turn": {
       const x = state.turn.damageSufferedThisTurn ?? 0;
-      trashTopOfRd(
-        state,
-        x,
-        source?.title ?? "Salvaged Vanadis Armory",
-      );
+      trashTopOfRd(state, x, source?.title ?? "Salvaged Vanadis Armory");
       state.turn.vanadisNextPawArmed = false;
       return { ok: true };
     }
@@ -180,10 +178,7 @@ logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or
         (id) => state.cards[id]?.type === t,
       );
       if (gripMatches.length === 0) {
-        log(
-          state,
-          `Dummy Box — no ${t} in grip to trash.`,
-        );
+        log(state, `Dummy Box — no ${t} in grip to trash.`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -227,8 +222,7 @@ logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or
     case "give_tags_equal_to_runner_tags_min_1": {
       const n = Math.max(1, state.runner.tags ?? 0);
       state.runner.tags = (state.runner.tags ?? 0) + n;
-      state.turn.tagsGivenThisTurn =
-        (state.turn.tagsGivenThisTurn ?? 0) + n;
+      state.turn.tagsGivenThisTurn = (state.turn.tagsGivenThisTurn ?? 0) + n;
       log(
         state,
         `${source?.title ?? "Threat Level Alpha"} — give ${n} tag(s) → ${state.runner.tags}.`,
@@ -330,8 +324,7 @@ logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or
       const opts: { id: string; label: string; effect: Effect }[] = [];
       for (const cardId of installable) {
         const card = state.cards[cardId]!;
-        const rezCost =
-          card.type === "agenda" ? 0 : (card.rezCost ?? 0);
+        const rezCost = card.type === "agenda" ? 0 : (card.rezCost ?? 0);
         if (card.type === "ice") {
           for (const server of Object.values(state.servers)) {
             const total = corpInstallCost(card, server.ice.length) + rezCost;
@@ -414,7 +407,9 @@ logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or
         return { ok: true };
       }
       state.corp.credits -= total;
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
       if (card.type === "ice") {
         // Outermost, as the text names no other position (CR 6.2.2a).
         addOutermostIce(state, serverId, cardId);
@@ -433,7 +428,9 @@ logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or
         (id) => state.cards[id]?.defId === defId,
       );
       for (const oid of others) {
-        state.corp.discardPile = state.corp.discardPile.filter((id) => id !== oid);
+        state.corp.discardPile = state.corp.discardPile.filter(
+          (id) => id !== oid,
+        );
         removeCardFromCurrentZone(state, oid);
         const oc = state.cards[oid];
         if (oc) {
@@ -498,10 +495,7 @@ logLine: `${source?.title ?? "Mining Accident"} — Corp may pay ${credits}¢ or
         ...(state.run.dianaInstalledProgramIds ?? []),
         id,
       ];
-      log(
-        state,
-        `Diana's Hunt — install ${card.title} ignoring all costs.`,
-      );
+      log(state, `Diana's Hunt — install ${card.title} ignoring all costs.`);
       return { ok: true };
     }
 

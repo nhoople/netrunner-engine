@@ -85,7 +85,11 @@ export function addOutermostIce(
   if (!server) return;
   server.ice.unshift(cardId);
   const run = state.run;
-  if (run && run.attackedServerId === serverId && typeof run.position === "number") {
+  if (
+    run &&
+    run.attackedServerId === serverId &&
+    typeof run.position === "number"
+  ) {
     run.position += 1;
   }
 }

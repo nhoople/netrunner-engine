@@ -55,8 +55,16 @@ describe("identity faces", () => {
   it("applyIdentityFace switches subtypes and base link", () => {
     const card = identity({
       identityFaces: [
-        { title: "Hoshiko Shiro: Untold Protagonist", subtypes: ["natural"], link: 0 },
-        { title: "Hoshiko Shiro: Mahou Shoujo", subtypes: ["digital"], link: 1 },
+        {
+          title: "Hoshiko Shiro: Untold Protagonist",
+          subtypes: ["natural"],
+          link: 0,
+        },
+        {
+          title: "Hoshiko Shiro: Mahou Shoujo",
+          subtypes: ["digital"],
+          link: 1,
+        },
       ],
       subtypes: ["natural"],
       link: 0,
