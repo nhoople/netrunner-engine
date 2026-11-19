@@ -684,11 +684,17 @@ export function applySearchKinds(
             upTo: true,
             purpose: "resume",
             label: "add to HQ from R&D",
-            resume: { kind: "search_rd_non_agenda" },
+            resume: {
+              kind: "search_rd_non_agenda",
+              ...(action.reveal ? { reveal: true } : {}),
+            },
           }),
         );
       }
       const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
+      // Malapert Data Vault: "search R&D for 1 non-agenda card and reveal
+      // it" (CR 8.7.3, 1.21.3).
+      if (action.reveal) revealCards(state, found, sourceId);
       for (const id of found) {
         state.corp.deck = state.corp.deck.filter((x) => x !== id);
         state.corp.hand.push(id);

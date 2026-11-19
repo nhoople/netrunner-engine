@@ -12,6 +12,7 @@ import {
   canPayCost,
   stealthHostedCreditsAvailable,
   runnerAvailableCredits,
+  activeCreditLockEvent,
 } from "../state/costs.js";
 import {
   evalEffect,
@@ -3770,12 +3771,15 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
               runState.encounter.senseiEtrSynthetic = false;
             }
-            // Sipa: pass outermost after fully breaking → may swap.
+            // Sipa: "The first time each turn you pass the outermost piece
+            // of ice protecting a server after fully breaking it, you may
+            // swap it with another installed piece of ice." A conditional
+            // ability: pending at the next checkpoint whatever else is
+            // open (CR 9.3.7c), and "it" is the passed ice (CR 1.2.1).
             if (
               runState.position === 0 &&
               runState.encounter?.fullyBrokenByRunner &&
-              !s.turn.sipaSwapUsedThisTurn &&
-              !s.pendingChoice
+              !s.turn.sipaSwapUsedThisTurn
             ) {
               for (const rid of s.runner.installed) {
                 const sipa = s.cards[rid];
@@ -3784,6 +3788,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 ) {
                   continue;
                 }
+                if (abilitiesSuppressed(s, rid)) continue;
                 s.turn.sipaSwapUsedThisTurn = true;
                 noteInlineConditional(s, {
                   cardId: rid,
@@ -3792,7 +3797,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                   mandatory: true,
                   effect: {
                     op: "do",
-                    action: { kind: "may_swap_ice_with_other_installed" },
+                    action: {
+                      kind: "may_swap_ice_with_other_installed",
+                      iceId,
+                    },
                   },
                   logLine: `${sipa.title} becomes pending — pass outermost after full break (may swap).`,
                 });
@@ -5351,6 +5359,15 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // The next checkpoint expires run-duration lingerings (CR 10.3.1b).
         s.turn.runDurationPassed = true;
+        // Aircheck: its credits are hosted on the event, which stays active
+        // until its run-end ability resolves. What is left of them goes
+        // back onto it for the follow-up run (CR 8.6.5, 1.2.1).
+        const lockEvent = activeCreditLockEvent(s);
+        if (lockEvent && (runState.eventCredits ?? 0) > 0) {
+          lockEvent.hostedCredits =
+            (lockEvent.hostedCredits ?? 0) + (runState.eventCredits ?? 0);
+          runState.eventCredits = 0;
+        }
         if (postBreach) {
           s.log.push(`Post-run breach of ${postBreach} begins (CR 7.3.1).`);
           // Standalone breach shell — not a successful run on that server.

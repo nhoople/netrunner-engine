@@ -69,6 +69,12 @@ export const LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER =
 export const LINGERING_KIND_ICE_STRENGTH_ENCOUNTER = "ice_strength_encounter";
 
 /**
+ * Each piece of ice gets +N strength for the remainder of this run
+ * (ezaM, Red Tape, Tributary; CR 9.10.1). Payload: `{ amount: number }`.
+ */
+export const LINGERING_KIND_ALL_ICE_STRENGTH_RUN = "all_ice_strength_run";
+
+/**
  * Icebreaker strength boost until the next checkpoint (CR 9.10.1 /
  * icebreaker strength outside an encounter). Payload:
  * `{ breakerId: string; amount: number }`.
@@ -143,6 +149,11 @@ export function lingeringIceStrengthBoost(
   let n = 0;
   for (const e of state.lingeringEffects) {
     if (e.expired) continue;
+    if (e.kind === LINGERING_KIND_ALL_ICE_STRENGTH_RUN) {
+      if (!state.run) continue;
+      n += (e.payload as { amount?: number } | undefined)?.amount ?? 0;
+      continue;
+    }
     if (
       e.kind !== LINGERING_KIND_ICE_STRENGTH &&
       e.kind !== LINGERING_KIND_ICE_STRENGTH_ENCOUNTER
@@ -340,6 +351,24 @@ export function addBreakerStrengthBoostThisEncounter(
   applyBreakerStrengthIncrease(state, {
     ...args,
     requestedDuration: "encounter",
+  });
+}
+
+/**
+ * Register "each piece of ice gets +N strength for the remainder of this
+ * run" (CR 9.10.1). With no run in progress the duration has already
+ * ended, so nothing is created (CR 9.10.4).
+ */
+export function addAllIceStrengthBoostThisRun(
+  state: GameState,
+  args: { createdBy: string; amount: number },
+): void {
+  if (args.amount === 0 || !state.run) return;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "run" },
+    kind: LINGERING_KIND_ALL_ICE_STRENGTH_RUN,
+    payload: { amount: args.amount },
   });
 }
 

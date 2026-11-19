@@ -335,13 +335,36 @@ export function recurringCreditsForCentralRun(state: GameState): number {
 }
 
 /**
+ * Aircheck: the run event that hosts credits and locks the Runner's credit
+ * pool "while this event is active" (CR 8.6.5): from its play until it
+ * leaves the play area, including between its run and the follow-up run.
+ */
+export function activeCreditLockEvent(
+  state: GameState,
+): CardInstance | null {
+  const id = state.playedRunEventId;
+  const card = id ? state.cards[id] : undefined;
+  if (!card || card.zone !== "runner:play-area") return null;
+  if (!card.runEvent?.blockCreditPoolSpendAndLose) return null;
+  return card;
+}
+
+/** The Runner cannot lose or spend credits from their credit pool. */
+export function runnerCreditPoolLocked(state: GameState): boolean {
+  return (
+    Boolean(state.run?.blockCreditPoolSpendAndLose) ||
+    activeCreditLockEvent(state) !== null
+  );
+}
+
+/**
  * Runner credit pool for any payment: bank + run event credits + Cezve-class
  * `run_central` recurring while attacking a central (CR §1.10.5a / §6.3.4) +
  * Touchstone-class hosted credits spendable during runs.
  * Aircheck-class runs omit the bank (cannot spend from credit pool).
  */
 export function runnerAvailableCredits(state: GameState): number {
-  const bank = state.run?.blockCreditPoolSpendAndLose
+  const bank = runnerCreditPoolLocked(state)
     ? 0
     : state.runner.credits;
   return (
@@ -677,7 +700,7 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
       noteOutsideCreditPoolSpendDuringRun(state);
     }
   }
-  if (state.run?.blockCreditPoolSpendAndLose) {
+  if (runnerCreditPoolLocked(state)) {
     if (left > 0) {
       log(
         state,
@@ -1206,7 +1229,7 @@ export function payCost(
         creditsLeft = takeFromHostedCreditsForAnything(state, creditsLeft);
       }
     }
-    if (side === "runner" && state.run?.blockCreditPoolSpendAndLose) {
+    if (side === "runner" && runnerCreditPoolLocked(state)) {
       if (creditsLeft > 0) {
         log(
           state,

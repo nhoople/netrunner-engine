@@ -13,8 +13,8 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | Kinds in `KNOWN_PRIMITIVE_KINDS` | 1535 |
 | Kinds used by card JSON | 888 |
 | Kinds used by exactly one card | 736 |
-| Kinds built by the engine | 733 |
-| Kinds built by both cards and the engine | 103 |
+| Kinds built by the engine | 734 |
+| Kinds built by both cards and the engine | 104 |
 | Engine-only kinds (no card uses them; the engine builds them) | 630 |
 | Kinds neither a card nor the engine builds | 17 |
 | Verb groups | 74 |
@@ -301,7 +301,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `choose_breaker_run` | `strengthBonus?: number` | 1 | card |
 | `choose_card` | `chooser: "corp" \| "runner"`, `zone: "hq" \| "grip" \| "installed" \| "heap" \| "archives" \| "corp_score" \| "runner_score" \| "remote_root"`, `cardType?: string`, `rezzedOnly?: boolean`, `includeSubtypes?: string[]`, `optional?: boolean`, `then: Effect` | 1 | card |
 | `choose_card_type_for_encounter` | — | 2 | card |
-| `choose_cards` | `chooser: "corp" \| "runner"`, `candidates: string[]`, `count: number`, `upTo?: boolean`, `picked: string[]`, `purpose: "discard_to_hand_size" \| "trash_hq" \| "archives_to_hq" \| "shuffle_archives_to_rd" \| "shuffle_hq_to_rd" \| "trash_grip" \| "shuffle_grip_to_stack" \| "resume"`, `resume?: Primitive`, `label?: string`, `open?: boolean`, `then?: Effect` | 0 | engine |
+| `choose_cards` | `chooser: "corp" \| "runner"`, `candidates: string[]`, `count: number`, `upTo?: boolean`, `picked: string[]`, `purpose: "discard_to_hand_size" \| "trash_hq" \| "reveal_trash_hq" \| "archives_to_hq" \| "shuffle_archives_to_rd" \| "shuffle_hq_to_rd" \| "trash_grip" \| "shuffle_grip_to_stack" \| "resume"`, `resume?: Primitive`, `label?: string`, `open?: boolean`, `then?: Effect` | 0 | engine |
 | `choose_exactly_n` | `n: number`, `options: ChoiceOption[]` | 3 | card |
 | `choose_exploratory_romp_card` | `amount: number` | 0 | engine |
 | `choose_forfeit_runner_scored_agenda` | — | 1 | card |
@@ -607,11 +607,11 @@ Card counts are from cards `v1.147.24` (2016 cards).
 
 ## `host`
 
-35 kinds: 21 used by cards, 14 built by the engine.
+35 kinds: 21 used by cards, 15 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `host_all_programs_from_grip` | — | 1 | card |
+| `host_all_programs_from_grip` | `cardIds?: string[]` | 1 | card, engine |
 | `host_bad_publicity` | `amount: number` | 0 | engine |
 | `host_continue` | `cardIds: string[]`, `returnRest?: string[]` | 0 | engine |
 | `host_copy_from_grip` | `title: string` | 1 | card |
@@ -1077,7 +1077,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `place_advancement_on_self` | `amount?: number` | 1 | card |
 | `place_advancement_resolve` | `cardId: string` | 0 | engine |
 | `place_advancements` | `amount: number`, `preferNotInstalledThisTurn?: boolean`, `sameServerRootAsSource?: boolean`, `sameServerRootOrIceAsSource?: boolean`, `onlyIceProtectingSourceServerWithNoAdvancements?: boolean`, `onlyIceProtectingSourceServer?: boolean`, `bonusAmountIfNoCorpInstallFromHqThisTurn?: number`, `excludeSelf?: boolean`, `anyInstalledIce?: boolean`, `onlyRemoteRoot?: boolean`, `thenMayScore?: boolean`, `then?: Effect`, `pick?: "choose"`, `cannotScoreTargetThisTurn?: boolean`, `unrezzedOnly?: boolean`, `faceupOnly?: boolean` | 31 | card, engine |
-| `place_advancements_on` | `cardId: string`, `amount: number`, `cannotScoreTargetThisTurn?: boolean`, `then?: Effect` | 0 | engine |
+| `place_advancements_on` | `cardId: string`, `amount: number`, `cannotScoreTargetThisTurn?: boolean`, `advance?: boolean`, `then?: Effect` | 0 | engine |
 | `place_advancements_on_forfeit` | `agendaPoints?: number` | 0 | engine |
 | `place_advancements_on_self_per_faceup_archive_types` | `base?: number` | 1 | card |
 | `place_advancements_on_up_to` | `amountEach: number`, `maxCards: number` | 2 | card |
@@ -1528,7 +1528,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `search_rd_ice_install_central_discount_pick` | `cardId: string`, `discount: number` | 0 | engine |
 | `search_rd_install_rez_by_printed_rez_cost` | `delta: number`, `cardIds?: string[]` | 1 | card, engine |
 | `search_rd_install_rez_ice_on_source_server` | `totalDiscount: number` | 1 | card |
-| `search_rd_non_agenda` | `cardIds?: string[]` | 0 | engine |
+| `search_rd_non_agenda` | `reveal?: boolean`, `cardIds?: string[]` | 0 | engine |
 | `search_rd_operation_or_agenda_to_hq` | — | 1 | card |
 | `search_rd_operation_to_top_rd` | — | 2 | card |
 | `search_rd_or_archives_agenda_to_bottom_rd` | — | 1 | card |
@@ -1691,7 +1691,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | --- | --- | ---: | --- |
 | `may_swap_approached_ice_with_hq` | — | 1 | card |
 | `may_swap_drawn` | `cardId: string` | 0 | none |
-| `may_swap_ice_with_other_installed` | — | 1 | card, engine |
+| `may_swap_ice_with_other_installed` | `iceId?: string` | 1 | card, engine |
 | `may_swap_passed_ice` | `iceId?: string` | 0 | engine |
 | `may_swap_protecting_attacked_ice_with_other_installed` | — | 1 | card |
 | `may_swap_two_installed_ice` | — | 1 | card, engine |
@@ -1871,7 +1871,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `trash_hardware_with_subtype` | `subtype: string`, `pick: "first" \| "choose"` | 1 | card |
 | `trash_hellion_beta_pick` | `cardId: string`, `remaining: number` | 0 | engine |
 | `trash_hellion_beta_two_installed_non_program` | — | 1 | card |
-| `trash_hq` | `pick: "first" \| "choose" \| "random"`, `amount?: number`, `upTo?: boolean`, `then?: Effect` | 5 | card, engine |
+| `trash_hq` | `pick: "first" \| "choose" \| "random"`, `amount?: number`, `upTo?: boolean`, `reveal?: boolean`, `then?: Effect` | 5 | card, engine |
 | `trash_hq_card` | `cardId: string`, `by?: "corp" \| "runner"` | 0 | engine |
 | `trash_hq_draw` | `amount?: number` | 1 | card |
 | `trash_hq_gain_credits` | — | 1 | card, engine |

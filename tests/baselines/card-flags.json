@@ -147,6 +147,7 @@
       "corp_rez"
     ],
     "searchRdNonAgendaOnScoreFromServer": [
+      "gain_credits",
       "search_rd_non_agenda"
     ],
     "securityTesting": [
@@ -13942,14 +13943,6 @@
           "kinds": []
         },
         {
-          "site": "src/cards/stubs.ts#applyHostServerRecurringTowardCorpRez",
-          "kinds": []
-        },
-        {
-          "site": "src/cards/stubs.ts#quoteHostServerRecurringTowardCorpRez",
-          "kinds": []
-        },
-        {
           "site": "src/cards/stubs.ts#runnerTrashCostForCard",
           "kinds": []
         },
@@ -14377,8 +14370,11 @@
       ],
       "readers": [
         {
-          "site": "src/actions/access.ts#hasInteractiveMidAccess",
-          "kinds": []
+          "site": "src/actions/access.ts#printedRezOrPlayCost",
+          "kinds": [],
+          "mirrors": [
+            "src/actions/access.ts#{card}"
+          ]
         },
         {
           "site": "src/actions/apply.ts#applyResolved",
@@ -14424,10 +14420,6 @@
         },
         {
           "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
           "kinds": []
         },
         {
@@ -16402,15 +16394,11 @@
           "kinds": []
         },
         {
-          "site": "src/cards/stubs.ts#applyHostServerRecurringTowardCorpRez",
-          "kinds": []
-        },
-        {
           "site": "src/cards/stubs.ts#applyRezIceRecurringTowardCorpRez",
           "kinds": []
         },
         {
-          "site": "src/cards/stubs.ts#quoteHostServerRecurringTowardCorpRez",
+          "site": "src/cards/stubs.ts#hostServerRezSpenders",
           "kinds": []
         },
         {
@@ -16941,8 +16929,11 @@
       ],
       "readers": [
         {
-          "site": "src/actions/access.ts#hasInteractiveMidAccess",
-          "kinds": []
+          "site": "src/actions/access.ts#printedRezOrPlayCost",
+          "kinds": [],
+          "mirrors": [
+            "src/actions/access.ts#{card}"
+          ]
         },
         {
           "site": "src/actions/apply.ts#applyResolved",
@@ -17484,6 +17475,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/costs.ts#activeCreditLockEvent",
+          "kinds": []
+        },
+        {
           "site": "src/state/encounterAbilityHooks.ts#noteCompileFirstEncounter",
           "kinds": []
         },
@@ -17932,11 +17927,13 @@
         {
           "site": "src/actions/score.ts#fireScoreOrStealSideEffects",
           "kinds": [
+            "gain_credits",
             "search_rd_non_agenda"
           ]
         }
       ],
       "kinds": [
+        "gain_credits",
         "search_rd_non_agenda"
       ]
     },
@@ -18134,6 +18131,10 @@
         },
         {
           "site": "src/effects/kinds/chooseKinds.ts#applyChooseKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
         {
@@ -23343,6 +23344,10 @@
           "kinds": []
         },
         {
+          "site": "src/actions/installRunner.ts#fireCookbookOnVirusInstall",
+          "kinds": []
+        },
+        {
           "site": "src/actions/installRunner.ts#installRunner",
           "kinds": []
         },
@@ -23420,6 +23425,10 @@
         },
         {
           "site": "src/cards/stubs.ts#effectiveBreakerStrength",
+          "kinds": []
+        },
+        {
+          "site": "src/cards/stubs.ts#hostServerRezSpenders",
           "kinds": []
         },
         {
@@ -24167,6 +24176,10 @@
         },
         {
           "site": "src/timing/graph.ts#STEPS.onResolve",
+          "kinds": []
+        },
+        {
+          "site": "src/timing/graph.ts#isHostedOnIce",
           "kinds": []
         },
         {

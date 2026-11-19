@@ -716,7 +716,11 @@ describe("CR examples, chapter 1", () => {
     s.runner.hand = ["prog-a", "prog-b"];
     const hosted = evalEffect(
       { state: s, sourceId: "madani-1" },
-      fx.do({ kind: "host_all_programs_from_grip" }),
+      // The Runner's pick (both programs), as the engine resumes it.
+      fx.do({
+        kind: "host_all_programs_from_grip",
+        cardIds: ["prog-a", "prog-b"],
+      }),
     );
     expect(hosted.ok).toBe(true);
     expect(s.runner.hand).toEqual([]);

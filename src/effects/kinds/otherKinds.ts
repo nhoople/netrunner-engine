@@ -39,6 +39,7 @@ import {
   addBreakerStrengthBoostThisRun,
   addBreakerStrengthBoostThisTurn,
   addBreakerStrengthBoostUntilCheckpoint,
+  addAllIceStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
   addIceStrengthBoostThisTurn,
   addLingeringEffect,
@@ -249,24 +250,20 @@ export function applyOtherKinds(
     }
 
     case "fortify_all_ice": {
+      // "Each piece of ice gets +N strength for the remainder of this run"
+      // (ezaM, Red Tape, Tributary): one run-duration lingering effect
+      // that every piece of ice reads (CR 9.10.1, 9.10.4).
       if (!state.run) {
         log(state, `Fortify all ice — no run.`);
         return { ok: true };
       }
-      let n = 0;
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          addIceStrengthBoostThisEncounter(state, {
-            createdBy: sourceId,
-            iceId: id,
-            amount: action.amount,
-          });
-          n += 1;
-        }
-      }
+      addAllIceStrengthBoostThisRun(state, {
+        createdBy: sourceId,
+        amount: action.amount,
+      });
       log(
         state,
-        `Each ice gets +${action.amount} strength this run (${n} ice).`,
+        `Each piece of ice gets +${action.amount} strength for the remainder of this run.`,
       );
       return { ok: true };
     }

@@ -1265,8 +1265,11 @@ export type Primitive =
       fail?: boolean;
       mayInstallIfSuccessfulRunThisTurn?: boolean;
     }
-  /** `cardIds` is the Corp's pick, set by the engine; not authored. */
-  | { kind: "search_rd_non_agenda"; cardIds?: string[] }
+  /**
+   * `cardIds` is the Corp's pick, set by the engine; not authored.
+   * `reveal`: the text has the found card revealed (Malapert Data Vault).
+   */
+  | { kind: "search_rd_non_agenda"; reveal?: boolean; cardIds?: string[] }
   /**
    * Search R&D for `amount` cards and add them to HQ, then shuffle R&D
    * (CR 8.7). `upTo`: the text says "up to". `reveal`: the text has the
@@ -1335,6 +1338,11 @@ export type Primitive =
       cardId: string;
       amount: number;
       cannotScoreTargetThisTurn?: boolean;
+      /**
+       * The text says "advance" (Success), not "place": the card counts as
+       * advanced (CR 1.18.1), which placing alone is not (CR 1.18.2).
+       */
+      advance?: boolean;
       then?: Effect;
     }
   | {
@@ -1449,7 +1457,12 @@ export type Primitive =
   /** ezaM: swap this ice with another installed ice. */
   | { kind: "swap_source_ice_with_other" }
   /** Sipa: Runner may swap source ice with another installed ice (or decline). */
-  | { kind: "may_swap_ice_with_other_installed" }
+  /**
+   * May swap a piece of ice with another installed piece of ice. The ice is
+   * the source unless `iceId` names it (Sipa: the ice just passed, set by
+   * the engine).
+   */
+  | { kind: "may_swap_ice_with_other_installed"; iceId?: string }
   /**
    * Cordyceps: Runner may swap one ice protecting the attacked server with
    * another installed ice (decline allowed).
@@ -2511,7 +2524,12 @@ export type Primitive =
   | { kind: "store_ip_enforcement_tags_removed"; amount: number }
   | { kind: "install_from_runner_score" }
   | { kind: "trash_rezzed_accessed" }
-  | { kind: "host_all_programs_from_grip" }
+  /**
+   * Madani: the Runner chooses any number of programs in the grip to host
+   * faceup, not installed. `cardIds` is the engine's follow-up after the
+   * pick; card data leaves it out.
+   */
+  | { kind: "host_all_programs_from_grip"; cardIds?: string[] }
   | { kind: "may_install_one_hosted_program" }
   | { kind: "install_hosted_program"; cardId: string }
   /** Paule's Café: may host 1 program or hardware from grip faceup. */
@@ -6612,7 +6630,8 @@ export const fx = {
         ? { mayInstallIfSuccessfulRunThisTurn: true }
         : {}),
     }),
-  searchRdNonAgenda: (): Effect => fx.do({ kind: "search_rd_non_agenda" }),
+  searchRdNonAgenda: (reveal = false): Effect =>
+    fx.do({ kind: "search_rd_non_agenda", ...(reveal ? { reveal: true } : {}) }),
   searchRdToHq: (amount = 1): Effect =>
     fx.do({ kind: "search_rd_to_hq", amount }),
   swapTwoIce: (): Effect => fx.do({ kind: "swap_two_ice" }),

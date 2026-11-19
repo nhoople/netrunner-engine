@@ -1572,8 +1572,12 @@ describe("CR examples, chapter 9", () => {
     ).toBe(false);
   });
 
-  it("gains 2 credits when Shipment from SanSan advances a card that had none (CR 9.6.6a.ex1)", () => {
+  it("gains 2 credits when the Corp advances a card that had none (CR 9.6.6a.ex1)", () => {
     let s = createInitialState();
+    // The default board marks a grip program rezzed (CR 8.1.4f).
+    for (const card of Object.values(s.cards)) {
+      if (card.side === "runner") card.rezzed = false;
+    }
     const oldId = s.corp.identityId;
     const identity = instantiateCard(
       "weyland-consortium-built-to-last",
@@ -1593,25 +1597,22 @@ describe("CR examples, chapter 9", () => {
       ice: [],
       root: ["ht-1"],
     };
-    const ship = instantiateCard("shipment-from-sansan", "ship-1", "corp:hq");
-    s.cards["ship-1"] = ship;
-    s.corp.hand = ["ship-1"];
     s.corp.credits = 5;
     s.corp.clicks = 3;
     s.activeSide = "corp";
     s.timingKey = "corp.takeAction";
 
-    s = must(s, { type: "play_operation", cardId: "ship-1" });
+    // The basic action advances the card (CR 1.18.1). Placing counters
+    // with Shipment from SanSan would not (CR 1.18.2).
+    s = must(s, { type: "advance", cardId: "ht-1" });
 
-    const placed = at(s.log, "Place 2 advancement(s) on Hostile Takeover");
     const pending = at(
       s.log,
       "Weyland Consortium: Built to Last becomes pending — Hostile Takeover had no advancement counters",
     );
-    expect(placed).toBeLessThan(pending);
     expect(s.log[pending]).toContain(CR.hadPreviousCheckpoint.number);
-    expect(s.cards["ht-1"]?.advancementCounters).toBe(2);
-    expect(s.corp.credits).toBe(7);
+    expect(s.cards["ht-1"]?.advancementCounters).toBe(1);
+    expect(s.corp.credits).toBe(6);
   });
 
   it("resolves Parasite once when Architect cannot be trashed (CR 9.6.7d.ex1)", () => {
