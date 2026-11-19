@@ -8,6 +8,11 @@
       "cards": 77
     },
     {
+      "id": "S1b",
+      "cycle": "elevation",
+      "cards": 82
+    },
+    {
       "id": "S1c",
       "cycle": "vantage-point",
       "cards": 66
@@ -18,6 +23,18 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "On score, may trash 1 installed resource."
+    },
+    "aggressive-trendsetting": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "The first time the Runner trashes an installed Corp card during each of their turns, they may spend [click]"
+      ],
+      "note": "The trigger first_corp_card_trash_each_turn is met by any Corp card the Runner trashes (cards accessed in HQ or R&D too), with no installed check and no Runner-turn check. It also shares one first-time flag with the any-Corp-card users (Solidarity Badge, Demolisher, AR-Enhanced Security), so an HQ access trash uses up its first time. NBN: Controlling the Message has the same gap.",
+      "cr": [
+        "9.6.5c",
+        "1.2.1"
+      ]
     },
     "aircheck": {
       "cycle": "vantage-point",
@@ -60,6 +77,31 @@
         "1.11.3b"
       ]
     },
+    "anthill-excavation-contract": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "When it is empty, trash it"
+      ],
+      "note": "The IR has no trashWhenHostedCreditsEmpty, so the asset stays installed after its 8 loaded credits are taken (probe). Needs the flag in card JSON, as Launch Campaign has.",
+      "cr": [
+        "10.9.1",
+        "10.9.2"
+      ]
+    },
+    "au-co-the-gold-standard-in-clones": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "When your turn begins, you may remove 2 hosted power counters to look at the top 3 cards of R&D"
+      ],
+      "note": "Already in the plan's findings, area 11: the remove-2 option is offered with fewer than 2 counters and resolves as a no-op (cost nested inside remove_co_2_look_rd). Confirmed; the rest matches."
+    },
+    "azimat": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "2 recurring credits, spendable only on trash costs."
+    },
     "baker": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -70,6 +112,16 @@
       "result": "matches",
       "note": "Trash 1 installed program or end the run (Corp chooses)."
     },
+    "bangun-when-disaster-strikes": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "May install agendas faceup; on accessing a faceup installed agenda, 2 meat damage then 1 tag."
+    },
+    "barry-baz-wong-tri-maf-veteran": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Whenever the Corp rezzes ice, may install 1 resource or hardware from the grip (goes through the grip install helper; resources and hardware are not hit by its trojan and MU filters)."
+    },
     "beta-build": {
       "cycle": "vantage-point",
       "result": "filed",
@@ -78,6 +130,21 @@
         "When that run ends, if that program has not been uninstalled, add it to the top of your stack."
       ],
       "note": "Area 6 (Runner install): install_stack_program_ignore_costs_track installs inline (no MU check, ignores install-on-ice restrictions such as Egret and Hush, no recurring credits, no new object, skips installRunner bookkeeping); the return to the stack is inline and leaves hosted counters (area 2). The search has no decline option and tracks the program by id; fold both into the area fix. cr-checker: CR 8.5.6c, 1.13.6c, 8.7.2b, 8.7.2e, 1.10.5b, 1.12.1, 1.13.13."
+    },
+    "biawak": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "May forfeit 1 agenda while rezzing to pay 10 of the rez cost (offered, not forced, in src/actions/rez.ts); trash program or ETR; trash resource or ETR; ETR."
+    },
+    "bigger-picture": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Play only if tagged; give 1 tag, or remove any number of tags with the Runner losing 5 each and the Corp gaining what was actually lost (gainPerCreditLost reads the real loss)."
+    },
+    "bling": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Unique console, +1 MU; after an install that cost 0 credits, may host the top card of the stack faceup (not installed); hosted cards playable as if in the grip; trashed when the Runner's discard phase ends."
     },
     "borrowed-goods": {
       "cycle": "vantage-point",
@@ -94,10 +161,32 @@
       "result": "matches",
       "note": "Bioroid click break (generic by subtype); may install ice from HQ or Archives inward ignoring all costs; end the run twice."
     },
+    "bumi-1-0": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Rez during a run on this server: may trash 1 installed trojan; bioroid click break (generic by subtype); trash 1 program; 1 core damage."
+    },
     "buzzsaw": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Decoder 3 strength: 1 credit breaks up to 2 code gate subroutines; 3 credits +1 strength."
+    },
+    "byte": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "you may pay 4[credit]. If you do, give the Runner 1 tag and do 3 net damage"
+      ],
+      "note": "area 11 (costs): a pay option inside choose is not gated on paying; with fewer than 4 credits lose_credits takes what the Corp has and the tag and 3 net damage still resolve. cr-checker: CR 1.16.11a, 1.16.1."
+    },
+    "cacophony": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "The first time each turn you steal or trash a Corp card, place 1 power counter",
+        "you may remove 2 hosted power counters to sabotage 3"
+      ],
+      "note": "area 1 (trash hooks): noteFirstCorpCardTrashEachTurn calls noteRunnerStoleOrTrashedCorpCard before its trashedBy check, so a Corp card the Corp trashes meets the trigger (Epiphany Analytica shares it). Also area 12: remove_power_counter removes what is there and sabotage resolves with fewer than 2 counters. cr-checker: CR 1.14.5a, 1.16.11a, 1.16.1."
     },
     "carmen": {
       "cycle": "system-gateway",
@@ -118,6 +207,21 @@
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Play only after successful HQ, R&D and Archives runs this turn; Runner trashes 2 installed Corp cards, then the Corp chooses 1 installed Runner card to trash (pendingTrashAmong is a Corp choice)."
+    },
+    "charm-offensive": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Run Archives; when the run ends, may trash 1 rezzed installed card sharing a title with a card accessed this run."
+    },
+    "chromatophores": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Installs only on ice; host ice gains barrier, code gate and sentry."
+    },
+    "clean-getaway": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Run any server; if successful gain 6 credits."
     },
     "clearinghouse": {
       "cycle": "system-gateway",
@@ -171,6 +275,25 @@
       "result": "matches",
       "note": "Look at top 5 of R&D; trash 1, add 1 to HQ, arrange the rest."
     },
+    "detente": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "The first time each turn you make a successful run on HQ, you may host 1 card from HQ at random",
+        "[click], add 2 hosted cards to HQ: The Runner may access 1 card in HQ at random"
+      ],
+      "note": "Already in the plan, area 8 (access): host_random_hq takes the last HQ card, not a random one, and access_random_hq bypasses access_card. Also: 'add 2 hosted cards to HQ' is a cost inside the effect, so the ability can be used with fewer than 2 hosted cards, and the first two are taken without a choice."
+    },
+    "devadatta-drone": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "2 power counters on install; on each R&D breach may remove 1 for +1 access (optional choice in src/state/access.ts)."
+    },
+    "dewi-subrotoputri-pedagogical-dhalang": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Successful run: if MU is full may flip and gain 1; flipped (Shadow Guide): if at least 1 unused MU may flip and draw 1. The back face text was checked against the NRDB catalog."
+    },
     "diviner": {
       "cycle": "system-gateway",
       "result": "wrong",
@@ -188,6 +311,11 @@
       "result": "matches",
       "note": "Unique; first HQ breach each turn accesses 1 more card."
     },
+    "doomscroll": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "1 tag; 1 net damage; 2 net damage if the Runner has 2 or more tags."
+    },
     "dzmz-optimizer": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -202,6 +330,25 @@
       "cycle": "vantage-point",
       "result": "matches",
       "note": "First bad publicity taken each turn: may search R&D for a non-agenda black ops, gray ops or liability card, reveal it, add it to HQ, shuffle."
+    },
+    "embedded-reporting": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "When your discard phase ends, you may remove 1 hosted agenda counter to search R&D for 1 operation and reveal it"
+      ],
+      "note": "search_rd_operation_to_top_rd takes the first operation in R&D: the Corp cannot choose which, or choose to find nothing. It also leaves the card's faceup flag set on top of R&D (not shown to the Runner today, but stale). Lily Lockwell uses the same kind.",
+      "cr": [
+        "8.7.2",
+        "8.7.2e",
+        "1.15.2",
+        "1.21.1a"
+      ]
+    },
+    "empiricist": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Draw 1 then may put 1 HQ card on top of R&D; 1 net damage and 1 tag; 2 net damage."
     },
     "esca": {
       "cycle": "vantage-point",
@@ -256,20 +403,55 @@
       "result": "matches",
       "note": "Additional click; choose 1 advanceable installed card and place 1 advancement counter per iced remote with a card in its root."
     },
+    "flyswatter": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Rez during a run on this server: purge virus counters; end the run."
+    },
     "flywheel": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Two subroutines: gain 1 credit, may draw 1."
+    },
+    "fransofia-ward": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you encounter a piece of ice, if the Corp has 15[credit] or more, you may trash this resource to bypass that ice"
+      ],
+      "note": "Modelled as a paid ability in encounter_paw. The printed text is a conditional ability that becomes pending when the encounter begins, so the bypass comes before the Corp's when-encountered abilities resolve; from the paid window it comes too late. The 15-credit check also belongs to the trigger condition, not the moment of use.",
+      "cr": [
+        "9.3.2b",
+        "6.9.3a",
+        "9.2.8b",
+        "6.5.8b",
+        "9.6.5c"
+      ]
     },
     "funhouse": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "On encounter, end the run unless the Runner takes 1 tag; subroutine: 1 tag unless the Runner pays 4."
     },
+    "gamedragon-pro": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Unique; on install and turn begin may host on a non-AI icebreaker; host gets +1 strength and its pumps last the run."
+    },
+    "gourmand": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Access, trash Gourmand: trash the non-agenda Corp card being accessed and draw 1."
+    },
     "government-subsidy": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Gain 15 credits."
+    },
+    "greenmail": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "On score gain 2; on forfeit gain 4."
     },
     "grubber": {
       "cycle": "vantage-point",
@@ -291,6 +473,11 @@
       "result": "matches",
       "note": "Gain 10 credits; trash 1 card from HQ if any."
     },
+    "hantu": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "2 virus counters on install; interface 1 credit breaks 1 sentry subroutine; hosted virus counter: +2 strength."
+    },
     "hedge-fund": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -301,10 +488,45 @@
       "result": "matches",
       "note": "Whenever a hardware is installed or trashed (trash hook covers any zone), look at the top card of R&D."
     },
+    "humanoid-resources": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "Install up to 2 cards from HQ (one at a time)"
+      ],
+      "note": "area 5 (Corp install): install_hq_card_paying_costs always creates a new remote and installs there, ice included, so no existing server or central root can be chosen; it also skips the like-card trash and server restrictions. cr-checker: CR 8.5.2a, 8.5.2c."
+    },
     "hype-machine": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Rez cost -6 if an agenda was scored or stolen this turn; trash: place 1 advancement counter on an advanceable card in this server's root (no-click paid ability opens in every paid-ability window)."
+    },
+    "idiosyncresis": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Advanceable; at turn begin may trash it to gain 3 and make the Runner lose 2 per hosted advancement counter."
+    },
+    "illumination": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "If successful, install up to 3 cards from your grip (one at a time), paying 1[credit] less for each"
+      ],
+      "note": "area 6 (Runner install): the effect install helpers (may_install_from_grip, install_from_grip_discount, canInstallHeapCard) drop every program that would exceed free MU instead of letting the Runner trash programs to make room, and drop trojans and install-on-ice cards outright. cr-checker: CR 8.5.6c, 3.9.3b, 1.13.6c."
+    },
+    "ip-enforcement": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "Install 1 agenda from the Runner's score area with a printed agenda point value equal to X"
+      ],
+      "note": "install_runner_score_agenda_on_server places the agenda inline with faceup = true, offers only existing remotes (no new remote; with none it errors after the tags are removed), takes the agenda out of the score area before checking the server, and ignores an agenda or asset already in that root. Unsettled: the pinned cards data has no play cost for it; NRDB lists the cost as X and jnet charges X credits, while the engine charges 0.",
+      "cr": [
+        "8.5.2",
+        "8.5.2a",
+        "8.5.6a",
+        "1.16.2c"
+      ]
     },
     "jailbreak": {
       "cycle": "system-gateway",
@@ -320,6 +542,29 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Do 2 net damage, Runner may jack out; do 2 net damage."
+    },
+    "kessleroid": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "The Runner cannot trash it while rezzed; end the run twice."
+    },
+    "key-performance-indicators": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "Install 1 piece of ice from HQ, ignoring all costs",
+        "Place 1 advancement counter on an installed card you can advance"
+      ],
+      "note": "place_advancements has no pick, so the first candidate gets the counter with no Corp choice. install_ice_from_hq_ignore_costs lists only existing servers, never a new remote (area 5 owns that install copy).",
+      "cr": [
+        "1.15.2",
+        "8.5.2a"
+      ]
+    },
+    "knickknack-obrian": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Unique; first run each turn may trash another installed card to gain its printed install cost and draw 1."
     },
     "knowledge-seeker": {
       "cycle": "vantage-point",
@@ -345,10 +590,23 @@
         "2.3.5"
       ]
     },
+    "lamplighter": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Trashed when an agenda is scored or stolen from its server or root; 1 tag unless the Runner pays 3 (unless checks payability); end the run if tagged."
+    },
     "leech": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Virus counter on each successful central run; spend 1: encountered ice -1 strength this encounter."
+    },
+    "leo-construction-labor-solutions": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "Once per turn → Trash 1 rezzed bioroid card in the root of or protecting the attacked server: End the run"
+      ],
+      "note": "area 11 (costs): the trash is modelled as part of the effect with a 0-credit cost. With no bioroid the use is refused, but once-per-turn is recorded before the trash, no checkpoint follows the cost, and a prevented trash would still end the run. Make the trash the cost. cr-checker: CR 1.16.9, 1.16.3, 1.16.1b."
     },
     "let-them-dream": {
       "cycle": "vantage-point",
@@ -359,6 +617,11 @@
       "cycle": "vantage-point",
       "result": "matches",
       "note": "On bypass or full break, give 1 tag; may add 1 Archives card to top or bottom of R&D; Corp chooses 1 installed Runner card for the grip."
+    },
+    "lie-low": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Additional cost [click]; draw 4 or remove up to 2 tags."
     },
     "lionsmane": {
       "cycle": "vantage-point",
@@ -393,10 +656,61 @@
       "result": "matches",
       "note": "On score, gain 3 clicks and cannot score agendas this turn."
     },
+    "madani": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "[click]: Host any number of programs from your grip faceup on this hardware"
+      ],
+      "note": "host_all_programs_from_grip hosts every program in the grip; the Runner cannot choose how many or which.",
+      "cr": [
+        "1.2.1",
+        "1.15.2"
+      ]
+    },
+    "magdalene-keino-chemutai-cryptarchitect": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "you may install 1 program or piece of hardware from among those cards"
+      ],
+      "note": "area 6 (Runner install): the effect install helpers (may_install_from_grip, install_from_grip_discount, canInstallHeapCard) drop every program that would exceed free MU instead of letting the Runner trash programs to make room, and drop trojans and install-on-ice cards outright. cr-checker: CR 8.5.6c, 3.9.3b."
+    },
     "magistrate-revontulet": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Unique; Runner pays 3 more to steal while rezzed; on each agenda scored, Runner loses 3."
+    },
+    "maglectric-rapid-748-mod": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you make a successful run on HQ, you may trash this hardware to derez 1 installed Corp card"
+      ],
+      "note": "After the trash, may_derez_installed opens the choice for the Corp (hard-coded chooser) and adds a Decline. The Runner controls the ability, chooses the card, and must derez once the cost is paid. Hakarl 1.0, Warm Reception, Stegodon MK IV and Élivágár Bifurcation share the kind, so the chooser should become a field.",
+      "cr": [
+        "1.14.4",
+        "1.15.2",
+        "1.16.11a"
+      ]
+    },
+    "mahkota-langit-grid": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "You can spend hosted credits to rez assets in the root of this server and ice protecting this server"
+      ],
+      "note": "The host-server recurring helpers in src/cards/stubs.ts have no type filter, so the credits also pay for rezzing upgrades in the root. They also stay spendable while Mahkota is derezzed, because its persistent flag passes the rezzed check.",
+      "cr": [
+        "1.2.1",
+        "9.3.6e",
+        "1.8.4a"
+      ]
+    },
+    "maintenance-access": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Additional cost [click]; run Archives, and on approaching Archives change the attacked server to HQ."
     },
     "malapert-data-vault": {
       "cycle": "system-gateway",
@@ -427,6 +741,11 @@
       "result": "matches",
       "note": "AI 1 strength: 1 credit breaks 1 subroutine and trashes Mayfly when the run ends; 1 credit +1 strength."
     },
+    "measured-response": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Play only at threat 4+ and after a successful run last turn; 4 meat damage unless the Runner pays 8."
+    },
     "melies-city-luxury-line": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -437,10 +756,28 @@
       "result": "matches",
       "note": "Facade identity: secretly choose a back face at discard-phase end; flips on a successful central run (front only); gains 1 at the Runner's action-phase end while unflipped; flipping during a run on the chosen face's server looks at R&D top, may trash it to add 1 Archives card to HQ; flips back at the Runner's discard-phase end."
     },
+    "mercia-b4ll4rd": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "you may install 1 piece of ice from HQ, paying 1[credit] less. If you do, move this upgrade to the root of the server that piece of ice is protecting"
+      ],
+      "note": "area 5 (Corp install): may_install_ice_from_hq_discount_then_move_source lists only existing servers, never a new remote, and install_hq_ice_protecting_server_paying_costs skips the ice-trash option and never fires when-installed triggers. cr-checker: CR 8.5.2a, 8.5.6b, 8.5.16f."
+    },
     "methuselah": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Unique console, +1 MU; run begins: may trash 1 hardware from the grip to place 2 credits; hosted credits spendable during runs."
+    },
+    "mitra-aman": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Unique; when the Runner approaches ice protecting its own server (rezzed root card, src/timing/graph.ts) may trash it to gain 3 and may swap the approached ice with ice from HQ or Archives."
+    },
+    "muslihat-multifarious-marketeer": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Turn begin: look at the top of the stack; if an icebreaker or run event, may reveal it and add it to the grip."
     },
     "mutual-favor": {
       "cycle": "system-gateway",
@@ -450,20 +787,56 @@
       ],
       "note": "Area 6 (Runner install): search_stack_icebreaker_resolve installs inline (raw credits, no MU check, no install-cost modifiers, no install procedure) and installs without offering the choice. Search, reveal and shuffle match. cr-checker: CR 8.5.16, 8.5.6c, 9.6.9c."
     },
+    "mycoweb": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "You may install 1 piece of ice from Archives, ignoring all costs",
+        "Resolve 1 subroutine on a rezzed sentry",
+        "Resolve 1 subroutine on another rezzed code gate"
+      ],
+      "note": "may_install_from_archives_ignore_costs offers assets, agendas and upgrades too (Project Ingatan's 'install 1 card' is right to use it, so this needs an ice-only field) and no new remote for ice. may_resolve_subroutine_on_rezzed_ice adds a Decline whenever a subtype is set; the two resolve subroutines are not optional.",
+      "cr": [
+        "1.2.1",
+        "8.5.2a",
+        "6.9.3c",
+        "1.15.2e"
+      ]
+    },
     "myoshu": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Play only if you scored an agenda this turn that you did not install this turn; score as a 2-point agenda."
+    },
+    "n-pot": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Runner may pay 3 to break 1 of its subroutines; end the run; ETR at threat 2+; ETR at threat 4+."
+    },
+    "nanomanagement": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Gain 2 clicks."
     },
     "nbn-reality-plus": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "First tag each turn: gain 2 credits or draw 2."
     },
+    "nebula-talent-management-making-stars": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Action phase end: if an operation was played this turn, gain 1 and flip. Flipped (Gemilang Arena, back face checked against the NRDB catalog): first operation each turn gains a click; a successful HQ or R&D run flips back."
+    },
     "neurospike": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Net damage equal to printed agenda points of agendas scored this turn."
+    },
+    "next-big-thing": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "1 agenda counter on score or steal; [click], counter: draw 4 and shuffle any number from HQ into R&D, usable from the Runner's score area."
     },
     "nico-campaign": {
       "cycle": "system-gateway",
@@ -480,15 +853,33 @@
       "result": "matches",
       "note": "Unique; whenever 2+ facedown Archives cards turn faceup on breach, draw 2."
     },
+    "off-the-books": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "You may install that card, ignoring all costs. If you do not, add it to HQ"
+      ],
+      "note": "area 5 (Corp install): install_hq_card_ignore_costs / install_archives_card_ignore_costs place the card inline; upgrades cannot go in a central root, ice gets no new remote, an agenda or asset already in the root is not trashed, and the HQ variant installs the card faceup. The R&D card is routed through HQ, so it counts as an HQ install. Search, reveal and shuffle match. cr-checker: CR 8.5.2, 8.5.2a, 8.5.6a."
+    },
     "offworld-office": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "On score, gain 7 credits."
     },
+    "open-market": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Loads 6 on install, trashed when empty; hosted credits pay for connection and job installs; take 1 at turn begin."
+    },
     "orbital-superiority": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "On score, 4 meat damage if the Runner is tagged, else 1 tag."
+    },
+    "otto-campaign": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Loads 6 on rez; take 2 at turn begin; when empty trashed and gain 2 clicks (probe: trashed and +2 clicks after the last take)."
     },
     "overclock": {
       "cycle": "system-gateway",
@@ -510,6 +901,14 @@
       "result": "matches",
       "note": "On encounter the Runner loses 1; end the run unless the Runner pays 1."
     },
+    "peer-review": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "You may install 1 card from HQ in the root of a remote server"
+      ],
+      "note": "area 5 (Corp install): install_hq_card_paying_costs always creates a new remote and installs there, ice included, so no existing server or central root can be chosen; it also skips the like-card trash and server restrictions. Peer Review cannot use an existing remote. Reveal and gain match. cr-checker: CR 8.5.2a."
+    },
     "pennyshaver": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -520,10 +919,20 @@
       "result": "matches",
       "note": "Power counter on rez and on agenda scored or stolen from this server; during a run, power counter: reveal 1 HQ card, Runner cannot steal or trash copies this run."
     },
+    "petty-cash": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Play only before the Corp finishes an action; gain 5, plus a click if played from outside HQ; [click]: play it from Archives paying its cost, then remove it from the game."
+    },
     "pharos": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Advanceable; +5 strength at 3 or more advancements; give 1 tag, end the run, end the run."
+    },
+    "phat-gioan-baotixita": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Unique; 1 power counter at the Corp's discard phase end; first score or steal each turn: remove up to 2 counters for 1 net damage plus 1 per counter removed."
     },
     "ping": {
       "cycle": "system-gateway",
@@ -537,10 +946,65 @@
         "4.6.6i"
       ]
     },
+    "plutus": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "As an additional cost to rez this asset, forfeit 1 agenda or reveal and trash 3 cards from HQ"
+      ],
+      "note": "The trash-3 option uses trash_hq with no reveal, so the Runner never sees the cards and they go to Archives facedown.",
+      "cr": [
+        "1.21.3",
+        "4.4.6b"
+      ]
+    },
+    "poetri-luxury-brands-all-the-rage": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "Whenever you score an agenda, look at the top 3 cards of R&D. You may install 1 non-agenda card from among them",
+        "Whenever an agenda is stolen, you may install 1 non-agenda card from HQ"
+      ],
+      "note": "area 5 (Corp install): install_hq_card_paying_costs always creates a new remote and installs there, ice included, so no existing server or central root can be chosen; it also skips the like-card trash and server restrictions. The scored half (install_rd_looked_card_paying_costs) moves the R&D card into HQ faceup and installs it as an HQ install, so install-from-HQ and from-elsewhere triggers see the wrong source; it also pays the cost twice (0 today for a new remote). cr-checker: CR 8.5.2a."
+    },
     "predictive-planogram": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Gain 3 or draw 3; both if the Runner is tagged."
+    },
+    "principia": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Costs 1 less per other installed icebreaker; interface 1 credit breaks 1 barrier subroutine; 2 credits +2 strength."
+    },
+    "project-ingatan": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "you may remove 1 hosted agenda counter to install 1 card from Archives, ignoring all costs"
+      ],
+      "note": "area 5 (Corp install): install_hq_card_ignore_costs / install_archives_card_ignore_costs place the card inline; upgrades cannot go in a central root, ice gets no new remote, an agenda or asset already in the root is not trashed. Dividends and the counter gate match. cr-checker: CR 8.5.2a, 8.5.2c, 8.5.6a."
+    },
+    "proprionegation": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "Hosted agenda counter: The Runner moves to the outermost position of Archives"
+      ],
+      "note": "area 2 (run position): move_runner_to_archives_outermost sets only the attacked server and position. It does not end an encounter in progress or move the run to the approach-ice step (or the movement phase with no ice), and has no Success or Run Ends phase guard. move_runner_to_outermost_attacked has the same gap. cr-checker: CR 6.2.8b, 6.1.3d, 6.2.8c."
+    },
+    "pt-untaian-lifes-building-blocks": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "you may pay 1[credit] to place 1 advancement counter on an unrezzed card you can advance"
+      ],
+      "note": "area 11 (costs): the pay-1 option is not gated on having 1 credit. Also area 12: place_advancements with pick choose offers a Decline after the credit is paid. cr-checker: CR 1.16.11a, 1.16.1."
+    },
+    "public-access-plaza": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Gain 1 at turn begin; threat 2: 1 tag when the Runner trashes it while rezzed."
     },
     "public-trail": {
       "cycle": "system-gateway",
@@ -583,6 +1047,11 @@
       ],
       "note": "Area 8 (access): the gain and draw is inline in only the pay-trash-cost access path. Carnivore, virus and other access-trash paths never trigger it or mark the turn's first trash; it resolves at once rather than pending, and does not check blanking. Fix at the shared access-trash point. cr-checker: CR 9.3.2b, 1.19.1, 9.6.2."
     },
+    "rent-rioters": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "[click][click][click], trash: gain 9."
+    },
     "retirement-plan": {
       "cycle": "vantage-point",
       "result": "filed",
@@ -601,15 +1070,42 @@
       "result": "matches",
       "note": "Rez cost -1 per other unrezzed ice; end the run twice."
     },
+    "rising-tide": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "+1 strength per fracter in the heap; interface 1 credit breaks 1 barrier subroutine; 1 credit +1 strength."
+    },
+    "ritual": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Draw 1 per click remaining."
+    },
     "rotary": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Unique console, +1 MU; on HQ or R&D breach, may take 1 tag to access 1 more; Corp may click, 2 credits to trash it while the Runner is tagged."
     },
+    "ryo-phoenix-ono-out-of-the-ashes": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "gain 1[credit] and the Corp trashes 1 card from HQ"
+      ],
+      "note": "ryo_phoenix_on_successful_run trashes a random HQ card. The text makes the Corp choose; nothing says random.",
+      "cr": [
+        "1.15.2",
+        "1.15.2c"
+      ]
+    },
     "sacrifice-zone-expansion": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Install only faceup; first advance each turn gains 3 (advance action only); once per turn on a successful run on another server, may remove 1 advancement counter for 1 meat damage."
+    },
+    "sang-kancil": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Interface 1 credit breaks 1 code gate subroutine; 3 credits +2 strength, 2 less while a run event is active (the discount reads only paid abilities, so it hits the pump and not the break)."
     },
     "scapegoat": {
       "cycle": "vantage-point",
@@ -623,6 +1119,22 @@
         "1.13.2a",
         "1.14.5"
       ]
+    },
+    "scatter-field": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "[subroutine] You may install 1 card from HQ"
+      ],
+      "note": "area 5 (Corp install): install_hq_card_paying_costs always creates a new remote and installs there, ice included, so no existing server or central root can be chosen; it also skips the like-card trash and server restrictions. cr-checker: CR 8.5.2a, 8.5.2c."
+    },
+    "scrounge": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "Install 1 program from your heap"
+      ],
+      "note": "area 6 (Runner install): the effect install helpers (may_install_from_grip, install_from_grip_discount, canInstallHeapCard) drop every program that would exceed free MU instead of letting the Runner trash programs to make room, and drop trojans and install-on-ice cards outright. cr-checker: CR 8.5.6c, 3.9.3b, 1.13.6c."
     },
     "seamless-launch": {
       "cycle": "system-gateway",
@@ -643,15 +1155,42 @@
       "result": "matches",
       "note": "Additional cost: trash 1 installed resource; gain 4 and draw 2."
     },
+    "semak-samun": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Its printed subroutine can be broken only by a fracter; end the run unless the Runner takes 3 net damage."
+    },
     "send-a-message": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "On score or steal, may rez 1 installed ice ignoring all costs (flag builds rez_ice_ignoring_costs)."
     },
+    "sericulture-expansion": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "you may remove 1 hosted agenda counter to place 2 advancement counters on 1 installed card"
+      ],
+      "note": "place_advancements limits candidates to agendas and advanceable cards; the text allows any installed card. It also offers a Decline after the agenda counter is removed (that Decline is the shared place_advancements behaviour, area 12).",
+      "cr": [
+        "1.18.2",
+        "1.16.11a"
+      ]
+    },
     "shackleton-grid": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Once per turn, when the Runner spends credits from outside the pool during a run on this server, may do 4 meat damage; region limit."
+    },
+    "shred": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Run any server; the first time the run would end, the Corp may reveal and trash X random HQ cards (X = root cards) to let it end, and cannot with fewer than X in HQ."
+    },
+    "side-hustle": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "1 credit on install and on each run begin; at 6 or more takes all, is trashed and draws 1."
     },
     "sipa": {
       "cycle": "vantage-point",
@@ -722,6 +1261,27 @@
       "result": "matches",
       "note": "Gain 9 credits."
     },
+    "syailendra": {
+      "cycle": "elevation",
+      "result": "wrong",
+      "abilities": [
+        "When the Runner encounters this ice, if it has 3 or more hosted advancement counters, you may place 1 advancement counter on an installed card you can advance",
+        "[subroutine] You may place 1 advancement counter on an installed card you can advance"
+      ],
+      "note": "Both use place_advancements with no pick, so the counter goes on the first candidate with no Corp choice. Minor: the 3-counter check is part of the trigger condition but is read at resolution.",
+      "cr": [
+        "1.15.2",
+        "9.6.5c"
+      ]
+    },
+    "synapse-global-faster-than-thought": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "The first time each turn a tag is removed, you may reveal and install 1 card from HQ, ignoring all costs"
+      ],
+      "note": "area 5 (Corp install): install_hq_card_ignore_costs / install_archives_card_ignore_costs place the card inline; upgrades cannot go in a central root, ice gets no new remote, an agenda or asset already in the root is not trashed, and the card is installed faceup (a reveal is not a faceup install). The once-per-turn trigger and the click ability match. cr-checker: CR 8.5.2, 1.21.3, 8.5.6a."
+    },
     "synchrocyclotron": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -782,6 +1342,11 @@
         "9.6.2"
       ]
     },
+    "the-zwicky-group-invisible-hands": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "First credit gain each turn from an agenda or operation ability: may draw 1 (only gains above 0 count)."
+    },
     "tithe": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -806,6 +1371,30 @@
       "result": "matches",
       "note": "On score or steal, give the Runner 1 tag."
     },
+    "top-down-solutions": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "Install up to 2 cards from HQ (one at a time)"
+      ],
+      "note": "area 5 (Corp install): install_hq_card_paying_costs always creates a new remote and installs there, ice included, so no existing server or central root can be chosen; it also skips the like-card trash and server restrictions. cr-checker: CR 8.5.2a, 8.5.2c."
+    },
+    "topan-ormas-leader": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "Once per turn → [click]: Install 1 card from your grip, paying 2[credit] less"
+      ],
+      "note": "area 6 (Runner install): the effect install helpers (may_install_from_grip, install_from_grip_discount, canInstallHeapCard) drop every program that would exceed free MU instead of letting the Runner trash programs to make room, and drop trojans and install-on-ice cards outright. It also checks the credit pool, not credits available for installs. cr-checker: CR 8.5.6c, 3.9.3b, 1.13.6c."
+    },
+    "touch-ups": {
+      "cycle": "elevation",
+      "result": "filed",
+      "abilities": [
+        "Place 2 advancement counters on 1 installed card you can advance. If you do, choose a card type and reveal the grip"
+      ],
+      "note": "Already in the plan's findings, area 13: the reveal does not depend on 'If you do', and choose_type_shuffle_grip offers a Decline. Confirmed: place_advancements with pick choose also offers a Decline (area 12)."
+    },
     "touchstone": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -815,6 +1404,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Installs only on ice; 1 virus counter on install and turn begin, then derez host at 3 or more."
+    },
+    "transfer-of-wealth": {
+      "cycle": "elevation",
+      "result": "matches",
+      "note": "Run HQ; if successful take 1 tag, the Corp loses 3 and the Runner gains 2 per credit actually lost."
     },
     "tread-lightly": {
       "cycle": "system-gateway",
