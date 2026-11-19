@@ -77,8 +77,5 @@ export function acceptPendingEndTheRun(state: GameState): void {
   if (!state.run) return;
   state.run.endedTheRun = true;
   state.run.successful = false;
-  log(
-    state,
-    `End the run (CR ${CR.endTheRun.number}) — run is unsuccessful.`,
-  );
+  log(state, `End the run (CR ${CR.endTheRun.number}) — run is unsuccessful.`);
 }

@@ -4,7 +4,10 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { iceAtRunnerPosition } from "./runPosition.js";
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
-import { moveForfeitedAgendaOutOfGame, removeCardFromCurrentZone } from "./scoring.js";
+import {
+  moveForfeitedAgendaOutOfGame,
+  removeCardFromCurrentZone,
+} from "./scoring.js";
 import { enterSetAside } from "./zones.js";
 import {
   fireOnRemoveTags,
@@ -19,7 +22,10 @@ import { noteStoredConditionals } from "./storedConditionalHooks.js";
  * Reduce the Runner's credit pool. The first time it becomes empty each
  * turn, Order of Sol gains 1 credit (CR 1.10).
  */
-export function subtractRunnerCreditPool(state: GameState, amount: number): void {
+export function subtractRunnerCreditPool(
+  state: GameState,
+  amount: number,
+): void {
   if (amount <= 0) return;
   const before = state.runner.credits;
   state.runner.credits -= amount;
@@ -40,10 +46,12 @@ import type {
   Side,
 } from "./types.js";
 import { CR } from "../timing/labels.js";
-import { withCostCheckpoint, occurCheckpoint } from "../legality/checkpoints.js";
+import {
+  withCostCheckpoint,
+  occurCheckpoint,
+} from "../legality/checkpoints.js";
 import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 import { effectiveIceStrength } from "../cards/stubs.js";
-
 
 /**
  * First time each turn the Runner spends credits from an installed card,
@@ -131,7 +139,8 @@ function unrestrictedPaidAbility(ability: PaidAbility): boolean {
   return (
     ability.windows.length > 0 &&
     ability.windows.every(
-      (window) => window === "corp_action_paw" || window === "runner_action_paw",
+      (window) =>
+        window === "corp_action_paw" || window === "runner_action_paw",
     )
   );
 }
@@ -257,7 +266,11 @@ export function abilityCost(
     base.credits = (base.credits ?? 0) + per * subs;
     delete base.creditsPerEncounterSubroutine;
   }
-  if (state && base.powerCountersEqualEncounterStrength && state.run?.encounter) {
+  if (
+    state &&
+    base.powerCountersEqualEncounterStrength &&
+    state.run?.encounter
+  ) {
     const iceId = state.run.encounter.iceId;
     const str = Math.max(0, effectiveIceStrength(state, iceId));
     base.powerCounters = (base.powerCounters ?? 0) + str;
@@ -283,16 +296,13 @@ export function abilityCost(
     const src = srcId ? state.cards[srcId] : undefined;
     const active = Boolean(
       src?.runEvent ||
-        (src?.type === "event" && (src.subtypes ?? []).includes("run")),
+      (src?.type === "event" && (src.subtypes ?? []).includes("run")),
     );
     if (active) {
       base.credits = Math.max(0, (base.credits ?? 0) - runEventDiscount);
     }
   }
-  if (
-    source?.paidAbilitiesUseStealthCreditsOnly &&
-    (base.credits ?? 0) > 0
-  ) {
+  if (source?.paidAbilitiesUseStealthCreditsOnly && (base.credits ?? 0) > 0) {
     base.creditsFromStealthOnly = true;
   }
   return base;
@@ -475,7 +485,10 @@ function takeFromHostedCreditsForAnything(
     card.hostedCredits = pool - take;
     left -= take;
     if (take > 0) {
-      log(state, `Spend ${take}¢ from ${card.title} hosted credits (anything).`);
+      log(
+        state,
+        `Spend ${take}¢ from ${card.title} hosted credits (anything).`,
+      );
       noteInstalledCardCreditSpend(state, card);
     }
   }
@@ -555,7 +568,10 @@ export function takeFromStealthHostedCredits(
       state.run!.eventCredits = (state.run!.eventCredits ?? 0) - take;
       left -= take;
       if (take > 0) {
-        log(state, `Spend ${take}¢ from stealth event credits on ${src.title}.`);
+        log(
+          state,
+          `Spend ${take}¢ from stealth event credits on ${src.title}.`,
+        );
         noteOutsideCreditPoolSpendDuringRun(state);
       }
     }
@@ -769,7 +785,10 @@ function takeFromProgramOrHardwareRecurring(
         `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
       );
       noteInstalledCardCreditSpend(state, card);
-      if (state.turn.counterSpendSourceIds && !state.turn.counterSpendSourceIds.includes(id)) {
+      if (
+        state.turn.counterSpendSourceIds &&
+        !state.turn.counterSpendSourceIds.includes(id)
+      ) {
         state.turn.counterSpendSourceIds.push(id);
       }
     }
@@ -777,10 +796,7 @@ function takeFromProgramOrHardwareRecurring(
   return left;
 }
 
-function takeFromCentralRunRecurring(
-  state: GameState,
-  amount: number,
-): number {
+function takeFromCentralRunRecurring(state: GameState, amount: number): number {
   if (!isAttackingCentral(state) || amount <= 0) return amount;
   let left = amount;
   for (const id of state.runner.installed) {
@@ -798,9 +814,10 @@ function takeFromCentralRunRecurring(
     card.recurringCredits = pool - take;
     left -= take;
     if (take > 0) {
-      const label = purposes.includes("run_hq") && !purposes.includes("run_central")
-        ? "run_hq"
-        : "run_central";
+      const label =
+        purposes.includes("run_hq") && !purposes.includes("run_central")
+          ? "run_hq"
+          : "run_central";
       log(
         state,
         `Spend ${take}¢ from ${card.title} recurring credits (${label}).`,
@@ -881,7 +898,8 @@ export function costCardNeed(
     };
   }
   if (cost.forfeitAgenda) {
-    const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
+    const score =
+      side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
     return {
       payer: side,
       candidates: score.filter((id) => !state.cards[id]?.cannotForfeit),
@@ -909,7 +927,9 @@ function takeCostCards(
   const rest = pool.filter((id) => !named.includes(id));
   const missing = Math.max(0, count - named.length);
   const filler =
-    fallback === "first" ? rest.slice(0, missing) : rest.slice(rest.length - missing);
+    fallback === "first"
+      ? rest.slice(0, missing)
+      : rest.slice(rest.length - missing);
   return [...named, ...filler].slice(0, count);
 }
 
@@ -950,7 +970,10 @@ export function canPayCost(
     if (creditNeed > p.credits) return false;
   }
   if ((cost.recurringCredits ?? 0) > 0) {
-    if (!source || (source.recurringCredits ?? 0) < (cost.recurringCredits ?? 0)) {
+    if (
+      !source ||
+      (source.recurringCredits ?? 0) < (cost.recurringCredits ?? 0)
+    ) {
       return false;
     }
   }
@@ -984,7 +1007,11 @@ export function canPayCost(
   ) {
     return false;
   }
-  if ((cost.credits ?? 0) > 0 && side === "runner" && state.run?.runnerCannotSpendCredits) {
+  if (
+    (cost.credits ?? 0) > 0 &&
+    side === "runner" &&
+    state.run?.runnerCannotSpendCredits
+  ) {
     return false;
   }
   if ((cost.trashFromHq ?? 0) > 0) {
@@ -1009,13 +1036,16 @@ export function canPayCost(
     }
   }
   if (cost.forfeitAgenda) {
-    const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
+    const score =
+      side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
     if (!score.some((id) => !state.cards[id]?.cannotForfeit)) return false;
   }
   if (cost.forfeitSelf) {
     // Only a scored agenda can be forfeited (CR 8.2.5); unpayable means unusable (CR 1.16.1).
-    const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
-    if (!source || !score.includes(source.id) || source.cannotForfeit) return false;
+    const score =
+      side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
+    if (!source || !score.includes(source.id) || source.cannotForfeit)
+      return false;
   }
   // coreDamage / tags (add) are always payable (may flatline when paid).
   return true;
@@ -1060,7 +1090,9 @@ export function releaseSetAsideHostedCards(state: GameState): void {
     if (card.zone !== "runner:set-aside" && card.zone !== "corp:set-aside") {
       continue;
     }
-    state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== id);
+    state.runner.setAside = (state.runner.setAside ?? []).filter(
+      (x) => x !== id,
+    );
     if (state.corp.corpSetAside) {
       state.corp.corpSetAside = state.corp.corpSetAside.filter((x) => x !== id);
     }
@@ -1096,7 +1128,10 @@ export function payCost(
     const lost = cost.loseClicks ?? 0;
     if (lost > 0) {
       p.clicks -= lost;
-      log(state, `${side === "corp" ? "Corp" : "Runner"} loses ${lost} [click] as a cost (CR ${CR.spendClicks.number}).`);
+      log(
+        state,
+        `${side === "corp" ? "Corp" : "Runner"} loses ${lost} [click] as a cost (CR ${CR.spendClicks.number}).`,
+      );
     }
     let creditsLeft = cost.credits ?? 0;
     if (side === "runner") {
@@ -1236,10 +1271,7 @@ export function payCost(
         state,
         `Spend ${cost.powerCounters} power counter(s) from ${source.title} → ${source.powerCounters}.`,
       );
-      if (
-        source.trashWhenPowerEmpty &&
-        (source.powerCounters ?? 0) <= 0
-      ) {
+      if (source.trashWhenPowerEmpty && (source.powerCounters ?? 0) <= 0) {
         removeCardFromCurrentZone(state, source.id);
         if (source.side === "runner") {
           state.runner.discardPile.push(source.id);
@@ -1253,10 +1285,7 @@ export function payCost(
           state,
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
         );
-      } else if (
-        source.rfgWhenPowerEmpty &&
-        (source.powerCounters ?? 0) <= 0
-      ) {
+      } else if (source.rfgWhenPowerEmpty && (source.powerCounters ?? 0) <= 0) {
         removeCardFromCurrentZone(state, source.id);
         source.zone = "removed-from-game";
         source.faceup = true;
@@ -1279,7 +1308,12 @@ export function payCost(
       );
     }
     if ((cost.trashFromHq ?? 0) > 0) {
-      for (const id of takeCostCards(state, state.corp.hand, cost.trashFromHq ?? 0, "last")) {
+      for (const id of takeCostCards(
+        state,
+        state.corp.hand,
+        cost.trashFromHq ?? 0,
+        "last",
+      )) {
         state.corp.hand = state.corp.hand.filter((x) => x !== id);
         state.corp.discardPile.push(id);
         const c = state.cards[id];
@@ -1290,7 +1324,12 @@ export function payCost(
       }
     }
     if ((cost.trashFromGrip ?? 0) > 0) {
-      for (const id of takeCostCards(state, state.runner.hand, cost.trashFromGrip ?? 0, "last")) {
+      for (const id of takeCostCards(
+        state,
+        state.runner.hand,
+        cost.trashFromGrip ?? 0,
+        "last",
+      )) {
         state.runner.hand = state.runner.hand.filter((x) => x !== id);
         state.runner.discardPile.push(id);
         const c = state.cards[id];
@@ -1360,10 +1399,7 @@ export function payCost(
         source.rezzed = false;
       }
       source.faceup = true;
-      log(
-        state,
-        `${source.title} trashed as cost (CR ${CR.trashing.number}).`,
-      );
+      log(state, `${source.title} trashed as cost (CR ${CR.trashing.number}).`);
       const setAside = state.pendingTrashSetAsideVirus;
       if (setAside?.sourceId === source.id) {
         const n = source.virusCounters ?? 0;
@@ -1408,7 +1444,10 @@ export function payCost(
         source.advancementCounters = 0;
         state.pendingTrashSetAsideAdvancements = undefined;
         if (n > 0) {
-          state.resolvingSetAsideAdvancements = { sourceId: source.id, count: n };
+          state.resolvingSetAsideAdvancements = {
+            sourceId: source.id,
+            count: n,
+          };
           log(
             state,
             `Set aside ${n} advancement counter(s) from ${source.title} (CR ${CR.trashAbilityKeepsHosted.number}).`,
@@ -1456,7 +1495,8 @@ export function payCost(
       }
     }
     if (cost.forfeitAgenda) {
-      const score = side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
+      const score =
+        side === "corp" ? state.corp.scoreArea : state.runner.scoreArea;
       const id = takeCostCards(
         state,
         score.filter((x) => !state.cards[x]?.cannotForfeit),
@@ -1488,7 +1528,10 @@ function forfeitAgendaAsCost(state: GameState, id: string): void {
     !abilitiesSuppressed(state, id);
   removeCardFromCurrentZone(state, id);
   moveForfeitedAgendaOutOfGame(state, id);
-  log(state, `Forfeit ${card.title} as a cost: it is removed from the game (CR ${CR.forfeit.number}).`);
+  log(
+    state,
+    `Forfeit ${card.title} as a cost: it is removed from the game (CR ${CR.forfeit.number}).`,
+  );
   if (triggers) {
     noteStoredConditionals(state, [
       {
@@ -1541,10 +1584,11 @@ function runnerCardsForHostedSpend(
       card.hostedCreditsSpendForInstallTypes?.length
     ) {
       if (!forCard) continue;
-      if (!card.hostedCreditsSpendForInstallTypes.includes(forCard.type as
-        | "program"
-        | "hardware"
-        | "resource")) {
+      if (
+        !card.hostedCreditsSpendForInstallTypes.includes(
+          forCard.type as "program" | "hardware" | "resource",
+        )
+      ) {
         continue;
       }
     }
@@ -1613,7 +1657,8 @@ export function creditsAvailableForInstall(
     for (const id of state.runner.installed) {
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
-      if (!(card.recurringSpendFor ?? []).includes("install_hardware")) continue;
+      if (!(card.recurringSpendFor ?? []).includes("install_hardware"))
+        continue;
       total += card.recurringCredits ?? 0;
     }
   }
@@ -1651,10 +1696,7 @@ export function spendCreditsForInstall(
     card.hostedCredits = pool - take;
     left -= take;
     if (take > 0) {
-      log(
-        state,
-        `Spend ${take}¢ from ${card.title} hosted credits (install).`,
-      );
+      log(state, `Spend ${take}¢ from ${card.title} hosted credits (install).`);
       if (side === "runner") noteInstalledCardCreditSpend(state, card);
     }
   }
@@ -1687,7 +1729,8 @@ export function spendCreditsForInstall(
       if (left <= 0) break;
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
-      if (!(card.recurringSpendFor ?? []).includes("install_hardware")) continue;
+      if (!(card.recurringSpendFor ?? []).includes("install_hardware"))
+        continue;
       const pool = card.recurringCredits ?? 0;
       if (pool <= 0) continue;
       const take = Math.min(left, pool);
@@ -1728,7 +1771,13 @@ export function spendCreditsForInstall(
 
 /** Refill recurring credit pools on installed/rezzed cards for a side. */
 export function refillRecurringCredits(state: GameState, side: Side): void {
-  const hasRecurringPool = (c: { recurringCreditsMax?: number; recurringCreditsMaxEqualsRunnerLink?: boolean; recurringCreditsMaxEqualsVirusCounters?: boolean; recurringCreditsMaxEqualsRemoteServers?: boolean; recurringCreditsMaxEqualsIceProtectingHq?: boolean }) =>
+  const hasRecurringPool = (c: {
+    recurringCreditsMax?: number;
+    recurringCreditsMaxEqualsRunnerLink?: boolean;
+    recurringCreditsMaxEqualsVirusCounters?: boolean;
+    recurringCreditsMaxEqualsRemoteServers?: boolean;
+    recurringCreditsMaxEqualsIceProtectingHq?: boolean;
+  }) =>
     (c.recurringCreditsMax ?? 0) > 0 ||
     Boolean(c.recurringCreditsMaxEqualsRunnerLink) ||
     Boolean(c.recurringCreditsMaxEqualsVirusCounters) ||
@@ -1811,10 +1860,7 @@ export function spendRunnerCreditsFor(
       noteInstalledCardCreditSpend(state, card);
     }
   }
-  if (
-    (purpose === "trash" || purpose === "trash_asset") &&
-    left > 0
-  ) {
+  if ((purpose === "trash" || purpose === "trash_asset") && left > 0) {
     for (const card of hostedTrashSpendCards(state)) {
       if (left <= 0) break;
       const pool = card.hostedCredits ?? 0;
@@ -1823,10 +1869,7 @@ export function spendRunnerCreditsFor(
       card.hostedCredits = pool - take;
       left -= take;
       if (take > 0) {
-        log(
-          state,
-          `Spend ${take}¢ from ${card.title} hosted credits (trash).`,
-        );
+        log(state, `Spend ${take}¢ from ${card.title} hosted credits (trash).`);
         noteInstalledCardCreditSpend(state, card);
         // Miss Bones-class: trash when hosted credits empty.
         if ((card.hostedCredits ?? 0) <= 0) {
@@ -1915,7 +1958,9 @@ export function eventPlayCostDiscountTotal(state: GameState): number {
  */
 
 /** Rolling Brownout-class: +N to operation and event play costs from active currents. */
-export function operationAndEventPlayCostIncreaseTotal(state: GameState): number {
+export function operationAndEventPlayCostIncreaseTotal(
+  state: GameState,
+): number {
   let n = 0;
   for (const c of Object.values(state.cards)) {
     if (abilitiesSuppressed(state, c.id)) continue;
@@ -2026,7 +2071,8 @@ function recurringMatchesPurpose(
   // Generic "trash" also covers asset trash costs.
   if (purpose === "trash_asset" && purposes.includes("trash")) return true;
   // Cezve-class: any purpose while attacking a central.
-  if (purposes.includes("run_central") && isAttackingCentral(state)) return true;
+  if (purposes.includes("run_central") && isAttackingCentral(state))
+    return true;
   // Pheromones-class: any purpose while attacking HQ.
   if (purposes.includes("run_hq") && isAttackingHq(state)) return true;
   return false;

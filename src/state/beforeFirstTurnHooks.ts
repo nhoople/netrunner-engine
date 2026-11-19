@@ -11,10 +11,7 @@ type BeforeFirstTurnPendingMark = {
   logLine: string;
 };
 
-function pushMark(
-  state: GameState,
-  mark: BeforeFirstTurnPendingMark,
-): void {
+function pushMark(state: GameState, mark: BeforeFirstTurnPendingMark): void {
   if (!state.turn.beforeFirstTurnPending) {
     state.turn.beforeFirstTurnPending = [];
   }
@@ -33,10 +30,7 @@ function pushMark(
 }
 
 /** Queue Corp identity onBeforeFirstTurn. */
-export function noteOnBeforeFirstTurn(
-  state: GameState,
-  cardId: string,
-): void {
+export function noteOnBeforeFirstTurn(state: GameState, cardId: string): void {
   if (abilitiesSuppressed(state, cardId)) return;
   const card = state.cards[cardId];
   if (!card?.onBeforeFirstTurn) return;

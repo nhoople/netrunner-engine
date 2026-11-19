@@ -35,7 +35,12 @@ import {
 import { corpMayScore } from "../cards/stubs.js";
 import { nestPriorityAfterAbility } from "../legality/priority.js";
 import { afterBasicAction } from "../timing/machine.js";
-import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
+import type {
+  ApplyResult,
+  GameState,
+  RuleCite,
+  ServerId,
+} from "../state/types.js";
 import { fx } from "../effects/ir.js";
 import { mayAdvanceInstalledCard } from "../state/advanceable.js";
 import { CR } from "../timing/labels.js";
@@ -98,11 +103,14 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     }
     // Simone Diego-class: recurring for cards in this server.
     for (const server of Object.values(state.servers)) {
-      if (!server.root.includes(cardId) && !server.ice.includes(cardId)) continue;
+      if (!server.root.includes(cardId) && !server.ice.includes(cardId))
+        continue;
       for (const id of [...server.root, ...server.ice]) {
         const c = state.cards[id];
         if (!c?.rezzed || abilitiesSuppressed(state, id)) continue;
-        if (!(c.recurringSpendFor ?? []).includes("advance_cards_this_server")) {
+        if (
+          !(c.recurringSpendFor ?? []).includes("advance_cards_this_server")
+        ) {
           continue;
         }
         avail += c.recurringCredits ?? 0;
@@ -154,7 +162,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     const spec = card.creditsOnAdvance;
     const gain =
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
-        ? spec.bonus ?? spec.default
+        ? (spec.bonus ?? spec.default)
         : spec.default;
     noteInlineConditional(state, {
       cardId,
@@ -173,7 +181,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     const spec = card.trashTopOfStackOnAdvance;
     const n =
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
-        ? spec.bonus ?? spec.default
+        ? (spec.bonus ?? spec.default)
         : spec.default;
     noteInlineConditional(state, {
       cardId,
@@ -198,7 +206,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
     const spec = card.placeAdvancementOnAnotherOnAdvance;
     const amount =
       spec.atOrAbove !== undefined && nextAdvancementCounters >= spec.atOrAbove
-        ? spec.bonus ?? spec.default
+        ? (spec.bonus ?? spec.default)
         : spec.default;
     noteInlineConditional(state, {
       cardId,
@@ -237,7 +245,10 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
       logLine: `${hosted.title} becomes pending — host advanced.`,
     });
   }
-  if (typeof card.gainCreditsOnAdvance === "number" && card.gainCreditsOnAdvance > 0) {
+  if (
+    typeof card.gainCreditsOnAdvance === "number" &&
+    card.gainCreditsOnAdvance > 0
+  ) {
     state.corp.credits += card.gainCreditsOnAdvance;
     log(
       state,
@@ -272,8 +283,7 @@ export function fireScoreOrStealSideEffects(
   serverIdBefore?: string,
 ): ApplyResult {
   if (serverIdBefore && state.servers[serverIdBefore as ServerId]) {
-    state.turn.lastAgendaScoredOrStolenServerId =
-      serverIdBefore as ServerId;
+    state.turn.lastAgendaScoredOrStolenServerId = serverIdBefore as ServerId;
   }
   state.turn.lastScoredOrStolenAgendaId = scoredOrStolenId;
   grantCreditsOnScoreOrSteal(state);
@@ -411,7 +421,10 @@ export function fireScoreOrStealSideEffects(
   return ok(state);
 }
 
-export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult {
+export function scoreAgendaAction(
+  state: GameState,
+  cardId: string,
+): ApplyResult {
   if (state.activeSide !== "corp") {
     return fail("Only Corp scores agendas.", [CR.scoringAgenda]);
   }
@@ -465,16 +478,14 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
       card?.cannotScoreIfInstalledThisTurn &&
       !abilitiesSuppressed(state, cardId)
     ) {
-      return fail(
-        "Cannot score this agenda if it was installed this turn.",
-        [CR.scoringAgenda],
-      );
+      return fail("Cannot score this agenda if it was installed this turn.", [
+        CR.scoringAgenda,
+      ]);
     }
     if (clotForbidsScoreAgendaInstalledThisTurn(state)) {
-      return fail(
-        "Cannot score an agenda installed this turn (Clot).",
-        [CR.scoringAgenda],
-      );
+      return fail("Cannot score an agenda installed this turn (Clot).", [
+        CR.scoringAgenda,
+      ]);
     }
   }
   if (!canScoreAgenda(state, card)) {
@@ -533,10 +544,7 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   if (scoredFromServer) {
     for (const uid of scoredFromServer.root) {
       const up = state.cards[uid];
-      if (
-        up?.rezzed &&
-        (up.coreDamageOnAgendaScoredFromThisServer ?? 0) > 0
-      ) {
+      if (up?.rezzed && (up.coreDamageOnAgendaScoredFromThisServer ?? 0) > 0) {
         dealDamage(
           state,
           "core",
@@ -684,4 +692,3 @@ export function scoreAgendaAction(state: GameState, cardId: string): ApplyResult
   nestPriorityAfterAbility(state, "score_agenda");
   return ok(state);
 }
-

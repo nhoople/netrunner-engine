@@ -25,7 +25,10 @@ beforeAll(() => {
  * program-1 is installed, and a run on HQ is encountering ice-1.
  */
 function board(): GameState {
-  const state = createInitialState({ agendaPointsToWin: 7, stopAfterFirstCycle: false });
+  const state = createInitialState({
+    agendaPointsToWin: 7,
+    stopAfterFirstCycle: false,
+  });
   const take = (list: string[], id: string) => list.splice(list.indexOf(id), 1);
   take(state.corp.deck, "corp-ice-1");
   take(state.corp.deck, "corp-asset-1");
@@ -33,7 +36,12 @@ function board(): GameState {
   state.servers.hq.ice.push("corp-ice-1");
   state.cards["corp-ice-1"]!.zone = "server:hq:ice";
   state.cards["corp-ice-1"]!.rezzed = true;
-  state.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["corp-asset-1"] };
+  state.servers["remote-1"] = {
+    id: "remote-1",
+    kind: "remote",
+    ice: [],
+    root: ["corp-asset-1"],
+  };
   state.cards["corp-asset-1"]!.zone = "server:remote-1:root";
   state.runner.installed.push("runner-program-1");
   const program = state.cards["runner-program-1"]!;
@@ -53,7 +61,9 @@ function board(): GameState {
 }
 
 function codes(state: GameState): ProblemCode[] {
-  return [...new Set(checkInvariants(state).map((problem) => problem.code))].sort();
+  return [
+    ...new Set(checkInvariants(state).map((problem) => problem.code)),
+  ].sort();
 }
 
 /** Host `hostedId` on `hostId` both ways, in the host's zone (CR 1.13.12). */
@@ -65,7 +75,10 @@ function host(state: GameState, hostedId: string, hostId: string): void {
   const hosted = state.cards[hostedId]!;
   hosted.hostId = hostId;
   hosted.zone = `hosted:${hostId}`;
-  state.cards[hostId]!.hostedCardIds = [...(state.cards[hostId]!.hostedCardIds ?? []), hostedId];
+  state.cards[hostId]!.hostedCardIds = [
+    ...(state.cards[hostId]!.hostedCardIds ?? []),
+    hostedId,
+  ];
 }
 
 describe("checkInvariants", () => {
@@ -79,7 +92,8 @@ describe("checkInvariants", () => {
     const { numbers } = loadIndex();
     for (const [code, rules] of Object.entries(PROBLEM_RULES)) {
       expect(rules.length, code).toBeGreaterThan(0);
-      for (const rule of rules) expect(numbers[rule], `${code} cites ${rule}`).toBeTruthy();
+      for (const rule of rules)
+        expect(numbers[rule], `${code} cites ${rule}`).toBeTruthy();
     }
   });
 

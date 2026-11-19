@@ -11,9 +11,7 @@ import {
   crDataPresent,
   instantiateCard,
 } from "../src/index.js";
-import {
-  heliamphoraHostInsteadAvailable,
-} from "../src/actions/access.js";
+import { heliamphoraHostInsteadAvailable } from "../src/actions/access.js";
 import {
   corpGainsCreditsOnCreateServerTotal,
   corpLosesCreditsOnCreateServerTotal,

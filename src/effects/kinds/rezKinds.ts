@@ -4,22 +4,13 @@
  */
 import { moveForfeitedAgendaOutOfGame } from "../../state/scoring.js";
 import { setRunnerPosition } from "../../state/runPosition.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { syncEtrPerPowerCounterSubs } from "../../state/powerCounters.js";
 import { CR } from "../../timing/labels.js";
-import {
-  fireIceRezDuringRunHooks,
-  applyPrimitive,
-} from "../eval.js";
+import { fireIceRezDuringRunHooks, applyPrimitive } from "../eval.js";
 
 import {
   fireHostRezStateTriggers,
@@ -27,11 +18,14 @@ import {
   fireOnAnyIceRez,
 } from "../eval.js";
 
-export function applyRezKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyRezKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "rez_and_host": {
+    case "rez_and_host": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -57,12 +51,12 @@ case "rez_and_host": {
             },
           },
         })),
-logLine: `${source.title} — choose ice to rez ignoring costs.`,
-});
+        logLine: `${source.title} — choose ice to rez ignoring costs.`,
+      });
       return { ok: true };
     }
 
-case "rez_bioroid_and_host": {
+    case "rez_bioroid_and_host": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -95,19 +89,22 @@ case "rez_bioroid_and_host": {
             },
           },
         })),
-logLine: `${source.title} — choose bioroid ice to rez ignoring costs.`,
-});
+        logLine: `${source.title} — choose bioroid ice to rez ignoring costs.`,
+      });
       return { ok: true };
     }
 
-case "rez_ice_by_id": {
+    case "rez_ice_by_id": {
       const ice = state.cards[action.iceId];
       if (!ice || ice.type !== "ice" || ice.rezzed) return { ok: true };
       const cost = ice.rezCost ?? 0;
       const agendaId = ice.rezAdditionalCostForfeitAgenda
         ? state.corp.scoreArea.find((id) => !state.cards[id]?.cannotForfeit)
         : undefined;
-      if (state.corp.credits < cost || (ice.rezAdditionalCostForfeitAgenda && !agendaId)) {
+      if (
+        state.corp.credits < cost ||
+        (ice.rezAdditionalCostForfeitAgenda && !agendaId)
+      ) {
         log(
           state,
           `${ice.title} cannot be rezzed without its additional cost (CR ${CR.mustNotForceAdditionalCost.number}).`,
@@ -132,7 +129,7 @@ case "rez_ice_by_id": {
       return { ok: true };
     }
 
-case "rez_may_resolve_sub": {
+    case "rez_may_resolve_sub": {
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -158,12 +155,12 @@ case "rez_may_resolve_sub": {
             },
           },
         })),
-logLine: `${source.title} — choose an installed ice to rez ignoring costs.`,
-});
+        logLine: `${source.title} — choose an installed ice to rez ignoring costs.`,
+      });
       return { ok: true };
     }
 
-case "rez_ice_then_may_resolve_sub": {
+    case "rez_ice_then_may_resolve_sub": {
       const rez = applyPrimitive(ctx, {
         kind: "rez_ice_ignore_costs",
         cardId: action.cardId,
@@ -172,7 +169,10 @@ case "rez_ice_then_may_resolve_sub": {
       const ice = state.cards[action.cardId];
       const subs = ice?.subroutines ?? [];
       if (!ice?.rezzed || subs.length === 0) {
-        log(state, `Unleash — no subroutines to resolve on ${ice?.title ?? action.cardId}.`);
+        log(
+          state,
+          `Unleash — no subroutines to resolve on ${ice?.title ?? action.cardId}.`,
+        );
         return { ok: true };
       }
       const options: import("../ir.js").ChoiceOption[] = subs.map((sub, i) => ({
@@ -192,13 +192,16 @@ case "rez_ice_then_may_resolve_sub": {
           },
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may resolve 1 subroutine on ${ice.title}.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may resolve 1 subroutine on ${ice.title}.`,
+      });
       return { ok: true };
     }
 
-case "rez_installed_paying": {
+    case "rez_installed_paying": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       const cost = card.rezCost ?? 0;
@@ -217,7 +220,7 @@ case "rez_installed_paying": {
       return { ok: true };
     }
 
-case "rez_hosted": {
+    case "rez_hosted": {
       const ice = state.cards[action.cardId];
       if (
         !ice ||
@@ -268,7 +271,7 @@ case "rez_hosted": {
       return { ok: true };
     }
 
-case "rez_ice_ignoring_costs": {
+    case "rez_ice_ignoring_costs": {
       const unrezzed: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -309,12 +312,12 @@ case "rez_ice_ignoring_costs": {
         sourceId,
         chooser: source.side === "runner" ? "corp" : "corp",
         options,
-logLine: `Send a Message — may rez ice ignoring all costs.`,
-});
+        logLine: `Send a Message — may rez ice ignoring all costs.`,
+      });
       return { ok: true };
     }
 
-case "rez_spend_credits_for_power_counters": {
+    case "rez_spend_credits_for_power_counters": {
       const amount = Math.max(0, action.amount);
       if (amount > 0) {
         if (state.corp.credits < amount) {
@@ -334,7 +337,7 @@ case "rez_spend_credits_for_power_counters": {
       return { ok: true };
     }
 
-case "rez_for_expose_interrupt": {
+    case "rez_for_expose_interrupt": {
       const card = state.cards[action.cardId];
       if (!card || card.rezzed) {
         return applyPrimitive(ctx, { kind: "may_expose_after_rez_continue" });
@@ -354,7 +357,7 @@ case "rez_for_expose_interrupt": {
       return applyPrimitive(ctx, { kind: "may_expose_after_rez_continue" });
     }
 
-case "may_rez_installed_ice_discount": {
+    case "may_rez_installed_ice_discount": {
       const discount = Math.max(0, action.discount);
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -396,13 +399,16 @@ case "may_rez_installed_ice_discount": {
           },
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may rez installed ice (−${discount}¢).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may rez installed ice (−${discount}¢).`,
+      });
       return { ok: true };
     }
 
-case "rez_ice_with_discount": {
+    case "rez_ice_with_discount": {
       const ice = state.cards[action.cardId];
       if (!ice || ice.type !== "ice" || ice.rezzed) {
         log(state, `Rez with discount — invalid or already rezzed.`);
@@ -417,14 +423,17 @@ case "rez_ice_with_discount": {
       ice.rezzed = true;
       ice.faceup = true;
       state.turn.iceRezzedThisTurn += 1;
-      log(state, `Rez ${ice.title} for ${pay}¢ (−${action.discount}¢ discount).`);
+      log(
+        state,
+        `Rez ${ice.title} for ${pay}¢ (−${action.discount}¢ discount).`,
+      );
       fireOnRez(state, action.cardId);
       fireIceRezDuringRunHooks(state, action.cardId);
       fireOnAnyIceRez(state, action.cardId);
       return { ok: true };
     }
 
-case "rez_move_innermost": {
+    case "rez_move_innermost": {
       // Formicary-class (CR 6.8.2c.ex1): rez (discount), move innermost;
       // encounter only when new timing structures are still allowed.
       if (!state.run || source.type !== "ice") {
@@ -473,10 +482,7 @@ case "rez_move_innermost": {
       toServer.ice.push(sourceId);
       source.zone = `server:${attacked}:ice`;
       const innermostIdx = toServer.ice.length - 1;
-      log(
-        state,
-        `Move ${source.title} to innermost protecting ${attacked}.`,
-      );
+      log(state, `Move ${source.title} to innermost protecting ${attacked}.`);
       if (state.run.forbidNewTimingStructures || state.run.endedTheRun) {
         log(
           state,
@@ -493,7 +499,7 @@ case "rez_move_innermost": {
       return { ok: true };
     }
 
-case "may_rez_event_derezzed_ice_ignore_costs": {
+    case "may_rez_event_derezzed_ice_ignore_costs": {
       const iceId = state.run?.eventDerezzedIceId;
       if (!iceId || !state.cards[iceId]) {
         log(state, `May rez event-derezzed ice — none recorded.`);
@@ -520,12 +526,12 @@ case "may_rez_event_derezzed_ice_ignore_costs": {
             },
           },
         ],
-logLine: `Window — Corp may rez the derezzed ice ignoring costs.`,
-});
+        logLine: `Window — Corp may rez the derezzed ice ignoring costs.`,
+      });
       return { ok: true };
     }
 
-case "rez_ice_ignore_costs": {
+    case "rez_ice_ignore_costs": {
       const card = state.cards[action.cardId];
       if (!card || card.type !== "ice") {
         log(state, `Rez ice ignore costs — not ice.`);
@@ -540,7 +546,7 @@ case "rez_ice_ignore_costs": {
       return { ok: true };
     }
 
-case "rez_up_to_ice_protecting_attacked_ignore_costs": {
+    case "rez_up_to_ice_protecting_attacked_ignore_costs": {
       if (!state.run) {
         log(state, `Rez protecting ice — no run.`);
         return { ok: true };
@@ -580,12 +586,12 @@ case "rez_up_to_ice_protecting_attacked_ignore_costs": {
             },
           })),
         ],
-logLine: `Rez up to ${maxIce} ice protecting the attacked server ignoring costs.`,
-});
+        logLine: `Rez up to ${maxIce} ice protecting the attacked server ignoring costs.`,
+      });
       return { ok: true };
     }
 
-case "rez_one_protecting_attacked_ignore_costs": {
+    case "rez_one_protecting_attacked_ignore_costs": {
       const card = state.cards[action.cardId];
       if (!card || card.type !== "ice") {
         log(state, `Rez protecting ice — not ice.`);
@@ -638,7 +644,7 @@ case "rez_one_protecting_attacked_ignore_costs": {
       return { ok: true };
     }
 
-case "may_rez_card_with_discount": {
+    case "may_rez_card_with_discount": {
       const discount = Math.max(0, action.discount);
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -681,13 +687,16 @@ case "may_rez_card_with_discount": {
           };
         }),
       ];
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `May rez 1 card (−${discount}¢).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `May rez 1 card (−${discount}¢).`,
+      });
       return { ok: true };
     }
 
-case "rez_card_with_discount": {
+    case "rez_card_with_discount": {
       const card = state.cards[action.cardId];
       if (
         !card ||

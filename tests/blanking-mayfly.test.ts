@@ -22,7 +22,6 @@ beforeAll(() => {
 });
 
 describe("CR C3 — blanking / Mayfly", () => {
-
   it("Mayfly trashes at run complete (11.4_6_d) after breaking this run", () => {
     let s = createInitialState();
     s = structuredClone(s);

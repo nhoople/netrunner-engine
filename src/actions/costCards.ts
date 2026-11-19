@@ -67,10 +67,15 @@ function accessTrashFromGripSource(state: GameState) {
 function gripCardsTrashedToPlay(effect: Effect | undefined): number {
   if (!effect) return 0;
   if (effect.op === "do") {
-    return effect.action.kind === "trash_n_from_grip" ? effect.action.amount ?? 0 : 0;
+    return effect.action.kind === "trash_n_from_grip"
+      ? (effect.action.amount ?? 0)
+      : 0;
   }
   if (effect.op === "seq") {
-    return effect.effects.reduce((sum, e) => sum + gripCardsTrashedToPlay(e), 0);
+    return effect.effects.reduce(
+      (sum, e) => sum + gripCardsTrashedToPlay(e),
+      0,
+    );
   }
   return 0;
 }
@@ -82,7 +87,11 @@ export function costCardNeedForAction(
 ): CostCardNeed | null {
   switch (action.type) {
     case "use_paid_ability": {
-      const found = paidAbilityCostAndPayer(state, action.cardId, action.abilityId);
+      const found = paidAbilityCostAndPayer(
+        state,
+        action.cardId,
+        action.abilityId,
+      );
       if (!found) return null;
       return costCardNeed(state, found.payer, found.cost, found.card);
     }
@@ -179,7 +188,11 @@ export function validateCostCards(
   ids: readonly string[],
 ): { ok: true } | { ok: false; error: string; cites: RuleCite[] } {
   if (!need) {
-    return { ok: false, error: "This cost takes no chosen cards.", cites: [CR.cost] };
+    return {
+      ok: false,
+      error: "This cost takes no chosen cards.",
+      cites: [CR.cost],
+    };
   }
   const want = Math.min(need.count, need.candidates.length);
   if (new Set(ids).size !== ids.length || ids.length !== want) {
@@ -287,14 +300,27 @@ export function openCostChoice(
 export function takeCostPick(
   state: GameState,
   optionId: string,
-): { ok: true; action: Action | null } | { ok: false; error: string; cites: RuleCite[] } {
+):
+  | { ok: true; action: Action | null }
+  | { ok: false; error: string; cites: RuleCite[] } {
   const pending = state.pendingCost;
-  if (!pending) return { ok: false, error: "No cost is waiting for cards.", cites: [CR.cost] };
+  if (!pending)
+    return {
+      ok: false,
+      error: "No cost is waiting for cards.",
+      cites: [CR.cost],
+    };
   const stop = Boolean(pending.anyNumber) && optionId === "cost-card-done";
   if (!stop) {
-    const id = optionId.startsWith("cost-card:") ? optionId.slice("cost-card:".length) : "";
+    const id = optionId.startsWith("cost-card:")
+      ? optionId.slice("cost-card:".length)
+      : "";
     if (!pending.candidates.includes(id) || pending.picked.includes(id)) {
-      return { ok: false, error: `Choose a card to ${pending.what}.`, cites: [CR.cost] };
+      return {
+        ok: false,
+        error: `Choose a card to ${pending.what}.`,
+        cites: [CR.cost],
+      };
     }
     pending.picked.push(id);
     if (pending.picked.length < pending.count) {

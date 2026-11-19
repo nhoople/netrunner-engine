@@ -1085,8 +1085,7 @@ export function evaluateTriggerPredicate(
     case "first_run_begin": {
       void diff;
       const matched =
-        state.turn.firstRunBeginMetPending &&
-        !state.turn.runBeginThisTurnUsed;
+        state.turn.firstRunBeginMetPending && !state.turn.runBeginThisTurnUsed;
       return { kind: "first_run_begin", matched };
     }
     case "first_rd_run_begin": {

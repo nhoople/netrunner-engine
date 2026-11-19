@@ -27,10 +27,7 @@ import { CR } from "../timing/labels.js";
 export type HostDurationOriginal = "encounter" | "run";
 
 export type StrengthIncreaseDuration =
-  | "encounter"
-  | "run"
-  | "turn"
-  | "checkpoint";
+  "encounter" | "run" | "turn" | "checkpoint";
 
 /** Active replacement that stretches strength-increase durations. */
 export type StrengthDurationReplacement = {
@@ -99,9 +96,7 @@ export function maybeGrantSystemSeizureRunDuration(
   const seizureId = systemSeizureInPlay(state);
   if (!seizureId) return;
   if (effectId) {
-    if (
-      !tryApplyReplacement(state, effectId, `system-seizure:${seizureId}`)
-    ) {
+    if (!tryApplyReplacement(state, effectId, `system-seizure:${seizureId}`)) {
       return;
     }
   }
@@ -213,7 +208,9 @@ function stillHosted(
 ): boolean {
   const src = state.cards[sourceId];
   if (!src || src.hostId !== breakerId) return false;
-  return src.zone === "runner:installed" || state.runner.installed.includes(sourceId);
+  return (
+    src.zone === "runner:installed" || state.runner.installed.includes(sourceId)
+  );
 }
 
 function lingeringAmountOfKind(
@@ -225,8 +222,7 @@ function lingeringAmountOfKind(
   for (const e of state.lingeringEffects) {
     if (e.expired || e.kind !== kind) continue;
     const payload = e.payload as
-      | { breakerId?: string; amount?: number }
-      | undefined;
+      { breakerId?: string; amount?: number } | undefined;
     if (!payload || payload.breakerId !== breakerId) continue;
     n += payload.amount ?? 0;
   }
@@ -246,8 +242,7 @@ function rekindBreakerLingering(
     if (remaining <= 0) break;
     if (e.expired || e.kind !== fromKind) continue;
     const payload = e.payload as
-      | { breakerId?: string; amount?: number }
-      | undefined;
+      { breakerId?: string; amount?: number } | undefined;
     if (!payload || payload.breakerId !== breakerId) continue;
     const have = payload.amount ?? 0;
     const take = Math.min(have, remaining);
@@ -358,8 +353,7 @@ export function removeRevertedHostDurations(state: GameState): number {
         continue;
       }
       const payload = e.payload as
-        | { breakerId?: string; amount?: number }
-        | undefined;
+        { breakerId?: string; amount?: number } | undefined;
       if (!payload || payload.breakerId !== rec.breakerId) continue;
       const take = Math.min(payload.amount ?? 0, leftLingering);
       const rem = (payload.amount ?? 0) - take;

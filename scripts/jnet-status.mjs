@@ -84,11 +84,15 @@ function buildSection() {
       "Full reasons and notes are in `tests/jnet/manifest.json`.",
   );
   lines.push("");
-  lines.push("| Upstream file | Deferred | No board | Agrees | Engine bug | Not yet classified |");
+  lines.push(
+    "| Upstream file | Deferred | No board | Agrees | Engine bug | Not yet classified |",
+  );
   lines.push("| --- | ---: | ---: | ---: | ---: | ---: |");
   const deferred = byStatus("deferred");
   const cls = (file, c) =>
-    deferred.filter((e) => e.upstreamFile === file && (e.classification ?? null) === c).length;
+    deferred.filter(
+      (e) => e.upstreamFile === file && (e.classification ?? null) === c,
+    ).length;
   for (const file of filesInOrder) {
     const total = countFor(file, "deferred");
     if (total === 0) continue;
@@ -114,13 +118,19 @@ function buildSection() {
   lines.push("");
   lines.push("### Engine bugs found by classification");
   lines.push("");
-  lines.push("The CR settles these and the engine is wrong. Each is listed under the Phase 3 area that owns the fix.");
+  lines.push(
+    "The CR settles these and the engine is wrong. Each is listed under the Phase 3 area that owns the fix.",
+  );
   lines.push("");
   const bugs = deferred.filter((e) => e.classification === "engine-bug");
-  for (const area of [...new Set(bugs.map((e) => e.engineBugArea))].sort((a, b) => a.localeCompare(b, "en", { numeric: true }))) {
+  for (const area of [...new Set(bugs.map((e) => e.engineBugArea))].sort(
+    (a, b) => a.localeCompare(b, "en", { numeric: true }),
+  )) {
     lines.push(`- **${area}**`);
     for (const e of bugs.filter((x) => x.engineBugArea === area)) {
-      lines.push(`  - \`${e.key}\` (CR ${e.crCite}; ${e.classificationBasis}) — ${e.classificationNote}`);
+      lines.push(
+        `  - \`${e.key}\` (CR ${e.crCite}; ${e.classificationBasis}) — ${e.classificationNote}`,
+      );
     }
   }
   lines.push("");
@@ -149,7 +159,6 @@ if (beginAt === -1 || endAt === -1 || endAt < beginAt) {
   throw new Error(`Generated-status markers not found in ${docPath}`);
 }
 const beginLineEnd = doc.indexOf("\n", beginAt);
-const next =
-  doc.slice(0, beginLineEnd + 1) + section + "\n" + doc.slice(endAt);
+const next = doc.slice(0, beginLineEnd + 1) + section + "\n" + doc.slice(endAt);
 writeFileSync(docPath, next);
 console.log(`Status section regenerated in ${docPath}`);

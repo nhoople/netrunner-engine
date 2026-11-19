@@ -213,7 +213,11 @@ describe("SU21 partial closures", () => {
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     const iceId = remote.ice[0]!;
     s = structuredClone(s);
-    s.cards[iceId] = instantiateCard("archer", iceId, `server:${remote.id}:ice`);
+    s.cards[iceId] = instantiateCard(
+      "archer",
+      iceId,
+      `server:${remote.id}:ice`,
+    );
     s.cards[iceId].rezzed = false;
     s.corp.credits = 10;
     s.timingKey = "run.approachPaw";
@@ -254,7 +258,11 @@ describe("SU21 partial closures", () => {
     s.corp.credits = 5;
     s.corp.clicks = 3;
     s.runner.tags = 3;
-    const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:remote-1:root",
+    );
     s.cards["ht-1"] = agenda;
     s.servers["remote-1"] = {
       id: "remote-1",

@@ -14,8 +14,7 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   removeCardFromCurrentZone(state, cardId);
@@ -53,7 +52,9 @@ function rootCanHold(
 ): boolean {
   const types = ids.map((id) => state.cards[id]?.type);
   if (server.kind === "central") return types.every((t) => t === "upgrade");
-  const agendaOrAsset = types.filter((t) => t === "agenda" || t === "asset").length;
+  const agendaOrAsset = types.filter(
+    (t) => t === "agenda" || t === "asset",
+  ).length;
   return agendaOrAsset <= 1;
 }
 
@@ -150,13 +151,19 @@ export function applyRedsandFmPrimitive(
       const id = state.runner.hand[idx]!;
       state.runner.hand.splice(idx, 1);
       trashToHeap(state, id);
-      log(state, `O₂ Shortage — Runner trashes ${state.cards[id]?.title ?? id} at random.`);
+      log(
+        state,
+        `O₂ Shortage — Runner trashes ${state.cards[id]?.title ?? id} at random.`,
+      );
       return { ok: true };
     }
 
     case "o2_shortage_corp_gains_clicks": {
       state.corp.clicks = (state.corp.clicks ?? 0) + 2;
-      log(state, `O₂ Shortage — Corp gains [click][click] → ${state.corp.clicks}.`);
+      log(
+        state,
+        `O₂ Shortage — Corp gains [click][click] → ${state.corp.clicks}.`,
+      );
       return { ok: true };
     }
 
@@ -302,9 +309,12 @@ export function applyRedsandFmPrimitive(
         });
       }
 
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.length} placed, ${pool.length} left).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.length} placed, ${pool.length} left).`,
+      });
       return { ok: true };
     }
 
@@ -683,8 +693,7 @@ logLine: `Mandatory Seed Replacement — ${serverId}: choose next ice (${order.l
       if (!agenda.hostedCardIds) agenda.hostedCardIds = [];
       agenda.hostedCardIds.push(sourceId);
       // Copy onAdvance onto host path via hosted cards; also set gainCreditsOnAdvance.
-      agenda.gainCreditsOnAdvance =
-        (agenda.gainCreditsOnAdvance ?? 0) + 1;
+      agenda.gainCreditsOnAdvance = (agenda.gainCreditsOnAdvance ?? 0) + 1;
       log(
         state,
         `Transparency Initiative — host on ${agenda.title} (public; +1¢ on advance).`,

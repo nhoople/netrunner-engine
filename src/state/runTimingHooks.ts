@@ -4,10 +4,7 @@
  */
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
-import {
-  effectFromKey,
-  type StoredConditionalMark,
-} from "./storedTriggers.js";
+import { effectFromKey, type StoredConditionalMark } from "./storedTriggers.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
@@ -21,11 +18,11 @@ function noteAndCheckpointStored(
   checkpointAfterInstruction(state, openedBy);
   return Boolean(
     state.pendingChoice ||
-      state.pendingTags ||
-      state.pendingDamage ||
-      state.psi ||
-      state.trace ||
-      state.done,
+    state.pendingTags ||
+    state.pendingDamage ||
+    state.psi ||
+    state.trace ||
+    state.done,
   );
 }
 

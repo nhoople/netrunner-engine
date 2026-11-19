@@ -128,8 +128,7 @@ export function lingeringBreakerStrengthBoost(
       continue;
     }
     const payload = e.payload as
-      | { breakerId?: string; amount?: number }
-      | undefined;
+      { breakerId?: string; amount?: number } | undefined;
     if (!payload || payload.breakerId !== breakerId) continue;
     n += payload.amount ?? 0;
   }
@@ -156,8 +155,7 @@ export function lingeringIceStrengthBoost(
       continue;
     }
     const payload = e.payload as
-      | { iceId?: string; amount?: number }
-      | undefined;
+      { iceId?: string; amount?: number } | undefined;
     if (!payload || payload.iceId !== iceId) continue;
     n += payload.amount ?? 0;
   }
@@ -185,8 +183,7 @@ export function lingeringBreakerStrengthOfKind(
   for (const e of state.lingeringEffects) {
     if (e.expired || e.kind !== kind) continue;
     const payload = e.payload as
-      | { breakerId?: string; amount?: number }
-      | undefined;
+      { breakerId?: string; amount?: number } | undefined;
     if (!payload || payload.breakerId !== breakerId) continue;
     n += payload.amount ?? 0;
   }
@@ -203,8 +200,7 @@ export function lingeringIceStrengthOfKind(
   for (const e of state.lingeringEffects) {
     if (e.expired || e.kind !== kind) continue;
     const payload = e.payload as
-      | { iceId?: string; amount?: number }
-      | undefined;
+      { iceId?: string; amount?: number } | undefined;
     if (!payload || payload.iceId !== iceId) continue;
     n += payload.amount ?? 0;
   }
@@ -309,7 +305,10 @@ export function suppressAbilities(state: GameState, cardId: string): void {
 }
 
 /** Remove every ability_blank lingering on this card. */
-export function clearSuppressedAbilities(state: GameState, cardId: string): void {
+export function clearSuppressedAbilities(
+  state: GameState,
+  cardId: string,
+): void {
   state.lingeringEffects = state.lingeringEffects.filter((e) => {
     if (e.kind !== LINGERING_KIND_ABILITY_BLANK) return true;
     return (e.payload as { cardId?: string } | undefined)?.cardId !== cardId;

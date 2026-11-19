@@ -11,9 +11,7 @@ import { CR } from "../timing/labels.js";
 import { maybeRipDeal } from "./cardDeclarations.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
-import {
-  fireOnArchivesFacedownTurnedFaceupGte,
-} from "./miscConditionalHooks.js";
+import { fireOnArchivesFacedownTurnedFaceupGte } from "./miscConditionalHooks.js";
 import { shuffleInPlace } from "./rng.js";
 
 /** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
@@ -55,34 +53,34 @@ function offerMercuryBreachBonusAccess(
   const idCard = state.cards[state.runner.identityId];
   const amount = idCard?.onBreachHqRdIfNoBreaksOncePerTurnMayBonusAccess;
   if (!amount || amount <= 0) return false;
-  if (!openPendingChoose(state, {
-    sourceId: idCard.id,
-    chooser: "runner",
-    options: [
-      {
-        id: "mercury-bonus",
-        label: `Access ${amount} additional card(s)`,
-        effect: {
-          op: "do",
-          action: { kind: "bonus_access", amount },
+  if (
+    !openPendingChoose(state, {
+      sourceId: idCard.id,
+      chooser: "runner",
+      options: [
+        {
+          id: "mercury-bonus",
+          label: `Access ${amount} additional card(s)`,
+          effect: {
+            op: "do",
+            action: { kind: "bonus_access", amount },
+          },
         },
-      },
-      {
-        id: "decline",
-        label: "Decline",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "runner", amount: 0 },
+        {
+          id: "decline",
+          label: "Decline",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
         },
-      },
-    ],
-  })) return false;
+      ],
+    })
+  )
+    return false;
   state.turn.mercuryBreachBonusUsedThisTurn = true;
   run.mercuryBreachPending = true;
-  log(
-    state,
-    `${idCard.title} — may access +${amount} (no breaks this run).`,
-  );
+  log(state, `${idCard.title} — may access +${amount} (no breaks this run).`);
   return true;
 }
 
@@ -126,7 +124,8 @@ function offerMediumBreachBonusAccess(
       // 0 virus → no positive choice; no additional access, continue.
       continue;
     }
-    if (!openPendingChoose(state, { sourceId: id, chooser: "runner", options })) continue;
+    if (!openPendingChoose(state, { sourceId: id, chooser: "runner", options }))
+      continue;
     run.mediumBreachPending = true;
     log(
       state,
@@ -153,37 +152,40 @@ function offerRotaryBreachBonusAccess(
     const card = state.cards[id];
     const amount = card?.mayTakeTagForBonusAccessOnHqRdBreach;
     if (!amount || amount <= 0) continue;
-    if (!openPendingChoose(state, {
-      sourceId: id,
-      chooser: "runner",
-      options: [
-        {
-          id: "rotary-tag-bonus",
-          label: `Take 1 tag: access ${amount} additional card(s)`,
-          effect: {
-            op: "seq",
-            effects: [
-              {
-                op: "do",
-                action: { kind: "give_tags", amount: 1 },
-              },
-              {
-                op: "do",
-                action: { kind: "bonus_access", amount },
-              },
-            ],
+    if (
+      !openPendingChoose(state, {
+        sourceId: id,
+        chooser: "runner",
+        options: [
+          {
+            id: "rotary-tag-bonus",
+            label: `Take 1 tag: access ${amount} additional card(s)`,
+            effect: {
+              op: "seq",
+              effects: [
+                {
+                  op: "do",
+                  action: { kind: "give_tags", amount: 1 },
+                },
+                {
+                  op: "do",
+                  action: { kind: "bonus_access", amount },
+                },
+              ],
+            },
           },
-        },
-        {
-          id: "decline",
-          label: "Decline",
-          effect: {
-            op: "do",
-            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
           },
-        },
-      ],
-    })) continue;
+        ],
+      })
+    )
+      continue;
     run.mercuryBreachPending = true;
     log(
       state,
@@ -215,28 +217,31 @@ function offerPrettyMaryBreachBonusAccess(
     if (allowed < spec.min) continue;
     const amount = spec.amount;
     if (amount <= 0) continue;
-    if (!openPendingChoose(state, {
-      sourceId: id,
-      chooser: "runner",
-      options: [
-        {
-          id: "pretty-mary-bonus",
-          label: `Access ${amount} additional card(s)`,
-          effect: {
-            op: "do",
-            action: { kind: "bonus_access", amount },
+    if (
+      !openPendingChoose(state, {
+        sourceId: id,
+        chooser: "runner",
+        options: [
+          {
+            id: "pretty-mary-bonus",
+            label: `Access ${amount} additional card(s)`,
+            effect: {
+              op: "do",
+              action: { kind: "bonus_access", amount },
+            },
           },
-        },
-        {
-          id: "decline",
-          label: "Decline",
-          effect: {
-            op: "do",
-            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
           },
-        },
-      ],
-    })) continue;
+        ],
+      })
+    )
+      continue;
     run.prettyMaryBreachResolved = true;
     run.mercuryBreachPending = true;
     log(
@@ -249,7 +254,10 @@ function offerPrettyMaryBreachBonusAccess(
 }
 
 /** Wake Implant: may remove up to N power for bonus R&D access. */
-function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): boolean {
+function offerWakeImplantBonusAccess(
+  state: GameState,
+  serverId: ServerId,
+): boolean {
   if (serverId !== "rd") return false;
   const run = state.run;
   if (!run || run.wakeImplantResolved) return false;
@@ -280,9 +288,13 @@ function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): bool
         action: { kind: "gain_credits", side: "runner", amount: 0 },
       },
     });
-    if (!openPendingChoose(state, { sourceId: id, chooser: "runner", options })) continue;
+    if (!openPendingChoose(state, { sourceId: id, chooser: "runner", options }))
+      continue;
     run.wakeImplantPending = true;
-    log(state, `${card.title} — may remove up to ${upTo} power for bonus R&D access.`);
+    log(
+      state,
+      `${card.title} — may remove up to ${upTo} power for bonus R&D access.`,
+    );
     return true;
   }
   return false;
@@ -292,7 +304,10 @@ function offerWakeImplantBonusAccess(state: GameState, serverId: ServerId): bool
  * Cupellation: when breaching HQ with a hosted Corp card, may pay 1¢ and trash
  * for bonus access (Effect on the program).
  */
-function offerCupellationHqBreach(state: GameState, serverId: ServerId): boolean {
+function offerCupellationHqBreach(
+  state: GameState,
+  serverId: ServerId,
+): boolean {
   if (serverId !== "hq") return false;
   const run = state.run;
   if (!run || run.cupellationBreachResolved) return false;
@@ -434,7 +449,10 @@ export function beginBreachAccess(state: GameState): void {
     const n = state.turn.climacticBonusAccessOnFirstHqRdBreach;
     state.turn.climacticBonusAccessOnFirstHqRdBreach = 0;
     run.bonusAccess = (run.bonusAccess ?? 0) + n;
-    log(state, `Climactic Showdown — access +${n} on first ${serverId} breach.`);
+    log(
+      state,
+      `Climactic Showdown — access +${n} on first ${serverId} breach.`,
+    );
   }
 
   if (offerPrettyMaryBreachBonusAccess(state, serverId)) {
@@ -442,10 +460,7 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   // Manuel: +N access on HQ/R&D breach while tagged.
-  if (
-    (serverId === "hq" || serverId === "rd") &&
-    runnerIsTagged(state)
-  ) {
+  if ((serverId === "hq" || serverId === "rd") && runnerIsTagged(state)) {
     let bonus = 0;
     for (const rid of state.runner.installed) {
       if (abilitiesSuppressed(state, rid)) continue;
@@ -462,10 +477,7 @@ export function beginBreachAccess(state: GameState): void {
   if (serverId === "hq" || serverId === "rd") {
     let bonus = 0;
     let sourceTitle: string | null = null;
-    const sources = [
-      ...state.runner.installed,
-      ...(server?.root ?? []),
-    ];
+    const sources = [...state.runner.installed, ...(server?.root ?? [])];
     for (const rid of sources) {
       if (abilitiesSuppressed(state, rid)) continue;
       const card = state.cards[rid];
@@ -548,8 +560,7 @@ export function beginBreachAccess(state: GameState): void {
     // access are taken from the end of that order.
     const hqCards = [...state.corp.hand];
     shuffleInPlace(state, hqCards);
-    const primary =
-      hqCards.length > 0 ? hqCards[hqCards.length - 1]! : null;
+    const primary = hqCards.length > 0 ? hqCards[hqCards.length - 1]! : null;
     run.accessCandidates = primary ? [primary, ...upgrades] : [...upgrades];
     let remaining = primary ? 1 + upgrades.length : upgrades.length;
 
@@ -590,7 +601,11 @@ export function beginBreachAccess(state: GameState): void {
     // Jailbreak / bonusAccess: add extra HQ cards to candidates
     if ((run.bonusAccess ?? 0) > 0 && hqCards.length > 1) {
       let added = 0;
-      for (let i = hqCards.length - 2; i >= 0 && added < (run.bonusAccess ?? 0); i--) {
+      for (
+        let i = hqCards.length - 2;
+        i >= 0 && added < (run.bonusAccess ?? 0);
+        i--
+      ) {
         const id = hqCards[i]!;
         if (!run.accessCandidates.includes(id)) {
           run.accessCandidates.push(id);
@@ -618,11 +633,7 @@ export function beginBreachAccess(state: GameState): void {
       }
       if (gauntletBonus > 0) {
         let added = 0;
-        for (
-          let i = hqCards.length - 1;
-          i >= 0 && added < gauntletBonus;
-          i--
-        ) {
+        for (let i = hqCards.length - 1; i >= 0 && added < gauntletBonus; i--) {
           const id = hqCards[i]!;
           if (!run.accessCandidates.includes(id)) {
             run.accessCandidates.push(id);
@@ -661,7 +672,10 @@ export function beginBreachAccess(state: GameState): void {
       const n = state.turn.climacticBonusAccessOnFirstHqRdBreach;
       state.turn.climacticBonusAccessOnFirstHqRdBreach = 0;
       run.bonusAccess = (run.bonusAccess ?? 0) + n;
-      log(state, `Climactic Showdown — +${n} bonus access on first R&D breach.`);
+      log(
+        state,
+        `Climactic Showdown — +${n} bonus access on first R&D breach.`,
+      );
     }
     remaining += run.bonusAccess ?? 0;
     run.randomAccessLimit = remaining;

@@ -10,10 +10,8 @@ import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applySansanBbPrimitive(
   ctx: EffectCtx,
@@ -42,7 +40,9 @@ export function applySansanBbPrimitive(
         return { ok: true };
       }
       const typ = last.type;
-      const grip = state.runner.hand.filter((id) => state.cards[id]?.type === typ);
+      const grip = state.runner.hand.filter(
+        (id) => state.cards[id]?.type === typ,
+      );
       if (grip.length === 0) {
         log(state, `Hayley — no ${typ} in grip.`);
         return { ok: true };
@@ -68,8 +68,8 @@ export function applySansanBbPrimitive(
         sourceId,
         chooser: "runner",
         options,
-logLine: `Hayley — may install another ${typ} from grip.`,
-});
+        logLine: `Hayley — may install another ${typ} from grip.`,
+      });
       return { ok: true };
     }
 
@@ -110,19 +110,14 @@ logLine: `Hayley — may install another ${typ} from grip.`,
         const c = state.cards[top];
         if (c) c.zone = "runner:grip";
       }
-      log(
-        state,
-        `Game Day — draw until grip equals max hand size (${max}).`,
-      );
+      log(state, `Game Day — draw until grip equals max hand size (${max}).`);
       return { ok: true };
     }
 
     case "host_non_virus_program_ignore_cost": {
       const grip = state.runner.hand.filter((id) => {
         const c = state.cards[id];
-        return (
-          c?.type === "program" && !(c.subtypes ?? []).includes("virus")
-        );
+        return c?.type === "program" && !(c.subtypes ?? []).includes("virus");
       });
       if (grip.length === 0) {
         log(state, `London Library — no non-virus program in grip.`);
@@ -177,7 +172,8 @@ logLine: `Hayley — may install another ${typ} from grip.`,
       if (!source.hostedCardIds) source.hostedCardIds = [];
       source.hostedCardIds.push(cardId);
       // Still counts as installed for MU — add to rig while hosted.
-      if (!state.runner.installed.includes(cardId)) state.runner.installed.push(cardId);
+      if (!state.runner.installed.includes(cardId))
+        state.runner.installed.push(cardId);
       log(state, `London Library — host ${card.title} (ignore install cost).`);
       return { ok: true };
     }
@@ -235,7 +231,9 @@ logLine: `Hayley — may install another ${typ} from grip.`,
       source.hostedCardIds = (source.hostedCardIds ?? []).filter(
         (id) => id !== cardId,
       );
-      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter(
+        (id) => id !== cardId,
+      );
       card.hostId = undefined;
       card.zone = "runner:grip";
       state.runner.hand.push(cardId);

@@ -79,9 +79,15 @@ export function noteInstalledThisTurn(
   // Death and Taxes / TechnoCo: may gain 1¢ on Runner install.
   for (const cur of Object.values(state.cards)) {
     if (abilitiesSuppressed(state, cur.id)) continue;
-    if (cur.zone === "corp:play-area" && cur.mayGainCreditWhenRunnerInstallsOrTrashesInstalled) {
+    if (
+      cur.zone === "corp:play-area" &&
+      cur.mayGainCreditWhenRunnerInstallsOrTrashesInstalled
+    ) {
       state.corp.credits += 1;
-      log(state, `${cur.title} — gain 1¢ (Runner install) → ${state.corp.credits}¢.`);
+      log(
+        state,
+        `${cur.title} — gain 1¢ (Runner install) → ${state.corp.credits}¢.`,
+      );
     }
   }
   for (const server of Object.values(state.servers)) {
@@ -91,16 +97,16 @@ export function noteInstalledThisTurn(
       if (!c?.rezzed) continue;
       if (c.mayGainCreditWhenRunnerInstallsOrTrashesInstalled) {
         state.corp.credits += 1;
-        log(state, `${c.title} — gain 1¢ (Runner install) → ${state.corp.credits}¢.`);
+        log(
+          state,
+          `${c.title} — gain 1¢ (Runner install) → ${state.corp.credits}¢.`,
+        );
       }
       const isVirtualRes =
-        card.type === "resource" &&
-        (card.subtypes ?? []).includes("virtual");
+        card.type === "resource" && (card.subtypes ?? []).includes("virtual");
       if (
         c.mayGainCreditWhenRunnerInstallsProgramHardwareOrVirtual &&
-        (card.type === "program" ||
-          card.type === "hardware" ||
-          isVirtualRes)
+        (card.type === "program" || card.type === "hardware" || isVirtualRes)
       ) {
         state.corp.credits += 1;
         log(
@@ -121,7 +127,6 @@ export function noteInstalledThisTurn(
     "onFirstInstallEachTurn",
   );
 }
-
 
 /**
  * In the Groove-class: fire delayed remainder-of-turn install effects when
@@ -271,9 +276,7 @@ export function noteFirstProgramInstall(state: GameState): void {
 
 function anyRunnerSourceHas(
   state: GameState,
-  effectKey:
-    | "onFirstHardwareInstallEachTurn"
-    | "onFirstProgramInstallEachTurn",
+  effectKey: "onFirstHardwareInstallEachTurn" | "onFirstProgramInstallEachTurn",
 ): boolean {
   const sources = [...state.runner.installed];
   if (state.runner.identityId) sources.push(state.runner.identityId);
@@ -284,7 +287,6 @@ function anyRunnerSourceHas(
   }
   return false;
 }
-
 
 /** Note identity/rig `onHardwareInstall` (Replicator; install only, incl. self). */
 function fireOnHardwareInstall(state: GameState): void {

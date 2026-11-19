@@ -85,9 +85,9 @@ describe("program install memory", () => {
       destination: { kind: "installed" },
     });
     expect(state.pendingMuProgramInstall?.cardId).toBe("cor-1");
-    expect(state.pendingChoice?.options.some((o) => o.id === "mu-trash:eh-1")).toBe(
-      true,
-    );
+    expect(
+      state.pendingChoice?.options.some((o) => o.id === "mu-trash:eh-1"),
+    ).toBe(true);
     expect(state.runner.installed).not.toContain("cor-1");
 
     state = must(state, { type: "choose_option", optionId: "mu-trash:eh-1" });

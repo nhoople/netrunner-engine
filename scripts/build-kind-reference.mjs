@@ -82,7 +82,9 @@ function setLiteralStrings(decl) {
   }
   return init.arguments[0].elements.map((el) => {
     if (!ts.isStringLiteralLike(el)) {
-      throw new Error(`non-literal entry in ${decl.name.getText()}: ${el.getText()}`);
+      throw new Error(
+        `non-literal entry in ${decl.name.getText()}: ${el.getText()}`,
+      );
     }
     return el.text;
   });
@@ -102,7 +104,8 @@ function literalStrings(typeNode) {
   if (ts.isLiteralTypeNode(typeNode) && ts.isStringLiteral(typeNode.literal)) {
     return [typeNode.literal.text];
   }
-  if (ts.isUnionTypeNode(typeNode)) return typeNode.types.flatMap(literalStrings);
+  if (ts.isUnionTypeNode(typeNode))
+    return typeNode.types.flatMap(literalStrings);
   return [];
 }
 
@@ -139,7 +142,9 @@ function readPrimitiveFields(irSf) {
     const kindProp = member.members.find((p) => p.name?.getText() === "kind");
     const kinds = kindProp?.type ? literalStrings(kindProp.type) : [];
     if (kinds.length === 0) {
-      throw new Error(`Primitive member without a literal kind: ${member.getText()}`);
+      throw new Error(
+        `Primitive member without a literal kind: ${member.getText()}`,
+      );
     }
     const fields = [];
     for (const p of member.members) {
@@ -164,7 +169,10 @@ function readPrimitiveFields(irSf) {
 function expressionStrings(expr) {
   if (ts.isStringLiteralLike(expr)) return [expr.text];
   if (ts.isConditionalExpression(expr)) {
-    return [...expressionStrings(expr.whenTrue), ...expressionStrings(expr.whenFalse)];
+    return [
+      ...expressionStrings(expr.whenTrue),
+      ...expressionStrings(expr.whenFalse),
+    ];
   }
   if (ts.isParenthesizedExpression(expr) || ts.isSatisfiesExpression(expr)) {
     return expressionStrings(expr.expression);
@@ -201,7 +209,10 @@ function builtKinds(node, known) {
  */
 function readFxHelpers(irSf, known) {
   const fxDecl = findVariable(irSf, "fx");
-  if (!fxDecl.initializer || !ts.isObjectLiteralExpression(fxDecl.initializer)) {
+  if (
+    !fxDecl.initializer ||
+    !ts.isObjectLiteralExpression(fxDecl.initializer)
+  ) {
     throw new Error("fx is not an object literal");
   }
   const bodies = new Map();
@@ -209,7 +220,8 @@ function readFxHelpers(irSf, known) {
     if (prop.name) bodies.set(`fx.${prop.name.getText()}`, prop);
   }
   for (const stmt of irSf.statements) {
-    if (ts.isFunctionDeclaration(stmt) && stmt.name) bodies.set(stmt.name.text, stmt);
+    if (ts.isFunctionDeclaration(stmt) && stmt.name)
+      bodies.set(stmt.name.text, stmt);
   }
   const direct = new Map();
   const calls = new Map();
@@ -239,7 +251,8 @@ function readFxHelpers(irSf, known) {
   };
   const fxKinds = new Map();
   for (const name of bodies.keys()) {
-    if (name.startsWith("fx.")) fxKinds.set(name.slice(3), resolve(name, new Set([name])));
+    if (name.startsWith("fx."))
+      fxKinds.set(name.slice(3), resolve(name, new Set([name])));
   }
   return fxKinds;
 }
@@ -326,10 +339,16 @@ export function buildKindReference(root = defaultRoot) {
   const irSf = parse(irPath);
   const namesSf = parse(join(root, "src/effects/primitiveNames.ts"));
 
-  const entries = setLiteralStrings(findVariable(irSf, "KNOWN_PRIMITIVE_KINDS"));
+  const entries = setLiteralStrings(
+    findVariable(irSf, "KNOWN_PRIMITIVE_KINDS"),
+  );
   const known = new Set(entries);
-  const duplicates = [...new Set(entries.filter((k, i) => entries.indexOf(k) !== i))].sort();
-  const verbs = new Set(setLiteralStrings(findVariable(namesSf, "PROCEDURE_VERBS")));
+  const duplicates = [
+    ...new Set(entries.filter((k, i) => entries.indexOf(k) !== i)),
+  ].sort();
+  const verbs = new Set(
+    setLiteralStrings(findVariable(namesSf, "PROCEDURE_VERBS")),
+  );
   const packPrefixes = new Set(
     setLiteralStrings(findVariable(namesSf, "PACK_CODE_PREFIXES")),
   );
@@ -385,7 +404,9 @@ export function buildKindReference(root = defaultRoot) {
   L.push("");
   L.push("## Totals");
   L.push("");
-  L.push(`Card counts are from cards \`${cardUse.tag}\` (${cardUse.cards} cards).`);
+  L.push(
+    `Card counts are from cards \`${cardUse.tag}\` (${cardUse.cards} cards).`,
+  );
   L.push("");
   L.push("| Measure | Count |");
   L.push("| --- | ---: |");
@@ -394,7 +415,9 @@ export function buildKindReference(root = defaultRoot) {
   L.push(`| Kinds used by exactly one card | ${singleCard.length} |`);
   L.push(`| Kinds built by the engine | ${engineBuilt.length} |`);
   L.push(`| Kinds built by both cards and the engine | ${both.length} |`);
-  L.push(`| Engine-only kinds (no card uses them; the engine builds them) | ${engineOnly.length} |`);
+  L.push(
+    `| Engine-only kinds (no card uses them; the engine builds them) | ${engineOnly.length} |`,
+  );
   L.push(`| Kinds neither a card nor the engine builds | ${neither.length} |`);
   L.push(`| Verb groups | ${groupOrder.filter((v) => v !== "").length} |`);
   L.push(`| Kinds with no standard verb | ${groups.get("")?.length ?? 0} |`);
@@ -418,7 +441,7 @@ export function buildKindReference(root = defaultRoot) {
   L.push("");
   L.push(
     "- **Fields** come from the kind's member of the `Primitive` union in `src/effects/ir.ts` " +
-      "(`Effect` reaches it through `{ op: \"do\"; action: Primitive }`). `?` marks an optional field. " +
+      '(`Effect` reaches it through `{ op: "do"; action: Primitive }`). `?` marks an optional field. ' +
       "A kind with more than one member lists each, numbered.",
   );
   L.push(
@@ -427,7 +450,7 @@ export function buildKindReference(root = defaultRoot) {
   );
   L.push(
     "- **Built by** says where the kind comes from. *card*: card JSON names it. " +
-      "*engine*: code in `src/` outside `ir.ts` builds it, either as a `kind: \"…\"` object property " +
+      '*engine*: code in `src/` outside `ir.ts` builds it, either as a `kind: "…"` object property ' +
       "(continuations, flag-driven effects, `applyPrimitive` calls) or through an `fx` helper. " +
       "*none*: nothing builds it, but `ir.ts` still declares it.",
   );
@@ -443,7 +466,10 @@ export function buildKindReference(root = defaultRoot) {
   L.push("");
   L.push(
     groupOrder
-      .map((v) => `[${v === "" ? "no standard verb" : v}](#${anchor(v)}) (${groups.get(v).length})`)
+      .map(
+        (v) =>
+          `[${v === "" ? "no standard verb" : v}](#${anchor(v)}) (${groups.get(v).length})`,
+      )
       .join(" · "),
   );
   L.push("");
@@ -455,12 +481,16 @@ export function buildKindReference(root = defaultRoot) {
     L.push("");
     const used = list.filter((k) => cardCount(k) > 0).length;
     const eng = list.filter((k) => engine.has(k)).length;
-    L.push(`${list.length} kinds: ${used} used by cards, ${eng} built by the engine.`);
+    L.push(
+      `${list.length} kinds: ${used} used by cards, ${eng} built by the engine.`,
+    );
     L.push("");
     L.push("| Kind | Fields | Cards | Built by |");
     L.push("| --- | --- | ---: | --- |");
     for (const k of list) {
-      const f = fields.has(k) ? fieldsCell(fields.get(k)) : "*(no `Primitive` member)*";
+      const f = fields.has(k)
+        ? fieldsCell(fields.get(k))
+        : "*(no `Primitive` member)*";
       L.push(`| \`${k}\` | ${f} | ${cardCount(k)} | ${builtBy(k)} |`);
     }
     L.push("");
@@ -468,7 +498,10 @@ export function buildKindReference(root = defaultRoot) {
   return L.join("\n");
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   const text = buildKindReference();
   if (process.argv.includes("--write")) {
     const out = join(defaultRoot, KIND_REFERENCE_PATH);

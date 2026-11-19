@@ -230,7 +230,8 @@ export function emptyTurnBookkeeping(
     runnerMadeRunThisTurn: false,
     runnerMadeRunLastTurn: prev?.runnerMadeRunLastTurn ?? false,
     runnerInstalledResourceThisTurn: false,
-    runnerInstalledResourceLastTurn: prev?.runnerInstalledResourceLastTurn ?? false,
+    runnerInstalledResourceLastTurn:
+      prev?.runnerInstalledResourceLastTurn ?? false,
     subliminalPlayedThisTurn: false,
     steveCambridgeUsedThisTurn: false,
     bioroidPassedThisTurn: false,

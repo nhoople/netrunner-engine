@@ -83,5 +83,4 @@ describe("CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b)", () => {
     expect(s.runner.tags).toBe(1);
     expect(s.run?.endedTheRun).toBe(false);
   });
-
 });

@@ -12,12 +12,13 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function trashRunnerCardToHeap(state: EffectCtx["state"], cardId: string): void {
+function trashRunnerCardToHeap(
+  state: EffectCtx["state"],
+  cardId: string,
+): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
@@ -84,7 +85,10 @@ export function applyFlashpointQuPrimitive(
         return { ok: true };
       }
       subtractRunnerCreditPool(state, x);
-      return evalEffect(ctx, fx.do({ kind: "prevent_pending_damage", amount: x }));
+      return evalEffect(
+        ctx,
+        fx.do({ kind: "prevent_pending_damage", amount: x }),
+      );
     }
 
     case "gain_credits_per_corp_credits": {
@@ -441,7 +445,8 @@ export function applyFlashpointQuPrimitive(
 
     case "trash_installed_virus_resolve": {
       const cardId = action.cardId;
-      if (!cardId || !state.runner.installed.includes(cardId)) return { ok: true };
+      if (!cardId || !state.runner.installed.includes(cardId))
+        return { ok: true };
       trashRunnerCardToHeap(state, cardId);
       log(state, `Macrophage — trash virus ${state.cards[cardId]!.title}.`);
       return { ok: true };
@@ -458,7 +463,10 @@ export function applyFlashpointQuPrimitive(
       if (viruses.length === 1) {
         const id = viruses[0]!;
         rfgCard(state, id);
-        log(state, `Macrophage — RFG virus ${state.cards[id]!.title} from heap.`);
+        log(
+          state,
+          `Macrophage — RFG virus ${state.cards[id]!.title} from heap.`,
+        );
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -475,7 +483,8 @@ export function applyFlashpointQuPrimitive(
 
     case "rfg_virus_from_heap_resolve": {
       const cardId = action.cardId;
-      if (!cardId || !state.runner.discardPile.includes(cardId)) return { ok: true };
+      if (!cardId || !state.runner.discardPile.includes(cardId))
+        return { ok: true };
       rfgCard(state, cardId);
       log(
         state,

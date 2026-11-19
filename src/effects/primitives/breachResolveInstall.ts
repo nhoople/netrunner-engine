@@ -11,10 +11,8 @@ import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applyKitaraKaPrimitive(
   ctx: EffectCtx,
@@ -54,9 +52,12 @@ export function applyKitaraKaPrimitive(
           }),
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `Diversion of Funds — may instead of breaching HQ.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `Diversion of Funds — may instead of breaching HQ.`,
+      });
       return { ok: true };
     }
 
@@ -154,7 +155,8 @@ logLine: `Diversion of Funds — may instead of breaching HQ.`,
     case "install_mti_resolve": {
       if (!state.run) return { ok: true };
       const ice = state.cards[action.iceId];
-      const serverId = action.serverId as import("../../state/types.js").ServerId;
+      const serverId =
+        action.serverId as import("../../state/types.js").ServerId;
       const server = state.servers[serverId];
       if (!ice || !server) return { ok: true };
       const hqIdx = state.corp.hand.indexOf(action.iceId);

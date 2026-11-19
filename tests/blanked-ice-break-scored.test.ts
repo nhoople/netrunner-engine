@@ -17,7 +17,10 @@ import { scoredAgendaMeatDamageIncrease } from "../src/state/breakerMods.js";
 import { geneticsPavilionDrawLimit } from "../src/state/staticFlags.js";
 import { startTrace, spendLink } from "../src/state/trace.js";
 import { fx } from "../src/effects/ir.js";
-import { clearSuppressedAbilities, suppressAbilities } from "../src/state/lingeringEffects.js";
+import {
+  clearSuppressedAbilities,
+  suppressAbilities,
+} from "../src/state/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -70,11 +73,7 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
   it("drops The Cleaners meat-damage increase while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const cleaners = instantiateCard(
-      "the-cleaners",
-      "tc-1",
-      "corp:score-area",
-    );
+    const cleaners = instantiateCard("the-cleaners", "tc-1", "corp:score-area");
     s.cards["tc-1"] = cleaners;
     s.corp.scoreArea = ["tc-1"];
 
@@ -93,7 +92,12 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
     s.runner.credits = 10;
     s.corp.credits = 0;
 
-    startTrace(s, "nq-1", 0, fx.do({ kind: "gain_credits", side: "corp", amount: 0 }));
+    startTrace(
+      s,
+      "nq-1",
+      0,
+      fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+    );
     expect(s.trace?.netQuarantineLinkZero).toBe(true);
 
     const blanked = structuredClone(createInitialState());
@@ -164,7 +168,12 @@ describe("blanked ice break / scored / pavilion (CR 9.12.1d)", () => {
     s.cards["pt-1"] = tap;
     s.runner.installed = ["pt-1"];
     const before = s.runner.credits;
-    startTrace(s, "corp", 0, fx.do({ kind: "gain_credits", side: "corp", amount: 0 }));
+    startTrace(
+      s,
+      "corp",
+      0,
+      fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+    );
     expect(s.runner.credits).toBeGreaterThan(before);
 
     const blanked = structuredClone(createInitialState());

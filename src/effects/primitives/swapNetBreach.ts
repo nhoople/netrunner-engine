@@ -9,10 +9,8 @@ import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applySansanCcPrimitive(
   ctx: EffectCtx,
@@ -46,8 +44,8 @@ export function applySansanCcPrimitive(
             },
           },
         })),
-logLine: `Turntable — choose Corp scored agenda to swap.`,
-});
+        logLine: `Turntable — choose Corp scored agenda to swap.`,
+      });
       return { ok: true };
     }
 
@@ -65,7 +63,9 @@ logLine: `Turntable — choose Corp scored agenda to swap.`,
           cites: [],
         };
       }
-      state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== stolenId);
+      state.runner.scoreArea = state.runner.scoreArea.filter(
+        (id) => id !== stolenId,
+      );
       state.corp.scoreArea = state.corp.scoreArea.filter((id) => id !== corpId);
       state.corp.scoreArea.push(stolenId);
       state.runner.scoreArea.push(corpId);
@@ -192,9 +192,12 @@ logLine: `Turntable — choose Corp scored agenda to swap.`,
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `Analog Dreamers — may instead of breaching R&D.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `Analog Dreamers — may instead of breaching R&D.`,
+      });
       return { ok: true };
     }
 
@@ -225,7 +228,10 @@ logLine: `Analog Dreamers — may instead of breaching R&D.`,
 
     case "runner_cannot_draw_remainder_of_turn": {
       state.turn.ccRunnerCannotDraw = true;
-      log(state, `Lockdown — Runner cannot draw for the remainder of this turn.`);
+      log(
+        state,
+        `Lockdown — Runner cannot draw for the remainder of this turn.`,
+      );
       return { ok: true };
     }
 

@@ -16,19 +16,16 @@ import type { Effect, Primitive } from "./ir.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 const CHOSEN = "$chosen";
 
-type ChooseZone = Extract<
-  Primitive,
-  { kind: "choose_card" }
->["zone"];
+type ChooseZone = Extract<Primitive, { kind: "choose_card" }>["zone"];
 
 function bindChosen(value: unknown, cardId: string): unknown {
   if (value === CHOSEN) return cardId;
-  if (Array.isArray(value)) return value.map((item) => bindChosen(item, cardId));
+  if (Array.isArray(value))
+    return value.map((item) => bindChosen(item, cardId));
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
     for (const [key, child] of Object.entries(value)) {
@@ -46,12 +43,14 @@ function visibleIds(
 ): { ids: string[] } | { error: string } {
   if (zone === "hq" && chooser !== "corp") {
     return {
-      error: "HQ is hidden from the Runner. Look or reveal before choosing (CR 1.21.2).",
+      error:
+        "HQ is hidden from the Runner. Look or reveal before choosing (CR 1.21.2).",
     };
   }
   if (zone === "grip" && chooser !== "runner") {
     return {
-      error: "The grip is hidden from the Corp. Look or reveal before choosing (CR 1.21.2).",
+      error:
+        "The grip is hidden from the Corp. Look or reveal before choosing (CR 1.21.2).",
     };
   }
   const ids = (() => {
@@ -91,7 +90,11 @@ export function applyChooseCard(
   const { state, sourceId } = ctx;
   const zone = visibleIds(state, action.chooser, action.zone);
   if ("error" in zone) {
-    return { ok: false, error: zone.error, cites: [CR.look, CR.announceTargets] };
+    return {
+      ok: false,
+      error: zone.error,
+      cites: [CR.look, CR.announceTargets],
+    };
   }
   const want = action.cardType?.toLowerCase();
   const subtypes = action.includeSubtypes?.map((st) => st.toLowerCase());

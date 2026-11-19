@@ -150,14 +150,23 @@ export function returnHostedIdentityToOutsideGame(
   if (host?.hostedCardIds) {
     host.hostedCardIds = host.hostedCardIds.filter((id) => id !== identityId);
   }
-  if (host?.gainsTextOfHostedIdentity || host?.returnHostedIdentityToOutsideGameOnUninstall) {
+  if (
+    host?.gainsTextOfHostedIdentity ||
+    host?.returnHostedIdentityToOutsideGameOnUninstall
+  ) {
     clearFenrisGainedText(host);
   }
   // Ensure not left in heap / rig / RFG.
-  state.runner.discardPile = state.runner.discardPile.filter((id) => id !== identityId);
-  state.runner.installed = state.runner.installed.filter((id) => id !== identityId);
+  state.runner.discardPile = state.runner.discardPile.filter(
+    (id) => id !== identityId,
+  );
+  state.runner.installed = state.runner.installed.filter(
+    (id) => id !== identityId,
+  );
   if (state.removedFromGame) {
-    state.removedFromGame = state.removedFromGame.filter((id) => id !== identityId);
+    state.removedFromGame = state.removedFromGame.filter(
+      (id) => id !== identityId,
+    );
   }
   log(
     state,

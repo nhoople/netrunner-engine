@@ -12,7 +12,13 @@
  * --details <file> writes each entry's first example message there.
  */
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,38 +39,46 @@ try {
     stdio: "inherit",
     env: { ...process.env, INVARIANTS_BASELINE_OUT: out },
   });
-  if (run.status !== 0) console.warn("vitest exited non-zero; merging what it recorded.");
+  if (run.status !== 0)
+    console.warn("vitest exited non-zero; merging what it recorded.");
 
   const old = JSON.parse(readFileSync(baselinePath, "utf8"));
   const next = structuredClone(old);
   const details = {};
   const added = [];
   for (const name of readdirSync(out)) {
-    const { file, testsRun, found } = JSON.parse(readFileSync(join(out, name), "utf8"));
+    const { file, testsRun, found } = JSON.parse(
+      readFileSync(join(out, name), "utf8"),
+    );
     const entry = { ...(next[file] ?? {}) };
     for (const test of testsRun) delete entry[test];
     for (const [test, codes] of Object.entries(found)) {
       entry[test] = Object.keys(codes).sort();
       for (const [code, message] of Object.entries(codes)) {
         details[`${file} > ${test} :: ${code}`] = message;
-        if (!(old[file]?.[test] ?? []).includes(code)) added.push(`${file} > ${test}: ${code}`);
+        if (!(old[file]?.[test] ?? []).includes(code))
+          added.push(`${file} > ${test}: ${code}`);
       }
     }
     if (Object.keys(entry).length > 0) next[file] = entry;
     else delete next[file];
   }
   if (added.length > 0 && !allowNew) {
-    console.error(`Refusing to add ${added.length} baseline entries (pass --allow-new):`);
+    console.error(
+      `Refusing to add ${added.length} baseline entries (pass --allow-new):`,
+    );
     for (const line of added) console.error(`  ${line}`);
     process.exit(1);
   }
   const sorted = {};
   for (const file of Object.keys(next).sort()) {
     sorted[file] = {};
-    for (const test of Object.keys(next[file]).sort()) sorted[file][test] = next[file][test];
+    for (const test of Object.keys(next[file]).sort())
+      sorted[file][test] = next[file][test];
   }
   writeFileSync(baselinePath, `${JSON.stringify(sorted, null, 2)}\n`);
-  if (detailsPath) writeFileSync(detailsPath, `${JSON.stringify(details, null, 2)}\n`);
+  if (detailsPath)
+    writeFileSync(detailsPath, `${JSON.stringify(details, null, 2)}\n`);
   console.log(`Wrote ${baselinePath} (${added.length} added).`);
 } finally {
   rmSync(out, { recursive: true, force: true });

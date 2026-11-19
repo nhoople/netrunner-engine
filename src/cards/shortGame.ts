@@ -51,13 +51,7 @@ export function createShortGameState(
     cards[c.id] = c;
   };
 
-  put(
-    instantiateCard(
-      "haas-bioroid-precision-design",
-      "corp-id",
-      "corp:hq",
-    ),
-  );
+  put(instantiateCard("haas-bioroid-precision-design", "corp-id", "corp:hq"));
   const runnerId = instantiateCard(
     "the-catalyst-convention-breaker",
     "runner-id",

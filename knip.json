@@ -6,5 +6,10 @@
     "tests/**/*.test.ts",
     "tests/setup/*.ts"
   ],
-  "project": ["src/**/*.ts!", "scripts/**/*.{mjs,ts}", "stryker/**/*.mjs", "tests/**/*.ts"]
+  "project": [
+    "src/**/*.ts!",
+    "scripts/**/*.{mjs,ts}",
+    "stryker/**/*.mjs",
+    "tests/**/*.ts"
+  ]
 }

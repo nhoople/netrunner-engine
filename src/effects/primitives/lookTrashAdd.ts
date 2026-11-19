@@ -12,8 +12,7 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 /**
  * While drawn cards are still set aside, Raman Rai may swap one of them
@@ -28,7 +27,8 @@ export function offerRamanRaiSwapWhileSetAside(
   if ((state.corp.clicks ?? 0) < 1) return false;
   const raman = Object.values(state.cards).find(
     (card) =>
-      card.rezzed && card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
+      card.rezzed &&
+      card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
   );
   if (!raman) return false;
   const options = [];
@@ -58,9 +58,12 @@ export function offerRamanRaiSwapWhileSetAside(
     label: "Decline",
     effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
   });
-  openPendingChoose(state, { sourceId: raman.id, chooser: "corp", options,
-logLine: `Reaction window (CR ${CR.checkpointReaction.number}); ${raman.title} may swap a drawn card.`,
-});
+  openPendingChoose(state, {
+    sourceId: raman.id,
+    chooser: "corp",
+    options,
+    logLine: `Reaction window (CR ${CR.checkpointReaction.number}); ${raman.title} may swap a drawn card.`,
+  });
   return true;
 }
 
@@ -150,8 +153,8 @@ export function applyMumbadSiPrimitive(
             }),
           };
         }),
-logLine: `Brahman — choose an installed non-virus program for stack top.`,
-});
+        logLine: `Brahman — choose an installed non-virus program for stack top.`,
+      });
       return { ok: true };
     }
 
@@ -176,14 +179,16 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
         if (!c.defId || c.type === "identity") continue;
         if (!titles.has(c.defId)) titles.set(c.defId, c.title);
       }
-      const options = [...titles.entries()].slice(0, 40).map(([defId, title]) => ({
-        id: `salem:${defId}`,
-        label: `Name ${title}`,
-        effect: fx.do({
-          kind: "trash_named",
-          defId,
-        }),
-      }));
+      const options = [...titles.entries()]
+        .slice(0, 40)
+        .map(([defId, title]) => ({
+          id: `salem:${defId}`,
+          label: `Name ${title}`,
+          effect: fx.do({
+            kind: "trash_named",
+            defId,
+          }),
+        }));
       if (options.length === 0) {
         log(state, `Salem's Hospitality — no card names available.`);
         return { ok: true };
@@ -211,7 +216,7 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
       for (const id of state.runner.hand) {
         const c = state.cards[id];
         if (c) revealCards(state, [c.id], sourceId);
- log(state, `Salem's Hospitality — reveal ${c.title}.`);
+        log(state, `Salem's Hospitality — reveal ${c.title}.`);
       }
       log(
         state,
@@ -386,7 +391,9 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
         state,
         `Raman Rai — reveal ${drawn.title} and ${arch.title}; lose [click].`,
       );
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== archivesId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== archivesId,
+      );
       if (inSetAside && pending) {
         const idx = pending.cardIds.indexOf(drawnId);
         pending.cardIds[idx] = archivesId;
@@ -439,7 +446,8 @@ logLine: `Brahman — choose an installed non-virus program for stack top.`,
 
     case "patron_set_named_server": {
       if (!source) return { ok: true };
-      source.namedServerId = action.serverId as import("../../state/types.js").ServerId;
+      source.namedServerId =
+        action.serverId as import("../../state/types.js").ServerId;
       log(state, `Patron — name ${action.serverId}.`);
       return { ok: true };
     }
@@ -473,9 +481,7 @@ export function fireSiAfterCorpRezOrPlay(
       const cardFaction = played.faction;
       const isSelf = cardId === rid;
       const isOutOfFaction =
-        Boolean(idFaction) &&
-        Boolean(cardFaction) &&
-        cardFaction !== idFaction;
+        Boolean(idFaction) && Boolean(cardFaction) && cardFaction !== idFaction;
       if (!isSelf && !isOutOfFaction) continue;
       state.corp.credits += gain;
       log(
@@ -540,7 +546,8 @@ export function ramanRaiCanOfferSwap(
   if ((state.corp.clicks ?? 0) < 1) return false;
   const raman = Object.values(state.cards).find(
     (card) =>
-      card.rezzed && card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
+      card.rezzed &&
+      card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
   );
   if (!raman) return false;
   for (const drawnId of setAside) {

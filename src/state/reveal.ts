@@ -9,7 +9,13 @@
  */
 import { CR } from "../timing/labels.js";
 import { log } from "./createGame.js";
-import type { GameState, LookEvent, RevealEvent, RuleCite, Side } from "./types.js";
+import type {
+  GameState,
+  LookEvent,
+  RevealEvent,
+  RuleCite,
+  Side,
+} from "./types.js";
 
 const KEPT = 30;
 
@@ -31,7 +37,10 @@ export function revealCards(
     seq,
     by: cards[0]!.side,
     sourceTitle: source?.title ?? sourceId,
-    cards: cards.map((card) => ({ defId: card.defId ?? "", title: card.title })),
+    cards: cards.map((card) => ({
+      defId: card.defId ?? "",
+      title: card.title,
+    })),
   };
   state.reveals = [...(state.reveals ?? []), event].slice(-KEPT);
   const rules =
@@ -71,7 +80,10 @@ export function lookAtCards(
     seq,
     by,
     sourceTitle: source?.title ?? sourceId,
-    cards: cards.map((card) => ({ defId: card.defId ?? "", title: card.title })),
+    cards: cards.map((card) => ({
+      defId: card.defId ?? "",
+      title: card.title,
+    })),
   };
   state.looks = [...(state.looks ?? []), event].slice(-KEPT);
   log(
@@ -93,7 +105,8 @@ export function lookAtChoiceCards(state: GameState): void {
       named.add(value);
       for (const part of value.split(":")) named.add(part);
     } else if (Array.isArray(value)) value.forEach(collect);
-    else if (value && typeof value === "object") Object.values(value).forEach(collect);
+    else if (value && typeof value === "object")
+      Object.values(value).forEach(collect);
   };
   for (const option of choice.options) {
     collect(option.id);

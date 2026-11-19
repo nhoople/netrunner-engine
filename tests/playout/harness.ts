@@ -40,7 +40,11 @@ import {
 import { setApplyHook } from "../../src/debug/applyHook.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import { fireOnGameStartSetup } from "../../src/state/createGame.js";
-import type { CardDef, CardInstance, GameState } from "../../src/state/types.js";
+import type {
+  CardDef,
+  CardInstance,
+  GameState,
+} from "../../src/state/types.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const CARDS = join(ROOT, "vendor/cards-data");
@@ -205,7 +209,10 @@ function flat(...lists: Record<string, number>[]): string[] {
   return out;
 }
 
-export function learnToPlayDecks(list: "starter" | "expanded"): { corp: Deck; runner: Deck } {
+export function learnToPlayDecks(list: "starter" | "expanded"): {
+  corp: Deck;
+  runner: Deck;
+} {
   const expanded = list === "expanded";
   return {
     corp: {
@@ -260,18 +267,24 @@ const poolCache = new Map<string, FormatPool>();
 export function formatPool(format: string): FormatPool {
   const cached = poolCache.get(format);
   if (cached) return cached;
-  const def = readJson<{ snapshots: { cardPoolId: string; restrictionId?: string }[] }>(
-    `formats/${format}.json`,
-  );
+  const def = readJson<{
+    snapshots: { cardPoolId: string; restrictionId?: string }[];
+  }>(`formats/${format}.json`);
   const snapshot = def.snapshots[def.snapshots.length - 1]!;
-  const cardPool = readJson<{ waves: string[] }>(`card-pools/${snapshot.cardPoolId}.json`);
-  const pool = readJson<{ waves: Record<string, { cards: string[] }> }>("pool.json");
+  const cardPool = readJson<{ waves: string[] }>(
+    `card-pools/${snapshot.cardPoolId}.json`,
+  );
+  const pool = readJson<{ waves: Record<string, { cards: string[] }> }>(
+    "pool.json",
+  );
   const restriction = snapshot.restrictionId
     ? readJson<Restriction>(`restrictions/${snapshot.restrictionId}.json`)
     : null;
   for (const key of Object.keys(restriction ?? {})) {
     if (!KNOWN_RESTRICTION_FIELDS.has(key)) {
-      throw new Error(`${snapshot.restrictionId}: the playout deck builder does not apply "${key}"`);
+      throw new Error(
+        `${snapshot.restrictionId}: the playout deck builder does not apply "${key}"`,
+      );
     }
   }
   const banned = new Set(restriction?.banned ?? []);
@@ -279,7 +292,10 @@ export function formatPool(format: string): FormatPool {
   const cards = new Set<string>();
   for (const wave of cardPool.waves) {
     const listed = pool.waves[wave];
-    if (!listed) throw new Error(`pool.json has no wave ${wave} (card pool ${snapshot.cardPoolId})`);
+    if (!listed)
+      throw new Error(
+        `pool.json has no wave ${wave} (card pool ${snapshot.cardPoolId})`,
+      );
     for (const id of listed.cards) {
       if (!banned.has(id) && catalog.has(id)) cards.add(id);
     }
@@ -305,7 +321,10 @@ function inFaction(def: CardDef, identityFaction: string | undefined): boolean {
   return def.faction === identityFaction;
 }
 
-function deckEntry(def: CardDef, identityFaction: string | undefined): DeckEntry {
+function deckEntry(
+  def: CardDef,
+  identityFaction: string | undefined,
+): DeckEntry {
   // Only out-of-faction cards cost influence (CR 1.4.5).
   const influence = inFaction(def, identityFaction) ? 0 : def.influence;
   return {
@@ -349,8 +368,10 @@ export function deckProblems(format: FormatPool, deck: Deck): string[] {
   if (!identity) return [`unknown identity ${deck.identityId}`];
   const problems: string[] = [];
   const legal = new Set(format.cards);
-  if (!legal.has(deck.identityId)) problems.push(`${deck.identityId} is not in ${format.format}`);
-  if (STARTER_IDENTITIES.has(deck.identityId)) problems.push(`${deck.identityId}: CR 1.4.1a`);
+  if (!legal.has(deck.identityId))
+    problems.push(`${deck.identityId} is not in ${format.format}`);
+  if (STARTER_IDENTITIES.has(deck.identityId))
+    problems.push(`${deck.identityId}: CR 1.4.1a`);
   const entries: DeckEntry[] = [];
   for (const id of deck.cards) {
     const def = catalog.get(id);
@@ -359,14 +380,22 @@ export function deckProblems(format: FormatPool, deck: Deck): string[] {
       continue;
     }
     if (!legal.has(id)) problems.push(`${id} is not in ${format.format}`);
-    if (def.type === "identity") problems.push(`${id} is an identity (CR 1.4.4)`);
-    if (def.side !== identity.side) problems.push(`${id} is from the wrong side (CR 1.4.4)`);
+    if (def.type === "identity")
+      problems.push(`${id} is an identity (CR 1.4.4)`);
+    if (def.side !== identity.side)
+      problems.push(`${id} is from the wrong side (CR 1.4.4)`);
     // Neutral cards print an influence cost of 0; the pinned card data leaves
     // the field off a few of them (Hedge Fund, PAD Campaign), so only
     // faction cards are held to this check.
     const factionCard = !NEUTRAL.has(def.faction ?? "");
-    if (factionCard && !inFaction(def, identity.faction) && def.influence === undefined) {
-      problems.push(`${id} is out of faction with no influence cost (CR 1.4.4)`);
+    if (
+      factionCard &&
+      !inFaction(def, identity.faction) &&
+      def.influence === undefined
+    ) {
+      problems.push(
+        `${id} is out of faction with no influence cost (CR 1.4.4)`,
+      );
     }
     entries.push(deckEntry(def, identity.faction));
   }
@@ -376,20 +405,28 @@ export function deckProblems(format: FormatPool, deck: Deck): string[] {
     minimumDeckSize: identity.minimumDeckSize,
     influenceLimit: identity.influenceLimit,
   });
-  if (report.underMinimum) problems.push(`${report.deckSize} cards is under the minimum (CR 1.4.3)`);
-  if (report.overInfluence) problems.push(`influence ${report.influence} is over the limit (CR 1.4.5)`);
-  if (report.agendaOutOfRange) problems.push(`${report.agendaPoints} agenda points (CR 1.4.6)`);
-  for (const id of report.overLimit) problems.push(`too many copies of ${id} (CR 1.4.7)`);
+  if (report.underMinimum)
+    problems.push(`${report.deckSize} cards is under the minimum (CR 1.4.3)`);
+  if (report.overInfluence)
+    problems.push(`influence ${report.influence} is over the limit (CR 1.4.5)`);
+  if (report.agendaOutOfRange)
+    problems.push(`${report.agendaPoints} agenda points (CR 1.4.6)`);
+  for (const id of report.overLimit)
+    problems.push(`too many copies of ${id} (CR 1.4.7)`);
   const restriction = format.restriction;
   if (restriction?.max3PointAgendas !== undefined) {
-    const threes = deck.cards.filter((id) => catalog.get(id)?.agendaPoints === 3).length;
-    if (threes > restriction.max3PointAgendas) problems.push(`${threes} 3-point agendas (${restriction.id})`);
+    const threes = deck.cards.filter(
+      (id) => catalog.get(id)?.agendaPoints === 3,
+    ).length;
+    if (threes > restriction.max3PointAgendas)
+      problems.push(`${threes} 3-point agendas (${restriction.id})`);
   }
   if (restriction?.pointLimit !== undefined) {
     const points = eternalPoints(restriction);
     let total = 0;
     for (const id of new Set(deck.cards)) total += points.get(id) ?? 0;
-    if (total > restriction.pointLimit) problems.push(`${total} points (${restriction.id})`);
+    if (total > restriction.pointLimit)
+      problems.push(`${total} points (${restriction.id})`);
   }
   return problems;
 }
@@ -400,11 +437,20 @@ export function deckProblems(format: FormatPool, deck: Deck): string[] {
  * agenda band (CR 1.4.6), then fills with non-agenda cards. A draft that
  * cannot finish is thrown away and redrafted from the same stream.
  */
-function randomDeck(format: FormatPool, side: "corp" | "runner", random: () => number): Deck {
+function randomDeck(
+  format: FormatPool,
+  side: "corp" | "runner",
+  random: () => number,
+): Deck {
   const catalog = loadCardCatalog();
-  const defs = format.cards.map((id) => catalog.get(id)!).filter((def) => def.side === side);
-  const identities = defs.filter((def) => def.type === "identity" && !STARTER_IDENTITIES.has(def.id));
-  if (identities.length === 0) throw new Error(`${format.format} has no ${side} identity`);
+  const defs = format.cards
+    .map((id) => catalog.get(id)!)
+    .filter((def) => def.side === side);
+  const identities = defs.filter(
+    (def) => def.type === "identity" && !STARTER_IDENTITIES.has(def.id),
+  );
+  if (identities.length === 0)
+    throw new Error(`${format.format} has no ${side} identity`);
   const points = eternalPoints(format.restriction);
   for (let attempt = 0; attempt < 200; attempt++) {
     const identity = pick(identities, random);
@@ -412,7 +458,11 @@ function randomDeck(format: FormatPool, side: "corp" | "runner", random: () => n
     const influenceLimit = identity.influenceLimit ?? 15;
     const usable = defs.filter((def) => {
       if (def.type === "identity") return false;
-      return inFaction(def, identity.faction) || NEUTRAL.has(def.faction ?? "") || def.influence !== undefined;
+      return (
+        inFaction(def, identity.faction) ||
+        NEUTRAL.has(def.faction ?? "") ||
+        def.influence !== undefined
+      );
     });
     const agendas = usable.filter((def) => def.type === "agenda");
     const others = usable.filter((def) => def.type !== "agenda");
@@ -421,20 +471,30 @@ function randomDeck(format: FormatPool, side: "corp" | "runner", random: () => n
     let pointTotal = 0;
     let threes = 0;
     let cards = 0;
-    const cost = (def: CardDef) => (inFaction(def, identity.faction) ? 0 : (def.influence ?? 0));
+    const cost = (def: CardDef) =>
+      inFaction(def, identity.faction) ? 0 : (def.influence ?? 0);
     const fits = (def: CardDef): boolean => {
       const have = counts.get(def.id) ?? 0;
       if (have >= copyLimit(def)) return false;
       if (influence + cost(def) > influenceLimit) return false;
-      if (have === 0 && pointTotal + (points.get(def.id) ?? 0) > (format.restriction?.pointLimit ?? Infinity)) {
+      if (
+        have === 0 &&
+        pointTotal + (points.get(def.id) ?? 0) >
+          (format.restriction?.pointLimit ?? Infinity)
+      ) {
         return false;
       }
-      if (def.agendaPoints === 3 && threes >= (format.restriction?.max3PointAgendas ?? Infinity)) return false;
+      if (
+        def.agendaPoints === 3 &&
+        threes >= (format.restriction?.max3PointAgendas ?? Infinity)
+      )
+        return false;
       return true;
     };
     const add = (def: CardDef, copies: number) => {
       for (let n = 0; n < copies && cards < size && fits(def); n++) {
-        if ((counts.get(def.id) ?? 0) === 0) pointTotal += points.get(def.id) ?? 0;
+        if ((counts.get(def.id) ?? 0) === 0)
+          pointTotal += points.get(def.id) ?? 0;
         counts.set(def.id, (counts.get(def.id) ?? 0) + 1);
         influence += cost(def);
         if (def.agendaPoints === 3) threes += 1;
@@ -458,19 +518,26 @@ function randomDeck(format: FormatPool, side: "corp" | "runner", random: () => n
     }
     if (cards < size) continue;
     const deck: Deck = { identityId: identity.id, cards: [] };
-    for (const [id, n] of counts) for (let i = 0; i < n; i++) deck.cards.push(id);
+    for (const [id, n] of counts)
+      for (let i = 0; i < n; i++) deck.cards.push(id);
     deck.cards.sort();
     if (deckProblems(format, deck).length === 0) return deck;
   }
   throw new Error(`could not build a legal ${side} deck for ${format.format}`);
 }
 
-export function decksFor(format: Format, seed: number): { corp: Deck; runner: Deck } {
+export function decksFor(
+  format: Format,
+  seed: number,
+): { corp: Deck; runner: Deck } {
   if (format === "learn_to_play_starter") return learnToPlayDecks("starter");
   if (format === "learn_to_play_expanded") return learnToPlayDecks("expanded");
   const pool = formatPool(format);
   const random = rng(seed ^ 0x5eed);
-  return { corp: randomDeck(pool, "corp", random), runner: randomDeck(pool, "runner", random) };
+  return {
+    corp: randomDeck(pool, "corp", random),
+    runner: randomDeck(pool, "runner", random),
+  };
 }
 
 // ---------------------------------------------------------------- deal
@@ -496,19 +563,27 @@ function dealMatch(format: Format, seed: number): GameState {
   put(instantiateCard(decks.corp.identityId, "corp-id", "corp:hq"));
   put(instantiateCard(decks.runner.identityId, "runner-id", "runner:grip"));
   const pile = (side: "corp" | "runner", deck: Deck) => {
-    const ids = deck.cards.map((defId, n) => ({ defId, id: `${side}:${defId}:${n}` }));
+    const ids = deck.cards.map((defId, n) => ({
+      defId,
+      id: `${side}:${defId}:${n}`,
+    }));
     shuffle(ids, random);
     return ids;
   };
   const corpPile = pile("corp", decks.corp);
   const runnerPile = pile("runner", decks.runner);
   seedRng(state, Math.floor(random() * 4294967296));
-  for (const card of corpPile) put(instantiateCard(card.defId, card.id, "corp:rd"));
-  for (const card of runnerPile) put(instantiateCard(card.defId, card.id, "runner:stack"));
+  for (const card of corpPile)
+    put(instantiateCard(card.defId, card.id, "corp:rd"));
+  for (const card of runnerPile)
+    put(instantiateCard(card.defId, card.id, "runner:stack"));
   const corpDeck = corpPile.map((card) => card.id);
   const runnerDeck = runnerPile.map((card) => card.id);
   const corpHand = corpDeck.splice(0, startingHandSizeFor(cards["corp-id"]));
-  const runnerHand = runnerDeck.splice(0, startingHandSizeFor(cards["runner-id"]));
+  const runnerHand = runnerDeck.splice(
+    0,
+    startingHandSizeFor(cards["runner-id"]),
+  );
   for (const id of corpHand) cards[id]!.zone = "corp:hq";
   for (const id of runnerHand) {
     cards[id]!.zone = "runner:grip";
@@ -566,7 +641,11 @@ function message(error: unknown): string {
  * failures, so the playouts keep one baseline (`tests/fixtures/playout-seeds.json`)
  * instead of two.
  */
-export function playout(format: Format, seed: number, steps = PLAYOUT_STEPS): PlayoutResult {
+export function playout(
+  format: Format,
+  seed: number,
+  steps = PLAYOUT_STEPS,
+): PlayoutResult {
   const previousHook = setApplyHook(null);
   try {
     return play(format, seed, steps);
@@ -594,11 +673,19 @@ function play(format: Format, seed: number, steps: number): PlayoutResult {
     try {
       legal = queryLegality(state).legal;
     } catch (error) {
-      failures.push({ code: "CRASH", step, detail: `queryLegality at ${state.timingKey}: ${message(error)}` });
+      failures.push({
+        code: "CRASH",
+        step,
+        detail: `queryLegality at ${state.timingKey}: ${message(error)}`,
+      });
       break;
     }
     if (legal.length === 0) {
-      failures.push({ code: "NO_LEGAL_ACTION", step, detail: `at ${state.timingKey}` });
+      failures.push({
+        code: "NO_LEGAL_ACTION",
+        step,
+        detail: `at ${state.timingKey}`,
+      });
       break;
     }
     const action = pick(legal, random).action;
@@ -606,11 +693,19 @@ function play(format: Format, seed: number, steps: number): PlayoutResult {
     try {
       result = applyAction(state, action);
     } catch (error) {
-      failures.push({ code: "CRASH", step, detail: `${action.type} at ${state.timingKey}: ${message(error)}` });
+      failures.push({
+        code: "CRASH",
+        step,
+        detail: `${action.type} at ${state.timingKey}: ${message(error)}`,
+      });
       break;
     }
     if (!result.ok) {
-      failures.push({ code: "REFUSED", step, detail: `${action.type} at ${state.timingKey}: ${result.error}` });
+      failures.push({
+        code: "REFUSED",
+        step,
+        detail: `${action.type} at ${state.timingKey}: ${result.error}`,
+      });
       break;
     }
     // The driver passes for a seat with nothing to do, where the engine used
@@ -618,7 +713,11 @@ function play(format: Format, seed: number, steps: number): PlayoutResult {
     try {
       state = passIdle(result.state);
     } catch (error) {
-      failures.push({ code: "CRASH", step, detail: `pass for an idle seat at ${result.state.timingKey}: ${message(error)}` });
+      failures.push({
+        code: "CRASH",
+        step,
+        detail: `pass for an idle seat at ${result.state.timingKey}: ${message(error)}`,
+      });
       break;
     }
     noteInvariants(state, step);
@@ -637,7 +736,11 @@ function play(format: Format, seed: number, steps: number): PlayoutResult {
  * check one step of a seed by hand. Stops early if the game ends or an
  * action is refused.
  */
-export function replayTo(format: Format, seed: number, steps: number): GameState {
+export function replayTo(
+  format: Format,
+  seed: number,
+  steps: number,
+): GameState {
   const previousHook = setApplyHook(null);
   try {
     let state = dealMatch(format, seed);
@@ -660,13 +763,19 @@ export function replayTo(format: Format, seed: number, steps: number): GameState
  * entry lists is new; an entry that no longer happens must leave the fixture
  * (the fixture only shrinks).
  */
-export function compareWithSeeds(result: PlayoutResult, entries: readonly SeedEntry[]): string[] {
-  const recorded = entries.filter((e) => e.format === result.format && e.deckSeed === result.seed);
+export function compareWithSeeds(
+  result: PlayoutResult,
+  entries: readonly SeedEntry[],
+): string[] {
+  const recorded = entries.filter(
+    (e) => e.format === result.format && e.deckSeed === result.seed,
+  );
   const found = new Map(result.failures.map((f) => [failureKey(f), f]));
   const listed = new Set(recorded.map(failureKey));
   const errors: string[] = [];
   for (const [key, failure] of found) {
-    if (!listed.has(key)) errors.push(`new playout failure ${key}: ${failure.detail}`);
+    if (!listed.has(key))
+      errors.push(`new playout failure ${key}: ${failure.detail}`);
   }
   for (const entry of recorded) {
     if (!found.has(failureKey(entry))) {

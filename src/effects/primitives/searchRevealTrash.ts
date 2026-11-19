@@ -16,10 +16,8 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function countRezzedNextIce(state: EffectCtx["state"]): number {
   let n = 0;
@@ -33,7 +31,9 @@ function countRezzedNextIce(state: EffectCtx["state"]): number {
 }
 
 function installedPrograms(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => state.cards[id]?.type === "program");
+  return state.runner.installed.filter(
+    (id) => state.cards[id]?.type === "program",
+  );
 }
 
 export function applySansanValPrimitive(
@@ -160,8 +160,16 @@ export function applySansanValPrimitive(
       const cardId = (action as { cardId: string }).cardId;
       const remaining = (action as { remaining: number }).remaining;
       const card = state.cards[cardId];
-      if (!card || card.type !== "program" || !state.runner.installed.includes(cardId)) {
-        return { ok: false, error: "NEXT Gold trash target invalid.", cites: [] };
+      if (
+        !card ||
+        card.type !== "program" ||
+        !state.runner.installed.includes(cardId)
+      ) {
+        return {
+          ok: false,
+          error: "NEXT Gold trash target invalid.",
+          cites: [],
+        };
       }
       moveRunnerCardToHeap(state, cardId);
       log(state, `NEXT Gold — trash ${card.title}.`);
@@ -187,7 +195,11 @@ export function applySansanValPrimitive(
 
     case "jinteki_biotech_flip": {
       if (!source) {
-        return { ok: false, error: "Jinteki Biotech flip — no source.", cites: [] };
+        return {
+          ok: false,
+          error: "Jinteki Biotech flip — no source.",
+          cites: [],
+        };
       }
       const faceId = source.chosenIdentityFaceId;
       const faces = source.identityFaceOptions ?? [];
@@ -216,15 +228,18 @@ export function applySansanValPrimitive(
 
     case "choose_jinteki_biotech_face": {
       if (!source) {
-        return { ok: false, error: "Jinteki Biotech choose — no source.", cites: [] };
+        return {
+          ok: false,
+          error: "Jinteki Biotech choose — no source.",
+          cites: [],
+        };
       }
       const faceId = (action as { faceId: string }).faceId;
       source.chosenIdentityFaceId = faceId;
-      const face = (source.identityFaceOptions ?? []).find((f) => f.id === faceId);
-      log(
-        state,
-        `Jinteki Biotech — choose face ${face?.label ?? faceId}.`,
+      const face = (source.identityFaceOptions ?? []).find(
+        (f) => f.id === faceId,
       );
+      log(state, `Jinteki Biotech — choose face ${face?.label ?? faceId}.`);
       return { ok: true };
     }
 
@@ -282,7 +297,9 @@ export function applySansanValPrimitive(
     }
 
     case "place_agenda_counter": {
-      const scored = state.corp.scoreArea.filter((id) => state.cards[id]?.type === "agenda");
+      const scored = state.corp.scoreArea.filter(
+        (id) => state.cards[id]?.type === "agenda",
+      );
       if (scored.length === 0) {
         log(state, `Genetic Resequencing — no scored agenda.`);
         return { ok: true };
@@ -403,7 +420,8 @@ export function applySansanValPrimitive(
       }
       log(state, `Tech Startup — shuffle R&D.`);
       const remoteNum = state.nextRemoteNumber++;
-      const sid = `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+      const sid =
+        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
       state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
       state.turn.remotesCreatedThisTurn =
         (state.turn.remotesCreatedThisTurn ?? 0) + 1;

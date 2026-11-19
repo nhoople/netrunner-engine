@@ -31,7 +31,10 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.147.24");
 });
 
-function must(state: GameState, action: Parameters<typeof applyAction>[1]): GameState {
+function must(
+  state: GameState,
+  action: Parameters<typeof applyAction>[1],
+): GameState {
   const r = applyAction(state, action);
   if (!r.ok) throw new Error(`${r.error} ${JSON.stringify(r.cites)}`);
   return r.state;
@@ -56,7 +59,11 @@ function runOn(state: GameState, server: "hq" | "rd"): void {
 describe("stored conditional triggers", () => {
   it("deals Viral Weaponization's damage when the scoring turn ends", () => {
     const s = createInitialState();
-    const agenda = instantiateCard("viral-weaponization", "vw-1", "server:hq:root");
+    const agenda = instantiateCard(
+      "viral-weaponization",
+      "vw-1",
+      "server:hq:root",
+    );
     agenda.advancementCounters = 4;
     s.cards["vw-1"] = agenda;
     s.servers.hq.root = ["vw-1"];
@@ -73,7 +80,11 @@ describe("stored conditional triggers", () => {
 
   it("lets Broadcast Square replace taking bad publicity", () => {
     const s = createInitialState();
-    const square = instantiateCard("broadcast-square", "bs-1", "server:hq:root");
+    const square = instantiateCard(
+      "broadcast-square",
+      "bs-1",
+      "server:hq:root",
+    );
     square.rezzed = true;
     s.cards["bs-1"] = square;
     s.servers.hq.root = ["bs-1"];
@@ -158,7 +169,11 @@ describe("stored conditional triggers", () => {
     expect(success.log.join("\n")).toContain("Will-o'-the-Wisp");
 
     const fail = createInitialState();
-    const georgia = instantiateCard("georgia-emelyov", "ga-1", "server:hq:root");
+    const georgia = instantiateCard(
+      "georgia-emelyov",
+      "ga-1",
+      "server:hq:root",
+    );
     georgia.rezzed = true;
     const grip = instantiateCard("sure-gamble", "g-1", "runner:grip");
     fail.cards["ga-1"] = georgia;
@@ -273,7 +288,11 @@ describe("stored conditional triggers", () => {
     const s = createInitialState();
     const grid = instantiateCard("neotokyo-grid", "neo-1", "server:hq:root");
     grid.rezzed = true;
-    const agenda = instantiateCard("priority-requisition", "ag-1", "server:hq:root");
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "ag-1",
+      "server:hq:root",
+    );
     s.cards["neo-1"] = grid;
     s.cards["ag-1"] = agenda;
     s.servers.hq.root = ["neo-1", "ag-1"];

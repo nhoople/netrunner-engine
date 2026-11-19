@@ -36,10 +36,10 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return passIdle(result.state);
 }
-
 
 function at(lines: string[], fragment: string): number {
   const i = lines.findIndex((line) => line.includes(fragment));
@@ -81,15 +81,18 @@ function passUntil(
   return s;
 }
 
-function remote(state: GameState, id: string, ice: string[] = [], root: string[] = []) {
+function remote(
+  state: GameState,
+  id: string,
+  ice: string[] = [],
+  root: string[] = [],
+) {
   const serverId = id as ServerId;
   state.servers[serverId] = { id: serverId, kind: "remote", ice, root };
   return serverId;
 }
 
 describe("CR examples, chapter 8", () => {
-
-
   it("still trashes Harbinger when it turns facedown, so Wasteland gains a credit (CR 8.2.2.ex1)", () => {
     const s = createInitialState();
     const harbinger = instantiateCard("harbinger", "hb-1", "runner:installed");
@@ -112,12 +115,19 @@ describe("CR examples, chapter 8", () => {
     expect(s.runner.credits).toBe(1);
   });
 
-
   it("does not place a District 99 counter when Sacrificial Construct prevents the trash (CR 8.2.2a.ex1)", () => {
     const s = runnerTurn(createInitialState(), 0, 0);
     const program = instantiateCard("corroder", "prog-1", "runner:installed");
-    const sac = instantiateCard("sacrificial-construct", "sac-1", "runner:installed");
-    const district = instantiateCard("district-99", "d99-1", "runner:installed");
+    const sac = instantiateCard(
+      "sacrificial-construct",
+      "sac-1",
+      "runner:installed",
+    );
+    const district = instantiateCard(
+      "district-99",
+      "d99-1",
+      "runner:installed",
+    );
     s.cards["prog-1"] = program;
     s.cards["sac-1"] = sac;
     s.cards["d99-1"] = district;
@@ -143,13 +153,17 @@ describe("CR examples, chapter 8", () => {
       [CR.checkpointConditionalAbilities],
       "test",
     );
-    expect(prevented.pendingChoice?.options.some((option) => option.id === "place-power")).toBe(
-      true,
-    );
-    const placed = must(prevented, { type: "choose_option", optionId: "place-power" });
+    expect(
+      prevented.pendingChoice?.options.some(
+        (option) => option.id === "place-power",
+      ),
+    ).toBe(true);
+    const placed = must(prevented, {
+      type: "choose_option",
+      optionId: "place-power",
+    });
     expect(placed.cards["d99-1"]?.powerCounters).toBe(1);
   });
-
 
   it("does not tell the Runner which R&D positions Cultivate used (CR 8.3.3b.ex1)", () => {
     const s = createInitialState();
@@ -173,12 +187,22 @@ describe("CR examples, chapter 8", () => {
     expect(s.log.join("\n")).not.toContain("Alpha");
     const runner = getPublicView(s, "runner");
     const corp = getPublicView(s, "corp");
-    const runnerLabels = runner.pendingChoice?.options.map((option) => option.label).join("\n") ?? "";
-    const corpLabels = corp.pendingChoice?.options.map((option) => option.label).join("\n") ?? "";
+    const runnerLabels =
+      runner.pendingChoice?.options.map((option) => option.label).join("\n") ??
+      "";
+    const corpLabels =
+      corp.pendingChoice?.options.map((option) => option.label).join("\n") ??
+      "";
     expect(runnerLabels).not.toContain("Alpha");
     expect(corpLabels).toContain("Alpha");
-    const trashed = must(s, { type: "choose_option", optionId: "cultivate-trash:look-0" });
-    const added = must(trashed, { type: "choose_option", optionId: "cultivate-hq:look-1" });
+    const trashed = must(s, {
+      type: "choose_option",
+      optionId: "cultivate-trash:look-0",
+    });
+    const added = must(trashed, {
+      type: "choose_option",
+      optionId: "cultivate-hq:look-1",
+    });
     expect(added.corp.discardPile).toContain("look-0");
     expect(added.corp.hand).toContain("look-1");
     expect(added.cards["look-1"]?.faceup).toBe(false);
@@ -189,10 +213,13 @@ describe("CR examples, chapter 8", () => {
     expect(text).not.toMatch(/position|from the top/);
   });
 
-
   it("lets Raman Rai swap a set-aside draw before Daily Business Show bottoms one (CR 8.4.3b.ex1)", () => {
     const s = createInitialState();
-    const show = instantiateCard("daily-business-show", "dbs-1", "server:hq:root");
+    const show = instantiateCard(
+      "daily-business-show",
+      "dbs-1",
+      "server:hq:root",
+    );
     show.rezzed = true;
     const raman = instantiateCard("raman-rai", "raman-1", "server:hq:root");
     raman.rezzed = true;
@@ -218,7 +245,10 @@ describe("CR examples, chapter 8", () => {
       option.id.startsWith("raman:enigma-1:toll-1"),
     );
     expect(swap).toBeTruthy();
-    const swapped = must(drawing, { type: "choose_option", optionId: swap!.id });
+    const swapped = must(drawing, {
+      type: "choose_option",
+      optionId: swap!.id,
+    });
     expect(swapped.corp.discardPile).toContain("enigma-1");
     const bottomed = must(swapped, {
       type: "choose_option",
@@ -228,7 +258,6 @@ describe("CR examples, chapter 8", () => {
     expect(bottomed.corp.hand).toContain("wrap-1");
     expect(bottomed.corp.hand).not.toContain("enigma-1");
   });
-
 
   it("installs Dhegdheer first so Mass Install can host the next program (CR 8.5.5.ex1)", () => {
     const s = runnerTurn(createInitialState(), 0, 2);
@@ -254,17 +283,25 @@ describe("CR examples, chapter 8", () => {
       (option) => option.id === "monolith:co-1:host:dh-1",
     );
     expect(host?.label).toContain("0¢");
-    const hosted = must(first, { type: "choose_option", optionId: "monolith:co-1:host:dh-1" });
+    const hosted = must(first, {
+      type: "choose_option",
+      optionId: "monolith:co-1:host:dh-1",
+    });
     expect(hosted.cards["co-1"]?.hostId).toBe("dh-1");
     expect(hosted.runner.credits).toBe(0);
-    expect(hosted.runner.installed).toEqual(expect.arrayContaining(["dh-1", "co-1"]));
+    expect(hosted.runner.installed).toEqual(
+      expect.arrayContaining(["dh-1", "co-1"]),
+    );
   });
 
-
-    it("installs an unrevealed upgrade into an occupied remote root and rejects an operation (CR 8.5.13a.ex1)", () => {
+  it("installs an unrevealed upgrade into an occupied remote root and rejects an operation (CR 8.5.13a.ex1)", () => {
     let s = createInitialState();
     const serverId = remote(s, "remote-1", [], ["pad-1"]);
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     pad.faceup = false;
     pad.rezzed = false;
     s.cards["pad-1"] = pad;
@@ -307,11 +344,12 @@ describe("CR examples, chapter 8", () => {
     expect(s.servers[serverId]!.root).toEqual(["pad-1", "nan-1"]);
     expect(s.cards["pad-1"]?.faceup).toBe(false);
     expect(s.cards["nan-1"]?.faceup).toBe(false);
-    expect(s.log.some((line) => /reveal (Pad Campaign|Nanisivik Grid)/i.test(line))).toBe(false);
+    expect(
+      s.log.some((line) => /reveal (Pad Campaign|Nanisivik Grid)/i.test(line)),
+    ).toBe(false);
   });
 
-
-    it("does not reveal ice Brân installs from HQ (CR 8.5.13a.ex2)", () => {
+  it("does not reveal ice Brân installs from HQ (CR 8.5.13a.ex2)", () => {
     let s = createInitialState();
     const serverId = remote(s, "remote-1", ["bran-1"]);
     const bran = instantiateCard("bran-1-0", "bran-1", "server:remote-1:ice");
@@ -336,7 +374,8 @@ describe("CR examples, chapter 8", () => {
     s = must(s, { type: "break_bioroid_subroutine", subIndex: 2 });
     s = passUntil(
       s,
-      (st) => st.pendingChoice != null || st.servers[serverId]!.ice.includes("in-1"),
+      (st) =>
+        st.pendingChoice != null || st.servers[serverId]!.ice.includes("in-1"),
     );
     if (s.pendingChoice) {
       s = must(s, { type: "choose_option", optionId: "bran:in-1" });
@@ -345,16 +384,21 @@ describe("CR examples, chapter 8", () => {
     expect(s.cards["in-1"]?.faceup).toBe(false);
     expect(s.cards["in-1"]?.zone).toBe(`server:${serverId}:ice`);
     expect(s.log.some((line) => /reveal Ice Wall/i.test(line))).toBe(false);
-    expect(s.log.some((line) => line.includes("Install Ice Wall inward of Brân 1.0"))).toBe(
-      true,
-    );
+    expect(
+      s.log.some((line) =>
+        line.includes("Install Ice Wall inward of Brân 1.0"),
+      ),
+    ).toBe(true);
   });
 
-
-    it("does not reveal a second region installed into a root that already has one (CR 8.5.13b.ex1)", () => {
+  it("does not reveal a second region installed into a root that already has one (CR 8.5.13b.ex1)", () => {
     let s = createInitialState();
     const serverId = remote(s, "remote-1", [], ["nan-old"]);
-    const oldGrid = instantiateCard("nanisivik-grid", "nan-old", "server:remote-1:root");
+    const oldGrid = instantiateCard(
+      "nanisivik-grid",
+      "nan-old",
+      "server:remote-1:root",
+    );
     oldGrid.rezzed = true;
     oldGrid.faceup = true;
     s.cards["nan-old"] = oldGrid;
@@ -371,9 +415,10 @@ describe("CR examples, chapter 8", () => {
     expect(s.servers[serverId]!.root).toEqual(["nan-new"]);
     expect(s.cards["nan-new"]?.faceup).toBe(false);
     expect(s.corp.discardPile).toContain("nan-old");
-    expect(s.log.some((line) => /reveal Nanisivik Grid/i.test(line))).toBe(false);
+    expect(s.log.some((line) => /reveal Nanisivik Grid/i.test(line))).toBe(
+      false,
+    );
   });
-
 
   it("reveals Archer when Ob declines the rez cost (CR 8.5.13c.ex1)", () => {
     const s = createInitialState();
@@ -396,7 +441,10 @@ describe("CR examples, chapter 8", () => {
     );
     if (!searched.ok) throw new Error(searched.error);
     // The Corp finds Archer and says where it goes.
-    let revealed = must(s, { type: "choose_option", optionId: "choose-card:archer-1" });
+    let revealed = must(s, {
+      type: "choose_option",
+      optionId: "choose-card:archer-1",
+    });
     revealed = must(revealed, {
       type: "choose_option",
       optionId: "install-dest:__new_remote__",
@@ -409,15 +457,20 @@ describe("CR examples, chapter 8", () => {
     expect(revealed.reveals?.at(-1)?.cards).toEqual([
       { defId: "archer", title: "Archer" },
     ]);
-    expect(revealed.log.join("\n")).toContain("reveal Archer (CR 8.5.13d, 1.21.3)");
+    expect(revealed.log.join("\n")).toContain(
+      "reveal Archer (CR 8.5.13d, 1.21.3)",
+    );
     expect(revealed.corp.credits).toBe(0);
   });
-
 
   it("reveals the agenda Trust Operation installs, because an agenda cannot be rezzed (CR 8.5.13d.ex1)", () => {
     const s = createInitialState();
     const op = instantiateCard("trust-operation", "trust-1", "corp:play-area");
-    const agenda = instantiateCard("hostile-takeover", "agenda-1", "corp:archives");
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "agenda-1",
+      "corp:archives",
+    );
     agenda.faceup = true;
     s.cards["trust-1"] = op;
     s.cards["agenda-1"] = agenda;
@@ -435,9 +488,10 @@ describe("CR examples, chapter 8", () => {
     expect(s.reveals?.at(-1)?.cards).toEqual([
       { defId: "hostile-takeover", title: "Hostile Takeover" },
     ]);
-    expect(s.log.join("\n")).toContain("reveal Hostile Takeover (CR 8.5.13d, 1.21.3)");
+    expect(s.log.join("\n")).toContain(
+      "reveal Hostile Takeover (CR 8.5.13d, 1.21.3)",
+    );
   });
-
 
   it("offers Ad Blitz only the advertisements the Corp can rez (CR 8.5.13d.ex2)", () => {
     const s = createInitialState();
@@ -461,14 +515,18 @@ describe("CR examples, chapter 8", () => {
     const ids = s.pendingChoice?.options.map((option) => option.id) ?? [];
     expect(ids).toContain("adblitz:cheap-1");
     expect(ids).not.toContain("adblitz:steep-1");
-    expect(ids.some((id) => id.includes("decline") || id === "adblitz-stop")).toBe(false);
-    const rezzed = must(s, { type: "choose_option", optionId: "adblitz:cheap-1" });
+    expect(
+      ids.some((id) => id.includes("decline") || id === "adblitz-stop"),
+    ).toBe(false);
+    const rezzed = must(s, {
+      type: "choose_option",
+      optionId: "adblitz:cheap-1",
+    });
     expect(rezzed.cards["cheap-1"]?.rezzed).toBe(true);
     expect(rezzed.corp.hand).toContain("steep-1");
   });
 
-
-    it("resolves Brân's install subroutine from Archives with no install (CR 8.5.14.ex1)", () => {
+  it("resolves Brân's install subroutine from Archives with no install (CR 8.5.14.ex1)", () => {
     let s = createInitialState();
     const grid = instantiateCard("nanisivik-grid", "nan-1", "server:hq:root");
     grid.rezzed = true;
@@ -488,7 +546,9 @@ describe("CR examples, chapter 8", () => {
     s = must(s, { type: "basic_run", serverId: "hq" });
     s = passUntil(s, (st) => Boolean(st.pendingChoice));
     expect(s.pendingChoice?.chooser).toBe("corp");
-    const flip = s.pendingChoice!.options.find((option) => option.id === "flip:bran-arch:0");
+    const flip = s.pendingChoice!.options.find(
+      (option) => option.id === "flip:bran-arch:0",
+    );
     expect(flip).toBeTruthy();
     s = must(s, { type: "choose_option", optionId: flip!.id });
     expect(s.cards["bran-arch"]?.faceup).toBe(true);
@@ -496,10 +556,13 @@ describe("CR examples, chapter 8", () => {
     expect(s.corp.hand).toEqual(["hq-ice"]);
     expect(s.servers.hq.ice).not.toContain("hq-ice");
     expect(
-      s.log.some((line) => line.includes("Install ice inward — source not protecting attacked server.")),
+      s.log.some((line) =>
+        line.includes(
+          "Install ice inward — source not protecting attacked server.",
+        ),
+      ),
     ).toBe(true);
   });
-
 
   it("plays Hedge Fund through Subcontract before IPO, and IPO is paid with those credits (CR 8.6.3.ex1)", () => {
     let s = createInitialState();
@@ -517,7 +580,9 @@ describe("CR examples, chapter 8", () => {
     s.timingKey = "corp.takeAction";
 
     s = must(s, { type: "play_operation", cardId: "sc-1" });
-    expect(s.pendingChoice?.options.some((o) => o.id === "subcontract-play:hf-1")).toBe(true);
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "subcontract-play:hf-1"),
+    ).toBe(true);
 
     s = must(s, { type: "choose_option", optionId: "subcontract-play:hf-1" });
     const separate = at(s.log, "Hedge Fund is played separately");
@@ -533,8 +598,12 @@ describe("CR examples, chapter 8", () => {
     expect(s.corp.credits).toBe(9);
     expect(s.cards["hf-1"]?.zone).toBe("corp:archives");
     expect(s.corp.hand).toContain("ipo-1");
-    expect(s.pendingChoice?.options.some((o) => o.id === "subcontract-play:ipo-1")).toBe(true);
-    expect(s.log.some((line) => line.includes("Play cost of 8¢ paid"))).toBe(false);
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "subcontract-play:ipo-1"),
+    ).toBe(true);
+    expect(s.log.some((line) => line.includes("Play cost of 8¢ paid"))).toBe(
+      false,
+    );
 
     s = must(s, { type: "choose_option", optionId: "subcontract-play:ipo-1" });
     const ipoSeparate = at(s.log, "IPO is played separately");
@@ -548,7 +617,6 @@ describe("CR examples, chapter 8", () => {
     expect(s.cards["ipo-1"]?.zone).toBe("corp:archives");
     expect(s.checkpoints).toHaveLength(0);
   });
-
 
   it("trashes Test Run once its lingering effect exists, and that effect returns the program at the end of the turn (CR 8.6.4.ex1)", () => {
     let s = createInitialState();
@@ -584,7 +652,8 @@ describe("CR examples, chapter 8", () => {
     s = must(s, { type: "pass_window" });
 
     const returned = s.log.findIndex(
-      (line) => line === "Corroder returns to the stack at the end of the turn.",
+      (line) =>
+        line === "Corroder returns to the stack at the end of the turn.",
     );
     expect(returned, "end of turn").toBeGreaterThanOrEqual(0);
     expect(complete).toBeLessThan(returned);
@@ -594,7 +663,6 @@ describe("CR examples, chapter 8", () => {
     expect(s.cards["tr-1"]?.zone).toBe("runner:heap");
     expect(s.checkpoints).toHaveLength(0);
   });
-
 
   it("does not trash Ashen Epilogue after its last ability removes it from the game (CR 8.6.6a.ex1)", () => {
     let s = createInitialState();
@@ -619,8 +687,7 @@ describe("CR examples, chapter 8", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-
-    it("cannot find an event with Artist Colony (CR 8.7.2b.ex1)", () => {
+  it("cannot find an event with Artist Colony (CR 8.7.2b.ex1)", () => {
     let s = createInitialState();
     const colony = instantiateCard("artist-colony", "ac-1", "runner:installed");
     s.cards["ac-1"] = colony;
@@ -646,11 +713,12 @@ describe("CR examples, chapter 8", () => {
     expect(s.runner.deck).toContain("sg-1");
     expect(s.runner.installed).not.toContain("sg-1");
     expect(s.runner.scoreArea).not.toContain("ag-1");
-    expect(s.log.some((line) => line.includes("Artist Colony — no program/resource/hardware in stack."))).toBe(
-      true,
-    );
+    expect(
+      s.log.some((line) =>
+        line.includes("Artist Colony — no program/resource/hardware in stack."),
+      ),
+    ).toBe(true);
   });
-
 
   it("lets Self-modifying Code install Imp by trashing a grip card for Patchwork (CR 8.7.2b.ex2)", () => {
     const s = runnerTurn(createInitialState(), 0, 0);
@@ -692,10 +760,13 @@ describe("CR examples, chapter 8", () => {
     expect(empty.runner.deck).toContain("imp-2");
   });
 
-
   it("installs Pharos from Tucana with 0 credits and reveals it (CR 8.7.2b.ex3)", () => {
     const s = createInitialState();
-    const tucana = instantiateCard("tucana", "tucana-1", "server:remote-1:root");
+    const tucana = instantiateCard(
+      "tucana",
+      "tucana-1",
+      "server:remote-1:root",
+    );
     tucana.rezzed = true;
     const pharos = instantiateCard("pharos", "pharos-1", "corp:rd");
     pharos.faceup = false;
@@ -724,7 +795,6 @@ describe("CR examples, chapter 8", () => {
     expect(s.log.join("\n")).toContain("Reveal Pharos (CR 8.5.13d)");
   });
 
-
   it("shuffles R&D before Tech Startup installs and before Near-Earth Hub draws (CR 8.7.3.ex1)", () => {
     const s = createInitialState();
     const identity = instantiateCard(
@@ -732,7 +802,11 @@ describe("CR examples, chapter 8", () => {
       s.corp.identityId,
       "corp:identity",
     );
-    const startup = instantiateCard("tech-startup", "ts-1", "server:remote-1:root");
+    const startup = instantiateCard(
+      "tech-startup",
+      "ts-1",
+      "server:remote-1:root",
+    );
     startup.rezzed = true;
     const asset = instantiateCard("pad-campaign", "pad-1", "corp:rd");
     asset.faceup = false;
@@ -756,7 +830,10 @@ describe("CR examples, chapter 8", () => {
       fx.do({ kind: "search_rd_asset_install" }),
     );
     if (!searching.ok) throw new Error(searching.error);
-    const installed = must(s, { type: "choose_option", optionId: "tech-startup:pad-1" });
+    const installed = must(s, {
+      type: "choose_option",
+      optionId: "tech-startup:pad-1",
+    });
     const text = installed.log.join("\n");
     const shuffleAt = text.indexOf("shuffle R&D");
     const installAt = text.indexOf("install PAD Campaign");
@@ -769,17 +846,24 @@ describe("CR examples, chapter 8", () => {
     expect(installed.servers["remote-2"]?.root).toContain("pad-1");
   });
 
-
   it("does not swap Hostile Takeover into PAD Campaign's server when Metamorph swaps non-ice (CR 8.8.2.ex1)", () => {
     let s = createInitialState();
     const ice = instantiateCard("metamorph", "meta-1", "server:hq:ice");
-    const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:remote-1:root",
+    );
     const upgrade = instantiateCard(
       "corporate-troubleshooter",
       "ct-1",
       "server:remote-2:root",
     );
-    const asset = instantiateCard("pad-campaign", "pad-1", "server:remote-2:root");
+    const asset = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-2:root",
+    );
     s.cards["meta-1"] = ice;
     s.cards["ht-1"] = agenda;
     s.cards["ct-1"] = upgrade;
@@ -821,15 +905,22 @@ describe("CR examples, chapter 8", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-
-    it("leaves Botulus hosted on Palisade when Thimblerig swaps with it (CR 8.8.3a.ex1)", () => {
+  it("leaves Botulus hosted on Palisade when Thimblerig swaps with it (CR 8.8.3a.ex1)", () => {
     let s = createInitialState();
     remote(s, "remote-1", ["th-1"]);
     remote(s, "remote-2", ["pal-1"]);
-    const thimble = instantiateCard("thimblerig", "th-1", "server:remote-1:ice");
+    const thimble = instantiateCard(
+      "thimblerig",
+      "th-1",
+      "server:remote-1:ice",
+    );
     thimble.rezzed = true;
     thimble.faceup = true;
-    const palisade = instantiateCard("palisade", "pal-1", "server:remote-2:ice");
+    const palisade = instantiateCard(
+      "palisade",
+      "pal-1",
+      "server:remote-2:ice",
+    );
     palisade.rezzed = true;
     palisade.faceup = true;
     s.cards["th-1"] = thimble;
@@ -849,7 +940,10 @@ describe("CR examples, chapter 8", () => {
     enterStep(s, "corp.turnBegins");
     autoWalk(s);
     expect(s.pendingChoice?.sourceId).toBe("th-1");
-    const swapped = must(s, { type: "choose_option", optionId: "swap-ice:pal-1" });
+    const swapped = must(s, {
+      type: "choose_option",
+      optionId: "swap-ice:pal-1",
+    });
     expect(swapped.servers["remote-1"]!.ice).toEqual(["pal-1"]);
     expect(swapped.servers["remote-2"]!.ice).toEqual(["th-1"]);
     expect(swapped.cards["bot-1"]?.hostId).toBe("pal-1");
@@ -857,10 +951,13 @@ describe("CR examples, chapter 8", () => {
     expect(swapped.runner.installed).toContain("bot-1");
   });
 
-
   it("meets A Teia's install at the checkpoint after Tatu-Bola swaps, then gains 4 (CR 8.8.4b.ex1)", () => {
     let s = createInitialState();
-    const teia = instantiateCard("a-teia-ip-recovery", "teia-1", "corp:identity");
+    const teia = instantiateCard(
+      "a-teia-ip-recovery",
+      "teia-1",
+      "corp:identity",
+    );
     s.cards["teia-1"] = teia;
     s.corp.identityId = "teia-1";
     const tatu = instantiateCard("tatu-bola", "tb-1", "server:remote-1:ice");
@@ -907,6 +1004,4 @@ describe("CR examples, chapter 8", () => {
     expect(s.pendingChoice).toBeNull();
     expect(s.checkpoints).toHaveLength(0);
   });
-
-
 });

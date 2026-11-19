@@ -85,7 +85,13 @@ function installed(s: GameState, defId: string, id: string) {
   return card;
 }
 
-function ice(s: GameState, defId: string, id: string, serverId: string, rezzed: boolean) {
+function ice(
+  s: GameState,
+  defId: string,
+  id: string,
+  serverId: string,
+  rezzed: boolean,
+) {
   if (!s.servers[serverId]) {
     s.servers[serverId] = { id: serverId, kind: "remote", ice: [], root: [] };
   }
@@ -104,8 +110,16 @@ function scored(s: GameState, defId: string, id: string) {
   return card;
 }
 
-function run(s: GameState, sourceId: string, kind: string, extra: object = {}): void {
-  const r = evalEffect({ state: s, sourceId }, fx.do({ kind, ...extra } as never));
+function run(
+  s: GameState,
+  sourceId: string,
+  kind: string,
+  extra: object = {},
+): void {
+  const r = evalEffect(
+    { state: s, sourceId },
+    fx.do({ kind, ...extra } as never),
+  );
   if (!r.ok) throw new Error(`${kind}: ${r.error}`);
 }
 
@@ -162,7 +176,11 @@ const optionIds = (s: GameState): string[] =>
   (s.pendingChoice?.options ?? []).map((o) => o.id);
 
 describe("sabotage: the Corp chooses the HQ cards (CR 10.12.2)", () => {
-  function sabotaged(amount: number, hqCards: number, rdCards: number): GameState {
+  function sabotaged(
+    amount: number,
+    hqCards: number,
+    rdCards: number,
+  ): GameState {
     const s = createInitialState();
     hq(
       s,
@@ -172,7 +190,10 @@ describe("sabotage: the Corp chooses the HQ cards (CR 10.12.2)", () => {
     );
     rd(
       s,
-      Array.from({ length: rdCards }, (_, i) => ["hedge-fund", `r-${i}`] as [string, string]),
+      Array.from(
+        { length: rdCards },
+        (_, i) => ["hedge-fund", `r-${i}`] as [string, string],
+      ),
     );
     run(s, s.runner.identityId, "sabotage", { amount });
     return s;
@@ -184,7 +205,10 @@ describe("sabotage: the Corp chooses the HQ cards (CR 10.12.2)", () => {
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(optionIds(s).sort()).toEqual(["sabotage-hq:h-0", "sabotage-hq:h-1"]);
     const legal = legalActions(s);
-    expect(legal).toContainEqual({ type: "choose_option", optionId: "sabotage-hq:h-0" });
+    expect(legal).toContainEqual({
+      type: "choose_option",
+      optionId: "sabotage-hq:h-0",
+    });
     expect(legal).toContainEqual({ type: "resolve_sabotage", hqCardIds: [] });
     const none = must(s, { type: "resolve_sabotage", hqCardIds: [] });
     expect(none.corp.hand).toEqual(["h-0", "h-1"]);
@@ -198,13 +222,19 @@ describe("sabotage: the Corp chooses the HQ cards (CR 10.12.2)", () => {
     s = must(s, { type: "choose_option", optionId: "sabotage-hq:h-0" });
     // One picked: the Corp may stop here or pick the other.
     expect(s.pendingSabotage?.picked).toEqual(["h-0"]);
-    expect(legalActions(s)).toContainEqual({ type: "resolve_sabotage", hqCardIds: ["h-0"] });
+    expect(legalActions(s)).toContainEqual({
+      type: "resolve_sabotage",
+      hqCardIds: ["h-0"],
+    });
     const one = must(s, { type: "resolve_sabotage", hqCardIds: ["h-0"] });
     expect(one.corp.hand).toEqual(["h-1"]);
     expect(one.corp.deck).toHaveLength(4);
     expect(one.cards["h-0"].faceup).toBe(false);
     // Picking as many as the sabotage takes resolves it.
-    const both = must(s, { type: "choose_option", optionId: "sabotage-hq:h-1" });
+    const both = must(s, {
+      type: "choose_option",
+      optionId: "sabotage-hq:h-1",
+    });
     expect(both.pendingSabotage).toBeNull();
     expect(both.corp.hand).toEqual([]);
     expect(both.corp.deck).toHaveLength(5);
@@ -225,12 +255,20 @@ describe("sabotage: the Corp chooses the HQ cards (CR 10.12.2)", () => {
     const s = sabotaged(4, 4, 2);
     const legal = legalActions(s);
     expect(legal.some((a) => a.type === "resolve_sabotage")).toBe(false);
-    expect(applyAction(s, { type: "resolve_sabotage", hqCardIds: [] }).ok).toBe(false);
+    expect(applyAction(s, { type: "resolve_sabotage", hqCardIds: [] }).ok).toBe(
+      false,
+    );
     let t = must(s, { type: "choose_option", optionId: "sabotage-hq:h-3" });
-    expect(legalActions(t).some((a) => a.type === "resolve_sabotage")).toBe(false);
+    expect(legalActions(t).some((a) => a.type === "resolve_sabotage")).toBe(
+      false,
+    );
     // Each pick re-opens the window without the picked card, hidden from
     // the Runner (CR 10.12.2).
-    expect(optionIds(t).sort()).toEqual(["sabotage-hq:h-0", "sabotage-hq:h-1", "sabotage-hq:h-2"]);
+    expect(optionIds(t).sort()).toEqual([
+      "sabotage-hq:h-0",
+      "sabotage-hq:h-1",
+      "sabotage-hq:h-2",
+    ]);
     expect(t.pendingChoice?.chooser).toBe("corp");
     expect(t.pendingChoice?.hiddenFromOpponent).toBe(true);
     expect(t.pendingChoice?.prompt).toContain("(1 chosen)");
@@ -319,7 +357,8 @@ describe("costs: the payer picks (CR 1.16.1)", () => {
       ["corroder", "g-3"],
       ["mimic", "g-4"],
     ]);
-    for (let i = 0; i < 5; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    for (let i = 0; i < 5; i++)
+      put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3", "stk-4"];
     let t = must(s, { type: "play_event", cardId: "mosh-1" });
     expect(t.pendingCost?.count).toBe(3);
@@ -328,7 +367,9 @@ describe("costs: the payer picks (CR 1.16.1)", () => {
     t = pickCost(t, "g-4");
     t = pickCost(t, "g-1");
     t = pickCost(t, "g-2");
-    expect(t.runner.discardPile).toEqual(expect.arrayContaining(["g-4", "g-1", "g-2"]));
+    expect(t.runner.discardPile).toEqual(
+      expect.arrayContaining(["g-4", "g-1", "g-2"]),
+    );
     expect(t.runner.hand).toContain("g-3");
     expect(t.runner.hand).toHaveLength(4); // g-3 and three drawn
     expect(t.runner.credits).toBe(13);
@@ -342,10 +383,15 @@ describe("costs: the payer picks (CR 1.16.1)", () => {
     approach(s);
     let t = must(s, { type: "rez_ice", cardId: "arch-1" });
     expect(t.pendingCost?.payer).toBe("corp");
-    expect(optionIds(t).sort()).toEqual(["cost-card:atlas-1", "cost-card:ht-1"]);
+    expect(optionIds(t).sort()).toEqual([
+      "cost-card:atlas-1",
+      "cost-card:ht-1",
+    ]);
     // The score area is open: the Runner sees the options.
     expect(
-      getPublicView(t, "runner").pendingChoice?.options.map((o) => o.id).sort(),
+      getPublicView(t, "runner")
+        .pendingChoice?.options.map((o) => o.id)
+        .sort(),
     ).toEqual(["cost-card:atlas-1", "cost-card:ht-1"]);
     expect(t.cards["arch-1"].rezzed).toBe(false);
     t = pickCost(t, "ht-1");
@@ -361,7 +407,10 @@ describe("costs: the payer picks (CR 1.16.1)", () => {
     a.subtypes = [...(a.subtypes ?? []), "harmonic"];
     b.subtypes = [...(b.subtypes ?? []), "harmonic"];
     let t = must(s, { type: "rez_ice", cardId: "bloop-1" });
-    expect(optionIds(t).sort()).toEqual(["cost-card:harm-1", "cost-card:harm-2"]);
+    expect(optionIds(t).sort()).toEqual([
+      "cost-card:harm-1",
+      "cost-card:harm-2",
+    ]);
     t = pickCost(t, "harm-2");
     expect(t.cards["bloop-1"].rezzed).toBe(true);
     expect(t.cards["harm-2"].rezzed).toBe(false);
@@ -405,10 +454,18 @@ describe("Housekeeping (card text)", () => {
       ["diesel", "g-2"],
     ]);
     s.runner.credits = 20;
-    s = must(s, { type: "basic_install", cardId: "res-1", destination: { kind: "installed" } });
+    s = must(s, {
+      type: "basic_install",
+      cardId: "res-1",
+      destination: { kind: "installed" },
+    });
     s = pick(s, "g-1");
     s.timingKey = "runner.takeAction";
-    s = must(s, { type: "basic_install", cardId: "res-2", destination: { kind: "installed" } });
+    s = must(s, {
+      type: "basic_install",
+      cardId: "res-2",
+      destination: { kind: "installed" },
+    });
     expect(s.pendingChoice ?? null).toBeNull();
     expect(s.runner.hand).toEqual(["g-2"]);
   });
@@ -437,7 +494,9 @@ describe("Titanium Ribs: the Runner chooses the cards damage trashes (card text)
     expect(optionIds(t).sort()).toEqual(["ribs:g-1", "ribs:g-2"]);
     t = must(t, { type: "choose_option", optionId: "ribs:g-1" });
     expect(t.runner.hand).toEqual(["g-2"]);
-    expect(t.runner.discardPile).toEqual(expect.arrayContaining(["g-1", "g-3"]));
+    expect(t.runner.discardPile).toEqual(
+      expect.arrayContaining(["g-1", "g-3"]),
+    );
     expect(t.pendingChoice ?? null).toBeNull();
     expect(t.winner ?? null).toBeNull();
   });
@@ -588,7 +647,7 @@ describe("searching R&D (CR 8.7)", () => {
     expect(logged(t)).toContain("reveal Hostile Takeover");
   });
 
-  it("\"up to\" lets the Corp stop early", () => {
+  it('"up to" lets the Corp stop early', () => {
     const s = corpTurn();
     put(s, "hortum", "hort-1", "server:hq:ice");
     rd(s, [
@@ -653,9 +712,17 @@ describe("other instructions where the player picks (CR 1.15.2)", () => {
     // from HQ at random (HQ held exactly those 5).
     expect(t.corp.hand).toEqual([]);
     expect(t.corp.discardPile).toHaveLength(6);
-    expect(t.corp.discardPile.every((id) => t.cards[id].faceup === false)).toBe(true);
+    expect(t.corp.discardPile.every((id) => t.cards[id].faceup === false)).toBe(
+      true,
+    );
     const lines = logged(t);
-    for (const title of ["Hedge Fund", "Ice Wall", "PAD Campaign", "Hostile Takeover", "Project Atlas"]) {
+    for (const title of [
+      "Hedge Fund",
+      "Ice Wall",
+      "PAD Campaign",
+      "Hostile Takeover",
+      "Project Atlas",
+    ]) {
       expect(lines).not.toContain(title);
     }
   });

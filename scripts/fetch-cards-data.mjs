@@ -67,7 +67,9 @@ async function fetchFromArchive() {
     execFileSync("tar", ["-xzf", tgz, "-C", tmp], { stdio: "inherit" });
     const entries = readdirSync(tmp).filter((n) => n !== "cards.tgz");
     if (entries.length !== 1) {
-      throw new Error(`Expected one top-level dir in archive, got: ${entries.join(", ")}`);
+      throw new Error(
+        `Expected one top-level dir in archive, got: ${entries.join(", ")}`,
+      );
     }
     const extracted = join(tmp, entries[0]);
     const dataDir = join(extracted, pin.dataPrefix ?? "data");
@@ -94,7 +96,9 @@ function assertRequired() {
   for (const rel of pin.required ?? []) {
     const path = join(outDir, rel);
     if (!existsSync(path)) {
-      throw new Error(`Missing required path after fetch: vendor/cards-data/${rel}`);
+      throw new Error(
+        `Missing required path after fetch: vendor/cards-data/${rel}`,
+      );
     }
   }
 }

@@ -12,12 +12,13 @@ import {
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
-import { maybeTrashHostsAtStrengthLte, trashCorpCardToArchives } from "./corpTrash.js";
+import {
+  maybeTrashHostsAtStrengthLte,
+  trashCorpCardToArchives,
+} from "./corpTrash.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
-import {
-  fireOnPowerCountersEmpty,
-} from "../state/miscConditionalHooks.js";
+import { fireOnPowerCountersEmpty } from "../state/miscConditionalHooks.js";
 
 export function applyCounterPrimitive(
   ctx: EffectCtx,
@@ -124,10 +125,7 @@ export function applyCounterPrimitive(
       ) {
         recomputeRunnerMaxHandSize(state);
       }
-      if (
-        source.trashWhenPowerEmpty &&
-        (source.powerCounters ?? 0) <= 0
-      ) {
+      if (source.trashWhenPowerEmpty && (source.powerCounters ?? 0) <= 0) {
         if (source.onPowerCountersEmpty) {
           fireOnPowerCountersEmpty(state, sourceId);
         }
@@ -147,10 +145,7 @@ export function applyCounterPrimitive(
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
         );
         recomputeRunnerMaxHandSize(state);
-      } else if (
-        source.rfgWhenPowerEmpty &&
-        (source.powerCounters ?? 0) <= 0
-      ) {
+      } else if (source.rfgWhenPowerEmpty && (source.powerCounters ?? 0) <= 0) {
         removeCardFromCurrentZone(state, sourceId);
         source.zone = "removed-from-game";
         source.faceup = true;
@@ -181,10 +176,7 @@ export function applyCounterPrimitive(
     case "remove_all_power_counters": {
       const have = source.powerCounters ?? 0;
       source.powerCounters = 0;
-      log(
-        state,
-        `Remove all ${have} power counter(s) from ${source.title}.`,
-      );
+      log(state, `Remove all ${have} power counter(s) from ${source.title}.`);
       syncEtrPerPowerCounterSubs(source, state);
       if (
         source.handSizePerPowerCounter ||
@@ -225,7 +217,7 @@ export function applyCounterPrimitive(
       }
       return { ok: true };
     }
-case "add_power_counter": {
+    case "add_power_counter": {
       source.powerCounters = (source.powerCounters ?? 0) + action.amount;
       log(
         state,

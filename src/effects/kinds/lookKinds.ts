@@ -3,10 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { lookAtCards } from "../../state/reveal.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import {
@@ -16,16 +13,16 @@ import {
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
-import {
-  offerRdArrangeChoice,
-  offerCultivateTrashChoice,
-} from "../eval.js";
+import { offerRdArrangeChoice, offerCultivateTrashChoice } from "../eval.js";
 
-export function applyLookKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyLookKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "look_top_last_trace_excess_stack_trash_one_arrange_rest": {
+    case "look_top_last_trace_excess_stack_trash_one_arrange_rest": {
       const n = Math.max(0, state.turn.lastTraceExcess ?? 0);
       if (n <= 0) {
         log(state, `${source.title} — look top 0 of stack (no excess).`);
@@ -55,12 +52,12 @@ case "look_top_last_trace_excess_stack_trash_one_arrange_rest": {
             },
           },
         })),
-logLine: `${source.title} — Corp trashes 1 of ${taken.length} looked card(s).`,
-});
+        logLine: `${source.title} — Corp trashes 1 of ${taken.length} looked card(s).`,
+      });
       return { ok: true };
     }
 
-case "look_top_n_rd_may_install_one": {
+    case "look_top_n_rd_may_install_one": {
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
         return {
@@ -118,12 +115,12 @@ case "look_top_n_rd_may_install_one": {
             },
           })),
         ],
-logLine: `May install one looked R&D card paying install costs.`,
-});
+        logLine: `May install one looked R&D card paying install costs.`,
+      });
       return { ok: true };
     }
 
-case "look_top_n_rd_may_install_and_rez_ignore_costs": {
+    case "look_top_n_rd_may_install_and_rez_ignore_costs": {
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
         return {
@@ -179,28 +176,16 @@ case "look_top_n_rd_may_install_and_rez_ignore_costs": {
             };
           }),
         ],
-logLine: `May install and rez one looked R&D card ignoring all costs.`,
-});
+        logLine: `May install and rez one looked R&D card ignoring all costs.`,
+      });
       return { ok: true };
     }
 
-case "look_top_1_rd_choose_type_may_reveal_gain": {
+    case "look_top_1_rd_choose_type_may_reveal_gain": {
       const credits = action.credits ?? 0;
       const types: Array<
-        | "agenda"
-        | "asset"
-        | "ice"
-        | "operation"
-        | "upgrade"
-        | "event"
-      > = [
-        "agenda",
-        "asset",
-        "ice",
-        "operation",
-        "upgrade",
-        "event",
-      ];
+        "agenda" | "asset" | "ice" | "operation" | "upgrade" | "event"
+      > = ["agenda", "asset", "ice", "operation", "upgrade", "event"];
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -216,12 +201,12 @@ case "look_top_1_rd_choose_type_may_reveal_gain": {
             },
           },
         })),
-logLine: `Choose a card type and look at the top card of R&D.`,
-});
+        logLine: `Choose a card type and look at the top card of R&D.`,
+      });
       return { ok: true };
     }
 
-case "look_top_n_rd_peek": {
+    case "look_top_n_rd_peek": {
       const n = Math.max(0, action.n ?? 1);
       const taken = state.corp.deck.splice(
         0,
@@ -237,7 +222,7 @@ case "look_top_n_rd_peek": {
       return { ok: true };
     }
 
-case "look_top_n_rd_arrange": {
+    case "look_top_n_rd_arrange": {
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
         return {
@@ -260,7 +245,7 @@ case "look_top_n_rd_arrange": {
       return offerRdArrangeChoice(state, sourceId);
     }
 
-case "look_top_n_rd_trash_one_hq_one_arrange_rest": {
+    case "look_top_n_rd_trash_one_hq_one_arrange_rest": {
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
         return {
@@ -284,7 +269,7 @@ case "look_top_n_rd_trash_one_hq_one_arrange_rest": {
       return offerCultivateTrashChoice(state, sourceId);
     }
 
-case "look_class_act_top_draw_amount_plus_one_bottom_one": {
+    case "look_class_act_top_draw_amount_plus_one_bottom_one": {
       const amount = state.turn.pendingWouldDrawAmount ?? 0;
       const lookN = Math.max(0, amount + 1);
       const taken = state.runner.deck.splice(
@@ -297,21 +282,23 @@ case "look_class_act_top_draw_amount_plus_one_bottom_one": {
         return { ok: true };
       }
       lookAtCards(state, taken, sourceId);
-      if (!openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: taken.map((id) => ({
-          id: `class-act-bottom:${id}`,
-          label: `Add ${state.cards[id]!.title} to bottom of stack`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "draw_class_act_bottom_one_then" as const,
-              cardId: id,
+      if (
+        !openPendingChoose(state, {
+          sourceId,
+          chooser: "runner",
+          options: taken.map((id) => ({
+            id: `class-act-bottom:${id}`,
+            label: `Add ${state.cards[id]!.title} to bottom of stack`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "draw_class_act_bottom_one_then" as const,
+                cardId: id,
+              },
             },
-          },
-        })),
-      })) {
+          })),
+        })
+      ) {
         for (let i = taken.length - 1; i >= 0; i--) {
           const id = taken[i]!;
           state.cards[id]!.faceup = false;
@@ -328,7 +315,7 @@ case "look_class_act_top_draw_amount_plus_one_bottom_one": {
       return { ok: true };
     }
 
-case "look_top_rd_may_trash_if_do_archives_to_hq": {
+    case "look_top_rd_may_trash_if_do_archives_to_hq": {
       if (state.corp.deck.length === 0) {
         log(state, `Look at top of R&D — empty.`);
         return { ok: true };
@@ -363,12 +350,12 @@ case "look_top_rd_may_trash_if_do_archives_to_hq": {
             },
           },
         ],
-logLine: `Look at top of R&D — may trash; if so, Archives → HQ.`,
-});
+        logLine: `Look at top of R&D — may trash; if so, Archives → HQ.`,
+      });
       return { ok: true };
     }
 
-case "look_top_stack_may_reveal_breaker_or_run_event": {
+    case "look_top_stack_may_reveal_breaker_or_run_event": {
       const top = state.runner.deck[0];
       if (!top) {
         log(state, `Look top of stack — empty.`);
@@ -410,7 +397,7 @@ case "look_top_stack_may_reveal_breaker_or_run_event": {
       return { ok: true };
     }
 
-case "look_top_n_stack_may_bottom_one": {
+    case "look_top_n_stack_may_bottom_one": {
       const n = Math.max(0, action.n ?? 0);
       const taken = state.runner.deck.splice(
         0,
@@ -449,12 +436,12 @@ case "look_top_n_stack_may_bottom_one": {
             },
           })),
         ],
-logLine: `${source.title} — may add 1 of ${taken.length} looked card(s) to bottom.`,
-});
+        logLine: `${source.title} — may add 1 of ${taken.length} looked card(s) to bottom.`,
+      });
       return { ok: true };
     }
 
-case "look_top_n_stack_bottom_one": {
+    case "look_top_n_stack_bottom_one": {
       const looked = action.lookedIds ?? [];
       const bottomId = action.cardId;
       const keep: string[] = [];
@@ -470,17 +457,14 @@ case "look_top_n_stack_bottom_one": {
       if (bottomId && looked.includes(bottomId)) {
         state.cards[bottomId]!.faceup = false;
         state.runner.deck.push(bottomId);
-        log(
-          state,
-          `Add ${state.cards[bottomId]!.title} to bottom of stack.`,
-        );
+        log(state, `Add ${state.cards[bottomId]!.title} to bottom of stack.`);
       } else {
         log(state, `Leave looked card(s) on top of stack.`);
       }
       return { ok: true };
     }
 
-case "look_top_rd_may_trash": {
+    case "look_top_rd_may_trash": {
       if (state.corp.deck.length === 0) {
         log(state, `Look at top of R&D — empty.`);
         return { ok: true };
@@ -509,12 +493,12 @@ case "look_top_rd_may_trash": {
             },
           },
         ],
-logLine: `Look at top of R&D — may trash.`,
-});
+        logLine: `Look at top of R&D — may trash.`,
+      });
       return { ok: true };
     }
 
-case "look_top_rd_may_bottom": {
+    case "look_top_rd_may_bottom": {
       if (state.corp.deck.length === 0) {
         log(state, `Look at top of R&D — empty.`);
         return { ok: true };
@@ -543,12 +527,12 @@ case "look_top_rd_may_bottom": {
             },
           },
         ],
-logLine: `Look at top of R&D — may bottom.`,
-});
+        logLine: `Look at top of R&D — may bottom.`,
+      });
       return { ok: true };
     }
 
-case "look_top_rd_may_advance_may_bottom": {
+    case "look_top_rd_may_advance_may_bottom": {
       if (state.corp.deck.length === 0) {
         log(state, `Look at top of R&D — empty.`);
         return { ok: true };
@@ -593,12 +577,12 @@ case "look_top_rd_may_advance_may_bottom": {
             },
           },
         ],
-logLine: `Look at top of R&D — may advance, then may bottom.`,
-});
+        logLine: `Look at top of R&D — may advance, then may bottom.`,
+      });
       return { ok: true };
     }
 
-case "look_top_n_stack_peek": {
+    case "look_top_n_stack_peek": {
       const n = Math.max(0, action.amount ?? 0);
       const taken = state.runner.deck.splice(
         0,

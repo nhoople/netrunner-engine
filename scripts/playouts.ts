@@ -34,11 +34,13 @@ const from = Number(arg("from") ?? 1);
 const steps = Number(arg("steps") ?? PLAYOUT_STEPS);
 const formats = (arg("formats")?.split(",") ?? [...FORMATS]) as Format[];
 for (const format of formats) {
-  if (!FORMATS.includes(format)) throw new Error(`unknown format ${format}; one of ${FORMATS.join(", ")}`);
+  if (!FORMATS.includes(format))
+    throw new Error(`unknown format ${format}; one of ${FORMATS.join(", ")}`);
 }
 const write = process.argv.includes("--write");
 const jsonOut = arg("json");
-if (write && steps !== PLAYOUT_STEPS) throw new Error(`--write records ${PLAYOUT_STEPS}-step playouts only`);
+if (write && steps !== PLAYOUT_STEPS)
+  throw new Error(`--write records ${PLAYOUT_STEPS}-step playouts only`);
 
 setApplyHook(null);
 const started = Date.now();
@@ -51,7 +53,9 @@ for (const format of formats) {
     results.push(result);
     if (result.finished) finished += 1;
   }
-  console.error(`${format}: ${seeds} playouts, ${finished} finished, ${Date.now() - t0} ms`);
+  console.error(
+    `${format}: ${seeds} playouts, ${finished} finished, ${Date.now() - t0} ms`,
+  );
 }
 
 // Summary: format × code → seeds that hit it.
@@ -65,7 +69,9 @@ for (const result of results) {
     list.push(result.seed);
   }
 }
-console.log(`\n${results.length} playouts × ${steps} steps in ${((Date.now() - started) / 1000).toFixed(1)} s`);
+console.log(
+  `\n${results.length} playouts × ${steps} steps in ${((Date.now() - started) / 1000).toFixed(1)} s`,
+);
 console.log("| Format | Code | Seeds failing | Example seeds |");
 console.log("|---|---|---|---|");
 for (const format of formats) {
@@ -75,7 +81,9 @@ for (const format of formats) {
     continue;
   }
   for (const [code, list] of [...byCode].sort()) {
-    console.log(`| ${format} | ${code} | ${list.length} / ${seeds} | ${list.slice(0, 5).join(", ")} |`);
+    console.log(
+      `| ${format} | ${code} | ${list.length} / ${seeds} | ${list.slice(0, 5).join(", ")} |`,
+    );
   }
 }
 
@@ -85,24 +93,39 @@ if (write) {
   const file = readSeeds();
   const played = new Set(results.map((r) => `${r.format}#${r.seed}`));
   const firstRecorded = new Map(
-    file.entries.map((e) => [`${e.format}#${e.deckSeed}#${failureKey(e)}`, e.recorded]),
+    file.entries.map((e) => [
+      `${e.format}#${e.deckSeed}#${failureKey(e)}`,
+      e.recorded,
+    ]),
   );
   const today = new Date().toISOString().slice(0, 10);
-  const kept = file.entries.filter((e) => !played.has(`${e.format}#${e.deckSeed}`));
+  const kept = file.entries.filter(
+    (e) => !played.has(`${e.format}#${e.deckSeed}`),
+  );
   const fresh: SeedEntry[] = results.flatMap((r) =>
     r.failures.map((f) => ({
       format: r.format,
       deckSeed: r.seed,
       step: f.step,
       code: f.code,
-      recorded: firstRecorded.get(`${r.format}#${r.seed}#${failureKey(f)}`) ?? today,
+      recorded:
+        firstRecorded.get(`${r.format}#${r.seed}#${failureKey(f)}`) ?? today,
       detail: f.detail,
     })),
   );
   const order = (e: SeedEntry) => FORMATS.indexOf(e.format);
   const entries = [...kept, ...fresh].sort(
-    (a, b) => order(a) - order(b) || a.deckSeed - b.deckSeed || a.step - b.step || a.code.localeCompare(b.code),
+    (a, b) =>
+      order(a) - order(b) ||
+      a.deckSeed - b.deckSeed ||
+      a.step - b.step ||
+      a.code.localeCompare(b.code),
   );
-  writeFileSync(SEEDS_PATH, `${JSON.stringify({ steps: PLAYOUT_STEPS, entries }, null, 2)}\n`);
-  console.error(`wrote ${entries.length} entries to tests/fixtures/playout-seeds.json`);
+  writeFileSync(
+    SEEDS_PATH,
+    `${JSON.stringify({ steps: PLAYOUT_STEPS, entries }, null, 2)}\n`,
+  );
+  console.error(
+    `wrote ${entries.length} entries to tests/fixtures/playout-seeds.json`,
+  );
 }

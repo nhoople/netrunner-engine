@@ -34,10 +34,7 @@ export function maybeFirePowerCountersGte(
   );
   const r = evalEffect({ state, sourceId: cardId }, effect);
   if (!r.ok) {
-    log(
-      state,
-      `onPowerCountersGte failed on ${card.title}: ${r.error}`,
-    );
+    log(state, `onPowerCountersGte failed on ${card.title}: ${r.error}`);
   }
 }
 
@@ -77,10 +74,7 @@ export function syncEtrPerPowerCounterSubs(
  * NEXT Silver-class: ice gains an ETR after printed ones for each rezzed
  * ice with a matching subtype. Blanked ice keeps only printed base (CR 9.12.1d).
  */
-export function syncNextSubtypeEtrSubs(
-  state: GameState,
-  iceId: string,
-): void {
+export function syncNextSubtypeEtrSubs(state: GameState, iceId: string): void {
   const ice = state.cards[iceId];
   const sub = ice?.dynamicEtrSubroutineCountFromRezzedIceSubtype;
   if (!ice || !sub) return;
@@ -123,9 +117,7 @@ export function syncNextSubtypeEtrSubs(
  * Woodcutter/Tyrant-class: gains one copy of a subroutine template per
  * hosted advancement counter (after printed ones).
  */
-export function syncGainsSubroutinesPerAdvancement(
-  card: CardInstance,
-): void {
+export function syncGainsSubroutinesPerAdvancement(card: CardInstance): void {
   const spec = card.continuousGainedSubDecls?.find(
     (d) => d.kind === "per_advancement",
   );

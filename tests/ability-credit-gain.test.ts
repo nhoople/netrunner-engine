@@ -40,7 +40,11 @@ function corpWithNasx() {
 describe("ability credit gains", () => {
   it("offers NASX on an aggregated per-advancement gain", () => {
     const s = corpWithNasx();
-    const agenda = instantiateCard("hostile-takeover", "agenda-1", "server:hq:root");
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "agenda-1",
+      "server:hq:root",
+    );
     agenda.rezzed = true;
     agenda.advancementCounters = 3;
     s.cards["agenda-1"] = agenda;
@@ -73,7 +77,11 @@ describe("ability credit gains", () => {
 
   it("does not gain or offer NASX when the tally is 0", () => {
     const s = corpWithNasx();
-    const agenda = instantiateCard("hostile-takeover", "agenda-1", "server:hq:root");
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "agenda-1",
+      "server:hq:root",
+    );
     agenda.advancementCounters = 0;
     s.cards["agenda-1"] = agenda;
     s.servers.hq!.root.push("agenda-1");
@@ -149,7 +157,10 @@ describe("ability credit gains", () => {
       },
     ]);
 
-    const declined = applyAction(s, { type: "choose_option", optionId: "decline" });
+    const declined = applyAction(s, {
+      type: "choose_option",
+      optionId: "decline",
+    });
     expect(declined.ok).toBe(true);
     if (!declined.ok) return;
     expect(declined.state.cards["ice-b"]!.rezzed).toBe(false);

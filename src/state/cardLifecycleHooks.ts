@@ -31,11 +31,11 @@ function noteAndCheckpointStored(
   checkpointAfterInstruction(state, openedBy);
   return Boolean(
     state.pendingChoice ||
-      state.pendingTags ||
-      state.pendingDamage ||
-      state.psi ||
-      state.trace ||
-      state.done,
+    state.pendingTags ||
+    state.pendingDamage ||
+    state.psi ||
+    state.trace ||
+    state.done,
   );
 }
 
@@ -97,7 +97,10 @@ export function fireOnPlay(state: GameState, cardId: string): boolean {
  * (Nebula Talent Management). This is not the Corp's action count: only
  * the basic action is "Play 1 operation from HQ" (CR 5.2.5b, 5.2.6e).
  */
-export function noteCorpOperationPlayed(state: GameState, cardId: string): void {
+export function noteCorpOperationPlayed(
+  state: GameState,
+  cardId: string,
+): void {
   if (state.cards[cardId]?.type !== "operation") return;
   state.turn.corpOperationsPlayedThisTurn =
     (state.turn.corpOperationsPlayedThisTurn ?? 0) + 1;

@@ -64,7 +64,9 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       "test",
     );
     expect(s.previousCheckpointSnapshot).not.toBeNull();
-    expect(s.previousCheckpointSnapshot?.facts.corpCredits).toBe(s.corp.credits);
+    expect(s.previousCheckpointSnapshot?.facts.corpCredits).toBe(
+      s.corp.credits,
+    );
 
     const before = s.corp.credits;
     s.corp.credits += 3;
@@ -101,9 +103,9 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     s.cards["ht-1"] = agenda;
     s.servers.hq.root = ["ht-1"];
     commitCheckpointSnapshot(s, "before-advance");
-    expect(s.previousCheckpointSnapshot?.facts.cardAdvancementCounters["ht-1"]).toBe(
-      0,
-    );
+    expect(
+      s.previousCheckpointSnapshot?.facts.cardAdvancementCounters["ht-1"],
+    ).toBe(0);
 
     agenda.advancementCounters = 2;
     const diff = diffAgainstPreviousCheckpoint(s);
@@ -174,9 +176,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       "test",
     );
 
-    expect(
-      s.log.some((line) => line.includes("had no tags")),
-    ).toBe(false);
+    expect(s.log.some((line) => line.includes("had no tags"))).toBe(false);
     expect(
       s.pendingAbilities.some(
         (p) => p.abilityKey === "on-take-tags-when-untagged",
@@ -272,11 +272,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     };
     const remoteDiff = diffAgainstPreviousCheckpoint(s);
     expect(
-      evaluateTriggerPredicate(
-        s,
-        remoteDiff,
-        PREDICATE_ENTERED_REMOTE_INSTALL,
-      ),
+      evaluateTriggerPredicate(s, remoteDiff, PREDICATE_ENTERED_REMOTE_INSTALL),
     ).toEqual({
       kind: "entered_remote_install",
       entries: [{ cardId: "remote-asset-1", serverId: "remote-1" }],
@@ -284,11 +280,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
     // Outside breach structure → empty breached-root match.
     expect(
-      evaluateTriggerPredicate(
-        s,
-        remoteDiff,
-        PREDICATE_ENTERED_BREACHED_ROOT,
-      ),
+      evaluateTriggerPredicate(s, remoteDiff, PREDICATE_ENTERED_BREACHED_ROOT),
     ).toEqual({
       kind: "entered_breached_root",
       serverId: null,
@@ -298,7 +290,11 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Find the Truth from draw set-aside zone diff (CR 8.4.5a)", () => {
     const s = createInitialState();
-    const truth = instantiateCard("find-the-truth", "ftt-1", "runner:installed");
+    const truth = instantiateCard(
+      "find-the-truth",
+      "ftt-1",
+      "runner:installed",
+    );
     truth.revealDrawnCards = true;
     s.cards["ftt-1"] = truth;
     s.runner.installed = ["ftt-1"];
@@ -320,18 +316,18 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(
       s.pendingAbilities.some(
-        (p) => p.payload?.kind === "reveal_drawn_card" && p.payload.cardId === drawn,
+        (p) =>
+          p.payload?.kind === "reveal_drawn_card" && p.payload.cardId === drawn,
       ) ||
-        s.log.some((line) =>
-          line.includes("Find the Truth") || line.includes("reveal"),
+        s.log.some(
+          (line) => line.includes("Find the Truth") || line.includes("reveal"),
         ),
     ).toBe(true);
   });
 
   it("marks Valley first damage at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteValDamageTrigger } = await import(
-      "../src/effects/sansanValHooks.js"
-    );
+    const { noteValDamageTrigger } =
+      await import("../src/effects/sansanValHooks.js");
     const s = createInitialState();
     const blood = instantiateCard(
       "synthetic-blood",
@@ -365,9 +361,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Valley first install at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteValRunnerTrigger } = await import(
-      "../src/effects/sansanValHooks.js"
-    );
+    const { noteValRunnerTrigger } =
+      await import("../src/effects/sansanValHooks.js");
     const s = createInitialState();
     const hayley = instantiateCard(
       "hayley-kaplan-universal-scholar",
@@ -395,9 +390,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Valley first click-loss at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteValRunnerTrigger } = await import(
-      "../src/effects/sansanValHooks.js"
-    );
+    const { noteValRunnerTrigger } =
+      await import("../src/effects/sansanValHooks.js");
     const s = createInitialState();
     const chrono = instantiateCard(
       "adjusted-chronotype",
@@ -429,9 +423,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Valley first basic click-draw at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteValRunnerTrigger } = await import(
-      "../src/effects/sansanValHooks.js"
-    );
+    const { noteValRunnerTrigger } =
+      await import("../src/effects/sansanValHooks.js");
     const s = createInitialState();
     const visage = instantiateCard(
       "symmetrical-visage",
@@ -461,9 +454,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first program install at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstProgramInstall } = await import(
-      "../src/state/programHardwareInstall.js"
-    );
+    const { noteFirstProgramInstall } =
+      await import("../src/state/programHardwareInstall.js");
     const s = createInitialState();
     const pad = instantiateCard("lilypad", "pad-1", "runner:installed");
     s.cards["pad-1"] = pad;
@@ -488,9 +480,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first virus install at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstVirusInstall } = await import(
-      "../src/state/virusInstall.js"
-    );
+    const { noteFirstVirusInstall } =
+      await import("../src/state/virusInstall.js");
     const s = createInitialState();
     const avg = instantiateCard(
       "avgustina-ivanovskaya",
@@ -517,9 +508,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Valley first successful run at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteValSuccessfulRunTrigger } = await import(
-      "../src/effects/sansanValHooks.js"
-    );
+    const { noteValSuccessfulRunTrigger } =
+      await import("../src/effects/sansanValHooks.js");
     const s = createInitialState();
     const id = s.cards[s.corp.identityId];
     id.onFirstSuccessfulRunThisTurn = fx.gainCredits("corp", 1);
@@ -544,9 +534,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first run begin at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstRunBegin } = await import(
-      "../src/state/runBeginHooks.js"
-    );
+    const { noteFirstRunBegin } = await import("../src/state/runBeginHooks.js");
     const s = createInitialState();
     const tiered = instantiateCard(
       "tiered-subscription",
@@ -578,15 +566,10 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first unsuccessful run at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstUnsuccessfulRun } = await import(
-      "../src/state/unsuccessfulRunHooks.js"
-    );
+    const { noteFirstUnsuccessfulRun } =
+      await import("../src/state/unsuccessfulRunHooks.js");
     const s = createInitialState();
-    const john = instantiateCard(
-      "john-masanori",
-      "jm-1",
-      "runner:installed",
-    );
+    const john = instantiateCard("john-masanori", "jm-1", "runner:installed");
     s.cards["jm-1"] = john;
     s.runner.installed = ["jm-1"];
     s.runner.tags = 0;
@@ -609,9 +592,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first successful HQ run at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstSuccessfulHqRun } = await import(
-      "../src/state/firstSuccessfulRunHooks.js"
-    );
+    const { noteFirstSuccessfulHqRun } =
+      await import("../src/state/firstSuccessfulRunHooks.js");
     const s = createInitialState();
     const pw = instantiateCard("pan-weave", "pw-1", "runner:installed");
     s.cards["pw-1"] = pw;
@@ -638,9 +620,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first encounter each run at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstEncounterEachRun } = await import(
-      "../src/state/firstEncounterPassHooks.js"
-    );
+    const { noteFirstEncounterEachRun } =
+      await import("../src/state/firstEncounterPassHooks.js");
     const s = createInitialState();
     const bak = instantiateCard("baklan-bochkin", "bak-1", "runner:installed");
     s.cards["bak-1"] = bak;
@@ -701,9 +682,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks encounter-end at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteEncounterEndIfRezzed } = await import(
-      "../src/state/encounterEndHooks.js"
-    );
+    const { noteEncounterEndIfRezzed } =
+      await import("../src/state/encounterEndHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("knowledge-seeker", "ks-1", "server:hq:ice");
     ice.rezzed = true;
@@ -720,16 +700,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.encounterEndPendingIds).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — encounter ends"),
-      ),
+      s.log.some((line) => line.includes("becomes pending — encounter ends")),
     ).toBe(true);
   });
 
   it("marks host-encounter at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteHostEncounter } = await import(
-      "../src/state/hostEncounterHooks.js"
-    );
+    const { noteHostEncounter } =
+      await import("../src/state/hostEncounterHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -757,9 +734,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks approach-server at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteApproachServer } = await import(
-      "../src/state/approachServerHooks.js"
-    );
+    const { noteApproachServer } =
+      await import("../src/state/approachServerHooks.js");
     const s = createInitialState();
     const grid = instantiateCard("nanisivik-grid", "ng-1", "server:hq:root");
     grid.rezzed = true;
@@ -783,9 +759,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks bypass at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteBypassTriggers } = await import(
-      "../src/state/bypassHooks.js"
-    );
+    const { noteBypassTriggers } = await import("../src/state/bypassHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -805,16 +779,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.bypassPendingSourceIds).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — ice bypassed"),
-      ),
+      s.log.some((line) => line.includes("becomes pending — ice bypassed")),
     ).toBe(true);
   });
 
   it("marks approach-ice at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnApproachIce } = await import(
-      "../src/state/approachIceHooks.js"
-    );
+    const { noteOnApproachIce } =
+      await import("../src/state/approachIceHooks.js");
     const s = createInitialState();
     const midori = instantiateCard("midori", "mid-1", "server:hq:root");
     midori.rezzed = true;
@@ -831,16 +802,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.approachIcePendingIds).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — ice approached"),
-      ),
+      s.log.some((line) => line.includes("becomes pending — ice approached")),
     ).toBe(true);
   });
 
   it("marks first successful R&D run end at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstSuccessfulRunOnRdEnds } = await import(
-      "../src/state/approachIceHooks.js"
-    );
+    const { noteFirstSuccessfulRunOnRdEnds } =
+      await import("../src/state/approachIceHooks.js");
     const s = createInitialState();
     const mike = instantiateCard("psych-mike", "pm-1", "runner:installed");
     s.cards["pm-1"] = mike;
@@ -866,9 +834,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks successful-run-on-RD at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteSuccessfulRunOnRd } = await import(
-      "../src/state/successfulRunOnRdHooks.js"
-    );
+    const { noteSuccessfulRunOnRd } =
+      await import("../src/state/successfulRunOnRdHooks.js");
     const s = createInitialState();
     const chakana = instantiateCard("chakana", "ch-1", "runner:installed");
     s.cards["ch-1"] = chakana;
@@ -891,9 +858,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks successful-run-end-once at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteSuccessfulRunEndOncePerTurn } = await import(
-      "../src/state/successfulRunEndHooks.js"
-    );
+    const { noteSuccessfulRunEndOncePerTurn } =
+      await import("../src/state/successfulRunEndHooks.js");
     const s = createInitialState();
     const dop = instantiateCard("doppelganger", "dop-1", "runner:installed");
     s.cards["dop-1"] = dop;
@@ -916,9 +882,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks successful-run-end at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteSuccessfulRunEnd } = await import(
-      "../src/state/successfulRunEndHooks.js"
-    );
+    const { noteSuccessfulRunEnd } =
+      await import("../src/state/successfulRunEndHooks.js");
     const s = createInitialState();
     const drt = instantiateCard(
       "dedicated-response-team",
@@ -946,9 +911,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnCorpTurnBegin } = await import(
-      "../src/state/corpTurnBeginHooks.js"
-    );
+    const { noteOnCorpTurnBegin } =
+      await import("../src/state/corpTurnBeginHooks.js");
     const s = createInitialState();
     const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
     s.cards["dd-1"] = dealer;
@@ -969,16 +933,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.corpTurnBeginPending).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — Corp turn begin"),
-      ),
+      s.log.some((line) => line.includes("becomes pending — Corp turn begin")),
     ).toBe(true);
   });
 
   it("marks Builder of Nations encounter-end meat inline at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteInlineConditional } = await import(
-      "../src/state/inlineConditionalHooks.js"
-    );
+    const { noteInlineConditional } =
+      await import("../src/state/inlineConditionalHooks.js");
     const s = createInitialState();
     const id = instantiateCard(
       "weyland-consortium-builder-of-nations",
@@ -1019,9 +980,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Out of the Ashes turn-begin inline at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteInlineConditional } = await import(
-      "../src/state/inlineConditionalHooks.js"
-    );
+    const { noteInlineConditional } =
+      await import("../src/state/inlineConditionalHooks.js");
     const s = createInitialState();
     const ashes = instantiateCard("out-of-the-ashes", "ash-1", "runner:heap");
     s.cards["ash-1"] = ashes;
@@ -1078,9 +1038,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks encounter-begin heap-install inline at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteInlineConditional } = await import(
-      "../src/state/inlineConditionalHooks.js"
-    );
+    const { noteInlineConditional } =
+      await import("../src/state/inlineConditionalHooks.js");
     const s = createInitialState();
     const paper = instantiateCard("paperclip", "pc-1", "runner:heap");
     s.cards["pc-1"] = paper;
@@ -1099,7 +1058,11 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
             label: "Install",
             effect: {
               op: "do",
-              action: { kind: "install_heap_card", cardId: "pc-1", discount: 0 },
+              action: {
+                kind: "install_heap_card",
+                cardId: "pc-1",
+                discount: 0,
+              },
             },
           },
           {
@@ -1138,9 +1101,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Runner turn-end inline conditionals at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteInlineConditional } = await import(
-      "../src/state/inlineConditionalHooks.js"
-    );
+    const { noteInlineConditional } =
+      await import("../src/state/inlineConditionalHooks.js");
     const s = createInitialState();
     const alg = instantiateCard("algernon", "alg-1", "runner:installed");
     s.cards["alg-1"] = alg;
@@ -1169,15 +1131,16 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.turn.inlineConditionalPending).toEqual([]);
     expect(
       s.log.some((line) =>
-        line.includes("becomes pending — turn end (trash unless successful run)"),
+        line.includes(
+          "becomes pending — turn end (trash unless successful run)",
+        ),
       ),
     ).toBe(true);
   });
 
   it("marks stored on-advance / on-score notes at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteStoredConditional } = await import(
-      "../src/state/storedConditionalHooks.js"
-    );
+    const { noteStoredConditional } =
+      await import("../src/state/storedConditionalHooks.js");
     const s = createInitialState();
     const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
     const agenda = instantiateCard(
@@ -1228,9 +1191,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks score/steal and advance inlines at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteInlineConditional } = await import(
-      "../src/state/inlineConditionalHooks.js"
-    );
+    const { noteInlineConditional } =
+      await import("../src/state/inlineConditionalHooks.js");
     const s = createInitialState();
     const pe = instantiateCard(
       "jinteki-personal-evolution",
@@ -1288,13 +1250,16 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks successful-run / run-end / access inlines at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteInlineConditional } = await import(
-      "../src/state/inlineConditionalHooks.js"
-    );
+    const { noteInlineConditional } =
+      await import("../src/state/inlineConditionalHooks.js");
     const s = createInitialState();
     const hat = instantiateCard("top-hat", "th-1", "runner:installed");
     const boom = instantiateCard("boomerang", "boom-1", "runner:heap");
-    const aeneas = instantiateCard("aeneas-informant", "ae-1", "runner:installed");
+    const aeneas = instantiateCard(
+      "aeneas-informant",
+      "ae-1",
+      "runner:installed",
+    );
     s.cards["th-1"] = hat;
     s.cards["boom-1"] = boom;
     s.cards["ae-1"] = aeneas;
@@ -1349,25 +1314,30 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.turn.inlineConditionalPending).toEqual([]);
     expect(
       s.log.some((line) =>
-        line.includes("becomes pending — successful R&D run (may instead of breach)"),
+        line.includes(
+          "becomes pending — successful R&D run (may instead of breach)",
+        ),
       ),
     ).toBe(true);
     expect(
       s.log.some((line) =>
-        line.includes("becomes pending — successful run end (may shuffle from heap)"),
+        line.includes(
+          "becomes pending — successful run end (may shuffle from heap)",
+        ),
       ),
     ).toBe(true);
     expect(
       s.log.some((line) =>
-        line.includes("becomes pending — access without trash (may reveal and gain)"),
+        line.includes(
+          "becomes pending — access without trash (may reveal and gain)",
+        ),
       ),
     ).toBe(true);
   });
 
   it("marks host-rez-state at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteHostRezStateTriggers } = await import(
-      "../src/state/iceRezHooks.js"
-    );
+    const { noteHostRezStateTriggers } =
+      await import("../src/state/iceRezHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
@@ -1393,9 +1363,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.iceRezAbilityPending).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — host ice rezzed"),
-      ),
+      s.log.some((line) => line.includes("becomes pending — host ice rezzed")),
     ).toBe(true);
   });
 
@@ -1434,9 +1402,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks before-first-turn at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnBeforeFirstTurn } = await import(
-      "../src/state/beforeFirstTurnHooks.js"
-    );
+    const { noteOnBeforeFirstTurn } =
+      await import("../src/state/beforeFirstTurnHooks.js");
     const s = createInitialState();
     const seidr = instantiateCard(
       "seidr-laboratories-destiny-defined",
@@ -1472,15 +1439,10 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks outside-pool spend at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOutsidePoolSpendTriggers } = await import(
-      "../src/state/outsidePoolSpend.js"
-    );
+    const { noteOutsidePoolSpendTriggers } =
+      await import("../src/state/outsidePoolSpend.js");
     const s = createInitialState();
-    const grid = instantiateCard(
-      "shackleton-grid",
-      "sg-1",
-      "server:hq:root",
-    );
+    const grid = instantiateCard("shackleton-grid", "sg-1", "server:hq:root");
     grid.rezzed = true;
     s.cards["sg-1"] = grid;
     s.servers.hq.root = ["sg-1"];
@@ -1523,9 +1485,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks encounter-any-ice once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteEncounterAnyIceOncePerTurn } = await import(
-      "../src/state/encounterAbilityHooks.js"
-    );
+    const { noteEncounterAnyIceOncePerTurn } =
+      await import("../src/state/encounterAbilityHooks.js");
     const s = createInitialState();
     const pancha = instantiateCard("panchatantra", "pan-1", "runner:installed");
     s.cards["pan-1"] = pancha;
@@ -1568,9 +1529,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Compile first-encounter at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteCompileFirstEncounter } = await import(
-      "../src/state/encounterAbilityHooks.js"
-    );
+    const { noteCompileFirstEncounter } =
+      await import("../src/state/encounterAbilityHooks.js");
     const s = createInitialState();
     const compile = instantiateCard("compile", "cmp-1", "runner:play-area");
     s.cards["cmp-1"] = compile;
@@ -1613,9 +1573,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Corp action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteCorpActionPhaseEnd } = await import(
-      "../src/state/phaseEndHooks.js"
-    );
+    const { noteCorpActionPhaseEnd } =
+      await import("../src/state/phaseEndHooks.js");
     const s = createInitialState();
     const mercia = instantiateCard("mercia-b4ll4rd", "mer-1", "corp:identity");
     s.cards["mer-1"] = mercia;
@@ -1643,9 +1602,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Runner action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteRunnerActionPhaseEnd } = await import(
-      "../src/state/phaseEndHooks.js"
-    );
+    const { noteRunnerActionPhaseEnd } =
+      await import("../src/state/phaseEndHooks.js");
     const s = createInitialState();
     const cacophony = instantiateCard("cacophony", "cac-1", "runner:installed");
     s.cards["cac-1"] = cacophony;
@@ -1673,9 +1631,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks accessed-card abilities at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteAccessedCardAbilities } = await import(
-      "../src/state/accessAbilityHooks.js"
-    );
+    const { noteAccessedCardAbilities } =
+      await import("../src/state/accessAbilityHooks.js");
     const s = createInitialState();
     const field = instantiateCard("psychic-field", "pf-1", "server:hq:root");
     field.rezzed = true;
@@ -1717,9 +1674,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks finish-access-R&D once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFinishAccessRdOncePerTurn } = await import(
-      "../src/state/accessAbilityHooks.js"
-    );
+    const { noteFinishAccessRdOncePerTurn } =
+      await import("../src/state/accessAbilityHooks.js");
     const s = createInitialState();
     const maya = instantiateCard("maya", "maya-1", "runner:installed");
     s.cards["maya-1"] = maya;
@@ -1761,9 +1717,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks successful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteSuccessfulRunServerAbilities } = await import(
-      "../src/state/successfulRunServerHooks.js"
-    );
+    const { noteSuccessfulRunServerAbilities } =
+      await import("../src/state/successfulRunServerHooks.js");
     const s = createInitialState();
     const wisp = instantiateCard("will-o-the-wisp", "wisp-1", "server:hq:root");
     wisp.rezzed = true;
@@ -1805,11 +1760,14 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks unsuccessful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteUnsuccessfulRunServerAbilities } = await import(
-      "../src/state/unsuccessfulRunServerHooks.js"
-    );
+    const { noteUnsuccessfulRunServerAbilities } =
+      await import("../src/state/unsuccessfulRunServerHooks.js");
     const s = createInitialState();
-    const georgia = instantiateCard("georgia-emelyov", "ga-1", "server:hq:root");
+    const georgia = instantiateCard(
+      "georgia-emelyov",
+      "ga-1",
+      "server:hq:root",
+    );
     georgia.rezzed = true;
     s.cards["ga-1"] = georgia;
     s.servers.hq.root = ["ga-1"];
@@ -1844,9 +1802,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Tennin Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteCorpTenninTurnBegin } = await import(
-      "../src/state/corpTurnBeginHooks.js"
-    );
+    const { noteCorpTenninTurnBegin } =
+      await import("../src/state/corpTurnBeginHooks.js");
     const s = createInitialState();
     const id = instantiateCard(
       "tennin-institute-the-secrets-within",
@@ -1873,15 +1830,16 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.turn.corpTurnBeginPending).toEqual([]);
     expect(
       s.log.some((line) =>
-        line.includes("becomes pending — the Runner made no successful run last turn"),
+        line.includes(
+          "becomes pending — the Runner made no successful run last turn",
+        ),
       ),
     ).toBe(true);
   });
 
   it("marks onScoreTurnEnd at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnScoreTurnEnd } = await import(
-      "../src/state/corpTurnEndHooks.js"
-    );
+    const { noteOnScoreTurnEnd } =
+      await import("../src/state/corpTurnEndHooks.js");
     const s = createInitialState();
     const agenda = instantiateCard("viral-weaponization", "vw-1", "corp:score");
     agenda.scoredThisTurn = true;
@@ -1906,11 +1864,14 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Runner turn-begin at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteRunnerRigTurnBegin } = await import(
-      "../src/state/runnerTurnBeginHooks.js"
-    );
+    const { noteRunnerRigTurnBegin } =
+      await import("../src/state/runnerTurnBeginHooks.js");
     const s = createInitialState();
-    const aesop = instantiateCard("aesops-pawnshop", "aesop-1", "runner:installed");
+    const aesop = instantiateCard(
+      "aesops-pawnshop",
+      "aesop-1",
+      "runner:installed",
+    );
     s.cards["aesop-1"] = aesop;
     s.runner.installed = ["aesop-1"];
     noteRunnerRigTurnBegin(s, "aesop-1");
@@ -1936,9 +1897,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Runner turn-end at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnRunnerTurnEnd } = await import(
-      "../src/state/runnerTurnEndHooks.js"
-    );
+    const { noteOnRunnerTurnEnd } =
+      await import("../src/state/runnerTurnEndHooks.js");
     const s = createInitialState();
     const crowd = instantiateCard("crowdfunding", "cf-1", "runner:heap");
     s.cards["cf-1"] = crowd;
@@ -1954,16 +1914,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.runnerTurnEndPendingIds).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — Runner turn end"),
-      ),
+      s.log.some((line) => line.includes("becomes pending — Runner turn end")),
     ).toBe(true);
   });
 
   it("marks Corp turn-end at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnCorpTurnEnd } = await import(
-      "../src/state/corpTurnEndHooks.js"
-    );
+    const { noteOnCorpTurnEnd } =
+      await import("../src/state/corpTurnEndHooks.js");
     const s = createInitialState();
     const jumon = instantiateCard("jumon", "jum-1", "corp:score");
     s.cards["jum-1"] = jumon;
@@ -1979,16 +1936,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.corpTurnEndPendingIds).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — Corp turn end"),
-      ),
+      s.log.some((line) => line.includes("becomes pending — Corp turn end")),
     ).toBe(true);
   });
 
   it("marks run-begin at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnRunBegin } = await import(
-      "../src/state/runBeginEffectHooks.js"
-    );
+    const { noteOnRunBegin } =
+      await import("../src/state/runBeginEffectHooks.js");
     const s = createInitialState();
     const card = instantiateCard("methuselah", "meth-1", "runner:installed");
     s.cards["meth-1"] = card;
@@ -2004,16 +1958,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.runBeginPendingIds).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — run begins"),
-      ),
+      s.log.some((line) => line.includes("becomes pending — run begins")),
     ).toBe(true);
   });
 
   it("marks successful-run at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnSuccessfulRun } = await import(
-      "../src/state/successfulRunHooks.js"
-    );
+    const { noteOnSuccessfulRun } =
+      await import("../src/state/successfulRunHooks.js");
     const s = createInitialState();
     const card = instantiateCard("paragon", "pg-1", "runner:installed");
     s.cards["pg-1"] = card;
@@ -2029,16 +1980,13 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     );
     expect(s.turn.successfulRunPendingIds).toEqual([]);
     expect(
-      s.log.some((line) =>
-        line.includes("becomes pending — successful run."),
-      ),
+      s.log.some((line) => line.includes("becomes pending — successful run.")),
     ).toBe(true);
   });
 
   it("marks other-server success at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteSuccessfulRunOtherServer } = await import(
-      "../src/state/otherServerSuccessHooks.js"
-    );
+    const { noteSuccessfulRunOtherServer } =
+      await import("../src/state/otherServerSuccessHooks.js");
     const s = createInitialState();
     const zone = instantiateCard(
       "sacrifice-zone-expansion",
@@ -2065,23 +2013,16 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.turn.otherServerSuccessPendingIds).toEqual([]);
     expect(
       s.log.some((line) =>
-        line.includes(
-          "becomes pending — successful run on another server",
-        ),
+        line.includes("becomes pending — successful run on another server"),
       ),
     ).toBe(true);
   });
 
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteSisyphusFirstPass } = await import(
-      "../src/state/firstEncounterPassHooks.js"
-    );
+    const { noteSisyphusFirstPass } =
+      await import("../src/state/firstEncounterPassHooks.js");
     const s = createInitialState();
-    const sp = instantiateCard(
-      "sisyphus-protocol",
-      "sp-1",
-      "corp:score",
-    );
+    const sp = instantiateCard("sisyphus-protocol", "sp-1", "corp:score");
     s.cards["sp-1"] = sp;
     s.corp.scoreArea = ["sp-1"];
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
@@ -2124,9 +2065,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first pass ice at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstPassIce } = await import(
-      "../src/state/firstEncounterPassHooks.js"
-    );
+    const { noteFirstPassIce } =
+      await import("../src/state/firstEncounterPassHooks.js");
     const s = createInitialState();
     const khan = instantiateCard(
       "khan-savvy-skiptracer",
@@ -2155,9 +2095,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Daredevil first-run ice-gte at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteDaredevilFirstRun } = await import(
-      "../src/state/runBeginHooks.js"
-    );
+    const { noteDaredevilFirstRun } =
+      await import("../src/state/runBeginHooks.js");
     const s = createInitialState();
     const dd = instantiateCard("daredevil", "dd-1", "runner:installed");
     s.cards["dd-1"] = dd;
@@ -2206,9 +2145,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstCreditPoolEmpty } = await import(
-      "../src/state/storedTriggers.js"
-    );
+    const { noteFirstCreditPoolEmpty } =
+      await import("../src/state/storedTriggers.js");
     const s = createInitialState();
     const sol = instantiateCard("order-of-sol", "sol-1", "runner:installed");
     s.cards["sol-1"] = sol;
@@ -2239,9 +2177,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first reveal this turn at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstRevealThisTurn } = await import(
-      "../src/state/miscConditionalHooks.js"
-    );
+    const { noteFirstRevealThisTurn } =
+      await import("../src/state/miscConditionalHooks.js");
     const s = createInitialState();
     const id = instantiateCard(
       "hyoubu-institute-absolute-clarity",
@@ -2275,9 +2212,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first tag this turn at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstTagThisTurn } = await import(
-      "../src/state/miscConditionalHooks.js"
-    );
+    const { noteFirstTagThisTurn } =
+      await import("../src/state/miscConditionalHooks.js");
     const s = createInitialState();
     const id = instantiateCard("nbn-reality-plus", "nbn-1", "corp:identity");
     s.cards["nbn-1"] = id;
@@ -2308,9 +2244,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first installed trash at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstInstalledTrashForReaver } = await import(
-      "../src/state/trashHooks.js"
-    );
+    const { noteFirstInstalledTrashForReaver } =
+      await import("../src/state/trashHooks.js");
     const s = createInitialState();
     const reaver = instantiateCard("reaver", "rv-1", "runner:installed");
     const top = instantiateCard("sure-gamble", "sg-1", "runner:stack");
@@ -2379,9 +2314,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks Corp flipped first operation play at 10.3.1a (phase 3 scanner)", async () => {
-    const { fireCorpIdentityFlippedFirstOperationPlay } = await import(
-      "../src/state/identityFlipHooks.js"
-    );
+    const { fireCorpIdentityFlippedFirstOperationPlay } =
+      await import("../src/state/identityFlipHooks.js");
     const s = createInitialState();
     const id = s.cards[s.corp.identityId];
     id.identityFlipped = true;
@@ -2403,18 +2337,15 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.turn.corpFlippedIdentityFirstOpUsedThisTurn).toBe(true);
     expect(
       s.log.some((line) =>
-        line.includes(
-          "becomes pending — first operation play while flipped",
-        ),
+        line.includes("becomes pending — first operation play while flipped"),
       ),
     ).toBe(true);
     expect(id.powerCounters).toBe(1);
   });
 
   it("marks first trash matching Runner ID faction at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteTrashMatchingRunnerIdentityFaction } = await import(
-      "../src/state/trashHooks.js"
-    );
+    const { noteTrashMatchingRunnerIdentityFaction } =
+      await import("../src/state/trashHooks.js");
     const s = createInitialState();
     const id = s.cards[s.runner.identityId];
     id.faction = "anarch";
@@ -2439,12 +2370,10 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     trash.faction = "anarch";
     s.cards["trash-1"] = trash;
     noteTrashMatchingRunnerIdentityFaction(s, "trash-1");
-    expect(s.turn.firstTrashMatchingRunnerIdentityFactionMetPending).toBe(
-      true,
+    expect(s.turn.firstTrashMatchingRunnerIdentityFactionMetPending).toBe(true);
+    expect(s.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn).toBe(
+      false,
     );
-    expect(
-      s.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn,
-    ).toBe(false);
     expect(storgotic.powerCounters).toBe(0);
     occurCheckpoint(
       s,
@@ -2453,9 +2382,9 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
       [CR.checkpointConditionalAbilities],
       "test",
     );
-    expect(
-      s.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn,
-    ).toBe(true);
+    expect(s.turn.firstTrashMatchingRunnerIdentityFactionUsedThisTurn).toBe(
+      true,
+    );
     expect(
       s.log.some((line) =>
         line.includes(
@@ -2496,9 +2425,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first program/hardware trash at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstProgramOrHardwareTrashEachTurn } = await import(
-      "../src/state/trashHooks.js"
-    );
+    const { noteFirstProgramOrHardwareTrashEachTurn } =
+      await import("../src/state/trashHooks.js");
     const s = createInitialState();
     const district = instantiateCard(
       "district-99",
@@ -2535,9 +2463,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first Corp card trash at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstCorpCardTrashEachTurn } = await import(
-      "../src/state/trashHooks.js"
-    );
+    const { noteFirstCorpCardTrashEachTurn } =
+      await import("../src/state/trashHooks.js");
     const s = createInitialState();
     const badge = instantiateCard(
       "solidarity-badge",
@@ -2562,18 +2489,15 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     expect(s.turn.firstCorpCardTrashUsedThisTurn).toBe(true);
     expect(
       s.log.some((line) =>
-        line.includes(
-          "becomes pending — first Corp card trashed this turn",
-        ),
+        line.includes("becomes pending — first Corp card trashed this turn"),
       ),
     ).toBe(true);
     expect(badge.powerCounters).toBe(1);
   });
 
   it("marks first Runner steal/trash at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteRunnerStoleOrTrashedCorpCard } = await import(
-      "../src/state/trashHooks.js"
-    );
+    const { noteRunnerStoleOrTrashedCorpCard } =
+      await import("../src/state/trashHooks.js");
     const s = createInitialState();
     const id = s.cards[s.runner.identityId];
     id.onFirstRunnerStoleOrTrashedCorpCardThisTurn = fx.addPowerCounter(1);
@@ -2601,11 +2525,14 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first agenda scored/stolen at 10.3.1a (phase 3 scanner)", async () => {
-    const { fireFirstAgendaScoredOrStolenThisTurn } = await import(
-      "../src/state/agendaHooks.js"
-    );
+    const { fireFirstAgendaScoredOrStolenThisTurn } =
+      await import("../src/state/agendaHooks.js");
     const s = createInitialState();
-    const asset = instantiateCard("pad-campaign", "pg-1", "server:remote-1:root");
+    const asset = instantiateCard(
+      "pad-campaign",
+      "pg-1",
+      "server:remote-1:root",
+    );
     asset.rezzed = true;
     asset.faceup = true;
     asset.onFirstAgendaScoredOrStolenThisTurn = fx.do({
@@ -2644,11 +2571,14 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks A Teia normal remote install at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstRemoteInstallThisTurn } = await import(
-      "../src/state/trashHooks.js"
-    );
+    const { noteFirstRemoteInstallThisTurn } =
+      await import("../src/state/trashHooks.js");
     const s = createInitialState();
-    const teia = instantiateCard("a-teia-ip-recovery", "teia-1", "corp:identity");
+    const teia = instantiateCard(
+      "a-teia-ip-recovery",
+      "teia-1",
+      "corp:identity",
+    );
     teia.onFirstRemoteInstallThisTurn = fx.do({
       kind: "gain_credits",
       side: "corp",
@@ -2685,7 +2615,11 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks A Teia from zone diff after a swap onto a remote (CR 8.8.4b)", () => {
     const s = createInitialState();
-    const teia = instantiateCard("a-teia-ip-recovery", "teia-1", "corp:identity");
+    const teia = instantiateCard(
+      "a-teia-ip-recovery",
+      "teia-1",
+      "corp:identity",
+    );
     s.cards["teia-1"] = teia;
     s.corp.identityId = "teia-1";
     const tatu = instantiateCard("tatu-bola", "tb-1", "server:remote-1:ice");
@@ -2709,18 +2643,14 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
     tatu.zone = "corp:hq";
     s.corp.hand = ["tb-1"];
 
-    occurCheckpoint(
-      s,
-      "instruction",
-      "Swap",
-      [CR.swapBecomeInstalled],
-      "tb-1",
-    );
+    occurCheckpoint(s, "instruction", "Swap", [CR.swapBecomeInstalled], "tb-1");
     expect(s.log.join("\n")).toContain(
       `A Teia: IP Recovery becomes pending (CR ${CR.swapBecomeInstalled.number})`,
     );
     expect(
-      s.pendingAbilities.some((p) => p.payload?.kind === "swap_install_trigger"),
+      s.pendingAbilities.some(
+        (p) => p.payload?.kind === "swap_install_trigger",
+      ),
     ).toBe(true);
   });
 
@@ -2872,9 +2802,8 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
   });
 
   it("cancels still-pending instances when the source is blanked (CR 9.6.10)", async () => {
-    const { blankAbilitiesUntilCorpTurnEnd } = await import(
-      "../src/state/lingeringEffects.js"
-    );
+    const { blankAbilitiesUntilCorpTurnEnd } =
+      await import("../src/state/lingeringEffects.js");
     const s = createInitialState();
     const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
     s.cards["dd-1"] = dealer;
@@ -3032,9 +2961,9 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     });
     expect(effect.independent).toBe(true);
     expect(s.lingeringEffects).toHaveLength(1);
-    expect(
-      s.log.some((line) => line.includes(CR.lingeringEffect.number)),
-    ).toBe(true);
+    expect(s.log.some((line) => line.includes(CR.lingeringEffect.number))).toBe(
+      true,
+    );
 
     expireLingeringEffects(s, { untilCheckpoint: true });
     expect(s.lingeringEffects).toHaveLength(0);
@@ -3058,10 +2987,8 @@ describe("lingering effect registry (CR 9.10.1)", () => {
 
   it("registers mark designation as a turn-duration lingering (CR 10.11.4)", async () => {
     const { identifyMark } = await import("../src/state/msKeywords.js");
-    const {
-      LINGERING_KIND_MARK,
-      lingeringEffectsOfKind,
-    } = await import("../src/state/lingeringEffects.js");
+    const { LINGERING_KIND_MARK, lingeringEffectsOfKind } =
+      await import("../src/state/lingeringEffects.js");
     let s = createInitialState();
     identifyMark(s, s.runner.identityId);
     expect(currentMark(s)).toBeTruthy();
@@ -3070,9 +2997,9 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(marks[0]!.duration).toEqual({ kind: "turn" });
     expect(marks[0]!.payload).toEqual({ serverId: currentMark(s) });
     expect(marks[0]!.independent).toBe(true);
-    expect(
-      s.log.some((line) => line.includes(CR.markLingering.number)),
-    ).toBe(true);
+    expect(s.log.some((line) => line.includes(CR.markLingering.number))).toBe(
+      true,
+    );
 
     s.timingKey = "runner.turnEnds";
     autoWalk(s);
@@ -3129,9 +3056,27 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       iceId: "ice-1",
       amount: 3,
     });
-    expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(2);
-    expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(1);
-    expect(lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(3);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(1);
+    expect(
+      lingeringIceStrengthOfKind(
+        s,
+        "ice-1",
+        LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(3);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_RUN),
     ).toHaveLength(1);
@@ -3143,7 +3088,13 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     ).toHaveLength(1);
 
     expireLingeringEffects(s, { encounter: true });
-    expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(2);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER),
     ).toHaveLength(0);
@@ -3173,7 +3124,13 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       breakerId: "br-1",
       amount: 2,
     });
-    expect(lingeringBreakerStrengthOfKind(s, "br-1", LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
+      ),
+    ).toBe(2);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT),
     ).toHaveLength(1);
@@ -3206,9 +3163,9 @@ describe("lingering effect registry (CR 9.10.1)", () => {
 
     // Runner turn end does not clear Corp-scoped blanks.
     expireLingeringEffects(s, { turn: "runner" });
-    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK)).toHaveLength(
-      1,
-    );
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_ABILITY_BLANK),
+    ).toHaveLength(1);
     expect(abilitiesSuppressed(s, "res-1")).toBe(true);
 
     s.timingKey = "corp.turnEnds";
@@ -3247,12 +3204,22 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       iceId: "ice-1",
       amount: 1,
     });
-    expect(lingeringBreakerStrengthOfKind(s, "breaker-1", LINGERING_KIND_BREAKER_STRENGTH)).toBe(2);
-    expect(lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH)).toBe(1);
-    expect(lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH)).toHaveLength(
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "breaker-1",
+        LINGERING_KIND_BREAKER_STRENGTH,
+      ),
+    ).toBe(2);
+    expect(
+      lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH),
+    ).toBe(1);
+    expect(
+      lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH),
+    ).toHaveLength(1);
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)).toHaveLength(
       1,
     );
-    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)).toHaveLength(1);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH)[0]!.payload,
     ).toEqual({ breakerId: "breaker-1", amount: 2 });
@@ -3266,12 +3233,22 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(passed.ok).toBe(true);
     if (!passed.ok) return;
     s = passed.state;
-    expect(lingeringBreakerStrengthOfKind(s, "breaker-1", LINGERING_KIND_BREAKER_STRENGTH)).toBe(0);
-    expect(lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH)).toBe(0);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "breaker-1",
+        LINGERING_KIND_BREAKER_STRENGTH,
+      ),
+    ).toBe(0);
+    expect(
+      lingeringIceStrengthOfKind(s, "ice-1", LINGERING_KIND_ICE_STRENGTH),
+    ).toBe(0);
     expect(
       lingeringEffectsOfKind(s, LINGERING_KIND_BREAKER_STRENGTH),
     ).toHaveLength(0);
-    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)).toHaveLength(0);
+    expect(lingeringEffectsOfKind(s, LINGERING_KIND_ICE_STRENGTH)).toHaveLength(
+      0,
+    );
   });
 
   it("registers runner MU modifiers as a Runner-turn lingering (CR 9.10.1)", async () => {
@@ -3312,10 +3289,8 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers granted ice subtypes as a turn-duration lingering (CR 9.10.1)", async () => {
-    const {
-      LINGERING_KIND_GRANTED_SUBTYPES,
-      lingeringEffectsOfKind,
-    } = await import("../src/state/lingeringEffects.js");
+    const { LINGERING_KIND_GRANTED_SUBTYPES, lingeringEffectsOfKind } =
+      await import("../src/state/lingeringEffects.js");
     let s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     s.cards["ice-1"] = ice;
@@ -3356,7 +3331,11 @@ describe("lingering effect registry (CR 9.10.1)", () => {
 describe("draw on-draw pending (CR 8.4.5a / 10.3.1a / 10.3.2)", () => {
   it("marks Find the Truth pending at the draw checkpoint, then reveals in the reaction window", () => {
     let s = createInitialState();
-    const truth = instantiateCard("find-the-truth", "ftt-1", "runner:installed");
+    const truth = instantiateCard(
+      "find-the-truth",
+      "ftt-1",
+      "runner:installed",
+    );
     s.cards["ftt-1"] = truth;
     s.runner.installed.push("ftt-1");
     const topId = s.runner.deck[0]!;
@@ -3437,7 +3416,10 @@ describe("simultaneous trash multiplicity (CR 9.12.2a)", () => {
       fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);
-    const r = applyAction(s, { type: "choose_option", optionId: "singularity" });
+    const r = applyAction(s, {
+      type: "choose_option",
+      optionId: "singularity",
+    });
     if (!r.ok) throw new Error(r.error);
     s = r.state;
 
@@ -3457,9 +3439,9 @@ describe("simultaneous trash multiplicity (CR 9.12.2a)", () => {
     expect(hiPending).toBeGreaterThanOrEqual(0);
     expect(warPending).toBeGreaterThan(hiPending);
     expect(windowOpen).toBeGreaterThan(warPending);
-    expect(s.log.filter((line) => line.startsWith("net damage 1:")).length).toBe(
-      2,
-    );
+    expect(
+      s.log.filter((line) => line.startsWith("net damage 1:")).length,
+    ).toBe(2);
     expect(s.pendingAbilities).toHaveLength(0);
     expect(s.reactionStack).toHaveLength(0);
   });
@@ -3475,10 +3457,8 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
   });
 
   it("tracks expected expose via the interrupt opener and clears it when prevented", async () => {
-    const {
-      beginExpose,
-      preventPendingExpose,
-    } = await import("../src/state/expose.js");
+    const { beginExpose, preventPendingExpose } =
+      await import("../src/state/expose.js");
     const s = createInitialState();
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -3512,9 +3492,8 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
   });
 
   it("tracks expected subroutine break and clears it when prevented", async () => {
-    const { finalizePendingSubroutineBreak } = await import(
-      "../src/actions/breakSubroutine.js"
-    );
+    const { finalizePendingSubroutineBreak } =
+      await import("../src/actions/breakSubroutine.js");
     const s = createInitialState();
     s.pendingSubroutineBreak = {
       iceId: "heim-1",
@@ -3565,9 +3544,8 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
   });
 
   it("marks onEncounter pending when resolving a deferred encounter", async () => {
-    const { resolvePendingOnEncounter } = await import(
-      "../src/state/onEncounter.js"
-    );
+    const { resolvePendingOnEncounter } =
+      await import("../src/state/onEncounter.js");
     const s = createInitialState();
     const ice = instantiateCard("pop-up-window", "pop-1", "server:hq:ice");
     ice.rezzed = true;
@@ -3594,9 +3572,8 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
   });
 
   it("marks onFirstEmptyGrip pending when the grip empties", async () => {
-    const { maybeFireFirstEmptyGripTriggers } = await import(
-      "../src/state/damage.js"
-    );
+    const { maybeFireFirstEmptyGripTriggers } =
+      await import("../src/state/damage.js");
     const s = createInitialState();
     const respiro = instantiateCard(
       "respirocytes",
@@ -3646,7 +3623,11 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
       side: "corp",
       amount: 1,
     });
-    const lago = instantiateCard("lago-paranoa-shelter", "lago-1", "runner:installed");
+    const lago = instantiateCard(
+      "lago-paranoa-shelter",
+      "lago-1",
+      "runner:installed",
+    );
     lago.onFirstCorpRootInstallEachTurn = fx.do({
       kind: "gain_credits",
       side: "runner",
@@ -3690,9 +3671,8 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
   });
 
   it("marks MirrorMorph pending on the third distinct Corp action", async () => {
-    const { noteCorpActionType } = await import(
-      "../src/state/corpActionHooks.js"
-    );
+    const { noteCorpActionType } =
+      await import("../src/state/corpActionHooks.js");
     const s = createInitialState();
     const morph = instantiateCard(
       "mirrormorph-endless-iteration",
@@ -3714,8 +3694,9 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
       [CR.checkpointConditionalAbilities],
       "test",
     );
-    const pending = s.log.findIndex((line) =>
-      line.includes("MirrorMorph") && line.includes("becomes pending"),
+    const pending = s.log.findIndex(
+      (line) =>
+        line.includes("MirrorMorph") && line.includes("becomes pending"),
     );
     expect(pending).toBeGreaterThanOrEqual(0);
     expect(s.turn.mirrormorphThirdDistinctFiredThisTurn).toBe(true);
@@ -3725,9 +3706,8 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
   });
 
   it("marks Jackpot! pending when an agenda is added to the Runner score area", async () => {
-    const { fireOnAgendaAddedToRunnerScore } = await import(
-      "../src/state/trashHooks.js"
-    );
+    const { fireOnAgendaAddedToRunnerScore } =
+      await import("../src/state/trashHooks.js");
     const s = createInitialState();
     const jackpot = instantiateCard("jackpot", "jp-1", "runner:installed");
     const agenda = instantiateCard("hostile-takeover", "ht-1", "runner:score");
@@ -3960,9 +3940,8 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
 
 describe("Geist chain reaction pending (CR 9.1.2a)", () => {
   it("marks Geist pending after a trash cost, then draws in a nested reaction window", async () => {
-    const { resolveGeistAfterTrashCost } = await import(
-      "../src/actions/paidAbility.js"
-    );
+    const { resolveGeistAfterTrashCost } =
+      await import("../src/actions/paidAbility.js");
     const s = createInitialState();
     const geist = instantiateCard(
       "armand-geist-walker-tech-lord",
@@ -4007,7 +3986,11 @@ describe("Geist chain reaction pending (CR 9.1.2a)", () => {
 describe("search pending (CR 8.7.5)", () => {
   it("marks Personality Profiles pending after shuffle, then trashes before the found card is revealed", () => {
     let s = createInitialState();
-    const profiles = instantiateCard("personality-profiles", "pp-1", "corp:score");
+    const profiles = instantiateCard(
+      "personality-profiles",
+      "pp-1",
+      "corp:score",
+    );
     const ev = instantiateCard("special-order", "so-1", "runner:grip");
     const gamble = instantiateCard("sure-gamble", "sg-1", "runner:grip");
     const breaker = instantiateCard("corroder", "co-1", "runner:stack");
@@ -4035,8 +4018,7 @@ describe("search pending (CR 8.7.5)", () => {
       line.includes("Personality Profiles becomes pending"),
     );
     const windowOpen = s.log.findIndex(
-      (line, i) =>
-        i > pending && line.includes("Reaction window open"),
+      (line, i) => i > pending && line.includes("Reaction window open"),
     );
     const trashed = s.log.findIndex((line) =>
       line.includes("trashes Sure Gamble from grip"),
@@ -4060,13 +4042,17 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
       fireOnRez,
       noteCheckpointAndResolvePlay,
     } = await import("../src/state/cardLifecycleHooks.js");
-    const { fireOnBypassTriggers } = await import("../src/state/iceRezHooks.js");
+    const { fireOnBypassTriggers } =
+      await import("../src/state/iceRezHooks.js");
 
     const s = createInitialState();
     const asset = instantiateCard("pad-campaign", "pad-1", "server:hq:root");
     asset.onInstall = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
     asset.onRez = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
-    setPrintedPlay(asset, fx.do({ kind: "gain_credits", side: "corp", amount: 1 }));
+    setPrintedPlay(
+      asset,
+      fx.do({ kind: "gain_credits", side: "corp", amount: 1 }),
+    );
     asset.onAccess = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
     asset.onBypass = fx.do({ kind: "gain_credits", side: "corp", amount: 1 });
     const breaker = instantiateCard("corroder", "cor-1", "runner:installed");
@@ -4084,25 +4070,33 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
 
     fireOnInstall(s, "pad-1");
     expect(
-      s.log.some((line) => line.includes("PAD Campaign becomes pending — installed")),
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — installed"),
+      ),
     ).toBe(true);
     expect(s.corp.credits).toBe(1);
 
     fireOnRez(s, "pad-1");
     expect(
-      s.log.some((line) => line.includes("PAD Campaign becomes pending — rezzed")),
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — rezzed"),
+      ),
     ).toBe(true);
     expect(s.corp.credits).toBe(2);
 
     noteCheckpointAndResolvePlay(s, "pad-1", "test.play");
     expect(
-      s.log.some((line) => line.includes("PAD Campaign becomes pending — played")),
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — played"),
+      ),
     ).toBe(true);
     expect(s.corp.credits).toBe(3);
 
     fireOnAccess(s, "pad-1");
     expect(
-      s.log.some((line) => line.includes("PAD Campaign becomes pending — accessed")),
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — accessed"),
+      ),
     ).toBe(true);
     expect(s.corp.credits).toBe(4);
 
@@ -4123,7 +4117,9 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
       "test",
     );
     expect(
-      s.log.some((line) => line.includes("PAD Campaign becomes pending — bypassed")),
+      s.log.some((line) =>
+        line.includes("PAD Campaign becomes pending — bypassed"),
+      ),
     ).toBe(true);
     expect(s.corp.credits).toBe(5);
     expect(s.pendingAbilities).toHaveLength(0);
@@ -4167,13 +4163,17 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
 
     fireOnSteal(s, "ht-1");
     expect(
-      s.log.some((line) => line.includes("Hostile Takeover becomes pending — stolen")),
+      s.log.some((line) =>
+        line.includes("Hostile Takeover becomes pending — stolen"),
+      ),
     ).toBe(true);
     expect(s.runner.credits).toBe(1);
 
     fireAfterAgendaStolenHooks(s, "ht-1");
     expect(
-      s.log.some((line) => line.includes("Mystic Maemi becomes pending — agenda stolen")),
+      s.log.some((line) =>
+        line.includes("Mystic Maemi becomes pending — agenda stolen"),
+      ),
     ).toBe(true);
     expect(s.runner.credits).toBe(2);
 
@@ -4195,7 +4195,9 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
 
     fireOnScore(s, "ht-1");
     expect(
-      s.log.some((line) => line.includes("Hostile Takeover becomes pending — scored")),
+      s.log.some((line) =>
+        line.includes("Hostile Takeover becomes pending — scored"),
+      ),
     ).toBe(true);
     expect(s.corp.credits).toBe(3);
     expect(s.pendingAbilities).toHaveLength(0);
@@ -4214,9 +4216,8 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       independentOfSource?: boolean;
     },
   ): Promise<void> {
-    const { noteInlineConditional } = await import(
-      "../src/state/inlineConditionalHooks.js"
-    );
+    const { noteInlineConditional } =
+      await import("../src/state/inlineConditionalHooks.js");
     const card = s.cards[args.sourceId];
     noteInlineConditional(s, {
       cardId: args.sourceId,
@@ -4226,9 +4227,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       mandatory: true,
       effect: args.effect,
       logLine: args.logLine,
-      ...(args.independentOfSource
-        ? { independentOfSource: true }
-        : {}),
+      ...(args.independentOfSource ? { independentOfSource: true } : {}),
     });
     occurCheckpoint(
       s,
@@ -4240,7 +4239,6 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   }
 
   it("marks Franchise City / Builder of Nations / Caïssa pending", async () => {
-
     const s = createInitialState();
     const city = instantiateCard("franchise-city", "fc-1", "server:hq:root");
     city.addSelfToCorpScoreOnAgendaAccess = { agendaPoints: 1 };
@@ -4310,9 +4308,12 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks on-advance flag hooks pending via inline_conditional", async () => {
-
     const s = createInitialState();
-    const card = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
+    const card = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote1:root",
+    );
     card.creditsOnAdvance = { default: 1 };
     card.placeAdvancementOnAnotherOnAdvance = { default: 1 };
     s.cards["pad-1"] = card;
@@ -4325,15 +4326,17 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
 
     await markInlineAtCheckpoint(s, {
       sourceId: "pad-1",
-      effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 1 } },
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: "corp", amount: 1 },
+      },
       abilityKey: "credits-on-advance",
       logLine: `${card.title} becomes pending — advanced (gain 1¢).`,
       controller: "corp",
     });
     expect(
       s.log.some(
-        (line) =>
-          line.includes(card.title) && line.includes("becomes pending"),
+        (line) => line.includes(card.title) && line.includes("becomes pending"),
       ),
     ).toBe(true);
 
@@ -4353,7 +4356,6 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks mandatory flag conditionals pending via inline_conditional", async () => {
-
     const s = createInitialState();
     const alg = instantiateCard("algernon", "alg-1", "runner:installed");
     alg.trashAtTurnEndUnlessSuccessfulRun = true;
@@ -4371,8 +4373,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     });
     expect(
       s.log.some(
-        (line) =>
-          line.includes("Algernon") && line.includes("becomes pending"),
+        (line) => line.includes("Algernon") && line.includes("becomes pending"),
       ),
     ).toBe(true);
 
@@ -4391,7 +4392,6 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks encounter/run may flag hooks pending via inline_conditional", async () => {
-
     const s = createInitialState();
     const paperclip = instantiateCard("paperclip", "pc-1", "runner:heap");
     paperclip.mayInstallSelfFromHeapOnEncounterBarrier = true;
@@ -4403,7 +4403,11 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
       "runner:identity",
     );
     nero.mayJackOutOnEncounterSentryOncePerTurn = true;
-    const aeneas = instantiateCard("aeneas-informant", "ae-1", "runner:installed");
+    const aeneas = instantiateCard(
+      "aeneas-informant",
+      "ae-1",
+      "runner:installed",
+    );
     aeneas.aeneasInformantRevealGainOnAccessWithoutTrash = true;
     s.cards["pc-1"] = paperclip;
     s.cards["sifr-1"] = sifr;
@@ -4424,7 +4428,11 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
             label: "Install Paperclip from heap",
             effect: {
               op: "do",
-              action: { kind: "install_heap_card", cardId: "pc-1", discount: 0 },
+              action: {
+                kind: "install_heap_card",
+                cardId: "pc-1",
+                discount: 0,
+              },
             },
           },
           {
@@ -4512,7 +4520,6 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks Top Hat / Analog Dreamers / Puppet Master / Dedicated Neural Net pending", async () => {
-
     const s = createInitialState();
     const hat = instantiateCard("top-hat", "th-1", "runner:installed");
     hat.mayInsteadOfBreachRdAccessOneOfTopN = 3;
@@ -4543,8 +4550,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     });
     expect(
       s.log.some(
-        (line) =>
-          line.includes("Top Hat") && line.includes("becomes pending"),
+        (line) => line.includes("Top Hat") && line.includes("becomes pending"),
       ),
     ).toBe(true);
 
@@ -4608,7 +4614,6 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks score/steal flag hooks pending via inline_conditional", async () => {
-
     const s = createInitialState();
     const pe = instantiateCard(
       "jinteki-personal-evolution",
@@ -4662,12 +4667,10 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
       fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun,
       fireOnFirstHardwareUseDuringRunEachTurn,
     } = await import("../src/state/miscConditionalHooks.js");
-    const { noteOnBeforeFirstTurn } = await import(
-      "../src/state/beforeFirstTurnHooks.js"
-    );
-    const { maybeFireSeidrOnClickSpendOrLose } = await import(
-      "../src/state/clickHooks.js"
-    );
+    const { noteOnBeforeFirstTurn } =
+      await import("../src/state/beforeFirstTurnHooks.js");
+    const { maybeFireSeidrOnClickSpendOrLose } =
+      await import("../src/state/clickHooks.js");
 
     const s = createInitialState();
     const forum = instantiateCard("open-forum", "of-1", "server:hq:root");
@@ -4783,9 +4786,8 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks first / each bad-publicity take at 10.3.1a (phase 3 scanner)", async () => {
-    const { fireFirstBadPublicityTake } = await import(
-      "../src/state/badPublicityHooks.js"
-    );
+    const { fireFirstBadPublicityTake } =
+      await import("../src/state/badPublicityHooks.js");
 
     const s = createInitialState();
     const editorial = instantiateCard(
@@ -4798,7 +4800,11 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
       side: "corp",
       amount: 1,
     });
-    const flint = instantiateCard("raymond-flint", "flint-1", "runner:installed");
+    const flint = instantiateCard(
+      "raymond-flint",
+      "flint-1",
+      "runner:installed",
+    );
     flint.onEachCorpBadPublicityTake = fx.do({
       kind: "gain_credits",
       side: "runner",
@@ -4837,7 +4843,9 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     ).toBe(true);
     expect(
       s.log.some((line) =>
-        line.includes("Raymond Flint becomes pending — Corp took bad publicity"),
+        line.includes(
+          "Raymond Flint becomes pending — Corp took bad publicity",
+        ),
       ),
     ).toBe(true);
     expect(s.corp.credits).toBe(1);
@@ -4858,9 +4866,8 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
   });
 
   it("marks first event trashed at 10.3.1a (phase 3 scanner)", async () => {
-    const { fireOnFirstEventTrashedThisTurn } = await import(
-      "../src/state/trashHooks.js"
-    );
+    const { fireOnFirstEventTrashedThisTurn } =
+      await import("../src/state/trashHooks.js");
 
     const s = createInitialState();
     const aniccam = instantiateCard("aniccam", "an-1", "runner:installed");
@@ -4889,7 +4896,9 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     expect(s.turn.firstEventTrashedMetPending).toBe(false);
     expect(
       s.log.some((line) =>
-        line.includes("Aniccam becomes pending — first event trashed this turn"),
+        line.includes(
+          "Aniccam becomes pending — first event trashed this turn",
+        ),
       ),
     ).toBe(true);
     expect(s.runner.credits).toBe(1);
@@ -4940,7 +4949,11 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
       side: "corp",
       amount: 1,
     });
-    const classAct = instantiateCard("the-class-act", "ca-1", "runner:installed");
+    const classAct = instantiateCard(
+      "the-class-act",
+      "ca-1",
+      "runner:installed",
+    );
     classAct.onWouldDrawOncePerTurn = fx.do({
       kind: "gain_credits",
       side: "runner",

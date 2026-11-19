@@ -73,7 +73,11 @@ describe("blanked power counters (CR 9.12.1d)", () => {
     alix.powerCounters = 0;
     s.cards["alix-1"] = alix;
     s.servers.hq.root = ["alix-1"];
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     s.cards["pad-1"] = pad;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -95,11 +99,7 @@ describe("blanked power counters (CR 9.12.1d)", () => {
   it("drops Working Prototype place-on-rez while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const wp = instantiateCard(
-      "working-prototype",
-      "wp-1",
-      "server:hq:root",
-    );
+    const wp = instantiateCard("working-prototype", "wp-1", "server:hq:root");
     wp.rezzed = true;
     wp.powerCounters = 0;
     s.cards["wp-1"] = wp;
@@ -138,7 +138,9 @@ describe("blanked power counters (CR 9.12.1d)", () => {
     suppressAbilities(s, env.id);
     expect(abilitiesSuppressed(s, "env-1")).toBe(true);
     syncEtrPerPowerCounterSubs(env, s);
-    expect((env.subroutines ?? []).length).toBe((env.baseSubroutines ?? []).length);
+    expect((env.subroutines ?? []).length).toBe(
+      (env.baseSubroutines ?? []).length,
+    );
   });
 
   it("drops Cybersand place-credits-on-ice-rez while blanked", () => {

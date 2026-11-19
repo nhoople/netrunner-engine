@@ -59,7 +59,8 @@ describe("blanked Wage Workers / pass-ice hooks (CR 9.12.1d)", () => {
     fireOnPassUnrezzedIce(s);
     expect(
       s.log.some(
-        (line) => line.includes("False Echo") && line.includes("becomes pending"),
+        (line) =>
+          line.includes("False Echo") && line.includes("becomes pending"),
       ),
     ).toBe(true);
 
@@ -73,7 +74,8 @@ describe("blanked Wage Workers / pass-ice hooks (CR 9.12.1d)", () => {
     fireOnPassUnrezzedIce(s);
     expect(
       s.log.some(
-        (line) => line.includes("False Echo") && line.includes("becomes pending"),
+        (line) =>
+          line.includes("False Echo") && line.includes("becomes pending"),
       ),
     ).toBe(false);
   });
@@ -89,7 +91,8 @@ describe("blanked Wage Workers / pass-ice hooks (CR 9.12.1d)", () => {
     fireOnPassRezzedIceProtectingThisServer(s, "hq");
     expect(
       s.log.some(
-        (line) => line.includes("The Twins") && line.includes("becomes pending"),
+        (line) =>
+          line.includes("The Twins") && line.includes("becomes pending"),
       ),
     ).toBe(true);
 
@@ -104,7 +107,8 @@ describe("blanked Wage Workers / pass-ice hooks (CR 9.12.1d)", () => {
     fireOnPassRezzedIceProtectingThisServer(s, "hq");
     expect(
       s.log.some(
-        (line) => line.includes("The Twins") && line.includes("becomes pending"),
+        (line) =>
+          line.includes("The Twins") && line.includes("becomes pending"),
       ),
     ).toBe(false);
   });

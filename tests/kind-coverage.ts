@@ -18,7 +18,10 @@ import type { GameState } from "../src/state/types.js";
 
 /** Records that this `it()` covers `kind`. Fails on a kind the IR does not know. */
 export function coversKind(kind: string): void {
-  expect(KNOWN_PRIMITIVE_KINDS.has(kind), `coversKind: unknown kind ${kind}`).toBe(true);
+  expect(
+    KNOWN_PRIMITIVE_KINDS.has(kind),
+    `coversKind: unknown kind ${kind}`,
+  ).toBe(true);
 }
 
 /** A deep copy of the state to compare against after the effect. */
@@ -54,7 +57,10 @@ export function expectStateDelta(
   expected: Record<string, Delta>,
 ): void {
   const entries = Object.entries(expected);
-  expect(entries.length, "expectStateDelta needs at least one path").toBeGreaterThan(0);
+  expect(
+    entries.length,
+    "expectStateDelta needs at least one path",
+  ).toBeGreaterThan(0);
   for (const [path, delta] of entries) {
     const was = at(before, path);
     const now = at(after, path);
@@ -62,9 +68,10 @@ export function expectStateDelta(
       expect(delta, `${path}: a delta of 0 is not a state change`).not.toBe(0);
       expect(typeof was, `${path} before`).toBe("number");
       expect(typeof now, `${path} after`).toBe("number");
-      expect((now as number) - (was as number), `${path}: ${String(was)} → ${String(now)}`).toBe(
-        delta,
-      );
+      expect(
+        (now as number) - (was as number),
+        `${path}: ${String(was)} → ${String(now)}`,
+      ).toBe(delta);
     } else {
       if ("from" in delta) expect(was, `${path} before`).toEqual(delta.from);
       expect(now, `${path} after`).toEqual(delta.to);

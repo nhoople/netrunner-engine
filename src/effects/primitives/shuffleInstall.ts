@@ -6,27 +6,23 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import {
-  fireOnInstall,
-} from "../../state/cardLifecycleHooks.js";
+import { fireOnInstall } from "../../state/cardLifecycleHooks.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function moveHeapCardToStack(state: EffectCtx["state"], cardId: string): void {
-  state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
+  state.runner.discardPile = state.runner.discardPile.filter(
+    (id) => id !== cardId,
+  );
   const c = state.cards[cardId]!;
   c.zone = "runner:stack";
   c.faceup = false;
   state.runner.deck.push(cardId);
 }
 
-function offerHeapShufflePick(
-  ctx: EffectCtx,
-  remaining: number,
-): PrimResult {
+function offerHeapShufflePick(ctx: EffectCtx, remaining: number): PrimResult {
   const { state, sourceId } = ctx;
   const heap = [...state.runner.discardPile];
   if (remaining <= 0 || heap.length === 0) {
@@ -87,7 +83,10 @@ export function applyMagnumOpusPrimitive(
       const amount = Math.max(0, action.amount);
       const heap = [...state.runner.discardPile];
       if (amount <= 0 || heap.length === 0) {
-        log(state, `${source?.title ?? "Labor Rights"} — no heap cards to shuffle.`);
+        log(
+          state,
+          `${source?.title ?? "Labor Rights"} — no heap cards to shuffle.`,
+        );
         return { ok: true };
       }
       const n = Math.min(amount, heap.length);
@@ -152,8 +151,8 @@ export function applyMagnumOpusPrimitive(
             }),
           },
         ],
-logLine: `Crowdfunding — may install from heap ignoring costs (${runs} successful runs).`,
-});
+        logLine: `Crowdfunding — may install from heap ignoring costs (${runs} successful runs).`,
+      });
       return { ok: true };
     }
 
@@ -162,7 +161,9 @@ logLine: `Crowdfunding — may install from heap ignoring costs (${runs} success
         log(state, `Crowdfunding — not in heap.`);
         return { ok: true };
       }
-      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== sourceId);
+      state.runner.discardPile = state.runner.discardPile.filter(
+        (id) => id !== sourceId,
+      );
       state.runner.installed.push(sourceId);
       source.zone = "runner:installed";
       source.faceup = true;
@@ -193,8 +194,8 @@ logLine: `Crowdfunding — may install from heap ignoring costs (${runs} success
             from,
           }),
         })),
-logLine: `Timely Public Release — choose ice from HQ or Archives.`,
-});
+        logLine: `Timely Public Release — choose ice from HQ or Archives.`,
+      });
       return { ok: true };
     }
 
@@ -226,8 +227,8 @@ logLine: `Timely Public Release — choose ice from HQ or Archives.`,
             serverId,
           }),
         })),
-logLine: `Timely Public Release — choose server for ${ice.title}.`,
-});
+        logLine: `Timely Public Release — choose server for ${ice.title}.`,
+      });
       return { ok: true };
     }
 
@@ -258,9 +259,12 @@ logLine: `Timely Public Release — choose server for ${ice.title}.`,
           }),
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Timely Public Release — choose position on ${action.serverId}.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Timely Public Release — choose position on ${action.serverId}.`,
+      });
       return { ok: true };
     }
 

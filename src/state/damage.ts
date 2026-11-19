@@ -3,7 +3,11 @@ import { openPendingChoose } from "./pendingChoice.js";
 
 import type { Effect } from "../effects/ir.js";
 import { log } from "./createGame.js";
-import { moveRunnerCardToHeap, beginGripOrStackTrashBatch, endGripOrStackTrashBatch } from "./trashHooks.js";
+import {
+  moveRunnerCardToHeap,
+  beginGripOrStackTrashBatch,
+  endGripOrStackTrashBatch,
+} from "./trashHooks.js";
 import type { DamageType, GameState, PaidAbility } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
@@ -49,7 +53,10 @@ export function titaniumRibsChoosesGripTrash(state: GameState): boolean {
  * leave together (CR 10.4.3a). The damage then finishes as any other does,
  * so what follows suffering damage is met here too.
  */
-export function resolveChronosFirstNetPick(state: GameState, cardId: string | null): void {
+export function resolveChronosFirstNetPick(
+  state: GameState,
+  cardId: string | null,
+): void {
   const total = state.turn.uotChronosTrashRemaining ?? 0;
   const owed = state.turn.uotChronosNetAmount ?? total;
   const sourceId = state.turn.uotChronosSourceId ?? state.corp.identityId;
@@ -60,7 +67,11 @@ export function resolveChronosFirstNetPick(state: GameState, cardId: string | nu
   if (cardId !== null && !state.runner.hand.includes(cardId)) return;
   const first = cardId === null ? [] : [cardId];
   const rest = state.runner.hand.filter((id) => id !== cardId);
-  const random = pickRandomSubset(state, rest, Math.min(total - first.length, rest.length));
+  const random = pickRandomSubset(
+    state,
+    rest,
+    Math.min(total - first.length, rest.length),
+  );
   const picks = [...first, ...random];
   log(
     state,
@@ -68,7 +79,14 @@ export function resolveChronosFirstNetPick(state: GameState, cardId: string | nu
       ? `Chronos Protocol — the Corp selects no card; ${picks.length} card(s) are chosen at random (CR ${CR.multipleDamageSimultaneous.number}).`
       : `Chronos Protocol — the Corp selects 1 card and ${random.length} more are chosen at random; all are trashed together (CR ${CR.sequentialDamageSelection.number}, ${CR.multipleDamageSimultaneous.number}).`,
   );
-  sufferPickedDamage(state, "net", owed, sourceId, picks, state.runner.coreDamage);
+  sufferPickedDamage(
+    state,
+    "net",
+    owed,
+    sourceId,
+    picks,
+    state.runner.coreDamage,
+  );
 }
 
 /** Core damage includes the older "brain damage" alias (CR §10.4.2c). */
@@ -93,9 +111,7 @@ export function hasPayableDamageInterrupt(
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
       if (!card) continue;
-      if (
-        state.pendingDamage?.interruptUsedSourceIds?.includes(id)
-      ) {
+      if (state.pendingDamage?.interruptUsedSourceIds?.includes(id)) {
         continue;
       }
       for (const ab of card.paidAbilities ?? []) {
@@ -108,7 +124,13 @@ export function hasPayableDamageInterrupt(
         ) {
           continue;
         }
-        if (!firstNetDamageWouldAllows(state, id, ab.onlyFirstNetDamageWouldThisRun)) {
+        if (
+          !firstNetDamageWouldAllows(
+            state,
+            id,
+            ab.onlyFirstNetDamageWouldThisRun,
+          )
+        ) {
           continue;
         }
         if (!allButNDamageRelevant(state, ab)) continue;
@@ -269,7 +291,11 @@ export function dealDamage(
         `Meat damage increased by ${bonus} from scored agenda(s) (The Cleaners-class).`,
       );
     }
-  } else if (type === "meat" && opts.runnerSuffers && scoredAgendaMeatDamageIncrease(state) > 0) {
+  } else if (
+    type === "meat" &&
+    opts.runnerSuffers &&
+    scoredAgendaMeatDamageIncrease(state) > 0
+  ) {
     log(
       state,
       `The Runner suffers the meat damage — scored agendas do not increase it (CR ${CR.sufferDamage.number}).`,
@@ -293,7 +319,10 @@ export function dealDamage(
   }
 
   if (state.run?.preventAllDamageThisRun) {
-    log(state, `Prevent all damage this run — prevent ${amount} ${type} damage.`);
+    log(
+      state,
+      `Prevent all damage this run — prevent ${amount} ${type} damage.`,
+    );
     return "applied";
   }
 
@@ -339,18 +368,14 @@ export function dealDamage(
       type: expectedEffects.damage?.type ?? type,
       remaining,
       sourceId,
-      ...(opts.preventByLoseAllClicks
-        ? { preventByLoseAllClicks: true }
-        : {}),
+      ...(opts.preventByLoseAllClicks ? { preventByLoseAllClicks: true } : {}),
       ...(interruptPawOnly ? { interruptPawOnly: true } : {}),
       expectedEffects,
     };
     log(
       state,
       `Pending ${remaining} ${expectedEffects.damage?.type ?? type} damage from ${sourceId} (CR ${CR.sufferDamage.number}${
-        interruptPawOnly
-          ? `; interrupt PAW ${CR.preventDamage.number}`
-          : ""
+        interruptPawOnly ? `; interrupt PAW ${CR.preventDamage.number}` : ""
       }).`,
     );
     return "pending";
@@ -386,7 +411,10 @@ export function resolveDamage(
   // Jinteki: Potential Unleashed — on ≥1 net, trash top of stack.
   if (type === "net" && amount >= 1) {
     const idCard = state.cards[state.corp.identityId];
-    if (idCard?.trashTopOfStackOnRunnerNetDamage && state.runner.deck.length > 0) {
+    if (
+      idCard?.trashTopOfStackOnRunnerNetDamage &&
+      state.runner.deck.length > 0
+    ) {
       const top = state.runner.deck.shift()!;
       trashToHeap(state, top);
       log(
@@ -453,60 +481,62 @@ export function resolveDamage(
     const ribsChoose = titaniumRibsChoosesGripTrash(state);
     const chooser =
       ribsChoose && state.activeSide === "runner" ? "runner" : "corp";
-    if (!openPendingChoose(state, {
-      sourceId: chronosId,
-      chooser,
-      // The Corp looks at the grip, so both players read these options.
-      shownToOpponent: true,
-      options: [
-        ...grip.map((id) => ({
-          id: `chronos:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "trash_chronos_pick" as const,
-              cardId: id,
-            },
-          },
-        })),
-        // "You may ... select the card that is trashed": the Corp may leave
-        // the card to chance.
-        ...(chooser === "corp"
-          ? [
-              {
-                id: "chronos:random",
-                label: "Do not select a card: trash at random",
-                effect: {
-                  op: "do" as const,
-                  action: { kind: "trash_chronos_pick" as const, cardId: "" },
-                },
+    if (
+      !openPendingChoose(state, {
+        sourceId: chronosId,
+        chooser,
+        // The Corp looks at the grip, so both players read these options.
+        shownToOpponent: true,
+        options: [
+          ...grip.map((id) => ({
+            id: `chronos:${id}`,
+            label: `Trash ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "trash_chronos_pick" as const,
+                cardId: id,
               },
-            ]
-          : []),
-      ],
-    })) {
+            },
+          })),
+          // "You may ... select the card that is trashed": the Corp may leave
+          // the card to chance.
+          ...(chooser === "corp"
+            ? [
+                {
+                  id: "chronos:random",
+                  label: "Do not select a card: trash at random",
+                  effect: {
+                    op: "do" as const,
+                    action: { kind: "trash_chronos_pick" as const, cardId: "" },
+                  },
+                },
+              ]
+            : []),
+        ],
+      })
+    ) {
       state.turn.uotChronosNetDamageUsedThisTurn = false;
       state.turn.uotChronosTrashRemaining = 0;
       state.turn.uotChronosNetAmount = 0;
       state.turn.uotChronosSourceId = undefined;
     } else {
-    if (ribsChoose) {
-      log(
-        state,
-        `Chronos Protocol — look at the grip (CR ${CR.activePlayerChoice.number}).`,
-      );
-      log(
-        state,
-        `Only the active player chooses the first net damage card (CR ${CR.activePlayerChoice.number}).`,
-      );
-    } else {
-      log(
-        state,
-        `Chronos Protocol — look at the grip and choose the first card. ${Math.max(0, toTrash - 1)} more will be random, then all are trashed together (CR ${CR.sequentialDamageSelection.number}).`,
-      );
-    }
-    return "applied";
+      if (ribsChoose) {
+        log(
+          state,
+          `Chronos Protocol — look at the grip (CR ${CR.activePlayerChoice.number}).`,
+        );
+        log(
+          state,
+          `Only the active player chooses the first net damage card (CR ${CR.activePlayerChoice.number}).`,
+        );
+      } else {
+        log(
+          state,
+          `Chronos Protocol — look at the grip and choose the first card. ${Math.max(0, toTrash - 1)} more will be random, then all are trashed together (CR ${CR.sequentialDamageSelection.number}).`,
+        );
+      }
+      return "applied";
     }
   }
   // Titanium Ribs: "You choose the card(s) from your grip to trash whenever
@@ -661,7 +691,10 @@ function sufferPickedDamage(
     state.winner = "corp";
     state.winReason = "flatline";
     state.done = true;
-    log(state, `Runner flatlined — max hand size < 0 (CR ${CR.flatline.number}).`);
+    log(
+      state,
+      `Runner flatlined — max hand size < 0 (CR ${CR.flatline.number}).`,
+    );
     state.pendingDamage = null;
     return "flatline";
   }
@@ -853,7 +886,10 @@ export function addPendingDamage(state: GameState, amount: number): void {
 }
 
 /** "Prevent all" removes the damage from the expected effects (CR 9.9.7b). */
-export function removePendingDamageEntirely(state: GameState, why: string): void {
+export function removePendingDamageEntirely(
+  state: GameState,
+  why: string,
+): void {
   if (!state.pendingDamage) return;
   state.pendingDamage = null;
   log(
@@ -867,7 +903,10 @@ export function removePendingDamageEntirely(state: GameState, why: string): void
  * The pay-or-trash ability meets its trigger only when that removal
  * prevents 1 or more damage (CR 9.9.7f).
  */
-export function preventAllPendingNetOrMeat(state: GameState, sourceId: string): void {
+export function preventAllPendingNetOrMeat(
+  state: GameState,
+  sourceId: string,
+): void {
   const pending = state.pendingDamage;
   const card = state.cards[sourceId];
   const title = card?.title ?? sourceId;
@@ -907,7 +946,9 @@ export function preventAllPendingNetOrMeat(state: GameState, sourceId: string): 
     });
     return;
   }
-  state.runner.installed = state.runner.installed.filter((id) => id !== sourceId);
+  state.runner.installed = state.runner.installed.filter(
+    (id) => id !== sourceId,
+  );
   moveRunnerCardToHeap(state, sourceId);
   log(state, `${title} — trashed (cannot pay ${pay}¢).`);
 }

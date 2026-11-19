@@ -13,7 +13,12 @@ import { corpMayRez, corpMayScore, currentWindow } from "../src/cards/stubs.js";
 import { createInitialState } from "../src/state/createGame.js";
 import { beginBreachAccess } from "../src/state/access.js";
 import { costBeginsWithClick, paidAbilityOpenIn } from "../src/state/costs.js";
-import type { Action, GameState, PaidAbility, RunState } from "../src/state/types.js";
+import type {
+  Action,
+  GameState,
+  PaidAbility,
+  RunState,
+} from "../src/state/types.js";
 import { priorityHolderForStep } from "../src/legality/priority.js";
 import { STEPS, type TimingStepDef } from "../src/timing/graph.js";
 import { enterStep } from "../src/timing/machine.js";
@@ -125,11 +130,20 @@ function proveCentralAccessCount(): void {
  * Chart lines the graph does not stop on. A go-to line names the step it
  * follows. A folded line runs the procedure the graph still performs.
  */
-const CHART_SKIPS: Record<string, { text: string; because: string; arm?: Arm; prove?: () => void }> = {
+const CHART_SKIPS: Record<
+  string,
+  { text: string; because: string; arm?: Arm; prove?: () => void }
+> = {
   "11.2_2_b_i": {
     text: "If no, go to (d).",
     because: "corp.checkClicks continues to corp.actionPhaseEnd.",
-    arm: { from: "corp.checkClicks", to: "corp.actionPhaseEnd", arrange: (state) => { state.corp.clicks = 0; } },
+    arm: {
+      from: "corp.checkClicks",
+      to: "corp.actionPhaseEnd",
+      arrange: (state) => {
+        state.corp.clicks = 0;
+      },
+    },
   },
   "11.2_2_c": {
     text: "Return to (a).",
@@ -139,7 +153,13 @@ const CHART_SKIPS: Record<string, { text: string; because: string; arm?: Arm; pr
   "11.3_1_f_i": {
     text: "If no, go to (h).",
     because: "runner.checkClicks continues to runner.actionPhaseEnd.",
-    arm: { from: "runner.checkClicks", to: "runner.actionPhaseEnd", arrange: (state) => { state.runner.clicks = 0; } },
+    arm: {
+      from: "runner.checkClicks",
+      to: "runner.actionPhaseEnd",
+      arrange: (state) => {
+        state.runner.clicks = 0;
+      },
+    },
   },
   "11.3_1_g": {
     text: "Return to (e).",
@@ -160,47 +180,97 @@ const CHART_SKIPS: Record<string, { text: string; because: string; arm?: Arm; pr
     text: "If no, go to (4).",
     because:
       "run.checkIce continues to run.passIcePaw: nothing is passed at 11.4_4_a, so (4) resumes at 11.4_4_b.",
-    arm: { from: "run.checkIce", to: "run.passIcePaw", arrange: (state) => { state.run!.position = null; } },
+    arm: {
+      from: "run.checkIce",
+      to: "run.passIcePaw",
+      arrange: (state) => {
+        state.run!.position = null;
+      },
+    },
   },
   "11.4_2_c_i": {
     text: "If yes, go to (3).",
     because: "run.iceRezzed continues to run.encounter.",
-    arm: { from: "run.iceRezzed", to: "run.encounter", arrange: (state) => rezIce(state, true) },
+    arm: {
+      from: "run.iceRezzed",
+      to: "run.encounter",
+      arrange: (state) => rezIce(state, true),
+    },
   },
   "11.4_2_c_ii": {
     text: "If no, go to (4).",
     because: "run.iceRezzed continues to run.movement.",
-    arm: { from: "run.iceRezzed", to: "run.movement", arrange: (state) => rezIce(state, false) },
+    arm: {
+      from: "run.iceRezzed",
+      to: "run.movement",
+      arrange: (state) => rezIce(state, false),
+    },
   },
   "11.4_3_c_ii": {
     text: "If no, go to (e).",
     because: "run.checkSubs continues to run.movement.",
-    arm: { from: "run.checkSubs", to: "run.movement", arrange: (state) => { state.run!.encounter = { iceId: "corp-ice-1", broken: [true] }; } },
+    arm: {
+      from: "run.checkSubs",
+      to: "run.movement",
+      arrange: (state) => {
+        state.run!.encounter = { iceId: "corp-ice-1", broken: [true] };
+      },
+    },
   },
   "11.4_3_d": {
     text: "Return to (c).",
     because: "run.resolveSub continues to run.checkSubs.",
-    arm: { from: "run.resolveSub", to: "run.checkSubs", arrange: (state) => { state.run!.endedTheRun = false; } },
+    arm: {
+      from: "run.resolveSub",
+      to: "run.checkSubs",
+      arrange: (state) => {
+        state.run!.endedTheRun = false;
+      },
+    },
   },
   "11.4_3_e": {
     text: "Go to (4).",
     because: "run.checkSubs continues to run.movement.",
-    arm: { from: "run.checkSubs", to: "run.movement", arrange: (state) => { state.run!.encounter = { iceId: "corp-ice-1", broken: [true] }; } },
+    arm: {
+      from: "run.checkSubs",
+      to: "run.movement",
+      arrange: (state) => {
+        state.run!.encounter = { iceId: "corp-ice-1", broken: [true] };
+      },
+    },
   },
   "11.4_4_f_i": {
     text: "If yes, go to (2).",
     because: "run.afterMove continues to run.approachIce.",
-    arm: { from: "run.afterMove", to: "run.approachIce", arrange: (state) => { state.run!.position = 0; } },
+    arm: {
+      from: "run.afterMove",
+      to: "run.approachIce",
+      arrange: (state) => {
+        state.run!.position = 0;
+      },
+    },
   },
   "11.4_4_f_ii": {
     text: "If no, go to (g).",
     because: "run.afterMove continues to run.approachServer.",
-    arm: { from: "run.afterMove", to: "run.approachServer", arrange: (state) => { state.run!.position = null; } },
+    arm: {
+      from: "run.afterMove",
+      to: "run.approachServer",
+      arrange: (state) => {
+        state.run!.position = null;
+      },
+    },
   },
   "11.4_4_h": {
     text: "Go to (5).",
     because: "run.approachServerPaw continues to run.success.",
-    arm: { from: "run.approachServerPaw", to: "run.success", arrange: (state) => { state.run!.endedTheRun = false; } },
+    arm: {
+      from: "run.approachServerPaw",
+      to: "run.success",
+      arrange: (state) => {
+        state.run!.endedTheRun = false;
+      },
+    },
   },
   "11.4_5_c": {
     text: "Go to (6).",
@@ -245,13 +315,29 @@ const CHART_SKIPS: Record<string, { text: string; because: string; arm?: Arm; pr
 
 /** Yes arms of the same questions. These lines are real graph steps. */
 const YES_ARMS: Array<Arm & { number: string }> = [
-  { number: "11.2_2_b_ii", from: "corp.checkClicks", to: "corp.takeAction", arrange: (state) => { state.corp.clicks = 1; } },
-  { number: "11.3_1_f_ii", from: "runner.checkClicks", to: "runner.takeAction", arrange: (state) => { state.runner.clicks = 1; } },
+  {
+    number: "11.2_2_b_ii",
+    from: "corp.checkClicks",
+    to: "corp.takeAction",
+    arrange: (state) => {
+      state.corp.clicks = 1;
+    },
+  },
+  {
+    number: "11.3_1_f_ii",
+    from: "runner.checkClicks",
+    to: "runner.takeAction",
+    arrange: (state) => {
+      state.runner.clicks = 1;
+    },
+  },
   {
     number: "11.4_3_c_i",
     from: "run.checkSubs",
     to: "run.resolveSub",
-    arrange: (state) => { state.run!.encounter = { iceId: "corp-ice-1", broken: [false] }; },
+    arrange: (state) => {
+      state.run!.encounter = { iceId: "corp-ice-1", broken: [false] };
+    },
   },
   {
     number: "11.5_4_a",
@@ -309,7 +395,8 @@ function park(key: string, arrange?: (state: GameState) => void): GameState {
 
 function closeWindow(state: GameState): GameState {
   const start = state.timingKey;
-  for (let i = 0; i < 2 && state.timingKey === start; i++) state = passWindow(state);
+  for (let i = 0; i < 2 && state.timingKey === start; i++)
+    state = passWindow(state);
   return state;
 }
 
@@ -353,7 +440,9 @@ function plantAsset(state: GameState, rezzed: boolean): void {
 /** A Runner non-click ability. On the Corp's turn this is the other player's option. */
 function plantRunnerAbility(state: GameState): void {
   const card = state.cards["runner-program-1"];
-  state.runner.hand = state.runner.hand.filter((id) => id !== "runner-program-1");
+  state.runner.hand = state.runner.hand.filter(
+    (id) => id !== "runner-program-1",
+  );
   state.runner.installed = ["runner-program-1"];
   card.zone = "runner:installed";
   card.paidAbilities = [foreignAbility(["runner_action_paw"])];
@@ -425,7 +514,9 @@ beforeAll(() => {
 function chartNodes(prefix: (typeof CHARTS)[number]): ChartNode[] {
   const phases = nodes
     .filter((node) => new RegExp(`^${prefix}_\\d+$`).test(node.number))
-    .sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true }));
+    .sort((a, b) =>
+      a.number.localeCompare(b.number, undefined, { numeric: true }),
+    );
   const out: ChartNode[] = [];
   const visit = (node: ChartNode) => {
     const cited =
@@ -444,7 +535,8 @@ function chartNodes(prefix: (typeof CHARTS)[number]): ChartNode[] {
 
 function engineSteps(prefix: (typeof CHARTS)[number]): TimingStepDef[] {
   return Object.values(STEPS).filter(
-    (step) => step.stepNumber === prefix || step.stepNumber.startsWith(`${prefix}_`),
+    (step) =>
+      step.stepNumber === prefix || step.stepNumber.startsWith(`${prefix}_`),
   );
 }
 
@@ -466,7 +558,9 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       expect(node, number).toBeTruthy();
       expect(node?.text_plain, number).toBe(skip.text);
       expect(numbers.has(number), number).toBe(true);
-      const stopped = Object.values(STEPS).filter((step) => step.stepNumber === number);
+      const stopped = Object.values(STEPS).filter(
+        (step) => step.stepNumber === number,
+      );
       expect(stopped, `${number} ${skip.because}`).toEqual([]);
       expect(Boolean(skip.arm) !== Boolean(skip.prove), number).toBe(true);
     }
@@ -486,7 +580,9 @@ describe("pinned timing charts 11.2 through 11.6", () => {
     const chart = chartNodes(prefix);
     const expected = chart
       .map((node) => node.number)
-      .filter((number) => !Object.prototype.hasOwnProperty.call(CHART_SKIPS, number));
+      .filter(
+        (number) => !Object.prototype.hasOwnProperty.call(CHART_SKIPS, number),
+      );
     const seen = new Set<string>();
     const actual: string[] = [];
     for (const step of engineSteps(prefix)) {
@@ -551,12 +647,16 @@ describe("pinned timing charts 11.2 through 11.6", () => {
     for (const step of CHARTS.flatMap((prefix) => engineSteps(prefix))) {
       if (!currentWindow(step.key)) continue;
       if (step.key === "run.approachServerPaw") continue;
-      expect(priorityHolderForStep(step.key, "runner"), step.key).toBe("runner");
+      expect(priorityHolderForStep(step.key, "runner"), step.key).toBe(
+        "runner",
+      );
       expect(priorityHolderForStep(step.key, "corp"), step.key).toBe("corp");
     }
     expect(priorityHolderForStep("run.jackOutWindow", "corp")).toBe("runner");
     // CR 6.9.4g: only the Corp has abilities used on approaching a server.
-    expect(priorityHolderForStep("run.approachServerPaw", "runner")).toBe("corp");
+    expect(priorityHolderForStep("run.approachServerPaw", "runner")).toBe(
+      "corp",
+    );
   });
 
   it("keeps the other player's option hidden until they receive priority (CR 9.2.7a)", () => {
@@ -590,7 +690,8 @@ describe("pinned timing charts 11.2 through 11.6", () => {
   });
 
   it("stops on the next chart line after a paid ability window closes", () => {
-    const stop = (state: GameState): string => closeWindow(state).timing.stepNumber;
+    const stop = (state: GameState): string =>
+      closeWindow(state).timing.stepNumber;
 
     expect(stop(park("corp.drawPaw"))).toBe("11.2_1_e");
     expect(stop(park("corp.actionPaw"))).toBe("11.2_2_d");
@@ -623,7 +724,8 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       offers(
         passing,
         (action) =>
-          action.type === "use_paid_ability" && action.cardId === "runner-program-1",
+          action.type === "use_paid_ability" &&
+          action.cardId === "runner-program-1",
       ),
     ).toBe(true);
     expect(stop(passing)).toBe("11.4_4_c");
@@ -664,7 +766,9 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       expect(state.timing.stepNumber, side).toBe(
         side === "corp" ? "11.2_2_b_ii" : "11.3_1_f_ii",
       );
-      expect((side === "corp" ? state.corp : state.runner).clicks, side).toBe(1);
+      expect((side === "corp" ? state.corp : state.runner).clicks, side).toBe(
+        1,
+      );
 
       const spent = applyAction(state, { type: "basic_gain_credit" });
       expect(spent.ok, side).toBe(true);
@@ -673,7 +777,9 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       const player = side === "corp" ? state.corp : state.runner;
       expect(player.clicks, side).toBe(0);
       expect(player.credits, side).toBe(before + 1);
-      expect(state.timing.stepNumber, side).toBe(side === "corp" ? "11.2_2_a" : "11.3_1_e");
+      expect(state.timing.stepNumber, side).toBe(
+        side === "corp" ? "11.2_2_a" : "11.3_1_e",
+      );
       expect(closeWindow(state).timing.stepNumber, side).toBe(
         side === "corp" ? "11.2_2_d" : "11.3_1_h",
       );
@@ -720,7 +826,10 @@ describe("pinned timing charts 11.2 through 11.6", () => {
     expect(state.timing.stepNumber).toBe("11.4_4_e");
     state = closeWindow(state);
     expect(state.timing.stepNumber).toBe("11.5_4_a");
-    expect(state.run?.accessCandidates).toEqual(["corp-asset-1", "corp-fill-1"]);
+    expect(state.run?.accessCandidates).toEqual([
+      "corp-asset-1",
+      "corp-fill-1",
+    ]);
     expect(state.run?.randomAccessLimit).toBe(2);
 
     const first = applyAction(state, {
@@ -748,13 +857,18 @@ describe("pinned timing charts 11.2 through 11.6", () => {
 
   it("follows each string next to the next chart line", () => {
     const arms = [
-      ...Object.values(CHART_SKIPS).flatMap((skip) => (skip.arm ? [skip.arm] : [])),
+      ...Object.values(CHART_SKIPS).flatMap((skip) =>
+        skip.arm ? [skip.arm] : [],
+      ),
       ...YES_ARMS,
     ];
     const numbers = CHARTS.flatMap((prefix) =>
       chartNodes(prefix)
         .map((node) => node.number)
-        .filter((number) => !Object.prototype.hasOwnProperty.call(CHART_SKIPS, number)),
+        .filter(
+          (number) =>
+            !Object.prototype.hasOwnProperty.call(CHART_SKIPS, number),
+        ),
     );
     for (const step of CHARTS.flatMap((prefix) => engineSteps(prefix))) {
       if (typeof step.next !== "string") continue;
@@ -815,9 +929,9 @@ describe("pinned timing charts 11.2 through 11.6", () => {
     expect(go("run.approachServer", (state) => plantRoot(state, "asset"))).toBe(
       "run.success",
     );
-    expect(go("run.approachServer", (state) => plantRoot(state, "upgrade"))).toBe(
-      "run.success",
-    );
+    expect(
+      go("run.approachServer", (state) => plantRoot(state, "upgrade")),
+    ).toBe("run.success");
     // An ability used when the Runner approaches the server does stop it.
     expect(
       go("run.approachServer", (state) => {
@@ -905,7 +1019,9 @@ describe("pinned timing charts 11.2 through 11.6", () => {
       "breach.complete",
     ]);
     const armed = new Set([
-      ...Object.values(CHART_SKIPS).flatMap((skip) => (skip.arm ? [skip.arm.from] : [])),
+      ...Object.values(CHART_SKIPS).flatMap((skip) =>
+        skip.arm ? [skip.arm.from] : [],
+      ),
       ...YES_ARMS.map((arm) => arm.from),
     ]);
     for (const step of CHARTS.flatMap((prefix) => engineSteps(prefix))) {

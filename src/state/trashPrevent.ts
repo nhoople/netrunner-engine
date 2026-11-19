@@ -45,7 +45,11 @@ export function maybeOpenTrashPrevent(
   if (state.pendingTrashPrevent) return false;
   const card = state.cards[cardId];
   if (!card) return false;
-  if (card.type !== "program" && card.type !== "hardware" && card.type !== "resource") {
+  if (
+    card.type !== "program" &&
+    card.type !== "hardware" &&
+    card.type !== "resource"
+  ) {
     return false;
   }
   const installed =
@@ -102,11 +106,7 @@ export function triggerPendingTrashInterrupt(
 ): TrashInterruptResult {
   const pending = state.pendingTrashPrevent;
   const card = state.cards[cardId];
-  if (
-    !pending ||
-    !card ||
-    !pending.pendingInterruptIds?.includes(cardId)
-  ) {
+  if (!pending || !card || !pending.pendingInterruptIds?.includes(cardId)) {
     return {
       ok: false,
       error: "That trash interrupt is not pending.",

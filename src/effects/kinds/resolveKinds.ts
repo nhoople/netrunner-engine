@@ -3,21 +3,12 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { revealCards } from "../../state/reveal.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import {
-  removeCardFromCurrentZone,
-  stealAgenda,
-} from "../../state/scoring.js";
+import { removeCardFromCurrentZone, stealAgenda } from "../../state/scoring.js";
 import { trashCorpCardToArchives } from "../corpTrash.js";
 import {
   memoryLimit,
@@ -48,16 +39,17 @@ import {
   stackCardInstallCost,
 } from "../runnerInstall.js";
 
-import {
-  fireHostRezStateTriggers,
-} from "../eval.js";
+import { fireHostRezStateTriggers } from "../eval.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 
-export function applyResolveKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyResolveKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "resolve_gachapon": {
+    case "resolve_gachapon": {
       const look = 6;
       const discount = 2;
       const aside: string[] = [];
@@ -78,7 +70,9 @@ case "resolve_gachapon": {
         if (c.type === "program") {
           const need = effectiveMemoryCost(state, id);
           if (usedMemory(state) + need > memoryLimit(state)) return false;
-          return state.runner.credits >= Math.max(0, (c.installCost ?? 0) - discount);
+          return (
+            state.runner.credits >= Math.max(0, (c.installCost ?? 0) - discount)
+          );
         }
         return (
           c.type === "resource" &&
@@ -124,12 +118,12 @@ case "resolve_gachapon": {
             };
           }),
         ],
-logLine: `${source.title} — may install 1 program or virtual (−${discount}¢).`,
-});
+        logLine: `${source.title} — may install 1 program or virtual (−${discount}¢).`,
+      });
       return { ok: true };
     }
 
-case "resolve_moon_pool": {
+    case "resolve_moon_pool": {
       // Each "up to" and each target is the Corp's choice (CR 1.15.2).
       if (!action.step) {
         // Removing Moon Pool from the game is its cost. A catalog that still
@@ -186,14 +180,19 @@ case "resolve_moon_pool": {
         );
         revealCards(state, revealed, sourceId);
         for (const id of revealed) {
-          state.corp.discardPile = state.corp.discardPile.filter((x) => x !== id);
+          state.corp.discardPile = state.corp.discardPile.filter(
+            (x) => x !== id,
+          );
           state.corp.deck.push(id);
           state.cards[id].zone = "corp:rd";
           // Revealed, then facedown again once in R&D (CR 1.21.3).
           state.cards[id].faceup = false;
         }
         if (revealed.length > 0) {
-          log(state, `${source.title} — ${revealed.length} revealed card(s) go from Archives into R&D.`);
+          log(
+            state,
+            `${source.title} — ${revealed.length} revealed card(s) go from Archives into R&D.`,
+          );
         }
         // R&D is shuffled even when no card goes into it (Moon Pool ruling,
         // 2022-10-22).
@@ -223,7 +222,10 @@ case "resolve_moon_pool": {
       }
       for (const id of state.runner.installed) targets.push(id);
       if (targets.length === 0) {
-        log(state, `${source.title} — no installed card for an advancement counter.`);
+        log(
+          state,
+          `${source.title} — no installed card for an advancement counter.`,
+        );
         return { ok: true };
       }
       const next: Effect = {
@@ -259,7 +261,7 @@ case "resolve_moon_pool": {
       return { ok: true };
     }
 
-case "resolve_simulation_reset": {
+    case "resolve_simulation_reset": {
       // The Corp chooses the cards trashed and the cards shuffled back
       // (CR 1.15.2).
       if (!action.step) {
@@ -336,7 +338,7 @@ case "resolve_simulation_reset": {
       return { ok: true };
     }
 
-case "resolve_deep_dive": {
+    case "resolve_deep_dive": {
       const setAsideN = Math.max(0, action.setAside ?? 8);
       const initial = Math.max(1, action.initialAccess ?? 1);
       const aside: string[] = [];
@@ -399,7 +401,7 @@ case "resolve_deep_dive": {
       return { ok: true };
     }
 
-case "resolve_realloc": {
+    case "resolve_realloc": {
       const [iceId, ...rest] = action.iceIds;
       if (!iceId) return { ok: true };
       const ice = state.cards[iceId];
@@ -412,10 +414,7 @@ case "resolve_realloc": {
           ice.faceup = false;
           fireHostRezStateTriggers(state, iceId, "derez");
         }
-        log(
-          state,
-          `realloc() — gain ${gain}¢ from ${ice.title}, then derez.`,
-        );
+        log(state, `realloc() — gain ${gain}¢ from ${ice.title}, then derez.`);
       }
       if (rest.length === 0) return { ok: true };
       const next = {
@@ -432,7 +431,7 @@ case "resolve_realloc": {
       return applyPrimitive(ctx, { kind: "resolve_realloc", iceIds: rest });
     }
 
-case "resolve_breach_replacement": {
+    case "resolve_breach_replacement": {
       resolveBreachReplacement(state, action.mode);
       if (
         action.mode === "account_siphon" &&
@@ -447,7 +446,7 @@ case "resolve_breach_replacement": {
       return { ok: true };
     }
 
-case "resolve_account_siphon": {
+    case "resolve_account_siphon": {
       if (state.run) state.run.skipBreach = true;
       const lose = Math.min(action.loseAmount, state.corp.credits);
       state.corp.credits -= lose;
@@ -460,23 +459,20 @@ case "resolve_account_siphon": {
       return applyPrimitive(ctx, { kind: "give_tags", amount: 2 });
     }
 
-case "resolve_vamp": {
+    case "resolve_vamp": {
       if (state.run) state.run.skipBreach = true;
       const spend = Math.min(action.spendAmount, state.runner.credits);
       subtractRunnerCreditPool(state, spend);
       const lose = Math.min(spend, state.corp.credits);
       state.corp.credits -= lose;
-      log(
-        state,
-        `Vamp — Runner spends ${spend}¢; Corp loses ${lose}¢.`,
-      );
+      log(state, `Vamp — Runner spends ${spend}¢; Corp loses ${lose}¢.`);
       if (spend > 0) {
         return applyPrimitive(ctx, { kind: "give_tags", amount: 1 });
       }
       return { ok: true };
     }
 
-case "resolve_bioroid_subroutine": {
+    case "resolve_bioroid_subroutine": {
       const others: Array<{ iceId: string; subIndex: number }> = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -504,7 +500,7 @@ case "resolve_bioroid_subroutine": {
       return evalEffect({ state, sourceId: pick.iceId }, sub.effect);
     }
 
-case "may_resolve_subroutine_on_rezzed_ice": {
+    case "may_resolve_subroutine_on_rezzed_ice": {
       const subtype =
         typeof action.subtype === "string" ? action.subtype.toLowerCase() : "";
       const mandatory = subtype.length === 0;
@@ -544,8 +540,7 @@ case "may_resolve_subroutine_on_rezzed_ice": {
           const ice = state.cards[pick.iceId];
           const subs = ice?.subroutines ?? [];
           return (
-            subs.length > 0 &&
-            subs.every((sub) => isResolveOther(sub.effect))
+            subs.length > 0 && subs.every((sub) => isResolveOther(sub.effect))
           );
         });
       if (closedLoop) {
@@ -560,8 +555,8 @@ case "may_resolve_subroutine_on_rezzed_ice": {
               effect: fx.gainCredits("corp", 0),
             },
           ],
-logLine: `${source.title} — mandatory loop; choose how many times it resolves (CR ${CR.mandatoryLoop.number}).`,
-});
+          logLine: `${source.title} — mandatory loop; choose how many times it resolves (CR ${CR.mandatoryLoop.number}).`,
+        });
         return { ok: true };
       }
       const options: import("../ir.js").ChoiceOption[] = picks.map((p) => {
@@ -587,15 +582,18 @@ logLine: `${source.title} — mandatory loop; choose how many times it resolves 
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: mandatory
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: mandatory
           ? `${source.title} — resolve a subroutine on another rezzed ice.`
           : `${source.title} — may resolve a subroutine on rezzed ${subtype} ice.`,
-});
+      });
       return { ok: true };
     }
 
-case "resolve_spark_of_inspiration": {
+    case "resolve_spark_of_inspiration": {
       const discount = Math.max(0, action.discount ?? 10);
       const aside: string[] = [];
       let programId: string | null = null;
@@ -655,12 +653,12 @@ case "resolve_spark_of_inspiration": {
             },
           },
         ],
-logLine: `${source.title} — may install ${prog.title} (${discount}¢ discount).`,
-});
+        logLine: `${source.title} — may install ${prog.title} (${discount}¢ discount).`,
+      });
       return { ok: true };
     }
 
-case "resolve_fully_operational": {
+    case "resolve_fully_operational": {
       let remotes = 0;
       for (const server of Object.values(state.servers)) {
         if (server.kind !== "remote") continue;
@@ -677,7 +675,7 @@ case "resolve_fully_operational": {
       });
     }
 
-case "resolve_meeting_of_minds": {
+    case "resolve_meeting_of_minds": {
       const subtype = action.subtype.toLowerCase();
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
@@ -693,10 +691,7 @@ case "resolve_meeting_of_minds": {
         });
       if (matches.length === 0) {
         shuffleRunnerStack(state);
-        log(
-          state,
-          `Meeting of Minds — no ${subtype} resource in stack.`,
-        );
+        log(state, `Meeting of Minds — no ${subtype} resource in stack.`);
         return afterRevealGain();
       }
       openPendingChoose(state, {
@@ -727,12 +722,12 @@ case "resolve_meeting_of_minds": {
             },
           })),
         ],
-logLine: `Meeting of Minds — may search stack for a ${subtype} resource.`,
-});
+        logLine: `Meeting of Minds — may search stack for a ${subtype} resource.`,
+      });
       return { ok: true };
     }
 
-case "resolve_burner": {
+    case "resolve_burner": {
       const revealN = Math.min(
         Math.max(0, action.reveal),
         state.corp.hand.length,
@@ -748,7 +743,7 @@ case "resolve_burner": {
       return offerBurnerMoves(state, sourceId, revealed, moves);
     }
 
-case "resolve_wizard_chest": {
+    case "resolve_wizard_chest": {
       const types: Array<"hardware" | "program" | "resource"> = [
         "hardware",
         "program",
@@ -770,8 +765,8 @@ case "resolve_wizard_chest": {
             },
           },
         })),
-logLine: `${source.title} — choose card type.`,
-});
+        logLine: `${source.title} — choose card type.`,
+      });
       return { ok: true };
     }
     case "resolve_pending_ability": {

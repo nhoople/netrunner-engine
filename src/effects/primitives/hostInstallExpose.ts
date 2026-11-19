@@ -8,10 +8,8 @@ import type { EffectCtx } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applySansanUwPrimitive(
   ctx: EffectCtx,
@@ -67,8 +65,8 @@ export function applySansanUwPrimitive(
             },
           },
         })),
-logLine: `${source.title} — choose a hosted card to install.`,
-});
+        logLine: `${source.title} — choose a hosted card to install.`,
+      });
       return { ok: true };
     }
 
@@ -136,8 +134,8 @@ logLine: `${source.title} — choose a hosted card to install.`,
             },
           },
         })),
-logLine: `Drive By — choose a remote root card to expose.`,
-});
+        logLine: `Drive By — choose a remote root card to expose.`,
+      });
       return { ok: true };
     }
 
@@ -193,8 +191,8 @@ logLine: `Drive By — choose a remote root card to expose.`,
             action: { kind: "derez_card" as const, cardId: id },
           },
         })),
-logLine: `Muertos — Corp must choose a card to derez.`,
-});
+        logLine: `Muertos — Corp must choose a card to derez.`,
+      });
       return { ok: true };
     }
 
@@ -234,8 +232,8 @@ logLine: `Muertos — Corp must choose a card to derez.`,
         sourceId,
         chooser: "corp",
         options,
-logLine: `Muertos — Corp may rez a card, ignoring rez cost.`,
-});
+        logLine: `Muertos — Corp may rez a card, ignoring rez cost.`,
+      });
       return { ok: true };
     }
 
@@ -283,8 +281,8 @@ logLine: `Muertos — Corp may rez a card, ignoring rez cost.`,
             },
           })),
         ],
-logLine: `${source.title} — derez up to ${max} card(s).`,
-});
+        logLine: `${source.title} — derez up to ${max} card(s).`,
+      });
       return { ok: true };
     }
 
@@ -335,7 +333,10 @@ logLine: `${source.title} — derez up to ${max} card(s).`,
         log(state, `${source.title} — no advancements.`);
         return { ok: true };
       }
-      log(state, `${source.title} — swap HQ↔Archives for each of ${n} advancement(s).`);
+      log(
+        state,
+        `${source.title} — swap HQ↔Archives for each of ${n} advancement(s).`,
+      );
       return applySansanUwPrimitive(ctx, {
         kind: "swap_allele_step",
         remaining: n,
@@ -391,7 +392,9 @@ logLine: `${source.title} — derez up to ${max} card(s).`,
         return { ok: true };
       }
       state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== archId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== archId,
+      );
       state.corp.hand.push(archId);
       state.corp.discardPile.push(hqId);
       const hqCard = state.cards[hqId]!;
@@ -447,8 +450,8 @@ logLine: `${source.title} — derez up to ${max} card(s).`,
             effect: sub.effect,
           };
         }),
-logLine: `${source.title} — resolve 1 subroutine on protecting ice.`,
-});
+        logLine: `${source.title} — resolve 1 subroutine on protecting ice.`,
+      });
       return { ok: true };
     }
 

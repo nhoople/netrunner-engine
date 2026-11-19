@@ -61,7 +61,8 @@ function compare(name: string): string[] {
   const recorded = new Set(baseline[file!]?.[name] ?? []);
   const errors: string[] = [];
   for (const [code, problem] of found) {
-    if (!recorded.has(code)) errors.push(`new invariant problem ${describeProblem(problem)}`);
+    if (!recorded.has(code))
+      errors.push(`new invariant problem ${describeProblem(problem)}`);
   }
   for (const code of recorded) {
     if (!found.has(code)) {
@@ -76,31 +77,44 @@ function compare(name: string): string[] {
 
 afterEach(() => {
   const state = expect.getState();
-  file ??= relative(ROOT, state.testPath ?? "").split("\\").join("/");
+  file ??= relative(ROOT, state.testPath ?? "")
+    .split("\\")
+    .join("/");
   const name = currentTest();
   testsRun.add(name);
   if (outDir) return;
   const errors = compare(name);
   if (errors.length > 0) {
-    throw new Error(`State invariants (tests/setup/invariants.ts):\n- ${errors.join("\n- ")}`);
+    throw new Error(
+      `State invariants (tests/setup/invariants.ts):\n- ${errors.join("\n- ")}`,
+    );
   }
 });
 
 afterAll(() => {
-  file ??= relative(ROOT, expect.getState().testPath ?? "").split("\\").join("/");
+  file ??= relative(ROOT, expect.getState().testPath ?? "")
+    .split("\\")
+    .join("/");
   if (outDir) {
     const found: Record<string, Record<string, string>> = {};
     for (const [name, codes] of seen) {
-      found[name] = Object.fromEntries([...codes].map(([code, p]) => [code, describeProblem(p)]));
+      found[name] = Object.fromEntries(
+        [...codes].map(([code, p]) => [code, describeProblem(p)]),
+      );
     }
     mkdirSync(outDir, { recursive: true });
     const out = join(outDir, `${file.replace(/[^A-Za-z0-9._-]/g, "_")}.json`);
-    writeFileSync(out, JSON.stringify({ file, testsRun: [...testsRun, OUTSIDE_TEST], found }));
+    writeFileSync(
+      out,
+      JSON.stringify({ file, testsRun: [...testsRun, OUTSIDE_TEST], found }),
+    );
     return;
   }
   // Findings outside any test are checked once the file is done.
   const errors = compare(OUTSIDE_TEST);
   if (errors.length > 0) {
-    throw new Error(`State invariants (tests/setup/invariants.ts):\n- ${errors.join("\n- ")}`);
+    throw new Error(
+      `State invariants (tests/setup/invariants.ts):\n- ${errors.join("\n- ")}`,
+    );
   }
 });

@@ -13,7 +13,12 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it, beforeAll } from "vitest";
 import { assertPinnedTag, CR, crDataPresent } from "../src/index.js";
-import { literalCitations, loadIndexNumbers, rel, srcFiles } from "./cr-citations.js";
+import {
+  literalCitations,
+  loadIndexNumbers,
+  rel,
+  srcFiles,
+} from "./cr-citations.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

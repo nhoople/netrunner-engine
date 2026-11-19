@@ -19,19 +19,16 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function runnerHardwareIds(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => state.cards[id]?.type === "hardware");
+  return state.runner.installed.filter(
+    (id) => state.cards[id]?.type === "hardware",
+  );
 }
 
-function trashRunnerHardwareChoose(
-  ctx: EffectCtx,
-  label: string,
-): PrimResult {
+function trashRunnerHardwareChoose(ctx: EffectCtx, label: string): PrimResult {
   const { state, sourceId } = ctx;
   const hw = runnerHardwareIds(state);
   if (hw.length === 0) {
@@ -139,7 +136,11 @@ export function applyLunarUpPrimitive(
         }
       }
       if (rezzed.length === 0) {
-        return { ok: false, error: "No rezzed ice to trash for Mutate.", cites: [] };
+        return {
+          ok: false,
+          error: "No rezzed ice to trash for Mutate.",
+          cites: [],
+        };
       }
       openPendingChoose(state, {
         sourceId,
@@ -166,13 +167,20 @@ export function applyLunarUpPrimitive(
       state.cards[iceId]!.rezzed = false;
       state.cards[iceId]!.zone = "corp:archives";
       state.corp.discardPile.push(iceId);
-      log(state, `Mutate — trashed ${state.cards[iceId]!.title} as additional cost.`);
+      log(
+        state,
+        `Mutate — trashed ${state.cards[iceId]!.title} as additional cost.`,
+      );
       return { ok: true };
     }
     case "resolve_mutate_operation": {
       const slot = state.turn.mutateTrashedIce;
       if (!slot) {
-        return { ok: false, error: "Mutate additional cost not paid.", cites: [] };
+        return {
+          ok: false,
+          error: "Mutate additional cost not paid.",
+          cites: [],
+        };
       }
       const revealed: string[] = [];
       let found: string | null = null;
@@ -361,7 +369,10 @@ export function applyLunarUpPrimitive(
       const card = state.cards[iceId]!;
       const cost = card.rezCost ?? 0;
       if (state.corp.credits < cost) {
-        log(state, `Cyber Threat — Corp cannot pay ${cost}¢ to rez ${card.title}.`);
+        log(
+          state,
+          `Cyber Threat — Corp cannot pay ${cost}¢ to rez ${card.title}.`,
+        );
         return { ok: true };
       }
       state.corp.credits -= cost;
@@ -416,28 +427,32 @@ export function applyLunarUpPrimitive(
       return { ok: true };
     }
     case "may_breach_instead_eden_shard": {
-      if (!state.run || state.run.attackedServerId !== "rd") return { ok: true };
+      if (!state.run || state.run.attackedServerId !== "rd")
+        return { ok: true };
       const inGrip = state.runner.hand.includes(sourceId);
       if (!inGrip) {
         log(state, `Eden Shard — not in grip; breach R&D.`);
         return { ok: true };
       }
-      if (!openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "breach",
-            label: "Breach R&D",
-            effect: fx.gainCredits("runner", 0),
-          },
-          {
-            id: "eden",
-            label: "Install Eden Shard from grip ignoring all costs",
-            effect: fx.do({ kind: "install_instead" }),
-          },
-        ],
-      })) return { ok: true };
+      if (
+        !openPendingChoose(state, {
+          sourceId,
+          chooser: "runner",
+          options: [
+            {
+              id: "breach",
+              label: "Breach R&D",
+              effect: fx.gainCredits("runner", 0),
+            },
+            {
+              id: "eden",
+              label: "Install Eden Shard from grip ignoring all costs",
+              effect: fx.do({ kind: "install_instead" }),
+            },
+          ],
+        })
+      )
+        return { ok: true };
       state.run.skipBreach = true;
       return { ok: true };
     }

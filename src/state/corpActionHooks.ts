@@ -108,9 +108,9 @@ function corpActionKindForIntent(
     case "use_identity_ability": {
       const idCard = state.cards[state.corp.identityId];
       const ability = idCard
-        ? (syncPaidAbilitiesFromRecords(idCard) as unknown as PaidAbility[]).find(
-            (a) => a.id === action.abilityId,
-          )
+        ? (
+            syncPaidAbilitiesFromRecords(idCard) as unknown as PaidAbility[]
+          ).find((a) => a.id === action.abilityId)
         : undefined;
       if (!ability || !costBeginsWithClick(ability)) return null;
       return `use_identity_ability:${action.abilityId}`;
@@ -195,7 +195,10 @@ export function takeExtraDifferentAction(
 ): { error: string; cites: RuleCite[] } | null {
   const refusal = extraDifferentActionRefusal(state, action);
   if (refusal) return refusal;
-  if (state.turn.extraDifferentAction && corpActionKindForIntent(state, action)) {
+  if (
+    state.turn.extraDifferentAction &&
+    corpActionKindForIntent(state, action)
+  ) {
     state.turn.extraDifferentAction = null;
   }
   return null;

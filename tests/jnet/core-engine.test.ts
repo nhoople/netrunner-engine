@@ -158,7 +158,9 @@ describe("jnet ports — core engine", () => {
     );
     expect(hardware.map((c) => c.title)).toEqual(["Box-E"]);
     expect(
-      state.runner.discardPile.some((id) => state.cards[id]?.title === "Mirror"),
+      state.runner.discardPile.some(
+        (id) => state.cards[id]?.title === "Mirror",
+      ),
     ).toBe(true);
   });
 });

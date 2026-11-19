@@ -9,12 +9,13 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function trashRunnerCardToHeap(state: EffectCtx["state"], cardId: string): void {
+function trashRunnerCardToHeap(
+  state: EffectCtx["state"],
+  cardId: string,
+): void {
   const card = state.cards[cardId];
   if (!card) return;
   removeCardFromCurrentZone(state, cardId);
@@ -53,8 +54,8 @@ export function applyFlashpointInPrimitive(
       const programs = looked.filter(
         (id) => state.cards[id]?.type === "program",
       );
-      const options: { id: string; label: string; effect: Effect }[] = programs.map(
-        (id) => ({
+      const options: { id: string; label: string; effect: Effect }[] =
+        programs.map((id) => ({
           id: `frantic-install:${id}`,
           label: `Install ${state.cards[id]!.title} (−${discount}¢)`,
           effect: fx.do({
@@ -63,8 +64,7 @@ export function applyFlashpointInPrimitive(
             lookedIds: looked,
             discount,
           }),
-        }),
-      );
+        }));
       options.push({
         id: "frantic-decline",
         label: "Decline install (trash looked cards)",
@@ -77,8 +77,8 @@ export function applyFlashpointInPrimitive(
         sourceId,
         chooser: "runner",
         options,
-logLine: `Frantic Coding — look at top ${looked.length}; ${programs.length} program(s).`,
-});
+        logLine: `Frantic Coding — look at top ${looked.length}; ${programs.length} program(s).`,
+      });
       return { ok: true };
     }
 
@@ -115,7 +115,10 @@ logLine: `Frantic Coding — look at top ${looked.length}; ${programs.length} pr
         trashRunnerCardToHeap(state, id);
       }
       if (rest.length > 0) {
-        log(state, `Frantic Coding — trash ${rest.length} other looked card(s).`);
+        log(
+          state,
+          `Frantic Coding — trash ${rest.length} other looked card(s).`,
+        );
       }
       return { ok: true };
     }
@@ -145,10 +148,7 @@ logLine: `Frantic Coding — look at top ${looked.length}; ${programs.length} pr
         );
         state.runner.deck.splice(insertAt, 0, cardId);
         state.cards[cardId]!.zone = "runner:stack";
-        log(
-          state,
-          `Shuffle ${state.cards[cardId]!.title} into stack.`,
-        );
+        log(state, `Shuffle ${state.cards[cardId]!.title} into stack.`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -195,8 +195,8 @@ logLine: `Frantic Coding — look at top ${looked.length}; ${programs.length} pr
             iceId: id,
           }),
         })),
-logLine: `${source?.title ?? "Wetwork"} — choose rezzed bioroid ice to host on.`,
-});
+        logLine: `${source?.title ?? "Wetwork"} — choose rezzed bioroid ice to host on.`,
+      });
       return { ok: true };
     }
 
@@ -331,8 +331,8 @@ logLine: `${source?.title ?? "Wetwork"} — choose rezzed bioroid ice to host on
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-logLine: `Top Hat — may access 1 of top ${ordered.length} instead of breach.`,
-});
+        logLine: `Top Hat — may access 1 of top ${ordered.length} instead of breach.`,
+      });
       return { ok: true };
     }
 

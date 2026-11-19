@@ -147,9 +147,8 @@ export function pendingAbilitySourceStillActive(
  */
 export function cancelPendingIfSourceInactive(
   state: GameState,
-  isAbilityActive: (
-    inst: PendingAbilityInstance,
-  ) => boolean = (inst) => pendingAbilitySourceStillActive(state, inst),
+  isAbilityActive: (inst: PendingAbilityInstance) => boolean = (inst) =>
+    pendingAbilitySourceStillActive(state, inst),
 ): number {
   let cancelled = 0;
   for (const inst of state.pendingAbilities) {
@@ -169,7 +168,10 @@ export function cancelPendingIfSourceInactive(
 /** Drop finished instances so the bag stays small between windows. */
 export function pruneSettledPendingAbilities(state: GameState): void {
   state.pendingAbilities = state.pendingAbilities.filter(
-    (p) => p.status === "pending" || p.status === "imminent" || p.status === "resolving",
+    (p) =>
+      p.status === "pending" ||
+      p.status === "imminent" ||
+      p.status === "resolving",
   );
 }
 
@@ -200,7 +202,10 @@ export function openReactionWindow(
   return frame;
 }
 
-export function closeReactionWindow(state: GameState, expectedId?: string): void {
+export function closeReactionWindow(
+  state: GameState,
+  expectedId?: string,
+): void {
   const frame = state.reactionStack.pop();
   if (!frame) return;
   if (expectedId && frame.id !== expectedId) {

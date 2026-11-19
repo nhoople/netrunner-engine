@@ -27,12 +27,7 @@ const CORP_OPENING = [
   "NGO Front",
   "PAD Campaign",
 ];
-const CORP_DECK = [
-  "Jackson Howard",
-  "Enigma",
-  "Merger",
-  "SanSan City Grid",
-];
+const CORP_DECK = ["Jackson Howard", "Enigma", "Merger", "SanSan City Grid"];
 const RUNNER_OPENING = [
   "Sure Gamble",
   "Drug Dealer",

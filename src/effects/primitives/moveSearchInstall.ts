@@ -11,10 +11,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function countRezzedNextIce(state: EffectCtx["state"]): number {
   let n = 0;
@@ -27,10 +25,7 @@ function countRezzedNextIce(state: EffectCtx["state"]): number {
   return n;
 }
 
-function trashSelfUpgrade(
-  state: EffectCtx["state"],
-  sourceId: string,
-): void {
+function trashSelfUpgrade(state: EffectCtx["state"], sourceId: string): void {
   const card = state.cards[sourceId];
   if (!card) return;
   for (const server of Object.values(state.servers)) {
@@ -140,9 +135,7 @@ export function applyKitaraCotcPrimitive(
     case "search_crypt_install": {
       const candidates = state.runner.deck.filter((id) => {
         const c = state.cards[id];
-        return (
-          c?.type === "program" && (c.subtypes ?? []).includes("virus")
-        );
+        return c?.type === "program" && (c.subtypes ?? []).includes("virus");
       });
       if (candidates.length === 0) {
         shuffleInPlace(state, state.runner.deck);
@@ -183,10 +176,7 @@ export function applyKitaraCotcPrimitive(
       card.zone = "runner:installed";
       card.faceup = true;
       shuffleInPlace(state, state.runner.deck);
-      log(
-        state,
-        `Crypt — install ${card.title} for ${cost}¢; shuffle stack.`,
-      );
+      log(state, `Crypt — install ${card.title} for ${cost}¢; shuffle stack.`);
       return { ok: true };
     }
 
@@ -278,7 +268,10 @@ export function applyKitaraCotcPrimitive(
       const ice = state.cards[enc.iceId];
       const idx = (ice?.subroutines?.length ?? enc.broken.length) - 1;
       if (idx < 0 || enc.broken[idx]) {
-        log(state, `${source?.title ?? "Gbahali"} — last subroutine already broken.`);
+        log(
+          state,
+          `${source?.title ?? "Gbahali"} — last subroutine already broken.`,
+        );
         return { ok: true };
       }
       enc.broken[idx] = true;
@@ -464,7 +457,9 @@ export function applyKitaraCotcPrimitive(
       const remaining = (action as { remaining?: number }).remaining ?? 0;
       const card = state.cards[cardId];
       if (card && state.corp.discardPile.includes(cardId)) {
-        state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+        state.corp.discardPile = state.corp.discardPile.filter(
+          (id) => id !== cardId,
+        );
         state.corp.hand.push(cardId);
         card.zone = "corp:hq";
         // Not revealed: a card in HQ is neither faceup nor facedown (CR 1.21.1a).
@@ -664,10 +659,7 @@ export function applyKitaraCotcPrimitive(
       // instance, not turn bookkeeping (which resets each turn).
       if (source) source.azmariNamedType = cardType;
       state.turn.cotcAzmariNamedTypeFired = false;
-      log(
-        state,
-        `${source?.title ?? "Azmari EdTech"} — name ${cardType}.`,
-      );
+      log(state, `${source?.title ?? "Azmari EdTech"} — name ${cardType}.`);
       return { ok: true };
     }
 
@@ -738,10 +730,7 @@ export function applyKitaraCotcPrimitive(
         return c?.type === "program" && (c.installCost ?? 0) <= maxCost;
       });
       if (progs.length === 0) {
-        log(
-          state,
-          `Trojan Horse — no program with install cost ≤ ${maxCost}.`,
-        );
+        log(state, `Trojan Horse — no program with install cost ≤ ${maxCost}.`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -759,9 +748,12 @@ export function applyKitaraCotcPrimitive(
     case "trash_trojan_horse_resolve": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
-      if (!card || !state.runner.installed.includes(cardId)) return { ok: true };
+      if (!card || !state.runner.installed.includes(cardId))
+        return { ok: true };
       removeCardFromCurrentZone(state, cardId);
-      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter(
+        (id) => id !== cardId,
+      );
       for (const id of [...state.runner.installed]) {
         const h = state.cards[id];
         if (h?.hostId === cardId) h.hostId = undefined;

@@ -20,7 +20,11 @@
  */
 import { applyAction } from "../actions/apply.js";
 import { collectCandidateActions } from "../legality/candidates.js";
-import { actorSideForAction, currentPriorityWindow, isWindowAct } from "../legality/priority.js";
+import {
+  actorSideForAction,
+  currentPriorityWindow,
+  isWindowAct,
+} from "../legality/priority.js";
 import type { GameState } from "../state/types.js";
 
 const QUIET_RUN_WINDOWS = new Set([
@@ -35,10 +39,14 @@ function idle(state: GameState): boolean {
   const frame = currentPriorityWindow(state);
   if (!frame || frame.stepKey !== state.timingKey) return false;
   const second = frame.consecutivePasses === 1;
-  const quiet = frame.consecutivePasses === 0 && QUIET_RUN_WINDOWS.has(state.timingKey);
+  const quiet =
+    frame.consecutivePasses === 0 && QUIET_RUN_WINDOWS.has(state.timingKey);
   if (!second && !quiet) return false;
   const acts = collectCandidateActions(state).filter(isWindowAct);
-  if (second) return !acts.some((action) => actorSideForAction(action, state) === frame.priorityHolder);
+  if (second)
+    return !acts.some(
+      (action) => actorSideForAction(action, state) === frame.priorityHolder,
+    );
   return acts.length === 0;
 }
 

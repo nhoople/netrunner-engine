@@ -27,7 +27,11 @@ describe("blanked link and Corp install costs (CR 9.12.1d)", () => {
   it("drops Dyson Mem Chip link while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const chip = instantiateCard("dyson-mem-chip", "chip-1", "runner:installed");
+    const chip = instantiateCard(
+      "dyson-mem-chip",
+      "chip-1",
+      "runner:installed",
+    );
     s.cards["chip-1"] = chip;
     s.runner.installed = ["chip-1"];
     recomputeRunnerLink(s);

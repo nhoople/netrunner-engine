@@ -43,9 +43,9 @@ describe("blanked steal and play costs (CR 9.12.1d)", () => {
       root: ["ag-1", "rh-1"],
     };
 
-    expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBeGreaterThan(
-      0,
-    );
+    expect(
+      stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1"),
+    ).toBeGreaterThan(0);
     suppressAbilities(s, rh.id);
     expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBe(0);
   });
@@ -96,9 +96,9 @@ describe("blanked steal and play costs (CR 9.12.1d)", () => {
     );
     s.cards["pa-1"] = pred;
 
-    expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBeGreaterThan(
-      0,
-    );
+    expect(
+      stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1"),
+    ).toBeGreaterThan(0);
     suppressAbilities(s, pred.id);
     expect(stealAdditionalCreditsForAgenda(s, "ag-1", "remote-1")).toBe(0);
   });

@@ -72,7 +72,12 @@ function installAgendaInRemote(state: GameState): GameState["cards"][string] {
   agenda.advancementRequirement = 3;
   agenda.agendaPoints = 2;
   agenda.zone = "server:remote-1:root";
-  state.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: [agenda.id] };
+  state.servers["remote-1"] = {
+    id: "remote-1",
+    kind: "remote",
+    ice: [],
+    root: [agenda.id],
+  };
   state.nextRemoteNumber = 2;
   return agenda;
 }
@@ -87,7 +92,12 @@ describe("illegal intents are refused with the specific reason", () => {
     state.corp.hand = state.corp.hand.filter((id) => id !== asset.id);
     state.corp.deck = state.corp.deck.filter((id) => id !== asset.id);
     asset.zone = "server:remote-1:root";
-    state.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: [asset.id] };
+    state.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [asset.id],
+    };
     state.nextRemoteNumber = 2;
     const remote = state.servers["remote-1"];
 
@@ -109,7 +119,9 @@ describe("illegal intents are refused with the specific reason", () => {
           destination: { kind: "remote_root", serverId },
         }),
       );
-      expect(out.error).toBe("Ice is installed protecting a server, not in its root.");
+      expect(out.error).toBe(
+        "Ice is installed protecting a server, not in its root.",
+      );
       expect(out.cites).toEqual(["3.4.2", "8.5.2d"]);
     }
     expect(state.servers[remote.id].ice).not.toContain("corp-ice-1");
@@ -124,7 +136,9 @@ describe("illegal intents are refused with the specific reason", () => {
   });
   it("names an unknown card id as unknown, not as the wrong card type (CR 5.2.6e)", () => {
     const state = toCorpTakeAction(newGame());
-    const out = refused(applyIntent(state, { type: "play_operation", cardId: "no-such-card" }));
+    const out = refused(
+      applyIntent(state, { type: "play_operation", cardId: "no-such-card" }),
+    );
     expect(out.error).toBe("Unknown card.");
     expect(out.cites).toContain("5.2.6e");
   });
@@ -134,7 +148,9 @@ describe("illegal intents are refused with the specific reason", () => {
     state.runner.tags = 1;
     state.runner.credits = 5;
     const out = refused(applyIntent(state, { type: "basic_remove_tag" }));
-    expect(out.error).toBe("Only the Runner may remove a tag with the basic action.");
+    expect(out.error).toBe(
+      "Only the Runner may remove a tag with the basic action.",
+    );
     expect(out.cites).toContain("5.2.7g");
     expect(out.cites).toContain("5.2.4");
   });
@@ -151,7 +167,11 @@ describe("illegal intents are refused with the specific reason", () => {
       { kind: "installed" as const },
     ]) {
       const out = refused(
-        applyIntent(state, { type: "basic_install", cardId: "corp-ice-1", destination }),
+        applyIntent(state, {
+          type: "basic_install",
+          cardId: "corp-ice-1",
+          destination,
+        }),
       );
       expect(out.error).toBe("Only the Corp installs Corp cards.");
       expect(out.cites).toContain("5.2.6d");
@@ -184,19 +204,29 @@ describe("illegal intents are refused with the specific reason", () => {
     const agenda = installAgendaInRemote(state);
     agenda.advancementCounters = 1;
     // Not a scoring window and under-advanced: the target reason wins.
-    let out = refused(applyIntent(state, { type: "score_agenda", cardId: agenda.id }));
+    let out = refused(
+      applyIntent(state, { type: "score_agenda", cardId: agenda.id }),
+    );
     expect(out.error).toBe(`${agenda.title} has 1 of 3 advancement counters.`);
     expect(out.cites).toContain("1.17.3a");
     // Fully advanced, still not a scoring window: the window reason.
     agenda.advancementCounters = 3;
-    out = refused(applyIntent(state, { type: "score_agenda", cardId: agenda.id }));
+    out = refused(
+      applyIntent(state, { type: "score_agenda", cardId: agenda.id }),
+    );
     expect(out.error).toBe("Score only in a paid ability window marked (S).");
     // Unknown and uninstalled targets.
-    out = refused(applyIntent(state, { type: "score_agenda", cardId: "no-such-card" }));
+    out = refused(
+      applyIntent(state, { type: "score_agenda", cardId: "no-such-card" }),
+    );
     expect(out.error).toBe("Unknown card.");
     hold(state, "corp-ice-1");
-    out = refused(applyIntent(state, { type: "score_agenda", cardId: "corp-ice-1" }));
-    expect(out.error).toBe("Only an agenda installed in a server root can be scored.");
+    out = refused(
+      applyIntent(state, { type: "score_agenda", cardId: "corp-ice-1" }),
+    );
+    expect(out.error).toBe(
+      "Only an agenda installed in a server root can be scored.",
+    );
   });
 
   it("names a rezzed card as rezzed before the rez window (CR 8.1.2)", () => {

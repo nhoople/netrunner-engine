@@ -12,17 +12,12 @@ import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
 import { abilitiesSuppressed } from "./abilities.js";
-import {
-  cancelPendingIfSourceInactive,
-} from "./pendingAbilities.js";
+import { cancelPendingIfSourceInactive } from "./pendingAbilities.js";
 import { onInstalledProgramTrashed } from "./staticFlags.js";
-import {
-  type StoredConditionalMark,
-} from "./storedTriggers.js";
+import { type StoredConditionalMark } from "./storedTriggers.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import { openPendingChoose } from "./pendingChoice.js";
-
 
 function noteAndCheckpointStored(
   state: GameState,
@@ -148,8 +143,8 @@ function offerSkorpiosRfgInsteadOfHeap(
         },
       },
     ],
-logLine: `${idCard.title} may remove ${card.title} from the game instead of adding it to the heap.`,
-});
+    logLine: `${idCard.title} may remove ${card.title} from the game instead of adding it to the heap.`,
+  });
   return true;
 }
 
@@ -186,7 +181,8 @@ export function moveRunnerCardToHeap(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   const fromZone = card.zone;
-  const wasInstalled = fromZone === "runner:installed" || state.runner.installed.includes(cardId);
+  const wasInstalled =
+    fromZone === "runner:installed" || state.runner.installed.includes(cardId);
   if (maybeOpenTrashPrevent(state, cardId)) {
     return;
   }
@@ -355,7 +351,6 @@ export function noteFirstInstallInServerRootThisTurn(
   noteAndCheckpointStored(state, items, "install.firstInServerRoot");
 }
 
-
 /**
  * When a host is trashed, hosted Corp cards go to Archives (faceup, not
  * installed); hosted Runner cards go to the heap — except hosted identities
@@ -398,10 +393,7 @@ export function releaseHostedCardsOnTrash(
         }
         card.zone = "runner:heap";
         card.faceup = true;
-        log(
-          state,
-          `${card.title} — hosted on ${host.title}; moves to heap.`,
-        );
+        log(state, `${card.title} — hosted on ${host.title}; moves to heap.`);
       }
     }
   }
@@ -599,10 +591,7 @@ export function noteFirstCorpCardTrashEachTurn(
  * Mâché-class: first access trash records MetPending for the next 10.3.1a
  * scanner pass (phase 3), after recording `lastAccessTrashCost`.
  */
-export function noteAccessTrash(
-  state: GameState,
-  trashCost?: number,
-): void {
+export function noteAccessTrash(state: GameState, trashCost?: number): void {
   if (trashCost !== undefined) {
     state.turn.lastAccessTrashCost = Math.max(0, trashCost);
   }
@@ -716,7 +705,6 @@ export function noteFirstCorpCardInstallEachTurn(state: GameState): void {
   state.turn.firstCorpCardInstallMetPending = true;
 }
 
-
 /**
  * After a Corp card reaches Archives via trash, fire `onTrash` if present.
  * Call only for actual trash (not Marilyn shuffle-into-R&D).
@@ -741,7 +729,10 @@ export function noteTrashMatchingRunnerIdentityFaction(
     for (const id of [...server.root]) {
       if (abilitiesSuppressed(state, id)) continue;
       const card = state.cards[id];
-      if (!card?.rezzed || !card.onFirstTrashMatchingRunnerIdentityFactionEachTurn) {
+      if (
+        !card?.rezzed ||
+        !card.onFirstTrashMatchingRunnerIdentityFactionEachTurn
+      ) {
         continue;
       }
       state.turn.firstTrashMatchingRunnerIdentityFactionMetPending = true;
@@ -840,7 +831,9 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     if (n > 0) {
       const host = card.hostId ? state.cards[card.hostId] : undefined;
       const keep =
-        host && !abilitiesSuppressed(state, host.id) && host.preventOneVirusPurgeOnHostedProgram
+        host &&
+        !abilitiesSuppressed(state, host.id) &&
+        host.preventOneVirusPurgeOnHostedProgram
           ? 1
           : 0;
       removed += n - keep;
@@ -904,7 +897,8 @@ export function purgeVirusCounters(state: GameState, sourceId: string): void {
     const card = state.cards[id];
     if (!card) continue;
     // Skip if already trashed by onVirusPurge.
-    if (card.side === "runner" && !state.runner.installed.includes(id)) continue;
+    if (card.side === "runner" && !state.runner.installed.includes(id))
+      continue;
     if (card.side === "corp" && !card.zone.startsWith("server:")) continue;
     if (card.side === "runner") {
       moveRunnerCardToHeap(state, id);
@@ -933,7 +927,9 @@ export function noteCorpCardAddedToArchives(state: GameState): void {
  */
 export function fireOnRemoveTags(
   state: GameState,
-): { ok: true } | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
+):
+  | { ok: true }
+  | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
@@ -976,7 +972,9 @@ export function fireOnRemoveTags(
  */
 export function fireOnFirstAvoidOrRemoveTagThisTurn(
   state: GameState,
-): { ok: true } | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
+):
+  | { ok: true }
+  | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
   if (!state.turn.onFirstAvoidOrRemoveTagFiredIds) {
     state.turn.onFirstAvoidOrRemoveTagFiredIds = [];
   }

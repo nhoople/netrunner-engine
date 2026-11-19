@@ -234,10 +234,17 @@ describe("nested cost unless (CR 1.16.11b)", () => {
             kind: "lose_credits" as const,
             side: "runner" as const,
             amount: 0,
-            tally: { count: "runner_score" as const, per: 2, side: "runner" as const },
+            tally: {
+              count: "runner_score" as const,
+              per: 2,
+              side: "runner" as const,
+            },
           },
         },
-        instruction: { op: "do" as const, action: { kind: "end_the_run" as const } },
+        instruction: {
+          op: "do" as const,
+          action: { kind: "end_the_run" as const },
+        },
       },
     };
     expect(validateEffectTree(effect)).toBeNull();
@@ -307,9 +314,9 @@ describe("nested cost unless (CR 1.16.11b)", () => {
         "unless-instruction",
         "unless-pay",
       ]);
-      expect(s.pendingChoice?.options.find((o) => o.id === "unless-pay")?.label).toBe(
-        "Spend 1 [click] and pay 2¢",
-      );
+      expect(
+        s.pendingChoice?.options.find((o) => o.id === "unless-pay")?.label,
+      ).toBe("Spend 1 [click] and pay 2¢");
       s = must(s, { type: "choose_option", optionId: "unless-pay" });
       expect(s.runner.clicks).toBe(1);
       expect(s.runner.credits).toBe(3);
@@ -319,14 +326,20 @@ describe("nested cost unless (CR 1.16.11b)", () => {
     it("resolves the instruction when one part cannot be paid", () => {
       const noClicks = withRun(5);
       noClicks.runner.clicks = 0;
-      expect(evalEffect({ state: noClicks, sourceId: "ice-1" }, clickAndCredits()).ok).toBe(true);
+      expect(
+        evalEffect({ state: noClicks, sourceId: "ice-1" }, clickAndCredits())
+          .ok,
+      ).toBe(true);
       expect(noClicks.pendingChoice).toBeNull();
       expect(noClicks.run?.endedTheRun).toBe(true);
       expect(noClicks.runner.credits).toBe(5);
 
       const noCredits = withRun(1);
       noCredits.runner.clicks = 3;
-      expect(evalEffect({ state: noCredits, sourceId: "ice-1" }, clickAndCredits()).ok).toBe(true);
+      expect(
+        evalEffect({ state: noCredits, sourceId: "ice-1" }, clickAndCredits())
+          .ok,
+      ).toBe(true);
       expect(noCredits.pendingChoice).toBeNull();
       expect(noCredits.run?.endedTheRun).toBe(true);
       expect(noCredits.runner.clicks).toBe(3);

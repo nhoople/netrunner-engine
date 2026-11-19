@@ -84,10 +84,7 @@ export function applyBreakerStrengthIncrease(
     return;
   }
 
-  const effectId = allocateEffectIdentity(
-    state,
-    `strength:${args.breakerId}`,
-  );
+  const effectId = allocateEffectIdentity(state, `strength:${args.breakerId}`);
   const expectedEffects = applyActiveReplacementsAtInterruptOpen(
     state,
     {

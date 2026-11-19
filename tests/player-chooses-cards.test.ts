@@ -131,12 +131,16 @@ describe("discard step (CR 5.5.4c)", () => {
 
   it("rejects the wrong number of cards or a card not in hand", () => {
     const s = runnerAtDiscard();
-    expect(applyAction(s, { type: "discard_to_hand_size", cardIds: ["g-2"] }).ok).toBe(false);
     expect(
-      applyAction(s, { type: "discard_to_hand_size", cardIds: ["g-2", "g-2"] }).ok,
+      applyAction(s, { type: "discard_to_hand_size", cardIds: ["g-2"] }).ok,
     ).toBe(false);
     expect(
-      applyAction(s, { type: "discard_to_hand_size", cardIds: ["g-2", "nope"] }).ok,
+      applyAction(s, { type: "discard_to_hand_size", cardIds: ["g-2", "g-2"] })
+        .ok,
+    ).toBe(false);
+    expect(
+      applyAction(s, { type: "discard_to_hand_size", cardIds: ["g-2", "nope"] })
+        .ok,
     ).toBe(false);
   });
 
@@ -229,7 +233,9 @@ describe("trash from HQ is the Corp's choice (CR 1.15.2)", () => {
 
   it("lets the Corp stop early when the card says any number", () => {
     expect(
-      validateEffectTree(fx.do({ kind: "trash_hq", pick: "choose", amount: 9, upTo: true })),
+      validateEffectTree(
+        fx.do({ kind: "trash_hq", pick: "choose", amount: 9, upTo: true }),
+      ),
     ).toBeNull();
     let s = threeInHq();
     run(s, "trash_hq", { pick: "choose", amount: 9, upTo: true });
@@ -326,7 +332,9 @@ describe("cards taken from Archives are the Corp's choice (CR 4.4.6c)", () => {
     expect(s.corp.deck).toEqual(expect.arrayContaining(["a-2", "a-4"]));
     expect(s.cards["a-2"].faceup).toBe(false);
     // A real shuffle: the old order is not kept under the new cards.
-    expect(s.corp.deck.filter((id) => id.startsWith("rd-"))).not.toEqual(before);
+    expect(s.corp.deck.filter((id) => id.startsWith("rd-"))).not.toEqual(
+      before,
+    );
   });
 });
 
@@ -338,10 +346,20 @@ describe("shuffles and random picks use the seeded stream", () => {
       seedRng(s, seed);
       for (let i = 0; i < 9; i += 1) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
       s.corp.deck = Array.from({ length: 9 }, (_, i) => `rd-${i}`);
-      const marilyn = put(s, "marilyn-campaign", "mc-1", "server:remote-1:root");
+      const marilyn = put(
+        s,
+        "marilyn-campaign",
+        "mc-1",
+        "server:remote-1:root",
+      );
       marilyn.rezzed = true;
       marilyn.faceup = true;
-      s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["mc-1"] };
+      s.servers["remote-1"] = {
+        id: "remote-1",
+        kind: "remote",
+        ice: [],
+        root: ["mc-1"],
+      };
       trashCorpCardToArchives(s, "mc-1", "corp");
       expect(s.corp.deck).toContain("mc-1");
       positions.add(s.corp.deck.indexOf("mc-1"));
@@ -393,9 +411,9 @@ describe("a choice shown to the other player", () => {
       then: fx.do({ kind: "trash_hq_card", cardId: "$chosen" }),
     });
     const runnerSees = getPublicView(s, "runner").pendingChoice;
-    expect(JSON.stringify(runnerSees?.options.map((o) => o.effect))).not.toContain(
-      "trash_hq_card",
-    );
+    expect(
+      JSON.stringify(runnerSees?.options.map((o) => o.effect)),
+    ).not.toContain("trash_hq_card");
     const corpSees = getPublicView(s, "corp").pendingChoice;
     expect(JSON.stringify(corpSees?.options.map((o) => o.effect))).toContain(
       "trash_hq_card",
@@ -407,13 +425,24 @@ describe("the other player does not read hidden cards off an open choice (CR 1.2
   function hemorrhage(): GameState {
     const s = structuredClone(createInitialState());
     s.corp.hand = [];
-    for (const [i, defId] of ["hedge-fund", "ice-wall", "pad-campaign"].entries()) {
+    for (const [i, defId] of [
+      "hedge-fund",
+      "ice-wall",
+      "pad-campaign",
+    ].entries()) {
       s.cards[`hq-${i}`] = instantiateCard(defId, `hq-${i}`, "corp:hq");
       s.corp.hand.push(`hq-${i}`);
     }
-    s.cards["hem-1"] = instantiateCard("hemorrhage", "hem-1", "runner:installed");
+    s.cards["hem-1"] = instantiateCard(
+      "hemorrhage",
+      "hem-1",
+      "runner:installed",
+    );
     s.runner.installed.push("hem-1");
-    const r = evalEffect({ state: s, sourceId: "hem-1" }, fx.do({ kind: "corp_trash_from_hq" }));
+    const r = evalEffect(
+      { state: s, sourceId: "hem-1" },
+      fx.do({ kind: "corp_trash_from_hq" }),
+    );
     expect(r.ok).toBe(true);
     return s;
   }
@@ -434,7 +463,14 @@ describe("the other player does not read hidden cards off an open choice (CR 1.2
     expect(choice?.chooser).toBe("corp");
     expect(choice?.options).toHaveLength(3);
     const wire = JSON.stringify(choice?.options);
-    for (const leak of ["hq-0", "hq-1", "hq-2", "Hedge Fund", "Ice Wall", "PAD Campaign"]) {
+    for (const leak of [
+      "hq-0",
+      "hq-1",
+      "hq-2",
+      "Hedge Fund",
+      "Ice Wall",
+      "PAD Campaign",
+    ]) {
       expect(wire).not.toContain(leak);
     }
   });
@@ -444,7 +480,9 @@ describe("the other player does not read hidden cards off an open choice (CR 1.2
     s = must(s, { type: "choose_option", optionId: "hemorrhage:hq-1" });
     expect(s.cards["hq-1"].zone).toBe("corp:archives");
     expect(s.cards["hq-1"].faceup).toBe(false);
-    expect(getPublicView(s, "runner").opponent.discardPileFaceup).not.toContain("hq-1");
+    expect(getPublicView(s, "runner").opponent.discardPileFaceup).not.toContain(
+      "hq-1",
+    );
   });
 
   it("keeps an option about cards both players can see", () => {
@@ -454,7 +492,11 @@ describe("the other player does not read hidden cards off an open choice (CR 1.2
     const r = evalEffect(
       { state: s, sourceId: "src" },
       fx.choose("corp", [
-        { id: "gain", label: "Gain 1 credit", effect: fx.gainCredits("corp", 1) },
+        {
+          id: "gain",
+          label: "Gain 1 credit",
+          effect: fx.gainCredits("corp", 1),
+        },
         { id: "none", label: "Decline", effect: fx.gainCredits("corp", 0) },
       ]),
     );

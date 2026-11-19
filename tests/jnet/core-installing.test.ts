@@ -41,9 +41,11 @@ describe("jnet ports — core installing", () => {
       "Endless Hunger",
     ]);
     state = playFromHand(state, "runner", "Corroder");
-    expect(state.pendingChoice?.options.some((o) => o.label.includes("Endless Hunger"))).toBe(
-      true,
-    );
+    expect(
+      state.pendingChoice?.options.some((o) =>
+        o.label.includes("Endless Hunger"),
+      ),
+    ).toBe(true);
     state = clickCard(state, "Endless Hunger");
     expect(installedCards(state, "runner").map((c) => c.title)).toEqual([
       "Corroder",

@@ -78,7 +78,11 @@ export function newGame(options: NewGameOptions = {}): GameState {
   let state = createInitialState({ stopAfterFirstCycle: false });
   const cards: Record<string, CardInstance> = {
     "corp-id": options.corpIdentity
-      ? instantiateCard(slugForTitle(options.corpIdentity), "corp-id", "corp:hq")
+      ? instantiateCard(
+          slugForTitle(options.corpIdentity),
+          "corp-id",
+          "corp:hq",
+        )
       : state.cards["corp-id"]!,
     "runner-id": options.runnerIdentity
       ? instantiateCard(
@@ -89,7 +93,11 @@ export function newGame(options: NewGameOptions = {}): GameState {
       : state.cards["runner-id"]!,
   };
   const counters = new Map<string, number>();
-  const place = (side: Side, title: string, zone: CardInstance["zone"]): string => {
+  const place = (
+    side: Side,
+    title: string,
+    zone: CardInstance["zone"],
+  ): string => {
     const slug = slugForTitle(title);
     const n = (counters.get(slug) ?? 0) + 1;
     counters.set(slug, n);
@@ -100,7 +108,9 @@ export function newGame(options: NewGameOptions = {}): GameState {
   const corpDeck = (options.corpDeck ?? qty("Hedge Fund", 10)).map((t) =>
     place("corp", t, "corp:rd"),
   );
-  const corpHand = (options.corpHand ?? []).map((t) => place("corp", t, "corp:hq"));
+  const corpHand = (options.corpHand ?? []).map((t) =>
+    place("corp", t, "corp:hq"),
+  );
   const runnerDeck = (options.runnerDeck ?? qty("Sure Gamble", 10)).map((t) =>
     place("runner", t, "runner:stack"),
   );
@@ -186,7 +196,8 @@ export function settle(state: GameState): GameState {
   for (let guard = 0; guard < 20; guard++) {
     if (state.pendingChoice) return state;
     if (!state.timingKey.endsWith("actionPaw")) return state;
-    if (!legalActions(state).some((a) => a.type === "pass_window")) return state;
+    if (!legalActions(state).some((a) => a.type === "pass_window"))
+      return state;
     state = must(state, { type: "pass_window" });
   }
   return state;
@@ -196,7 +207,8 @@ function findInHand(state: GameState, side: Side, title: string): string {
   const hand = side === "corp" ? state.corp.hand : state.runner.hand;
   const id = hand.find(
     (cardId) =>
-      normalizeTitle(state.cards[cardId]?.title ?? "") === normalizeTitle(title),
+      normalizeTitle(state.cards[cardId]?.title ?? "") ===
+      normalizeTitle(title),
   );
   if (!id) throw new Error(`${title} is not in the ${side} hand`);
   return id;
@@ -243,7 +255,8 @@ export function playFromHand(
       .flatMap((server) => server.ice)
       .map((id) => state.cards[id])
       .find((candidate) => candidate?.title === target);
-    if (!ice) throw new Error(`No installed ice titled "${target}" to host ${title}`);
+    if (!ice)
+      throw new Error(`No installed ice titled "${target}" to host ${title}`);
     return must(state, {
       type: "basic_install",
       cardId,
@@ -364,13 +377,21 @@ export function firstRemote(state: GameState): Server {
   return remote;
 }
 
-export function rootCard(state: GameState, server: Server, index = 0): CardInstance {
+export function rootCard(
+  state: GameState,
+  server: Server,
+  index = 0,
+): CardInstance {
   const id = server.root[index];
   if (!id) throw new Error(`No card at root ${index} of ${server.id}`);
   return state.cards[id]!;
 }
 
-export function iceCard(state: GameState, server: Server, index = 0): CardInstance {
+export function iceCard(
+  state: GameState,
+  server: Server,
+  index = 0,
+): CardInstance {
   const id = server.ice[index];
   if (!id) throw new Error(`No ice at ${index} of ${server.id}`);
   return state.cards[id]!;
@@ -447,7 +468,10 @@ export function accessCard(state: GameState, cardId: string): GameState {
 export function finishAccess(state: GameState): GameState {
   for (let guard = 0; guard < 200; guard++) {
     if (!state.run) return state;
-    if (state.timingKey === "breach.awaitAccess" && !state.run.accessingCardId) {
+    if (
+      state.timingKey === "breach.awaitAccess" &&
+      !state.run.accessingCardId
+    ) {
       return state;
     }
     const legal = legalActions(state);
@@ -480,9 +504,7 @@ export function finishAccess(state: GameState): GameState {
 export function stealAccessed(state: GameState, cardId: string): GameState {
   for (let guard = 0; guard < 200; guard++) {
     const legal = legalActions(state);
-    if (
-      legal.some((a) => a.type === "steal_agenda" && a.cardId === cardId)
-    ) {
+    if (legal.some((a) => a.type === "steal_agenda" && a.cardId === cardId)) {
       return must(state, { type: "steal_agenda", cardId });
     }
     if (legal.some((a) => a.type === "pass_window")) {
@@ -565,7 +587,11 @@ export function pumpBreaker(
   breakerId: string,
   abilityId: string,
 ): GameState {
-  return must(state, { type: "use_paid_ability", cardId: breakerId, abilityId });
+  return must(state, {
+    type: "use_paid_ability",
+    cardId: breakerId,
+    abilityId,
+  });
 }
 
 /** Break one subroutine with the named breaker. */

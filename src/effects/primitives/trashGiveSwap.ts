@@ -12,10 +12,8 @@ import { applySpinTcPrimitive } from "./breachTrashTurn.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applySpinFalDtPrimitive(
   ctx: EffectCtx,
@@ -34,7 +32,11 @@ export function applySpinFalDtPrimitive(
       if (state.corp.hand.length === 1) {
         return evalEffect(
           ctx,
-          fx.do({ kind: "trash_hq_card", cardId: state.corp.hand[0]!, by: "corp" }),
+          fx.do({
+            kind: "trash_hq_card",
+            cardId: state.corp.hand[0]!,
+            by: "corp",
+          }),
         );
       }
       openPendingChoose(state, {
@@ -114,8 +116,8 @@ export function applySpinFalDtPrimitive(
             fx.do({ kind: "remove_bad_publicity_up_to", max: 2 }),
           ),
         })),
-logLine: `Restoring Face — choose sysop/executive/clone to trash.`,
-});
+        logLine: `Restoring Face — choose sysop/executive/clone to trash.`,
+      });
       return { ok: true };
     }
     case "trash_installed_corp_card": {
@@ -150,8 +152,8 @@ logLine: `Restoring Face — choose sysop/executive/clone to trash.`,
             hqCardId: id,
           }),
         })),
-logLine: `Toshiyuki Sakai — may swap with agenda/asset from HQ.`,
-});
+        logLine: `Toshiyuki Sakai — may swap with agenda/asset from HQ.`,
+      });
       return { ok: true };
     }
     case "swap_execute": {
@@ -205,8 +207,8 @@ logLine: `Toshiyuki Sakai — may swap with agenda/asset from HQ.`,
             ),
           },
         ],
-logLine: `Singularity — may instead of breaching trash the server root.`,
-});
+        logLine: `Singularity — may instead of breaching trash the server root.`,
+      });
       return { ok: true };
     }
     case "install_program_from_grip": {
@@ -228,8 +230,8 @@ logLine: `Singularity — may instead of breaching trash the server root.`,
             cardId: id,
           }),
         })),
-logLine: `Savoir-faire — install a program from grip (pay install cost).`,
-});
+        logLine: `Savoir-faire — install a program from grip (pay install cost).`,
+      });
       return { ok: true };
     }
     case "prevent_trash_resource": {
@@ -260,8 +262,8 @@ logLine: `Savoir-faire — install a program from grip (pay install cost).`,
             iceId: id,
           }),
         })),
-logLine: `Paintbrush — choose rezzed ice to paint.`,
-});
+        logLine: `Paintbrush — choose rezzed ice to paint.`,
+      });
       return { ok: true };
     }
     case "paintbrush_apply_subtype": {
@@ -412,7 +414,10 @@ logLine: `Paintbrush — choose rezzed ice to paint.`,
         return { ok: true };
       }
       state.run.markerExtraEtrNextIce = true;
-      log(state, `Marker — next ice encountered gains ETR after its subroutines.`);
+      log(
+        state,
+        `Marker — next ice encountered gains ETR after its subroutines.`,
+      );
       return { ok: true };
     }
     default:

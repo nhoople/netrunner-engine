@@ -2,14 +2,8 @@
  * Primitive kinds whose procedure is pay.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import {
   subtractRunnerCreditPool,
   hostedCreditsSpendableDuringRuns,
@@ -19,16 +13,16 @@ import { log } from "../../state/createGame.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../../state/gamenet.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
-import {
-  resolveSide,
-  applyPrimitive,
-} from "../eval.js";
+import { resolveSide, applyPrimitive } from "../eval.js";
 
-export function applyPayKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyPayKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "may_pay_credits_add_virus_counter": {
+    case "may_pay_credits_add_virus_counter": {
       const cost = Math.max(0, action.credits ?? 0);
       const amount = Math.max(0, action.amount ?? 1);
       const canPay = state.runner.credits >= cost && cost > 0;
@@ -56,13 +50,16 @@ case "may_pay_credits_add_virus_counter": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — may pay ${cost}¢ for virus.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — may pay ${cost}¢ for virus.`,
+      });
       return { ok: true };
     }
 
-case "pay_credits_add_virus_counter": {
+    case "pay_credits_add_virus_counter": {
       const cost = Math.max(0, action.credits ?? 0);
       const amount = Math.max(0, action.amount ?? 1);
       if (state.runner.credits < cost) {
@@ -73,7 +70,7 @@ case "pay_credits_add_virus_counter": {
       return applyPrimitive(ctx, { kind: "add_virus_counter", amount });
     }
 
-case "may_pay_credits_for_trash_programs_per_advancement": {
+    case "may_pay_credits_for_trash_programs_per_advancement": {
       const count = source.advancementCounters ?? 0;
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (count > 0 && state.corp.credits >= action.amount) {
@@ -114,12 +111,12 @@ case "may_pay_credits_for_trash_programs_per_advancement": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — may pay ${action.amount}¢ to trash ${count} program(s) (1 per advancement).`,
-});
+        logLine: `${source.title} — may pay ${action.amount}¢ to trash ${count} program(s) (1 per advancement).`,
+      });
       return { ok: true };
     }
 
-case "may_pay_credits_for_shuffle_installed_runner_per_advancement": {
+    case "may_pay_credits_for_shuffle_installed_runner_per_advancement": {
       const count = source.advancementCounters ?? 0;
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (count > 0 && state.corp.credits >= action.amount) {
@@ -160,12 +157,12 @@ case "may_pay_credits_for_shuffle_installed_runner_per_advancement": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — may pay ${action.amount}¢ to shuffle ${count} installed Runner card(s) (1 per advancement).`,
-});
+        logLine: `${source.title} — may pay ${action.amount}¢ to shuffle ${count} installed Runner card(s) (1 per advancement).`,
+      });
       return { ok: true };
     }
 
-case "pay_credits_or_etr": {
+    case "pay_credits_or_etr": {
       const side = resolveSide(ctx, action.side);
       const p = side === "corp" ? state.corp : state.runner;
       const hosted =
@@ -195,14 +192,11 @@ case "pay_credits_or_etr": {
         }
         return { ok: true };
       }
-      log(
-        state,
-        `${side} cannot pay ${action.amount}¢ — end the run.`,
-      );
+      log(state, `${side} cannot pay ${action.amount}¢ — end the run.`);
       return applyPrimitive(ctx, { kind: "end_the_run" });
     }
 
-case "pay_rez_additional_cost": {
+    case "pay_rez_additional_cost": {
       const agendas = [...state.corp.scoreArea];
       const hqCount = state.corp.hand.length;
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
@@ -240,13 +234,16 @@ case "pay_rez_additional_cost": {
           cites: [CR.rezProcedure],
         };
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Plutus — pay additional rez cost.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Plutus — pay additional rez cost.`,
+      });
       return { ok: true };
     }
 
-case "may_pay_place": {
+    case "may_pay_place": {
       const x = action.amount;
       if (x <= 0) {
         log(state, `${source.title} — X=0; decline place advancements.`);
@@ -295,14 +292,14 @@ case "may_pay_place": {
             },
           },
         ],
-logLine: canPay
+        logLine: canPay
           ? `${source.title} — may pay ${x}¢ to place ${x} advancement(s).`
           : `${source.title} — cannot afford ${x}¢; only decline.`,
-});
+      });
       return { ok: true };
     }
 
-case "pay_credits_reencounter_passed_ice": {
+    case "pay_credits_reencounter_passed_ice": {
       if (!state.run?.pendingReencounterIceId) {
         log(state, `Reencounter — no pending ice.`);
         return { ok: true };
@@ -315,20 +312,14 @@ case "pay_credits_reencounter_passed_ice": {
       state.corp.credits -= action.credits;
       state.run.reencounterIceId = state.run.pendingReencounterIceId;
       state.run.pendingReencounterIceId = undefined;
-      log(
-        state,
-        `Pay ${action.credits}¢ — Runner will encounter ice again.`,
-      );
+      log(state, `Pay ${action.credits}¢ — Runner will encounter ice again.`);
       return { ok: true };
     }
 
-case "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run": {
+    case "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run": {
       const credits = Math.max(0, action.credits);
       if (state.runner.credits < credits) {
-        log(
-          state,
-          `${source.title} — cannot pay ${credits}¢ to gain [click].`,
-        );
+        log(state, `${source.title} — cannot pay ${credits}¢ to gain [click].`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -355,12 +346,12 @@ case "may_pay_credits_gain_click_trash_at_turn_end_if_no_successful_run": {
             },
           },
         ],
-logLine: `${source.title} — may pay ${credits}¢ to gain [click] (trash at turn end if no successful run).`,
-});
+        logLine: `${source.title} — may pay ${credits}¢ to gain [click] (trash at turn end if no successful run).`,
+      });
       return { ok: true };
     }
 
-case "pay_gain_click": {
+    case "pay_gain_click": {
       const credits = Math.max(0, action.credits);
       if (state.runner.credits < credits) {
         log(state, `${source.title} — cannot afford ${credits}¢.`);

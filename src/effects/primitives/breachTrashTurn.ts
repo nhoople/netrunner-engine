@@ -2,7 +2,10 @@
 import { log } from "../../state/createGame.js";
 import { drawCards } from "../draw.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { moveRunnerCardToHeap, noteCorpCardAddedToArchives } from "../../state/trashHooks.js";
+import {
+  moveRunnerCardToHeap,
+  noteCorpCardAddedToArchives,
+} from "../../state/trashHooks.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
@@ -10,10 +13,8 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { lookAtCards } from "../../state/reveal.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashToArchives(state: EffectCtx["state"], cardId: string): void {
   removeCardFromCurrentZone(state, cardId);
@@ -36,9 +37,11 @@ export function applySpinTcPrimitive(
         log(state, `Keyhole — not a successful R&D run.`);
         return { ok: true };
       }
-      return applySpinTcPrimitive(ctx, { kind: "breach_instead_keyhole" }) ?? {
-        ok: true,
-      };
+      return (
+        applySpinTcPrimitive(ctx, { kind: "breach_instead_keyhole" }) ?? {
+          ok: true,
+        }
+      );
     }
     case "breach_instead_keyhole": {
       if (state.run) state.run.skipBreach = true;
@@ -48,7 +51,10 @@ export function applySpinTcPrimitive(
       // and the log does not name them.
       lookAtCards(state, looked, sourceId, "runner");
       state.turn.rdLookedCards = looked;
-      log(state, `Keyhole — the Runner looks at the top ${looked.length} card(s) of R&D instead of breaching.`);
+      log(
+        state,
+        `Keyhole — the Runner looks at the top ${looked.length} card(s) of R&D instead of breaching.`,
+      );
       // The Runner trashes 1 of the looked cards, whatever its type, then
       // R&D is shuffled.
       if (looked.length === 0) {
@@ -58,10 +64,12 @@ export function applySpinTcPrimitive(
         return { ok: true };
       }
       if (looked.length === 1) {
-        return applySpinTcPrimitive(ctx, {
-          kind: "trash_looked_program",
-          cardId: looked[0]!,
-        }) ?? { ok: true };
+        return (
+          applySpinTcPrimitive(ctx, {
+            kind: "trash_looked_program",
+            cardId: looked[0]!,
+          }) ?? { ok: true }
+        );
       }
       openPendingChoose(state, {
         sourceId,
@@ -84,7 +92,10 @@ export function applySpinTcPrimitive(
       trashToArchives(state, id);
       state.turn.rdLookedCards = [];
       shuffleInPlace(state, state.corp.deck);
-      log(state, `Keyhole — trash ${state.cards[id]?.title ?? id}; shuffle R&D.`);
+      log(
+        state,
+        `Keyhole — trash ${state.cards[id]?.title ?? id}; shuffle R&D.`,
+      );
       return { ok: true };
     }
     case "lawyer_up": {
@@ -100,9 +111,12 @@ export function applySpinTcPrimitive(
           ),
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `Lawyer Up — remove up to ${max} tag(s), draw 3.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `Lawyer Up — remove up to ${max} tag(s), draw 3.`,
+      });
       return { ok: true };
     }
     case "leverage": {
@@ -121,13 +135,16 @@ logLine: `Lawyer Up — remove up to ${max} tag(s), draw 3.`,
             effect: fx.do({ kind: "leverage_shield_runner" }),
           },
         ],
-logLine: `Leverage — Corp may take 2 bad publicity.`,
-});
+        logLine: `Leverage — Corp may take 2 bad publicity.`,
+      });
       return { ok: true };
     }
     case "leverage_shield_runner": {
       state.turn.leveragePreventRunnerDamage = true;
-      log(state, `Leverage — Runner prevents all damage until next turn begins.`);
+      log(
+        state,
+        `Leverage — Runner prevents all damage until next turn begins.`,
+      );
       return { ok: true };
     }
     case "trash_grip_draw_for_installed_dupes": {
@@ -142,9 +159,12 @@ logLine: `Leverage — Corp may take 2 bad publicity.`,
         label: "Done trashing",
         effect: fx.gainCredits("runner", 0),
       });
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `Capstone — trash cards from grip.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `Capstone — trash cards from grip.`,
+      });
       return { ok: true };
     }
     case "trash_capstone_grip_card": {
@@ -201,8 +221,8 @@ logLine: `Capstone — trash cards from grip.`,
             ),
           },
         ],
-logLine: `Rex Campaign — empty; choose benefit then trash.`,
-});
+        logLine: `Rex Campaign — empty; choose benefit then trash.`,
+      });
       return { ok: true };
     }
     case "forbid_runner_spend_credits_for_run": {

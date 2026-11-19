@@ -162,7 +162,11 @@ describe("harden unsupported cards", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     const iceId = remote.ice[0]!;
-    const roto = instantiateCard("rototurret", iceId, `server:${remote.id}:ice`);
+    const roto = instantiateCard(
+      "rototurret",
+      iceId,
+      `server:${remote.id}:ice`,
+    );
     const p1 = instantiateCard("gordian-blade", "prog-1", "runner:grip");
     const p2 = instantiateCard("carmen", "prog-2", "runner:grip");
     s = structuredClone(s);
@@ -219,7 +223,11 @@ describe("harden unsupported cards", () => {
 
   it("PAD Campaign onTurnBegin gains 1¢ when rezzed", () => {
     let s = createGame({ stopAfterFirstCycle: false });
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     pad.rezzed = true;
     pad.faceup = true;
     s = structuredClone(s);
@@ -231,10 +239,7 @@ describe("harden unsupported cards", () => {
       root: ["pad-1"],
     };
     const before = s.corp.credits;
-    const er = evalEffect(
-      { state: s, sourceId: "pad-1" },
-      pad.onTurnBegin!,
-    );
+    const er = evalEffect({ state: s, sourceId: "pad-1" }, pad.onTurnBegin!);
     expect(er.ok).toBe(true);
     expect(s.corp.credits).toBe(before + 1);
   });

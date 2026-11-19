@@ -5,7 +5,10 @@
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { log } from "../state/createGame.js";
 import { CR } from "../timing/labels.js";
-import { agendaPointsFor, removeCardFromCurrentZone } from "../state/scoring.js";
+import {
+  agendaPointsFor,
+  removeCardFromCurrentZone,
+} from "../state/scoring.js";
 import {
   fireCorpOnTrash,
   fireCotcOnCorpCardTrashed,
@@ -55,7 +58,6 @@ function maybeFireThreatGiveTagsOnRezzedTrash(
   );
 }
 
-
 function maybeFireAuCoOnHqTrash(state: GameState, wasFromHq: boolean): void {
   if (!wasFromHq) return;
   const idCard = state.cards[state.corp.identityId];
@@ -79,11 +81,13 @@ export function maybeTrashHostsAtStrengthLte(state: GameState): void {
     if (!host || host.type !== "ice") continue;
     const str = iceStrength(state, hostId);
     if (str > card.trashHostWhenStrengthLte) continue;
-    if (
-      host.playersCannotTrashThisIce &&
-      !abilitiesSuppressed(state, hostId)
-    ) {
-      noteStaticConditionResolvedWithNoEffect(state, id, card.title, host.title);
+    if (host.playersCannotTrashThisIce && !abilitiesSuppressed(state, hostId)) {
+      noteStaticConditionResolvedWithNoEffect(
+        state,
+        id,
+        card.title,
+        host.title,
+      );
       continue;
     }
     if (trashed.has(hostId)) continue;
@@ -109,7 +113,10 @@ function noteStaticConditionResolvedWithNoEffect(
     return;
   }
   if (!recorded || recorded.timingKey !== key) {
-    state.turn.staticConditionNoEffect = { timingKey: key, sourceIds: [sourceId] };
+    state.turn.staticConditionNoEffect = {
+      timingKey: key,
+      sourceIds: [sourceId],
+    };
   } else {
     recorded.sourceIds.push(sourceId);
   }
@@ -217,7 +224,9 @@ export function trashCorpCardToArchives(
   if (wasInstalled) {
     onInstalledCorpCardTrashed(state, card, wasRezzed);
     if (trashedBy === "runner") {
-      const serverId = zoneBefore.split(":")[1] as import("../state/types.js").ServerId;
+      const serverId = zoneBefore.split(
+        ":",
+      )[1] as import("../state/types.js").ServerId;
       if (serverId) onRunnerTrashedFromServer(state, serverId);
     }
   }
@@ -237,7 +246,6 @@ export function trashCorpCardToArchives(
   maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);
   maybeFireWarroidTracker(state, wasInstalled, trashedBy, zoneBefore);
   maybeFireAuCoOnHqTrash(state, wasFromHq);
-
 }
 
 function maybeFireHostileArchitecture(
@@ -256,8 +264,7 @@ function maybeFireHostileArchitecture(
     const card = state.cards[id];
     const n = card?.meatDamageOnInstalledCorpTrashOncePerTurn ?? 0;
     if (n <= 0) continue;
-    const active =
-      id === trashedId ? trashedWasRezzed : Boolean(card?.rezzed);
+    const active = id === trashedId ? trashedWasRezzed : Boolean(card?.rezzed);
     if (!active) continue;
     state.turn.hostileArchitectureUsedThisTurn = true;
     const r = evalEffect(
@@ -316,7 +323,8 @@ function maybeFireWarroidTracker(
   for (const id of [...server.root]) {
     if (state.pendingChoice) break;
     const up = state.cards[id];
-    if (!up?.rezzed || !up.onRunnerTrashFromThisServerRootOrProtecting) continue;
+    if (!up?.rezzed || !up.onRunnerTrashFromThisServerRootOrProtecting)
+      continue;
     fireOnRunnerTrashFromThisServerRootOrProtecting(state, id);
   }
 }

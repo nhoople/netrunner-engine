@@ -3,10 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { revealCards } from "../../state/reveal.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -26,11 +23,14 @@ import { random } from "../../state/rng.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
 
-export function applyShuffleKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyShuffleKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "shuffle_hq_to_rd": {
+    case "shuffle_hq_to_rd": {
       // The Corp chooses which cards leave HQ (CR 1.15.2). When the
       // instruction takes all of HQ there is nothing to choose.
       return evalEffect(
@@ -44,7 +44,7 @@ case "shuffle_hq_to_rd": {
       );
     }
 
-case "shuffle_any_number_hq_to_rd": {
+    case "shuffle_any_number_hq_to_rd": {
       if (state.corp.hand.length === 0) {
         log(state, `Shuffle from HQ into R&D — HQ empty.`);
         return { ok: true };
@@ -85,12 +85,12 @@ case "shuffle_any_number_hq_to_rd": {
             },
           },
         ],
-logLine: `May shuffle any number of cards from HQ into R&D.`,
-});
+        logLine: `May shuffle any number of cards from HQ into R&D.`,
+      });
       return { ok: true };
     }
 
-case "shuffle_hq_card_into_rd": {
+    case "shuffle_hq_card_into_rd": {
       const cardId = action.cardId;
       const idx = state.corp.hand.indexOf(cardId);
       if (idx < 0) {
@@ -110,7 +110,7 @@ case "shuffle_hq_card_into_rd": {
       return { ok: true };
     }
 
-case "shuffle_archives_to_rd": {
+    case "shuffle_archives_to_rd": {
       // "Shuffle up to N cards from Archives into R&D": the Corp chooses
       // the cards (CR 1.15.2) and R&D is shuffled even when none move.
       return evalEffect(
@@ -125,7 +125,7 @@ case "shuffle_archives_to_rd": {
       );
     }
 
-case "shuffle_n_installed_runner_remaining": {
+    case "shuffle_n_installed_runner_remaining": {
       const remaining = Math.max(0, action.remaining ?? 0);
       if (remaining <= 0) return { ok: true };
       const installed: string[] = [];
@@ -186,12 +186,12 @@ case "shuffle_n_installed_runner_remaining": {
             ],
           },
         })),
-logLine: `Shuffle installed Runner cards — choose among ${installed.length} (${remaining} remaining).`,
-});
+        logLine: `Shuffle installed Runner cards — choose among ${installed.length} (${remaining} remaining).`,
+      });
       return { ok: true };
     }
 
-case "shuffle_pick_continue": {
+    case "shuffle_pick_continue": {
       const need = action.need;
       const selected = [...action.selected];
       const aside = state.runner.setAside ?? [];
@@ -228,7 +228,7 @@ case "shuffle_pick_continue": {
       return { ok: true };
     }
 
-case "shuffle_selected_rfg_rest": {
+    case "shuffle_selected_rfg_rest": {
       const pick = new Set(action.cardIds);
       const aside = [...(state.runner.setAside ?? [])];
       const toStack: string[] = [];
@@ -252,7 +252,7 @@ case "shuffle_selected_rfg_rest": {
       return { ok: true };
     }
 
-case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack": {
+    case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack": {
       const per = Math.max(0, action.nPerPowerCounter ?? 2);
       const power = source.powerCounters ?? 0;
       const max = per * power;
@@ -275,7 +275,7 @@ case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack": {
       });
     }
 
-case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue": {
+    case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue": {
       const selected = [...action.selected];
       const withTrash = heapCardsWithTrashAbilities(state).filter(
         (id) => !selected.includes(id),
@@ -283,7 +283,9 @@ case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue": {
       if (action.maxRemaining <= 0 || withTrash.length === 0) {
         for (const id of selected) {
           if (!state.runner.discardPile.includes(id)) continue;
-          state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
+          state.runner.discardPile = state.runner.discardPile.filter(
+            (x) => x !== id,
+          );
           state.runner.deck.push(id);
           state.cards[id]!.zone = "runner:stack";
           state.cards[id]!.faceup = false;
@@ -324,12 +326,12 @@ case "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack_continue": {
             },
           })),
         ],
-logLine: `${source.title} — choose up to ${action.maxRemaining} more heap card(s) with [trash] to shuffle.`,
-});
+        logLine: `${source.title} — choose up to ${action.maxRemaining} more heap card(s) with [trash] to shuffle.`,
+      });
       return { ok: true };
     }
 
-case "shuffle_up_to_n_distinct_heap_titles_into_stack": {
+    case "shuffle_up_to_n_distinct_heap_titles_into_stack": {
       const max = Math.max(0, action.max);
       if (max <= 0 || state.runner.discardPile.length === 0) {
         log(
@@ -372,12 +374,12 @@ case "shuffle_up_to_n_distinct_heap_titles_into_stack": {
             };
           }),
         ],
-logLine: `${source.title} — shuffle up to ${max} cards with distinct titles from heap into stack.`,
-});
+        logLine: `${source.title} — shuffle up to ${max} cards with distinct titles from heap into stack.`,
+      });
       return { ok: true };
     }
 
-case "shuffle_up_to_n_distinct_heap_titles_into_stack_continue": {
+    case "shuffle_up_to_n_distinct_heap_titles_into_stack_continue": {
       const selected = [...action.selected];
       const usedTitles = new Set(action.usedTitles);
       const offerMore = action.maxRemaining > 0;
@@ -392,7 +394,9 @@ case "shuffle_up_to_n_distinct_heap_titles_into_stack_continue": {
       if (!offerMore || candidates.length === 0) {
         for (const id of selected) {
           if (!state.runner.discardPile.includes(id)) continue;
-          state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
+          state.runner.discardPile = state.runner.discardPile.filter(
+            (x) => x !== id,
+          );
           state.runner.deck.push(id);
           state.cards[id]!.zone = "runner:stack";
           state.cards[id]!.faceup = false;
@@ -442,7 +446,7 @@ case "shuffle_up_to_n_distinct_heap_titles_into_stack_continue": {
       return { ok: true };
     }
 
-case "shuffle_installed_runner_into_stack": {
+    case "shuffle_installed_runner_into_stack": {
       const installed: string[] = [];
       for (const id of state.runner.installed) {
         if (!state.cards[id]?.hostId) installed.push(id);
@@ -480,12 +484,12 @@ case "shuffle_installed_runner_into_stack": {
             },
           },
         })),
-logLine: `${source.title} — choose an installed Runner card to shuffle into the stack.`,
-});
+        logLine: `${source.title} — choose an installed Runner card to shuffle into the stack.`,
+      });
       return { ok: true };
     }
 
-case "shuffle_runner_card_into_stack": {
+    case "shuffle_runner_card_into_stack": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || card.side !== "runner") {
@@ -505,14 +509,11 @@ case "shuffle_runner_card_into_stack": {
         state.runner.deck[i] = state.runner.deck[j]!;
         state.runner.deck[j] = tmp;
       }
-      log(
-        state,
-        `Shuffle ${card.title} into the stack.`,
-      );
+      log(state, `Shuffle ${card.title} into the stack.`);
       return { ok: true };
     }
 
-case "shuffle_hosted_cards_into_stack": {
+    case "shuffle_hosted_cards_into_stack": {
       const hosted = [...(source.hostedCardIds ?? [])];
       source.hostedCardIds = [];
       for (const id of hosted) {
@@ -539,7 +540,7 @@ case "shuffle_hosted_cards_into_stack": {
       return { ok: true };
     }
 
-case "shuffle_grip_of_type": {
+    case "shuffle_grip_of_type": {
       // Touch-ups: "choose a card type and reveal the grip. Choose up to 2
       // revealed cards of that type. The Runner shuffles those cards into
       // the stack." The Corp chooses (CR 1.15.2); the grip is revealed even
@@ -554,10 +555,7 @@ case "shuffle_grip_of_type": {
         (id) => state.cards[id]?.type === cardType,
       );
       if (matching.length === 0) {
-        log(
-          state,
-          `Touch-ups — no ${cardType} cards in grip to shuffle.`,
-        );
+        log(state, `Touch-ups — no ${cardType} cards in grip to shuffle.`);
         return { ok: true };
       }
       return evalEffect(
@@ -573,14 +571,16 @@ case "shuffle_grip_of_type": {
       );
     }
 
-case "shuffle_grip_card_into_stack": {
+    case "shuffle_grip_card_into_stack": {
       const idx = state.runner.hand.indexOf(action.cardId);
       if (idx < 0) {
         log(state, `Shuffle grip — card not in hand.`);
         return { ok: true };
       }
       state.runner.hand.splice(idx, 1);
-      const insertAt = Math.floor(random(state) * (state.runner.deck.length + 1));
+      const insertAt = Math.floor(
+        random(state) * (state.runner.deck.length + 1),
+      );
       state.runner.deck.splice(insertAt, 0, action.cardId);
       state.cards[action.cardId]!.zone = "runner:stack";
       log(
@@ -590,12 +590,12 @@ case "shuffle_grip_card_into_stack": {
       return { ok: true };
     }
 
-case "shuffle_runner_set_aside_into_stack": {
+    case "shuffle_runner_set_aside_into_stack": {
       shuffleRunnerSetAsideIntoStack(state);
       return { ok: true };
     }
 
-case "shuffle_source_into_rd": {
+    case "shuffle_source_into_rd": {
       if (!state.runner.scoreArea.includes(sourceId)) {
         log(state, `Shuffle into R&D — source not in Runner score area.`);
         return { ok: true };
@@ -610,7 +610,7 @@ case "shuffle_source_into_rd": {
       return { ok: true };
     }
 
-case "shuffle_random_grip_into_stack": {
+    case "shuffle_random_grip_into_stack": {
       // Bring Them Home (threat): "reveal 1 card in the grip at random. The
       // Runner shuffles it into the stack."
       const moved = pickRandomSubset(
@@ -635,7 +635,7 @@ case "shuffle_random_grip_into_stack": {
       return { ok: true };
     }
 
-case "shuffle_grip_and_heap_into_stack": {
+    case "shuffle_grip_and_heap_into_stack": {
       const fromGrip = [...state.runner.hand];
       const fromHeap = [...state.runner.discardPile];
       state.runner.hand = [];
@@ -653,7 +653,7 @@ case "shuffle_grip_and_heap_into_stack": {
       return { ok: true };
     }
 
-case "may_shuffle_register_title_from_heap_on_successful_run_end": {
+    case "may_shuffle_register_title_from_heap_on_successful_run_end": {
       if (!state.run) {
         log(state, `Register heap shuffle — no run.`);
         return { ok: true };
@@ -669,15 +669,12 @@ case "may_shuffle_register_title_from_heap_on_successful_run_end": {
       return { ok: true };
     }
 
-case "may_shuffle_title_from_heap_into_stack": {
+    case "may_shuffle_title_from_heap_into_stack": {
       const matches = state.runner.discardPile.filter(
         (id) => state.cards[id]?.title === action.title,
       );
       if (matches.length === 0) {
-        log(
-          state,
-          `May shuffle ${action.title} from heap — none in heap.`,
-        );
+        log(state, `May shuffle ${action.title} from heap — none in heap.`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -704,26 +701,25 @@ case "may_shuffle_title_from_heap_into_stack": {
             },
           },
         ],
-logLine: `May shuffle 1 copy of ${action.title} from heap into stack.`,
-});
+        logLine: `May shuffle 1 copy of ${action.title} from heap into stack.`,
+      });
       return { ok: true };
     }
 
-case "shuffle_heap_card_into_stack": {
+    case "shuffle_heap_card_into_stack": {
       const id = action.cardId;
       if (!state.runner.discardPile.includes(id)) {
         log(state, `Shuffle heap card — not in heap.`);
         return { ok: true };
       }
-      state.runner.discardPile = state.runner.discardPile.filter((x) => x !== id);
+      state.runner.discardPile = state.runner.discardPile.filter(
+        (x) => x !== id,
+      );
       state.runner.deck.push(id);
       state.cards[id]!.zone = "runner:stack";
       state.cards[id]!.faceup = false;
       shuffleRunnerStack(state);
-      log(
-        state,
-        `Shuffle ${state.cards[id]!.title} from heap into stack.`,
-      );
+      log(state, `Shuffle ${state.cards[id]!.title} from heap into stack.`);
       return { ok: true };
     }
     default:

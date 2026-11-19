@@ -338,14 +338,7 @@ export interface StartsRunSpec {
    * `"remote"` matches remote servers only (Light the Fire!).
    */
   servers:
-    | "any"
-    | "central"
-    | "hq_rd"
-    | "rd"
-    | "hq"
-    | "archives"
-    | "mark"
-    | "remote";
+    "any" | "central" | "hq_rd" | "rd" | "hq" | "archives" | "mark" | "remote";
   /** Red Team: only centrals not already run this turn. */
   requireNotRunThisTurn?: boolean;
   /** Kompromat: only servers protected by at least one piece of ice. */
@@ -1293,7 +1286,10 @@ export interface CardInstance {
   breakOnAtMostOneIcePerRun?: boolean;
   onFinishAccessRdOncePerTurn?: Effect;
   onEncounterAnyIceOncePerTurn?: Effect;
-  zeroInfluenceIfNonAllianceFactionCardsGte?: { faction: string; threshold: number };
+  zeroInfluenceIfNonAllianceFactionCardsGte?: {
+    faction: string;
+    threshold: number;
+  };
   onPassIceProtectingThisServerMaySwap?: boolean;
   zeroInfluenceIfIceInDeckLte?: number;
   zeroInfluenceIfCardsInDeckGte?: number;
@@ -1839,7 +1835,10 @@ export interface CardInstance {
   /** +strength while advancementCounters >= threshold (Pharos). */
   strengthBonusAtAdvancements?: { threshold: number; bonus: number };
   /** Akhet: while ≥threshold advancements, max printed breaks per encounter. */
-  maxPrintedSubsBreakablePerEncounterAtAdvancements?: { threshold: number; max: number };
+  maxPrintedSubsBreakablePerEncounterAtAdvancements?: {
+    threshold: number;
+    max: number;
+  };
   /** Hand-size modifier applied while installed / scored. */
   handSizeBonus?: number;
   /**
@@ -4955,11 +4954,7 @@ export interface CheckpointSnapshot {
 
 /** Lifecycle of a pending conditional ability instance (CR 9.6.2 / 9.6.12). */
 export type PendingAbilityStatus =
-  | "pending"
-  | "imminent"
-  | "resolving"
-  | "done"
-  | "cancelled";
+  "pending" | "imminent" | "resolving" | "done" | "cancelled";
 
 /**
  * One instance of a conditional ability waiting in (or resolving through)
@@ -5828,7 +5823,7 @@ export type Action =
       cardId: string;
       serverId?: ServerId;
       /** Patchwork: trash this grip card to discount the play. */
-      trashGripForDiscountCardId?: string;      /** The grip cards trashed for an additional cost to play (Moshing). */
+      trashGripForDiscountCardId?: string; /** The grip cards trashed for an additional cost to play (Moshing). */
       costCardIds?: string[];
     }
   | { type: "advance"; cardId: string }

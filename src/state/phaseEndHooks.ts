@@ -106,7 +106,10 @@ export function noteRunnerActionPhaseEnd(state: GameState): void {
     });
   }
   const corpId = state.cards[state.corp.identityId];
-  if (corpId?.onRunnerActionPhaseEnd && !abilitiesSuppressed(state, corpId.id)) {
+  if (
+    corpId?.onRunnerActionPhaseEnd &&
+    !abilitiesSuppressed(state, corpId.id)
+  ) {
     pushRunner(state, {
       cardId: corpId.id,
       abilityKey: "on-runner-action-phase-end",

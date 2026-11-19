@@ -38,7 +38,10 @@ export function trashCorpCardFacedownToArchives(
 }
 
 /** How many HQ cards a pending sabotage must and may take (CR 10.12.3a). */
-export function sabotageHqBounds(state: GameState): { min: number; max: number } {
+export function sabotageHqBounds(state: GameState): {
+  min: number;
+  max: number;
+} {
   const amount = state.pendingSabotage?.amount ?? 0;
   return {
     min: Math.max(0, amount - state.corp.deck.length),
@@ -76,7 +79,11 @@ export function offerSabotagePick(state: GameState): void {
       label: state.cards[id]?.title ?? id,
       effect: {
         op: "do" as const,
-        action: { kind: "gain_credits" as const, side: "corp" as const, amount: 0 },
+        action: {
+          kind: "gain_credits" as const,
+          side: "corp" as const,
+          amount: 0,
+        },
       },
     })),
   });
@@ -237,19 +244,13 @@ export function identifyMark(state: GameState, sourceId: string): void {
 export function clearMark(state: GameState): void {
   const existing = currentMark(state);
   if (existing !== null) {
-    log(
-      state,
-      `Mark on ${existing} expires (CR ${CR.markLingering.number}).`,
-    );
+    log(state, `Mark on ${existing} expires (CR ${CR.markLingering.number}).`);
   }
   removeLingeringEffectsOfKind(state, LINGERING_KIND_MARK);
 }
 
 /** Installed cards controlled by `side` that already have ≥1 power counter. */
-export function chargeableInstalledIds(
-  state: GameState,
-  side: Side,
-): string[] {
+export function chargeableInstalledIds(state: GameState, side: Side): string[] {
   if (side === "runner") {
     return state.runner.installed.filter(
       (id) => (state.cards[id].powerCounters ?? 0) >= 1,

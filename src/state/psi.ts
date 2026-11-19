@@ -5,12 +5,12 @@ import { firePsiCreditsRevealed } from "./storedTriggers.js";
 import type { Effect } from "../effects/ir.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
-import {
-  activeCorpCurrentIds,
-  activeRunnerCurrentIds,
-} from "./currents.js";
+import { activeCorpCurrentIds, activeRunnerCurrentIds } from "./currents.js";
 import { dealDamage } from "./damage.js";
-import { hostedCreditsSpendableDuringRuns, subtractRunnerCreditPool } from "./costs.js";
+import {
+  hostedCreditsSpendableDuringRuns,
+  subtractRunnerCreditPool,
+} from "./costs.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { nextId } from "./ids.js";
@@ -54,7 +54,7 @@ export function startPsiGame(
 function runnerCannotSpendForBid(state: GameState): boolean {
   return Boolean(
     state.run?.runnerCannotSpendCreditsForRun ||
-      state.run?.runnerCannotSpendCredits,
+    state.run?.runnerCannotSpendCredits,
   );
 }
 
@@ -97,7 +97,8 @@ export function psiRunnerBid(state: GameState, amount: number): string | null {
   if (banned !== null && amount === banned) {
     return `Cannot secretly spend exactly ${banned}¢ (Government Investigations).`;
   }
-  if (amount < 0 || amount > psi.maxBid) return "Bid is outside the allowed range.";
+  if (amount < 0 || amount > psi.maxBid)
+    return "Bid is outside the allowed range.";
   const spendable = runnerPsiSpendable(state);
   if (amount > spendable) {
     return `Cannot bid ${amount}¢ — the Runner can spend ${spendable}¢ (CR ${CR.bidPossible.number}).`;
@@ -169,7 +170,10 @@ function resolvePsi(state: GameState): void {
     for (const server of Object.values(state.servers)) {
       for (const id of server.root) {
         const card = state.cards[id];
-        if (!card?.rezzed || !card.firstRevealSecretlySpentCreditsGainThatManyEachTurn) {
+        if (
+          !card?.rezzed ||
+          !card.firstRevealSecretlySpentCreditsGainThatManyEachTurn
+        ) {
           continue;
         }
         const gained = psi.corpBid;

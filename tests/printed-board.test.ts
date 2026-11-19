@@ -26,26 +26,44 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.147.24");
 });
 
-type Measure = "corpCredits" | "runnerCredits" | "tags" | "grip" | "corpHand" | "runnerHand";
+type Measure =
+  "corpCredits" | "runnerCredits" | "tags" | "grip" | "corpHand" | "runnerHand";
 
 const SENTENCES: Array<{ pattern: RegExp; kind: string; measure: Measure }> = [
-  { pattern: /^Gain (\d+)(?:\[credit\]|¢)\.$/, kind: "gain_credits", measure: "corpCredits" },
-  { pattern: /^The Runner loses (\d+)(?:\[credit\]|¢| credits)\.$/, kind: "lose_credits", measure: "runnerCredits" },
+  {
+    pattern: /^Gain (\d+)(?:\[credit\]|¢)\.$/,
+    kind: "gain_credits",
+    measure: "corpCredits",
+  },
+  {
+    pattern: /^The Runner loses (\d+)(?:\[credit\]|¢| credits)\.$/,
+    kind: "lose_credits",
+    measure: "runnerCredits",
+  },
   { pattern: /^Do (\d+) net damage\.$/, kind: "net_damage", measure: "grip" },
   { pattern: /^Do (\d+) meat damage\.$/, kind: "meat_damage", measure: "grip" },
   { pattern: /^Do (\d+) core damage\.$/, kind: "core_damage", measure: "grip" },
-  { pattern: /^Give the Runner (\d+) tags?\.$/, kind: "give_tags", measure: "tags" },
+  {
+    pattern: /^Give the Runner (\d+) tags?\.$/,
+    kind: "give_tags",
+    measure: "tags",
+  },
   { pattern: /^Draw (\d+) cards?\.$/, kind: "draw", measure: "runnerHand" },
 ];
 
-function singleAmount(effect: unknown): { kind: string; amount: number; side?: string } | null {
+function singleAmount(
+  effect: unknown,
+): { kind: string; amount: number; side?: string } | null {
   if (!effect || typeof effect !== "object") return null;
   const node = effect as { op?: string; action?: Record<string, unknown> };
   if (node.op !== "do" || !node.action) return null;
   const action = node.action;
-  if (typeof action.kind !== "string" || typeof action.amount !== "number") return null;
+  if (typeof action.kind !== "string" || typeof action.amount !== "number")
+    return null;
   if (action.tally !== undefined) return null;
-  const extra = Object.keys(action).filter((key) => key !== "kind" && key !== "amount" && key !== "side");
+  const extra = Object.keys(action).filter(
+    (key) => key !== "kind" && key !== "amount" && key !== "side",
+  );
   if (extra.length > 0) return null;
   return {
     kind: action.kind,
@@ -54,8 +72,13 @@ function singleAmount(effect: unknown): { kind: string; amount: number; side?: s
   };
 }
 
-function readMeasure(state: GameState, measure: Measure, side?: string): number {
-  if (measure === "corpCredits") return side === "runner" ? state.runner.credits : state.corp.credits;
+function readMeasure(
+  state: GameState,
+  measure: Measure,
+  side?: string,
+): number {
+  if (measure === "corpCredits")
+    return side === "runner" ? state.runner.credits : state.corp.credits;
   if (measure === "runnerCredits") return state.runner.credits;
   if (measure === "tags") return state.runner.tags;
   if (measure === "grip") return state.runner.hand.length;
@@ -79,31 +102,43 @@ describe("printed one-instruction subroutines", () => {
     let played = 0;
     for (const def of loadCardCatalog(true).values()) {
       for (const sub of def.subroutines ?? []) {
-        const sentence = SENTENCES.find((entry) => entry.pattern.test(sub.text));
+        const sentence = SENTENCES.find((entry) =>
+          entry.pattern.test(sub.text),
+        );
         if (!sentence) continue;
         const printed = Number(sentence.pattern.exec(sub.text)?.[1]);
         const action = singleAmount(sub.effect);
         if (!action || action.kind !== sentence.kind) {
-          failures.push(`${def.id} prints "${sub.text}" but the instruction is not ${sentence.kind}`);
+          failures.push(
+            `${def.id} prints "${sub.text}" but the instruction is not ${sentence.kind}`,
+          );
           continue;
         }
         if (action.amount !== printed) {
-          failures.push(`${def.id} prints "${sub.text}" but the instruction amount is ${action.amount}`);
+          failures.push(
+            `${def.id} prints "${sub.text}" but the instruction amount is ${action.amount}`,
+          );
           continue;
         }
         const state = boardFor(def);
         const card = state.cards.subject!;
-        const index = card.subroutines?.findIndex((item) => item.text === sub.text) ?? -1;
+        const index =
+          card.subroutines?.findIndex((item) => item.text === sub.text) ?? -1;
         if (index < 0 || !state.run?.encounter) {
-          failures.push(`${def.id} "${sub.text}" was not seated as a subroutine`);
+          failures.push(
+            `${def.id} "${sub.text}" was not seated as a subroutine`,
+          );
           continue;
         }
-        state.run.encounter.broken = card.subroutines!.map((_, at) => at !== index);
+        state.run.encounter.broken = card.subroutines!.map(
+          (_, at) => at !== index,
+        );
         const before = readMeasure(state, sentence.measure, action.side);
         try {
           STEPS["run.resolveSub"]?.onResolve?.(state);
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
+          const message =
+            error instanceof Error ? error.message : String(error);
           failures.push(`${def.id} "${sub.text}" threw: ${message}`);
           continue;
         }
@@ -112,13 +147,20 @@ describe("printed one-instruction subroutines", () => {
           continue;
         }
         if (state.pendingChoice || state.pendingDamage || state.pendingTags) {
-          failures.push(`${def.id} "${sub.text}" paused before the instruction finished`);
+          failures.push(
+            `${def.id} "${sub.text}" paused before the instruction finished`,
+          );
           continue;
         }
         const after = readMeasure(state, sentence.measure, action.side);
-        const delta = sentence.measure === "runnerCredits" || sentence.measure === "grip" ? before - after : after - before;
+        const delta =
+          sentence.measure === "runnerCredits" || sentence.measure === "grip"
+            ? before - after
+            : after - before;
         if (delta !== printed) {
-          failures.push(`${def.id} "${sub.text}" changed the board by ${delta}`);
+          failures.push(
+            `${def.id} "${sub.text}" changed the board by ${delta}`,
+          );
         } else {
           played += 1;
         }
@@ -140,7 +182,10 @@ function boardFor(def: CardDef): GameState {
   card.rezzed = true;
   card.faceup = true;
   state.cards.subject = card;
-  state.servers.hq.ice = ["subject", ...state.servers.hq.ice.filter((id) => id !== "subject")];
+  state.servers.hq.ice = [
+    "subject",
+    ...state.servers.hq.ice.filter((id) => id !== "subject"),
+  ];
   const step = STEPS["run.resolveSub"]!;
   state.timingKey = step.key;
   state.timing = cursorFrom(step);

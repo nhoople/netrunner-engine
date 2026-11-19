@@ -123,7 +123,8 @@ function hostZoneAllowed(zone: string): boolean {
     zone === "corp:score" ||
     zone === "runner:score" ||
     zone.startsWith("hosted:") ||
-    (zone.startsWith("server:") && (zone.endsWith(":ice") || zone.endsWith(":root")))
+    (zone.startsWith("server:") &&
+      (zone.endsWith(":ice") || zone.endsWith(":root")))
   );
 }
 
@@ -196,8 +197,10 @@ export function checkInvariants(state: GameState): Problem[] {
 
   for (const side of ["corp", "runner"] as const) {
     const player = state[side];
-    if (player.credits < 0) report("NEGATIVE_CREDITS", side, `${side} has ${player.credits} credits`);
-    if (player.clicks < 0) report("NEGATIVE_CLICKS", side, `${side} has ${player.clicks} clicks`);
+    if (player.credits < 0)
+      report("NEGATIVE_CREDITS", side, `${side} has ${player.credits} credits`);
+    if (player.clicks < 0)
+      report("NEGATIVE_CLICKS", side, `${side} has ${player.clicks} clicks`);
   }
 
   // CR 4.1.1c: each card is in exactly 1 zone, and `zone` names it.
@@ -205,12 +208,24 @@ export function checkInvariants(state: GameState): Problem[] {
   const identities = new Set([state.corp.identityId, state.runner.identityId]);
   for (const [id, zones] of found) {
     if (!state.cards[id]) {
-      report("LISTED_NOT_A_CARD", id, `${id} is listed in ${zones.join(", ")} and is not a card`);
+      report(
+        "LISTED_NOT_A_CARD",
+        id,
+        `${id} is listed in ${zones.join(", ")} and is not a card`,
+      );
     } else if (identities.has(id)) {
-      report("IDENTITY_IN_ZONE_LIST", id, `identity ${id} is also in ${zones.join(", ")}`);
+      report(
+        "IDENTITY_IN_ZONE_LIST",
+        id,
+        `identity ${id} is also in ${zones.join(", ")}`,
+      );
     } else if (zones.length > 1) {
       const title = state.cards[id]!.title;
-      report("MULTIPLE_ZONES", id, `${id} (${title}) is in ${zones.join(", ")}`);
+      report(
+        "MULTIPLE_ZONES",
+        id,
+        `${id} (${title}) is in ${zones.join(", ")}`,
+      );
     }
   }
 
@@ -248,15 +263,27 @@ export function checkInvariants(state: GameState): Problem[] {
     } else if (zones.length === 0) {
       // A hosted card missing from its host's list is HOST_LINK_MISSING.
       if (!(card.hostId && card.zone === `hosted:${card.hostId}`)) {
-        report("NO_ZONE", card.id, `${label} is in ${card.zone} and in no zone list`);
+        report(
+          "NO_ZONE",
+          card.id,
+          `${label} is in ${card.zone} and in no zone list`,
+        );
       }
     } else if (zones.length === 1 && zones[0] !== card.zone) {
-      report("ZONE_MISMATCH", card.id, `${label} is listed in ${zones[0]} but zone is ${card.zone}`);
+      report(
+        "ZONE_MISMATCH",
+        card.id,
+        `${label} is listed in ${zones[0]} but zone is ${card.zone}`,
+      );
     }
 
     // CR 8.1.4f: Runner cards are never rezzed or unrezzed.
     if (card.side === "runner" && card.rezzed) {
-      report("RUNNER_CARD_REZZED", card.id, `${label} is a Runner card marked rezzed`);
+      report(
+        "RUNNER_CARD_REZZED",
+        card.id,
+        `${label} is a Runner card marked rezzed`,
+      );
     }
 
     // CR 8.1.1: only an installed card is rezzed. A card that leaves play
@@ -271,7 +298,11 @@ export function checkInvariants(state: GameState): Problem[] {
       CORP_NOT_INSTALLED.has(card.zone) &&
       !encounteredOutsidePlay.has(card.id)
     ) {
-      report("REZZED_OUTSIDE_PLAY", card.id, `${label} is in ${card.zone} and marked rezzed`);
+      report(
+        "REZZED_OUTSIDE_PLAY",
+        card.id,
+        `${label} is in ${card.zone} and marked rezzed`,
+      );
     }
 
     // CR 1.21.1a: a card in a hidden or secret zone is neither faceup nor
@@ -290,7 +321,11 @@ export function checkInvariants(state: GameState): Problem[] {
       !card.revealing &&
       !encounteredOutsidePlay.has(card.id)
     ) {
-      report("FACEUP_IN_HIDDEN_ZONE", card.id, `${label} is in ${card.zone} and marked faceup`);
+      report(
+        "FACEUP_IN_HIDDEN_ZONE",
+        card.id,
+        `${label} is in ${card.zone} and marked faceup`,
+      );
     }
 
     // CR 1.13.4: one host, and both ends of the link agree.
@@ -307,7 +342,11 @@ export function checkInvariants(state: GameState): Problem[] {
     if (card.hostId) {
       const host = state.cards[card.hostId];
       if (!host) {
-        report("HOST_MISSING", card.id, `${label} has hostId ${card.hostId}, which is not a card`);
+        report(
+          "HOST_MISSING",
+          card.id,
+          `${label} has hostId ${card.hostId}, which is not a card`,
+        );
       } else {
         if (!host.hostedCardIds?.includes(card.id)) {
           report(
@@ -317,8 +356,13 @@ export function checkInvariants(state: GameState): Problem[] {
           );
         }
         // CR 1.13.1a, 10.3.1g: a host is in the play area or a score area.
-        const hostPlace = identities.has(host.id) ? "identity" : placeOf(host.id);
-        if (hostPlace !== "identity" && (!hostPlace || !hostZoneAllowed(hostPlace))) {
+        const hostPlace = identities.has(host.id)
+          ? "identity"
+          : placeOf(host.id);
+        if (
+          hostPlace !== "identity" &&
+          (!hostPlace || !hostZoneAllowed(hostPlace))
+        ) {
           report(
             "HOST_NOT_IN_PLAY",
             card.id,
@@ -329,7 +373,11 @@ export function checkInvariants(state: GameState): Problem[] {
       // CR 1.13.12: hosting moves the card to its host's zone.
       const offBoard = zones.find((zone) => OFF_BOARD.has(zone));
       if (offBoard) {
-        report("OFF_BOARD_HOSTED", card.id, `${label} is in ${offBoard} with hostId ${card.hostId}`);
+        report(
+          "OFF_BOARD_HOSTED",
+          card.id,
+          `${label} is in ${offBoard} with hostId ${card.hostId}`,
+        );
       }
     }
   }
@@ -338,13 +386,20 @@ export function checkInvariants(state: GameState): Problem[] {
   if (run) {
     const server = state.servers[run.attackedServerId];
     if (!server) {
-      report("RUN_SERVER_MISSING", run.attackedServerId, `run attacks missing server ${run.attackedServerId}`);
+      report(
+        "RUN_SERVER_MISSING",
+        run.attackedServerId,
+        `run attacks missing server ${run.attackedServerId}`,
+      );
     } else if (
       run.position !== null &&
-      (!Number.isInteger(run.position) || run.position < 0 || run.position >= server.ice.length)
+      (!Number.isInteger(run.position) ||
+        run.position < 0 ||
+        run.position >= server.ice.length)
     ) {
       // CR 6.2.4: an emptied position the Runner is in still exists.
-      const vacatedEnd = run.positionVacated && run.position === server.ice.length;
+      const vacatedEnd =
+        run.positionVacated && run.position === server.ice.length;
       if (!vacatedEnd) {
         report(
           "POSITION_OUT_OF_RANGE",
@@ -383,7 +438,12 @@ export function checkInvariants(state: GameState): Problem[] {
       (state.winner === "draw" && reason !== "draw") ||
       (state.winner === "corp" && reason === "runner_agenda") ||
       (state.winner === "runner" && reason === "corp_agenda");
-    if (bad) report("WIN_REASON", state.winner, `winner ${state.winner} has reason ${reason}`);
+    if (bad)
+      report(
+        "WIN_REASON",
+        state.winner,
+        `winner ${state.winner} has reason ${reason}`,
+      );
   }
 
   return problems;

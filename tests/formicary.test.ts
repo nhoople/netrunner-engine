@@ -65,4 +65,3 @@ describe("CR optional — Formicary interactive 6.8.2c", () => {
     ).toBe(true);
   });
 });
-

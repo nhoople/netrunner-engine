@@ -47,7 +47,10 @@ const RESTRICTED_CLICKS = new Set<Action["type"]>([
   "use_identity_ability",
 ]);
 
-export function firstClickMustBlocks(state: GameState, action: Action): boolean {
+export function firstClickMustBlocks(
+  state: GameState,
+  action: Action,
+): boolean {
   if (state.activeSide !== "runner") return false;
   if (!firstClickMustIsActive(state)) return false;
   if (!RESTRICTED_CLICKS.has(action.type)) return false;

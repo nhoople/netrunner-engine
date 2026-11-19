@@ -48,7 +48,10 @@ const FALSE_LEAD_ABILITY: AbilityRecord = {
 
 /** A fresh game without the fixture's rezzed Runner card (CR 8.1.4f). */
 function newGame(): GameState {
-  const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
+  const state = createGame({
+    stopAfterFirstCycle: false,
+    agendaPointsToWin: 7,
+  });
   for (const card of Object.values(state.cards)) {
     if (card.side === "runner") card.rezzed = false;
   }
@@ -121,10 +124,19 @@ describe("forfeitSelf cost (False Lead)", () => {
 describe("forfeitAgenda cost fires when you forfeit", () => {
   it("Greenmail forfeited to pay Quarantine System gains the Corp 4 credits", () => {
     const state = newGame();
-    const qs = instantiateCard("quarantine-system", "qs-1", "server:remote-1:root");
+    const qs = instantiateCard(
+      "quarantine-system",
+      "qs-1",
+      "server:remote-1:root",
+    );
     qs.rezzed = true;
     state.cards["qs-1"] = qs;
-    state.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["qs-1"] };
+    state.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["qs-1"],
+    };
     const gm = instantiateCard("greenmail", "gm-1", "corp:score");
     state.cards["gm-1"] = gm;
     state.corp.scoreArea = ["gm-1"];
@@ -141,7 +153,13 @@ describe("forfeitAgenda cost fires when you forfeit", () => {
     if (!r.ok) throw new Error(r.error);
     let s = r.state;
     // Resolve whatever is open (Greenmail's pending trigger, the rez choice).
-    for (let i = 0; i < 6 && s.cards["gm-1"]!.zone === "removed-from-game" && s.corp.credits < 4; i++) {
+    for (
+      let i = 0;
+      i < 6 &&
+      s.cards["gm-1"]!.zone === "removed-from-game" &&
+      s.corp.credits < 4;
+      i++
+    ) {
       const next = queryLegality(s).legal[0];
       if (!next) break;
       r = applyIntent(s, next.action);
@@ -153,8 +171,12 @@ describe("forfeitAgenda cost fires when you forfeit", () => {
     // The forfeit happens first; the cost checkpoint then marks the trigger
     // (CR 1.16.3, 9.6.6).
     const lines = s.log.map(String);
-    const moved = lines.findIndex((l) => l.includes("Forfeit Greenmail as a cost"));
-    const pending = lines.findIndex((l) => l.includes("Greenmail becomes pending"));
+    const moved = lines.findIndex((l) =>
+      l.includes("Forfeit Greenmail as a cost"),
+    );
+    const pending = lines.findIndex((l) =>
+      l.includes("Greenmail becomes pending"),
+    );
     expect(moved).toBeGreaterThanOrEqual(0);
     expect(pending).toBeGreaterThan(moved);
   });

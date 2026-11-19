@@ -54,7 +54,14 @@ export interface GameExport {
   format: typeof FIXTURE_FORMAT;
   version: typeof FIXTURE_VERSION;
   /** Where and when it was exported, and the release tags the game pinned. */
-  source: { matchId: string; exportedAt: string; engine: string; cards: string; cr: string; [field: string]: unknown };
+  source: {
+    matchId: string;
+    exportedAt: string;
+    engine: string;
+    cards: string;
+    cr: string;
+    [field: string]: unknown;
+  };
   opening: GameState;
   steps: GameExportStep[];
   failures: Failure[];
@@ -63,8 +70,13 @@ export interface GameExport {
 
 export function readGameExport(path: string): GameExport {
   const fixture = JSON.parse(readFileSync(path, "utf8")) as GameExport;
-  if (fixture.format !== FIXTURE_FORMAT || fixture.version !== FIXTURE_VERSION) {
-    throw new Error(`${path} is not a ${FIXTURE_FORMAT} v${FIXTURE_VERSION} fixture`);
+  if (
+    fixture.format !== FIXTURE_FORMAT ||
+    fixture.version !== FIXTURE_VERSION
+  ) {
+    throw new Error(
+      `${path} is not a ${FIXTURE_FORMAT} v${FIXTURE_VERSION} fixture`,
+    );
   }
   return fixture;
 }
@@ -85,7 +97,8 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(value, (_key, item: unknown) => {
     if (!item || typeof item !== "object" || Array.isArray(item)) return item;
     const sorted: Record<string, unknown> = {};
-    for (const key of Object.keys(item).sort()) sorted[key] = (item as Record<string, unknown>)[key];
+    for (const key of Object.keys(item).sort())
+      sorted[key] = (item as Record<string, unknown>)[key];
     return sorted;
   });
 }
@@ -120,7 +133,11 @@ export function replayGameExport(fixture: GameExport): GameExportReplay {
   for (const [index, step] of fixture.steps.entries()) {
     const applied = applyAction(state, step.action);
     if (!applied.ok) {
-      failures.push({ code: "REFUSED", step: index, detail: `${step.action.type} at ${state.timingKey}: ${applied.error}` });
+      failures.push({
+        code: "REFUSED",
+        step: index,
+        detail: `${step.action.type} at ${state.timingKey}: ${applied.error}`,
+      });
       return { state, failures, applied: index };
     }
     state = applied.state;
@@ -131,7 +148,10 @@ export function replayGameExport(fixture: GameExport): GameExportReplay {
 }
 
 /** Differences between a replay and its fixture. Empty when the replay matches. */
-export function compareGameExport(fixture: GameExport, replay: GameExportReplay): string[] {
+export function compareGameExport(
+  fixture: GameExport,
+  replay: GameExportReplay,
+): string[] {
   const errors: string[] = [];
   const found = new Map(replay.failures.map((f) => [failureKey(f), f]));
   const listed = new Set(fixture.failures.map(failureKey));
@@ -139,7 +159,10 @@ export function compareGameExport(fixture: GameExport, replay: GameExportReplay)
     if (!listed.has(key)) errors.push(`new failure ${key}: ${failure.detail}`);
   }
   for (const failure of fixture.failures) {
-    if (!found.has(failureKey(failure))) errors.push(`${failureKey(failure)} is in the fixture but no longer happens`);
+    if (!found.has(failureKey(failure)))
+      errors.push(
+        `${failureKey(failure)} is in the fixture but no longer happens`,
+      );
   }
   if (replay.applied !== fixture.steps.length) return errors;
   const state = replay.state;
@@ -151,13 +174,23 @@ export function compareGameExport(fixture: GameExport, replay: GameExportReplay)
     ["winner", state.winner ?? null, fixture.final.winner],
   ];
   for (const [name, actual, expected] of fields) {
-    if (actual !== expected) errors.push(`final ${name} is ${String(actual)}, fixture says ${String(expected)}`);
+    if (actual !== expected)
+      errors.push(
+        `final ${name} is ${String(actual)}, fixture says ${String(expected)}`,
+      );
   }
-  const invariants = [...new Set(checkInvariants(state).map((p) => p.code))].sort();
+  const invariants = [
+    ...new Set(checkInvariants(state).map((p) => p.code)),
+  ].sort();
   if (invariants.join(",") !== fixture.final.invariants.join(",")) {
-    errors.push(`final invariants are [${invariants.join(", ")}], fixture says [${fixture.final.invariants.join(", ")}]`);
+    errors.push(
+      `final invariants are [${invariants.join(", ")}], fixture says [${fixture.final.invariants.join(", ")}]`,
+    );
   }
   const hash = stateHash(state);
-  if (hash !== fixture.final.stateHash) errors.push(`final state hash ${hash} differs from the fixture's ${fixture.final.stateHash}`);
+  if (hash !== fixture.final.stateHash)
+    errors.push(
+      `final state hash ${hash} differs from the fixture's ${fixture.final.stateHash}`,
+    );
   return errors;
 }

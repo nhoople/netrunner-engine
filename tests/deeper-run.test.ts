@@ -65,7 +65,8 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
     s = must(s, { type: "pass_window" });
 
     expect(effectiveIceStrength(s, remote.ice[0])).toBe(
-      (PALISADE().strength ?? 0) + (PALISADE().strengthBonusProtectingRemote ?? 0),
+      (PALISADE().strength ?? 0) +
+        (PALISADE().strengthBonusProtectingRemote ?? 0),
     );
     expect(effectiveBreakerStrength(s, "runner-program-1")).toBe(1);
 
@@ -120,9 +121,9 @@ describe("strength pump (CR 3.9.5b / 3.9.5g)", () => {
       cardId: "runner-program-1",
       abilityId: "marjanah-pump",
     });
-    expect(s.log.some((l) => l.includes(CR.icebreakerStrengthImplicit.number))).toBe(
-      true,
-    );
+    expect(
+      s.log.some((l) => l.includes(CR.icebreakerStrengthImplicit.number)),
+    ).toBe(true);
     expect(effectiveBreakerStrength(s, "runner-program-1")).toBe(2);
 
     s = must(s, {
@@ -215,7 +216,9 @@ describe("multi-subroutine ice (CR 6.5.5 / 1.10.3a / 6.1.4)", () => {
 
     expect(s.corp.credits).toBe(afterRez + 1);
     expect(
-      s.log.some((l) => l.includes("End the run") && l.includes("unsuccessful")),
+      s.log.some(
+        (l) => l.includes("End the run") && l.includes("unsuccessful"),
+      ),
     ).toBe(false);
     expect(
       s.timingKey === "run.jackOutWindow" ||

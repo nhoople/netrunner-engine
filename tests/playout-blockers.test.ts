@@ -72,13 +72,18 @@ describe("B1: the access completes after a stolen agenda's choice (CR 7.2.3, 7.2
     // and the run end and the Runner is back in their action phase.
     expect(s.timingKey.startsWith("access.")).toBe(false);
     expect(s.run).toBeNull();
-    expect(s.log.some((l) => l.includes("Access complete (CR 7.2.4"))).toBe(true);
+    expect(s.log.some((l) => l.includes("Access complete (CR 7.2.4"))).toBe(
+      true,
+    );
     expectEveryLegalActionApplies(s);
   });
 
   it("legality and apply share one gate for breach candidates (11.5_4_a)", () => {
     const s = atSteal();
-    for (const action of [{ type: "finish_breach" }, { type: "access_card", cardId: s.run!.accessingCardId! }] as Action[]) {
+    for (const action of [
+      { type: "finish_breach" },
+      { type: "access_card", cardId: s.run!.accessingCardId! },
+    ] as Action[]) {
       expect(isActionLegal(s, action)).toBe(false);
       expect(applyAction(structuredClone(s), action).ok).toBe(false);
     }
@@ -88,9 +93,12 @@ describe("B1: the access completes after a stolen agenda's choice (CR 7.2.3, 7.2
     ["learn_to_play_starter", 2, 63],
     ["learn_to_play_starter", 4, 138],
     ["startup", 2, 136],
-  ] as [Format, number, number][])("%s seed %i: every breach action offered at step %i applies", (format, seed, step) => {
-    expectEveryLegalActionApplies(replayTo(format, seed, step));
-  });
+  ] as [Format, number, number][])(
+    "%s seed %i: every breach action offered at step %i applies",
+    (format, seed, step) => {
+      expectEveryLegalActionApplies(replayTo(format, seed, step));
+    },
+  );
 });
 
 /** AU Co. as the Corp identity, at the start of the Corp's turn. */
@@ -120,7 +128,9 @@ describe("B2: a turn-begin choice does not stall the turn (CR 9.6.6, 11.2_1_d, 1
     expect(s.pendingChoice).toBeNull();
     expect(s.timingKey).not.toBe("corp.turnBegins");
     expect(s.turn.corpTurnBegan).toBe(true);
-    expect(s.log.filter((l) => l.startsWith("Corp turn begins"))).toHaveLength(1);
+    expect(s.log.filter((l) => l.startsWith("Corp turn begins"))).toHaveLength(
+      1,
+    );
     expectEveryLegalActionApplies(s);
   });
 
@@ -142,11 +152,16 @@ describe("B2: a turn-begin choice does not stall the turn (CR 9.6.6, 11.2_1_d, 1
     ["core", 1, 84],
     ["standard", 1, 191],
     ["standard", 14, 71],
-  ] as [Format, number, number][])("%s seed %i: the turn has a legal action at step %i", (format, seed, step) => {
-    const s = replayTo(format, seed, step);
-    expect(s.timingKey.endsWith(".turnBegins") && !s.pendingChoice).toBe(false);
-    expectEveryLegalActionApplies(s);
-  });
+  ] as [Format, number, number][])(
+    "%s seed %i: the turn has a legal action at step %i",
+    (format, seed, step) => {
+      const s = replayTo(format, seed, step);
+      expect(s.timingKey.endsWith(".turnBegins") && !s.pendingChoice).toBe(
+        false,
+      );
+      expectEveryLegalActionApplies(s);
+    },
+  );
 });
 
 describe("B1: steal is offered only when its additional costs can be paid (CR 1.16.1, 1.16.10b, 7.2.3)", () => {
@@ -158,12 +173,16 @@ describe("B1: steal is offered only when its additional costs can be paid (CR 1.
     expect(s.timingKey).toBe("access.stealAgenda");
     const agendaId = s.run!.accessingCardId!;
     expect(s.cards[agendaId]?.title).toBe("SDS Drone Deployment");
-    expect(s.runner.installed.filter((id) => s.cards[id]?.type === "program")).toEqual([]);
+    expect(
+      s.runner.installed.filter((id) => s.cards[id]?.type === "program"),
+    ).toEqual([]);
 
     const steal: Action = { type: "steal_agenda", cardId: agendaId };
     expect(isActionLegal(s, steal)).toBe(false);
     expect(applyAction(structuredClone(s), steal).ok).toBe(false);
-    expect(queryLegality(s).legal.map((l) => l.action.type)).toEqual(["finish_access"]);
+    expect(queryLegality(s).legal.map((l) => l.action.type)).toEqual([
+      "finish_access",
+    ]);
 
     const after = must(s, { type: "finish_access" });
     expect(after.cards[agendaId]?.zone).toBe("corp:rd");
@@ -178,8 +197,13 @@ describe("a run-end choice answered after the run is over (CR 6.9.6d, 10.3.6)", 
     const s = replayTo("standard", 50, 27);
     expect(s.timingKey).toBe("run.ends");
     expect(s.run).toBeNull();
-    expect(s.cards[s.pendingChoice!.sourceId!]?.title).toBe("Always Have a Backup Plan");
-    const after = must(s, { type: "choose_option", optionId: "decline-backup" });
+    expect(s.cards[s.pendingChoice!.sourceId!]?.title).toBe(
+      "Always Have a Backup Plan",
+    );
+    const after = must(s, {
+      type: "choose_option",
+      optionId: "decline-backup",
+    });
     expect(after.pendingChoice).toBeNull();
     expect(after.run).toBeNull();
     expect(after.timingKey).toBe("runner.actionPaw");

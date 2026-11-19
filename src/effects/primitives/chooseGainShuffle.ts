@@ -13,8 +13,7 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   removeCardFromCurrentZone(state, cardId);
@@ -447,7 +446,10 @@ export function applyRedsandBawPrimitive(
     case "advance_equal_forfeit_advancement_requirement": {
       const x = state.lastForfeitedAdvancementRequirement ?? 0;
       if (x <= 0) {
-        log(state, `Success — forfeited agenda had no advancement requirement.`);
+        log(
+          state,
+          `Success — forfeited agenda had no advancement requirement.`,
+        );
         return { ok: true };
       }
       const candidates = installedCorpCards(state).filter((id) =>
@@ -495,7 +497,9 @@ export function applyRedsandBawPrimitive(
     case "whampoa_archives_to_rd_bottom": {
       const cardId = (action as { cardId: string }).cardId;
       if (!state.corp.discardPile.includes(cardId)) return { ok: true };
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
       const c = state.cards[cardId]!;
       c.zone = "corp:rd";
       c.faceup = false;

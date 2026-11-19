@@ -3,17 +3,20 @@ import { revealCards } from "../../state/reveal.js";
 import { trashCorpCardToArchives } from "../corpTrash.js";
 import { log } from "../../state/createGame.js";
 import { moveRunnerCardToHeap } from "../../state/trashHooks.js";
-import { canPayCost, emptyRunnerCreditPool, payCost, subtractRunnerCreditPool } from "../../state/costs.js";
+import {
+  canPayCost,
+  emptyRunnerCreditPool,
+  payCost,
+  subtractRunnerCreditPool,
+} from "../../state/costs.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applyLunarUaoPrimitive(
   ctx: EffectCtx,
@@ -62,7 +65,11 @@ export function applyLunarUaoPrimitive(
       if (state.turn.reuseTrashedFromHq === undefined) {
         state.turn.reuseTrashedFromHq = 0;
       }
-      return applyTrashAnyHqThenGainPerCard(ctx, 2, "trash_hq_gain_credits_finalize");
+      return applyTrashAnyHqThenGainPerCard(
+        ctx,
+        2,
+        "trash_hq_gain_credits_finalize",
+      );
     }
     case "trash_hq_gain_credits_finalize": {
       const n = state.turn.reuseTrashedFromHq ?? 0;
@@ -135,7 +142,11 @@ export function applyLunarUaoPrimitive(
         (id) => state.cards[id]?.type === "hardware",
       );
       if (hw.length === 0) {
-        return { ok: false, error: "No hardware to trash for Trade-In.", cites: [] };
+        return {
+          ok: false,
+          error: "No hardware to trash for Trade-In.",
+          cites: [],
+        };
       }
       openPendingChoose(state, {
         sourceId,
@@ -179,8 +190,8 @@ export function applyLunarUaoPrimitive(
               effect: fx.do({ kind: "add_hw_to_grip", cardId: id }),
             })),
         ],
-logLine: `Trade-In — gain ${half}¢; search hardware.`,
-});
+        logLine: `Trade-In — gain ${half}¢; search hardware.`,
+      });
       return { ok: true };
     }
     case "add_hw_to_grip": {
@@ -190,7 +201,10 @@ logLine: `Trade-In — gain ${half}¢; search hardware.`,
       state.cards[cardId]!.zone = "runner:grip";
       state.cards[cardId]!.faceup = true;
       shuffleInPlace(state, state.runner.deck);
-      log(state, `Trade-In — add ${state.cards[cardId]!.title} to grip; shuffle stack.`);
+      log(
+        state,
+        `Trade-In — add ${state.cards[cardId]!.title} to grip; shuffle stack.`,
+      );
       return { ok: true };
     }
     case "place_x_counters": {
@@ -212,7 +226,11 @@ logLine: `Trade-In — gain ${half}¢; search hardware.`,
     case "place_x_resolve": {
       const amount = (action as { amount: number }).amount;
       if (!canPayCost(state, "runner", { credits: amount })) {
-        return { ok: false, error: "Cannot pay for Angel Arena counters.", cites: [] };
+        return {
+          ok: false,
+          error: "Cannot pay for Angel Arena counters.",
+          cites: [],
+        };
       }
       payCost(state, "runner", { credits: amount }, "angel-arena", source);
       source!.powerCounters = (source!.powerCounters ?? 0) + amount;
@@ -248,7 +266,10 @@ logLine: `Trade-In — gain ${half}¢; search hardware.`,
       const cardId = (action as { cardId: string }).cardId;
       state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
       state.runner.deck.push(cardId);
-      log(state, `Angel Arena — ${state.cards[cardId]!.title} to bottom of stack.`);
+      log(
+        state,
+        `Angel Arena — ${state.cards[cardId]!.title} to bottom of stack.`,
+      );
       return { ok: true };
     }
     default:

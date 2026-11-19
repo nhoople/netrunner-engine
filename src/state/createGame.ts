@@ -57,13 +57,7 @@ export function createInitialState(
     cards[card.id] = card;
   };
 
-  put(
-    instantiateCard(
-      "haas-bioroid-precision-design",
-      "corp-id",
-      "corp:hq",
-    ),
-  );
+  put(instantiateCard("haas-bioroid-precision-design", "corp-id", "corp:hq"));
   put(
     instantiateCard(
       "the-catalyst-convention-breaker",
@@ -81,7 +75,11 @@ export function createInitialState(
   ];
   for (const id of corpDeck) {
     const type =
-      id === "corp-asset-1" ? "asset" : id === "corp-ice-1" ? "ice" : "operation";
+      id === "corp-asset-1"
+        ? "asset"
+        : id === "corp-ice-1"
+          ? "ice"
+          : "operation";
     put({
       id,
       title: id,

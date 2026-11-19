@@ -72,7 +72,10 @@ function hasPayableExposeInterrupt(state: GameState): boolean {
  * Offer Zaibatsu-class may-rez when a card would be exposed, then open
  * expose interrupt if payable prevent exists; otherwise complete expose.
  */
-export function beginExpose(state: GameState, cardId: string): "pending" | "done" {
+export function beginExpose(
+  state: GameState,
+  cardId: string,
+): "pending" | "done" {
   const card = state.cards[cardId];
   if (!card || card.side !== "corp" || card.rezzed) {
     log(state, `Expose — invalid target ${cardId}.`);
@@ -130,8 +133,8 @@ export function beginExpose(state: GameState, cardId: string): "pending" | "done
           },
         },
       ],
-logLine: `Card would be exposed — Corp may rez Zaibatsu-class asset (CR ${CR.expose?.number ?? "1.21.4"}).`,
-});
+      logLine: `Card would be exposed — Corp may rez Zaibatsu-class asset (CR ${CR.expose?.number ?? "1.21.4"}).`,
+    });
     return "pending";
   }
   return openExposeInterruptOrComplete(state, cardId);
@@ -167,10 +170,7 @@ export function completeExpose(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
   card.faceup = true;
-  log(
-    state,
-    `Expose ${card.title} (CR ${CR.expose?.number ?? "1.21.4"}).`,
-  );
+  log(state, `Expose ${card.title} (CR ${CR.expose?.number ?? "1.21.4"}).`);
   noteExposure(state, cardId);
   if (!state.turn.deferBlackguardCheckpoint && blackguardIsActive(state)) {
     occurCheckpoint(
@@ -191,10 +191,7 @@ export function completeExpose(state: GameState, cardId: string): void {
     const c = state.cards[rid];
     if (!c?.placeVirusCounterOnExposeAnyCard) continue;
     c.virusCounters = (c.virusCounters ?? 0) + 1;
-    log(
-      state,
-      `${c.title} — place 1 virus (expose) → ${c.virusCounters}.`,
-    );
+    log(state, `${c.title} — place 1 virus (expose) → ${c.virusCounters}.`);
   }
   // Zamba: whenever a Corp card is exposed, you may gain N¢.
   if (!state.pendingChoice) {

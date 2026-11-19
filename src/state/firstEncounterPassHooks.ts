@@ -36,10 +36,7 @@ export function noteFirstPassIce(state: GameState): void {
   if (state.turn.bmFirstPassIceUsedThisTurn) return;
   if (state.turn.firstPassIceMetPending) return;
   const khan = state.cards[state.runner.identityId];
-  if (
-    !khan?.onFirstPassIceEachTurn ||
-    abilitiesSuppressed(state, khan.id)
-  ) {
+  if (!khan?.onFirstPassIceEachTurn || abilitiesSuppressed(state, khan.id)) {
     return;
   }
   state.turn.firstPassIceMetPending = true;
@@ -50,20 +47,14 @@ export function noteFirstPassIce(state: GameState): void {
  * `pendingReencounterIceId` for the scored ability's choice; does not mark
  * pending (CR 10.3.1a).
  */
-export function noteSisyphusFirstPass(
-  state: GameState,
-  iceId: string,
-): void {
+export function noteSisyphusFirstPass(state: GameState, iceId: string): void {
   if (state.turn.sisyphusPassUsedThisTurn) return;
   if (state.turn.sisyphusPassMetPending) return;
   if (!state.run) return;
   const ice = state.cards[iceId];
   if (!ice?.rezzed) return;
   const subtypes = ice.subtypes ?? [];
-  if (
-    !subtypes.includes("code gate") &&
-    !subtypes.includes("sentry")
-  ) {
+  if (!subtypes.includes("code gate") && !subtypes.includes("sentry")) {
     return;
   }
   let scoredId: string | null = null;

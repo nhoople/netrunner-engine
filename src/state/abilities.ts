@@ -11,10 +11,7 @@ import { resolveBlankedCardIds } from "./continuousEffects.js";
  * blanks, Klevetnik temporary flags, Light the Fire root blank). Printed
  * subroutines on blanked ice still resolve — callers gate abilities only.
  */
-export function abilitiesSuppressed(
-  state: GameState,
-  cardId: string,
-): boolean {
+export function abilitiesSuppressed(state: GameState, cardId: string): boolean {
   if (!state.cards[cardId]) return false;
   return resolveBlankedCardIds(state).has(cardId);
 }

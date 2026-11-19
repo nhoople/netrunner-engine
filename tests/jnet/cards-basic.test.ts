@@ -88,7 +88,11 @@ describe("jnet ports — basic", () => {
 
   // jnet: game.cards.basic-test/corp-basic-actions-install-ice
   it("Corp installs Ice Wall protecting a new remote", () => {
-    const state = playFromHand(newGame({ corpHand: ["Ice Wall"] }), "corp", "Ice Wall");
+    const state = playFromHand(
+      newGame({ corpHand: ["Ice Wall"] }),
+      "corp",
+      "Ice Wall",
+    );
     expect(iceCard(state, firstRemote(state)).title).toBe("Ice Wall");
   });
 
@@ -102,7 +106,12 @@ describe("jnet ports — basic", () => {
 
   // jnet: game.cards.basic-test/corp-basic-actions-advance-installed-ice
   it("Corp places 1 advancement counter on Ice Wall", () => {
-    let state = playFromHand(newGame({ corpHand: ["Ice Wall"] }), "corp", "Ice Wall", "HQ");
+    let state = playFromHand(
+      newGame({ corpHand: ["Ice Wall"] }),
+      "corp",
+      "Ice Wall",
+      "HQ",
+    );
     const ice = iceCard(state, state.servers.hq!);
     state = advance(state, ice.id);
     expect(state.cards[ice.id]?.advancementCounters ?? 0).toBe(1);
@@ -152,9 +161,9 @@ describe("jnet ports — basic", () => {
     expect(byTitle(state, "Botulus").virusCounters ?? 0).toBe(1);
     state = takeCredits(state, "runner");
     state = must(settle(state), { type: "basic_purge_virus" });
-    expect(state.runner.discardPile.map((id) => state.cards[id]?.title)).toEqual([
-      "Clot",
-    ]);
+    expect(
+      state.runner.discardPile.map((id) => state.cards[id]?.title),
+    ).toEqual(["Clot"]);
     expect(byTitle(state, "Imp").virusCounters ?? 0).toBe(0);
     expect(byTitle(state, "Botulus").virusCounters ?? 0).toBe(0);
     state = takeCredits(state, "corp");
@@ -199,7 +208,9 @@ describe("jnet ports — basic", () => {
       "runner",
       "Fan Site",
     );
-    expect(installedCards(state, "runner").map((c) => c.title)).toContain("Fan Site");
+    expect(installedCards(state, "runner").map((c) => c.title)).toContain(
+      "Fan Site",
+    );
   });
 
   // jnet: game.cards.basic-test/runner-basic-actions-install-hardware
@@ -209,7 +220,9 @@ describe("jnet ports — basic", () => {
       "runner",
       "Bookmark",
     );
-    expect(installedCards(state, "runner").map((c) => c.title)).toContain("Bookmark");
+    expect(installedCards(state, "runner").map((c) => c.title)).toContain(
+      "Bookmark",
+    );
   });
 
   // jnet: game.cards.basic-test/runner-basic-actions-play-operation

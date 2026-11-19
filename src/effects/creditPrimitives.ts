@@ -4,7 +4,10 @@
  */
 import { log } from "../state/createGame.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
-import { emptyRunnerCreditPool, subtractRunnerCreditPool } from "../state/costs.js";
+import {
+  emptyRunnerCreditPool,
+  subtractRunnerCreditPool,
+} from "../state/costs.js";
 import { onCorpAbilityGainedCredits } from "../state/cardDeclarations.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
@@ -17,8 +20,7 @@ import type { Effect, Primitive, SideRef } from "./ir.js";
 import { abilityCreditTally } from "./creditTally.js";
 
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 type ResolveSide = (ctx: EffectCtx, ref: SideRef) => Side;
 type EvalEffect = (ctx: EffectCtx, effect: Effect) => PrimResult;
@@ -46,10 +48,7 @@ export function applyCreditPrimitive(
       }
       const p = side === "corp" ? state.corp : state.runner;
       p.credits += amount;
-      log(
-        state,
-        `${side} gains ${amount}¢ (CR ${CR.gainCredits.number}).`,
-      );
+      log(state, `${side} gains ${amount}¢ (CR ${CR.gainCredits.number}).`);
       if (amount > 0 && side === "corp") {
         maybeFireZwickyCreditsGained(state, sourceId);
         onCorpAbilityGainedCredits(state);
@@ -59,7 +58,10 @@ export function applyCreditPrimitive(
         for (const server of Object.values(state.servers)) {
           for (const id of server.root) {
             const nasx = state.cards[id];
-            if (!nasx?.rezzed || !nasx.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower) {
+            if (
+              !nasx?.rezzed ||
+              !nasx.nasxMaySpendUpTo2OnAbilityCreditGainToPlacePower
+            ) {
               continue;
             }
             if (state.pendingChoice) break;
@@ -132,7 +134,8 @@ export function applyCreditPrimitive(
       ) {
         return {
           ok: false,
-          error: "Runner cannot spend credits while this ice's subroutines resolve.",
+          error:
+            "Runner cannot spend credits while this ice's subroutines resolve.",
           cites: [CR.gainCredits],
         };
       }

@@ -75,7 +75,8 @@ function exampleCitations(): Map<string, string[]> {
   // it("…"), it.skip('…'), it(`…`) — the title is the first argument.
   const IT = /\bit(?:\.\w+)?\(\s*(["'`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
   // 6.2.3.ex1, plus follow-ons like `6.2.3.ex1, ex2` or `6.2.3.ex1–3`.
-  const EX = /(\d+(?:\.\d+)*[a-z]?)\.ex(\d+)((?:\s*(?:,|–|-|\/|and)\s*(?:ex)?\d+)*)/g;
+  const EX =
+    /(\d+(?:\.\d+)*[a-z]?)\.ex(\d+)((?:\s*(?:,|–|-|\/|and)\s*(?:ex)?\d+)*)/g;
   for (const file of files) {
     const text = readFileSync(join(ROOT, "tests", file), "utf8");
     for (const m of text.matchAll(IT)) {
@@ -109,7 +110,10 @@ function computeCoverage(): Coverage {
   const cited = exampleCitations();
 
   const unknown = [...cited.keys()].filter((k) => !examples.includes(k));
-  expect(unknown, "it() titles cite examples that do not exist at the pin").toEqual([]);
+  expect(
+    unknown,
+    "it() titles cite examples that do not exist at the pin",
+  ).toEqual([]);
 
   const byExample: Record<string, string[]> = {};
   for (const ex of examples) byExample[ex] = cited.get(ex) ?? [];
@@ -149,7 +153,9 @@ describe("CR example coverage (CR audit 1.6)", () => {
 
   it("every example is cited by an it() title, or is in the shrink-only baseline", () => {
     const baseline = (
-      JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as { unreferenced: string[] }
+      JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as {
+        unreferenced: string[];
+      }
     ).unreferenced;
     const unreferenced = coverage.chapters.flatMap((c) => c.unreferenced);
     expect(

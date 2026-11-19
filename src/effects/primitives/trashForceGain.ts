@@ -10,10 +10,8 @@ import { evalEffect, grantAbilityCredits } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 export function applyFlashpoint23sPrimitive(
   ctx: EffectCtx,
@@ -166,7 +164,8 @@ export function applyFlashpoint23sPrimitive(
         const card = state.cards[id];
         return (
           card?.type === "program" &&
-          ((card.subtypes ?? []).includes("icebreaker") || Boolean(card.breaker))
+          ((card.subtypes ?? []).includes("icebreaker") ||
+            Boolean(card.breaker))
         );
       });
       if (breakers.length === 0) {
@@ -201,10 +200,7 @@ export function applyFlashpoint23sPrimitive(
         state,
         `Injection Attack — ${state.cards[breakerId]?.title ?? breakerId} will get +${bonus} strength this run.`,
       );
-      return evalEffect(
-        ctx,
-        fx.do({ kind: "may_start_run", servers: "any" }),
-      );
+      return evalEffect(ctx, fx.do({ kind: "may_start_run", servers: "any" }));
     }
 
     case "pay_credits_or_trash_installed": {
@@ -212,8 +208,7 @@ export function applyFlashpoint23sPrimitive(
       const side = action.side ?? "runner";
       const credits =
         side === "runner" ? state.runner.credits : state.corp.credits;
-      const installed =
-        side === "runner" ? state.runner.installed.length : 0;
+      const installed = side === "runner" ? state.runner.installed.length : 0;
       const options: { id: string; label: string; effect: Effect }[] = [];
       if (credits >= amount) {
         options.push({
@@ -282,7 +277,9 @@ export function applyFlashpoint23sPrimitive(
     case "add_installed_program_to_stack_bottom_resolve": {
       const cardId = action.cardId;
       if (!state.runner.installed.includes(cardId)) return { ok: true };
-      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter(
+        (id) => id !== cardId,
+      );
       state.runner.deck.push(cardId);
       const card = state.cards[cardId];
       if (card) {

@@ -11,15 +11,10 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function trashRunnerProgramChoose(
-  ctx: EffectCtx,
-  label: string,
-): PrimResult {
+function trashRunnerProgramChoose(ctx: EffectCtx, label: string): PrimResult {
   const { state, sourceId } = ctx;
   const programs = state.runner.installed.filter(
     (id) => state.cards[id]?.type === "program",

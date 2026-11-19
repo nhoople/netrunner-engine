@@ -5,7 +5,10 @@ import { log } from "../state/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
 import { drawCards } from "../effects/draw.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
-import { allButNDamageRelevant, firstNetDamageWouldAllows } from "../state/damage.js";
+import {
+  allButNDamageRelevant,
+  firstNetDamageWouldAllows,
+} from "../state/damage.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import {
   currentWindow,
@@ -61,7 +64,10 @@ import {
   closeReactionWindow,
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
-import { isServerAllowedForSpec, modifiersFromStartsRun } from "../state/runStart.js";
+import {
+  isServerAllowedForSpec,
+  modifiersFromStartsRun,
+} from "../state/runStart.js";
 import { afterBasicAction, autoWalk, enterStep } from "../timing/machine.js";
 import type {
   ApplyResult,
@@ -160,7 +166,9 @@ export function resolveGeistAfterTrashCost(
 }
 
 /** The first time the Runner uses a piece of hardware during a run this turn. */
-export function noteHardwareUsedDuringRun(state: GameState): ApplyResult | null {
+export function noteHardwareUsedDuringRun(
+  state: GameState,
+): ApplyResult | null {
   if (!state.run || state.turn.hardwareUsedDuringRunThisTurn) return null;
   state.turn.hardwareUsedDuringRunThisTurn = true;
   for (const id of state.runner.installed) {
@@ -204,9 +212,8 @@ const HOSTED_CARD_KINDS = new Set([
 ]);
 
 function effectActsOnHostedCards(effect: unknown): boolean {
-  return effectTreeHas(
-    effect,
-    (node) => HOSTED_CARD_KINDS.has((node as { kind?: string }).kind ?? ""),
+  return effectTreeHas(effect, (node) =>
+    HOSTED_CARD_KINDS.has((node as { kind?: string }).kind ?? ""),
   );
 }
 
@@ -291,7 +298,10 @@ function paidAbilityOn(
     !abilitiesSuppressed(state, cardId)
   ) {
     for (const hid of card.hostedCardIds ?? []) {
-      ability = findPaidAbility(state.cards[hid] ?? { paidAbilities: [] }, abilityId);
+      ability = findPaidAbility(
+        state.cards[hid] ?? { paidAbilities: [] },
+        abilityId,
+      );
       if (ability) break;
     }
   }
@@ -391,11 +401,21 @@ export function usePaidAbility(
       CR.paidAbility,
     ]);
   }
-  if (card.bioroidWorkCrewRequireAfterOperationPaidWindow && !state.turn.operationPaidWindowOpen) {
-    return fail("That ability is only legal after an operation resolves.", [CR.paidAbility]);
+  if (
+    card.bioroidWorkCrewRequireAfterOperationPaidWindow &&
+    !state.turn.operationPaidWindowOpen
+  ) {
+    return fail("That ability is only legal after an operation resolves.", [
+      CR.paidAbility,
+    ]);
   }
-  if (card.maxwellJamesRequireAfterSuccessfulHqRunPaidWindow && !state.turn.hqRunPaidWindowOpen) {
-    return fail("That ability is only legal after a successful HQ run.", [CR.paidAbility]);
+  if (
+    card.maxwellJamesRequireAfterSuccessfulHqRunPaidWindow &&
+    !state.turn.hqRunPaidWindowOpen
+  ) {
+    return fail("That ability is only legal after a successful HQ run.", [
+      CR.paidAbility,
+    ]);
   }
   if (
     state.pendingDamage &&
@@ -423,8 +443,7 @@ export function usePaidAbility(
     );
   // Corp damage interrupts (Prāna) are once per pending instance (CR 9.12.2b).
   // Runner AirbladeX-class may fire multiple times by paying again.
-  const corpDamageInterruptOnce =
-    damageInterruptOpen && card.side === "corp";
+  const corpDamageInterruptOnce = damageInterruptOpen && card.side === "corp";
   if (
     corpDamageInterruptOnce &&
     state.pendingDamage?.interruptUsedSourceIds?.includes(cardId)
@@ -560,10 +579,10 @@ export function usePaidAbility(
       !server ||
       (!server.root.includes(cardId) && !server.ice.includes(cardId))
     ) {
-      return fail("This ability can only be used during a run on this server.", [
-        CR.paidAbilityTextRestriction,
-        CR.paidAbility,
-      ]);
+      return fail(
+        "This ability can only be used during a run on this server.",
+        [CR.paidAbilityTextRestriction, CR.paidAbility],
+      );
     }
   }
   if (approachedIceMissesStipulation(state, ability)) {
@@ -572,11 +591,7 @@ export function usePaidAbility(
       [CR.paidAbilityApproachedIce],
     );
   }
-  if (
-    ability.startsRun &&
-    !atTake &&
-    window !== "runner_action_paw"
-  ) {
+  if (ability.startsRun && !atTake && window !== "runner_action_paw") {
     return fail("Run ability only usable during Runner action window.", [
       CR.paidAbility,
     ]);
@@ -607,10 +622,9 @@ export function usePaidAbility(
         return fail("Ability not usable from Archives.", [CR.paidAbility]);
       }
       if (window !== "corp_action_paw" && !actionPhaseClick) {
-        return fail(
-          "Archives ability only during Corp action window.",
-          [CR.paidAbility],
-        );
+        return fail("Archives ability only during Corp action window.", [
+          CR.paidAbility,
+        ]);
       }
     }
     const inRunnerScore = state.runner.scoreArea.includes(cardId);
@@ -638,7 +652,10 @@ export function usePaidAbility(
       cardProtectsOtherServer(state, cardId, state.run.attackedServerId);
     // Any active Corp card may be the source (CR 9.2.7b).
     const active =
-      card.rezzed || scored || cardId === state.corp.identityId || otherServerOk;
+      card.rezzed ||
+      scored ||
+      cardId === state.corp.identityId ||
+      otherServerOk;
     if (!active) {
       return fail(
         approached === cardId
@@ -674,15 +691,10 @@ export function usePaidAbility(
   }
   if (ability.requireOtherServer) {
     const sid = state.run?.attackedServerId;
-    if (
-      !sid ||
-      !card.rezzed ||
-      !cardProtectsOtherServer(state, cardId, sid)
-    ) {
-      return fail(
-        "Ability requires a run against another server.",
-        [CR.paidAbility],
-      );
+    if (!sid || !card.rezzed || !cardProtectsOtherServer(state, cardId, sid)) {
+      return fail("Ability requires a run against another server.", [
+        CR.paidAbility,
+      ]);
     }
   }
   if (
@@ -702,7 +714,11 @@ export function usePaidAbility(
     const rezzedRoot = Object.values(state.servers).some((server) =>
       server.root.includes(cardId),
     );
-    if (!isEncounterIce && !isRequireDuringRunIce && !(card.rezzed && rezzedRoot)) {
+    if (
+      !isEncounterIce &&
+      !isRequireDuringRunIce &&
+      !(card.rezzed && rezzedRoot)
+    ) {
       // Encounter window corp abilities: scored agendas, encountered ice
       // (F2P / N-Pot), requireDuringRun ice, or a rezzed card in a server root.
       return fail("Corp encounter ability must be a scored agenda.", [
@@ -738,7 +754,10 @@ export function usePaidAbility(
     );
   }
   if (!canPayCost(state, payer, cost, card)) {
-    return fail("Cannot pay ability cost.", [CR.paidAbility, CR.costCheckpoint]);
+    return fail("Cannot pay ability cost.", [
+      CR.paidAbility,
+      CR.costCheckpoint,
+    ]);
   }
   if (isOncePerTurn(ability) && wasAbilityUsed(state, cardId, abilityId)) {
     return fail("Ability already used this turn.", [
@@ -841,7 +860,9 @@ export function usePaidAbility(
     );
   }
   if (ability.requiresUntagged && runnerIsTagged(state)) {
-    return fail("Ability requires the Runner to be untagged.", [CR.paidAbility]);
+    return fail("Ability requires the Runner to be untagged.", [
+      CR.paidAbility,
+    ]);
   }
   if (ability.requireEncounterSubtype) {
     const enc = state.run?.encounter;
@@ -886,10 +907,9 @@ export function usePaidAbility(
   if (ability.requireFullyBrokenThisEncounter) {
     const enc = state.run?.encounter;
     if (!enc?.fullyBrokenByRunner) {
-      return fail(
-        "Ability requires the encountered ice to be fully broken.",
-        [CR.paidAbility],
-      );
+      return fail("Ability requires the encountered ice to be fully broken.", [
+        CR.paidAbility,
+      ]);
     }
   }
   if (ability.requireSufferedCorpDamageThisTurn) {
@@ -902,10 +922,9 @@ export function usePaidAbility(
   }
   if (ability.requireSufferedAnyDamageThisTurn) {
     if ((state.turn.damageSufferedThisTurn ?? 0) < 1) {
-      return fail(
-        "Ability requires suffering damage this turn.",
-        [CR.paidAbility],
-      );
+      return fail("Ability requires suffering damage this turn.", [
+        CR.paidAbility,
+      ]);
     }
   }
   if (ability.requireNextPawAfterDamage) {
@@ -925,10 +944,9 @@ export function usePaidAbility(
       ]);
     }
     if (!iceShareServer(state, hostId, enc.iceId)) {
-      return fail(
-        "Host ice must protect the same server as encountered ice.",
-        [CR.paidAbility],
-      );
+      return fail("Host ice must protect the same server as encountered ice.", [
+        CR.paidAbility,
+      ]);
     }
   }
 
@@ -990,10 +1008,7 @@ export function usePaidAbility(
   payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
   noteRunnerLostClicksOnCorpIce(state, card, payer, cost);
   if (payer === "corp") {
-    fireSiAfterPaidAbilityClicks(
-      state,
-      cost.clicks ?? ability.clickCost ?? 0,
-    );
+    fireSiAfterPaidAbilityClicks(state, cost.clicks ?? ability.clickCost ?? 0);
   }
   if (isOncePerTurn(ability)) {
     markAbilityUsed(state, cardId, abilityId);
@@ -1123,10 +1138,7 @@ export function usePaidAbility(
     if (costBeginsWithClick(ability)) {
       noteCorpActionType(state, `use_paid_ability:${cardId}:${abilityId}`);
     }
-    if (
-      ability.usableFromHq ||
-      (card.subtypes ?? []).includes("expendable")
-    ) {
+    if (ability.usableFromHq || (card.subtypes ?? []).includes("expendable")) {
       fireOnAfterOperationOrExpendable(state);
     }
   }

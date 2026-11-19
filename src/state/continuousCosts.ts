@@ -181,7 +181,8 @@ export function collectRunnerInstallCostDeltas(
     let kate = 0;
     const identityId = state.runner.identityId;
     if (!abilitiesSuppressed(state, identityId)) {
-      kate = state.cards[identityId]?.firstProgramOrHardwareInstallDiscount ?? 0;
+      kate =
+        state.cards[identityId]?.firstProgramOrHardwareInstallDiscount ?? 0;
     }
     for (const id of state.runner.installed) {
       if (abilitiesSuppressed(state, id)) continue;

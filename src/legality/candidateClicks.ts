@@ -4,7 +4,20 @@ import {
   actionMeetsFirstClickMust,
   firstClickMustIsActive,
 } from "../state/firstClickMust.js";
-import { abilityCost, basicTrashResourceCreditCost, basicRemoveTagCreditCost, canPayCost, corpInstallCost, costBeginsWithClick, creditsAvailableForInstall, runnerCreditsFor, runnerAvailableCredits, effectiveEventPlayCost, effectiveOperationExtraClicks, wirelessNetPavilionExtra } from "../state/costs.js";
+import {
+  abilityCost,
+  basicTrashResourceCreditCost,
+  basicRemoveTagCreditCost,
+  canPayCost,
+  corpInstallCost,
+  costBeginsWithClick,
+  creditsAvailableForInstall,
+  runnerCreditsFor,
+  runnerAvailableCredits,
+  effectiveEventPlayCost,
+  effectiveOperationExtraClicks,
+  wirelessNetPavilionExtra,
+} from "../state/costs.js";
 import { runnerInstallCost } from "../actions/installRunner.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
@@ -36,10 +49,7 @@ import { hasAbilityFlag } from "../effects/abilityRecord.js";
  * Must match apply.ts score_agenda guards so legality never offers a
  * silent-illegal score (CR 1.2.2 fail-closed for cannot).
  */
-function scoreAgendaBlockedByCannot(
-  state: GameState,
-  cardId: string,
-): boolean {
+function scoreAgendaBlockedByCannot(state: GameState, cardId: string): boolean {
   if (state.turn.cannotScoreAgendas) return true;
   if (state.turn.cannotScoreOrRezCardIds.includes(cardId)) return true;
   if (state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)) {
@@ -291,11 +301,9 @@ function playRestrictionOk(state: GameState, cardId: string): boolean {
   return true;
 }
 
-
 function listServers(state: GameState): Server[] {
   return Object.values(state.servers);
 }
-
 
 /** What the Corp would pay to install this ice protecting `server` (mirrors installCorp). */
 function corpIceInstallCost(
@@ -381,7 +389,11 @@ export function addClickActionCandidates(
             kind: "remote_root" | "protect";
             serverId: ServerId;
           }): void => {
-            const like = likeCardsAtDestination(state, id, destination.serverId);
+            const like = likeCardsAtDestination(
+              state,
+              id,
+              destination.serverId,
+            );
             if (like.may.some((other) => !like.must.includes(other))) {
               actions.push({
                 type: "basic_install",
@@ -489,7 +501,10 @@ export function addClickActionCandidates(
             continue;
           }
           const pavilionExtra = wirelessNetPavilionExtra(state);
-          if (state.corp.credits < basicTrashResourceCreditCost(state) + pavilionExtra) {
+          if (
+            state.corp.credits <
+            basicTrashResourceCreditCost(state) + pavilionExtra
+          ) {
             continue;
           }
           actions.push({ type: "basic_trash_resource", cardId: id });
@@ -510,10 +525,7 @@ export function addClickActionCandidates(
               state.corp.clicks >= clicksNeeded &&
               playRestrictionOk(state, id)
             ) {
-              if (
-                card.playCostXMaxRunnerTags &&
-                state.runner.tags <= 0
-              ) {
+              if (card.playCostXMaxRunnerTags && state.runner.tags <= 0) {
                 continue;
               }
               actions.push({ type: "play_operation", cardId: id });
@@ -644,12 +656,10 @@ export function addClickActionCandidates(
                   }
                 }
               } else {
-                const pushInstall = (
-                  destination: {
-                    kind: "installed" | "host_card";
-                    hostId?: string;
-                  },
-                ) => {
+                const pushInstall = (destination: {
+                  kind: "installed" | "host_card";
+                  hostId?: string;
+                }) => {
                   const base =
                     destination.kind === "installed"
                       ? ({
@@ -755,8 +765,7 @@ export function addClickActionCandidates(
                     }
                     if (typeof host.daemonHostMaxMu === "number") {
                       const used = (host.hostedCardIds ?? []).reduce(
-                        (sum, id) =>
-                          sum + effectiveMemoryCost(state, id),
+                        (sum, id) => sum + effectiveMemoryCost(state, id),
                         0,
                       );
                       if (
@@ -812,15 +821,15 @@ export function addClickActionCandidates(
             if (!isRunTargetAllowed(state, s.id)) continue;
             const tax = additionalRunInitiateTax(state, s.id);
             if (
-              (tax.clicks > 0 &&
-                state.runner.clicks < 1 + tax.clicks) ||
+              (tax.clicks > 0 && state.runner.clicks < 1 + tax.clicks) ||
               (tax.credits > 0 && runnerAvailableCredits(state) < tax.credits)
             )
               continue;
             if (
               tax.requireForfeitAgenda &&
-              state.runner.scoreArea.filter((id) => !state.cards[id]?.cannotForfeit)
-                .length === 0
+              state.runner.scoreArea.filter(
+                (id) => !state.cards[id]?.cannotForfeit,
+              ).length === 0
             ) {
               continue;
             }
@@ -851,7 +860,8 @@ export function addClickActionCandidates(
             for (const rid of state.runner.installed) {
               if (abilitiesSuppressed(state, rid)) continue;
               const n =
-                state.cards[rid]?.playOrInstallDiscountByTrashingGripOncePerTurn;
+                state.cards[rid]
+                  ?.playOrInstallDiscountByTrashingGripOncePerTurn;
               if (n) {
                 patchworkDisc = n;
                 break;
@@ -915,7 +925,9 @@ export function addClickActionCandidates(
                   (tax.clicks > 0 &&
                     state.runner.clicks < 1 + extra + tax.clicks) ||
                   (tax.credits > 0 &&
-                    credits < Math.max(0, cost - (canPayWithPw ? patchworkDisc : 0)) + tax.credits)
+                    credits <
+                      Math.max(0, cost - (canPayWithPw ? patchworkDisc : 0)) +
+                        tax.credits)
                 ) {
                   continue;
                 }
@@ -972,10 +984,19 @@ export function addClickActionCandidates(
         for (const ab of corpId.paidAbilities) {
           if (!costBeginsWithClick(ab)) continue;
           if (!ab.windows.includes("corp_action_paw")) continue;
-          const act = ab.effect?.op === "do" ? (ab.effect.action as { kind?: string; attackedServerOnly?: boolean }) : undefined;
+          const act =
+            ab.effect?.op === "do"
+              ? (ab.effect.action as {
+                  kind?: string;
+                  attackedServerOnly?: boolean;
+                })
+              : undefined;
           if (act?.kind === "trash_installed") {
             if (act.attackedServerOnly && !state.run) continue;
-            if (trashInstalledLegalTargets(state, corpId.id, act as never).length === 0) {
+            if (
+              trashInstalledLegalTargets(state, corpId.id, act as never)
+                .length === 0
+            ) {
               continue;
             }
           }
@@ -1006,7 +1027,9 @@ export function addFreeScoreCandidates(
       for (const id of server.root) {
         if (scoreAgendaBlockedByCannot(state, id)) continue;
         if (canScoreAgenda(state, state.cards[id])) {
-          if (!actions.some((a) => a.type === "score_agenda" && a.cardId === id)) {
+          if (
+            !actions.some((a) => a.type === "score_agenda" && a.cardId === id)
+          ) {
             actions.push({ type: "score_agenda", cardId: id });
           }
         }

@@ -21,11 +21,7 @@ import {
   noteProgramOrHardwareInstalled,
 } from "../state/programHardwareInstall.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
-import {
-  effectiveMemoryCost,
-  memoryLimit,
-  usedMemory,
-} from "../state/turn.js";
+import { effectiveMemoryCost, memoryLimit, usedMemory } from "../state/turn.js";
 import type { GameState } from "../state/types.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import {
@@ -34,9 +30,7 @@ import {
 } from "../state/cardDeclarations.js";
 import { CR } from "../timing/labels.js";
 import { type EvalResult } from "./eval.js";
-import {
-  fireOnInstallProgramFromHeap,
-} from "../state/miscConditionalHooks.js";
+import { fireOnInstallProgramFromHeap } from "../state/miscConditionalHooks.js";
 import { shuffleInPlace } from "../state/rng.js";
 
 function countInstalledIcebreakersForCost(state: GameState): number {
@@ -57,10 +51,7 @@ export function gripInstallCostAfterDiscount(
     card.installCostDiscountIfSuccessfulRunThisTurn &&
     state.turn.successfulRunThisTurn
   ) {
-    cost = Math.max(
-      0,
-      cost - card.installCostDiscountIfSuccessfulRunThisTurn,
-    );
+    cost = Math.max(0, cost - card.installCostDiscountIfSuccessfulRunThisTurn);
   }
   if (
     card.installCostDiscountIfSuccessfulHqRunThisTurn &&
@@ -102,10 +93,7 @@ function trashOtherConsoles(state: GameState, keepId: string): void {
     state.runner.discardPile.push(id);
     card.zone = "runner:heap";
     card.faceup = true;
-    log(
-      state,
-      `Trash ${card.title} (console limit; CR 3.8.5b).`,
-    );
+    log(state, `Trash ${card.title} (console limit; CR 3.8.5b).`);
   }
 }
 
@@ -158,10 +146,7 @@ export function installGripCardDiscounted(
     const hosted = state.runner.installed.filter(
       (id) => state.cards[id]?.hostId === hostId,
     ).length;
-    if (
-      host.maxHostedCards !== undefined &&
-      hosted >= host.maxHostedCards
-    ) {
+    if (host.maxHostedCards !== undefined && hosted >= host.maxHostedCards) {
       return {
         ok: false,
         error: `${host.title} cannot host another card.`,
@@ -172,10 +157,7 @@ export function installGripCardDiscounted(
   if (card.type === "program" && !host?.daemonHost) {
     const need = effectiveMemoryCost(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
-      log(
-        state,
-        `Install ${card.title} discounted — insufficient MU.`,
-      );
+      log(state, `Install ${card.title} discounted — insufficient MU.`);
       return { ok: true };
     }
   }
@@ -185,10 +167,7 @@ export function installGripCardDiscounted(
       (host ? daemonInstallDiscount(host) : 0),
   );
   if (creditsAvailableForInstall(state, "runner") < cost) {
-    log(
-      state,
-      `Install ${card.title} discounted — cannot afford ${cost}¢.`,
-    );
+    log(state, `Install ${card.title} discounted — cannot afford ${cost}¢.`);
     return { ok: true };
   }
   spendCreditsForInstall(state, "runner", cost);
@@ -295,7 +274,9 @@ export function installHeapCardDiscounted(
     return { ok: true };
   }
   spendCreditsForInstall(state, "runner", cost);
-  state.runner.discardPile = state.runner.discardPile.filter((x) => x !== cardId);
+  state.runner.discardPile = state.runner.discardPile.filter(
+    (x) => x !== cardId,
+  );
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
@@ -339,7 +320,6 @@ export function installHeapCardDiscounted(
   return { ok: true };
 }
 
-
 export function shuffleRunnerStack(state: GameState): void {
   shuffleInPlace(state, state.runner.deck);
 }
@@ -353,10 +333,7 @@ function stackProgramInstallCost(
     card.installCostDiscountIfSuccessfulRunThisTurn &&
     state.turn.successfulRunThisTurn
   ) {
-    cost = Math.max(
-      0,
-      cost - card.installCostDiscountIfSuccessfulRunThisTurn,
-    );
+    cost = Math.max(0, cost - card.installCostDiscountIfSuccessfulRunThisTurn);
   }
   if (
     card.installCostDiscountIfSuccessfulHqRunThisTurn &&
@@ -400,10 +377,7 @@ function patchworkInstallDiscount(state: GameState): number {
   return discount;
 }
 
-function canInstallStackProgram(
-  state: GameState,
-  cardId: string,
-): boolean {
+function canInstallStackProgram(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
   if (!card || card.type !== "program") return false;
   if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
@@ -470,8 +444,8 @@ export function installStackProgramPaying(
             },
           },
         })),
-logLine: `Patchwork — trash 1 card from grip to pay the install.`,
-});
+        logLine: `Patchwork — trash 1 card from grip to pay the install.`,
+      });
       return { ok: true };
     }
     const gripId = gripCardId ?? state.runner.hand[0];
@@ -667,12 +641,7 @@ export function searchStackTypeInstall(
     return { ok: true };
   }
   if (affordable.length === 1) {
-    return installStackCardPaying(
-      state,
-      affordable[0]!,
-      discount,
-      sourceId,
-    );
+    return installStackCardPaying(state, affordable[0]!, discount, sourceId);
   }
   openPendingChoose(state, {
     sourceId,
@@ -693,11 +662,10 @@ export function searchStackTypeInstall(
         },
       };
     }),
-logLine: `Search stack — choose among ${affordable.length} ${cardType}(s) to install.`,
-});
+    logLine: `Search stack — choose among ${affordable.length} ${cardType}(s) to install.`,
+  });
   return { ok: true };
 }
-
 
 export function installSetAsideCardPayingNoShuffle(
   state: GameState,
@@ -738,7 +706,9 @@ export function installSetAsideCardPayingNoShuffle(
     return { ok: true };
   }
   subtractRunnerCreditPool(state, cost);
-  state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== cardId);
+  state.runner.setAside = (state.runner.setAside ?? []).filter(
+    (x) => x !== cardId,
+  );
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
   card.faceup = true;
@@ -773,7 +743,6 @@ export function installSetAsideCardPayingNoShuffle(
   return { ok: true };
 }
 
-
 export function shuffleRunnerSetAsideIntoStack(state: GameState): void {
   const aside = state.runner.setAside ?? [];
   for (const id of aside) {
@@ -785,12 +754,8 @@ export function shuffleRunnerSetAsideIntoStack(state: GameState): void {
   }
   state.runner.setAside = [];
   shuffleRunnerStack(state);
-  log(
-    state,
-    `Shuffle ${aside.length} set-aside card(s) into the stack.`,
-  );
+  log(state, `Shuffle ${aside.length} set-aside card(s) into the stack.`);
 }
-
 
 export function canInstallSetAsideIgnoringCosts(
   state: GameState,
@@ -1007,8 +972,7 @@ export function searchStackProgramInstall(
         },
       };
     }),
-logLine: `Search stack — choose among ${affordable.length} programs to install.`,
-});
+    logLine: `Search stack — choose among ${affordable.length} programs to install.`,
+  });
   return { ok: true };
 }
-

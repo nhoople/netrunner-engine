@@ -43,10 +43,7 @@ export function openFace(
 }
 
 /** True when the viewer may see an ice face (rezzed or Corp). */
-export function iceFaceVisible(
-  card: CardInstance,
-  viewer: Side,
-): boolean {
+export function iceFaceVisible(card: CardInstance, viewer: Side): boolean {
   return card.rezzed || viewer === "corp";
 }
 

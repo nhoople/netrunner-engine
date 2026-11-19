@@ -13,10 +13,7 @@ type RunnerTurnBeginPendingMark = {
   logLine: string;
 };
 
-function pushMark(
-  state: GameState,
-  mark: RunnerTurnBeginPendingMark,
-): void {
+function pushMark(state: GameState, mark: RunnerTurnBeginPendingMark): void {
   if (!state.turn.runnerTurnBeginPending) {
     state.turn.runnerTurnBeginPending = [];
   }
@@ -55,10 +52,7 @@ export function noteRunnerIdentityOnTurnBegin(
  * Queue Runner-rig onTurnBegin / onTurnBeginIfCorpNoBadPublicity.
  * Skips inactive sources (CR 9.6.10).
  */
-export function noteRunnerRigTurnBegin(
-  state: GameState,
-  cardId: string,
-): void {
+export function noteRunnerRigTurnBegin(state: GameState, cardId: string): void {
   if (!state.runner.installed.includes(cardId)) return;
   if (abilitiesSuppressed(state, cardId)) return;
   const card = state.cards[cardId];
@@ -86,10 +80,7 @@ export function noteRunnerRigTurnBegin(
 }
 
 /** Queue Corp onRunnerTurnBegin (rezzed root / score / current). */
-export function noteOnRunnerTurnBegin(
-  state: GameState,
-  cardId: string,
-): void {
+export function noteOnRunnerTurnBegin(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card?.onRunnerTurnBegin) return;
   if (abilitiesSuppressed(state, cardId)) return;

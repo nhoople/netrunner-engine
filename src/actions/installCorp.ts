@@ -26,7 +26,14 @@ import {
   noteFirstRemoteInstallThisTurn,
 } from "../state/trashHooks.js";
 import { fireTdatd419OnFirstCorpInstall } from "../effects/primitives/resolveExposePay.js";
-import type { ApplyResult, GameState, InstallDestination, RuleCite, Server, ServerId } from "../state/types.js";
+import type {
+  ApplyResult,
+  GameState,
+  InstallDestination,
+  RuleCite,
+  Server,
+  ServerId,
+} from "../state/types.js";
 import { fx } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
 import { installBlockReason } from "../state/staticFlags.js";
@@ -155,10 +162,7 @@ function createRemote(state: GameState): Server {
       state.corp.hand.push(top);
       state.cards[top].zone = "corp:hq";
     }
-    log(
-      state,
-      `${idCard.title} — draw ${n} (first remote this turn).`,
-    );
+    log(state, `${idCard.title} — draw ${n} (first remote this turn).`);
     if (drawn < n) runnerWinsOnEmptyRnd(state);
   }
   // Hijacked Router-class: Corp loses credits when creating a server.
@@ -231,7 +235,9 @@ function installCorpInner(
   }
   const leaveSourceZone = (): void => {
     if (fromArchives) {
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== cardId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== cardId,
+      );
     } else if (fromRd) {
       state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
     } else {
@@ -320,7 +326,9 @@ function installCorpInner(
   let server: Server;
   if (destination.kind === "new_remote") {
     if (!canCreateAnotherRemote(state)) {
-      return fail("Cannot create another remote server.", [CR.corpBasicInstall]);
+      return fail("Cannot create another remote server.", [
+        CR.corpBasicInstall,
+      ]);
     }
     if (card.type === "ice") {
       server = createRemote(state);
@@ -336,7 +344,9 @@ function installCorpInner(
       card.type === "upgrade"
     ) {
       if (!canCreateAnotherRemote(state)) {
-        return fail("Cannot create another remote server.", [CR.corpBasicInstall]);
+        return fail("Cannot create another remote server.", [
+          CR.corpBasicInstall,
+        ]);
       }
       server = createRemote(state);
       state.turn.installDestinationServerId = server.id;
@@ -370,7 +380,9 @@ function installCorpInner(
         destination.serverId as "hq" | "rd" | "archives",
       )
     ) {
-      return fail("Destination must be a remote server.", [CR.agendaAssetRemote]);
+      return fail("Destination must be a remote server.", [
+        CR.agendaAssetRemote,
+      ]);
     }
   } else if (destination.kind === "protect") {
     server = state.servers[destination.serverId];
@@ -510,7 +522,10 @@ function installCorpInner(
       );
       const r = evalEffect({ state, sourceId: other.id }, fx.trashSelf());
       if (!r.ok) {
-        log(state, `trashSelfOnCorpIceInstall failed on ${other.title}: ${r.error}`);
+        log(
+          state,
+          `trashSelfOnCorpIceInstall failed on ${other.title}: ${r.error}`,
+        );
       }
     }
   } else {

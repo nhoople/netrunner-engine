@@ -11,7 +11,11 @@ import type {
 } from "../state/types.js";
 import { paidAbilitiesFromCard } from "../effects/abilityRecord.js";
 import { CR } from "../timing/labels.js";
-import { occurCheckpoint, popCheckpoint, pushCheckpoint } from "./checkpoints.js";
+import {
+  occurCheckpoint,
+  popCheckpoint,
+  pushCheckpoint,
+} from "./checkpoints.js";
 import { nextId } from "../state/ids.js";
 
 export function currentPriorityWindow(
@@ -20,7 +24,10 @@ export function currentPriorityWindow(
   return state.priorityStack[state.priorityStack.length - 1] ?? null;
 }
 
-export function priorityHolderForStep(timingKey: string, activeSide: Side): Side {
+export function priorityHolderForStep(
+  timingKey: string,
+  activeSide: Side,
+): Side {
   switch (timingKey) {
     case "opening.corpMulligan":
       return "corp";
@@ -50,10 +57,7 @@ export function ensurePriorityWindow(state: GameState): PriorityWindowFrame {
   }
   // Formicary-class 6.8.2c: keep the pending other-window frame as the live
   // stack top while completing at run.completeOtherPriorityWindows.
-  if (
-    state.timingKey === "run.completeOtherPriorityWindows" &&
-    existing
-  ) {
+  if (state.timingKey === "run.completeOtherPriorityWindows" && existing) {
     return existing;
   }
   const pw: PriorityWindowFrame = {
@@ -159,7 +163,9 @@ export function closePriorityWindow(state: GameState, stepKey: string): void {
  * player is host policy, not a rule, and the host judges it on open
  * information.
  */
-export function recordPriorityPass(state: GameState): "still_open" | "step_closed" {
+export function recordPriorityPass(
+  state: GameState,
+): "still_open" | "step_closed" {
   const pw = ensurePriorityWindow(state);
   pw.consecutivePasses += 1;
   const other: Side = pw.priorityHolder === "corp" ? "runner" : "corp";

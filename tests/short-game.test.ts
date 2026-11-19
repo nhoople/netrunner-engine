@@ -89,7 +89,11 @@ function toRunnerTakeAction(s: GameState): GameState {
   s = burnSide(s, "corp");
   for (let guard = 0; guard < 10; guard++) {
     if (s.timingKey === "runner.takeAction") return s;
-    if (queryLegality(s).legal.some((entry) => entry.action.type === "pass_window")) {
+    if (
+      queryLegality(s).legal.some(
+        (entry) => entry.action.type === "pass_window",
+      )
+    ) {
       s = pass(s);
       continue;
     }
@@ -150,7 +154,8 @@ describe("Phase 1 short game (scripted)", () => {
 
     // Advance to 5 and score (may span turns)
     for (let guard = 0; guard < 80 && !s.winner; guard++) {
-      const advancementCounters = s.cards["corp-agenda"].advancementCounters ?? 0;
+      const advancementCounters =
+        s.cards["corp-agenda"].advancementCounters ?? 0;
       const legal = queryLegality(s).legal.map((e) => e.action);
       if (
         legal.some(

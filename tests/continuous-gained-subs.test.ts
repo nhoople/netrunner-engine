@@ -36,9 +36,9 @@ describe("continuous gained-sub collectors (M1)", () => {
     expect(enigma.subtypes?.map((t) => t.toLowerCase())).not.toContain(
       "barrier",
     );
-    expect(effectiveIceSubtypes(s, "eng-1").map((t) => t.toLowerCase())).toContain(
-      "barrier",
-    );
+    expect(
+      effectiveIceSubtypes(s, "eng-1").map((t) => t.toLowerCase()),
+    ).toContain("barrier");
     expect(collectSubBoostEtrSubs(s, "eng-1")).toHaveLength(1);
   });
 
@@ -57,7 +57,9 @@ describe("continuous gained-sub collectors (M1)", () => {
     s.servers.hq.ice = ["heim-1"];
 
     expect(abilitiesSuppressed(s, "wet-1")).toBe(true);
-    expect(collectHostedConditionSubsBeforePrinted(s, "heim-1")).toHaveLength(0);
+    expect(collectHostedConditionSubsBeforePrinted(s, "heim-1")).toHaveLength(
+      0,
+    );
   });
 });
 
@@ -74,7 +76,9 @@ describe("continuous gained-sub decls (L2)", () => {
     s.cards["fat-1"] = fatuma;
     s.servers.hq.root = ["fat-1"];
 
-    expect(fatuma.continuousGainedSubDecls?.[0]?.kind).toBe("fatuma_lose_click");
+    expect(fatuma.continuousGainedSubDecls?.[0]?.kind).toBe(
+      "fatuma_lose_click",
+    );
     expect(collectFatumaGainedSubs(s, "heim-1")).toHaveLength(1);
   });
 
@@ -92,9 +96,9 @@ describe("continuous gained-sub decls (L2)", () => {
     s.servers.hq.ice = ["eng-1"];
 
     expect(collectSubBoostEtrSubs(s, "eng-1")).toHaveLength(1);
-    expect(effectiveIceSubtypes(s, "eng-1").map((t) => t.toLowerCase())).toContain(
-      "barrier",
-    );
+    expect(
+      effectiveIceSubtypes(s, "eng-1").map((t) => t.toLowerCase()),
+    ).toContain("barrier");
   });
 
   it("Wetwork marker decl alone does not grant without subroutine payload", () => {
@@ -111,7 +115,9 @@ describe("continuous gained-sub decls (L2)", () => {
     s.cards["wet-1"] = wet;
     s.servers.hq.ice = ["heim-1"];
 
-    expect(collectHostedConditionSubsBeforePrinted(s, "heim-1")).toHaveLength(0);
+    expect(collectHostedConditionSubsBeforePrinted(s, "heim-1")).toHaveLength(
+      0,
+    );
   });
 
   it("Wetwork grants from continuousGainedSubDecls subroutines payload", () => {
@@ -134,7 +140,9 @@ describe("continuous gained-sub decls (L2)", () => {
 
   it("instantiate loads continuous decls on L2 cards", () => {
     const fatuma = instantiateCard("warden-fatuma", "fat-1", "server:hq:root");
-    expect(fatuma.continuousGainedSubDecls?.[0]?.kind).toBe("fatuma_lose_click");
+    expect(fatuma.continuousGainedSubDecls?.[0]?.kind).toBe(
+      "fatuma_lose_click",
+    );
 
     const boost = instantiateCard("sub-boost", "sb-1", "hosted:ice-1");
     expect(boost.continuousSubtypeGrants).toEqual([

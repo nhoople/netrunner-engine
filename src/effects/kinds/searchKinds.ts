@@ -4,14 +4,8 @@
  */
 import { revealCards } from "../../state/reveal.js";
 import { chooseCards } from "../chooseCards.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import {
   creditsAvailableForInstall,
   subtractRunnerCreditPool,
@@ -43,19 +37,18 @@ import {
   shuffleRunnerStack,
 } from "../runnerInstall.js";
 
-import {
-  fireOnInstall,
-  fireHostRezStateTriggers,
-  fireOnRez,
-} from "../eval.js";
+import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
-export function applySearchKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applySearchKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "may_search_stack_copy_of_last_installed_hardware_add_to_grip": {
+    case "may_search_stack_copy_of_last_installed_hardware_add_to_grip": {
       const lastId = state.turn.lastHardwareInstalledId;
       const last = lastId ? state.cards[lastId] : undefined;
       if (!last || last.type !== "hardware") {
@@ -90,8 +83,8 @@ case "may_search_stack_copy_of_last_installed_hardware_add_to_grip": {
               },
             },
           ],
-logLine: `${source.title} — may search stack for another ${title}.`,
-});
+          logLine: `${source.title} — may search stack for another ${title}.`,
+        });
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -117,12 +110,12 @@ logLine: `${source.title} — may search stack for another ${title}.`,
             },
           },
         ],
-logLine: `${source.title} — may search stack for another ${title}.`,
-});
+        logLine: `${source.title} — may search stack for another ${title}.`,
+      });
       return { ok: true };
     }
 
-case "search_stack_copy_of_last_installed_hardware_add_to_grip": {
+    case "search_stack_copy_of_last_installed_hardware_add_to_grip": {
       const lastId = state.turn.lastHardwareInstalledId;
       const last = lastId ? state.cards[lastId] : undefined;
       if (!last || last.type !== "hardware") {
@@ -153,19 +146,14 @@ case "search_stack_copy_of_last_installed_hardware_add_to_grip": {
       return { ok: true };
     }
 
-case "search_stack_subtype_may_install": {
+    case "search_stack_subtype_may_install": {
       const want = action.subtype.toLowerCase();
       const matches = state.runner.deck.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).some(
-          (s) => s.toLowerCase() === want,
-        ),
+        (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === want),
       );
       if (matches.length === 0) {
         shuffleRunnerStack(state);
-        log(
-          state,
-          `Search stack for ${action.subtype} — none found.`,
-        );
+        log(state, `Search stack for ${action.subtype} — none found.`);
         return { ok: true };
       }
       const id = matches[0]!;
@@ -186,7 +174,8 @@ case "search_stack_subtype_may_install": {
         ["program", "hardware", "resource"].includes(card.type) &&
         !(card.installOnIce || (card.subtypes ?? []).includes("trojan")) &&
         (card.type !== "program" ||
-          usedMemory(state) + effectiveMemoryCost(state, id) <= memoryLimit(state)) &&
+          usedMemory(state) + effectiveMemoryCost(state, id) <=
+            memoryLimit(state)) &&
         creditsAvailableForInstall(state, "runner") >= cost;
       const options: Array<{ id: string; label: string; effect: Effect }> = [
         {
@@ -212,13 +201,16 @@ case "search_stack_subtype_may_install": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — may install ${card.title} from grip.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — may install ${card.title} from grip.`,
+      });
       return { ok: true };
     }
 
-case "search_rd_type_to_hq": {
+    case "search_rd_type_to_hq": {
       const cardType = action.cardType;
       const id = state.corp.deck.find(
         (cid) => state.cards[cid]?.type === cardType,
@@ -240,7 +232,7 @@ case "search_rd_type_to_hq": {
       return { ok: true };
     }
 
-case "search_rd_up_to_one_each_subtype_to_hq": {
+    case "search_rd_up_to_one_each_subtype_to_hq": {
       const subtypes = action.subtypes ?? [];
       const found: string[] = [];
       for (const sub of subtypes) {
@@ -273,7 +265,7 @@ case "search_rd_up_to_one_each_subtype_to_hq": {
       return { ok: true };
     }
 
-case "search_rd_operation_to_top_rd": {
+    case "search_rd_operation_to_top_rd": {
       const ops = state.corp.deck.filter(
         (cid) => state.cards[cid]?.type === "operation",
       );
@@ -294,7 +286,7 @@ case "search_rd_operation_to_top_rd": {
       return { ok: true };
     }
 
-case "search_rd_reveal_may_install_ignore_costs_else_hq": {
+    case "search_rd_reveal_may_install_ignore_costs_else_hq": {
       const eligible = [...state.corp.deck];
       if (eligible.length === 0) {
         log(state, `Search R&D — deck empty.`);
@@ -321,13 +313,16 @@ case "search_rd_reveal_may_install_ignore_costs_else_hq": {
           },
         })),
       ];
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `May search R&D for 1 card, reveal, install or add to HQ.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `May search R&D for 1 card, reveal, install or add to HQ.`,
+      });
       return { ok: true };
     }
 
-case "search_rd_reveal_pick_install_or_hq": {
+    case "search_rd_reveal_pick_install_or_hq": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card) {
@@ -401,13 +396,16 @@ case "search_rd_reveal_pick_install_or_hq": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options: installOpts,
-logLine: `May install ${card.title} ignoring costs or leave in HQ.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options: installOpts,
+        logLine: `May install ${card.title} ignoring costs or leave in HQ.`,
+      });
       return { ok: true };
     }
 
-case "search_rd_operation_or_agenda_to_hq": {
+    case "search_rd_operation_or_agenda_to_hq": {
       const id = state.corp.deck.find((cid) => {
         const t = state.cards[cid].type;
         return t === "operation" || t === "agenda";
@@ -422,14 +420,11 @@ case "search_rd_operation_or_agenda_to_hq": {
       state.cards[id].faceup = true;
       shuffleCorpRdAfterSearch(state);
       revealCards(state, [id], sourceId);
-      log(
-        state,
-        `Search R&D — reveal ${state.cards[id].title} and add to HQ.`,
-      );
+      log(state, `Search R&D — reveal ${state.cards[id].title} and add to HQ.`);
       return { ok: true };
     }
 
-case "search_rd_install_rez_ice_on_source_server": {
+    case "search_rd_install_rez_ice_on_source_server": {
       const host = serverHostingCard(state, sourceId);
       if (!host) {
         log(state, `${source.title} — not installed on a server.`);
@@ -481,12 +476,12 @@ case "search_rd_install_rez_ice_on_source_server": {
             },
           },
         ],
-logLine: `Search R&D — choose ice to install on ${host.id}.`,
-});
+        logLine: `Search R&D — choose ice to install on ${host.id}.`,
+      });
       return { ok: true };
     }
 
-case "search_rd_install_rez_by_printed_rez_cost": {
+    case "search_rd_install_rez_by_printed_rez_cost": {
       const base = state.turn.lastTrashedRezzedPrintedRezCost;
       if (base === null) {
         log(
@@ -513,7 +508,10 @@ case "search_rd_install_rez_by_printed_rez_cost": {
             upTo: true,
             purpose: "resume",
             label: `install and rez (printed rez cost ${targetCost}¢)`,
-            resume: { kind: "search_rd_install_rez_by_printed_rez_cost", delta: action.delta },
+            resume: {
+              kind: "search_rd_install_rez_by_printed_rez_cost",
+              delta: action.delta,
+            },
           }),
         );
       }
@@ -543,7 +541,7 @@ case "search_rd_install_rez_by_printed_rez_cost": {
       });
     }
 
-case "search_stack_icebreaker": {
+    case "search_stack_icebreaker": {
       const cardIds = [...state.runner.deck];
       state.turn.hiddenZoneSearch = {
         viewer: "runner",
@@ -561,23 +559,19 @@ case "search_stack_icebreaker": {
         `Runner looks at all ${cardIds.length} card(s) in the stack for an icebreaker (CR ${CR.search.number}).`,
       );
       const finishSearch = (): void => {
-        if (state.turn.hiddenZoneSearch) state.turn.hiddenZoneSearch.open = false;
+        if (state.turn.hiddenZoneSearch)
+          state.turn.hiddenZoneSearch.open = false;
         log(
           state,
           `Search complete; Runner may no longer look at the stack (CR ${CR.searchHiddenSecretZone.number}).`,
         );
         shuffleInPlace(state, state.runner.deck);
-        log(
-          state,
-          `Stack shuffled (CR ${CR.shuffleDeckAfterSearch.number}).`,
-        );
+        log(state, `Stack shuffled (CR ${CR.shuffleDeckAfterSearch.number}).`);
         noteSearchConditionalAbilities(state);
       };
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
-        return (
-          Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker")
-        );
+        return Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
       });
       if (matches.length === 0) {
         log(state, `Search stack for icebreaker — none found.`);
@@ -614,23 +608,21 @@ case "search_stack_icebreaker": {
             },
           },
         ],
-logLine: `Runner may fail to find (CR ${CR.failToFind.number}).`,
-});
+        logLine: `Runner may fail to find (CR ${CR.failToFind.number}).`,
+      });
       return { ok: true };
     }
 
-case "search_stack_icebreaker_resolve": {
+    case "search_stack_icebreaker_resolve": {
       const finishSearch = (): void => {
-        if (state.turn.hiddenZoneSearch) state.turn.hiddenZoneSearch.open = false;
+        if (state.turn.hiddenZoneSearch)
+          state.turn.hiddenZoneSearch.open = false;
         log(
           state,
           `Search complete; Runner may no longer look at the stack (CR ${CR.searchHiddenSecretZone.number}).`,
         );
         shuffleInPlace(state, state.runner.deck);
-        log(
-          state,
-          `Stack shuffled (CR ${CR.shuffleDeckAfterSearch.number}).`,
-        );
+        log(state, `Stack shuffled (CR ${CR.shuffleDeckAfterSearch.number}).`);
         noteSearchConditionalAbilities(state);
       };
       if (action.fail || !action.cardId) {
@@ -647,25 +639,18 @@ case "search_stack_icebreaker_resolve": {
       }
       state.runner.deck = state.runner.deck.filter((x) => x !== id);
       enterSetAside(state, [id], { side: "runner", faceup: false });
-      log(
-        state,
-        `A card found and set aside facedown (CR ${CR.find.number}).`,
-      );
+      log(state, `A card found and set aside facedown (CR ${CR.find.number}).`);
       finishSearch();
-      state.runner.setAside = (state.runner.setAside ?? []).filter((x) => x !== id);
+      state.runner.setAside = (state.runner.setAside ?? []).filter(
+        (x) => x !== id,
+      );
       card.setAsideGroupId = undefined;
       card.faceup = true;
       revealCards(state, [card.id], sourceId);
-      log(
-        state,
-        `${card.title} revealed (CR ${CR.revealForSearch.number}).`,
-      );
+      log(state, `${card.title} revealed (CR ${CR.revealForSearch.number}).`);
       state.runner.hand.push(id);
       card.zone = "runner:grip";
-      log(
-        state,
-        `Search stack — add ${card.title} to grip.`,
-      );
+      log(state, `Search stack — add ${card.title} to grip.`);
       if (
         action.mayInstallIfSuccessfulRunThisTurn &&
         state.turn.successfulRunThisTurn
@@ -683,7 +668,7 @@ case "search_stack_icebreaker_resolve": {
       return { ok: true };
     }
 
-case "search_rd_non_agenda": {
+    case "search_rd_non_agenda": {
       // The Corp looks through R&D and picks the card (CR 8.7.1). With a
       // criterion the Corp may fail to find (CR 8.7.2e).
       if (!action.cardIds) {
@@ -717,7 +702,7 @@ case "search_rd_non_agenda": {
       return { ok: true };
     }
 
-case "search_rd_to_hq": {
+    case "search_rd_to_hq": {
       // The Corp looks through R&D and picks the cards (CR 8.7.1). A search
       // for a set number with no criterion must find that many (CR 8.7.2d).
       if (!action.cardIds) {
@@ -751,7 +736,7 @@ case "search_rd_to_hq": {
       return { ok: true };
     }
 
-case "may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom": {
+    case "may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom": {
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -780,12 +765,12 @@ case "may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom": {
             },
           },
         ],
-logLine: `${source.title} — may search HQ, R&D, or Archives for an agenda.`,
-});
+        logLine: `${source.title} — may search HQ, R&D, or Archives for an agenda.`,
+      });
       return { ok: true };
     }
 
-case "search_zone_agenda_to_hq_or_rd_bottom": {
+    case "search_zone_agenda_to_hq_or_rd_bottom": {
       const zone = action.zone;
       const pool: string[] =
         zone === "hq"
@@ -833,18 +818,15 @@ case "search_zone_agenda_to_hq_or_rd_bottom": {
             },
           },
         ]),
-logLine: `${source.title} — choose agenda from ${zone}.`,
-});
+        logLine: `${source.title} — choose agenda from ${zone}.`,
+      });
       return { ok: true };
     }
 
-case "search_stack_non_virus_program_install_ignore_costs_track": {
+    case "search_stack_non_virus_program_install_ignore_costs_track": {
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
-        return (
-          c?.type === "program" &&
-          !(c.subtypes ?? []).includes("virus")
-        );
+        return c?.type === "program" && !(c.subtypes ?? []).includes("virus");
       });
       if (matches.length === 0) {
         // shuffle
@@ -871,12 +853,12 @@ case "search_stack_non_virus_program_install_ignore_costs_track": {
             },
           },
         })),
-logLine: `${source.title} — search stack for a non-virus program.`,
-});
+        logLine: `${source.title} — search stack for a non-virus program.`,
+      });
       return { ok: true };
     }
 
-case "search_rd_take_card_to_hq": {
+    case "search_rd_take_card_to_hq": {
       const id = action.cardId;
       if (!state.corp.deck.includes(id)) {
         log(state, `Search R&D take — card not in R&D.`);
@@ -893,11 +875,14 @@ case "search_rd_take_card_to_hq": {
         state.corp.deck[j] = tmp;
       }
       revealCards(state, [id], sourceId);
-      log(state, `Search R&D — reveal ${state.cards[id]!.title} and add to HQ.`);
+      log(
+        state,
+        `Search R&D — reveal ${state.cards[id]!.title} and add to HQ.`,
+      );
       return { ok: true };
     }
 
-case "may_search_rd_non_agenda_any_subtype_to_hq": {
+    case "may_search_rd_non_agenda_any_subtype_to_hq": {
       const subtypes = new Set(
         action.subtypes.map((s: string) => s.toLowerCase()),
       );
@@ -944,12 +929,12 @@ case "may_search_rd_non_agenda_any_subtype_to_hq": {
             },
           },
         ],
-logLine: `${source.title} — may search R&D for black ops / gray ops / liability.`,
-});
+        logLine: `${source.title} — may search R&D for black ops / gray ops / liability.`,
+      });
       return { ok: true };
     }
 
-case "search_stack_same_title_may_install_paying": {
+    case "search_stack_same_title_may_install_paying": {
       const title = source.title;
       const matches = state.runner.deck.filter(
         (id) => state.cards[id]?.title === title,
@@ -966,7 +951,10 @@ case "search_stack_same_title_may_install_paying": {
       state.cards[id]!.faceup = true;
       shuffleRunnerStack(state);
       revealCards(state, [id], sourceId);
-      log(state, `Search stack — reveal ${state.cards[id]!.title} and add to grip.`);
+      log(
+        state,
+        `Search stack — reveal ${state.cards[id]!.title} and add to grip.`,
+      );
       const card = state.cards[id]!;
       const cost = gripInstallCostAfterDiscount(state, card, 0);
       const canInstall =
@@ -996,13 +984,16 @@ case "search_stack_same_title_may_install_paying": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — may install ${card.title} from grip.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — may install ${card.title} from grip.`,
+      });
       return { ok: true };
     }
 
-case "search_stack_subtype_add_to_grip": {
+    case "search_stack_subtype_add_to_grip": {
       const want = action.subtype.toLowerCase();
       const wantType = action.type;
       const matches = state.runner.deck.filter((id) => {
@@ -1019,10 +1010,7 @@ case "search_stack_subtype_add_to_grip": {
         );
         return { ok: true };
       }
-      const id =
-        matches.length === 1
-          ? matches[0]!
-          : matches[0]!; // first match; choice UX optional
+      const id = matches.length === 1 ? matches[0]! : matches[0]!; // first match; choice UX optional
       if (matches.length > 1) {
         openPendingChoose(state, {
           sourceId,
@@ -1038,20 +1026,20 @@ case "search_stack_subtype_add_to_grip": {
               },
             },
           })),
-logLine: `Search stack — choose ${action.subtype} ${wantType ?? "card"} to reveal.`,
-});
+          logLine: `Search stack — choose ${action.subtype} ${wantType ?? "card"} to reveal.`,
+        });
         return { ok: true };
       }
       addFoundStackCardAfterSearch(state, id);
       return { ok: true };
     }
 
-case "search_stack_subtype_add_to_grip_pick": {
+    case "search_stack_subtype_add_to_grip_pick": {
       addFoundStackCardAfterSearch(state, action.cardId);
       return { ok: true };
     }
 
-case "search_stack_host_virus_or_weapon": {
+    case "search_stack_host_virus_or_weapon": {
       const max = Math.max(1, action.max);
       const eligible = state.runner.deck.filter((id) => {
         const c = state.cards[id];
@@ -1092,11 +1080,11 @@ case "search_stack_host_virus_or_weapon": {
       return { ok: true };
     }
 
-case "search_stack_program_install": {
+    case "search_stack_program_install": {
       return searchStackProgramInstall(state, sourceId);
     }
 
-case "search_rd_ice_install_central_discount": {
+    case "search_rd_ice_install_central_discount": {
       const iceIds = state.corp.deck.filter(
         (id) => state.cards[id]?.type === "ice",
       );
@@ -1132,8 +1120,8 @@ case "search_rd_ice_install_central_discount": {
               },
             },
           })),
-logLine: `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
-});
+          logLine: `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
+        });
         return { ok: true };
       };
       if (iceIds.length === 1) return offerInstall(iceIds[0]!);
@@ -1152,12 +1140,12 @@ logLine: `${source.title} — install revealed ice protecting a central (−${di
             },
           },
         })),
-logLine: `Search R&D — choose ice to reveal and install.`,
-});
+        logLine: `Search R&D — choose ice to reveal and install.`,
+      });
       return { ok: true };
     }
 
-case "search_rd_ice_install_central_discount_pick": {
+    case "search_rd_ice_install_central_discount_pick": {
       const cardId = action.cardId;
       const discount = Math.max(0, action.discount ?? 0);
       const card = state.cards[cardId];
@@ -1189,12 +1177,12 @@ case "search_rd_ice_install_central_discount_pick": {
             },
           },
         })),
-logLine: `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
-});
+        logLine: `${source.title} — install revealed ice protecting a central (−${discount}¢).`,
+      });
       return { ok: true };
     }
 
-case "search_stack_type_install": {
+    case "search_stack_type_install": {
       return searchStackTypeInstall(
         state,
         sourceId,
@@ -1203,7 +1191,7 @@ case "search_stack_type_install": {
       );
     }
 
-case "may_search_rd_install_rez_ignore_costs": {
+    case "may_search_rd_install_rez_ignore_costs": {
       const eligible = state.corp.deck.filter((id) => {
         const t = state.cards[id]?.type;
         return (
@@ -1238,12 +1226,12 @@ case "may_search_rd_install_rez_ignore_costs": {
             },
           })),
         ],
-logLine: `May search R&D for 1 card to install and rez ignoring costs.`,
-});
+        logLine: `May search R&D for 1 card to install and rez ignoring costs.`,
+      });
       return { ok: true };
     }
 
-case "search_rd_pick_install_rez_ignore_costs": {
+    case "search_rd_pick_install_rez_ignore_costs": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card) {
@@ -1293,12 +1281,8 @@ case "search_rd_pick_install_rez_ignore_costs": {
       return { ok: true };
     }
 
-case "search_install_non_daemon": {
-      const zones: Array<"stack" | "heap" | "grip"> = [
-        "stack",
-        "heap",
-        "grip",
-      ];
+    case "search_install_non_daemon": {
+      const zones: Array<"stack" | "heap" | "grip"> = ["stack", "heap", "grip"];
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const zone of zones) {
         if (museEligiblePrograms(state, zone).length === 0) continue;
@@ -1319,18 +1303,19 @@ case "search_install_non_daemon": {
         return applyPrimitive(ctx, {
           kind: "search_zone",
           zone: options[0]!.id.slice("zone:".length) as
-            | "stack"
-            | "heap"
-            | "grip",
+            "stack" | "heap" | "grip",
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — choose zone to search.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — choose zone to search.`,
+      });
       return { ok: true };
     }
 
-case "search_zone": {
+    case "search_zone": {
       const cands = museEligiblePrograms(state, action.zone);
       if (cands.length === 0) {
         log(state, `Muse — no non-daemon programs in ${action.zone}.`);
@@ -1359,8 +1344,8 @@ case "search_zone": {
             },
           },
         })),
-logLine: `Muse — choose non-daemon program from ${action.zone} (${cands.length}).`,
-});
+        logLine: `Muse — choose non-daemon program from ${action.zone} (${cands.length}).`,
+      });
       return { ok: true };
     }
     default:

@@ -130,12 +130,11 @@ export function collectBlankingEffects(state: GameState): BlankingEffect[] {
     }
   }
 
-
   // Malia Z0L0K4: chosen non-virtual resource loses printed abilities while rezzed.
   for (const card of Object.values(state.cards)) {
     if (!card?.rezzed || !card.tdatdMaliaBlankTargetId) continue;
-    const installed = Object.values(state.servers).some(
-      (s) => s.root.includes(card.id),
+    const installed = Object.values(state.servers).some((s) =>
+      s.root.includes(card.id),
     );
     if (!installed) continue;
     effects.push({
@@ -190,9 +189,7 @@ export function orderBlankingEffects(
     } else {
       // Dependency loop (CR 9.12.1e): hosted ignores dependence on host.
       const hostedBreak = remaining.filter((e) =>
-        Boolean(
-          e.hostedOn && remaining.some((o) => o.sourceId === e.hostedOn),
-        ),
+        Boolean(e.hostedOn && remaining.some((o) => o.sourceId === e.hostedOn)),
       );
       batch = hostedBreak.length > 0 ? [hostedBreak[0]!] : [remaining[0]!];
     }
@@ -248,9 +245,7 @@ type MotherGoddessSubtypeEffect = {
 };
 
 export type SubtypeGrantEffect =
-  | HostSubtypeGrantEffect
-  | HostBarrierGrantEffect
-  | MotherGoddessSubtypeEffect;
+  HostSubtypeGrantEffect | HostBarrierGrantEffect | MotherGoddessSubtypeEffect;
 
 /** Collect continuous subtype-grant effects (sources may later be blanked). */
 export function collectSubtypeGrantEffects(
@@ -322,9 +317,7 @@ function subtypesFromCounts(counts: Map<string, number>): string[] {
  * Resolve effective ice subtypes with blanking first, then independent host
  * grants, then Mother Goddess copying other ice's layered subtypes (CR 9.12.1d/e).
  */
-export function resolveIceSubtypeMap(
-  state: GameState,
-): Map<string, string[]> {
+export function resolveIceSubtypeMap(state: GameState): Map<string, string[]> {
   const blanked = resolveBlankedCardIds(state);
   const byIce = new Map<string, Map<string, number>>();
 
@@ -381,8 +374,7 @@ export function resolveIceSubtypeMap(
           continue;
         }
         const payload = effect.payload as
-          | { cardId?: string; subtypes?: string[] }
-          | undefined;
+          { cardId?: string; subtypes?: string[] } | undefined;
         if (payload?.cardId !== iceId) continue;
         for (const s of payload.subtypes ?? []) gainSubtype(counts, s);
       }
@@ -424,10 +416,7 @@ export function resolveIceSubtypeMap(
 }
 
 /** Effective subtypes for one ice via the continuous subtype layer. */
-export function resolveIceSubtypes(
-  state: GameState,
-  iceId: string,
-): string[] {
+export function resolveIceSubtypes(state: GameState, iceId: string): string[] {
   const ice = state.cards[iceId];
   if (!ice || ice.type !== "ice") {
     // Non-ice or missing: preserve prior behavior (printed only).

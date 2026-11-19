@@ -60,12 +60,16 @@ describe("blanked Sundew / Awakening / LLDS (CR 9.12.1d)", () => {
   it("treats LLDS Processor install strength as suppressed while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const llds = instantiateCard("llds-processor", "llds-1", "runner:installed");
+    const llds = instantiateCard(
+      "llds-processor",
+      "llds-1",
+      "runner:installed",
+    );
     s.cards["llds-1"] = llds;
     s.runner.installed = ["llds-1"];
-    expect(llds.nonAiIcebreakerInstallStrengthBonusThisTurn ?? 0).toBeGreaterThan(
-      0,
-    );
+    expect(
+      llds.nonAiIcebreakerInstallStrengthBonusThisTurn ?? 0,
+    ).toBeGreaterThan(0);
     expect(abilitiesSuppressed(s, "llds-1")).toBe(false);
     suppressAbilities(s, llds.id);
     expect(abilitiesSuppressed(s, "llds-1")).toBe(true);

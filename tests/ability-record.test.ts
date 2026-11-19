@@ -41,9 +41,9 @@ describe("CR 9.3 ability records", () => {
     expect(triggerToHook("first_successful_hq_run_this_turn")).toBe(
       "onFirstSuccessfulHqRunThisTurn",
     );
-    expect(triggerToHook("additional_cost_on_score_agenda_installed_this_turn")).toBe(
-      "additionalCostOnScoreAgendaInstalledThisTurn",
-    );
+    expect(
+      triggerToHook("additional_cost_on_score_agenda_installed_this_turn"),
+    ).toBe("additionalCostOnScoreAgendaInstalledThisTurn");
   });
 
   it("plays an instruction from a play ability via playEffectFromCard", () => {
@@ -87,7 +87,9 @@ describe("CR 9.3 ability records", () => {
       ],
     };
     expect(applyAbilityRecords(card)).toBeNull();
-    const paid = (card.paidAbilities as Array<{ clickCost: number; effect: unknown }>)[0];
+    const paid = (
+      card.paidAbilities as Array<{ clickCost: number; effect: unknown }>
+    )[0];
     expect(paid.clickCost).toBe(1);
     const empty: Record<string, unknown> = {
       abilities: [
@@ -101,7 +103,9 @@ describe("CR 9.3 ability records", () => {
       ],
     };
     expect(applyAbilityRecords(empty)).toBeNull();
-    const zero = (empty.paidAbilities as Array<{ cost: object; creditCost: number }>)[0];
+    const zero = (
+      empty.paidAbilities as Array<{ cost: object; creditCost: number }>
+    )[0];
     expect(zero.cost).toEqual({});
     expect(zero.creditCost).toBe(0);
     expect(paid.effect).toEqual({
@@ -140,7 +144,9 @@ describe("CR 9.3 ability records", () => {
       ],
     };
     expect(applyAbilityRecords(card)).toBeNull();
-    const sub = (card.subroutines as Array<{ id: string; effect: { op: string } }>)[0];
+    const sub = (
+      card.subroutines as Array<{ id: string; effect: { op: string } }>
+    )[0];
     expect(sub.id).toBe("etr");
     expect(sub.effect.op).toBe("do");
   });
@@ -202,7 +208,10 @@ describe("CR 9.3 ability records", () => {
       "../netrunner-cards-data/data/runner/event/sure-gamble.json",
     );
     if (!existsSync(file)) return;
-    const card = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+    const card = JSON.parse(readFileSync(file, "utf8")) as Record<
+      string,
+      unknown
+    >;
     expect(applyAbilityRecords(card)).toBeNull();
     expect(playEffectFromCard(card as never)).toEqual({
       op: "do",
@@ -266,7 +275,10 @@ describe("CR 9.3 ability records", () => {
         clickCost: 0,
         creditCost: 0,
         windows: ["runner_action_paw"],
-        effect: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 1 } },
+        effect: {
+          op: "do",
+          action: { kind: "gain_credits", side: "runner", amount: 1 },
+        },
       },
     ];
     syncPaidAbilitiesFromRecords(crypsis);
@@ -371,7 +383,10 @@ describe("CR 9.3 ability records", () => {
           id: "keyhole-run",
           cost: { clicks: 1 },
           windows: ["runner_action_paw"],
-          instructions: { op: "do", action: { kind: "gain_credits", side: "runner", amount: 0 } },
+          instructions: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
           startsRun: { servers: "rd" },
         },
         {
@@ -380,13 +395,20 @@ describe("CR 9.3 ability records", () => {
           trigger: "successful_run",
           host: "startsRun",
           hostAbility: "keyhole-run",
-          instructions: { op: "do", action: { kind: "may_breach_instead_keyhole" } },
+          instructions: {
+            op: "do",
+            action: { kind: "may_breach_instead_keyhole" },
+          },
         },
       ],
     };
     expect(applyAbilityRecords(card)).toBeNull();
     expect(card.onSuccessfulRun).toBeUndefined();
-    const paid = (card.paidAbilities as Array<{ startsRun: { onSuccessfulRun: { op: string } } }>)[0];
+    const paid = (
+      card.paidAbilities as Array<{
+        startsRun: { onSuccessfulRun: { op: string } };
+      }>
+    )[0];
     expect(paid.startsRun.onSuccessfulRun.op).toBe("do");
   });
 
@@ -398,7 +420,10 @@ describe("CR 9.3 ability records", () => {
           rule: "9.3.7a",
           flag: "persistent",
           flagRule: "9.3.6e",
-          declaration: { field: "stealAdditionalCreditsFromProtectingServer", value: 5 },
+          declaration: {
+            field: "stealAdditionalCreditsFromProtectingServer",
+            value: 5,
+          },
         },
       ],
     };
@@ -418,16 +443,21 @@ describe("CR 9.3 ability records", () => {
           id: "prevent",
           cost: { credits: 0 },
           windows: ["when_encountered_interrupt"],
-          instructions: { op: "do", action: { kind: "prevent_pending_when_encountered" } },
+          instructions: {
+            op: "do",
+            action: { kind: "prevent_pending_when_encountered" },
+          },
         },
       ],
     };
     expect(applyAbilityRecords(card)).toBeNull();
-    const paid = (card.paidAbilities as Array<{
-      oncePerTurn?: boolean;
-      flag?: string | string[];
-      cost: object;
-    }>)[0];
+    const paid = (
+      card.paidAbilities as Array<{
+        oncePerTurn?: boolean;
+        flag?: string | string[];
+        cost: object;
+      }>
+    )[0];
     expect(paid.flag).toEqual(["interrupt", "once_per_turn"]);
     expect(paid.oncePerTurn).toBeUndefined();
     expect(paid.cost).toEqual({});
@@ -453,7 +483,11 @@ describe("CR 9.3 ability records", () => {
           class: "play" as const,
           instructions: {
             op: "do" as const,
-            action: { kind: "gain_credits" as const, side: "runner" as const, amount: 9 },
+            action: {
+              kind: "gain_credits" as const,
+              side: "runner" as const,
+              amount: 9,
+            },
           },
         },
       ],

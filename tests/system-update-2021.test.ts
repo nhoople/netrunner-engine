@@ -19,9 +19,7 @@ beforeAll(() => {
   assertPinnedTag("v26.03");
 });
 
-
 describe("card corpus system-update-2021", () => {
-
   it("marks partial cards with explicit unsupported notes", () => {
     const pool = loadCardPool(true).waves["system-update-2021"].cards;
     for (const id of pool) {
@@ -46,7 +44,11 @@ describe("card corpus system-update-2021", () => {
     s.cards[iceId] = wall;
     expect(effectiveIceStrength(s, iceId)).toBe(3);
 
-    const wrap = instantiateCard("wraparound", iceId, `server:${remote.id}:ice`);
+    const wrap = instantiateCard(
+      "wraparound",
+      iceId,
+      `server:${remote.id}:ice`,
+    );
     s.cards[iceId] = wrap;
     expect(effectiveIceStrength(s, iceId)).toBe(7);
     const corr = instantiateCard("corroder", "corr-1", "runner:installed");
@@ -59,8 +61,16 @@ describe("card corpus system-update-2021", () => {
     let s = setupEmptyRemoteWithIce();
     const remote = Object.values(s.servers).find((x) => x.kind === "remote")!;
     const iceId = remote.ice[0]!;
-    const lotus = instantiateCard("lotus-field", iceId, `server:${remote.id}:ice`);
-    const carver = instantiateCard("ice-carver", "carver-1", "runner:installed");
+    const lotus = instantiateCard(
+      "lotus-field",
+      iceId,
+      `server:${remote.id}:ice`,
+    );
+    const carver = instantiateCard(
+      "ice-carver",
+      "carver-1",
+      "runner:installed",
+    );
     s = structuredClone(s);
     s.cards[iceId] = lotus;
     s.cards["carver-1"] = carver;
@@ -83,10 +93,7 @@ describe("card corpus system-update-2021", () => {
     // Lotus Field cannot have its strength lowered (card text / CR 9.12.1a).
     expect(effectiveIceStrength(s, iceId)).toBe(4);
     // Weaken should be blocked by strengthCannotBeLowered
-    const r = evalEffect(
-      { state: s, sourceId: "carver-1" },
-      fx.weakenIce(2),
-    );
+    const r = evalEffect({ state: s, sourceId: "carver-1" }, fx.weakenIce(2));
     expect(r.ok).toBe(true);
     expect(effectiveIceStrength(s, iceId)).toBe(4);
   });
@@ -94,14 +101,15 @@ describe("card corpus system-update-2021", () => {
   it("remove_tags and lose_credits tally of source advancement counters", () => {
     const s = createInitialState();
     s.runner.tags = 2;
-    let r = evalEffect(
-      { state: s, sourceId: "ev-1" },
-      fx.removeTags(1),
-    );
+    let r = evalEffect({ state: s, sourceId: "ev-1" }, fx.removeTags(1));
     expect(r.ok).toBe(true);
     expect(s.runner.tags).toBe(1);
 
-    const asset = instantiateCard("reversed-accounts", "ra-1", "server:remote-1:root");
+    const asset = instantiateCard(
+      "reversed-accounts",
+      "ra-1",
+      "server:remote-1:root",
+    );
     asset.advancementCounters = 2;
     s.cards["ra-1"] = asset;
     s.runner.credits = 20;
@@ -114,7 +122,9 @@ describe("card corpus system-update-2021", () => {
   });
 
   it("Biotic Labor / Archived Memories / Liberated Account", () => {
-    expect(playEffectFromCard(getCardDef("biotic-labor"))).toEqual(fx.gainClicks("corp", 2));
+    expect(playEffectFromCard(getCardDef("biotic-labor"))).toEqual(
+      fx.gainClicks("corp", 2),
+    );
     expect(playEffectFromCard(getCardDef("archived-memories"))).toEqual({
       op: "do",
       action: { kind: "archives_to_hq", amount: 1 },

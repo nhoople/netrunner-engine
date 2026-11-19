@@ -18,7 +18,9 @@ const candidates = [
 
 const termsPath = candidates.find((p) => existsSync(p));
 if (!termsPath) {
-  console.error("terms.json not found. Clone CR data or add terms.json to vendor.");
+  console.error(
+    "terms.json not found. Clone CR data or add terms.json to vendor.",
+  );
   process.exit(1);
 }
 

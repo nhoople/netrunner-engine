@@ -54,7 +54,11 @@ describe("getPublicView open locations", () => {
     state.cards[ice.id] = ice;
     state.servers.hq!.ice = [ice.id];
 
-    const daemon = instantiateCard("sure-gamble", "hosted-ev", "hosted:ice-host");
+    const daemon = instantiateCard(
+      "sure-gamble",
+      "hosted-ev",
+      "hosted:ice-host",
+    );
     daemon.faceup = true;
     daemon.hostId = ice.id;
     state.cards[daemon.id] = daemon;
@@ -80,7 +84,9 @@ describe("getPublicView open locations", () => {
 
     const runnerView = getPublicView(state, "runner");
     expect(runnerView.badPublicityFund).toBe(3);
-    expect(runnerView.opponent.playArea.map((c) => c.id)).toContain(lockdown.id);
+    expect(runnerView.opponent.playArea.map((c) => c.id)).toContain(
+      lockdown.id,
+    );
     // Faceup lockdown is open to the Runner (CR 4.6.3).
     expect(
       runnerView.opponent.playArea.find((c) => c.id === lockdown.id)?.title,
@@ -89,7 +95,11 @@ describe("getPublicView open locations", () => {
 
   it("hides facedown set-aside faces from the non-controlling seat", () => {
     const state = createGame({ setup: () => createShortGameState() });
-    const aside = instantiateCard("sure-gamble", "aside-secret", "runner:set-aside");
+    const aside = instantiateCard(
+      "sure-gamble",
+      "aside-secret",
+      "runner:set-aside",
+    );
     aside.faceup = false;
     state.cards[aside.id] = aside;
     state.runner.setAside = [aside.id];
@@ -120,11 +130,12 @@ describe("getPublicView open locations", () => {
     expect(c.setAsideGroupId).not.toBe(a.setAsideGroupId);
 
     const corpView = getPublicView(state, "corp");
-    const byId = Object.fromEntries(corpView.setAside.map((card) => [card.id, card]));
+    const byId = Object.fromEntries(
+      corpView.setAside.map((card) => [card.id, card]),
+    );
     expect(byId[a.id]?.groupId).toBe(a.setAsideGroupId);
     expect(byId[b.id]?.groupId).toBe(a.setAsideGroupId);
     expect(byId[c.id]?.groupId).toBe(c.setAsideGroupId);
     expect(byId[a.id]?.title).toBeNull();
   });
-
 });

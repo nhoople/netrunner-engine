@@ -2,16 +2,10 @@
  * Primitive kinds whose procedure is swap.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
 import { iceAtRunnerPosition } from "../../state/runPosition.js";
 import type { GameState, Server } from "../../state/types.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { Effect, Primitive } from "../ir.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { commitCheckpointSnapshot } from "../../state/checkpointSnapshot.js";
 import { log } from "../../state/createGame.js";
@@ -19,23 +13,22 @@ import { fireOnFirstRemoteInstallThisTurn } from "../../state/miscConditionalHoo
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { releaseHostedCardsOnTrash } from "../../state/trashHooks.js";
 import { CR } from "../../timing/labels.js";
-import {
-  evalEffect,
-  applyPrimitive,
-} from "../eval.js";
+import { evalEffect, applyPrimitive } from "../eval.js";
 
-export function applySwapKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applySwapKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "may_swap_approached_ice_with_hq": {
+    case "may_swap_approached_ice_with_hq": {
       const run = state.run;
       if (!run || run.position === null) {
         log(state, `Midori — no approached ice.`);
         return { ok: true };
       }
-      const approachedId =
-        iceAtRunnerPosition(state);
+      const approachedId = iceAtRunnerPosition(state);
       if (!approachedId) {
         log(state, `Midori — no approached ice.`);
         return { ok: true };
@@ -64,13 +57,16 @@ case "may_swap_approached_ice_with_hq": {
           },
         })),
       ];
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Midori — may swap approached ice with ice from HQ.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Midori — may swap approached ice with ice from HQ.`,
+      });
       return { ok: true };
     }
 
-case "swap_approached_ice_with_hq": {
+    case "swap_approached_ice_with_hq": {
       const run = state.run;
       if (!run || run.position === null) {
         log(state, `Midori swap — no run.`);
@@ -110,7 +106,7 @@ case "swap_approached_ice_with_hq": {
       return applyPrimitive(ctx, { kind: "offer_jack_out" });
     }
 
-case "swap_yagi_hq_with_attacked_root_or_ice": {
+    case "swap_yagi_hq_with_attacked_root_or_ice": {
       if (!state.run) {
         log(state, `Yagi swap — not during a run.`);
         return { ok: true };
@@ -152,13 +148,16 @@ case "swap_yagi_hq_with_attacked_root_or_ice": {
         );
         return { ok: true };
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — swap HQ with attacked root/ice.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — swap HQ with attacked root/ice.`,
+      });
       return { ok: true };
     }
 
-case "swap_yagi_hq_with_attacked_pick": {
+    case "swap_yagi_hq_with_attacked_pick": {
       if (!state.run) {
         log(state, `Yagi swap pick — not during a run.`);
         return { ok: true };
@@ -229,7 +228,7 @@ case "swap_yagi_hq_with_attacked_pick": {
       return { ok: true };
     }
 
-case "swap_this_root_with_other_root_or_hq": {
+    case "swap_this_root_with_other_root_or_hq": {
       if (!state.run) {
         log(state, `Daruma swap — not during a run.`);
         return { ok: true };
@@ -279,13 +278,16 @@ case "swap_this_root_with_other_root_or_hq": {
           });
         }
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — swap this root with other root or HQ.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — swap this root with other root or HQ.`,
+      });
       return { ok: true };
     }
 
-case "swap_pick": {
+    case "swap_pick": {
       if (!state.run) {
         log(state, `Daruma swap pick — not during a run.`);
         return { ok: true };
@@ -327,7 +329,10 @@ case "swap_pick": {
         otherCard.type !== "asset" &&
         otherCard.type !== "upgrade"
       ) {
-        log(state, `Daruma swap pick — HQ target must be agenda/asset/upgrade.`);
+        log(
+          state,
+          `Daruma swap pick — HQ target must be agenda/asset/upgrade.`,
+        );
         return { ok: true };
       }
 
@@ -347,7 +352,8 @@ case "swap_pick": {
           `Daruma swap ${thisCard.title} (root) with ${otherCard.title} (HQ).`,
         );
       } else {
-        const otherSid = otherServerId as import("../../state/types.js").ServerId;
+        const otherSid =
+          otherServerId as import("../../state/types.js").ServerId;
         const otherSrv = state.servers[otherSid]!;
         otherSrv.root.splice(otherRootIdx, 1);
         thisServer.root.splice(thisRootIdx, 0, otherId);
@@ -365,7 +371,7 @@ case "swap_pick": {
       return { ok: true };
     }
 
-case "swap_two_ice": {
+    case "swap_two_ice": {
       const allIce: string[] = [];
       for (const server of Object.values(state.servers)) {
         allIce.push(...server.ice);
@@ -405,12 +411,12 @@ case "swap_two_ice": {
         sourceId,
         chooser: "runner",
         options,
-logLine: `Tāo Salonga — may swap two ice.`,
-});
+        logLine: `Tāo Salonga — may swap two ice.`,
+      });
       return { ok: true };
     }
 
-case "swap_ice_with_hq": {
+    case "swap_ice_with_hq": {
       let serverId: import("../../state/types.js").ServerId | null = null;
       let iceIndex = -1;
       for (const server of Object.values(state.servers)) {
@@ -459,7 +465,7 @@ case "swap_ice_with_hq": {
       return { ok: true };
     }
 
-case "swap_approached_ice_with_hq_or_archives": {
+    case "swap_approached_ice_with_hq_or_archives": {
       const run = state.run;
       if (!run || run.position === null) {
         log(state, `Swap approached ice — no run.`);
@@ -524,7 +530,7 @@ case "swap_approached_ice_with_hq_or_archives": {
       return { ok: true };
     }
 
-case "swap_source_ice_with_other": {
+    case "swap_source_ice_with_other": {
       let sourceServerId: import("../../state/types.js").ServerId | null = null;
       let sourceIdx = -1;
       const others: string[] = [];
@@ -566,12 +572,12 @@ case "swap_source_ice_with_other": {
             },
           },
         })),
-logLine: `${source.title} — choose another ice to swap with.`,
-});
+        logLine: `${source.title} — choose another ice to swap with.`,
+      });
       return { ok: true };
     }
 
-case "may_swap_ice_with_other_installed": {
+    case "may_swap_ice_with_other_installed": {
       const others: string[] = [];
       let installed = false;
       for (const server of Object.values(state.servers)) {
@@ -617,12 +623,12 @@ case "may_swap_ice_with_other_installed": {
             },
           })),
         ],
-logLine: `May swap ${source.title} with another installed ice.`,
-});
+        logLine: `May swap ${source.title} with another installed ice.`,
+      });
       return { ok: true };
     }
 
-case "may_swap_protecting_attacked_ice_with_other_installed": {
+    case "may_swap_protecting_attacked_ice_with_other_installed": {
       const sid = state.run?.attackedServerId;
       if (!sid) {
         log(state, `May swap protecting ice — no attacked server.`);
@@ -671,12 +677,12 @@ case "may_swap_protecting_attacked_ice_with_other_installed": {
             },
           })),
         ],
-logLine: `${source.title} — may swap ice protecting attacked server with another installed ice.`,
-});
+        logLine: `${source.title} — may swap ice protecting attacked server with another installed ice.`,
+      });
       return { ok: true };
     }
 
-case "swap_protecting_attacked_ice_pick_other": {
+    case "swap_protecting_attacked_ice_pick_other": {
       const protectingIceId = action.protectingIceId;
       const others: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -710,12 +716,12 @@ case "swap_protecting_attacked_ice_pick_other": {
             },
           },
         })),
-logLine: `Choose another installed ice to swap with ${state.cards[protectingIceId]?.title ?? protectingIceId}.`,
-});
+        logLine: `Choose another installed ice to swap with ${state.cards[protectingIceId]?.title ?? protectingIceId}.`,
+      });
       return { ok: true };
     }
 
-case "swap_protecting_attacked_ice_with": {
+    case "swap_protecting_attacked_ice_with": {
       let aServer: import("../../state/types.js").ServerId | null = null;
       let aIdx = -1;
       let bServer: import("../../state/types.js").ServerId | null = null;
@@ -746,7 +752,7 @@ case "swap_protecting_attacked_ice_with": {
       return { ok: true };
     }
 
-case "swap_two_installed_ice": {
+    case "swap_two_installed_ice": {
       // The first ice defaults to the source (cards that swap themselves);
       // Tenma Line swaps two other ice and names the first via iceId,
       // since its own source is not ice.
@@ -778,10 +784,7 @@ case "swap_two_installed_ice": {
       state.servers[bServer]!.ice[bIdx] = firstId;
       other.zone = `server:${aServer}:ice`;
       first.zone = `server:${bServer}:ice`;
-      log(
-        state,
-        `Swap ${first.title} with ${other.title}.`,
-      );
+      log(state, `Swap ${first.title} with ${other.title}.`);
       return { ok: true };
     }
     default:
@@ -869,7 +872,13 @@ function trashHostedOnSwapOut(state: GameState, cardId: string): void {
  * true when a choice from that trigger is now open.
  */
 function occurSwapCheckpoint(state: GameState, sourceId: string): boolean {
-  occurCheckpoint(state, "instruction", "Swap", [CR.swapBecomeInstalled], sourceId);
+  occurCheckpoint(
+    state,
+    "instruction",
+    "Swap",
+    [CR.swapBecomeInstalled],
+    sourceId,
+  );
   const swapPending = state.pendingAbilities.find(
     (p) => p.status === "pending" && p.payload?.kind === "swap_install_trigger",
   );
@@ -884,7 +893,10 @@ function occurSwapCheckpoint(state: GameState, sourceId: string): boolean {
   }
   swapPending.status = "done";
   state.pendingAbilities = state.pendingAbilities.filter(
-    (p) => p.status === "pending" || p.status === "imminent" || p.status === "resolving",
+    (p) =>
+      p.status === "pending" ||
+      p.status === "imminent" ||
+      p.status === "resolving",
   );
   return false;
 }

@@ -3,15 +3,12 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { lookAtCards, revealCards } from "../../state/reveal.js";
-import { iceAtRunnerPosition, setRunnerPosition } from "../../state/runPosition.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import {
+  iceAtRunnerPosition,
+  setRunnerPosition,
+} from "../../state/runPosition.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
 import { chooseCards } from "../chooseCards.js";
 import {
@@ -99,10 +96,7 @@ import {
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
-import {
-  breakerStrength,
-  iceStrength,
-} from "../iceStrength.js";
+import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx } from "../ir.js";
 import {
   canInstallSetAsideIgnoringCosts,
@@ -110,17 +104,16 @@ import {
   shuffleRunnerStack,
 } from "../runnerInstall.js";
 
-import {
-  fireOnFullyBreak,
-  fireOnForfeit,
-  fireOnAccess,
-} from "../eval.js";
+import { fireOnFullyBreak, fireOnForfeit, fireOnAccess } from "../eval.js";
 
-export function applyOtherKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyOtherKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "pump_strength": {
+    case "pump_strength": {
       if (!source.breaker) {
         return {
           ok: false,
@@ -138,7 +131,8 @@ case "pump_strength": {
       }
       // Requested duration before 9.9.9 replacements (Gebrselassie / System
       // Seizure / hosted run-extend). Replacements apply inside the add helpers.
-      let duration: import("../ir.js").PumpDuration = action.duration ?? "encounter";
+      let duration: import("../ir.js").PumpDuration =
+        action.duration ?? "encounter";
       if (duration === "encounter" && !state.run?.encounter) {
         duration = "checkpoint";
       }
@@ -154,8 +148,7 @@ case "pump_strength": {
         for (const e of state.lingeringEffects) {
           if (e.expired || e.kind !== kind) continue;
           const p = e.payload as
-            | { breakerId?: string; amount?: number }
-            | undefined;
+            { breakerId?: string; amount?: number } | undefined;
           if (p?.breakerId !== sourceId) continue;
           n += p.amount ?? 0;
         }
@@ -212,7 +205,7 @@ case "pump_strength": {
       return { ok: true };
     }
 
-case "pump_blackat_strength": {
+    case "pump_blackat_strength": {
       const stealthPaid = (state.turn.stealthCreditsOnLastPaidAbility ?? 0) > 0;
       const amount = stealthPaid ? 2 : 1;
       return applyPrimitive(ctx, {
@@ -221,7 +214,7 @@ case "pump_blackat_strength": {
       });
     }
 
-case "fortify_ice": {
+    case "fortify_ice": {
       if (!state.run || source.type !== "ice") {
         return {
           ok: false,
@@ -242,7 +235,7 @@ case "fortify_ice": {
       return { ok: true };
     }
 
-case "fortify_ice_spend_x_resolve": {
+    case "fortify_ice_spend_x_resolve": {
       const iceId = action.iceId;
       const x = action.amount;
       const ice = state.cards[iceId];
@@ -260,7 +253,7 @@ case "fortify_ice_spend_x_resolve": {
       return { ok: true };
     }
 
-case "fortify_all_ice": {
+    case "fortify_all_ice": {
       if (!state.run) {
         log(state, `Fortify all ice — no run.`);
         return { ok: true };
@@ -283,7 +276,7 @@ case "fortify_all_ice": {
       return { ok: true };
     }
 
-case "weaken_ice": {
+    case "weaken_ice": {
       if (!state.run) {
         return {
           ok: false,
@@ -321,7 +314,7 @@ case "weaken_ice": {
       return { ok: true };
     }
 
-case "spend_stealth_credits": {
+    case "spend_stealth_credits": {
       const need = action.amount;
       if (need <= 0) return { ok: true };
       if (stealthHostedCreditsAvailable(state) < need) {
@@ -342,20 +335,17 @@ case "spend_stealth_credits": {
       return { ok: true };
     }
 
-case "spend_power_for_bonus_access": {
+    case "spend_power_for_bonus_access": {
       const have = source.powerCounters ?? 0;
       const n = Math.min(action.amount, have);
       if (n <= 0 || !state.run) return { ok: true };
       source.powerCounters = have - n;
       state.run.bonusAccess = (state.run.bonusAccess ?? 0) + n;
-      log(
-        state,
-        `${source.title} — spend ${n} power → +${n} bonus access.`,
-      );
+      log(state, `${source.title} — spend ${n} power → +${n} bonus access.`);
       return { ok: true };
     }
 
-case "spend_enable_hosted_credits_for": {
+    case "spend_enable_hosted_credits_for": {
       source.hostedCreditsSpendFor = [...action.purposes];
       log(
         state,
@@ -364,7 +354,7 @@ case "spend_enable_hosted_credits_for": {
       return { ok: true };
     }
 
-case "spend_lightning_counter_rez_up_to_protecting_attacked": {
+    case "spend_lightning_counter_rez_up_to_protecting_attacked": {
       if ((source.agendaCounters ?? 0) < 1) {
         log(state, `${source.title} — no agenda counters.`);
         return { ok: true };
@@ -385,7 +375,7 @@ case "spend_lightning_counter_rez_up_to_protecting_attacked": {
       });
     }
 
-case "redirect_approach_to_server": {
+    case "redirect_approach_to_server": {
       if (!state.run) {
         return {
           ok: false,
@@ -413,7 +403,7 @@ case "redirect_approach_to_server": {
       return { ok: true };
     }
 
-case "draw_n_then_bottom_one_of_drawn": {
+    case "draw_n_then_bottom_one_of_drawn": {
       const amount = Math.max(0, action.amount ?? 0);
       const before = [...state.runner.hand];
       const drawR = applyPrimitive(ctx, {
@@ -444,12 +434,12 @@ case "draw_n_then_bottom_one_of_drawn": {
             action: { kind: "bottom_drawn_card" as const, cardId: id },
           },
         })),
-logLine: `${source.title} — choose 1 of ${drawn.length} drawn cards to bottom.`,
-});
+        logLine: `${source.title} — choose 1 of ${drawn.length} drawn cards to bottom.`,
+      });
       return { ok: true };
     }
 
-case "draw_class_act_bottom_one_then": {
+    case "draw_class_act_bottom_one_then": {
       const looked = state.turn.rdLookedCards ?? [];
       const bottomId = action.cardId;
       const keep: string[] = [];
@@ -480,7 +470,7 @@ case "draw_class_act_bottom_one_then": {
       return { ok: true };
     }
 
-case "draw_until_hq_has": {
+    case "draw_until_hq_has": {
       const target = Math.max(0, action.amount);
       const n = Math.max(0, target - state.corp.hand.length);
       const drawn = drawCards(state, "corp", n);
@@ -491,7 +481,7 @@ case "draw_until_hq_has": {
       return { ok: true };
     }
 
-case "draw_top_rd_to_hand": {
+    case "draw_top_rd_to_hand": {
       if (state.corp.deck.length === 0) return { ok: true };
       const id = state.corp.deck.shift()!;
       state.corp.hand.push(id);
@@ -502,7 +492,7 @@ case "draw_top_rd_to_hand": {
       return { ok: true };
     }
 
-case "bottom_drawn_card": {
+    case "bottom_drawn_card": {
       const cardId = action.cardId;
       if (!state.runner.hand.includes(cardId)) {
         log(state, `bottom_drawn_card — card not in grip.`);
@@ -519,7 +509,7 @@ case "bottom_drawn_card": {
       return { ok: true };
     }
 
-case "arrange_looked": {
+    case "arrange_looked": {
       const order = action.order ?? [];
       for (let i = order.length - 1; i >= 0; i--) {
         const id = order[i]!;
@@ -527,14 +517,11 @@ case "arrange_looked": {
         state.runner.deck.unshift(id);
       }
       state.turn.rdLookedCards = [];
-      log(
-        state,
-        `Arrange ${order.length} card(s) on top of stack.`,
-      );
+      log(state, `Arrange ${order.length} card(s) on top of stack.`);
       return { ok: true };
     }
 
-case "increase_hand_size": {
+    case "increase_hand_size": {
       const side = resolveSide(ctx, action.side);
       const p = side === "corp" ? state.corp : state.runner;
       p.maxHandSize += action.amount;
@@ -545,13 +532,13 @@ case "increase_hand_size": {
       return { ok: true };
     }
 
-case "skip_discard_this_turn": {
+    case "skip_discard_this_turn": {
       state.turn.skipDiscardThisTurn = true;
       log(state, `Skip discard step this turn.`);
       return { ok: true };
     }
 
-case "score_self_as_agenda": {
+    case "score_self_as_agenda": {
       const pts = action.agendaPoints ?? source.agendaPoints ?? 1;
       source.agendaPoints = pts;
       removeCardFromCurrentZone(state, sourceId);
@@ -569,7 +556,7 @@ case "score_self_as_agenda": {
       return { ok: true };
     }
 
-case "score_agenda_card": {
+    case "score_agenda_card": {
       const card = state.cards[action.cardId];
       if (!card) {
         return {
@@ -597,7 +584,7 @@ case "score_agenda_card": {
       return { ok: true };
     }
 
-case "score_profiteering_on": {
+    case "score_profiteering_on": {
       const options = [0, 1, 2, 3].map((n) => {
         const effects: Effect[] = [];
         if (n > 0) {
@@ -619,13 +606,16 @@ case "score_profiteering_on": {
           effect: { op: "seq" as const, effects },
         };
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — choose bad publicity for credits.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — choose bad publicity for credits.`,
+      });
       return { ok: true };
     }
 
-case "score_project_ares_on": {
+    case "score_project_ares_on": {
       const adv = source.advancementCounters ?? 0;
       const n = Math.max(0, adv - (action.past ?? 4));
       state.turn.projectAresTrashRemaining = n;
@@ -637,7 +627,7 @@ case "score_project_ares_on": {
       return applyPrimitive(ctx, { kind: "trash_project_ares_next" });
     }
 
-case "score_facedown_agenda_from_archives_if_clean": {
+    case "score_facedown_agenda_from_archives_if_clean": {
       if (state.turn.corpCardsAddedToArchivesThisTurn > 0) {
         log(
           state,
@@ -654,7 +644,9 @@ case "score_facedown_agenda_from_archives_if_clean": {
         return { ok: true };
       }
       const card = state.cards[facedown];
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== facedown);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== facedown,
+      );
       state.corp.scoreArea.push(facedown);
       card.zone = "corp:score";
       card.faceup = true;
@@ -668,7 +660,7 @@ case "score_facedown_agenda_from_archives_if_clean": {
       return { ok: true };
     }
 
-case "score_unorthodox_predictions_on": {
+    case "score_unorthodox_predictions_on": {
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -683,12 +675,12 @@ case "score_unorthodox_predictions_on": {
             },
           },
         })),
-logLine: `${source.title} — choose ice subtype to lock breaks until your next turn.`,
-});
+        logLine: `${source.title} — choose ice subtype to lock breaks until your next turn.`,
+      });
       return { ok: true };
     }
 
-case "grant_chosen_ice_subtypes_until_end_of_turn": {
+    case "grant_chosen_ice_subtypes_until_end_of_turn": {
       const iceIds: string[] = [];
       for (const server of Object.values(state.servers)) {
         iceIds.push(...server.ice);
@@ -713,12 +705,12 @@ case "grant_chosen_ice_subtypes_until_end_of_turn": {
             },
           },
         })),
-logLine: `${source.title} — choose ice to gain ${subtypes.join(", ")} until end of turn.`,
-});
+        logLine: `${source.title} — choose ice to gain ${subtypes.join(", ")} until end of turn.`,
+      });
       return { ok: true };
     }
 
-case "grant_ice_subtypes_until_end_of_turn": {
+    case "grant_ice_subtypes_until_end_of_turn": {
       const ice = state.cards[action.cardId];
       if (!ice) {
         log(state, `Grant subtypes — unknown ice ${action.cardId}.`);
@@ -738,7 +730,7 @@ case "grant_ice_subtypes_until_end_of_turn": {
       return { ok: true };
     }
 
-case "grant_approached_rezzed_bioroid_etr_subroutine_this_run": {
+    case "grant_approached_rezzed_bioroid_etr_subroutine_this_run": {
       const run = state.run;
       if (!run || run.position === null) {
         log(state, `${source.title} — no approached ice.`);
@@ -775,7 +767,7 @@ case "grant_approached_rezzed_bioroid_etr_subroutine_this_run": {
       return { ok: true };
     }
 
-case "grant_encounter_ice_subtype": {
+    case "grant_encounter_ice_subtype": {
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `${source.title} — grant subtype: no encounter.`);
@@ -793,7 +785,7 @@ case "grant_encounter_ice_subtype": {
       return { ok: true };
     }
 
-case "oversight_ai_host_on_ice": {
+    case "oversight_ai_host_on_ice": {
       const ice = state.cards[action.iceId];
       if (!ice || ice.type !== "ice") {
         log(state, `Oversight AI — invalid ice.`);
@@ -809,7 +801,8 @@ case "oversight_ai_host_on_ice": {
       source.rezzed = true;
       source.convertedInto = "counter";
       if (!ice.hostedCardIds) ice.hostedCardIds = [];
-      if (!ice.hostedCardIds.includes(sourceId)) ice.hostedCardIds.push(sourceId);
+      if (!ice.hostedCardIds.includes(sourceId))
+        ice.hostedCardIds.push(sourceId);
       log(
         state,
         `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
@@ -817,7 +810,7 @@ case "oversight_ai_host_on_ice": {
       return { ok: true };
     }
 
-case "turn_all_archives_facedown": {
+    case "turn_all_archives_facedown": {
       let n = 0;
       for (const id of state.corp.discardPile) {
         const c = state.cards[id];
@@ -833,7 +826,7 @@ case "turn_all_archives_facedown": {
       return { ok: true };
     }
 
-case "may_turn_facedown_archives_faceup_then": {
+    case "may_turn_facedown_archives_faceup_then": {
       const facedown = state.corp.discardPile.filter(
         (id) => state.cards[id] && !state.cards[id]!.faceup,
       );
@@ -866,12 +859,12 @@ case "may_turn_facedown_archives_faceup_then": {
             },
           })),
         ],
-logLine: `${source.title} — may turn a facedown Archives card faceup.`,
-});
+        logLine: `${source.title} — may turn a facedown Archives card faceup.`,
+      });
       return { ok: true };
     }
 
-case "turn_archives_card_faceup": {
+    case "turn_archives_card_faceup": {
       const card = state.cards[action.cardId];
       if (!card || !state.corp.discardPile.includes(action.cardId)) {
         log(state, `Turn Archives faceup — card not in Archives.`);
@@ -883,7 +876,7 @@ case "turn_archives_card_faceup": {
       return { ok: true };
     }
 
-case "turn_hosted_cards_faceup": {
+    case "turn_hosted_cards_faceup": {
       let n = 0;
       for (const id of source.hostedCardIds ?? []) {
         const c = state.cards[id];
@@ -902,7 +895,7 @@ case "turn_hosted_cards_faceup": {
       return { ok: true };
     }
 
-case "turn_begin_continue": {
+    case "turn_begin_continue": {
       if (action.remaining <= 0) return { ok: true };
       const used = new Set(action.used);
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
@@ -988,13 +981,16 @@ case "turn_begin_continue": {
       if (options.length === 0) return { ok: true };
       // Exactly-1 mandatory with only one live option: auto-resolve if single
       // non-ice choice; ice still needs a pick among ice ids.
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — resolve ${action.mustPick ? "1" : `up to ${action.remaining}`} option(s).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — resolve ${action.mustPick ? "1" : `up to ${action.remaining}`} option(s).`,
+      });
       return { ok: true };
     }
 
-case "rfg_self": {
+    case "rfg_self": {
       removeCardFromCurrentZone(state, sourceId);
       source.zone = "removed-from-game";
       source.faceup = true;
@@ -1010,7 +1006,7 @@ case "rfg_self": {
       return { ok: true };
     }
 
-case "rfg_heap_card": {
+    case "rfg_heap_card": {
       const heap = [...state.runner.discardPile];
       if (heap.length === 0) {
         log(state, `RFG heap card — heap empty.`);
@@ -1036,19 +1032,21 @@ case "rfg_heap_card": {
             },
           },
         })),
-logLine: `${source.title} — choose a heap card to remove from the game.`,
-});
+        logLine: `${source.title} — choose a heap card to remove from the game.`,
+      });
       return { ok: true };
     }
 
-case "rfg_specific_heap_card": {
+    case "rfg_specific_heap_card": {
       const cardId = action.cardId;
       if (!state.runner.discardPile.includes(cardId)) {
         log(state, `RFG heap card — ${cardId} not in heap.`);
         return { ok: true };
       }
       const card = state.cards[cardId]!;
-      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== cardId);
+      state.runner.discardPile = state.runner.discardPile.filter(
+        (id) => id !== cardId,
+      );
       card.zone = "removed-from-game";
       card.faceup = true;
       if (!state.removedFromGame) state.removedFromGame = [];
@@ -1062,7 +1060,7 @@ case "rfg_specific_heap_card": {
       return { ok: true };
     }
 
-case "rfg_installed_card": {
+    case "rfg_installed_card": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card || !state.runner.installed.includes(cardId)) {
@@ -1084,7 +1082,7 @@ case "rfg_installed_card": {
       return { ok: true };
     }
 
-case "rfg_installed_with_any_subtype": {
+    case "rfg_installed_with_any_subtype": {
       const wanted = new Set(action.subtypes);
       const candidates = state.runner.installed.filter((id) => {
         const subs = state.cards[id]?.subtypes ?? [];
@@ -1117,12 +1115,12 @@ case "rfg_installed_with_any_subtype": {
             },
           },
         })),
-logLine: `${source.title} — choose an installed ${action.subtypes.join("/")} to remove from the game.`,
-});
+        logLine: `${source.title} — choose an installed ${action.subtypes.join("/")} to remove from the game.`,
+      });
       return { ok: true };
     }
 
-case "rfg_self_then_derez_bypassed_ice": {
+    case "rfg_self_then_derez_bypassed_ice": {
       const bypassed = state.run?.bypassedIceIds ?? [];
       const targetId = bypassed[bypassed.length - 1];
       const rfg = applyPrimitive(ctx, { kind: "rfg_self" });
@@ -1148,7 +1146,7 @@ case "rfg_self_then_derez_bypassed_ice": {
       return { ok: true };
     }
 
-case "rfg_top_of_stack": {
+    case "rfg_top_of_stack": {
       const n = Math.max(0, action.amount);
       const removed: string[] = [];
       for (let i = 0; i < n && state.runner.deck.length > 0; i++) {
@@ -1161,14 +1159,11 @@ case "rfg_top_of_stack": {
           state.removedFromGame.push(id);
         }
       }
-      log(
-        state,
-        `Remove top ${removed.length} of stack from the game.`,
-      );
+      log(state, `Remove top ${removed.length} of stack from the game.`);
       return { ok: true };
     }
 
-case "allotted_clicks_next_turn": {
+    case "allotted_clicks_next_turn": {
       if (action.side === "runner") {
         state.runnerAllottedClicksDeltaNextTurn =
           (state.runnerAllottedClicksDeltaNextTurn ?? 0) + action.delta;
@@ -1194,7 +1189,7 @@ case "allotted_clicks_next_turn": {
       };
     }
 
-case "forfeit_runner_scored_agenda": {
+    case "forfeit_runner_scored_agenda": {
       const cardId = action.cardId;
       if (!state.runner.scoreArea.includes(cardId)) {
         return {
@@ -1203,10 +1198,14 @@ case "forfeit_runner_scored_agenda": {
           cites: [CR.scoringAgenda],
         };
       }
-      state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
+      state.runner.scoreArea = state.runner.scoreArea.filter(
+        (id) => id !== cardId,
+      );
       const card = state.cards[cardId]!;
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+      state.runner.installed = state.runner.installed.filter(
+        (id) => id !== cardId,
+      );
       card.zone = "removed-from-game";
       card.faceup = true;
       if (!state.removedFromGame) state.removedFromGame = [];
@@ -1217,7 +1216,7 @@ case "forfeit_runner_scored_agenda": {
       return { ok: true };
     }
 
-case "forfeit_scored_agenda": {
+    case "forfeit_scored_agenda": {
       const cardId = action.cardId;
       if (!state.corp.scoreArea.includes(cardId)) {
         return {
@@ -1236,11 +1235,14 @@ case "forfeit_scored_agenda": {
       const card = state.cards[cardId]!;
       fireOnForfeit(state, cardId);
       moveForfeitedAgendaOutOfGame(state, cardId);
-      log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
+      log(
+        state,
+        `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`,
+      );
       return { ok: true };
     }
 
-case "forfeit_self": {
+    case "forfeit_self": {
       const cardId = sourceId;
       if (!state.corp.scoreArea.includes(cardId)) {
         return {
@@ -1259,11 +1261,14 @@ case "forfeit_self": {
       const card = state.cards[cardId]!;
       fireOnForfeit(state, cardId);
       moveForfeitedAgendaOutOfGame(state, cardId);
-      log(state, `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`);
+      log(
+        state,
+        `Forfeit ${card.title}: it is removed from the game (CR ${CR.forfeit.number}).`,
+      );
       return { ok: true };
     }
 
-case "may_forfeit_return_stolen": {
+    case "may_forfeit_return_stolen": {
       const stolenId = state.turn.lastStolenAgendaId;
       if (!stolenId || !state.runner.scoreArea.includes(stolenId)) {
         log(state, `${source.title} — no stolen agenda to return.`);
@@ -1323,12 +1328,12 @@ case "may_forfeit_return_stolen": {
             },
           },
         ],
-logLine: `${source.title} — may forfeit to gain ${gain}¢ and return ${stolen.title} to HQ.`,
-});
+        logLine: `${source.title} — may forfeit to gain ${gain}¢ and return ${stolen.title} to HQ.`,
+      });
       return { ok: true };
     }
 
-case "caissa_pawn_host_outermost_central": {
+    case "caissa_pawn_host_outermost_central": {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const [sid, server] of Object.entries(state.servers)) {
         if (server.kind !== "central" || server.ice.length === 0) continue;
@@ -1355,9 +1360,11 @@ case "caissa_pawn_host_outermost_central": {
       return { ok: true };
     }
 
-case "caissa_rook_host": {
+    case "caissa_rook_host": {
       const isCaissa = (id: string) => {
-        const subs = (state.cards[id]?.subtypes ?? []).map((s) => s.toLowerCase());
+        const subs = (state.cards[id]?.subtypes ?? []).map((s) =>
+          s.toLowerCase(),
+        );
         return subs.includes("caïssa") || subs.includes("caissa");
       };
       const candidates: string[] = [];
@@ -1374,9 +1381,13 @@ case "caissa_rook_host": {
         return { ok: true };
       }
       const currentHost = source.hostId;
-      const currentServer = currentHost ? serverIdForIce(state, currentHost) : null;
-      const inwardFromInnermost = (serverIce: string[], iceId: string): number =>
-        serverIce.length - 1 - serverIce.indexOf(iceId);
+      const currentServer = currentHost
+        ? serverIdForIce(state, currentHost)
+        : null;
+      const inwardFromInnermost = (
+        serverIce: string[],
+        iceId: string,
+      ): number => serverIce.length - 1 - serverIce.indexOf(iceId);
       const currentInward =
         currentHost && currentServer
           ? inwardFromInnermost(state.servers[currentServer].ice, currentHost)
@@ -1424,9 +1435,11 @@ case "caissa_rook_host": {
       return { ok: true };
     }
 
-case "caissa_bishop_host": {
+    case "caissa_bishop_host": {
       const isCaissa = (id: string) => {
-        const subs = (state.cards[id]?.subtypes ?? []).map((s) => s.toLowerCase());
+        const subs = (state.cards[id]?.subtypes ?? []).map((s) =>
+          s.toLowerCase(),
+        );
         return subs.includes("caïssa") || subs.includes("caissa");
       };
       const hostId = source.hostId;
@@ -1481,7 +1494,7 @@ case "caissa_bishop_host": {
       return { ok: true };
     }
 
-case "copycat_jump_to_rezzed_copy": {
+    case "copycat_jump_to_rezzed_copy": {
       if (!state.run?.lastPassedRezzedIceId) {
         log(state, `Copycat — no passed ice.`);
         return { ok: true };
@@ -1499,7 +1512,9 @@ case "copycat_jump_to_rezzed_copy": {
           }
         }
       }
-      state.runner.installed = state.runner.installed.filter((id) => id !== sourceId);
+      state.runner.installed = state.runner.installed.filter(
+        (id) => id !== sourceId,
+      );
       trashToHeap(state, sourceId);
       log(state, `Trash ${source.title}.`);
       if (matches.length === 0) {
@@ -1527,7 +1542,7 @@ case "copycat_jump_to_rezzed_copy": {
       return { ok: true };
     }
 
-case "copycat_continue_from_ice": {
+    case "copycat_continue_from_ice": {
       if (!state.run) return { ok: true };
       const iceId = action.iceId;
       const ice = state.cards[iceId];
@@ -1555,14 +1570,15 @@ case "copycat_continue_from_ice": {
       return { ok: true };
     }
 
-case "advance_caissa_host_inward_or_install": {
+    case "advance_caissa_host_inward_or_install": {
       const hostId = source.hostId;
       if (!hostId) return { ok: true };
       const sid = serverIdForIce(state, hostId);
       if (!sid) return { ok: true };
       const iceList = state.servers[sid].ice;
       const pos = iceList.indexOf(hostId);
-      const nextId = pos >= 0 && pos + 1 < iceList.length ? iceList[pos + 1]! : null;
+      const nextId =
+        pos >= 0 && pos + 1 < iceList.length ? iceList[pos + 1]! : null;
       if (nextId) {
         return applyPrimitive(ctx, {
           kind: "host_program_on_ice",
@@ -1579,9 +1595,10 @@ case "advance_caissa_host_inward_or_install": {
             (c.subtypes ?? []).some((s) => s.toLowerCase().includes("caïssa")))
         );
       };
-      const caissaIds = [...state.runner.hand, ...state.runner.discardPile].filter(
-        (id) => isCaissa(id) && id !== sourceId,
-      );
+      const caissaIds = [
+        ...state.runner.hand,
+        ...state.runner.discardPile,
+      ].filter((id) => isCaissa(id) && id !== sourceId);
       if (caissaIds.length === 0) return { ok: true };
       openPendingChoose(state, {
         sourceId,
@@ -1601,7 +1618,7 @@ case "advance_caissa_host_inward_or_install": {
       return { ok: true };
     }
 
-case "invasion_of_privacy": {
+    case "invasion_of_privacy": {
       return applyPrimitive(ctx, {
         kind: "trace",
         strength: action.traceStrength ?? 2,
@@ -1616,7 +1633,7 @@ case "invasion_of_privacy": {
       });
     }
 
-case "invasion_of_privacy_success": {
+    case "invasion_of_privacy_success": {
       const max = Math.max(0, state.turn.lastTraceExcess ?? 0);
       // "reveal the grip": shown to both players until the ability ends,
       // without turning the cards faceup (CR 1.21.3, 1.21.6).
@@ -1626,12 +1643,12 @@ case "invasion_of_privacy_success": {
       return applyPrimitive(ctx, { kind: "trash_next" });
     }
 
-case "invasion_of_privacy_finish": {
+    case "invasion_of_privacy_finish": {
       state.turn.invasionPrivacyTrashRemaining = 0;
       return { ok: true };
     }
 
-case "peeping_tom_apply_type": {
+    case "peeping_tom_apply_type": {
       const ice = state.cards[sourceId];
       const run = state.run;
       if (!ice || !run?.encounter || run.encounter.iceId !== sourceId) {
@@ -1641,8 +1658,9 @@ case "peeping_tom_apply_type": {
       const grip = [...state.runner.hand];
       revealCards(state, grip, sourceId);
       log(state, `${ice.title} — reveal grip (${grip.length}).`);
-      const n = grip.filter((id) => state.cards[id]?.type === action.cardType)
-        .length;
+      const n = grip.filter(
+        (id) => state.cards[id]?.type === action.cardType,
+      ).length;
       if (!ice.baseSubroutines) {
         ice.baseSubroutines = ice.subroutines
           ? structuredClone(ice.subroutines)
@@ -1681,7 +1699,7 @@ case "peeping_tom_apply_type": {
       return { ok: true };
     }
 
-case "hangeki_runner_may_access": {
+    case "hangeki_runner_may_access": {
       const card = state.cards[action.cardId];
       if (!card) {
         log(state, `Hangeki — chosen card missing.`);
@@ -1709,12 +1727,12 @@ case "hangeki_runner_may_access": {
             effect: action.onDecline,
           },
         ],
-logLine: `${source.title} — Runner may access ${card.title}.`,
-});
+        logLine: `${source.title} — Runner may access ${card.title}.`,
+      });
       return { ok: true };
     }
 
-case "access_installed": {
+    case "access_installed": {
       const rfg = evalEffect({ state, sourceId }, action.onAccess);
       if (!rfg.ok) return rfg;
       const card = state.cards[action.cardId];
@@ -1754,7 +1772,7 @@ case "access_installed": {
       return { ok: true };
     }
 
-case "access_one_root_other_server": {
+    case "access_one_root_other_server": {
       if (!state.run) {
         return {
           ok: false,
@@ -1783,15 +1801,12 @@ case "access_one_root_other_server": {
           `${source.title} — instead of breach, access 1 root card among ${cands.length} other-server candidate(s) (cannot steal/trash).`,
         );
       } else {
-        log(
-          state,
-          `${source.title} — no other-server root cards to access.`,
-        );
+        log(state, `${source.title} — no other-server root cards to access.`);
       }
       return { ok: true };
     }
 
-case "access_set_aside": {
+    case "access_set_aside": {
       const aside = [...(state.corp.corpSetAside ?? [])];
       const pick = action.cardId;
       if (!aside.includes(pick)) {
@@ -1819,7 +1834,7 @@ case "access_set_aside": {
       return { ok: true };
     }
 
-case "access_random_hq": {
+    case "access_random_hq": {
       const hq = state.corp.hand;
       if (hq.length === 0) {
         log(state, `Access random HQ — HQ empty.`);
@@ -1833,7 +1848,7 @@ case "access_random_hq": {
       return { ok: true };
     }
 
-case "access_installed_card": {
+    case "access_installed_card": {
       if (!state.run) {
         log(state, `Access installed card — no active run.`);
         return { ok: true };
@@ -1847,14 +1862,11 @@ case "access_installed_card": {
       state.run.randomAccessLimit = 1;
       state.run.accessCandidatesPreset = true;
       state.run.skipBreach = false;
-      log(
-        state,
-        `${source.title} — Runner accesses ${card.title}.`,
-      );
+      log(state, `${source.title} — Runner accesses ${card.title}.`);
       return { ok: true };
     }
 
-case "etr_subroutines_per_runner_tags_on_encounter": {
+    case "etr_subroutines_per_runner_tags_on_encounter": {
       const ice = state.cards[sourceId];
       const run = state.run;
       if (!ice || !run?.encounter || run.encounter.iceId !== sourceId) {
@@ -1891,7 +1903,7 @@ case "etr_subroutines_per_runner_tags_on_encounter": {
       return { ok: true };
     }
 
-case "cultivate_hq_looked": {
+    case "cultivate_hq_looked": {
       const cardId = action.cardId;
       const idx = state.turn.rdLookedCards.indexOf(cardId);
       if (idx < 0) {
@@ -1910,7 +1922,7 @@ case "cultivate_hq_looked": {
       return offerRdArrangeChoice(state, sourceId);
     }
 
-case "pick_rd_arrange": {
+    case "pick_rd_arrange": {
       const cardId = action.cardId;
       const idx = state.turn.rdLookedCards.indexOf(cardId);
       if (idx < 0) {
@@ -1922,7 +1934,7 @@ case "pick_rd_arrange": {
       return offerRdArrangeChoice(state, sourceId);
     }
 
-case "pick_second": {
+    case "pick_second": {
       const rezzed: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -1951,12 +1963,12 @@ case "pick_second": {
             },
           },
         })),
-logLine: `${source.title} — choose second rezzed ice.`,
-});
+        logLine: `${source.title} — choose second rezzed ice.`,
+      });
       return { ok: true };
     }
 
-case "pick_revealed": {
+    case "pick_revealed": {
       const pick = action.cardId;
       const revealed = action.revealedIds ?? [];
       if (!revealed.includes(pick)) {
@@ -1985,7 +1997,7 @@ case "pick_revealed": {
       return { ok: true };
     }
 
-case "archives_to_hq": {
+    case "archives_to_hq": {
       // The Corp may look at every card in Archives (CR 4.4.6c) and
       // chooses which to add (CR 1.15.2).
       if (state.corp.discardPile.length === 0) {
@@ -2003,7 +2015,7 @@ case "archives_to_hq": {
       );
     }
 
-case "may_give_runner_credits_then": {
+    case "may_give_runner_credits_then": {
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -2039,12 +2051,12 @@ case "may_give_runner_credits_then": {
             },
           },
         ],
-logLine: `${source.title} — may have the Runner gain ${action.amount}¢.`,
-});
+        logLine: `${source.title} — may have the Runner gain ${action.amount}¢.`,
+      });
       return { ok: true };
     }
 
-case "blank_installed_resource_until_corp_turn_end": {
+    case "blank_installed_resource_until_corp_turn_end": {
       const resources = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "resource",
       );
@@ -2079,14 +2091,18 @@ case "blank_installed_resource_until_corp_turn_end": {
             },
           },
         })),
-logLine: `${source.title} — choose installed resource to blank.`,
-});
+        logLine: `${source.title} — choose installed resource to blank.`,
+      });
       return { ok: true };
     }
 
-case "blank_resource_until_corp_turn_end": {
+    case "blank_resource_until_corp_turn_end": {
       const card = state.cards[action.cardId];
-      if (!card || card.type !== "resource" || !state.runner.installed.includes(action.cardId)) {
+      if (
+        !card ||
+        card.type !== "resource" ||
+        !state.runner.installed.includes(action.cardId)
+      ) {
         log(state, `Blank resource — not an installed resource.`);
         return { ok: true };
       }
@@ -2101,7 +2117,7 @@ case "blank_resource_until_corp_turn_end": {
       return { ok: true };
     }
 
-case "limit_printed_breaks_on_source_for_run": {
+    case "limit_printed_breaks_on_source_for_run": {
       source.maxPrintedSubsBreakablePerEncounter = action.max;
       log(
         state,
@@ -2110,21 +2126,18 @@ case "limit_printed_breaks_on_source_for_run": {
       return { ok: true };
     }
 
-case "prevent_pending_subroutine_break": {
+    case "prevent_pending_subroutine_break": {
       const pending = state.pendingSubroutineBreak;
       if (!pending) {
         log(state, `${source.title} — no pending subroutine break to prevent.`);
         return { ok: true };
       }
       pending.prevented = true;
-      log(
-        state,
-        `${source.title} — prevent 1 subroutine from being broken.`,
-      );
+      log(state, `${source.title} — prevent 1 subroutine from being broken.`);
       return { ok: true };
     }
 
-case "prevent_pending_end_the_run_from_corp_card_ability": {
+    case "prevent_pending_end_the_run_from_corp_card_ability": {
       const pending = state.pendingEndTheRun;
       if (!pending?.fromCorpCardAbility) {
         log(
@@ -2141,18 +2154,18 @@ case "prevent_pending_end_the_run_from_corp_card_ability": {
       return { ok: true };
     }
 
-case "prevent_pending_expose": {
+    case "prevent_pending_expose": {
       preventPendingExpose(state, action.amount);
       resumeExposeUpTo(state);
       return { ok: true };
     }
 
-case "prevent_pending_installed_trash": {
+    case "prevent_pending_installed_trash": {
       preventPendingInstalledTrash(state);
       return { ok: true };
     }
 
-case "prevent_current_ice_on_encounter": {
+    case "prevent_current_ice_on_encounter": {
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `prevent_current_ice_on_encounter — no encounter.`);
@@ -2164,7 +2177,7 @@ case "prevent_current_ice_on_encounter": {
       return { ok: true };
     }
 
-case "break_host_subroutine": {
+    case "break_host_subroutine": {
       const hostId = source.hostId;
       const enc = state.run?.encounter;
       if (!hostId || !enc || enc.iceId !== hostId) {
@@ -2206,23 +2219,21 @@ case "break_host_subroutine": {
       return { ok: true };
     }
 
-case "break_encounter_subroutine": {
+    case "break_encounter_subroutine": {
       if (state.run?.encounter) {
         const ice = state.cards[state.run.encounter.iceId];
         if (ice?.cannotBreakWithRunnerCardAbilities) {
           return {
             ok: false,
-            error: "Runner card abilities cannot break subroutines on this ice (Trieste).",
+            error:
+              "Runner card abilities cannot break subroutines on this ice (Trieste).",
             cites: [CR.encounterBreakPaw],
           };
         }
         const exceptSubtype = ice
           ? iceBreakExceptSubtype(state, ice.id)
           : undefined;
-        if (
-          exceptSubtype &&
-          !(source.subtypes ?? []).includes(exceptSubtype)
-        ) {
+        if (exceptSubtype && !(source.subtypes ?? []).includes(exceptSubtype)) {
           return {
             ok: false,
             error: `Subroutines on ${ice!.title} can only be broken by a ${exceptSubtype}.`,
@@ -2341,7 +2352,7 @@ case "break_encounter_subroutine": {
       return { ok: true };
     }
 
-case "break_matryoshka": {
+    case "break_matryoshka": {
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `Matryoshka break — no encounter.`);
@@ -2414,12 +2425,12 @@ case "break_matryoshka": {
             },
           };
         }),
-logLine: `${source.title} — choose how many subroutines to break (1–${maxX}).`,
-});
+        logLine: `${source.title} — choose how many subroutines to break (1–${maxX}).`,
+      });
       return { ok: true };
     }
 
-case "break_resolve": {
+    case "break_resolve": {
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `Matryoshka break resolve — no encounter.`);
@@ -2449,10 +2460,7 @@ case "break_resolve": {
         if (idx < 0) break;
         enc.broken[idx] = true;
         const sub = state.cards[enc.iceId]?.subroutines?.[idx];
-        log(
-          state,
-          `${source.title} breaks "${sub?.text ?? `sub ${idx}`}".`,
-        );
+        log(state, `${source.title} breaks "${sub?.text ?? `sub ${idx}`}".`);
       }
       if (!state.run!.breakersThatBroke) state.run!.breakersThatBroke = [];
       if (!state.run!.breakersThatBroke.includes(sourceId)) {
@@ -2461,13 +2469,10 @@ case "break_resolve": {
       return { ok: true };
     }
 
-case "runner_break_fast_equal_to_scored_agendas": {
+    case "runner_break_fast_equal_to_scored_agendas": {
       const x = state.runner.scoreArea.length;
       state.corp.credits += x;
-      log(
-        state,
-        `${source.title} — gain ${x}¢ (X = Runner scored agendas).`,
-      );
+      log(state, `${source.title} — gain ${x}¢ (X = Runner scored agendas).`);
       const drew = applyPrimitive(ctx, {
         kind: "draw_up_to",
         side: "corp",
@@ -2484,7 +2489,7 @@ case "runner_break_fast_equal_to_scored_agendas": {
       });
     }
 
-case "break_subroutine_on_self": {
+    case "break_subroutine_on_self": {
       if (!state.run?.encounter) {
         return { ok: false, error: "No ice encounter.", cites: [] };
       }
@@ -2508,7 +2513,7 @@ case "break_subroutine_on_self": {
       return { ok: true };
     }
 
-case "break_barrier": {
+    case "break_barrier": {
       const stealthPaid = (state.turn.stealthCreditsOnLastPaidAbility ?? 0) > 0;
       const maxSubs = stealthPaid ? 3 : 1;
       return applyPrimitive(ctx, {
@@ -2518,7 +2523,7 @@ case "break_barrier": {
       });
     }
 
-case "offer_jack_out": {
+    case "offer_jack_out": {
       if (state.run?.successful === true) {
         log(
           state,
@@ -2527,25 +2532,27 @@ case "offer_jack_out": {
         return { ok: true };
       }
       if (state.run && !state.run.cannotJackOut) {
-        if (openPendingChoose(state, {
-          sourceId,
-          chooser: "runner",
-          options: [
-            {
-              id: "jack_out",
-              label: "Jack out",
-              effect: { op: "do", action: { kind: "end_the_run" } },
-            },
-            {
-              id: "continue",
-              label: "Continue the run",
-              effect: {
-                op: "do",
-                action: { kind: "gain_credits", side: "runner", amount: 0 },
+        if (
+          openPendingChoose(state, {
+            sourceId,
+            chooser: "runner",
+            options: [
+              {
+                id: "jack_out",
+                label: "Jack out",
+                effect: { op: "do", action: { kind: "end_the_run" } },
               },
-            },
-          ],
-        })) {
+              {
+                id: "continue",
+                label: "Continue the run",
+                effect: {
+                  op: "do",
+                  action: { kind: "gain_credits", side: "runner", amount: 0 },
+                },
+              },
+            ],
+          })
+        ) {
           state.run.pendingJackOutOffer = true;
           // end_the_run via jack out should mark unsuccessful — handle in choose
           log(state, `Runner may jack out (Karunā).`);
@@ -2554,7 +2561,7 @@ case "offer_jack_out": {
       return { ok: true };
     }
 
-case "offer_forged_activation_orders_rez": {
+    case "offer_forged_activation_orders_rez": {
       const iceId = action.cardId;
       const ice = iceId ? state.cards[iceId] : undefined;
       if (!ice || ice.rezzed) return { ok: true };
@@ -2576,12 +2583,10 @@ case "offer_forged_activation_orders_rez": {
       return { ok: true };
     }
 
-case "dividends": {
+    case "dividends": {
       // CR 10.13.1 / 10.13.2 — use score-begin snapshot when present.
       const adv =
-        source.scoreBeginAdvancementCounters ??
-        source.advancementCounters ??
-        0;
+        source.scoreBeginAdvancementCounters ?? source.advancementCounters ?? 0;
       const req =
         source.scoreBeginAdvancementRequirement ??
         source.advancementRequirement ??
@@ -2596,7 +2601,7 @@ case "dividends": {
       return { ok: true };
     }
 
-case "hq_to_top_rd": {
+    case "hq_to_top_rd": {
       const hq = [...state.corp.hand];
       if (hq.length === 0) {
         log(state, `HQ to top of R&D — HQ empty.`);
@@ -2614,8 +2619,8 @@ case "hq_to_top_rd": {
               action: { kind: "hq_card_to_top_rd", cardId: id },
             },
           })),
-logLine: `HQ to top of R&D — Corp chooses among ${hq.length}.`,
-});
+          logLine: `HQ to top of R&D — Corp chooses among ${hq.length}.`,
+        });
         return { ok: true };
       }
       const id = action.pick === "first" ? hq[0]! : hq[hq.length - 1]!;
@@ -2624,14 +2629,11 @@ logLine: `HQ to top of R&D — Corp chooses among ${hq.length}.`,
       state.corp.deck.unshift(id);
       state.cards[id].zone = "corp:rd";
       state.cards[id].faceup = false;
-      log(
-        state,
-        `${state.cards[id].title} moved from HQ to top of R&D.`,
-      );
+      log(state, `${state.cards[id].title} moved from HQ to top of R&D.`);
       return { ok: true };
     }
 
-case "hq_card_to_top_rd": {
+    case "hq_card_to_top_rd": {
       const id = action.cardId;
       if (!state.corp.hand.includes(id)) {
         return {
@@ -2648,7 +2650,7 @@ case "hq_card_to_top_rd": {
       return { ok: true };
     }
 
-case "climactic_register_bonus_access": {
+    case "climactic_register_bonus_access": {
       const amount = Math.max(0, action.amount ?? 2);
       state.turn.climacticBonusAccessOnFirstHqRdBreach = amount;
       log(
@@ -2658,7 +2660,7 @@ case "climactic_register_bonus_access": {
       return { ok: true };
     }
 
-case "name_agenda": {
+    case "name_agenda": {
       if (!state.run) {
         log(state, `Whistleblower name — no run.`);
         return { ok: true };
@@ -2671,7 +2673,7 @@ case "name_agenda": {
       return { ok: true };
     }
 
-case "name_net_damage_loop": {
+    case "name_net_damage_loop": {
       const titles = new Set<string>();
       for (const id of state.runner.hand) {
         titles.add(state.cards[id]!.title);
@@ -2705,40 +2707,43 @@ case "name_net_damage_loop": {
             },
           },
         })),
-logLine: `${source.title} — choose a card name for net damage loop.`,
-});
+        logLine: `${source.title} — choose a card name for net damage loop.`,
+      });
       return { ok: true };
     }
 
-case "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice": {
+    case "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice": {
       if (!state.run) {
         log(state, `${source.title} — no run for Backup Plan.`);
         return { ok: true };
       }
       const serverId = state.run.attackedServerId;
       const lastIce = state.run.lastEncounteredIceId;
-      if (!openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "decline-backup",
-            label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: { kind: "gain_credits", side: "runner", amount: 0 },
+      if (
+        !openPendingChoose(state, {
+          sourceId,
+          chooser: "runner",
+          options: [
+            {
+              id: "decline-backup",
+              label: "Decline",
+              effect: {
+                op: "do" as const,
+                action: { kind: "gain_credits", side: "runner", amount: 0 },
+              },
             },
-          },
-          {
-            id: "backup-rerun",
-            label: `Run ${serverId} again (ignore additional costs; bypass last ice)`,
-            effect: {
-              op: "do" as const,
-              action: { kind: "backup_plan_rerun" as const },
+            {
+              id: "backup-rerun",
+              label: `Run ${serverId} again (ignore additional costs; bypass last ice)`,
+              effect: {
+                op: "do" as const,
+                action: { kind: "backup_plan_rerun" as const },
+              },
             },
-          },
-        ],
-      })) return { ok: true };
+          ],
+        })
+      )
+        return { ok: true };
       // Stash bypass target on the source for the rerun leaf.
       source.chosenIceId = lastIce;
       source.chosenServerId = serverId;
@@ -2749,7 +2754,7 @@ case "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice": {
       return { ok: true };
     }
 
-case "backup_plan_rerun": {
+    case "backup_plan_rerun": {
       const serverId = source.chosenServerId;
       if (!serverId || !state.servers[serverId]) {
         log(state, `${source.title} — Backup Plan rerun: no server.`);
@@ -2757,7 +2762,10 @@ case "backup_plan_rerun": {
       }
       // Immediate fail-closed leaf: create a new run with the bypass/ignore flags.
       if (state.run) {
-        log(state, `${source.title} — cannot start Backup Plan rerun while a run is active.`);
+        log(
+          state,
+          `${source.title} — cannot start Backup Plan rerun while a run is active.`,
+        );
         return { ok: true };
       }
       // The run is over: start the new run once this choice resolves,
@@ -2779,7 +2787,7 @@ case "backup_plan_rerun": {
       return { ok: true };
     }
 
-case "net_named": {
+    case "net_named": {
       const title = action.title;
       const before = new Set(state.runner.hand);
       const namedInGrip = state.runner.hand.filter(
@@ -2813,7 +2821,10 @@ case "net_named": {
           state.runner.discardPile.includes(id) &&
           !state.runner.hand.includes(id),
       );
-      if (trashedNamed || namedInGrip.some((id) => state.runner.discardPile.includes(id))) {
+      if (
+        trashedNamed ||
+        namedInGrip.some((id) => state.runner.discardPile.includes(id))
+      ) {
         log(
           state,
           `${source.title} — trashed ${title}; repeat Complete Image.`,
@@ -2827,12 +2838,12 @@ case "net_named": {
       return { ok: true };
     }
 
-case "take_different_action_paying_click_less": {
+    case "take_different_action_paying_click_less": {
       beginExtraDifferentAction(state, sourceId);
       return { ok: true };
     }
 
-case "realloc_two_rezzed_ice": {
+    case "realloc_two_rezzed_ice": {
       const rezzed: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -2860,16 +2871,16 @@ case "realloc_two_rezzed_ice": {
             },
           },
         })),
-logLine: `${source.title} — choose first rezzed ice.`,
-});
+        logLine: `${source.title} — choose first rezzed ice.`,
+      });
       return { ok: true };
     }
 
-case "may_charge_card": {
+    case "may_charge_card": {
       return offerMayChargeCard(state, action.cardId, sourceId);
     }
 
-case "charge": {
+    case "charge": {
       if (action.pick === "self") {
         return chargeCard(state, sourceId, sourceId);
       }
@@ -2911,12 +2922,12 @@ case "charge": {
             },
           },
         })),
-logLine: `Charge — ${side} chooses among ${cands.length} cards (CR ${CR.chargeTargets.number}).`,
-});
+        logLine: `Charge — ${side} chooses among ${cands.length} cards (CR ${CR.chargeTargets.number}).`,
+      });
       return { ok: true };
     }
 
-case "flip_identity": {
+    case "flip_identity": {
       if (source.type !== "identity") {
         log(state, `flip_identity — source is not an identity.`);
         return { ok: true };
@@ -2949,7 +2960,7 @@ case "flip_identity": {
       return { ok: true };
     }
 
-case "may_flip_archives_ice_resolve_subroutine": {
+    case "may_flip_archives_ice_resolve_subroutine": {
       const facedownIce = state.corp.discardPile.filter((id) => {
         const c = state.cards[id];
         return c.type === "ice" && !c.faceup;
@@ -2994,21 +3005,28 @@ case "may_flip_archives_ice_resolve_subroutine": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — may turn 1 facedown Archives ice faceup and resolve a subroutine.`,
-});
+        logLine: `${source.title} — may turn 1 facedown Archives ice faceup and resolve a subroutine.`,
+      });
       return { ok: true };
     }
 
-case "flip_archives_ice_resolve_subroutine": {
+    case "flip_archives_ice_resolve_subroutine": {
       const ice = state.cards[action.iceId];
-      if (!ice || ice.type !== "ice" || !state.corp.discardPile.includes(action.iceId)) {
+      if (
+        !ice ||
+        ice.type !== "ice" ||
+        !state.corp.discardPile.includes(action.iceId)
+      ) {
         log(state, `Flip Archives ice — invalid target.`);
         return { ok: true };
       }
       ice.faceup = true;
       const sub = ice.subroutines?.[action.subIndex];
       if (!sub) {
-        log(state, `Flip ${ice.title} faceup — no subroutine ${action.subIndex}.`);
+        log(
+          state,
+          `Flip ${ice.title} faceup — no subroutine ${action.subIndex}.`,
+        );
         return { ok: true };
       }
       log(
@@ -3018,7 +3036,7 @@ case "flip_archives_ice_resolve_subroutine": {
       return evalEffect({ state, sourceId: action.iceId }, sub.effect);
     }
 
-case "melies_secretly_set_face": {
+    case "melies_secretly_set_face": {
       if (source.type !== "identity") {
         log(state, `melies_secretly_set_face — source is not an identity.`);
         return { ok: true };
@@ -3044,12 +3062,12 @@ case "melies_secretly_set_face": {
             },
           },
         })),
-logLine: `${source.title} — secretly set identity face.`,
-});
+        logLine: `${source.title} — secretly set identity face.`,
+      });
       return { ok: true };
     }
 
-case "melies_set_face": {
+    case "melies_set_face": {
       if (source.type !== "identity") {
         log(state, `melies_set_face — source is not an identity.`);
         return { ok: true };
@@ -3065,7 +3083,7 @@ case "melies_set_face": {
       return { ok: true };
     }
 
-case "peer_review": {
+    case "peer_review": {
       // "Reveal all but 1 card in HQ": the Corp picks the card that stays
       // hidden (CR 1.15.2).
       if (!action.cardIds && state.corp.hand.length > 1) {
@@ -3130,12 +3148,12 @@ case "peer_review": {
             },
           })),
         ],
-logLine: `Peer Review — may install 1 card from HQ in a remote root.`,
-});
+        logLine: `Peer Review — may install 1 card from HQ in a remote root.`,
+      });
       return { ok: true };
     }
 
-case "mitra_aman_approach_ice": {
+    case "mitra_aman_approach_ice": {
       releaseHostedCardsOnTrash(state, sourceId);
       removeCardFromCurrentZone(state, sourceId);
       state.corp.discardPile.push(sourceId);
@@ -3143,17 +3161,13 @@ case "mitra_aman_approach_ice": {
       source.faceup = true;
       source.rezzed = false;
       state.corp.credits += 3;
-      log(
-        state,
-        `Mitra Aman trashed → gain 3¢ (${state.corp.credits}¢).`,
-      );
+      log(state, `Mitra Aman trashed → gain 3¢ (${state.corp.credits}¢).`);
       const run = state.run;
       if (!run || run.position === null) {
         log(state, `Mitra Aman — no approached ice.`);
         return { ok: true };
       }
-      const approachedId =
-        iceAtRunnerPosition(state);
+      const approachedId = iceAtRunnerPosition(state);
       if (!approachedId) {
         log(state, `Mitra Aman — no approached ice.`);
         return { ok: true };
@@ -3190,18 +3204,21 @@ case "mitra_aman_approach_ice": {
           },
         })),
       ];
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Mitra Aman — may swap approached ice.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Mitra Aman — may swap approached ice.`,
+      });
       return { ok: true };
     }
 
-case "store_ip_enforcement_tags_removed": {
+    case "store_ip_enforcement_tags_removed": {
       state.turn.ipEnforcementTagsRemoved = action.amount;
       return { ok: true };
     }
 
-case "gamedragon_may_host_on_icebreaker": {
+    case "gamedragon_may_host_on_icebreaker": {
       const allowAi = Boolean(action.allowAi);
       const requireHost = Boolean(action.requireHost);
       const breakers = state.runner.installed.filter((id) => {
@@ -3240,15 +3257,18 @@ case "gamedragon_may_host_on_icebreaker": {
           effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: requireHost
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: requireHost
           ? `${source.title} — host on an icebreaker.`
           : `${source.title} — may host on a${allowAi ? "" : " non-AI"} icebreaker.`,
-});
+      });
       return { ok: true };
     }
 
-case "deja_vu_from_heap": {
+    case "deja_vu_from_heap": {
       const heap = [...state.runner.discardPile];
       if (heap.length === 0) {
         log(state, `${source.title} — heap empty.`);
@@ -3288,13 +3308,16 @@ case "deja_vu_from_heap": {
           });
         }
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — add 1 card (or up to 2 virus cards) from heap to grip.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — add 1 card (or up to 2 virus cards) from heap to grip.`,
+      });
       return { ok: true };
     }
 
-case "deja_vu_add_heap_cards": {
+    case "deja_vu_add_heap_cards": {
       for (const id of action.cardIds) {
         const idx = state.runner.discardPile.indexOf(id);
         if (idx < 0) continue;
@@ -3307,14 +3330,17 @@ case "deja_vu_add_heap_cards": {
       return { ok: true };
     }
 
-case "expose": {
+    case "expose": {
       if (action.cardId) {
         beginExpose(state, action.cardId);
         return { ok: true };
       }
       const targets = exposeLegalTargets(state);
       if (targets.length === 0) {
-        log(state, `${source.title} — no installed unrezzed Corp cards to expose.`);
+        log(
+          state,
+          `${source.title} — no installed unrezzed Corp cards to expose.`,
+        );
         return { ok: true };
       }
       if (targets.length === 1) {
@@ -3336,19 +3362,19 @@ case "expose": {
             },
           },
         })),
-logLine: `${source.title} — choose a card to expose.`,
-});
+        logLine: `${source.title} — choose a card to expose.`,
+      });
       return { ok: true };
     }
 
-case "expose_up_to": {
+    case "expose_up_to": {
       const remaining =
         typeof action.remaining === "number" ? action.remaining : action.max;
       openExposeUpTo(state, sourceId, action.max, remaining);
       return { ok: true };
     }
 
-case "expose_one_of_up_to": {
+    case "expose_one_of_up_to": {
       state.turn.exposeUpToAfter = {
         sourceId,
         max: action.max,
@@ -3359,7 +3385,7 @@ case "expose_one_of_up_to": {
       return { ok: true };
     }
 
-case "may_expose_after_rez_continue": {
+    case "may_expose_after_rez_continue": {
       const pending = state.pendingExpose;
       if (!pending) return { ok: true };
       openExposeInterruptOrComplete(state, pending.cardId);
@@ -3367,12 +3393,12 @@ case "may_expose_after_rez_continue": {
       return { ok: true };
     }
 
-case "end_expose_up_to": {
+    case "end_expose_up_to": {
       finishExposeUpTo(state, sourceId);
       return { ok: true };
     }
 
-case "accelerated_beta_test": {
+    case "accelerated_beta_test": {
       const n = action.n ?? 3;
       if (state.turn.rdLookedCards.length > 0) {
         return {
@@ -3390,7 +3416,7 @@ case "accelerated_beta_test": {
       return applyPrimitive(ctx, { kind: "accelerated_beta_test_continue" });
     }
 
-case "accelerated_beta_test_continue": {
+    case "accelerated_beta_test_continue": {
       const iceLeft = state.turn.rdLookedCards.filter(
         (id) => state.cards[id]?.type === "ice",
       );
@@ -3472,13 +3498,16 @@ case "accelerated_beta_test_continue": {
           ],
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `ABT — may install and rez ${state.cards[iceId]!.title}.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `ABT — may install and rez ${state.cards[iceId]!.title}.`,
+      });
       return { ok: true };
     }
 
-case "accelerated_diagnostics": {
+    case "accelerated_diagnostics": {
       // "Look at the top 3 cards of R&D. If any of those cards are
       // operations, you may play them (paying their play cost), ignoring any
       // additional costs. Trash the rest of the unplayed cards you looked at."
@@ -3490,7 +3519,9 @@ case "accelerated_diagnostics": {
         lookAtCards(state, looked, sourceId, "corp");
       } else {
         looked = action.cardIds.filter(
-          (id) => state.cards[id]?.zone === "corp:rd" && !state.corp.deck.includes(id),
+          (id) =>
+            state.cards[id]?.zone === "corp:rd" &&
+            !state.corp.deck.includes(id),
         );
         // Still being looked at while the card resolves (CR 1.21.6).
         for (const id of looked) state.cards[id]!.lookedBy = "corp";
@@ -3498,25 +3529,37 @@ case "accelerated_diagnostics": {
       if (action.playId && looked.includes(action.playId)) {
         const id = action.playId;
         const card = state.cards[id]!;
-        log(state, `Accelerated Diagnostics — play ${card.title}, ignoring additional costs.`);
+        log(
+          state,
+          `Accelerated Diagnostics — play ${card.title}, ignoring additional costs.`,
+        );
         state.corp.hand.push(id);
         card.zone = "corp:hq";
         card.faceup = false;
         delete card.lookedBy;
-        return applyPrimitive(ctx, { kind: "play_hq_operation_paying_costs", cardId: id });
+        return applyPrimitive(ctx, {
+          kind: "play_hq_operation_paying_costs",
+          cardId: id,
+        });
       }
       // The Corp plays the operations one at a time, choosing each and
       // whether to play any more (CR 8.6.3, CR 1.14.5).
       const playable = looked.filter((id) => {
         const card = state.cards[id]!;
-        return card.type === "operation" && state.corp.credits >= (card.playCost ?? 0);
+        return (
+          card.type === "operation" &&
+          state.corp.credits >= (card.playCost ?? 0)
+        );
       });
       if (playable.length === 0 || action.done) {
         // A card the Corp did not play was never seen by the Runner, so it
         // goes to Archives facedown (CR 4.4.6b).
         for (const id of looked) trashCorpCardToArchives(state, id, "corp");
         if (looked.length > 0) {
-          log(state, `Accelerated Diagnostics — trash ${looked.length} looked-at card(s).`);
+          log(
+            state,
+            `Accelerated Diagnostics — trash ${looked.length} looked-at card(s).`,
+          );
         }
         return { ok: true };
       }
@@ -3530,7 +3573,11 @@ case "accelerated_diagnostics": {
               id: `play-looked:${id}`,
               label: `Play ${state.cards[id]!.title} (${state.cards[id]!.playCost ?? 0}¢)`,
               effect: fx.seq(
-                fx.do({ kind: "accelerated_diagnostics", cardIds: looked, playId: id }),
+                fx.do({
+                  kind: "accelerated_diagnostics",
+                  cardIds: looked,
+                  playId: id,
+                }),
                 fx.do({ kind: "accelerated_diagnostics", cardIds: rest }),
               ),
             };
@@ -3538,7 +3585,11 @@ case "accelerated_diagnostics": {
           {
             id: "play-looked:none",
             label: "Play no more of them",
-            effect: fx.do({ kind: "accelerated_diagnostics", cardIds: looked, done: true }),
+            effect: fx.do({
+              kind: "accelerated_diagnostics",
+              cardIds: looked,
+              done: true,
+            }),
           },
         ],
         logLine: `Accelerated Diagnostics — the Corp may play an operation it looked at.`,
@@ -3546,7 +3597,7 @@ case "accelerated_diagnostics": {
       return { ok: true };
     }
 
-case "escher_rearrange_pick_server": {
+    case "escher_rearrange_pick_server": {
       if (state.run) state.run.skipBreach = true;
       const servers = Object.values(state.servers).filter(
         (s) => s.ice.length >= 2,
@@ -3576,16 +3627,20 @@ case "escher_rearrange_pick_server": {
             label: "Done rearranging",
             effect: {
               op: "do" as const,
-              action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+              action: {
+                kind: "gain_credits" as const,
+                side: "runner" as const,
+                amount: 0,
+              },
             },
           },
         ],
-logLine: `${source.title} — choose a server to rearrange ice, or finish.`,
-});
+        logLine: `${source.title} — choose a server to rearrange ice, or finish.`,
+      });
       return { ok: true };
     }
 
-case "escher_rearrange_server_ice": {
+    case "escher_rearrange_server_ice": {
       const serverId = action.serverId;
       const server = state.servers[serverId];
       if (!server) {
@@ -3632,12 +3687,12 @@ case "escher_rearrange_server_ice": {
             },
           },
         })),
-logLine: `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
-});
+        logLine: `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
+      });
       return { ok: true };
     }
 
-case "chum_register_next_ice": {
+    case "chum_register_next_ice": {
       if (!state.run) {
         log(state, `Chum — no run.`);
         return { ok: true };
@@ -3654,7 +3709,7 @@ case "chum_register_next_ice": {
       return { ok: true };
     }
 
-case "sensei_register_etr_on_other_ice_for_run": {
+    case "sensei_register_etr_on_other_ice_for_run": {
       if (!state.run) {
         log(state, `Sensei — no run.`);
         return { ok: true };
@@ -3670,7 +3725,7 @@ case "sensei_register_etr_on_other_ice_for_run": {
       return { ok: true };
     }
 
-case "ryo_phoenix_on_successful_run": {
+    case "ryo_phoenix_on_successful_run": {
       if (!state.run?.subroutineResolvedThisRun) {
         return { ok: true };
       }
@@ -3687,7 +3742,7 @@ case "ryo_phoenix_on_successful_run": {
       });
     }
 
-case "forged_activation_orders": {
+    case "forged_activation_orders": {
       // Printed: "Choose 1 unrezzed piece of ice. The Corp may rez that
       // ice. If they do not, they trash it." The Runner chooses the ice;
       // the Corp chooses rez-or-trash.
@@ -3722,7 +3777,7 @@ case "forged_activation_orders": {
       return { ok: true };
     }
 
-case "troubleshooter_fortify": {
+    case "troubleshooter_fortify": {
       // Printed: X¢, trash — choose 1 rezzed ice protecting this server;
       // that ice gets +X strength for the remainder of the turn (CR 1.2.1).
       const maxX = state.corp.credits;
@@ -3764,7 +3819,7 @@ case "troubleshooter_fortify": {
       return { ok: true };
     }
 
-case "rehost_on_other_ice": {
+    case "rehost_on_other_ice": {
       const currentHost = source.hostId;
       const others: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -3779,10 +3834,7 @@ case "rehost_on_other_ice": {
       if (others.length === 1) {
         const iceId = others[0]!;
         source.hostId = iceId;
-        log(
-          state,
-          `${source.title} hosts on ${state.cards[iceId]!.title}.`,
-        );
+        log(state, `${source.title} hosts on ${state.cards[iceId]!.title}.`);
         return { ok: true };
       }
       openPendingChoose(state, {
@@ -3796,12 +3848,12 @@ case "rehost_on_other_ice": {
             action: { kind: "rehost_to_ice" as const, iceId },
           },
         })),
-logLine: `${source.title} — choose another installed ice to host on.`,
-});
+        logLine: `${source.title} — choose another installed ice to host on.`,
+      });
       return { ok: true };
     }
 
-case "rehost_to_ice": {
+    case "rehost_to_ice": {
       const ice = state.cards[action.iceId];
       if (!ice || ice.type !== "ice") {
         log(state, `Rehost — ${action.iceId} is not ice.`);
@@ -3823,7 +3875,7 @@ case "rehost_to_ice": {
       return { ok: true };
     }
 
-case "ayla_set_aside_to_grip": {
+    case "ayla_set_aside_to_grip": {
       const setAside = state.runner.setAside ?? [];
       if (setAside.length === 0) {
         log(state, `Ayla — set-aside empty.`);
@@ -3855,17 +3907,22 @@ case "ayla_set_aside_to_grip": {
       state.runner.hand.push(picked);
       state.cards[picked].zone = "runner:grip";
       state.cards[picked].faceup = true;
-      log(state, `Ayla — add ${state.cards[picked].title} from set-aside to grip.`);
+      log(
+        state,
+        `Ayla — add ${state.cards[picked].title} from set-aside to grip.`,
+      );
       return { ok: true };
     }
 
-case "sabotage": {
+    case "sabotage": {
       // The Corp chooses which HQ cards go (CR 10.12.2). With nothing in
       // HQ, or fewer than N cards in HQ and R&D together (CR 10.12.3b),
       // there is nothing to choose.
       const total = state.corp.hand.length + state.corp.deck.length;
       const forced =
-        action.amount <= 0 || state.corp.hand.length === 0 || total < action.amount;
+        action.amount <= 0 ||
+        state.corp.hand.length === 0 ||
+        total < action.amount;
       if (action.interactive || !forced) {
         state.pendingSabotage = { sourceId, amount: action.amount, picked: [] };
         log(
@@ -3878,12 +3935,12 @@ case "sabotage": {
       return resolveSabotageAmount(state, sourceId, action.amount);
     }
 
-case "identify_mark": {
+    case "identify_mark": {
       identifyMark(state, sourceId);
       return { ok: true };
     }
 
-case "start_run_on_mark": {
+    case "start_run_on_mark": {
       const mark = currentMark(state);
       if (mark === null) {
         log(
@@ -3900,7 +3957,7 @@ case "start_run_on_mark": {
       return { ok: true };
     }
 
-case "may_start_run": {
+    case "may_start_run": {
       const servers: string[] = [];
       for (const [sid, server] of Object.entries(state.servers)) {
         if (action.servers === "remote" && server.kind !== "remote") continue;
@@ -3908,11 +3965,7 @@ case "may_start_run": {
         if (action.servers === "hq" && sid !== "hq") continue;
         if (action.servers === "rd" && sid !== "rd") continue;
         if (action.servers === "archives" && sid !== "archives") continue;
-        if (
-          action.servers === "hq_rd" &&
-          sid !== "hq" &&
-          sid !== "rd"
-        ) {
+        if (action.servers === "hq_rd" && sid !== "hq" && sid !== "rd") {
           continue;
         }
         servers.push(sid);
@@ -3953,12 +4006,12 @@ case "may_start_run": {
             },
           },
         ],
-logLine: `${source.title} — may start a run (${action.servers}).`,
-});
+        logLine: `${source.title} — may start a run (${action.servers}).`,
+      });
       return { ok: true };
     }
 
-case "queue_start_run": {
+    case "queue_start_run": {
       state.pendingStartRun = {
         sourceId,
         serverId: action.serverId as import("../../state/types.js").ServerId,
@@ -3969,14 +4022,11 @@ case "queue_start_run": {
             }
           : {}),
       };
-      log(
-        state,
-        `Pending run on ${action.serverId} (from ${source.title}).`,
-      );
+      log(state, `Pending run on ${action.serverId} (from ${source.title}).`);
       return { ok: true };
     }
 
-case "queue_breaches_after_current": {
+    case "queue_breaches_after_current": {
       if (!state.run) {
         log(state, `queue_breaches_after_current — no active run.`);
         return { ok: true };
@@ -3999,11 +4049,12 @@ case "queue_breaches_after_current": {
       return { ok: true };
     }
 
-case "haas_pet_project_setup": {
+    case "haas_pet_project_setup": {
       const remaining = Math.max(0, action.remaining);
       if (remaining <= 0) return { ok: true };
       const remoteNum = state.nextRemoteNumber++;
-      const sid = `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+      const sid =
+        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
       state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
       log(state, `${source.title} — create ${sid} for Pet Project installs.`);
       return applyPrimitive(ctx, {
@@ -4013,7 +4064,7 @@ case "haas_pet_project_setup": {
       });
     }
 
-case "bonus_access": {
+    case "bonus_access": {
       if (!state.run) {
         return {
           ok: false,
@@ -4031,7 +4082,7 @@ case "bonus_access": {
       return { ok: true };
     }
 
-case "fully_operational_step": {
+    case "fully_operational_step": {
       const remaining = Math.max(0, action.remaining ?? 0);
       if (remaining <= 0) return { ok: true };
       const nextRemaining = remaining - 1;
@@ -4088,27 +4139,23 @@ case "fully_operational_step": {
             },
           },
         ],
-logLine: `${source.title} — choose gain 2¢ or draw 2 (${remaining} remaining).`,
-});
+        logLine: `${source.title} — choose gain 2¢ or draw 2 (${remaining} remaining).`,
+      });
       return { ok: true };
     }
 
-case "exclusive_choices_per_passed_ice": {
-      return startExclusiveChoicesPerPassedIce(
-        state,
-        sourceId,
-        action.options,
-      );
+    case "exclusive_choices_per_passed_ice": {
+      return startExclusiveChoicesPerPassedIce(state, sourceId, action.options);
     }
 
-case "restrict_run_access": {
+    case "restrict_run_access": {
       if (!state.run) {
         log(state, `restrict_run_access — no active run.`);
         return { ok: true };
       }
       const ids = action.cardIdsFromSource
         ? [sourceId]
-        : action.cardIds ?? [];
+        : (action.cardIds ?? []);
       if (action.mode === "only_source") {
         state.run.accessOnlyCardIds = [
           ...(state.run.accessOnlyCardIds ?? []),
@@ -4128,7 +4175,7 @@ case "restrict_run_access": {
       return { ok: true };
     }
 
-case "wall_to_wall_turn_begin": {
+    case "wall_to_wall_turn_begin": {
       let otherRezzedAsset = false;
       for (const server of Object.values(state.servers)) {
         for (const id of server.root) {
@@ -4149,7 +4196,7 @@ case "wall_to_wall_turn_begin": {
       });
     }
 
-case "focus_group_after_type": {
+    case "focus_group_after_type": {
       const grip = [...state.runner.hand];
       revealCards(state, grip, sourceId);
       log(state, `${source.title} — reveal grip (${grip.length}).`);
@@ -4174,13 +4221,16 @@ case "focus_group_after_type": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — choose X ≤ ${count} revealed ${action.cardType}.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — choose X ≤ ${count} revealed ${action.cardType}.`,
+      });
       return { ok: true };
     }
 
-case "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd": {
+    case "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd": {
       const withVirus = state.runner.installed.filter(
         (id) => (state.cards[id]?.virusCounters ?? 0) > 0,
       );
@@ -4234,12 +4284,12 @@ case "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd": {
           },
           ...removeOptions,
         ],
-logLine: `${source.title} — may remove any 2 virus counters from installed cards.`,
-});
+        logLine: `${source.title} — may remove any 2 virus counters from installed cards.`,
+      });
       return { ok: true };
     }
 
-case "nihilist_corp_trash_top_rd_or_runner_draws_2": {
+    case "nihilist_corp_trash_top_rd_or_runner_draws_2": {
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -4265,12 +4315,12 @@ case "nihilist_corp_trash_top_rd_or_runner_draws_2": {
             },
           },
         ],
-logLine: `${source.title} — Corp may trash top of R&D or Runner draws 2.`,
-});
+        logLine: `${source.title} — Corp may trash top of R&D or Runner draws 2.`,
+      });
       return { ok: true };
     }
 
-case "game_over_after_type": {
+    case "game_over_after_type": {
       const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
         if (!c || c.type !== action.cardType) return false;
@@ -4291,7 +4341,7 @@ case "game_over_after_type": {
       });
     }
 
-case "game_over_continue": {
+    case "game_over_continue": {
       const remaining = [...action.remaining];
       const next = remaining.shift();
       if (!next) {
@@ -4305,7 +4355,7 @@ case "game_over_continue": {
       });
     }
 
-case "game_over_process_card": {
+    case "game_over_process_card": {
       const card = state.cards[action.cardId];
       if (!card || !state.runner.installed.includes(action.cardId)) {
         return applyPrimitive(ctx, {
@@ -4370,12 +4420,12 @@ case "game_over_process_card": {
             },
           },
         ],
-logLine: `${source.title} — Runner may pay 3¢ to prevent trashing ${card.title}.`,
-});
+        logLine: `${source.title} — Runner may pay 3¢ to prevent trashing ${card.title}.`,
+      });
       return { ok: true };
     }
 
-case "meeting_of_minds_fetch": {
+    case "meeting_of_minds_fetch": {
       const card = state.cards[action.cardId];
       if (!card || !state.runner.deck.includes(action.cardId)) {
         shuffleRunnerStack(state);
@@ -4384,23 +4434,22 @@ case "meeting_of_minds_fetch": {
           subtype: action.subtype,
         });
       }
-      state.runner.deck = state.runner.deck.filter((id) => id !== action.cardId);
+      state.runner.deck = state.runner.deck.filter(
+        (id) => id !== action.cardId,
+      );
       state.runner.hand.push(action.cardId);
       card.zone = "runner:grip";
       card.faceup = true;
       shuffleRunnerStack(state);
       revealCards(state, [card.id], sourceId);
-      log(
-        state,
-        `Meeting of Minds — reveal ${card.title} and add to grip.`,
-      );
+      log(state, `Meeting of Minds — reveal ${card.title} and add to grip.`);
       return applyPrimitive(ctx, {
         kind: "reveal_gain",
         subtype: action.subtype,
       });
     }
 
-case "rd_top_to_bottom": {
+    case "rd_top_to_bottom": {
       if (state.corp.deck.length === 0) {
         log(state, `R&D top to bottom — empty.`);
         return { ok: true };
@@ -4414,7 +4463,7 @@ case "rd_top_to_bottom": {
       return { ok: true };
     }
 
-case "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity": {
+    case "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity": {
       const amount = Math.max(0, action.amount);
       const continueFx: Effect = {
         op: "do",
@@ -4445,12 +4494,12 @@ case "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity": {
             effect: continueFx,
           },
         ],
-logLine: `${source.title} — may take ${amount} bad publicity, then place agenda counters equal to bad publicity.`,
-});
+        logLine: `${source.title} — may take ${amount} bad publicity, then place agenda counters equal to bad publicity.`,
+      });
       return { ok: true };
     }
 
-case "rearrange_server_ice": {
+    case "rearrange_server_ice": {
       const serverId = action.serverId;
       const server = state.servers[serverId];
       if (!server) {
@@ -4497,12 +4546,12 @@ case "rearrange_server_ice": {
             },
           },
         })),
-logLine: `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
-});
+        logLine: `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
+      });
       return { ok: true };
     }
 
-case "burner_place": {
+    case "burner_place": {
       const id = action.cardId;
       if (!state.corp.hand.includes(id)) {
         log(state, `Burner place — card not in HQ.`);
@@ -4533,7 +4582,7 @@ case "burner_place": {
       );
     }
 
-case "wizard_chest_for_type": {
+    case "wizard_chest_for_type": {
       const aside: string[] = [];
       const matches: string[] = [];
       while (
@@ -4583,13 +4632,16 @@ case "wizard_chest_for_type": {
           },
         },
       ];
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — may install 1 of ${matches.length} ${action.cardType}(s) ignoring costs.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — may install 1 of ${matches.length} ${action.cardType}(s) ignoring costs.`,
+      });
       return { ok: true };
     }
 
-case "check_assassination_win": {
+    case "check_assassination_win": {
       const n = state.runner.scoreArea.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("assassination"),
       ).length;
@@ -4611,7 +4663,7 @@ case "check_assassination_win": {
       return { ok: true };
     }
 
-case "begin_replace_breach_hq_hand_only": {
+    case "begin_replace_breach_hq_hand_only": {
       if (!state.run) {
         log(
           state,
@@ -4637,24 +4689,22 @@ case "begin_replace_breach_hq_hand_only": {
       state.run.randomAccessLimit =
         state.run.accessCandidates.length > 0 ? 1 : 0;
       state.run.accessCandidatesPreset = true;
-      state.run.forbiddenAccessCardIds = [
-        ...(state.servers.hq?.root ?? []),
-      ];
-      log(
-        state,
-        `${source.title} — breach HQ (hand only; root inaccessible).`,
-      );
+      state.run.forbiddenAccessCardIds = [...(state.servers.hq?.root ?? [])];
+      log(state, `${source.title} — breach HQ (hand only; root inaccessible).`);
       return { ok: true };
     }
 
-case "cap_run_access_remaining": {
+    case "cap_run_access_remaining": {
       if (!state.run) return { ok: true };
       const max = action.max;
       const room = Math.max(0, max - state.run.accessedCardIds.length);
       if (state.run.randomAccessLimit === null) {
         state.run.randomAccessLimit = room;
       } else {
-        state.run.randomAccessLimit = Math.min(state.run.randomAccessLimit, room);
+        state.run.randomAccessLimit = Math.min(
+          state.run.randomAccessLimit,
+          room,
+        );
       }
       log(
         state,
@@ -4663,10 +4713,8 @@ case "cap_run_access_remaining": {
       return { ok: true };
     }
 
-case "unorthodox_predictions_lock_subtype": {
-      state.turn.forbidBreakIceSubtypesUntilCorpTurnEnd = [
-        action.subtype,
-      ];
+    case "unorthodox_predictions_lock_subtype": {
+      state.turn.forbidBreakIceSubtypesUntilCorpTurnEnd = [action.subtype];
       log(
         state,
         `Unorthodox Predictions — cannot break ${action.subtype} subroutines until start of Corp next turn.`,
@@ -4674,7 +4722,7 @@ case "unorthodox_predictions_lock_subtype": {
       return { ok: true };
     }
 
-case "runner_lose_credits_equal_corp_bad_publicity": {
+    case "runner_lose_credits_equal_corp_bad_publicity": {
       const n = state.corp.badPublicity ?? 0;
       if (n <= 0) return { ok: true };
       const lose = Math.min(n, state.runner.credits);
@@ -4686,7 +4734,7 @@ case "runner_lose_credits_equal_corp_bad_publicity": {
       return { ok: true };
     }
 
-case "power_shutdown": {
+    case "power_shutdown": {
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
@@ -4716,8 +4764,8 @@ case "power_shutdown": {
             };
           }),
         ],
-logLine: `${source.title} — choose how many cards to trash from top of R&D.`,
-});
+        logLine: `${source.title} — choose how many cards to trash from top of R&D.`,
+      });
       return { ok: true };
     }
     default:

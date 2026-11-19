@@ -9,10 +9,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 const FORBIDDEN_PANCHATANTRA = new Set(["barrier", "code gate", "sentry"]);
 
@@ -43,9 +41,7 @@ export function applyMumbadKgPrimitive(
     case "prevent_ramujan_damage_trash_stack": {
       if (!source) return { ok: true };
       const copies = state.runner.installed.filter(
-        (id) =>
-          id !== sourceId &&
-          state.cards[id]?.defId === source.defId,
+        (id) => id !== sourceId && state.cards[id]?.defId === source.defId,
       ).length;
       const x = 1 + copies;
       const pending = state.pendingDamage;
@@ -129,8 +125,8 @@ export function applyMumbadKgPrimitive(
         sourceId,
         chooser: "runner",
         options,
-logLine: `Panchatantra — choose subtype for ${ice.title}.`,
-});
+        logLine: `Panchatantra — choose subtype for ${ice.title}.`,
+      });
       return { ok: true };
     }
 
@@ -173,8 +169,8 @@ logLine: `Panchatantra — choose subtype for ${ice.title}.`,
             cardId: id,
           }),
         })),
-logLine: `Artist Colony — search stack to install.`,
-});
+        logLine: `Artist Colony — search stack to install.`,
+      });
       return { ok: true };
     }
 
@@ -237,7 +233,9 @@ logLine: `Artist Colony — search stack to install.`,
         return { ok: true };
       }
       subtractRunnerCreditPool(state, cost);
-      state.runner.hand = state.runner.hand.filter((id) => id !== action.cardId);
+      state.runner.hand = state.runner.hand.filter(
+        (id) => id !== action.cardId,
+      );
       state.runner.installed.push(action.cardId);
       card.zone = "runner:installed";
       if ((source.powerCounters ?? 0) > 0) {
@@ -255,7 +253,10 @@ logLine: `Artist Colony — search stack to install.`,
         state.run.kgCannotUsePrograms = true;
       }
       state.turn.dadCannotUseProgramsThisRun = true;
-      log(state, `${source?.title ?? "Vikram"} — Runner cannot use programs this run.`);
+      log(
+        state,
+        `${source?.title ?? "Vikram"} — Runner cannot use programs this run.`,
+      );
       return { ok: true };
     }
 

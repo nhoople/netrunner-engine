@@ -1,9 +1,7 @@
 import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
 
 import { abilitiesSuppressed } from "../state/abilities.js";
-import {
-  diffAgainstPreviousCheckpoint,
-} from "../state/checkpointSnapshot.js";
+import { diffAgainstPreviousCheckpoint } from "../state/checkpointSnapshot.js";
 
 import { log } from "../state/createGame.js";
 import { lookAtChoiceCards } from "../state/reveal.js";
@@ -11,15 +9,14 @@ import {
   addBreakerStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
 } from "../state/lingeringEffects.js";
-import {
-  currentMark,
-} from "../state/msKeywords.js";
+import { currentMark } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
-import {
-  exposeLegalTargets,
-} from "../state/expose.js";
+import { exposeLegalTargets } from "../state/expose.js";
 
-import { noteInstalledThisTurn, noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
+import {
+  noteInstalledThisTurn,
+  noteProgramOrHardwareInstalled,
+} from "../state/programHardwareInstall.js";
 
 import { syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
@@ -29,7 +26,12 @@ import {
   installAndRezPaid,
   spendCreditsForInstall,
 } from "../state/costs.js";
-import { removeCardFromCurrentZone, canScoreAgenda, agendaPointsFor, effectiveAdvancementRequirement } from "../state/scoring.js";
+import {
+  removeCardFromCurrentZone,
+  canScoreAgenda,
+  agendaPointsFor,
+  effectiveAdvancementRequirement,
+} from "../state/scoring.js";
 import { enterSetAside } from "../state/zones.js";
 import { memoryLimit, usedMemory, effectiveMemoryCost } from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
@@ -115,13 +117,8 @@ import { applyTracePrimitive } from "./tracePrimitives.js";
 import { applyClickPrimitive } from "./clickPrimitives.js";
 import { applyPsiPrimitive } from "./psiPrimitives.js";
 import { applyBadPublicityPrimitive } from "./badPublicityPrimitives.js";
-import {
-  trashCorpCardToArchives,
-  trashToHeap,
-} from "./corpTrash.js";
-import {
-  applyCorpInstallPrimitive,
-} from "./corpInstall.js";
+import { trashCorpCardToArchives, trashToHeap } from "./corpTrash.js";
+import { applyCorpInstallPrimitive } from "./corpInstall.js";
 import { applyCounterPrimitive } from "./counterPrimitives.js";
 import { applyEncounterPrimitive } from "./encounterPrimitives.js";
 import { iceStrength } from "./iceStrength.js";
@@ -152,8 +149,7 @@ export interface EffectCtx {
 }
 
 export type EvalResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 import {
   fireOnBypassTriggers,
@@ -336,9 +332,12 @@ export function fireAfterBreakSubroutineHooks(
         });
       }
       if (options.length > 1) {
-        openPendingChoose(state, { sourceId: id, chooser: "runner", options,
-logLine: `${card.title} — may pay ${credits}¢ to break another subroutine.`,
-});
+        openPendingChoose(state, {
+          sourceId: id,
+          chooser: "runner",
+          options,
+          logLine: `${card.title} — may pay ${credits}¢ to break another subroutine.`,
+        });
         return;
       }
     }
@@ -503,9 +502,7 @@ export function fireGrayBlackOpsTrashedHooks(
 }
 
 /** Nuvem: after operation or expendable card action. */
-export function fireOnAfterOperationOrExpendable(
-  state: GameState,
-): void {
+export function fireOnAfterOperationOrExpendable(state: GameState): void {
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.onAfterOperationOrExpendable) return;
   markOnAfterOperationOrExpendable(state, idCard.id);
@@ -609,18 +606,18 @@ export function offerMayChargeCard(
         },
       },
     ],
-logLine: `May charge ${card.title} (CR ${CR.charge.number}).`,
-});
+    logLine: `May charge ${card.title} (CR ${CR.charge.number}).`,
+  });
   return { ok: true };
 }
-
 
 /** CR 8.7.5. A search trigger becomes pending after the shuffle, before a found card is acted on. */
 export function noteSearchConditionalAbilities(state: GameState): void {
   const createdIds: string[] = [];
   for (const id of state.corp.scoreArea) {
     const card = state.cards[id];
-    if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) continue;
+    if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip)
+      continue;
     const inst = createPendingAbilityInstance(state, {
       abilityKey: "personality-profiles:trash-random-grip",
       sourceId: id,
@@ -653,7 +650,10 @@ export function noteSearchConditionalAbilities(state: GameState): void {
  * A stack search sets the found card aside and shuffles before the next
  * instruction adds it to the grip (CR 9.11.4d).
  */
-export function addFoundStackCardAfterSearch(state: GameState, id: string): void {
+export function addFoundStackCardAfterSearch(
+  state: GameState,
+  id: string,
+): void {
   const card = state.cards[id];
   if (!card || !state.runner.deck.includes(id)) {
     shuffleRunnerStack(state);
@@ -747,9 +747,12 @@ export function offerBurnerMoves(
       },
     });
   }
-  openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `Burner — choose ${movesLeft} more card(s) to move to R&D top/bottom.`,
-});
+  openPendingChoose(state, {
+    sourceId,
+    chooser: "runner",
+    options,
+    logLine: `Burner — choose ${movesLeft} more card(s) to move to R&D top/bottom.`,
+  });
   return { ok: true };
 }
 
@@ -781,7 +784,9 @@ function removeMuseProgramFromZone(
   if (from === "stack") {
     state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
   } else if (from === "heap") {
-    state.runner.discardPile = state.runner.discardPile.filter((x) => x !== cardId);
+    state.runner.discardPile = state.runner.discardPile.filter(
+      (x) => x !== cardId,
+    );
   } else {
     state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
   }
@@ -843,7 +848,9 @@ export function finishMuseInstall(
   noteInstalledThisTurn(state, cardId);
   state.turn.programsInstalledThisTurn += 1;
   if (from === "stack") shuffleRunnerStack(state);
-  const hostTitle = hostId ? state.cards[hostId]?.title ?? hostId : "installed";
+  const hostTitle = hostId
+    ? (state.cards[hostId]?.title ?? hostId)
+    : "installed";
   log(
     state,
     `Muse (${state.cards[sourceId]?.title ?? sourceId}) — install ${card.title} for ${cost}¢ hosted on ${hostTitle}.`,
@@ -896,8 +903,8 @@ function offerNextExclusiveChoice(state: GameState): EvalResult {
       label: o.label,
       effect: structuredClone(o.effect),
     })),
-logLine: `Exclusive choices — ${pend.remaining} remaining among ${available.length} options (from ${state.cards[pend.sourceId]?.title ?? pend.sourceId}).`,
-});
+    logLine: `Exclusive choices — ${pend.remaining} remaining among ${available.length} options (from ${state.cards[pend.sourceId]?.title ?? pend.sourceId}).`,
+  });
   return { ok: true };
 }
 
@@ -942,10 +949,7 @@ export function startExclusiveChoicesExactlyN(
     remaining,
     usedIds: [],
   };
-  log(
-    state,
-    `Choose exactly ${n} — resolve ${remaining} exclusive option(s).`,
-  );
+  log(state, `Choose exactly ${n} — resolve ${remaining} exclusive option(s).`);
   return offerNextExclusiveChoice(state);
 }
 
@@ -1075,12 +1079,18 @@ function finishRdArrange(state: GameState, sourceId: string): EvalResult {
         {
           id: "draw",
           label: "Draw 1 card",
-          effect: { op: "do", action: { kind: "draw", side: "corp", amount: 1 } },
+          effect: {
+            op: "do",
+            action: { kind: "draw", side: "corp", amount: 1 },
+          },
         },
         {
           id: "decline",
           label: "Decline to draw",
-          effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 0 } },
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
         },
       ],
     });
@@ -1110,8 +1120,8 @@ export function offerRdArrangeChoice(
         action: { kind: "pick_rd_arrange" as const, cardId: id },
       },
     })),
-logLine: `Arrange R&D — choose next card for top (${remaining.length} remaining).`,
-});
+    logLine: `Arrange R&D — choose next card for top (${remaining.length} remaining).`,
+  });
   return { ok: true };
 }
 
@@ -1131,8 +1141,8 @@ export function offerCultivateTrashChoice(
         action: { kind: "trash_cultivate_looked" as const, cardId: id },
       },
     })),
-logLine: `Cultivate — choose 1 to trash.`,
-});
+    logLine: `Cultivate — choose 1 to trash.`,
+  });
   return { ok: true };
 }
 
@@ -1152,8 +1162,8 @@ export function offerCultivateHqChoice(
         action: { kind: "cultivate_hq_looked" as const, cardId: id },
       },
     })),
-logLine: `Cultivate — choose 1 to add to HQ.`,
-});
+    logLine: `Cultivate — choose 1 to add to HQ.`,
+  });
   return { ok: true };
 }
 
@@ -1266,8 +1276,8 @@ export function finishPlaceAdvancementsOnTarget(
       sourceId,
       chooser: "corp",
       options,
-logLine: `${source.title} — may score ${target.title} (CR ${CR.scoringAgenda.number}).`,
-});
+      logLine: `${source.title} — may score ${target.title} (CR ${CR.scoringAgenda.number}).`,
+    });
     return { ok: true };
   }
   if (after) return evalEffect(ctx, after);
@@ -1300,7 +1310,9 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     case "grip_nonempty":
       return state.runner.hand.length > 0;
     case "has_installed_program":
-      return state.runner.installed.some((id) => state.cards[id].type === "program");
+      return state.runner.installed.some(
+        (id) => state.cards[id].type === "program",
+      );
     case "runner_tagged":
       return runnerIsTagged(state);
     case "tags_gte":
@@ -1321,13 +1333,15 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     case "credits_gt_other_side": {
       const side = resolveSide(ctx, cond.side);
       const mine = side === "corp" ? state.corp.credits : state.runner.credits;
-      const theirs = side === "corp" ? state.runner.credits : state.corp.credits;
+      const theirs =
+        side === "corp" ? state.runner.credits : state.corp.credits;
       return mine > theirs;
     }
     case "credits_eq_other_side": {
       const side = resolveSide(ctx, cond.side);
       const mine = side === "corp" ? state.corp.credits : state.runner.credits;
-      const theirs = side === "corp" ? state.runner.credits : state.corp.credits;
+      const theirs =
+        side === "corp" ? state.runner.credits : state.corp.credits;
       return mine === theirs;
     }
     case "credits_lte": {
@@ -1353,7 +1367,9 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     case "hq_nonempty":
       return state.corp.hand.length > 0;
     case "has_installed_resource":
-      return state.runner.installed.some((id) => state.cards[id].type === "resource");
+      return state.runner.installed.some(
+        (id) => state.cards[id].type === "resource",
+      );
     case "grip_count_odd":
       return state.runner.hand.length % 2 === 1;
     case "grip_count_gte":
@@ -1375,9 +1391,9 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
     }
     case "successful_run_this_turn":
       return state.turn.successfulRunThisTurn;
-        case "self_installed_this_turn":
+    case "self_installed_this_turn":
       return (state.turn.installedThisTurn ?? []).includes(sourceId);
-case "run_unsuccessful":
+    case "run_unsuccessful":
       return state.run?.successful === false;
     case "run_successful":
       return state.run?.successful === true;
@@ -1419,9 +1435,7 @@ case "run_unsuccessful":
       if (!state.run) return false;
       const server = state.servers[state.run.attackedServerId];
       if (!server) return false;
-      return (
-        server.ice.includes(sourceId) || server.root.includes(sourceId)
-      );
+      return server.ice.includes(sourceId) || server.root.includes(sourceId);
     }
     case "source_installed": {
       const zone = source.zone ?? "";
@@ -1452,8 +1466,8 @@ case "run_unsuccessful":
     case "attacking_chosen_server":
       return Boolean(
         state.run &&
-          source.chosenServerId &&
-          state.run.attackedServerId === source.chosenServerId,
+        source.chosenServerId &&
+        state.run.attackedServerId === source.chosenServerId,
       );
     case "last_agenda_scored_or_stolen_from_source_server_root": {
       const host = serverHostingCard(state, sourceId);
@@ -1599,8 +1613,8 @@ export function offerInstallRezSplit(
           effect: effectFor(installDiscount),
         };
       }),
-logLine: `Divide ${discount}¢ between the install cost and the rez cost (CR ${CR.totalInstallRez.number}).`,
-});
+      logLine: `Divide ${discount}¢ between the install cost and the rez cost (CR ${CR.totalInstallRez.number}).`,
+    });
     return { offered: true };
   }
   const installDiscount = chosenInstallDiscount ?? 0;
@@ -1624,7 +1638,9 @@ export function trashingKeepsScoreRestriction(
   if (agenda.type !== "agenda") return true;
   const up = state.cards[trashId];
   const reduction =
-    up?.rezzed || up?.persistent ? (up.advancementRequirementReduction ?? 0) : 0;
+    up?.rezzed || up?.persistent
+      ? (up.advancementRequirementReduction ?? 0)
+      : 0;
   if (reduction <= 0) return true;
   const req = effectiveAdvancementRequirement(state, agenda) + reduction;
   return (agenda.advancementCounters ?? 0) >= req;
@@ -1774,7 +1790,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
     error: `Unhandled primitive: ${JSON.stringify(_a)}`,
     cites: [],
   };
-
 }
 
 /** Pay a swap's remaining credit gain once its install trigger has resolved (CR 8.8.4b). */
@@ -1905,8 +1920,7 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
         if (!r.ok) return r;
         const openedNewDamage =
           Boolean(ctx.state.pendingDamage) && !hadPendingDamage;
-        const openedNewTags =
-          Boolean(ctx.state.pendingTags) && !hadPendingTags;
+        const openedNewTags = Boolean(ctx.state.pendingTags) && !hadPendingTags;
         const openedNewExpose =
           Boolean(ctx.state.pendingExpose) && !hadPendingExpose;
         const openedNewTrashPrevent =
@@ -1954,7 +1968,11 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
       // from cards the other player may not see, and the player making it is
       // the one looking.
       const opened = ctx.state.pendingChoice;
-      if (opened && opened !== open && /^(look|search)_/.test(effect.action.kind)) {
+      if (
+        opened &&
+        opened !== open &&
+        /^(look|search)_/.test(effect.action.kind)
+      ) {
         opened.look = true;
         for (const event of ctx.state.looks ?? []) {
           if (event.seq > looksBefore) event.by = opened.chooser;
@@ -1995,8 +2013,8 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
           label: o.label,
           effect: structuredClone(o.effect),
         })),
-logLine: `Choice pending for ${effect.chooser} (${effect.options.length} options) from ${ctx.state.cards[ctx.sourceId].title}.`,
-});
+        logLine: `Choice pending for ${effect.chooser} (${effect.options.length} options) from ${ctx.state.cards[ctx.sourceId].title}.`,
+      });
       return { ok: true };
     }
     default: {

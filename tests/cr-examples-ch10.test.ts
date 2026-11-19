@@ -33,18 +33,11 @@ import {
 } from "../src/index.js";
 import { pickRandomCentral } from "../src/state/msKeywords.js";
 import type { Action, GameState } from "../src/state/types.js";
-import {
-  occurCheckpoint,
-} from "../src/legality/checkpoints.js";
-import {
-  createGame,
-} from "../src/api/library.js";
-import {
-  createShortGameState,
-} from "../src/cards/shortGame.js";
+import { occurCheckpoint } from "../src/legality/checkpoints.js";
+import { createGame } from "../src/api/library.js";
+import { createShortGameState } from "../src/cards/shortGame.js";
 import { clearMark, currentMark } from "../src/state/msKeywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
-
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -55,10 +48,10 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return passIdle(result.state);
 }
-
 
 function at(lines: string[], fragment: string): number {
   const i = lines.findIndex((line) => line.includes(fragment));
@@ -100,8 +93,6 @@ function setCorpPile(state: GameState, hq: number, rd: number): void {
 }
 
 describe("CR examples, chapter 10", () => {
-
-
   it("trashes the Kitsune whose subroutine resolved, not another copy (CR 10.1.5.ex1)", () => {
     const s = createInitialState();
     const kitsune = instantiateCard("kitsune", "kit-1", "server:hq:ice");
@@ -136,7 +127,6 @@ describe("CR examples, chapter 10", () => {
     expect(s.log.join("\n")).toContain(CR.selfReference.number);
   });
 
-
   it("lets the Corp choose how many times two Wormholes loop (CR 10.1.6a.ex1)", () => {
     const s = createInitialState();
     const first = instantiateCard("wormhole", "worm-1", "server:hq:ice");
@@ -154,14 +144,16 @@ describe("CR examples, chapter 10", () => {
     );
     expect(offered.ok).toBe(true);
     expect(s.pendingChoice?.loopCount).toBe(true);
-    const ended = must(s, { type: "choose_option", optionId: "loop-times:2157" });
+    const ended = must(s, {
+      type: "choose_option",
+      optionId: "loop-times:2157",
+    });
     expect(ended.pendingChoice).toBeNull();
     expect(ended.log.join("\n")).toContain("2157");
     expect(ended.log.join("\n")).toContain(CR.mandatoryLoop.number);
     expect(ended.cards["worm-1"]?.rezzed).toBe(true);
     expect(ended.cards["worm-2"]?.rezzed).toBe(true);
   });
-
 
   it("leaves the Corp's facedown install unnamed after Indexing (CR 10.2.2b.ex1)", () => {
     const s = createInitialState();
@@ -232,15 +224,15 @@ describe("CR examples, chapter 10", () => {
     const remote = installed.servers["remote-1"];
     expect(remote?.root).toEqual(["pad-1"]);
     expect(installed.cards["pad-1"]?.faceup).toBe(false);
-    expect(installed.corp.hand.map((id) => installed.cards[id]?.title)).toEqual([
-      "Braintrust",
-      "Snare!",
-    ]);
+    expect(installed.corp.hand.map((id) => installed.cards[id]?.title)).toEqual(
+      ["Braintrust", "Snare!"],
+    );
     const runnerView = getPublicView(installed, "runner");
-    const hidden = runnerView.servers.find((server) => server.id === "remote-1");
+    const hidden = runnerView.servers.find(
+      (server) => server.id === "remote-1",
+    );
     expect(hidden?.root[0]?.title).toBeNull();
   });
-
 
   it("shows Femme Fatale's chosen ice to the Corp (CR 10.2.3b.ex1)", () => {
     const state = createGame({ setup: () => createShortGameState() });
@@ -248,18 +240,25 @@ describe("CR examples, chapter 10", () => {
     ice.rezzed = true;
     state.cards[ice.id] = ice;
     state.servers.hq!.ice = [ice.id];
-    const femme = instantiateCard("femme-fatale", "ff-open", "runner:installed");
+    const femme = instantiateCard(
+      "femme-fatale",
+      "ff-open",
+      "runner:installed",
+    );
     femme.chosenIceId = ice.id;
     state.cards[femme.id] = femme;
     state.runner.installed = [femme.id];
 
     const corp = getPublicView(state, "corp");
     const runner = getPublicView(state, "runner");
-    expect(corp.opponent.chosenIce).toEqual([{ cardId: femme.id, iceId: ice.id }]);
-    expect(runner.self.chosenIce).toEqual([{ cardId: femme.id, iceId: ice.id }]);
+    expect(corp.opponent.chosenIce).toEqual([
+      { cardId: femme.id, iceId: ice.id },
+    ]);
+    expect(runner.self.chosenIce).toEqual([
+      { cardId: femme.id, iceId: ice.id },
+    ]);
     expect(corp.self.chosenIce).toEqual([]);
   });
-
 
   it("removes an encounter-duration strength increase at the checkpoint after the encounter (CR 10.3.1b.ex1)", () => {
     const s = createInitialState();
@@ -313,7 +312,6 @@ describe("CR examples, chapter 10", () => {
     );
   });
 
-
   it("trashes Targeted Marketing at the checkpoint after an agenda is stolen (CR 10.3.1b.ex2)", () => {
     let s = createInitialState();
     s = must(s, { type: "keep_starting_hand" });
@@ -322,8 +320,16 @@ describe("CR examples, chapter 10", () => {
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
     s = must(s, { type: "pass_window" });
-    const current = instantiateCard("targeted-marketing", "tm-1", "corp:play-area");
-    const agenda = instantiateCard("priority-requisition", "ag-1", "server:hq:root");
+    const current = instantiateCard(
+      "targeted-marketing",
+      "tm-1",
+      "corp:play-area",
+    );
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "ag-1",
+      "server:hq:root",
+    );
     s.cards["tm-1"] = current;
     s.cards["ag-1"] = agenda;
     s.corp.playArea = ["tm-1"];
@@ -336,7 +342,6 @@ describe("CR examples, chapter 10", () => {
     expect(s.log.join("\n")).toContain("duration passed");
   });
 
-
   it("trashes Chisel when the ice it is hosted on is rezzed Tithonium (CR 10.3.1e.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("tithonium", "tith-1", "server:hq:ice");
@@ -348,16 +353,27 @@ describe("CR examples, chapter 10", () => {
     s.cards["tith-1"] = ice;
     s.cards["chisel-1"] = chisel;
     s.servers.hq.ice = ["tith-1"];
-    occurCheckpoint(s, "timing", "before rez", [CR.checkpointCardRestrictions], "test");
+    occurCheckpoint(
+      s,
+      "timing",
+      "before rez",
+      [CR.checkpointCardRestrictions],
+      "test",
+    );
     expect(s.cards["chisel-1"]?.zone).toBe("hosted:tith-1");
     ice.rezzed = true;
     ice.faceup = true;
-    occurCheckpoint(s, "timing", "after rez", [CR.checkpointCardRestrictions], "test");
+    occurCheckpoint(
+      s,
+      "timing",
+      "after rez",
+      [CR.checkpointCardRestrictions],
+      "test",
+    );
     expect(s.runner.discardPile).toContain("chisel-1");
     expect(ice.hostedCardIds ?? []).not.toContain("chisel-1");
     expect(s.log.join("\n")).toContain(CR.checkpointCardRestrictions.number);
   });
-
 
   it("offers only minimal memory sets after Bad Times (CR 10.3.1e.ex2)", () => {
     const s = createInitialState();
@@ -390,7 +406,9 @@ describe("CR examples, chapter 10", () => {
     expect(ids).toContain("restrict:one-a,one-b|*");
     expect(ids).toContain("restrict:two-1|*");
     expect(ids.join(" ")).not.toContain("zero-1");
-    expect(ids.some((id) => id.includes("two-1") && id.includes("one-"))).toBe(false);
+    expect(ids.some((id) => id.includes("two-1") && id.includes("one-"))).toBe(
+      false,
+    );
     const kept = must(played, {
       type: "choose_option",
       optionId: "restrict:two-1|*",
@@ -400,7 +418,6 @@ describe("CR examples, chapter 10", () => {
       expect.arrayContaining(["one-a", "one-b", "zero-1"]),
     );
   });
-
 
   it("lets the Runner add Drafter's installed card as a breach candidate (CR 10.3.1j.ex1)", () => {
     const s = createInitialState();
@@ -444,21 +461,28 @@ describe("CR examples, chapter 10", () => {
     const offered = evalEffect({ state: s, sourceId: "draft-1" }, sub);
     expect(offered.ok).toBe(true);
     // "You may": the install offers "done" beside the cards, and asks once.
-    expect(s.pendingChoice?.options.map((option) => option.id)).toContain("choose-cards-done");
-    // The Corp picks the card and the breached root (CR 8.5.16b).
-    let installed = must(s, { type: "choose_option", optionId: "choose-card:pad-1" });
-    installed = must(installed, { type: "choose_option", optionId: "install-dest:remote-1" });
-    expect(installed.servers["remote-1"]?.root).toContain("pad-1");
-    expect(installed.pendingChoice?.options.map((option) => option.id)).toContain(
-      "root-access:yes:pad-1",
+    expect(s.pendingChoice?.options.map((option) => option.id)).toContain(
+      "choose-cards-done",
     );
+    // The Corp picks the card and the breached root (CR 8.5.16b).
+    let installed = must(s, {
+      type: "choose_option",
+      optionId: "choose-card:pad-1",
+    });
+    installed = must(installed, {
+      type: "choose_option",
+      optionId: "install-dest:remote-1",
+    });
+    expect(installed.servers["remote-1"]?.root).toContain("pad-1");
+    expect(
+      installed.pendingChoice?.options.map((option) => option.id),
+    ).toContain("root-access:yes:pad-1");
     const chosen = must(installed, {
       type: "choose_option",
       optionId: "root-access:yes:pad-1",
     });
     expect(chosen.run?.accessCandidates).toContain("pad-1");
   });
-
 
   it("does not let Jesminder avoid AMAZE tags after the run has ended (CR 10.3.6.ex1)", () => {
     const s = createInitialState();
@@ -467,7 +491,11 @@ describe("CR examples, chapter 10", () => {
       "jes-1",
       "runner:identity",
     );
-    const amaze = instantiateCard("amaze-amusements", "amaze-1", "server:hq:root");
+    const amaze = instantiateCard(
+      "amaze-amusements",
+      "amaze-1",
+      "server:hq:root",
+    );
     amaze.rezzed = true;
     amaze.faceup = true;
     s.cards["jes-1"] = jes;
@@ -493,12 +521,14 @@ describe("CR examples, chapter 10", () => {
     s.timingKey = "run.movement";
     enterStep(s, "run.ends");
     autoWalk(s);
-    const closed = at(s.log, "the run has ended, so this tag is not during a run");
+    const closed = at(
+      s.log,
+      "the run has ended, so this tag is not during a run",
+    );
     expect(s.log[closed]).toContain(CR.checkpointAfterTimingStructure.number);
     expect(s.runner.tags).toBe(2);
     expect(s.run).toBeNull();
   });
-
 
   it("does not add The Cleaners to damage the Runner suffers (CR 10.4.1.ex1)", () => {
     let s = createInitialState();
@@ -560,8 +590,7 @@ describe("CR examples, chapter 10", () => {
     expect(s.pendingDamage).toMatchObject({ type: "meat", remaining: 3 });
   });
 
-
-    it("flatlines to BOOM! before I've Had Worse can draw (CR 10.4.3.ex1)", () => {
+  it("flatlines to BOOM! before I've Had Worse can draw (CR 10.4.3.ex1)", () => {
     let s = createInitialState();
     const worse = instantiateCard("ive-had-worse", "worse-1", "runner:grip");
     const boom = instantiateCard("boom", "boom-1", "corp:hq");
@@ -587,7 +616,6 @@ describe("CR examples, chapter 10", () => {
     expect(s.log.join("\n")).toContain("I've Had Worse does not resolve");
   });
 
-
   it("trashes Chronos Protocol's chosen card and two random cards together (CR 10.4.3a.ex1)", () => {
     const s = createInitialState();
     s.cards[s.corp.identityId]!.corpChoosesFirstNetDamageCardEachTurn = true;
@@ -609,22 +637,34 @@ describe("CR examples, chapter 10", () => {
     expect(s.pendingChoice?.chooser).toBe("corp");
     // The four grip cards, and selecting none ("you may").
     expect(s.pendingChoice?.options).toHaveLength(5);
-    const picked = must(s, { type: "choose_option", optionId: "chronos:worse-1" });
+    const picked = must(s, {
+      type: "choose_option",
+      optionId: "chronos:worse-1",
+    });
     expect(picked.pendingChoice).toBeNull();
     expect(picked.runner.discardPile).toContain("worse-1");
-    expect(picked.runner.discardPile.filter((id) => ["worse-1", "g1", "g2", "g3"].includes(id))).toHaveLength(3);
+    expect(
+      picked.runner.discardPile.filter((id) =>
+        ["worse-1", "g1", "g2", "g3"].includes(id),
+      ),
+    ).toHaveLength(3);
     expect(picked.log.join("\n")).toContain("1 still in the grip");
-    expect(picked.log.join("\n")).toContain(CR.sequentialDamageSelection.number);
+    expect(picked.log.join("\n")).toContain(
+      CR.sequentialDamageSelection.number,
+    );
     expect(picked.runner.hand).toHaveLength(4);
     expect(picked.runner.deck).toEqual([]);
   });
-
 
   it("finishes Chronos Protocol's damage like any other, and lets the Corp select no card (CR 10.4.3a)", () => {
     const board = () => {
       const s = createInitialState();
       s.cards[s.corp.identityId]!.corpChoosesFirstNetDamageCardEachTurn = true;
-      const clan = instantiateCard("clan-vengeance", "clan-1", "runner:installed");
+      const clan = instantiateCard(
+        "clan-vengeance",
+        "clan-1",
+        "runner:installed",
+      );
       s.cards["clan-1"] = clan;
       s.runner.installed = ["clan-1"];
       for (const id of ["g1", "g2", "g3"]) {
@@ -646,21 +686,26 @@ describe("CR examples, chapter 10", () => {
     };
     // Clan Vengeance: "Whenever you suffer any amount of damage, place 1
     // power counter". The damage is suffered when the cards are trashed.
-    const picked = must(board(), { type: "choose_option", optionId: "chronos:g2" });
+    const picked = must(board(), {
+      type: "choose_option",
+      optionId: "chronos:g2",
+    });
     expect(picked.runner.discardPile).toContain("g2");
     expect(picked.runner.hand).toHaveLength(1);
     expect(picked.cards["clan-1"]?.powerCounters).toBe(1);
     expect(picked.pendingDamage).toBeFalsy();
 
     // "You may": the Corp can leave both cards to chance.
-    const random = must(board(), { type: "choose_option", optionId: "chronos:random" });
+    const random = must(board(), {
+      type: "choose_option",
+      optionId: "chronos:random",
+    });
     expect(random.runner.hand).toHaveLength(1);
     expect(random.runner.discardPile).toHaveLength(2);
     expect(random.cards["clan-1"]?.powerCounters).toBe(1);
     // Used for the turn either way.
     expect(random.turn.uotChronosNetDamageUsedThisTurn).toBe(true);
   });
-
 
   it("resolves Gemini's strength ability after the trace is determined (CR 10.8.5.ex1)", () => {
     const grip = (s: GameState) => {
@@ -721,8 +766,7 @@ describe("CR examples, chapter 10", () => {
     expect(strongFail.log.join("\n")).toContain(CR.traceConditionals.number);
   });
 
-
-    it("does not empty Crowdfunding before its install credits are placed (CR 10.9.2.ex1)", () => {
+  it("does not empty Crowdfunding before its install credits are placed (CR 10.9.2.ex1)", () => {
     let s = createInitialState();
     const deckBefore = s.runner.deck.length;
     const card = instantiateCard("crowdfunding", "cf-1", "runner:grip");
@@ -741,7 +785,6 @@ describe("CR examples, chapter 10", () => {
     expect(s.runner.discardPile).not.toContain("cf-1");
     expect(s.log.join("\n")).not.toContain("hosted credits empty");
   });
-
 
   it("gives Virtuoso's extra HQ access on the first successful mark run (CR 10.11.5.ex1)", () => {
     const s = createInitialState();
@@ -806,8 +849,7 @@ describe("CR examples, chapter 10", () => {
     expect(s.turn.successfulMarkRunThisTurn).toBe(true);
   });
 
-
-    it("lets the Corp split Esâ Afontov's sabotage 2 across 2 HQ and 30 R&D (CR 10.12.3b.ex1)", () => {
+  it("lets the Corp split Esâ Afontov's sabotage 2 across 2 HQ and 30 R&D (CR 10.12.3b.ex1)", () => {
     const s = createInitialState();
     const esa = instantiateCard(
       "esa-afontov-eco-insurrectionist",
@@ -829,8 +871,13 @@ describe("CR examples, chapter 10", () => {
       fx.coreDamage(1),
     );
     expect(dealt.ok).toBe(true);
-    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("draw-sabotage");
-    const chosen = must(s, { type: "choose_option", optionId: "draw-sabotage" });
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain(
+      "draw-sabotage",
+    );
+    const chosen = must(s, {
+      type: "choose_option",
+      optionId: "draw-sabotage",
+    });
     expect(chosen.pendingSabotage?.amount).toBe(2);
 
     const none = must(structuredClone(chosen), {
@@ -862,8 +909,7 @@ describe("CR examples, chapter 10", () => {
     expect(both.cards[hq[1]!]?.zone).toBe("corp:archives");
   });
 
-
-    it("requires at least 2 HQ cards for Chastushka's sabotage 4 (CR 10.12.3b.ex2)", () => {
+  it("requires at least 2 HQ cards for Chastushka's sabotage 4 (CR 10.12.3b.ex2)", () => {
     let s = createInitialState();
     const event = instantiateCard("chastushka", "ch-1", "runner:grip");
     s.cards["ch-1"] = event;
@@ -894,8 +940,7 @@ describe("CR examples, chapter 10", () => {
     expect(paid.pendingSabotage).toBeNull();
   });
 
-
-    it("trashes all of HQ and R&D for Chastushka's sabotage 4 (CR 10.12.3b.ex3)", () => {
+  it("trashes all of HQ and R&D for Chastushka's sabotage 4 (CR 10.12.3b.ex3)", () => {
     let s = createInitialState();
     const event = instantiateCard("chastushka", "ch-2", "runner:grip");
     s.cards["ch-2"] = event;
@@ -916,8 +961,7 @@ describe("CR examples, chapter 10", () => {
     expect(s.log.join("\n")).toContain("trash all");
   });
 
-
-    it("places 4 agenda counters on Embedded Reporting scored with 5 advancements (CR 10.13.1.ex1)", () => {
+  it("places 4 agenda counters on Embedded Reporting scored with 5 advancements (CR 10.13.1.ex1)", () => {
     let s = createInitialState();
     const agenda = instantiateCard(
       "embedded-reporting",
@@ -941,7 +985,6 @@ describe("CR examples, chapter 10", () => {
     expect(s.cards["er-1"]?.agendaCounters).toBe(4);
     expect(s.cards["er-1"]?.advancementCounters ?? 0).toBe(0);
   });
-
 
   it("uses the effective advancement requirement before the agenda moves (CR 10.13.2.ex1)", () => {
     let s = createInitialState();
@@ -980,7 +1023,6 @@ describe("CR examples, chapter 10", () => {
     expect(s.cards["ingatan-2"].agendaCounters).toBe(1);
     expect(s.cards["ingatan-2"].advancementCounters ?? 0).toBe(0);
   });
-
 
   it("lets the Runner bid a hosted credit and not a credit they cannot spend (CR 10.14.3.ex1)", () => {
     let s = createInitialState();
@@ -1022,9 +1064,9 @@ describe("CR examples, chapter 10", () => {
     expect(s.runner.credits).toBe(0);
     expect(s.psi?.runnerBid).toBe(1);
     s = must(s, { type: "psi_corp_bid", amount: 0 });
-    expect(s.log.some((line) => line.includes("Spend 1¢ from Fencer Fueno"))).toBe(
-      true,
-    );
+    expect(
+      s.log.some((line) => line.includes("Spend 1¢ from Fencer Fueno")),
+    ).toBe(true);
     expect(s.log.join("\n")).toContain(CR.psiRevealSpend.number);
     expect(s.cards["fen-1"]!.hostedCredits).toBe(0);
 
@@ -1042,8 +1084,7 @@ describe("CR examples, chapter 10", () => {
     expect(locked).toEqual([0]);
   });
 
-
-    it("forces a later bid to 0 after RSVP's subroutine (CR 10.14.3.ex2)", () => {
+  it("forces a later bid to 0 after RSVP's subroutine (CR 10.14.3.ex2)", () => {
     const open = createInitialState();
     open.runner.credits = 5;
     open.run = {
@@ -1101,6 +1142,4 @@ describe("CR examples, chapter 10", () => {
     expect(zero.psi?.runnerBid).toBe(0);
     expect(zero.runner.credits).toBe(5);
   });
-
-
 });

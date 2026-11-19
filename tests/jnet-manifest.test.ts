@@ -23,20 +23,31 @@ const manifest = JSON.parse(
   readFileSync(new URL("./jnet/manifest.json", import.meta.url), "utf8"),
 ) as Record<string, Entry>;
 
-const STATUSES = new Set(["ported", "adapted", "promoted", "deferred", "disagreement"]);
+const STATUSES = new Set([
+  "ported",
+  "adapted",
+  "promoted",
+  "deferred",
+  "disagreement",
+]);
 const CLASSES = new Set(["no-board", "agrees", "engine-bug"]);
 const CITE = /^\d+\.\d+/;
 
 describe("jnet manifest classification", () => {
   it("uses only the known statuses", () => {
-    const bad = Object.entries(manifest).filter(([, e]) => !STATUSES.has(e.status));
+    const bad = Object.entries(manifest).filter(
+      ([, e]) => !STATUSES.has(e.status),
+    );
     expect(bad.map(([k]) => k)).toEqual([]);
   });
 
   it("gives every disagreement a CR cite and a note on the two readings", () => {
     const bad = Object.entries(manifest)
       .filter(([, e]) => e.status === "disagreement")
-      .filter(([, e]) => !CITE.test(e.crCite ?? "") || !(e.disagreementNote ?? "").trim());
+      .filter(
+        ([, e]) =>
+          !CITE.test(e.crCite ?? "") || !(e.disagreementNote ?? "").trim(),
+      );
     expect(bad.map(([k]) => k)).toEqual([]);
   });
 
@@ -51,21 +62,29 @@ describe("jnet manifest classification", () => {
 
   it("backs every agrees and engine-bug entry with a CR cite, a basis, and a note", () => {
     const bad = Object.entries(manifest)
-      .filter(([, e]) => e.classification === "agrees" || e.classification === "engine-bug")
+      .filter(
+        ([, e]) =>
+          e.classification === "agrees" || e.classification === "engine-bug",
+      )
       .filter(
         ([, e]) =>
           !CITE.test(e.crCite ?? "") ||
           !["probe", "code"].includes(e.classificationBasis ?? "") ||
           !(e.classificationNote ?? "").trim() ||
-          (e.classification === "engine-bug" && !(e.engineBugArea ?? "").trim()),
+          (e.classification === "engine-bug" &&
+            !(e.engineBugArea ?? "").trim()),
       );
     expect(bad.map(([k]) => k)).toEqual([]);
   });
 
   it("keeps the generated status in docs/jnet-test-ports.md current", () => {
-    const generated = execFileSync(process.execPath, ["scripts/jnet-status.mjs"], {
-      encoding: "utf8",
-    }).trimEnd();
+    const generated = execFileSync(
+      process.execPath,
+      ["scripts/jnet-status.mjs"],
+      {
+        encoding: "utf8",
+      },
+    ).trimEnd();
     const doc = readFileSync("docs/jnet-test-ports.md", "utf8");
     expect(doc).toContain(generated);
   });

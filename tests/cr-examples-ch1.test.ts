@@ -1,10 +1,4 @@
-
-import {
-  beforeAll,
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
   assertCardsPinnedTag,
@@ -26,7 +20,11 @@ import { onAccessed } from "../src/state/cardDeclarations.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { runnerPsiSpendable } from "../src/state/psi.js";
 import { CR } from "../src/timing/labels.js";
-import { markAbilityUsed, wasAbilityUsed, memoryLimit } from "../src/state/turn.js";
+import {
+  markAbilityUsed,
+  wasAbilityUsed,
+  memoryLimit,
+} from "../src/state/turn.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
 
@@ -39,12 +37,22 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return passIdle(result.state);
 }
 
-function score(state: GameState, id: string, points: number, side: "corp" | "runner") {
-  const card = instantiateCard("hostile-takeover", id, side === "corp" ? "corp:score" : "runner:score");
+function score(
+  state: GameState,
+  id: string,
+  points: number,
+  side: "corp" | "runner",
+) {
+  const card = instantiateCard(
+    "hostile-takeover",
+    id,
+    side === "corp" ? "corp:score" : "runner:score",
+  );
   card.agendaPoints = points;
   card.faceup = true;
   state.cards[id] = card;
@@ -53,7 +61,6 @@ function score(state: GameState, id: string, points: number, side: "corp" | "run
 }
 
 describe("CR examples, chapter 1", () => {
-
   it("ends the game when the Corp must draw and R&D is empty (CR 1.7.2c)", () => {
     let s = createInitialState();
     s = must(s, { type: "keep_starting_hand" });
@@ -106,7 +113,7 @@ describe("CR examples, chapter 1", () => {
     expect(upTo.winner).toBeNull();
   });
 
-    it("loses only the credits in the pool, and nothing when the pool is empty (CR 1.10.3b.ex1)", () => {
+  it("loses only the credits in the pool, and nothing when the pool is empty (CR 1.10.3b.ex1)", () => {
     const full = createInitialState();
     full.runner.credits = 5;
     const lostTwo = evalEffect(
@@ -140,8 +147,7 @@ describe("CR examples, chapter 1", () => {
     expect(empty.runner.credits).toBe(0);
   });
 
-
-    it("lets Cyberfeeder pay for Atman's install ability (CR 1.10.3c.ex1)", () => {
+  it("lets Cyberfeeder pay for Atman's install ability (CR 1.10.3c.ex1)", () => {
     const s = createInitialState();
     const feed = instantiateCard("cyberfeeder", "cf-1", "runner:installed");
     feed.recurringCredits = 1;
@@ -164,8 +170,7 @@ describe("CR examples, chapter 1", () => {
     expect(installed.runner.credits).toBe(0);
   });
 
-
-    it("lets Ghost Runner credits pay a psi bid during a run (CR 1.10.3c.ex2)", () => {
+  it("lets Ghost Runner credits pay a psi bid during a run (CR 1.10.3c.ex2)", () => {
     const s = createInitialState();
     const ghost = instantiateCard("ghost-runner", "gh-1", "runner:installed");
     ghost.hostedCredits = 3;
@@ -188,8 +193,7 @@ describe("CR examples, chapter 1", () => {
     expect(runnerPsiSpendable(s)).toBe(3);
   });
 
-
-    it("makes the Runner pay Tollbooth with Ghost Runner when the pool cannot (CR 1.10.3c.ex3)", () => {
+  it("makes the Runner pay Tollbooth with Ghost Runner when the pool cannot (CR 1.10.3c.ex3)", () => {
     const s = createInitialState();
     const ghost = instantiateCard("ghost-runner", "gh-1", "runner:installed");
     ghost.hostedCredits = 3;
@@ -222,8 +226,7 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["gh-1"]?.hostedCredits).toBe(0);
   });
 
-
-    it("refills Spinal Modem's recurring credits at the start of the Runner's turn (CR 1.10.5d.ex1)", () => {
+  it("refills Spinal Modem's recurring credits at the start of the Runner's turn (CR 1.10.5d.ex1)", () => {
     const s = createInitialState();
     const modem = instantiateCard("spinal-modem", "sm-1", "runner:installed");
     modem.recurringCredits = 1;
@@ -235,10 +238,13 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["sm-1"]?.recurringCredits).toBe(2);
   });
 
-
-    it("treats a reinstalled Vaporframe Fabricator as a new once-per-turn object (CR 1.12.2.ex1)", () => {
+  it("treats a reinstalled Vaporframe Fabricator as a new once-per-turn object (CR 1.12.2.ex1)", () => {
     const s = createInitialState();
-    const fab = instantiateCard("vaporframe-fabricator", "vf-1", "corp:archives");
+    const fab = instantiateCard(
+      "vaporframe-fabricator",
+      "vf-1",
+      "corp:archives",
+    );
     fab.rezzed = true;
     fab.faceup = true;
     s.cards["vf-1"] = fab;
@@ -246,7 +252,12 @@ describe("CR examples, chapter 1", () => {
     s.cards["iw-1"] = ice;
     s.corp.discardPile = ["vf-1"];
     s.corp.hand = ["iw-1"];
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: [] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
     s.corp.clicks = 1;
     s.activeSide = "corp";
     s.timingKey = "corp.takeAction";
@@ -271,7 +282,6 @@ describe("CR examples, chapter 1", () => {
     expect(used.pendingChoice).toBeTruthy();
   });
 
-
   it("places Priority Construction's advancements on the ice it just installed (CR 1.12.2a.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "wall-1", "corp:hq");
@@ -292,7 +302,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.corp.hand).not.toContain("wall-1");
   });
 
-
   it("shuffles Accelerated Beta Test's remaining cards when The Foundry searches R&D (CR 1.12.3.ex1)", () => {
     let s = createInitialState();
     const foundry = instantiateCard(
@@ -300,7 +309,8 @@ describe("CR examples, chapter 1", () => {
       "foundry-id",
       "corp:identity",
     );
-    s.cards[s.corp.identityId]!.onFirstIceRezEachTurn = foundry.onFirstIceRezEachTurn;
+    s.cards[s.corp.identityId]!.onFirstIceRezEachTurn =
+      foundry.onFirstIceRezEachTurn;
     const ice = instantiateCard("ice-wall", "abt-ice", "corp:rd");
     const copy = instantiateCard("ice-wall", "abt-copy", "corp:rd");
     const other = instantiateCard("hedge-fund", "abt-other", "corp:rd");
@@ -321,7 +331,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.corp.deck).toContain("abt-other");
     expect(s.log.join("\n")).toContain("1.12.3");
   });
-
 
   it("makes Precognition's rearranged cards new objects (CR 1.12.3.ex2)", () => {
     let s = createInitialState();
@@ -347,10 +356,13 @@ describe("CR examples, chapter 1", () => {
     expect(s.log.join("\n")).toContain("1.12.3");
   });
 
-
   it("keeps Femme Fatale's chosen ice after Thimblerig moves it (CR 1.12.4.ex1)", () => {
     const s = createInitialState();
-    const femme = instantiateCard("femme-fatale", "femme-1", "runner:installed");
+    const femme = instantiateCard(
+      "femme-fatale",
+      "femme-1",
+      "runner:installed",
+    );
     const chosen = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     const thimble = instantiateCard("thimblerig", "thimble-1", "server:rd:ice");
     femme.chosenIceId = "ice-1";
@@ -372,10 +384,13 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["ice-1"]?.id).toBe("ice-1");
   });
 
-
-    it("keeps Vaporframe Fabricator's once-per-turn use after it is derezzed and rezzed (CR 1.12.5.ex1)", () => {
+  it("keeps Vaporframe Fabricator's once-per-turn use after it is derezzed and rezzed (CR 1.12.5.ex1)", () => {
     const s = createInitialState();
-    const fab = instantiateCard("vaporframe-fabricator", "vf-1", "server:remote-1:root");
+    const fab = instantiateCard(
+      "vaporframe-fabricator",
+      "vf-1",
+      "server:remote-1:root",
+    );
     fab.rezzed = true;
     fab.faceup = true;
     s.cards["vf-1"] = fab;
@@ -399,7 +414,6 @@ describe("CR examples, chapter 1", () => {
     expect(again.ok).toBe(false);
     if (!again.ok) expect(again.error).toContain("already used");
   });
-
 
   it("counts a passed ice for Bravado after that ice is trashed (CR 1.12.6.ex1)", () => {
     const s = createInitialState();
@@ -434,7 +448,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.runner.credits).toBe(8);
   });
 
-
   it("still counts a trashed R&D card against the breach (CR 1.12.6.ex2)", () => {
     const s = createInitialState();
     const top = instantiateCard("hedge-fund", "top-1", "corp:rd");
@@ -461,10 +474,13 @@ describe("CR examples, chapter 1", () => {
     expect(accessed.corp.deck).not.toContain("top-1");
   });
 
-
   it("gives AMAZE's tags at run end after the Runner trashes it (CR 1.12.6a.ex1)", () => {
     const s = createInitialState();
-    const amaze = instantiateCard("amaze-amusements", "amaze-1", "corp:archives");
+    const amaze = instantiateCard(
+      "amaze-amusements",
+      "amaze-1",
+      "corp:archives",
+    );
     amaze.rezzed = false;
     s.cards["amaze-1"] = amaze;
     s.corp.discardPile = ["amaze-1"];
@@ -491,8 +507,7 @@ describe("CR examples, chapter 1", () => {
     expect(s.log.join("\n")).toContain("persists");
   });
 
-
-    it("does not lose hosted credits when the credit pool is emptied (CR 1.13.3.ex1)", () => {
+  it("does not lose hosted credits when the credit pool is emptied (CR 1.13.3.ex1)", () => {
     const s = createInitialState();
     s.runner.credits = 0;
     const space = instantiateCard("ghost-runner", "ws-1", "runner:installed");
@@ -508,11 +523,14 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["ws-1"]?.hostedCredits).toBe(3);
   });
 
-
-    it("fills the bad publicity fund from the Corp's bad publicity, not hosted counters (CR 1.13.3.ex2)", () => {
+  it("fills the bad publicity fund from the Corp's bad publicity, not hosted counters (CR 1.13.3.ex2)", () => {
     const s = createInitialState();
     s.corp.badPublicity = 1;
-    const hole = instantiateCard("superdeep-borehole", "hole-1", "server:hq:root");
+    const hole = instantiateCard(
+      "superdeep-borehole",
+      "hole-1",
+      "server:hq:root",
+    );
     hole.rezzed = true;
     hole.faceup = true;
     hole.badPublicityCounters = 2;
@@ -537,11 +555,14 @@ describe("CR examples, chapter 1", () => {
     expect(s.badPublicityFund).toBe(1);
   });
 
-
-    it("removes Corp bad publicity and leaves hosted bad publicity counters (CR 1.13.3.ex3)", () => {
+  it("removes Corp bad publicity and leaves hosted bad publicity counters (CR 1.13.3.ex3)", () => {
     const s = createInitialState();
     s.corp.badPublicity = 3;
-    const hole = instantiateCard("superdeep-borehole", "hole-1", "server:hq:root");
+    const hole = instantiateCard(
+      "superdeep-borehole",
+      "hole-1",
+      "server:hq:root",
+    );
     hole.rezzed = true;
     hole.badPublicityCounters = 2;
     s.cards["hole-1"] = hole;
@@ -554,10 +575,13 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["hole-1"]?.badPublicityCounters).toBe(2);
   });
 
-
   it("can install a connection hosted on Off-Campus Apartment (CR 1.13.6a.ex1)", () => {
     const s = createInitialState();
-    const apt = instantiateCard("off-campus-apartment", "oca-1", "runner:installed");
+    const apt = instantiateCard(
+      "off-campus-apartment",
+      "oca-1",
+      "runner:installed",
+    );
     const kati = instantiateCard("kati-jones", "kati-1", "runner:grip");
     s.cards["oca-1"] = apt;
     s.cards["kati-1"] = kati;
@@ -575,7 +599,11 @@ describe("CR examples, chapter 1", () => {
     expect(hosted.cards["kati-1"]?.hostId).toBe("oca-1");
     expect(hosted.cards["oca-1"]?.hostedCardIds).toContain("kati-1");
     const direct = createInitialState();
-    const apt2 = instantiateCard("off-campus-apartment", "oca-2", "runner:installed");
+    const apt2 = instantiateCard(
+      "off-campus-apartment",
+      "oca-2",
+      "runner:installed",
+    );
     const kati2 = instantiateCard("kati-jones", "kati-2", "runner:grip");
     direct.cards["oca-2"] = apt2;
     direct.cards["kati-2"] = kati2;
@@ -593,7 +621,6 @@ describe("CR examples, chapter 1", () => {
     expect(plain.cards["kati-2"]?.hostId).toBeUndefined();
     expect(plain.runner.installed).toContain("kati-2");
   });
-
 
   it("hosts a card on Glenn Station only through its paid ability (CR 1.13.6b.ex1)", () => {
     const s = createInitialState();
@@ -626,8 +653,7 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["pad-1"]?.hostId).toBeUndefined();
   });
 
-
-    it("refuses Egret when no ice is rezzed (CR 1.13.6c.ex1)", () => {
+  it("refuses Egret when no ice is rezzed (CR 1.13.6c.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = false;
@@ -649,11 +675,14 @@ describe("CR examples, chapter 1", () => {
     if (!refused.ok) expect(refused.error).toContain("rezzed");
   });
 
-
   it("does not discount a program hosted on Leprechaun for Dhegdheer's reduction (CR 1.13.9.ex1)", () => {
     const s = createInitialState();
     const dheg = instantiateCard("dhegdheer", "dheg-1", "runner:installed");
-    const leprechaun = instantiateCard("leprechaun", "lep-1", "runner:installed");
+    const leprechaun = instantiateCard(
+      "leprechaun",
+      "lep-1",
+      "runner:installed",
+    );
     leprechaun.hostId = "dheg-1";
     dheg.hostedCardIds = ["lep-1"];
     const program = instantiateCard("corroder", "prog-1", "runner:grip");
@@ -674,7 +703,6 @@ describe("CR examples, chapter 1", () => {
     expect(installed.cards["prog-1"]?.hostId).toBe("lep-1");
     expect(installed.runner.credits).toBe(3);
   });
-
 
   it("moves Madani's chosen programs from the grip into the play area (CR 1.13.12.ex1)", () => {
     const s = createInitialState();
@@ -697,12 +725,15 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["madani-1"]?.hostedCardIds).toEqual(["prog-a", "prog-b"]);
   });
 
-
   it("trashes cards hosted on Detente when Rejig returns it to the grip (CR 1.13.13.ex1)", () => {
     const s = createInitialState();
     const host = instantiateCard("corroder", "detente-1", "runner:installed");
     host.title = "Detente";
-    const hosted = instantiateCard("hedge-fund", "hosted-1", "hosted:detente-1");
+    const hosted = instantiateCard(
+      "hedge-fund",
+      "hosted-1",
+      "hosted:detente-1",
+    );
     hosted.hostId = "detente-1";
     host.hostedCardIds = ["hosted-1"];
     s.cards["detente-1"] = host;
@@ -714,11 +745,16 @@ describe("CR examples, chapter 1", () => {
     );
     expect(bounced.ok).toBe(true);
     expect(s.cards["detente-1"]?.zone).toBe("runner:grip");
-    occurCheckpoint(s, "instruction", "Rejig finished", [CR.checkpointHostedOnUninstalled], "test");
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Rejig finished",
+      [CR.checkpointHostedOnUninstalled],
+      "test",
+    );
     expect(s.cards["hosted-1"]?.zone).toBe("corp:archives");
     expect(s.cards["hosted-1"]?.hostId).toBeUndefined();
   });
-
 
   it("trashes Next Big Thing's agenda counter when IP Enforcement installs it (CR 1.13.13.ex2)", () => {
     const s = createInitialState();
@@ -727,7 +763,12 @@ describe("CR examples, chapter 1", () => {
     agenda.faceup = true;
     s.cards["nbt-1"] = agenda;
     s.runner.scoreArea = ["nbt-1"];
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: [] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: [],
+    };
     const installed = evalEffect(
       { state: s, sourceId: "ip" },
       fx.do({
@@ -742,13 +783,20 @@ describe("CR examples, chapter 1", () => {
     expect(s.log.join("\n")).toContain("1.13.13");
   });
 
-
   it("keeps Next Big Thing's agenda counter when Exchange of Information swaps it (CR 1.13.13.ex3)", () => {
     const s = createInitialState();
-    const runnerAgenda = instantiateCard("clone-retirement", "nbt-1", "runner:score");
+    const runnerAgenda = instantiateCard(
+      "clone-retirement",
+      "nbt-1",
+      "runner:score",
+    );
     runnerAgenda.agendaCounters = 1;
     runnerAgenda.faceup = true;
-    const corpAgenda = instantiateCard("hostile-takeover", "corp-ag", "corp:score");
+    const corpAgenda = instantiateCard(
+      "hostile-takeover",
+      "corp-ag",
+      "corp:score",
+    );
     corpAgenda.faceup = true;
     s.cards["nbt-1"] = runnerAgenda;
     s.cards["corp-ag"] = corpAgenda;
@@ -767,13 +815,16 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["nbt-1"]?.agendaCounters).toBe(1);
   });
 
-
   it("lets the Corp choose Rototurret's program and the Runner choose Bulwark's (CR 1.14.5.ex1)", () => {
     const roto = createInitialState();
     const turret = instantiateCard("rototurret", "roto-1", "server:hq:ice");
     turret.rezzed = true;
     const first = instantiateCard("corroder", "prog-1", "runner:installed");
-    const second = instantiateCard("femme-fatale", "prog-2", "runner:installed");
+    const second = instantiateCard(
+      "femme-fatale",
+      "prog-2",
+      "runner:installed",
+    );
     roto.cards["roto-1"] = turret;
     roto.cards["prog-1"] = first;
     roto.cards["prog-2"] = second;
@@ -803,30 +854,46 @@ describe("CR examples, chapter 1", () => {
     expect(bulk.log.join("\n")).toContain("1.14.5");
   });
 
-
   it("meets Hostile Infrastructure when the Runner trashes an installed Corp card (CR 1.14.5a.ex1)", () => {
     const s = createInitialState();
-    const hi = instantiateCard("hostile-infrastructure", "hi-1", "server:hq:root");
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:hq:root",
+    );
     hi.rezzed = true;
     hi.faceup = true;
-    const asset = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const asset = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     asset.rezzed = true;
     s.cards["hi-1"] = hi;
     s.cards["pad-1"] = asset;
     s.servers.hq.root = ["hi-1"];
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["pad-1"] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["pad-1"],
+    };
     s.runner.hand = ["runner-program-1", "runner-fill-1", "runner-fill-2"];
     s.activeSide = "runner";
     trashCorpCardToArchives(s, "pad-1", "runner");
-    const dealt = (s.pendingDamage?.remaining ?? 0) > 0 || s.runner.hand.length < 3;
+    const dealt =
+      (s.pendingDamage?.remaining ?? 0) > 0 || s.runner.hand.length < 3;
     expect(dealt).toBe(true);
     expect(s.log.join("\n")).toContain("source=hi-1");
   });
 
-
   it("does not meet Hostile Infrastructure when the Corp trashes from HQ (CR 1.14.5a.ex2)", () => {
     const s = createInitialState();
-    const hi = instantiateCard("hostile-infrastructure", "hi-1", "server:hq:root");
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:hq:root",
+    );
     hi.rezzed = true;
     hi.faceup = true;
     const card = instantiateCard("hedge-fund", "hq-1", "corp:hq");
@@ -844,7 +911,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.runner.hand.length).toBe(2);
     expect(s.corp.discardPile).toContain("hq-1");
   });
-
 
   it("makes the Runner trash an installed program (CR 1.15.2c.ex1)", () => {
     const s = createInitialState();
@@ -881,7 +947,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.runner.hand).toContain("prog-2");
   });
 
-
   it("trashes both programs Aggressive Secretary chose (CR 1.15.2e.ex1)", () => {
     let s = createInitialState();
     const ambush = instantiateCard(
@@ -914,7 +979,6 @@ describe("CR examples, chapter 1", () => {
       expect.arrayContaining(["prog-a", "prog-b"]),
     );
   });
-
 
   it("finds the ice Howler installed while that ice is still installed (CR 1.15.4.ex1)", () => {
     const s = createInitialState();
@@ -961,7 +1025,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.corp.discardPile).toContain("howler-1");
   });
 
-
   it("trashes Clone Chip as a cost LLDS Energy Regulator cannot prevent (CR 1.16.1a.ex1)", () => {
     const s = createInitialState();
     const chip = instantiateCard("clone-chip", "chip-1", "runner:installed");
@@ -988,7 +1051,6 @@ describe("CR examples, chapter 1", () => {
     expect(used.pendingTrashPrevent).toBeFalsy();
     expect(used.cards["llds-1"]?.zone).toBe("runner:installed");
   });
-
 
   it("cannot pay Obokata Protocol's damage while Guru Davinder would prevent it (CR 1.16.1b.ex1)", () => {
     const s = createInitialState();
@@ -1028,7 +1090,6 @@ describe("CR examples, chapter 1", () => {
     const stolen = applyAction(s, { type: "steal_agenda", cardId: "obo-1" });
     expect(stolen.ok).toBe(false);
   });
-
 
   it("ends the run when Jesminder prevents Funhouse's tag cost (CR 1.16.1b.ex2)", () => {
     let s = createInitialState();
@@ -1080,7 +1141,6 @@ describe("CR examples, chapter 1", () => {
     ).toBe(true);
   });
 
-
   it("does not suffer Zer0's net damage when the once-per-turn ability cannot be used (CR 1.16.1c.ex1)", () => {
     let s = createInitialState();
     const zer0 = instantiateCard("zer0", "zer0-1", "runner:installed");
@@ -1096,8 +1156,16 @@ describe("CR examples, chapter 1", () => {
     s.runner.hand = ["grip-1"];
     s.cards["grip-1"] = instantiateCard("sure-gamble", "grip-1", "runner:grip");
     s.runner.deck = ["stack-1", "stack-2"];
-    s.cards["stack-1"] = instantiateCard("sure-gamble", "stack-1", "runner:stack");
-    s.cards["stack-2"] = instantiateCard("sure-gamble", "stack-2", "runner:stack");
+    s.cards["stack-1"] = instantiateCard(
+      "sure-gamble",
+      "stack-1",
+      "runner:stack",
+    );
+    s.cards["stack-2"] = instantiateCard(
+      "sure-gamble",
+      "stack-2",
+      "runner:stack",
+    );
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
     s = must(s, {
@@ -1114,7 +1182,6 @@ describe("CR examples, chapter 1", () => {
     expect(again.ok).toBe(false);
     expect(s.cards["clan-1"]?.powerCounters).toBe(1);
   });
-
 
   it("cannot trash SanSan City Grid to score Azef Protocol (CR 1.16.1c.ex2)", () => {
     let s = createInitialState();
@@ -1158,7 +1225,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.cards["grid-1"]?.zone).toBe("server:remote-1:root");
   });
 
-
   it("trashes Beanstalk Royalties with Freedom Khumalo for zero virus counters (CR 1.16.1d.ex1)", () => {
     const s = createInitialState();
     const khumalo = instantiateCard(
@@ -1167,11 +1233,7 @@ describe("CR examples, chapter 1", () => {
       "runner:identity",
     );
     s.cards[s.runner.identityId] = khumalo;
-    const bean = instantiateCard(
-      "beanstalk-royalties",
-      "bean-1",
-      "corp:rd",
-    );
+    const bean = instantiateCard("beanstalk-royalties", "bean-1", "corp:rd");
     s.cards["bean-1"] = bean;
     s.corp.deck = ["bean-1"];
     s.run = {
@@ -1196,9 +1258,10 @@ describe("CR examples, chapter 1", () => {
       optionId: `decl:khumalo:${s.runner.identityId}:bean-1:0`,
     });
     expect(trashed.corp.discardPile).toContain("bean-1");
-    expect(trashed.cards[trashed.runner.identityId]?.virusCounters ?? 0).toBe(0);
+    expect(trashed.cards[trashed.runner.identityId]?.virusCounters ?? 0).toBe(
+      0,
+    );
   });
-
 
   it("pays Cayambe Grid's 6 credits as one payment, so GameNET gains 1 (CR 1.16.2b.ex1)", () => {
     const def = getCardDef("gamenet-where-dreams-are-real");
@@ -1232,7 +1295,11 @@ describe("CR examples, chapter 1", () => {
       cannotJackOut: false,
       accessingCardId: null,
     };
-    const cay = instantiateCard("cayambe-grid", "cay-1", "server:remote-1:root");
+    const cay = instantiateCard(
+      "cayambe-grid",
+      "cay-1",
+      "server:remote-1:root",
+    );
     s.cards["cay-1"] = cay;
     // One lose_credits of 6 (Cayambe 3×2) → one GameNET trigger.
     const r = evalEffect(
@@ -1252,16 +1319,24 @@ describe("CR examples, chapter 1", () => {
     expect(s.corp.credits).toBe(before);
   });
 
-
-    it("cannot spend more credits on Psychographics than the Runner has tags (CR 1.16.2c.ex1)", () => {
+  it("cannot spend more credits on Psychographics than the Runner has tags (CR 1.16.2c.ex1)", () => {
     const s = createInitialState();
     const op = instantiateCard("psychographics", "psy-1", "corp:hq");
-    const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:remote-1:root",
+    );
     agenda.installed = true;
     s.cards["psy-1"] = op;
     s.cards["ht-1"] = agenda;
     s.corp.hand = ["psy-1"];
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["ht-1"] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ht-1"],
+    };
     s.runner.tags = 2;
     s.corp.credits = 5;
     s.corp.clicks = 1;
@@ -1279,7 +1354,6 @@ describe("CR examples, chapter 1", () => {
     expect(done.corp.credits).toBe(3);
     expect(done.cards["ht-1"]?.advancementCounters).toBe(2);
   });
-
 
   it("pays Biawak with credits, Mahkota Langit Grid, and a forfeited agenda (CR 1.16.2e.ex1)", () => {
     let s = createInitialState();
@@ -1323,10 +1397,13 @@ describe("CR examples, chapter 1", () => {
     expect(s.corp.scoreArea).not.toContain("ag-1");
   });
 
-
   it("splits Tucana's 3-credit discount so Logjam costs 0 to install and 4 to rez (CR 1.16.2f.ex1)", () => {
     let s = createInitialState();
-    const tucana = instantiateCard("tucana", "tucana-1", "server:remote-1:root");
+    const tucana = instantiateCard(
+      "tucana",
+      "tucana-1",
+      "server:remote-1:root",
+    );
     tucana.rezzed = true;
     const wall = instantiateCard("ice-wall", "wall-1", "server:remote-1:ice");
     const jam = instantiateCard("logjam", "jam-1", "corp:rd");
@@ -1359,7 +1436,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.log.join("\n")).toContain("1.16.2f");
   });
 
-
   it("counts Blue Level Clearance's click and its additional click as one action (CR 1.16.4d.ex1)", () => {
     const s = createInitialState();
     const jeeves = instantiateCard(
@@ -1369,11 +1445,7 @@ describe("CR examples, chapter 1", () => {
     );
     jeeves.rezzed = true;
     jeeves.gainClickFirstTimeSpendClicksGteOnSameActionEachTurn = 2;
-    const op = instantiateCard(
-      "blue-level-clearance",
-      "blc-1",
-      "corp:hq",
-    );
+    const op = instantiateCard("blue-level-clearance", "blc-1", "corp:hq");
     s.cards["jeeves-1"] = jeeves;
     s.cards["blc-1"] = op;
     s.servers.hq.root = ["jeeves-1"];
@@ -1389,7 +1461,6 @@ describe("CR examples, chapter 1", () => {
     expect(played.corp.clicks).toBe(2);
     expect(played.log.join("\n")).toContain("spent 2 [click]");
   });
-
 
   it("charges 1 credit to install ice in front of one ice (CR 1.16.6b)", () => {
     const s = createInitialState();
@@ -1412,7 +1483,6 @@ describe("CR examples, chapter 1", () => {
     expect(installed.corp.credits).toBe(4);
     expect(installed.servers.hq.ice).toContain("jam-1");
   });
-
 
   it("can decline Obokata Protocol's additional cost and not steal it (CR 1.16.10a.ex1)", () => {
     let s = createInitialState();
@@ -1454,7 +1524,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.runner.hand).toHaveLength(4);
   });
 
-
   it("pays Predictive Algorithm and Ben Musashi together with Obokata Protocol (CR 1.16.10b.ex1)", () => {
     const s = createInitialState();
     const agenda = instantiateCard(
@@ -1462,11 +1531,7 @@ describe("CR examples, chapter 1", () => {
       "obo-1",
       "server:remote-1:root",
     );
-    const ben = instantiateCard(
-      "ben-musashi",
-      "ben-1",
-      "server:remote-1:root",
-    );
+    const ben = instantiateCard("ben-musashi", "ben-1", "server:remote-1:root");
     ben.rezzed = true;
     const current = instantiateCard(
       "predictive-algorithm",
@@ -1516,7 +1581,6 @@ describe("CR examples, chapter 1", () => {
     expect(broke.state.runner.scoreArea).toContain("obo-1");
   });
 
-
   it("resolves Ob Superheavy Logistics before Azef Protocol is scored (CR 1.16.10c.ex1)", () => {
     let s = createInitialState();
     const identity = instantiateCard(
@@ -1557,7 +1621,10 @@ describe("CR examples, chapter 1", () => {
     s = must(s, { type: "choose_option", optionId: "trash:pad-1" });
     // The Corp finds the card, then says where it goes (CR 8.5.16b).
     s = must(s, { type: "choose_option", optionId: "choose-card:ice-1" });
-    s = must(s, { type: "choose_option", optionId: "install-dest:__new_remote__" });
+    s = must(s, {
+      type: "choose_option",
+      optionId: "install-dest:__new_remote__",
+    });
     const log = s.log.join("\n");
     const installedAt = log.indexOf("Corp installs a card from R&D");
     const rezzedAt = log.indexOf("Rez Ice Wall");
@@ -1568,7 +1635,6 @@ describe("CR examples, chapter 1", () => {
     expect(s.corp.scoreArea).toContain("azef-1");
     expect(s.cards["ice-1"]?.rezzed).toBe(true);
   });
-
 
   it("does not end the run when the Runner pays the nested credit (CR 1.16.11b.ex1)", () => {
     let s = createInitialState();
@@ -1595,7 +1661,10 @@ describe("CR examples, chapter 1", () => {
       fx.do({
         kind: "unless",
         payer: "runner",
-        cost: { op: "do", action: { kind: "lose_credits", side: "runner", amount: 1 } },
+        cost: {
+          op: "do",
+          action: { kind: "lose_credits", side: "runner", amount: 1 },
+        },
         instruction: { op: "do", action: { kind: "end_the_run" } },
       }),
     );
@@ -1606,8 +1675,7 @@ describe("CR examples, chapter 1", () => {
     expect(s.log.join("\n")).toContain("1.16.11b");
   });
 
-
-    it("sets the threat level to the higher agenda-point total (CR 1.17.1a.ex1)", () => {
+  it("sets the threat level to the higher agenda-point total (CR 1.17.1a.ex1)", () => {
     const low = createInitialState();
     score(low, "r-low", 3, "runner");
     score(low, "c-low", 2, "corp");
@@ -1619,7 +1687,10 @@ describe("CR examples, chapter 1", () => {
     low.activeSide = "corp";
     low.timingKey = "corp.takeAction";
     low.turn.successfulRunLastTurn = true;
-    const denied = applyAction(low, { type: "play_operation", cardId: "mr-low" });
+    const denied = applyAction(low, {
+      type: "play_operation",
+      cardId: "mr-low",
+    });
     expect(denied.ok).toBe(false);
     if (!denied.ok) expect(denied.error).toContain("Threat 4");
 
@@ -1638,15 +1709,18 @@ describe("CR examples, chapter 1", () => {
     expect(played.cards["mr-1"]?.zone).not.toBe("corp:hq");
   });
 
-
-    it("places Mushin's advancement counters without advancing Oaktown Renovation (CR 1.18.2.ex1)", () => {
+  it("places Mushin's advancement counters without advancing Oaktown Renovation (CR 1.18.2.ex1)", () => {
     const s = createInitialState();
     const oak = instantiateCard("oaktown-renovation", "oak-1", "corp:hq");
     const mushin = instantiateCard("mushin-no-shin", "mu-1", "corp:hq");
     s.cards["oak-1"] = oak;
     s.cards["mu-1"] = mushin;
     s.corp.hand = ["oak-1", "mu-1"];
-    const anchor = instantiateCard("pad-campaign", "anchor-1", "server:remote-1:root");
+    const anchor = instantiateCard(
+      "pad-campaign",
+      "anchor-1",
+      "server:remote-1:root",
+    );
     s.cards["anchor-1"] = anchor;
     s.servers["remote-1"] = {
       id: "remote-1",
@@ -1672,8 +1746,7 @@ describe("CR examples, chapter 1", () => {
     expect(played.log.some((line) => line.includes("on advance"))).toBe(false);
   });
 
-
-    it("trashes Fall Guy to gain 2 credits (CR 1.19.4.ex1)", () => {
+  it("trashes Fall Guy to gain 2 credits (CR 1.19.4.ex1)", () => {
     const s = createInitialState();
     const fall = instantiateCard("fall-guy", "fg-1", "runner:installed");
     s.cards["fg-1"] = fall;
@@ -1690,16 +1763,18 @@ describe("CR examples, chapter 1", () => {
     expect(gained.cards["fg-1"]?.zone).toBe("runner:heap");
   });
 
-
-    it("raises the memory limit by T400 Memory Diamond's +1 MU (CR 1.20.2.ex1)", () => {
+  it("raises the memory limit by T400 Memory Diamond's +1 MU (CR 1.20.2.ex1)", () => {
     const s = createInitialState();
     expect(s.runner.memoryLimit).toBe(4);
-    const chip = instantiateCard("t400-memory-diamond", "t400-1", "runner:installed");
+    const chip = instantiateCard(
+      "t400-memory-diamond",
+      "t400-1",
+      "runner:installed",
+    );
     s.cards["t400-1"] = chip;
     s.runner.installed = ["t400-1"];
     expect(memoryLimit(s)).toBe(5);
   });
-
 
   it("installs PAD Campaign with no install cost (CR 8.5.11a)", () => {
     const s = createInitialState();
@@ -1719,6 +1794,4 @@ describe("CR examples, chapter 1", () => {
     expect(installed.corp.credits).toBe(2);
     expect(installed.cards["pad-1"]?.zone).toMatch(/:root$/);
   });
-
-
 });

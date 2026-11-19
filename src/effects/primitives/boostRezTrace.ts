@@ -14,10 +14,8 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function serverIdForCard(
   state: EffectCtx["state"],
@@ -225,7 +223,10 @@ export function applyLunarTsPrimitive(
       log(state, `Virgo — give 1 tag → ${state.runner.tags}.`);
       if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
         state.runner.tags += 1;
-        log(state, `Virgo — trace strength ≥5, give another tag → ${state.runner.tags}.`);
+        log(
+          state,
+          `Virgo — trace strength ≥5, give another tag → ${state.runner.tags}.`,
+        );
       }
       return { ok: true };
     }
@@ -277,27 +278,28 @@ export function applyLunarTsPrimitive(
       const viruses = state.runner.installed.filter((id) => {
         if (id === sourceId) return false;
         const c = state.cards[id];
-        return (
-          c?.type === "program" && (c.subtypes ?? []).includes("virus")
-        );
+        return c?.type === "program" && (c.subtypes ?? []).includes("virus");
       });
       if (viruses.length === 0 || n <= 0) {
         log(state, `Incubator — no virus counters to move or no target.`);
         return { ok: true };
       }
-      if (!openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: viruses.map((id) => ({
-          id: `incubator-move:${id}`,
-          label: `Move ${n} virus to ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "move_incubator_apply",
-            cardId: id,
-            amount: n,
-          }),
-        })),
-      })) return { ok: true };
+      if (
+        !openPendingChoose(state, {
+          sourceId,
+          chooser: "runner",
+          options: viruses.map((id) => ({
+            id: `incubator-move:${id}`,
+            label: `Move ${n} virus to ${state.cards[id]!.title}`,
+            effect: fx.do({
+              kind: "move_incubator_apply",
+              cardId: id,
+              amount: n,
+            }),
+          })),
+        })
+      )
+        return { ok: true };
       // Capture amount on turn so trash-self cost still works.
       state.turn.incubatorMoveAmount = n;
       return { ok: true };

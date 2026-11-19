@@ -54,7 +54,10 @@ export function onCorpDrew(state: GameState, count: number): void {
   const draws = (state.turn.corpDrawsThisTurn ?? 0) + 1;
   state.turn.corpDrawsThisTurn = draws;
   if (draws === 1) return;
-  for (const card of rezzedWith(state, "corpLosesCreditsOnNonFirstDrawThisTurn")) {
+  for (const card of rezzedWith(
+    state,
+    "corpLosesCreditsOnNonFirstDrawThisTurn",
+  )) {
     const n = card.corpLosesCreditsOnNonFirstDrawThisTurn ?? 0;
     if (n <= 0) continue;
     state.corp.credits = Math.max(0, state.corp.credits - n);
@@ -223,7 +226,12 @@ export function installBlockReason(
   if (needLink > 0 && (state.runner.link ?? 0) < needLink) {
     return `${card.title} requires link ${needLink}.`;
   }
-  if (card.hqOrRdRootOnly && serverId && serverId !== "hq" && serverId !== "rd") {
+  if (
+    card.hqOrRdRootOnly &&
+    serverId &&
+    serverId !== "hq" &&
+    serverId !== "rd"
+  ) {
     return `${card.title} can only be installed in the root of HQ or R&D.`;
   }
   return null;
@@ -245,16 +253,15 @@ export function traceBaseBonus(state: GameState): number {
 }
 
 /** Genetics Pavilion-class: Runner draw cap during their turn, or undefined. */
-export function geneticsPavilionDrawLimit(state: GameState): number | undefined {
+export function geneticsPavilionDrawLimit(
+  state: GameState,
+): number | undefined {
   let limit: number | undefined;
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
       if (abilitiesSuppressed(state, id)) continue;
       const c = state.cards[id];
-      if (
-        c?.rezzed &&
-        typeof c.runnerCannotDrawMoreThanPerTurn === "number"
-      ) {
+      if (c?.rezzed && typeof c.runnerCannotDrawMoreThanPerTurn === "number") {
         limit =
           limit === undefined
             ? c.runnerCannotDrawMoreThanPerTurn
@@ -265,10 +272,18 @@ export function geneticsPavilionDrawLimit(state: GameState): number | undefined 
   return limit;
 }
 
-export function remoteRootAccessTax(state: GameState, card: CardInstance): number {
+export function remoteRootAccessTax(
+  state: GameState,
+  card: CardInstance,
+): number {
   if (!card.zone.includes(":root")) return 0;
   const serverId = card.zone.split(":")[1];
-  if (!serverId || serverId === "hq" || serverId === "rd" || serverId === "archives") {
+  if (
+    !serverId ||
+    serverId === "hq" ||
+    serverId === "rd" ||
+    serverId === "archives"
+  ) {
     return 0;
   }
   const identityId = state.corp.identityId;
@@ -286,7 +301,9 @@ export function breachCreditGain(state: GameState): void {
   for (const id of server.root) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
-    const per = card?.rezzed ? (card.gainCreditsPerCardAccessedDuringBreach ?? 0) : 0;
+    const per = card?.rezzed
+      ? (card.gainCreditsPerCardAccessedDuringBreach ?? 0)
+      : 0;
     if (per <= 0 || accessed <= 0) continue;
     const gain = per * accessed;
     state.corp.credits += gain;
@@ -312,7 +329,8 @@ export function agendaPointHandSize(state: GameState): number {
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
-    if (card?.handSizeEqualsAgendaPoints) bonus += agendaPointsFor(state, "runner");
+    if (card?.handSizeEqualsAgendaPoints)
+      bonus += agendaPointsFor(state, "runner");
   }
   return bonus;
 }
@@ -362,7 +380,9 @@ export interface DeckIdentity {
  * Agenda points a Corp deck of this size must total (CR 1.4.6a–d).
  * Decks under 40 cards have no band; the minimum-size check is the failure.
  */
-export function agendaPointBand(deckSize: number): { min: number; max: number } | null {
+export function agendaPointBand(
+  deckSize: number,
+): { min: number; max: number } | null {
   if (deckSize < 40) return null;
   if (deckSize <= 44) return { min: 18, max: 19 };
   if (deckSize <= 49) return { min: 20, max: 21 };
@@ -399,7 +419,12 @@ export function deckbuildingReport(
     counts.set(entry.defId, (counts.get(entry.defId) ?? 0) + 1);
     if (entry.type === "ice") ice += 1;
     if (entry.type === "asset") assets += 1;
-    if (entry.faction && entry.faction !== "neutral-corp" && entry.faction !== "neutral-runner" && entry.faction !== "alliance") {
+    if (
+      entry.faction &&
+      entry.faction !== "neutral-corp" &&
+      entry.faction !== "neutral-runner" &&
+      entry.faction !== "alliance"
+    ) {
       nonAlliance += 1;
     }
   }
@@ -451,9 +476,11 @@ export function deckbuildingReport(
   }
   const deckSize = entries.length;
   const underMinimum =
-    identity?.minimumDeckSize !== undefined && deckSize < identity.minimumDeckSize;
+    identity?.minimumDeckSize !== undefined &&
+    deckSize < identity.minimumDeckSize;
   const overInfluence =
-    identity?.influenceLimit !== undefined && influence > identity.influenceLimit;
+    identity?.influenceLimit !== undefined &&
+    influence > identity.influenceLimit;
   const band = identity?.side === "corp" ? agendaPointBand(deckSize) : null;
   const agendaOutOfRange =
     band !== null && (agendaPoints < band.min || agendaPoints > band.max);

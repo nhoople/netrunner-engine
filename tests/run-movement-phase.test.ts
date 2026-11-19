@@ -119,7 +119,9 @@ function twoInHq(s: GameState): void {
 
 const offers = (s: GameState, type: Action["type"], cardId?: string): boolean =>
   legalActions(s).some(
-    (a) => a.type === type && (cardId === undefined || (a as { cardId?: string }).cardId === cardId),
+    (a) =>
+      a.type === type &&
+      (cardId === undefined || (a as { cardId?: string }).cardId === cardId),
   );
 
 describe("iceless run goes through the Movement Phase (CR 6.9.1f)", () => {
@@ -227,7 +229,11 @@ describe("approaching the server is not a paid ability window (CR 6.9.4g)", () =
     s = must(s, { type: "continue_run" });
     expect(s.timingKey).toBe("run.afterMovePaw");
     s = must(s, { type: "pass_window" });
-    s = must(s, { type: "use_paid_ability", cardId: "nisei-1", abilityId: "nisei-etr" });
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "nisei-1",
+      abilityId: "nisei-etr",
+    });
     expect(s.run).toBeNull();
     expect(s.cards["nisei-1"].agendaCounters).toBe(0);
   });
@@ -260,7 +266,11 @@ describe("approaching the server is not a paid ability window (CR 6.9.4g)", () =
     expect(nisei.ok).toBe(false);
 
     const hqBefore = [...s.corp.hand];
-    s = must(s, { type: "use_paid_ability", cardId: "void-1", abilityId: "etr" });
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "void-1",
+      abilityId: "etr",
+    });
     expect(s.run).toBeNull();
     // Cards trashed from HQ as the cost are facedown in Archives (CR 4.4.6b).
     const paid = hqBefore.filter((id) => !s.corp.hand.includes(id));
@@ -324,7 +334,9 @@ describe("approaching the server is not a paid ability window (CR 6.9.4g)", () =
     // the host decides whether to pass for the Corp.
     expect(s.timingKey).toBe("run.approachServerPaw");
     expect(queryLegality(s).priority).toBe("corp");
-    expect(queryLegality(s).legal.map((entry) => entry.action.type)).toEqual(["pass_window"]);
+    expect(queryLegality(s).legal.map((entry) => entry.action.type)).toEqual([
+      "pass_window",
+    ]);
     s = must(s, { type: "pass_window" });
     expect(s.timingKey).not.toBe("run.approachServerPaw");
   });
@@ -348,12 +360,18 @@ describe("Corp paid abilities while the Runner approaches ice (CR 9.2.7b)", () =
     ];
     scoredNisei(s);
     s = must(s, { type: "basic_run", serverId: "remote-1" });
-    while (s.timingKey !== "run.approachPaw") s = must(s, { type: "pass_window" });
-    if (queryLegality(s).priority !== "corp") s = must(s, { type: "pass_window" });
+    while (s.timingKey !== "run.approachPaw")
+      s = must(s, { type: "pass_window" });
+    if (queryLegality(s).priority !== "corp")
+      s = must(s, { type: "pass_window" });
     expect(s.timingKey).toBe("run.approachPaw");
     expect(offers(s, "use_paid_ability", "nisei-1")).toBe(true);
     expect(offers(s, "use_paid_ability", "pad-1")).toBe(true);
-    s = must(s, { type: "use_paid_ability", cardId: "pad-1", abilityId: "gain" });
+    s = must(s, {
+      type: "use_paid_ability",
+      cardId: "pad-1",
+      abilityId: "gain",
+    });
     expect(s.corp.credits).toBe(11);
     expect(s.timingKey).toBe("run.approachPaw");
   });
@@ -374,8 +392,10 @@ describe("Corp paid abilities while the Runner approaches ice (CR 9.2.7b)", () =
       },
     ];
     s = must(s, { type: "basic_run", serverId: "remote-1" });
-    while (s.timingKey !== "run.approachPaw") s = must(s, { type: "pass_window" });
-    if (queryLegality(s).priority !== "corp") s = must(s, { type: "pass_window" });
+    while (s.timingKey !== "run.approachPaw")
+      s = must(s, { type: "pass_window" });
+    if (queryLegality(s).priority !== "corp")
+      s = must(s, { type: "pass_window" });
     expect(offers(s, "use_paid_ability", "pad-1")).toBe(false);
     const used = applyAction(s, {
       type: "use_paid_ability",
@@ -388,7 +408,11 @@ describe("Corp paid abilities while the Runner approaches ice (CR 9.2.7b)", () =
 
 describe("passing all ice needs ice to pass (CR 6.9.4a)", () => {
   function polyhistor(s: GameState): void {
-    s.cards["poly-1"] = instantiateCard("polyhistor", "poly-1", "runner:installed");
+    s.cards["poly-1"] = instantiateCard(
+      "polyhistor",
+      "poly-1",
+      "runner:installed",
+    );
     s.runner.installed.push("poly-1");
   }
 

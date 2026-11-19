@@ -3,24 +3,21 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { revealCards } from "../../state/reveal.js";
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { applyPrimitive } from "../eval.js";
 
-export function applyBreachKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyBreachKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "may_breach_instead_indexing": {
+    case "may_breach_instead_indexing": {
       if (!state.run || state.run.attackedServerId !== "rd") {
         log(state, `Indexing — not a successful R&D run.`);
         return { ok: true };
@@ -46,17 +43,17 @@ case "may_breach_instead_indexing": {
             },
           },
         ],
-logLine: `Indexing — may instead of breaching R&D.`,
-});
+        logLine: `Indexing — may instead of breaching R&D.`,
+      });
       return { ok: true };
     }
 
-case "breach_instead_indexing_arrange": {
+    case "breach_instead_indexing_arrange": {
       if (state.run) state.run.skipBreach = true;
       return applyPrimitive(ctx, { kind: "look_top_n_rd_arrange", n: 5 });
     }
 
-case "breach_instead_record_reconstructor_archives": {
+    case "breach_instead_record_reconstructor_archives": {
       if (!state.run || state.run.attackedServerId !== "archives") {
         return { ok: true };
       }
@@ -64,7 +61,7 @@ case "breach_instead_record_reconstructor_archives": {
       return applyPrimitive(ctx, { kind: "may_add_archives_card_to_rd_top" });
     }
 
-case "may_breach_instead_account_siphon": {
+    case "may_breach_instead_account_siphon": {
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Account Siphon — not a successful HQ run.`);
         return { ok: true };
@@ -96,13 +93,16 @@ case "may_breach_instead_account_siphon": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `Account Siphon — may instead of breaching HQ.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `Account Siphon — may instead of breaching HQ.`,
+      });
       return { ok: true };
     }
 
-case "may_breach_instead_escher": {
+    case "may_breach_instead_escher": {
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Escher — not a successful HQ run.`);
         return { ok: true };
@@ -128,12 +128,12 @@ case "may_breach_instead_escher": {
             },
           },
         ],
-logLine: `Escher — may instead of breaching HQ.`,
-});
+        logLine: `Escher — may instead of breaching HQ.`,
+      });
       return { ok: true };
     }
 
-case "may_breach_instead_exploratory_romp": {
+    case "may_breach_instead_exploratory_romp": {
       const server = state.run?.attackedServerId
         ? state.servers[state.run.attackedServerId]
         : undefined;
@@ -173,12 +173,12 @@ case "may_breach_instead_exploratory_romp": {
               ]
             : []),
         ],
-logLine: `Exploratory Romp — may instead of breaching.`,
-});
+        logLine: `Exploratory Romp — may instead of breaching.`,
+      });
       return { ok: true };
     }
 
-case "may_breach_instead_vamp": {
+    case "may_breach_instead_vamp": {
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Vamp — not a successful HQ run.`);
         return { ok: true };
@@ -210,13 +210,16 @@ case "may_breach_instead_vamp": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `Vamp — may instead of breaching HQ.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `Vamp — may instead of breaching HQ.`,
+      });
       return { ok: true };
     }
 
-case "breach_server_when_run_ends": {
+    case "breach_server_when_run_ends": {
       if (!state.run) {
         return {
           ok: false,
@@ -232,17 +235,14 @@ case "breach_server_when_run_ends": {
       return { ok: true };
     }
 
-case "breach_server_standalone": {
+    case "breach_server_standalone": {
       const server = action.server as import("../../state/types.js").ServerId;
       if (state.run && !state.run.isPostRunBreach) {
         state.run.breachWhenRunEnds = server;
         if (action.cannotAccessRoot) {
           state.run.cannotAccessRoot = true;
         }
-        log(
-          state,
-          `${source.title} — breach ${server} when the run ends.`,
-        );
+        log(state, `${source.title} — breach ${server} when the run ends.`);
         return { ok: true };
       }
       state.pendingStandaloneBreach = {
@@ -250,25 +250,25 @@ case "breach_server_standalone": {
         serverId: server,
         ...(action.cannotAccessRoot ? { cannotAccessRoot: true } : {}),
       };
-      log(
-        state,
-        `${source.title} — pending standalone breach of ${server}.`,
-      );
+      log(state, `${source.title} — pending standalone breach of ${server}.`);
       return { ok: true };
     }
 
-case "may_breach_instead_expert_schedule_analyzer": {
+    case "may_breach_instead_expert_schedule_analyzer": {
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `${source.title} — no successful HQ run to replace.`);
         return { ok: true };
       }
       revealCards(state, state.corp.hand, sourceId);
-      log(state, `${source.title} — reveal HQ (${state.corp.hand.length}); skip breach.`);
+      log(
+        state,
+        `${source.title} — reveal HQ (${state.corp.hand.length}); skip breach.`,
+      );
       state.run.skipBreach = true;
       return { ok: true };
     }
 
-case "breach_hq_no_root": {
+    case "breach_hq_no_root": {
       return applyPrimitive(ctx, {
         kind: "begin_replace_breach_hq_hand_only",
       });

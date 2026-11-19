@@ -41,11 +41,7 @@ function must(state: GameState, action: Action): GameState {
 function corpReadyWithScorableAgenda(): GameState {
   let s = createInitialState();
   s = structuredClone(s);
-  const ag = instantiateCard(
-    "offworld-office",
-    "ag-1",
-    "server:remote-1:root",
-  );
+  const ag = instantiateCard("offworld-office", "ag-1", "server:remote-1:root");
   ag.advancementCounters = 4;
   s.cards["ag-1"] = ag;
   s.servers["remote-1"] = {
@@ -84,9 +80,9 @@ describe("cannot sweep — jack_out (prevent IR / 1.2.2)", () => {
     });
     s = must(s, { type: "pass_window" });
 
-    expect(queryLegality(s).legal.some((e) => e.action.type === "jack_out")).toBe(
-      false,
-    );
+    expect(
+      queryLegality(s).legal.some((e) => e.action.type === "jack_out"),
+    ).toBe(false);
     const expl = explainAction(s, { type: "jack_out" });
     expect(expl.legal).toBe(false);
     if (expl.legal) return;

@@ -10,13 +10,13 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function runnerPrograms(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => state.cards[id]?.type === "program");
+  return state.runner.installed.filter(
+    (id) => state.cards[id]?.type === "program",
+  );
 }
 
 export function applyLunarFcPrimitive(
@@ -60,7 +60,10 @@ export function applyLunarFcPrimitive(
       state.run.randomAccessLimit = 1;
       state.run.accessCandidatesPreset = true;
       state.run.kitsuneIceToTrashAtBreachEnd = sourceId;
-      log(state, `Kitsune — breach HQ; first access ${state.cards[cardId]!.title}.`);
+      log(
+        state,
+        `Kitsune — breach HQ; first access ${state.cards[cardId]!.title}.`,
+      );
       return { ok: true };
     }
     case "wendigo_ban_program": {
@@ -102,7 +105,10 @@ export function applyLunarFcPrimitive(
         if (!state.removedFromGame.includes(id)) state.removedFromGame.push(id);
       }
       state.runner.discardPile = [];
-      log(state, `Chronos Project — remove ${heap.length} heap card(s) from the game.`);
+      log(
+        state,
+        `Chronos Project — remove ${heap.length} heap card(s) from the game.`,
+      );
       return { ok: true };
     }
     case "shattered_remains_access": {
@@ -135,7 +141,11 @@ export function applyLunarFcPrimitive(
     case "pay_shattered_remains": {
       const n = (action as { hardwareCount: number }).hardwareCount;
       if (state.corp.credits < 1) {
-        return { ok: false, error: "Cannot pay 1¢ for Shattered Remains.", cites: [] };
+        return {
+          ok: false,
+          error: "Cannot pay 1¢ for Shattered Remains.",
+          cites: [],
+        };
       }
       state.corp.credits -= 1;
       const hw = state.runner.installed.filter(

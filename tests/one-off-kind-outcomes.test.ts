@@ -15,7 +15,17 @@ import {
   resolveTrace,
   playEffectFromCard,
 } from "../src/index.js";
-import { LINGERING_KIND_ABILITY_BLANK, LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER, LINGERING_KIND_BREAKER_STRENGTH_RUN, LINGERING_KIND_ICE_STRENGTH, LINGERING_KIND_ICE_STRENGTH_ENCOUNTER, lingeringBreakerStrengthOfKind, lingeringEffectsOfKind, lingeringIceStrengthOfKind, lingeringRunnerMuModifier } from "../src/state/lingeringEffects.js";
+import {
+  LINGERING_KIND_ABILITY_BLANK,
+  LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+  LINGERING_KIND_ICE_STRENGTH,
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  lingeringBreakerStrengthOfKind,
+  lingeringEffectsOfKind,
+  lingeringIceStrengthOfKind,
+  lingeringRunnerMuModifier,
+} from "../src/state/lingeringEffects.js";
 import { abilitiesSuppressed } from "../src/state/abilities.js";
 
 import { drawCards } from "../src/effects/draw.js";
@@ -44,7 +54,12 @@ function put(
   return card;
 }
 
-function runKind(s: GameState, sourceId: string, kind: string, extra: object = {}) {
+function runKind(
+  s: GameState,
+  sourceId: string,
+  kind: string,
+  extra: object = {},
+) {
   const r = evalEffect({ state: s, sourceId }, fx.do({ kind, ...extra }));
   if (!r.ok) throw new Error(`${kind}: ${r.error ?? "failed"}`);
 }
@@ -75,7 +90,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "beth-kilrain-chang", "beth-1", "runner:installed");
     s.runner.installed = ["beth-1"];
-    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    for (let i = 0; i < 3; i++)
+      put(s, "sure-gamble", `sg-${i}`, "runner:stack");
     s.runner.deck = ["sg-0", "sg-1", "sg-2"];
     s.runner.hand = [];
     s.runner.credits = 4;
@@ -131,13 +147,19 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Lawyer Up: choosing 2 tags removes them and draws 3", () => {
     const s = createInitialState();
     put(s, "lawyer-up", "lawyer-1", "runner:play");
-    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    for (let i = 0; i < 4; i++)
+      put(s, "sure-gamble", `sg-${i}`, "runner:stack");
     s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3"];
     s.runner.hand = [];
     s.runner.tags = 2;
     runKind(s, "lawyer-1", "lawyer_up");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("lawyer-tags-2");
-    const after = applyAction(s, { type: "choose_option", optionId: "lawyer-tags-2" });
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain(
+      "lawyer-tags-2",
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "lawyer-tags-2",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.tags).toBe(0);
     expect(after.state.runner.hand.length).toBe(3);
@@ -152,9 +174,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.hand = ["hq-1", "hq-2"];
     s.corp.deck = ["rd-0", "rd-1", "rd-2"];
     runKind(s, "sr-1", "shuffle_any_hq_draw");
-    let after = applyAction(s, { type: "choose_option", optionId: "shuffle:hq-1" });
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "shuffle:hq-1",
+    });
     if (!after.ok) throw new Error(after.error);
-    after = applyAction(after.state, { type: "choose_option", optionId: "done" });
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "done",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.hand.length).toBe(2); // 1 kept + 1 drawn
     expect(after.state.corp.deck.length).toBe(3); // 3 - 1 drawn + 1 shuffled
@@ -168,7 +196,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.scoreArea = ["ht-1"];
     s.corp.credits = 3;
     runKind(s, "yale-1", "mark_yale_spend_any_agenda_counter_gain_2");
-    const after = applyAction(s, { type: "choose_option", optionId: "yale:ht-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "yale:ht-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.credits).toBe(5);
     expect(after.state.cards["ht-1"]?.agendaCounters).toBe(0);
@@ -201,8 +232,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     coversKind("rfg_runner_heap");
     const before = snapshot(s);
     runKind(s, "chronos-1", "rfg_runner_heap");
-    expectStateDelta(before, s, { "runner.discardPile": { from: ["heap-1", "heap-2"], to: [] } });
-    expect(s.removedFromGame).toEqual(expect.arrayContaining(["heap-1", "heap-2"]));
+    expectStateDelta(before, s, {
+      "runner.discardPile": { from: ["heap-1", "heap-2"], to: [] },
+    });
+    expect(s.removedFromGame).toEqual(
+      expect.arrayContaining(["heap-1", "heap-2"]),
+    );
   });
 
   it("Stim Dealer: below 2 counters places one and gains a click; at 2 it deals unpreventable core damage", () => {
@@ -234,7 +269,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "human-first", "hf-1", "runner:installed");
     const agenda = put(s, "hostile-takeover", "ht-1", "corp:score");
     agenda.agendaPoints = 2;
-    (s.turn as { lastScoredOrStolenAgendaId?: string }).lastScoredOrStolenAgendaId = "ht-1";
+    (
+      s.turn as { lastScoredOrStolenAgendaId?: string }
+    ).lastScoredOrStolenAgendaId = "ht-1";
     s.runner.credits = 3;
     runKind(s, "hf-1", "gain_credits_equal_to_agenda_points_of_trigger");
     expect(s.runner.credits).toBe(5);
@@ -317,9 +354,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     coversKind("score_profiteering_on");
     const before = snapshot(s);
     runKind(s, "prof-1", "score_profiteering_on");
-    const after = applyAction(s, { type: "choose_option", optionId: "profiteering-2" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "profiteering-2",
+    });
     if (!after.ok) throw new Error(after.error);
-    expectStateDelta(before, after.state, { "corp.credits": 10, "corp.badPublicity": { to: 2 } });
+    expectStateDelta(before, after.state, {
+      "corp.credits": 10,
+      "corp.badPublicity": { to: 2 },
+    });
     expect(after.state.corp.badPublicity).toBe(2);
   });
 
@@ -339,7 +382,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.servers["hq"].ice = ["iw-1"];
     runKind(s, "scamp-1", "place_advancement_on_advanceable_installed");
-    const after = applyAction(s, { type: "choose_option", optionId: "sc:iw-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sc:iw-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["iw-1"]?.advancementCounters).toBe(1);
     expect(ice.advancementCounters ?? 0).toBe(0); // sanity: choice applied to state copy
@@ -351,7 +397,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.servers["hq"].ice = ["iw-1"];
     runKind(s, "fwu-1", "firmware_place_advancement_on_advanceable_ice");
-    const after = applyAction(s, { type: "choose_option", optionId: "fw:iw-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "fw:iw-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["iw-1"]?.advancementCounters).toBe(1);
   });
@@ -364,7 +413,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ds.virusCounters = 1;
     s.runner.installed = ["vbg-1", "ds-1"];
     runKind(s, "vbg-1", "move_counter");
-    const after = applyAction(s, { type: "choose_option", optionId: "vbg:ds-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "vbg:ds-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["vbg-1"]?.virusCounters).toBe(1);
     expect(after.state.cards["ds-1"]?.virusCounters).toBe(2);
@@ -440,7 +492,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.discardPile).toEqual([]);
-    expect(after.state.corp.deck[after.state.corp.deck.length - 1]).toBe("arch-1");
+    expect(after.state.corp.deck[after.state.corp.deck.length - 1]).toBe(
+      "arch-1",
+    );
   });
 
   it("Qianju PT: losing a click arms tag prevention", () => {
@@ -462,7 +516,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     facedown.faceup = false;
     s.runner.installed = ["assim-1", "fd-1"];
     runKind(s, "assim-1", "ss_assimilator_turn_facedown_faceup");
-    const after = applyAction(s, { type: "choose_option", optionId: "faceup:fd-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "faceup:fd-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["fd-1"]?.faceup).toBe(true);
   });
@@ -516,7 +573,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "shannon-rd:ht-1",
     });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.corp.deck[after.state.corp.deck.length - 1]).toBe("ht-1");
+    expect(after.state.corp.deck[after.state.corp.deck.length - 1]).toBe(
+      "ht-1",
+    );
   });
 
   it("Sensie Actors Union: adds 1 HQ card to the bottom of R&D", () => {
@@ -553,11 +612,20 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Magdalene Keino-Chemutai: may install a program discarded this turn", () => {
     const s = createInitialState();
-    put(s, "magdalene-keino-chemutai-cryptarchitect", "mag-1", "runner:installed");
+    put(
+      s,
+      "magdalene-keino-chemutai-cryptarchitect",
+      "mag-1",
+      "runner:installed",
+    );
     put(s, "corroder", "prog-1", "runner:heap");
     s.runner.discardPile = ["prog-1"];
     s.turn.runnerDiscardedToMaxHandIds = ["prog-1"];
-    runKind(s, "mag-1", "may_install_program_hardware_from_last_runner_discarded");
+    runKind(
+      s,
+      "mag-1",
+      "may_install_program_hardware_from_last_runner_discarded",
+    );
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids.length).toBeGreaterThan(1); // decline + the program
   });
@@ -610,7 +678,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       root: [],
     } as GameState["servers"][string];
     runKind(s, "mj-1", "derez_remote_ice");
-    const after = applyAction(s, { type: "choose_option", optionId: "derez:iw-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "derez:iw-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["iw-1"]?.rezzed).toBe(false);
   });
@@ -630,7 +701,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "corroder", "prog-1", "runner:installed");
     s.runner.installed = ["prog-1"];
     runKind(s, "holm-1", "trash_installed_icebreaker");
-    const after = applyAction(s, { type: "choose_option", optionId: "trash:prog-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trash:prog-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.discardPile).toContain("prog-1");
   });
@@ -688,7 +762,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.turn.rezzedThisTurnIds = ["iw-1"];
     s.runner.credits = 5;
     runKind(s, "rub-1", "derez_rezzed_this_turn");
-    const after = applyAction(s, { type: "choose_option", optionId: "derez:iw-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "derez:iw-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["iw-1"]?.rezzed).toBe(false);
     expect(after.state.runner.credits).toBe(4); // Ice Wall printed rez cost 1
@@ -697,14 +774,18 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Data Loop: Runner adds 2 grip cards to the top of the stack", () => {
     const s = createInitialState();
     put(s, "data-loop", "dl-1", "server:hq:ice");
-    for (const id of ["g1", "g2", "g3"]) put(s, "sure-gamble", id, "runner:hand");
+    for (const id of ["g1", "g2", "g3"])
+      put(s, "sure-gamble", id, "runner:hand");
     put(s, "sure-gamble", "top-0", "runner:stack");
     s.runner.hand = ["g1", "g2", "g3"];
     s.runner.deck = ["top-0"];
     runKind(s, "dl-1", "choose_n_grip_to_stack_top", { count: 2 });
     let after = applyAction(s, { type: "choose_option", optionId: "dl:g1" });
     if (!after.ok) throw new Error(after.error);
-    after = applyAction(after.state, { type: "choose_option", optionId: "dl:g2" });
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "dl:g2",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand).toEqual(["g3"]);
     expect(after.state.runner.deck.slice(0, 2)).toEqual(["g2", "g1"]);
@@ -739,7 +820,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "mammon", "mam-1", "runner:installed");
     s.runner.credits = 4;
     runKind(s, "mam-1", "spend_credits_place_power_counters");
-    const after = applyAction(s, { type: "choose_option", optionId: "mammon:3" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "mammon:3",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.credits).toBe(1);
     expect(after.state.cards["mam-1"]?.powerCounters).toBe(3);
@@ -748,13 +832,16 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Bloodletter: may trash the top 2 cards of the stack instead of a program", () => {
     const s = createInitialState();
     put(s, "bloodletter", "bl-1", "corp:play");
-    for (const id of ["t1", "t2", "t3"]) put(s, "sure-gamble", id, "runner:stack");
+    for (const id of ["t1", "t2", "t3"])
+      put(s, "sure-gamble", id, "runner:stack");
     s.runner.deck = ["t1", "t2", "t3"];
     runKind(s, "bl-1", "trash_program_or_top_2_stack");
     const after = applyAction(s, { type: "choose_option", optionId: "mill2" });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.deck).toEqual(["t3"]);
-    expect(after.state.runner.discardPile).toEqual(expect.arrayContaining(["t1", "t2"]));
+    expect(after.state.runner.discardPile).toEqual(
+      expect.arrayContaining(["t1", "t2"]),
+    );
   });
 
   it("Brain Rewiring: offers credit spends up to the Runner's grip size", () => {
@@ -775,7 +862,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.deck = ["prog-1"];
     s.runner.hand = [];
     runKind(s, "logos-1", "search_stack_take_to_grip");
-    const after = applyAction(s, { type: "choose_option", optionId: "st:prog-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "st:prog-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand).toEqual(["prog-1"]);
   });
@@ -815,7 +905,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(opt?.label).toContain("2×");
     const after = applyAction(s, { type: "choose_option", optionId: opt!.id });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.corp.hand).toEqual(expect.arrayContaining(["hf-1", "hf-2"]));
+    expect(after.state.corp.hand).toEqual(
+      expect.arrayContaining(["hf-1", "hf-2"]),
+    );
   });
 
   it("Executive Boot Camp: may rez an installed card at a discount", () => {
@@ -936,12 +1028,20 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.credits = 10;
     runKind(s, "ad-1", "accelerated_diagnostics");
     // The Corp may play the operation; the other looked cards are trashed.
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["play-looked:top-op", "play-looked:none"]);
-    const played = applyAction(s, { type: "choose_option", optionId: "play-looked:top-op" });
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "play-looked:top-op",
+      "play-looked:none",
+    ]);
+    const played = applyAction(s, {
+      type: "choose_option",
+      optionId: "play-looked:top-op",
+    });
     if (!played.ok) throw new Error(played.error);
     s = played.state;
     expect(s.corp.credits).toBeGreaterThan(10);
-    expect(s.corp.discardPile).toEqual(expect.arrayContaining(["top-2", "top-3"]));
+    expect(s.corp.discardPile).toEqual(
+      expect.arrayContaining(["top-2", "top-3"]),
+    );
     expect(s.corp.deck).toEqual(["bottom-1"]);
   });
 
@@ -1009,7 +1109,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(opt?.label).toBe("Reveal the top card of R&D");
     const r = evalEffect({ state: s, sourceId: "eq-1" }, opt!.effect);
     if (!r.ok) throw new Error(r.error);
-    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Hedge Fund"]);
+    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual([
+      "Hedge Fund",
+    ]);
   });
 
   it("deck orientation: Angel Arena reveals the top card and can move it to the bottom", () => {
@@ -1020,7 +1122,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.deck = ["top-1", "second-1"];
     runKind(s, "aa-1", "reveal_top_may_bottom");
     expect(s.cards["top-1"]?.faceup).toBe(true);
-    const after = applyAction(s, { type: "choose_option", optionId: "angel-bottom" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "angel-bottom",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.deck).toEqual(["second-1", "top-1"]);
   });
@@ -1124,7 +1229,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.deck = ["top-1", "top-2", "third-1"];
     s.turn.damageSufferedThisTurn = 2;
     runKind(s, "va-1", "trash_top_rd_equal_damage_suffered_this_turn");
-    expect(s.corp.discardPile).toEqual(expect.arrayContaining(["top-1", "top-2"]));
+    expect(s.corp.discardPile).toEqual(
+      expect.arrayContaining(["top-1", "top-2"]),
+    );
     expect(s.corp.deck).toEqual(["third-1"]);
   });
 
@@ -1160,9 +1267,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.discardPile = ["arch-1"];
     s.corp.deck = ["rd-1"];
     runKind(s, "wr-1", "trash_whampoa_hq_archives_to_rd_bottom");
-    const after = applyAction(s, { type: "choose_option", optionId: "rd:arch-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "rd:arch-1",
+    });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.corp.deck[after.state.corp.deck.length - 1]).toBe("arch-1");
+    expect(after.state.corp.deck[after.state.corp.deck.length - 1]).toBe(
+      "arch-1",
+    );
     expect(after.state.corp.discardPile).toEqual([]);
   });
 
@@ -1172,7 +1284,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "clone-chip", "hw-1", "runner:stack");
     s.runner.deck = ["hw-1"];
     s.runner.hand = [];
-    runKind(s, "ty-1", "search_stack_type_add_to_grip", { cardType: "hardware" });
+    runKind(s, "ty-1", "search_stack_type_add_to_grip", {
+      cardType: "hardware",
+    });
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "stack-type:hw-1",
@@ -1186,7 +1300,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "sealed-vault", "sv-1", "server:remote-1:root");
     s.corp.credits = 6;
     runKind(s, "sv-1", "sealed_vault_store_from_pool");
-    let after = applyAction(s, { type: "choose_option", optionId: "sealed-store:2" });
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sealed-store:2",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.credits).toBe(4);
     expect(after.state.cards["sv-1"]?.hostedCredits).toBe(2);
@@ -1328,7 +1445,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     if (!after.ok) throw new Error(after.error);
     after = applyAction(after.state, { type: "psi_corp_bid", amount: 2 });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.run?.endedTheRun ?? after.state.run === null).toBeTruthy();
+    expect(
+      after.state.run?.endedTheRun ?? after.state.run === null,
+    ).toBeTruthy();
 
     const s2 = createInitialState();
     put(s2, "caprice-nisei", "cap-1", "server:remote-1:root");
@@ -1439,8 +1558,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "o2-shortage", "o2-1", "corp:play");
     s.corp.clicks = 3;
-    runKind(s, "o2-1", "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks");
-    const after = applyAction(s, { type: "choose_option", optionId: "o2-decline" });
+    runKind(
+      s,
+      "o2-1",
+      "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks",
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "o2-decline",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.clicks).toBe(5);
   });
@@ -1462,7 +1588,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.hand = [];
     s.corp.credits = 3;
     runKind(s, "so-1", "trash_loop");
-    const after = applyAction(s, { type: "choose_option", optionId: "decline" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "decline",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.hand).toEqual(["rd-1"]);
     expect(after.state.corp.credits).toBe(8);
@@ -1480,7 +1609,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.tags = 2;
     runKind(s, "io-1", "trash_per_tag");
     // Runner chooses which installed cards to trash, one at a time.
-    let after = applyAction(s, { type: "choose_option", optionId: "io-trash:hw-1" });
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "io-trash:hw-1",
+    });
     if (!after.ok) throw new Error(after.error);
     after = applyAction(after.state, {
       type: "choose_option",
@@ -1558,8 +1690,18 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "edward-kim-humanitys-hammer", "runner-id", "runner:grip");
     s.runner.identityId = "runner-id";
     // Outside-game pile: Alice (same faction) + Andromeda (criminal — not offered).
-    put(s, "alice-merchant-clan-agitator", "alice-extra", RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE);
-    put(s, "andromeda-dispossessed-ristie", "andy-extra", RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE);
+    put(
+      s,
+      "alice-merchant-clan-agitator",
+      "alice-extra",
+      RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE,
+    );
+    put(
+      s,
+      "andromeda-dispossessed-ristie",
+      "andy-extra",
+      RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE,
+    );
     s.runner.additionalIdentities = ["alice-extra", "andy-extra"];
     put(s, "rebirth", "reb-1", "runner:heap");
     runKind(s, "reb-1", "rebirth_switch_identity_same_faction");
@@ -1568,7 +1710,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.runner.additionalIdentities).toContain("runner-id");
     expect(s.runner.additionalIdentities).toContain("andy-extra");
     expect(s.runner.additionalIdentities).not.toContain("alice-extra");
-    expect(s.cards["runner-id"]!.zone).toBe(RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE);
+    expect(s.cards["runner-id"]!.zone).toBe(
+      RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE,
+    );
     expect(s.log.some((l) => l.includes("Alice Merchant"))).toBe(true);
   });
 
@@ -1709,7 +1853,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "angel-arena", "aa-1", "runner:installed");
     s.runner.credits = 5;
     runKind(s, "aa-1", "place_x_counters");
-    const after = applyAction(s, { type: "choose_option", optionId: "angel-x:3" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "angel-x:3",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.credits).toBe(2);
     expect(after.state.cards["aa-1"]?.powerCounters).toBe(3);
@@ -1812,7 +1959,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.discardPile).toContain("prog-1");
-    expect((after.state.pendingChoice?.options.length ?? 0)).toBeGreaterThan(0);
+    expect(after.state.pendingChoice?.options.length ?? 0).toBeGreaterThan(0);
   });
 
   it("Clyde Van Rite: with no credits, the Runner must trash the top of the stack", () => {
@@ -1824,7 +1971,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "clyde-1", "pay_or_trash_top_stack");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toEqual(["trash-top"]);
-    const after = applyAction(s, { type: "choose_option", optionId: "trash-top" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trash-top",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.discardPile).toContain("top-1");
   });
@@ -1921,7 +2071,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Game Day: draws until the grip equals max hand size", () => {
     const s = createInitialState();
     put(s, "game-day", "gd-1", "runner:play");
-    for (let i = 0; i < 5; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    for (let i = 0; i < 5; i++)
+      put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3", "stk-4"];
     s.runner.hand = [];
     runKind(s, "gd-1", "draw_until_grip_equals_max_hand_size");
@@ -2133,7 +2284,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "corroder", "g1", "runner:hand");
     s.runner.hand = ["g1"];
     runKind(s, "apex-1", "install_from_grip_facedown");
-    const after = applyAction(s, { type: "choose_option", optionId: "apex-fd:g1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "apex-fd:g1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.installed).toContain("g1");
     expect(after.state.cards["g1"]?.faceup).toBe(false);
@@ -2142,7 +2296,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Hunting Grounds: installs the top 3 cards of the stack facedown", () => {
     const s = createInitialState();
     put(s, "hunting-grounds", "hg-1", "runner:play");
-    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    for (let i = 0; i < 4; i++)
+      put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3"];
     runKind(s, "hg-1", "install_top_n_of_stack_facedown", { amount: 3 });
     expect(s.runner.installed).toEqual(["stk-0", "stk-1", "stk-2"]);
@@ -2153,7 +2308,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Street Peddler: hosts the top 3 cards of the stack facedown", () => {
     const s = createInitialState();
     put(s, "street-peddler", "sp-1", "runner:installed");
-    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    for (let i = 0; i < 3; i++)
+      put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = ["stk-0", "stk-1", "stk-2"];
     runKind(s, "sp-1", "host_top_n_of_stack_facedown", { amount: 3 });
     expect(s.runner.deck).toEqual([]);
@@ -2183,7 +2339,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(zone).toMatch(/^server:remote-\d+:root$/);
     expect(after.state.cards["as-1"]?.faceup).toBe(false);
     expect(after.state.cards["as-1"]?.advancementCounters).toBe(3);
-    expect(after.state.cannotScoreOrRezUntilNextCorpTurnCardIds).toContain("as-1");
+    expect(after.state.cannotScoreOrRezUntilNextCorpTurnCardIds).toContain(
+      "as-1",
+    );
   });
 
   it("Artist Colony: searches the stack and installs a program, resource, or hardware", () => {
@@ -2414,7 +2572,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.servers["hq"].ice = ["iw-1"];
     runKind(s, "se-1", "social_engineering");
-    const after = applyAction(s, { type: "choose_option", optionId: "soc:iw-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "soc:iw-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.turn.socialEngineeringMarkedIce).toBe("iw-1");
   });
@@ -2480,7 +2641,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"].ice = ["iw-a"];
     s.servers["rd"].ice = ["iw-b"];
     runKind(s, "es-1", "derez_ice", { pick: "choose" });
-    const after = applyAction(s, { type: "choose_option", optionId: "derez:iw-b" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "derez:iw-b",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["iw-b"]?.rezzed).toBe(false);
     expect(after.state.cards["iw-a"]?.rezzed).toBe(true);
@@ -2513,7 +2677,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "sure-gamble", "top-1", "runner:stack");
     put(s, "sure-gamble", "bot-1", "runner:stack");
     s.runner.deck = ["top-1", "bot-1"];
-    runKind(s, "win-1", "draw_from_stack_bottom", { side: "runner", amount: 1 });
+    runKind(s, "win-1", "draw_from_stack_bottom", {
+      side: "runner",
+      amount: 1,
+    });
     expect(s.runner.hand).toContain("bot-1");
     expect(s.runner.deck).toEqual(["top-1"]);
   });
@@ -2599,9 +2766,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       root: ["hh-1"],
     } as GameState["servers"][string];
     s.run = { attackedServerId: "remote-1" } as GameState["run"];
-    runKind(s, "hh-1", "helheim_ice_protecting_this_server_strength_until_end_of_run", {
-      amount: 2,
-    });
+    runKind(
+      s,
+      "hh-1",
+      "helheim_ice_protecting_this_server_strength_until_end_of_run",
+      {
+        amount: 2,
+      },
+    );
     expect(s.run.helheimServerStrengthBonus?.["remote-1"]).toBe(2);
   });
 
@@ -2667,7 +2839,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as GameState["servers"][string];
     s.corp.hand = [];
     runKind(s, "rp-1", "add_installed_to_hq");
-    const after = applyAction(s, { type: "choose_option", optionId: "hq:as-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "hq:as-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.hand).toContain("as-1");
   });
@@ -2694,7 +2869,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.hand = ["g-0", "g-1", "g-2", "g-3"];
     for (let i = 0; i < 3; i++) put(s, "sure-gamble", `d-${i}`, "runner:stack");
     s.runner.deck = ["d-0", "d-1", "d-2"];
-    runKind(s, "hv-1", "draw_then_discard_down_to_hand_size", { drawAmount: 3 });
+    runKind(s, "hv-1", "draw_then_discard_down_to_hand_size", {
+      drawAmount: 3,
+    });
     expect(s.runner.hand).toHaveLength(7);
     // Discard an original grip card, not one of the just-drawn cards.
     let after = applyAction(s, {
@@ -2767,8 +2944,17 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Ashen Epilogue: removes the top 5 cards of the stack from the game", () => {
     const s = createInitialState();
     put(s, "ashen-epilogue", "ae-1", "runner:play");
-    for (let i = 0; i < 7; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
-    s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3", "stk-4", "stk-5", "stk-6"];
+    for (let i = 0; i < 7; i++)
+      put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    s.runner.deck = [
+      "stk-0",
+      "stk-1",
+      "stk-2",
+      "stk-3",
+      "stk-4",
+      "stk-5",
+      "stk-6",
+    ];
     runKind(s, "ae-1", "rfg_top_of_stack", { amount: 5 });
     expect(s.runner.deck).toEqual(["stk-5", "stk-6"]);
     expect(s.removedFromGame).toHaveLength(5);
@@ -2855,7 +3041,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.installed = ["inst-1"];
     s.runner.hand = [];
     runKind(s, "hj-1", "add_installed_non_virtual_runner_to_grip");
-    const after = applyAction(s, { type: "choose_option", optionId: "grip:inst-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "grip:inst-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand).toContain("inst-1");
   });
@@ -2868,7 +3057,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.setAside = ["sa-1", "sa-2"];
     s.runner.hand = [];
     runKind(s, "ayla-1", "ayla_set_aside_to_grip");
-    const after = applyAction(s, { type: "choose_option", optionId: "ayla:sa-2" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "ayla:sa-2",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand).toEqual(["sa-2"]);
     expect(after.state.runner.setAside).toEqual(["sa-1"]);
@@ -2937,7 +3129,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       root: ["as-1"],
     } as GameState["servers"][string];
     runKind(s, "db-1", "expose_and_trash_remote_root");
-    const after = applyAction(s, { type: "choose_option", optionId: "driveby:as-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "driveby:as-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.discardPile).toContain("as-1");
   });
@@ -2957,7 +3152,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const t = put(s, "project-beale", "ag-3", "remote:3:root");
     a.advancementCounters = 2;
     b.advancementCounters = 1;
-    for (const [n, id] of [[1, "ag-1"], [2, "ag-2"], [3, "ag-3"]] as const) {
+    for (const [n, id] of [
+      [1, "ag-1"],
+      [2, "ag-2"],
+      [3, "ag-3"],
+    ] as const) {
       s.servers[`remote-${n}`] = {
         id: `remote-${n}`,
         kind: "remote",
@@ -2966,7 +3165,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       } as GameState["servers"][string];
     }
     runKind(s, "rpc-1", "move_all_advancements");
-    const after = applyAction(s, { type: "choose_option", optionId: "move:ag-3" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "move:ag-3",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["ag-3"]?.advancementCounters).toBe(3);
     expect(after.state.cards["ag-1"]?.advancementCounters).toBe(0);
@@ -2979,7 +3181,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     src.advancementCounters = 2;
     put(s, "project-beale", "ag-1", "remote:2:root");
     put(s, "adonis-campaign", "as-1", "remote:3:root");
-    for (const [n, id] of [[1, "rc-1"], [2, "ag-1"], [3, "as-1"]] as const) {
+    for (const [n, id] of [
+      [1, "rc-1"],
+      [2, "ag-1"],
+      [3, "as-1"],
+    ] as const) {
       s.servers[`remote-${n}`] = {
         id: `remote-${n}`,
         kind: "remote",
@@ -2991,7 +3197,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toContain("rc:ag-1:2");
     expect(ids.some((id) => id.startsWith("rc:as-1"))).toBe(false);
-    const after = applyAction(s, { type: "choose_option", optionId: "rc:ag-1:2" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "rc:ag-1:2",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["ag-1"]?.advancementCounters).toBe(2);
     expect(after.state.cards["rc-1"]?.advancementCounters).toBe(0);
@@ -3002,7 +3211,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "builder", "bd-1", "server:hq:ice");
     s.servers["hq"].ice = ["bd-1"];
     runKind(s, "bd-1", "move_to_outermost");
-    const after = applyAction(s, { type: "choose_option", optionId: "builder:rd" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "builder:rd",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.servers["rd"].ice).toContain("bd-1");
     expect(after.state.servers["hq"].ice).toEqual([]);
@@ -3104,13 +3316,16 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "sure-gamble", "g-0", "runner:grip");
     put(s, "diesel", "g-1", "runner:grip");
     s.runner.hand = ["g-0", "g-1"];
-    for (let i = 0; i < 6; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    for (let i = 0; i < 6; i++)
+      put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = ["stk-0", "stk-1", "stk-2", "stk-3", "stk-4", "stk-5"];
     runKind(s, "bth-1", "shuffle_random_grip_into_stack", { count: 1 });
     expect(s.runner.hand).toHaveLength(1);
     expect(s.runner.deck).toHaveLength(7);
     expect(s.reveals?.at(-1)?.cards).toHaveLength(1);
-    expect(s.reveals?.at(-1)?.cards[0]?.title).toMatch(/^(Sure Gamble|Diesel)$/);
+    expect(s.reveals?.at(-1)?.cards[0]?.title).toMatch(
+      /^(Sure Gamble|Diesel)$/,
+    );
   });
 
   it("Daniela Jorge Inácio: the grip cards moved to the bottom of the stack are random", () => {
@@ -3119,7 +3334,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       const s = createInitialState();
       seedRng(s, seed);
       put(s, "daniela-jorge-inacio", "dan-1", "server:hq:root");
-      for (let i = 0; i < 4; i++) put(s, "sure-gamble", `g-${i}`, "runner:grip");
+      for (let i = 0; i < 4; i++)
+        put(s, "sure-gamble", `g-${i}`, "runner:grip");
       s.runner.hand = ["g-0", "g-1", "g-2", "g-3"];
       put(s, "sure-gamble", "stk-1", "runner:stack");
       s.runner.deck = ["stk-1"];
@@ -3147,7 +3363,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as GameState["servers"][string];
     s.corp.credits = 0;
     runKind(s, "lq-1", "trash_any_rezzed_gain_3_each");
-    const after = applyAction(s, { type: "choose_option", optionId: "liq:as-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "liq:as-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.discardPile).toContain("as-1");
     expect(after.state.corp.credits).toBe(3);
@@ -3178,7 +3397,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.installed = ["prog-1"];
     s.runner.hand = [];
     runKind(s, "un-1", "uninstall_program_or_hardware_to_grip");
-    const after = applyAction(s, { type: "choose_option", optionId: "uninst:prog-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "uninst:prog-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand).toContain("prog-1");
   });
@@ -3211,7 +3433,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"].ice = ["iw-a"];
     s.servers["rd"].ice = ["iw-b"];
     runKind(s, "ex-1", "derez_up_to_ice", { max: 3 });
-    let after = applyAction(s, { type: "choose_option", optionId: "derez:iw-a" });
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "derez:iw-a",
+    });
     if (!after.ok) throw new Error(after.error);
     after = applyAction(after.state, {
       type: "choose_option",
@@ -3290,7 +3515,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "bfh-1", "derez_ice_rez_cost_lte_x");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toEqual(["derez:iw-1"]);
-    const after = applyAction(s, { type: "choose_option", optionId: "derez:iw-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "derez:iw-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["iw-1"]?.rezzed).toBe(false);
   });
@@ -3307,7 +3535,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     let after = applyAction(s, { type: "choose_option", optionId: "fao:iw-b" });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.pendingChoice?.chooser).toBe("corp");
-    after = applyAction(after.state, { type: "choose_option", optionId: "fao-trash" });
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "fao-trash",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.discardPile).toContain("iw-b");
     expect(after.state.corp.credits).toBe(5);
@@ -3320,7 +3551,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"].ice = ["iw-a"];
     s.corp.credits = 5;
     runKind(s, "fao-1", "forged_activation_orders");
-    const after = applyAction(s, { type: "choose_option", optionId: "fao-rez" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "fao-rez",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["iw-a"]?.rezzed).toBe(true);
     expect(after.state.corp.credits).toBe(5 - (ice.rezCost ?? 0));
@@ -3333,7 +3567,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       attackedServerId: "hq",
     } as GameState["run"];
     runKind(s, "st-1", "fortify_ice", { amount: 5 });
-    expect(lingeringIceStrengthOfKind(s, "st-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(5);
+    expect(
+      lingeringIceStrengthOfKind(
+        s,
+        "st-1",
+        LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(5);
   });
 
   it("Replanting: installs 2 cards from HQ ignoring all costs", () => {
@@ -3348,7 +3588,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "ice:iw-1:hq",
     });
     if (!after.ok) throw new Error(after.error);
-    after = applyAction(after.state, { type: "choose_option", optionId: "root:as-1" });
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "root:as-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.servers["hq"].ice).toContain("iw-1");
     expect(after.state.corp.hand).toEqual([]);
@@ -3462,7 +3705,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const label = s.pendingChoice?.options[0]?.label ?? "";
     // Project Beale is 2 points faceup; the scored Hostile Takeover (1) must not count.
     expect(label).toContain("Place 2 advancement");
-    const after = applyAction(s, { type: "choose_option", optionId: "sso:iw-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "sso:iw-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["iw-1"]?.advancementCounters).toBe(2);
   });
@@ -3518,7 +3764,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "la-1", "install_and_rez_asset_or_upgrade_free");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     // "You may": the Corp can pick either card or none.
-    expect(ids).toEqual(["choose-card:as-1", "choose-card:as-2", "choose-cards-done"]);
+    expect(ids).toEqual([
+      "choose-card:as-1",
+      "choose-card:as-2",
+      "choose-cards-done",
+    ]);
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "choose-card:as-2",
@@ -3528,7 +3778,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.cards["as-2"]?.rezzed).toBe(true);
     expect(after.state.cards["as-2"]?.zone).toMatch(/^server:remote-\d+:root$/);
     expect(after.state.corp.hand).toContain("as-1");
-    const none = applyAction(s, { type: "choose_option", optionId: "choose-cards-done" });
+    const none = applyAction(s, {
+      type: "choose_option",
+      optionId: "choose-cards-done",
+    });
     if (!none.ok) throw new Error(none.error);
     expect(none.state.corp.discardPile).toContain("as-2");
   });
@@ -3567,7 +3820,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toContain("bran:iw-a");
     expect(ids).toContain("decline");
-    const after = applyAction(s, { type: "choose_option", optionId: "bran:iw-a" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "bran:iw-a",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.servers["hq"].ice).toEqual(["bran-1", "iw-a"]);
     expect(after.state.corp.discardPile).toEqual([]);
@@ -3649,7 +3905,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       root: ["ct-1", "ag-1"],
     } as GameState["servers"][string];
     runKind(s, "ct-1", "place_advancement_on_root_of_this_server");
-    const after = applyAction(s, { type: "choose_option", optionId: "cal:ag-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "cal:ag-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["ag-1"]?.advancementCounters).toBe(1);
   });
@@ -3673,7 +3932,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "ps-1", "power_shutdown");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toContain("trash-7"); // "any number" is not capped at 5
-    const after = applyAction(s, { type: "choose_option", optionId: "trash-2" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trash-2",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.deck).toHaveLength(5);
     expect(after.state.corp.discardPile).toHaveLength(2);
@@ -3688,7 +3950,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.hand = ["grip-1", "grip-2", "grip-3"];
     s.turn.lastTraceExcess = 2;
     runKind(s, "iop-1", "invasion_of_privacy_success");
-    let after = applyAction(s, { type: "choose_option", optionId: "trash:grip-1" });
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "trash:grip-1",
+    });
     if (!after.ok) throw new Error(after.error);
     after = applyAction(after.state, {
       type: "choose_option",
@@ -3835,7 +4100,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const b = put(s, "corroder", "v-2", "runner:installed");
     a.virusCounters = 2;
     b.virusCounters = 1;
-    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `stk-${i}`, "runner:stack");
+    for (let i = 0; i < 3; i++)
+      put(s, "sure-gamble", `stk-${i}`, "runner:stack");
     s.runner.deck = ["stk-0", "stk-1", "stk-2"];
     runKind(s, "ri-1", "cotc_reverse_infection_purge");
     expect(s.cards["v-1"]?.virusCounters).toBe(0);
@@ -3875,7 +4141,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.discardPile = ["arch-1", "arch-2"];
     s.corp.hand = [];
     runKind(s, "dc-1", "add_facedown_archives_to_hq_per_advancement");
-    let after = applyAction(s, { type: "choose_option", optionId: "hq:arch-1" });
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "hq:arch-1",
+    });
     if (!after.ok) throw new Error(after.error);
     after = applyAction(after.state, {
       type: "choose_option",
@@ -3920,7 +4189,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "daily-casts", "res-1", "runner:installed");
     s.runner.installed = ["res-1"];
     runKind(s, "mz-1", "choose_malia_resource");
-    const after = applyAction(s, { type: "choose_option", optionId: "malia:res-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "malia:res-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["mz-1"]?.tdatdMaliaBlankTargetId).toBe("res-1");
   });
@@ -4030,7 +4302,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.cards["hst-1"]!.hostId = "ap-1";
     s.runner.hand = [];
     runKind(s, "ap-1", "may_add_hosted_card_to_grip");
-    const after = applyAction(s, { type: "choose_option", optionId: "grip:hst-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "grip:hst-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand).toContain("hst-1");
   });
@@ -4057,7 +4332,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     src.agendaCounters = 3;
     s.runner.clicks = 4;
     runKind(s, "vmi-1", "may_spend_voting_machine_lose_click");
-    const after = applyAction(s, { type: "choose_option", optionId: "vmi:spend" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "vmi:spend",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.clicks).toBe(3);
     expect(after.state.cards["vmi-1"]?.agendaCounters).toBe(2);
@@ -4094,7 +4372,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     if (!after.ok) throw new Error(after.error);
     const opt = after.state.pendingChoice?.options[0];
     if (!opt) throw new Error("expected a trash choice among programs");
-    after = applyAction(after.state, { type: "choose_option", optionId: opt.id });
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: opt.id,
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.discardPile).toHaveLength(1);
     expect(after.state.runner.hand).toHaveLength(2);
@@ -4111,9 +4392,18 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "nre-1", "net_ready_eyes_choose_icebreaker_strength", {
       amount: 1,
     });
-    const after = applyAction(s, { type: "choose_option", optionId: "nre:br-2" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "nre:br-2",
+    });
     if (!after.ok) throw new Error(after.error);
-    expect(lingeringBreakerStrengthOfKind(after.state, "br-2", LINGERING_KIND_BREAKER_STRENGTH_RUN)).toBe(1);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        after.state,
+        "br-2",
+        LINGERING_KIND_BREAKER_STRENGTH_RUN,
+      ),
+    ).toBe(1);
   });
 
   it("Herald: may pay up to 2 credits to place that many advancements", () => {
@@ -4154,7 +4444,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       root: ["ag-1"],
     } as GameState["servers"][string];
     runKind(s, "pf-1", "place_advancement_cannot_score_until_next_turn");
-    const after = applyAction(s, { type: "choose_option", optionId: "pad-adv:ag-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "pad-adv:ag-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["ag-1"]?.advancementCounters).toBe(1);
     expect(after.state.turn.cannotScoreOrRezCardIds).toContain("ag-1");
@@ -4166,8 +4459,15 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const adv = put(s, "ice-wall", "si-1", "server:hq:ice");
     adv.canAdvance = true;
     s.servers["hq"].ice = ["bd-1", "si-1"];
-    runKind(s, "bd-1", "place_advancement_on_advanceable_ice_protecting_this_server");
-    const after = applyAction(s, { type: "choose_option", optionId: "badv:si-1" });
+    runKind(
+      s,
+      "bd-1",
+      "place_advancement_on_advanceable_ice_protecting_this_server",
+    );
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "badv:si-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["si-1"]?.advancementCounters).toBe(1);
   });
@@ -4179,9 +4479,18 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.installed = ["tk-1", "br-1"];
     s.run = { attackedServerId: "hq" } as GameState["run"];
     runKind(s, "tk-1", "pump_takobi_breaker", { amount: 3 });
-    const after = applyAction(s, { type: "choose_option", optionId: "takobi:br-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "takobi:br-1",
+    });
     if (!after.ok) throw new Error(after.error);
-    expect(lingeringBreakerStrengthOfKind(after.state, "br-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(3);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        after.state,
+        "br-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(3);
   });
 
   it("Mandatory Seed Replacement: rearranges ice across servers (CR 8.3.1)", () => {
@@ -4198,7 +4507,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     let after = { ok: true as const, state: s };
     while (
       after.state.pendingChoice?.options.some(
-        (o) => o.id === "msr-server-done:hq" || o.id.startsWith("msr-server-done:"),
+        (o) =>
+          o.id === "msr-server-done:hq" || o.id.startsWith("msr-server-done:"),
       ) &&
       !after.state.pendingChoice.options.some((o) =>
         o.id.startsWith("msr-ice:rd:"),
@@ -4218,7 +4528,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     }
     // On R&D: place Enigma then Ice Wall (sole remainder auto-places).
     expect(
-      after.state.pendingChoice?.options.some((o) => o.id === "msr-ice:rd:en-1"),
+      after.state.pendingChoice?.options.some(
+        (o) => o.id === "msr-ice:rd:en-1",
+      ),
     ).toBe(true);
     let next = applyAction(after.state, {
       type: "choose_option",
@@ -4490,13 +4802,20 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     if (!r.ok) throw new Error(r.error);
     expect(s.trace).toBeFalsy();
     // HQ is shown to both players and its cards are not turned faceup (CR 1.21.3).
-    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Hedge Fund"]);
+    expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual([
+      "Hedge Fund",
+    ]);
     expect(s.cards["hf-1"]?.faceup).toBe(false);
   });
 
   it("Jemison Astronautics: forfeiting places X+1 advancements on an advanceable card", () => {
     const s = createInitialState();
-    put(s, "jemison-astronautics-sacrifice-audacity-success", "jem-1", "corp:identity");
+    put(
+      s,
+      "jemison-astronautics-sacrifice-audacity-success",
+      "jem-1",
+      "corp:identity",
+    );
     s.corp.identityId = "jem-1";
     put(s, "nisei-mk-ii", "nisei-1", "server:remote-1:root");
     s.servers["remote-1"] = {
@@ -4627,7 +4946,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Rolodex: looks at the top 5 cards of the stack to arrange them", () => {
     const s = createInitialState();
     put(s, "rolodex", "rx-1", "runner:installed");
-    for (let i = 0; i < 5; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    for (let i = 0; i < 5; i++)
+      put(s, "sure-gamble", `sg-${i}`, "runner:stack");
     s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3", "sg-4"];
     runKind(s, "rx-1", "look_top_n_stack_arrange", { n: 5 });
     expect(s.turn.ohStackLookedCards).toHaveLength(5);
@@ -4639,7 +4959,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "spy-camera", "cam-1", "runner:installed");
     put(s, "spy-camera", "cam-2", "runner:installed");
     s.runner.installed = ["cam-1", "cam-2"];
-    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    for (let i = 0; i < 4; i++)
+      put(s, "sure-gamble", `sg-${i}`, "runner:stack");
     s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3"];
     runKind(s, "cam-1", "look_top_x_stack_arrange");
     expect(s.turn.ohStackLookedCards).toHaveLength(2);
@@ -4752,8 +5073,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as unknown as GameState["run"];
     runKind(s, "mat-1", "break_matryoshka");
     expect(s.pendingChoice?.chooser).toBe("runner");
-    const opt = s.pendingChoice!.options.find((o) =>
-      o.id.includes("2") || o.label.includes("2"),
+    const opt = s.pendingChoice!.options.find(
+      (o) => o.id.includes("2") || o.label.includes("2"),
     );
     expect(opt).toBeTruthy();
     const after = applyAction(s, {
@@ -5226,7 +5547,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "pad-campaign", "pad-2", "corp:archives");
     s.corp.discardPile = ["pad-1", "pad-2"];
     s.corp.credits = 20;
-    runKind(s, "res-1", "install_and_rez_from_archives_paying_costs_rfg_other_copies");
+    runKind(
+      s,
+      "res-1",
+      "install_and_rez_from_archives_paying_costs_rfg_other_copies",
+    );
     expect(s.pendingChoice?.chooser).toBe("corp");
     const opt = s.pendingChoice!.options.find((o) =>
       o.id.startsWith("restore:pad-1:"),
@@ -5273,9 +5598,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.hand = ["iw-1"];
     runKind(s, "asa-1", "install_asa_non_agenda_same_server");
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(
-      s.pendingChoice?.options.some((o) => o.id.includes("iw-1")),
-    ).toBe(true);
+    expect(s.pendingChoice?.options.some((o) => o.id.includes("iw-1"))).toBe(
+      true,
+    );
   });
 
   it("Worlds Plaza: installs and rezzes an asset from HQ with a rez discount", () => {
@@ -5418,9 +5743,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "fihp-1", "install_up_to_n_from_archives_paying", { max: 2 });
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((o) => o.id)).toContain("done");
-    expect(
-      s.pendingChoice?.options.some((o) => o.id.includes("pad-1")),
-    ).toBe(true);
+    expect(s.pendingChoice?.options.some((o) => o.id.includes("pad-1"))).toBe(
+      true,
+    );
   });
 
   it("Black Hat: arms +2 access on HQ/R&D breaches for the remainder of the turn", () => {
@@ -5476,7 +5801,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Express Delivery: adds one of the top N stack cards to the grip and shuffles", () => {
     const s = createInitialState();
     put(s, "express-delivery", "ed-1", "runner:play-area");
-    for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    for (let i = 0; i < 4; i++)
+      put(s, "sure-gamble", `sg-${i}`, "runner:stack");
     s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3"];
     s.runner.hand = [];
     runKind(s, "ed-1", "look_top_n_stack_add_one_to_grip_shuffle", { n: 4 });
@@ -5493,7 +5819,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Making an Entrance: looks at the top 6 of the stack to trash any and arrange the rest", () => {
     const s = createInitialState();
     put(s, "making-an-entrance", "mae-1", "runner:play-area");
-    for (let i = 0; i < 6; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    for (let i = 0; i < 6; i++)
+      put(s, "sure-gamble", `sg-${i}`, "runner:stack");
     s.runner.deck = ["sg-0", "sg-1", "sg-2", "sg-3", "sg-4", "sg-5"];
     runKind(s, "mae-1", "look_top_n_stack_trash_any_arrange_rest", { n: 6 });
     expect(s.turn.siStackLookedCards).toHaveLength(6);
@@ -5571,9 +5898,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.discardPile = ["iw-1"];
     runKind(s, "ng-1", "may_flip_archives_ice_resolve_subroutine");
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(s.pendingChoice?.options.some((o) => o.id.startsWith("flip:iw-1:"))).toBe(
-      true,
-    );
+    expect(
+      s.pendingChoice?.options.some((o) => o.id.startsWith("flip:iw-1:")),
+    ).toBe(true);
   });
 
   it("Crowdfunding: may install from heap after enough successful runs", () => {
@@ -5595,9 +5922,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "ts-1", "may_install_from_hq_or_archives_ignore_costs");
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((o) => o.id)).toContain("decline-ts");
-    expect(
-      s.pendingChoice?.options.some((o) => o.id.includes("pad-1")),
-    ).toBe(true);
+    expect(s.pendingChoice?.options.some((o) => o.id.includes("pad-1"))).toBe(
+      true,
+    );
   });
 
   it("Bloom: may install ice from HQ inward of itself ignoring costs", () => {
@@ -5610,7 +5937,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       attackedServerId: "hq",
       encounter: { iceId: "bloom-1", broken: [] },
     } as unknown as GameState["run"];
-    runKind(s, "bloom-1", "may_install_ice_from_hq_inward_of_source_ignore_costs");
+    runKind(
+      s,
+      "bloom-1",
+      "may_install_ice_from_hq_inward_of_source_ignore_costs",
+    );
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
       expect.arrayContaining(["decline", "inward:iw-1"]),
     );
@@ -5706,7 +6037,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.credits).toBe(3);
     // Shown to both players, then hidden again in HQ (CR 1.21.3, CR 1.21.1a).
-    expect(after.state.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Hedge Fund"]);
+    expect(
+      after.state.reveals?.at(-1)?.cards.map((card) => card.title),
+    ).toEqual(["Hedge Fund"]);
     expect(after.state.cards["hf-drawn"]?.faceup).toBe(false);
     // The offer did not name the card the Runner had not yet seen.
     expect(JSON.stringify(s.pendingChoice)).not.toContain("Hedge Fund");
@@ -5769,7 +6102,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Mumbad Construction Co.: moves 1 advancement to a faceup card", () => {
     const s = createInitialState();
-    const mcc = put(s, "mumbad-construction-co", "mcc-1", "server:remote-1:root");
+    const mcc = put(
+      s,
+      "mumbad-construction-co",
+      "mcc-1",
+      "server:remote-1:root",
+    );
     mcc.advancementCounters = 2;
     mcc.rezzed = true;
     const agenda = put(s, "nisei-mk-ii", "nisei-1", "server:remote-2:root");
@@ -5856,9 +6194,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.credits = 10;
     runKind(s, "sol-1", "play_current_from_hq_or_archives");
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(s.pendingChoice?.options.some((o) => o.id === "play-current:cur-1")).toBe(
-      true,
-    );
+    expect(
+      s.pendingChoice?.options.some((o) => o.id === "play-current:cur-1"),
+    ).toBe(true);
   });
 
   it("Planned Assault: plays a run event from the stack (paying its cost)", () => {
@@ -5870,7 +6208,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.credits = 5;
     runKind(s, "pa-1", "play_run_event_from_stack");
     expect(s.pendingChoice?.options.some((o) => o.id === "pa:as-1")).toBe(true);
-    const after = applyAction(s, { type: "choose_option", optionId: "pa:as-1" });
+    const after = applyAction(s, {
+      type: "choose_option",
+      optionId: "pa:as-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.deck).not.toContain("as-1");
     expect(after.state.runner.discardPile).not.toContain("as-1");
@@ -5955,7 +6296,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("On the Lam: prevent_tags_or_damage offers tag or damage prevention", () => {
     const s = createInitialState();
     put(s, "on-the-lam", "otl-1", "runner:installed");
-    s.pendingTags = { remaining: 2, sourceId: "corp" } as GameState["pendingTags"];
+    s.pendingTags = {
+      remaining: 2,
+      sourceId: "corp",
+    } as GameState["pendingTags"];
     s.pendingDamage = {
       type: "meat",
       remaining: 2,
@@ -6001,7 +6345,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as unknown as GameState["run"];
     s.turn.stealthCreditsOnLastPaidAbility = 0;
     runKind(s, "bk-1", "pump_blackat_strength");
-    expect(lingeringBreakerStrengthOfKind(s, "bk-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(1);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "bk-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(1);
 
     const s2 = createInitialState();
     put(s2, "blackat", "bk-2", "runner:installed");
@@ -6012,7 +6362,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as unknown as GameState["run"];
     s2.turn.stealthCreditsOnLastPaidAbility = 1;
     runKind(s2, "bk-2", "pump_blackat_strength");
-    expect(lingeringBreakerStrengthOfKind(s2, "bk-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s2,
+        "bk-2",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(2);
   });
 
   it("Reeducation: reeducation_hq_bottom_rd_draw_runner_grip_to_stack offers HQ picks", () => {
@@ -6118,7 +6474,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     let t = choose(s, "choose-card:hq-1");
     t = choose(t, "choose-card:hq-2");
     expect(t.corp.hand).toEqual([]);
-    expect(t.corp.discardPile).toEqual(expect.arrayContaining(["hq-1", "hq-2"]));
+    expect(t.corp.discardPile).toEqual(
+      expect.arrayContaining(["hq-1", "hq-2"]),
+    );
     // "Reveal up to 2 facedown cards in Archives": the Corp picks, and the
     // cards just trashed are among the facedown cards on offer.
     expect(t.pendingChoice?.options.map((o) => o.id).sort()).toEqual([
@@ -6153,7 +6511,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "hostile-takeover", "fa-1", "corp:archives").faceup = false;
     s.corp.discardPile.push("fa-1");
     s.corp.deck = [];
-    runKind(s, "mp-1", "resolve_moon_pool", { trashHqMax: 2, revealArchivesMax: 2 });
+    runKind(s, "mp-1", "resolve_moon_pool", {
+      trashHqMax: 2,
+      revealArchivesMax: 2,
+    });
     let t = choose(s, "choose-cards-done");
     expect(t.corp.hand).toEqual(["hq-1", "hq-2"]);
     t = choose(t, "choose-cards-done");
@@ -6174,13 +6535,21 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     }
     seedRng(s, 7);
     const before = s.rngState;
-    runKind(s, "mp-1", "resolve_moon_pool", { trashHqMax: 2, revealArchivesMax: 2 });
+    runKind(s, "mp-1", "resolve_moon_pool", {
+      trashHqMax: 2,
+      revealArchivesMax: 2,
+    });
     expect(s.cards["mp-1"]?.zone).toBe("removed-from-game");
     expect(s.pendingChoice ?? null).toBeNull();
     expect(s.rngState).not.toBe(before);
-    expect([...s.corp.deck].sort()).toEqual(
-      ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4", "rd-5"],
-    );
+    expect([...s.corp.deck].sort()).toEqual([
+      "rd-0",
+      "rd-1",
+      "rd-2",
+      "rd-3",
+      "rd-4",
+      "rd-5",
+    ]);
   });
 
   it("Moon Pool: the counter may go on any installed card (CR 1.18.2)", () => {
@@ -6200,7 +6569,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as GameState["servers"][string];
     put(s, "corroder", "prog-1", "runner:installed");
     s.runner.installed = ["prog-1"];
-    runKind(s, "mp-1", "resolve_moon_pool", { trashHqMax: 2, revealArchivesMax: 2 });
+    runKind(s, "mp-1", "resolve_moon_pool", {
+      trashHqMax: 2,
+      revealArchivesMax: 2,
+    });
     let t = choose(s, "choose-card:fa-1");
     if (t.pendingChoice?.options.some((o) => o.id === "choose-cards-done")) {
       t = choose(t, "choose-cards-done");
@@ -6383,7 +6755,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       attackedServerId: "hq",
       accessedCardIds: [],
     } as unknown as GameState["run"];
-    runKind(s, "mb-1", "resolve_subroutine_on_rezzed_ice_protecting_this_server");
+    runKind(
+      s,
+      "mb-1",
+      "resolve_subroutine_on_rezzed_ice_protecting_this_server",
+    );
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["batty:iw-1:0"]);
     const after = applyAction(s, {
@@ -6391,7 +6767,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "batty:iw-1:0",
     });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.run?.endedTheRun ?? after.state.run === null).toBeTruthy();
+    expect(
+      after.state.run?.endedTheRun ?? after.state.run === null,
+    ).toBeTruthy();
   });
 
   it("Tempus: offers lose two clicks or suffer 1 core damage", () => {
@@ -6533,7 +6911,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "reveal:ht-1",
     });
     if (!after.ok) throw new Error(after.error);
-    expect(after.state.run?.forbidStealTrashTitles).toContain("Hostile Takeover");
+    expect(after.state.run?.forbidStealTrashTitles).toContain(
+      "Hostile Takeover",
+    );
   });
 
   it("Plan B: offers to score an HQ agenda with requirement ≤ its advancements", () => {
@@ -6673,7 +7053,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"]!.ice = ["eli-1"];
     s.corp.credits = 0;
     runKind(s, "sna-1", "rez_sensor_net_bioroid_ignoring_costs_derez_turn_end");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["sensor-net:eli-1"]);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "sensor-net:eli-1",
+    ]);
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "sensor-net:eli-1",
@@ -6775,7 +7157,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.deck = ["sg-1", "ds-1", "prog-1"];
     s.runner.credits = 5;
     runKind(s, "kw-1", "search_kabonesa_install");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["kabonesa:prog-1"]);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "kabonesa:prog-1",
+    ]);
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "kabonesa:prog-1",
@@ -6966,9 +7350,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.deck = ["rd-0"];
     runKind(s, "jb-1", "shuffle_jinteki_biotech_archives_into_rd");
     expect(s.corp.discardPile).toEqual([]);
-    expect(s.corp.deck).toEqual(
-      expect.arrayContaining(["rd-0", "a-1", "a-2"]),
-    );
+    expect(s.corp.deck).toEqual(expect.arrayContaining(["rd-0", "a-1", "a-2"]));
     expect(s.corp.deck).toHaveLength(3);
     expect(s.cards["a-1"]?.zone).toBe("corp:rd");
     expect(s.cards["a-1"]?.faceup).toBe(false);
@@ -7047,9 +7429,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.installed = ["back-1"];
     s.runner.discardPile = ["sot-1", "fg-1", "sg-heap"];
     s.runner.deck = ["stk-0"];
-    runKind(s, "back-1", "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack", {
-      nPerPowerCounter: 2,
-    });
+    runKind(
+      s,
+      "back-1",
+      "shuffle_up_to_n_heap_cards_with_trash_abilities_into_stack",
+      {
+        nPerPowerCounter: 2,
+      },
+    );
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
       expect.arrayContaining([
         "heap-trash-done",
@@ -7109,7 +7496,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "cobra-1", broken: [false, false, false] },
     } as unknown as GameState["run"];
     runKind(s, "mk-1", "spend_mkultra_pump_and_break");
-    expect(lingeringBreakerStrengthOfKind(s, "mk-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "mk-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(2);
     expect(s.run?.encounter?.broken).toEqual([true, true, false]);
 
     const s2 = createInitialState();
@@ -7122,7 +7515,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "hun-1", broken: [false, false] },
     } as unknown as GameState["run"];
     runKind(s2, "mk-2", "spend_mkultra_pump_and_break");
-    expect(lingeringBreakerStrengthOfKind(s2, "mk-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s2,
+        "mk-2",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(2);
     expect(s2.run?.encounter?.broken).toEqual([false, false]);
   });
 
@@ -7138,7 +7537,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "en-1", broken: [false, false] },
     } as unknown as GameState["run"];
     runKind(s, "bo-1", "spend_pump_and_break");
-    expect(lingeringBreakerStrengthOfKind(s, "bo-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s,
+        "bo-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(2);
     expect(s.run?.encounter?.broken).toEqual([true, true]);
 
     const s2 = createInitialState();
@@ -7151,7 +7556,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "tb-1", broken: [false, false] },
     } as unknown as GameState["run"];
     runKind(s2, "bo-2", "spend_pump_and_break");
-    expect(lingeringBreakerStrengthOfKind(s2, "bo-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        s2,
+        "bo-2",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(2);
     expect(s2.run?.encounter?.broken).toEqual([false, false]);
   });
 
@@ -7219,7 +7630,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "wos-1", broken: [false, false] },
     } as unknown as GameState["run"];
     runKind(s, "pc-1", "spend_x_pump_and_break");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("paperclip-x:2");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain(
+      "paperclip-x:2",
+    );
     // str 1+2=3 == ice 3 — interfaces and breaks up to 2.
     const after = applyAction(s, {
       type: "choose_option",
@@ -7227,7 +7640,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.credits).toBe(3);
-    expect(lingeringBreakerStrengthOfKind(after.state, "pc-1", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        after.state,
+        "pc-1",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(2);
     expect(after.state.run?.encounter?.broken).toEqual([true, true]);
 
     const s2 = createInitialState();
@@ -7247,7 +7666,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       optionId: "paperclip-x:2",
     });
     if (!after2.ok) throw new Error(after2.error);
-    expect(lingeringBreakerStrengthOfKind(after2.state, "pc-2", LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER)).toBe(2);
+    expect(
+      lingeringBreakerStrengthOfKind(
+        after2.state,
+        "pc-2",
+        LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(2);
     expect(after2.state.run?.encounter?.broken).toEqual([false, false]);
   });
 
@@ -7767,7 +8192,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       pendingInterruptIds: [],
     };
     runKind(s, "db-1", "trash_grip_same_type_prevent");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["dummy:grip-hw"]);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "dummy:grip-hw",
+    ]);
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "dummy:grip-hw",
@@ -7865,7 +8292,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.credits = 5;
     runKind(s, "reuse-1", "trash_hq_gain_credits");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
-      expect.arrayContaining(["reuse-trash:hq-0", "reuse-trash:hq-1", "reuse-done"]),
+      expect.arrayContaining([
+        "reuse-trash:hq-0",
+        "reuse-trash:hq-1",
+        "reuse-done",
+      ]),
     );
     let after = applyAction(s, {
       type: "choose_option",
@@ -7983,7 +8414,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "plascrete-carapace", "neutral-1", "runner:installed"); // matches neutral ID
     s.runner.installed = ["anarch-1", "neutral-1"];
     runKind(s, "el-1", "trash_installed_not_matching_runner_identity_faction");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["trash:anarch-1"]);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "trash:anarch-1",
+    ]);
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "trash:anarch-1",
@@ -8049,7 +8482,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     expect(s.runner.hand).toEqual([]);
     expect(s.runner.discardPile).toContain("grip-1");
-    expect(lingeringIceStrengthOfKind(s, "iw-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(-2);
+    expect(
+      lingeringIceStrengthOfKind(
+        s,
+        "iw-1",
+        LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(-2);
   });
 
   it("Cold Read: trashes 1 program used this run and cannot be prevented", () => {
@@ -8314,7 +8753,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.credits).toBe(1);
-    expect(lingeringIceStrengthOfKind(after.state, "iw-1", LINGERING_KIND_ICE_STRENGTH)).toBe(3);
+    expect(
+      lingeringIceStrengthOfKind(
+        after.state,
+        "iw-1",
+        LINGERING_KIND_ICE_STRENGTH,
+      ),
+    ).toBe(3);
   });
 
   it("Apocalypse: turns all installed Runner cards facedown", () => {
@@ -8518,15 +8963,22 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "independent-thinking", "it-1", "runner:play");
     put(s, "corroder", "prog-1", "runner:installed");
-    for (let i = 0; i < 3; i++) put(s, "sure-gamble", `sg-${i}`, "runner:stack");
+    for (let i = 0; i < 3; i++)
+      put(s, "sure-gamble", `sg-${i}`, "runner:stack");
     s.runner.installed = ["prog-1"];
     s.runner.deck = ["sg-0", "sg-1", "sg-2"];
     s.runner.hand = [];
     runKind(s, "it-1", "trash_draw");
-    let after = applyAction(s, { type: "choose_option", optionId: "it:prog-1" });
+    let after = applyAction(s, {
+      type: "choose_option",
+      optionId: "it:prog-1",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.discardPile).toContain("prog-1");
-    after = applyAction(after.state, { type: "choose_option", optionId: "it-done" });
+    after = applyAction(after.state, {
+      type: "choose_option",
+      optionId: "it-done",
+    });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand.length).toBe(1);
   });

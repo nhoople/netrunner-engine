@@ -14,8 +14,15 @@ beforeAll(() => {
 
 describe("public view advancement counters", () => {
   it("shows the count on a facedown agenda to both seats and hides the face from the Runner", () => {
-    const state = createGame({ stopAfterFirstCycle: false, agendaPointsToWin: 7 });
-    const agenda = instantiateCard("hostile-takeover", "ht-1", "server:remote-1:root");
+    const state = createGame({
+      stopAfterFirstCycle: false,
+      agendaPointsToWin: 7,
+    });
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:remote-1:root",
+    );
     agenda.advancementCounters = 2;
     agenda.hostedCredits = 3;
     agenda.rezzed = false;
@@ -28,8 +35,12 @@ describe("public view advancement counters", () => {
       root: ["ht-1"],
     };
 
-    const corp = getPublicView(state, "corp").servers.find((server) => server.id === "remote-1");
-    const runner = getPublicView(state, "runner").servers.find((server) => server.id === "remote-1");
+    const corp = getPublicView(state, "corp").servers.find(
+      (server) => server.id === "remote-1",
+    );
+    const runner = getPublicView(state, "runner").servers.find(
+      (server) => server.id === "remote-1",
+    );
     expect(corp?.root[0]).toMatchObject({
       title: "Hostile Takeover",
       advancementCounters: 2,

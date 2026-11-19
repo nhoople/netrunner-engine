@@ -27,7 +27,11 @@ function must(state: GameState, action: Action): GameState {
   return r.state;
 }
 
-function dealStartingHands(state: GameState, corpN = 5, runnerN = 5): GameState {
+function dealStartingHands(
+  state: GameState,
+  corpN = 5,
+  runnerN = 5,
+): GameState {
   const s = structuredClone(state);
   // Ensure enough cards in each deck to draw a starting hand.
   while (s.corp.deck.length + s.corp.hand.length < corpN) {

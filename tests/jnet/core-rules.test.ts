@@ -12,10 +12,7 @@ import {
   cardsDataPresent,
   crDataPresent,
 } from "../../src/index.js";
-import {
-  memoryLimit,
-  usedMemory,
-} from "../../src/state/turn.js";
+import { memoryLimit, usedMemory } from "../../src/state/turn.js";
 import {
   installedCards,
   must,
@@ -72,10 +69,7 @@ describe("jnet ports — core rules", () => {
   // jnet: game.core.rules-test/installing-second-region-test
   it("installing a second region into a remote trashes the first", () => {
     let state = newGame({
-      corpHand: [
-        "Crisium Grid",
-        "Jinja City Grid",
-      ],
+      corpHand: ["Crisium Grid", "Jinja City Grid"],
       corpCredits: 10,
     });
     state = playFromHand(state, "corp", "Jinja City Grid");

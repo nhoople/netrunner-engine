@@ -41,9 +41,7 @@ describe("jnet ports — core actions", () => {
     state = startEncounter(state, "rd", eli.id);
     expect(state.runner.clicks).toBe(3);
     expect(
-      legalActions(state).filter(
-        (a) => a.type === "break_bioroid_subroutine",
-      ),
+      legalActions(state).filter((a) => a.type === "break_bioroid_subroutine"),
     ).toHaveLength(2);
     state = must(state, { type: "break_bioroid_subroutine", subIndex: 0 });
     state = must(state, { type: "break_bioroid_subroutine", subIndex: 1 });

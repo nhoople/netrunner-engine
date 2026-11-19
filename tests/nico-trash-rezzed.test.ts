@@ -25,12 +25,21 @@ beforeAll(() => {
 /** A rezzed Nico Campaign alone in remote-1, holding `credits`. */
 function nicoBoard(credits: number): GameState {
   const s = createInitialState();
-  const nico = instantiateCard("nico-campaign", "nico-1", "server:remote-1:root");
+  const nico = instantiateCard(
+    "nico-campaign",
+    "nico-1",
+    "server:remote-1:root",
+  );
   nico.rezzed = true;
   nico.faceup = true;
   nico.hostedCredits = credits;
   s.cards["nico-1"] = nico;
-  s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["nico-1"] };
+  s.servers["remote-1"] = {
+    id: "remote-1",
+    kind: "remote",
+    ice: [],
+    root: ["nico-1"],
+  };
   s.nextRemoteNumber = 2;
   s.activeSide = "corp";
   return s;
@@ -54,7 +63,9 @@ describe("Nico Campaign trashed when empty", () => {
     expect(nico.faceup).toBe(true);
     expect(nico.rezzed).toBe(false);
     expect(s.corp.hand.length).toBe(hand + 1);
-    expect(checkInvariants(s).map((p) => p.code)).not.toContain("REZZED_OUTSIDE_PLAY");
+    expect(checkInvariants(s).map((p) => p.code)).not.toContain(
+      "REZZED_OUTSIDE_PLAY",
+    );
   });
 
   it("does not raise its turn-begin ability from Archives on a later turn", () => {
@@ -63,9 +74,13 @@ describe("Nico Campaign trashed when empty", () => {
     const credits = s.corp.credits;
     const lines = s.log.length;
     beginCorpTurn(s);
-    const later = s.log.slice(lines).filter((line) => line.includes("Nico Campaign"));
+    const later = s.log
+      .slice(lines)
+      .filter((line) => line.includes("Nico Campaign"));
     expect(later).toEqual([]);
     expect(s.corp.credits).toBe(credits);
-    expect((s.pendingAbilities ?? []).some((p) => p.sourceId === "nico-1")).toBe(false);
+    expect(
+      (s.pendingAbilities ?? []).some((p) => p.sourceId === "nico-1"),
+    ).toBe(false);
   });
 });

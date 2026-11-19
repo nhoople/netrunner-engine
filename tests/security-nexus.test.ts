@@ -34,7 +34,8 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return result.state;
 }
 
@@ -46,7 +47,11 @@ function encounterTollbooth(): GameState {
   const booth = instantiateCard("tollbooth", "toll-1", "server:hq:ice");
   booth.rezzed = true;
   booth.faceup = true;
-  const nexus = instantiateCard("security-nexus", "nexus-1", "runner:installed");
+  const nexus = instantiateCard(
+    "security-nexus",
+    "nexus-1",
+    "runner:installed",
+  );
   s.cards["toll-1"] = booth;
   s.cards["nexus-1"] = nexus;
   s.runner.installed = ["nexus-1"];
@@ -139,7 +144,11 @@ describe("Security Nexus timing (CR 6.5.2, 6.9.3a, 9.3.6g)", () => {
 
   it("cannot be used during a run outside an encounter", () => {
     const s = createInitialState();
-    const nexus = instantiateCard("security-nexus", "nexus-1", "runner:installed");
+    const nexus = instantiateCard(
+      "security-nexus",
+      "nexus-1",
+      "runner:installed",
+    );
     s.cards["nexus-1"] = nexus;
     s.runner.installed = ["nexus-1"];
     s.run = {
@@ -178,7 +187,8 @@ describe("Security Nexus timing (CR 6.5.2, 6.9.3a, 9.3.6g)", () => {
     s.pendingChoice = null;
     enterStep(s, "run.encounter");
     autoWalk(s);
-    const offered = (s as GameState).pendingChoice?.options.map((o) => o.id) ?? [];
+    const offered =
+      (s as GameState).pendingChoice?.options.map((o) => o.id) ?? [];
     expect(offered).not.toContain("nexus-trace");
   });
 
@@ -190,12 +200,15 @@ describe("Security Nexus timing (CR 6.5.2, 6.9.3a, 9.3.6g)", () => {
     s.pendingChoice = null;
     enterStep(s, "run.encounter");
     autoWalk(s);
-    const offered = (s as GameState).pendingChoice?.options.map((o) => o.id) ?? [];
+    const offered =
+      (s as GameState).pendingChoice?.options.map((o) => o.id) ?? [];
     expect(offered).toContain("nexus-trace");
   });
 
   it("cites the encounter-begins step on its offer", () => {
     const s = encounterTollbooth();
-    expect(s.log.join("\n")).toMatch(/may trace at the start of this encounter \(CR 6\.9\.3a\)/);
+    expect(s.log.join("\n")).toMatch(
+      /may trace at the start of this encounter \(CR 6\.9\.3a\)/,
+    );
   });
 });

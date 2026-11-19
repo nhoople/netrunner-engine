@@ -46,7 +46,9 @@ describe("queryLegality API", () => {
     expect(view.legal.some((e) => e.action.type === "basic_gain_credit")).toBe(
       true,
     );
-    const credit = view.legal.find((e) => e.action.type === "basic_gain_credit")!;
+    const credit = view.legal.find(
+      (e) => e.action.type === "basic_gain_credit",
+    )!;
     expect(credit.actor).toBe("corp");
     expect(credit.cites.map((c) => c.number)).toEqual(
       expect.arrayContaining([CR.actionPhase.number]),
@@ -146,7 +148,8 @@ describe("cannot precedence (CR 1.2.2)", () => {
     expect(
       s.log.some(
         (l) =>
-          l.includes("Cannot jack_out") && l.includes(CR.cannotPrecedence.number),
+          l.includes("Cannot jack_out") &&
+          l.includes(CR.cannotPrecedence.number),
       ),
     ).toBe(true);
 
@@ -224,9 +227,9 @@ describe("checkpoints", () => {
       breakerId: "runner-program-1",
       subIndex: 0,
     });
-    expect(s.log.some((l) => l.includes("break_subroutine") && l.includes("cost"))).toBe(
-      true,
-    );
+    expect(
+      s.log.some((l) => l.includes("break_subroutine") && l.includes("cost")),
+    ).toBe(true);
     expect(s.checkpoints).toHaveLength(0);
   });
 });

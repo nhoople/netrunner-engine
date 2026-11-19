@@ -12,10 +12,8 @@ import type { Effect, Primitive } from "./ir.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 type DrawCards = (state: GameState, side: Side, amount: number) => number;
 
@@ -139,9 +137,12 @@ export function applyHostedCreditPrimitive(
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — may take hosted credits instead of breaching.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — may take hosted credits instead of breaching.`,
+      });
       return { ok: true };
     }
     case "take_hosted_credits_skip_breach": {

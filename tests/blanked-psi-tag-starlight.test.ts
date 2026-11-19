@@ -75,7 +75,11 @@ describe("blanked psi / tag / starlight helpers (CR 9.12.1d)", () => {
   it("treats Zona Sul trash-when-tagged as suppressed while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const zona = instantiateCard("zona-sul-shipping", "zs-1", "runner:installed");
+    const zona = instantiateCard(
+      "zona-sul-shipping",
+      "zs-1",
+      "runner:installed",
+    );
     s.cards["zs-1"] = zona;
     s.runner.installed = ["zs-1"];
     expect(zona.trashSelfWhenRunnerTagged).toBe(true);

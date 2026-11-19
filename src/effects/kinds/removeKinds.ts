@@ -2,27 +2,21 @@
  * Primitive kinds whose procedure is remove.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
-import {
-  evalEffect,
-  applyPrimitive,
-} from "../eval.js";
+import { evalEffect, applyPrimitive } from "../eval.js";
 
-export function applyRemoveKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyRemoveKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "remove_virus_counters": {
+    case "remove_virus_counters": {
       const have = source.virusCounters ?? 0;
       const removed = Math.min(action.amount, have);
       source.virusCounters = have - removed;
@@ -33,7 +27,7 @@ case "remove_virus_counters": {
       return { ok: true };
     }
 
-case "remove_advancements": {
+    case "remove_advancements": {
       const have = source.advancementCounters ?? 0;
       const removed = Math.min(action.amount, have);
       if (removed <= 0) {
@@ -54,7 +48,7 @@ case "remove_advancements": {
       return { ok: true };
     }
 
-case "remove_bigger_picture_tags": {
+    case "remove_bigger_picture_tags": {
       const max = state.runner.tags;
       if (max <= 0) {
         log(state, `Bigger Picture — Runner has no tags to remove.`);
@@ -88,13 +82,16 @@ case "remove_bigger_picture_tags": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Bigger Picture — choose how many tags to remove.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Bigger Picture — choose how many tags to remove.`,
+      });
       return { ok: true };
     }
 
-case "remove_enforcement_tags": {
+    case "remove_enforcement_tags": {
       const max = state.runner.tags;
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (let n = 0; n <= max; n++) {
@@ -119,17 +116,23 @@ case "remove_enforcement_tags": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `IP Enforcement — choose how many tags to remove.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `IP Enforcement — choose how many tags to remove.`,
+      });
       return { ok: true };
     }
 
-case "remove_up_to": {
+    case "remove_up_to": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
       const remove = Math.min(action.amount, card.advancementCounters ?? 0);
-      card.advancementCounters = Math.max(0, (card.advancementCounters ?? 0) - remove);
+      card.advancementCounters = Math.max(
+        0,
+        (card.advancementCounters ?? 0) - remove,
+      );
       log(
         state,
         `Exploratory Romp — remove ${remove} advancement counter(s) from ${card.title}.`,
@@ -137,7 +140,7 @@ case "remove_up_to": {
       return { ok: true };
     }
 
-case "remove_co_2_look_rd": {
+    case "remove_co_2_look_rd": {
       if ((source.powerCounters ?? 0) < 2) {
         log(state, `${source.title} — need 2 power counters.`);
         return { ok: true };
@@ -159,12 +162,12 @@ case "remove_co_2_look_rd": {
             action: { kind: "trash_co_looked_rd_card" as const, cardId },
           },
         })),
-logLine: `${source.title} — look at top ${top.length} of R&D; trash 1, rest to HQ.`,
-});
+        logLine: `${source.title} — look at top ${top.length} of R&D; trash 1, rest to HQ.`,
+      });
       return { ok: true };
     }
 
-case "remove_nihilist_virus_from": {
+    case "remove_nihilist_virus_from": {
       const card = state.cards[action.cardId];
       if (!card) {
         log(state, `Nihilist remove virus — unknown card.`);
@@ -218,12 +221,12 @@ case "remove_nihilist_virus_from": {
         sourceId,
         chooser: "runner",
         options: contOptions,
-logLine: `${source.title} — remove ${action.remaining} more virus counter(s).`,
-});
+        logLine: `${source.title} — remove ${action.remaining} more virus counter(s).`,
+      });
       return { ok: true };
     }
 
-case "remove_all_virus_from_one_installed": {
+    case "remove_all_virus_from_one_installed": {
       const withVirus: string[] = [];
       for (const id of state.runner.installed) {
         if ((state.cards[id]?.virusCounters ?? 0) > 0) withVirus.push(id);
@@ -254,12 +257,12 @@ case "remove_all_virus_from_one_installed": {
             action: { kind: "remove_all_virus_from" as const, cardId: id },
           },
         })),
-logLine: `Remove all virus counters from 1 installed card.`,
-});
+        logLine: `Remove all virus counters from 1 installed card.`,
+      });
       return { ok: true };
     }
 
-case "remove_all_virus_from": {
+    case "remove_all_virus_from": {
       const card = state.cards[action.cardId];
       if (!card) {
         log(state, `Remove all virus — unknown card.`);
@@ -267,19 +270,17 @@ case "remove_all_virus_from": {
       }
       const had = card.virusCounters ?? 0;
       card.virusCounters = 0;
-      log(
-        state,
-        `Remove all virus counters from ${card.title} (had ${had}).`,
-      );
+      log(state, `Remove all virus counters from ${card.title} (had ${had}).`);
       return { ok: true };
     }
 
-case "may_remove_advancement_from_installed_gain_credits": {
+    case "may_remove_advancement_from_installed_gain_credits": {
       const credits = action.credits ?? 0;
       const advanced: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.ice, ...server.root]) {
-          if ((state.cards[id]?.advancementCounters ?? 0) > 0) advanced.push(id);
+          if ((state.cards[id]?.advancementCounters ?? 0) > 0)
+            advanced.push(id);
         }
       }
       if (advanced.length === 0) {
@@ -311,12 +312,12 @@ case "may_remove_advancement_from_installed_gain_credits": {
             },
           })),
         ],
-logLine: `${source.title} — may remove 1 advancement from an installed card to gain ${credits}¢.`,
-});
+        logLine: `${source.title} — may remove 1 advancement from an installed card to gain ${credits}¢.`,
+      });
       return { ok: true };
     }
 
-case "remove_advancement_from_installed_gain_credits": {
+    case "remove_advancement_from_installed_gain_credits": {
       const card = state.cards[action.cardId];
       if (!card || (card.advancementCounters ?? 0) <= 0) {
         log(state, `Remove advancement — card has none.`);
@@ -331,7 +332,7 @@ case "remove_advancement_from_installed_gain_credits": {
       return { ok: true };
     }
 
-case "remove_power_from_hosted_card_install_at_zero_ignore_costs": {
+    case "remove_power_from_hosted_card_install_at_zero_ignore_costs": {
       const hosted = (source.hostedCardIds ?? []).filter(
         (id) => (state.cards[id]?.powerCounters ?? 0) > 0,
       );
@@ -359,12 +360,12 @@ case "remove_power_from_hosted_card_install_at_zero_ignore_costs": {
             },
           },
         })),
-logLine: `${source.title} — choose a hosted card to remove 1 power.`,
-});
+        logLine: `${source.title} — choose a hosted card to remove 1 power.`,
+      });
       return { ok: true };
     }
 
-case "remove_power_from_hosted_card_id_install_at_zero": {
+    case "remove_power_from_hosted_card_id_install_at_zero": {
       const card = state.cards[action.cardId];
       if (
         !card ||
@@ -375,10 +376,7 @@ case "remove_power_from_hosted_card_id_install_at_zero": {
         return { ok: true };
       }
       card.powerCounters = (card.powerCounters ?? 0) - 1;
-      log(
-        state,
-        `Remove 1 power from ${card.title} → ${card.powerCounters}.`,
-      );
+      log(state, `Remove 1 power from ${card.title} → ${card.powerCounters}.`);
       if ((card.powerCounters ?? 0) <= 0) {
         return applyPrimitive(ctx, {
           kind: "install_hosted_card_ignore_costs",

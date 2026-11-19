@@ -20,7 +20,12 @@ import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
 import { autoWalk, enterStep } from "../timing/machine.js";
-import type { ApplyResult, GameState, RuleCite, ServerId } from "../state/types.js";
+import type {
+  ApplyResult,
+  GameState,
+  RuleCite,
+  ServerId,
+} from "../state/types.js";
 import type { Effect } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
 import { fireScoreOrStealSideEffects } from "./score.js";
@@ -120,9 +125,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
   ) {
     const purpose =
       card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
-    if (
-      runnerCreditsFor(state, purpose) >= runnerTrashCostForCard(state, id)
-    ) {
+    if (runnerCreditsFor(state, purpose) >= runnerTrashCostForCard(state, id)) {
       return true;
     }
   }
@@ -140,8 +143,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
         const purpose =
           card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
         if (
-          runnerCreditsFor(state, purpose) >=
-          runnerTrashCostForCard(state, id)
+          runnerCreditsFor(state, purpose) >= runnerTrashCostForCard(state, id)
         ) {
           return true;
         }
@@ -222,7 +224,9 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       !state.run!.cannotStealOrTrash
     ) {
       const purpose =
-        accessed.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+        accessed.type === "asset"
+          ? ("trash_asset" as const)
+          : ("trash" as const);
       const cost = runnerTrashCostForCard(state, accessingId);
       const canPay = runnerCreditsFor(state, purpose) >= cost;
       const impId = state.runner.installed.find((rid) => {
@@ -308,7 +312,9 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
     if (natForcesPay && accessed) {
       state.turn.neutralizeAllThreatsCheckedThisTurn = true;
       const purpose =
-        accessed.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
+        accessed.type === "asset"
+          ? ("trash_asset" as const)
+          : ("trash" as const);
       const cost = runnerTrashCostForCard(state, accessingId);
       if (runnerCreditsFor(state, purpose) >= cost) {
         return applyActionCore(state, {
@@ -358,7 +364,10 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       return completeAccessAndContinue(state);
     }
   }
-  if (state.timingKey === "access.midAccess" && hasInteractiveMidAccess(state)) {
+  if (
+    state.timingKey === "access.midAccess" &&
+    hasInteractiveMidAccess(state)
+  ) {
     return ok(state);
   }
   return enterStealAgendaOrComplete(state);
@@ -397,14 +406,10 @@ export function hostCorpCardFaceupOn(
   card.rezzed = false;
   if (!host.hostedCardIds) host.hostedCardIds = [];
   host.hostedCardIds.push(cardId);
-  log(
-    state,
-    `${host.title} hosts ${card.title} faceup (not installed).`,
-  );
+  log(state, `${host.title} hosts ${card.title} faceup (not installed).`);
 }
 
 /** True when `cardId` is in the root of a server other than `attackedServerId`. */
-
 
 function effectDealsNetOrMeat(effect: Effect): boolean {
   const seen = new Set<object>();
@@ -514,7 +519,8 @@ export function stealAdditionalCreditsForAgenda(
   let scoredFragment = 0;
   for (const id of state.corp.scoreArea) {
     if (abilitiesSuppressed(state, id)) continue;
-    const per = state.cards[id]?.whileScoredStealAdditionalCreditsPerAdvancement;
+    const per =
+      state.cards[id]?.whileScoredStealAdditionalCreditsPerAdvancement;
     if (typeof per === "number" && per > 0) {
       scoredFragment += per * (agenda?.advancementCounters ?? 0);
     }

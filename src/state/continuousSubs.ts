@@ -5,7 +5,11 @@
 import { abilitiesSuppressed } from "./abilities.js";
 import { resolveIceSubtypes } from "./continuousEffects.js";
 import type { Effect } from "../effects/ir.js";
-import type { ContinuousGainedSubDecl, GameState, Subroutine } from "./types.js";
+import type {
+  ContinuousGainedSubDecl,
+  GameState,
+  Subroutine,
+} from "./types.js";
 
 export type ContinuousGainedSub = {
   sourceId: string;
@@ -22,7 +26,11 @@ const FATUMA_LOSE_CLICK_SUB = {
   text: "The Runner loses [click].",
   effect: {
     op: "do" as const,
-    action: { kind: "lose_clicks" as const, side: "runner" as const, amount: 1 },
+    action: {
+      kind: "lose_clicks" as const,
+      side: "runner" as const,
+      amount: 1,
+    },
   },
 };
 
@@ -310,13 +318,15 @@ export function collectTourGuideEtrSubs(
   let n = 0;
   for (const c of Object.values(state.cards)) {
     if (!c?.rezzed || c.type !== "asset") continue;
-    if ((c.zone ?? "").includes(":root") || (c.zone ?? "").startsWith("hosted:")) {
+    if (
+      (c.zone ?? "").includes(":root") ||
+      (c.zone ?? "").startsWith("hosted:")
+    ) {
       n += 1;
     }
   }
   const sub = decl?.subroutine ?? TOUR_GUIDE_ETR_SUB;
-  const subIdBase =
-    decl?.subroutine?.id ?? `${ice.defId}-etr-asset`;
+  const subIdBase = decl?.subroutine?.id ?? `${ice.defId}-etr-asset`;
   return Array.from({ length: n }, (_, i) => ({
     sourceId: iceId,
     iceId,
@@ -344,9 +354,7 @@ function looksLikeContinuousGainedSubId(
     firstDecl(ice, "grip_size_on_encounter")?.subroutine.id,
     firstDecl(ice, "etr_per_rezzed_asset")?.subroutine?.id,
   ].filter(Boolean) as string[];
-  return templates.some(
-    (t) => subId === t || subId.startsWith(`${t}-`),
-  );
+  return templates.some((t) => subId === t || subId.startsWith(`${t}-`));
 }
 
 /**

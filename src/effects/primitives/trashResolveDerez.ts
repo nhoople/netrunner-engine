@@ -1,6 +1,9 @@
 /** Earth's Scion (eas) Red Sand pack primitives — v1.131.0. */
 import { revealCards } from "../../state/reveal.js";
-import { iceAtRunnerPosition, setRunnerPosition } from "../../state/runPosition.js";
+import {
+  iceAtRunnerPosition,
+  setRunnerPosition,
+} from "../../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -11,10 +14,8 @@ import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function trashToHeap(state: EffectCtx["state"], cardId: string): void {
   removeCardFromCurrentZone(state, cardId);
@@ -185,7 +186,10 @@ export function applyRedsandEasPrimitive(
         });
       }
       if (options.length === 0) {
-        log(state, `Rubicon Switch — cannot pay printed rez cost of any candidate.`);
+        log(
+          state,
+          `Rubicon Switch — cannot pay printed rez cost of any candidate.`,
+        );
         return { ok: true };
       }
       openPendingChoose(state, { sourceId, chooser: "runner", options });
@@ -350,8 +354,7 @@ export function applyRedsandEasPrimitive(
         log(state, `AgInfusion — no approached ice.`);
         return { ok: true };
       }
-      const iceId =
-        iceAtRunnerPosition(state);
+      const iceId = iceAtRunnerPosition(state);
       const ice = iceId ? state.cards[iceId] : null;
       if (!ice || ice.rezzed) {
         log(state, `AgInfusion — approached ice must be unrezzed.`);
@@ -360,9 +363,9 @@ export function applyRedsandEasPrimitive(
       trashToArchives(state, iceId!);
       log(state, `AgInfusion — trash approached ${ice.title}.`);
       const attacked = run.attackedServerId;
-      const servers = (
-        Object.keys(state.servers) as ServerId[]
-      ).filter((sid) => sid !== attacked);
+      const servers = (Object.keys(state.servers) as ServerId[]).filter(
+        (sid) => sid !== attacked,
+      );
       if (servers.length === 0) {
         log(state, `AgInfusion — no other server.`);
         return { ok: true };
@@ -542,7 +545,10 @@ export function applyRedsandEasPrimitive(
       if (first && state.cards[first]) {
         state.cards[first]!.advancementCounters =
           (state.cards[first]!.advancementCounters ?? 0) + 1;
-        log(state, `Audacity — place 1 advancement on ${state.cards[first]!.title}.`);
+        log(
+          state,
+          `Audacity — place 1 advancement on ${state.cards[first]!.title}.`,
+        );
       }
       const advanceable = installedCorpCards(state).filter((id) =>
         canAdvance(state, id),
@@ -580,7 +586,10 @@ export function applyRedsandEasPrimitive(
         canAdvance(state, id),
       );
       if (targets.length === 0) {
-        log(state, `Red Planet Couriers — no advanceable target; counters lost.`);
+        log(
+          state,
+          `Red Planet Couriers — no advanceable target; counters lost.`,
+        );
         return { ok: true };
       }
       openPendingChoose(state, {

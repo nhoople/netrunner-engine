@@ -79,7 +79,11 @@ describe("static declarations", () => {
     s.cards["chip-1"] = chip;
     s.runner.installed = ["chip-1"];
     s.runner.scoreArea = [];
-    const agenda = instantiateCard("priority-requisition", "ag-1", "runner:score");
+    const agenda = instantiateCard(
+      "priority-requisition",
+      "ag-1",
+      "runner:score",
+    );
     s.cards["ag-1"] = agenda;
     s.runner.scoreArea = ["ag-1"];
     expect(memoryLimit(s)).toBe(s.runner.memoryLimit + 3);
@@ -183,7 +187,11 @@ describe("static declarations", () => {
     const hand = s.runner.hand.length;
     s = must(s, { type: "basic_draw" });
     expect(s.runner.hand).toHaveLength(hand + 2);
-    expect(s.log.some((line) => line.includes("Verbal Plasticity — first basic draw is 2."))).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("Verbal Plasticity — first basic draw is 2."),
+      ),
+    ).toBe(true);
 
     const named = createInitialState();
     const shell = instantiateCard("sure-gamble", "shell", "runner:installed");
@@ -232,7 +240,10 @@ describe("static declarations", () => {
   });
 });
 
-function must(state: GameState, action: Parameters<typeof applyAction>[1]): GameState {
+function must(
+  state: GameState,
+  action: Parameters<typeof applyAction>[1],
+): GameState {
   const result = applyAction(state, action);
   if (!result.ok) throw new Error(result.error);
   return result.state;

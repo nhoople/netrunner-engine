@@ -65,11 +65,11 @@ export function effectFromKey(
 function interruptOpen(state: GameState): boolean {
   return Boolean(
     state.pendingChoice ||
-      state.pendingTags ||
-      state.pendingDamage ||
-      state.psi ||
-      state.trace ||
-      state.done,
+    state.pendingTags ||
+    state.pendingDamage ||
+    state.psi ||
+    state.trace ||
+    state.done,
   );
 }
 
@@ -206,9 +206,7 @@ export function resolvePendingInWindowOrder(
       const chooser = first.controller;
       openPendingChoose(state, {
         sourceId:
-          chooser === "corp"
-            ? state.corp.identityId
-            : state.runner.identityId,
+          chooser === "corp" ? state.corp.identityId : state.runner.identityId,
         chooser,
         prompt: `Choose which pending ability to trigger next (CR ${CR.reactionWindowOrder.number}).`,
         options: mine.map((p) => ({
@@ -371,7 +369,10 @@ export function noteFirstCreditPoolEmpty(state: GameState): void {
  * card × source (CR 9.6.2 / 8.4.1). Resolve in a nested reaction window;
  * if a choice opens, remaining instances stay pending for resume.
  */
-export function fireCorpDrewCards(state: GameState, drawnCardIds: string[]): void {
+export function fireCorpDrewCards(
+  state: GameState,
+  drawnCardIds: string[],
+): void {
   if (drawnCardIds.length === 0) return;
   const ids = [state.runner.identityId, ...state.runner.installed];
   const createdIds: string[] = [];
@@ -450,11 +451,13 @@ function resolveOnCorpDrawCardPendings(
   pruneSettledPendingAbilities(state);
 }
 
-export function fireExposeWhileInstalled(state: GameState, cardId: string): void {
+export function fireExposeWhileInstalled(
+  state: GameState,
+  cardId: string,
+): void {
   const card = state.cards[cardId];
   if (!card?.onExposeWhileInstalled) return;
-  const installed =
-    card.zone.includes(":root") || card.zone.includes(":ice");
+  const installed = card.zone.includes(":root") || card.zone.includes(":ice");
   if (!installed) return;
   noteStoredConditionals(state, [
     {

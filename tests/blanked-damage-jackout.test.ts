@@ -78,7 +78,11 @@ describe("blanked damage / jack-out / DBS (CR 9.12.1d)", () => {
   it("drops Daily Business Show while blanked", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    const dbs = instantiateCard("daily-business-show", "dbs-1", "server:hq:root");
+    const dbs = instantiateCard(
+      "daily-business-show",
+      "dbs-1",
+      "server:hq:root",
+    );
     dbs.rezzed = true;
     s.cards["dbs-1"] = dbs;
     s.servers.hq.root = ["dbs-1"];

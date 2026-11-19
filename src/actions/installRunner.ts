@@ -28,7 +28,10 @@ import {
   noteJobConnectionOrHardwareInstalled,
 } from "../state/azInstallDiscount.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
-import { moveRunnerCardToHeap, recomputeRunnerLink } from "../state/trashHooks.js";
+import {
+  moveRunnerCardToHeap,
+  recomputeRunnerLink,
+} from "../state/trashHooks.js";
 import {
   cardBecameNewObject,
   effectiveMemoryCost,
@@ -43,9 +46,7 @@ import type {
   ServerId,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import {
-  fireOnInstallWithoutSpendingCredits,
-} from "../state/miscConditionalHooks.js";
+import { fireOnInstallWithoutSpendingCredits } from "../state/miscConditionalHooks.js";
 import { resolveRunnerInstallCostDelta } from "../state/continuousCosts.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 
@@ -79,7 +80,8 @@ export function runnerInstallCost(
     card.unique
   ) {
     const host = state.cards[destination.hostId];
-    const disc = host?.hostsUniqueCompanionOrConnectionResources?.creditDiscount;
+    const disc =
+      host?.hostsUniqueCompanionOrConnectionResources?.creditDiscount;
     if (
       typeof disc === "number" &&
       disc > 0 &&
@@ -130,7 +132,10 @@ function trashExistingConsoles(state: GameState, keepId: string): void {
   }
 }
 
-function fireCookbookOnVirusInstall(state: GameState, installedId: string): void {
+function fireCookbookOnVirusInstall(
+  state: GameState,
+  installedId: string,
+): void {
   const installed = state.cards[installedId];
   if (!(installed.subtypes ?? []).includes("virus")) return;
   for (const id of state.runner.installed) {
@@ -141,14 +146,14 @@ function fireCookbookOnVirusInstall(state: GameState, installedId: string): void
     if (!state.turn.programsWithVirusPlacedThisTurn.includes(installedId)) {
       state.turn.programsWithVirusPlacedThisTurn.push(installedId);
     }
-    log(
-      state,
-      `Cookbook places 1 virus counter on ${installed.title}.`,
-    );
+    log(state, `Cookbook places 1 virus counter on ${installed.title}.`);
   }
 }
 
-export function hostedPlayableAsGrip(state: GameState, cardId: string): string | null {
+export function hostedPlayableAsGrip(
+  state: GameState,
+  cardId: string,
+): string | null {
   const card = state.cards[cardId];
   if (!card?.hostId) return null;
   if (abilitiesSuppressed(state, card.hostId)) return null;
@@ -193,10 +198,9 @@ export function installRunner(
   }
   if (card.installRequiresSuccessfulHqRunThisTurn) {
     if (!state.turn.successfulHqRunThisTurn) {
-      return fail(
-        "Install requires a successful run on HQ this turn.",
-        [CR.runnerBasicInstall],
-      );
+      return fail("Install requires a successful run on HQ this turn.", [
+        CR.runnerBasicInstall,
+      ]);
     }
   }
   if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
@@ -250,7 +254,10 @@ export function installRunner(
           CR.runnerBasicInstall,
         ]);
       }
-      if ((card.subtypes ?? []).includes("ai") || card.breaker.breaksSubtype === "*") {
+      if (
+        (card.subtypes ?? []).includes("ai") ||
+        card.breaker.breaksSubtype === "*"
+      ) {
         return fail("Cannot host an AI icebreaker here.", [
           CR.runnerBasicInstall,
         ]);
@@ -313,17 +320,15 @@ export function installRunner(
       host.hostedCardIds.push(cardId);
     } else if (host.hostsUniqueCompanionOrConnectionResources) {
       if (card.type !== "resource" || !card.unique) {
-        return fail(
-          "Only unique companion/connection resources host here.",
-          [CR.runnerBasicInstall],
-        );
+        return fail("Only unique companion/connection resources host here.", [
+          CR.runnerBasicInstall,
+        ]);
       }
       const subs = card.subtypes ?? [];
       if (!subs.includes("companion") && !subs.includes("connection")) {
-        return fail(
-          "Only unique companion/connection resources host here.",
-          [CR.runnerBasicInstall],
-        );
+        return fail("Only unique companion/connection resources host here.", [
+          CR.runnerBasicInstall,
+        ]);
       }
       card.hostId = destination.hostId;
     } else if (host.hostsConnectionResources) {
@@ -347,10 +352,7 @@ export function installRunner(
           const drawn = state.cards[top];
           if (drawn) drawn.zone = "runner:grip";
         }
-        log(
-          state,
-          `Off-Campus Apartment — draw ${drawN} (hosted connection).`,
-        );
+        log(state, `Off-Campus Apartment — draw ${drawN} (hosted connection).`);
       }
     } else {
       return fail("Invalid host for card.", [CR.runnerBasicInstall]);
@@ -361,10 +363,10 @@ export function installRunner(
       destination?.kind === "host_card" &&
       Boolean(
         state.cards[destination.hostId]?.hostedIcebreakerMemoryDoesNotCount ||
-          state.cards[destination.hostId]?.hostedProgramMemoryDoesNotCount ||
-          state.cards[destination.hostId]?.daemonHost ||
-          state.cards[destination.hostId]?.hostsAnyProgramMemoryCostLte !==
-            undefined,
+        state.cards[destination.hostId]?.hostedProgramMemoryDoesNotCount ||
+        state.cards[destination.hostId]?.daemonHost ||
+        state.cards[destination.hostId]?.hostsAnyProgramMemoryCostLte !==
+          undefined,
       );
     const need = effectiveMemoryCost(state, cardId);
     if (!hostExempt && usedMemory(state) + need > memoryLimit(state)) {
@@ -388,7 +390,11 @@ export function installRunner(
         label: `X = ${x}`,
         effect: {
           op: "do" as const,
-          action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+          action: {
+            kind: "gain_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+          },
         },
       })),
     });
@@ -405,7 +411,10 @@ export function installRunner(
     cost = 0;
   }
   if (destination?.kind === "host_card") {
-    cost = Math.max(0, cost - daemonInstallDiscount(state.cards[destination.hostId]));
+    cost = Math.max(
+      0,
+      cost - daemonInstallDiscount(state.cards[destination.hostId]),
+    );
   }
   if (creditsAvailableForInstall(state, "runner", card) < cost) {
     return fail("Insufficient credits for install cost.", [
@@ -417,7 +426,9 @@ export function installRunner(
     state.runner.hand.splice(handIdx, 1);
   } else if (blingHostId) {
     const host = state.cards[blingHostId]!;
-    host.hostedCardIds = (host.hostedCardIds ?? []).filter((id) => id !== cardId);
+    host.hostedCardIds = (host.hostedCardIds ?? []).filter(
+      (id) => id !== cardId,
+    );
     card.hostId = undefined;
   }
   state.runner.installed.push(cardId);
@@ -425,7 +436,9 @@ export function installRunner(
   card.faceup = true;
   cardBecameNewObject(state, cardId);
   if (card.hostId && state.cards[card.hostId]?.personalWorkshop) {
-    state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
+    state.runner.installed = state.runner.installed.filter(
+      (id) => id !== cardId,
+    );
     card.zone = `hosted:${card.hostId}`;
     card.powerCounters = card.installCost;
     card.powerHosted = true;
@@ -456,10 +469,7 @@ export function installRunner(
     const x = fromPool + fromRecurring;
     if (x > 0) {
       card.powerCounters = (card.powerCounters ?? 0) + x;
-      log(
-        state,
-        `${card.title} — spend ${x}¢ for ${x} power counter(s).`,
-      );
+      log(state, `${card.title} — spend ${x}¢ for ${x} power counter(s).`);
     }
   }
   if (
@@ -485,10 +495,7 @@ export function installRunner(
     const bonus = host?.gainCreditsWhenRunnerHostsProgramOnSelf ?? 0;
     if (bonus > 0) {
       state.runner.credits += bonus;
-      log(
-        state,
-        `${host!.title} — gain ${bonus}¢ for hosting ${card.title}.`,
-      );
+      log(state, `${host!.title} — gain ${bonus}¢ for hosting ${card.title}.`);
     }
   }
   noteJobConnectionOrHardwareInstalled(state, card);
@@ -526,13 +533,14 @@ export function installRunner(
         breakerId: cardId,
         amount: bonus,
       });
-      log(
-        state,
-        `${host.title} — ${card.title} +${bonus} strength this turn.`,
-      );
+      log(state, `${host.title} — ${card.title} +${bonus} strength this turn.`);
     }
   }
-  if (card.chooseServerOnInstall && !card.chosenServerId && !state.pendingChoice) {
+  if (
+    card.chooseServerOnInstall &&
+    !card.chosenServerId &&
+    !state.pendingChoice
+  ) {
     const servers = Object.values(state.servers).sort((a, b) =>
       a.id.localeCompare(b.id),
     );
@@ -544,7 +552,11 @@ export function installRunner(
         label: `Choose ${server.id}`,
         effect: {
           op: "do" as const,
-          action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+          action: {
+            kind: "gain_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+          },
         },
       })),
       logLine: `${card.title} — choose a server.`,
@@ -564,7 +576,11 @@ export function installRunner(
         label: `Choose ${subtype}`,
         effect: {
           op: "do" as const,
-          action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+          action: {
+            kind: "gain_credits" as const,
+            side: "runner" as const,
+            amount: 0,
+          },
         },
       })),
       logLine: `${card.title} — choose barrier, code gate, or sentry.`,
@@ -587,7 +603,11 @@ export function installRunner(
           label: choice.label,
           effect: {
             op: "do" as const,
-            action: { kind: "gain_credits" as const, side: "runner" as const, amount: 0 },
+            action: {
+              kind: "gain_credits" as const,
+              side: "runner" as const,
+              amount: 0,
+            },
           },
         })),
         logLine: `${card.title} — choose an installed piece of ice.`,
@@ -717,13 +737,17 @@ export function chooseBreakerSubtype(
 ): void {
   const card = state.cards[cardId];
   const printed = subtype === "code-gate" ? "code gate" : subtype;
-  if (!card?.breaker || !BREAKER_SUBTYPES.includes(printed as (typeof BREAKER_SUBTYPES)[number])) {
+  if (
+    !card?.breaker ||
+    !BREAKER_SUBTYPES.includes(printed as (typeof BREAKER_SUBTYPES)[number])
+  ) {
     return;
   }
   card.breaker.breaksSubtype = printed;
   card.subtypes = [
     ...(card.subtypes ?? []).filter(
-      (entry) => !BREAKER_SUBTYPES.includes(entry as (typeof BREAKER_SUBTYPES)[number]),
+      (entry) =>
+        !BREAKER_SUBTYPES.includes(entry as (typeof BREAKER_SUBTYPES)[number]),
     ),
     printed,
   ];
@@ -739,10 +763,13 @@ export function chooseInstalledIce(
   const card = state.cards[cardId];
   const ice = state.cards[iceId];
   if (!card || !ice) return;
-  const installed = Object.values(state.servers).some((server) => server.ice.includes(iceId));
+  const installed = Object.values(state.servers).some((server) =>
+    server.ice.includes(iceId),
+  );
   if (!installed) return;
   card.chosenIceId = iceId;
-  const shown = ice.rezzed || ice.faceup ? ice.title : "an unrezzed piece of ice";
+  const shown =
+    ice.rezzed || ice.faceup ? ice.title : "an unrezzed piece of ice";
   log(
     state,
     card.chooseIceOnInstallForBypass
@@ -751,9 +778,13 @@ export function chooseInstalledIce(
   );
 }
 
-function installedIceChoices(state: GameState): { id: string; label: string }[] {
+function installedIceChoices(
+  state: GameState,
+): { id: string; label: string }[] {
   const choices: { id: string; label: string }[] = [];
-  const servers = Object.values(state.servers).sort((a, b) => a.id.localeCompare(b.id));
+  const servers = Object.values(state.servers).sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
   for (const server of servers) {
     server.ice.forEach((id, index) => {
       const ice = state.cards[id];

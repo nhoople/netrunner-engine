@@ -10,10 +10,7 @@ type OutsidePoolSpendPendingMark = {
   logLine: string;
 };
 
-function pushMark(
-  state: GameState,
-  mark: OutsidePoolSpendPendingMark,
-): void {
+function pushMark(state: GameState, mark: OutsidePoolSpendPendingMark): void {
   if (!state.turn.outsidePoolSpendPending) {
     state.turn.outsidePoolSpendPending = [];
   }

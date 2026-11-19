@@ -38,7 +38,8 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return result.state;
 }
 
@@ -64,7 +65,11 @@ function freshState(): GameState {
 }
 
 /** A successful run on `server` that is about to access `cardId`. */
-function breachWith(state: GameState, server: "hq" | "rd", cardId: string): void {
+function breachWith(
+  state: GameState,
+  server: "hq" | "rd",
+  cardId: string,
+): void {
   state.activeSide = "runner";
   state.timingKey = "breach.awaitAccess";
   state.run = {
@@ -86,7 +91,8 @@ function breachWith(state: GameState, server: "hq" | "rd", cardId: string): void
 /** Pass priority until the forced encounter is over and access resumes. */
 function finishEncounter(state: GameState): GameState {
   let s = state;
-  const resumed = () => s.log.some((line) => line.includes("Resume access after forced encounter"));
+  const resumed = () =>
+    s.log.some((line) => line.includes("Resume access after forced encounter"));
   for (let i = 0; i < 12 && !resumed(); i++) {
     s = must(s, { type: "pass_window" });
   }
@@ -98,7 +104,9 @@ function finishEncounter(state: GameState): GameState {
 /** The access and the run are over, with Zahya's choice open. */
 function expectRunOverWithZahyaChoice(s: GameState): void {
   expect(s.run?.accessingCardId ?? null).toBeNull();
-  expect(s.pendingChoice?.options.map((option) => option.id)).toContain("zahya-gain");
+  expect(s.pendingChoice?.options.map((option) => option.id)).toContain(
+    "zahya-gain",
+  );
 }
 
 const hiddenZoneFaceup = (s: GameState) =>

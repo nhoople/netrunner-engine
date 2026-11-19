@@ -57,9 +57,19 @@ function board(activeSide: "corp" | "runner"): GameState {
     return card;
   };
   rezzed("hostile-infrastructure", "hostile-1", "server:remote-1:root");
-  s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["hostile-1"] };
+  s.servers["remote-1"] = {
+    id: "remote-1",
+    kind: "remote",
+    ice: [],
+    root: ["hostile-1"],
+  };
   rezzed("melange-mining-corp", "src-c", "server:remote-2:root");
-  s.servers["remote-2"] = { id: "remote-2", kind: "remote", ice: [], root: ["src-c"] };
+  s.servers["remote-2"] = {
+    id: "remote-2",
+    kind: "remote",
+    ice: [],
+    root: ["src-c"],
+  };
   s.nextRemoteNumber = 3;
   rezzed("ice-wall", "wall-1", "server:hq:ice");
   s.servers.hq.ice = ["wall-1"];
@@ -77,7 +87,12 @@ function run(s: GameState, sourceId: string, effect: Effect): void {
   if (!result.ok) throw new Error(result.error);
 }
 
-function doKind(s: GameState, sourceId: string, kind: string, rest: Record<string, unknown> = {}): void {
+function doKind(
+  s: GameState,
+  sourceId: string,
+  kind: string,
+  rest: Record<string, unknown> = {},
+): void {
   run(s, sourceId, { op: "do", action: { kind, ...rest } as never });
 }
 
@@ -167,7 +182,12 @@ describe("Shred", () => {
     const s = board("runner");
     seedRng(s, 7);
     for (let i = 0; i < hqSize; i += 1) {
-      put(s, i % 2 ? "hedge-fund" : "pad-campaign", `hq-${i}`, "corp:hq").faceup = false;
+      put(
+        s,
+        i % 2 ? "hedge-fund" : "pad-campaign",
+        `hq-${i}`,
+        "corp:hq",
+      ).faceup = false;
       s.corp.hand.push(`hq-${i}`);
     }
     s.run = {
@@ -188,7 +208,8 @@ describe("Shred", () => {
 
   /** The run was ended: it is over, or marked ended and about to be. */
   const ended = (s: GameState): boolean =>
-    s.log.some((line) => line.startsWith("End the run (CR")) && (!s.run || s.run.endedTheRun === true);
+    s.log.some((line) => line.startsWith("End the run (CR")) &&
+    (!s.run || s.run.endedTheRun === true);
 
   it("asks the Corp whether to reveal and trash a card to end the run (CR 1.16.11b)", () => {
     const s = shredRun(4);
@@ -200,10 +221,11 @@ describe("Shred", () => {
       "end-run-decline",
     ]);
     // Both players read the offer: it names no card.
-    expect(getPublicView(s, "runner").pendingChoice?.options.map((option) => option.id)).toEqual([
-      "end-run-pay",
-      "end-run-decline",
-    ]);
+    expect(
+      getPublicView(s, "runner").pendingChoice?.options.map(
+        (option) => option.id,
+      ),
+    ).toEqual(["end-run-pay", "end-run-decline"]);
 
     const declined = choose(structuredClone(s), "end-run-decline");
     expect(ended(declined)).toBe(false);
@@ -227,9 +249,11 @@ describe("Shred", () => {
       const id = s.corp.discardPile[0]!;
       trashed.add(id);
       expect(s.cards[id]?.faceup).toBe(true);
-      expect((s.reveals ?? []).flatMap((event) => event.cards.map((card) => card.title))).toEqual([
-        s.cards[id]!.title,
-      ]);
+      expect(
+        (s.reveals ?? []).flatMap((event) =>
+          event.cards.map((card) => card.title),
+        ),
+      ).toEqual([s.cards[id]!.title]);
       // The Corp trashed it: Hostile Infrastructure does not meet its condition.
       expect(damage(s)).toBe(0);
     }
@@ -261,10 +285,12 @@ describe("Accelerated Diagnostics", () => {
     const s = board("corp");
     s.corp.credits = credits;
     s.corp.deck = [];
-    ["hedge-fund", "ice-wall", "beanstalk-royalties", "pad-campaign"].forEach((defId, i) => {
-      put(s, defId, `rd-${i}`, "corp:rd").faceup = false;
-      s.corp.deck.push(`rd-${i}`);
-    });
+    ["hedge-fund", "ice-wall", "beanstalk-royalties", "pad-campaign"].forEach(
+      (defId, i) => {
+        put(s, defId, `rd-${i}`, "corp:rd").faceup = false;
+        s.corp.deck.push(`rd-${i}`);
+      },
+    );
     doKind(s, "src-c", "accelerated_diagnostics");
     return s;
   }
@@ -362,7 +388,12 @@ describe("card-specific trashes use the trash procedure (CR 1.14.5, CR 4.4.6b)",
     rex.trashWhenPowerEmpty = true;
     rex.powerHosted = true;
     rex.powerCounters = 0;
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["rex-1"] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["rex-1"],
+    };
     s.turn.runnerTrashedCorpCardThisTurn = false;
     const before = s.turn.corpCardsAddedToArchivesThisTurn;
     notePowerCounters(s, rex);

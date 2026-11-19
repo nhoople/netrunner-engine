@@ -135,7 +135,12 @@ describe("remaining static declarations", () => {
       successful: false,
       breached: false,
     } as typeof s.run;
-    startTrace(s, "sw-1", 1, fx.do({ kind: "gain_credits", side: "corp", amount: 0 }));
+    startTrace(
+      s,
+      "sw-1",
+      1,
+      fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+    );
     expect(s.trace?.runnerSpendsFirst).toBe(true);
   });
 
@@ -147,11 +152,9 @@ describe("remaining static declarations", () => {
     const installed = installRunner(s, "diwan-1");
     if (!installed.ok) throw new Error(installed.error);
     expect(installed.state.cards["diwan-1"]?.chosenServerId).toBeUndefined();
-    expect(installed.state.pendingChoice?.options.map((option) => option.id).sort()).toEqual([
-      "diwan:archives",
-      "diwan:hq",
-      "diwan:rd",
-    ]);
+    expect(
+      installed.state.pendingChoice?.options.map((option) => option.id).sort(),
+    ).toEqual(["diwan:archives", "diwan:hq", "diwan:rd"]);
     const named = applyAction(installed.state, {
       type: "choose_option",
       optionId: "diwan:rd",
@@ -164,7 +167,10 @@ describe("remaining static declarations", () => {
     named.state.cards["ice-1"] = ice;
     named.state.corp.hand = ["ice-1"];
     const before = named.state.corp.credits;
-    const onRd = installCorp(named.state, "ice-1", { kind: "protect", serverId: "rd" });
+    const onRd = installCorp(named.state, "ice-1", {
+      kind: "protect",
+      serverId: "rd",
+    });
     if (!onRd.ok) throw new Error(onRd.error);
     // Empty server: ice install cost is 0 (CR 1.16.6b), plus Diwan's 1.
     expect(onRd.state.corp.credits).toBe(before - 1);
@@ -193,7 +199,11 @@ describe("remaining static declarations", () => {
       optionId: "decl:bazaar:chip-2",
     });
     if (!copied.ok) throw new Error(copied.error);
-    expect(copied.state.runner.installed).toEqual(["bazaar-1", "chip-1", "chip-2"]);
+    expect(copied.state.runner.installed).toEqual([
+      "bazaar-1",
+      "chip-1",
+      "chip-2",
+    ]);
     expect(copied.state.runner.credits).toBe(before - second.installCost);
   });
 
@@ -239,9 +249,11 @@ describe("remaining static declarations", () => {
     const offered = installRunner(s, "bag-1");
     if (!offered.ok) throw new Error(offered.error);
     expect(offered.state.runner.installed).not.toContain("bag-1");
-    expect(offered.state.pendingChoice?.options.some((option) => option.id === "install-x:2")).toBe(
-      true,
-    );
+    expect(
+      offered.state.pendingChoice?.options.some(
+        (option) => option.id === "install-x:2",
+      ),
+    ).toBe(true);
     const before = offered.state.runner.credits;
     const installed = applyAction(offered.state, {
       type: "choose_option",
@@ -259,17 +271,17 @@ describe("remaining static declarations", () => {
     s.runner.hand = ["cham-1"];
     const offered = installRunner(s, "cham-1");
     if (!offered.ok) throw new Error(offered.error);
-    expect(offered.state.pendingChoice?.options.map((option) => option.id)).toEqual([
-      "subtype:barrier",
-      "subtype:code-gate",
-      "subtype:sentry",
-    ]);
+    expect(
+      offered.state.pendingChoice?.options.map((option) => option.id),
+    ).toEqual(["subtype:barrier", "subtype:code-gate", "subtype:sentry"]);
     const named = applyAction(offered.state, {
       type: "choose_option",
       optionId: "subtype:code-gate",
     });
     if (!named.ok) throw new Error(named.error);
-    expect(named.state.cards["cham-1"]?.breaker?.breaksSubtype).toBe("code gate");
+    expect(named.state.cards["cham-1"]?.breaker?.breaksSubtype).toBe(
+      "code gate",
+    );
     expect(named.state.cards["cham-1"]?.subtypes).toContain("code gate");
     expect(named.state.cards["cham-1"]?.subtypes).not.toContain("barrier");
   });
@@ -292,7 +304,8 @@ describe("remaining static declarations", () => {
     s.runner.credits = 9;
     const offered = installRunner(s, "femme-1");
     if (!offered.ok) throw new Error(offered.error);
-    const labels = offered.state.pendingChoice?.options.map((option) => option.label) ?? [];
+    const labels =
+      offered.state.pendingChoice?.options.map((option) => option.label) ?? [];
     expect(labels).toContain("Ice Wall, the ice on hq");
     expect(labels.some((label) => label.includes("unrezzed ice"))).toBe(true);
     expect(labels.some((label) => label.includes("Tollbooth"))).toBe(false);

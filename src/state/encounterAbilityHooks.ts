@@ -13,10 +13,7 @@ type EncounterAbilityPendingMark = {
   logLine: string;
 };
 
-function pushMark(
-  state: GameState,
-  mark: EncounterAbilityPendingMark,
-): void {
+function pushMark(state: GameState, mark: EncounterAbilityPendingMark): void {
   if (!state.turn.encounterAbilityPending) {
     state.turn.encounterAbilityPending = [];
   }

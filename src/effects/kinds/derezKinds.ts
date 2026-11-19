@@ -2,34 +2,26 @@
  * Primitive kinds whose procedure is derez.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { addIceStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
-import {
-  maybeFireKerosMcintyreOnDerez,
-  applyPrimitive,
-} from "../eval.js";
+import { maybeFireKerosMcintyreOnDerez, applyPrimitive } from "../eval.js";
 import { fx } from "../ir.js";
 import { syncMauiRecurringCredits } from "../primitives/chooseGainShuffle.js";
 
-import {
-  fireHostRezStateTriggers,
-} from "../eval.js";
+import { fireHostRezStateTriggers } from "../eval.js";
 
-export function applyDerezKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyDerezKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "derez_encounter_ice": {
+    case "derez_encounter_ice": {
       const iceId = state.run?.encounter?.iceId;
       if (!iceId) {
         log(state, `Derez encounter ice — not encountering.`);
@@ -48,7 +40,7 @@ case "derez_encounter_ice": {
       return { ok: true };
     }
 
-case "derez_ice": {
+    case "derez_ice": {
       const iceIds: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -80,7 +72,7 @@ case "derez_ice": {
       return { ok: true };
     }
 
-case "derez_card": {
+    case "derez_card": {
       const card = state.cards[action.cardId];
       if (!card || !card.rezzed) {
         log(
@@ -104,7 +96,7 @@ case "derez_card": {
       return { ok: true };
     }
 
-case "derez_source": {
+    case "derez_source": {
       if (!source.rezzed) {
         log(
           state,
@@ -125,7 +117,7 @@ case "derez_source": {
       return { ok: true };
     }
 
-case "may_derez_installed": {
+    case "may_derez_installed": {
       const excludeSelf = action.excludeSelf !== false;
       const onlyIce = Boolean(action.onlyIce);
       const excludeAttacked = Boolean(action.excludeProtectingAttackedServer);
@@ -178,12 +170,12 @@ case "may_derez_installed": {
         sourceId,
         chooser: "corp",
         options,
-logLine: `${source.title} — may derez another installed card (CR ${CR.derez.number}).`,
-});
+        logLine: `${source.title} — may derez another installed card (CR ${CR.derez.number}).`,
+      });
       return { ok: true };
     }
 
-case "may_derez_protecting_attacked_ice": {
+    case "may_derez_protecting_attacked_ice": {
       if (!state.run) {
         log(state, `Derez protecting ice — no run.`);
         return { ok: true };
@@ -217,12 +209,12 @@ case "may_derez_protecting_attacked_ice": {
             },
           },
         })),
-logLine: `Window — derez 1 ice protecting the attacked server.`,
-});
+        logLine: `Window — derez 1 ice protecting the attacked server.`,
+      });
       return { ok: true };
     }
 
-case "derez_unless_protecting_attacked": {
+    case "derez_unless_protecting_attacked": {
       if (!state.run) {
         log(state, `BP unless derez — no run.`);
         return { ok: true };
@@ -262,12 +254,12 @@ case "derez_unless_protecting_attacked": {
           })),
           takeBp,
         ],
-logLine: `${source.title} — Corp may derez protecting ice or take 1 bad publicity.`,
-});
+        logLine: `${source.title} — Corp may derez protecting ice or take 1 bad publicity.`,
+      });
       return { ok: true };
     }
 
-case "derez_ice_protecting_attacked": {
+    case "derez_ice_protecting_attacked": {
       const card = state.cards[action.cardId];
       if (!card || card.type !== "ice") {
         log(state, `Derez protecting ice — not ice.`);
@@ -286,10 +278,11 @@ case "derez_ice_protecting_attacked": {
       return { ok: true };
     }
 
-case "derez_up_to_ice_protecting_server": {
+    case "derez_up_to_ice_protecting_server": {
       const maxIce = Math.max(0, action.maxIce);
       if (maxIce <= 0) return { ok: true };
-      const serverId = action.serverId as import("../../state/types.js").ServerId;
+      const serverId =
+        action.serverId as import("../../state/types.js").ServerId;
       const server = state.servers[serverId];
       const rezzed = (server?.ice ?? []).filter(
         (id) => state.cards[id]?.type === "ice" && state.cards[id]!.rezzed,
@@ -324,12 +317,12 @@ case "derez_up_to_ice_protecting_server": {
             },
           })),
         ],
-logLine: `Derez up to ${maxIce} ice protecting ${serverId}.`,
-});
+        logLine: `Derez up to ${maxIce} ice protecting ${serverId}.`,
+      });
       return { ok: true };
     }
 
-case "derez_one_protecting_server": {
+    case "derez_one_protecting_server": {
       const card = state.cards[action.cardId];
       if (!card || card.type !== "ice") {
         log(state, `Derez protecting ice — not ice.`);
@@ -344,7 +337,8 @@ case "derez_one_protecting_server": {
       log(state, `Derez ${card.title}.`);
       const remaining = Math.max(0, action.remaining ?? 0);
       if (remaining <= 0) return { ok: true };
-      const serverId = action.serverId as import("../../state/types.js").ServerId;
+      const serverId =
+        action.serverId as import("../../state/types.js").ServerId;
       const server = state.servers[serverId];
       const rezzed = (server?.ice ?? []).filter(
         (id) =>
@@ -383,7 +377,7 @@ case "derez_one_protecting_server": {
       return { ok: true };
     }
 
-case "derez_brasilia_other_ice_for_strength": {
+    case "derez_brasilia_other_ice_for_strength": {
       const other = state.cards[action.otherIceId];
       if (!other || other.type !== "ice" || !other.rezzed) {
         log(state, `Brasília — other ice not rezzed.`);
@@ -407,7 +401,7 @@ case "derez_brasilia_other_ice_for_strength": {
       return { ok: true };
     }
 
-case "derez_any_number_then_may_rez_discount_per": {
+    case "derez_any_number_then_may_rez_discount_per": {
       return applyPrimitive(ctx, {
         kind: "derez_any_number_continue",
         creditsPerDerezzed: action.creditsPerDerezzed,
@@ -415,7 +409,7 @@ case "derez_any_number_then_may_rez_discount_per": {
       });
     }
 
-case "derez_any_number_continue": {
+    case "derez_any_number_continue": {
       const per = Math.max(0, action.creditsPerDerezzed);
       let derezzed = Math.max(0, action.derezzed);
       if (action.justDerezzedId) {
@@ -465,9 +459,12 @@ case "derez_any_number_continue": {
           },
         })),
       ];
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `Divert Power — derez any number (current ${derezzed}), then may rez (−${per}¢ each).`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `Divert Power — derez any number (current ${derezzed}), then may rez (−${per}¢ each).`,
+      });
       return { ok: true };
     }
     default:

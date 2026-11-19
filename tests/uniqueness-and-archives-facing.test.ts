@@ -29,7 +29,13 @@ beforeAll(() => {
   assertPinnedTag("v26.03");
 });
 
-function remoteWith(s: GameState, serverId: string, defId: string, id: string, rezzed: boolean) {
+function remoteWith(
+  s: GameState,
+  serverId: string,
+  defId: string,
+  id: string,
+  rezzed: boolean,
+) {
   const card = instantiateCard(defId, id, `server:${serverId}:root`);
   card.rezzed = rezzed;
   card.faceup = rezzed;
@@ -77,7 +83,9 @@ describe("uniqueness keeps the card that became active most recently (CR 10.3.1d
     checkpointAfterInstruction(s, "test.second");
     expect(s.cards["board-old"].zone).toBe("corp:archives");
     expect(s.cards["board-old"].faceup).toBe(true);
-    expect(getPublicView(s, "runner").opponent.discardPileFaceup).toContain("board-old");
+    expect(getPublicView(s, "runner").opponent.discardPileFaceup).toContain(
+      "board-old",
+    );
   });
 
   it("does not count an unrezzed copy", () => {
@@ -94,7 +102,11 @@ describe("uniqueness keeps the card that became active most recently (CR 10.3.1d
     installRunner(s, "turntable", "console-old");
     checkpointAfterInstruction(s, "test.first");
     // The newer console is put in front of the older one in the rig.
-    s.cards["console-new"] = instantiateCard("vigil", "console-new", "runner:installed");
+    s.cards["console-new"] = instantiateCard(
+      "vigil",
+      "console-new",
+      "runner:installed",
+    );
     s.runner.installed.unshift("console-new");
     checkpointAfterInstruction(s, "test.second");
     expect(s.runner.installed).toEqual(["console-new"]);
@@ -132,10 +144,17 @@ describe("a card a checkpoint trashes (CR 10.3.1d, 10.3.1g)", () => {
     // Printed: "When this asset is trashed, you may draw 2 cards."
     expect(s.pendingChoice?.sourceId).toBe("calvin-old");
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["draw", "decline"]);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "draw",
+      "decline",
+    ]);
     const lines = s.log;
-    const trashed = lines.findIndex((l) => l.includes("Calvin B4L3Y trashed for uniqueness"));
-    const pending = lines.findIndex((l) => l.includes("Calvin B4L3Y becomes pending — trashed."));
+    const trashed = lines.findIndex((l) =>
+      l.includes("Calvin B4L3Y trashed for uniqueness"),
+    );
+    const pending = lines.findIndex((l) =>
+      l.includes("Calvin B4L3Y becomes pending — trashed."),
+    );
     const nextCheckpoint = lines.findIndex(
       (l, i) => i > trashed && l.includes("After a checkpoint trashed a card"),
     );
@@ -155,7 +174,9 @@ describe("a card a checkpoint trashes (CR 10.3.1d, 10.3.1g)", () => {
     checkpointAfterInstruction(s, "test.second");
     expect(s.cards["board-old"].zone).toBe("corp:archives");
     expect(s.pendingChoice ?? null).toBeNull();
-    expect(s.log.some((l) => l.includes("After a checkpoint trashed a card"))).toBe(false);
+    expect(
+      s.log.some((l) => l.includes("After a checkpoint trashed a card")),
+    ).toBe(false);
   });
 
   it("keeps the facing of a Corp card hosted on a card that left play (CR 4.4.6b)", () => {
@@ -165,7 +186,10 @@ describe("a card a checkpoint trashes (CR 10.3.1d, 10.3.1g)", () => {
     host.hostedCardIds = ["seen", "unseen"];
     s.cards["host-1"] = host;
     s.corp.discardPile.push("host-1");
-    for (const [id, rezzed] of [["seen", true], ["unseen", false]] as const) {
+    for (const [id, rezzed] of [
+      ["seen", true],
+      ["unseen", false],
+    ] as const) {
       const hosted = instantiateCard("eli-1-0", id, "hosted:host-1");
       hosted.hostId = "host-1";
       hosted.rezzed = rezzed;
@@ -178,7 +202,9 @@ describe("a card a checkpoint trashes (CR 10.3.1d, 10.3.1g)", () => {
     expect(s.cards["seen"].rezzed).toBe(false);
     expect(s.cards["unseen"].zone).toBe("corp:archives");
     expect(s.cards["unseen"].faceup).toBe(false);
-    expect(s.log.some((l) => l.includes("Eli 1.0 trashed (CR 10.3.1g)"))).toBe(true);
+    expect(s.log.some((l) => l.includes("Eli 1.0 trashed (CR 10.3.1g)"))).toBe(
+      true,
+    );
   });
 });
 
@@ -264,7 +290,11 @@ describe("cards trashed out of HQ and R&D by card effects are facedown (CR 4.4.6
     s.cards["maw-1"] = instantiateCard("maw", "maw-1", "runner:installed");
     s.runner.installed = ["maw-1"];
     hqOf(s, 8);
-    s.cards["seen"] = instantiateCard("pad-campaign", "seen", "server:remote-1:root");
+    s.cards["seen"] = instantiateCard(
+      "pad-campaign",
+      "seen",
+      "server:remote-1:root",
+    );
     onAccessFinishedWithoutStealOrTrash(s, "seen");
     expect(s.corp.hand).toHaveLength(7);
     return { s, trashed: s.corp.discardPile.at(-1)! };
@@ -274,9 +304,15 @@ describe("cards trashed out of HQ and R&D by card effects are facedown (CR 4.4.6
     const { s, trashed } = mawTrash(11);
     expect(s.cards[trashed].zone).toBe("corp:archives");
     expect(s.cards[trashed].faceup).toBe(false);
-    expect(getPublicView(s, "runner").opponent.discardPileFaceup).not.toContain(trashed);
+    expect(getPublicView(s, "runner").opponent.discardPileFaceup).not.toContain(
+      trashed,
+    );
     // The pick comes from the seeded stream, not from one end of HQ.
-    const picks = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((seed) => mawTrash(seed).trashed));
+    const picks = new Set(
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+        (seed) => mawTrash(seed).trashed,
+      ),
+    );
     expect(picks.size).toBeGreaterThan(1);
     expect(mawTrash(11).trashed).toBe(trashed);
   });
@@ -285,10 +321,10 @@ describe("cards trashed out of HQ and R&D by card effects are facedown (CR 4.4.6
     const s = structuredClone(createInitialState());
     hqOf(s, 4);
     s.cards["src"] = instantiateCard("hedge-fund", "src", "corp:play-area");
-    const r = evalEffect(
-      { state: s, sourceId: "src" },
-      { op: "do", action: { kind: "corp_discard_random_from_hq", amount: 2 } } as unknown as Effect,
-    );
+    const r = evalEffect({ state: s, sourceId: "src" }, {
+      op: "do",
+      action: { kind: "corp_discard_random_from_hq", amount: 2 },
+    } as unknown as Effect);
     expect(r.ok).toBe(true);
     const gone = s.corp.discardPile.filter((id) => id.startsWith("hq-"));
     expect(gone).toHaveLength(2);
@@ -299,11 +335,15 @@ describe("cards trashed out of HQ and R&D by card effects are facedown (CR 4.4.6
     const s = structuredClone(createInitialState());
     const top = s.corp.deck[0]!;
     s.turn.damageSufferedThisTurn = 1;
-    s.cards["src"] = instantiateCard("salvaged-vanadis-armory", "src", "runner:heap");
-    const r = evalEffect(
-      { state: s, sourceId: "src" },
-      { op: "do", action: { kind: "trash_top_rd_equal_damage_suffered_this_turn" } } as unknown as Effect,
+    s.cards["src"] = instantiateCard(
+      "salvaged-vanadis-armory",
+      "src",
+      "runner:heap",
     );
+    const r = evalEffect({ state: s, sourceId: "src" }, {
+      op: "do",
+      action: { kind: "trash_top_rd_equal_damage_suffered_this_turn" },
+    } as unknown as Effect);
     expect(r.ok).toBe(true);
     expect(s.cards[top].zone).toBe("corp:archives");
     expect(s.cards[top].faceup).toBe(false);

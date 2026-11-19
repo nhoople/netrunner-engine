@@ -5,11 +5,7 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { currentMark } from "./msKeywords.js";
 import { agendaPointsFor } from "./scoring.js";
 import { isRunTargetAllowed } from "./runLegality.js";
-import type {
-  GameState,
-  ServerId,
-  StartsRunSpec,
-} from "./types.js";
+import type { GameState, ServerId, StartsRunSpec } from "./types.js";
 
 export function serversMatchingSpec(
   state: GameState,
@@ -55,7 +51,9 @@ export function serversMatchingSpec(
   }
   if (spec.requiresUnrezzedIce) {
     matched = matched.filter((id) =>
-      (state.servers[id]?.ice ?? []).some((iceId) => !state.cards[iceId]?.rezzed),
+      (state.servers[id]?.ice ?? []).some(
+        (iceId) => !state.cards[iceId]?.rezzed,
+      ),
     );
   }
   return matched;
@@ -148,9 +146,7 @@ export function modifiersFromStartsRun(
     onSuccessfulRunEffect: spec.onSuccessfulRun
       ? structuredClone(spec.onSuccessfulRun)
       : undefined,
-    onRunEndEffect: spec.onRunEnd
-      ? structuredClone(spec.onRunEnd)
-      : undefined,
+    onRunEndEffect: spec.onRunEnd ? structuredClone(spec.onRunEnd) : undefined,
   };
   if (spec.addPowerCounterOnSubroutineResolve) {
     mods.addPowerCounterOnSubroutineResolve =
@@ -213,8 +209,7 @@ export function modifiersFromStartsRun(
     const corpPts = agendaPointsFor(state, "corp");
     const runnerPts = agendaPointsFor(state, "runner");
     if (
-      Math.max(corpPts, runnerPts) >=
-      spec.bypassSecondEncounterForClickIfThreat
+      Math.max(corpPts, runnerPts) >= spec.bypassSecondEncounterForClickIfThreat
     ) {
       mods.bypassSecondEncounterForClick = true;
     }

@@ -6,8 +6,18 @@ import type {
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
-import { approachServerAbility, refillRecurringCredits, canPayCost, stealthHostedCreditsAvailable, runnerAvailableCredits } from "../state/costs.js";
-import { evalEffect, fireOnBypassTriggers, fireHostRezStateTriggers } from "../effects/eval.js";
+import {
+  approachServerAbility,
+  refillRecurringCredits,
+  canPayCost,
+  stealthHostedCreditsAvailable,
+  runnerAvailableCredits,
+} from "../state/costs.js";
+import {
+  evalEffect,
+  fireOnBypassTriggers,
+  fireHostRezStateTriggers,
+} from "../effects/eval.js";
 import { syncSubroutinesFromRecords } from "../effects/abilityRecord.js";
 import { trashCorpCardToArchives } from "../effects/corpTrash.js";
 import type { Effect } from "../effects/ir.js";
@@ -37,10 +47,7 @@ import { resolveIceSubtypes } from "../state/continuousEffects.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { currentMark } from "../state/msKeywords.js";
 import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
-import {
-  beginCorpTurnFlags,
-  beginRunnerTurnFlags,
-} from "../state/turn.js";
+import { beginCorpTurnFlags, beginRunnerTurnFlags } from "../state/turn.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
@@ -155,7 +162,11 @@ import {
   noteRunnerScoreOnTurnBegin,
 } from "../state/runnerTurnBeginHooks.js";
 import { noteOnBeforeFirstTurn } from "../state/beforeFirstTurnHooks.js";
-import { breachCreditGain, corpStartsWithBadPublicity, onRunnerTurnEnds } from "../state/staticFlags.js";
+import {
+  breachCreditGain,
+  corpStartsWithBadPublicity,
+  onRunnerTurnEnds,
+} from "../state/staticFlags.js";
 import {
   noteApproachIce,
   noteEncounterIce,
@@ -166,9 +177,7 @@ import {
   onSuccessfulRunEnded,
   startIdentitySetup,
 } from "../state/cardDeclarations.js";
-import {
-  fireCorpIdentityFlippedSuccessfulHqOrRdRun,
-} from "../state/identityFlipHooks.js";
+import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../state/identityFlipHooks.js";
 import { noteOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
 import {
   activeLockdownIds,
@@ -296,11 +305,11 @@ function syncWardenBeforeSubroutines(state: GameState, iceId: string): void {
 function turnBeginPaused(state: GameState): boolean {
   return Boolean(
     state.pendingChoice ||
-      state.pendingDamage ||
-      state.pendingTags ||
-      state.pendingTrashProgram ||
-      state.pendingSabotage ||
-      state.done,
+    state.pendingDamage ||
+    state.pendingTags ||
+    state.pendingTrashProgram ||
+    state.pendingSabotage ||
+    state.done,
   );
 }
 
@@ -324,7 +333,11 @@ function clearEncounterOutsidePlayMark(
   if (ice.rezzed && (hidden || ice.zone === "corp:archives")) {
     ice.rezzed = false;
   }
-  if (ice.faceup && hidden && (accessOver || s.run?.accessingCardId !== ice.id)) {
+  if (
+    ice.faceup &&
+    hidden &&
+    (accessOver || s.run?.accessingCardId !== ice.id)
+  ) {
     ice.faceup = false;
   }
 }
@@ -340,7 +353,10 @@ function clearEncounterOutsidePlayMark(
  * the breach. The engine has never kept it (`endLooksAndReveals` cleared it
  * after the access action too), and the flag is shared by both seats.
  */
-function endAccessVisibility(s: GameState, cardId: string | null | undefined): void {
+function endAccessVisibility(
+  s: GameState,
+  cardId: string | null | undefined,
+): void {
   const card = cardId ? s.cards[cardId] : undefined;
   if (!card?.faceup || card.side !== "corp") return;
   if (s.corp.hand.includes(card.id) || s.corp.deck.includes(card.id)) {
@@ -448,7 +464,6 @@ function iceBypassBlockedByServerUpgrade(
   return false;
 }
 
-
 /**
  * Is the encounter over before its remaining steps? The encountered ice was
  * uninstalled (CR 8.5.10) or derezzed (CR 6.2.7c), or an effect already
@@ -466,7 +481,8 @@ function encounterEndsEarly(s: GameState): boolean {
     );
     return true;
   }
-  const installed = Boolean(ice) && (ice!.zone.endsWith(":ice") || Boolean(ice!.hostId));
+  const installed =
+    Boolean(ice) && (ice!.zone.endsWith(":ice") || Boolean(ice!.hostId));
   if (installed && !ice!.rezzed) {
     s.log.push(
       `${ice!.title} was derezzed — the encounter ends (CR ${CR.encounteredIceLeaves.number}).`,
@@ -496,13 +512,7 @@ function sweepDerezAtAnyTurnEnd(s: GameState): void {
 }
 
 /** Player-facing step kinds for the v0 graph. */
-type StepKind =
-  | "auto"
-  | "pass"
-  | "action"
-  | "discard"
-  | "access"
-  | "branch";
+type StepKind = "auto" | "pass" | "action" | "discard" | "access" | "branch";
 
 /** PAW stepKeys closed under CR 6.8.2a at Run Ends. */
 const pawStepKeysForRunEnds = new Set([
@@ -751,7 +761,10 @@ function offerDelayedRunEndOrder(s: GameState): boolean {
   if (!runState || runState.delayedRunEndOrderResolved) return false;
   const trashIds = (runState.breakersThatBroke ?? []).filter((id) => {
     const card = s.cards[id];
-    return Boolean(card?.trashAfterBreakingThisRun) && s.runner.installed.includes(id);
+    return (
+      Boolean(card?.trashAfterBreakingThisRun) &&
+      s.runner.installed.includes(id)
+    );
   });
   const onRunEnd = runState.onRunEndEffect;
   const compileId = runState.winCompileInstalledProgramId;
@@ -764,9 +777,7 @@ function offerDelayedRunEndOrder(s: GameState): boolean {
   const eventTitle = eventId
     ? (s.cards[eventId]?.title ?? "Compile")
     : "Compile";
-  const trashTitles = trashIds
-    .map((id) => s.cards[id]?.title ?? id)
-    .join(", ");
+  const trashTitles = trashIds.map((id) => s.cards[id]?.title ?? id).join(", ");
   log(
     s,
     `${eventTitle} and ${trashTitles} become pending (CR ${CR.abilityIndependent.number}).`,
@@ -777,7 +788,8 @@ function offerDelayedRunEndOrder(s: GameState): boolean {
     if (zone) zones[id] = zone;
   }
   runState.delayedRunEndSourceZone = zones;
-  const trashLabel = trashIds.length === 1 ? trashTitles : "the trash abilities";
+  const trashLabel =
+    trashIds.length === 1 ? trashTitles : "the trash abilities";
   return openPendingChoose(s, {
     sourceId: eventId ?? trashIds[0]!,
     chooser: "runner",
@@ -1007,7 +1019,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Corp turn-begin conditionals — note for 10.3.1a.
         for (const card of Object.values(s.cards)) {
-          if (card.side !== "corp" || !card.rezzed || !card.onTurnBegin) continue;
+          if (card.side !== "corp" || !card.rezzed || !card.onTurnBegin)
+            continue;
           noteCorpOnTurnBegin(
             s,
             card.id,
@@ -1027,7 +1040,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         // remains active on the Corp's turn.
         for (const id of s.runner.scoreArea) {
           const card = s.cards[id];
-          if (!card?.onTurnBegin || !card.onTurnBeginFromRunnerScoreOnCorpTurn) {
+          if (
+            !card?.onTurnBegin ||
+            !card.onTurnBeginFromRunnerScoreOnCorpTurn
+          ) {
             continue;
           }
           noteCorpOnTurnBegin(
@@ -1076,8 +1092,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Does the Corp have unspent clicks?",
     "branch",
     "corp_action",
-    (s) =>
-      s.corp.clicks > 0 ? "corp.takeAction" : "corp.actionPhaseEnd",
+    (s) => (s.corp.clicks > 0 ? "corp.takeAction" : "corp.actionPhaseEnd"),
   ),
   "corp.takeAction": corp(
     "corp.takeAction",
@@ -1161,7 +1176,8 @@ export const STEPS: Record<string, TimingStepDef> = {
       onResolve: (s) => {
         // When the Corp turn ends, gain credits if Archives has a facedown card.
         const idCard = s.cards[s.corp.identityId];
-        const facedownGain = idCard?.gainCreditOnCorpTurnEndIfArchivesHasFacedown ?? 0;
+        const facedownGain =
+          idCard?.gainCreditOnCorpTurnEndIfArchivesHasFacedown ?? 0;
         if (
           idCard &&
           facedownGain > 0 &&
@@ -1880,8 +1896,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       const runState = s.run!;
       let server = s.servers[runState.attackedServerId];
       const pastIce =
-        runState.position === null ||
-        runState.position >= server.ice.length;
+        runState.position === null || runState.position >= server.ice.length;
       if (
         pastIce &&
         runState.redirectApproachArchivesToHq &&
@@ -1917,8 +1932,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (s.pendingChoice) return;
         const server = s.servers[runState.attackedServerId];
         const pastIce =
-          runState.position === null ||
-          runState.position >= server.ice.length;
+          runState.position === null || runState.position >= server.ice.length;
         const cost =
           runState.mayRedirectApproachArchivesToHqOrRdPayingStealthCredits;
         if (
@@ -1932,11 +1946,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         runState.archivesApproachRedirectUsed = true;
         const canPay =
           stealthHostedCreditsAvailable(s) >= cost &&
-          canPayCost(
-            s,
-            "runner",
-            { credits: cost, creditsFromStealthOnly: true },
-          );
+          canPayCost(s, "runner", {
+            credits: cost,
+            creditsFromStealthOnly: true,
+          });
         const options: Array<{
           id: string;
           label: string;
@@ -2037,7 +2050,9 @@ export const STEPS: Record<string, TimingStepDef> = {
         ) {
           for (const id of s.runner.installed) {
             const snitch = s.cards[id];
-            if (!snitch?.mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut) {
+            if (
+              !snitch?.mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut
+            ) {
               continue;
             }
             runState.snitchUsedThisRun = true;
@@ -2122,9 +2137,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       if (s.cards[iceId].rezzed) {
         return "run.encounter";
       }
-      s.log.push(
-        `Ice unrezzed — skip encounter (appendix 11.4_2_c_ii).`,
-      );
+      s.log.push(`Ice unrezzed — skip encounter (appendix 11.4_2_c_ii).`);
       return "run.movement";
     },
   ),
@@ -2161,7 +2174,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             `Inazuma — jack out allowed again (next ice encounter began).`,
           );
         }
-        const applyInazumaBreakLock = Boolean(runState.inazumaLockNextEncounter);
+        const applyInazumaBreakLock = Boolean(
+          runState.inazumaLockNextEncounter,
+        );
         if (applyInazumaBreakLock) {
           runState.inazumaLockNextEncounter = false;
         }
@@ -2392,7 +2407,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           runState.backupPlanBypassIceId = undefined;
           runState.bypassFirstEncounter = true; // reuse bypass path below
         }
-        if ((runState.bypassEncountersRemaining ?? 0) > 0 && !iceBypassBlockedByServerUpgrade(s, iceId)) {
+        if (
+          (runState.bypassEncountersRemaining ?? 0) > 0 &&
+          !iceBypassBlockedByServerUpgrade(s, iceId)
+        ) {
           runState.bypassEncountersRemaining! -= 1;
           runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
           s.log.push(
@@ -2406,7 +2424,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           noteEncounterEndIfRezzed(s, iceId);
         }
         // Inside Job / S-Dobrado: bypass first encounter
-        if (runState.bypassFirstEncounter && !iceBypassBlockedByServerUpgrade(s, iceId)) {
+        if (
+          runState.bypassFirstEncounter &&
+          !iceBypassBlockedByServerUpgrade(s, iceId)
+        ) {
           runState.bypassFirstEncounter = false;
           runState.bypassedIceIds = [...(runState.bypassedIceIds ?? []), iceId];
           runState.encounter = null;
@@ -2492,7 +2513,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             broken: (ice.subroutines ?? subs).map(() => false),
           };
           noteEncounterAnyIceOncePerTurn(s);
-          if (s.run?.encounter?.iceId) noteEncounterIce(s, s.run.encounter.iceId);
+          if (s.run?.encounter?.iceId)
+            noteEncounterIce(s, s.run.encounter.iceId);
           noteCompileFirstEncounter(s);
           if (
             (s.turn.encounterAbilityPending ?? []).length > 0 ||
@@ -2593,8 +2615,9 @@ export const STEPS: Record<string, TimingStepDef> = {
               broken: (ice.subroutines ?? []).map(() => false),
             };
             if (winchesterFresh) {
-              (runState as { winchesterHqSubsApplied?: boolean }).winchesterHqSubsApplied =
-                true;
+              (
+                runState as { winchesterHqSubsApplied?: boolean }
+              ).winchesterHqSubsApplied = true;
               s.log.push(
                 `${ice.title} — gains ${winchester.length} subroutine(s) while protecting HQ.`,
               );
@@ -2607,15 +2630,15 @@ export const STEPS: Record<string, TimingStepDef> = {
                     g.subId === archivesDecl.subroutine.id,
                 )
               : [];
-            if (
-              archivesDecl &&
-              (ice.subroutines?.length ?? 0) !== beforeLen
-            ) {
+            if (archivesDecl && (ice.subroutines?.length ?? 0) !== beforeLen) {
               s.log.push(
                 `${ice.title} — sync Archives-faceup gained subroutines (${blockchain.length} before printed).`,
               );
             }
-            const wetworkN = collectHostedConditionSubsBeforePrinted(s, iceId).length;
+            const wetworkN = collectHostedConditionSubsBeforePrinted(
+              s,
+              iceId,
+            ).length;
             if (wetworkN > 0) {
               s.log.push(
                 `${ice.title} — gains ${wetworkN} hosted condition subroutine(s) before printed.`,
@@ -2706,8 +2729,9 @@ export const STEPS: Record<string, TimingStepDef> = {
               ...brainstorm.map(() => false),
             ],
           };
-          (runState as { tlmBrainstormApplied?: boolean }).tlmBrainstormApplied =
-            true;
+          (
+            runState as { tlmBrainstormApplied?: boolean }
+          ).tlmBrainstormApplied = true;
           s.log.push(
             `${ice.title} gains ${brainstorm.length} "Do 1 core damage." subroutine(s) after the others (CR ${CR.subroutineOriginExternalAfter.number}).`,
           );
@@ -2734,9 +2758,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             // over from an earlier encounter before adding this one.
             ice.subroutines = [
               synSub,
-              ...(ice.subroutines ?? []).filter(
-                (sub) => sub.id !== synSub.id,
-              ),
+              ...(ice.subroutines ?? []).filter((sub) => sub.id !== synSub.id),
             ];
             runState.encounter = {
               iceId,
@@ -3021,60 +3043,68 @@ export const STEPS: Record<string, TimingStepDef> = {
               logLine: `Rigged Results — bypass ${ice.title}.`,
             });
           } else
-          for (const rid of s.runner.installed) {
-            const femme = s.cards[rid];
-            if (femme.chosenIceId !== iceId) continue;
-            const n = (ice.subroutines ?? []).length;
-            const cost = n;
-            if (s.runner.credits >= cost) {
-              openPendingChoose(s, {
-                sourceId: rid,
-                chooser: "runner",
-                options: [
-                  {
-                    id: "bypass",
-                    label: `Bypass ${ice.title} for ${cost}¢`,
-                    effect: {
-                      op: "seq",
-                      effects: [
-                        {
-                          op: "do",
-                          action: {
-                            kind: "lose_credits",
-                            side: "runner",
-                            amount: cost,
+            for (const rid of s.runner.installed) {
+              const femme = s.cards[rid];
+              if (femme.chosenIceId !== iceId) continue;
+              const n = (ice.subroutines ?? []).length;
+              const cost = n;
+              if (s.runner.credits >= cost) {
+                openPendingChoose(s, {
+                  sourceId: rid,
+                  chooser: "runner",
+                  options: [
+                    {
+                      id: "bypass",
+                      label: `Bypass ${ice.title} for ${cost}¢`,
+                      effect: {
+                        op: "seq",
+                        effects: [
+                          {
+                            op: "do",
+                            action: {
+                              kind: "lose_credits",
+                              side: "runner",
+                              amount: cost,
+                            },
                           },
-                        },
-                        {
-                          op: "do",
-                          action: { kind: "bypass_current_ice" },
-                        },
-                      ],
-                    },
-                  },
-                  {
-                    id: "decline",
-                    label: "Decline",
-                    effect: {
-                      op: "do",
-                      action: {
-                        kind: "gain_credits",
-                        side: "runner",
-                        amount: 0,
+                          {
+                            op: "do",
+                            action: { kind: "bypass_current_ice" },
+                          },
+                        ],
                       },
                     },
-                  },
-                ],
-                logLine: `${femme.title} — may pay ${cost}¢ to bypass ${ice.title}.`,
-              });
+                    {
+                      id: "decline",
+                      label: "Decline",
+                      effect: {
+                        op: "do",
+                        action: {
+                          kind: "gain_credits",
+                          side: "runner",
+                          amount: 0,
+                        },
+                      },
+                    },
+                  ],
+                  logLine: `${femme.title} — may pay ${cost}¢ to bypass ${ice.title}.`,
+                });
+              }
+              break;
             }
-            break;
-          }
         }
-        if (!s.pendingChoice && securityNexusTraceOffered(s) && s.run?.encounter) {
+        if (
+          !s.pendingChoice &&
+          securityNexusTraceOffered(s) &&
+          s.run?.encounter
+        ) {
           for (const rid of s.runner.installed) {
             const nexus = s.cards[rid];
-            if (!nexus?.paidAbilities?.some((ability) => ability.id === "security-nexus-trace")) {
+            if (
+              !nexus?.paidAbilities?.some(
+                (ability) => ability.id === "security-nexus-trace",
+              )
+            ) {
               continue;
             }
             openPendingChoose(s, {
@@ -3107,7 +3137,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       },
     },
   ),
-    "run.encounterPaw": run(
+  "run.encounterPaw": run(
     "run.encounterPaw",
     "sec_appendix_timing_structure_of_a_run_3_b",
     "11.4_3_b",
@@ -3115,7 +3145,12 @@ export const STEPS: Record<string, TimingStepDef> = {
     "pass",
     "run.checkSubs",
     {
-      allows: ["break_subroutine", "break_bioroid_subroutine", "use_paid_ability", "pass_window"],
+      allows: [
+        "break_subroutine",
+        "break_bioroid_subroutine",
+        "use_paid_ability",
+        "pass_window",
+      ],
       onResolve: (s) => {
         noteOutsidePoolSpendTriggers(s);
         if ((s.turn.outsidePoolSpendPending ?? []).length > 0) {
@@ -3342,9 +3377,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       // Ganked!-class: after forced mid-access encounter, resume access.
       if (s.run?.resumeAccessAfterReencounter && s.run.accessingCardId) {
         s.run.resumeAccessAfterReencounter = false;
-        s.log.push(
-          `Resume access after forced encounter (Ganked!-class).`,
-        );
+        s.log.push(`Resume access after forced encounter (Ganked!-class).`);
         return "access.midAccess";
       }
       return "run.passIcePaw";
@@ -3377,7 +3410,11 @@ export const STEPS: Record<string, TimingStepDef> = {
             `The Runner passes a position with no ice (CR ${CR.uninstallIceDuringRun.number}, ${CR.destroyPosition.number}).`,
           );
         }
-        if (pos !== null && !afterForcedEncounter && !runState.positionVacated) {
+        if (
+          pos !== null &&
+          !afterForcedEncounter &&
+          !runState.positionVacated
+        ) {
           const iceId = s.servers[runState.attackedServerId].ice[pos];
           if (iceId) {
             const iceAtPosition = s.cards[iceId];
@@ -3395,14 +3432,11 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
             }
             if (!passReplaced) {
-            // Count every pass (rezzed, unrezzed, or bypassed → movement).
-            runState.passedIceIds = [
-              ...(runState.passedIceIds ?? []),
-              iceId,
-            ];
-            // CR 6.9.4a: no position more inward than the ice just passed.
-            runState.passedAllIce =
-              pos === s.servers[runState.attackedServerId].ice.length - 1;
+              // Count every pass (rezzed, unrezzed, or bypassed → movement).
+              runState.passedIceIds = [...(runState.passedIceIds ?? []), iceId];
+              // CR 6.9.4a: no position more inward than the ice just passed.
+              runState.passedAllIce =
+                pos === s.servers[runState.attackedServerId].ice.length - 1;
             }
             // The Gauntlet: track fully broken ice protecting HQ this run.
             if (
@@ -3475,10 +3509,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                 }
               }
             }
-            if (
-              (ice.subtypes ?? []).includes("bioroid") &&
-              ice.rezzed
-            ) {
+            if ((ice.subtypes ?? []).includes("bioroid") && ice.rezzed) {
               // HB Architects: first pass of rezzed bioroid each turn.
               const idCard = s.cards[s.corp.identityId];
               if (
@@ -3527,7 +3558,11 @@ export const STEPS: Record<string, TimingStepDef> = {
               ice.rezzed &&
               runState.encounter
             ) {
-              const printedCount = (ice.baseSubroutines ?? ice.subroutines ?? []).length;
+              const printedCount = (
+                ice.baseSubroutines ??
+                ice.subroutines ??
+                []
+              ).length;
               // Printed subs are the trailing baseSubroutines if Loki-style
               // copies were prepended; for Mirāju base = printed.
               const broken = runState.encounter.broken ?? [];
@@ -3553,7 +3588,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                   abilityKey: "first-advanced-ice-encounter-end-meat",
                   controller: "corp",
                   mandatory: true,
-                  effect: { op: "do", action: { kind: "meat_damage", amount: 1 } },
+                  effect: {
+                    op: "do",
+                    action: { kind: "meat_damage", amount: 1 },
+                  },
                   logLine: `${idCard.title} becomes pending — first advanced ice encounter ends (meat damage).`,
                 });
               }
@@ -3598,8 +3636,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                     ) {
                       continue;
                     }
-                    asset.powerCounters =
-                      (asset.powerCounters ?? 0) + unbroken;
+                    asset.powerCounters = (asset.powerCounters ?? 0) + unbroken;
                     s.log.push(
                       `${asset.title} — place ${unbroken} power (unbroken subs on ${ice.title}) → ${asset.powerCounters}.`,
                     );
@@ -3613,7 +3650,10 @@ export const STEPS: Record<string, TimingStepDef> = {
               const server = s.servers[runState.attackedServerId];
               for (const rid of server?.root ?? []) {
                 const up = s.cards[rid];
-                if (!up?.rezzed || !up.loseClickOnProtectingIceEncounterEndIfBroke) {
+                if (
+                  !up?.rezzed ||
+                  !up.loseClickOnProtectingIceEncounterEndIfBroke
+                ) {
                   continue;
                 }
                 if (s.runner.clicks > 0) {
@@ -3634,17 +3674,22 @@ export const STEPS: Record<string, TimingStepDef> = {
             for (const bid of brokeBreakers) {
               const br = s.cards[bid];
               if (!br) continue;
-              if (typeof br.corpGainsCreditsOnEncounterEndIfBroke === "number") {
+              if (
+                typeof br.corpGainsCreditsOnEncounterEndIfBroke === "number"
+              ) {
                 const n = br.corpGainsCreditsOnEncounterEndIfBroke;
                 s.corp.credits += n;
                 s.log.push(
                   `${br.title} — Corp gains ${n}¢ (broke a subroutine).`,
                 );
               }
-              if (br.addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke) {
+              if (
+                br.addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke
+              ) {
                 noteInlineConditional(s, {
                   cardId: bid,
-                  abilityKey: "brahman-add-nonvirus-to-stack-top-on-encounter-end",
+                  abilityKey:
+                    "brahman-add-nonvirus-to-stack-top-on-encounter-end",
                   controller: "runner",
                   mandatory: true,
                   effect: {
@@ -3750,7 +3795,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             ) {
               for (const rid of s.runner.installed) {
                 const sipa = s.cards[rid];
-                if (!sipa?.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn) {
+                if (
+                  !sipa?.maySwapOutermostIceOnPassAfterFullyBreakOncePerTurn
+                ) {
                   continue;
                 }
                 s.turn.sipaSwapUsedThisTurn = true;
@@ -3771,10 +3818,17 @@ export const STEPS: Record<string, TimingStepDef> = {
             // Mumbad City Grid: may swap passed ice with another protecting same server.
             if (!s.pendingChoice) {
               const server = s.servers[runState.attackedServerId];
-              if (server && server.ice.includes(iceId) && server.ice.length > 1) {
+              if (
+                server &&
+                server.ice.includes(iceId) &&
+                server.ice.length > 1
+              ) {
                 for (const rid of server.root) {
                   const grid = s.cards[rid];
-                  if (!grid?.rezzed || !grid.onPassIceProtectingThisServerMaySwap) {
+                  if (
+                    !grid?.rezzed ||
+                    !grid.onPassIceProtectingThisServerMaySwap
+                  ) {
                     continue;
                   }
                   const others = server.ice.filter((id) => id !== iceId);
@@ -4060,7 +4114,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           const card = s.cards[id];
           if (!card.rezzed || !card.onApproachServer) continue;
           if (abilitiesSuppressed(s, id)) continue;
-          if (card.onApproachServerOncePerTurn && s.turn.mtiApproachFiredThisTurn) {
+          if (
+            card.onApproachServerOncePerTurn &&
+            s.turn.mtiApproachFiredThisTurn
+          ) {
             continue;
           }
           if (card.onApproachServerOncePerRun) {
@@ -4088,8 +4145,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     "11.4_4_g",
     "Abilities used when the Runner approaches the server.",
     "pass",
-    (s) =>
-      s.run?.endedTheRun ? "run.closePriorityWindows" : "run.success",
+    (s) => (s.run?.endedTheRun ? "run.closePriorityWindows" : "run.success"),
     { allows: ["use_paid_ability", "pass_window"] },
   ),
   "run.success": run(
@@ -4328,10 +4384,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         // Retrieval Run: skip breach, may install program from heap.
-        if (
-          s.run!.successful &&
-          s.run!.attackedServerId === "archives"
-        ) {
+        if (s.run!.successful && s.run!.attackedServerId === "archives") {
           for (const id of s.runner.hand) {
             const card = s.cards[id];
             if (!card?.onGripArchivesSuccessInstallSelfIgnoringCosts) continue;
@@ -4346,10 +4399,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
-        if (
-          s.run!.successful &&
-          s.run!.attackedServerId === "hq"
-        ) {
+        if (s.run!.successful && s.run!.attackedServerId === "hq") {
           for (const id of s.runner.hand) {
             const card = s.cards[id];
             if (!card?.onGripHqSuccessInstallSelfIgnoringCosts) continue;
@@ -4364,10 +4414,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
-        if (
-          s.run!.successful &&
-          s.run!.attackedServerId === "rd"
-        ) {
+        if (s.run!.successful && s.run!.attackedServerId === "rd") {
           for (const id of s.runner.hand) {
             const card = s.cards[id];
             if (!card?.onGripRdSuccessInstallSelfIgnoringCosts) continue;
@@ -4389,7 +4436,9 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
           if (prog) {
             const card = s.cards[prog];
-            s.runner.discardPile = s.runner.discardPile.filter((x) => x !== prog);
+            s.runner.discardPile = s.runner.discardPile.filter(
+              (x) => x !== prog,
+            );
             s.runner.installed.push(prog);
             card.zone = "runner:installed";
             card.faceup = true;
@@ -4496,7 +4545,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                   ? card.onSuccessfulRdRunMayPayForBonusAccess
                   : undefined;
             if (!spec || spec.credits <= 0 || spec.bonusAccess <= 0) continue;
-            const stealthOnly = Boolean(card.paidAbilitiesUseStealthCreditsOnly);
+            const stealthOnly = Boolean(
+              card.paidAbilitiesUseStealthCreditsOnly,
+            );
             const canPay = stealthOnly
               ? stealthHostedCreditsAvailable(s) >= spec.credits
               : runnerAvailableCredits(s) >= spec.credits;
@@ -4590,7 +4641,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           // Puppet Master: may place 1 advancement on a card that can be advanced.
           for (const id of s.corp.scoreArea) {
             const card = s.cards[id];
-            if (!card?.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced) continue;
+            if (!card?.onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced)
+              continue;
             if (abilitiesSuppressed(s, id)) continue;
             noteInlineConditional(s, {
               cardId: id,
@@ -4611,7 +4663,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           ) {
             for (const id of s.corp.scoreArea) {
               const card = s.cards[id];
-              if (!card?.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess) continue;
+              if (!card?.firstSuccessfulHqRunEachTurnPsiCorpChoosesAccess)
+                continue;
               if (abilitiesSuppressed(s, id)) continue;
               s.turn.tlmDedicatedNeuralNetUsedThisTurn = true;
               s.run!.tlmCorpChoosesHqAccess = true;
@@ -4645,7 +4698,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           for (const [sid, srv] of Object.entries(s.servers)) {
             if (sid === attacked) continue;
             for (const id of srv.root) {
-              if (s.turn.otherServerSuccessAbilityUsedIds.includes(id)) continue;
+              if (s.turn.otherServerSuccessAbilityUsedIds.includes(id))
+                continue;
               const before = (s.turn.otherServerSuccessPendingIds ?? []).length;
               noteSuccessfulRunOtherServer(s, id);
               if ((s.turn.otherServerSuccessPendingIds ?? []).length > before) {
@@ -4672,10 +4726,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           } else if (
             src &&
             fxRun &&
-            !(
-              s.run!.deferBreachReplacement &&
-              accountSiphonReplacesBreach(s)
-            )
+            !(s.run!.deferBreachReplacement && accountSiphonReplacesBreach(s))
           ) {
             const r = evalEffect({ state: s, sourceId: src }, fxRun);
             if (!r.ok) {
@@ -4899,9 +4950,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           // Server ceased to exist — unsuccessful exception (CR 6.8.4b).
           return;
         }
-        s.log.push(
-          `Run declared unsuccessful (CR 6.8.4 / appendix 11.4_6_c).`,
-        );
+        s.log.push(`Run declared unsuccessful (CR 6.8.4 / appendix 11.4_6_c).`);
         noteUnsuccessfulRunServerAbilities(s);
         // First unsuccessful run this turn (John Masanori-class). Trash-self
         // remains mid-hook; onFirstUnsuccessfulRunThisTurn marks at 10.3.1a.
@@ -4948,75 +4997,77 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (runState.resumeAfterDelayedOrder) {
           runState.resumeAfterDelayedOrder = false;
         } else {
-        clearTldrSubroutineCopies(s);
-        // Window: Corp may rez the ice derezzed at run begin (before cleanup).
-        if (
-          runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts &&
-          runState.eventDerezzedIceId
-        ) {
-          const iceId = runState.eventDerezzedIceId;
-          runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts = false;
-          runState.endedTheRun = true;
-          const src = runState.runSourceId ?? iceId;
-          noteInlineConditional(s, {
-            cardId: src,
-            abilityKey: "window-may-rez-event-derezzed-ice-on-run-end",
-            controller: "runner",
-            mandatory: true,
-            effect: {
-              op: "do",
-              action: { kind: "may_rez_event_derezzed_ice_ignore_costs" },
-            },
-            logLine: `${s.cards[src]?.title ?? "Window of Opportunity"} becomes pending — run end (may rez derezzed ice).`,
-          });
-          checkpointAfterInstruction(s, "run.ends");
-          if (s.pendingChoice) return;
-        }
-        // Boomerang-class: delayed conditional — may shuffle title from heap
-        // into stack when the run ends successfully (CR 9.10 lingering).
-        if (
-          runState.successful === true &&
-          (runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd?.length ?? 0) > 0
-        ) {
-          const titles = [
-            ...(runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd ?? []),
-          ];
-          runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd = [];
-          for (const title of titles) {
-            const src =
-              s.runner.discardPile.find((id) => s.cards[id]?.title === title) ??
-              s.runner.identityId;
+          clearTldrSubroutineCopies(s);
+          // Window: Corp may rez the ice derezzed at run begin (before cleanup).
+          if (
+            runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts &&
+            runState.eventDerezzedIceId
+          ) {
+            const iceId = runState.eventDerezzedIceId;
+            runState.mayRezEventDerezzedIceOnRunEndIgnoreCosts = false;
+            runState.endedTheRun = true;
+            const src = runState.runSourceId ?? iceId;
             noteInlineConditional(s, {
               cardId: src,
-              abilityKey: "may-shuffle-title-from-heap-on-successful-run-end",
+              abilityKey: "window-may-rez-event-derezzed-ice-on-run-end",
               controller: "runner",
               mandatory: true,
               effect: {
                 op: "do",
-                action: {
-                  kind: "may_shuffle_title_from_heap_into_stack",
-                  title,
-                },
+                action: { kind: "may_rez_event_derezzed_ice_ignore_costs" },
               },
-              logLine: `${s.cards[src]?.title ?? title} becomes pending — successful run end (may shuffle from heap).`,
-              // Heap may outlives the source (CR 9.6.13c / 9.10 lingering).
-              independentOfSource: true,
+              logLine: `${s.cards[src]?.title ?? "Window of Opportunity"} becomes pending — run end (may rez derezzed ice).`,
             });
-          }
-          if ((s.turn.inlineConditionalPending ?? []).length > 0) {
             checkpointAfterInstruction(s, "run.ends");
+            if (s.pendingChoice) return;
           }
-          if (s.pendingChoice) return;
-        }
-        if (runState.successful === true) {
-          s.log.push(`Run complete — successful (appendix 11.4_6_d).`);
-        } else if (runState.successful === false) {
-          s.log.push(`Run complete — unsuccessful (appendix 11.4_6_d).`);
-        } else {
-          s.log.push(
-            `Run complete — neither successful nor unsuccessful (CR 6.8.4a; appendix 11.4_6_d).`,
-          );
-        }
+          // Boomerang-class: delayed conditional — may shuffle title from heap
+          // into stack when the run ends successfully (CR 9.10 lingering).
+          if (
+            runState.successful === true &&
+            (runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd?.length ?? 0) >
+              0
+          ) {
+            const titles = [
+              ...(runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd ?? []),
+            ];
+            runState.mayShuffleTitlesFromHeapOnSuccessfulRunEnd = [];
+            for (const title of titles) {
+              const src =
+                s.runner.discardPile.find(
+                  (id) => s.cards[id]?.title === title,
+                ) ?? s.runner.identityId;
+              noteInlineConditional(s, {
+                cardId: src,
+                abilityKey: "may-shuffle-title-from-heap-on-successful-run-end",
+                controller: "runner",
+                mandatory: true,
+                effect: {
+                  op: "do",
+                  action: {
+                    kind: "may_shuffle_title_from_heap_into_stack",
+                    title,
+                  },
+                },
+                logLine: `${s.cards[src]?.title ?? title} becomes pending — successful run end (may shuffle from heap).`,
+                // Heap may outlives the source (CR 9.6.13c / 9.10 lingering).
+                independentOfSource: true,
+              });
+            }
+            if ((s.turn.inlineConditionalPending ?? []).length > 0) {
+              checkpointAfterInstruction(s, "run.ends");
+            }
+            if (s.pendingChoice) return;
+          }
+          if (runState.successful === true) {
+            s.log.push(`Run complete — successful (appendix 11.4_6_d).`);
+          } else if (runState.successful === false) {
+            s.log.push(`Run complete — unsuccessful (appendix 11.4_6_d).`);
+          } else {
+            s.log.push(
+              `Run complete — neither successful nor unsuccessful (CR 6.8.4a; appendix 11.4_6_d).`,
+            );
+          }
           if (offerDelayedRunEndOrder(s)) return;
         }
         // Mayfly: trash if it broke a sub this run
@@ -5069,7 +5120,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         ) {
           for (const rid of s.runner.installed) {
             const card = s.cards[rid];
-            if (!card?.drawPerAccessOnFirstSuccessfulHqOrRdRunEndEachTurn) continue;
+            if (!card?.drawPerAccessOnFirstSuccessfulHqOrRdRunEndEachTurn)
+              continue;
             const n = runState.accessedCardIds.length;
             if (n > 0) {
               s.turn.esObelusRunEndUsed = true;
@@ -5080,14 +5132,15 @@ export const STEPS: Record<string, TimingStepDef> = {
                 const drawn = s.cards[top];
                 if (drawn) {
                   drawn.zone = "runner:grip";
-                  if (card.revealDrawnCards || s.runner.installed.some((x) => s.cards[x]?.revealDrawnCards)) {
+                  if (
+                    card.revealDrawnCards ||
+                    s.runner.installed.some((x) => s.cards[x]?.revealDrawnCards)
+                  ) {
                     s.log.push(`Reveal drawn card: ${drawn.title}.`);
                   }
                 }
               }
-              s.log.push(
-                `Obelus — draw ${n} (${n} access(es) on ${sid}).`,
-              );
+              s.log.push(`Obelus — draw ${n} (${n} access(es) on ${sid}).`);
             }
             break;
           }
@@ -5233,7 +5286,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Arissana: trash identity-installed program if not subtype.
         const arissanaId = runState.identityInstalledProgramId;
-        const unlessSubtype = runState.identityInstalledProgramTrashUnlessSubtype;
+        const unlessSubtype =
+          runState.identityInstalledProgramTrashUnlessSubtype;
         if (arissanaId && unlessSubtype !== undefined) {
           const prog = s.cards[arissanaId];
           if (
@@ -5323,7 +5377,10 @@ export const STEPS: Record<string, TimingStepDef> = {
         // the remainder of the run; strip them so the next run starts
         // from the printed list.
         for (const card of Object.values(s.cards)) {
-          const template = firstDecl(card, "grip_size_on_encounter")?.subroutine;
+          const template = firstDecl(
+            card,
+            "grip_size_on_encounter",
+          )?.subroutine;
           if (!template || !card.subroutines) continue;
           card.subroutines = card.subroutines.filter(
             (sub) => !sub.id.startsWith(`${template.id}-`),
@@ -5332,9 +5389,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // The next checkpoint expires run-duration lingerings (CR 10.3.1b).
         s.turn.runDurationPassed = true;
         if (postBreach) {
-          s.log.push(
-            `Post-run breach of ${postBreach} begins (CR 7.3.1).`,
-          );
+          s.log.push(`Post-run breach of ${postBreach} begins (CR 7.3.1).`);
           // Standalone breach shell — not a successful run on that server.
           s.run = {
             attackedServerId: postBreach,
@@ -5376,8 +5431,8 @@ export const STEPS: Record<string, TimingStepDef> = {
             const tags = runState.persistentTagsIfAgendaStolen!;
             const stillThere = Boolean(
               sid &&
-                s.servers[sid]?.root.includes(sourceId) &&
-                s.cards[sourceId]?.rezzed,
+              s.servers[sid]?.root.includes(sourceId) &&
+              s.cards[sourceId]?.rezzed,
             );
             if (!stillThere) {
               log(
@@ -5419,10 +5474,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // The run has ended. Zahya's ability meets its condition in the
         // reaction window outside the run. A run event is still resolving
         // until its play abilities finish (CR 9.1.2b).
-        if (
-          (sid === "hq" || sid === "rd") &&
-          !s.turn.zahyaRunEndUsed
-        ) {
+        if ((sid === "hq" || sid === "rd") && !s.turn.zahyaRunEndUsed) {
           const idCard = s.cards[s.runner.identityId];
           const n = runState.accessedCardIds.length;
           if (idCard?.creditsPerAccessOnCentralRunEnd && n > 0) {
@@ -5577,7 +5629,13 @@ export const STEPS: Record<string, TimingStepDef> = {
     "If the card is an agenda, the Runner steals it.",
     "access",
     "access.complete",
-    { allows: ["steal_agenda", "finish_access", "access_host_agenda_on_film_critic"] },
+    {
+      allows: [
+        "steal_agenda",
+        "finish_access",
+        "access_host_agenda_on_film_critic",
+      ],
+    },
   ),
   "access.complete": breach(
     "access.complete",
@@ -5606,7 +5664,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           if (accessed && hasTrashCost && !inArchives) {
             for (const rid of [...s.runner.installed]) {
               const info = s.cards[rid];
-              if (!info?.aeneasInformantRevealGainOnAccessWithoutTrash) continue;
+              if (!info?.aeneasInformantRevealGainOnAccessWithoutTrash)
+                continue;
               noteInlineConditional(s, {
                 cardId: rid,
                 abilityKey: "aeneas-may-reveal-gain-on-access-without-trash",
@@ -5738,7 +5797,11 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (s.run && kitsuneId) {
           s.run.kitsuneIceToTrashAtBreachEnd = undefined;
           const ice = s.cards[kitsuneId];
-          if (ice && ice.zone.startsWith("server:") && ice.zone.endsWith(":ice")) {
+          if (
+            ice &&
+            ice.zone.startsWith("server:") &&
+            ice.zone.endsWith(":ice")
+          ) {
             log(
               s,
               `${ice.title} is trashed — its own name means this ice (CR ${CR.selfReference.number}).`,
@@ -5756,7 +5819,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (s.run && !s.run.breachStoleOrTrashed) {
           for (const rid of s.runner.installed) {
             const card = s.cards[rid];
-            if (!card?.placeVirusCounterOnFinishBreachIfNoStealOrTrash) continue;
+            if (!card?.placeVirusCounterOnFinishBreachIfNoStealOrTrash)
+              continue;
             card.virusCounters = (card.virusCounters ?? 0) + 1;
             s.log.push(
               `${card.title} — place 1 virus (finish breach, no steal/trash) → ${card.virusCounters}.`,
@@ -5767,7 +5831,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.run &&
           !s.run.isPostRunBreach &&
           !s.run.nestedBreachFromEncounter &&
-          !(s.run.queuedBreachesAfterCurrent?.length)
+          !s.run.queuedBreachesAfterCurrent?.length
         ) {
           s.run.phase = "ends";
         }

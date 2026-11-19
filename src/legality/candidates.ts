@@ -68,13 +68,7 @@ export function collectCandidateActions(state: GameState): Action[] {
           ? "runner_action_paw"
           : null;
     if (actionPaw) {
-      addPaidWindowCandidates(
-        state,
-        actions,
-        step,
-        actionPaw,
-        "click-actions",
-      );
+      addPaidWindowCandidates(state, actions, step, actionPaw, "click-actions");
     }
   }
 

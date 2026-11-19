@@ -30,7 +30,6 @@ function must(state: GameState, action: Action): GameState {
 }
 
 describe("card corpus system-gateway", () => {
-
   it("marks partial cards with explicit unsupported notes (never empty silence)", () => {
     const pool = loadCardPool(true).waves["system-gateway"].cards;
     for (const id of pool) {
@@ -105,7 +104,9 @@ describe("card corpus system-gateway", () => {
     });
     expect(s.runner.credits).toBe(before - 1);
     s = must(s, { type: "pass_window" });
-    expect(s.run?.successful === true || s.timingKey.includes("run")).toBe(true);
+    expect(s.run?.successful === true || s.timingKey.includes("run")).toBe(
+      true,
+    );
   });
 
   it("Palisade gets +2 strength on remotes", () => {
@@ -196,10 +197,7 @@ describe("card corpus system-gateway", () => {
     expect(s.runner.credits).toBe(2);
 
     s.corp.clicks = 1;
-    r = evalEffect(
-      { state: s, sourceId: "corp-id" },
-      fx.gainClicks("corp", 3),
-    );
+    r = evalEffect({ state: s, sourceId: "corp-id" }, fx.gainClicks("corp", 3));
     expect(r.ok).toBe(true);
     expect(s.corp.clicks).toBe(4);
     expect(s.log.some((l) => l.includes(CR.spendClicks.number))).toBe(true);

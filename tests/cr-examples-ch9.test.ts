@@ -26,21 +26,19 @@ import {
   getCardDef,
   orderBlankingEffects,
 } from "../src/index.js";
-import { LINGERING_KIND_ICE_STRENGTH_ENCOUNTER, lingeringIceStrengthOfKind } from "../src/state/lingeringEffects.js";
+import {
+  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  lingeringIceStrengthOfKind,
+} from "../src/state/lingeringEffects.js";
 
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { noteProgramOrHardwareInstalled } from "../src/state/programHardwareInstall.js";
 import { onRunnerTurnEnds } from "../src/state/staticFlags.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
-import {
-  moveRunnerCardToHeap,
-} from "../src/state/trashHooks.js";
-import {
-  occurCheckpoint,
-} from "../src/legality/checkpoints.js";
+import { moveRunnerCardToHeap } from "../src/state/trashHooks.js";
+import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { passIdle } from "../src/demo/passIdle.js";
-
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -51,10 +49,10 @@ beforeAll(() => {
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);
-  if (!result.ok) throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
+  if (!result.ok)
+    throw new Error(`${result.error} ${JSON.stringify(result.cites)}`);
   return passIdle(result.state);
 }
-
 
 /** Trigger the pending ability of the card named `title` next (CR 9.2.8d). */
 function triggerFirst(state: GameState, title: string): GameState {
@@ -68,8 +66,16 @@ function triggerFirst(state: GameState, title: string): GameState {
 /** Runner turn begins with Drug Dealer installed before Aesop's Pawnshop. */
 function turnBeginWithDealerThenAesop(): GameState {
   const s = createInitialState();
-  s.cards["dealer-1"] = instantiateCard("drug-dealer", "dealer-1", "runner:installed");
-  s.cards["aesop-1"] = instantiateCard("aesops-pawnshop", "aesop-1", "runner:installed");
+  s.cards["dealer-1"] = instantiateCard(
+    "drug-dealer",
+    "dealer-1",
+    "runner:installed",
+  );
+  s.cards["aesop-1"] = instantiateCard(
+    "aesops-pawnshop",
+    "aesop-1",
+    "runner:installed",
+  );
   s.runner.installed = ["dealer-1", "aesop-1"];
   s.runner.credits = 1;
   s.activeSide = "runner";
@@ -117,8 +123,6 @@ function openEncounter(
 }
 
 describe("CR examples, chapter 9", () => {
-
-
   it("draws for Geist after Decoy's trash cost, then avoids the tag, then suffers Snare! (CR 9.1.2a.ex1)", () => {
     let s = createInitialState();
     const geist = instantiateCard(
@@ -210,7 +214,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-
   it("deals Attini's net damage before Caldera can spend credits (CR 9.1.2b.ex1)", () => {
     const s = createInitialState();
     const agenda = instantiateCard("hostile-takeover", "ag-1", "corp:score");
@@ -263,7 +266,6 @@ describe("CR examples, chapter 9", () => {
     expect(suffered.pendingDamage).toBeNull();
     expect(suffered.log.join("\n")).toContain("cannot spend credits");
   });
-
 
   it("leaves Zahya's ability absent while Direct Access is still resolving (CR 9.1.2b.ex2)", () => {
     let s = createInitialState();
@@ -319,7 +321,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.run).toBeNull();
     expect(s.checkpoints).toHaveLength(0);
   });
-
 
   it("adds Mayfly to the stack before its trash can act on the old source (CR 9.1.4.ex1)", () => {
     let s = createInitialState();
@@ -384,7 +385,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-
   it("uses Cyberfeeder when its credit pays Mimic's break (CR 9.1.6c.ex1)", () => {
     let s = createInitialState();
     const mimic = instantiateCard("mimic", "mimic-1", "runner:installed");
@@ -444,7 +444,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-
   it("does not draw for I've Had Worse when Skorpios removes it from the game (CR 9.1.8b.ex1)", () => {
     let s = createInitialState();
     const skorpios = instantiateCard(
@@ -494,16 +493,27 @@ describe("CR examples, chapter 9", () => {
     expect(s.checkpoints).toHaveLength(0);
   });
 
-
   // CR 9.6.4b.ex1 is this board: three Hostile Infrastructure instances become pending together.
   it("keeps Hostile Infrastructure active for the cards Singularity trashes with it (CR 9.1.8g.ex1)", () => {
     let s = createInitialState();
-    const hi = instantiateCard("hostile-infrastructure", "hi-1", "server:remote-1:root");
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:remote-1:root",
+    );
     hi.rezzed = true;
     hi.faceup = true;
-    const data = instantiateCard("experiential-data", "ed-1", "server:remote-1:root");
+    const data = instantiateCard(
+      "experiential-data",
+      "ed-1",
+      "server:remote-1:root",
+    );
     const box = instantiateCard("strongbox", "sb-1", "server:remote-1:root");
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-2:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-2:root",
+    );
     pad.rezzed = true;
     const sing = instantiateCard("singularity", "sing-1", "runner:play-area");
     for (const card of [hi, data, box, pad, sing]) s.cards[card.id] = card;
@@ -547,7 +557,10 @@ describe("CR examples, chapter 9", () => {
     expect(opened.ok).toBe(true);
     s = must(s, { type: "choose_option", optionId: "singularity" });
 
-    const pending = at(s.log, "Hostile Infrastructure remains active — 3 instances become pending");
+    const pending = at(
+      s.log,
+      "Hostile Infrastructure remains active — 3 instances become pending",
+    );
     expect(s.log[pending]).toContain(CR.abilityRemainsActive.number);
     const damage = s.log.filter((line) => line.startsWith("net damage 1:"));
     expect(damage).toHaveLength(3);
@@ -566,10 +579,11 @@ describe("CR examples, chapter 9", () => {
       fx.trashCorpCard("pad-1"),
     );
     expect(later.ok).toBe(true);
-    expect(s.log.filter((line) => line.startsWith("net damage 1:"))).toHaveLength(3);
+    expect(
+      s.log.filter((line) => line.startsWith("net damage 1:")),
+    ).toHaveLength(3);
     expect(s.cards["pad-1"]?.zone).toBe("corp:archives");
   });
-
 
   it("removes Nanuq from the game after Test Run returns it to the stack (CR 9.1.8g.ex2)", () => {
     const s = createInitialState();
@@ -595,7 +609,6 @@ describe("CR examples, chapter 9", () => {
     expect(removed).toBeGreaterThan(returned);
     expect(text).toContain(CR.abilityRemainsActive.number);
   });
-
 
   it("resolves Archangel's subroutine when encountered from HQ (CR 9.1.8h.ex1)", () => {
     let s = createInitialState();
@@ -626,7 +639,7 @@ describe("CR examples, chapter 9", () => {
     s = must(s, { type: "pass_window" });
 
     const active = at(s.log, "Archangel's subroutines are active");
-    const resolved = at(s.log, "Resolve subroutine \"Trace[6]");
+    const resolved = at(s.log, 'Resolve subroutine "Trace[6]');
     const trace = at(s.log, "Trace resolves: strength 6 vs link 0 → success");
     expect(s.log[active]).toContain(CR.encounterNotInstalled.number);
     expect(active).toBeLessThan(resolved);
@@ -636,9 +649,12 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["arch-1"]?.rezzed).toBe(false);
     expect(s.corp.hand).toContain("arch-1");
     expect(s.corp.credits).toBe(2);
-    expect(s.log.some((line) => line.includes("Resume access after forced encounter"))).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("Resume access after forced encounter"),
+      ),
+    ).toBe(true);
   });
-
 
   it("drops Tollbooth's pending ability when Femme Fatale ends the encounter (CR 9.2.8f.ex1)", () => {
     let s = createInitialState();
@@ -674,14 +690,16 @@ describe("CR examples, chapter 9", () => {
 
     s = must(s, { type: "choose_option", optionId: "bypass" });
 
-    const closed = at(s.log, "Reaction window closes — Tollbooth loses its pending status");
+    const closed = at(
+      s.log,
+      "Reaction window closes — Tollbooth loses its pending status",
+    );
     expect(s.log[closed]).toContain(CR.reactionWindowCloses.number);
     expect(s.runner.credits).toBe(4);
     expect(s.run?.endedTheRun).toBe(false);
     expect(s.run?.bypassedIceIds).toContain("tb-1");
     expect(s.run).not.toBeNull();
   });
-
 
   it("keeps Zahya's once-per-turn ability when she declines the credit (CR 9.3.6g.ex1)", () => {
     let s = createInitialState();
@@ -727,7 +745,10 @@ describe("CR examples, chapter 9", () => {
     expect(s.runner.credits).toBe(5);
 
     s = must(s, { type: "choose_option", optionId: "zahya-decline" });
-    const unused = at(s.log, "Zahya Sadeghi: Versatile Smuggler's ability was not used");
+    const unused = at(
+      s.log,
+      "Zahya Sadeghi: Versatile Smuggler's ability was not used",
+    );
     expect(s.log[unused]).toContain(CR.oncePerTurnFlag.number);
     expect(s.runner.credits).toBe(5);
     expect(s.turn.zahyaRunEndUsed).toBe(false);
@@ -737,9 +758,12 @@ describe("CR examples, chapter 9", () => {
     s = must(s, { type: "choose_option", optionId: "zahya-gain" });
     expect(s.runner.credits).toBe(6);
     expect(s.turn.zahyaRunEndUsed).toBe(true);
-    expect(s.log.some((line) => line.includes("Zahya Sadeghi: Versatile Smuggler — gain 1¢"))).toBe(true);
+    expect(
+      s.log.some((line) =>
+        line.includes("Zahya Sadeghi: Versatile Smuggler — gain 1¢"),
+      ),
+    ).toBe(true);
   });
-
 
   it("drops Puffer's static strength when a power counter is removed (CR 9.4.4.ex1)", () => {
     let s = createInitialState();
@@ -805,13 +829,15 @@ describe("CR examples, chapter 9", () => {
     });
     s = must(s, { type: "choose_option", optionId: "remove" });
 
-    const ended = at(s.log, "Puffer's static strength ends with the removed power counter");
+    const ended = at(
+      s.log,
+      "Puffer's static strength ends with the removed power counter",
+    );
     expect(s.log[ended]).toContain(CR.staticNoLingering.number);
     expect(s.cards["puf-1"]?.powerCounters).toBe(0);
     expect(breakerStrength(s, "puf-1")).toBe(3);
     expect(s.runner.clicks).toBe(0);
   });
-
 
   it("keeps Flare's meat damage unpreventable after The Cleaners increases it (CR 9.4.5.ex1)", () => {
     const s = createInitialState();
@@ -846,7 +872,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.done).toBe(false);
     expect(s.log.join("\n")).not.toContain("Paparazzi — prevent");
   });
-
 
   it("leaves Mumbad Virtual Tour installed when Wendigo has banned Imp (CR 9.5.3a.ex1)", () => {
     let s = createInitialState();
@@ -902,7 +927,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.runner.installed).toContain("imp-1");
   });
 
-
   it("sets Fermenter's virus counters aside until its trash ability finishes (CR 9.5.5.ex1)", () => {
     let s = createInitialState();
     const fermenter = instantiateCard("fermenter", "fer-1", "runner:installed");
@@ -922,7 +946,10 @@ describe("CR examples, chapter 9", () => {
 
     const aside = at(s.log, "Set aside 4 virus counter(s) from Fermenter");
     const gained = at(s.log, "runner gains 8¢");
-    const bank = at(s.log, "Fermenter's 4 set-aside virus counter(s) return to the bank");
+    const bank = at(
+      s.log,
+      "Fermenter's 4 set-aside virus counter(s) return to the bank",
+    );
     expect(s.log[aside]).toContain(CR.trashAbilityKeepsHosted.number);
     expect(s.log[bank]).toContain(CR.trashAbilityKeepsHosted.number);
     expect(aside).toBeLessThan(gained);
@@ -936,10 +963,13 @@ describe("CR examples, chapter 9", () => {
     expect(s.resolvingSetAsideVirus).toBeUndefined();
   });
 
-
   it("installs one hosted card from Street Peddler and trashes the other two (CR 9.5.5.ex2)", () => {
     let s = createInitialState();
-    const peddler = instantiateCard("street-peddler", "sp-1", "runner:installed");
+    const peddler = instantiateCard(
+      "street-peddler",
+      "sp-1",
+      "runner:installed",
+    );
     peddler.hostedCardIds = ["m1", "m2", "m3"];
     s.cards["sp-1"] = peddler;
     s.runner.installed = ["sp-1"];
@@ -988,11 +1018,12 @@ describe("CR examples, chapter 9", () => {
     expect(s.runner.installed).toContain("m1");
     expect(s.cards["m2"]?.zone).toBe("runner:heap");
     expect(s.cards["m3"]?.zone).toBe("runner:heap");
-    expect(s.runner.discardPile).toEqual(expect.arrayContaining(["sp-1", "m2", "m3"]));
+    expect(s.runner.discardPile).toEqual(
+      expect.arrayContaining(["sp-1", "m2", "m3"]),
+    );
     expect(s.runner.setAside ?? []).toEqual([]);
     expect(s.resolvingSetAsideHosted).toBeUndefined();
   });
-
 
   it("sets Reconstruction Contract's advancement counters aside until the interrupt window closes (CR 9.5.5.ex3)", () => {
     let s = createInitialState();
@@ -1025,7 +1056,10 @@ describe("CR examples, chapter 9", () => {
       abilityId: "reconstruction-move",
     });
 
-    const aside = at(s.log, "Set aside 3 advancement counter(s) from Reconstruction Contract");
+    const aside = at(
+      s.log,
+      "Set aside 3 advancement counter(s) from Reconstruction Contract",
+    );
     const checkpoint = s.log.findIndex(
       (line, index) => index > aside && line.includes("Checkpoint open [cost]"),
     );
@@ -1033,13 +1067,24 @@ describe("CR examples, chapter 9", () => {
     expect(aside).toBeLessThan(checkpoint);
     expect(s.cards["rc-1"]?.zone).toBe("corp:archives");
     expect(s.cards["rc-1"]?.advancementCounters).toBe(0);
-    expect(s.resolvingSetAsideAdvancements).toEqual({ sourceId: "rc-1", count: 3 });
-    expect(s.pendingChoice?.options.map((option) => option.id)).toContain("rc:iw-1:3");
+    expect(s.resolvingSetAsideAdvancements).toEqual({
+      sourceId: "rc-1",
+      count: 3,
+    });
+    expect(s.pendingChoice?.options.map((option) => option.id)).toContain(
+      "rc:iw-1:3",
+    );
 
     s = must(s, { type: "choose_option", optionId: "rc:iw-1:3" });
 
-    const window = at(s.log, "Interrupt window — 3 advancement counter(s) onto Ice Wall");
-    const moved = at(s.log, "Reconstruction Contract — move 3 advancement(s) to Ice Wall");
+    const window = at(
+      s.log,
+      "Interrupt window — 3 advancement counter(s) onto Ice Wall",
+    );
+    const moved = at(
+      s.log,
+      "Reconstruction Contract — move 3 advancement(s) to Ice Wall",
+    );
     expect(s.log[window]).toContain(CR.trashAbilityKeepsHosted.number);
     expect(checkpoint).toBeLessThan(window);
     expect(window).toBeLessThan(moved);
@@ -1047,7 +1092,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["rc-1"]?.advancementCounters).toBe(0);
     expect(s.resolvingSetAsideAdvancements).toBeUndefined();
   });
-
 
   it("refuses Project Wotan unless the approached ice is a rezzed bioroid (CR 9.5.6b.ex1)", () => {
     const s = createInitialState();
@@ -1098,10 +1142,13 @@ describe("CR examples, chapter 9", () => {
     );
   });
 
-
-    it("gives Arruaceiras Crew's tag only during an encounter (CR 9.5.6c.ex1)", () => {
+  it("gives Arruaceiras Crew's tag only during an encounter (CR 9.5.6c.ex1)", () => {
     const idle = createInitialState();
-    const crew = instantiateCard("arruaceiras-crew", "crew-1", "runner:installed");
+    const crew = instantiateCard(
+      "arruaceiras-crew",
+      "crew-1",
+      "runner:installed",
+    );
     const wall = instantiateCard("ice-wall", "wall-1", "server:hq:ice");
     wall.rezzed = true;
     wall.faceup = true;
@@ -1118,7 +1165,11 @@ describe("CR examples, chapter 9", () => {
     expect(early.ok).toBe(false);
 
     const s = createInitialState();
-    s.cards["crew-1"] = instantiateCard("arruaceiras-crew", "crew-1", "runner:installed");
+    s.cards["crew-1"] = instantiateCard(
+      "arruaceiras-crew",
+      "crew-1",
+      "runner:installed",
+    );
     const ice = instantiateCard("ice-wall", "wall-1", "server:hq:ice");
     ice.rezzed = true;
     ice.faceup = true;
@@ -1132,13 +1183,22 @@ describe("CR examples, chapter 9", () => {
       abilityId: "arruaceiras-weaken",
     });
     expect(weakened.runner.tags).toBe(1);
-    expect(lingeringIceStrengthOfKind(weakened, "wall-1", LINGERING_KIND_ICE_STRENGTH_ENCOUNTER)).toBe(-2);
+    expect(
+      lingeringIceStrengthOfKind(
+        weakened,
+        "wall-1",
+        LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+      ),
+    ).toBe(-2);
   });
 
-
-    it("uses Abagnale's trash and interface only on a code gate it can interface (CR 9.5.6c.ex2)", () => {
+  it("uses Abagnale's trash and interface only on a code gate it can interface (CR 9.5.6c.ex2)", () => {
     const outside = createInitialState();
-    outside.cards["ab-1"] = instantiateCard("abagnale", "ab-1", "runner:installed");
+    outside.cards["ab-1"] = instantiateCard(
+      "abagnale",
+      "ab-1",
+      "runner:installed",
+    );
     outside.runner.installed = ["ab-1"];
     runnerTurn(outside);
     const trashedEarly = applyAction(outside, {
@@ -1178,7 +1238,11 @@ describe("CR examples, chapter 9", () => {
     expect(breakBarrier.ok).toBe(false);
 
     const weak = createInitialState();
-    weak.cards["ab-1"] = instantiateCard("abagnale", "ab-1", "runner:installed");
+    weak.cards["ab-1"] = instantiateCard(
+      "abagnale",
+      "ab-1",
+      "runner:installed",
+    );
     const toll = instantiateCard("tollbooth", "toll-1", "server:hq:ice");
     toll.rezzed = true;
     toll.faceup = true;
@@ -1195,7 +1259,11 @@ describe("CR examples, chapter 9", () => {
     expect(cannotInterface.ok).toBe(false);
 
     const gate = createInitialState();
-    gate.cards["ab-1"] = instantiateCard("abagnale", "ab-1", "runner:installed");
+    gate.cards["ab-1"] = instantiateCard(
+      "abagnale",
+      "ab-1",
+      "runner:installed",
+    );
     const enigma = instantiateCard("enigma", "en-1", "server:hq:ice");
     enigma.rezzed = true;
     enigma.faceup = true;
@@ -1217,7 +1285,11 @@ describe("CR examples, chapter 9", () => {
     expect(broke.run?.encounter?.broken[0]).toBe(true);
 
     const bypass = createInitialState();
-    bypass.cards["ab-2"] = instantiateCard("abagnale", "ab-2", "runner:installed");
+    bypass.cards["ab-2"] = instantiateCard(
+      "abagnale",
+      "ab-2",
+      "runner:installed",
+    );
     const enigma2 = instantiateCard("enigma", "en-2", "server:hq:ice");
     enigma2.rezzed = true;
     enigma2.faceup = true;
@@ -1234,12 +1306,15 @@ describe("CR examples, chapter 9", () => {
     expect(trashed.run?.encounter?.broken.every(Boolean)).toBe(true);
   });
 
-
   it("leaves two Blackguard instances pending after Satellite Uplink exposes two cards (CR 9.6.4b.ex2)", () => {
     let s = createInitialState();
     const guard = instantiateCard("blackguard", "bg-1", "runner:installed");
     const uplink = instantiateCard("satellite-uplink", "su-1", "runner:grip");
-    const pad = instantiateCard("pad-campaign", "pad-1", "server:remote-1:root");
+    const pad = instantiateCard(
+      "pad-campaign",
+      "pad-1",
+      "server:remote-1:root",
+    );
     pad.rezzed = false;
     pad.faceup = false;
     const wall = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
@@ -1272,9 +1347,9 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["pad-1"]?.rezzed).toBe(false);
     expect(s.cards["iw-1"]?.faceup).toBe(false);
     expect(s.corp.credits).toBe(5);
-    expect(s.log.some((line) => line.includes("instances become pending"))).toBe(
-      false,
-    );
+    expect(
+      s.log.some((line) => line.includes("instances become pending")),
+    ).toBe(false);
     expect(s.pendingChoice?.options.map((option) => option.id)).toContain(
       "expose-up:iw-1",
     );
@@ -1299,10 +1374,11 @@ describe("CR examples, chapter 9", () => {
     expect(s.turn.exposureCounts?.["pad-1"]).toBe(1);
     expect(s.turn.exposureCounts?.["iw-1"]).toBe(1);
     expect(
-      s.pendingAbilities.some((p) => p.payload?.kind === "blackguard_force_rez"),
+      s.pendingAbilities.some(
+        (p) => p.payload?.kind === "blackguard_force_rez",
+      ),
     ).toBe(false);
   });
-
 
   it("does not take Nico Campaign's turn-begin credits after Ob rezzes it (CR 9.6.5b.ex1)", () => {
     const s = createInitialState();
@@ -1311,7 +1387,11 @@ describe("CR examples, chapter 9", () => {
       s.corp.identityId,
       "corp:identity",
     );
-    const reaper = instantiateCard("reaper-function", "reaper-1", "server:remote-1:root");
+    const reaper = instantiateCard(
+      "reaper-function",
+      "reaper-1",
+      "server:remote-1:root",
+    );
     reaper.rezzed = true;
     reaper.faceup = true;
     const nico = instantiateCard("nico-campaign", "nico-1", "corp:rd");
@@ -1338,14 +1418,16 @@ describe("CR examples, chapter 9", () => {
     const trashed = must(s, { type: "choose_option", optionId: "trash-net" });
     // The Corp finds Nico Campaign; an asset with no other remote goes to
     // a new one. It is rezzed ignoring credit costs.
-    const rezzed = must(trashed, { type: "choose_option", optionId: "choose-card:nico-1" });
+    const rezzed = must(trashed, {
+      type: "choose_option",
+      optionId: "choose-card:nico-1",
+    });
     expect(rezzed.cards["nico-1"]?.rezzed).toBe(true);
     expect(rezzed.cards["nico-1"]?.hostedCredits).toBe(9);
     expect(rezzed.corp.credits).toBe(5);
     expect(rezzed.runner.hand).toEqual([]);
     expect(rezzed.log.join("\n")).not.toContain("Take 3¢ from Nico Campaign");
   });
-
 
   it("rezzes Tranquility Home Grid after the install checkpoint (CR 9.6.5b.ex2)", () => {
     const s = createInitialState();
@@ -1375,11 +1457,12 @@ describe("CR examples, chapter 9", () => {
     expect(pay).toBeGreaterThan(-1);
     expect(rez).toBeGreaterThan(pay);
     expect(installed.pendingChoice).toBeNull();
-    expect(installed.cards["thg-1"]?.onFirstInstallInThisServerRootThisTurn).toBeTruthy();
+    expect(
+      installed.cards["thg-1"]?.onFirstInstallInThisServerRootThisTurn,
+    ).toBeTruthy();
     expect(installed.cards["thg-1"]?.rezzed).toBe(true);
     expect(installed.corp.credits).toBe(5);
   });
-
 
   it("does not score Quantum Predictive Model when Casting Call tags during the access (CR 9.6.5c.ex1)", () => {
     const s = createInitialState();
@@ -1419,18 +1502,25 @@ describe("CR examples, chapter 9", () => {
     expect(accessed.runner.tags).toBe(2);
   });
 
-
   it("checks Underworld Contact's link after The Supplier installs Dyson Mem Chip (CR 9.6.5d.ex1)", () => {
     let s = createInitialState();
     const identity = s.cards[s.runner.identityId]!;
     identity.link = 1;
     s.runner.link = 1;
-    const supplier = instantiateCard("the-supplier", "sup-1", "runner:installed");
+    const supplier = instantiateCard(
+      "the-supplier",
+      "sup-1",
+      "runner:installed",
+    );
     supplier.hostedCardIds = ["dyson-1"];
     const dyson = instantiateCard("dyson-mem-chip", "dyson-1", "hosted:sup-1");
     dyson.hostId = "sup-1";
     dyson.faceup = true;
-    const contact = instantiateCard("underworld-contact", "uw-1", "runner:installed");
+    const contact = instantiateCard(
+      "underworld-contact",
+      "uw-1",
+      "runner:installed",
+    );
     s.cards["sup-1"] = supplier;
     s.cards["dyson-1"] = dyson;
     s.cards["uw-1"] = contact;
@@ -1481,7 +1571,6 @@ describe("CR examples, chapter 9", () => {
     ).toBe(false);
   });
 
-
   it("gains 2 credits when Shipment from SanSan advances a card that had none (CR 9.6.6a.ex1)", () => {
     let s = createInitialState();
     const oldId = s.corp.identityId;
@@ -1524,7 +1613,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.corp.credits).toBe(7);
   });
 
-
   it("resolves Parasite once when Architect cannot be trashed (CR 9.6.7d.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("architect", "arch-1", "server:hq:ice");
@@ -1562,7 +1650,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.log.some((line) => line.includes("Trash Architect"))).toBe(false);
   });
 
-
   it("drops Drug Dealer's turn-begin ability when Aesop's Pawnshop trashes it first (CR 9.6.10.ex1)", () => {
     // Drug Dealer was installed first; the order is still the Runner's choice.
     const s = turnBeginWithDealerThenAesop();
@@ -1575,7 +1662,10 @@ describe("CR examples, chapter 9", () => {
     expect(s.runner.credits).toBe(1);
 
     const aesopFirst = triggerFirst(s, aesopTitle);
-    const picked = must(aesopFirst, { type: "choose_option", optionId: "trash" });
+    const picked = must(aesopFirst, {
+      type: "choose_option",
+      optionId: "trash",
+    });
     const trashed = must(picked, {
       type: "choose_option",
       optionId: "aesop:dealer-1",
@@ -1586,7 +1676,9 @@ describe("CR examples, chapter 9", () => {
       "Drug Dealer loses pending status — ability inactive",
     );
     expect(trashed.log.join("\n")).toContain(CR.pendingAbilityInactive.number);
-    expect(trashed.log.some((line) => line.includes("runner loses"))).toBe(false);
+    expect(trashed.log.some((line) => line.includes("runner loses"))).toBe(
+      false,
+    );
   });
 
   it("lets the Runner trigger Drug Dealer before Aesop's Pawnshop instead (CR 9.2.8d)", () => {
@@ -1594,12 +1686,17 @@ describe("CR examples, chapter 9", () => {
 
     const dealerFirst = triggerFirst(s, "Drug Dealer");
     expect(dealerFirst.runner.credits).toBe(0);
-    expect(dealerFirst.log.some((line) => line.includes("runner loses 1¢"))).toBe(
-      true,
-    );
+    expect(
+      dealerFirst.log.some((line) => line.includes("runner loses 1¢")),
+    ).toBe(true);
     // Aesop's Pawnshop is the only ability left, so it resolves without asking.
-    expect(dealerFirst.pendingChoice?.options.map((o) => o.id)).toContain("trash");
-    const picked = must(dealerFirst, { type: "choose_option", optionId: "trash" });
+    expect(dealerFirst.pendingChoice?.options.map((o) => o.id)).toContain(
+      "trash",
+    );
+    const picked = must(dealerFirst, {
+      type: "choose_option",
+      optionId: "trash",
+    });
     const trashed = must(picked, {
       type: "choose_option",
       optionId: "aesop:dealer-1",
@@ -1607,7 +1704,6 @@ describe("CR examples, chapter 9", () => {
     expect(trashed.runner.discardPile).toContain("dealer-1");
     expect(trashed.runner.credits).toBe(3);
   });
-
 
   it("resolves In the Groove on every install until the turn ends (CR 9.6.13b.ex1)", () => {
     const s = createInitialState();
@@ -1644,7 +1740,6 @@ describe("CR examples, chapter 9", () => {
     beginRunnerTurnFlags(gained);
     expect(gained.turn.remainderOfTurnOnInstallPrintedCostGte).toEqual([]);
   });
-
 
   it("takes Joshua B.'s tag at turn end after Joshua B. is trashed (CR 9.6.13c.ex1)", () => {
     let s = createInitialState();
@@ -1683,7 +1778,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.turn.delayedTurnEndTags).toEqual([]);
     expect(s.cards["jb-1"]?.zone).toBe("runner:heap");
   });
-
 
   it("does not trash Mayfly for a break outside a run (CR 9.6.13d.ex1)", () => {
     const s = createInitialState();
@@ -1724,7 +1818,6 @@ describe("CR examples, chapter 9", () => {
     expect(broken.run?.breakersThatBroke ?? []).not.toContain("mayfly-1");
   });
 
-
   it("resolves Market Research through 24/7 News Cycle only while the Runner is tagged (CR 9.6.14d.ex1)", () => {
     const setup = (tags: number) => {
       const s = createInitialState();
@@ -1750,9 +1843,9 @@ describe("CR examples, chapter 9", () => {
 
     let tagged = setup(1);
     tagged = must(tagged, { type: "play_operation", cardId: "news-1" });
-    expect(
-      tagged.pendingChoice?.options.map((option) => option.id),
-    ).toContain("forfeit-agenda:astro-1");
+    expect(tagged.pendingChoice?.options.map((option) => option.id)).toContain(
+      "forfeit-agenda:astro-1",
+    );
     tagged = must(tagged, {
       type: "choose_option",
       optionId: "forfeit-agenda:astro-1",
@@ -1798,7 +1891,6 @@ describe("CR examples, chapter 9", () => {
     ).toBe(false);
   });
 
-
   it("ends the action phase after Oppo Research's play ability finishes (CR 9.7.1.ex1)", () => {
     let s = createInitialState();
     const agenda = instantiateCard("degree-mill", "ag-1", "corp:score");
@@ -1833,7 +1925,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.corp.credits).toBe(0);
     expect(s.corp.clicks).toBe(0);
   });
-
 
   it("places Merlin's subroutine where the Corp chooses on Lancelot (CR 9.8.2c.ex1)", () => {
     let s = createInitialState();
@@ -1873,18 +1964,29 @@ describe("CR examples, chapter 9", () => {
 
     for (let i = 0; i < 12; i++) {
       autoWalk(s);
-      if (s.pendingChoice?.options.some((option) => option.id === "grail-at:1")) {
+      if (
+        s.pendingChoice?.options.some((option) => option.id === "grail-at:1")
+      ) {
         break;
       }
       // The Corp says which grail ice in HQ it reveals (CR 1.15.2).
-      if (s.pendingChoice?.options.some((option) => option.id === "choose-card:merlin-1")) {
+      if (
+        s.pendingChoice?.options.some(
+          (option) => option.id === "choose-card:merlin-1",
+        )
+      ) {
         expect(s.pendingChoice.chooser).toBe("corp");
         expect(s.pendingChoice.options.map((option) => option.id)).toEqual([
           "choose-card:merlin-1",
           "choose-cards-done",
         ]);
-        s = must(s, { type: "choose_option", optionId: "choose-card:merlin-1" });
-        expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual(["Merlin"]);
+        s = must(s, {
+          type: "choose_option",
+          optionId: "choose-card:merlin-1",
+        });
+        expect(s.reveals?.at(-1)?.cards.map((card) => card.title)).toEqual([
+          "Merlin",
+        ]);
         expect(s.cards["merlin-1"]?.faceup).toBe(false);
         continue;
       }
@@ -1904,7 +2006,7 @@ describe("CR examples, chapter 9", () => {
       "grail-at:1",
       "grail-at:2",
     ]);
-    const offered = at(s.log, "choose where \"Do 2 net damage.\" is placed");
+    const offered = at(s.log, 'choose where "Do 2 net damage." is placed');
     expect(s.log[offered]).toContain(CR.subroutineOrderChoice.number);
 
     s = must(s, { type: "choose_option", optionId: "grail-at:1" });
@@ -1919,10 +2021,9 @@ describe("CR examples, chapter 9", () => {
       "sub-boost-etr-sb-1",
     ]);
     expect(s.run?.encounter?.broken).toEqual([false, false, false]);
-    const placed = at(s.log, "gains \"Do 2 net damage.\" at position 2");
+    const placed = at(s.log, 'gains "Do 2 net damage." at position 2');
     expect(s.log[placed]).toContain(CR.subroutineOrderChoice.number);
   });
-
 
   it("orders Loki's before-other subroutines with the newest first (CR 9.8.3a.ex1)", () => {
     let s = createInitialState();
@@ -1939,7 +2040,11 @@ describe("CR examples, chapter 9", () => {
     );
     warden.rezzed = true;
     warden.faceup = true;
-    const poke = instantiateCard("stick-and-poke", "poke-1", "runner:installed");
+    const poke = instantiateCard(
+      "stick-and-poke",
+      "poke-1",
+      "runner:installed",
+    );
     s.cards["loki-1"] = loki;
     s.cards["tithe-1"] = tithe;
     s.cards["warden-1"] = warden;
@@ -2001,7 +2106,6 @@ describe("CR examples, chapter 9", () => {
       "End the run unless the Runner shuffles all cards from the grip into the stack.",
     ]);
   });
-
 
   it("adds Ashigaru's new subroutine after the ones already broken (CR 9.8.3d.ex1)", () => {
     let s = createInitialState();
@@ -2086,13 +2190,16 @@ describe("CR examples, chapter 9", () => {
     expect(gained).toBeLessThan(broke);
   });
 
-
   it("drops Ashigaru's last subroutines when Utopia Shard shrinks HQ (CR 9.8.3d.ex2)", () => {
     let s = createInitialState();
     const ash = instantiateCard("ashigaru", "ash-1", "server:hq:ice");
     ash.rezzed = true;
     ash.faceup = true;
-    const utopia = instantiateCard("utopia-shard", "utopia-1", "runner:installed");
+    const utopia = instantiateCard(
+      "utopia-shard",
+      "utopia-1",
+      "runner:installed",
+    );
     s.cards["ash-1"] = ash;
     s.cards["utopia-1"] = utopia;
     s.servers.hq.ice = ["ash-1"];
@@ -2149,7 +2256,6 @@ describe("CR examples, chapter 9", () => {
     );
   });
 
-
   it("orders Brainstorm's core-damage subroutines after Marker's earlier one (CR 9.8.3e.ex1)", () => {
     let s = createInitialState();
     const marker = instantiateCard("marker", "mk-1", "server:hq:ice");
@@ -2194,7 +2300,9 @@ describe("CR examples, chapter 9", () => {
       'Brainstorm gains 1 "Do 1 core damage." subroutine(s) after the others',
     );
     expect(fromMarker).toBeLessThan(fromBrainstorm);
-    expect(s.log[fromMarker]).toContain(CR.subroutineOriginExternalAfter.number);
+    expect(s.log[fromMarker]).toContain(
+      CR.subroutineOriginExternalAfter.number,
+    );
     expect(s.log[fromBrainstorm]).toContain(
       CR.subroutineOriginExternalAfter.number,
     );
@@ -2210,14 +2318,17 @@ describe("CR examples, chapter 9", () => {
     expect(s.run?.markerExtraEtrNextIce).toBe(false);
   });
 
-
   it("lets Grappling Hook leave a chosen subroutine, including one already broken (CR 9.8.6b.ex1)", () => {
     let s = createInitialState();
     const heimdall = instantiateCard("heimdall-1-0", "hd-1", "server:hq:ice");
     heimdall.rezzed = true;
     heimdall.faceup = true;
     const first = instantiateCard("grappling-hook", "gh-1", "runner:installed");
-    const second = instantiateCard("grappling-hook", "gh-2", "runner:installed");
+    const second = instantiateCard(
+      "grappling-hook",
+      "gh-2",
+      "runner:installed",
+    );
     s.cards["hd-1"] = heimdall;
     s.cards["gh-1"] = first;
     s.cards["gh-2"] = second;
@@ -2292,8 +2403,7 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["gh-2"]?.zone).toBe("runner:heap");
   });
 
-
-    it("stops Little Engine's later subroutines after the first ends the run (CR 9.8.7c.ex1)", () => {
+  it("stops Little Engine's later subroutines after the first ends the run (CR 9.8.7c.ex1)", () => {
     let s = createInitialState();
     const ice = instantiateCard("little-engine", "le-1", "server:hq:ice");
     ice.rezzed = true;
@@ -2324,11 +2434,12 @@ describe("CR examples, chapter 9", () => {
     }
     expect(s.runner.credits).toBe(0);
     expect(s.run).toBeNull();
-    expect(s.log.filter((line) => line.startsWith("Resolve subroutine"))).toEqual([
+    expect(
+      s.log.filter((line) => line.startsWith("Resolve subroutine")),
+    ).toEqual([
       'Resolve subroutine "End the run." (appendix 11.4_3_c_i / CR 6.5.5).',
     ]);
   });
-
 
   it("counts Gantulga's replacements as Bloop's resolved subroutines for Persephone (CR 9.8.9.ex1)", () => {
     let s = createInitialState();
@@ -2341,7 +2452,11 @@ describe("CR examples, chapter 9", () => {
       "runner:installed",
     );
     gantulga.namedServerId = "hq";
-    const persephone = instantiateCard("persephone", "per-1", "runner:installed");
+    const persephone = instantiateCard(
+      "persephone",
+      "per-1",
+      "runner:installed",
+    );
     s.cards["bloop-1"] = bloop;
     s.cards["gan-1"] = gantulga;
     s.cards["per-1"] = persephone;
@@ -2373,7 +2488,8 @@ describe("CR examples, chapter 9", () => {
 
     for (let i = 0; i < 40; i++) {
       autoWalk(s);
-      if (s.pendingChoice?.options.some((option) => option.id === "accept")) break;
+      if (s.pendingChoice?.options.some((option) => option.id === "accept"))
+        break;
       if (s.pendingDamage) {
         s = must(s, { type: "accept_damage" });
         continue;
@@ -2398,8 +2514,7 @@ describe("CR examples, chapter 9", () => {
     expect(s.corp.deck).toHaveLength(rdBefore - 3);
   });
 
-
-    it("treats Process Automation's gain and draw as the expected effects (CR 9.9.2.ex1)", () => {
+  it("treats Process Automation's gain and draw as the expected effects (CR 9.9.2.ex1)", () => {
     const s = createInitialState();
     const event = instantiateCard("process-automation", "pa-1", "runner:grip");
     s.cards["pa-1"] = event;
@@ -2417,7 +2532,6 @@ describe("CR examples, chapter 9", () => {
     expect(played.cards["pa-1"]?.zone).toBe("runner:heap");
     expect(played.log.join("\n")).not.toContain("not an expected effect");
   });
-
 
   it("drops Process Automation's draw from the expected effects after Lockdown (CR 9.9.2.ex2)", () => {
     let s = createInitialState();
@@ -2454,7 +2568,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["pa-1"]?.zone).toBe("runner:heap");
   });
 
-
   it("interrupts an imminent draw with The Class Act before cards are drawn (CR 9.9.3d.ex1)", () => {
     const s = createInitialState();
     const act = instantiateCard("the-class-act", "act-1", "runner:installed");
@@ -2476,11 +2589,13 @@ describe("CR examples, chapter 9", () => {
       "class-act-bottom:a",
       "class-act-bottom:b",
     ]);
-    const next = must(s, { type: "choose_option", optionId: "class-act-bottom:a" });
+    const next = must(s, {
+      type: "choose_option",
+      optionId: "class-act-bottom:a",
+    });
     expect(next.runner.hand).toEqual(["b"]);
     expect(next.runner.deck.at(-1)).toBe("a");
   });
-
 
   it("keeps Harbinger's interrupt pending but irrelevant after Sacrificial Construct (CR 9.9.4c.ex1)", () => {
     let s = createInitialState();
@@ -2543,7 +2658,9 @@ describe("CR examples, chapter 9", () => {
     });
     expect(refused.ok).toBe(false);
     if (!refused.ok) {
-      expect(refused.cites).toContainEqual(CR.conditionalInterruptStillRelevant);
+      expect(refused.cites).toContainEqual(
+        CR.conditionalInterruptStillRelevant,
+      );
     }
 
     s = must(s, { type: "accept_installed_trash" });
@@ -2551,7 +2668,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["hb-1"]?.zone).toBe("runner:installed");
     expect(s.cards["hb-1"]?.faceup).toBe(true);
   });
-
 
   it("does not let No One Home fire when it was installed during the tag window (CR 9.9.4c.ex2)", () => {
     let s = createInitialState();
@@ -2598,13 +2714,16 @@ describe("CR examples, chapter 9", () => {
     });
     expect(refused.ok).toBe(false);
     if (!refused.ok) {
-      expect(refused.cites).toContainEqual(CR.conditionalInterruptStillRelevant);
-      expect(refused.error).toContain("was not active when the interrupt window opened");
+      expect(refused.cites).toContainEqual(
+        CR.conditionalInterruptStillRelevant,
+      );
+      expect(refused.error).toContain(
+        "was not active when the interrupt window opened",
+      );
     }
     expect(s.pendingTags?.remaining).toBe(1);
     expect(s.cards["home-1"]?.zone).toBe("runner:installed");
   });
-
 
   it("lets a Decoy installed during the tag window avoid the other tag (CR 9.9.4d.ex1)", () => {
     let s = createInitialState();
@@ -2666,13 +2785,16 @@ describe("CR examples, chapter 9", () => {
     expect(s.cards["decoy-2"]?.zone).toBe("runner:heap");
   });
 
-
   it("counts prevented net damage as Tori Hanzō's first would (CR 9.9.5a.ex1)", () => {
     let s = createInitialState();
     const tori = instantiateCard("tori-hanzo", "tori-1", "server:hq:root");
     tori.rezzed = true;
     tori.faceup = true;
-    const filter = instantiateCard("feedback-filter", "ff-1", "runner:installed");
+    const filter = instantiateCard(
+      "feedback-filter",
+      "ff-1",
+      "runner:installed",
+    );
     s.cards["tori-1"] = tori;
     s.cards["ff-1"] = filter;
     s.servers.hq.root.push("tori-1");
@@ -2699,12 +2821,15 @@ describe("CR examples, chapter 9", () => {
     );
     expect(first.ok).toBe(true);
     expect(s.run?.netDamageWould).toBe(1);
-    expect(at(s.log, "Net damage would be dealt (1) this run")).toBeGreaterThanOrEqual(0);
+    expect(
+      at(s.log, "Net damage would be dealt (1) this run"),
+    ).toBeGreaterThanOrEqual(0);
     const firstOffers = legalActions(s);
     expect(
       firstOffers.some(
         (action) =>
-          action.type === "use_paid_ability" && action.abilityId === "tori-first-net",
+          action.type === "use_paid_ability" &&
+          action.abilityId === "tori-first-net",
       ),
     ).toBe(true);
     expect(
@@ -2735,14 +2860,14 @@ describe("CR examples, chapter 9", () => {
     expect(
       legalActions(s).some(
         (action) =>
-          action.type === "use_paid_ability" && action.abilityId === "tori-first-net",
+          action.type === "use_paid_ability" &&
+          action.abilityId === "tori-first-net",
       ),
     ).toBe(false);
     expect(s.pendingDamage?.type).toBe("net");
   });
 
-
-    it("lets Patchwork modify a play cost (CR 9.9.6c.ex1)", () => {
+  it("lets Patchwork modify a play cost (CR 9.9.6c.ex1)", () => {
     const s = createInitialState();
     const patch = instantiateCard("patchwork", "pw-1", "runner:installed");
     const gamble = instantiateCard("sure-gamble", "sg-1", "runner:grip");
@@ -2767,7 +2892,6 @@ describe("CR examples, chapter 9", () => {
     expect(played.turn.patchworkDiscountUsedThisTurn).toBe(true);
     expect(played.log.join("\n")).toContain(CR.modifiableValueCost.number);
   });
-
 
   it("keeps meat damage imminent below zero so The Cleaners can raise it (CR 9.9.7a.ex1)", () => {
     let s = createInitialState();
@@ -2796,7 +2920,9 @@ describe("CR examples, chapter 9", () => {
     cleanersA.whileScoredMeatDamageIncrease = undefined;
     cleanersB.whileScoredMeatDamageIncrease = undefined;
     cleanersA.paidAbilities = [{ ...addOne }];
-    cleanersB.paidAbilities = [{ ...addOne, effect: structuredClone(addOne.effect) }];
+    cleanersB.paidAbilities = [
+      { ...addOne, effect: structuredClone(addOne.effect) },
+    ];
     s.cards["stone-1"] = stone;
     s.cards["spoof-1"] = spoof;
     s.cards["cl-1"] = cleanersA;
@@ -2851,10 +2977,13 @@ describe("CR examples, chapter 9", () => {
     expect(s.runner.hand).toHaveLength(1);
   });
 
-
   it("removes Net-Ready Eyes' install damage before The Cleaners can add to it (CR 9.9.7b.ex1)", () => {
     let s = createInitialState();
-    const parlor = instantiateCard("chrome-parlor", "parlor-1", "runner:installed");
+    const parlor = instantiateCard(
+      "chrome-parlor",
+      "parlor-1",
+      "runner:installed",
+    );
     const eyes = instantiateCard("net-ready-eyes", "eyes-1", "runner:grip");
     const cleaners = instantiateCard("the-cleaners", "cl-1", "corp:score");
     cleaners.paidAbilities = [
@@ -2902,11 +3031,11 @@ describe("CR examples, chapter 9", () => {
     expect(
       legalActions(s).some(
         (action) =>
-          action.type === "use_paid_ability" && action.abilityId === "cleaners-add",
+          action.type === "use_paid_ability" &&
+          action.abilityId === "cleaners-add",
       ),
     ).toBe(false);
   });
-
 
   it("skips Breached Dome's damage when prevention takes the amount below zero (CR 9.9.7d.ex1)", () => {
     let s = createInitialState();
@@ -2949,8 +3078,7 @@ describe("CR examples, chapter 9", () => {
     expect(s.log.join("\n")).toContain("trash top of stack");
   });
 
-
-    it("keeps Flare's meat damage unpreventable after The Cleaners adds 1 (CR 9.9.7e.ex1)", () => {
+  it("keeps Flare's meat damage unpreventable after The Cleaners adds 1 (CR 9.9.7e.ex1)", () => {
     const s = createInitialState();
     const cleaners = instantiateCard("the-cleaners", "cl-1", "corp:score");
     const pap = instantiateCard("paparazzi", "pap-1", "runner:installed");
@@ -2987,13 +3115,14 @@ describe("CR examples, chapter 9", () => {
     const traced = evalEffect({ state: s, sourceId: "flare-1" }, sub);
     expect(traced.ok).toBe(true);
     expect(s.log.join("\n")).toContain("Meat damage increased by 1");
-    expect(s.log.join("\n")).toContain("3 meat damage from flare-1 cannot be prevented");
+    expect(s.log.join("\n")).toContain(
+      "3 meat damage from flare-1 cannot be prevented",
+    );
     expect(s.runner.hand).toEqual([]);
     expect(s.runner.installed).toContain("pap-1");
     expect(s.log.join("\n")).not.toContain("Paparazzi — prevent");
     expect(s.run?.endedTheRun).toBe(true);
   });
-
 
   it("does not make Guru Davinder pay when the damage is already 0 (CR 9.9.7f.ex1)", () => {
     let s = createInitialState();
@@ -3041,10 +3170,7 @@ describe("CR examples, chapter 9", () => {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
     }
 
-    const accessed = evalEffect(
-      { state: s, sourceId: "ang-1" },
-      ang.onAccess!,
-    );
+    const accessed = evalEffect({ state: s, sourceId: "ang-1" }, ang.onAccess!);
     expect(accessed.ok).toBe(true);
     s = must(s, { type: "choose_option", optionId: "pay" });
     expect(s.corp.credits).toBe(3);
@@ -3077,11 +3203,11 @@ describe("CR examples, chapter 9", () => {
     expect(
       legalActions(s).some(
         (action) =>
-          action.type === "use_paid_ability" && action.abilityId === "cleaners-add",
+          action.type === "use_paid_ability" &&
+          action.abilityId === "cleaners-add",
       ),
     ).toBe(false);
   });
-
 
   it("ends Gebrselassie's replaced duration at the next checkpoint once it leaves the host (CR 9.9.9a.ex1)", () => {
     let s = createInitialState();
@@ -3134,26 +3260,34 @@ describe("CR examples, chapter 9", () => {
 
     moveRunnerCardToHeap(s, "geb-1");
     expect(breakerStrength(s, "puf-1")).toBe(4);
-    expect(s.log.join("\n")).toContain(CR.replacementStaticMustRemainActive.number);
+    expect(s.log.join("\n")).toContain(
+      CR.replacementStaticMustRemainActive.number,
+    );
 
-    occurCheckpoint(s, "timing", "after Gebrselassie leaves", [
-      CR.checkpointDurationAbilities,
-    ], "test");
+    occurCheckpoint(
+      s,
+      "timing",
+      "after Gebrselassie leaves",
+      [CR.checkpointDurationAbilities],
+      "test",
+    );
     expect(breakerStrength(s, "puf-1")).toBe(3);
   });
-
 
   it("Vacheron steal once (CR 9.9.9c.ex1)", () => {
     expect(getCardDef("project-vacheron").vacheronStealReplacement).toBe(true);
   });
-
 
   it("replaces imminent net damage with core damage as Tori Hanzō resolves (CR 9.9.10.ex1)", () => {
     const s = createInitialState();
     const tori = instantiateCard("tori-hanzo", "tori-1", "server:hq:root");
     tori.rezzed = true;
     tori.faceup = true;
-    const filter = instantiateCard("feedback-filter", "ff-1", "runner:installed");
+    const filter = instantiateCard(
+      "feedback-filter",
+      "ff-1",
+      "runner:installed",
+    );
     s.cards["tori-1"] = tori;
     s.cards["ff-1"] = filter;
     s.servers.hq.root.push("tori-1");
@@ -3194,7 +3328,6 @@ describe("CR examples, chapter 9", () => {
     ).toBe(false);
   });
 
-
   it("applies only one breach replacement for Security Testing and Account Siphon (CR 9.9.11a.ex1)", () => {
     const s = createInitialState();
     const testing = instantiateCard(
@@ -3232,7 +3365,10 @@ describe("CR examples, chapter 9", () => {
     s.timingKey = "run.approachServerPaw";
     enterStep(s, "run.success");
     autoWalk(s);
-    const prompted = at(s.log, "Choose which replacement applies to the breach");
+    const prompted = at(
+      s.log,
+      "Choose which replacement applies to the breach",
+    );
     expect(s.log[prompted]).toContain(CR.replacementMustReplace.number);
     const chosen = must(s, {
       type: "choose_option",
@@ -3298,7 +3434,6 @@ describe("CR examples, chapter 9", () => {
     expect(resolved.run).toBeNull();
   });
 
-
   it("lets Showing Off keep the breach expected so Security Testing still replaces it (CR 9.9.11a.ex2)", () => {
     const s = createInitialState();
     const testing = instantiateCard(
@@ -3307,7 +3442,11 @@ describe("CR examples, chapter 9", () => {
       "runner:installed",
     );
     testing.namedServerId = "rd";
-    const showing = instantiateCard("showing-off", "show-1", "runner:play-area");
+    const showing = instantiateCard(
+      "showing-off",
+      "show-1",
+      "runner:play-area",
+    );
     s.cards["st-1"] = testing;
     s.cards["show-1"] = showing;
     s.runner.installed = ["st-1"];
@@ -3374,11 +3513,12 @@ describe("CR examples, chapter 9", () => {
       testingFirst.log,
       "Showing Off's replacement has nothing to replace",
     );
-    expect(testingFirst.log[dropped]).toContain(CR.replacementMustReplace.number);
+    expect(testingFirst.log[dropped]).toContain(
+      CR.replacementMustReplace.number,
+    );
     expect(testingFirst.runner.credits).toBe(7);
     expect(testingFirst.run).toBeNull();
   });
-
 
   it("drops Pelangi's subtype when the encounter ends (CR 9.10.3a.ex1)", () => {
     const s = createInitialState();
@@ -3408,16 +3548,22 @@ describe("CR examples, chapter 9", () => {
       fx.do({ kind: "choose_grant_encounter_ice_subtype" }),
     );
     if (!choosing.ok) throw new Error(choosing.error);
-    const granted = must(s, { type: "choose_option", optionId: "pelangi:sentry" });
+    const granted = must(s, {
+      type: "choose_option",
+      optionId: "pelangi:sentry",
+    });
     expect(effectiveIceSubtypes(granted, "wall-1")).toContain("sentry");
     granted.run!.encounter = null;
     expect(effectiveIceSubtypes(granted, "wall-1")).not.toContain("sentry");
   });
 
-
-    it("forgets Security Testing's server when the turn ends (CR 9.10.3b.ex1)", () => {
+  it("forgets Security Testing's server when the turn ends (CR 9.10.3b.ex1)", () => {
     const s = createInitialState();
-    const testing = instantiateCard("security-testing", "st-1", "runner:installed");
+    const testing = instantiateCard(
+      "security-testing",
+      "st-1",
+      "runner:installed",
+    );
     testing.namedServerId = "rd";
     s.cards["st-1"] = testing;
     s.runner.installed = ["st-1"];
@@ -3429,7 +3575,9 @@ describe("CR examples, chapter 9", () => {
     s.timingKey = "runner.startPaw";
     enterStep(s, "runner.turnBegins");
     autoWalk(s);
-    expect(s.pendingChoice?.options.map((option) => option.id)).toContain("st-decline");
+    expect(s.pendingChoice?.options.map((option) => option.id)).toContain(
+      "st-decline",
+    );
     const declined = must(s, { type: "choose_option", optionId: "st-decline" });
     expect(declined.cards["st-1"]?.namedServerId).toBeUndefined();
 
@@ -3453,8 +3601,7 @@ describe("CR examples, chapter 9", () => {
     expect(declined.log.join("\n")).not.toContain("gain 2¢ instead");
   });
 
-
-    it("remembers Femme Fatale's ice while Femme is active (CR 9.10.3c.ex1)", () => {
+  it("remembers Femme Fatale's ice while Femme is active (CR 9.10.3c.ex1)", () => {
     let s = createInitialState();
     const ice = instantiateCard("rsvp", "rsvp-1", "server:hq:ice");
     ice.rezzed = true;
@@ -3472,7 +3619,9 @@ describe("CR examples, chapter 9", () => {
       cardId: "ff-1",
       destination: { kind: "installed" },
     });
-    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("chosen-ice:rsvp-1");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain(
+      "chosen-ice:rsvp-1",
+    );
     s = must(s, { type: "choose_option", optionId: "chosen-ice:rsvp-1" });
     expect(s.cards["ff-1"]?.chosenIceId).toBe("rsvp-1");
 
@@ -3516,7 +3665,6 @@ describe("CR examples, chapter 9", () => {
     const offered = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(offered).not.toContain("bypass");
   });
-
 
   it("keeps Na'Not'K's paid strength after the run when Gebrselassie hosts on it (CR 9.10.5.ex1)", () => {
     const s = createInitialState();
@@ -3568,7 +3716,6 @@ describe("CR examples, chapter 9", () => {
     expect(breakerStrength(s, "nnk-1")).toBe(4);
   });
 
-
   it("offers Shipment from MirrorMorph as three separate installs (CR 9.11.4b.ex1)", () => {
     const s = createInitialState();
     const ship = instantiateCard(
@@ -3607,7 +3754,6 @@ describe("CR examples, chapter 9", () => {
     expect(stopped.corp.hand).toEqual(["pad-2", "pad-3"]);
   });
 
-
   it("grants Tinkering's subtypes when the chosen ice's instruction resolves (CR 9.11.4c.ex1)", () => {
     const s = createInitialState();
     const event = instantiateCard("tinkering", "tink-1", "runner:grip");
@@ -3622,15 +3768,19 @@ describe("CR examples, chapter 9", () => {
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
     const played = must(s, { type: "play_event", cardId: "tink-1" });
-    expect(played.pendingChoice?.options.map((o) => o.id)).toContain("tinker:wall-1");
+    expect(played.pendingChoice?.options.map((o) => o.id)).toContain(
+      "tinker:wall-1",
+    );
     expect(effectiveIceSubtypes(played, "wall-1")).toEqual(["barrier"]);
-    const granted = must(played, { type: "choose_option", optionId: "tinker:wall-1" });
+    const granted = must(played, {
+      type: "choose_option",
+      optionId: "tinker:wall-1",
+    });
     expect(effectiveIceSubtypes(granted, "wall-1")).toEqual(
       expect.arrayContaining(["barrier", "sentry", "code gate"]),
     );
     expect(granted.log.join("\n")).not.toContain("Between instructions");
   });
-
 
   it("trashes a grip card after Djinn's search and before Datasucker is added (CR 9.11.4d.ex1)", () => {
     const s = createInitialState();
@@ -3665,7 +3815,9 @@ describe("CR examples, chapter 9", () => {
     const text = searched.log.join("\n");
     const aside = text.indexOf("Datasucker found and set aside");
     const shuffled = text.indexOf("Stack shuffled");
-    const trashed = text.indexOf("Personality Profiles — Runner trashes Grip Card");
+    const trashed = text.indexOf(
+      "Personality Profiles — Runner trashes Grip Card",
+    );
     const added = text.indexOf("add Datasucker to grip");
     expect(aside).toBeGreaterThan(-1);
     expect(shuffled).toBeGreaterThan(aside);
@@ -3674,7 +3826,6 @@ describe("CR examples, chapter 9", () => {
     expect(searched.runner.hand).toEqual(["ds-1"]);
     expect(searched.runner.discardPile).toContain("grip-1");
   });
-
 
   it("ends Architect's look before the optional install, then closes the look (CR 9.11.4e.ex1)", () => {
     const s = createInitialState();
@@ -3714,7 +3865,6 @@ describe("CR examples, chapter 9", () => {
     expect(declined.cards["rd-1"]?.faceup).toBe(false);
     expect(declined.pendingChoice).toBeNull();
   });
-
 
   it("makes Data Raven's chosen option imminent after the choice checkpoint (CR 9.11.4g.ex1)", () => {
     const s = createInitialState();
@@ -3757,7 +3907,6 @@ describe("CR examples, chapter 9", () => {
     expect(tagged.run?.endedTheRun).toBe(false);
   });
 
-
   it("lets only the active player choose when Chronos Protocol and Titanium Ribs conflict (CR 9.12.1c.ex1)", () => {
     const board = (active: "corp" | "runner") => {
       const s = createInitialState();
@@ -3766,7 +3915,11 @@ describe("CR examples, chapter 9", () => {
         s.corp.identityId,
         "corp:identity",
       );
-      const ribs = instantiateCard("titanium-ribs", "ribs-1", "runner:installed");
+      const ribs = instantiateCard(
+        "titanium-ribs",
+        "ribs-1",
+        "runner:installed",
+      );
       const alpha = instantiateCard("sure-gamble", "alpha", "runner:grip");
       const beta = instantiateCard("sure-gamble", "beta", "runner:grip");
       alpha.title = "Alpha";
@@ -3786,9 +3939,9 @@ describe("CR examples, chapter 9", () => {
       expect(s.pendingChoice?.chooser).toBe(active);
       expect(s.log.join("\n")).toContain("Chronos Protocol — look at the grip");
       const corpView = getPublicView(s, "corp");
-      expect(corpView.pendingChoice?.options.map((o) => o.label).join(" ")).toContain(
-        "Alpha",
-      );
+      expect(
+        corpView.pendingChoice?.options.map((o) => o.label).join(" "),
+      ).toContain("Alpha");
       return s;
     };
     const corpTurn = board("corp");
@@ -3806,7 +3959,6 @@ describe("CR examples, chapter 9", () => {
     expect(runnerPicked.pendingChoice?.chooser).not.toBe("corp");
   });
 
-
   it("Hush blanks Mother Goddess before she gains bioroid, so Warden Fatuma skips her (CR 9.12.1e.ex1)", () => {
     let s = createInitialState();
     s = structuredClone(s);
@@ -3817,7 +3969,11 @@ describe("CR examples, chapter 9", () => {
     ansel.rezzed = true;
     ansel.faceup = true;
     ansel.subtypes = ["barrier", "bioroid"];
-    const warden = instantiateCard("warden-fatuma", "warden-1", "server:hq:root");
+    const warden = instantiateCard(
+      "warden-fatuma",
+      "warden-1",
+      "server:hq:root",
+    );
     warden.rezzed = true;
     warden.faceup = true;
     const hush = instantiateCard("hush", "hush-1", "runner:installed");
@@ -3872,7 +4028,6 @@ describe("CR examples, chapter 9", () => {
     ).toBe(true);
   });
 
-
   it("Hush on Magnet: hosting loop → Hush blanks Magnet; Hush keeps abilities (CR 9.12.1e.ex2)", () => {
     let s = createInitialState();
     s = structuredClone(s);
@@ -3906,7 +4061,6 @@ describe("CR examples, chapter 9", () => {
     expect(abilitiesSuppressed(s, "hush-1")).toBe(false);
     expect((s.cards["mag-1"].subroutines ?? []).length).toBeGreaterThan(0);
   });
-
 
   it("makes Warroid Tracker pending once when Singularity trashes it with Hostile Infrastructure (CR 9.12.2a.ex1)", () => {
     let s = createInitialState();
@@ -3970,9 +4124,9 @@ describe("CR examples, chapter 9", () => {
     expect(
       s.log.filter((line) => line.startsWith("Trace initiated")).length,
     ).toBe(1);
-    expect(s.log.filter((line) => line.startsWith("net damage 1:"))).toHaveLength(
-      2,
-    );
+    expect(
+      s.log.filter((line) => line.startsWith("net damage 1:")),
+    ).toHaveLength(2);
     expect(
       s.log.filter((line) =>
         line.includes("Warroid Tracker — Runner has no installed cards"),
@@ -3981,7 +4135,6 @@ describe("CR examples, chapter 9", () => {
     expect(hiPending).toBeLessThan(once);
     expect(s.runner.hand).toEqual([]);
   });
-
 
   it("looks at 4 cards once when Ritual draws 3 (CR 9.12.2b.ex1)", () => {
     const s = createInitialState();
@@ -4018,29 +4171,43 @@ describe("CR examples, chapter 9", () => {
     expect(next.pendingChoice).toBeNull();
   });
 
-
   it("applies Prāna Condenser once to Urtica Cipher's 5 net damage (CR 9.12.2b.ex2)", () => {
     const s = createInitialState();
-    const urtica = instantiateCard("urtica-cipher", "ur-1", "server:remote-1:root");
+    const urtica = instantiateCard(
+      "urtica-cipher",
+      "ur-1",
+      "server:remote-1:root",
+    );
     urtica.advancementCounters = 3;
     urtica.rezzed = true;
     urtica.faceup = true;
-    const prana = instantiateCard("prana-condenser", "pr-1", "server:remote-2:root");
+    const prana = instantiateCard(
+      "prana-condenser",
+      "pr-1",
+      "server:remote-2:root",
+    );
     prana.rezzed = true;
     prana.faceup = true;
     s.cards["ur-1"] = urtica;
     s.cards["pr-1"] = prana;
-    s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["ur-1"] };
-    s.servers["remote-2"] = { id: "remote-2", kind: "remote", ice: [], root: ["pr-1"] };
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ur-1"],
+    };
+    s.servers["remote-2"] = {
+      id: "remote-2",
+      kind: "remote",
+      ice: [],
+      root: ["pr-1"],
+    };
     s.corp.credits = 0;
     for (const id of ["g1", "g2", "g3", "g4", "g5"]) {
       s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
     }
     s.runner.hand = ["g1", "g2", "g3", "g4", "g5"];
-    const dealt = evalEffect(
-      { state: s, sourceId: "ur-1" },
-      urtica.onAccess!,
-    );
+    const dealt = evalEffect({ state: s, sourceId: "ur-1" }, urtica.onAccess!);
     expect(dealt.ok).toBe(true);
     expect(s.pendingDamage?.type).toBe("net");
     expect(s.pendingDamage?.remaining).toBe(5);
@@ -4060,7 +4227,6 @@ describe("CR examples, chapter 9", () => {
     expect(again.ok).toBe(false);
     expect(once.pendingDamage?.remaining).toBe(4);
   });
-
 
   it("offers NASX twice when realloc() gains and derezzes two ice (CR 9.12.2b.ex3)", () => {
     const s = createInitialState();
@@ -4103,16 +4269,22 @@ describe("CR examples, chapter 9", () => {
       type: "choose_option",
       optionId: "realloc-second:ice-b",
     });
-    expect(second.pendingChoice?.options.map((o) => o.id)).toContain("nasx-power:1");
-    const declined = must(second, { type: "choose_option", optionId: "decline" });
-    expect(declined.pendingChoice?.options.map((o) => o.id)).toContain("nasx-power:1");
+    expect(second.pendingChoice?.options.map((o) => o.id)).toContain(
+      "nasx-power:1",
+    );
+    const declined = must(second, {
+      type: "choose_option",
+      optionId: "decline",
+    });
+    expect(declined.pendingChoice?.options.map((o) => o.id)).toContain(
+      "nasx-power:1",
+    );
     const done = must(declined, { type: "choose_option", optionId: "decline" });
     expect(done.pendingChoice).toBeNull();
     expect(done.cards["ice-a"]?.rezzed).toBe(false);
     expect(done.cards["ice-b"]?.rezzed).toBe(false);
     expect(done.corp.credits).toBe(10);
   });
-
 
   it("trashes Troll when Forked's empty subroutine set is broken at the encounter window (CR 9.12.2d.ex1)", () => {
     const start = (): GameState => {
@@ -4160,8 +4332,7 @@ describe("CR examples, chapter 9", () => {
     expect(ended.run).toBeNull();
   });
 
-
-    it("traces 0 after ZATO City Grid trashes Surveyor (CR 9.12.2e.ex1)", () => {
+  it("traces 0 after ZATO City Grid trashes Surveyor (CR 9.12.2e.ex1)", () => {
     const s = createInitialState();
     const surveyor = instantiateCard("surveyor", "sv-1", "server:remote-1:ice");
     surveyor.rezzed = true;
@@ -4169,7 +4340,11 @@ describe("CR examples, chapter 9", () => {
     const wall = instantiateCard("ice-wall", "wall-1", "server:remote-1:ice");
     wall.rezzed = true;
     wall.faceup = true;
-    const zato = instantiateCard("zato-city-grid", "zato-1", "server:remote-1:root");
+    const zato = instantiateCard(
+      "zato-city-grid",
+      "zato-1",
+      "server:remote-1:root",
+    );
     zato.rezzed = true;
     zato.faceup = true;
     s.cards["sv-1"] = surveyor;
@@ -4204,7 +4379,6 @@ describe("CR examples, chapter 9", () => {
     expect(traced.log.join("\n")).toContain("Trace initiated strength 0");
   });
 
-
   it("treats Surveyor's X as 0 when the defining ability is inactive (CR 9.12.2e.ex2)", () => {
     const s = createInitialState();
     const surveyor = instantiateCard("surveyor", "sv-1", "server:hq:ice");
@@ -4237,7 +4411,6 @@ describe("CR examples, chapter 9", () => {
     expect(s.log.join("\n")).toContain("Trace initiated strength 0");
   });
 
-
   it("makes the Runner choose Imp or Scrubber for Mumbad Virtual Tour (CR 9.12.3a.ex1)", () => {
     const start = (): GameState => {
       const s = createInitialState();
@@ -4250,7 +4423,11 @@ describe("CR examples, chapter 9", () => {
       tour.faceup = true;
       const imp = instantiateCard("imp", "imp-1", "runner:installed");
       imp.virusCounters = 1;
-      const scrubber = instantiateCard("scrubber", "scrub-1", "runner:installed");
+      const scrubber = instantiateCard(
+        "scrubber",
+        "scrub-1",
+        "runner:installed",
+      );
       scrubber.recurringCredits = 2;
       s.cards["mvt-1"] = tour;
       s.cards["imp-1"] = imp;
@@ -4282,7 +4459,10 @@ describe("CR examples, chapter 9", () => {
       "must-trash:pay",
       "must-trash:imp",
     ]);
-    withImp = must(withImp, { type: "choose_option", optionId: "must-trash:imp" });
+    withImp = must(withImp, {
+      type: "choose_option",
+      optionId: "must-trash:imp",
+    });
     expect(withImp.corp.discardPile).toContain("mvt-1");
     expect(withImp.cards["imp-1"]?.virusCounters).toBe(0);
     expect(withImp.runner.credits).toBe(4);
@@ -4290,11 +4470,13 @@ describe("CR examples, chapter 9", () => {
 
     let withPay = start();
     withPay = must(withPay, { type: "access_card", cardId: "mvt-1" });
-    withPay = must(withPay, { type: "choose_option", optionId: "must-trash:pay" });
+    withPay = must(withPay, {
+      type: "choose_option",
+      optionId: "must-trash:pay",
+    });
     expect(withPay.corp.discardPile).toContain("mvt-1");
     expect(withPay.cards["imp-1"]?.virusCounters).toBe(1);
   });
-
 
   it("does not force Imp when Neutralize All Threats cannot be paid (CR 9.12.3b.ex1)", () => {
     const s = createInitialState();
@@ -4335,7 +4517,6 @@ describe("CR examples, chapter 9", () => {
     expect(accessed.log.join("\n")).toContain(CR.mustSpecifiedMeans.number);
   });
 
-
   it("makes the Runner pay Fairchild when that is the only option (CR 9.12.3c.ex1)", () => {
     const s = createInitialState();
     const ice = instantiateCard("fairchild-2-0", "fc-1", "server:hq:ice");
@@ -4359,8 +4540,7 @@ describe("CR examples, chapter 9", () => {
     expect(s.log.join("\n")).toContain(CR.mustChoice.number);
   });
 
-
-    it("lets the Runner take Data Raven's tag and avoid it without ending the run (CR 9.12.3d.ex1)", () => {
+  it("lets the Runner take Data Raven's tag and avoid it without ending the run (CR 9.12.3d.ex1)", () => {
     const s = createInitialState();
     const raven = instantiateCard("data-raven", "raven-1", "server:hq:ice");
     raven.rezzed = true;
@@ -4384,7 +4564,10 @@ describe("CR examples, chapter 9", () => {
       accessingCardId: null,
     };
     expect(raven.onEncounter).toBeDefined();
-    const offered = evalEffect({ state: s, sourceId: "raven-1" }, raven.onEncounter!);
+    const offered = evalEffect(
+      { state: s, sourceId: "raven-1" },
+      raven.onEncounter!,
+    );
     expect(offered.ok).toBe(true);
     expect(s.pendingChoice?.options.map((option) => option.id)).toEqual([
       "unless-pay",
@@ -4404,10 +4587,13 @@ describe("CR examples, chapter 9", () => {
     expect(avoided.cards["decoy-1"]?.zone).toBe("runner:heap");
   });
 
-
   it("lets the Runner decline Service Outage and then spend Always Be Running's click (CR 9.12.3e.ex1)", () => {
     const s = createInitialState();
-    const abr = instantiateCard("always-be-running", "abr-1", "runner:installed");
+    const abr = instantiateCard(
+      "always-be-running",
+      "abr-1",
+      "runner:installed",
+    );
     const outage = instantiateCard("service-outage", "out-1", "corp:play-area");
     s.cards["abr-1"] = abr;
     s.cards["out-1"] = outage;
@@ -4418,10 +4604,12 @@ describe("CR examples, chapter 9", () => {
     s.activeSide = "runner";
     s.turn.runnerClicksSpentThisTurn = 0;
     enterStep(s, "runner.takeAction");
-    expect(legalActions(s).some((action) => action.type === "basic_gain_credit")).toBe(
-      false,
+    expect(
+      legalActions(s).some((action) => action.type === "basic_gain_credit"),
+    ).toBe(false);
+    expect(legalActions(s).some((action) => action.type === "basic_run")).toBe(
+      true,
     );
-    expect(legalActions(s).some((action) => action.type === "basic_run")).toBe(true);
 
     const prompted = must(s, { type: "basic_run", serverId: "hq" as ServerId });
     expect(prompted.pendingChoice?.options.map((option) => option.id)).toEqual([
@@ -4437,15 +4625,18 @@ describe("CR examples, chapter 9", () => {
     expect(declined.runner.clicks).toBe(4);
     expect(declined.runner.credits).toBe(5);
     expect(declined.run).toBeNull();
-    expect(declined.log.join("\n")).toContain(CR.mustNotForceAdditionalCost.number);
+    expect(declined.log.join("\n")).toContain(
+      CR.mustNotForceAdditionalCost.number,
+    );
     expect(
-      legalActions(declined).some((action) => action.type === "basic_gain_credit"),
+      legalActions(declined).some(
+        (action) => action.type === "basic_gain_credit",
+      ),
     ).toBe(true);
     const gained = must(declined, { type: "basic_gain_credit" });
     expect(gained.runner.credits).toBe(6);
     expect(gained.runner.clicks).toBe(3);
   });
-
 
   it("keeps AMAZE Amusements pending while Doppelgänger starts another run (CR 9.12.5d.ex1)", () => {
     const s = createInitialState();
@@ -4500,16 +4691,14 @@ describe("CR examples, chapter 9", () => {
     expect(s.runner.tags).toBe(0);
     expect(
       s.pendingAbilities.some(
-        (p) =>
-          p.status === "pending" && p.payload?.kind === "amaze_give_tags",
+        (p) => p.status === "pending" && p.payload?.kind === "amaze_give_tags",
       ),
     ).toBe(true);
     const running = must(s, { type: "choose_option", optionId: "run:hq" });
     expect(running.runner.tags).toBe(0);
     expect(
       running.pendingAbilities.some(
-        (p) =>
-          p.status === "pending" && p.payload?.kind === "amaze_give_tags",
+        (p) => p.status === "pending" && p.payload?.kind === "amaze_give_tags",
       ),
     ).toBe(true);
     expect(running.run?.attackedServerId).toBe("hq");

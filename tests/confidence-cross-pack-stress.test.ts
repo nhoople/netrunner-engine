@@ -163,10 +163,8 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
     s.cards["fh-1"].rezzed = true;
 
     expect(
-      evalEffect(
-        { state: s, sourceId: "fh-1" },
-        fx.endTheRunUnlessTakeTags(1),
-      ).ok,
+      evalEffect({ state: s, sourceId: "fh-1" }, fx.endTheRunUnlessTakeTags(1))
+        .ok,
     ).toBe(true);
     expect(s.pendingChoice).toBeNull();
     expect(s.run?.endedTheRun).toBe(true);

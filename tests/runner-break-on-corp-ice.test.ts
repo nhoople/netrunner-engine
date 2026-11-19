@@ -38,7 +38,10 @@ beforeAll(() => {
  */
 function writeNPotAsPrinted(card: CardInstance): void {
   // Paid abilities are read from the card's ability records.
-  const records = (card.abilities ?? []) as unknown as Record<string, unknown>[];
+  const records = (card.abilities ?? []) as unknown as Record<
+    string,
+    unknown
+  >[];
   const brk = records.find((a) => a.id === "n-pot-break")!;
   brk.instructions = {
     op: "do",

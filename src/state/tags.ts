@@ -58,7 +58,9 @@ export function effectiveRunnerTags(state: GameState): number {
  * active when the interrupt window opened (CR 9.9.4c.ex2). Decoy is a paid
  * interrupt and is not on this list (CR 9.9.4d).
  */
-export function conditionalInterruptRequiresActiveAtOpen(abilityId: string): boolean {
+export function conditionalInterruptRequiresActiveAtOpen(
+  abilityId: string,
+): boolean {
   return abilityId.startsWith("no-one-home");
 }
 

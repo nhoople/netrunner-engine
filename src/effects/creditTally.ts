@@ -161,14 +161,20 @@ function tallyCount(
         source.zone.endsWith(":ice")
       ) {
         serverId = source.zone.slice("server:".length, -":ice".length);
-      } else if (!serverId && source && state.corp.discardPile.includes(source.id)) {
+      } else if (
+        !serverId &&
+        source &&
+        state.corp.discardPile.includes(source.id)
+      ) {
         // A card already in Archives was not moved between servers (CR 4.6.6i).
         serverId = "archives";
       } else if (!serverId && state.run) {
         serverId = state.run.attackedServerId;
       }
       if (!serverId) return 0;
-      return state.servers[serverId as keyof typeof state.servers]?.ice.length ?? 0;
+      return (
+        state.servers[serverId as keyof typeof state.servers]?.ice.length ?? 0
+      );
     }
     default: {
       const _n: never = tally.count;

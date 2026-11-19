@@ -130,7 +130,9 @@ function deadKinds(): string[] {
       );
       expect(typeStart, "ir.ts layout: Primitive union").toBeGreaterThan(0);
       expect(typeEnd, "ir.ts layout: Cond union").toBeGreaterThan(typeStart);
-      expect(setStart, "ir.ts layout: KNOWN_PRIMITIVE_KINDS").toBeGreaterThan(0);
+      expect(setStart, "ir.ts layout: KNOWN_PRIMITIVE_KINDS").toBeGreaterThan(
+        0,
+      );
       expect(setEnd, "ir.ts layout: end of set").toBeGreaterThan(setStart);
       for (let i = 0; i < lines.length; i++) {
         if ((i >= typeStart && i < typeEnd) || (i >= setStart && i <= setEnd)) {
@@ -278,7 +280,14 @@ function noOpCardChoices(): string[] {
 
 type FlagInventory = {
   flagKinds: Record<string, string[]>;
-  entries: Record<string, { flag: boolean; cardDef: string; readers?: Array<{ site: string; kinds: string[] }> }>;
+  entries: Record<
+    string,
+    {
+      flag: boolean;
+      cardDef: string;
+      readers?: Array<{ site: string; kinds: string[] }>;
+    }
+  >;
 };
 
 /**
@@ -299,7 +308,8 @@ function noOpFlags(builders: Map<string, string[]>): string[] {
   }
   const out = new Set<string>();
   for (const [flag, kinds] of Object.entries(inv.flagKinds)) {
-    for (const k of kinds) if (noOpKinds.has(k)) out.add(`flag:${flag} -> kind ${k}`);
+    for (const k of kinds)
+      if (noOpKinds.has(k)) out.add(`flag:${flag} -> kind ${k}`);
   }
   for (const [flag, entry] of Object.entries(inv.entries)) {
     if (!entry.flag || entry.cardDef !== "boolean") continue;
@@ -349,9 +359,16 @@ describe("kind liveness (CR audit 1.2)", () => {
     );
     const found = [...builders.keys(), ...noOpCardChoices()].sort();
     const detail = [...builders]
-      .map(([k, via]) => `${k} -> ${via.length ? `id dispatch ${via.join(", ")}` : "no id dispatch"}`)
+      .map(
+        ([k, via]) =>
+          `${k} -> ${via.length ? `id dispatch ${via.join(", ")}` : "no id dispatch"}`,
+      )
       .join("\n");
-    shrinkOnly(found, readBaseline().noOpChoices, `no-op choice(s)\n${detail}\n`);
+    shrinkOnly(
+      found,
+      readBaseline().noOpChoices,
+      `no-op choice(s)\n${detail}\n`,
+    );
   });
 
   it("(c) no card flag's consumer builds a no-op kind", () => {

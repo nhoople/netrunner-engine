@@ -94,9 +94,9 @@ describe("CR G6 — access-a-card (11.6 / 7.2)", () => {
         (l) => l.includes("7.2.1") && l.includes("11.6_1") && l.includes("PAD"),
       ),
     ).toBe(true);
-    expect(
-      s.log.some((l) => l.includes("11.6_4") || l.includes("7.2.4")),
-    ).toBe(true);
+    expect(s.log.some((l) => l.includes("11.6_4") || l.includes("7.2.4"))).toBe(
+      true,
+    );
     expect(s.run?.accessingCardId ?? null).toBeNull();
   });
 
@@ -127,9 +127,9 @@ describe("CR G6 — access-a-card (11.6 / 7.2)", () => {
 
     s = must(s, { type: "steal_agenda", cardId: "ag-1" });
     expect(s.runner.scoreArea).toContain("ag-1");
-    expect(
-      s.log.some((l) => l.includes("11.6_4") || l.includes("7.2.4")),
-    ).toBe(true);
+    expect(s.log.some((l) => l.includes("11.6_4") || l.includes("7.2.4"))).toBe(
+      true,
+    );
   });
 
   it("agenda without mid-access options auto-advances to steal step", () => {

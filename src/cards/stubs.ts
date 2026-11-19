@@ -40,24 +40,20 @@ export function cardExport(defId: string) {
     rezCost: def.rezCost,
     strength: def.strength,
     subtypes: def.subtypes ? [...def.subtypes] : [],
-    subroutines: (def.subroutines ?? []).map(
-      (s): Subroutine => ({
-        id: s.id,
-        text: s.text,
-        effect: structuredClone(s.effect) as Effect,
-      }),
-    ),
+    subroutines: (def.subroutines ?? []).map((s): Subroutine => ({
+      id: s.id,
+      text: s.text,
+      effect: structuredClone(s.effect) as Effect,
+    })),
     breaker: def.breaker ? ({ ...def.breaker } as BreakerAbility) : undefined,
-    paidAbilities: (def.paidAbilities ?? []).map(
-      (a): PaidAbility => ({
-        ...a,
-        clickCost: a.clickCost ?? 0,
-        creditCost: a.creditCost ?? 0,
-        // Catalog already normalizes interrupt window ids (CR 9.2.9).
-        windows: [...a.windows],
-        effect: structuredClone(a.effect) as Effect,
-      }),
-    ),
+    paidAbilities: (def.paidAbilities ?? []).map((a): PaidAbility => ({
+      ...a,
+      clickCost: a.clickCost ?? 0,
+      creditCost: a.creditCost ?? 0,
+      // Catalog already normalizes interrupt window ids (CR 9.2.9).
+      windows: [...a.windows],
+      effect: structuredClone(a.effect) as Effect,
+    })),
     onRez: def.onRez ? (structuredClone(def.onRez) as Effect) : undefined,
     prevention: def.prevention ? { ...def.prevention } : undefined,
     strengthBonusProtectingRemote: def.strengthBonusProtectingRemote,
@@ -94,16 +90,11 @@ export function applyIceDef(
   applyCardDef(card, which);
 }
 
-export function applyBreakerDef(
-  card: CardInstance,
-  which = "marjanah",
-): void {
+export function applyBreakerDef(card: CardInstance, which = "marjanah"): void {
   applyCardDef(card, which);
 }
 
-export function currentWindow(
-  timingKey: string,
-): PaidAbilityWindow | null {
+export function currentWindow(timingKey: string): PaidAbilityWindow | null {
   switch (timingKey) {
     case "run.approachPaw":
       return "approach_paw";
@@ -192,8 +183,7 @@ export function effectiveBreakerStrength(
       "number" &&
     state.run?.attackedServerId
   ) {
-    const iceCount =
-      state.servers[state.run.attackedServerId]?.ice.length ?? 0;
+    const iceCount = state.servers[state.run.attackedServerId]?.ice.length ?? 0;
     increases +=
       card.strengthBonusPerIceProtectingAttackedServerDuringRun * iceCount;
   }
@@ -230,8 +220,7 @@ export function effectiveBreakerStrength(
     const aura = state.cards[id]?.giveStrengthToInstalledIcebreakers;
     if (!aura) continue;
     const isBreaker =
-      Boolean(card.breaker) ||
-      (card.subtypes ?? []).includes("icebreaker");
+      Boolean(card.breaker) || (card.subtypes ?? []).includes("icebreaker");
     if (!isBreaker) continue;
     if (
       aura.excludeSubtype &&
@@ -307,10 +296,7 @@ function rezzedRootUpgradesOnServer(
   return server.root
     .map((id) => state.cards[id])
     .filter(
-      (c) =>
-        c &&
-        c.rezzed &&
-        (c.type === "upgrade" || c.type === "asset"),
+      (c) => c && c.rezzed && (c.type === "upgrade" || c.type === "asset"),
     ) as CardInstance[];
 }
 
@@ -376,7 +362,9 @@ export function rootRezCostReduction(
   const card = state.cards[cardIdBeingRezzed];
   const zone = card?.zone ?? "";
   if (!zone.startsWith("server:") || !zone.endsWith(":root")) return 0;
-  const serverId = zone.replace(/^server:/, "").replace(/:root$/, "") as ServerId;
+  const serverId = zone
+    .replace(/^server:/, "")
+    .replace(/:root$/, "") as ServerId;
   const corpPts = agendaPointsFor(state, "corp");
   const runnerPts = agendaPointsFor(state, "runner");
   const threat = Math.max(corpPts, runnerPts);
@@ -414,15 +402,10 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     ).length;
     base += card.strengthBonusPerIcebreaker * n;
   }
-  if (
-    selfOk &&
-    card.strengthBonusPerIceProtectingThisServer &&
-    card.rezzed
-  ) {
+  if (selfOk && card.strengthBonusPerIceProtectingThisServer && card.rezzed) {
     for (const server of Object.values(state.servers)) {
       if (!server.ice.includes(iceId)) continue;
-      base +=
-        server.ice.length * card.strengthBonusPerIceProtectingThisServer;
+      base += server.ice.length * card.strengthBonusPerIceProtectingThisServer;
       break;
     }
   }
@@ -575,18 +558,19 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   }
   if (selfOk && card.strengthBonusIfInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
-    const has = state.runner.installed.some((id) =>
-      (state.cards[id].subtypes ?? []).includes(subtype.toLowerCase()) ||
-      (state.cards[id].subtypes ?? []).includes(subtype),
+    const has = state.runner.installed.some(
+      (id) =>
+        (state.cards[id].subtypes ?? []).includes(subtype.toLowerCase()) ||
+        (state.cards[id].subtypes ?? []).includes(subtype),
     );
     if (has) base += bonus;
   }
-  if (selfOk && typeof card.strengthBonusIfSoleIceProtectingServer === "number") {
+  if (
+    selfOk &&
+    typeof card.strengthBonusIfSoleIceProtectingServer === "number"
+  ) {
     for (const server of Object.values(state.servers)) {
-      if (
-        server.ice.includes(iceId) &&
-        server.ice.length === 1
-      ) {
+      if (server.ice.includes(iceId) && server.ice.length === 1) {
         base += card.strengthBonusIfSoleIceProtectingServer;
         break;
       }
@@ -713,7 +697,9 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
     // allIceStrengthPenalty is also a lower — Lotus Field-class blocks it.
     penalty = 0;
   }
-  return value + increases + tempIncrease - penalty - encounterLower - tempDecrease;
+  return (
+    value + increases + tempIncrease - penalty - encounterLower - tempDecrease
+  );
 }
 
 /**
@@ -852,8 +838,7 @@ export function iceBreakExceptSubtype(
 
 export function isAiBreaker(card: CardInstance): boolean {
   return (
-    (card.subtypes ?? []).includes("ai") ||
-    card.breaker?.breaksSubtype === "*"
+    (card.subtypes ?? []).includes("ai") || card.breaker?.breaksSubtype === "*"
   );
 }
 
@@ -1069,13 +1054,17 @@ export function applyAdvanceThisServerRecurringTowardAdvance(
   if (!target) return payCost;
   let targetServerId: string | null = null;
   for (const [sid, server] of Object.entries(state.servers)) {
-    if (server.root.includes(targetCardId) || server.ice.includes(targetCardId)) {
+    if (
+      server.root.includes(targetCardId) ||
+      server.ice.includes(targetCardId)
+    ) {
       targetServerId = sid;
       break;
     }
   }
   if (!targetServerId) return payCost;
-  const server = state.servers[targetServerId as import("../state/types.js").ServerId];
+  const server =
+    state.servers[targetServerId as import("../state/types.js").ServerId];
   if (!server) return payCost;
   let left = payCost;
   for (const id of [...server.root, ...server.ice]) {

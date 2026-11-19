@@ -12,10 +12,8 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
-  | { ok: true }
-  | { ok: false; error: string; cites: RuleCite[] };
+  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 /** Compile's run-end ability: the program it installed goes to the bottom of the stack. */
 function addCompileInstalledToBottom(state: GameState): void {
@@ -245,7 +243,8 @@ export function applyKitaraWinPrimitive(
 
     case "move_slipstream": {
       if (!state.run) return { ok: true };
-      const serverId = action.serverId as import("../../state/types.js").ServerId;
+      const serverId =
+        action.serverId as import("../../state/types.js").ServerId;
       const server = state.servers[serverId];
       if (!server) return { ok: true };
       state.run.attackedServerId = serverId;
@@ -269,10 +268,13 @@ export function applyKitaraWinPrimitive(
         return { ok: true };
       }
       if (targets.length === 1) {
-        return evalEffect(ctx, fx.do({
-          kind: "resolve_gebrselassie_host",
-          cardId: targets[0]!,
-        }));
+        return evalEffect(
+          ctx,
+          fx.do({
+            kind: "resolve_gebrselassie_host",
+            cardId: targets[0]!,
+          }),
+        );
       }
       openPendingChoose(state, {
         sourceId,
@@ -318,7 +320,9 @@ export function applyKitaraWinPrimitive(
     case "search_compile": {
       const zoneIds =
         action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
-      const programs = zoneIds.filter((id) => state.cards[id]?.type === "program");
+      const programs = zoneIds.filter(
+        (id) => state.cards[id]?.type === "program",
+      );
       if (programs.length === 0) {
         log(state, `Compile — no program in ${action.zone}.`);
         if (action.zone === "stack") shuffleInPlace(state, state.runner.deck);
@@ -343,7 +347,8 @@ export function applyKitaraWinPrimitive(
     case "install_compile_resolve": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      const zone = action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
+      const zone =
+        action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
       const idx = zone.indexOf(action.cardId);
       if (idx >= 0) zone.splice(idx, 1);
       card.zone = "runner:installed";
@@ -421,7 +426,9 @@ export function applyKitaraWinPrimitive(
     }
 
     case "win_remote_enforcement": {
-      const ice = state.corp.deck.filter((id) => state.cards[id]?.type === "ice");
+      const ice = state.corp.deck.filter(
+        (id) => state.cards[id]?.type === "ice",
+      );
       if (ice.length === 0) {
         log(state, `Remote Enforcement — no ice in R&D.`);
         shuffleInPlace(state, state.corp.deck);
@@ -482,7 +489,11 @@ export function applyKitaraWinPrimitive(
       let serverId = action.serverId as import("../../state/types.js").ServerId;
       if (action.serverId === "new-remote") {
         let n = state.nextRemoteNumber ?? 1;
-        while (state.servers[`remote-${n}` as import("../../state/types.js").ServerId]) {
+        while (
+          state.servers[
+            `remote-${n}` as import("../../state/types.js").ServerId
+          ]
+        ) {
           n += 1;
         }
         serverId = `remote-${n}` as import("../../state/types.js").ServerId;
@@ -538,7 +549,10 @@ export function applyKitaraWinPrimitive(
           (t) => ({
             id: `sp:${t}`,
             label: `Name ${t}`,
-            effect: fx.do({ kind: "win_standard_procedure_named", cardType: t }),
+            effect: fx.do({
+              kind: "win_standard_procedure_named",
+              cardType: t,
+            }),
           }),
         ),
       });
@@ -551,11 +565,14 @@ export function applyKitaraWinPrimitive(
         const c = state.cards[id];
         if (c?.type === action.cardType) n += 1;
         if (c) revealCards(state, [c.id], sourceId);
- log(state, `Standard Procedure — reveal ${c.title}.`);
+        log(state, `Standard Procedure — reveal ${c.title}.`);
       }
       const gainAmt = n * 2;
       state.corp.credits += gainAmt;
-      log(state, `Standard Procedure — gain ${gainAmt}¢ (${n} ${action.cardType}).`);
+      log(
+        state,
+        `Standard Procedure — gain ${gainAmt}¢ (${n} ${action.cardType}).`,
+      );
       return { ok: true };
     }
 
@@ -566,10 +583,13 @@ export function applyKitaraWinPrimitive(
         return { ok: true };
       }
       if (targets.length === 1) {
-        return evalEffect(ctx, fx.do({
-          kind: "resolve_intake_bounce",
-          cardId: targets[0]!,
-        }));
+        return evalEffect(
+          ctx,
+          fx.do({
+            kind: "resolve_intake_bounce",
+            cardId: targets[0]!,
+          }),
+        );
       }
       openPendingChoose(state, {
         sourceId,

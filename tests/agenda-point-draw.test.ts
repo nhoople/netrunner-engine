@@ -38,8 +38,16 @@ describe("agenda-point draw (CR 10.3.1c)", () => {
     const s = createInitialState();
     scoreAgenda(s, "c-ag", "corp", 7);
     scoreAgenda(s, "r-ag", "runner", 7);
-    occurCheckpoint(s, "timing", "Agenda points", [CR.checkpointAgendaPoints], "test");
-    const drawn = s.log.findIndex((line) => line.includes("The game is a draw"));
+    occurCheckpoint(
+      s,
+      "timing",
+      "Agenda points",
+      [CR.checkpointAgendaPoints],
+      "test",
+    );
+    const drawn = s.log.findIndex((line) =>
+      line.includes("The game is a draw"),
+    );
     expect(drawn).toBeGreaterThanOrEqual(0);
     expect(s.log[drawn]).toContain(CR.checkpointAgendaPoints.number);
     expect(s.winner).toBe("draw");

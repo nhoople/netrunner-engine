@@ -36,8 +36,22 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.147.24");
 });
 
-const RD = ["hedge-fund", "ice-wall", "pad-campaign", "enigma", "project-atlas", "snare"];
-const STACK = ["sure-gamble", "corroder", "diesel", "gordian-blade", "clone-chip", "armitage-codebusting"];
+const RD = [
+  "hedge-fund",
+  "ice-wall",
+  "pad-campaign",
+  "enigma",
+  "project-atlas",
+  "snare",
+];
+const STACK = [
+  "sure-gamble",
+  "corroder",
+  "diesel",
+  "gordian-blade",
+  "clone-chip",
+  "armitage-codebusting",
+];
 
 function put(s: GameState, defId: string, id: string, zone: string) {
   const card = instantiateCard(defId, id, zone);
@@ -69,10 +83,20 @@ function board(): GameState {
     put(s, defId, `st-${i}`, "runner:stack");
     s.runner.deck.push(`st-${i}`);
   });
-  const corpSource = put(s, "melange-mining-corp", "src-c", "server:remote-1:root");
+  const corpSource = put(
+    s,
+    "melange-mining-corp",
+    "src-c",
+    "server:remote-1:root",
+  );
   corpSource.rezzed = true;
   corpSource.faceup = true;
-  s.servers["remote-1"] = { id: "remote-1", kind: "remote", ice: [], root: ["src-c"] };
+  s.servers["remote-1"] = {
+    id: "remote-1",
+    kind: "remote",
+    ice: [],
+    root: ["src-c"],
+  };
   s.corp.installed.push("src-c");
   put(s, "kati-jones", "src-r", "runner:installed").faceup = true;
   s.runner.installed.push("src-r");
@@ -84,7 +108,12 @@ function run(s: GameState, sourceId: string, effect: Effect): void {
   if (!result.ok) throw new Error(result.error);
 }
 
-function doKind(s: GameState, sourceId: string, kind: string, rest: Record<string, unknown> = {}): void {
+function doKind(
+  s: GameState,
+  sourceId: string,
+  kind: string,
+  rest: Record<string, unknown> = {},
+): void {
   run(s, sourceId, { op: "do", action: { kind, ...rest } as never });
 }
 
@@ -109,7 +138,9 @@ function deckCards(s: GameState): Array<{ id: string; title: string }> {
     .map((card) => ({ id: card.id, title: card.title }));
 }
 
-const titles = (events: Array<{ cards: Array<{ title: string }> }> | undefined): string[] =>
+const titles = (
+  events: Array<{ cards: Array<{ title: string }> }> | undefined,
+): string[] =>
   (events ?? []).flatMap((event) => event.cards.map((card) => card.title));
 
 describe("looking at cards", () => {
@@ -124,13 +155,19 @@ describe("looking at cards", () => {
       expect(runner).not.toContain(card.title);
       expect(runner).not.toContain(`"${card.id}"`);
     }
-    expect(getPublicView(s, "runner").pendingChoice?.options.map((o) => o.label)).toEqual([
+    expect(
+      getPublicView(s, "runner").pendingChoice?.options.map((o) => o.label),
+    ).toEqual([
       "Place a looked card on R&D next",
       "Place a looked card on R&D next",
       "Place a looked card on R&D next",
     ]);
     // The record of the look is the looker's alone, and the cards are not faceup.
-    expect(titles(getPublicView(s, "corp").looks)).toEqual(["Hedge Fund", "Ice Wall", "PAD Campaign"]);
+    expect(titles(getPublicView(s, "corp").looks)).toEqual([
+      "Hedge Fund",
+      "Ice Wall",
+      "PAD Campaign",
+    ]);
     expect(getPublicView(s, "runner").looks).toEqual([]);
     expect(s.reveals ?? []).toEqual([]);
     for (const id of ["rd-0", "rd-1", "rd-2"]) {
@@ -138,7 +175,9 @@ describe("looking at cards", () => {
       expect(s.cards[id]?.faceup).toBe(false);
     }
     // The log counts the cards and does not name them.
-    expect(s.log.join("\n")).toContain("the Corp looks at 3 card(s) (CR 1.21.2)");
+    expect(s.log.join("\n")).toContain(
+      "the Corp looks at 3 card(s) (CR 1.21.2)",
+    );
     expect(s.log.join("\n")).not.toContain("Hedge Fund");
   });
 
@@ -152,7 +191,8 @@ describe("looking at cards", () => {
     s = choose(s, "rd-arrange:rd-0");
     expect(s.pendingChoice).toBeFalsy();
     expect(s.corp.deck).toHaveLength(6);
-    for (const card of Object.values(s.cards)) expect(card.lookedBy).toBeUndefined();
+    for (const card of Object.values(s.cards))
+      expect(card.lookedBy).toBeUndefined();
     for (const id of s.corp.deck) expect(s.cards[id]?.faceup).toBe(false);
   });
 
@@ -166,7 +206,11 @@ describe("looking at cards", () => {
       expect(corp).not.toContain(card.title);
       expect(corp).not.toContain(`"${card.id}"`);
     }
-    expect(titles(getPublicView(s, "runner").looks)).toEqual(["Hedge Fund", "Ice Wall", "PAD Campaign"]);
+    expect(titles(getPublicView(s, "runner").looks)).toEqual([
+      "Hedge Fund",
+      "Ice Wall",
+      "PAD Campaign",
+    ]);
     expect(getPublicView(s, "corp").looks).toEqual([]);
   });
 
@@ -175,7 +219,10 @@ describe("looking at cards", () => {
     const s = board();
     doKind(s, "src-r", "look_top_n_rd_arrange", { n: 2, looker: "corp" });
     expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(titles(getPublicView(s, "corp").looks)).toEqual(["Hedge Fund", "Ice Wall"]);
+    expect(titles(getPublicView(s, "corp").looks)).toEqual([
+      "Hedge Fund",
+      "Ice Wall",
+    ]);
     expect(getPublicView(s, "runner").looks).toEqual([]);
     expect(seen(s, "runner")).not.toContain("Hedge Fund");
     const arranged = choose(choose(s, "rd-arrange:rd-1"), "rd-arrange:rd-0");
@@ -193,7 +240,9 @@ describe("looking at cards", () => {
       doKind(s, "src-c", kind);
       expect(seen(s, "corp"), kind).toContain("Hedge Fund");
       expect(seen(s, "runner"), kind).not.toContain("Hedge Fund");
-      expect(titles(getPublicView(s, "corp").looks), kind).toEqual(["Hedge Fund"]);
+      expect(titles(getPublicView(s, "corp").looks), kind).toEqual([
+        "Hedge Fund",
+      ]);
       expect(s.log.join("\n"), kind).not.toContain("Hedge Fund");
     }
   });
@@ -209,7 +258,9 @@ describe("looking at cards", () => {
 
     const stack = board();
     doKind(stack, "src-r", "look_at_top_of_stack");
-    expect(titles(getPublicView(stack, "runner").looks)).toEqual(["Sure Gamble"]);
+    expect(titles(getPublicView(stack, "runner").looks)).toEqual([
+      "Sure Gamble",
+    ]);
     expect(getPublicView(stack, "corp").looks).toEqual([]);
   });
 
@@ -238,13 +289,15 @@ describe("looking at cards", () => {
     }
     // The searching player is looking at the cards they may take, and stops
     // when the search is done (CR 1.21.6).
-    const candidates = s.pendingChoice!.options
-      .map((option) => option.id.split(":")[1])
+    const candidates = s
+      .pendingChoice!.options.map((option) => option.id.split(":")[1])
       .filter((id): id is string => Boolean(id && s.cards[id]));
     expect(candidates.length).toBeGreaterThan(0);
     for (const id of candidates) expect(s.cards[id]?.lookedBy, id).toBe("corp");
     const done = choose(s, s.pendingChoice!.options[0]!.id);
-    expect(Object.values(done.cards).filter((card) => card.lookedBy)).toEqual([]);
+    expect(Object.values(done.cards).filter((card) => card.lookedBy)).toEqual(
+      [],
+    );
   });
 
   it("leaves no card in R&D or HQ faceup once nothing is pending, and leaves the Runner's cards as dealt", () => {
@@ -290,7 +343,11 @@ describe("looks whose kind is not named for looking", () => {
       expect(corp).not.toContain(`"${id}"`);
       expect(corp).not.toContain(s.cards[id]!.title);
     }
-    expect(titles(getPublicView(s, "runner").looks)).toEqual(["Hedge Fund", "Ice Wall", "PAD Campaign"]);
+    expect(titles(getPublicView(s, "runner").looks)).toEqual([
+      "Hedge Fund",
+      "Ice Wall",
+      "PAD Campaign",
+    ]);
     expect(getPublicView(s, "corp").looks).toEqual([]);
 
     // The Runner saw the card it trashes, so it is faceup in Archives
@@ -308,7 +365,11 @@ describe("looks whose kind is not named for looking", () => {
   it("shows the top 3 cards of R&D to the Corp alone for Accelerated Diagnostics (CR 1.21.2, CR 4.4.6b)", () => {
     let s = board();
     doKind(s, "src-c", "accelerated_diagnostics");
-    expect(titles(getPublicView(s, "corp").looks)).toEqual(["Hedge Fund", "Ice Wall", "PAD Campaign"]);
+    expect(titles(getPublicView(s, "corp").looks)).toEqual([
+      "Hedge Fund",
+      "Ice Wall",
+      "PAD Campaign",
+    ]);
     expect(getPublicView(s, "runner").looks).toEqual([]);
     expect(seen(s, "corp")).toContain("Play Hedge Fund");
     expect(seen(s, "runner")).not.toContain("Hedge Fund");
@@ -327,9 +388,11 @@ describe("looks whose kind is not named for looking", () => {
 describe("every look and search kind", () => {
   const kinds = [
     ...new Set(
-      [...readFileSync("src/effects/ir.ts", "utf8").matchAll(/"((?:look|search)_[a-z0-9_]+)"/g)].map(
-        (match) => match[1]!,
-      ),
+      [
+        ...readFileSync("src/effects/ir.ts", "utf8").matchAll(
+          /"((?:look|search)_[a-z0-9_]+)"/g,
+        ),
+      ].map((match) => match[1]!),
     ),
   ];
 
@@ -362,7 +425,9 @@ describe("every look and search kind", () => {
         for (const card of deckCards(s)) {
           if (shown.has(card.title)) continue;
           if (view.includes(card.title) || view.includes(`"${card.id}"`)) {
-            leaks.push(`${kind} from ${sourceId}: ${other} reads ${card.title}`);
+            leaks.push(
+              `${kind} from ${sourceId}: ${other} reads ${card.title}`,
+            );
           }
         }
       }
@@ -423,13 +488,25 @@ describe("revealing cards", () => {
     // Inject: the top 4 cards of the stack.
     const inject = board();
     doKind(inject, "src-r", "reveal_top_four");
-    expect(titles(inject.reveals)).toEqual(["Sure Gamble", "Corroder", "Diesel", "Gordian Blade"]);
-    expect(titles(getPublicView(inject, "corp").reveals)).toEqual(titles(inject.reveals));
+    expect(titles(inject.reveals)).toEqual([
+      "Sure Gamble",
+      "Corroder",
+      "Diesel",
+      "Gordian Blade",
+    ]);
+    expect(titles(getPublicView(inject, "corp").reveals)).toEqual(
+      titles(inject.reveals),
+    );
 
     // Levy Advanced Research Lab: the top 4 cards of the stack.
     const levy = board();
     doKind(levy, "src-r", "reveal_levy_advanced_research_lab");
-    expect(titles(levy.reveals)).toEqual(["Sure Gamble", "Corroder", "Diesel", "Gordian Blade"]);
+    expect(titles(levy.reveals)).toEqual([
+      "Sure Gamble",
+      "Corroder",
+      "Diesel",
+      "Gordian Blade",
+    ]);
 
     // Angel Arena: the top card of the stack.
     const arena = board();
@@ -439,7 +516,11 @@ describe("revealing cards", () => {
     // Bamboo Dome: the top 3 cards of R&D.
     const dome = board();
     doKind(dome, "src-c", "reveal_top_3");
-    expect(titles(dome.reveals)).toEqual(["Hedge Fund", "Ice Wall", "PAD Campaign"]);
+    expect(titles(dome.reveals)).toEqual([
+      "Hedge Fund",
+      "Ice Wall",
+      "PAD Campaign",
+    ]);
 
     // The whole grip.
     const grip = board();
@@ -461,14 +542,19 @@ describe("revealing cards", () => {
     s.corp.credits = 0;
     put(s, "pad-campaign", "pad-1", "corp:hq").faceup = false;
     s.corp.hand = ["pad-1"];
-    doKind(s, "src-c", "install_and_rez_hq_card_with_discount", { cardId: "pad-1", totalDiscount: 0 });
+    doKind(s, "src-c", "install_and_rez_hq_card_with_discount", {
+      cardId: "pad-1",
+      totalDiscount: 0,
+    });
     const card = s.cards["pad-1"]!;
     expect(card.zone.startsWith("server:")).toBe(true);
     expect(card.rezzed).toBe(false);
     expect(card.faceup).toBe(false);
     expect(titles(s.reveals)).toEqual(["PAD Campaign"]);
     // The Runner's board shows an unrezzed card with no title.
-    const root = getPublicView(s, "runner").servers.flatMap((server) => server.root);
+    const root = getPublicView(s, "runner").servers.flatMap(
+      (server) => server.root,
+    );
     expect(root.find((entry) => entry.id === "pad-1")?.title).toBeNull();
   });
 
@@ -505,11 +591,18 @@ describe("revealing cards", () => {
     ]);
     expect(t.reveals ?? []).toEqual([]);
     for (const title of ["Enigma", "PAD Campaign", "Ice Wall", "Hedge Fund"]) {
-      const option = t.pendingChoice?.options.find((o) => o.label.includes(title));
+      const option = t.pendingChoice?.options.find((o) =>
+        o.label.includes(title),
+      );
       t = choose(t, option!.id);
     }
     // Then the top 4 cards are revealed to both players, in the Corp's order.
-    expect(titles(t.reveals)).toEqual(["Enigma", "PAD Campaign", "Ice Wall", "Hedge Fund"]);
+    expect(titles(t.reveals)).toEqual([
+      "Enigma",
+      "PAD Campaign",
+      "Ice Wall",
+      "Hedge Fund",
+    ]);
     for (const id of t.corp.deck) expect(t.cards[id]?.faceup).toBe(false);
   });
 });

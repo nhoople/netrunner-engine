@@ -2,14 +2,8 @@
  * Primitive kinds whose procedure is return.
  * The effect switch in eval.ts dispatches here.
  */
-import type {
-  EffectCtx,
-  EvalResult,
-} from "../eval.js";
-import type {
-  Effect,
-  Primitive,
-} from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import {
@@ -19,11 +13,14 @@ import {
 import { returnRdLookedToDeckTop } from "../eval.js";
 import { fx } from "../ir.js";
 
-export function applyReturnKinds(ctx: EffectCtx, action: Primitive): EvalResult | null {
+export function applyReturnKinds(
+  ctx: EffectCtx,
+  action: Primitive,
+): EvalResult | null {
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-case "may_return_rezzed_to_hq_gain_rez_cost": {
+    case "may_return_rezzed_to_hq_gain_rez_cost": {
       const rezzed: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of [...server.root, ...server.ice]) {
@@ -56,13 +53,16 @@ case "may_return_rezzed_to_hq_gain_rez_cost": {
           },
         });
       }
-      openPendingChoose(state, { sourceId, chooser: "corp", options,
-logLine: `${source.title} — may add 1 rezzed card to HQ and gain its rez cost.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options,
+        logLine: `${source.title} — may add 1 rezzed card to HQ and gain its rez cost.`,
+      });
       return { ok: true };
     }
 
-case "return_rezzed_to_hq_gain_rez_cost": {
+    case "return_rezzed_to_hq_gain_rez_cost": {
       const card = state.cards[action.cardId];
       if (!card || !card.rezzed) {
         log(state, `Return rezzed to HQ — invalid target.`);
@@ -78,20 +78,17 @@ case "return_rezzed_to_hq_gain_rez_cost": {
       if (rez > 0) {
         state.corp.credits += rez;
       }
-      log(
-        state,
-        `Add ${card.title} to HQ; Corp gains ${rez}¢ (rez cost).`,
-      );
+      log(state, `Add ${card.title} to HQ; Corp gains ${rez}¢ (rez cost).`);
       return { ok: true };
     }
 
-case "return_rd_looked_to_deck_top": {
+    case "return_rd_looked_to_deck_top": {
       returnRdLookedToDeckTop(state);
       log(state, `Return looked R&D cards to top of deck.`);
       return { ok: true };
     }
 
-case "return_installed_corp_to_hq": {
+    case "return_installed_corp_to_hq": {
       const moveToHq = (pick: string): { ok: true } => {
         const card = state.cards[pick];
         if (!card) {
@@ -143,19 +140,20 @@ case "return_installed_corp_to_hq": {
               },
             },
           })),
-logLine: action.unrezzedOnly
+          logLine: action.unrezzedOnly
             ? `Choose an unrezzed installed Corp card to add to HQ.`
             : `Choose an installed Corp card to add to HQ.`,
-});
+        });
         return { ok: true };
       }
       return moveToHq(installed[0]!);
     }
 
-case "return_tracked_install_to_stack_top_if_installed": {
+    case "return_tracked_install_to_stack_top_if_installed": {
       const id =
         state.run?.betaBuildTrackedInstallId ??
-        (source as { betaBuildPendingTrackId?: string }).betaBuildPendingTrackId;
+        (source as { betaBuildPendingTrackId?: string })
+          .betaBuildPendingTrackId;
       if (!id) {
         log(state, `${source.title} — no tracked program to return.`);
         return { ok: true };
@@ -172,7 +170,7 @@ case "return_tracked_install_to_stack_top_if_installed": {
       return { ok: true };
     }
 
-case "may_return_self_to_grip": {
+    case "may_return_self_to_grip": {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       if (state.runner.credits >= action.creditCost) {
         options.push({
@@ -206,14 +204,16 @@ case "may_return_self_to_grip": {
         sourceId,
         chooser: "runner",
         options,
-logLine: `${source.title} — may pay ${action.creditCost}¢ to return to grip.`,
-});
+        logLine: `${source.title} — may pay ${action.creditCost}¢ to return to grip.`,
+      });
       return { ok: true };
     }
 
-case "return_source_to_grip": {
+    case "return_source_to_grip": {
       // Move source from heap to grip.
-      state.runner.discardPile = state.runner.discardPile.filter((id) => id !== sourceId);
+      state.runner.discardPile = state.runner.discardPile.filter(
+        (id) => id !== sourceId,
+      );
       if (!state.runner.hand.includes(sourceId)) {
         state.runner.hand.push(sourceId);
       }
@@ -223,9 +223,13 @@ case "return_source_to_grip": {
       return { ok: true };
     }
 
-case "return_source_to_hq": {
+    case "return_source_to_hq": {
       if (source.side !== "corp") {
-        return { ok: false, error: "return_source_to_hq requires Corp source", cites: [] };
+        return {
+          ok: false,
+          error: "return_source_to_hq requires Corp source",
+          cites: [],
+        };
       }
       removeCardFromCurrentZone(state, sourceId);
       state.corp.hand.push(sourceId);
@@ -236,7 +240,7 @@ case "return_source_to_hq": {
       return { ok: true };
     }
 
-case "return_two_hosted_may_access": {
+    case "return_two_hosted_may_access": {
       const hosted = [...(source.hostedCardIds ?? [])];
       if (hosted.length < 2) {
         log(state, `${source.title} — need 2 hosted cards.`);
@@ -273,18 +277,20 @@ case "return_two_hosted_may_access": {
             effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
           },
         ],
-logLine: `${source.title} — Runner may access 1 HQ at random.`,
-});
+        logLine: `${source.title} — Runner may access 1 HQ at random.`,
+      });
       return { ok: true };
     }
 
-case "return_subliminal_from_archives": {
+    case "return_subliminal_from_archives": {
       // Handled at Corp turn begin when conditions met — this primitive
       // returns the source from Archives to HQ if present.
       if (!state.corp.discardPile.includes(sourceId)) {
         return { ok: true };
       }
-      state.corp.discardPile = state.corp.discardPile.filter((id) => id !== sourceId);
+      state.corp.discardPile = state.corp.discardPile.filter(
+        (id) => id !== sourceId,
+      );
       state.corp.hand.push(sourceId);
       source.zone = "corp:hq";
       source.faceup = false;
@@ -292,7 +298,7 @@ case "return_subliminal_from_archives": {
       return { ok: true };
     }
 
-case "return_rig_card_to_grip": {
+    case "return_rig_card_to_grip": {
       const id = action.cardId;
       const card = state.cards[id];
       if (!card || !state.runner.installed.includes(id)) {
@@ -309,7 +315,7 @@ case "return_rig_card_to_grip": {
       return { ok: true };
     }
 
-case "may_return_non_virus_trojan_to_grip_place_hosted": {
+    case "may_return_non_virus_trojan_to_grip_place_hosted": {
       const hostedAmount = Math.max(0, action.hostedAmount);
       const candidates = state.runner.installed.filter((id) => {
         const c = state.cards[id];
@@ -360,13 +366,16 @@ case "may_return_non_virus_trojan_to_grip_place_hosted": {
           action: { kind: "gain_credits" as const, side: "runner", amount: 0 },
         },
       });
-      openPendingChoose(state, { sourceId, chooser: "runner", options,
-logLine: `${source.title} — may return a non-virus trojan to grip.`,
-});
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source.title} — may return a non-virus trojan to grip.`,
+      });
       return { ok: true };
     }
 
-case "return_stolen_agenda_to_hq": {
+    case "return_stolen_agenda_to_hq": {
       const cardId = action.cardId;
       if (!state.runner.scoreArea.includes(cardId)) {
         log(state, `Return stolen agenda — not in Runner score.`);
@@ -380,7 +389,9 @@ case "return_stolen_agenda_to_hq": {
           : (card.agendaPoints ?? 0) +
             (card.agendaPointsPerAgendaCounter ?? 0) *
               (card.agendaCounters ?? 0);
-      state.runner.scoreArea = state.runner.scoreArea.filter((id) => id !== cardId);
+      state.runner.scoreArea = state.runner.scoreArea.filter(
+        (id) => id !== cardId,
+      );
       state.turn.agendaPointsStolenThisTurn = Math.max(
         0,
         state.turn.agendaPointsStolenThisTurn - pts,
@@ -394,10 +405,7 @@ case "return_stolen_agenda_to_hq": {
         state,
         `${card.title} returned to HQ from Runner score (${source.title}).`,
       );
-      if (
-        state.winner === "runner" &&
-        state.winReason === "runner_agenda"
-      ) {
+      if (state.winner === "runner" && state.winReason === "runner_agenda") {
         state.winner = null;
         state.winReason = null;
         state.done = false;

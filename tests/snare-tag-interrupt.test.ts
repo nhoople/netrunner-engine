@@ -74,7 +74,11 @@ describe("CR C4 — Snare tag interrupt before damage (9.1.2a)", () => {
       effects: [
         {
           op: "do" as const,
-          action: { kind: "lose_credits" as const, side: "corp" as const, amount: 4 },
+          action: {
+            kind: "lose_credits" as const,
+            side: "corp" as const,
+            amount: 4,
+          },
         },
         {
           op: "do" as const,

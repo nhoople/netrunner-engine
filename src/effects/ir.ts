@@ -49,7 +49,9 @@ export type CreditTally = {
   subtype?: string;
 };
 
-const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(CREDIT_TALLY_COUNTS);
+const CREDIT_TALLY_COUNT_SET: ReadonlySet<string> = new Set(
+  CREDIT_TALLY_COUNTS,
+);
 
 /**
  * Rewrite pinned-catalog overadvance synonyms before validate / materialize.
@@ -283,7 +285,11 @@ export type Primitive =
   | { kind: "place_hosted_credits"; amount: number }
   | { kind: "add_virus_counter"; amount: number }
   /** Darwin: may pay credits to place virus counters on self. */
-  | { kind: "may_pay_credits_add_virus_counter"; credits: number; amount: number }
+  | {
+      kind: "may_pay_credits_add_virus_counter";
+      credits: number;
+      amount: number;
+    }
   | { kind: "pay_credits_add_virus_counter"; credits: number; amount: number }
   /** Surge: place virus on a program that received virus this turn. */
   | {
@@ -766,7 +772,11 @@ export type Primitive =
   /** Search R&D for the first operation or agenda, add to HQ, shuffle R&D (Pivot). */
   | { kind: "search_rd_operation_or_agenda_to_hq" }
   /** Look at top N of R&D; may install one paying costs (Epiphany). */
-  | { kind: "look_top_n_rd_may_install_one"; n: number; excludeAgenda?: boolean }
+  | {
+      kind: "look_top_n_rd_may_install_one";
+      n: number;
+      excludeAgenda?: boolean;
+    }
   /**
    * Architect Deployment Test: look at top N of R&D; may install and rez one
    * ignoring all costs (agendas install without rez).
@@ -805,13 +815,7 @@ export type Primitive =
   /** Leaf: peek top of R&D for chosen Corp card type (Balanced Coverage). */
   | {
       kind: "may_reveal_peek_rd_top_for_chosen_type_gain";
-      cardType:
-        | "agenda"
-        | "asset"
-        | "ice"
-        | "operation"
-        | "upgrade"
-        | "event";
+      cardType: "agenda" | "asset" | "ice" | "operation" | "upgrade" | "event";
       credits: number;
     }
   /** Corp may reveal one agenda from HQ (Chrysopoeian Skimming). */
@@ -1137,7 +1141,8 @@ export type Primitive =
   | { kind: "place_event_credits"; amount: number }
   | {
       kind: "may_start_run";
-      servers: "any" | "central" | "hq_rd" | "rd" | "hq" | "archives" | "remote";
+      servers:
+        "any" | "central" | "hq_rd" | "rd" | "hq" | "archives" | "remote";
       /**
        * Alarm Clock: at the first ice encounter of the started run, Runner
        * may spend this many clicks to bypass.
@@ -1241,7 +1246,10 @@ export type Primitive =
    * an ETR subroutine (after printed) for the remainder of this run.
    */
   | { kind: "grant_approached_rezzed_bioroid_etr_subroutine_this_run" }
-  | { kind: "search_stack_icebreaker"; mayInstallIfSuccessfulRunThisTurn?: boolean }
+  | {
+      kind: "search_stack_icebreaker";
+      mayInstallIfSuccessfulRunThisTurn?: boolean;
+    }
   | {
       kind: "search_stack_icebreaker_resolve";
       cardId?: string;
@@ -1320,8 +1328,11 @@ export type Primitive =
       cannotScoreTargetThisTurn?: boolean;
       then?: Effect;
     }
-
-  | { kind: "place_advancements_on_up_to"; amountEach: number; maxCards: number }
+  | {
+      kind: "place_advancements_on_up_to";
+      amountEach: number;
+      maxCards: number;
+    }
   /** Internal follow-up for place_advancements_on_up_to. */
   | {
       kind: "place_advancements_on_up_to_continue";
@@ -1355,7 +1366,11 @@ export type Primitive =
    * the source ice, ignoring install cost.
    */
   | { kind: "may_install_ice_from_hq_protecting_this_server_ignore_costs" }
-  | { kind: "install_hq_ice_protecting_server_ignore_costs"; cardId: string; serverId: string }
+  | {
+      kind: "install_hq_ice_protecting_server_ignore_costs";
+      cardId: string;
+      serverId: string;
+    }
   | { kind: "fortify_all_ice"; amount: number }
   | { kind: "resolve_meeting_of_minds"; subtype: string }
   | { kind: "meeting_of_minds_fetch"; cardId: string; subtype: string }
@@ -1466,7 +1481,11 @@ export type Primitive =
       cardId: string;
       remaining: number;
     }
-  | { kind: "derez_up_to_ice_protecting_server"; serverId: string; maxIce: number }
+  | {
+      kind: "derez_up_to_ice_protecting_server";
+      serverId: string;
+      maxIce: number;
+    }
   | {
       kind: "derez_one_protecting_server";
       cardId: string;
@@ -1779,7 +1798,10 @@ export type Primitive =
       maxRemove: number;
     }
   | { kind: "set_rez_ice_forfeit_discount"; cardId: string; forfeit: boolean }
-  | { kind: "may_install_ice_from_hq_discount_then_move_source"; discount: number }
+  | {
+      kind: "may_install_ice_from_hq_discount_then_move_source";
+      discount: number;
+    }
   | {
       kind: "install_hq_ice_protecting_server_paying_costs";
       cardId: string;
@@ -2170,7 +2192,10 @@ export type Primitive =
    */
   | { kind: "may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom" }
   /** Leaf helpers for Let Them Dream search. */
-  | { kind: "search_zone_agenda_to_hq_or_rd_bottom"; zone: "hq" | "rd" | "archives" }
+  | {
+      kind: "search_zone_agenda_to_hq_or_rd_bottom";
+      zone: "hq" | "rd" | "archives";
+    }
   | {
       kind: "place_agenda_hq_or_rd_bottom";
       cardId: string;
@@ -2390,7 +2415,12 @@ export type Primitive =
    */
   | { kind: "install_scavenge_program" }
   /** Leaf: install a specific grip card paying `discount`¢ less. */
-  | { kind: "install_grip_card"; cardId: string; discount: number; hostId?: string }
+  | {
+      kind: "install_grip_card";
+      cardId: string;
+      discount: number;
+      hostId?: string;
+    }
   /**
    * Leaf: if `cardId` is chargeable (≥1 power), offer may-charge that card;
    * otherwise no-op (if able).
@@ -2495,7 +2525,11 @@ export type Primitive =
   | { kind: "search_stack_same_title_may_install_paying" }
   /** Security Subcontract: trash a rezzed ice, then gain credits. */
   | { kind: "trash_rezzed_ice_gain_credits"; amount: number }
-  | { kind: "trash_rezzed_ice_gain_credits_resolve"; cardId: string; amount: number }
+  | {
+      kind: "trash_rezzed_ice_gain_credits_resolve";
+      cardId: string;
+      amount: number;
+    }
   /** Shipment from MirrorMorph: install up to max from HQ paying costs. */
   | { kind: "install_up_to_from_hq_paying_costs"; max: number }
   | {
@@ -2523,7 +2557,12 @@ export type Primitive =
    */
   | { kind: "expose_up_to"; max: number; remaining?: number }
   /** One card of an expose-up-to instruction, then the rest of that instruction. */
-  | { kind: "expose_one_of_up_to"; cardId: string; max: number; remaining: number }
+  | {
+      kind: "expose_one_of_up_to";
+      cardId: string;
+      max: number;
+      remaining: number;
+    }
   | { kind: "end_expose_up_to" }
   | { kind: "prevent_pending_expose"; amount: number }
   | { kind: "may_expose_after_rez_continue" }
@@ -2550,7 +2589,12 @@ export type Primitive =
    * one the Corp chose to play next. `done`: the Corp plays no more. All
    * three are set while the card resolves.
    */
-  | { kind: "accelerated_diagnostics"; cardIds?: string[]; playId?: string; done?: boolean }
+  | {
+      kind: "accelerated_diagnostics";
+      cardIds?: string[];
+      playId?: string;
+      done?: boolean;
+    }
   | { kind: "score_unorthodox_predictions_on" }
   | { kind: "reveal_grip" }
   | { kind: "reveal_grip_may_trash_one" }
@@ -2610,7 +2654,10 @@ export type Primitive =
   | { kind: "cyber_threat" }
   | { kind: "cyber_threat_server"; serverId: string }
   | { kind: "corp_rez"; iceId: string }
-  | { kind: "run_cyber_threat_server"; serverId: import("../state/types.js").ServerId }
+  | {
+      kind: "run_cyber_threat_server";
+      serverId: import("../state/types.js").ServerId;
+    }
   | { kind: "lose_nasir_all_credits" }
   | { kind: "social_engineering" }
   | { kind: "social_engineering_mark"; iceId: string }
@@ -2761,7 +2808,11 @@ export type Primitive =
   /** The Underway (uw) */
   | { kind: "host_top_n_of_stack_facedown"; amount: number }
   | { kind: "install_hosted"; discount?: number }
-  | { kind: "install_street_peddler_hosted_card"; cardId: string; discount?: number }
+  | {
+      kind: "install_street_peddler_hosted_card";
+      cardId: string;
+      discount?: number;
+    }
   | { kind: "expose_and_trash_remote_root" }
   | { kind: "expose_resolve"; cardId: string }
   | { kind: "corp_derez_a_card" }
@@ -2771,14 +2822,23 @@ export type Primitive =
   | { kind: "derez_n_from_list"; cardIds: string[]; remaining: number }
   | { kind: "swap_hq_archives_per_advancement_on_self" }
   | { kind: "swap_allele_step"; remaining: number }
-  | { kind: "swap_allele_resolve"; hqCardId: string; archivesCardId: string; remaining: number }
+  | {
+      kind: "swap_allele_resolve";
+      hqCardId: string;
+      archivesCardId: string;
+      remaining: number;
+    }
   | { kind: "resolve_subroutine_on_rezzed_ice_protecting_this_server" }
   /** Old Hollywood (oh) */
   | { kind: "shuffle_n_heap_cards_into_stack_per_power_counter" }
   | { kind: "shuffle_trope_pick"; cardId: string }
   | { kind: "look_top_n_stack_arrange"; n: number }
   | { kind: "pick_stack_arrange"; cardId: string }
-  | { kind: "trash_hardware_with_subtype"; subtype: string; pick: "first" | "choose" }
+  | {
+      kind: "trash_hardware_with_subtype";
+      subtype: string;
+      pick: "first" | "choose";
+    }
   | { kind: "place_up_to_n_advancements_on_advanceable_installed"; max: number }
   | { kind: "oh_place_advancements_on"; cardId: string; amount: number }
   | { kind: "pay_place_advancement" }
@@ -2842,7 +2902,11 @@ export type Primitive =
   | { kind: "prevent_pending_when_encountered" }
   | { kind: "install_top_n_of_stack_facedown"; amount: number }
   | { kind: "trash_draw" }
-  | { kind: "dad_independent_thinking_continue"; trashed: string[]; remainingPicks: number }
+  | {
+      kind: "dad_independent_thinking_continue";
+      trashed: string[];
+      remainingPicks: number;
+    }
   | { kind: "dad_independent_thinking_finish"; trashed: string[] }
   | { kind: "blank_installed_abilities" }
   | { kind: "blank_card_this_turn"; cardId: string }
@@ -2859,7 +2923,11 @@ export type Primitive =
   | { kind: "search_stack_install" }
   | { kind: "install_from_stack"; cardId: string }
   | { kind: "install_chatterjee_program_discount" }
-  | { kind: "install_chatterjee_program_resolve"; cardId: string; discount: number }
+  | {
+      kind: "install_chatterjee_program_resolve";
+      cardId: string;
+      discount: number;
+    }
   | { kind: "cannot_use_programs_this_run_kg" }
   | { kind: "look_at_top_of_stack" }
   | { kind: "break_arm_icebreaker_additional_cost_this_run"; amount: number }
@@ -2877,7 +2945,11 @@ export type Primitive =
   | { kind: "draw_then_discard_down_to_hand_size_continue"; cardId: string }
   | { kind: "add_hq_to_bottom_rd" }
   | { kind: "install_from_hq_new_remote" }
-  | { kind: "install_new_construction_resolve"; cardId: string; rezIgnoringCosts?: boolean }
+  | {
+      kind: "install_new_construction_resolve";
+      cardId: string;
+      rezIgnoringCosts?: boolean;
+    }
   | { kind: "bf_place_advancement_on_self"; amount?: number }
   | { kind: "move_mumbad_construction_advancement_to_faceup" }
   | { kind: "move_mumbad_construction_advancement_resolve"; cardId: string }
@@ -2970,12 +3042,23 @@ export type Primitive =
   | { kind: "trash_null_grip_lower_encountered_ice_strength"; amount?: number }
   | { kind: "trash_null_grip_card_resolve"; cardId: string; amount?: number }
   | { kind: "force_trace_then_gain_credits" }
-  | { kind: "gain_credits_equal_to_agenda_points_both_score_areas"; side?: "corp" | "runner" }
+  | {
+      kind: "gain_credits_equal_to_agenda_points_both_score_areas";
+      side?: "corp" | "runner";
+    }
   | { kind: "resolve_two" }
   | { kind: "expose_then_run" }
   | { kind: "choose_breaker_run"; strengthBonus?: number }
-  | { kind: "injection_attack_run_with_breaker"; breakerId: string; strengthBonus?: number }
-  | { kind: "pay_credits_or_trash_installed"; side?: "corp" | "runner"; amount?: number }
+  | {
+      kind: "injection_attack_run_with_breaker";
+      breakerId: string;
+      strengthBonus?: number;
+    }
+  | {
+      kind: "pay_credits_or_trash_installed";
+      side?: "corp" | "runner";
+      amount?: number;
+    }
   | { kind: "add_installed_program_to_stack_bottom" }
   | { kind: "add_installed_program_to_stack_bottom_resolve"; cardId: string }
   | { kind: "move_source_upgrade_to_another_server_root" }
@@ -2996,14 +3079,24 @@ export type Primitive =
   | { kind: "net_mercur_place_credit" }
   /** Intervention (in) Flashpoint */
   | { kind: "look_top_install"; n?: number; discount?: number }
-  | { kind: "install_resolve"; cardId: string; lookedIds: string[]; discount?: number }
+  | {
+      kind: "install_resolve";
+      cardId: string;
+      lookedIds: string[];
+      discount?: number;
+    }
   | { kind: "trash_frantic_coding_looked"; lookedIds: string[] }
   | { kind: "shuffle_one_grip_into_stack" }
   | { kind: "host_on_rezzed_bioroid_ice_as_condition" }
   | { kind: "add_n_hq_to_top_rd"; amount?: number }
   | { kind: "add_n_hq_to_top_rd_continue"; remaining: number }
   | { kind: "trash_installed_with_install_cost_lte_tags" }
-  | { kind: "gain_credits_if_runner_has_installed_subtype"; side?: "corp" | "runner"; amount?: number; subtype?: string }
+  | {
+      kind: "gain_credits_if_runner_has_installed_subtype";
+      side?: "corp" | "runner";
+      amount?: number;
+      subtype?: string;
+    }
   | { kind: "top_hat_may_instead_of_breach"; n?: number }
   | { kind: "top_hat_access_instead_of_breach"; cardId: string }
   /** Martial Law (ml) Flashpoint */
@@ -3155,7 +3248,11 @@ export type Primitive =
   | { kind: "break_sentry_or_barrier" }
   | { kind: "break_sentry_or_code_gates" }
   | { kind: "reveal_levy_advanced_research_lab" }
-  | { kind: "levy_take_program_rest_bottom"; cardId?: string; restIds?: string[] }
+  | {
+      kind: "levy_take_program_rest_bottom";
+      cardId?: string;
+      restIds?: string[];
+    }
   | { kind: "boost_icebreaker" }
   | { kind: "boost_dean_lister_apply"; cardId: string; amount: number }
   | { kind: "play_event_from_heap" }
@@ -3280,7 +3377,11 @@ export type Primitive =
   | { kind: "host_on_rezzed_ice_as_condition" }
   | { kind: "host_on_rezzed_ice_as_condition_on"; iceId: string }
   /** Crimson Dust (cd) Red Sand #6 */
-  | { kind: "give_bad_publicity_unless_corp_pays"; amount?: number; credits?: number }
+  | {
+      kind: "give_bad_publicity_unless_corp_pays";
+      amount?: number;
+      credits?: number;
+    }
   | { kind: "corp_pay_credits_to_prevent"; amount: number }
   | { kind: "trash_top_rd_equal_damage_suffered_this_turn" }
   | { kind: "swap_2_unrezzed_ice" }
@@ -3719,7 +3820,11 @@ export type Primitive =
   | { kind: "offer_forged_activation_orders_rez"; cardId: string }
   | { kind: "install_program_from_stack_or_heap_free" }
   | { kind: "place_advancements_x_from_tags" }
-  | { kind: "place_advancements_x_from_tags_resolve"; cardId: string; amount: number }
+  | {
+      kind: "place_advancements_x_from_tags_resolve";
+      cardId: string;
+      amount: number;
+    }
   | { kind: "troubleshooter_fortify" }
   /** Follow-up: spend X¢, give chosen ice +X strength this turn. */
   | { kind: "fortify_ice_spend_x_resolve"; iceId: string; amount: number }
@@ -3908,7 +4013,11 @@ export type Primitive =
    * The Price: trash top `count` of stack to heap; may install 1 of those
    * cards paying `discount`¢ less (remainder stay in heap).
    */
-  | { kind: "trash_top_n_may_install_discount"; count: number; discount: number }
+  | {
+      kind: "trash_top_n_may_install_discount";
+      count: number;
+      discount: number;
+    }
   /** Leaf: install a specific heap card paying `discount`¢ less. */
   | { kind: "install_heap_card"; cardId: string; discount: number }
   /** Leaf: trash the top card of the Runner's stack (no-op if empty). */
@@ -5760,13 +5869,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "prevent_current_ice_on_encounter",
 ]);
 
-const KNOWN_EFFECT_OPS = new Set([
-  "seq",
-  "do",
-  "if",
-  "prevent",
-  "choose",
-]);
+const KNOWN_EFFECT_OPS = new Set(["seq", "do", "if", "prevent", "choose"]);
 const KNOWN_COND_OPS = new Set([
   "true",
   "false",
@@ -5881,9 +5984,7 @@ function loseCreditsTally(
       kind: "lose_credits",
       side,
       amount: 0,
-      tally: subtype
-        ? { count, per, side, subtype }
-        : { count, per, side },
+      tally: subtype ? { count, per, side, subtype } : { count, per, side },
     },
   };
 }
@@ -5978,10 +6079,11 @@ export const fx = {
     ...(elseEffect !== undefined ? { else: elseEffect } : {}),
   }),
   prevent: (forbid: "jack_out"): Effect => ({ op: "prevent", forbid }),
-  choose: (
-    chooser: "corp" | "runner",
-    options: ChoiceOption[],
-  ): Effect => ({ op: "choose", chooser, options }),
+  choose: (chooser: "corp" | "runner", options: ChoiceOption[]): Effect => ({
+    op: "choose",
+    chooser,
+    options,
+  }),
   etr: (): Effect => fx.do({ kind: "end_the_run" }),
   gainCredits: (side: SideRef, amount: number): Effect =>
     fx.do({ kind: "gain_credits", side, amount }),
@@ -6013,10 +6115,7 @@ export const fx = {
     }),
   netDamagePerRunnerScoredAgenda: (): Effect =>
     countedInstruction("net_damage", "runner_score", 1, { side: "runner" }),
-  meatDamage: (
-    amount: number,
-    opts?: { cannotPrevent?: boolean },
-  ): Effect =>
+  meatDamage: (amount: number, opts?: { cannotPrevent?: boolean }): Effect =>
     fx.do({
       kind: "meat_damage",
       amount,
@@ -6035,9 +6134,7 @@ export const fx = {
       kind: "core_damage",
       amount,
       ...(opts?.interactive ? { interactive: true } : {}),
-      ...(opts?.preventByLoseAllClicks
-        ? { preventByLoseAllClicks: true }
-        : {}),
+      ...(opts?.preventByLoseAllClicks ? { preventByLoseAllClicks: true } : {}),
       ...(opts?.cannotPrevent ? { cannotPrevent: true } : {}),
     }),
   mayPayCreditsForCoreDamage: (amount: number, damage: number): Effect =>
@@ -6096,10 +6193,8 @@ export const fx = {
     fx.do({ kind: "may_take_any_hosted_credits_skip_breach" }),
   mayAddArchivesCardToRdTop: (): Effect =>
     fx.do({ kind: "may_add_archives_card_to_rd_top" }),
-  oversightAiRezAndHost: (): Effect =>
-    fx.do({ kind: "rez_and_host" }),
-  berRezBioroidAndHost: (): Effect =>
-    fx.do({ kind: "rez_bioroid_and_host" }),
+  oversightAiRezAndHost: (): Effect => fx.do({ kind: "rez_and_host" }),
+  berRezBioroidAndHost: (): Effect => fx.do({ kind: "rez_bioroid_and_host" }),
   gainCreditsBasePlusPerPassedIce: (
     side: SideRef,
     base: number,
@@ -6140,10 +6235,7 @@ export const fx = {
     countedInstruction("give_tags", "source_advancement_counters", per, {
       ...(base ? { base } : {}),
     }),
-  trashProgram: (
-    pick: "first" | "choose" = "first",
-    aiOnly = false,
-  ): Effect =>
+  trashProgram: (pick: "first" | "choose" = "first", aiOnly = false): Effect =>
     fx.do({
       kind: "trash_program",
       pick,
@@ -6184,8 +6276,7 @@ export const fx = {
     fx.do({ kind: "choose_server_corp_trash_ice_protecting" }),
   trashVirtualResourceOrLinkCard: (
     pick: "first" | "choose" = "choose",
-  ): Effect =>
-    fx.do({ kind: "trash_virtual_resource_or_link_card", pick }),
+  ): Effect => fx.do({ kind: "trash_virtual_resource_or_link_card", pick }),
   removeVirusCounters: (amount: number): Effect =>
     fx.do({ kind: "remove_virus_counters", amount }),
   gainCreditsPerVirus: (per: number): Effect =>
@@ -6272,9 +6363,7 @@ export const fx = {
       ...(preferNotInstalledThisTurn
         ? { preferNotInstalledThisTurn: true }
         : {}),
-      ...(opts?.sameServerRootAsSource
-        ? { sameServerRootAsSource: true }
-        : {}),
+      ...(opts?.sameServerRootAsSource ? { sameServerRootAsSource: true } : {}),
       ...(opts?.excludeSelf ? { excludeSelf: true } : {}),
       ...(opts?.anyInstalledIce ? { anyInstalledIce: true } : {}),
       ...(opts?.thenMayScore ? { thenMayScore: true } : {}),
@@ -6355,14 +6444,16 @@ export const fx = {
     }),
   netDamageAndTagsEqualRunnerTags: (): Effect =>
     netDamageAndTagsEqualRunnerTags(),
-  unleashRezMayResolveSub: (): Effect =>
-    fx.do({ kind: "rez_may_resolve_sub" }),
+  unleashRezMayResolveSub: (): Effect => fx.do({ kind: "rez_may_resolve_sub" }),
   trashSelf: (): Effect => fx.do({ kind: "trash_self" }),
   trashSelfAndDerezHost: (): Effect =>
     fx.do({ kind: "trash_self_and_derez_host" }),
   mayInstallIceFromHqProtectingThisServerIgnoreCosts: (): Effect =>
-    fx.do({ kind: "may_install_ice_from_hq_protecting_this_server_ignore_costs" }),
-  mayPlayEventFromHeap: (): Effect => fx.do({ kind: "may_play_event_from_heap" }),
+    fx.do({
+      kind: "may_install_ice_from_hq_protecting_this_server_ignore_costs",
+    }),
+  mayPlayEventFromHeap: (): Effect =>
+    fx.do({ kind: "may_play_event_from_heap" }),
   trashAttackedServerRoot: (): Effect =>
     fx.do({ kind: "trash_attacked_server_root" }),
   archivesToHq: (amount: number): Effect =>
@@ -6469,8 +6560,7 @@ export const fx = {
     fx.do({ kind: "rez_hosted", cardId }),
   preventPendingSubroutineBreak: (): Effect =>
     fx.do({ kind: "prevent_pending_subroutine_break" }),
-  breakHostSubroutine: (): Effect =>
-    fx.do({ kind: "break_host_subroutine" }),
+  breakHostSubroutine: (): Effect => fx.do({ kind: "break_host_subroutine" }),
   breakEncounterSubroutine: (
     requireSubtype?: string,
     maxSubs?: number,
@@ -6497,9 +6587,7 @@ export const fx = {
       onAccess,
       onDecline,
     }),
-  searchStackIcebreaker: (
-    mayInstallIfSuccessfulRunThisTurn = false,
-  ): Effect =>
+  searchStackIcebreaker: (mayInstallIfSuccessfulRunThisTurn = false): Effect =>
     fx.do({
       kind: "search_stack_icebreaker",
       ...(mayInstallIfSuccessfulRunThisTurn
@@ -6510,8 +6598,7 @@ export const fx = {
   searchRdToHq: (amount = 1): Effect =>
     fx.do({ kind: "search_rd_to_hq", amount }),
   swapTwoIce: (): Effect => fx.do({ kind: "swap_two_ice" }),
-  rezIceIgnoringCosts: (): Effect =>
-    fx.do({ kind: "rez_ice_ignoring_costs" }),
+  rezIceIgnoringCosts: (): Effect => fx.do({ kind: "rez_ice_ignoring_costs" }),
   mayInstallFromGrip: (discount?: number): Effect =>
     fx.do({
       kind: "may_install_from_grip",
@@ -6523,15 +6610,10 @@ export const fx = {
     fx.do({ kind: "choose_icebreaker_gain_strength_this_turn", amount }),
   chooseIceAdditionalRezCostThisTurn: (amount: number): Effect =>
     fx.do({ kind: "choose_ice_additional_rez_cost_this_turn", amount }),
-  addIceAdditionalRezCostThisTurn: (
-    cardId: string,
-    amount: number,
-  ): Effect =>
+  addIceAdditionalRezCostThisTurn: (cardId: string, amount: number): Effect =>
     fx.do({ kind: "add_ice_additional_rez_cost_this_turn", cardId, amount }),
   shuffleSourceIntoRd: (): Effect => fx.do({ kind: "shuffle_source_into_rd" }),
-  mayInstallFromHqPayingCosts: (
-    thenMayRemoveTagToAdvance?: boolean,
-  ): Effect =>
+  mayInstallFromHqPayingCosts: (thenMayRemoveTagToAdvance?: boolean): Effect =>
     fx.do({
       kind: "may_install_from_hq_paying_costs",
       ...(thenMayRemoveTagToAdvance ? { thenMayRemoveTagToAdvance: true } : {}),
@@ -6549,9 +6631,8 @@ export const fx = {
     fx.do({ kind: "place_advancements_on", cardId, amount }),
   chooseExactlyN: (n: number, options: ChoiceOption[]): Effect =>
     fx.do({ kind: "choose_exactly_n", n, options }),
-  enableHostedCreditsSpendFor: (
-    purposes: Array<"install" | "trash">,
-  ): Effect => fx.do({ kind: "spend_enable_hosted_credits_for", purposes }),
+  enableHostedCreditsSpendFor: (purposes: Array<"install" | "trash">): Effect =>
+    fx.do({ kind: "spend_enable_hosted_credits_for", purposes }),
   mayMoveSourceUpgradeToAnotherServerRoot: (): Effect =>
     fx.do({ kind: "may_move_source_upgrade_to_another_server_root" }),
   searchRdOperationOrAgendaToHq: (): Effect =>
@@ -6664,12 +6745,12 @@ export const fx = {
     fx.do({ kind: "meat_damage_stolen_last_turn" }),
   derezIce: (pick: "first" | "choose" = "choose"): Effect =>
     fx.do({ kind: "derez_ice", pick }),
-  derezCard: (cardId: string): Effect =>
-    fx.do({ kind: "derez_card", cardId }),
+  derezCard: (cardId: string): Effect => fx.do({ kind: "derez_card", cardId }),
   derezSource: (): Effect => fx.do({ kind: "derez_source" }),
-  mayDerezInstalled: (
-    opts?: { excludeSelf?: boolean; then?: Effect },
-  ): Effect =>
+  mayDerezInstalled: (opts?: {
+    excludeSelf?: boolean;
+    then?: Effect;
+  }): Effect =>
     fx.do({
       kind: "may_derez_installed",
       excludeSelf: opts?.excludeSelf ?? true,
@@ -6677,9 +6758,11 @@ export const fx = {
     }),
   trashCorpCard: (cardId: string): Effect =>
     fx.do({ kind: "trash_corp_card", cardId }),
-  mayTrashInstalled: (
-    opts?: { excludeSelf?: boolean; rezzedOnly?: boolean; then?: Effect },
-  ): Effect =>
+  mayTrashInstalled: (opts?: {
+    excludeSelf?: boolean;
+    rezzedOnly?: boolean;
+    then?: Effect;
+  }): Effect =>
     fx.do({
       kind: "may_trash_installed",
       excludeSelf: opts?.excludeSelf ?? true,
@@ -6740,10 +6823,7 @@ export const fx = {
     fx.do({ kind: "resolve_bioroid_subroutine" }),
   mayFlipArchivesIceResolveSubroutine: (): Effect =>
     fx.do({ kind: "may_flip_archives_ice_resolve_subroutine" }),
-  flipArchivesIceResolveSubroutine: (
-    iceId: string,
-    subIndex: number,
-  ): Effect =>
+  flipArchivesIceResolveSubroutine: (iceId: string, subIndex: number): Effect =>
     fx.do({ kind: "flip_archives_ice_resolve_subroutine", iceId, subIndex }),
   trashEncounterIceResolveSubroutine: (subIndex: number): Effect =>
     fx.do({ kind: "trash_encounter_ice_resolve_subroutine", subIndex }),
@@ -6812,8 +6892,7 @@ export const fx = {
     fx.do({ kind: "return_subliminal_from_archives" }),
   aesopTrashForCredits: (amount: number): Effect =>
     fx.do({ kind: "trash_aesop_for_credits", amount }),
-  aylaSetAsideToGrip: (): Effect =>
-    fx.do({ kind: "ayla_set_aside_to_grip" }),
+  aylaSetAsideToGrip: (): Effect => fx.do({ kind: "ayla_set_aside_to_grip" }),
   sabotage: (amount: number, interactive = false): Effect =>
     fx.do({
       kind: "sabotage",
@@ -6828,9 +6907,8 @@ export const fx = {
     fx.do({ kind: "charge", pick: "card", cardId }),
   bonusAccess: (amount: number): Effect =>
     fx.do({ kind: "bonus_access", amount }),
-  breachServerWhenRunEnds: (
-    server: "hq" | "rd" | "archives",
-  ): Effect => fx.do({ kind: "breach_server_when_run_ends", server }),
+  breachServerWhenRunEnds: (server: "hq" | "rd" | "archives"): Effect =>
+    fx.do({ kind: "breach_server_when_run_ends", server }),
   searchStackProgramInstall: (): Effect =>
     fx.do({ kind: "search_stack_program_install" }),
   installStackProgram: (cardId: string): Effect =>
@@ -6860,8 +6938,7 @@ export const fx = {
     fx.do({ kind: "look_top_n_stack_may_bottom_one", n }),
   chooseGrantEncounterIceSubtype: (): Effect =>
     fx.do({ kind: "choose_grant_encounter_ice_subtype" }),
-  lootBoxRevealTopN: (n: number): Effect =>
-    fx.do({ kind: "reveal_top_n", n }),
+  lootBoxRevealTopN: (n: number): Effect => fx.do({ kind: "reveal_top_n", n }),
   searchRdIceInstallCentralDiscount: (discount: number): Effect =>
     fx.do({ kind: "search_rd_ice_install_central_discount", discount }),
   rejigBounceInstall: (): Effect => fx.do({ kind: "install_rejig_bounce" }),
@@ -6892,13 +6969,10 @@ export const fx = {
   searchStackTypeInstall: (
     cardType: "program" | "hardware" | "resource",
     discount: number,
-  ): Effect =>
-    fx.do({ kind: "search_stack_type_install", cardType, discount }),
+  ): Effect => fx.do({ kind: "search_stack_type_install", cardType, discount }),
   installStackCard: (cardId: string, discount: number): Effect =>
     fx.do({ kind: "install_stack_card", cardId, discount }),
-  exclusiveChoicesPerPassedIce: (
-    options: ChoiceOption[],
-  ): Effect =>
+  exclusiveChoicesPerPassedIce: (options: ChoiceOption[]): Effect =>
     fx.do({ kind: "exclusive_choices_per_passed_ice", options }),
   addAgendaCounter: (amount: number): Effect =>
     fx.do({ kind: "add_agenda_counter", amount }),
@@ -6972,10 +7046,7 @@ const NESTED_EFFECT_FIELDS = [
  * Fail-closed validation of a condition, including children of not / and / or.
  * Returns an error string if any op is unknown.
  */
-export function validateCond(
-  cond: unknown,
-  path = "cond",
-): string | null {
+export function validateCond(cond: unknown, path = "cond"): string | null {
   if (!cond || typeof cond !== "object") {
     return `${path}: not an object`;
   }
@@ -7026,11 +7097,7 @@ export function validateEffectTree(
       }
       if (action.kind === "pump_strength") {
         const d = action.duration;
-        if (
-          d !== undefined &&
-          d !== "encounter" &&
-          d !== "run"
-        ) {
+        if (d !== undefined && d !== "encounter" && d !== "run") {
           return `${path}.action.duration: must be "encounter" | "run"`;
         }
       }
@@ -7152,7 +7219,9 @@ export function validateEffectTree(
           return `${path}.action.maxStrength: must be a number`;
         }
       }
-      if (action.kind === "place_advancements_on_self_per_faceup_archive_types") {
+      if (
+        action.kind === "place_advancements_on_self_per_faceup_archive_types"
+      ) {
         if (
           action.base !== undefined &&
           (typeof action.base !== "number" || action.base < 0)
@@ -7240,7 +7309,10 @@ export function validateEffectTree(
         if (action.side !== "corp" && action.side !== "runner") {
           return `${path}.action.side: must be "corp" | "runner"`;
         }
-        if (typeof action.delta !== "number" || !Number.isInteger(action.delta)) {
+        if (
+          typeof action.delta !== "number" ||
+          !Number.isInteger(action.delta)
+        ) {
           return `${path}.action.delta: must be an integer`;
         }
       }
@@ -7536,7 +7608,10 @@ export function validateEffectTree(
         }
       }
       if (action.kind === "choose_cards") {
-        if (!Array.isArray(action.candidates) || !Array.isArray(action.picked)) {
+        if (
+          !Array.isArray(action.candidates) ||
+          !Array.isArray(action.picked)
+        ) {
           return `${path}.action: candidates and picked are required lists`;
         }
         if (typeof action.count !== "number" || action.count < 0) {
@@ -7617,7 +7692,8 @@ export function validateEffectTree(
         }
       }
       if (
-        action.kind === "may_trash_other_installed_search_stack_same_type_install"
+        action.kind ===
+        "may_trash_other_installed_search_stack_same_type_install"
       ) {
         if (typeof action.discount !== "number" || action.discount < 0) {
           return `${path}.action.discount: must be a non-negative number`;
@@ -7929,7 +8005,10 @@ export function validateEffectTree(
         if (typeof action.max !== "number" || action.max < 0) {
           return `${path}.action.max: must be a non-negative number`;
         }
-        if (typeof action.advancements !== "number" || action.advancements < 0) {
+        if (
+          typeof action.advancements !== "number" ||
+          action.advancements < 0
+        ) {
           return `${path}.action.advancements: must be a non-negative number`;
         }
       }
@@ -8175,7 +8254,9 @@ export function validateEffectTree(
           return `${path}.action.per: must be a positive number`;
         }
       }
-      if (action.kind === "may_pay_credits_for_trash_programs_per_advancement") {
+      if (
+        action.kind === "may_pay_credits_for_trash_programs_per_advancement"
+      ) {
         if (typeof action.amount !== "number" || action.amount < 0) {
           return `${path}.action.amount: must be a non-negative number`;
         }
@@ -8305,9 +8386,13 @@ export function validateEffectTree(
         }
       }
       if (
-        action.kind === "shuffle_up_to_n_distinct_heap_titles_into_stack_continue"
+        action.kind ===
+        "shuffle_up_to_n_distinct_heap_titles_into_stack_continue"
       ) {
-        if (typeof action.maxRemaining !== "number" || action.maxRemaining < 0) {
+        if (
+          typeof action.maxRemaining !== "number" ||
+          action.maxRemaining < 0
+        ) {
           return `${path}.action.maxRemaining: must be a non-negative number`;
         }
         if (!Array.isArray(action.selected)) {
@@ -8448,7 +8533,10 @@ export function validateEffectTree(
         if (typeof opt?.id !== "string" || typeof opt?.label !== "string") {
           return `${path}.options[${i}]: need id+label`;
         }
-        const oErr = validateEffectTree(opt.effect, `${path}.options[${i}].effect`);
+        const oErr = validateEffectTree(
+          opt.effect,
+          `${path}.options[${i}].effect`,
+        );
         if (oErr) return oErr;
       }
       return null;
