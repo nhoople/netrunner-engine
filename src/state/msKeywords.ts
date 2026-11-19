@@ -82,7 +82,7 @@ export function offerSabotagePick(state: GameState): void {
   });
 }
 
-export function sabotageCites(): RuleCite[] {
+function sabotageCites(): RuleCite[] {
   return [CR.sabotage, CR.sabotageResolution, CR.trashing];
 }
 
@@ -292,17 +292,4 @@ export function chargeCard(
   );
   maybeFirePowerCountersGte(state, cardId);
   return { ok: true };
-}
-
-export function isMarkServer(
-  state: GameState,
-  serverId: ServerId | null | undefined,
-): boolean {
-  const mark = currentMark(state);
-  return (
-    mark !== null &&
-    serverId !== undefined &&
-    serverId !== null &&
-    mark === serverId
-  );
 }

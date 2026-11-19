@@ -18,7 +18,7 @@ type PrimResult =
   | { ok: false; error: string; cites: RuleCite[] };
 
 /** Compile's run-end ability: the program it installed goes to the bottom of the stack. */
-export function addCompileInstalledToBottom(state: GameState): void {
+function addCompileInstalledToBottom(state: GameState): void {
   const id = state.run?.winCompileInstalledProgramId;
   if (!id) return;
   const card = state.cards[id];

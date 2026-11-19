@@ -9,7 +9,7 @@
  */
 import { validateCond, validateEffectTree, type Cond, type Effect } from "./ir.js";
 
-export const ABILITY_CLASSES = [
+const ABILITY_CLASSES = [
   "static",
   "paid",
   "conditional",
@@ -17,10 +17,10 @@ export const ABILITY_CLASSES = [
   "subroutine",
 ] as const;
 
-export type AbilityClass = (typeof ABILITY_CLASSES)[number];
+type AbilityClass = (typeof ABILITY_CLASSES)[number];
 
 /** CR 9.3.6. Threat carries its printed N. A printed ability can carry more than one. */
-export type AbilityFlag =
+type AbilityFlag =
   | "access"
   | "interface"
   | "interrupt"
@@ -31,7 +31,7 @@ export type AbilityFlag =
 export type AbilityFlagValue = AbilityFlag | AbilityFlag[];
 
 /** CR 9.3.7. The class is the ability type; `rule` on the card is this number. */
-export const ABILITY_CLASS_RULE: Record<AbilityClass, string> = {
+const ABILITY_CLASS_RULE: Record<AbilityClass, string> = {
   static: "9.3.7a",
   paid: "9.3.7b",
   conditional: "9.3.7c",
@@ -40,7 +40,7 @@ export const ABILITY_CLASS_RULE: Record<AbilityClass, string> = {
 };
 
 /** CR 9.3.6b–g. `flagRule` on the card is this number, in flag order. */
-export const ABILITY_FLAG_RULE: Record<string, string> = {
+const ABILITY_FLAG_RULE: Record<string, string> = {
   access: "9.3.6b",
   interface: "9.3.6c",
   interrupt: "9.3.6d",
@@ -58,20 +58,20 @@ export const RESTRICTION_FIELDS = {
   trash: "trashAdditionalCost",
 } as const;
 
-export type RestrictionAppliesTo = keyof typeof RESTRICTION_FIELDS;
+type RestrictionAppliesTo = keyof typeof RESTRICTION_FIELDS;
 
-export type AbilityRestriction = {
+type AbilityRestriction = {
   appliesTo: RestrictionAppliesTo;
   effect: Effect;
 };
 
 /** Continuous effect. `field` is the rule the engine already applies (CR 9.4.1). */
-export type AbilityDeclaration = {
+type AbilityDeclaration = {
   field: string;
   value: unknown;
 };
 
-export type AbilityCost = {
+type AbilityCost = {
   clicks?: number;
   credits?: number;
   recurringCredits?: number;
@@ -571,7 +571,7 @@ export function validateAbilityRecord(ability: unknown, path: string): string | 
   return null;
 }
 
-export function flagList(flag: AbilityFlagValue | undefined): AbilityFlag[] {
+function flagList(flag: AbilityFlagValue | undefined): AbilityFlag[] {
   if (flag === undefined) return [];
   return Array.isArray(flag) ? flag : [flag];
 }

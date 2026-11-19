@@ -34,7 +34,7 @@ function normalizeTitle(title: string): string {
   return title.replace(/’/g, "'");
 }
 
-export function slugForTitle(title: string): string {
+function slugForTitle(title: string): string {
   if (!titleToSlug) {
     titleToSlug = new Map();
     for (const def of loadCardCatalog().values()) {
@@ -143,7 +143,7 @@ export function newGame(options: NewGameOptions = {}): GameState {
 }
 
 /** Walk pass windows and the other side's clicks to `side`'s action step. */
-export function toTakeAction(state: GameState, side: Side): GameState {
+function toTakeAction(state: GameState, side: Side): GameState {
   const wanted = side === "corp" ? "corp.takeAction" : "runner.takeAction";
   for (let guard = 0; guard < 300; guard++) {
     if (state.timingKey === wanted) return state;
@@ -192,7 +192,7 @@ export function settle(state: GameState): GameState {
   return state;
 }
 
-export function findInHand(state: GameState, side: Side, title: string): string {
+function findInHand(state: GameState, side: Side, title: string): string {
   const hand = side === "corp" ? state.corp.hand : state.runner.hand;
   const id = hand.find(
     (cardId) =>
@@ -200,16 +200,6 @@ export function findInHand(state: GameState, side: Side, title: string): string 
   );
   if (!id) throw new Error(`${title} is not in the ${side} hand`);
   return id;
-}
-
-export function cardByTitle(
-  state: GameState,
-  title: string,
-  ids: readonly string[],
-): CardInstance {
-  const id = ids.find((cardId) => state.cards[cardId]?.title === title);
-  if (!id) throw new Error(`${title} not found among ${ids.join(", ")}`);
-  return state.cards[id]!;
 }
 
 /**

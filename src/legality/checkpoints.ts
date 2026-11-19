@@ -146,7 +146,6 @@ import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { nextId } from "../state/ids.js";
 
-
 export function pushCheckpoint(
   state: GameState,
   kind: CheckpointKind,
@@ -4054,7 +4053,7 @@ function checkVacantPositions(state: GameState): void {
  * checkpoint. Filled from the zone diff at 10.3.1a; also used to re-queue when
  * the declaration waits on an open choice.
  */
-export function noteCardEnteredRootDuringBreach(
+function noteCardEnteredRootDuringBreach(
   state: GameState,
   serverId: string,
   cardId: string,
@@ -4823,11 +4822,7 @@ export function addRestriction(
   );
 }
 
-export function clearRestrictionsFrom(state: GameState, source: string): void {
-  state.restrictions = state.restrictions.filter((r) => r.source !== source);
-}
-
-export function findRestriction(
+function findRestriction(
   state: GameState,
   forbid: ForbiddenAction,
 ): Restriction | undefined {

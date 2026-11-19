@@ -23,7 +23,7 @@ const NO_EFFECT = {
 };
 
 /** Which additional HQ cost a basic trash of this resource carries, if any. */
-export function basicTrashResourceHqCost(
+function basicTrashResourceHqCost(
   state: GameState,
   targetId: string,
 ): { label: string } | null {
@@ -48,7 +48,7 @@ export function basicTrashResourceHqCost(
 }
 
 /** The Runner card whose ability trashes an accessed card for grip cards. */
-export function accessTrashFromGripSource(state: GameState) {
+function accessTrashFromGripSource(state: GameState) {
   if (!state.run) return undefined;
   const ids: string[] = [...state.runner.installed];
   if (state.run.runSourceId) ids.push(state.run.runSourceId);

@@ -44,8 +44,6 @@ import { withCostCheckpoint, occurCheckpoint } from "../legality/checkpoints.js"
 import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 import { effectiveIceStrength } from "../cards/stubs.js";
 
-export { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
-export { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 
 /**
  * First time each turn the Runner spends credits from an installed card,
@@ -74,7 +72,7 @@ export function noteInstalledCardCreditSpend(
 }
 
 /** Installed programs eligible for Simulchip-class additional trash cost. */
-export function installedProgramsForSimulchipCost(
+function installedProgramsForSimulchipCost(
   state: GameState,
   sourceId?: string,
 ): string[] {
@@ -128,7 +126,7 @@ const APPROACHED_REZZED_BIOROID_KINDS = new Set([
  * CR 9.2.7b: a paid ability that is not an action can be used in every
  * window marked (P), unless the card names a narrower window.
  */
-export function unrestrictedPaidAbility(ability: PaidAbility): boolean {
+function unrestrictedPaidAbility(ability: PaidAbility): boolean {
   if (costBeginsWithClick(ability) || ability.startsRun) return false;
   return (
     ability.windows.length > 0 &&
@@ -152,7 +150,7 @@ const RUN_PAID_WINDOWS = new Set<PaidAbility["windows"][number]>([
  * approaching ice and encounters is usable "during a run", so it is open in
  * every paid ability window of the run.
  */
-export function runWidePaidAbility(ability: PaidAbility): boolean {
+function runWidePaidAbility(ability: PaidAbility): boolean {
   if (costBeginsWithClick(ability) || ability.startsRun) return false;
   return (
     ability.windows.includes("approach_paw") &&
@@ -449,7 +447,7 @@ export function stealthHostedCreditsAvailable(state: GameState): number {
   return n;
 }
 
-export function hostedCreditsSpendableForAnything(state: GameState): number {
+function hostedCreditsSpendableForAnything(state: GameState): number {
   let n = 0;
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
@@ -681,7 +679,7 @@ export function spendRunnerCredits(state: GameState, amount: number): void {
 }
 
 /** Recurring ¢ from Mantle-class use_program / use_hardware pools. */
-export function recurringCreditsForProgramOrHardware(
+function recurringCreditsForProgramOrHardware(
   state: GameState,
   kind: "program" | "hardware" | "either" = "either",
 ): number {

@@ -412,19 +412,6 @@ export function fireOnRunDeclaredOnThisServerIfTagged(
   );
 }
 
-export function fireOnSpendCreditsOutsidePoolDuringRunOncePerTurn(
-  state: GameState,
-  cardId: string,
-): boolean {
-  return fire(
-    state,
-    cardId,
-    "onSpendCreditsOutsidePoolDuringRunOncePerTurn",
-    "on-spend-credits-outside-pool-during-run-once-per-turn",
-    "spent credits outside the pool during a run",
-  );
-}
-
 export function fireOnSuccessfulTraceDuringRun(
   state: GameState,
   cardId: string,
@@ -474,20 +461,6 @@ export function fireAfterMandatoryDraw(
     "afterMandatoryDraw",
     "after-mandatory-draw",
     "after mandatory draw",
-    "corp",
-  );
-}
-
-export function fireOnBeforeFirstTurn(
-  state: GameState,
-  cardId: string,
-): boolean {
-  return fire(
-    state,
-    cardId,
-    "onBeforeFirstTurn",
-    "on-before-first-turn",
-    "before first turn",
     "corp",
   );
 }

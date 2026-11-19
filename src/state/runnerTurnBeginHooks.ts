@@ -5,7 +5,7 @@
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 
-export type RunnerTurnBeginPendingMark = {
+type RunnerTurnBeginPendingMark = {
   cardId: string;
   abilityKey: string;
   effectKey: StoredConditionalEffectKey;

@@ -29,16 +29,16 @@ import { failureKey, type Failure } from "../playout/harness.js";
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 export const GAME_EXPORTS_DIR = join(ROOT, "tests/fixtures/game-exports");
 
-export const FIXTURE_FORMAT = "netrunner-game-export";
-export const FIXTURE_VERSION = 1;
+const FIXTURE_FORMAT = "netrunner-game-export";
+const FIXTURE_VERSION = 1;
 
-export interface GameExportStep {
+interface GameExportStep {
   action: Action;
   /** The game's log entry for a seat's intent, or null for a window the host passed. */
   logSeq: number | null;
 }
 
-export interface GameExportFinal {
+interface GameExportFinal {
   stateHash: string;
   timingKey: string;
   turnNumber: number;
@@ -81,7 +81,7 @@ export function gameExportFiles(dir = GAME_EXPORTS_DIR): string[] {
 }
 
 /** JSON with object keys sorted and undefined values dropped. */
-export function canonicalJson(value: unknown): string {
+function canonicalJson(value: unknown): string {
   return JSON.stringify(value, (_key, item: unknown) => {
     if (!item || typeof item !== "object" || Array.isArray(item)) return item;
     const sorted: Record<string, unknown> = {};

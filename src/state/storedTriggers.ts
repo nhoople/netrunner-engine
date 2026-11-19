@@ -32,8 +32,6 @@ import {
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
-export type StoredEffectKey = StoredConditionalEffectKey;
-
 /** The effect a card stores under `key`, or undefined when it has none. */
 export function effectFromKey(
   card: CardInstance,

@@ -167,7 +167,6 @@ import {
   fireOnFullyBreak,
   fireOnInstall,
   fireOnMovedToServerRoot,
-  fireOnPlay,
   noteCheckpointAndResolvePlay,
   fireOnRez,
 } from "../state/cardLifecycleHooks.js";
@@ -177,12 +176,10 @@ export {
   fireHostRezStateTriggers,
   fireOnAnyIceRez,
   fireOnAccess,
-  fireOnBreakSubroutineTriggers,
   fireOnForfeit,
   fireOnFullyBreak,
   fireOnInstall,
   fireOnMovedToServerRoot,
-  fireOnPlay,
   noteCheckpointAndResolvePlay,
   fireOnRez,
 };
@@ -861,7 +858,7 @@ export function finishMuseInstall(
  * Offer the next unused exclusive option, or auto-resolve when only one
  * remains. Clears `pendingExclusiveChoices` when done.
  */
-export function offerNextExclusiveChoice(state: GameState): EvalResult {
+function offerNextExclusiveChoice(state: GameState): EvalResult {
   const pend = state.pendingExclusiveChoices;
   if (!pend || pend.remaining <= 0) {
     state.pendingExclusiveChoices = null;

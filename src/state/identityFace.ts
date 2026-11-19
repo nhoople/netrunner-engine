@@ -8,7 +8,7 @@ export type IdentityFace = NonNullable<CardInstance["identityFaces"]>[number];
  * its chosen face option; Méliès U follows its secretly chosen back face,
  * whose stored order is HQ, R&D, Archives (CR 2.18.1).
  */
-export function activeIdentityFaceIndex(card: CardInstance): number {
+function activeIdentityFaceIndex(card: CardInstance): number {
   if (!card.identityFaces?.length || !card.identityFlipped) return 0;
   if (card.chosenIdentityFaceId && card.identityFaceOptions?.length) {
     const chosen = card.identityFaceOptions.findIndex(

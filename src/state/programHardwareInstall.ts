@@ -252,7 +252,7 @@ export function noteProgramOrHardwareInstalled(
 /**
  * First hardware install this turn — queue MetPending for 10.3.1a (phase 3).
  */
-export function noteFirstHardwareInstall(state: GameState): void {
+function noteFirstHardwareInstall(state: GameState): void {
   if (state.turn.firstHardwareInstallUsedThisTurn) return;
   if (state.turn.firstHardwareInstallMetPending) return;
   if (!anyRunnerSourceHas(state, "onFirstHardwareInstallEachTurn")) return;
@@ -287,7 +287,7 @@ function anyRunnerSourceHas(
 
 
 /** Note identity/rig `onHardwareInstall` (Replicator; install only, incl. self). */
-export function fireOnHardwareInstall(state: GameState): void {
+function fireOnHardwareInstall(state: GameState): void {
   if (state.done) return;
   const consider = (sourceId: string): void => {
     if (abilitiesSuppressed(state, sourceId)) return;

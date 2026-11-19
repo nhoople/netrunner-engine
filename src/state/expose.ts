@@ -32,7 +32,7 @@ export function exposeLegalTargets(state: GameState): string[] {
   return out;
 }
 
-export function hasPayableExposeInterrupt(state: GameState): boolean {
+function hasPayableExposeInterrupt(state: GameState): boolean {
   const corpIds: string[] = [state.corp.identityId];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {

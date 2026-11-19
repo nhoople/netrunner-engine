@@ -4,7 +4,7 @@ import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState, ServerId } from "./types.js";
 
 /** Any rezzed Corp root card forbids the first run of the turn against remotes. */
-export function firstRunCannotTargetRemoteActive(state: GameState): boolean {
+function firstRunCannotTargetRemoteActive(state: GameState): boolean {
   for (const server of Object.values(state.servers)) {
     for (const id of server.root) {
       if (abilitiesSuppressed(state, id)) continue;
@@ -15,7 +15,7 @@ export function firstRunCannotTargetRemoteActive(state: GameState): boolean {
   return false;
 }
 
-export function isFirstRunRemoteForbidden(
+function isFirstRunRemoteForbidden(
   state: GameState,
   serverId: ServerId,
 ): boolean {

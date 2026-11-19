@@ -133,7 +133,7 @@ export function virusCountersAvailable(state: GameState, card: CardInstance): nu
   return n;
 }
 
-export function spendVirusCounters(state: GameState, card: CardInstance, amount: number): void {
+function spendVirusCounters(state: GameState, card: CardInstance, amount: number): void {
   let left = amount;
   const own = Math.min(left, card.virusCounters ?? 0);
   card.virusCounters = (card.virusCounters ?? 0) - own;
@@ -185,7 +185,7 @@ export function daemonInstallDiscount(host: CardInstance | undefined): number {
   return host?.daemonHostInstallCreditDiscount ?? 0;
 }
 
-export function ensureConditionalSubroutine(state: GameState, ice: CardInstance): void {
+function ensureConditionalSubroutine(state: GameState, ice: CardInstance): void {
   if (!ice.gainsEtrSubroutineWhileCurrentActive) return;
   const current = Object.values(state.cards).some(
     (card) =>
@@ -617,7 +617,7 @@ export function onProgramOrHardwareInstalled(state: GameState, cardId: string): 
   }
 }
 
-export function maybeBetterCitizen(state: GameState, reason: string): void {
+function maybeBetterCitizen(state: GameState, reason: string): void {
   if (state.turn.betterCitizenFiredThisTurn) return;
   for (const card of Object.values(state.cards)) {
     if (abilitiesSuppressed(state, card.id)) continue;
@@ -809,7 +809,7 @@ export function startIdentitySetup(state: GameState): void {
   }
 }
 
-export function drawOne(state: GameState, side: Side): void {
+function drawOne(state: GameState, side: Side): void {
   const player = side === "corp" ? state.corp : state.runner;
   const zone = side === "corp" ? "corp:hq" : "runner:grip";
   const id = player.deck.shift();

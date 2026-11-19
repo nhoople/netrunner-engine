@@ -221,7 +221,7 @@ export function resolveBlankedCardIds(state: GameState): Set<string> {
 // --- Subtype grants (standardization S1) ---------------------------------
 
 /** Hosted trojan grants barrier + code gate + sentry to its host ice. */
-export type HostSubtypeGrantEffect = {
+type HostSubtypeGrantEffect = {
   kind: "host_grant_bcs";
   id: string;
   sourceId: string;
@@ -229,7 +229,7 @@ export type HostSubtypeGrantEffect = {
 };
 
 /** Sub Boost-class: hosted condition grants barrier to its host ice. */
-export type HostBarrierGrantEffect = {
+type HostBarrierGrantEffect = {
   kind: "host_grant_barrier";
   id: string;
   sourceId: string;
@@ -240,7 +240,7 @@ export type HostBarrierGrantEffect = {
  * Mother Goddess-class: rezzed ice gains subtypes of other rezzed ice
  * (including subtypes those ice only gained from earlier continuous grants).
  */
-export type MotherGoddessSubtypeEffect = {
+type MotherGoddessSubtypeEffect = {
   kind: "mother_goddess";
   id: string;
   sourceId: string;

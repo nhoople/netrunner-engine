@@ -1194,5 +1194,4 @@ export {
   BREACH_STEPS,
   STEPS,
   START_STEP,
-  cursorFrom,
 } from "./graph.js";

@@ -11,7 +11,6 @@ import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 
-
 type PrimResult =
   | { ok: true }
   | { ok: false; error: string; cites: RuleCite[] };
@@ -531,16 +530,6 @@ export function trashRandomGripForPersonalityProfiles(
   );
 }
 
-/** Personality Profiles: trash random from grip when Runner searches stack or installs from heap. */
-export function firePersonalityProfilesTrashRandomGrip(state: GameState): void {
-  for (const id of state.corp.scoreArea) {
-    const card = state.cards[id];
-    if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) continue;
-    trashRandomGripForPersonalityProfiles(state, id);
-    return;
-  }
-}
-
 /** True when Raman Rai has at least one legal set-aside ↔ Archives swap. */
 export function ramanRaiCanOfferSwap(
   state: GameState,
@@ -565,7 +554,6 @@ export function ramanRaiCanOfferSwap(
   }
   return false;
 }
-
 
 function offerSiStackTrashOrArrange(ctx: EffectCtx): PrimResult {
   const { state, sourceId } = ctx;

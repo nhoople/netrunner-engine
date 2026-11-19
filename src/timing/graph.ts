@@ -496,7 +496,7 @@ function sweepDerezAtAnyTurnEnd(s: GameState): void {
 }
 
 /** Player-facing step kinds for the v0 graph. */
-export type StepKind =
+type StepKind =
   | "auto"
   | "pass"
   | "action"

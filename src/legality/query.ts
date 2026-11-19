@@ -20,7 +20,7 @@ import {
 import { allButNDamageRelevant, firstNetDamageWouldAllows } from "../state/damage.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 
-export interface WindowInfo {
+interface WindowInfo {
   key: string;
   stepId: string;
   stepNumber: string;
@@ -29,7 +29,7 @@ export interface WindowInfo {
   kind: string;
 }
 
-export interface LegalActionEntry {
+interface LegalActionEntry {
   action: Action;
   /** Who may take this action in the current window. */
   actor: Side | "system";

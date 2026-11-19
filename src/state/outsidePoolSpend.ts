@@ -3,7 +3,7 @@
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 
-export type OutsidePoolSpendPendingMark = {
+type OutsidePoolSpendPendingMark = {
   cardId: string;
   abilityKey: string;
   effectKey: StoredConditionalEffectKey;

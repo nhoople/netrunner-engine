@@ -1,11 +1,6 @@
-export type { Cond, Effect, Primitive, SideRef } from "./ir.js";
+export type { Cond, Effect, Primitive } from "./ir.js";
 export type {
-  AbilityClass,
-  AbilityCost,
-  AbilityDeclaration,
-  AbilityFlag,
   AbilityRecord,
-  AbilityRestriction,
 } from "./abilityRecord.js";
 export {
   applyAbilityRecords,
@@ -27,14 +22,9 @@ export {
   effectContains,
   validateCond,
   validateEffectTree,
-  KNOWN_PRIMITIVE_KINDS,
-  KNOWN_EFFECT_OPS,
 } from "./ir.js";
 export {
   evalEffect,
   validatePaidEffect,
-  offerNextExclusiveChoice,
-  resumeExclusiveChoicesIfPending,
   type EffectCtx,
-  type EvalResult,
 } from "./eval.js";

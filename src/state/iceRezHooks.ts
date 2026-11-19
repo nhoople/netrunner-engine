@@ -10,7 +10,7 @@ import { noteBypassTriggers } from "./bypassHooks.js";
 import { noteInlineConditional } from "./inlineConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
-export type IceRezAbilityPendingMark = {
+type IceRezAbilityPendingMark = {
   cardId: string;
   abilityKey: string;
   effectKey: StoredConditionalEffectKey;
