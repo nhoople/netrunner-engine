@@ -360,6 +360,48 @@ describe("place_advancements (Key Performance Indicators, Syailendra, Seamless L
   });
 });
 
+describe("place_advancements keeps its fields through the Corp's pick", () => {
+  it("Big Deal still offers to score the chosen card when two cards qualify (CR 1.15.2)", () => {
+    const s = fresh();
+    installAsset(s, "hostile-takeover", "ag-1");
+    installAsset(s, "hostile-takeover", "ag-2");
+    for (const id of ["ag-1", "ag-2"]) s.cards[id]!.rezzed = false;
+    s.activeSide = "corp";
+    run(
+      s,
+      s.corp.identityId,
+      fx.do({ kind: "place_advancements", amount: 4, thenMayScore: true }),
+    );
+    pick(s, "adv:ag-1");
+    expect(s.cards["ag-1"]?.advancementCounters).toBe(4);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("score:ag-1");
+  });
+
+  it("The Holo Man still places its extra counter when the Corp picks between two cards (CR 1.15.2)", () => {
+    const s = fresh();
+    const holo = installAsset(s, "hostile-takeover", "ag-1");
+    const server = s.servers["remote-ag-1" as ServerId]!;
+    put(s, "hostile-takeover", "ag-2", "server:remote-ag-1:root");
+    server.root.push("ag-2");
+    holo.rezzed = false;
+    put(s, "the-holo-man", "holo-1", "server:remote-ag-1:root");
+    server.root.push("holo-1");
+    s.turn.corpInstalledFromHqThisTurn = false;
+    run(
+      s,
+      "holo-1",
+      fx.do({
+        kind: "place_advancements",
+        amount: 2,
+        sameServerRootOrIceAsSource: true,
+        bonusAmountIfNoCorpInstallFromHqThisTurn: 1,
+      }),
+    );
+    pick(s, "adv:ag-2");
+    expect(s.cards["ag-2"]?.advancementCounters).toBe(3);
+  });
+});
+
 describe("may_derez_installed (Maglectric Rapid, Stegodon MK IV)", () => {
   it("Maglectric Rapid: the Runner, who controls the ability, chooses the Corp card to derez (CR 1.14.4)", () => {
     const s = fresh();

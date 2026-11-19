@@ -486,6 +486,8 @@ export type Primitive =
        * than one card qualifies (CR 1.15.2), with no Decline.
        */
       pick?: "choose";
+      /** The Corp's pick, set by the engine; card data leaves it out. */
+      targetId?: string;
       /** Push target into cannotScoreOrRezCardIds after placing. */
       cannotScoreTargetThisTurn?: boolean;
       /** Only unrezzed installed cards. */

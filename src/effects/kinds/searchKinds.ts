@@ -692,9 +692,6 @@ export function applySearchKinds(
         );
       }
       const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
-      // Malapert Data Vault: "search R&D for 1 non-agenda card and reveal
-      // it" (CR 8.7.3, 1.21.3).
-      if (action.reveal) revealCards(state, found, sourceId);
       for (const id of found) {
         state.corp.deck = state.corp.deck.filter((x) => x !== id);
         state.corp.hand.push(id);
@@ -702,6 +699,9 @@ export function applySearchKinds(
         state.cards[id].faceup = false;
       }
       shuffleInPlace(state, state.corp.deck);
+      // Malapert Data Vault: "search R&D for 1 non-agenda card and reveal
+      // it". The reveal waits for the shuffle (CR 8.7.2c, 8.7.3, 1.21.3).
+      if (action.reveal) revealCards(state, found, sourceId);
       log(
         state,
         `Search R&D for a non-agenda — add ${found.length} card(s) to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,

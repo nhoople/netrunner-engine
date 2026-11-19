@@ -71,7 +71,7 @@
       "abilities": [
         "The first time the Runner trashes an installed Corp card during each of their turns, they may spend [click]"
       ],
-      "note": "Engine#948 split the trash trigger: onFirstInstalledCorpCardTrashEachTurn has its own first-time record, and only a Runner trash meets either. Paired cut A: move the card to the trigger first_installed_corp_card_trash_each_turn with a Runner-turn condition (a new runner_turn cond). NBN: Controlling the Message moves to the same trigger.",
+      "note": "Engine#948 split the trash trigger: onFirstInstalledCorpCardTrashEachTurn has its own first-time record, and only a Runner trash meets either. Paired cut A: move the card to the trigger first_installed_corp_card_trash_each_turn with a Runner-turn condition (a new runner_turn cond). NBN: Controlling the Message moves to the same trigger. Until then it still uses the any-card trigger, and since the first-time records now also reset at the Corp's turn, a Runner trash during the Corp's turn can meet it.",
       "cr": [
         "9.6.5c",
         "1.2.1"
@@ -84,7 +84,7 @@
         "While this event is active, you can spend hosted credits, and you cannot lose or spend credits from your credit pool",
         "When that run ends, if it was successful, you may run a remote server"
       ],
-      "note": "Leftover hosted credits go back onto Aircheck when its run ends; the pool lock holds while Aircheck is in the play area (runnerCreditPoolLocked), and the follow-up run gets the credits and the lock.",
+      "note": "Leftover hosted credits go back onto Aircheck when its run ends; the pool lock holds while Aircheck is in the play area (runnerCreditPoolLocked), and the follow-up run gets the credits and the lock. Between the two runs the pool is locked but the hosted credits are not yet spendable outside a run (filed, area 11 costs).",
       "cr": [
         "8.6.5",
         "1.2.1"
