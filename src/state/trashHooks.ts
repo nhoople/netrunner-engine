@@ -338,6 +338,12 @@ function fireOnTrashFromGripOrStack(
   );
 }
 
+/**
+ * A card's "when this card is uninstalled" ability. The card is already in
+ * an inactive zone, but the ability its own move met stays active there
+ * until its instance resolves (CR 9.1.8g), so the instance does not depend
+ * on its source.
+ */
 export function fireOnUninstall(state: GameState, card: CardInstance): void {
   if (!card.onUninstall) return;
   noteAndCheckpointStored(
@@ -353,6 +359,7 @@ export function fireOnUninstall(state: GameState, card: CardInstance): void {
       },
     ],
     "runner.uninstall",
+    { independentOfSource: true },
   );
 }
 
