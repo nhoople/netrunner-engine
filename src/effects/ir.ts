@@ -440,9 +440,16 @@ export type Primitive =
       preferNotInstalledThisTurn?: boolean;
       /**
        * Only target advanceable cards in the same server root as the source
-       * (Vladisibirsk City Grid).
+       * (Vladisibirsk City Grid). With `anyCard`, any card in that root.
        */
       sameServerRootAsSource?: boolean;
+      /**
+       * Any card in the targeted place, not only agendas and cards you can
+       * advance. Placing a counter is not advancing (CR 1.18.2), so the
+       * limit in CR 1.18.3 applies only when the text says "a card you can
+       * advance" (La Costa Grid: "a card in the root of this server").
+       */
+      anyCard?: boolean;
       /**
        * Holo Man: target advanceable cards in the same server root OR ice
        * protecting that server.
@@ -2818,8 +2825,12 @@ export type Primitive =
   | { kind: "net_damage_equal_unused_mu" }
   | { kind: "valley_grid_hand_size_penalty_until_next_corp_turn" }
   | { kind: "give_tag_remove_if_successful" }
-  | { kind: "search_rd_asset_install" }
-  | { kind: "install_asset"; cardId: string }
+  /**
+   * Tech Startup: search R&D for an asset, reveal it, install it; shuffle
+   * R&D. `cardIds` is the Corp's pick, filled in by the choice (empty =
+   * found nothing, CR 8.7.2e).
+   */
+  | { kind: "search_rd_asset_install"; cardIds?: string[] }
   /** Breaker Bay (bb) */
   | { kind: "prevent_dorm_computer_run_all_tags" }
   | { kind: "install_hayley_same_type_from_grip" }
@@ -4959,7 +4970,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "valley_grid_hand_size_penalty_until_next_corp_turn",
   "give_tag_remove_if_successful",
   "search_rd_asset_install",
-  "install_asset",
   "prevent_dorm_computer_run_all_tags",
   "install_hayley_same_type_from_grip",
   "install_hayley_grip_card",
@@ -6404,6 +6414,7 @@ export const fx = {
     preferNotInstalledThisTurn = false,
     opts?: {
       sameServerRootAsSource?: boolean;
+      anyCard?: boolean;
       excludeSelf?: boolean;
       anyInstalledIce?: boolean;
       thenMayScore?: boolean;
@@ -6417,6 +6428,7 @@ export const fx = {
         ? { preferNotInstalledThisTurn: true }
         : {}),
       ...(opts?.sameServerRootAsSource ? { sameServerRootAsSource: true } : {}),
+      ...(opts?.anyCard ? { anyCard: true } : {}),
       ...(opts?.excludeSelf ? { excludeSelf: true } : {}),
       ...(opts?.anyInstalledIce ? { anyInstalledIce: true } : {}),
       ...(opts?.thenMayScore ? { thenMayScore: true } : {}),

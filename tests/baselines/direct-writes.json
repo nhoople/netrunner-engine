@@ -426,12 +426,9 @@
       "zone": 6
     },
     "src/effects/primitives/searchRevealTrash.ts": {
-      "deck": 4,
+      "deck": 2,
       "discardPile": 1,
-      "hand": 1,
-      "rezzed": 1,
-      "root": 1,
-      "zone": 3
+      "zone": 1
     },
     "src/effects/primitives/searchScoreName.ts": {
       "deck": 2,

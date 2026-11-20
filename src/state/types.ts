@@ -290,6 +290,11 @@ export interface CostSpec {
   /** Monolith: trash a program from grip as a cost (chooses first found). */
   trashProgramFromGrip?: boolean;
   /**
+   * Dummy Box: trash 1 card from the grip of the same type as the installed
+   * card whose trash is pending. Not payable without one (CR 1.16.1).
+   */
+  trashFromGripSameTypeAsPendingTrash?: boolean;
+  /**
    * Spend hosted power counters equal to the effective strength of the ice
    * being encountered (Baklan Bochkin). Resolved in `abilityCost` when
    * `state` is provided.
@@ -622,6 +627,12 @@ export interface PaidAbility {
    * these (Plascrete meat; AirbladeX net). Omitting allows any damage type.
    */
   requirePendingDamageTypes?: DamageType[];
+  /**
+   * Trash interrupt that prevents only the Corp trashing (Dummy Box). Not
+   * relevant when the Runner carries out the pending trash (CR 1.14.5,
+   * 9.9.3a). A trash with no recorded actor is not excluded.
+   */
+  onlyCorpTrashes?: boolean;
   /**
    * Legal only the first time net damage would be dealt this run, and only
    * while this card is installed in the attacked server (CR 9.9.5a).
@@ -5605,6 +5616,8 @@ export interface GameState {
     trashExpected?: boolean;
     /** Live expected effects for this imminent trash instruction (CR 9.9.2). */
     expectedEffects?: ExpectedEffects;
+    /** The player carrying out the trash, when recorded (CR 1.14.5). */
+    by?: "corp" | "runner" | null;
   } | null;
   /** When true, skip trash-prevent interrupt (accepting pending trash). */
   suppressTrashPrevent?: boolean;

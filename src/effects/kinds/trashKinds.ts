@@ -885,7 +885,7 @@ export function applyTrashKinds(
         log(state, `False Echo — no passed ice.`);
         return { ok: true };
       }
-      trashCard(state, sourceId);
+      trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
       const ice = state.cards[iceId];
       if (!ice || ice.type !== "ice") return { ok: true };
       const cost = ice.rezCost ?? 0;

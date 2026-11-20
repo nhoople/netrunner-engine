@@ -199,7 +199,7 @@ function trashRunnerCard(
   const fromZone = card.zone;
   const wasInstalled =
     fromZone === "runner:installed" || state.runner.installed.includes(cardId);
-  if (!noInterrupt && maybeOpenTrashPrevent(state, cardId)) return;
+  if (!noInterrupt && maybeOpenTrashPrevent(state, cardId, by)) return;
   if (wasInstalled) noteRunnerInstalledCardTrashing(state, card, by);
   unhostCard(state, cardId);
   removeCardFromCurrentZone(state, cardId);

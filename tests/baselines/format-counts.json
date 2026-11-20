@@ -22,6 +22,17 @@
         "cardDefFlags": 602
       },
       "reason": "CR audit area 1: host_self_as_condition replaces three engine-built host-as-condition continuations."
+    },
+    {
+      "date": "2026-11-20",
+      "engine": "v1.147.267",
+      "cards": "v1.147.24",
+      "counts": {
+        "knownPrimitiveKinds": 1534,
+        "oneCardKinds": 746,
+        "cardDefFlags": 602
+      },
+      "reason": "shrink"
     }
   ]
 }

@@ -101,7 +101,7 @@ import {
 } from "../runnerInstall.js";
 
 import { fireOnFullyBreak, fireOnForfeit, fireOnAccess } from "../eval.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { hostCard } from "../../state/procedures/host.js";
 
 export function applyOtherKinds(
@@ -1539,7 +1539,7 @@ export function applyOtherKinds(
       state.runner.installed = state.runner.installed.filter(
         (id) => id !== sourceId,
       );
-      trashCard(state, sourceId);
+      trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
       log(state, `Trash ${source.title}.`);
       if (matches.length === 0) {
         log(state, `Copycat — no other rezzed copy to jump to.`);
