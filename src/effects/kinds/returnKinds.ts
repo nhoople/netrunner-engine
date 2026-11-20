@@ -13,6 +13,7 @@ import {
 import { returnRdLookedToDeckTop } from "../eval.js";
 import { fx } from "../ir.js";
 import { unhostCard } from "../../state/procedures/host.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 export function applyReturnKinds(
   ctx: EffectCtx,
@@ -70,12 +71,10 @@ export function applyReturnKinds(
         return { ok: true };
       }
       const rez = card.rezCost ?? 0;
-      removeCardFromCurrentZone(state, action.cardId);
-      state.corp.hand.push(action.cardId);
-      card.zone = "corp:hq";
-      card.faceup = false;
-      card.rezzed = false;
-      card.advancementCounters = undefined;
+      if (!uninstallCard(state, action.cardId, "hand")) {
+        log(state, `Return rezzed to HQ — not installed.`);
+        return { ok: true };
+      }
       if (rez > 0) {
         state.corp.credits += rez;
       }
@@ -96,12 +95,10 @@ export function applyReturnKinds(
           log(state, `Return to HQ — card missing.`);
           return { ok: true };
         }
-        removeCardFromCurrentZone(state, pick);
-        state.corp.hand.push(pick);
-        card.zone = "corp:hq";
-        card.faceup = false;
-        card.rezzed = false;
-        card.advancementCounters = undefined;
+        if (!uninstallCard(state, pick, "hand")) {
+          log(state, `Return to HQ — ${card.title} is not installed.`);
+          return { ok: true };
+        }
         log(state, `Add ${card.title} to HQ.`);
         return { ok: true };
       };
@@ -163,11 +160,9 @@ export function applyReturnKinds(
         log(state, `${source.title} — tracked program already uninstalled.`);
         return { ok: true };
       }
-      state.runner.installed = state.runner.installed.filter((x) => x !== id);
-      state.runner.deck.unshift(id);
-      state.cards[id]!.zone = "runner:stack";
-      state.cards[id]!.faceup = false;
-      log(state, `Add ${state.cards[id]!.title} to the top of the stack.`);
+      uninstallCard(state, id, "deck-top", {
+        logLine: `Add ${state.cards[id]!.title} to the top of the stack.`,
+      });
       return { ok: true };
     }
 
@@ -232,11 +227,13 @@ export function applyReturnKinds(
           cites: [],
         };
       }
-      removeCardFromCurrentZone(state, sourceId);
-      state.corp.hand.push(sourceId);
-      source.zone = "corp:hq";
-      source.faceup = false;
-      source.rezzed = false;
+      if (!uninstallCard(state, sourceId, "hand")) {
+        removeCardFromCurrentZone(state, sourceId);
+        state.corp.hand.push(sourceId);
+        source.zone = "corp:hq";
+        source.faceup = false;
+        source.rezzed = false;
+      }
       log(state, `Add ${source.title} to HQ.`);
       return { ok: true };
     }
@@ -305,13 +302,9 @@ export function applyReturnKinds(
         log(state, `${source.title} — return to grip: card not installed.`);
         return { ok: true };
       }
-      removeCardFromCurrentZone(state, id);
-      // Clear trojan host link when bouncing.
-      unhostCard(state, card.id);
-      state.runner.hand.push(id);
-      card.zone = "runner:grip";
-      card.faceup = true;
-      log(state, `Return ${card.title} to grip.`);
+      uninstallCard(state, id, "hand", {
+        logLine: `Return ${card.title} to grip.`,
+      });
       return { ok: true };
     }
 

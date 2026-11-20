@@ -44,6 +44,28 @@
         "cardDefFlags": 602
       },
       "reason": "shrink"
+    },
+    {
+      "date": "2026-11-20",
+      "engine": "v1.147.269",
+      "cards": "v1.147.25",
+      "counts": {
+        "knownPrimitiveKinds": 1528,
+        "oneCardKinds": 744,
+        "cardDefFlags": 602
+      },
+      "reason": "shrink"
+    },
+    {
+      "date": "2026-11-20",
+      "engine": "v1.147.269",
+      "cards": "v1.147.25",
+      "counts": {
+        "knownPrimitiveKinds": 1528,
+        "oneCardKinds": 744,
+        "cardDefFlags": 602
+      },
+      "reason": "shrink"
     }
   ]
 }

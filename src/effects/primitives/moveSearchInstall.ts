@@ -13,7 +13,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
-import { unhostCard } from "../../state/procedures/host.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -53,14 +53,9 @@ function shuffleRunnerCardIntoStack(
 ): void {
   const card = state.cards[cardId];
   if (!card) return;
-  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  unhostCard(state, card.id);
-  card.zone = "runner:stack";
-  card.faceup = false;
-  card.rezzed = false;
-  state.runner.deck.push(cardId);
-  shuffleInPlace(state, state.runner.deck);
-  log(state, `Shuffle ${card.title} into the stack.`);
+  uninstallCard(state, cardId, "deck-shuffle", {
+    logLine: `Shuffle ${card.title} into the stack.`,
+  });
 }
 
 export function applyKitaraCotcPrimitive(

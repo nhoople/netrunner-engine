@@ -10,6 +10,8 @@ import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -227,12 +229,15 @@ export function applySansanBbPrimitive(
           cites: [],
         };
       }
-      state.runner.installed = state.runner.installed.filter(
-        (id) => id !== cardId,
-      );
-      unhostCard(state, card.id);
-      card.zone = "runner:grip";
-      state.runner.hand.push(cardId);
+      // An installed program is uninstalled (CR 8.5.1b); one hosted
+      // without being installed just moves (CR 1.13.12).
+      if (!uninstallCard(state, cardId, "hand")) {
+        unhostCard(state, cardId);
+        removeCardFromCurrentZone(state, cardId);
+        state.runner.hand.push(cardId);
+        card.zone = "runner:grip";
+        card.faceup = true;
+      }
       log(state, `London Library — add ${card.title} to grip.`);
       return { ok: true };
     }
@@ -328,15 +333,11 @@ export function applySansanBbPrimitive(
           cites: [],
         };
       }
-      // Remove from server root.
-      for (const server of Object.values(state.servers)) {
-        if (server.root.includes(cardId)) {
-          server.root = server.root.filter((id) => id !== cardId);
-        }
+      // Scoring an installed agenda uninstalls it: the cards hosted on it
+      // are trashed at the next checkpoint (CR 8.5.1b, 10.3.1g).
+      if (!uninstallCard(state, cardId, "score-area", { scoreSide: "corp" })) {
+        return { ok: false, error: "Not an installed agenda.", cites: [] };
       }
-      state.corp.scoreArea.push(cardId);
-      card.zone = "corp:score";
-      card.faceup = true;
       card.rezzed = true;
       log(
         state,

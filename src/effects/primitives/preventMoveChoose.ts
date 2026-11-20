@@ -8,6 +8,8 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { removeCardFromCurrentZone } from "../../state/scoring.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -75,19 +77,13 @@ export function applyMumbadKgPrimitive(
       }
       const card = state.cards[accessId];
       if (!card) return { ok: true };
-      const deckIdx = state.corp.deck.indexOf(accessId);
-      if (deckIdx >= 0) state.corp.deck.splice(deckIdx, 1);
-      const handIdx = state.corp.hand.indexOf(accessId);
-      if (handIdx >= 0) state.corp.hand.splice(handIdx, 1);
-      const discIdx = state.corp.discardPile.indexOf(accessId);
-      if (discIdx >= 0) state.corp.discardPile.splice(discIdx, 1);
-      for (const server of Object.values(state.servers)) {
-        const ri = server.root.indexOf(accessId);
-        if (ri >= 0) server.root.splice(ri, 1);
+      // An accessed root card is uninstalled as it moves (CR 8.5.1b).
+      if (!uninstallCard(state, accessId, "deck-bottom")) {
+        removeCardFromCurrentZone(state, accessId);
+        state.corp.deck.push(accessId);
+        card.zone = "corp:rd";
+        card.faceup = false;
       }
-      state.corp.deck.push(accessId);
-      card.zone = "corp:rd";
-      card.faceup = false;
       if (state.run) state.run.accessingCardId = null;
       log(state, `Maya — ${card.title} to bottom of R&D.`);
       return { ok: true };

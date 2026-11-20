@@ -142,12 +142,6 @@ export function applySansanUwPrimitive(
       if (!card) return { ok: true };
       beginExpose(state, cardId);
       if (card.type === "asset" || card.type === "upgrade") {
-        for (const server of Object.values(state.servers)) {
-          if (server.root.includes(cardId)) {
-            server.root = server.root.filter((id) => id !== cardId);
-            break;
-          }
-        }
         trashCard(state, cardId, { by: "runner" });
         log(state, `Drive By — trash exposed ${card.title}.`);
       } else {

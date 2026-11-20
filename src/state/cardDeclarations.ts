@@ -17,6 +17,7 @@ import { openPendingChoose } from "./pendingChoice.js";
 import { pickRandomSubset } from "./rng.js";
 import { trashCard } from "./procedures/trash.js";
 import { unhostCard } from "./procedures/host.js";
+import { uninstallCard } from "./procedures/uninstall.js";
 
 const noop = (side: Side) => fx.do({ kind: "gain_credits", side, amount: 0 });
 
@@ -336,12 +337,7 @@ export function notePowerCounters(state: GameState, card: CardInstance): void {
     (card.powerCounters ?? 0) >= threshold &&
     card.zone === "runner:installed"
   ) {
-    state.runner.installed = state.runner.installed.filter(
-      (id) => id !== card.id,
-    );
-    state.runner.scoreArea.push(card.id);
-    card.zone = "runner:score";
-    card.faceup = true;
+    uninstallCard(state, card.id, "score-area");
     card.convertedInto = "agenda";
     log(
       state,
@@ -961,13 +957,6 @@ function drawOne(state: GameState, side: Side): void {
   if (card) card.zone = zone;
 }
 
-function removeInstalled(state: GameState, cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  unhostCard(state, cardId);
-}
-
 export function resolveDeclaration(
   state: GameState,
   optionId: string,
@@ -1092,14 +1081,7 @@ export function resolveDeclaration(
   if (optionId.startsWith("decl:hippo:")) {
     const [, sourceId, iceId] = optionId.split(":");
     if (sourceId) {
-      removeInstalled(state, sourceId);
-      const hippo = state.cards[sourceId];
-      if (hippo) {
-        if (!state.removedFromGame.includes(sourceId))
-          state.removedFromGame.push(sourceId);
-        hippo.zone = "removed-from-game";
-        hippo.faceup = true;
-      }
+      uninstallCard(state, sourceId, "removed-from-game");
     }
     const ice = iceId ? state.cards[iceId] : undefined;
     if (ice) {

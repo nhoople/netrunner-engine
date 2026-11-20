@@ -3,7 +3,6 @@ import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
 import { startPsiGame } from "../../state/psi.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { chooseCards } from "../chooseCards.js";
 import { evalEffect } from "../eval.js";
@@ -11,7 +10,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { trashCard } from "../../state/procedures/trash.js";
-import { unhostCard } from "../../state/procedures/host.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -132,17 +131,7 @@ export function applyMumbadFtmPrimitive(
       if (!ice || !(ice.subtypes ?? []).includes("barrier")) {
         return { ok: true };
       }
-      removeCardFromCurrentZone(state, iceId);
-      // Clear server ice slot
-      for (const server of Object.values(state.servers)) {
-        const idx = server.ice.indexOf(iceId);
-        if (idx >= 0) server.ice.splice(idx, 1);
-      }
-      ice.zone = "corp:hq";
-      ice.rezzed = false;
-      ice.faceup = false;
-      unhostCard(state, ice.id);
-      state.corp.hand.push(iceId);
+      uninstallCard(state, iceId, "hand");
       log(state, `Ankusa — add fully broken barrier ${ice.title} to HQ.`);
       return { ok: true };
     }

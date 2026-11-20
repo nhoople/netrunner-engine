@@ -13,6 +13,7 @@ import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import { fireOnArchivesFacedownTurnedFaceupGte } from "./miscConditionalHooks.js";
 import { shuffleInPlace } from "./rng.js";
+import { setAttackedServer } from "./runPosition.js";
 
 /** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
 /**
@@ -814,7 +815,7 @@ export function armNestedBreachIfPending(state: GameState): boolean {
   run.resumeEncounterIceId = pending.resumeIceId;
   run.attackedServerIdBeforeNestedBreach = run.attackedServerId;
   run.nestedBreachFromEncounter = true;
-  run.attackedServerId = pending.server;
+  setAttackedServer(run, pending.server);
   run.cannotAccessRoot = pending.cannotAccessRoot ?? false;
   run.accessCandidates = [];
   run.randomAccessLimit = null;

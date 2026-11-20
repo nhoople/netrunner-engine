@@ -12,6 +12,7 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -19,13 +20,7 @@ type PrimResult =
 function rfgCard(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  card.zone = "removed-from-game";
-  card.faceup = true;
-  if (!state.removedFromGame) state.removedFromGame = [];
-  if (!state.removedFromGame.includes(cardId)) {
-    state.removedFromGame.push(cardId);
-  }
+  removeCardFromGame(state, cardId);
 }
 
 export function applyFlashpointQuPrimitive(

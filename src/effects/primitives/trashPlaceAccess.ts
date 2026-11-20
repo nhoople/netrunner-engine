@@ -20,6 +20,7 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -28,12 +29,7 @@ function rfgCard(ctx: EffectCtx, cardId: string): void {
   const { state } = ctx;
   const card = state.cards[cardId];
   if (!card) return;
-  removeCardFromCurrentZone(state, cardId);
-  card.zone = "removed-from-game";
-  card.faceup = true;
-  if (!state.removedFromGame.includes(cardId)) {
-    state.removedFromGame.push(cardId);
-  }
+  removeCardFromGame(state, cardId);
 }
 
 /**

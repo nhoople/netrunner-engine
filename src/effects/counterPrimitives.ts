@@ -9,7 +9,6 @@ import {
   maybeFirePowerCountersGte,
   syncEtrPerPowerCounterSubs,
 } from "../state/powerCounters.js";
-import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
 import { maybeTrashHostsAtStrengthLte } from "./corpTrash.js";
@@ -17,6 +16,7 @@ import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
 import { fireOnPowerCountersEmpty } from "../state/miscConditionalHooks.js";
 import { trashCard } from "../state/procedures/trash.js";
+import { removeCardFromGame } from "../state/procedures/uninstall.js";
 
 export function applyCounterPrimitive(
   ctx: EffectCtx,
@@ -135,13 +135,7 @@ export function applyCounterPrimitive(
         );
         recomputeRunnerMaxHandSize(state);
       } else if (source.rfgWhenPowerEmpty && (source.powerCounters ?? 0) <= 0) {
-        removeCardFromCurrentZone(state, sourceId);
-        source.zone = "removed-from-game";
-        source.faceup = true;
-        if (!state.removedFromGame) state.removedFromGame = [];
-        if (!state.removedFromGame.includes(sourceId)) {
-          state.removedFromGame.push(sourceId);
-        }
+        removeCardFromGame(state, sourceId);
         log(
           state,
           `${source.title} removed from the game — power counters empty.`,
@@ -182,13 +176,7 @@ export function applyCounterPrimitive(
         );
         recomputeRunnerMaxHandSize(state);
       } else if (source.rfgWhenPowerEmpty && have > 0) {
-        removeCardFromCurrentZone(state, sourceId);
-        source.zone = "removed-from-game";
-        source.faceup = true;
-        if (!state.removedFromGame) state.removedFromGame = [];
-        if (!state.removedFromGame.includes(sourceId)) {
-          state.removedFromGame.push(sourceId);
-        }
+        removeCardFromGame(state, sourceId);
         log(
           state,
           `${source.title} removed from the game — power counters empty.`,

@@ -13,6 +13,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { setAttackedServer } from "../../state/runPosition.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -43,7 +44,7 @@ export function applyFlashpointEsPrimitive(
       const sid = action.serverId as "hq" | "rd";
       if (state.run && (sid === "hq" || sid === "rd")) {
         log(state, `Omar Keung — change attacked server to ${sid}.`);
-        state.run.attackedServerId = sid;
+        setAttackedServer(state.run, sid);
       }
       return { ok: true };
     }

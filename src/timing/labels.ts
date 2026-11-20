@@ -323,6 +323,31 @@ export const CR = {
     number: "6.2.7e",
     id: "rule_ice_change_during_movement",
   },
+  /** Approached ice is swapped: the Runner approaches the new ice (CR 6.2.7b). */
+  approachedIceSwapped: {
+    number: "6.2.7b",
+    id: "rule_ice_change_approach_swap",
+  },
+  /** Encountered ice moves: the Runner stays with it (CR 6.2.7d). */
+  encounteredIceMoves: {
+    number: "6.2.7d",
+    id: "rule_ice_change_encounter_move_swap",
+  },
+  /** The Runner moves to a piece of ice (CR 6.2.8a). */
+  moveRunnerToIce: { number: "6.2.8a", id: "rule_move_to_piece_of_ice" },
+  /** The Runner moves to the outermost position of a server (CR 6.2.8b). */
+  moveRunnerToOutermost: {
+    number: "6.2.8b",
+    id: "rule_move_to_specific_position",
+  },
+  /** No move to a position after the Success Phase begins (CR 6.2.8c). */
+  ineffectiveMove: { number: "6.2.8c", id: "rule_ineffective_move" },
+  /** A card stops being installed for any reason (CR 8.5.1b). */
+  uninstalled: { number: "8.5.1b", id: "rule_uninstalled" },
+  /** Arranging installed ice is a sequence of swaps (CR 8.3.2). */
+  arrangeIce: { number: "8.3.2", id: "rule_arrange_ice" },
+  /** A removed card moves to the removed-from-game zone (CR 4.9.2). */
+  removeFromGame: { number: "4.9.2", id: "rule_rfg_move" },
   forcedEncounter: { number: "6.5.9a", id: "rule_forced_encounter" },
   forcedEncounterDuringRun: {
     number: "6.5.9b",

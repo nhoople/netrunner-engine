@@ -119,9 +119,15 @@ describe("creation-and-control", () => {
       it("validates escher_may_instead_of_breach", () => {
         expect(validateEffectTree(fx.escherMayInsteadOfBreach())).toBeNull();
       });
-      it("validates escher_rearrange_pick_server", () => {
+      it("validates rearrange_ice", () => {
         expect(
-          validateEffectTree(fx.do({ kind: "escher_rearrange_pick_server" })),
+          validateEffectTree(
+            fx.do({
+              kind: "rearrange_ice",
+              chooser: "runner",
+              serverIds: ["hq", "rd"],
+            }),
+          ),
         ).toBeNull();
       });
     });

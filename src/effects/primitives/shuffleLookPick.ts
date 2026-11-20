@@ -392,13 +392,6 @@ export function applySansanOhPrimitive(
       const adv = card.advancementCounters ?? 0;
       const gain = 3 * adv;
       state.corp.credits += gain;
-      // Trash from remote root to archives.
-      for (const server of Object.values(state.servers)) {
-        if (server.root.includes(cardId)) {
-          server.root = server.root.filter((id) => id !== cardId);
-          break;
-        }
-      }
       // The Corp's operation trashes the card (CR 1.14.5).
       trashCard(state, cardId, { by: "corp" });
       log(

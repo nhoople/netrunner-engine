@@ -1,7 +1,6 @@
 /** Salsette Island (si) Mumbad pack primitives — v1.119.0. */
 import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
@@ -11,6 +10,7 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { catalogCardNames } from "../cardNames.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -166,10 +166,7 @@ export function applyMumbadSiPrimitive(
         log(state, `Brahman — program not installed.`);
         return { ok: true };
       }
-      removeCardFromCurrentZone(state, cardId);
-      state.runner.deck.unshift(cardId);
-      card.zone = "runner:stack";
-      card.faceup = false;
+      uninstallCard(state, cardId, "deck-top");
       log(state, `Brahman — add ${card.title} to the top of the stack.`);
       return { ok: true };
     }

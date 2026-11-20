@@ -4,7 +4,8 @@
     "scripts/*.{mjs,ts}",
     "stryker/*.mjs",
     "tests/**/*.test.ts",
-    "tests/setup/*.ts"
+    "tests/setup/*.ts",
+    "tests/fixtures/*.ts"
   ],
   "project": [
     "src/**/*.ts!",

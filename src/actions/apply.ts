@@ -110,10 +110,7 @@ import {
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import { psiCorpBid, psiRunnerBid } from "../state/psi.js";
-import {
-  agendaPointsFor,
-  removeCardFromCurrentZone,
-} from "../state/scoring.js";
+import { agendaPointsFor } from "../state/scoring.js";
 import {
   markAbilityUsed,
   programBannedThisRun,
@@ -221,6 +218,7 @@ import {
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
 import { trashCard, resolveSkorpiosTrash } from "../state/procedures/trash.js";
+import { removeCardFromGame } from "../state/procedures/uninstall.js";
 
 /** The payer's pick for a one-card cost, or the last card when not asked. */
 function chosenCostCard(state: GameState, pool: readonly string[]): string {
@@ -3115,13 +3113,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
               next.rfgPrintedTitlesOnAccess.push(card.title);
             }
           }
-          removeCardFromCurrentZone(next, action.cardId);
-          card.zone = "removed-from-game";
-          card.faceup = true;
-          if (!next.removedFromGame) next.removedFromGame = [];
-          if (!next.removedFromGame.includes(action.cardId)) {
-            next.removedFromGame.push(action.cardId);
-          }
+          removeCardFromGame(next, action.cardId);
           next.run.accessingCardId = null;
           next.run.breachStoleOrTrashed = true;
           log(
@@ -3377,16 +3369,8 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         return fail("Insufficient credits to RFG.", [CR.trashing]);
       }
       spendRunnerCreditsFor(next, cost, purpose);
-      const serverId = next.run.attackedServerId;
-      const server = next.servers[serverId];
-      server.root = server.root.filter((id) => id !== action.cardId);
-      next.corp.hand = next.corp.hand.filter((id) => id !== action.cardId);
-      next.corp.deck = next.corp.deck.filter((id) => id !== action.cardId);
-      if (!next.removedFromGame) next.removedFromGame = [];
-      next.removedFromGame.push(action.cardId);
-      card.zone = "removed-from-game";
-      card.faceup = true;
-      card.rezzed = false;
+      // An installed card is uninstalled as it is removed (CR 8.5.1b, 4.9.2).
+      removeCardFromGame(next, action.cardId);
       next.run.accessingCardId = null;
       next.turn.siSalsetteSlumsUsedThisTurn = true;
       noteAccessTrash(next, cost);

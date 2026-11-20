@@ -23,6 +23,7 @@ import { random } from "../../state/rng.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
 import { unhostAllFrom, unhostCard } from "../../state/procedures/host.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 export function applyShuffleKinds(
   ctx: EffectCtx,
@@ -490,12 +491,14 @@ export function applyShuffleKinds(
         log(state, `Shuffle into stack — invalid card.`);
         return { ok: true };
       }
-      removeCardFromCurrentZone(state, cardId);
-      unhostCard(state, card.id);
-      state.runner.deck.push(cardId);
-      card.zone = "runner:stack";
-      card.faceup = false;
-      card.rezzed = false;
+      if (!uninstallCard(state, cardId, "deck-bottom")) {
+        removeCardFromCurrentZone(state, cardId);
+        unhostCard(state, card.id);
+        state.runner.deck.push(cardId);
+        card.zone = "runner:stack";
+        card.faceup = false;
+        card.rezzed = false;
+      }
       // Shuffle the stack.
       for (let i = state.runner.deck.length - 1; i > 0; i--) {
         const j = Math.floor(random(state) * (i + 1));

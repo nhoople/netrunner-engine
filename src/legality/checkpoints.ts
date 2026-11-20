@@ -1,3 +1,4 @@
+import { ceaseVacantPositions } from "../state/procedures/uninstall.js";
 import {
   FIRST_CORP_CARD_TRASH_ANY,
   FIRST_CORP_CARD_TRASH_INSTALLED,
@@ -3867,6 +3868,7 @@ function checkHostedOnUninstalled(state: GameState): void {
     for (const id of batch) trashHostedCard(state, id);
     trashed += batch.length;
   }
+  state.turn.hostsUninstalled = undefined;
   if (trashed === 0) {
     state.log.push(
       `Hosted on uninstalled cards checked (CR ${CR.checkpointHostedOnUninstalled.number}); nothing trashed.`,
@@ -3922,40 +3924,11 @@ function noteAttackedServerCeased(state: GameState): void {
 
 /**
  * CR 10.3.1i. A protecting position with no ice ceases to exist, unless the
- * Runner is currently there (CR 6.2.4). The ice list stores only card ids,
- * so a vacant position is a missing card. Ice being installed into a new
- * position is not tracked.
+ * Runner is currently there (CR 6.2.4). `ceaseVacantPositions` owns the ice
+ * lists and keeps the Runner's position (CR 6.2.6).
  */
 function checkVacantPositions(state: GameState): void {
-  let ceased = 0;
-  for (const server of Object.values(state.servers)) {
-    const kept: string[] = [];
-    let removedBeforeRunner = 0;
-    const onThisServer = state.run?.attackedServerId === server.id;
-    const runnerPos = onThisServer ? (state.run?.position ?? null) : null;
-    server.ice.forEach((id, index) => {
-      const occupied = state.cards[id] != null;
-      const current = runnerPos === index;
-      if (occupied || current) {
-        kept.push(id);
-        return;
-      }
-      if (runnerPos != null && runnerPos > index) removedBeforeRunner += 1;
-      ceased += 1;
-      state.log.push(
-        `Position ${index} on ${server.id} ceased to exist (CR ${CR.checkpointVacantPosition.number}).`,
-      );
-    });
-    server.ice = kept;
-    if (
-      removedBeforeRunner > 0 &&
-      state.run &&
-      onThisServer &&
-      state.run.position != null
-    ) {
-      state.run.position -= removedBeforeRunner;
-    }
-  }
+  const ceased = ceaseVacantPositions(state);
   if (ceased === 0) {
     state.log.push(
       `Vacant positions checked (CR ${CR.checkpointVacantPosition.number}); none ceased to exist.`,
@@ -4150,10 +4123,22 @@ function hostedOnUninstalledCard(state: GameState): string[] {
       continue;
     }
     const host = state.cards[card.hostId];
-    if (!host || !leftPlay(host.zone)) continue;
+    if (!host) continue;
+    if (!leftPlay(host.zone) && !hostedWhenUninstalled(state, card)) continue;
     ids.push(card.id);
   }
   return ids;
+}
+
+/**
+ * The card was hosted on its host when the host was uninstalled, so it is
+ * trashed even when the host went to a score area (CR 8.5.1b, 10.3.1g).
+ */
+function hostedWhenUninstalled(state: GameState, card: CardInstance): boolean {
+  return (state.turn.hostsUninstalled ?? []).some(
+    (entry) =>
+      entry.hostId === card.hostId && entry.hostedIds.includes(card.id),
+  );
 }
 
 function leftPlay(zone: CardInstance["zone"]): boolean {

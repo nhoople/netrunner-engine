@@ -79,6 +79,7 @@ function readBaseline(): Baseline {
 }
 
 const writes = scanDirectWrites();
+const SAMPLE = "tests/fixtures/direct-writes-sample.ts";
 const outside = writes.filter((w) => !allowed(w.file, w.property));
 const found = countWrites(outside);
 
@@ -113,15 +114,15 @@ describe("procedure write guard (CR audit Phase 2)", () => {
       writes.some(
         (w) => w.file === file && w.property === property && text.test(w.text),
       );
-    // Mind Game's redirect writes −1 through a cast (CR 6.2.4).
-    expect(
-      at(
-        "src/effects/primitives/spendHostPrevent.ts",
-        "position",
-        /as \{ position/,
-      ),
-    ).toBe(true);
-    expect(at("src/legality/checkpoints.ts", "position", /-=/)).toBe(true);
+    // No src/ file writes through a cast since area 2 (Mind Game's −1 was
+    // the last), so a fixture checks it.
+    const sample = scanDirectWrites(SAMPLE);
+    const inSample = (property: string, text: RegExp): boolean =>
+      sample.some((w) => w.property === property && text.test(w.text));
+    expect(inSample("position", /as \{ position/)).toBe(true);
+    expect(inSample("position", /-=/)).toBe(true);
+    expect(inSample("attackedServerId", /!\.attackedServerId/)).toBe(true);
+    expect(sample.every((w) => w.property !== "label")).toBe(true);
     expect(at("src/state/runPosition.ts", "position", /\+= 1/)).toBe(true);
     expect(
       writes.some((w) => w.kind === "mutate" && w.property === "discardPile"),
@@ -175,15 +176,13 @@ describe("procedure write guard (CR audit Phase 2)", () => {
   it("run position writes outside runPosition.ts are the recorded ones (CR 6.2.4, 6.2.6)", () => {
     // Was the regex guard in tests/ice-uninstalled-during-run.test.ts, which
     // missed `+=`, `-=` and cast writes.
-    const position = outside
-      .filter((w) => w.property === "position")
-      .map((w) => w.file);
-    expect(position.sort()).toEqual([
-      // The install keeps the Runner on the same element (CR 6.2.6).
-      "src/actions/installCorp.ts",
-      "src/actions/installCorp.ts",
-      "src/effects/primitives/spendHostPrevent.ts",
-      "src/legality/checkpoints.ts",
-    ]);
+    // Since area 2 every position and attacked-server write goes through
+    // runPosition.ts (CR 6.2.6, 6.2.8).
+    const outsideRunPosition = outside
+      .filter(
+        (w) => w.property === "position" || w.property === "attackedServerId",
+      )
+      .map((w) => `${w.file}:${w.line} ${w.text}`);
+    expect(outsideRunPosition).toEqual([]);
   });
 });
