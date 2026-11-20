@@ -17,7 +17,7 @@ describe("upstalk", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.24");
+      assertCardsPinnedTag("v1.147.25");
     });
 
     describe("Upstalk v1.103.0 set-complete", () => {

@@ -3437,8 +3437,6 @@ export type Primitive =
   | { kind: "trash_top_rd_equal_damage_suffered_this_turn" }
   | { kind: "swap_2_unrezzed_ice" }
   | { kind: "swap_2_unrezzed_ice_resolve"; iceIdA: string; iceIdB: string }
-  | { kind: "trash_grip_same_type_prevent" }
-  | { kind: "trash_grip_resolve"; cardId: string }
   | { kind: "give_tags_equal_to_runner_tags_min_1" }
   | {
       kind: "install_ice_from_hq_outermost_remote_ignore_costs_place_advancements";
@@ -5402,8 +5400,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_top_rd_equal_damage_suffered_this_turn",
   "swap_2_unrezzed_ice",
   "swap_2_unrezzed_ice_resolve",
-  "trash_grip_same_type_prevent",
-  "trash_grip_resolve",
   "give_tags_equal_to_runner_tags_min_1",
   "install_ice_from_hq_outermost_remote_ignore_costs_place_advancements",
   "install_priority_construction_resolve",

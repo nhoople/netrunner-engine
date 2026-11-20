@@ -1383,8 +1383,6 @@
     "trash_grip_card_draw",
     "trash_grip_draw_for_installed_dupes",
     "trash_grip_hardware_place_hosted_credits",
-    "trash_grip_resolve",
-    "trash_grip_same_type_prevent",
     "trash_hardware",
     "trash_hardware_additional_cost",
     "trash_hardware_install_cost_lte_last_trace_excess",

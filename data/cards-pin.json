@@ -1,8 +1,8 @@
 {
-  "tag": "v1.147.24",
+  "tag": "v1.147.25",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.24",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.24",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.25",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.25",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "runner/program",
     "runner/resource"
   ],
-  "notes": "Pair cards v1.147.24. N-Pot is breakable by the Runner (#298), False Lead forfeits itself (#299), and Vladisibirsk City Grid has no click cost (#300). CR pin v26.03."
+  "notes": "Pair cards v1.147.25. La Costa Grid places on any root card and Dummy Box takes a same-type grip card as its cost, Corp trashes only (#307); NSG catalog with Startup Balance Update 26.09 (#306). CR pin v26.03."
 }

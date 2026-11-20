@@ -2153,11 +2153,6 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Dummy Box: trashing a same-type grip card prevents the pending installed trash": [
-      "NO_ZONE",
-      "RUNNER_CARD_REZZED",
-      "ZONE_MISMATCH"
-    ],
     "one-off kind outcomes (batch A: immediate effects) > Early Premiere: pays 1 credit to place 1 advancement on a remote root card": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED",
