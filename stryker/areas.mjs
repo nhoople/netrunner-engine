@@ -129,6 +129,21 @@ export const areas = {
     tests: ["tests/card-declarations.test.ts", "tests/static-flags.test.ts"],
     grep: /\b9\.12\b|continuousSubtypeGrants/,
   },
+  continuous: {
+    title: "RA-2. Continuous effects (re-audit of CR 9.4, 9.10, 9.12)",
+    mutate: [
+      "src/state/continuousEffects.ts",
+      "src/state/lingeringEffects.ts",
+      "src/state/abilities.ts",
+      "src/state/pendingChoice.ts",
+    ],
+    tests: [
+      "tests/blank*.test.ts",
+      "tests/continuous-*.test.ts",
+      "tests/cr-examples-ch9.test.ts",
+    ],
+    grep: /\b(9\.4\.\d|9\.10\.\d|9\.12\.1[a-e]?|9\.12\.5[a-d]?)\b|lingering|addLingeringEffect|resolveIceSubtypes|openPendingChoose|Mother Goddess|Klevetnik/,
+  },
 };
 
 /**
