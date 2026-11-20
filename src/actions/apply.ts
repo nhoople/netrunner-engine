@@ -202,6 +202,7 @@ import {
   stealAdditionalCosts,
   stealAdditionalCreditsForAgenda,
   stealNetOrMeatPrevented,
+  stealOrTrashBlocked,
 } from "./access.js";
 import { finishPendingDraw } from "../effects/draw.js";
 import { discardPhase, drawN, drawOne, passWindow } from "./phase.js";
@@ -3196,7 +3197,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           CR.midAccessAgenda,
         ]);
       }
-      if (next.run.cannotStealOrTrash) {
+      if (stealOrTrashBlocked(next, action.cardId)) {
         return fail("Cannot steal Corp cards this run.", [CR.stealingAgenda]);
       }
       const agenda = next.cards[action.cardId];
@@ -3276,7 +3277,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);
       }
-      if (next.run.cannotStealOrTrash) {
+      if (stealOrTrashBlocked(next, next.run.accessingCardId)) {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const card = next.cards[action.cardId];
@@ -3398,7 +3399,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.run?.accessingCardId) {
         return fail("Not mid-access.", [CR.trashing]);
       }
-      if (next.run.cannotStealOrTrash) {
+      if (stealOrTrashBlocked(next, next.run.accessingCardId)) {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const sid = next.run.attackedServerId;
@@ -3455,7 +3456,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);
       }
-      if (next.run.cannotStealOrTrash) {
+      if (stealOrTrashBlocked(next, next.run.accessingCardId)) {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const imp = next.runner.installed
@@ -3487,7 +3488,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);
       }
-      if (next.run.cannotStealOrTrash) {
+      if (stealOrTrashBlocked(next, next.run.accessingCardId)) {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       if (!next.run.accessTrashFree) {
@@ -3507,7 +3508,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);
       }
-      if (next.run.cannotStealOrTrash) {
+      if (stealOrTrashBlocked(next, next.run.accessingCardId)) {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const lamp = next.cards[action.lampadesId];
@@ -3553,7 +3554,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);
       }
-      if (next.run.cannotStealOrTrash) {
+      if (stealOrTrashBlocked(next, next.run.accessingCardId)) {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const accessed = next.cards[action.cardId];

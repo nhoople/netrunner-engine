@@ -22,7 +22,6 @@ import { pickRandomSubset } from "../../state/rng.js";
 import { drawCards } from "../draw.js";
 import { chooseCards } from "../chooseCards.js";
 import {
-  maybeFireNuvemFirstRdTrash,
   serverHostingCard,
   offerCultivateHqChoice,
   trashInstalledLegalTargets,
@@ -33,6 +32,7 @@ import {
 } from "../eval.js";
 import { iceStrength } from "../iceStrength.js";
 import { fx } from "../ir.js";
+import { catalogCardNames } from "../cardNames.js";
 import {
   canInstallHeapCard,
   gripInstallCostAfterDiscount,
@@ -299,7 +299,7 @@ export function applyTrashKinds(
       if (resources.length === 1) {
         const resId = resources[0]!;
         const title = state.cards[resId].title;
-        trashCard(state, resId);
+        trashCard(state, resId, { by: controllerOf(state, sourceId) });
         log(state, `Trash own resource ${title} (CR ${CR.trashing.number}).`);
         return { ok: true };
       }
@@ -1442,8 +1442,11 @@ export function applyTrashKinds(
     }
 
     case "may_trash_one_from_grip": {
-      const grip = [...state.runner.hand];
-      if (grip.length === 0) {
+      // Vera Ivanovna Shuyskaya: "you may reveal the grip. Trash 1 card
+      // revealed this way." The Corp decides before seeing the grip; the
+      // grip is then revealed to both players and the trash is not optional
+      // (CR 1.21.3, 9.6.9, 10.2.2a).
+      if (state.runner.hand.length === 0) {
         log(state, `May trash from grip — grip empty.`);
         return { ok: true };
       }
@@ -1451,28 +1454,18 @@ export function applyTrashKinds(
         sourceId,
         chooser: "corp",
         options: [
-          ...grip.map((id) => ({
-            id: `trash-grip:${id}`,
-            label: `Trash ${state.cards[id]!.title}`,
-            effect: {
-              op: "do" as const,
-              action: { kind: "trash_grip_card" as const, cardId: id },
-            },
-          })),
+          {
+            id: "reveal-grip",
+            label: "Reveal the grip and trash 1 card",
+            effect: fx.do({ kind: "reveal_grip_may_trash_one" }),
+          },
           {
             id: "decline",
             label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "corp" as const,
-                amount: 0,
-              },
-            },
+            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
           },
         ],
-        logLine: `May trash 1 card from the grip.`,
+        logLine: `${source.title} — may reveal the grip.`,
       });
       return { ok: true };
     }
@@ -1650,14 +1643,10 @@ export function applyTrashKinds(
         log(state, `${source.title} — no run for Whistleblower.`);
         return { ok: true };
       }
-      // Collect unique agenda titles in play / R&D / HQ / Archives / score
-      // as name candidates; also allow free-text via any catalog title present
-      // on corp cards in the game. Fail-closed: offer titles from known cards.
-      const titles = new Set<string>();
-      for (const c of Object.values(state.cards)) {
-        if (c.side === "corp") titles.add(c.title);
-      }
-      const titleList = [...titles].sort();
+      // "Choose a card name" (CR 1.2.1): any name may be chosen, so the
+      // list comes from the catalog's agendas, the only cards the steal can
+      // apply to. Built from the game's cards, it would show the Runner what
+      // is in HQ and R&D (CR 10.2.2a, 10.2.2b).
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
@@ -1670,7 +1659,7 @@ export function applyTrashKinds(
               action: { kind: "gain_credits", side: "runner", amount: 0 },
             },
           },
-          ...titleList.map((title) => ({
+          ...catalogCardNames((def) => def.type === "agenda").map((title) => ({
             id: `wb-name:${title}`,
             label: `Trash Whistleblower — name ${title}`,
             effect: {
@@ -2243,7 +2232,7 @@ export function applyTrashKinds(
         state,
         `Aesop's Pawnshop — trash ${card.title}, gain ${action.amount}¢.`,
       );
-      trashCard(state, cardId);
+      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       state.runner.credits += action.amount;
       return { ok: true };
     }
@@ -2268,13 +2257,15 @@ export function applyTrashKinds(
         return { ok: true };
       }
       const topId = state.corp.deck[0]!;
+      // Whichever card asks for it ("the Corp trashes", Spoilers' "they
+      // trash"), the Corp is the player who does this (CR 1.14.5).
+      const by = "corp" as const;
       // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-      trashCard(state, topId, { by: controllerOf(state, sourceId) });
+      trashCard(state, topId, { by });
       log(
         state,
         `${source.title} — trash top of R&D (${state.cards[topId]?.title ?? topId}).`,
       );
-      maybeFireNuvemFirstRdTrash(state);
       return { ok: true };
     }
 
@@ -2594,7 +2585,7 @@ export function applyTrashKinds(
       if (installed.length === 1) {
         const id = installed[0]!;
         const title = state.cards[id]!.title;
-        trashCard(state, id);
+        trashCard(state, id, { by: controllerOf(state, sourceId) });
         log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
         return { ok: true };
       }

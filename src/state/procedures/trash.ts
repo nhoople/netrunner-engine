@@ -126,6 +126,7 @@ export function trashCard(
       state,
       card,
       options.cause === "cost" || options.preventable === false,
+      options.by ?? null,
     );
   } else {
     trashCorpCard(
@@ -192,13 +193,14 @@ function trashRunnerCard(
   state: GameState,
   card: CardInstance,
   noInterrupt: boolean,
+  by: TrashBy | null,
 ): void {
   const cardId = card.id;
   const fromZone = card.zone;
   const wasInstalled =
     fromZone === "runner:installed" || state.runner.installed.includes(cardId);
   if (!noInterrupt && maybeOpenTrashPrevent(state, cardId)) return;
-  if (wasInstalled) noteRunnerInstalledCardTrashing(state);
+  if (wasInstalled) noteRunnerInstalledCardTrashing(state, card, by);
   unhostCard(state, cardId);
   removeCardFromCurrentZone(state, cardId);
   // CR 9.6.10: still-pending instances for this source die when it leaves
@@ -223,7 +225,7 @@ function trashRunnerCard(
   if (offerSkorpiosRfgInsteadOfHeap(state, card, fromZone, wasInstalled)) {
     return;
   }
-  arriveInHeap(state, card, fromZone, wasInstalled);
+  arriveInHeap(state, card, fromZone, wasInstalled, by);
 }
 
 function arriveInHeap(
@@ -231,9 +233,10 @@ function arriveInHeap(
   card: CardInstance,
   fromZone: string,
   wasInstalled: boolean,
+  by: TrashBy | null = null,
 ): void {
   placeInDiscardPile(state, card, true);
-  noteRunnerCardTrashedToHeap(state, card, fromZone, wasInstalled);
+  noteRunnerCardTrashedToHeap(state, card, fromZone, wasInstalled, by);
 }
 
 function removeFromGame(state: GameState, card: CardInstance): void {

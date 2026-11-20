@@ -416,10 +416,14 @@ export function fireIceRezDuringRunHooks(
     }
   }
 
-  // Brasília: once per turn may-derez offer (skip if another choice is open).
+  // Brasília: "When you rez a piece of ice during a run against this
+  // server": any piece of ice, wherever it is installed. Skipped if another
+  // choice is open. A declined offer leaves the ability unused, so its once
+  // per turn flag is spent only when it resolves (CR 9.3.6g).
   if (state.pendingChoice) return;
-  if (state.run.attackedServerId !== iceServer.id) return;
-  for (const uid of iceServer.root) {
+  const attacked = state.servers[state.run.attackedServerId];
+  if (!attacked) return;
+  for (const uid of attacked.root) {
     const up = state.cards[uid];
     const hook = up?.oncePerTurnOnRezIceProtectingThisServerDuringRun;
     if (!up?.rezzed || !hook) continue;
@@ -433,9 +437,6 @@ export function fireIceRezDuringRunHooks(
       }
     }
     if (others.length === 0) continue;
-    if (!state.turn.brasiliaAbilityUsedIds.includes(uid)) {
-      state.turn.brasiliaAbilityUsedIds.push(uid);
-    }
     openPendingChoose(state, {
       sourceId: uid,
       chooser: "corp",

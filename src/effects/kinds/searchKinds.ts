@@ -407,21 +407,40 @@ export function applySearchKinds(
     }
 
     case "search_rd_operation_or_agenda_to_hq": {
-      const id = state.corp.deck.find((cid) => {
-        const t = state.cards[cid].type;
-        return t === "operation" || t === "agenda";
-      });
-      if (!id) {
-        log(state, `Search R&D for operation or agenda — none found.`);
-        return { ok: true };
+      // Pivot: "Search R&D for 1 operation or agenda and reveal it. Add that
+      // card to HQ." The Corp picks the card and may fail to find
+      // (CR 8.7.1, 8.7.2e). R&D is shuffled, then the card is revealed and
+      // goes back to being hidden in HQ (CR 8.7.3, 1.21.3, 1.21.6).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: state.corp.deck.filter((cid) => {
+              const t = state.cards[cid].type;
+              return t === "operation" || t === "agenda";
+            }),
+            count: 1,
+            upTo: true,
+            purpose: "resume",
+            label: "add to HQ from R&D",
+            resume: { kind: "search_rd_operation_or_agenda_to_hq" },
+          }),
+        );
       }
-      state.corp.deck = state.corp.deck.filter((x) => x !== id);
-      state.corp.hand.push(id);
-      state.cards[id].zone = "corp:hq";
-      state.cards[id].faceup = true;
+      const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
+      for (const id of found) {
+        state.corp.deck = state.corp.deck.filter((x) => x !== id);
+        state.corp.hand.push(id);
+        state.cards[id].zone = "corp:hq";
+        state.cards[id].faceup = false;
+      }
       shuffleCorpRdAfterSearch(state);
-      revealCards(state, [id], sourceId);
-      log(state, `Search R&D — reveal ${state.cards[id].title} and add to HQ.`);
+      revealCards(state, found, sourceId);
+      log(
+        state,
+        `Search R&D for an operation or agenda — add ${found.length} card(s) to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
+      );
       return { ok: true };
     }
 

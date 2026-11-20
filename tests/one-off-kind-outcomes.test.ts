@@ -3569,11 +3569,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     } as GameState["run"];
     runKind(s, "st-1", "fortify_ice", { amount: 5 });
     expect(
-      lingeringIceStrengthOfKind(
-        s,
-        "st-1",
-        LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
-      ),
+      lingeringIceStrengthOfKind(s, "st-1", LINGERING_KIND_ICE_STRENGTH),
     ).toBe(5);
   });
 

@@ -1195,6 +1195,17 @@ describe("the-automata-initiative", () => {
             fx.do({ kind: "search_rd_operation_or_agenda_to_hq" }),
           ),
         );
+        // The Corp picks the card (PF-S2, CR 8.7.1).
+        expect(s.pendingChoice?.options.map((o) => o.id)).toContain(
+          "choose-card:ag-1",
+        );
+        for (const id of ["choose-card:ag-1", "choose-cards-done"]) {
+          const o = s.pendingChoice?.options.find((x) => x.id === id);
+          if (!o) continue;
+          const src = s.pendingChoice!.sourceId;
+          s.pendingChoice = null;
+          mustEval(evalEffect({ state: s, sourceId: src }, o.effect));
+        }
         expect(s.corp.hand).toEqual(["ag-1"]);
         expect(s.corp.deck).toEqual(["ice-1"]);
       });

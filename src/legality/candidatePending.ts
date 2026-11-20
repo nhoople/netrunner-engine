@@ -17,6 +17,7 @@ import {
   printedRezOrPlayCost,
   stealAdditionalCosts,
   stealNetOrMeatPrevented,
+  stealOrTrashBlocked,
 } from "../actions/access.js";
 
 export function collectPendingCandidates(state: GameState): Action[] | null {
@@ -420,7 +421,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
     if (accessKey === "access.stealAgenda") {
       if (card.type === "agenda") {
         let stealLegal = false;
-        if (!state.run.cannotStealOrTrash) {
+        if (!stealOrTrashBlocked(state, id)) {
           // Haarpsichord: cannot steal more than one agenda per turn.
           let haarpsichordBlocks = false;
           const idCard = state.cards[state.corp.identityId];
@@ -540,7 +541,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
     ) {
       if (
         card.trashCost !== undefined &&
-        !state.run.cannotStealOrTrash &&
+        !stealOrTrashBlocked(state, id) &&
         !runnerCannotTrashWhileRezzed(state, id)
       ) {
         const purpose =
@@ -553,7 +554,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       }
       if (
         card.trashCost !== undefined &&
-        !state.run.cannotStealOrTrash &&
+        !stealOrTrashBlocked(state, id) &&
         !runnerCannotTrashWhileRezzed(state, id) &&
         !state.turn.siSalsetteSlumsUsedThisTurn
       ) {
@@ -590,7 +591,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           }
         }
       }
-      if (!state.run.cannotStealOrTrash) {
+      if (!stealOrTrashBlocked(state, id)) {
         for (const rid of state.runner.installed) {
           if (abilitiesSuppressed(state, rid)) continue;
           const c = state.cards[rid];
@@ -609,7 +610,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         }
       }
       if (
-        !state.run.cannotStealOrTrash &&
+        !stealOrTrashBlocked(state, id) &&
         state.run.accessTrashFree &&
         card.side === "corp"
       ) {
@@ -618,7 +619,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           cardId: id,
         });
       }
-      if (!state.run.cannotStealOrTrash) {
+      if (!stealOrTrashBlocked(state, id)) {
         for (const rid of state.runner.installed) {
           if (abilitiesSuppressed(state, rid)) continue;
           const c = state.cards[rid];
@@ -649,7 +650,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         }
       }
       if (
-        !state.run.cannotStealOrTrash &&
+        !stealOrTrashBlocked(state, id) &&
         card.type !== "agenda" &&
         card.side === "corp"
       ) {

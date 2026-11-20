@@ -219,7 +219,8 @@ export function applyDamagePrimitive(
                   kind: "core_damage",
                   amount: damage,
                   interactive: true,
-                  preventByLoseAllClicks: true,
+                  // Cerebral Overwriter prints no prevention (CR 1.2.1): unlike Mr. Hendrik,
+                  // the Runner cannot lose all clicks to prevent this damage.
                 },
               },
             ],

@@ -67,30 +67,101 @@ export function applyMoveKinds(
     }
 
     case "move_advancements": {
-      const sources = Object.values(state.cards).filter(
-        (c) =>
-          (c.advancementCounters ?? 0) > 0 &&
-          (c.zone.endsWith(":root") || c.zone.endsWith(":ice")),
-      );
-      const dests = Object.values(state.cards).filter(
-        (c) =>
-          (c.type === "agenda" ||
-            c.type === "asset" ||
-            c.type === "ice" ||
-            c.canAdvance) &&
-          (c.zone.endsWith(":root") || c.zone.endsWith(":ice")),
-      );
-      if (sources.length === 0 || dests.length < 2) {
-        log(state, `Move advancements — no valid source/dest.`);
+      // Hearts and Minds, Trick of Light: "move N advancement counters from
+      // an installed card to an installed card you can advance". The Corp
+      // chooses the card that gets them (one it can advance), then the
+      // other card they come from, then how many (CR 1.15.2, 1.18.2).
+      const installed = (id: string) => {
+        const zone = state.cards[id]?.zone ?? "";
+        return zone.endsWith(":root") || zone.endsWith(":ice");
+      };
+      const all = Object.values(state.servers).flatMap((sv) => [
+        ...sv.root,
+        ...sv.ice,
+      ]);
+      const sourcesFor = (toId: string) =>
+        all.filter(
+          (id) =>
+            id !== toId && (state.cards[id]?.advancementCounters ?? 0) > 0,
+        );
+      if (!action.toId) {
+        const dests = all.filter((id) => {
+          const c = state.cards[id];
+          return (
+            c &&
+            (c.type === "agenda" || c.canAdvance) &&
+            sourcesFor(id).length > 0
+          );
+        });
+        if (dests.length === 0) {
+          log(state, `Move advancements — no valid source/dest.`);
+          return { ok: true };
+        }
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options: dests.map((id) => ({
+            id: `move-adv-to:${id}`,
+            label: `Move counters to ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: { ...action, toId: id },
+            },
+          })),
+          logLine: `${source.title} — choose the card that gets the counters.`,
+        });
         return { ok: true };
       }
-      const from = sources[0]!;
-      const to = dests.find((c) => c.id !== from.id);
-      if (!to) {
-        log(state, `Move advancements — no destination.`);
+      const toId = action.toId;
+      if (!installed(toId)) {
+        log(state, `Move advancements — destination not installed.`);
         return { ok: true };
       }
-      const move = Math.min(action.amount, from.advancementCounters ?? 0);
+      if (!action.fromId) {
+        const froms = sourcesFor(toId);
+        if (froms.length === 0) {
+          log(state, `Move advancements — no card with counters to move.`);
+          return { ok: true };
+        }
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options: froms.map((id) => ({
+            id: `move-adv-from:${id}`,
+            label: `Move counters from ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: { ...action, fromId: id },
+            },
+          })),
+          logLine: `${source.title} — choose the card the counters come from.`,
+        });
+        return { ok: true };
+      }
+      const from = state.cards[action.fromId];
+      const to = state.cards[toId]!;
+      if (!from || !installed(from.id)) {
+        log(state, `Move advancements — source not installed.`);
+        return { ok: true };
+      }
+      const max = Math.min(action.amount, from.advancementCounters ?? 0);
+      if (action.count === undefined && max > 1) {
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options: Array.from({ length: max }, (_, i) => i + 1).map((n) => ({
+            id: `move-adv-count:${n}`,
+            label: `Move ${n} counter(s)`,
+            effect: {
+              op: "do" as const,
+              action: { ...action, count: n },
+            },
+          })),
+          logLine: `${source.title} — move up to ${max} counter(s).`,
+        });
+        return { ok: true };
+      }
+      const move = Math.min(action.count ?? max, max);
       from.advancementCounters = (from.advancementCounters ?? 0) - move;
       to.advancementCounters = (to.advancementCounters ?? 0) + move;
       log(

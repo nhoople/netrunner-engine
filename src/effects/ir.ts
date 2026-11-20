@@ -781,7 +781,7 @@ export type Primitive =
    */
   | { kind: "search_rd_up_to_one_each_subtype_to_hq"; subtypes: string[] }
   /** Search R&D for the first operation or agenda, add to HQ, shuffle R&D (Pivot). */
-  | { kind: "search_rd_operation_or_agenda_to_hq" }
+  | { kind: "search_rd_operation_or_agenda_to_hq"; cardIds?: string[] }
   /** Look at top N of R&D; may install one paying costs (Epiphany). */
   | {
       kind: "look_top_n_rd_may_install_one";
@@ -883,7 +883,7 @@ export type Primitive =
    * If no Corp cards were added to Archives this turn, score a facedown
    * agenda from Archives (Regenesis).
    */
-  | { kind: "score_facedown_agenda_from_archives_if_clean" }
+  | { kind: "score_facedown_agenda_from_archives_if_clean"; cardId?: string }
   /**
    * Remove up to `amount` advancement counters from the source card.
    * Optional `then` runs only if at least one was removed (Mestnichestvo).
@@ -3852,7 +3852,17 @@ export type Primitive =
       serverId: string;
       placeAdvancementIfRunnerTagged?: boolean;
     }
-  | { kind: "move_advancements"; amount: number }
+  | {
+      kind: "move_advancements";
+      /** At most this many counters move ("up to", Trick of Light). */
+      amount: number;
+      /** Engine-filled as the Corp chooses: the card that gets the counters. */
+      toId?: string;
+      /** Engine-filled: the other card the counters come from. */
+      fromId?: string;
+      /** Engine-filled: how many counters the Corp moves. */
+      count?: number;
+    }
   | { kind: "trash_passed_unrezzed_ice" }
   /** Follow-up: trash the chosen passed unrezzed ice (En Passant). */
   | { kind: "trash_passed_unrezzed_ice_resolve"; cardId: string }
@@ -4021,7 +4031,12 @@ export type Primitive =
    * Add N bonus central accesses to the current run's breach
    * (Virtuoso HQ-mark branch; Jailbreak-style multi-access).
    */
-  | { kind: "bonus_access"; amount: number }
+  | {
+      kind: "bonus_access";
+      amount: number;
+      /** Mercury: its once per turn is used when the bonus is taken. */
+      oncePerTurn?: "mercury";
+    }
   /**
    * After the current run ends, breach the named central server
    * (Virtuoso non-HQ mark branch). Not a run; does not declare success.

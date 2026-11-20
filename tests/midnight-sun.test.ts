@@ -42,7 +42,7 @@ import {
 import {
   addBreakerStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
-  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_ICE_STRENGTH,
   lingeringIceStrengthOfKind,
 } from "../src/state/lingeringEffects.js";
 
@@ -5299,7 +5299,9 @@ describe("midnight-sun", () => {
           fx.accessOneRootOtherServer(),
         );
         expect(r.ok).toBe(true);
-        expect(s.run!.cannotStealOrTrash).toBe(true);
+        // Only an accessed agenda is protected (PF-S2, CR 1.2.1).
+        expect(s.run!.cannotStealOrTrash).toBeUndefined();
+        expect(s.run!.cannotStealOrTrashAgendas).toBe(true);
         expect(s.run!.skipBreach).toBe(false);
         expect(s.run!.accessCandidatesPreset).toBe(true);
         expect(s.run!.randomAccessLimit).toBe(1);
@@ -6491,11 +6493,12 @@ describe("midnight-sun", () => {
 
         s = must(s, { type: "choose_option", optionId: "trash:pad-1" });
         expect(s.corp.discardPile).toContain("pad-1");
+        // For the remainder of the run (PF-S2, CR 9.10.1).
         expect(
           lingeringIceStrengthOfKind(
             s,
             "stavka-1",
-            LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+            LINGERING_KIND_ICE_STRENGTH,
           ),
         ).toBe(5);
         expect(effectiveIceStrength(s, "stavka-1")).toBe(7);
@@ -6688,6 +6691,15 @@ describe("midnight-sun", () => {
           fx.scoreFacedownAgendaFromArchivesIfClean(),
         );
         expect(r.ok).toBe(true);
+        // The Corp chooses the agenda, or declines (PF-S2, CR 1.15.2).
+        const pickIt = s.pendingChoice!.options.find(
+          (o) => o.id === "regenesis:arch-ag",
+        )!;
+        s.pendingChoice = null;
+        expect(
+          evalEffect({ state: s, sourceId: s.corp.identityId }, pickIt.effect)
+            .ok,
+        ).toBe(true);
         expect(s.corp.scoreArea).toContain("arch-ag");
         expect(s.cards["arch-ag"].faceup).toBe(true);
         expect(agendaPointsFor(s, "corp")).toBe(before + 1);
@@ -6847,6 +6859,17 @@ describe("midnight-sun", () => {
           accessingCardId: null,
         };
         beginBreachAccess(s);
+        // A may, up to 2: the Runner chooses (PF-S2, CR 9.6.9).
+        expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+          "twinning-access:1",
+          "twinning-access:2",
+          "decline",
+        ]);
+        const two = s.pendingChoice!.options[1]!;
+        s.pendingChoice = null;
+        expect(evalEffect({ state: s, sourceId: "tw-1" }, two.effect).ok).toBe(
+          true,
+        );
         expect(s.cards["tw-1"].powerCounters).toBe(1);
         expect(s.run!.bonusAccess).toBe(2);
       });

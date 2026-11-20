@@ -3,6 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { catalogCardNames } from "../cardNames.js";
 import {
   iceAtRunnerPosition,
   setRunnerPosition,
@@ -43,6 +44,7 @@ import {
   addBreakerStrengthBoostUntilCheckpoint,
   addAllIceStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
+  addIceStrengthBoostThisRun,
   addIceStrengthBoostThisTurn,
   addLingeringEffect,
   blankAbilitiesUntilCorpTurnEnd,
@@ -213,14 +215,14 @@ export function applyOtherKinds(
     }
 
     case "fortify_ice": {
+      // Stavka: "this ice gets +5 strength for the remainder of the run"
+      // (CR 9.10.1). With no run the duration has already ended and
+      // nothing happens (CR 9.10.4).
       if (!state.run || source.type !== "ice") {
-        return {
-          ok: false,
-          error: "Fortify requires ice during a run.",
-          cites: [CR.iceStrength],
-        };
+        log(state, `${source.title} — no run; no strength bonus.`);
+        return { ok: true };
       }
-      addIceStrengthBoostThisEncounter(state, {
+      addIceStrengthBoostThisRun(state, {
         createdBy: sourceId,
         iceId: sourceId,
         amount: action.amount,
@@ -629,14 +631,47 @@ export function applyOtherKinds(
         );
         return { ok: true };
       }
-      const facedown = state.corp.discardPile.find((id) => {
+      // Regenesis: "you may reveal 1 facedown agenda in Archives and add it
+      // to your score area".
+      // The Corp makes the choice of which one, or none (CR 1.15.2, 9.6.9).
+      // The agenda is revealed to both players first (CR 1.21.3).
+      const facedownIds = state.corp.discardPile.filter((id) => {
         const c = state.cards[id];
         return c?.type === "agenda" && !c.faceup;
       });
-      if (!facedown) {
+      if (facedownIds.length === 0) {
         log(state, `Regenesis — no facedown agenda in Archives.`);
         return { ok: true };
       }
+      if (!action.cardId) {
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options: [
+            ...facedownIds.map((id) => ({
+              id: `regenesis:${id}`,
+              label: `Reveal ${state.cards[id]!.title} and add it to your score area`,
+              effect: fx.do({
+                kind: "score_facedown_agenda_from_archives_if_clean",
+                cardId: id,
+              }),
+            })),
+            {
+              id: "decline",
+              label: "Decline",
+              effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+            },
+          ],
+          logLine: `${source.title} — may reveal a facedown agenda in Archives.`,
+        });
+        return { ok: true };
+      }
+      const facedown = action.cardId;
+      if (!facedownIds.includes(facedown)) {
+        log(state, `Regenesis — that agenda is not facedown in Archives.`);
+        return { ok: true };
+      }
+      revealCards(state, [facedown], sourceId);
       const card = state.cards[facedown];
       state.corp.discardPile = state.corp.discardPile.filter(
         (id) => id !== facedown,
@@ -1779,7 +1814,9 @@ export function applyOtherKinds(
           cands.push(id);
         }
       }
-      state.run.cannotStealOrTrash = true;
+      // "If that card is an agenda, you cannot steal or trash it": only an
+      // agenda is protected; an asset or upgrade can still be trashed.
+      state.run.cannotStealOrTrashAgendas = true;
       state.run.accessCandidates = cands;
       state.run.randomAccessLimit = cands.length > 0 ? 1 : 0;
       state.run.accessCandidatesPreset = true;
@@ -1981,10 +2018,9 @@ export function applyOtherKinds(
         state.cards[id]!.faceup = false;
         state.runner.deck.push(id);
       }
-      if (rest.length > 0) {
-        shuffleRunnerStack(state);
-        log(state, `Shuffle ${rest.length} remaining card(s) into stack.`);
-      }
+      // Loot Box: "The Runner shuffles the stack", whatever is left in it.
+      shuffleRunnerStack(state);
+      log(state, `Shuffle ${rest.length} remaining card(s) into stack.`);
       return { ok: true };
     }
 
@@ -2675,39 +2711,25 @@ export function applyOtherKinds(
     }
 
     case "name_net_damage_loop": {
-      const titles = new Set<string>();
-      for (const id of state.runner.hand) {
-        titles.add(state.cards[id]!.title);
-      }
-      for (const id of state.runner.deck) {
-        titles.add(state.cards[id]!.title);
-      }
-      for (const id of state.runner.discardPile) {
-        titles.add(state.cards[id]!.title);
-      }
-      for (const id of state.runner.installed) {
-        titles.add(state.cards[id]!.title);
-      }
-      const titleList = [...titles].sort();
-      if (titleList.length === 0) {
-        // Still allow naming via empty — no loop possible.
-        log(state, `${source.title} — no known Runner card titles to name.`);
-        return { ok: true };
-      }
+      // Complete Image: "Choose a card name" (CR 1.2.1). Any Runner card name
+      // may be named; the list comes from the catalog, not from the Runner's
+      // grip and stack, which the Corp may not see (CR 10.2.2a, 10.2.2b).
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
-        options: titleList.map((title) => ({
-          id: `ci-name:${title}`,
-          label: `Name ${title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "net_named" as const,
-              title,
+        options: catalogCardNames((def) => def.side === "runner").map(
+          (title) => ({
+            id: `ci-name:${title}`,
+            label: `Name ${title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "net_named" as const,
+                title,
+              },
             },
-          },
-        })),
+          }),
+        ),
         logLine: `${source.title} — choose a card name for net damage loop.`,
       });
       return { ok: true };
@@ -2826,14 +2848,12 @@ export function applyOtherKinds(
         trashedNamed ||
         namedInGrip.some((id) => state.runner.discardPile.includes(id))
       ) {
+        // "Repeat this process": choose a card name again, then 1 net damage.
         log(
           state,
           `${source.title} — trashed ${title}; repeat Complete Image.`,
         );
-        return applyPrimitive(ctx, {
-          kind: "net_named",
-          title,
-        });
+        return applyPrimitive(ctx, { kind: "name_net_damage_loop" });
       }
       log(state, `${source.title} — no ${title} trashed; Complete Image ends.`);
       return { ok: true };
@@ -4071,6 +4091,9 @@ export function applyOtherKinds(
         };
       }
       const n = action.amount;
+      if (action.oncePerTurn === "mercury") {
+        state.turn.mercuryBreachBonusUsedThisTurn = true;
+      }
       if (n <= 0) return { ok: true };
       state.run.bonusAccess = (state.run.bonusAccess ?? 0) + n;
       log(

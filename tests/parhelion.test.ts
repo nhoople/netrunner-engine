@@ -1530,8 +1530,10 @@ describe("parhelion", () => {
           fx.trashCorpCard("pad-1"),
         );
         expect(r.ok).toBe(true);
-        expect(s.turn.hostileArchitectureUsedThisTurn).toBe(true);
-        expect(s.runner.hand.length).toBe(gripBefore - 2);
+        // The Corp trashing its own card is not "the Runner trashes"
+        // (PF-S2, CR 1.14.5a): no damage, and the turn is not used.
+        expect(s.turn.hostileArchitectureUsedThisTurn).toBe(false);
+        expect(s.runner.hand.length).toBe(gripBefore);
       });
     });
 
@@ -1623,7 +1625,8 @@ describe("parhelion", () => {
         s.timingKey = "corp.actionPaw";
         s = must(s, { type: "score_agenda", cardId: "ag-1" });
         expect(s.pendingChoice?.chooser).toBe("corp");
-        s = must(s, { type: "choose_option", optionId: "trash-grip:sg-1" });
+        // The Corp chooses to reveal before seeing the grip (PF-S2).
+        s = must(s, { type: "choose_option", optionId: "reveal-grip" });
         expect(s.runner.discardPile).toContain("sg-1");
       });
     });

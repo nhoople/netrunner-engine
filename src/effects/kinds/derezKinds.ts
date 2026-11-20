@@ -5,7 +5,7 @@
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
-import { addIceStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
+import { addIceStrengthBoostThisRun } from "../../state/lingeringEffects.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { maybeFireKerosMcintyreOnDerez, applyPrimitive } from "../eval.js";
@@ -390,13 +390,17 @@ export function applyDerezKinds(
       other.faceup = false;
       if (state.run) state.run.iceDerezzedThisRun = true;
       fireHostRezStateTriggers(state, action.otherIceId, "derez");
-      if (state.run) {
-        addIceStrengthBoostThisEncounter(state, {
-          createdBy: sourceId,
-          iceId: action.rezzedIceId,
-          amount: action.bonus,
-        });
+      // "+3 strength for the remainder of that run" (CR 9.10.1). Its once
+      // per turn is used only now, when the ability resolves; a declined
+      // offer does not use it (CR 9.3.6g).
+      if (!state.turn.brasiliaAbilityUsedIds.includes(action.brasiliaId)) {
+        state.turn.brasiliaAbilityUsedIds.push(action.brasiliaId);
       }
+      addIceStrengthBoostThisRun(state, {
+        createdBy: sourceId,
+        iceId: action.rezzedIceId,
+        amount: action.bonus,
+      });
       log(
         state,
         `Brasília — derez ${other.title}; ${state.cards[action.rezzedIceId]?.title ?? action.rezzedIceId} gets +${action.bonus} strength this run.`,
