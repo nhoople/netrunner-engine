@@ -91,6 +91,11 @@
       "id": "S3k",
       "cycle": "kitara",
       "cards": 120
+    },
+    {
+      "id": "S3j",
+      "cycle": "red-sand",
+      "cards": 120
     }
   ],
   "cards": {
@@ -222,6 +227,21 @@
       "result": "matches",
       "note": "Unique; the first click loss each turn that is not a paid ability's trigger cost gains a click (lose_clicks and noteRunnerClickLose mark it; bioroid break costs do not). Respects Gene Conditioning Shoppe."
     },
+    "adjusted-matrix": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Host icebreaker gains AI and \"Interface → Lose [click]: Break 1 subroutine.\""
+      ],
+      "note": "host_hardware_on_icebreaker sets the host breaker's breaksSubtype to \"*\", so the host's own printed break ability (Corroder: barrier) breaks any subtype; only the gained Lose [click] ability should. The AI subtype and the gained ability are written onto the host and never removed when Adjusted Matrix leaves play. The install-only-on-an-icebreaker host choice and the Lose [click] cost match. With no icebreaker installed it stays installed unhosted (install only on an icebreaker).",
+      "cr": [
+        "1.2.1",
+        "3.9.5h",
+        "9.4.1",
+        "9.1.9",
+        "9.3.3b"
+      ]
+    },
     "adonis-campaign": {
       "cycle": "core-set",
       "result": "wrong",
@@ -257,6 +277,11 @@
       "cycle": "mumbad",
       "result": "matches",
       "note": "The first run each turn, the Corp may draw 1 or gain 1 (or decline)."
+    },
+    "aeneas-informant": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "On access complete, a card with a trash cost not in Archives (so not trashed) offers the Runner reveal and gain 1 credit, optional."
     },
     "aesops-pawnshop": {
       "cycle": "core-set",
@@ -322,6 +347,19 @@
       "cr": [
         "1.2.1",
         "8.8.4b"
+      ]
+    },
+    "aginfusion-new-miracles-for-a-new-world": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Once per turn → Trash the unrezzed piece of ice the Runner is approaching: Choose a server other than the attacked server..."
+      ],
+      "note": "The trash of the approached unrezzed ice is its cost, but the ability costs 0 credits and checks for that ice inside the effect, so the Corp can use it (and spend the once-per-turn) with no unrezzed ice approached, including outside a run (corp_action_paw window). The redirect to another server's outermost position and its encounter match. The ice is trashed as part of the effect, so the trash can be prevented, which a paid cost cannot be (CR 1.16.1a).",
+      "cr": [
+        "1.2.1",
+        "9.5.6b",
+        "1.16.1"
       ]
     },
     "aiki": {
@@ -414,6 +452,19 @@
         "1.2.1",
         "3.9.5b",
         "9.3.7b"
+      ]
+    },
+    "alice-merchant-clan-agitator": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The first time you make a successful run on Archives each turn, the Corp must trash 1 card from HQ."
+      ],
+      "note": "Modelled as successful_run with onSuccessfulRunOncePerTurn and an attacking_archives check inside the effect. The once-per-turn mark is recorded when the trigger becomes pending (src/timing/graph.ts), so a successful run on HQ or R&D first uses up the turn and a later Archives run trashes nothing. Needs a first-successful-Archives-run trigger (as first_successful_hq_run). The Corp choosing the HQ card (pick: choose) matches.",
+      "cr": [
+        "1.2.1",
+        "9.6.5c",
+        "9.3.7c"
       ]
     },
     "alix-t4lb07": {
@@ -655,6 +706,11 @@
       ],
       "note": "Area 6 (Runner install / facedown cards). Fix-now: the kind only sets faceup=false, and facedown installed Runner cards keep their abilities: a probe left a facedown Security Nexus giving 1 link (recomputeRunnerLink and abilitiesSuppressed ignore faceup), CR 8.1.4a, 1.8.4a. Trash all installed Corp cards matches."
     },
+    "ar-enhanced-security": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "First Corp card trash each turn, met only when the Runner trashes (trashHooks); the agenda in the score area is a source; gives 1 tag."
+    },
     "archangel": {
       "cycle": "data-and-destiny",
       "result": "filed",
@@ -868,6 +924,11 @@
       "result": "matches",
       "note": "Gain 1 whenever you jack out."
     },
+    "audacity": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Play needs 2 other cards in HQ (play and candidate checks); trashes all of HQ; the Corp places 2 advancements total on cards it can advance, on one card or split."
+    },
     "audrey-v2": {
       "cycle": "liberation",
       "result": "fixed",
@@ -882,10 +943,20 @@
       "fixedIn": "engine#953",
       "test": "every icebreaker's pump that the card data flags as interface is allowed below the ice's strength, and its breaks are not (CR 3.9.5b, 3.9.5g)"
     },
+    "aumakua": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "+1 strength per hosted virus counter (effectiveBreakerStrength); 1 virus counter on any expose (completeExpose) and when a breach ends with no steal or trash; Interface 1 credit: break 1 subroutine of any subtype; no pump, as printed."
+    },
     "aurora": {
       "cycle": "core-set",
       "result": "matches",
       "note": "Interface 2: break 1 barrier subroutine; 2: +3 strength. The pump's interface flag is in paired cut A's list."
+    },
+    "authenticator": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Encounter: the Runner may take 1 tag to bypass (decline offered); subroutines gain the Corp 2 credits and end the run."
     },
     "autoscripter": {
       "cycle": "lunar",
@@ -1021,6 +1092,14 @@
       "result": "matches",
       "note": "Trash 1 installed program or end the run (Corp chooses)."
     },
+    "bamboo-dome": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "[click]: Reveal the top 3 cards of R&D. Secretly choose 1 to add to HQ."
+      ],
+      "note": "Area 4 (visibility): choose_hq logs \"Bamboo Dome — add <title> to HQ.\" to the shared log, so the Runner learns which revealed card the Corp secretly chose (CR 1.21, 8.3.3, 10.2.2a); bamboo_dome_order_rest also logs the order of the cards returned to R&D. The R&D-root install limit, the reveal of the top 3, the add to HQ and returning the rest in the Corp's order match."
+    },
     "bandwidth": {
       "cycle": "sansan",
       "result": "wrong",
@@ -1088,6 +1167,11 @@
       "result": "matches",
       "note": "Interface 2: break up to 2 barrier subroutines; 1: +1 strength for the rest of the run."
     },
+    "battlement": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Two end-the-run subroutines."
+    },
     "bazaar": {
       "cycle": "mumbad",
       "result": "wrong",
@@ -1144,10 +1228,23 @@
       "result": "matches",
       "note": "Steal costs 5 more credits; on score gain 5."
     },
+    "ben-musashi": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Persistent → As an additional cost to steal an agenda from this server or its root, the Runner must suffer 2 net damage."
+      ],
+      "note": "Area 10 (persistent flag readers): stealAdditionalCosts reads the cost while Ben Musashi is unrezzed (\"!rezzed && !persistent\" lets every persistent card through), and only from cards still in the root, so the cost stops once the Runner trashes it during the access. Same shape as Daniela Jorge Inácio. The 2 net damage steal cost on this server matches."
+    },
     "bernice-mai": {
       "cycle": "genesis",
       "result": "matches",
       "note": "Unique; successful run on this server: Trace 5, give 1 tag if successful, trash itself if unsuccessful."
+    },
+    "berserker": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "On a barrier encounter, +1 strength per subroutine on it for that encounter; Interface 2 credits: break up to 2 barrier subroutines; no pump, as printed."
     },
     "best-defense": {
       "cycle": "flashpoint",
@@ -1177,6 +1274,18 @@
       "cycle": "mumbad",
       "result": "matches",
       "note": "Unique; the first successful HQ run each turn trashes the top card of R&D."
+    },
+    "biased-reporting": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The Runner may trash any of their installed cards of the chosen type and gain 1 credit for each card trashed this way."
+      ],
+      "note": "runner_trash_continue trashes the Runner's chosen cards with by: the source's controller (the Corp), but the Runner trashes them, so trash triggers that care who trashed see a Corp trash. The type choice by the Corp, the Runner's optional trashes with 1 credit each, and 2 credits per remaining card match. The 1-credit and 2-credit gains are written straight to the credit pools, not through the gain procedure.",
+      "cr": [
+        "1.2.1",
+        "1.14.5"
+      ]
     },
     "biawak": {
       "cycle": "elevation",
@@ -1216,6 +1325,11 @@
       "result": "matches",
       "note": "At Corp turn begin, 1 net damage if no ice protects its server."
     },
+    "bio-modeled-network": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Interrupt, trash itself: only against pending net damage, sets it to 1."
+    },
     "bio-vault": {
       "cycle": "kitara",
       "result": "matches",
@@ -1228,6 +1342,18 @@
         "Rez a piece of bioroid ice, ignoring all costs, and install Bioroid Efficiency Research on that ice as a hosted condition counter."
       ],
       "note": "Area 7 (rez and derez): host_on_ice sets rezzed inline with no rez hooks; trash_self_and_derez_host derezzes inline. The host as a condition counter and the trash and derez when the host is fully broken in one encounter match."
+    },
+    "bioroid-work-crew": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "[trash]: Install 1 card from HQ."
+      ],
+      "note": "The printed install is mandatory, but the IR uses may_install_from_hq_paying_costs, which offers Decline. Area 5 (Corp install): that kind installs through install_hq_card_paying_costs, which always makes a new remote (ice included), as S2a found for Active Policing. The trash cost and the after-an-operation paid window (bioroidWorkCrewRequireAfterOperationPaidWindow) match.",
+      "cr": [
+        "1.2.1",
+        "1.16.4b"
+      ]
     },
     "biotic-labor": {
       "cycle": "core-set",
@@ -1296,10 +1422,24 @@
       ],
       "note": "Area 13 (shuffle): shuffle_grip_card_into_stack inserts the card at a random position and keeps the rest of the stack in order instead of shuffling (4.2.3). Area 4: the log line 'Shuffle <title> into stack' names the grip card to the Corp (the engine log goes to both seats). Draw 3 matches."
     },
+    "bloo-moose": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; turn begins: optional (Decline offered), remove 1 heap card from the game and gain 2 credits only if one was removed."
+    },
     "blood-in-the-water": {
       "cycle": "borealis",
       "result": "matches",
       "note": "Advancement requirement X = cards in the Runner's grip."
+    },
+    "bloom": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Subroutine You may install 1 piece of ice from HQ protecting another server, ignoring all costs.",
+        "Subroutine You may install 1 piece of ice from HQ directly inward from this ice, ignoring all costs."
+      ],
+      "note": "Area 5 (Corp install): both subroutines install inline (install_hq_ice_protecting_server_ignore_costs, install_ice_inward): no install procedure, no when-installed triggers, and the other-server option skips the ice install cap. Area 4 (visibility): both log lines name the facedown ice to the shared log. The optional install, other server, outermost / directly inward position, and ignoring costs match."
     },
     "bloop": {
       "cycle": "borealis",
@@ -1461,6 +1601,18 @@
         "9.3.7b"
       ]
     },
+    "breached-dome": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "While the Runner is accessing this asset in R&D, they must reveal it."
+      ],
+      "note": "The reveal checks attackedServerId === \"rd\" instead of where the accessed card is, so an R&D access during a run on another server is not revealed. Area 4 (visibility, reveals): the reveal is only a log line (src/actions/apply.ts), not revealCards, so there is no reveal record or event. The on-access 1 meat damage and trash of the top of the stack match.",
+      "cr": [
+        "1.2.1",
+        "1.21.7"
+      ]
+    },
     "breaker-bay-grid": {
       "cycle": "sansan",
       "result": "matches",
@@ -1510,6 +1662,25 @@
         "1.2.1",
         "9.1.8c"
       ]
+    },
+    "bug-out-bag": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "When you install this resource, place X power counters on it.",
+        "When your turn ends, if you have no cards in your grip, draw 1 card for each hosted power counter, then trash this resource."
+      ],
+      "note": "X is charged twice: installCostX charges X as the install cost, then the install trigger choose_x_and_load_power asks for X again and charges it again to place the counters (probe: install for X=2 with 10 credits leaves 8 and opens a second pay-X choice, with no counters yet). The power counters should equal the X paid to install. The turn-end draw draws inline with deck.shift, not through the draw procedure (draw triggers do not fire). The empty-grip check and trash after drawing match.",
+      "cr": [
+        "1.2.1",
+        "8.5.11b",
+        "8.4.5"
+      ]
+    },
+    "build-script": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Gain 1 credit and draw 2 cards."
     },
     "builder": {
       "cycle": "order-and-chaos",
@@ -1605,6 +1776,11 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "Trace 3: Corp gains 3. Trace 2: end the run."
+    },
+    "caldera": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Interrupt, 3 credits: prevent 1 pending net or core damage; repeatable."
     },
     "calibration-testing": {
       "cycle": "kitara",
@@ -1783,6 +1959,19 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "2 recurring credits, spendable during runs on central servers."
+    },
+    "cfc-excavation-contract": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "When you score CFC Excavation Contract, gain 2 credits for each rezzed bioroid."
+      ],
+      "note": "The tally rezzed_ice_subtype counts only rezzed ice with the bioroid subtype; rezzed bioroid assets and upgrades (Bioroid Work Crew and others) are left out. 2 credits each and the score trigger match. 14 assets and upgrades in the cards data are bioroids.",
+      "cr": [
+        "1.2.1",
+        "2.16.1",
+        "2.16.2"
+      ]
     },
     "chain-reaction": {
       "cycle": "vantage-point",
@@ -1971,6 +2160,14 @@
       ],
       "note": "Area 12 (counters and advancement): place_advancements keeps only advanceable cards, but any installed card qualifies, as Akhet, Stoke the Embers and Cohort Guidance Program (already filed). The psi game and End the run match."
     },
+    "clan-vengeance": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "[trash]: Trash 1 card from HQ at random for each power counter on Clan Vengeance."
+      ],
+      "note": "Area 12 (counters): paying the [trash] cost clears the power counters before trash_random_hq_per_power_on_self reads them, so it trashes nothing (probe: 2 counters, 3 cards in HQ, HQ keeps 3). CR 9.5.5: the set-aside counters are counted. 1 power counter whenever the Runner suffers damage matches."
+    },
     "clean-getaway": {
       "cycle": "elevation",
       "result": "matches",
@@ -2035,6 +2232,11 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "Unique; when an encounter ends in the turn it was rezzed, the Runner takes 2 tags, suffers 3 net, or lets the Corp trash 1 installed card; three subroutines match."
+    },
+    "clyde-van-rite": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; Corp turn begins: the Runner pays 1 credit (only offered when able) or trashes the top card of the stack."
     },
     "coalescence": {
       "cycle": "liberation",
@@ -2221,6 +2423,11 @@
       "result": "matches",
       "note": "Can be advanced; with 2 or more advancement tokens, click and trash: trash a connection (Corp chooses) or 2 meat damage."
     },
+    "conundrum": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "+3 strength while the Runner has an installed AI; subroutines: the Runner chooses and trashes an installed program, loses 1 click if able, end the run."
+    },
     "cookbook": {
       "cycle": "system-gateway",
       "result": "fixed",
@@ -2243,6 +2450,14 @@
         "Once per turn → When you make a successful run on a central server, you may remove 1 hosted virus counter to swap 1 piece of ice protecting that server with another installed piece of ice."
       ],
       "note": "Area 3 (swap): swap_protecting_attacked_ice_with writes both ice arrays directly, outside the swap helpers (no legality check, no hosted-card trash, no swap checkpoint). The counters and the optional use match."
+    },
+    "corporate-defector": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Whenever the Corp draws a card with the basic action, reveal that card."
+      ],
+      "note": "Area 4 (visibility, reveals): the reveal of each card the Corp draws with the basic action is only a log line; it does not go through revealCards, so there is no reveal record in the seats' view and no reveal event (as Hyoubu Institute's Runner-card reveals, filed area 4). The trigger on basic-action draws only matches."
     },
     "corporate-grant": {
       "cycle": "kitara",
@@ -2337,6 +2552,23 @@
       "cycle": "mumbad",
       "result": "matches",
       "note": "When the Corp rezzes an asset or upgrade, the Runner may pay its rez cost and trash Councilman to derez it; it cannot be rezzed again this turn."
+    },
+    "counter-surveillance": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "If successful, instead of breaching the attacked server, pay X credits if able... choose a number less than or equal to X. Access that many cards in and/or in the root of the attacked server."
+      ],
+      "note": "access_n replaces \"access that many cards\" with a normal breach plus bonusAccess: on Archives it adds the number to a breach that already accesses every card, a remote breach accesses every root card, and central root upgrades are accessed on top of the number, so the Runner can access more than the number paid for. The click+trash cost, the run on any server, the pay-X-equal-to-tags (no access when unable) and the choice of a number up to X match.",
+      "cr": [
+        "1.2.1",
+        "7.1.10"
+      ]
+    },
+    "cpc-generator": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "The first time each turn the Runner takes the basic gain-1-credit action, the rezzed asset gains the Corp 1 credit (once per turn flag)."
     },
     "crash-space": {
       "cycle": "core-set",
@@ -2449,6 +2681,14 @@
       ],
       "note": "Area 16 (deck rules): neither the engine's deckbuildingReport nor the game's deck check applies the rule, so a deck with Jinteki cards is accepted. Same class as Ampere and Nova (recorded as matches in S2b), listed here because area 16 writes the deck rules. Minimum deck 45, influence 22 match."
     },
+    "customized-secretary": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "click: Install a hosted program, paying all install costs."
+      ],
+      "note": "Area 6 (Runner install): install_hosted_program installs inline: raw printed install cost with no cost modifiers, and it refuses when memory is short instead of letting the Runner trash programs to make room (CR 8.5.6c). The reveal of the top 5, optional hosting of any number of revealed programs, the shuffle and the click cost match."
+    },
     "cyber-cypher": {
       "cycle": "creation-and-control",
       "result": "fixed",
@@ -2551,6 +2791,20 @@
       "result": "matches",
       "note": "3 power counters on install; counter: break 1 subroutine on ice of strength 5 or more."
     },
+    "dadiana-chacon": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you have 0 credits, trash Dadiana Chacon and take 3 meat damage."
+      ],
+      "note": "The 0-credit check (maybeFireDadianaChaconZeroCredits) runs only inside the lose_credits kind, so spending credits to 0 (installs, breaks, events, any cost paid through subtractRunnerCreditPool) or installing it at 0 credits never trashes it or deals the 3 meat damage. It also resolves inline at once rather than as a conditional ability. Unique and the turn-begins gain of 1 credit below 6 credits match.",
+      "cr": [
+        "1.2.1",
+        "9.6.7",
+        "9.6.7b",
+        "9.6.2"
+      ]
+    },
     "daeg-first-net-cat": {
       "cycle": "borealis",
       "result": "matches",
@@ -2608,6 +2862,11 @@
         "1.2.1"
       ]
     },
+    "daredevil": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "+2 MU; the first run each turn initiated on a server with 2 or more ice draws 2 (a run on a lighter server does not use it up); console limit."
+    },
     "darwin": {
       "cycle": "genesis",
       "result": "matches",
@@ -2637,6 +2896,11 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "Install only after a successful central run this turn; while tagged, click: the Corp trashes the top card of R&D."
+    },
+    "data-loop": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Encounter: the Runner chooses 2 grip cards (fewer if the grip is smaller) to add to the top of the stack; subroutines end the run if tagged, end the run."
     },
     "data-mine": {
       "cycle": "core-set",
@@ -2723,6 +2987,21 @@
         "7.3.4b"
       ]
     },
+    "dedicated-processor": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Install Dedicated Processor on a non-AI icebreaker. Host icebreaker gains \"2 credits: +4 strength.\""
+      ],
+      "note": "The gained \"2 credits: +4 strength\" is pushed onto the host's paid abilities by host_hardware_on_icebreaker and never removed, so the icebreaker keeps it after Dedicated Processor is trashed or leaves. With no non-AI icebreaker it stays installed unhosted (install only on a non-AI icebreaker). The non-AI host choice and the pump amounts match.",
+      "cr": [
+        "1.2.1",
+        "9.4.1",
+        "9.1.9",
+        "9.3.3b",
+        "10.3.1e"
+      ]
+    },
     "dedicated-response-team": {
       "cycle": "genesis",
       "result": "matches",
@@ -2775,6 +3054,14 @@
       "cycle": "sansan",
       "result": "matches",
       "note": "Current (trashed by another current or a stolen agenda); the first core damage each turn is increased by 1."
+    },
+    "defense-construct": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "[trash]: Add 1 facedown card from Archives to HQ for each advancement token on Defense Construct."
+      ],
+      "note": "Area 12 (counters): add_facedown_archives_to_hq_per_advancement reads source.advancementCounters after the [trash] cost is paid, and uninstallCard clears counters (armTrashSetAsideAdvancements arms the set-aside for one other kind only), so it adds nothing; same path as Clan Vengeance's probe. CR 9.5.5. Can be advanced, the Archives-run-only window and the facedown-card picks match."
     },
     "degree-mill": {
       "cycle": "kitara",
@@ -2843,6 +3130,14 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "Successful run: if MU is full may flip and gain 1; flipped (Shadow Guide): if at least 1 unused MU may flip and draw 1. The back face text was checked against the NRDB catalog."
+    },
+    "dianas-hunt": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Whenever you encounter a piece of ice during that run, you may install 1 program from your grip, ignoring all costs."
+      ],
+      "note": "Area 6 (Runner install): install_diana_program_resolve writes the program into the rig inline: no memory check, no install triggers or install procedure. Diana's Hunt is already in area 6's card list. The run on any server, the optional install on each encounter (Decline offered), ignoring costs and trashing those programs when the run ends match."
     },
     "diesel": {
       "cycle": "core-set",
@@ -3111,6 +3406,11 @@
       "cycle": "lunar",
       "result": "matches",
       "note": "Unique; [click][click][click][click]: draw 10."
+    },
+    "dummy-box": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Interrupt on a Corp trash of an installed card: the Runner trashes a grip card of the same type as the cost; prevents that trash."
     },
     "dyson-fractal-generator": {
       "cycle": "spin",
@@ -3522,6 +3822,11 @@
       "result": "matches",
       "note": "Must be revealed when accessed in R&D; on access the Runner loses 1 credit, and takes 1 net damage if tagged."
     },
+    "escalate-vitriol": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Once per turn, [click]: the Corp gains 1 credit per Runner tag."
+    },
     "escher": {
       "cycle": "creation-and-control",
       "result": "wrong",
@@ -3635,6 +3940,11 @@
       "cycle": "sansan",
       "result": "matches",
       "note": "Revealed while accessed in R&D; on access the Corp may gain 5."
+    },
+    "exploit": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Play needs successful HQ, R&D and Archives runs this turn; derez up to 3 rezzed ice one at a time through derez_card, stop any time."
     },
     "exploratory-romp": {
       "cycle": "creation-and-control",
@@ -3910,6 +4220,14 @@
       "result": "matches",
       "note": "Trace 6: the Corp trashes 1 hardware, 2 meat damage that cannot be prevented, end the run."
     },
+    "flashbang": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Interface → 6 credits: Derez the sentry you are encountering."
+      ],
+      "note": "Area 7 (derez): derez_encountered_ice sets rezzed = false inline, not through the derez procedure (no derez triggers). The 6-credit cost, sentry-only use during an encounter, strength 0 and the 1 credit: +1 strength pump (built from the breaker fields since FX-pump) match. The interface flag sits on the breaker declaration, not the derez ability; paired cut A moves it (S1 results). The derez also leaves the ice faceup (derez_card clears faceup), so it stays out of the hidden-card set."
+    },
     "flip-switch": {
       "cycle": "ashes",
       "result": "wrong",
@@ -4004,6 +4322,11 @@
       "result": "matches",
       "note": "Trace 7: the Corp trashes 1 virtual resource or 1 card with the link subtype."
     },
+    "fractal-threat-matrix": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Rezzed in the attacked server's root: when the encounter with a protecting ice ends with every subroutine broken, the Corp trashes the top 2 cards of the stack."
+    },
     "frame-job": {
       "cycle": "spin",
       "result": "wrong",
@@ -4043,6 +4366,11 @@
         "Look at the top 10 cards of your stack. If any of those cards are programs, you may install one of them, lowering the install cost by 5. Trash the rest of those cards."
       ],
       "note": "Area 6 (Runner install): install_resolve pushes the program into installed directly: no install procedure, MU check (8.5.6c), install modifiers or install triggers. The look at 10 and the trash of the rest match."
+    },
+    "free-lunch": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Hosted power counter: the Runner loses 1 credit (paid ability on the rezzed ice); both subroutines place 1 power counter on it."
     },
     "freedom-khumalo-crypto-anarchist": {
       "cycle": "kitara",
@@ -4341,6 +4669,11 @@
       "cycle": "kitara",
       "result": "matches",
       "note": "Run Archives; instead of breaching, the Corp adds exactly 5 Archives cards of its choice to HQ if able, then trashes 5 from HQ at random."
+    },
+    "god-of-war": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Turn begins: may take 1 tag to place 2 virus counters (Decline offered); hosted virus counter: break 1 subroutine of any subtype; 2 credits: +1 strength (built from the breaker fields); strength 0."
     },
     "gold-farmer": {
       "cycle": "ashes",
@@ -4762,6 +5095,11 @@
         "1.11.3b"
       ]
     },
+    "helheim-servers": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; trash 1 card from HQ (cost), only during a run on this server: ice protecting this server +2 strength until the run ends, stacking."
+    },
     "heliamphora": {
       "cycle": "liberation",
       "result": "matches",
@@ -4794,6 +5132,11 @@
       "cycle": "spin",
       "result": "matches",
       "note": "Virus counter on each successful run; click, 2 virus counters: the Corp trashes 1 card it chooses from HQ."
+    },
+    "henry-phillips": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; each subroutine the Runner breaks during a run on this server, while tagged, gains the rezzed upgrade's Corp 2 credits."
     },
     "herald": {
       "cycle": "flashpoint",
@@ -5318,6 +5661,20 @@
       "result": "matches",
       "note": "Additional cost of a click; Trace 2: reveal the grip and trash up to X resources or events (X = trace excess); if unsuccessful the Corp takes 1 bad publicity."
     },
+    "inversificator": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The first time each turn you pass a piece of ice after an encounter during which this program fully broke that ice, you may swap it with another installed piece of ice."
+      ],
+      "note": "The swap trigger reads encounter.fullyBrokenByRunner, which any break sets, so it fires when another breaker (or several breakers together) fully broke the ice; CR 6.5.7b needs all subroutines broken by Inversificator's own abilities. The once-per-turn use, the optional swap with another installed ice, 1 credit: break 1 code gate subroutine, 1 credit: +1 strength (built from the breaker fields) and strength 2 match. Ice with no subroutines also sets fullyBrokenByRunner (noteVacuousFullBreak), though no object fully breaks it (6.5.7c).",
+      "cr": [
+        "1.2.1",
+        "6.5.7b",
+        "6.5.7c",
+        "9.6.5c"
+      ]
+    },
     "investigative-journalism": {
       "cycle": "order-and-chaos",
       "result": "matches",
@@ -5465,6 +5822,19 @@
       "result": "matches",
       "note": "Four 1 core damage subroutines; lose click: break 1 subroutine (bioroid break; the subroutines are the same)."
     },
+    "jarogniew-mercs": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The Corp cannot trash this resource while there is another resource installed."
+      ],
+      "note": "corpCannotTrashWhileOtherResourceInstalled is read only by the Corp's basic trash-a-resource action (apply.ts); Corp card abilities that trash a resource (Freelancer, trash-a-resource subroutines) can trash it while another resource is installed. Unique, take 1 tag and load tags + 3 power counters on install, trash when empty, and the meat-damage prevention interrupt for 1 hosted counter match. X reads state.runner.tags, not the tags the Runner is considered to have (MCA Informant), so it can load too few counters.",
+      "cr": [
+        "1.2.1",
+        "1.2.2",
+        "1.9.4"
+      ]
+    },
     "jeeves-model-bioroids": {
       "cycle": "mumbad",
       "result": "wrong",
@@ -5481,6 +5851,19 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "Unique; at Runner turn end after successful HQ, R&D and Archives runs may become a 0-point assassination agenda, winning at 3; Threat 3: on bypass may spend [click] to install it from the heap."
+    },
+    "jemison-astronautics-sacrifice-audacity-success": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you forfeit an agenda, place X advancement counters on 1 installed card."
+      ],
+      "note": "The trigger is read only in forfeitSpecificAgenda (forfeit as a cost); forfeits through the forfeit_self kind (Posted Bounty) and forfeit_scored_agenda do not place counters. place_advancements_on_forfeit offers only cards that can be advanced (mayAdvanceInstalledCard), but the text places on any installed card (the same gap paired cut A covers for place_advancements). X = agenda points + 1 matches. It also misses forfeitAgendaAsCost (the forfeit-this-agenda paid-ability cost) and the rez-by-effect forfeit in rezKinds.",
+      "cr": [
+        "1.2.1",
+        "1.18.2",
+        "8.2.5"
+      ]
     },
     "jesminder-sareen-girl-behind-the-curtain": {
       "cycle": "mumbad",
@@ -5587,6 +5970,11 @@
       ],
       "note": "Area 6 (Runner install, a listed example): install_kabonesa_resolve installs inline (no memory limit, no install triggers). Removal from the game at turn end and 1 link match."
     },
+    "kakugo": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "When the Runner passes it, 1 net damage; subroutine ends the run."
+    },
     "kakurenbo": {
       "cycle": "ashes",
       "result": "filed",
@@ -5661,6 +6049,14 @@
       "result": "matches",
       "note": "First run event played each turn: gain 1 (src/actions/play.ts)."
     },
+    "keros-mcintyre": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "The first time you derez a piece of ice each turn, gain 2 credits."
+      ],
+      "note": "Area 7 (derez): the gain is fired only from the derez_card kind, so other Runner derez paths (Flashbang's derez_encountered_ice, the other derez kinds) never pay it, and a Corp derez through derez_card does (the text says you derez). It also resolves inline, not as a conditional ability. Unique and 2 credits once per turn match."
+    },
     "kessleroid": {
       "cycle": "elevation",
       "result": "matches",
@@ -5684,6 +6080,19 @@
       "cycle": "flashpoint",
       "result": "matches",
       "note": "First pass of a piece of ice each turn: may install an icebreaker from the grip for 1 less."
+    },
+    "khondi-plaza": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "X recurring credits. Use these credits to rez ice protecting this server."
+      ],
+      "note": "recurringSpendFor is [\"rez_ice_protecting_this_server\"], a purpose no reader checks (the rez readers look for rez_ice, rez and rez_host_server), so its recurring credits can never be spent. X = number of remote servers is set on rez and refreshed (refresh_khondi_plaza_recurring). Unique matches.",
+      "cr": [
+        "1.2.1",
+        "1.10.4b",
+        "1.10.5a"
+      ]
     },
     "khusyuk": {
       "cycle": "ashes",
@@ -5954,6 +6363,28 @@
       "result": "matches",
       "note": "Additional cost of a click; remove up to 2 tags and draw 3."
     },
+    "lean-and-mean": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "If you have 3 or fewer programs installed, all icebreakers have +2 strength during this run."
+      ],
+      "note": "The +2 is added at run start as a run-long boost on each icebreaker installed at that moment, so an icebreaker installed during the run (Diana's Hunt, Hyperdriver-style installs) does not get it; the text gives all icebreakers +2 for the run. The run on any server and the 3-or-fewer-programs check match. cr-checker: no CR rule fixes the set a lingering effect covers at creation; \"all icebreakers\" chooses no targets (1.15.1), and 9.12.1d treats what a lingering effect applies to as changing with the game state.",
+      "cr": [
+        "1.2.1",
+        "9.10.1",
+        "9.12.1d",
+        "1.15.1"
+      ]
+    },
+    "leave-no-trace": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "When the run ends, derez all ice that was rezzed during this run."
+      ],
+      "note": "Area 7 (derez): derez_all_ice_rezzed_this_run sets rezzed = false inline, not through the derez procedure (no derez triggers, Keros Mcintyre). The run on any server and derezzing only ice rezzed during this run, when it ends, match. The derez also leaves the ice faceup (derez_card clears faceup), so it stays out of the hidden-card set."
+    },
     "leech": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -6146,6 +6577,11 @@
         "1.2.1"
       ]
     },
+    "load-testing": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "The Runner has 1 fewer allotted click on their next turn (as Hypoxia)."
+    },
     "lobisomem": {
       "cycle": "liberation",
       "result": "wrong",
@@ -6199,6 +6635,18 @@
       ],
       "note": "Area 13 (search): search_stack_take_to_grip offers only the first 20 stack cards, no Decline and no shuffle afterwards. +1 MU, +1 hand size and the console limit match."
     },
+    "loki": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "For the remainder of this run, this ice gains the subtypes of the chosen ice and gains the subroutines of that ice in order before its other subroutines."
+      ],
+      "note": "gain_from_ice rewrites Loki's subtypes and subroutines on the card and nothing restores them when the run ends (baseSubtypes is written only here and never read back), so the copied subtypes and subroutines stay on Loki in later runs. The Corp's choice of another rezzed ice, gained subroutines in order before its own, and the end-the-run-unless-shuffle-grip subroutine match (the shuffle is an inline random() loop, area 13).",
+      "cr": [
+        "1.2.1",
+        "9.10.1"
+      ]
+    },
     "london-library": {
       "cycle": "sansan",
       "result": "filed",
@@ -6224,6 +6672,11 @@
         "1.21.1a",
         "1.2.1"
       ]
+    },
+    "los-data-hijacker": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "The first ice the Corp rezzes each turn (rez procedure) gains the Runner 2 credits."
     },
     "lotus-field": {
       "cycle": "lunar",
@@ -6281,6 +6734,11 @@
       "cycle": "flashpoint",
       "result": "matches",
       "note": "Trace 4: purge; trace 3: trash 1 installed virus; trace 2: remove a heap virus from the game; trace 1: end the run."
+    },
+    "mad-dash": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Run any server; when the run ends, if an agenda was stolen this run it joins the Runner's score area as a 1-point agenda, otherwise 1 meat damage (run_end trigger on the run event)."
     },
     "madani": {
       "cycle": "elevation",
@@ -6422,6 +6880,11 @@
         "9.5.2f"
       ]
     },
+    "mandatory-seed-replacement": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "On score, the Corp rearranges any number of ice across all servers through rearrange_ice (area 2's shared kind); each server keeps its number of ice."
+    },
     "mandatory-upgrades": {
       "cycle": "genesis",
       "result": "matches",
@@ -6522,10 +6985,43 @@
       "result": "matches",
       "note": "Unique console, +1 MU, +3 hand size; 1 core damage on install; sabotage 1 whenever the Corp scores."
     },
+    "mars-for-martians": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Gain 1 credit for each tag you have."
+      ],
+      "note": "The credit gain is gain_credits with side corp and a runner_tags tally whose side is corp, so the Corp gains 1 credit per Runner tag and the Runner gains nothing (creditPrimitives: the tally's side is the gainer). Fix-now candidate: a supported card plays wrong every time it is played with a tag. The first-click restriction and the draw per installed clan resource match.",
+      "cr": [
+        "1.2.1",
+        "1.14.4",
+        "1.14.5"
+      ]
+    },
     "maskirovka": {
       "cycle": "borealis",
       "result": "matches",
       "note": "Gain 2; ETR."
+    },
+    "mass-commercialization": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Gains 2 credits per installed Corp card (root or ice) with at least 1 advancement token."
+    },
+    "mass-driver": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Whenever this program fully breaks a piece of ice, the first 3 subroutines of the next encounter this run do not resolve."
+      ],
+      "note": "The skip is set from encounter.fullyBrokenByRunner, which any break sets, so it applies when other breakers fully broke the ice (CR 6.5.7b needs Mass-Driver's own abilities to break all of them). The skip is stored on the turn (turn.massDriverSkipSubsNextEncounter) and only cleared when used, so if the run ends before another encounter it carries to the next run's first encounter this turn; the text limits it to this run. It is also set only when the ice is passed. 2 credits: break 1 code gate subroutine, 1 credit: +1 strength (built from the breaker fields) and strength 1 match. The skip marks the first 3 subroutines broken instead of not resolving them, so on ice with 3 or fewer subroutines the encounter counts as a full break by the Runner and fires fully-broken effects again; ice with no subroutines sets it off too (6.5.7c).",
+      "cr": [
+        "1.2.1",
+        "6.5.7a",
+        "6.5.7b",
+        "6.5.7c",
+        "9.10.1"
+      ]
     },
     "mass-install": {
       "cycle": "honor-and-profit",
@@ -6563,10 +7059,20 @@
       "result": "matches",
       "note": "Limit 6; turn hosted copies faceup at turn begin; [click]: host a copy from the grip faceup; X credits and turn 1 hosted copy facedown: break X subroutines; 1 credit +1 strength."
     },
+    "maui": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "+2 MU; X recurring credits = ice protecting HQ (refreshed and synced), spendable only while attacking HQ (run_hq); console limit."
+    },
     "mausolus": {
       "cycle": "flashpoint",
       "result": "matches",
       "note": "Can be advanced; three subroutines with the stronger effect at 3 or more advancement counters."
+    },
+    "maven": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "+1 strength per installed program (itself included); Interface 2 credits: break 1 subroutine of any subtype; no pump, as printed."
     },
     "mavirus": {
       "cycle": "borealis",
@@ -6584,6 +7090,18 @@
         "9.1.2"
       ]
     },
+    "maw": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The first time each turn you access a card not in Archives and do not steal or trash it, the Corp must trash 1 card from HQ at random."
+      ],
+      "note": "Checked once per breach, at breach end, against the last accessed card only, and skipped if any card in that breach was stolen or trashed (breachStoleOrTrashed). A multi-card breach where an earlier card is left alone and a later one trashed, or a single access left alone in a breach that also stole, never fires; the text triggers on the first such access each turn. Resolves inline. +2 MU, console limit and the Corp trashing 1 HQ card at random match.",
+      "cr": [
+        "1.2.1",
+        "9.3.2b"
+      ]
+    },
     "maxx-maximum-punk-rock": {
       "cycle": "order-and-chaos",
       "result": "matches",
@@ -6598,6 +7116,16 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "AI 1 strength: 1 credit breaks 1 subroutine and trashes Mayfly when the run ends; 1 credit +1 strength."
+    },
+    "mca-austerity-policy": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; once per turn, [click]: 1 power counter and the Runner has 1 fewer allotted click next turn; [click], [trash], 3 hosted power counters: gain 4 clicks."
+    },
+    "mca-informant": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Terminal (ends the action phase); the Corp hosts it on an installed connection as a condition counter; the Runner counts 1 extra tag while it is hosted (tags.ts); the host gains [click], 2 credits: trash this resource, used by the Runner."
     },
     "measured-response": {
       "cycle": "elevation",
@@ -6724,6 +7252,30 @@
       "result": "matches",
       "note": "Advanceable; on encounter may remove 1 advancement for the Runner to lose 3 (nothing happens with no counter); Runner loses 3; ETR."
     },
+    "metamorph": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Swap 2 other installed pieces of ice or 2 of your installed non-ice cards."
+      ],
+      "note": "The ice option reuses Tenma Line's may_swap_two_installed_ice, which offers every pair of installed ice including Metamorph itself (the text says 2 other pieces of ice). The choice between ice and non-ice and the non-ice swap match; the swaps themselves are area 3's (Metamorph is in its card list). The pair list is also cut to the first 12 pairs (opts.slice(0, 12)), so with 6 or more ice some swaps cannot be chosen.",
+      "cr": [
+        "1.2.1",
+        "1.15.2b"
+      ]
+    },
+    "meteor-mining": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "If the Runner has at least 2 tags, you may do 7 meat damage instead."
+      ],
+      "note": "The 2-tag check reads state.runner.tags rather than effectiveRunnerTags, so tags the Runner is considered to have (MCA Informant's condition counter) do not count toward the 7 meat damage option. The optional 7 credits, the Decline and 7 meat damage instead match.",
+      "cr": [
+        "1.9.4",
+        "10.5"
+      ]
+    },
     "methuselah": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -6804,6 +7356,24 @@
       ],
       "note": "Area 5 (Corp install): install_hq_ice_protecting_server_ignore_costs unshifts the ice directly: no install triggers, no installed-this-turn note, no ice-trash option, no ice install cap (as Mercia B4LL4RD). The optional choice and the server match."
     },
+    "mining-accident": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Play needs a successful central run this turn; give 1 bad publicity unless the Corp pays 5 credits (unless checks it can pay); remove this event from the game."
+    },
+    "miraju": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Whenever an encounter with this ice ends, if the Runner broke its printed subroutine, the Runner moves to the outermost position of Archives instead of passing this ice. They may jack out. Derez this ice."
+      ],
+      "note": "The \"may jack out\" option runs end_the_run, not a jack out (the Lionsmane and Flip Switch mistake; jack_out is the kind). The derez happens first and inline (rezzed = false, no derez procedure: area 7), before the move; the text orders move, jack-out choice, then derez. The trigger condition treats any broken subroutine as the printed one (anyBroken). The move to Archives' outermost position and the subroutine (Corp may draw 1, then shuffle 1 HQ card into R&D) match.",
+      "cr": [
+        "1.2.1",
+        "6.1.5",
+        "9.11.3"
+      ]
+    },
     "mirrormorph-endless-iteration": {
       "cycle": "ashes",
       "result": "filed",
@@ -6847,6 +7417,11 @@
       "cycle": "kitara",
       "result": "matches",
       "note": "The Runner chooses each time: 1/2/3 net damage or trash the top 2/3/4 of the stack."
+    },
+    "mobius": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Run R&D; when a successful run ends, may run R&D again (Decline offered); gain 4 credits when that second run ends successful."
     },
     "modded": {
       "cycle": "core-set",
@@ -7121,6 +7696,11 @@
       "result": "matches",
       "note": "Gain 2 clicks."
     },
+    "nanotk": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "During runs, +1 strength per ice protecting the attacked server; 1 credit: break 1 sentry subroutine; 3 credits: +2 strength (built from the breaker fields); strength 1."
+    },
     "nanuq": {
       "cycle": "borealis",
       "result": "matches",
@@ -7205,6 +7785,14 @@
       "result": "matches",
       "note": "Region; first advancement counter placed on a card in this root each turn: gain 1."
     },
+    "nerine-2-0": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Lose [click][click]: Break up to 2 subroutines on this ice. Only the Runner can use this ability."
+      ],
+      "note": "Area 11 (breaking): src/legality/candidateRun.ts offers the 1-click break_bioroid_subroutine for every bioroid beside the 2.0 multi-break, so the Runner can break 1 subroutine for 1 click (as Heimdall 2.0, filed by S3c). The 2-click break of up to 2 subroutines and both subroutines (1 core damage, Corp may draw 1) match."
+    },
     "nero-severn-information-broker": {
       "cycle": "mumbad",
       "result": "matches",
@@ -7214,6 +7802,18 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "Successful HQ run: 1 virus counter; on an HQ breach choose a number less than the virus counters and access that many more."
+    },
+    "net-analytics": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Whenever the Runner avoids or removes 1 or more tags, you may draw 1 card."
+      ],
+      "note": "onTagsRemoved is called only from the basic remove-tag action and the remove_tags kind, so avoiding tags (preventing pending tags) never offers the draw, and other removals (tags removed as a cost) do not either. The optional draw on a removal matches. Removals through Misdirection, Sacrificial Clone and Bandwidth skip it too, and onTagsRemoved offers only the first rezzed copy.",
+      "cr": [
+        "9.9.5",
+        "9.9.6a"
+      ]
     },
     "net-celebrity": {
       "cycle": "lunar",
@@ -7258,6 +7858,19 @@
       "cycle": "mumbad",
       "result": "matches",
       "note": "Limit 6; hosts 1 program with memory cost up to the number of installed NetChips; its memory does not count."
+    },
+    "network-exchange": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The install cost of each piece of ice that is not installed in the innermost position is increased by 1."
+      ],
+      "note": "The +1 is summed over every card in the game (Object.values(state.cards) in installCorpInner and corpIceInstallCost), not installed ones, so a Network Exchange in the Runner's stack, grip or heap taxes the Corp from turn 1 (probe: ice protecting HQ costs 1 with no Network Exchange, 2 with one in the stack). Fix-now candidate: a supported card plays wrong in every game that includes it. The +1 for ice not installed innermost matches.",
+      "cr": [
+        "1.2.1",
+        "1.8.6",
+        "1.8.4a"
+      ]
     },
     "networking": {
       "cycle": "genesis",
@@ -7352,6 +7965,14 @@
       "result": "matches",
       "note": "X rezzed NEXT ice: X net damage; the Corp trashes X programs."
     },
+    "next-opal": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "This ice gains \"Subroutine You may install 1 card from HQ.\" for each rezzed piece of NEXT ice."
+      ],
+      "note": "Area 5 (Corp install): the gained subroutine is may_install_from_hq_paying_costs, which installs through install_hq_card_paying_costs and always makes a new remote (ice included), as Bioroid Work Crew. One gained subroutine per rezzed NEXT ice (itself included), after its printed ones, matches."
+    },
     "next-sapphire": {
       "cycle": "kitara",
       "result": "matches",
@@ -7361,6 +7982,11 @@
       "cycle": "lunar",
       "result": "matches",
       "note": "Gains an end-the-run subroutine for each rezzed NEXT ice."
+    },
+    "next-wave-2": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "On score, with a rezzed NEXT ice, the Corp may do 1 core damage (Decline offered)."
     },
     "nfr": {
       "cycle": "flashpoint",
@@ -7506,6 +8132,19 @@
         "9.6.5d"
       ]
     },
+    "o2-shortage": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The Runner may trash 1 card from the grip at random. If they do not, gain [click][click]."
+      ],
+      "note": "With an empty grip the Runner can still pick \"Trash 1 card from grip at random\", which then trashes nothing, so the Corp gains no clicks; a player cannot choose to do what they cannot do. The trash is also recorded as by the Corp (controllerOf the operation) though the Runner trashes. The random trash and the Corp gaining 2 clicks on a decline match.",
+      "cr": [
+        "1.16.11b",
+        "1.16.1",
+        "1.14.5"
+      ]
+    },
     "oaktown-grid": {
       "cycle": "sansan",
       "result": "matches",
@@ -7541,6 +8180,16 @@
         "8.4.2",
         "9.6"
       ]
+    },
+    "oberth-protocol": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; rez cost adds forfeiting 1 agenda; the first advance each turn of a card in this server's root or protecting it places 1 more advancement counter (rezzed only)."
+    },
+    "obokata-protocol": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Steal additional cost: suffer 4 net damage."
     },
     "observe-and-destroy": {
       "cycle": "flashpoint",
@@ -7625,6 +8274,14 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "-1 advancement requirement per core damage the Runner has taken this game."
+    },
+    "open-forum": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Add 1 card from HQ to the top of R&D."
+      ],
+      "note": "Area 4 (visibility): open_forum_hq_to_rd_top logs \"Open Forum — add <title> to top of R&D.\" to the shared log, so the Runner learns the top card of R&D. The after-mandatory-draw trigger, the reveal of the top card and adding it to HQ, and the Corp's choice of 1 HQ card for the top of R&D match."
     },
     "open-market": {
       "cycle": "elevation",
@@ -7722,6 +8379,11 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "The Corp rezzes an unrezzed ice ignoring all costs and hosts this as a condition; trash the host if all its subroutines are broken in one encounter."
+    },
+    "owl": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Subroutine: the Corp chooses an installed program to add to the top of the stack."
     },
     "pachinko": {
       "cycle": "sansan",
@@ -7980,6 +8642,11 @@
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Power counter on rez and on agenda scored or stolen from this server; during a run, power counter: reveal 1 HQ card, Runner cannot steal or trash copies this run."
+    },
+    "persephone": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "2 credits: break 1 sentry subroutine; 1 credit: +1 strength (built from the breaker fields); strength 1; after passing a sentry, may trash the top of the stack, then trash 1 R&D card per subroutine that resolved in that encounter (read before the encounter clears; tested in cr-examples-ch9)."
     },
     "personal-workshop": {
       "cycle": "genesis",
@@ -8326,6 +8993,14 @@
       "result": "matches",
       "note": "Costs 1 less per other installed icebreaker; interface 1 credit breaks 1 barrier subroutine; 2 credits +2 strength."
     },
+    "priority-construction": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Install a piece of ice from HQ protecting a remote server (ignoring all costs). Place 3 advancement tokens on that ice."
+      ],
+      "note": "Area 5 (Corp install): install_priority_construction_resolve installs inline (no install procedure, no install triggers, no ice install cap); Priority Construction is in area 5's card list. Area 4 (visibility): the log line names the facedown ice. The extra click, the remote (existing or new) and placing 3 advancement tokens match."
+    },
     "priority-requisition": {
       "cycle": "core-set",
       "result": "matches",
@@ -8552,6 +9227,11 @@
       "result": "matches",
       "note": "Runner secretly spends any amount (up to what they can spend); the Corp guesses parity; a wrong guess gains twice the spend."
     },
+    "pushing-the-envelope": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Run any server; if the grip holds 2 or fewer cards when it resolves, each installed icebreaker gets +2 strength until the run ends."
+    },
     "q-coherence-chip": {
       "cycle": "honor-and-profit",
       "result": "matches",
@@ -8583,6 +9263,14 @@
       "cycle": "data-and-destiny",
       "result": "matches",
       "note": "Revealed when accessed in R&D; when accessed while the Runner is tagged it is added to the Corp's score area."
+    },
+    "quarantine-system": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Forfeit an agenda: Rez up to 3 pieces of ice, lowering the cost of each by 2 credits for each printed agenda point on the forfeited agenda."
+      ],
+      "note": "Area 7 (rez): rez_one rezzes inline (rezzed = true, raw printed rez cost minus the discount): no rez procedure, so no rez triggers, no rez-cost modifiers, no additional rez costs, and the first-ice-rez count (Los) is not kept. The forfeit cost, up to 3 ice and 2 credits off each per agenda point of the forfeited agenda match."
     },
     "queens-gambit": {
       "cycle": "spin",
@@ -8793,6 +9481,11 @@
       ],
       "note": "Area 5 (Corp install): may_install_from_hq_paying_costs installs through install_hq_card_paying_costs, which always makes a new remote (ice included), as S1b found. Choose-2 of draw, gain, install, click matches."
     },
+    "red-planet-couriers": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Two extra clicks; collects every advancement token on installed cards and the Corp moves them all onto 1 card that can be advanced."
+    },
     "red-tape": {
       "cycle": "mumbad",
       "result": "matches",
@@ -8807,6 +9500,18 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "Unique; on rez may pay up to 4 for that many power counters; runs on this server cost 2 more per counter; a successful central run removes 1."
+    },
+    "reeducation": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Draw X cards, where X is equal to the number of cards you added to R&D this way."
+      ],
+      "note": "resolve_reeducation draws by deck.shift outside the draw procedure, so no draw triggers fire (as Election Day). The Corp's choice of any number of HQ cards for the bottom of R&D, drawing that many, the empty-R&D loss and the Runner's X random grip cards to the bottom of the stack (only if they have at least X) match.",
+      "cr": [
+        "8.4.2",
+        "8.4.5"
+      ]
     },
     "reflection": {
       "cycle": "mumbad",
@@ -8907,6 +9612,14 @@
       "result": "matches",
       "note": "[click][click][click], trash: gain 9."
     },
+    "replanting": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Add one of your installed cards to HQ. Install 2 cards from HQ, ignoring all costs."
+      ],
+      "note": "Area 5 (Corp install): install_from_hq_continue installs inline (install_hq_ice_protecting_server_ignore_costs, install_root_ignore_costs), and non-ice cards may go only into a new remote, not an existing server or a central root. Area 4 (visibility): move_to_hq logs the title of the card returned to HQ, including an unrezzed one. The extra click, adding one installed card to HQ (uninstall procedure) and installing 2 cards ignoring all costs match. install_root_ignore_costs and the ice install also log facedown titles, and install_root_ignore_costs names new servers remote<n> without advancing nextRemoteNumber, unlike other paths (remote-<n>)."
+    },
     "replicator": {
       "cycle": "genesis",
       "result": "matches",
@@ -8927,10 +9640,50 @@
       "result": "matches",
       "note": "Install only in the root of HQ; +2 maximum hand size."
     },
+    "reshape": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Swap 2 pieces of unrezzed ice."
+      ],
+      "note": "The Runner's swap choices are labelled \"Swap <title> and <title>\" for unrezzed ice, so the Runner sees the names of every unrezzed piece of ice (CR 1.21, 10.2.2a). Fix-now candidate (visibility). The pair list is also cut to the first 24 pairs (opts.slice(0, 24)). Swapping 2 unrezzed ice matches; the swap itself is area 3's. The resolve log \"Reshape — swap <title> and <title>\" also reaches both seats.",
+      "cr": [
+        "1.21.1",
+        "10.2.2a",
+        "10.2.2b"
+      ]
+    },
     "resistor": {
       "cycle": "data-and-destiny",
       "result": "matches",
       "note": "+1 strength per Runner tag; trace 4: end the run."
+    },
+    "respirocytes": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The first time each turn you have no cards in your grip, draw 1 card and place 1 power counter on this hardware."
+      ],
+      "note": "The empty-grip check (maybeFireFirstEmptyGripTriggers) runs only after damage and after a Runner basic action, so a grip emptied any other way (Corp effects that move or trash grip cards, such as Reeducation on the Corp's turn, or mid-run effects) is not seen at that checkpoint and the draw is missed or late (CR 10.3.1a). Setting the once-per-turn flag on the first empty grip even with no Respirocytes installed is right (9.3.2b, 9.6.5b). 1 meat damage on install, draw 1 and 1 power counter, and trash at 3 counters match.",
+      "cr": [
+        "9.3.2b",
+        "9.6.5b",
+        "10.3.1a"
+      ]
+    },
+    "restore": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Install and rez 1 card from Archives (paying all costs). Remove all other copies of that card in Archives from the game."
+      ],
+      "note": "install_rez_resolve leaves an installed agenda faceup, so the Runner sees it for the rest of the game; offering an agenda is legal (CR 8.5.13d), but it must be revealed and returned facedown (8.5.2, 1.21.3). Upgrades are not offered for central roots (8.5.2c), and the options are cut to the first 24 (slice(0, 24)). Area 5 (Corp install) and area 7 (rez): the install and rez are inline with raw costs: no install or rez procedure, triggers or cost modifiers. Paying all costs and removing the other copies in Archives from the game match.",
+      "cr": [
+        "1.2.1",
+        "8.5.2",
+        "1.21.3",
+        "8.5.13d"
+      ]
     },
     "restoring-face": {
       "cycle": "spin",
@@ -9055,6 +9808,18 @@
       "result": "matches",
       "note": "Play only if the Runner trashed a Corp card last turn; the Runner suffers 1 core damage or gets -3 allotted clicks next turn; removed from the game."
     },
+    "rip-deal": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "If successful, when you determine the number of cards in HQ you are allowed to access during this run's breach of HQ, you may add that many cards from your heap to your grip. If you do, you cannot access any cards in HQ during this breach."
+      ],
+      "note": "maybeRipDeal looks for ripDealHeapInsteadOfHqAccess only on installed Runner cards, but Rip Deal is a run event in the play area, never installed, so the heap-to-grip replacement is never offered in play (the only test installs the event to reach it). The run on HQ and removing the event from the game when the run ends match.",
+      "cr": [
+        "3.7.1",
+        "7.3.5"
+      ]
+    },
     "rising-tide": {
       "cycle": "elevation",
       "result": "matches",
@@ -9074,6 +9839,11 @@
       "cycle": "kitara",
       "result": "matches",
       "note": "18 credits on install; trashed when empty; [click][click]: take 6 and take 1 tag."
+    },
+    "rolling-brownout": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Current: stays until another current is played or an agenda is stolen; each operation and event costs 1 more to play while it is active; the first Runner event each turn gains the Corp 1 credit."
     },
     "rolodex": {
       "cycle": "sansan",
@@ -9109,6 +9879,19 @@
         "1.2.1"
       ]
     },
+    "rosetta-2-0": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "[click], remove an installed program from the game: Search your stack for a non-virus program, shuffle your stack, then install that program, lowering the install cost by the cost of the program removed from the game."
+      ],
+      "note": "Removing an installed program from the game is a cost but is taken inside the effect (the IR cost is only [click]), so the ability can be used with no program installed (CR 1.16.1). The search offers no fail-to-find option (8.7.2e) and offers programs the Runner cannot afford, sending an unaffordable pick to the grip (8.7.2b). Area 6 (Runner install): install_rosetta_from_stack writes the program into the rig inline (no install procedure, memory check or install triggers); Rosetta is in area 6's card list. The non-virus search, the shuffle and the install-cost reduction match.",
+      "cr": [
+        "1.16.1",
+        "8.7.2b",
+        "8.7.2e"
+      ]
+    },
     "rotary": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -9124,10 +9907,20 @@
       "result": "matches",
       "note": "[click][click][click]: gain 6, then may remove 1 bad publicity."
     },
+    "rover-algorithm": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Hosted on a rezzed ice as a condition counter; host ice +1 strength per power counter; 1 power counter whenever the Runner passes the host."
+    },
     "rsvp": {
       "cycle": "spin",
       "result": "matches",
       "note": "Subroutine: the Runner cannot spend credits for the rest of the run."
+    },
+    "rubicon-switch": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; once per turn, [click] and X credits: derez (derez_card) an ice rezzed this turn whose printed rez cost is X; only affordable ice are offered."
     },
     "ruhr-valley": {
       "cycle": "genesis",
@@ -9201,6 +9994,11 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "Installs only on ice; gain 3 when host ice is rezzed or derezzed."
+    },
+    "sacrifice": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Additional cost: forfeit 1 agenda; removes bad publicity up to its agenda points and gains 1 credit per counter removed."
     },
     "sacrifice-zone-expansion": {
       "cycle": "vantage-point",
@@ -9308,6 +10106,11 @@
       "result": "matches",
       "note": "Advanceable only while rezzed; gains a Trace 2 tag subroutine per advancement counter, after its other subroutines."
     },
+    "salvaged-vanadis-armory": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; [trash], only in the next paid ability window after the Runner suffers damage: the Corp trashes the top X of R&D, X = damage suffered this turn."
+    },
     "salvo-testing": {
       "cycle": "liberation",
       "result": "matches",
@@ -9324,6 +10127,11 @@
         "1.2.1",
         "1.2.4"
       ]
+    },
+    "sand-storm": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Subroutine: if installed, the Corp moves it to the outermost position of another server and the run continues from there (area 2's shared move, as Bullfrog), then it is trashed."
     },
     "sandman": {
       "cycle": "kitara",
@@ -9532,6 +10340,16 @@
       "result": "matches",
       "note": "On score 1 tag, then a psi game (0-2): differ 1 core damage, match 1 net damage."
     },
+    "seidr-adaptive-barrier": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "+1 strength per ice protecting its server (itself included); subroutine ends the run."
+    },
+    "self-adapting-code-wall": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Strength cannot be lowered (read by effectiveIceStrength and the strength-lowering kinds); subroutine ends the run."
+    },
     "self-destruct": {
       "cycle": "lunar",
       "result": "wrong",
@@ -9631,6 +10449,11 @@
       "result": "matches",
       "note": "Current (trashed on another current or a stolen agenda); the Runner's first run each turn costs 1 more."
     },
+    "severnius-stim-implant": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "[click]: the Runner trashes 2 or more grip cards one by one, then runs HQ or R&D with 1 extra access per 2 trashed on each breach of that server this run."
+    },
     "shackleton-grid": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -9727,6 +10550,14 @@
         "8.5.11a"
       ]
     },
+    "shipment-from-tennin": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Place 2 advancement counters on 1 installed card."
+      ],
+      "note": "Area 12 (counters and advancement): place_advancements offers only cards that can be advanced, but any installed card qualifies (CR 1.18.2), as Akhet. The play restriction (no successful run last turn) and 2 counters on 1 card match."
+    },
     "shipment-from-vladisibirsk": {
       "cycle": "borealis",
       "result": "filed",
@@ -9787,6 +10618,17 @@
       "cycle": "flashpoint",
       "result": "matches",
       "note": "Unique console, +2 MU; once per turn on encounter may take -1 max hand size until the Runner's next turn to make that ice strength 0 for the encounter."
+    },
+    "signal-jamming": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "[trash]: Cards cannot be installed until the end of the run."
+      ],
+      "note": "forbid_installs_until_run_end sets run.forbidInstallsUntilRunEnd, which nothing in src reads, so cards can still be installed for the rest of the run: the card does nothing. The [trash] cost and the during-a-run-on-this-server restriction match.",
+      "cr": [
+        "1.2.2"
+      ]
     },
     "silencer": {
       "cycle": "spin",
@@ -10063,6 +10905,19 @@
       "result": "matches",
       "note": "+1 link; trash: draw 3."
     },
+    "spot-the-prey": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Expose 1 non-ice card, then make a run."
+      ],
+      "note": "The Runner's expose options are labelled \"Expose <title>\" for every installed non-ice Corp card, and publicPendingChoice shows the chooser every label, so the Runner reads the names of all facedown root cards before choosing (CR 1.21, 10.2.2a). Fix-now candidate (visibility). Cards hosted on other cards are not offered. Exposing 1 non-ice card, then running (still run when there is none) matches. The generic expose kind uses the same title label. The candidates also include rezzed root cards, which beginExpose then refuses (only unrezzed cards can be exposed, 1.21.4), and skip exposeLegalTargets' no-expose-in-this-server check.",
+      "cr": [
+        "1.21.4",
+        "10.2.2a",
+        "10.2.2b"
+      ]
+    },
     "spree": {
       "cycle": "liberation",
       "result": "matches",
@@ -10099,6 +10954,18 @@
       "cycle": "kitara",
       "result": "matches",
       "note": "Play only if the Runner made a successful run last turn; name a card type, reveal the grip, gain 2 per card of that type."
+    },
+    "standoff": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "the Runner may trash 1 of their installed cards. If they do not, draw 1 card and gain 5 credits. Otherwise, you may trash 1 of your installed cards to repeat this process."
+      ],
+      "note": "runner_trash_standoff_after trashes the Runner's chosen card with by: the agenda's controller (the Corp), though the Runner trashes it, so trash triggers that care who trashed see a Corp trash (as Biased Reporting). The Runner's choice to trash or let the Corp draw 1 and gain 5 credits, and the Corp's optional trash of its own card to repeat, match. Area 4: the corp_trash log line names the Corp's trashed card, which may be unrezzed and goes to Archives facedown.",
+      "cr": [
+        "1.14.5",
+        "1.14.5a"
+      ]
     },
     "stargate": {
       "cycle": "ashes",
@@ -10297,6 +11164,11 @@
         "1.21.6"
       ]
     },
+    "success": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Additional costs: forfeit an agenda and 2 clicks; the Corp advances 1 card that can be advanced X times, X = the forfeited agenda's advancement requirement."
+    },
     "successful-demonstration": {
       "cycle": "creation-and-control",
       "result": "matches",
@@ -10461,6 +11333,18 @@
       ],
       "note": "area 5 (Corp install): install_hq_card_ignore_costs / install_archives_card_ignore_costs place the card inline; upgrades cannot go in a central root, ice gets no new remote, an agenda or asset already in the root is not trashed, and the card is installed faceup (a reveal is not a faceup install). The once-per-turn trigger and the click ability match. cr-checker: CR 8.5.2, 1.21.3, 8.5.6a."
     },
+    "sync-bre": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Subroutine Trace[2]. If successful, whenever the Runner breaches a server for the remainder of this run, they access 1 fewer card."
+      ],
+      "note": "The second subroutine sets run.breachAccessReduction, which nothing in src reads, so a successful trace 2 does not reduce any breach. The first subroutine (trace 4, 1 tag) matches.",
+      "cr": [
+        "1.2.1",
+        "7.3.5"
+      ]
+    },
     "sync-everything-everywhere": {
       "cycle": "data-and-destiny",
       "result": "matches",
@@ -10476,10 +11360,28 @@
       "result": "matches",
       "note": "Unique; first double operation each turn costs a click less."
     },
+    "synth-dna-modification": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "The first time a subroutine on a piece of AP ice is broken each turn, do 1 net damage."
+      ],
+      "note": "The reader sits in onFullBreak, so it fires only when an AP ice is fully broken, not when the first subroutine on one is broken. It then adds to state.runner.coreDamage directly (logged as net damage): the Runner takes core damage, a permanent hand-size loss, with no damage procedure (no prevention, no random grip trash); the existing blanked test expects coreDamage > 0. Fix-now candidate: a supported card does the wrong damage type in normal use. Once per turn and rezzed-only match.",
+      "cr": [
+        "9.8.5",
+        "10.4.2a",
+        "10.4.2b"
+      ]
+    },
     "synthetic-blood": {
       "cycle": "sansan",
       "result": "matches",
       "note": "Unique genetics; the first damage each turn draws 1."
+    },
+    "system-seizure": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Current until another current is played or an agenda is scored; the first strength increase on an icebreaker each turn makes its pumps last the rest of the run (hostDuration)."
     },
     "t400-memory-diamond": {
       "cycle": "system-gateway",
@@ -10653,6 +11555,11 @@
       "cycle": "data-and-destiny",
       "result": "matches",
       "note": "Play only if the Runner is tagged; the Runner removes 1 bad publicity or all installed resources are trashed."
+    },
+    "the-archivist": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Unique; +1 link; when the Corp scores an initiative or security agenda it must trace 1, and on failure takes 1 bad publicity."
     },
     "the-artist": {
       "cycle": "ashes",
@@ -10944,6 +11851,14 @@
       "result": "matches",
       "note": "Play only if the Runner trashed a Corp card last turn and has an installed card; the Corp chooses one, the Runner takes 2 tags or adds it to the top of the stack; removed from the game."
     },
+    "threat-level-alpha": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Trace[1]. If successful, give the Runner 1 tag for each tag they have or, if the Runner has no tags, give them 1 tag."
+      ],
+      "note": "Area 15 (tags): give_tags_equal_to_runner_tags_min_1 adds to state.runner.tags directly, skipping the tag procedure, so the Runner gets no chance to avoid the tags and tag triggers do not fire; it also counts state.runner.tags, not tags the Runner is considered to have. The extra click, trace 1 and the doubled-or-1 amount match."
+    },
     "three-steps-ahead": {
       "cycle": "lunar",
       "result": "wrong",
@@ -11017,6 +11932,19 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Do 1 net damage; gain 1 credit."
+    },
+    "tithonium": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "You may forfeit an agenda to rez Tithonium instead of paying its rez cost."
+      ],
+      "note": "The forfeit is modelled as a 9-credit discount (rezCostCreditDiscountOnForfeitAgenda) taken after recurring rez credits are applied, so a rez cost increase above 9 must still be paid and recurring credits can be spent on a rez that forfeiting should make free; the text replaces the whole rez cost. Cannot host cards and the three subroutines (the Corp picks the programs and the resource; end the run) match. The forfeit is also offered when every scored agenda cannot be forfeited, and the discount still applies.",
+      "cr": [
+        "1.16.2a",
+        "1.16.2e",
+        "8.1.2d"
+      ]
     },
     "tl-dr": {
       "cycle": "data-and-destiny",
@@ -11158,6 +12086,11 @@
       "result": "matches",
       "note": "Play only if the Runner has 2 or more tags; 2 meat damage."
     },
+    "traffic-analyzer": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Rezzed: whenever the Corp rezzes ice protecting this server, trace 2; on success the Corp gains 1 credit."
+    },
     "traffic-jam": {
       "cycle": "sansan",
       "result": "matches",
@@ -11177,6 +12110,17 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "Run HQ; if successful take 1 tag, the Corp loses 3 and the Runner gains 2 per credit actually lost."
+    },
+    "transparency-initiative": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you advance host agenda, gain 1 credit."
+      ],
+      "note": "Each advance of the host agenda gains the Corp 2 credits, not 1: resolve_transparency_initiative_host adds 1 to the agenda's gainCreditsOnAdvance, and the card's own \"advance\" conditional (onAdvance) also resolves from the hosted-card loop in advanceCard (src/actions/score.ts). The +1 on the agenda is never removed if Transparency Initiative leaves. Turning an installed agenda faceup, hosting as a condition counter and the public subtype match.",
+      "cr": [
+        "1.2.1"
+      ]
     },
     "transport-monopoly": {
       "cycle": "ashes",
@@ -11860,6 +12804,11 @@
       ],
       "note": "Area 5 (Corp install): may_install_from_hq_paying_costs always makes a new remote. The no-score lock and the derez pair on an unprotected server match."
     },
+    "warroid-tracker": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Rezzed: whenever the Runner trashes a card from this server, its root or its ice, trace 4; on success the Runner picks and trashes 2 of their installed cards."
+    },
     "wasteland": {
       "cycle": "data-and-destiny",
       "result": "wrong",
@@ -11871,6 +12820,16 @@
         "9.3.2b",
         "1.19.4"
       ]
+    },
+    "watchtower": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "Subroutine: the Corp searches R&D for a card, adds it to HQ facedown, then R&D is shuffled (shuffleInPlace)."
+    },
+    "water-monopoly": {
+      "cycle": "red-sand",
+      "result": "matches",
+      "note": "While in the Corp's score area, each non-virtual resource costs 1 more to install."
     },
     "wave": {
       "cycle": "borealis",
@@ -11932,6 +12891,14 @@
       ],
       "fixedIn": "engine#948",
       "test": "placing counters with Seamless Launch is not advancing, so it gains nothing (CR 1.18.2)"
+    },
+    "whampoa-reclamation": {
+      "cycle": "red-sand",
+      "result": "filed",
+      "abilities": [
+        "Once per turn → Trash 1 card from HQ: Add 1 card from Archives to the bottom of R&D."
+      ],
+      "note": "Area 4 (visibility): whampoa_archives_to_rd_bottom logs \"<title> to R&D bottom\" to the shared log, naming a card that may have been facedown in Archives, and leaves the Runner knowing the bottom card of R&D. Once per turn, the trash-1-from-HQ cost and adding 1 Archives card to the bottom of R&D match."
     },
     "whirlpool": {
       "cycle": "genesis",
@@ -12166,6 +13133,19 @@
         "1.2.1",
         "9.8.5",
         "6.9.3b"
+      ]
+    },
+    "zed-2-0": {
+      "cycle": "red-sand",
+      "result": "wrong",
+      "abilities": [
+        "Subroutine If the Runner has lost [click] to break a subroutine during this run, do 2 core damage.",
+        "Lose [click][click]: Break up to 2 subroutines on this ice."
+      ],
+      "note": "The third subroutine's condition is modelled as requireLostClickToBreakThisRun, which only stops the Runner breaking that subroutine until they have lost a click to break; when it resolves it always does 2 core damage (its instruction is a plain core_damage with no condition), so a Runner who broke nothing with clicks takes 2 core damage. Fix-now candidate: a supported card deals core damage the text does not. The 1-click break_bioroid_subroutine is also offered beside the 2-click multi-break (area 11, as Nerine 2.0). The 2-click break of up to 2 subroutines and the two trash-hardware subroutines match. requireLostClickToBreakThisRun also stops the Runner targeting that subroutine until a click was lost, even inside the 2-click break that loses it; the card has no such restriction (9.8.6).",
+      "cr": [
+        "1.2.1",
+        "9.8.6"
       ]
     },
     "zenit-chip-jz-2mj": {
