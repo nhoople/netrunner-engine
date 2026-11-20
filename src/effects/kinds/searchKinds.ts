@@ -684,7 +684,10 @@ export function applySearchKinds(
             upTo: true,
             purpose: "resume",
             label: "add to HQ from R&D",
-            resume: { kind: "search_rd_non_agenda" },
+            resume: {
+              kind: "search_rd_non_agenda",
+              ...(action.reveal ? { reveal: true } : {}),
+            },
           }),
         );
       }
@@ -696,6 +699,9 @@ export function applySearchKinds(
         state.cards[id].faceup = false;
       }
       shuffleInPlace(state, state.corp.deck);
+      // Malapert Data Vault: "search R&D for 1 non-agenda card and reveal
+      // it". The reveal waits for the shuffle (CR 8.7.2c, 8.7.3, 1.21.3).
+      if (action.reveal) revealCards(state, found, sourceId);
       log(
         state,
         `Search R&D for a non-agenda — add ${found.length} card(s) to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,

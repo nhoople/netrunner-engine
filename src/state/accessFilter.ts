@@ -46,11 +46,20 @@ export function applyMaxAccessOtherThanSelf(state: GameState): void {
   const server = state.servers[run.attackedServerId];
   if (!server) return;
   let capped = false;
+  const caps: Array<{ id: string; maxOther: number }> = [];
   for (const id of server.root) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.rezzed || card.maxAccessOtherThanSelf === undefined) continue;
-    const maxOther = card.maxAccessOtherThanSelf;
+    caps.push({ id, maxOther: card.maxAccessOtherThanSelf });
+  }
+  // A persisting cap from a Flagship the Runner trashed while accessing it
+  // lasts for the rest of this run (CR 9.12.5a, 9.12.5c).
+  for (const [id, maxOther] of Object.entries(run.persistentAccessCaps ?? {})) {
+    if (!caps.some((c) => c.id === id)) caps.push({ id, maxOther });
+  }
+  for (const { id, maxOther } of caps) {
+    const card = state.cards[id]!;
     const accessedOther = run.accessedCardIds.filter(
       (cid) => cid !== id,
     ).length;

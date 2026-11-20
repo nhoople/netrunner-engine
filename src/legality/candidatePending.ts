@@ -14,6 +14,7 @@ import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
 import { applyActionCore } from "../actions/apply.js";
 import {
+  printedRezOrPlayCost,
   stealAdditionalCosts,
   stealNetOrMeatPrevented,
 } from "../actions/access.js";
@@ -628,8 +629,9 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
             continue;
           }
           const accessed = state.cards[id];
-          const printed = accessed?.rezCost ?? accessed?.playCost ?? 0;
+          const printed = accessed ? printedRezOrPlayCost(accessed) : null;
           if (
+            printed !== null &&
             canPayCost(
               state,
               "runner",

@@ -448,19 +448,12 @@ export function applyShuffleKinds(
     }
 
     case "shuffle_installed_runner_into_stack": {
-      const installed: string[] = [];
-      for (const id of state.runner.installed) {
-        if (!state.cards[id]?.hostId) installed.push(id);
-      }
-      for (const card of Object.values(state.cards)) {
-        if (
-          card.side === "runner" &&
-          card.hostId &&
-          !installed.includes(card.id)
-        ) {
-          installed.push(card.id);
-        }
-      }
+      // Installed Runner cards only, hosted ones included. A card hosted
+      // without being installed (Read-Write Share's facedown cards) is not
+      // an installed card (CR 1.13.2, 1.13.2a).
+      const installed = state.runner.installed.filter(
+        (id) => state.cards[id]?.zone === "runner:installed",
+      );
       if (installed.length === 0) {
         log(state, `Shuffle installed into stack — none installed.`);
         return { ok: true };

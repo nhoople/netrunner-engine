@@ -4,6 +4,7 @@
  */
 import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import { addBreakerStrengthBoostThisTurn } from "../state/lingeringEffects.js";
 import {
   creditsAvailableForInstall,
@@ -132,21 +133,57 @@ function trashExistingConsoles(state: GameState, keepId: string): void {
   }
 }
 
+/**
+ * Cookbook: "Whenever you install a virus program, you may place 1 virus
+ * counter on it." A conditional ability: it becomes pending at the next
+ * checkpoint, so the Runner orders it against other install triggers
+ * (Tranquilizer, CR 9.2.8d), may decline it (CR 9.6.9), and a blank
+ * Cookbook does nothing (CR 9.6.2).
+ */
 function fireCookbookOnVirusInstall(
   state: GameState,
   installedId: string,
 ): void {
   const installed = state.cards[installedId];
+  if (installed.type !== "program") return;
   if (!(installed.subtypes ?? []).includes("virus")) return;
   for (const id of state.runner.installed) {
     if (id === installedId) continue;
     if (state.cards[id].defId !== "cookbook") continue;
-    // May place 1 virus counter on the installed virus — auto-apply (may).
-    installed.virusCounters = (installed.virusCounters ?? 0) + 1;
-    if (!state.turn.programsWithVirusPlacedThisTurn.includes(installedId)) {
-      state.turn.programsWithVirusPlacedThisTurn.push(installedId);
-    }
-    log(state, `Cookbook places 1 virus counter on ${installed.title}.`);
+    if (abilitiesSuppressed(state, id)) continue;
+    noteInlineConditional(state, {
+      cardId: id,
+      abilityKey: `cookbook-virus-install:${installedId}`,
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "choose",
+        chooser: "runner",
+        options: [
+          {
+            id: "place",
+            label: `Place 1 virus counter on ${installed.title}`,
+            effect: {
+              op: "do",
+              action: {
+                kind: "place_virus_on_program",
+                cardId: installedId,
+                amount: 1,
+              },
+            },
+          },
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+        ],
+      },
+      logLine: `${state.cards[id].title} becomes pending — ${installed.title} (a virus program) was installed.`,
+    });
   }
 }
 

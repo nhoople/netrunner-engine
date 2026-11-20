@@ -109,9 +109,9 @@
     },
     "src/effects/kinds/hostKinds.ts": {
       "deck": 3,
-      "hand": 7,
+      "hand": 6,
       "rezzed": 4,
-      "zone": 10
+      "zone": 9
     },
     "src/effects/kinds/installKinds.ts": {
       "deck": 6,

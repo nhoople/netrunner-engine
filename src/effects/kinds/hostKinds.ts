@@ -11,7 +11,8 @@ import { cancelPendingIfSourceInactive } from "../../state/pendingAbilities.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { CR } from "../../timing/labels.js";
-import { applyPrimitive } from "../eval.js";
+import { applyPrimitive, evalEffect } from "../eval.js";
+import { chooseCards } from "../chooseCards.js";
 import { hostCard } from "../../state/procedures/host.js";
 
 export function applyHostKinds(
@@ -123,23 +124,38 @@ export function applyHostKinds(
     }
 
     case "host_all_programs_from_grip": {
+      // Madani: "Host any number of programs from your grip faceup on this
+      // hardware. (They are not installed.)" The Runner chooses which,
+      // none included (CR 1.15.2), then they are hosted, not installed
+      // (CR 1.13.2a).
       const programs = state.runner.hand.filter(
         (id) => state.cards[id]?.type === "program",
       );
-      if (programs.length === 0) {
-        log(state, `${source.title} — no programs in grip to host.`);
-        return { ok: true };
+      if (action.cardIds === undefined) {
+        if (programs.length === 0) {
+          log(state, `${source.title} — no programs in grip to host.`);
+          return { ok: true };
+        }
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: programs,
+            count: programs.length,
+            upTo: true,
+            purpose: "resume",
+            label: `host on ${source.title}`,
+            resume: { kind: "host_all_programs_from_grip" },
+          }),
+        );
       }
-      for (const id of programs) {
-        state.runner.hand = state.runner.hand.filter((x) => x !== id);
-        const card = state.cards[id]!;
-        hostCard(state, card.id, sourceId, { installed: true });
-        card.faceup = true;
-        card.zone = `hosted:${sourceId}`;
+      const chosen = action.cardIds.filter((id) => programs.includes(id));
+      for (const id of chosen) {
+        hostCard(state, id, sourceId, { faceup: true });
       }
       log(
         state,
-        `${source.title} hosts ${programs.length} program(s) from grip.`,
+        `${source.title} hosts ${chosen.length} program(s) from grip.`,
       );
       return { ok: true };
     }

@@ -7,6 +7,7 @@ import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
+import { CR } from "../../timing/labels.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import {
   finishPlaceAdvancementsOnTarget,
@@ -65,7 +66,13 @@ export function applyPlaceKinds(
 
     case "place_virus_on_program": {
       const card = state.cards[action.cardId];
-      if (!card || card.type !== "program") {
+      // Only an installed program: one that left play is a new object
+      // (CR 1.12.1), as when Cookbook's counter resolves after it moved.
+      if (
+        !card ||
+        card.type !== "program" ||
+        !state.runner.installed.includes(action.cardId)
+      ) {
         log(state, `Place virus — invalid program.`);
         return { ok: true };
       }
@@ -200,42 +207,35 @@ export function applyPlaceKinds(
         if (action.then) return evalEffect(ctx, action.then);
         return { ok: true };
       }
-      const pickMode = action.pick ?? "first";
-      if (pickMode === "choose" && candidates.length > 1) {
+      // The Corp chooses which card gets the counters (CR 1.15.2). Placing
+      // is not optional once it resolves; a card that prints "you may"
+      // wraps this in its own choice (CR 9.6.9). The chosen card comes
+      // back as `targetId`, so every field (Big Deal's may-score, The Holo
+      // Man's bonus) still applies.
+      if (action.targetId !== undefined) {
+        return finishPlaceAdvancementsOnTarget(
+          ctx,
+          action,
+          sourceId,
+          source,
+          action.targetId,
+        );
+      }
+      if (candidates.length > 1) {
         const options: Array<{ id: string; label: string; effect: Effect }> =
           candidates.map((id) => ({
             id: `adv:${id}`,
             label: `Place on ${state.cards[id]!.title}`,
             effect: {
               op: "do",
-              action: {
-                kind: "place_advancements_on",
-                cardId: id,
-                amount: action.amount,
-                ...(action.cannotScoreTargetThisTurn
-                  ? { cannotScoreTargetThisTurn: true }
-                  : {}),
-                ...(action.then !== undefined
-                  ? { then: structuredClone(action.then) }
-                  : {}),
-              },
+              action: { ...structuredClone(action), targetId: id },
             },
           }));
-        options.push({
-          id: "decline",
-          label: "Decline",
-          effect: action.then
-            ? structuredClone(action.then)
-            : {
-                op: "do",
-                action: { kind: "gain_credits", side: "corp", amount: 0 },
-              },
-        });
         openPendingChoose(state, {
           sourceId,
           chooser: "corp",
           options,
-          logLine: `${source.title} — choose card for advancements.`,
+          logLine: `${source.title} — choose card for advancements (CR ${CR.announceTargets.number}).`,
         });
         return { ok: true };
       }
@@ -513,6 +513,9 @@ export function applyPlaceKinds(
       const prior = target.advancementCounters ?? 0;
       target.advancementCounters = prior + action.amount;
       state.turn.lastAdvancementTargetId = action.cardId;
+      if (action.advance) {
+        (state.turn.advancedSincePreviousCheckpoint ??= []).push(action.cardId);
+      }
       if (action.cannotScoreTargetThisTurn) {
         if (!state.turn.cannotScoreOrRezCardIds.includes(action.cardId)) {
           state.turn.cannotScoreOrRezCardIds.push(action.cardId);

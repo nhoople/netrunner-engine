@@ -15,7 +15,7 @@
       "string": 13
     },
     "entries": 863,
-    "withKindBuildingReader": 48,
+    "withKindBuildingReader": 49,
     "unread": 15,
     "unset": 19
   },
@@ -55,6 +55,9 @@
     ],
     "flipIdentityOnSuccessfulCentralRun": [
       "flip_identity"
+    ],
+    "gainCreditOnBreakIceStrengthLteOncePerTurn": [
+      "gain_credits"
     ],
     "gainsEtrSubroutineWhileCurrentActive": [
       "end_the_run"
@@ -147,6 +150,7 @@
       "corp_rez"
     ],
     "searchRdNonAgendaOnScoreFromServer": [
+      "gain_credits",
       "search_rd_non_agenda"
     ],
     "securityTesting": [
@@ -4668,10 +4672,14 @@
       "readers": [
         {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
+          "kinds": [
+            "gain_credits"
+          ]
         }
       ],
-      "kinds": []
+      "kinds": [
+        "gain_credits"
+      ]
     },
     "gainCreditOnCorpTurnEndIfArchivesHasFacedown": {
       "cardDef": "number",
@@ -7920,6 +7928,10 @@
       ],
       "readers": [
         {
+          "site": "src/effects/corpTrash.ts#noteCorpCardTrashedToArchives",
+          "kinds": []
+        },
+        {
           "site": "src/state/accessFilter.ts#applyMaxAccessOtherThanSelf",
           "kinds": []
         }
@@ -10869,11 +10881,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#noteFirstCorpCardTrashEachTurn",
+          "site": "src/state/trashHooks.ts#FIRST_CORP_CARD_TRASH_ANY",
           "kinds": []
         }
       ],
@@ -13946,14 +13954,6 @@
           "kinds": []
         },
         {
-          "site": "src/cards/stubs.ts#applyHostServerRecurringTowardCorpRez",
-          "kinds": []
-        },
-        {
-          "site": "src/cards/stubs.ts#quoteHostServerRecurringTowardCorpRez",
-          "kinds": []
-        },
-        {
           "site": "src/cards/stubs.ts#runnerTrashCostForCard",
           "kinds": []
         },
@@ -14381,8 +14381,11 @@
       ],
       "readers": [
         {
-          "site": "src/actions/access.ts#hasInteractiveMidAccess",
-          "kinds": []
+          "site": "src/actions/access.ts#printedRezOrPlayCost",
+          "kinds": [],
+          "mirrors": [
+            "src/actions/access.ts#{card}"
+          ]
         },
         {
           "site": "src/actions/apply.ts#applyResolved",
@@ -14428,10 +14431,6 @@
         },
         {
           "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
           "kinds": []
         },
         {
@@ -16406,15 +16405,11 @@
           "kinds": []
         },
         {
-          "site": "src/cards/stubs.ts#applyHostServerRecurringTowardCorpRez",
-          "kinds": []
-        },
-        {
           "site": "src/cards/stubs.ts#applyRezIceRecurringTowardCorpRez",
           "kinds": []
         },
         {
-          "site": "src/cards/stubs.ts#quoteHostServerRecurringTowardCorpRez",
+          "site": "src/cards/stubs.ts#hostServerRezSpenders",
           "kinds": []
         },
         {
@@ -16945,8 +16940,11 @@
       ],
       "readers": [
         {
-          "site": "src/actions/access.ts#hasInteractiveMidAccess",
-          "kinds": []
+          "site": "src/actions/access.ts#printedRezOrPlayCost",
+          "kinds": [],
+          "mirrors": [
+            "src/actions/access.ts#{card}"
+          ]
         },
         {
           "site": "src/actions/apply.ts#applyResolved",
@@ -17488,6 +17486,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/costs.ts#activeCreditLockEvent",
+          "kinds": []
+        },
+        {
           "site": "src/state/encounterAbilityHooks.ts#noteCompileFirstEncounter",
           "kinds": []
         },
@@ -17936,11 +17938,13 @@
         {
           "site": "src/actions/score.ts#fireScoreOrStealSideEffects",
           "kinds": [
+            "gain_credits",
             "search_rd_non_agenda"
           ]
         }
       ],
       "kinds": [
+        "gain_credits",
         "search_rd_non_agenda"
       ]
     },
@@ -18141,6 +18145,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
@@ -18277,6 +18285,10 @@
         },
         {
           "site": "src/legality/checkpoints.ts#markBypass",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrashRecord",
           "kinds": []
         },
         {
@@ -21632,7 +21644,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrash",
+          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrashRecord",
           "kinds": []
         },
         {
@@ -23343,6 +23355,10 @@
           "kinds": []
         },
         {
+          "site": "src/actions/installRunner.ts#fireCookbookOnVirusInstall",
+          "kinds": []
+        },
+        {
           "site": "src/actions/installRunner.ts#installRunner",
           "kinds": []
         },
@@ -23420,6 +23436,10 @@
         },
         {
           "site": "src/cards/stubs.ts#effectiveBreakerStrength",
+          "kinds": []
+        },
+        {
+          "site": "src/cards/stubs.ts#hostServerRezSpenders",
           "kinds": []
         },
         {
@@ -24167,6 +24187,10 @@
         },
         {
           "site": "src/timing/graph.ts#STEPS.onResolve",
+          "kinds": []
+        },
+        {
+          "site": "src/timing/graph.ts#isHostedOnIce",
           "kinds": []
         },
         {

@@ -158,17 +158,20 @@ export function applyDerezKinds(
                 : { op: "seq" as const, effects },
           };
         });
+      // The player who controls the ability chooses (CR 1.14.4, 1.15.2):
+      // the Runner for Maglectric Rapid and Stegodon MK IV.
+      const chooser = source.side === "runner" ? "runner" : "corp";
       options.push({
         id: "decline",
         label: "Decline",
         effect: {
           op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
+          action: { kind: "gain_credits", side: chooser, amount: 0 },
         },
       });
       openPendingChoose(state, {
         sourceId,
-        chooser: "corp",
+        chooser,
         options,
         logLine: `${source.title} — may derez another installed card (CR ${CR.derez.number}).`,
       });

@@ -928,6 +928,34 @@ function installedCardsTrashCostBonusTotal(state: GameState): number {
   return bonus;
 }
 
+/**
+ * Mahkota Langit Grid: "You can spend hosted credits to rez assets in the
+ * root of this server and ice protecting this server." Only an asset in
+ * the root or a piece of ice qualifies, not an upgrade (CR 1.2.1), and only
+ * while the grid is rezzed: its persistent ability is the trash cost bonus,
+ * not this one (CR 9.3.6e).
+ */
+function hostServerRezSpenders(
+  state: GameState,
+  cardId: string,
+  payCost: number,
+): CardInstance[] {
+  const host = hostServerForCard(state, cardId);
+  const target = state.cards[cardId];
+  if (!host || !target || payCost <= 0) return [];
+  const inRoot = host.root.includes(cardId);
+  if (inRoot ? target.type !== "asset" : target.type !== "ice") return [];
+  const spenders: CardInstance[] = [];
+  for (const id of host.root) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const up = state.cards[id];
+    if (!up?.recurringSpendFor?.includes("rez_host_server")) continue;
+    if (!up.rezzed) continue;
+    spenders.push(up);
+  }
+  return spenders;
+}
+
 /** Spend Mahkota recurring credits toward a Corp rez on the host server. */
 /** Recurring credits a rezzed root card could spend on this rez, without spending them. */
 export function quoteHostServerRecurringTowardCorpRez(
@@ -935,15 +963,9 @@ export function quoteHostServerRecurringTowardCorpRez(
   cardId: string,
   payCost: number,
 ): number {
-  const host = hostServerForCard(state, cardId);
-  if (!host || payCost <= 0) return payCost;
   let left = payCost;
-  for (const id of host.root) {
+  for (const up of hostServerRezSpenders(state, cardId, payCost)) {
     if (left <= 0) break;
-    if (abilitiesSuppressed(state, id)) continue;
-    const up = state.cards[id];
-    if (!up?.recurringSpendFor?.includes("rez_host_server")) continue;
-    if (!up.rezzed && !up.persistent) continue;
     left -= Math.min(left, up.recurringCredits ?? 0);
   }
   return left;
@@ -954,15 +976,9 @@ export function applyHostServerRecurringTowardCorpRez(
   cardId: string,
   payCost: number,
 ): number {
-  const host = hostServerForCard(state, cardId);
-  if (!host || payCost <= 0) return payCost;
   let left = payCost;
-  for (const id of host.root) {
+  for (const up of hostServerRezSpenders(state, cardId, payCost)) {
     if (left <= 0) break;
-    if (abilitiesSuppressed(state, id)) continue;
-    const up = state.cards[id];
-    if (!up?.recurringSpendFor?.includes("rez_host_server")) continue;
-    if (!up.rezzed && !up.persistent) continue;
     const pool = up.recurringCredits ?? 0;
     if (pool <= 0) continue;
     const take = Math.min(left, pool);

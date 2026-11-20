@@ -2910,7 +2910,9 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
       ice: [],
     };
     commitCheckpointSnapshot(s, "baseline");
+    // The Corp advances it (CR 1.18.1), as advanceCard records.
     asset.advancementCounters = 1;
+    s.turn.advancedSincePreviousCheckpoint.push("pad-1");
 
     const leftover = createPendingAbilityInstance(s, {
       abilityKey: "amaze:run-ends",

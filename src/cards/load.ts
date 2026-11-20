@@ -274,6 +274,7 @@ export interface CardDef {
   /** Baklan: first ice encounter each run. */
   onFirstEncounterEachRun?: Effect;
   onFirstCorpCardTrashEachTurn?: Effect;
+  onFirstInstalledCorpCardTrashEachTurn?: Effect;
   onFirstRunnerStoleOrTrashedCorpCardThisTurn?: Effect;
   onAccessTrash?: Effect;
   onFirstCorpRootInstallEachTurn?: Effect;
@@ -1849,6 +1850,10 @@ function validateCardShape(raw: unknown, path: string): CardDef {
   );
   checkEffect(c.onFirstEncounterEachRun, "onFirstEncounterEachRun");
   checkEffect(c.onFirstCorpCardTrashEachTurn, "onFirstCorpCardTrashEachTurn");
+  checkEffect(
+    c.onFirstInstalledCorpCardTrashEachTurn,
+    "onFirstInstalledCorpCardTrashEachTurn",
+  );
   checkEffect(
     c.onFirstRunnerStoleOrTrashedCorpCardThisTurn,
     "onFirstRunnerStoleOrTrashedCorpCardThisTurn",
@@ -3578,6 +3583,11 @@ export function instantiateCard(
   if (def.onFirstCorpCardTrashEachTurn) {
     card.onFirstCorpCardTrashEachTurn = structuredClone(
       def.onFirstCorpCardTrashEachTurn,
+    );
+  }
+  if (def.onFirstInstalledCorpCardTrashEachTurn) {
+    card.onFirstInstalledCorpCardTrashEachTurn = structuredClone(
+      def.onFirstInstalledCorpCardTrashEachTurn,
     );
   }
   if (def.onFirstRunnerStoleOrTrashedCorpCardThisTurn) {

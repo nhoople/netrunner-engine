@@ -450,6 +450,7 @@ export function applyRedsandBawPrimitive(
             kind: "place_advancements_on",
             cardId: id,
             amount: x,
+            advance: true,
           }),
         })),
       });

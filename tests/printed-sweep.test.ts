@@ -12,16 +12,20 @@
  *     "cards": {
  *       "<card id>": {
  *         "cycle": "<the session's cycle>",
- *         "result": "matches" | "wrong" | "filed",
- *         "abilities": ["which ability is off, in words"],   // wrong, filed
+ *         "result": "matches" | "wrong" | "filed" | "fixed",
+ *         "abilities": ["which ability is off, in words"],   // not matches
  *         "note": "what was checked or what is wrong",
- *         "cr": ["1.2.1"]                                     // wrong: required
+ *         "cr": ["1.2.1"],                                    // wrong, fixed
+ *         "fixedIn": "engine#948",                            // fixed
+ *         "test": "the test name that proves the fix"         // fixed
  *       }
  *     }
  *   }
  *
  * "wrong" is the card's own mistake, fixed by the batch's fix session.
  * "filed" is a bug in a shared procedure; its note names the area ("area 8").
+ * "fixed" is a card a fix session (PF-S1, …) made play as printed: it names
+ * the engine PR and a test in tests/ whose name states the printed behavior.
  *
  * Later sessions only add: one `sessions` row and its cycle's cards. A card
  * reprinted in a later cycle keeps the entry of the cycle that first swept it.
@@ -47,8 +51,17 @@ const CR_NODES = join(ROOT, "vendor/cr-data/nodes.json");
 const SWEEP_PATH = join(ROOT, "tests/baselines/printed-sweep.json");
 const PHRASES_PATH = join(ROOT, "tests/baselines/printed-phrases.json");
 
-const RESULTS = ["matches", "wrong", "filed"] as const;
-const ENTRY_KEYS = new Set(["cycle", "result", "abilities", "note", "cr"]);
+const RESULTS = ["matches", "wrong", "filed", "fixed"] as const;
+const ENTRY_KEYS = new Set([
+  "cycle",
+  "result",
+  "abilities",
+  "note",
+  "cr",
+  "fixedIn",
+  "test",
+]);
+const FIXED_IN = /^engine#\d+$/;
 const SESSION_ID = /^S[1-3][a-z]+$/;
 const AREA = /\barea (\d+)\b/i;
 
@@ -64,6 +77,8 @@ interface Entry {
   abilities?: string[];
   note: string;
   cr?: string[];
+  fixedIn?: string;
+  test?: string;
 }
 
 interface Sweep {
@@ -75,6 +90,15 @@ interface Sweep {
 
 const readJson = <T>(path: string): T =>
   JSON.parse(readFileSync(path, "utf8")) as T;
+
+/** The text of every test file, to find a fixed card's test by its name. */
+function testSources(): string {
+  const dir = join(ROOT, "tests");
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".test.ts"))
+    .map((f) => readFileSync(join(dir, f), "utf8"))
+    .join("\n");
+}
 
 /**
  * A printing's `pack` is usually a set id, but some printings use an older
@@ -191,6 +215,7 @@ describe("printed-text sweep record", () => {
 
   it("has well-formed entries for cards that exist", () => {
     const sessionCycles = new Set(sweep.sessions.map((s) => s.cycle));
+    const sources = testSources();
     const problems: string[] = [];
     for (const [id, e] of Object.entries(sweep.cards)) {
       const bad = (why: string) => problems.push(`${id}: ${why}`);
@@ -220,6 +245,15 @@ describe("printed-text sweep record", () => {
       }
       if (e.result !== "matches" && !e.abilities) bad("name the abilities");
       if (e.result === "wrong" && !e.cr) bad("a wrong card cites the CR");
+      if (e.result === "fixed") {
+        if (!e.cr) bad("a fixed card cites the CR");
+        if (!FIXED_IN.test(e.fixedIn ?? "")) bad('fixedIn is "engine#N"');
+        if (!e.test || !sources.includes(e.test)) {
+          bad(`no test named ${JSON.stringify(e.test)} in tests/`);
+        }
+      } else if (e.fixedIn !== undefined || e.test !== undefined) {
+        bad("only a fixed card names fixedIn and test");
+      }
       if (e.result === "filed") {
         const m = AREA.exec(e.note ?? "");
         if (!m) bad('a filed card names its area ("area 8")');
@@ -228,12 +262,16 @@ describe("printed-text sweep record", () => {
     expect(problems).toEqual([]);
   });
 
-  it("leaves no 1.12 baseline entry on a card that matches", () => {
+  it("leaves no 1.12 baseline entry on a card that matches or is fixed", () => {
     const phrases = readJson<{ entries: Record<string, string[]> }>(
       PHRASES_PATH,
     );
     const stale = Object.entries(sweep.cards)
-      .filter(([id, e]) => e.result === "matches" && phrases.entries[id])
+      .filter(
+        ([id, e]) =>
+          (e.result === "matches" || e.result === "fixed") &&
+          phrases.entries[id],
+      )
       .map(([id]) => id);
     expect(stale).toEqual([]);
   });

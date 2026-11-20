@@ -577,12 +577,15 @@ export function applySwapKinds(
     }
 
     case "may_swap_ice_with_other_installed": {
+      // The ice to swap is the source, or the ice the ability names (Sipa:
+      // the ice the Runner just passed).
+      const firstId = action.iceId ?? sourceId;
       const others: string[] = [];
       let installed = false;
       for (const server of Object.values(state.servers)) {
-        if (server.ice.includes(sourceId)) installed = true;
+        if (server.ice.includes(firstId)) installed = true;
         for (const id of server.ice) {
-          if (id !== sourceId) others.push(id);
+          if (id !== firstId) others.push(id);
         }
       }
       if (!installed) {
@@ -618,11 +621,12 @@ export function applySwapKinds(
               action: {
                 kind: "swap_two_installed_ice" as const,
                 otherIceId: id,
+                ...(action.iceId ? { iceId: action.iceId } : {}),
               },
             },
           })),
         ],
-        logLine: `May swap ${source.title} with another installed ice.`,
+        logLine: `May swap ${state.cards[firstId]!.title} with another installed ice.`,
       });
       return { ok: true };
     }

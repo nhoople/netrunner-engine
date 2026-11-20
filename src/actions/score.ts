@@ -132,6 +132,7 @@ export function advanceCard(state: GameState, cardId: string): ApplyResult {
   });
   const prior = card.advancementCounters ?? 0;
   card.advancementCounters = prior + 1;
+  (state.turn.advancedSincePreviousCheckpoint ??= []).push(cardId);
   const serverId = card.zone.split(":")[1] as ServerId;
   const firstOnThisServer = !state.turn.advancedThisTurn.some((id) => {
     const other = state.cards[id];
@@ -357,13 +358,36 @@ export function fireScoreOrStealSideEffects(
       for (const id of server.root) {
         const up = state.cards[id];
         if (!up?.rezzed || !up.searchRdNonAgendaOnScoreFromServer) continue;
+        if (abilitiesSuppressed(state, id)) continue;
+        // Malapert Data Vault: "you may search R&D for 1 non-agenda card and
+        // reveal it" — the Corp may decline (CR 9.6.9a), and the found card
+        // is revealed (CR 8.7.3).
         noteInlineConditional(state, {
           cardId: id,
           abilityKey: "search-rd-non-agenda-on-score-from-server",
           controller: "corp",
           mandatory: true,
-          effect: fx.searchRdNonAgenda(),
-          logLine: `${up.title} becomes pending — agenda scored from this server (search R&D).`,
+          effect: {
+            op: "choose",
+            chooser: "corp",
+            options: [
+              {
+                id: "search",
+                label: "Search R&D for 1 non-agenda card and reveal it",
+                effect: fx.searchRdNonAgenda(true),
+              },
+              {
+                id: "decline",
+                label: "Decline",
+                effect: fx.do({
+                  kind: "gain_credits",
+                  side: "corp",
+                  amount: 0,
+                }),
+              },
+            ],
+          },
+          logLine: `${up.title} becomes pending — agenda scored from this server (may search R&D).`,
         });
       }
     }

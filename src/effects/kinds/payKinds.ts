@@ -223,6 +223,7 @@ export function applyPayKinds(
               kind: "trash_hq",
               amount: 3,
               pick: "choose",
+              reveal: true,
             },
           },
         });

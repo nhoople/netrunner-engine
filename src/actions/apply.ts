@@ -72,6 +72,7 @@ import {
   runnerCreditsFor,
   spendRunnerCreditsFor,
   subtractRunnerCreditPool,
+  activeCreditLockEvent,
 } from "../state/costs.js";
 import {
   acceptPendingDamage,
@@ -197,6 +198,7 @@ import {
   heliamphoraHostInsteadAvailable,
   hostCorpCardFaceupOn,
   payStealAdditionalCosts,
+  printedRezOrPlayCost,
   stealAdditionalCosts,
   stealAdditionalCreditsForAgenda,
   stealNetOrMeatPrevented,
@@ -1328,6 +1330,17 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       if (pending.backupPlanIgnoreAdditionalCosts) {
         mods.backupPlanIgnoreAdditionalCosts = true;
         mods.backupPlanBypassIceId = pending.backupPlanBypassIceId;
+      }
+      // Aircheck's follow-up run: the event is still active, so its hosted
+      // credits are spendable and the credit pool stays locked (CR 8.6.5).
+      const lockEvent = activeCreditLockEvent(state);
+      if (lockEvent && lockEvent.id === pending.sourceId) {
+        mods.blockCreditPoolSpendAndLose = true;
+        const hosted = lockEvent.hostedCredits ?? 0;
+        if (hosted > 0) {
+          mods.eventCredits = (mods.eventCredits ?? 0) + hosted;
+          lockEvent.hostedCredits = 0;
+        }
       }
       const walked = startRun(
         state,
@@ -3507,7 +3520,12 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         return fail("Lampades trash not available.", [CR.trashing]);
       }
       const accessed = next.cards[action.cardId];
-      const printed = accessed?.rezCost ?? accessed?.playCost ?? 0;
+      const printed = accessed ? printedRezOrPlayCost(accessed) : null;
+      if (printed === null) {
+        return fail("That card has no printed rez or play cost.", [
+          CR.trashing,
+        ]);
+      }
       const stealthCost = {
         credits: printed,
         creditsFromStealthOnly: true as const,

@@ -6,6 +6,7 @@ import { log } from "../state/createGame.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/gamenet.js";
 import {
   emptyRunnerCreditPool,
+  runnerCreditPoolLocked,
   subtractRunnerCreditPool,
 } from "../state/costs.js";
 import { onCorpAbilityGainedCredits } from "../state/cardDeclarations.js";
@@ -86,7 +87,7 @@ export function applyCreditPrimitive(
     }
     case "lose_all_credits": {
       const side = resolveSide(ctx, action.side);
-      if (side === "runner" && state.run?.blockCreditPoolSpendAndLose) {
+      if (side === "runner" && runnerCreditPoolLocked(state)) {
         log(
           state,
           `Runner cannot lose credits from credit pool (Aircheck-class block).`,
@@ -139,11 +140,7 @@ export function applyCreditPrimitive(
           cites: [CR.gainCredits],
         };
       }
-      if (
-        side === "runner" &&
-        state.run?.blockCreditPoolSpendAndLose &&
-        amount > 0
-      ) {
+      if (side === "runner" && runnerCreditPoolLocked(state) && amount > 0) {
         log(
           state,
           `Runner cannot lose credits from credit pool (Aircheck-class block).`,

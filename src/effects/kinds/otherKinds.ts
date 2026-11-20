@@ -10,6 +10,8 @@ import {
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
+import { abilitiesSuppressed } from "../../state/abilities.js";
+import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
 import { chooseCards } from "../chooseCards.js";
 import {
   effectiveIceSubtypes,
@@ -39,6 +41,7 @@ import {
   addBreakerStrengthBoostThisRun,
   addBreakerStrengthBoostThisTurn,
   addBreakerStrengthBoostUntilCheckpoint,
+  addAllIceStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
   addIceStrengthBoostThisTurn,
   addLingeringEffect,
@@ -249,24 +252,20 @@ export function applyOtherKinds(
     }
 
     case "fortify_all_ice": {
+      // "Each piece of ice gets +N strength for the remainder of this run"
+      // (ezaM, Red Tape, Tributary): one run-duration lingering effect
+      // that every piece of ice reads (CR 9.10.1, 9.10.4).
       if (!state.run) {
         log(state, `Fortify all ice — no run.`);
         return { ok: true };
       }
-      let n = 0;
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          addIceStrengthBoostThisEncounter(state, {
-            createdBy: sourceId,
-            iceId: id,
-            amount: action.amount,
-          });
-          n += 1;
-        }
-      }
+      addAllIceStrengthBoostThisRun(state, {
+        createdBy: sourceId,
+        amount: action.amount,
+      });
       log(
         state,
-        `Each ice gets +${action.amount} strength this run (${n} ice).`,
+        `Each piece of ice gets +${action.amount} strength for the remainder of this run.`,
       );
       return { ok: true };
     }
@@ -2308,7 +2307,10 @@ export function applyOtherKinds(
         enc.brokePrintedSubWithDecoder = true;
       }
       maybeFireFluxFirstBreakCharge(state);
-      // Tungsten Tailor: first break this turn on ice with strength ≤ N → +1¢.
+      // The Tungsten Tailor: "The first time each turn you break a
+      // subroutine on a piece of ice with 0 or less strength, gain 1¢." A
+      // conditional ability: it becomes pending at the next checkpoint
+      // (CR 9.3.2b) and a blank Tailor does nothing (CR 9.6.2).
       if (!state.turn.tungstenBreakCreditUsedThisTurn) {
         const iceStr = iceStrength(state, enc.iceId);
         for (const rid of state.runner.installed) {
@@ -2316,13 +2318,20 @@ export function applyOtherKinds(
           if (rc?.gainCreditOnBreakIceStrengthLteOncePerTurn === undefined) {
             continue;
           }
+          if (abilitiesSuppressed(state, rid)) continue;
           if (iceStr <= rc.gainCreditOnBreakIceStrengthLteOncePerTurn) {
             state.turn.tungstenBreakCreditUsedThisTurn = true;
-            state.runner.credits += 1;
-            log(
-              state,
-              `${rc.title} — gain 1¢ (break on ice strength ${iceStr}).`,
-            );
+            noteInlineConditional(state, {
+              cardId: rid,
+              abilityKey: "gain-credit-on-break-ice-strength-lte",
+              controller: "runner",
+              mandatory: true,
+              effect: {
+                op: "do",
+                action: { kind: "gain_credits", side: "runner", amount: 1 },
+              },
+              logLine: `${rc.title} becomes pending — broke a subroutine on ice with strength ${iceStr}.`,
+            });
             break;
           }
         }
@@ -3723,9 +3732,10 @@ export function applyOtherKinds(
       state.turn.ryoPhoenixFiredThisTurn = true;
       state.runner.credits += 1;
       log(state, `${source.title} — gain 1¢ (successful run after sub).`);
+      // "The Corp trashes 1 card from HQ": the Corp chooses (CR 1.15.2).
       return applyPrimitive(ctx, {
         kind: "trash_hq",
-        pick: "random",
+        pick: "choose",
         amount: 1,
       });
     }

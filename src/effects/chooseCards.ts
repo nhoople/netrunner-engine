@@ -17,6 +17,7 @@ import { deferContinuationAfter } from "./continuation.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
 import { trashCard } from "../state/procedures/trash.js";
+import { revealCards } from "../state/reveal.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -38,6 +39,8 @@ function verb(purpose: Purpose, label?: string): string {
       return "discard";
     case "trash_hq":
       return "trash from HQ";
+    case "reveal_trash_hq":
+      return "reveal and trash from HQ";
     case "archives_to_hq":
       return "add to HQ from Archives";
     case "shuffle_archives_to_rd":
@@ -86,6 +89,20 @@ function finish(
       log(
         state,
         `Corp trashes ${ids.length} card(s) from HQ (CR ${CR.trashing.number}).`,
+      );
+      break;
+    }
+    case "reveal_trash_hq": {
+      // Revealed cards are seen by the Runner, so they go to Archives
+      // faceup (CR 1.21.3, 4.4.6b).
+      const inHq = ids.filter((id) => state.corp.hand.includes(id));
+      revealCards(state, inHq, ctx.sourceId);
+      for (const id of inHq) {
+        trashCard(state, id, { by: "corp", faceup: true });
+      }
+      log(
+        state,
+        `Corp reveals and trashes ${inHq.length} card(s) from HQ (CR ${CR.reveal.number}).`,
       );
       break;
     }
