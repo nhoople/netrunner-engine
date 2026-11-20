@@ -900,9 +900,10 @@ describe("ice trashed during a run (CR 6.2.7)", () => {
 });
 
 // jnet: game.core.runs-test/forced-encounters-forced-encounters-outside-of-run
-// Blocked: Quest Completed's access needs a run in this engine, so it does
-// nothing outside one (the fix-now finding that FX-salem holds). The three
-// boards (continue, End the run, Flip Switch's jack out) need it.
+// Engine bug, filed under area 14 (6.1.4b): Quest Completed's access
+// outside a run is modelled as a run on the remote, so ending the forced
+// encounter from it declares an unsuccessful run. CR 6.1.4b resolves no
+// other Run Ends step. (Quest Completed itself was fixed by FX-salem.)
 describe.skip("forced encounters outside a run (CR 6.1.4b, 6.5.9a)", () => {
   function questCompletedIntoLittleEngine(runnerHand: string[]) {
     let s = board({
@@ -925,10 +926,12 @@ describe.skip("forced encounters outside a run (CR 6.1.4b, 6.5.9a)", () => {
       s = driveRun(s, (labels) => labels[0]!);
     }
     s = playEvent(s, "Quest Completed");
-    s = choose(s, "Ganked!");
+    // The option does not name the facedown card (CR 1.21.1).
+    s = choose(s, "Access unrezzed card");
+    s = passUntil(s, (x) => x.timingKey === "breach.awaitAccess", "the access");
+    s = must(s, { type: "access_card", cardId: card(s, "Ganked!").id });
     s = choose(s, "Trash Ganked!");
     s = passUntil(s, encountering(le), "forced encounter with Little Engine");
-    expect(s.run?.encounterOutsideRun).toBe(true);
     return { s, le };
   }
 

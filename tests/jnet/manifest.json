@@ -1715,9 +1715,9 @@
     "classification": "engine-bug",
     "crCite": "6.1.4b, 6.5.9a",
     "classificationBasis": "probe",
-    "classificationNote": "Blocked: Quest Completed's access needs a run in this engine, so it does nothing outside one (the fix-now finding the FX-salem session holds). Tests are written and skipped. Open reading for the Flip Switch block: CR 6.1.5 describes jacking out as ending a run; jnet lets Flip Switch's jack out end a forced encounter with no run, which CR 6.1.4b supports only by analogy.",
+    "classificationNote": "With Quest Completed fixed (engine #957), the forced encounter outside a run is reached, and the third Little Engine subroutine does not resolve. Wrong: the out-of-run access is modelled as a run on the remote, so ending the forced encounter declares an unsuccessful run; CR 6.1.4b resolves no other Run Ends step. Open reading for the Flip Switch block: CR 6.1.5 describes jacking out as ending a run; jnet lets Flip Switch's jack out end a forced encounter with no run, which CR 6.1.4b supports only by analogy.",
     "nativeTestFile": "tests/jnet-interactions-runs.test.ts",
-    "engineBugArea": "8. Access"
+    "engineBugArea": "14. Run flow"
   },
   "game.core.runs-test/forced-encounters-forced-encounters-redirection": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",
