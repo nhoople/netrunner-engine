@@ -33,57 +33,23 @@ import {
   scanCitations,
   testFiles,
 } from "./cr-citations.js";
+import {
+  loadOwnerTable,
+  OWNER,
+  ownerRank,
+  type OwnerTable,
+  sectionOf,
+  within,
+} from "./cr-owners.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   assertPinnedTag("v26.03");
 });
 
-const TABLE_PATH = join(ROOT, "tests/cr-section-owners.json");
 const BASELINE_PATH = join(ROOT, "tests/baselines/cr-section-owners.json");
 const GENERATED_PATH = join(ROOT, "tests/generated/cr-section-owners.md");
 const SELF = "tests/cr-section-owners.test.ts";
-
-type Entry = {
-  owner: string;
-  subrules?: Record<string, string>;
-  why: string;
-};
-
-type OwnerTable = {
-  crTag: string;
-  sections: Record<string, Entry>;
-};
-
-const OWNER =
-  /^(?:area (?:[1-9]|1[0-6])|fidelity|standardization|reference|none)$/;
-
-/** Owners in report order: areas 1–16, the earlier programs, reference, none. */
-function ownerRank(owner: string): number {
-  const area = /^area (\d+)$/.exec(owner);
-  if (area) return Number(area[1]);
-  return (
-    100 + ["fidelity", "standardization", "reference", "none"].indexOf(owner)
-  );
-}
-
-/** The section (`n.n`) a rule number belongs to, or null for a chapter. */
-function sectionOf(number: string): string | null {
-  return /^(\d+\.\d+)(?![\d])/.exec(number)?.[1] ?? null;
-}
-
-/**
- * Whether rule `number` is `parent` or under it: 8.5.10 is not under 8.5.1,
- * and 8.5.1b is.
- */
-function within(number: string, parent: string): boolean {
-  return (
-    number === parent ||
-    number.startsWith(`${parent}.`) ||
-    (/\d$/.test(parent) &&
-      new RegExp(`^${parent.replace(/\./g, "\\.")}[a-z]`).test(number))
-  );
-}
 
 type Row = {
   number: string;
@@ -199,7 +165,7 @@ describe("CR section owners (CR audit 1.13)", () => {
   const sections = nodes
     .filter((n) => n.kind === "section")
     .sort((a, b) => compareNumbers(a.number, b.number));
-  const table = JSON.parse(readFileSync(TABLE_PATH, "utf8")) as OwnerTable;
+  const table = loadOwnerTable();
   const pin = JSON.parse(
     readFileSync(join(ROOT, "vendor/cr-data/PIN.json"), "utf8"),
   ) as { tag?: string };

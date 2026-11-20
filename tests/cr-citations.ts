@@ -76,8 +76,18 @@ export function testFiles(...except: string[]): string[] {
   return out.sort();
 }
 
+// it("…"), it.skip('…'), it(`…`): the title is the first argument.
+const IT_TITLE = /\bit(?:\.\w+)?\(\s*(["'`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
+
+/** The title of every `it()` in a test file's text, in order. */
+export function itTitles(text: string): string[] {
+  return [...text.matchAll(IT_TITLE)].map((m) => m[2]!);
+}
+
+// A rule below chapter level: `8.5.11`, `7.4.1c`.
+const RULE_NUM = String.raw`\d+(?:\.\d+)+[a-z]?`;
 // `CR 8.5.11`, `CR 1.21.1–1.21.6`, `CR 7.2.1, 7.2.2 / 7.3`, `CR 9`.
-const CR_NUM = String.raw`\d+(?:\.\d+)+[a-z]?|\d+(?![\d.])`;
+const CR_NUM = String.raw`${RULE_NUM}|\d+(?![\d.])`;
 const CITE_SOURCE = String.raw`\bCR\s+((?:${CR_NUM})(?:\s*(?:,|–|—|-|/|&|and|or)\s*(?:${CR_NUM}))*)`;
 
 export type LiteralCitation = {
@@ -102,6 +112,26 @@ export function literalCitations(text: string): LiteralCitation[] {
     }
   }
   return out;
+}
+
+// A rule number in an it() title, with or without `CR `: `CR 8.5.11`,
+// `9.12.1d / 9.12.1e`, appendix timing steps like `11.4_2_b`, and the rule
+// part of an example number (`6.2.3` in `6.2.3.ex1`). Not part of
+// `v1.147.268`.
+const TITLE_RULE = new RegExp(
+  String.raw`(?<![\w.])(${RULE_NUM}(?:_[0-9a-z]+)*)(?:\.ex\d+)?(?!\w|\.\w)`,
+  "g",
+);
+
+/**
+ * Every rule number an it() title names. Unlike literalCitations, the `CR`
+ * prefix is optional, as it is for example numbers in tool 1.6: a test title
+ * that names `10.3.1a` cites it. A title that names an example (`6.2.3.ex1`)
+ * cites the rule the example illustrates (`6.2.3`). Callers keep only
+ * numbers that exist at the pin.
+ */
+export function titleRuleNumbers(title: string): string[] {
+  return [...title.matchAll(TITLE_RULE)].map((m) => m[1]!);
 }
 
 export function loadIndexNumbers(): Record<string, string> {
