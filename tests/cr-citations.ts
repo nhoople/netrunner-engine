@@ -77,11 +77,24 @@ export function testFiles(...except: string[]): string[] {
 }
 
 // it("…"), it.skip('…'), it(`…`): the title is the first argument.
-const IT_TITLE = /\bit(?:\.\w+)?\(\s*(["'`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
+const IT_TITLE = /\bit(?:\.(\w+))?\(\s*(["'`])((?:\\.|(?!\2)[\s\S])*?)\2/g;
 
 /** The title of every `it()` in a test file's text, in order. */
 export function itTitles(text: string): string[] {
-  return [...text.matchAll(IT_TITLE)].map((m) => m[2]!);
+  return itCalls(text).map((c) => c.title);
+}
+
+/**
+ * Every `it()` in a test file's text, in order, with its modifier: `skip`
+ * for `it.skip`, `todo` for `it.todo`, null for a plain `it`.
+ */
+export function itCalls(
+  text: string,
+): Array<{ title: string; modifier: string | null }> {
+  return [...text.matchAll(IT_TITLE)].map((m) => ({
+    title: m[3]!,
+    modifier: m[1] ?? null,
+  }));
 }
 
 // A rule below chapter level: `8.5.11`, `7.4.1c`.
