@@ -4,10 +4,10 @@
   "totals": {
     "rulings": 275,
     "cards": 134,
-    "tested": 71,
-    "filed": 25,
+    "tested": 96,
+    "filed": 34,
     "unreachable": 1,
-    "uncited": 178
+    "uncited": 144
   },
   "types": [
     {
@@ -27,9 +27,9 @@
     {
       "type": "ice",
       "rulings": 34,
-      "tested": 0,
-      "filed": 0,
-      "uncited": 34
+      "tested": 25,
+      "filed": 9,
+      "uncited": 0
     },
     {
       "type": "resource",
@@ -85,14 +85,26 @@
     "algernon#1": [],
     "amaze-amusements#1": [],
     "amaze-amusements#2": [],
-    "anemone#1": [],
+    "anemone#1": [
+      "rulings-ice.test.ts › Anemone: rezzed by Send a Message during a run on its server, its rez ability still triggers (ruling 1)"
+    ],
     "anoetic-void#1": [],
     "anoetic-void#2": [],
-    "ansel-1-0#1": [],
-    "ansel-1-0#2": [],
-    "ansel-1-0#3": [],
-    "archer#1": [],
-    "archer#2": [],
+    "ansel-1-0#1": [
+      "rulings-ice.test.ts › Ansel 1.0: trashed while installing ice with its second subroutine, the encounter ends and its third subroutine does not resolve (ruling 1)"
+    ],
+    "ansel-1-0#2": [
+      "rulings-ice.test.ts › Ansel 1.0: ice installed with its second subroutine goes outermost, outward from the Runner, who never approaches it (ruling 2)"
+    ],
+    "ansel-1-0#3": [
+      "rulings-ice.test.ts › Ansel 1.0: after its third subroutine resolves, the Runner cannot trash an accessed card with Carnivore either (ruling 3; filed, area 8, CR 1.2.2: Carnivore's trash is still offered)"
+    ],
+    "archer#1": [
+      "rulings-ice.test.ts › Archer: Send a Message's \"ignoring all costs\" covers the agenda forfeit too (ruling 1)"
+    ],
+    "archer#2": [
+      "rulings-ice.test.ts › Archer: forfeiting Braintrust with 1 agenda counter still lowers the rez cost, so Archer costs 3 (ruling 2)"
+    ],
     "artificial-cryptocrash#1": [],
     "avgustina-ivanovskaya#1": [],
     "ayla-bios-rahim-simulant-specialist#1": [
@@ -108,7 +120,9 @@
     "backstitching#2": [],
     "backstitching#3": [],
     "backstitching#4": [],
-    "ballista#1": [],
+    "ballista#1": [
+      "rulings-ice.test.ts › Ballista: the Corp chooses whether to trash a program or end the run (ruling 1)"
+    ],
     "big-deal#1": [],
     "bladderwort#1": [],
     "bladderwort#2": [],
@@ -116,8 +130,12 @@
     "blood-in-the-water#2": [],
     "botulus#1": [],
     "botulus#2": [],
-    "bran-1-0#1": [],
-    "bran-1-0#2": [],
+    "bran-1-0#1": [
+      "rulings-ice.test.ts › Brân 1.0: the Corp may trash Brân while installing; the encounter ends and the Runner's next position is the new ice (ruling 1; filed, area 5, CR 8.5.7: no trash is offered during the install)"
+    ],
+    "bran-1-0#2": [
+      "rulings-ice.test.ts › Brân 1.0: ice it installs ignoring costs is unrezzed, and rezzing it when approached costs its rez cost (ruling 2)"
+    ],
     "captain-padma-isbister-intrepid-explorer#1": [
       "rulings-identity.test.ts › Captain Padma Isbister: a card with 2 power counters has at least 1, so it can be charged to 3 (ruling 1)"
     ],
@@ -177,19 +195,29 @@
     "divide-and-conquer#2": [
       "rulings-event.test.ts › Divide and Conquer: Aumakua gets a counter for each of the three breaches with nothing trashed or stolen (ruling 2)"
     ],
-    "diviner#1": [],
-    "diviner#2": [],
-    "diviner#3": [],
+    "diviner#1": [
+      "rulings-ice.test.ts › Diviner: a trashed card with play or install cost 0 does not end the run (ruling 1; filed, area 9, CR 1.2.1: it checks the grip count, not the trashed card)"
+    ],
+    "diviner#2": [
+      "rulings-ice.test.ts › Diviner: a trashed card with an X cost counts as 0, so it does not end the run (ruling 2; filed, area 9, CR 1.2.1: it checks the grip count, not the trashed card)"
+    ],
+    "diviner#3": [
+      "rulings-ice.test.ts › Diviner: it checks the cost of the card the net damage trashed from the grip, not HQ (ruling 3; filed, area 9, CR 1.2.1: it checks the grip count, not the trashed card)"
+    ],
     "dj-fenris#1": [],
     "docklands-pass#1": [],
     "dzmz-optimizer#1": [],
-    "echo#1": [],
+    "echo#1": [
+      "rulings-ice.test.ts › Echo: rezzing Echo places a power counter on it from its own ability (ruling 1)"
+    ],
     "egret#1": [],
     "emergency-shutdown#1": [
       "rulings-event.test.ts › Emergency Shutdown: a run on HQ with an active Crisium Grid is not a successful run, so it cannot be played afterward (ruling 1)"
     ],
     "endurance#1": [],
-    "envelopment#1": [],
+    "envelopment#1": [
+      "rulings-ice.test.ts › Envelopment: after it trashes itself mid-encounter, ice Ob Superheavy installs on the server is outward from the Runner (ruling 1)"
+    ],
     "esa-afontov-eco-insurrectionist#1": [
       "rulings-identity.test.ts › Esâ Afontov: the Corp chooses how many cards come from HQ without seeing R&D, then all are trashed at once and the R&D cards go facedown to Archives (ruling 1)"
     ],
@@ -207,14 +235,22 @@
     ],
     "fast-break#1": [],
     "fermenter#1": [],
-    "funhouse#1": [],
-    "funhouse#2": [],
-    "funhouse#3": [],
+    "funhouse#1": [
+      "rulings-ice.test.ts › Funhouse: taking the tag is a cost; a Runner who takes it and prevents it has not paid, so the run ends (ruling 1; filed, area 11, CR 1.16.11b: the encounter ability resolves again)"
+    ],
+    "funhouse#2": [
+      "rulings-ice.test.ts › Funhouse: with Jesminder Sareen's prevention, the Runner cannot take the tag and the run ends (ruling 2)"
+    ],
+    "funhouse#3": [
+      "rulings-ice.test.ts › Funhouse: bypassed by Inside Job, its encounter ability never resolves (ruling 3)"
+    ],
     "giordano-memorial-field#1": [],
     "guinea-pig#1": [
       "rulings-event.test.ts › Guinea Pig: the Runner may play it as the only card in the grip (ruling 1)"
     ],
-    "hakarl-1-0#1": [],
+    "hakarl-1-0#1": [
+      "rulings-ice.test.ts › Hákarl 1.0: rezzed by Send a Message during a run on its server, its rez ability still triggers (ruling 1)"
+    ],
     "hansei-review#1": [],
     "hyperbaric#1": [],
     "hyperloop-extension#1": [],
@@ -234,7 +270,9 @@
       "rulings-event.test.ts › Into the Depths: ice uninstalled while encountered was not passed, but ice passed before it was uninstalled still counts (ruling 3)"
     ],
     "into-the-depths#4": [],
-    "ivik#1": [],
+    "ivik#1": [
+      "rulings-ice.test.ts › Ivik: made a code gate by Tinkering, it does not lower its own rez cost, since it is not yet rezzed (ruling 1)"
+    ],
     "jailbreak#1": [
       "rulings-event.test.ts › Jailbreak: the Runner draws when the run is declared successful, before the breach (ruling 1)"
     ],
@@ -253,7 +291,9 @@
     "jinteki-restoring-humanity#2": [
       "rulings-identity.test.ts › Jinteki: Restoring Humanity: a card discarded to hand size at the end of the turn is the facedown card in Archives that gains 1 credit, since the gain comes after the hand size check (rulings 1, 2)"
     ],
-    "karuna#1": [],
+    "karuna#1": [
+      "rulings-ice.test.ts › Karunā: met through Ganked! mid-breach, the Runner may jack out, which ends the breach (ruling 1; filed, area 14, CR 6.1.5: the jack out has no effect after success)"
+    ],
     "leech#1": [],
     "light-the-fire#1": [],
     "light-the-fire#2": [],
@@ -270,9 +310,15 @@
     "manegarm-skunkworks#1": [],
     "manegarm-skunkworks#2": [],
     "mayfly#1": [],
-    "meridian#1": [],
-    "meridian#2": [],
-    "mestnichestvo#1": [],
+    "meridian#1": [
+      "rulings-ice.test.ts › Meridian: when the Runner adds it to their score area, the Corp gains nothing and the run goes on (ruling 1)"
+    ],
+    "meridian#2": [
+      "rulings-ice.test.ts › Meridian: Loki copying its subroutine offers the Runner to add Loki to their score area (ruling 2)"
+    ],
+    "mestnichestvo#1": [
+      "rulings-ice.test.ts › Mestnichestvo: its last counter spent, it is not advanced when the encounter ends, so Builder of Nations does no damage (ruling 1)"
+    ],
     "midnight-3-arcology#1": [],
     "minds-eye#1": [],
     "mitosis#1": [],
@@ -378,8 +424,12 @@
     "paricia#1": [],
     "paricia#2": [],
     "patchwork#1": [],
-    "pharos#1": [],
-    "ping#1": [],
+    "pharos#1": [
+      "rulings-ice.test.ts › Pharos: the Corp can advance it while it is unrezzed (ruling 1; filed, area 12, CR 1.18.3: Pharos cannot be advanced at all)"
+    ],
+    "ping#1": [
+      "rulings-ice.test.ts › Ping: rezzed by Send a Message during a run on its server, it gives the Runner a tag (ruling 1)"
+    ],
     "pinhole-threading#1": [
       "rulings-event.test.ts › Pinhole Threading: its access is not a breach, so Aumakua gets no counter (ruling 1; filed, area 14, CR 6.7.4c: the access is played as a breach)"
     ],
@@ -410,7 +460,9 @@
     "quetzal-free-spirit#1": [
       "rulings-identity.test.ts › Quetzal: Free Spirit: the break is a paid ability, used in the encounter's paid ability window for 0 credits, once per turn (ruling 1)"
     ],
-    "ravana-1-0#1": [],
+    "ravana-1-0#1": [
+      "rulings-ice.test.ts › Ravana 1.0: with only Ravanas as rezzed bioroids, its subroutine loops to no effect (ruling 1; filed, area 11, CR 10.1.6a: the loop overflows the call stack)"
+    ],
     "red-team#1": [],
     "regenesis#1": [],
     "regenesis#2": [],
@@ -461,7 +513,9 @@
     "sportsmetal-go-big-or-go-home#1": [
       "rulings-identity.test.ts › Sportsmetal: after the Corp draws 2 off a mid-breach steal, the Runner goes on accessing the new top card of R&D (ruling 1; filed, area 10, CR 9.3.7c: Sportsmetal never triggers)"
     ],
-    "stavka#1": [],
+    "stavka#1": [
+      "rulings-ice.test.ts › Stavka: rezzed by Send a Message during a run on its server, its rez ability still triggers (ruling 1)"
+    ],
     "steelskin-scarring#1": [
       "rulings-event.test.ts › Steelskin Scarring: played, it is trashed from the play area, so only its draw 3 resolves (ruling 1)"
     ],
@@ -494,9 +548,15 @@
     "the-twinning#6": [],
     "the-twinning#7": [],
     "thunder-art-gallery#1": [],
-    "tollbooth#1": [],
-    "tollbooth#2": [],
-    "tollbooth#3": [],
+    "tollbooth#1": [
+      "rulings-ice.test.ts › Tollbooth: a Runner who cannot pay 3 pays nothing and the run ends (ruling 1)"
+    ],
+    "tollbooth#2": [
+      "rulings-ice.test.ts › Tollbooth: a Runner who can pay 3 must pay it (ruling 2)"
+    ],
+    "tollbooth#3": [
+      "rulings-ice.test.ts › Tollbooth: bypassed by Inside Job, its toll never resolves (ruling 3)"
+    ],
     "tranquilizer#1": [],
     "tranquilizer#2": [],
     "tranquilizer#3": [],
@@ -527,7 +587,9 @@
     "vrcation#1": [
       "rulings-event.test.ts › VRcation: the Runner may play it with 1 click left; losing a click is part of the effect, not a cost (ruling 1)"
     ],
-    "wave#1": [],
+    "wave#1": [
+      "rulings-ice.test.ts › Wave: rezzed by Send a Message during a run on its server, its rez ability still triggers (ruling 1)"
+    ],
     "weyland-consortium-built-to-last#1": [
       "rulings-identity.test.ts › Weyland Consortium: advancing a card with no advancement counters gains 2 credits; advancing it again gains nothing (ruling 1)"
     ],
@@ -537,9 +599,15 @@
     "weyland-consortium-built-to-last#3": [
       "rulings-identity.test.ts › Weyland Consortium: Success advances one at a time, so only the first advancement gains 2 credits (ruling 3)"
     ],
-    "whitespace#1": [],
-    "whitespace#2": [],
-    "whitespace#3": [],
+    "whitespace#1": [
+      "rulings-ice.test.ts › Whitespace: the second subroutine checks the Runner's credits after the first takes 3 (ruling 1)"
+    ],
+    "whitespace#2": [
+      "rulings-ice.test.ts › Whitespace: the 3 credits are lost from the credit pool, never from Overclock (ruling 2)"
+    ],
+    "whitespace#3": [
+      "rulings-ice.test.ts › Whitespace: Overclock's hosted credits are not credits the Runner has, so the run ends at 6 in the pool (ruling 3)"
+    ],
     "wildcat-strike#1": [
       "rulings-event.test.ts › Wildcat Strike: the Corp may choose the draw with fewer than 4 cards in the stack (ruling 1)"
     ],
@@ -551,19 +619,28 @@
     ]
   },
   "filed": [
+    "ansel-1-0#3",
     "ayla-bios-rahim-simulant-specialist#1",
+    "bran-1-0#1",
     "carpe-diem#3",
     "deep-dive#1",
+    "diviner#1",
+    "diviner#2",
+    "diviner#3",
+    "funhouse#1",
     "jinteki-personal-evolution#1",
+    "karuna#1",
     "nbn-reality-plus#4",
     "networking#1",
     "ob-superheavy-logistics-extract-export-excel#4",
     "ob-superheavy-logistics-extract-export-excel#15",
     "ob-superheavy-logistics-extract-export-excel#16",
     "ob-superheavy-logistics-extract-export-excel#17",
+    "pharos#1",
     "pinhole-threading#1",
     "pinhole-threading#3",
     "pinhole-threading#4",
+    "ravana-1-0#1",
     "reina-roja-freedom-fighter#1",
     "rene-loup-arcemont-party-animal#1",
     "running-hot#2",

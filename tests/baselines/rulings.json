@@ -1,5 +1,5 @@
 {
-  "_comment": "Shrink-only baseline for tests/rulings.test.ts (CR audit tool 1.14). Recorded 2026-11-20 at cards v1.147.25: rulings (card#n, numbered in file order) that no it() title in tests/rulings-*.test.ts cites. `uncited` lists them by card type for later batches, the type with the most rulings first; `unreachable` holds rulings no supported card can reach, with a dated reason. First batch (identities, P1-m): 33 rulings cited, 5 of them filed as findings.",
+  "_comment": "Shrink-only baseline for tests/rulings.test.ts (CR audit tool 1.14). Recorded 2026-11-20 at cards v1.147.25: rulings (card#n, numbered in file order) that no it() title in tests/rulings-*.test.ts cites. `uncited` lists them by card type for later batches, the type with the most rulings first; `unreachable` holds rulings no supported card can reach, with a dated reason. First batch (identities, P1-m): 33 rulings cited, 5 of them filed as findings. Second batch (P1-m, 2026-11-20): 20 identity, 43 event and 34 ice rulings cited, 29 of them filed; ob-superheavy#18 and into-the-depths#4 left for a later batch.",
   "cardsTag": "v1.147.25",
   "unreachable": {
     "ob-superheavy-logistics-extract-export-excel#20": "2026-11-20: a question about the card's art (the ships it shows), with no game behavior to test"
@@ -10,42 +10,6 @@
     ],
     "event": [
       "into-the-depths#4"
-    ],
-    "ice": [
-      "anemone#1",
-      "ansel-1-0#1",
-      "ansel-1-0#2",
-      "ansel-1-0#3",
-      "archer#1",
-      "archer#2",
-      "ballista#1",
-      "bran-1-0#1",
-      "bran-1-0#2",
-      "diviner#1",
-      "diviner#2",
-      "diviner#3",
-      "echo#1",
-      "envelopment#1",
-      "funhouse#1",
-      "funhouse#2",
-      "funhouse#3",
-      "hakarl-1-0#1",
-      "ivik#1",
-      "karuna#1",
-      "meridian#1",
-      "meridian#2",
-      "mestnichestvo#1",
-      "pharos#1",
-      "ping#1",
-      "ravana-1-0#1",
-      "stavka#1",
-      "tollbooth#1",
-      "tollbooth#2",
-      "tollbooth#3",
-      "wave#1",
-      "whitespace#1",
-      "whitespace#2",
-      "whitespace#3"
     ],
     "resource": [
       "avgustina-ivanovskaya#1",
