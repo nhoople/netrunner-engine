@@ -41,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.24");
+  assertCardsPinnedTag("v1.147.25");
 });
 
 function put(
@@ -8175,33 +8175,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.deck).toContain("arch-0");
     expect(after.state.corp.discardPile).not.toContain("arch-0");
-  });
-
-  it("Dummy Box: trashing a same-type grip card prevents the pending installed trash", () => {
-    const s = createInitialState();
-    put(s, "dummy-box", "db-1", "runner:installed");
-    put(s, "desperado", "hw-1", "runner:installed");
-    put(s, "plascrete-carapace", "grip-hw", "runner:hand");
-    put(s, "sure-gamble", "grip-ev", "runner:hand");
-    s.runner.installed = ["db-1", "hw-1"];
-    s.runner.hand = ["grip-hw", "grip-ev"];
-    s.pendingTrashPrevent = {
-      cardId: "hw-1",
-      trashExpected: true,
-      pendingInterruptIds: [],
-    };
-    runKind(s, "db-1", "trash_grip_same_type_prevent");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
-      "dummy:grip-hw",
-    ]);
-    const after = applyAction(s, {
-      type: "choose_option",
-      optionId: "dummy:grip-hw",
-    });
-    if (!after.ok) throw new Error(after.error);
-    expect(after.state.runner.discardPile).toContain("grip-hw");
-    expect(after.state.pendingTrashPrevent).toBeNull();
-    expect(after.state.runner.installed).toContain("hw-1");
   });
 
   it("Trade-In: additional cost trashes installed hardware and records half install cost", () => {

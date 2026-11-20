@@ -2,7 +2,6 @@
 import { log } from "../../state/createGame.js";
 import { addOutermostIce } from "../../state/runPosition.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import { corpInstallCost } from "../../state/costs.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
@@ -160,53 +159,6 @@ export function applyRedsandCdPrimitive(
       log(
         state,
         `Reshape — swap ${state.cards[a]?.title ?? a} and ${state.cards[b]?.title ?? b}.`,
-      );
-      return { ok: true };
-    }
-
-    case "trash_grip_same_type_prevent": {
-      const pendingId = state.pendingTrashPrevent?.cardId;
-      const pending = pendingId ? state.cards[pendingId] : undefined;
-      if (!pending) {
-        log(state, `Dummy Box — no pending installed trash.`);
-        return { ok: true };
-      }
-      const t = pending.type;
-      const gripMatches = state.runner.hand.filter(
-        (id) => state.cards[id]?.type === t,
-      );
-      if (gripMatches.length === 0) {
-        log(state, `Dummy Box — no ${t} in grip to trash.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: gripMatches.map((id) => ({
-          id: `dummy:${id}`,
-          label: `Trash ${state.cards[id]!.title} from grip`,
-          effect: fx.do({
-            kind: "trash_grip_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_grip_resolve": {
-      const id = action.cardId;
-      const idx = state.runner.hand.indexOf(id);
-      if (idx < 0) {
-        log(state, `Dummy Box — card no longer in grip.`);
-        return { ok: true };
-      }
-      const c = state.cards[id];
-      trashCard(state, id, { by: "runner", cause: "cost" });
-      preventPendingInstalledTrash(state);
-      log(
-        state,
-        `Dummy Box — trash ${c?.title ?? id} from grip; prevent installed trash.`,
       );
       return { ok: true };
     }
