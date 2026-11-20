@@ -10,7 +10,7 @@ Runs are local only, not in CI. Each Phase 3 area records its score here when it
 npm run mutate:swap
 ```
 
-There is one script per area: `mutate:hosting-trash`, `mutate:uninstall`, `mutate:swap`, `mutate:visibility`, `mutate:corp-install`, `mutate:runner-install`, `mutate:rez`, `mutate:access`, `mutate:damage`, `mutate:card-flags`, and `mutate:timing` for the RA-1 timing re-audit.
+There is one script per area: `mutate:hosting-trash`, `mutate:uninstall`, `mutate:swap`, `mutate:visibility`, `mutate:corp-install`, `mutate:runner-install`, `mutate:rez`, `mutate:access`, `mutate:damage`, `mutate:card-flags`, plus `mutate:timing` (RA-1 timing re-audit) and `mutate:continuous` (RA-2 continuous-effects re-audit).
 
 - `stryker/areas.mjs` sets each area's scope. `mutate` lists the helper files to change. The tests are the files that match the area's globs, plus any test whose text matches its `grep` pattern (CR cites, helper names, card titles).
 - `stryker/<area>.config.mjs` builds the Stryker config. Stryker uses the vitest runner with `stryker/vitest.config.mjs`, which narrows the suite to that area's tests and keeps the invariant hook.
@@ -28,6 +28,8 @@ A score is killed ÷ (killed + survived + no coverage). "Covered" leaves out the
 | 1. Hosting and trash (close) | 2026-11-19 | area 1 PR | 317 | 282 | 33 | 2 | 88.96% | 89.52% |
 | 3. Swap | 2026-11-13 | v1.147.252 | 1335 | 429 | 279 | 627 | 32.13% | 60.59% |
 | RA-1. Timing re-audit (start) | 2026-11-19 | v1.147.268 | 387 | 193 | 151 | 43 | 49.87% | 56.10% |
+| RA-2 Continuous effects (start) | 2026-11-19 | v1.147.268 | 770 | 467 | 217 | 86 | 60.65% | 68.27% |
+| RA-2 Continuous effects (with RA-2 tests) | 2026-11-19 | v1.147.269 + RA-2 tests | 770 | 516 | 198 | 56 | 67.01% | 72.27% |
 
 ## 1. Hosting and trash (2026-11-19)
 
@@ -47,6 +49,25 @@ No survivor changes the zone, face, host link, prevention window, or trash trigg
 - **Director Haas's pending record** (7): `controller`, `mandatory`, `independentOfSource` and the checkpoint guard. Haas's ability resolves in the same instruction, so no test observes these fields. Area 9 (prevention and pending abilities) can add a test that holds the record open.
 - **Marilyn Campaign's `unhostCard`** (1): Marilyn is never hosted in any card's text.
 - **The checkpoint's `wasInstalled` recompute guard** (1): recomputing link and hand size when nothing changed is harmless.
+
+## RA-2 Continuous effects (2026-11-19)
+
+Files mutated: `src/state/continuousEffects.ts` (the 9.12 blanking solver and subtype layer), `src/state/lingeringEffects.ts` (the 9.10 registry and its 10.3.1b expiry), `src/state/abilities.ts` and `src/state/pendingChoice.ts` (the S4 choice helper). Killed counts include timeouts. The re-audit writes tests only (`tests/continuous-effects-reaudit.test.ts`); RF fixes the paths it found wrong.
+
+| File | Start | With RA-2 tests | Covered | Survived | No coverage |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `continuousEffects.ts` | 54.42% | 65.58% | 71.03% | 115 | 33 |
+| `lingeringEffects.ts` | 68.69% | 68.37% | 73.54% | 77 | 22 |
+| `pendingChoice.ts` | 68.18% | 77.27% | 80.95% | 4 | 1 |
+| `abilities.ts` | 60.00% | 60.00% | 60.00% | 2 | 0 |
+
+### What survives
+
+- **The 9.12.1e loop tie-break** (`orderBlankingEffects`): the Hush-on-Magnet CR example passed whichever effect was listed first, so its tie-break mutants survived. The new order tests kill those; 8 survivors remain that are equivalent for a two-effect loop (a three-effect loop would tell them apart).
+- **Blanking collectors** (`collectBlankingEffects`, 54): card-specific branches (Rumor Mill's unique, non-region, asset-or-upgrade filter; Malia's root check; Light the Fire's root; Direct Access while resolving) that no test reaches with a non-matching card. Several of these sit on paths the re-audit found wrong (Rumor Mill reads every zone), so RF's fixes will change them.
+- **Subtype layer** (`resolveIceSubtypeMap`, `collectSubtypeGrantEffects`, 48): the barrier-only Sub Boost grant, the encounter and `granted_subtypes` grants, and the morph swap's even-count branch.
+- **Lingering readers** (`lingeringIceStrengthBoost`, `lingeringBreakerStrengthBoost`, 15): the "only while a run / an encounter is open" gates. These gates are what let a stale encounter effect come back in a later run (the RF finding on encounter durations).
+- **Test-only helpers and log text** (`suppressAbilities`, `clearSuppressedAbilities`, `removeLingeringEffectsOfKind`, the expiry log line): not CR-cited.
 
 ## 3. Swap (baseline, 2026-11-13)
 

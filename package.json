@@ -48,7 +48,8 @@
     "mutate:access": "stryker run stryker/access.config.mjs",
     "mutate:damage": "stryker run stryker/damage.config.mjs",
     "mutate:card-flags": "stryker run stryker/card-flags.config.mjs",
-    "mutate:timing": "stryker run stryker/timing.config.mjs"
+    "mutate:timing": "stryker run stryker/timing.config.mjs",
+    "mutate:continuous": "stryker run stryker/continuous.config.mjs"
   },
   "engines": {
     "node": ">=26"
