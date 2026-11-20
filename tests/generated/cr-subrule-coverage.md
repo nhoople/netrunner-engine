@@ -8,25 +8,25 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 
 | Owner | Subrules | Cited | Uncited |
 |---|---|---|---|
-| area 1 | 44 | 17 | 27 |
-| area 2 | 62 | 20 | 42 |
+| area 1 | 44 | 18 | 26 |
+| area 2 | 62 | 23 | 39 |
 | area 3 | 9 | 5 | 4 |
-| area 4 | 33 | 9 | 24 |
+| area 4 | 33 | 10 | 23 |
 | area 5 | 81 | 24 | 57 |
-| area 6 | 25 | 5 | 20 |
+| area 6 | 25 | 6 | 19 |
 | area 7 | 11 | 3 | 8 |
 | area 8 | 60 | 14 | 46 |
 | area 9 | 8 | 4 | 4 |
-| area 11 | 345 | 92 | 253 |
+| area 11 | 345 | 101 | 244 |
 | area 12 | 22 | 2 | 20 |
 | area 13 | 40 | 13 | 27 |
-| area 14 | 91 | 23 | 68 |
-| area 15 | 51 | 15 | 36 |
+| area 14 | 91 | 29 | 62 |
+| area 15 | 51 | 19 | 32 |
 | area 16 | 55 | 11 | 44 |
-| fidelity | 248 | 97 | 151 |
+| fidelity | 248 | 100 | 148 |
 | standardization | 47 | 27 | 20 |
-| reference | 280 | 31 | 249 |
-| **Total** | 1512 | 412 | 1100 |
+| reference | 280 | 34 | 246 |
+| **Total** | 1512 | 443 | 1069 |
 
 ## area 1
 
@@ -40,7 +40,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.13.2c | 1.13 | — |
 | 1.13.3 | 1.13 | tests/cr-examples-ch1.test.ts › does not lose hosted credits when the credit pool is emptied (CR 1.13.3.ex1)<br>tests/cr-examples-ch1.test.ts › fills the bad publicity fund from the Corp's bad publicity, not hosted counters (CR 1.13.3.ex2)<br>tests/cr-examples-ch1.test.ts › removes Corp bad publicity and leaves hosted bad publicity counters (CR 1.13.3.ex3) |
 | 1.13.4 | 1.13 | tests/invariants.test.ts › hostId with no entry in the host's list (CR 1.13.4): HOST_LINK_MISSING<br>tests/invariants.test.ts › an entry in the host's list whose hostId differs (CR 1.13.4): HOSTED_BACKLINK_MISSING |
-| 1.13.5 | 1.13 | — |
+| 1.13.5 | 1.13 | tests/jnet-interactions-rules.test.ts › Djinn can be hosted on Leprechaun, and Cyberdex Trial purges Imp hosted two levels down (CR 1.13.5, 10.1.2) |
 | 1.13.6 | 1.13 | — |
 | 1.13.6a | 1.13 | tests/cr-examples-ch1.test.ts › can install a connection hosted on Off-Campus Apartment (CR 1.13.6a.ex1) |
 | 1.13.6b | 1.13 | tests/cr-examples-ch1.test.ts › hosts a card on Glenn Station only through its paid ability (CR 1.13.6b.ex1) |
@@ -82,7 +82,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | Rule | Section | Cited by |
 |---|---|---|
 | 1.12.1 | 1.12 | tests/continuous-effects-reaudit.test.ts › RF: a lingering effect on a card ends when that card changes zones, since the moved card is a new object (CR 1.12.1, 9.10.1): Klevetnik's blank is keyed by card id, so a blanked resource that is trashed and reinstalled before the Corp's turn ends stays blank. Malia Z0L0K4's chosen-resource id is never cleared either<br>tests/invariants.test.ts › a rezzed Corp card in Archives (CR 8.1.1, 1.12.1): REZZED_OUTSIDE_PLAY<br>tests/nico-trash-rezzed.test.ts › is not rezzed in Archives after its last take (CR 8.1.1, 1.12.1) |
-| 1.12.2 | 1.12 | tests/cr-examples-ch1.test.ts › treats a reinstalled Vaporframe Fabricator as a new once-per-turn object (CR 1.12.2.ex1) |
+| 1.12.2 | 1.12 | tests/cr-examples-ch1.test.ts › treats a reinstalled Vaporframe Fabricator as a new once-per-turn object (CR 1.12.2.ex1)<br>tests/jnet-interactions-rules.test.ts › a PAD Campaign the Runner trashed, installed again from Archives by Interns, is a new facedown card the Runner's view does not name (CR 1.12.2, 1.21.1) |
 | 1.12.2a | 1.12 | tests/cr-examples-ch1.test.ts › places Priority Construction's advancements on the ice it just installed (CR 1.12.2a.ex1) |
 | 1.12.3 | 1.12 | tests/cr-examples-ch1.test.ts › shuffles Accelerated Beta Test's remaining cards when The Foundry searches R&D (CR 1.12.3.ex1)<br>tests/cr-examples-ch1.test.ts › makes Precognition's rearranged cards new objects (CR 1.12.3.ex2) |
 | 1.12.4 | 1.12 | tests/cr-examples-ch1.test.ts › keeps Femme Fatale's chosen ice after Thimblerig moves it (CR 1.12.4.ex1) |
@@ -123,15 +123,15 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 6.2.6a | 6.2 | tests/corp-install-process.test.ts › new ice goes outermost and the Runner keeps their ice (CR 6.2.6a)<br>tests/corp-install-process.test.ts › trashing the Runner's own ice first empties their position (CR 8.5.10, 6.2.6a.ex1)<br>tests/cr-examples-ch6.test.ts › installs Drafter's ice outward of the Runner (CR 6.2.6a.ex1)<br>tests/ice-installed-outermost.test.ts › the Runner keeps their position when ice is added outward of them (CR 6.2.6a) |
 | 6.2.6b | 6.2 | tests/cr-examples-ch6.test.ts › installs ice inward of Brân and the run approaches that ice (CR 6.2.6b.ex1)<br>tests/ice-uninstalled-during-run.test.ts › ice inward of the Runner leaving changes what they will approach (CR 6.2.6b) |
 | 6.2.7 | 6.2 | — |
-| 6.2.7a | 6.2 | — |
+| 6.2.7a | 6.2 | tests/jnet-interactions-runs.test.ts › trashing the approached middle ice sends the Runner to the Movement Phase, and they next approach the ice inward of it, not the ice already passed (CR 6.2.7a, 6.6.4)<br>tests/jnet-interactions-runs.test.ts › trashing the approached innermost ice sends the Runner to the Movement Phase and then to the server (CR 6.2.7a, 6.6.6) |
 | 6.2.7b | 6.2 | — |
-| 6.2.7c | 6.2 | tests/invariants.test.ts › encountering ice that isn't in the Runner's position (CR 6.2.7c, 6.2.7d): ENCOUNTER_ICE_MISMATCH<br>tests/invariants.test.ts › the encountered ice was uninstalled (CR 6.2.7c): no mismatch |
-| 6.2.7d | 6.2 | tests/cr-examples-ch6.test.ts › moves innermost Bullfrog to outermost Archives and continues the run there (CR 6.2.7d.ex1)<br>tests/invariants.test.ts › encountering ice that isn't in the Runner's position (CR 6.2.7c, 6.2.7d): ENCOUNTER_ICE_MISMATCH |
+| 6.2.7c | 6.2 | tests/invariants.test.ts › encountering ice that isn't in the Runner's position (CR 6.2.7c, 6.2.7d): ENCOUNTER_ICE_MISMATCH<br>tests/invariants.test.ts › the encountered ice was uninstalled (CR 6.2.7c): no mismatch<br>tests/jnet-interactions-runs.test.ts › trashing the encountered middle ice ends the encounter, and the Runner next approaches the ice inward of it (CR 6.2.7c, 6.6.4)<br>tests/jnet-interactions-runs.test.ts › trashing the encountered innermost ice ends the encounter and the Runner goes on to the server (CR 6.2.7c, 6.6.6) |
+| 6.2.7d | 6.2 | tests/cr-examples-ch6.test.ts › moves innermost Bullfrog to outermost Archives and continues the run there (CR 6.2.7d.ex1)<br>tests/invariants.test.ts › encountering ice that isn't in the Runner's position (CR 6.2.7c, 6.2.7d): ENCOUNTER_ICE_MISMATCH<br>tests/jnet-interactions-runs.test.ts › when Bullfrog, forced by Konjin, moves itself to Archives, the run goes on from Bullfrog's new position: Konjin's encounter finishes, then the Runner meets Ice Wall (CR 6.5.9d, 6.2.7d) |
 | 6.2.7e | 6.2 | tests/cr-examples-ch6.test.ts › approaches the ice Project Yagi-Uda swapped into the outermost position (CR 6.2.7e.ex1)<br>tests/cr-examples-ch6.test.ts › moves inward after Project Yagi-Uda swaps the ice the Runner already passed (CR 6.2.7e.ex2)<br>tests/ice-uninstalled-during-run.test.ts › the outermost ice leaving in the Initiation Phase leaves the step unchanged (CR 6.2.7e) |
 | 6.2.8 | 6.2 | — |
 | 6.2.8a | 6.2 | — |
-| 6.2.8b | 6.2 | — |
-| 6.2.8c | 6.2 | — |
+| 6.2.8b | 6.2 | tests/jnet-interactions-runs.test.ts › after Susanoo-no-Mikoto moves the Runner to Archives, they approach the ice protecting Archives (CR 6.2.8b)<br>tests/jnet-interactions-runs.test.ts › a breaker boosted during the encounter that moved the Runner is back to base strength once that encounter ends (CR 3.9.5b, 6.2.8b)<br>tests/jnet-interactions-runs.test.ts › when Cell Portal, forced by Konjin, moves the Runner to the outermost position of HQ, they approach and encounter Konjin again (CR 6.5.9d, 6.2.8b) |
+| 6.2.8c | 6.2 | tests/jnet-interactions-runs.test.ts › in the breach, Bullfrog moving itself does not move the Runner: the run stays on HQ and the access goes on (CR 6.2.8c, 6.5.9d) |
 | 6.2.8d | 6.2 | — |
 | 8.3.1 | 8.3 | tests/one-off-kind-outcomes.test.ts › Mandatory Seed Replacement: rearranges ice across servers (CR 8.3.1) |
 | 8.3.1a | 8.3 | — |
@@ -162,7 +162,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 
 | Rule | Section | Cited by |
 |---|---|---|
-| 1.21.1 | 1.21 | — |
+| 1.21.1 | 1.21 | tests/jnet-interactions-cards.test.ts › the ice Poétrï installs from HQ after a steal is facedown, and the Runner's view does not name it even though they accessed it this breach (CR 1.21.1)<br>tests/jnet-interactions-rules.test.ts › a PAD Campaign the Runner trashed, installed again from Archives by Interns, is a new facedown card the Runner's view does not name (CR 1.12.2, 1.21.1) |
 | 1.21.1a | 1.21 | tests/encounter-from-hidden-zone.test.ts › flags a Corp card left faceup in R&D, and not one being revealed (CR 1.21.1a, 1.21.6)<br>tests/looks-and-reveals.test.ts › does not show the Corp a card in the stack, whatever its faceup flag says (CR 1.21.1a) |
 | 1.21.1b | 1.21 | — |
 | 1.21.2 | 1.21 | tests/looks-and-reveals.test.ts › shows the top 3 cards of R&D to the Runner alone when Keyhole resolves (CR 1.21.2)<br>tests/looks-and-reveals.test.ts › shows the top 3 cards of R&D to the Corp alone for Accelerated Diagnostics (CR 1.21.2, CR 4.4.6b)<br>tests/unregistered-s-w-35.test.ts › a subtype filter does not match a facedown card the chooser cannot see (CR 1.21.2) |
@@ -303,7 +303,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 3.9.3c | 3.9 | — |
 | 3.9.3d | 3.9 | — |
 | 8.1.4 | 8.1 | — |
-| 8.1.4a | 8.1 | — |
+| 8.1.4a | 8.1 | tests/jnet-interactions-rules.test.ts › facedown Box-Es are not consoles; when Assimilator turns one faceup, Mirror, the console that was active first, is trashed (CR 8.1.4a, 10.3.1d) |
 | 8.1.4b | 8.1 | — |
 | 8.1.4c | 8.1 | tests/hosting-and-trash.test.ts › turns a Runner card faceup in the heap (CR 4.4.7b, 8.1.4c)<br>tests/hosting-and-trash.test.ts › a checkpoint faces a Runner card up and a Corp card up only if the Runner could see it (CR 4.4.6b, 8.1.4c) |
 | 8.1.4d | 8.1 | — |
@@ -455,7 +455,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.16.1c | 1.16 | tests/cr-examples-ch1.test.ts › does not suffer Zer0's net damage when the once-per-turn ability cannot be used (CR 1.16.1c.ex1)<br>tests/cr-examples-ch1.test.ts › cannot trash SanSan City Grid to score Azef Protocol (CR 1.16.1c.ex2) |
 | 1.16.1d | 1.16 | tests/cr-examples-ch1.test.ts › trashes Beanstalk Royalties with Freedom Khumalo for zero virus counters (CR 1.16.1d.ex1)<br>tests/who-trashes.test.ts › lets the Corp pay a cost of 0 when the root is empty (CR 1.16.1d) |
 | 1.16.2 | 1.16 | — |
-| 1.16.2a | 1.16 | — |
+| 1.16.2a | 1.16 | tests/jnet-interactions-cards.test.ts › Tithe costs 2 to rez under Tread Lightly with Vovô Ozetti: 1 + 3 − 2 (CR 1.16.2a)<br>tests/jnet-interactions-cards.test.ts › with Hernando Cortez and Vovô Ozetti, Tithe's rez cost floors at 0 and the additional cost of 2 (its subroutines) is paid on top (CR 1.16.2a, 1.16.10) |
 | 1.16.2b | 1.16 | tests/cr-examples-ch1.test.ts › pays Cayambe Grid's 6 credits as one payment, so GameNET gains 1 (CR 1.16.2b.ex1) |
 | 1.16.2c | 1.16 | tests/cr-examples-ch1.test.ts › cannot spend more credits on Psychographics than the Runner has tags (CR 1.16.2c.ex1) |
 | 1.16.2d | 1.16 | — |
@@ -478,7 +478,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.16.7 | 1.16 | — |
 | 1.16.8 | 1.16 | — |
 | 1.16.9 | 1.16 | — |
-| 1.16.10 | 1.16 | — |
+| 1.16.10 | 1.16 | tests/jnet-interactions-cards.test.ts › with Hernando Cortez and Vovô Ozetti, Tithe's rez cost floors at 0 and the additional cost of 2 (its subroutines) is paid on top (CR 1.16.2a, 1.16.10)<br>tests/jnet-interactions-cards.test.ts › Cyberdex Virus Suite's purge on access clears Aumakua, which then gains 1 for a breach with no steal or trash; stealing Degree Mill in the next breach leaves it at 0 (CR 10.1.2, 1.16.10)<br>tests/jnet-interactions-cards.test.ts › Net Shield prevents Neural EMP's net damage for 1 credit; the Corp pays 2 more under Wireless Net Pavilion to trash Off-Campus Apartment, and Fall Guy hosted on it prevents that trash (CR 9.9.5, 1.16.10) |
 | 1.16.10a | 1.16 | tests/cr-examples-ch1.test.ts › can decline Obokata Protocol's additional cost and not steal it (CR 1.16.10a.ex1) |
 | 1.16.10b | 1.16 | tests/cr-examples-ch1.test.ts › pays Predictive Algorithm and Ben Musashi together with Obokata Protocol (CR 1.16.10b.ex1) |
 | 1.16.10c | 1.16 | tests/cr-examples-ch1.test.ts › resolves Ob Superheavy Logistics before Azef Protocol is scored (CR 1.16.10c.ex1) |
@@ -491,7 +491,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.17.1a | 1.17 | tests/cr-examples-ch1.test.ts › sets the threat level to the higher agenda-point total (CR 1.17.1a.ex1) |
 | 1.17.2 | 1.17 | — |
 | 1.17.3 | 1.17 | — |
-| 1.17.3a | 1.17 | tests/illegal-intent-refusals.test.ts › names the missing advancement counters before the scoring window (CR 1.17.3a) |
+| 1.17.3a | 1.17 | tests/illegal-intent-refusals.test.ts › names the missing advancement counters before the scoring window (CR 1.17.3a)<br>tests/jnet-interactions-rules.test.ts › Ancestral Imager with fewer advancement counters than its requirement cannot be scored and stays installed (CR 1.17.3a) |
 | 1.17.3b | 1.17 | — |
 | 1.17.3c | 1.17 | — |
 | 1.17.3d | 1.17 | — |
@@ -508,7 +508,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 3.5.1c | 3.5 | — |
 | 3.9.5 | 3.9 | — |
 | 3.9.5a | 3.9 | — |
-| 3.9.5b | 3.9 | tests/continuous-effects-reaudit.test.ts › an icebreaker's pump ends at the checkpoint after the encounter while the run goes on (CR 9.10.4a, 3.9.5b, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › RF: an icebreaker's pump for the encounter ends when an unbroken subroutine ends the run during that encounter (CR 9.10.1, 10.3.1b, 3.9.5b)<br>tests/cr-examples-ch3.test.ts › drops Corroder's encounter pump when the encounter ends (CR 3.9.5b.ex1)<br>tests/deeper-run.test.ts › resolves 3.9.5b / 3.9.5g / 9.5.1 / 3.4.4 via index<br>tests/icebreaker-strength.test.ts › every icebreaker's pump that the card data flags as interface is allowed below the ice's strength, and its breaks are not (CR 3.9.5b, 3.9.5g)<br>tests/icebreaker-strength.test.ts › Curupira's pump is used for real below strength and raises its strength (CR 3.9.5b) |
+| 3.9.5b | 3.9 | tests/continuous-effects-reaudit.test.ts › an icebreaker's pump ends at the checkpoint after the encounter while the run goes on (CR 9.10.4a, 3.9.5b, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › RF: an icebreaker's pump for the encounter ends when an unbroken subroutine ends the run during that encounter (CR 9.10.1, 10.3.1b, 3.9.5b)<br>tests/cr-examples-ch3.test.ts › drops Corroder's encounter pump when the encounter ends (CR 3.9.5b.ex1)<br>tests/deeper-run.test.ts › resolves 3.9.5b / 3.9.5g / 9.5.1 / 3.4.4 via index<br>tests/icebreaker-strength.test.ts › every icebreaker's pump that the card data flags as interface is allowed below the ice's strength, and its breaks are not (CR 3.9.5b, 3.9.5g)<br>tests/icebreaker-strength.test.ts › Curupira's pump is used for real below strength and raises its strength (CR 3.9.5b)<br>tests/jnet-interactions-runs.test.ts › a breaker boosted during the encounter that moved the Runner is back to base strength once that encounter ends (CR 3.9.5b, 6.2.8b)<br>tests/jnet-interactions-runs.test.ts › a breaker boosted in a forced encounter is back to base strength when it ends, and access goes on (CR 3.9.5b, 6.5.9a) |
 | 3.9.5c | 3.9 | tests/cr-examples-ch3.test.ts › keeps Gordian Blade's pump for the remainder of the run (CR 3.9.5c.ex1) |
 | 3.9.5d | 3.9 | tests/cr-examples-ch3.test.ts › ends Corroder's pump at the next checkpoint when there is no encounter (CR 3.9.5d.ex1) |
 | 3.9.5e | 3.9 | — |
@@ -620,25 +620,25 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 5.7.2d | 5.7 | — |
 | 5.7.2e | 5.7 | — |
 | 6.5.1 | 6.5 | — |
-| 6.5.2 | 6.5 | — |
+| 6.5.2 | 6.5 | tests/jnet-interactions-runs.test.ts › Tollbooth charges 3 credits as the encounter begins, then its End the run subroutine ends the run (CR 6.5.2, 6.5.5) |
 | 6.5.3 | 6.5 | — |
 | 6.5.4 | 6.5 | tests/legality.test.ts › break_subroutine illegal during approach PAW citing 6.5.4<br>tests/runner-break-on-corp-ice.test.ts › is offered to the Runner, not the Corp, in the encounter window (CR 6.5.4, 1.14.4b) |
-| 6.5.5 | 6.5 | tests/engine.test.ts › rez then unbroken ETR ends the run unsuccessfully (CR 6.5.5 / 6.8.4) |
-| 6.5.6 | 6.5 | — |
+| 6.5.5 | 6.5 | tests/engine.test.ts › rez then unbroken ETR ends the run unsuccessfully (CR 6.5.5 / 6.8.4)<br>tests/jnet-interactions-runs.test.ts › after the Runner breaks Ice Wall's only subroutine, the run passes the ice, reaches R&D and ends after the access (CR 6.5.5, 6.6.2, 6.7)<br>tests/jnet-interactions-runs.test.ts › Tollbooth charges 3 credits as the encounter begins, then its End the run subroutine ends the run (CR 6.5.2, 6.5.5) |
+| 6.5.6 | 6.5 | tests/jnet-interactions-runs.test.ts › when the Konjin bids match, nothing more happens and the Runner goes on past Konjin after one psi game (CR 10.14.6, 6.5.6) |
 | 6.5.7 | 6.5 | — |
 | 6.5.7a | 6.5 | — |
 | 6.5.7b | 6.5 | — |
 | 6.5.7c | 6.5 | — |
 | 6.5.7d | 6.5 | — |
 | 6.5.8 | 6.5 | — |
-| 6.5.8a | 6.5 | — |
-| 6.5.8b | 6.5 | — |
+| 6.5.8a | 6.5 | tests/jnet-interactions-runs.test.ts › Inside Job bypasses the first ice encountered: the Runner passes Ice Wall without its subroutine resolving (CR 6.5.8a)<br>tests/jnet-interactions-runs.test.ts › Inside Job cannot bypass Guard, so the Runner encounters it and its subroutine ends the run (CR 1.2.2, 6.5.8a) |
+| 6.5.8b | 6.5 | tests/jnet-interactions-runs.test.ts › Inside Job's bypass resolves before Tollbooth's toll, so the Runner keeps their credits (CR 6.5.8b, Inside Job ruling 2022-04-23) |
 | 6.5.8c | 6.5 | tests/cr-examples-ch6.test.ts › bypasses Troll with Femme before Forked can trash it (CR 6.5.8c.ex1) |
 | 6.5.9 | 6.5 | — |
-| 6.5.9a | 6.5 | tests/cr-examples-ch6.test.ts › returns to Shiro's subroutines after the Runner encounters Chrysalis (CR 6.5.9a.ex1) |
-| 6.5.9b | 6.5 | tests/cr-examples-ch6.test.ts › aborts the Movement Phase when The Twins' extra encounter ends the run (CR 6.5.9b.ex1)<br>tests/encounter-from-hidden-zone.test.ts › ends the encounter's mark when the run ends during it (CR 9.1.8h, 6.5.9b) |
-| 6.5.9c | 6.5 | — |
-| 6.5.9d | 6.5 | — |
+| 6.5.9a | 6.5 | tests/cr-examples-ch6.test.ts › returns to Shiro's subroutines after the Runner encounters Chrysalis (CR 6.5.9a.ex1)<br>tests/jnet-interactions-runs.test.ts › after Ganked!'s forced encounter ends, the Runner goes on to access the rest of R&D (CR 6.5.9a, 6.5.9c)<br>tests/jnet-interactions-runs.test.ts › a forced encounter neither approaches nor passes the ice and leaves the Runner's position alone (CR 6.5.9a)<br>tests/jnet-interactions-runs.test.ts › a breaker boosted in a forced encounter is back to base strength when it ends, and access goes on (CR 3.9.5b, 6.5.9a) |
+| 6.5.9b | 6.5 | tests/cr-examples-ch6.test.ts › aborts the Movement Phase when The Twins' extra encounter ends the run (CR 6.5.9b.ex1)<br>tests/encounter-from-hidden-zone.test.ts › ends the encounter's mark when the run ends during it (CR 9.1.8h, 6.5.9b)<br>tests/jnet-interactions-runs.test.ts › End the run in Ganked!'s forced encounter ends the run and its breach, so nothing more in R&D is accessed (CR 6.5.9b, 6.1.4a)<br>tests/jnet-interactions-runs.test.ts › End the run in Ganked!'s forced encounter on a remote stops the breach before the other root card is accessed (CR 6.5.9b, 6.1.4a)<br>tests/jnet-interactions-runs.test.ts › a forced encounter inside a forced encounter in the breach: End the run from the inner one ends the run and stops the access (CR 6.5.9b, 6.1.4a) |
+| 6.5.9c | 6.5 | tests/jnet-interactions-runs.test.ts › after Ganked!'s forced encounter ends, the Runner goes on to access the rest of R&D (CR 6.5.9a, 6.5.9c) |
+| 6.5.9d | 6.5 | tests/jnet-interactions-runs.test.ts › when Bullfrog, forced by Konjin, moves itself to Archives, the run goes on from Bullfrog's new position: Konjin's encounter finishes, then the Runner meets Ice Wall (CR 6.5.9d, 6.2.7d)<br>tests/jnet-interactions-runs.test.ts › when Cell Portal, forced by Konjin, moves the Runner to the outermost position of HQ, they approach and encounter Konjin again (CR 6.5.9d, 6.2.8b)<br>tests/jnet-interactions-runs.test.ts › in the breach, Bullfrog moving itself does not move the Runner: the run stays on HQ and the access goes on (CR 6.2.8c, 6.5.9d) |
 | 8.6.1 | 8.6 | — |
 | 8.6.2 | 8.6 | — |
 | 8.6.2a | 8.6 | tests/instruction-checkpoints.test.ts › chooses X when Recruiting Trip's play cost is paid and keeps that X (CR 8.6.2a) |
@@ -750,7 +750,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 10.14.4b | 10.14 | — |
 | 10.14.4c | 10.14 | — |
 | 10.14.5 | 10.14 | — |
-| 10.14.6 | 10.14 | — |
+| 10.14.6 | 10.14 | tests/jnet-interactions-runs.test.ts › when the Konjin bids match, nothing more happens and the Runner goes on past Konjin after one psi game (CR 10.14.6, 6.5.6) |
 | 10.14.6a | 10.14 | — |
 | 10.14.6b | 10.14 | — |
 | 10.14.6c | 10.14 | — |
@@ -832,7 +832,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 
 | Rule | Section | Cited by |
 |---|---|---|
-| 4.6.8e | 4.6 | tests/instruction-checkpoints.test.ts › ends a run on a remote that ceased to exist, and waits for an open paid ability window (CR 4.6.8e)<br>tests/invariants.test.ts › a run on a server that doesn't exist (CR 4.6.8e): RUN_SERVER_MISSING |
+| 4.6.8e | 4.6 | tests/instruction-checkpoints.test.ts › ends a run on a remote that ceased to exist, and waits for an open paid ability window (CR 4.6.8e)<br>tests/invariants.test.ts › a run on a server that doesn't exist (CR 4.6.8e): RUN_SERVER_MISSING<br>tests/jnet-interactions-runs.test.ts › when Knifed trashes the only card in a remote, the server ceases to exist and the run ends (CR 4.6.8e) |
 | 6.1.1 | 6.1 | — |
 | 6.1.2 | 6.1 | — |
 | 6.1.2a | 6.1 | — |
@@ -846,11 +846,11 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 6.1.3d | 6.1 | — |
 | 6.1.3e | 6.1 | tests/cr-examples-ch6.test.ts › does not offer Inversificator when Mirāju replaces the pass (CR 6.1.3e.ex1) |
 | 6.1.3f | 6.1 | — |
-| 6.1.4 | 6.1 | — |
-| 6.1.4a | 6.1 | — |
-| 6.1.4b | 6.1 | tests/cr-examples-ch6.test.ts › ends a Loot Box encounter that is not part of a run before the second subroutine (CR 6.1.4b.ex1) |
-| 6.1.4c | 6.1 | tests/cr-examples-ch6.test.ts › gains 1 credit from Lycian's last subroutine when no run exists (CR 6.1.4c.ex1) |
-| 6.1.5 | 6.1 | tests/instruction-checkpoints.test.ts › trashes one installed program when the Runner jacks out of rezzed Port Anson Grid (CR 6.1.5) |
+| 6.1.4 | 6.1 | tests/jnet-interactions-cards.test.ts › Caprice Nisei, behind an unrezzed Turing, ends the run after one psi game when the bids differ (CR 6.1.4, 10.14)<br>tests/jnet-interactions-rules.test.ts › Ice Wall's End the run ends the run on HQ, and the run is declared unsuccessful (CR 6.1.4, 6.8.4)<br>tests/jnet-interactions-runs.test.ts › Border Control's trash ability ends the run before the Runner reaches Tollbooth, so no toll is paid (CR 6.1.4) |
+| 6.1.4a | 6.1 | tests/jnet-interactions-runs.test.ts › End the run in Ganked!'s forced encounter ends the run and its breach, so nothing more in R&D is accessed (CR 6.5.9b, 6.1.4a)<br>tests/jnet-interactions-runs.test.ts › End the run in Ganked!'s forced encounter on a remote stops the breach before the other root card is accessed (CR 6.5.9b, 6.1.4a)<br>tests/jnet-interactions-runs.test.ts › a forced encounter inside a forced encounter in the breach: End the run from the inner one ends the run and stops the access (CR 6.5.9b, 6.1.4a) |
+| 6.1.4b | 6.1 | tests/cr-examples-ch6.test.ts › ends a Loot Box encounter that is not part of a run before the second subroutine (CR 6.1.4b.ex1)<br>tests/jnet-interactions-runs.test.ts › End the run in a forced encounter outside a run ends only that encounter: the third subroutine does not resolve and no run is declared unsuccessful (CR 6.1.4b)<br>tests/jnet-interactions-runs.test.ts › jacking out with Flip Switch in a forced encounter outside a run ends that encounter (CR 6.1.5, 6.1.4b) |
+| 6.1.4c | 6.1 | tests/cr-examples-ch6.test.ts › gains 1 credit from Lycian's last subroutine when no run exists (CR 6.1.4c.ex1)<br>tests/jnet-interactions-runs.test.ts › Ice Wall's End the run resolved outside any run does nothing, and the Runner can still start a run (CR 6.1.4c) |
+| 6.1.5 | 6.1 | tests/instruction-checkpoints.test.ts › trashes one installed program when the Runner jacks out of rezzed Port Anson Grid (CR 6.1.5)<br>tests/jnet-interactions-runs.test.ts › jacking out with Flip Switch in a forced encounter outside a run ends that encounter (CR 6.1.5, 6.1.4b) |
 | 6.1.5a | 6.1 | — |
 | 6.1.5b | 6.1 | — |
 | 6.3.1 | 6.3 | — |
@@ -865,18 +865,18 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 6.4.3 | 6.4 | tests/legality.test.ts › rez_ice illegal outside approach PAW citing 8.1.2a / 6.4.3 |
 | 6.4.4 | 6.4 | — |
 | 6.6.1 | 6.6 | — |
-| 6.6.2 | 6.6 | — |
+| 6.6.2 | 6.6 | tests/jnet-interactions-runs.test.ts › after the Runner breaks Ice Wall's only subroutine, the run passes the ice, reaches R&D and ends after the access (CR 6.5.5, 6.6.2, 6.7) |
 | 6.6.3 | 6.6 | tests/engine.test.ts › jack-out after declining rez ends run unsuccessfully (CR 6.6.3)<br>tests/legality.test.ts › jack_out illegal at takeAction citing 6.6.3 |
-| 6.6.4 | 6.6 | — |
+| 6.6.4 | 6.6 | tests/jnet-interactions-runs.test.ts › trashing the approached middle ice sends the Runner to the Movement Phase, and they next approach the ice inward of it, not the ice already passed (CR 6.2.7a, 6.6.4)<br>tests/jnet-interactions-runs.test.ts › trashing the encountered middle ice ends the encounter, and the Runner next approaches the ice inward of it (CR 6.2.7c, 6.6.4) |
 | 6.6.5 | 6.6 | — |
-| 6.6.6 | 6.6 | — |
+| 6.6.6 | 6.6 | tests/jnet-interactions-runs.test.ts › trashing the approached innermost ice sends the Runner to the Movement Phase and then to the server (CR 6.2.7a, 6.6.6)<br>tests/jnet-interactions-runs.test.ts › trashing the encountered innermost ice ends the encounter and the Runner goes on to the server (CR 6.2.7c, 6.6.6) |
 | 6.7.1 | 6.7 | — |
 | 6.7.2 | 6.7 | — |
 | 6.7.3 | 6.7 | — |
 | 6.7.4 | 6.7 | — |
 | 6.7.4a | 6.7 | tests/cr-examples-ch6.test.ts › drops Because I Can after the run moves to a central and keeps it on another remote (CR 6.7.4a.ex1) |
 | 6.7.4b | 6.7 | — |
-| 6.7.4c | 6.7 | tests/cr-examples-ch6.test.ts › lets Account Siphon wait until Ash's trace finishes (CR 6.7.4c.ex1) |
+| 6.7.4c | 6.7 | tests/cr-examples-ch6.test.ts › lets Account Siphon wait until Ash's trace finishes (CR 6.7.4c.ex1)<br>tests/jnet-interactions-runs.test.ts › Account Siphon lets the Runner choose its effect instead of breaching HQ; then nothing in HQ is accessed (CR 6.7.4c)<br>tests/jnet-interactions-runs.test.ts › choosing to breach HQ instead of Account Siphon's effect gives the normal access (CR 6.7.4c) |
 | 6.7.5 | 6.7 | — |
 | 6.8.1 | 6.8 | — |
 | 6.8.2 | 6.8 | — |
@@ -884,8 +884,8 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 6.8.2b | 6.8 | tests/cr-examples-ch6.test.ts › ends the encounter before Tollbooth resolves when Security Nexus' trace succeeds (CR 6.8.2b.ex1) |
 | 6.8.2c | 6.8 | tests/cr-examples-ch6.test.ts › lets Corp rez+move Formicary during 6.8.2c but blocks encounter (CR 6.8.2c.ex1)<br>tests/run-ends-windows.test.ts › routes stacked non-PAW frames to interactive 6.8.2c completion |
 | 6.8.3 | 6.8 | — |
-| 6.8.4 | 6.8 | tests/engine.test.ts › rez then unbroken ETR ends the run unsuccessfully (CR 6.5.5 / 6.8.4) |
-| 6.8.4a | 6.8 | tests/confidence-cross-pack-stress.test.ts › blocked success is not run_unsuccessful for on-pass / cond (6.8.4a)<br>tests/cr-examples-ch6.test.ts › Crisium: Success Phase reached → successful null, not unsuccessful (CR 6.8.4a.ex1)<br>tests/success-phase.test.ts › Flagship on HQ: blocked success is not run_unsuccessful (CR 6.8.4a) |
+| 6.8.4 | 6.8 | tests/engine.test.ts › rez then unbroken ETR ends the run unsuccessfully (CR 6.5.5 / 6.8.4)<br>tests/jnet-interactions-rules.test.ts › Ice Wall's End the run ends the run on HQ, and the run is declared unsuccessful (CR 6.1.4, 6.8.4) |
+| 6.8.4a | 6.8 | tests/confidence-cross-pack-stress.test.ts › blocked success is not run_unsuccessful for on-pass / cond (6.8.4a)<br>tests/cr-examples-ch6.test.ts › Crisium: Success Phase reached → successful null, not unsuccessful (CR 6.8.4a.ex1)<br>tests/jnet-interactions-runs.test.ts › a run ended from a forced encounter in its breach is not declared unsuccessful (CR 6.8.4a)<br>tests/success-phase.test.ts › Flagship on HQ: blocked success is not run_unsuccessful (CR 6.8.4a) |
 | 6.8.4b | 6.8 | — |
 | 6.8.5 | 6.8 | tests/cr-examples-ch6.test.ts › prevents Chum and Georgia Emelyov damage until the run is over (CR 6.8.5.ex1)<br>tests/cr-examples-ch6.test.ts › suffers Dedicated Response Team damage as The Noble Path expires (CR 6.8.5.ex2) |
 | 6.9.1 | 6.9 | — |
@@ -897,7 +897,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 6.9.1f | 6.9 | tests/instruction-checkpoints.test.ts › checkpoints outside the initiation phase after the run begins, before the Movement Phase (CR 10.3.6, 9.2.2b, 6.9.1f) |
 | 6.9.2 | 6.9 | — |
 | 6.9.2a | 6.9 | — |
-| 6.9.2b | 6.9 | — |
+| 6.9.2b | 6.9 | tests/jnet-interactions-runs.test.ts › credits spent in the approach window are gone when Tollbooth asks for 3, so it ends the run (CR 6.9.2b, 1.2.3) |
 | 6.9.2c | 6.9 | — |
 | 6.9.3 | 6.9 | — |
 | 6.9.3a | 6.9 | — |
@@ -942,16 +942,16 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.10.5 | 1.10 | — |
 | 1.10.5a | 1.10 | tests/stealth-costs.test.ts › Houdini pumps twice on Mantle's recurring credits and reaches 10 strength (CR 1.10.5a) |
 | 1.10.5b | 1.10 | — |
-| 1.10.5c | 1.10 | — |
+| 1.10.5c | 1.10 | tests/jnet-interactions-rules.test.ts › Compromised Employee hosted on Off-Campus Apartment gains 1 credit when ice is rezzed, and its spent recurring credit is refilled when the Runner's turn begins (CR 1.10.5c) |
 | 1.10.5d | 1.10 | tests/cr-examples-ch1.test.ts › refills Spinal Modem's recurring credits at the start of the Runner's turn (CR 1.10.5d.ex1) |
 | 10.5.1 | 10.5 | tests/effect-ir.test.ts › resolves 10.4.1 / 10.4.2a / 10.5.1 / 1.19.1 |
 | 10.5.2 | 10.5 | — |
 | 10.5.3 | 10.5 | — |
 | 10.5.4 | 10.5 | tests/remove-tag.test.ts › queryLegality surfaces 5.2.7g / 10.5.4 cites |
 | 10.6.1 | 10.6 | — |
-| 10.6.2 | 10.6 | — |
+| 10.6.2 | 10.6 | tests/jnet-interactions-rules.test.ts › the Runner pays Cyberdex Virus Suite's trash cost from the bad publicity fund on each of three runs, keeping their own credits (CR 10.6.3a, 10.6.2) |
 | 10.6.3 | 10.6 | — |
-| 10.6.3a | 10.6 | — |
+| 10.6.3a | 10.6 | tests/jnet-interactions-rules.test.ts › the Runner pays Cyberdex Virus Suite's trash cost from the bad publicity fund on each of three runs, keeping their own credits (CR 10.6.3a, 10.6.2) |
 | 10.6.3b | 10.6 | — |
 | 10.6.3c | 10.6 | — |
 | 10.7.1 | 10.7 | — |
@@ -971,8 +971,8 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 10.11.4 | 10.11 | tests/pending-abilities.test.ts › registers mark designation as a turn-duration lingering (CR 10.11.4) |
 | 10.11.5 | 10.11 | tests/cr-examples-ch10.test.ts › gives Virtuoso's extra HQ access on the first successful mark run (CR 10.11.5.ex1) |
 | 10.12.1 | 10.12 | — |
-| 10.12.2 | 10.12 | — |
-| 10.12.2a | 10.12 | tests/hosting-and-trash.test.ts › keeps the face the procedure sets: install-time trash and sabotage (CR 8.5.7, 10.12.2a) |
+| 10.12.2 | 10.12 | tests/jnet-interactions-cards.test.ts › the Corp may sabotage from the top of R&D instead of HQ, and Vanilla, which the Runner accessed, still goes to Archives facedown (CR 10.12.2, 10.12.2a) |
+| 10.12.2a | 10.12 | tests/hosting-and-trash.test.ts › keeps the face the procedure sets: install-time trash and sabotage (CR 8.5.7, 10.12.2a)<br>tests/jnet-interactions-cards.test.ts › cards Esâ Afontov's sabotage trashes go to Archives facedown (CR 10.12.2a)<br>tests/jnet-interactions-cards.test.ts › the Corp may sabotage from the top of R&D instead of HQ, and Vanilla, which the Runner accessed, still goes to Archives facedown (CR 10.12.2, 10.12.2a) |
 | 10.12.2b | 10.12 | — |
 | 10.12.3 | 10.12 | — |
 | 10.12.3a | 10.12 | tests/player-chooses-effect-cards.test.ts › does not let the Corp stop short when R&D cannot cover the rest (CR 10.12.3a) |
@@ -1068,7 +1068,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.1.6a | 9.1 | — |
 | 9.1.6b | 9.1 | tests/security-nexus.test.ts › is offered again later the same turn after a decline (CR 9.1.6b) |
 | 9.1.6c | 9.1 | tests/cr-examples-ch9.test.ts › uses Cyberfeeder when its credit pays Mimic's break (CR 9.1.6c.ex1) |
-| 9.1.7 | 9.1 | tests/cost-card-choices.test.ts › does not ask when the ability cannot be used at all (CR 9.1.7)<br>tests/timing-reaudit.test.ts › RF: does no net damage when the Runner trashes an unrezzed Hostile Infrastructure, whose ability is not active (CR 9.1.7, 9.1.8g) |
+| 9.1.7 | 9.1 | tests/cost-card-choices.test.ts › does not ask when the ability cannot be used at all (CR 9.1.7)<br>tests/jnet-interactions-rules.test.ts › trashing Director Haas hosted on Worlds Plaza, itself hosted on Full Immersion RecStudio, takes away the Corp's extra click (CR 9.1.7)<br>tests/jnet-interactions-rules.test.ts › after Saker derezzes Kakugo, passing Kakugo does no net damage, so Saker stays in the grip (CR 9.1.7)<br>tests/timing-reaudit.test.ts › RF: does no net damage when the Runner trashes an unrezzed Hostile Infrastructure, whose ability is not active (CR 9.1.7, 9.1.8g) |
 | 9.1.8 | 9.1 | — |
 | 9.1.8a | 9.1 | — |
 | 9.1.8b | 9.1 | tests/cr-examples-ch9.test.ts › does not draw for I've Had Worse when Skorpios removes it from the game (CR 9.1.8b.ex1) |
@@ -1115,7 +1115,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.2.8a | 9.2 | tests/pending-abilities.test.ts › opens a reaction window only for newly marked pending (CR 9.2.8a / 10.3.2) |
 | 9.2.8b | 9.2 | tests/reaction-window-order.test.ts › resolves the active player's ability before the inactive player's (CR 9.2.8b)<br>tests/reaction-window-order.test.ts › gives the active player priority even when the other side was marked first (CR 9.2.8b)<br>tests/run-movement-phase.test.ts › gives the Corp the approach-server step even when it cannot pay, and Pass is its only option (CR 9.2.8b) |
 | 9.2.8c | 9.2 | — |
-| 9.2.8d | 9.2 | tests/cr-examples-ch9.test.ts › lets the Runner trigger Drug Dealer before Aesop's Pawnshop instead (CR 9.2.8d)<br>tests/reaction-window-order.test.ts › asks the Runner again while different abilities remain (CR 9.2.8d) |
+| 9.2.8d | 9.2 | tests/cr-examples-ch9.test.ts › lets the Runner trigger Drug Dealer before Aesop's Pawnshop instead (CR 9.2.8d)<br>tests/jnet-interactions-cards.test.ts › when MaxX trashes the only card in the stack, the Runner resolves Buffer Drive first to bottom it, then Aniccam draws it (CR 9.2.8d)<br>tests/jnet-interactions-rules.test.ts › when Apocalypse trashes the Corp's cards, Marilyn Campaign's interrupt comes first, then the Corp orders Hostile Infrastructure and Calvin B4L3Y (CR 9.9.4b, 9.2.8d)<br>tests/reaction-window-order.test.ts › asks the Runner again while different abilities remain (CR 9.2.8d) |
 | 9.2.8e | 9.2 | tests/timing-reaudit.test.ts › RF: still does all 3 of Hostile Infrastructure's net damage after Singularity when the Runner could prevent the first (CR 9.6.2, 9.2.8e) |
 | 9.2.8f | 9.2 | tests/cr-examples-ch9.test.ts › drops Tollbooth's pending ability when Femme Fatale ends the encounter (CR 9.2.8f.ex1) |
 | 9.2.9 | 9.2 | — |
@@ -1227,10 +1227,10 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.9.3d | 9.9 | tests/cr-examples-ch9.test.ts › interrupts an imminent draw with The Class Act before cards are drawn (CR 9.9.3d.ex1) |
 | 9.9.4 | 9.9 | — |
 | 9.9.4a | 9.9 | — |
-| 9.9.4b | 9.9 | — |
+| 9.9.4b | 9.9 | tests/jnet-interactions-rules.test.ts › when Apocalypse trashes the Corp's cards, Marilyn Campaign's interrupt comes first, then the Corp orders Hostile Infrastructure and Calvin B4L3Y (CR 9.9.4b, 9.2.8d) |
 | 9.9.4c | 9.9 | tests/cr-examples-ch9.test.ts › keeps Harbinger's interrupt pending but irrelevant after Sacrificial Construct (CR 9.9.4c.ex1)<br>tests/cr-examples-ch9.test.ts › does not let No One Home fire when it was installed during the tag window (CR 9.9.4c.ex2) |
-| 9.9.4d | 9.9 | tests/cr-examples-ch9.test.ts › lets a Decoy installed during the tag window avoid the other tag (CR 9.9.4d.ex1) |
-| 9.9.5 | 9.9 | tests/the-automata-initiative.test.ts › opens pendingDamage from real net_damage so AirbladeX can prevent (CR 9.9.5 / 9.9.3a / 10.4) |
+| 9.9.4d | 9.9 | tests/cr-examples-ch9.test.ts › lets a Decoy installed during the tag window avoid the other tag (CR 9.9.4d.ex1)<br>tests/jnet-interactions-cards.test.ts › legalActions offers Net Shield's prevention while Neural EMP's net damage is pending (CR 9.9.4d) |
+| 9.9.5 | 9.9 | tests/jnet-interactions-cards.test.ts › Net Shield prevents Neural EMP's net damage for 1 credit; the Corp pays 2 more under Wireless Net Pavilion to trash Off-Campus Apartment, and Fall Guy hosted on it prevents that trash (CR 9.9.5, 1.16.10)<br>tests/the-automata-initiative.test.ts › opens pendingDamage from real net_damage so AirbladeX can prevent (CR 9.9.5 / 9.9.3a / 10.4) |
 | 9.9.5a | 9.9 | tests/cr-examples-ch9.test.ts › counts prevented net damage as Tori Hanzō's first would (CR 9.9.5a.ex1)<br>tests/system-seizure-duration-replacement.test.ts › counts the first would-increase outside a run without attaching a grant (CR 9.9.5a) |
 | 9.9.5b | 9.9 | — |
 | 9.9.6 | 9.9 | — |
@@ -1247,15 +1247,15 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.9.7f | 9.9 | tests/cr-examples-ch9.test.ts › does not make Guru Davinder pay when the damage is already 0 (CR 9.9.7f.ex1) |
 | 9.9.8 | 9.9 | — |
 | 9.9.8a | 9.9 | — |
-| 9.9.8b | 9.9 | — |
+| 9.9.8b | 9.9 | tests/jnet-interactions-runs.test.ts › Security Testing's gain replaces the breach on the chosen server with no choice offered (CR 9.9.8b) |
 | 9.9.8c | 9.9 | — |
 | 9.9.9 | 9.9 | — |
 | 9.9.9a | 9.9 | tests/cr-examples-ch9.test.ts › ends Gebrselassie's replaced duration at the next checkpoint once it leaves the host (CR 9.9.9a.ex1) |
 | 9.9.9b | 9.9 | tests/replacement-layer-9.9.9.test.ts › applies active expected replacements as the interrupt window opens (CR 9.9.9b) |
 | 9.9.9c | 9.9 | tests/cr-examples-ch9.test.ts › Vacheron steal once (CR 9.9.9c.ex1)<br>tests/replacement-layer-9.9.9.test.ts › applies each replacement only once to an effect (CR 9.9.9c)<br>tests/replacement-layer-9.9.9.test.ts › Vacheron steal uses once-per-effect bookkeeping (CR 9.9.9c.ex1)<br>tests/timing-reaudit.test.ts › applies a replacement once to one effect, and again to the next effect (CR 9.9.9c) |
 | 9.9.10 | 9.9 | tests/cr-examples-ch9.test.ts › replaces imminent net damage with core damage as Tori Hanzō resolves (CR 9.9.10.ex1) |
-| 9.9.11 | 9.9 | — |
-| 9.9.11a | 9.9 | tests/cr-examples-ch9.test.ts › applies only one breach replacement for Security Testing and Account Siphon (CR 9.9.11a.ex1)<br>tests/cr-examples-ch9.test.ts › lets Showing Off keep the breach expected so Security Testing still replaces it (CR 9.9.11a.ex2)<br>tests/timing-reaudit.test.ts › RF: offers no Diversion of Funds replacement once Security Testing has already replaced the breach of HQ (CR 9.9.11a) |
+| 9.9.11 | 9.9 | tests/jnet-interactions-runs.test.ts › with Account Siphon and Security Testing both able to replace the breach, the Runner picks one and the other no longer applies (CR 9.9.11, 9.9.11a) |
+| 9.9.11a | 9.9 | tests/cr-examples-ch9.test.ts › applies only one breach replacement for Security Testing and Account Siphon (CR 9.9.11a.ex1)<br>tests/cr-examples-ch9.test.ts › lets Showing Off keep the breach expected so Security Testing still replaces it (CR 9.9.11a.ex2)<br>tests/jnet-interactions-runs.test.ts › with Account Siphon and Security Testing both able to replace the breach, the Runner picks one and the other no longer applies (CR 9.9.11, 9.9.11a)<br>tests/timing-reaudit.test.ts › RF: offers no Diversion of Funds replacement once Security Testing has already replaced the breach of HQ (CR 9.9.11a) |
 | 9.11.1 | 9.11 | — |
 | 9.11.1a | 9.11 | tests/instruction-checkpoints.test.ts › runs the cost checkpoint after the cost is paid, before the play abilities (CR 9.11.1a, 8.6.7e) |
 | 9.11.1b | 9.11 | — |
@@ -1278,8 +1278,8 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 10.3.1a | 10.3 | tests/instruction-checkpoints.test.ts › checks conditional abilities inside the checkpoint after the Corp gains a credit, and marks none pending (CR 10.3.1a)<br>tests/pending-abilities.test.ts › marks Valley first damage at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Valley first install at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Valley first click-loss at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Valley first basic click-draw at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first program install at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first virus install at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Valley first successful run at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first run begin at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first unsuccessful run at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first successful HQ run at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first encounter each run at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks pass rezzed ice at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks encounter-end at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks host-encounter at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks approach-server at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks bypass at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks approach-ice at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first successful R&D run end at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks successful-run-on-RD at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks successful-run-end-once at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks successful-run-end at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Corp turn-begin at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Builder of Nations encounter-end meat inline at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Out of the Ashes turn-begin inline at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks encounter-begin heap-install inline at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Runner turn-end inline conditionals at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks stored on-advance / on-score notes at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks score/steal and advance inlines at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks successful-run / run-end / access inlines at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks host-rez-state at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks any-ice-rez at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks before-first-turn at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks outside-pool spend at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks encounter-any-ice once-per-turn at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Compile first-encounter at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Corp action-phase-end at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Runner action-phase-end at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks accessed-card abilities at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks finish-access-R&D once-per-turn at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks successful-run server abilities at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks unsuccessful-run server abilities at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Tennin Corp turn-begin at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks onScoreTurnEnd at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Runner turn-begin at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Runner turn-end at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Corp turn-end at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks run-begin at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks successful-run at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks other-server success at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first pass ice at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Daredevil first-run ice-gte at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first credit pool empty at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first reveal this turn at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first tag this turn at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first installed trash at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first grip/stack trash batch at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks Corp flipped first operation play at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first trash matching Runner ID faction at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first access trash at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first program/hardware trash at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first Corp card trash at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first Runner steal/trash at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first agenda scored/stolen at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks A Teia normal remote install at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first Corp card / root install at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first / each bad-publicity take at 10.3.1a (phase 3 scanner)<br>tests/pending-abilities.test.ts › marks first event trashed at 10.3.1a (phase 3 scanner)<br>tests/uniqueness-and-archives-facing.test.ts › meets its own 'when trashed' ability at the next checkpoint (CR 10.3.1a) |
 | 10.3.1b | 10.3 | tests/continuous-effects-reaudit.test.ts › Klevetnik's 'until your next turn ends' blank lasts through the Runner's turn end and ends at the checkpoint after the Corp's turn ends (CR 9.10.1, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › an 'until the end of the turn' strength boost lasts through a whole run and its checkpoints in that turn (CR 9.10.1, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › an ice strength boost 'for the remainder of the run' lasts through the run's checkpoints and ends at the checkpoint after the run ends (CR 9.10.1, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › an icebreaker's pump ends at the checkpoint after the encounter while the run goes on (CR 9.10.4a, 3.9.5b, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › RF: an icebreaker's pump for the encounter ends when an unbroken subroutine ends the run during that encounter (CR 9.10.1, 10.3.1b, 3.9.5b)<br>tests/continuous-effects-reaudit.test.ts › RF: Datasucker's −1 strength 'until the end of the encounter' does not carry into the next run when the run ends during that encounter (CR 9.10.1, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › RF: Thunderbolt Armaments' +1 strength does not carry into the next run when the run ends during the encounter (CR 9.10.1, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › RF: Bad Times' memory limit cut 'until the end of the turn' ends when the Corp's turn ends (CR 1.2.1, 9.10.1, 10.3.1b)<br>tests/cr-examples-ch10.test.ts › removes an encounter-duration strength increase at the checkpoint after the encounter (CR 10.3.1b.ex1)<br>tests/cr-examples-ch10.test.ts › trashes Targeted Marketing at the checkpoint after an agenda is stolen (CR 10.3.1b.ex2)<br>tests/instruction-checkpoints.test.ts › removes no passed-duration abilities inside the checkpoint after the Corp gains a credit (CR 10.3.1b)<br>tests/instruction-checkpoints.test.ts › removes turn-duration effects at the checkpoint after the turn ends (CR 9.10.1 / 10.3.1b)<br>tests/instruction-checkpoints.test.ts › removes run-duration strength at the checkpoint after the run ends (CR 9.10.1 / 10.3.1b)<br>tests/pending-abilities.test.ts › creates independent lingerings and removes them at 10.3.1b |
 | 10.3.1c | 10.3 | tests/instruction-checkpoints.test.ts › counts empty score areas inside the checkpoint after the Corp gains a credit, and nobody wins (CR 10.3.1c) |
-| 10.3.1d | 10.3 | tests/instruction-checkpoints.test.ts › checks uniqueness inside the checkpoint after the Corp gains a credit, and trashes nothing (CR 10.3.1d) |
-| 10.3.1e | 10.3 | tests/cr-examples-ch10.test.ts › trashes Chisel when the ice it is hosted on is rezzed Tithonium (CR 10.3.1e.ex1)<br>tests/cr-examples-ch10.test.ts › offers only minimal memory sets after Bad Times (CR 10.3.1e.ex2)<br>tests/instruction-checkpoints.test.ts › lets the Runner choose a minimal memory set after Bad Times (CR 10.3.1e)<br>tests/instruction-checkpoints.test.ts › trashes the only minimal memory set without a choice (CR 10.3.1e)<br>tests/instruction-checkpoints.test.ts › checks card restrictions inside the checkpoint after the Corp gains a credit, and trashes nothing (CR 10.3.1e) |
+| 10.3.1d | 10.3 | tests/instruction-checkpoints.test.ts › checks uniqueness inside the checkpoint after the Corp gains a credit, and trashes nothing (CR 10.3.1d)<br>tests/jnet-interactions-cards.test.ts › Masterwork installs a second Boomerang as a run begins: the first, unique copy is trashed, the new one chooses its ice, and no choice is left open (CR 10.3.1d)<br>tests/jnet-interactions-rules.test.ts › installing a second Kati Jones on Off-Campus Apartment trashes the first, in the rig (CR 10.3.1d)<br>tests/jnet-interactions-rules.test.ts › installing a second Kati Jones in the rig trashes the first, hosted on Off-Campus Apartment (CR 10.3.1d)<br>tests/jnet-interactions-rules.test.ts › the trashed Kati Jones is the older one: the credits on it go with it, and the new one starts empty (CR 10.3.1d)<br>tests/jnet-interactions-rules.test.ts › installing a second Hivemind in the rig trashes the Hivemind hosted on Scheherazade (CR 10.3.1d)<br>tests/jnet-interactions-rules.test.ts › facedown Box-Es are not consoles; when Assimilator turns one faceup, Mirror, the console that was active first, is trashed (CR 8.1.4a, 10.3.1d) |
+| 10.3.1e | 10.3 | tests/cr-examples-ch10.test.ts › trashes Chisel when the ice it is hosted on is rezzed Tithonium (CR 10.3.1e.ex1)<br>tests/cr-examples-ch10.test.ts › offers only minimal memory sets after Bad Times (CR 10.3.1e.ex2)<br>tests/instruction-checkpoints.test.ts › lets the Runner choose a minimal memory set after Bad Times (CR 10.3.1e)<br>tests/instruction-checkpoints.test.ts › trashes the only minimal memory set without a choice (CR 10.3.1e)<br>tests/instruction-checkpoints.test.ts › checks card restrictions inside the checkpoint after the Corp gains a credit, and trashes nothing (CR 10.3.1e)<br>tests/jnet-interactions-rules.test.ts › trashing an installed program frees its memory (CR 10.3.1e)<br>tests/jnet-interactions-rules.test.ts › trashing Akamatsu Mem Chip leaves the Runner over their memory limit, so they trash a program of their choice at the checkpoint (CR 10.3.1e)<br>tests/jnet-interactions-rules.test.ts › trashing Box-E leaves the Runner 2 MU over, and they choose which set of programs to trash (CR 10.3.1e) |
 | 10.3.1f | 10.3 | tests/instruction-checkpoints.test.ts › checks agendas that left a score area inside the checkpoint after the Corp gains a credit, and trashes nothing (CR 10.3.1f)<br>tests/instruction-checkpoints.test.ts › trashes a card hosted on an agenda that left a score area (CR 10.3.1f) |
 | 10.3.1g | 10.3 | tests/instruction-checkpoints.test.ts › checks objects hosted on an uninstalled card inside the checkpoint after the Corp gains a credit, and trashes nothing (CR 10.3.1g)<br>tests/invariants.test.ts › a host that is no longer installed (CR 1.13.1a, 10.3.1g): HOST_NOT_IN_PLAY |
 | 10.3.1h | 10.3 | tests/instruction-checkpoints.test.ts › checks remote servers inside the checkpoint after the Corp gains a credit, and none cease to exist (CR 10.3.1h)<br>tests/instruction-checkpoints.test.ts › removes an empty remote at the checkpoint (CR 10.3.1h) |
@@ -1353,8 +1353,8 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.1.2 | 1.1 | — |
 | 1.1.3 | 1.1 | tests/current-statics.test.ts › can take the Corp's max hand size below 0 (CR 1.1.3) |
 | 1.2.1 | 1.2 | tests/continuous-effects-reaudit.test.ts › RF: Thunderbolt Armaments' +1 strength lasts 'for the remainder of that run', after the ice's encounter ends (CR 1.2.1, 9.10.1)<br>tests/continuous-effects-reaudit.test.ts › RF: Bad Times' memory limit cut 'until the end of the turn' ends when the Corp's turn ends (CR 1.2.1, 9.10.1, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › Ice Carver's −1 does not lower Lotus Field (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: Monkeywrench's −2 does not lower Lotus Field, whose strength cannot be lowered (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: Parasite's virus counters do not lower Self-Adapting Code Wall (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: an ice with Hush cannot gain Sub Boost's subroutine (CR 1.2.1)<br>tests/hosting-and-trash.test.ts › Marilyn Campaign shuffles itself into R&D instead (CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Umbrella cannot break a code gate that hosts no trojan, even at full strength (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a non-killer paid break breaks only 1 of its printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: breaks made with a killer do not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a subroutine it gained is not printed and does not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Audrey v2 used for real at full strength breaks only 1 of Hammer's printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Anvil: Kongamato cannot break Anvil's first printed subroutine after Anvil's ability (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Matryoshka is offered only as many breaks as Hammer allows, so it does not pay for breaks that cannot happen (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Boi-tatá's break costs 1 credit less after the Runner trashed one of their installed cards this turn (card text, CR 1.2.1)<br>tests/sweep-fixes-s1.test.ts › its hosted credits pay to rez an asset in its root, not an upgrade, and only while it is rezzed (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › after a named card is trashed, the Corp chooses a card name again before the next net damage (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › an accessed asset can still be trashed; only an agenda is protected from stealing and trashing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the first mark run to end uses it even without a breach, so a later breached mark run that turn gains nothing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the Runner cannot lose all clicks to prevent its core damage, which it does not print (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › uses the server the ice protects, and only the turn's first such encounter: a second encounter with the same ice is not replaced (CR 1.2.1)<br>tests/timing-reaudit.test.ts › RF: Chum does 3 net damage when the encounter it boosted ends with a subroutine unbroken, before the Runner approaches the server (CR 9.6.13c, 1.2.1)<br>tests/up-and-over.test.ts › Angel Arena places X power counters, capped only by credits (CR 1.2.1) |
-| 1.2.2 | 1.2 | tests/confidence-interaction-smoke.test.ts › rez with prevent jack_out drops jack_out from legality (1.2.2)<br>tests/lose-click-cost.test.ts › Hákarl 1.0's prohibition stops the paid ability too (CR 1.2.2)<br>tests/runner-break-on-corp-ice.test.ts › bioroid ice breaks are not offered while the Runner cannot use them (CR 1.2.2) |
-| 1.2.3 | 1.2 | — |
+| 1.2.2 | 1.2 | tests/confidence-interaction-smoke.test.ts › rez with prevent jack_out drops jack_out from legality (1.2.2)<br>tests/jnet-interactions-runs.test.ts › Inside Job cannot bypass Guard, so the Runner encounters it and its subroutine ends the run (CR 1.2.2, 6.5.8a)<br>tests/lose-click-cost.test.ts › Hákarl 1.0's prohibition stops the paid ability too (CR 1.2.2)<br>tests/runner-break-on-corp-ice.test.ts › bioroid ice breaks are not offered while the Runner cannot use them (CR 1.2.2) |
+| 1.2.3 | 1.2 | tests/jnet-interactions-runs.test.ts › credits spent in the approach window are gone when Tollbooth asks for 3, so it ends the run (CR 6.9.2b, 1.2.3) |
 | 1.2.4 | 1.2 | — |
 | 1.3.1 | 1.3 | — |
 | 1.3.2 | 1.3 | — |
@@ -1451,7 +1451,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 3.2.2 | 3.2 | — |
 | 3.2.2a | 3.2 | — |
 | 3.2.2b | 3.2 | — |
-| 3.2.3 | 3.2 | — |
+| 3.2.3 | 3.2 | tests/jnet-interactions-rules.test.ts › the Runner forfeiting a stolen Mandatory Upgrades with Data Dealer changes nobody's clicks: it was never active in their score area (CR 3.2.3, 8.2.5) |
 | 3.2.3a | 3.2 | — |
 | 3.2.3b | 3.2 | — |
 | 3.2.4 | 3.2 | — |
@@ -1519,7 +1519,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 8.2.1a | 8.2 | — |
 | 8.2.3 | 8.2 | — |
 | 8.2.4 | 8.2 | — |
-| 8.2.5 | 8.2 | tests/corp-install-process.test.ts › the Corp may pay Archer's additional cost; the agenda leaves the game (CR 8.2.5) |
+| 8.2.5 | 8.2 | tests/corp-install-process.test.ts › the Corp may pay Archer's additional cost; the agenda leaves the game (CR 8.2.5)<br>tests/jnet-interactions-rules.test.ts › the Runner forfeiting a stolen Mandatory Upgrades with Data Dealer changes nobody's clicks: it was never active in their score area (CR 3.2.3, 8.2.5)<br>tests/jnet-interactions-rules.test.ts › the Corp forfeiting its scored Mandatory Upgrades to rez Corporate Town takes away the extra click (CR 8.2.5) |
 | 8.2.6 | 8.2 | — |
 | 8.2.7 | 8.2 | — |
 | 8.2.8 | 8.2 | — |
@@ -1528,7 +1528,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 8.2.11 | 8.2 | — |
 | 8.2.12 | 8.2 | — |
 | 10.1.1 | 10.1 | — |
-| 10.1.2 | 10.1 | — |
+| 10.1.2 | 10.1 | tests/jnet-interactions-cards.test.ts › Cyberdex Virus Suite's purge on access clears Aumakua, which then gains 1 for a breach with no steal or trash; stealing Degree Mill in the next breach leaves it at 0 (CR 10.1.2, 1.16.10)<br>tests/jnet-interactions-rules.test.ts › Cyberdex Trial purges the counters on Imp hosted on Djinn (CR 10.1.2)<br>tests/jnet-interactions-rules.test.ts › Djinn can be hosted on Leprechaun, and Cyberdex Trial purges Imp hosted two levels down (CR 1.13.5, 10.1.2)<br>tests/jnet-interactions-rules.test.ts › purging also removes virus counters on Corp cards (CR 10.1.2) |
 | 10.1.3 | 10.1 | — |
 | 10.1.4 | 10.1 | tests/instruction-checkpoints.test.ts › records a hosted condition counter and restores it in Archives (CR 10.1.4 / 10.3.1k) |
 | 10.1.5 | 10.1 | tests/cr-examples-ch10.test.ts › trashes the Kitsune whose subroutine resolved, not another copy (CR 10.1.5.ex1) |
