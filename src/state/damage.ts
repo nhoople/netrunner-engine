@@ -21,7 +21,7 @@ import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
 } from "./replacements.js";
-import { trashCard } from "./procedures/trash.js";
+import { controllerOf, trashCard } from "./procedures/trash.js";
 
 function noteAndCheckpointStored(
   state: GameState,
@@ -949,7 +949,7 @@ export function preventAllPendingNetOrMeat(
   state.runner.installed = state.runner.installed.filter(
     (id) => id !== sourceId,
   );
-  trashCard(state, sourceId);
+  trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
   log(state, `${title} — trashed (cannot pay ${pay}¢).`);
 }
 

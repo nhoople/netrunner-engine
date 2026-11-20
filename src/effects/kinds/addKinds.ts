@@ -12,7 +12,7 @@ import {
   removeCardFromCurrentZone,
   checkWinConditions,
 } from "../../state/scoring.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { unhostCard } from "../../state/procedures/host.js";
 import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
 import { CR } from "../../timing/labels.js";
@@ -377,7 +377,7 @@ export function applyAddKinds(
       const hosted = source.hostedCardIds ?? [];
       if (hosted.length === 0) {
         if (source.trashWhenNoHostedCards) {
-          trashCard(state, sourceId);
+          trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
           log(state, `${source.title} trashed — no hosted cards.`);
         }
         return { ok: true };
@@ -428,7 +428,7 @@ export function applyAddKinds(
         (source.hostedCardIds?.length ?? 0) === 0 &&
         source.trashWhenNoHostedCards
       ) {
-        trashCard(state, sourceId);
+        trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
         log(state, `${source.title} trashed — no hosted cards remain.`);
       }
       return { ok: true };

@@ -1,6 +1,7 @@
 /**
  * Paid abilities on installed cards and identities.
  */
+import { trashInterruptRelevantToActor } from "../state/trashPrevent.js";
 import { paidAbilityBreakBlock } from "../state/procedures/break.js";
 import { log } from "../state/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
@@ -473,7 +474,8 @@ export function usePaidAbility(
     ability.windows.includes("expose_interrupt");
   const trashInterruptOpen =
     Boolean(state.pendingTrashPrevent) &&
-    ability.windows.includes("trash_interrupt");
+    ability.windows.includes("trash_interrupt") &&
+    trashInterruptRelevantToActor(ability, state.pendingTrashPrevent?.by);
   const traceInterruptOpen =
     Boolean(state.trace) &&
     ability.windows.includes("trace_interrupt") &&

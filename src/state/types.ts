@@ -628,6 +628,12 @@ export interface PaidAbility {
    */
   requirePendingDamageTypes?: DamageType[];
   /**
+   * Trash interrupt that prevents only the Corp trashing (Dummy Box). Not
+   * relevant when the Runner carries out the pending trash (CR 1.14.5,
+   * 9.9.3a). A trash with no recorded actor is not excluded.
+   */
+  onlyCorpTrashes?: boolean;
+  /**
    * Legal only the first time net damage would be dealt this run, and only
    * while this card is installed in the attacked server (CR 9.9.5a).
    */
@@ -5610,6 +5616,8 @@ export interface GameState {
     trashExpected?: boolean;
     /** Live expected effects for this imminent trash instruction (CR 9.9.2). */
     expectedEffects?: ExpectedEffects;
+    /** The player carrying out the trash, when recorded (CR 1.14.5). */
+    by?: "corp" | "runner" | null;
   } | null;
   /** When true, skip trash-prevent interrupt (accepting pending trash). */
   suppressTrashPrevent?: boolean;

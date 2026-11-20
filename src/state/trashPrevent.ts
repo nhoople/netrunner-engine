@@ -14,19 +14,35 @@ export type TrashInterruptResult =
   | { ok: false; error: string; cites: { number: string; id: string }[] };
 
 /**
+ * Whether a trash interrupt can apply to a trash carried out by `by`. An
+ * ability that prevents only the Corp trashing (Dummy Box) is not relevant
+ * when the Runner trashes (CR 1.14.5, 9.9.3a). Who trashes is public.
+ */
+export function trashInterruptRelevantToActor(
+  ability: { onlyCorpTrashes?: boolean },
+  by: "corp" | "runner" | null | undefined,
+): boolean {
+  return !(ability.onlyCorpTrashes && by === "runner");
+}
+
+/**
  * Only public costs decide whether the window opens. A cost paid with grip
  * cards (Dummy Box) is left out on purpose: opening the window only when
  * the Runner holds a matching card would tell the Corp what is in the grip,
  * which is hidden from them (CR 10.2.2a). Using the ability still needs
  * the cost (CR 1.16.1).
  */
-function hasPayableTrashInterrupt(state: GameState): boolean {
+function hasPayableTrashInterrupt(
+  state: GameState,
+  by: "corp" | "runner" | null,
+): boolean {
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card) continue;
     for (const ab of card.paidAbilities ?? []) {
       if (!ab.windows.includes("trash_interrupt")) continue;
+      if (!trashInterruptRelevantToActor(ab, by)) continue;
       const cost = ab.cost
         ? { ...ab.cost }
         : { clicks: ab.clickCost, credits: ab.creditCost };
@@ -47,6 +63,7 @@ function hasPayableTrashInterrupt(state: GameState): boolean {
 export function maybeOpenTrashPrevent(
   state: GameState,
   cardId: string,
+  by: "corp" | "runner" | null = null,
 ): boolean {
   if (state.suppressTrashPrevent) return false;
   if (state.pendingTrashPrevent) return false;
@@ -65,7 +82,9 @@ export function maybeOpenTrashPrevent(
   const facedownInterrupt =
     Boolean(card.turnFacedownInsteadOfHeapWhenTrashed) &&
     !abilitiesSuppressed(state, cardId);
-  if (!facedownInterrupt && !hasPayableTrashInterrupt(state)) return false;
+  if (!facedownInterrupt && !hasPayableTrashInterrupt(state, by)) {
+    return false;
+  }
   const effectId = allocateEffectIdentity(state, `trash:${cardId}`);
   const expectedEffects = applyActiveReplacementsAtInterruptOpen(
     state,
@@ -77,6 +96,7 @@ export function maybeOpenTrashPrevent(
     pendingInterruptIds: facedownInterrupt ? [cardId] : [],
     trashExpected: (expectedEffects.trashCardIds?.length ?? 0) > 0,
     expectedEffects,
+    by,
   };
   log(
     state,
@@ -151,7 +171,11 @@ export function triggerPendingTrashInterrupt(
 
 export function acceptPendingInstalledTrash(
   state: GameState,
-  trashFn: (state: GameState, cardId: string) => void,
+  trashFn: (
+    state: GameState,
+    cardId: string,
+    by: "corp" | "runner" | null,
+  ) => void,
 ): void {
   const pending = state.pendingTrashPrevent;
   if (!pending) return;
@@ -165,10 +189,12 @@ export function acceptPendingInstalledTrash(
     return;
   }
   const id = pending.cardId;
+  // The trash goes ahead as the same player's (CR 1.14.5, 1.14.5a).
+  const by = pending.by ?? null;
   state.pendingTrashPrevent = null;
   state.suppressTrashPrevent = true;
   try {
-    trashFn(state, id);
+    trashFn(state, id, by);
   } finally {
     state.suppressTrashPrevent = false;
   }

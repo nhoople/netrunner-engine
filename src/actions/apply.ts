@@ -1999,7 +1999,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       return ok(next);
     }
     if (action.type === "accept_installed_trash") {
-      acceptPendingInstalledTrash(next, (s, id) => trashCard(s, id));
+      acceptPendingInstalledTrash(next, (s, id, by) =>
+        trashCard(s, id, { by }),
+      );
       resumePendingEffectContinuation(next);
       return ok(next);
     }
@@ -3702,7 +3704,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.pendingTrashPrevent) {
         return fail("No pending installed trash.", [CR.trashing]);
       }
-      acceptPendingInstalledTrash(next, (s, id) => trashCard(s, id));
+      acceptPendingInstalledTrash(next, (s, id, by) =>
+        trashCard(s, id, { by }),
+      );
       return ok(next);
     case "trigger_pending_trash_interrupt":
       return fail("No pending installed trash.", [

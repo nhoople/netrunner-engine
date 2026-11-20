@@ -3390,6 +3390,7 @@ export function instantiateCard(
         ? [...a.requirePendingDamageTypes]
         : undefined,
       oncePerPendingDamageInstance: a.oncePerPendingDamageInstance,
+      onlyCorpTrashes: a.onlyCorpTrashes,
       requiresCorpCreditsGte: a.requiresCorpCreditsGte,
       startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
     }));

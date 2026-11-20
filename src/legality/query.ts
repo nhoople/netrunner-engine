@@ -1,3 +1,4 @@
+import { trashInterruptRelevantToActor } from "../state/trashPrevent.js";
 import type { Action, GameState, RuleCite, Side } from "../state/types.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
 import { costBeginsWithClick } from "../state/costs.js";
@@ -715,6 +716,13 @@ function gateAction(
         state.pendingTrashPrevent.trashExpected !== false &&
         ab?.windows.includes("trash_interrupt")
       ) {
+        if (!trashInterruptRelevantToActor(ab, state.pendingTrashPrevent.by)) {
+          return {
+            ok: false,
+            reason: `${state.cards[action.cardId]?.title ?? action.cardId} prevents only the Corp trashing; the Runner is trashing this card.`,
+            cites: [CR.controllerChoices],
+          };
+        }
         return { ok: true };
       }
       const openPaidWindow = currentWindow(state.timingKey);

@@ -145,6 +145,7 @@ describe("Dummy Box needs a grip card of the same type (CR 1.16.1)", () => {
       {
         ...structuredClone(box.abilities![0]!),
         cost: { trashFromGripSameTypeAsPendingTrash: true },
+        onlyCorpTrashes: true,
         instructions: fx.do({
           kind: "prevent_pending_installed_trash",
           amount: 1,
@@ -168,6 +169,39 @@ describe("Dummy Box needs a grip card of the same type (CR 1.16.1)", () => {
     cardId: "db",
     abilityId: "dummy-box-prevent",
   };
+
+  it("does not prevent a trash the Runner carries out (CR 1.14.5)", () => {
+    const s = dummyBoxTable([["gordian-blade", "grip-prog"]]);
+    trashCard(s, "prog", { by: "runner" });
+    // Dummy Box is the only trash interrupt and it cannot apply, so no
+    // window opens and the program is trashed.
+    expect(s.pendingTrashPrevent).toBeNull();
+    expect(s.runner.discardPile).toEqual(["prog"]);
+    expect(s.runner.hand).toEqual(["grip-prog"]);
+  });
+
+  it("is not offered for a Runner trash even when another interrupt opens the window", () => {
+    const s = dummyBoxTable([["gordian-blade", "grip-prog"]]);
+    // Sacrificial Construct prevents any trash, so the window opens.
+    const sc = put(s, "sacrificial-construct", "sc", "runner:installed");
+    sc.faceup = true;
+    s.runner.installed.push("sc");
+    trashCard(s, "prog", { by: "runner" });
+    expect(s.pendingTrashPrevent?.cardId).toBe("prog");
+    expect(legalActions(s)).not.toContainEqual(useBox);
+    expect(applyAction(s, useBox).ok).toBe(false);
+  });
+
+  it("a Corp trash the Runner lets through stays the Corp's (CR 1.14.5a)", () => {
+    const s = dummyBoxTable([["gordian-blade", "grip-prog"]]);
+    s.turn.runnerTrashedOwnInstalledThisTurn = false;
+    trashCard(s, "prog", { by: "corp" });
+    expect(s.pendingTrashPrevent?.by).toBe("corp");
+    const t = must(s, { type: "accept_installed_trash" });
+    expect(t.runner.discardPile).toEqual(["prog"]);
+    // "You trashed any of your installed cards" is not met by a Corp trash.
+    expect(t.turn.runnerTrashedOwnInstalledThisTurn).toBe(false);
+  });
 
   it("opens the interrupt window even with no matching card, so the grip stays hidden", () => {
     const s = dummyBoxTable([["sure-gamble", "event"]]);
