@@ -1,7 +1,9 @@
 /**
  * Shared CR citation scanning for tests/rule-cite-map.test.ts (tool 1.5a,
  * citation existence) and tests/cr-citation-topics.test.ts (tool 1.5b,
- * citation topics). Not a test file: vitest only runs `*.test.ts`.
+ * citation topics), and for the files that cite each rule in
+ * tests/cr-section-owners.test.ts (tool 1.13) and tests/cr-cited-text.test.ts
+ * (tool 1.19). Not a test file: vitest only runs `*.test.ts`.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -52,6 +54,26 @@ export function srcFiles(): string[] {
 
 export function rel(file: string): string {
   return relative(ROOT, file);
+}
+
+/**
+ * Every `*.test.ts` under tests/ that CI runs (not tests/jnet), as absolute
+ * paths, sorted, but the files in `except` (paths relative to the repo).
+ */
+export function testFiles(...except: string[]): string[] {
+  const out: string[] = [];
+  const walk = (dir: string): void => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) {
+        if (rel(p) !== "tests/jnet") walk(p);
+      } else if (e.name.endsWith(".test.ts") && !except.includes(rel(p))) {
+        out.push(p);
+      }
+    }
+  };
+  walk(join(ROOT, "tests"));
+  return out.sort();
 }
 
 // `CR 8.5.11`, `CR 1.21.1–1.21.6`, `CR 7.2.1, 7.2.2 / 7.3`, `CR 9`.
