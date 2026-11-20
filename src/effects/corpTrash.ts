@@ -22,7 +22,7 @@ import {
 } from "../state/cardDeclarations.js";
 import { evalEffect, maybeFireNuvemFirstRdTrash } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { createPendingAbilityInstance } from "../state/pendingAbilities.js";
 import {
   fireOnRezzedCardTrashed,
   fireOnRunnerTrashFromThisServerRootOrProtecting,
@@ -58,18 +58,41 @@ function maybeFireAuCoOnHqTrash(state: GameState, wasFromHq: boolean): void {
   );
 }
 
-/** Parasite-class: trash host ice when effective strength ≤ threshold. */
-export function maybeTrashHostsAtStrengthLte(state: GameState): void {
-  const trashed = new Set<string>();
+const STATIC_TRASH_HOST_KEY = "static:trash-host";
+
+/**
+ * Parasite ("When the strength of host ice is 0 or less, trash it") and
+ * Trypano ("When there are 5 or more virus counters on this program, trash
+ * host ice") are conditional abilities with a static condition (CR 9.6.7).
+ * During 10.3.1a of each checkpoint, each one whose condition is true at the
+ * beginning of that checkpoint becomes pending (CR 9.6.7a, 9.6.7b), unless an
+ * instance from the same source is already pending, imminent or resolving
+ * (CR 9.6.7c). It resolves in the checkpoint's reaction window (CR 10.3.2),
+ * where the Runner trashes the host (CR 1.14.5).
+ */
+export function markStaticHostTrashConditions(state: GameState): void {
   for (const id of [...state.runner.installed]) {
     const card = state.cards[id];
-    if (!card || typeof card.trashHostWhenStrengthLte !== "number") continue;
-    const hostId = card.hostId;
-    if (!hostId) continue;
+    const hostId = card?.hostId;
+    if (!card || !hostId) continue;
     const host = state.cards[hostId];
-    if (!host || host.type !== "ice") continue;
-    const str = iceStrength(state, hostId);
-    if (str > card.trashHostWhenStrengthLte) continue;
+    if (!host || host.type !== "ice" || !host.zone.endsWith(":ice")) continue;
+    if (abilitiesSuppressed(state, id)) continue;
+    const lte = card.trashHostWhenStrengthLte;
+    const atVirus = card.trashHostAtVirus;
+    const weak = typeof lte === "number" && iceStrength(state, hostId) <= lte;
+    const infested =
+      typeof atVirus === "number" && (card.virusCounters ?? 0) >= atVirus;
+    if (!weak && !infested) continue;
+    const open = state.pendingAbilities.some(
+      (p) =>
+        p.sourceId === id &&
+        p.abilityKey === STATIC_TRASH_HOST_KEY &&
+        (p.status === "pending" ||
+          p.status === "imminent" ||
+          p.status === "resolving"),
+    );
+    if (open) continue;
     if (host.playersCannotTrashThisIce && !abilitiesSuppressed(state, hostId)) {
       noteStaticConditionResolvedWithNoEffect(
         state,
@@ -79,13 +102,22 @@ export function maybeTrashHostsAtStrengthLte(state: GameState): void {
       );
       continue;
     }
-    if (trashed.has(hostId)) continue;
-    trashed.add(hostId);
-    // The Runner controls the hosted card's ability (CR 1.14.5).
-    trashCard(state, hostId, { by: "runner" });
+    createPendingAbilityInstance(state, {
+      abilityKey: STATIC_TRASH_HOST_KEY,
+      sourceId: id,
+      controller: "runner",
+      mandatory: true,
+      payload: {
+        kind: "inline_conditional",
+        effect: {
+          op: "do",
+          action: { kind: "trash_corp_card", cardId: hostId },
+        },
+      },
+    });
     log(
       state,
-      `Trash ${host.title} — host strength ${str} ≤ parasite threshold (CR ${CR.trashing.number}).`,
+      `${card.title} becomes pending — ${weak ? `${host.title} is at strength ${iceStrength(state, hostId)}` : `${card.virusCounters} virus counters`} (CR ${CR.staticConditionPending.number}).`,
     );
   }
 }
@@ -188,13 +220,20 @@ export function noteCorpCardTrashedToArchives(
   state.turn.onTrashSourceServerId = zoneMatch
     ? (zoneMatch[1] as import("../state/types.js").ServerId)
     : null;
-  // Hostile Infrastructure's "whenever the Runner trashes a Corp card" sees
-  // its own trash too. In a simultaneous set the caller marks one instance
-  // per card, this one included (CR 9.1.8g.ex1), so it is not noted again.
-  if (!(
-    origin.simultaneousSet && card.netDamageWheneverRunnerTrashesCorpCard
-  )) {
-    fireCorpOnTrash(state, cardId);
+  // Every Corp "trash" trigger reads "When the Runner trashes this card"
+  // (Hostile Infrastructure: "...a Corp card (including Hostile
+  // Infrastructure)"). It is met only when the Runner trashes the card
+  // (CR 1.14.5a, 9.6.5c), and only while the card is active, so an unrezzed
+  // card's trigger is never met (CR 9.1.7); the ability then stays active in
+  // Archives until its instance resolves (CR 9.1.8g). In a simultaneous set
+  // the caller marks one instance per card, this one included
+  // (CR 9.1.8g.ex1), so it is not noted again.
+  if (
+    trashedBy === "runner" &&
+    wasRezzed &&
+    !(origin.simultaneousSet && card.netDamageWheneverRunnerTrashesCorpCard)
+  ) {
+    fireCorpOnTrash(state, cardId, origin.simultaneousSet);
   }
   fireRonaldFiveOnCorpTrash(state);
   fireCotcOnCorpCardTrashed(state);

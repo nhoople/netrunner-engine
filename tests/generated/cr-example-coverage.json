@@ -669,7 +669,7 @@
       "cr-examples-ch9.test.ts › keeps Na'Not'K's paid strength after the run when Gebrselassie hosts on it (CR 9.10.5.ex1)"
     ],
     "9.11.2a.ex1": [
-      "cr-examples-ch9.test.ts › RF: runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)"
+      "cr-examples-ch9.test.ts › runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)"
     ],
     "9.11.2a.ex2": [
       "cr-examples-ch9.test.ts › runs no checkpoint inside the checkpoint that waits on Bad Times' memory choice (CR 9.11.2a.ex2)"

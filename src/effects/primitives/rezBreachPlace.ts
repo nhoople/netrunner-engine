@@ -1,4 +1,5 @@
 /** Business First (bf) Mumbad pack primitives — v1.117.0. */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
@@ -100,6 +101,7 @@ export function applyMumbadBfPrimitive(
     }
 
     case "breach_instead_cbi_raid": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       // Printed: instead of breaching HQ, the Corp adds all cards in HQ to
       // the top of R&D in the order of their choice (CR 1.2.1).
       if (!state.run) return { ok: true };

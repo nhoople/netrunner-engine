@@ -9,7 +9,7 @@ import { addBreakerStrengthBoostThisTurn } from "../state/lingeringEffects.js";
 import {
   creditsAvailableForInstall,
   emptyRunnerCreditPool,
-  spendCreditsForInstall,
+  payInstallCost,
   spendProgramUseRecurringCredits,
 } from "../state/costs.js";
 import { fireOnInstall } from "../state/cardLifecycleHooks.js";
@@ -450,7 +450,7 @@ export function installRunner(
       { number: "8.5.11", id: "sec_install_cost" },
     ]);
   }
-  spendCreditsForInstall(state, "runner", cost, card);
+  payInstallCost(state, "runner", cost, card);
   if (handIdx >= 0) {
     state.runner.hand.splice(handIdx, 1);
   } else if (blingHostId) {

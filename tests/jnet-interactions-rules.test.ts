@@ -211,10 +211,8 @@ describe("memory and consoles (CR 10.3.1d, 10.3.1e)", () => {
   });
 
   // jnet: game.core.engine-test/trash-previous-consoles-test
-  // Engine bug, filed under RA-1 (the 10.3.1d checkpoint): the checkpoint
-  // reads the console subtype of facedown Box-Es, so Hunting Grounds' install
-  // already trashes two of them and Mirror.
-  it.skip("facedown Box-Es are not consoles; when Assimilator turns one faceup, Mirror, the console that was active first, is trashed (CR 8.1.4a, 10.3.1d)", () => {
+  // Fixed in RF-1: facedown Runner cards are not active (CR 8.1.4a).
+  it("facedown Box-Es are not consoles; when Assimilator turns one faceup, Mirror, the console that was active first, is trashed (CR 8.1.4a, 10.3.1d)", () => {
     let s = board({
       runnerHand: ["Mirror", "Assimilator", "Hunting Grounds"],
       runnerDeck: ["Box-E", "Box-E", "Box-E", "Box-E", "Box-E"],

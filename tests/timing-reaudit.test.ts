@@ -216,8 +216,8 @@ describe("ability records (CR 9.3.7)", () => {
 
 describe("instruction boundaries (CR 9.1.2, 9.11.3)", () => {
   // Professional Contacts prints one sentence: "Gain 1[credit] and draw 1
-  // card." The IR has no way to say that two effects are one instruction,
-  // so `seq` puts a checkpoint between them (eval.ts, case "seq").
+  // card." The engine reads `oneInstruction` on a seq since RF-1 (CR 9.11.3);
+  // the card's JSON gains the marker in paired cut A, which turns this green.
   it.fails(
     "RF: resolves Professional Contacts' one sentence as one instruction, with no checkpoint between the gain and the draw (CR 9.11.3)",
     () => {
@@ -236,36 +236,32 @@ describe("instruction boundaries (CR 9.1.2, 9.11.3)", () => {
 });
 
 describe("cost checkpoints (CR 10.3.4, 9.11.1a, 8.5.16d)", () => {
-  // The basic install action charges the install cost (and the click) with
-  // no checkpoint after it. Playing an event and using a paid ability do run
-  // one ("Checkpoint open [cost]").
-  it.fails(
-    "RF: runs a checkpoint right after the Runner pays Corroder's install cost, before Corroder is installed (CR 8.5.16d, 10.3.4)",
-    () => {
-      const s = base();
-      s.cards["cor-1"] = instantiateCard("corroder", "cor-1", "runner:grip");
-      s.runner.hand.push("cor-1");
-      s.runner.credits = 5;
-      s.runner.clicks = 3;
-      s.activeSide = "runner";
-      s.timingKey = "runner.takeAction";
-      const from = s.log.length;
-      const after = must(s, {
-        type: "basic_install",
-        cardId: "cor-1",
-        destination: { kind: "installed" },
-      });
-      expect(after.runner.credits).toBe(3);
-      const lines = after.log.slice(from);
-      const installed = at(lines, "Runner installs Corroder");
-      // One cost checkpoint after the click (CR 10.3.4) and one after the
-      // install cost (CR 8.5.16d), both before Corroder is installed.
-      const costs = lines
-        .slice(0, installed)
-        .filter((line) => line.startsWith("Checkpoint open [cost]"));
-      expect(costs).toHaveLength(2);
-    },
-  );
+  // Fixed in RF-1: the basic install action runs a cost checkpoint after the
+  // click and another after the install cost (payInstallCost).
+  it("runs a checkpoint right after the Runner pays Corroder's install cost, before Corroder is installed (CR 8.5.16d, 10.3.4)", () => {
+    const s = base();
+    s.cards["cor-1"] = instantiateCard("corroder", "cor-1", "runner:grip");
+    s.runner.hand.push("cor-1");
+    s.runner.credits = 5;
+    s.runner.clicks = 3;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    const from = s.log.length;
+    const after = must(s, {
+      type: "basic_install",
+      cardId: "cor-1",
+      destination: { kind: "installed" },
+    });
+    expect(after.runner.credits).toBe(3);
+    const lines = after.log.slice(from);
+    const installed = at(lines, "Runner installs Corroder");
+    // One cost checkpoint after the click (CR 10.3.4) and one after the
+    // install cost (CR 8.5.16d), both before Corroder is installed.
+    const costs = lines
+      .slice(0, installed)
+      .filter((line) => line.startsWith("Checkpoint open [cost]"));
+    expect(costs).toHaveLength(2);
+  });
 });
 
 describe("pending instances and their reaction window (CR 9.6.2, 9.6.4b, 9.2.8)", () => {
@@ -282,38 +278,33 @@ describe("pending instances and their reaction window (CR 9.6.2, 9.6.4b, 9.2.8)"
     expect(s.pendingAbilities).toEqual([]);
   });
 
-  // Fix-now: trash_attacked_server_root (trashKinds.ts) resolves Hostile
-  // Infrastructure's instances in its own reaction window inside the
-  // instruction. When the first instance's damage opens an interrupt window
-  // (the Runner could prevent it), the window closes and the other two
-  // instances stay "pending" with nothing that ever resolves them.
-  it.fails(
-    "RF: still does all 3 of Hostile Infrastructure's net damage after Singularity when the Runner could prevent the first (CR 9.6.2, 9.2.8e)",
-    () => {
-      let s = singularityBoard();
-      s.cards["ff-1"] = instantiateCard(
-        "feedback-filter",
-        "ff-1",
-        "runner:installed",
-      );
-      s.runner.installed = ["ff-1"];
-      s.runner.credits = 10;
-      const opened = evalEffect(
-        { state: s, sourceId: "sing-1" },
-        fx.do({ kind: "breach_instead_singularity_trash_root" }),
-      );
-      expect(opened.ok).toBe(true);
-      const before = snapshot(s);
-      s = must(s, { type: "choose_option", optionId: "singularity" });
-      for (let i = 0; i < 6 && s.pendingDamage; i++) {
-        s = must(s, { type: "accept_damage" });
-      }
-      expectStateDelta(before, s, { "runner.hand.length": -3 });
-      expect(s.pendingAbilities.filter((p) => p.status === "pending")).toEqual(
-        [],
-      );
-    },
-  );
+  // Fixed in RF-1: trash_attacked_server_root notes Hostile
+  // Infrastructure's instances for the checkpoint after the instruction, and
+  // the window's leftovers resume after the first damage interrupt.
+  it("still does all 3 of Hostile Infrastructure's net damage after Singularity when the Runner could prevent the first (CR 9.6.2, 9.2.8e)", () => {
+    let s = singularityBoard();
+    s.cards["ff-1"] = instantiateCard(
+      "feedback-filter",
+      "ff-1",
+      "runner:installed",
+    );
+    s.runner.installed = ["ff-1"];
+    s.runner.credits = 10;
+    const opened = evalEffect(
+      { state: s, sourceId: "sing-1" },
+      fx.do({ kind: "breach_instead_singularity_trash_root" }),
+    );
+    expect(opened.ok).toBe(true);
+    const before = snapshot(s);
+    s = must(s, { type: "choose_option", optionId: "singularity" });
+    for (let i = 0; i < 6 && s.pendingDamage; i++) {
+      s = must(s, { type: "accept_damage" });
+    }
+    expectStateDelta(before, s, { "runner.hand.length": -3 });
+    expect(s.pendingAbilities.filter((p) => p.status === "pending")).toEqual(
+      [],
+    );
+  });
 });
 
 describe("delayed conditional abilities (CR 9.6.13)", () => {
@@ -356,113 +347,98 @@ describe("replacement effects (CR 9.9.9c)", () => {
 });
 
 describe("conditional abilities with a static condition (CR 9.6.7)", () => {
-  // Parasite's "When the strength of the host ice is 0, trash it" is only
-  // checked when a virus counter is placed or ice is weakened
-  // (corpTrash.ts maybeTrashHostsAtStrengthLte), never at a checkpoint.
-  it.fails(
-    "RF: trashes Wraparound at the next checkpoint once a fracter is installed and Parasite is hosted on it at 0 strength (CR 9.6.7a, 9.6.7b)",
-    () => {
-      const s = base();
-      const wrap = instantiateCard("wraparound", "wrap-1", "server:hq:ice");
-      wrap.rezzed = true;
-      wrap.faceup = true;
-      wrap.hostedCardIds = ["par-1"];
-      s.cards["wrap-1"] = wrap;
-      s.servers.hq.ice = ["wrap-1"];
-      s.cards["cor-1"] = instantiateCard(
-        "corroder",
-        "cor-1",
-        "runner:installed",
-      );
-      const parasite = instantiateCard("parasite", "par-1", "runner:installed");
-      parasite.hostId = "wrap-1";
-      s.cards["par-1"] = parasite;
-      s.runner.installed = ["cor-1", "par-1"];
-      expect(effectiveIceStrength(s, "wrap-1")).toBe(0);
-      occurCheckpoint(
-        s,
-        "instruction",
-        "Parasite installed",
-        [CR.checkpointConditionalAbilities],
-        "test",
-      );
-      expect(s.cards["wrap-1"]?.zone).toBe("corp:archives");
-    },
-  );
+  // Fixed in RF-1: Parasite's static condition is checked at 10.3.1a of
+  // every checkpoint (corpTrash.ts markStaticHostTrashConditions).
+  it("trashes Wraparound at the next checkpoint once a fracter is installed and Parasite is hosted on it at 0 strength (CR 9.6.7a, 9.6.7b)", () => {
+    const s = base();
+    const wrap = instantiateCard("wraparound", "wrap-1", "server:hq:ice");
+    wrap.rezzed = true;
+    wrap.faceup = true;
+    wrap.hostedCardIds = ["par-1"];
+    s.cards["wrap-1"] = wrap;
+    s.servers.hq.ice = ["wrap-1"];
+    s.cards["cor-1"] = instantiateCard("corroder", "cor-1", "runner:installed");
+    const parasite = instantiateCard("parasite", "par-1", "runner:installed");
+    parasite.hostId = "wrap-1";
+    s.cards["par-1"] = parasite;
+    s.runner.installed = ["cor-1", "par-1"];
+    expect(effectiveIceStrength(s, "wrap-1")).toBe(0);
+    occurCheckpoint(
+      s,
+      "instruction",
+      "Parasite installed",
+      [CR.checkpointConditionalAbilities],
+      "test",
+    );
+    expect(s.cards["wrap-1"]?.zone).toBe("corp:archives");
+  });
 });
 
 describe("replacement order (CR 9.9.11a)", () => {
   // Security Testing (or Patron) already replaced the breach, so there is
-  // nothing left for Diversion of Funds to replace. The Diversion kind
-  // (breachResolveInstall.ts) does not read run.skipBreach.
-  it.fails(
-    "RF: offers no Diversion of Funds replacement once Security Testing has already replaced the breach of HQ (CR 9.9.11a)",
-    () => {
-      const s = base();
-      s.cards["dof-1"] = instantiateCard(
-        "diversion-of-funds",
-        "dof-1",
-        "runner:play-area",
-      );
-      s.runner.playArea.push("dof-1");
-      s.corp.credits = 8;
-      s.run = {
-        attackedServerId: "hq",
-        phase: "success",
-        position: null,
-        successful: true,
-        accessedCardIds: [],
-        accessCandidates: [],
-        randomAccessLimit: null,
-        encounter: null,
-        endedTheRun: false,
-        cannotJackOut: false,
-        accessingCardId: null,
-        skipBreach: true,
-      };
-      const r = evalEffect(
-        { state: s, sourceId: "dof-1" },
-        fx.do({ kind: "may_breach_instead_diversion_funds_ka" }),
-      );
-      expect(r.ok).toBe(true);
-      expect(s.pendingChoice).toBeNull();
-      expect(s.corp.credits).toBe(8);
-    },
-  );
+  // nothing left for Diversion of Funds to replace. Fixed in RF-1: every
+  // "instead of breaching" kind checks breachAlreadyReplaced.
+  it("offers no Diversion of Funds replacement once Security Testing has already replaced the breach of HQ (CR 9.9.11a)", () => {
+    const s = base();
+    s.cards["dof-1"] = instantiateCard(
+      "diversion-of-funds",
+      "dof-1",
+      "runner:play-area",
+    );
+    s.runner.playArea.push("dof-1");
+    s.corp.credits = 8;
+    s.run = {
+      attackedServerId: "hq",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+      skipBreach: true,
+    };
+    const r = evalEffect(
+      { state: s, sourceId: "dof-1" },
+      fx.do({ kind: "may_breach_instead_diversion_funds_ka" }),
+    );
+    expect(r.ok).toBe(true);
+    expect(s.pendingChoice).toBeNull();
+    expect(s.corp.credits).toBe(8);
+  });
 });
 
 describe("conditional ability classes (CR 9.6.14)", () => {
-  // Hostile Takeover's "take 1 bad publicity" is the field
-  // badPublicityOnScore, applied only by the score action (score.ts), so an
-  // effect that resolves its when-scored ability gives only the credits.
-  it.fails(
-    "RF: 24/7 News Cycle resolving Hostile Takeover's when-scored ability gives 7 credits and 1 bad publicity (CR 9.6.14c, 9.6.14d)",
-    () => {
-      let s = base();
-      s.cards["news-1"] = instantiateCard(
-        "24-7-news-cycle",
-        "news-1",
-        "corp:play-area",
-      );
-      s.corp.playArea.push("news-1");
-      const ht = instantiateCard("hostile-takeover", "ht-1", "corp:score");
-      ht.faceup = true;
-      s.cards["ht-1"] = ht;
-      s.corp.scoreArea = ["ht-1"];
-      s.corp.credits = 2;
-      const r = evalEffect(
-        { state: s, sourceId: "news-1" },
-        fx.do({ kind: "resolve_when_scored_on_scored_agenda" }),
-      );
-      expect(r.ok).toBe(true);
-      const before = snapshot(s);
-      s = must(s, { type: "choose_option", optionId: "247:ht-1" });
-      expect(s.corp.credits - before.corp.credits).toBe(7);
-      expect((s.corp.badPublicity ?? 0) - (before.corp.badPublicity ?? 0)).toBe(
-        1,
-      );
-    },
-  );
+  // Fixed in RF-1: the when-scored ability includes the field
+  // badPublicityOnScore (state/whenScored.ts), whoever resolves it.
+  it("24/7 News Cycle resolving Hostile Takeover's when-scored ability gives 7 credits and 1 bad publicity (CR 9.6.14c, 9.6.14d)", () => {
+    let s = base();
+    s.cards["news-1"] = instantiateCard(
+      "24-7-news-cycle",
+      "news-1",
+      "corp:play-area",
+    );
+    s.corp.playArea.push("news-1");
+    const ht = instantiateCard("hostile-takeover", "ht-1", "corp:score");
+    ht.faceup = true;
+    s.cards["ht-1"] = ht;
+    s.corp.scoreArea = ["ht-1"];
+    s.corp.credits = 2;
+    const r = evalEffect(
+      { state: s, sourceId: "news-1" },
+      fx.do({ kind: "resolve_when_scored_on_scored_agenda" }),
+    );
+    expect(r.ok).toBe(true);
+    const before = snapshot(s);
+    s = must(s, { type: "choose_option", optionId: "247:ht-1" });
+    expect(s.corp.credits - before.corp.credits).toBe(7);
+    expect((s.corp.badPublicity ?? 0) - (before.corp.badPublicity ?? 0)).toBe(
+      1,
+    );
+  });
 });
 
 describe("trigger conditions of trash abilities (CR 9.1.7, 9.1.8g, 9.6.5c)", () => {
@@ -497,29 +473,23 @@ describe("trigger conditions of trash abilities (CR 9.1.7, 9.1.8g, 9.6.5c)", () 
     );
   }
 
-  // Fix-now. Its record's trigger becomes the generic onTrash hook, which
-  // fires whoever trashed it and whether or not it was active (rezzed).
-  it.fails(
-    "RF: does no net damage when the Runner trashes an unrezzed Hostile Infrastructure, whose ability is not active (CR 9.1.7, 9.1.8g)",
-    () => {
-      const s = hostileBoard(false);
-      const hand = s.runner.hand.length;
-      trashThenCheckpoint(s, "runner");
-      expect(s.cards["hi-1"]?.zone).toBe("corp:archives");
-      expect(s.runner.hand).toHaveLength(hand);
-    },
-  );
+  // Fixed in RF-1: a Corp "trash" trigger is met only when the Runner trashes
+  // the card while it is rezzed (corpTrash.ts).
+  it("does no net damage when the Runner trashes an unrezzed Hostile Infrastructure, whose ability is not active (CR 9.1.7, 9.1.8g)", () => {
+    const s = hostileBoard(false);
+    const hand = s.runner.hand.length;
+    trashThenCheckpoint(s, "runner");
+    expect(s.cards["hi-1"]?.zone).toBe("corp:archives");
+    expect(s.runner.hand).toHaveLength(hand);
+  });
 
-  it.fails(
-    "RF: does no net damage when the Corp trashes its own rezzed Hostile Infrastructure (CR 9.6.5c)",
-    () => {
-      const s = hostileBoard(true);
-      const hand = s.runner.hand.length;
-      trashThenCheckpoint(s, "corp");
-      expect(s.cards["hi-1"]?.zone).toBe("corp:archives");
-      expect(s.runner.hand).toHaveLength(hand);
-    },
-  );
+  it("does no net damage when the Corp trashes its own rezzed Hostile Infrastructure (CR 9.6.5c)", () => {
+    const s = hostileBoard(true);
+    const hand = s.runner.hand.length;
+    trashThenCheckpoint(s, "corp");
+    expect(s.cards["hi-1"]?.zone).toBe("corp:archives");
+    expect(s.runner.hand).toHaveLength(hand);
+  });
 
   it("does 1 net damage when the Runner trashes a rezzed Hostile Infrastructure (CR 9.1.8g)", () => {
     const s = hostileBoard(true);
@@ -530,37 +500,28 @@ describe("trigger conditions of trash abilities (CR 9.1.7, 9.1.8g, 9.6.5c)", () 
 });
 
 describe("a cost paid with the last credits (CR 1.16.3, 8.5.16d)", () => {
-  // Fix-now. The install spend (costs.ts spendCreditsForInstall) takes the
-  // credits outside the credit-pool tracking and runs no cost checkpoint, so
-  // Order of Sol never sees the pool empty on an install. Playing Sure Gamble
-  // with the same 5 credits does trigger it.
-  it.fails(
-    "RF: Order of Sol gains 1 credit when the Runner spends their last 5 credits installing Professional Contacts (CR 8.5.16d, 10.3.4)",
-    () => {
-      let s = base();
-      const idId = s.runner.identityId;
-      s.cards[idId] = instantiateCard(
-        "order-of-sol",
-        idId,
-        s.cards[idId]!.zone,
-      );
-      s.cards["pc-1"] = instantiateCard(
-        "professional-contacts",
-        "pc-1",
-        "runner:grip",
-      );
-      s.runner.hand.push("pc-1");
-      s.runner.credits = 5;
-      s.runner.clicks = 3;
-      s.activeSide = "runner";
-      s.timingKey = "runner.takeAction";
-      s = must(s, {
-        type: "basic_install",
-        cardId: "pc-1",
-        destination: { kind: "installed" },
-      });
-      expect(s.cards["pc-1"]?.zone).toBe("runner:installed");
-      expect(s.runner.credits).toBe(1);
-    },
-  );
+  // Fixed in RF-1: the install spend goes through the credit pool and runs
+  // the cost checkpoint (costs.ts payInstallCost), as playing an event does.
+  it("Order of Sol gains 1 credit when the Runner spends their last 5 credits installing Professional Contacts (CR 8.5.16d, 10.3.4)", () => {
+    let s = base();
+    const idId = s.runner.identityId;
+    s.cards[idId] = instantiateCard("order-of-sol", idId, s.cards[idId]!.zone);
+    s.cards["pc-1"] = instantiateCard(
+      "professional-contacts",
+      "pc-1",
+      "runner:grip",
+    );
+    s.runner.hand.push("pc-1");
+    s.runner.credits = 5;
+    s.runner.clicks = 3;
+    s.activeSide = "runner";
+    s.timingKey = "runner.takeAction";
+    s = must(s, {
+      type: "basic_install",
+      cardId: "pc-1",
+      destination: { kind: "installed" },
+    });
+    expect(s.cards["pc-1"]?.zone).toBe("runner:installed");
+    expect(s.runner.credits).toBe(1);
+  });
 });

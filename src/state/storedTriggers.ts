@@ -2,6 +2,7 @@
  * Conditional abilities whose card data is loaded and whose moment is a
  * shared procedure: the ability becomes pending when that moment happens.
  */
+import { whenScoredEffect } from "./whenScored.js";
 import { playEffectFromCard } from "../effects/abilityRecord.js";
 import { evalEffect } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
@@ -24,6 +25,7 @@ import {
   completePendingAbility,
   createPendingAbilityInstance,
   findPendingAbility,
+  sourceTurnedInactive,
   markPendingAbilityResolving,
   openReactionWindow,
   pendingAbilitiesWithStatus,
@@ -59,6 +61,8 @@ export function effectFromKey(
     return card.onArchivesFacedownTurnedFaceupGte?.effect;
   }
   if (key === "onPlay") return playEffectFromCard(card);
+  // The whole printed when-scored ability, fields included (CR 9.6.14c).
+  if (key === "onScore") return whenScoredEffect(card);
   return card[key as keyof CardInstance] as Effect | undefined;
 }
 
@@ -182,7 +186,9 @@ export function resolvePendingInWindowOrder(
   for (;;) {
     cancelPendingIfSourceInactive(
       state,
-      (inst) => !abilitiesSuppressed(state, inst.sourceId),
+      (inst) =>
+        !abilitiesSuppressed(state, inst.sourceId) &&
+        !sourceTurnedInactive(state, inst),
     );
     const remaining: PendingAbilityInstance[] = [];
     for (const id of pendingIds) {
@@ -242,7 +248,9 @@ export function resolveStoredConditionalPendings(
   // (source already in heap/Archives) can still resolve.
   cancelPendingIfSourceInactive(
     state,
-    (inst) => !abilitiesSuppressed(state, inst.sourceId),
+    (inst) =>
+      !abilitiesSuppressed(state, inst.sourceId) &&
+      !sourceTurnedInactive(state, inst),
   );
   const frame = openReactionWindow(state, pendingIds, null);
   for (const pendingId of pendingIds) {
@@ -297,23 +305,53 @@ export function resolveStoredOrInlineConditionalInstance(
   return interruptOpen(state);
 }
 
-/** Resume stored/inline conditional instances left pending after a nested interrupt. */
-export function resumePendingStoredConditionals(state: GameState): void {
+/**
+ * The order the still-pending stored and inline instances resume in, one
+ * group per reaction window. An instance that became pending while an
+ * earlier window was paused belongs to a window nested in it, which resolves
+ * first (CR 9.2.8a): instances never in a window come first, then each
+ * window's leftovers from the most recently opened back to the oldest.
+ */
+function pausedWindowGroups(state: GameState): string[][] {
+  const groups = new Map<string | null, string[]>();
+  for (const p of pendingAbilitiesWithStatus(state, "pending")) {
+    if (!isStoredOrInline(p)) continue;
+    const ids = groups.get(p.windowId) ?? [];
+    ids.push(p.id);
+    groups.set(p.windowId, ids);
+  }
+  const seq = (windowId: string | null): number =>
+    windowId === null
+      ? Number.POSITIVE_INFINITY
+      : Number(/(\d+)$/.exec(windowId)?.[1] ?? 0);
+  return [...groups.entries()]
+    .sort(([a], [b]) => seq(b) - seq(a))
+    .map(([, ids]) => ids);
+}
+
+/**
+ * Resume stored/inline conditional instances left pending after a choice or
+ * interrupt paused their reaction window. Each window resumes as its own
+ * window, nested ones first (CR 9.2.8a), with the active player first in
+ * each (CR 9.2.8b). Stops when one pauses again.
+ */
+export function resumePendingStoredConditionals(
+  state: GameState,
+  /** Stop once this window has resumed: older windows wait for their own resume. */
+  lastWindow?: (pendingIds: string[]) => boolean,
+): void {
   if (interruptOpen(state)) return;
   cancelPendingIfSourceInactive(
     state,
-    (inst) => !abilitiesSuppressed(state, inst.sourceId),
+    (inst) =>
+      !abilitiesSuppressed(state, inst.sourceId) &&
+      !sourceTurnedInactive(state, inst),
   );
-  const bag = pendingAbilitiesWithStatus(state, "pending").filter(
-    (p) =>
-      p.payload?.kind === "stored_conditional" ||
-      p.payload?.kind === "inline_conditional",
-  );
-  if (bag.length === 0) return;
-  resolveStoredConditionalPendings(
-    state,
-    bag.map((p) => p.id),
-  );
+  for (const ids of pausedWindowGroups(state)) {
+    if (resolveStoredConditionalPendings(state, ids)) return;
+    if (interruptOpen(state)) return;
+    if (lastWindow?.(ids)) return;
+  }
 }
 
 /** True when a replacement for taking bad publicity is now pending. */

@@ -4834,6 +4834,13 @@ export interface RunState {
   mayShuffleTitlesFromHeapOnSuccessfulRunEnd?: string[];
   /** Skip breach after success (Retrieval Run / Security Testing). */
   skipBreach?: boolean;
+  /**
+   * `skipBreach` was set when the run began, by the run event's own
+   * "instead of breaching" (Pinhole Threading, Embezzle). That replacement
+   * has not applied yet, so others may still be ordered before it
+   * (CR 9.9.11).
+   */
+  skipBreachFromRunStart?: boolean;
   /** Security Testing is waiting to be ordered with another breach replacement (CR 9.9.11a). */
   deferBreachReplacement?: boolean;
   /** Immolation Script: once this run may trash rezzed copy instead of accessing Archives ice. */
@@ -5047,6 +5054,12 @@ export interface PendingAbilityInstance {
    * Null until the window opens.
    */
   windowId: string | null;
+  /**
+   * The source was an active installed card (a rezzed asset, upgrade or ice,
+   * or a faceup Runner card) when the instance became pending, so it can
+   * later become inactive (CR 1.8.3a).
+   */
+  sourceActiveInPlay?: boolean;
   /** Resolver payload until the ability is fully on Effect IR hooks. */
   payload?: PendingAbilityPayload;
 }

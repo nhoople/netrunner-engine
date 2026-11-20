@@ -9,6 +9,7 @@
  * a cost of 0 can still be paid.
  * CR 8.6.3: cards an effect plays are chosen and played one at a time.
  */
+import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -374,6 +375,8 @@ describe("card-specific trashes use the trash procedure (CR 1.14.5, CR 4.4.6b)",
     s.runner.installed = ["tryp-1"];
     s.turn.runnerTrashedCorpCardThisTurn = false;
     doKind(s, "tryp-1", "add_virus_counter", { amount: 1 });
+    // Trypano's static condition is checked at a checkpoint (CR 9.6.7a).
+    checkpointAfterInstruction(s, "test");
     expect(s.cards["host-ice"]?.zone).toBe("corp:archives");
     expect(s.cards["host-ice"]?.faceup).toBe(false);
     expect(s.servers["hq"]!.ice).toEqual([]);

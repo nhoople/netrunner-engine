@@ -18,7 +18,7 @@ import {
   corpInstallCost,
   creditsAvailableForInstall,
   installAndRezPaid,
-  spendCreditsForInstall,
+  payInstallCost,
   subtractRunnerCreditPool,
 } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
@@ -255,7 +255,7 @@ export function applyInstallKinds(
         log(state, `Kakurenbo install — cannot afford ${cost}¢.`);
         return { ok: true };
       }
-      spendCreditsForInstall(state, "corp", cost);
+      payInstallCost(state, "corp", cost, undefined, destId ?? undefined);
       state.corp.discardPile = state.corp.discardPile.filter(
         (id) => id !== cardId,
       );
@@ -434,7 +434,7 @@ export function applyInstallKinds(
         returnRdLookedToDeckTop(state);
         return { ok: true };
       }
-      spendCreditsForInstall(state, "corp", cost);
+      payInstallCost(state, "corp", cost);
       state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
         (x) => x !== cardId,
       );
@@ -1539,7 +1539,7 @@ export function applyInstallKinds(
             } else if (creditsAvailableForInstall(state, "corp") < cost) {
               log(state, `Install from HQ — cannot afford ${cost}¢.`);
             } else {
-              spendCreditsForInstall(state, "corp", cost);
+              payInstallCost(state, "corp", cost, undefined, serverId);
               state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
               if (asIce) {
                 dest.ice.unshift(id);
@@ -2440,7 +2440,7 @@ export function applyInstallKinds(
         card.faceup = false;
         return { ok: true };
       }
-      spendCreditsForInstall(state, "corp", pay);
+      payInstallCost(state, "corp", pay);
       server.ice.unshift(action.cardId);
       card.zone = `server:${serverId}:ice`;
       card.rezzed = false;
@@ -3316,7 +3316,7 @@ export function applyInstallKinds(
         log(state, `Install HQ ice — cannot afford ${pay}¢.`);
         return { ok: true };
       }
-      spendCreditsForInstall(state, "corp", pay);
+      payInstallCost(state, "corp", pay);
       state.corp.hand = state.corp.hand.filter((id) => id !== action.cardId);
       server.ice.unshift(action.cardId);
       card.zone = `server:${serverId}:ice`;
@@ -3481,7 +3481,7 @@ export function applyInstallKinds(
         );
         return { ok: true };
       }
-      spendCreditsForInstall(state, "corp", pay);
+      payInstallCost(state, "corp", pay);
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
       const remoteNum = state.nextRemoteNumber++;
       const sid =
@@ -3744,7 +3744,13 @@ export function applyInstallKinds(
             const asIce = Boolean(action.asIce) || card.type === "ice";
             const cost = corpInstallCost(card, asIce ? dest.ice.length : 0);
             if (creditsAvailableForInstall(state, "corp") >= cost) {
-              spendCreditsForInstall(state, "corp", cost);
+              payInstallCost(
+                state,
+                "corp",
+                cost,
+                undefined,
+                serverId as import("../../state/types.js").ServerId,
+              );
               state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
               if (asIce) {
                 dest.ice.unshift(id);
@@ -3908,7 +3914,7 @@ export function applyInstallKinds(
         log(state, `Saraswati — cannot afford ${cost}¢.`);
         return { ok: true };
       }
-      spendCreditsForInstall(state, "corp", cost);
+      payInstallCost(state, "corp", cost);
       const destId = resolveInstallServerId(state, action.serverId);
       const dest = destId ? state.servers[destId] : null;
       if (!dest || dest.kind !== "remote") {
@@ -4047,7 +4053,7 @@ export function applyInstallKinds(
         return { ok: true };
       }
       state.runner.clicks -= action.clickCost;
-      spendCreditsForInstall(state, "runner", cost);
+      payInstallCost(state, "runner", cost);
       state.runner.discardPile = state.runner.discardPile.filter(
         (x) => x !== action.cardId,
       );

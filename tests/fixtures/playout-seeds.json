@@ -2,52 +2,12 @@
   "steps": 200,
   "entries": [
     {
-      "format": "learn_to_play_starter",
-      "deckSeed": 1,
-      "step": 150,
-      "code": "RUN_SERVER_MISSING",
-      "recorded": "2026-11-15",
-      "detail": "run attacks missing server remote-1"
-    },
-    {
-      "format": "learn_to_play_starter",
-      "deckSeed": 13,
-      "step": 62,
-      "code": "RUN_SERVER_MISSING",
-      "recorded": "2026-11-13",
-      "detail": "run attacks missing server remote-2"
-    },
-    {
-      "format": "learn_to_play_expanded",
-      "deckSeed": 17,
-      "step": 27,
-      "code": "RUN_SERVER_MISSING",
-      "recorded": "2026-11-13",
-      "detail": "run attacks missing server remote-1"
-    },
-    {
       "format": "startup",
       "deckSeed": 1,
       "step": 38,
       "code": "NO_ZONE",
       "recorded": "2026-11-13",
       "detail": "corp:hype-machine:17 (Hype Machine) is in corp:rd and in no zone list"
-    },
-    {
-      "format": "startup",
-      "deckSeed": 2,
-      "step": 188,
-      "code": "RUN_SERVER_MISSING",
-      "recorded": "2026-11-15",
-      "detail": "run attacks missing server remote-2"
-    },
-    {
-      "format": "startup",
-      "deckSeed": 11,
-      "step": 154,
-      "code": "RUN_SERVER_MISSING",
-      "recorded": "2026-11-14",
-      "detail": "run attacks missing server remote-1"
     },
     {
       "format": "core",
@@ -64,14 +24,6 @@
       "code": "REFUSED",
       "recorded": "2026-11-13",
       "detail": "basic_install at corp.takeAction: Cannot create another remote server."
-    },
-    {
-      "format": "standard",
-      "deckSeed": 14,
-      "step": 93,
-      "code": "RUN_SERVER_MISSING",
-      "recorded": "2026-11-15",
-      "detail": "run attacks missing server remote-2"
     },
     {
       "format": "eternal",

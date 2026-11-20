@@ -11,7 +11,6 @@ import {
 } from "../state/powerCounters.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
 import { CR } from "../timing/labels.js";
-import { maybeTrashHostsAtStrengthLte } from "./corpTrash.js";
 import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
 import { fireOnPowerCountersEmpty } from "../state/miscConditionalHooks.js";
@@ -59,25 +58,8 @@ export function applyCounterPrimitive(
           );
         }
       }
-      // Trypano: at threshold, trash host ice.
-      const trashAt = source.trashHostAtVirus;
-      if (
-        trashAt !== undefined &&
-        (source.virusCounters ?? 0) >= trashAt &&
-        source.hostId
-      ) {
-        const hostId = source.hostId;
-        const host = state.cards[hostId];
-        if (host?.type === "ice") {
-          log(
-            state,
-            `${source.title} trashes host ${host.title} (${source.virusCounters} virus).`,
-          );
-          // The Runner controls the hosted program's ability (CR 1.14.5).
-          trashCard(state, hostId, { by: "runner" });
-        }
-      }
-      maybeTrashHostsAtStrengthLte(state);
+      // Trypano's and Parasite's static conditions are checked at the next
+      // checkpoint (CR 9.6.7a).
       return { ok: true };
     }
     case "purge_virus_counters": {

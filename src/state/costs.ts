@@ -39,6 +39,7 @@ import type {
   GameState,
   PaidAbility,
   RecurringSpendPurpose,
+  ServerId,
   Side,
 } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -1768,8 +1769,39 @@ export function spendCreditsForInstall(
       }
     }
   }
-  const p = side === "corp" ? state.corp : state.runner;
-  p.credits -= left;
+  if (side === "runner") {
+    // The pool is spent like any other cost, so Order of Sol sees it empty (CR 1.10).
+    subtractRunnerCreditPool(state, left);
+  } else {
+    state.corp.credits -= left;
+  }
+}
+
+/**
+ * Step 8.5.16d of installing a card: pay the install cost, then the
+ * cost-paid checkpoint, even when the cost is 0 (CR 8.5.16d, 1.16.3a,
+ * 10.3.4). It is the only checkpoint inside an install (CR 9.11.2a.ex1).
+ */
+export function payInstallCost(
+  state: GameState,
+  side: Side,
+  amount: number,
+  forCard?: CardInstance,
+  destinationServerId?: ServerId,
+): void {
+  // A new remote created for this install is not yet empty in the rules
+  // sense: the card moves into it at 8.5.16e (CR 8.5.9, 10.3.1h).
+  const spared = state.turn.installDestinationServerId;
+  if (destinationServerId && !spared) {
+    state.turn.installDestinationServerId = destinationServerId;
+  }
+  try {
+    withCostCheckpoint(state, "install_cost", () => {
+      spendCreditsForInstall(state, side, amount, forCard);
+    });
+  } finally {
+    state.turn.installDestinationServerId = spared;
+  }
 }
 
 /** Refill recurring credit pools on installed/rezzed cards for a side. */

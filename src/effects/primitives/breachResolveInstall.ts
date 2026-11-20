@@ -1,4 +1,5 @@
 /** Kampala Ascendent (ka) Kitara pack primitives — v1.141.0. */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { setRunnerPosition } from "../../state/runPosition.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
@@ -24,6 +25,7 @@ export function applyKitaraKaPrimitive(
 
   switch (action.kind) {
     case "may_breach_instead_diversion_funds_ka": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Diversion of Funds — not a successful HQ run.`);
         return { ok: true };

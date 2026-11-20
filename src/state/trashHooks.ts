@@ -675,24 +675,35 @@ export function noteTrashMatchingRunnerIdentityFaction(
   }
 }
 
-export function fireCorpOnTrash(state: GameState, cardId: string): void {
+export function fireCorpOnTrash(
+  state: GameState,
+  cardId: string,
+  /**
+   * One card of a set trashed together: the caller runs the one checkpoint
+   * after the whole set, so every instance is pending in the same reaction
+   * window (CR 9.6.4b, 9.12.2a).
+   */
+  inSimultaneousSet = false,
+): void {
   const card = state.cards[cardId];
   if (!card?.onTrash) return;
-  noteAndCheckpointStored(
-    state,
-    [
-      {
-        abilityKey: "on-trash",
-        sourceId: cardId,
-        controller: "corp",
-        mandatory: true,
-        effectKey: "onTrash",
-        logLine: `${card.title} becomes pending — trashed.`,
-      },
-    ],
-    "corp.trash.onTrash",
-    { independentOfSource: true },
-  );
+  const items: StoredConditionalMark[] = [
+    {
+      abilityKey: "on-trash",
+      sourceId: cardId,
+      controller: "corp",
+      mandatory: true,
+      effectKey: "onTrash",
+      logLine: `${card.title} becomes pending — trashed.`,
+    },
+  ];
+  if (inSimultaneousSet) {
+    noteStoredConditionals(state, items, { independentOfSource: true });
+    return;
+  }
+  noteAndCheckpointStored(state, items, "corp.trash.onTrash", {
+    independentOfSource: true,
+  });
 }
 
 /** Ronald Five: whenever Runner trashes a Corp card, they lose [click]. */

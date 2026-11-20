@@ -77,7 +77,6 @@ import { recomputeRunnerLink } from "../../state/trashHooks.js";
 import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import { enterSetAside } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
-import { maybeTrashHostsAtStrengthLte } from "../corpTrash.js";
 import { drawCards } from "../draw.js";
 import {
   fireAfterBreakSubroutineHooks,
@@ -311,7 +310,8 @@ export function applyOtherKinds(
         state,
         `Weaken ${ice.title} −${action.amount} → strength ${eff} (CR ${CR.iceStrength.number}).`,
       );
-      maybeTrashHostsAtStrengthLte(state);
+      // Parasite's static condition is checked at the next checkpoint
+      // (CR 9.6.7a).
       return { ok: true };
     }
 

@@ -15,7 +15,7 @@
       "string": 13
     },
     "entries": 863,
-    "withKindBuildingReader": 49,
+    "withKindBuildingReader": 51,
     "unread": 15,
     "unset": 19
   },
@@ -129,7 +129,7 @@
       "trash_random_from_grip"
     ],
     "onScoreIfRunnerTaggedPlaceAgendaCounter": [
-      "gain_credits"
+      "add_agenda_counter"
     ],
     "onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced": [
       "tlm_puppet_master_place_advancement"
@@ -139,6 +139,9 @@
     ],
     "patronChooseServerDrawInsteadOfBreach": [
       "choose_patron_server"
+    ],
+    "placeVirusCounterWhenInstalledCorpCardTrashed": [
+      "add_virus_counter"
     ],
     "playCost": [
       "accelerated_diagnostics"
@@ -176,6 +179,9 @@
       "trash_self"
     ],
     "trashSelfWhenFullyBrokenByRunner": [
+      "trash_self"
+    ],
+    "trashSelfWhenInstalledProgramTrashed": [
       "trash_self"
     ]
   },
@@ -1529,7 +1535,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/score.ts#scoreAgendaAction",
+          "site": "src/state/whenScored.ts#whenScoredEffect",
           "kinds": []
         }
       ],
@@ -10163,7 +10169,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/actions/installCorp.ts#fireRunnerOnCorpRemoteServerCreated",
+          "site": "src/actions/installCorp.ts#noteRunnerOnCorpRemoteServerCreated",
           "kinds": []
         }
       ],
@@ -12741,10 +12747,6 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/actions/apply.ts#chooseOption",
-          "kinds": []
-        },
-        {
           "site": "src/actions/score.ts#scoreAgendaAction",
           "kinds": []
         },
@@ -12753,11 +12755,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
+          "site": "src/state/cardLifecycleHooks.ts#fireOnScore",
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnScore",
+          "site": "src/state/whenScored.ts#whenScoredEffect",
           "kinds": []
         }
       ],
@@ -12776,22 +12778,22 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#chooseOption",
-          "kinds": []
-        },
-        {
           "site": "src/actions/score.ts#scoreAgendaAction",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/state/whenScored.ts#whenScoredEffect",
           "kinds": [
-            "gain_credits"
+            "add_agenda_counter"
           ]
         }
       ],
       "kinds": [
-        "gain_credits"
+        "add_agenda_counter"
       ]
     },
     "onScoreTurnEnd": {
@@ -14244,11 +14246,19 @@
       ],
       "readers": [
         {
+          "site": "src/state/procedures/trash.ts#noteOtherCardsTrashTriggers",
+          "kinds": [
+            "add_virus_counter"
+          ]
+        },
+        {
           "site": "src/state/staticFlags.ts#onInstalledCorpCardTrashed",
           "kinds": []
         }
       ],
-      "kinds": []
+      "kinds": [
+        "add_virus_counter"
+      ]
     },
     "playAdditionalClick": {
       "cardDef": "boolean",
@@ -15608,7 +15618,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpTrash.ts#maybeTrashHostsAtStrengthLte",
+          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         }
       ],
@@ -18402,6 +18412,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/pendingAbilities.ts#activeInPlay",
+          "kinds": []
+        },
+        {
           "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
           "kinds": []
         },
@@ -20748,11 +20762,11 @@
           "kinds": []
         },
         {
-          "site": "src/actions/installCorp.ts#fireRunnerOnCorpRemoteServerCreated",
+          "site": "src/actions/installCorp.ts#installCorpInner",
           "kinds": []
         },
         {
-          "site": "src/actions/installCorp.ts#installCorpInner",
+          "site": "src/actions/installCorp.ts#noteRunnerOnCorpRemoteServerCreated",
           "kinds": []
         },
         {
@@ -20983,6 +20997,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
+          "kinds": []
+        },
+        {
           "site": "src/effects/corpTrash.ts#maybeFireAuCoOnHqTrash",
           "kinds": []
         },
@@ -21000,10 +21018,6 @@
         },
         {
           "site": "src/effects/corpTrash.ts#maybeFireYakovCredits",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#maybeTrashHostsAtStrengthLte",
           "kinds": []
         },
         {
@@ -21659,6 +21673,10 @@
           "kinds": []
         },
         {
+          "site": "src/legality/checkpoints.ts#markDrawConditionals",
+          "kinds": []
+        },
+        {
           "site": "src/legality/checkpoints.ts#markEachCorpBadPublicityTake",
           "kinds": []
         },
@@ -21948,6 +21966,10 @@
         },
         {
           "site": "src/state/beforeFirstTurnHooks.ts#noteOnBeforeFirstTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/breachReplacement.ts#breachAlreadyReplaced",
           "kinds": []
         },
         {
@@ -22388,6 +22410,10 @@
         },
         {
           "site": "src/state/procedures/break.ts#subroutineBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#noteOtherCardsTrashTriggers",
           "kinds": []
         },
         {
@@ -22904,7 +22930,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         }
       ],
@@ -22942,7 +22968,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#maybeTrashHostsAtStrengthLte",
+          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         }
       ],
@@ -23131,11 +23157,19 @@
       ],
       "readers": [
         {
+          "site": "src/state/procedures/trash.ts#noteOtherCardsTrashTriggers",
+          "kinds": [
+            "trash_self"
+          ]
+        },
+        {
           "site": "src/state/staticFlags.ts#onInstalledProgramTrashed",
           "kinds": []
         }
       ],
-      "kinds": []
+      "kinds": [
+        "trash_self"
+      ]
     },
     "trashSelfWhenNoPowerCounters": {
       "cardDef": "boolean",
@@ -23582,7 +23616,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpTrash.ts#maybeTrashHostsAtStrengthLte",
+          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         },
         {
@@ -24206,11 +24240,19 @@
           "kinds": []
         },
         {
+          "site": "src/state/pendingAbilities.ts#activeInPlay",
+          "kinds": []
+        },
+        {
           "site": "src/state/pendingAbilities.ts#pendingAbilitySourceStillActive",
           "kinds": []
         },
         {
           "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/trash.ts#trashByCheckpoint",
           "kinds": []
         },
         {

@@ -12,13 +12,13 @@
     ]
   },
   "tests/access-a-card.test.ts": {
-    "CR G6 \u2014 access-a-card (11.6 / 7.2) > agenda without mid-access options auto-advances to steal step": [
+    "CR G6 — access-a-card (11.6 / 7.2) > agenda without mid-access options auto-advances to steal step": [
       "RUNNER_CARD_REZZED"
     ],
-    "CR G6 \u2014 access-a-card (11.6 / 7.2) > agenda: steal illegal during mid-access; legal on 11.6_3": [
+    "CR G6 — access-a-card (11.6 / 7.2) > agenda: steal illegal during mid-access; legal on 11.6_3": [
       "RUNNER_CARD_REZZED"
     ],
-    "CR G6 \u2014 access-a-card (11.6 / 7.2) > non-agenda without mid-access options walks 11.6 then completes": [
+    "CR G6 — access-a-card (11.6 / 7.2) > non-agenda without mid-access options walks 11.6 then completes": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -57,7 +57,7 @@
     ]
   },
   "tests/bad-publicity.test.ts": {
-    "CR G5 \u2014 bad publicity fund (11.4_1_b / 10.6.2) > fills fund from Corp BP at initiation and clears at run end": [
+    "CR G5 — bad publicity fund (11.4_1_b / 10.6.2) > fills fund from Corp BP at initiation and clears at run end": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -117,7 +117,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "remaining static declarations > resolves a Ca\u00efssa click ability without spending a click when Deep Red is installed": [
+    "remaining static declarations > resolves a Caïssa click ability without spending a click when Deep Red is installed": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ]
@@ -177,42 +177,42 @@
     ]
   },
   "tests/confidence-cannot-legality-sweep.test.ts": {
-    "cannot sweep \u2014 jack_out (prevent IR / 1.2.2) > jack_out absent from legality with cannotPrecedence cite": [
+    "cannot sweep — jack_out (prevent IR / 1.2.2) > jack_out absent from legality with cannotPrecedence cite": [
       "RUNNER_CARD_REZZED"
     ]
   },
   "tests/confidence-cross-pack-stress.test.ts": {
-    "cross-pack \u2014 success ternary: Flagship (VP) \u00d7 Phoneutria (TAI) > blocked success is not run_unsuccessful for on-pass / cond (6.8.4a)": [
+    "cross-pack — success ternary: Flagship (VP) × Phoneutria (TAI) > blocked success is not run_unsuccessful for on-pass / cond (6.8.4a)": [
       "RUNNER_CARD_REZZED"
     ]
   },
   "tests/confidence-interaction-smoke.test.ts": {
-    "confidence smoke \u2014 cannot \u00d7 basic action (prevent jack_out) > rez with prevent jack_out drops jack_out from legality (1.2.2)": [
+    "confidence smoke — cannot × basic action (prevent jack_out) > rez with prevent jack_out drops jack_out from legality (1.2.2)": [
       "RUNNER_CARD_REZZED"
     ],
-    "confidence smoke \u2014 prevent \u00d7 cost (AirbladeX net prevent) > during-run net damage opens interrupt; AirbladeX prevents 1": [
+    "confidence smoke — prevent × cost (AirbladeX net prevent) > during-run net damage opens interrupt; AirbladeX prevents 1": [
       "NO_ZONE",
       "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
     ],
-    "confidence smoke \u2014 success ternary (Crisium / 6.8.4a) > reaching Success under Crisium is neither successful nor unsuccessful": [
+    "confidence smoke — success ternary (Crisium / 6.8.4a) > reaching Success under Crisium is neither successful nor unsuccessful": [
       "RUNNER_CARD_REZZED"
     ]
   },
   "tests/confidence-regression-goldens.test.ts": {
-    "regression goldens \u2014 full-run transcripts > Crisium archives run (ternary end \u2014 neither successful nor unsuccessful)": [
+    "regression goldens — full-run transcripts > Crisium archives run (ternary end — neither successful nor unsuccessful)": [
       "RUNNER_CARD_REZZED"
     ],
-    "regression goldens \u2014 full-run transcripts > ice ETR slice (clear failure \u2192 run ends)": [
+    "regression goldens — full-run transcripts > ice ETR slice (clear failure → run ends)": [
       "RUNNER_CARD_REZZED"
     ],
-    "regression goldens \u2014 full-run transcripts > ice break slice (rez \u2192 break \u2192 success)": [
+    "regression goldens — full-run transcripts > ice break slice (rez → break → success)": [
       "RUNNER_CARD_REZZED"
     ],
-    "regression goldens \u2014 full-run transcripts > replays each golden transcript onto its frozen board": [
+    "regression goldens — full-run transcripts > replays each golden transcript onto its frozen board": [
       "RUNNER_CARD_REZZED"
     ],
-    "regression goldens \u2014 full-run transcripts > vertical slice (decline rez \u2192 empty breach \u2192 end)": [
+    "regression goldens — full-run transcripts > vertical slice (decline rez → empty breach → end)": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -333,11 +333,11 @@
     "a cost that trashes from the grip asks the Runner which card (CR 1.16.1) > Simulchip: the Runner names the installed program": [
       "RUNNER_CARD_REZZED"
     ],
-    "additional cost to trash a resource (Manuel Lattes de Moura, Sebasti\u00e3o) > no pick below the threat level": [
+    "additional cost to trash a resource (Manuel Lattes de Moura, Sebastião) > no pick below the threat level": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "additional cost to trash a resource (Manuel Lattes de Moura, Sebasti\u00e3o) > the Corp names the HQ card": [
+    "additional cost to trash a resource (Manuel Lattes de Moura, Sebastião) > the Corp names the HQ card": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -463,7 +463,7 @@
     "CR examples, chapter 10 > lets the Corp choose how many times two Wormholes loop (CR 10.1.6a.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 10 > lets the Corp split Es\u00e2 Afontov's sabotage 2 across 2 HQ and 30 R&D (CR 10.12.3b.ex1)": [
+    "CR examples, chapter 10 > lets the Corp split Esâ Afontov's sabotage 2 across 2 HQ and 30 R&D (CR 10.12.3b.ex1)": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -514,7 +514,7 @@
     ]
   },
   "tests/cr-examples-ch6.test.ts": {
-    "CR examples, chapter 6 > Crisium: Success Phase reached \u2192 successful null, not unsuccessful (CR 6.8.4a.ex1)": [
+    "CR examples, chapter 6 > Crisium: Success Phase reached → successful null, not unsuccessful (CR 6.8.4a.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 6 > Nisei ETR during approach PAW closes the PAW under 6.8.2a.ex1 at 11.4_6_a": [
@@ -532,7 +532,7 @@
     "CR examples, chapter 6 > does not drain credits for the click Enhanced Login Protocol spends to start the run (CR 6.3.4.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 6 > does not offer Inversificator when Mir\u0101ju replaces the pass (CR 6.1.3e.ex1)": [
+    "CR examples, chapter 6 > does not offer Inversificator when Mirāju replaces the pass (CR 6.1.3e.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 6 > ends the encounter before Tollbooth resolves when Security Nexus' trace succeeds (CR 6.8.2b.ex1)": [
@@ -541,7 +541,7 @@
     "CR examples, chapter 6 > installs Drafter's ice outward of the Runner (CR 6.2.6a.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 6 > installs ice inward of Br\u00e2n and the run approaches that ice (CR 6.2.6b.ex1)": [
+    "CR examples, chapter 6 > installs ice inward of Brân and the run approaches that ice (CR 6.2.6b.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 6 > lets Corp rez+move Formicary during 6.8.2c but blocks encounter (CR 6.8.2c.ex1)": [
@@ -602,7 +602,7 @@
     "CR examples, chapter 8 > does not reveal a second region installed into a root that already has one (CR 8.5.13b.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 8 > does not reveal ice Br\u00e2n installs from HQ (CR 8.5.13a.ex2)": [
+    "CR examples, chapter 8 > does not reveal ice Brân installs from HQ (CR 8.5.13a.ex2)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 8 > does not swap Hostile Takeover into PAD Campaign's server when Metamorph swaps non-ice (CR 8.8.2.ex1)": [
@@ -642,7 +642,7 @@
     "CR examples, chapter 8 > plays Hedge Fund through Subcontract before IPO, and IPO is paid with those credits (CR 8.6.3.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 8 > resolves Br\u00e2n's install subroutine from Archives with no install (CR 8.5.14.ex1)": [
+    "CR examples, chapter 8 > resolves Brân's install subroutine from Archives with no install (CR 8.5.14.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 8 > reveals Archer when Ob declines the rez cost (CR 8.5.13c.ex1)": [
@@ -666,7 +666,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 9 > applies Pr\u0101na Condenser once to Urtica Cipher's 5 net damage (CR 9.12.2b.ex2)": [
+    "CR examples, chapter 9 > applies Prāna Condenser once to Urtica Cipher's 5 net damage (CR 9.12.2b.ex2)": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -680,7 +680,7 @@
     "CR examples, chapter 9 > counts Gantulga's replacements as Bloop's resolved subroutines for Persephone (CR 9.8.9.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 9 > counts prevented net damage as Tori Hanz\u014d's first would (CR 9.9.5a.ex1)": [
+    "CR examples, chapter 9 > counts prevented net damage as Tori Hanzō's first would (CR 9.9.5a.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 9 > deals Attini's net damage before Caldera can spend credits (CR 9.1.2b.ex1)": [
@@ -766,7 +766,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 9 > keeps AMAZE Amusements pending while Doppelg\u00e4nger starts another run (CR 9.12.5d.ex1)": [
+    "CR examples, chapter 9 > keeps AMAZE Amusements pending while Doppelgänger starts another run (CR 9.12.5d.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 9 > keeps Harbinger's interrupt pending but irrelevant after Sacrificial Construct (CR 9.9.4c.ex1)": [
@@ -861,7 +861,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "CR examples, chapter 9 > replaces imminent net damage with core damage as Tori Hanz\u014d resolves (CR 9.9.10.ex1)": [
+    "CR examples, chapter 9 > replaces imminent net damage with core damage as Tori Hanzō resolves (CR 9.9.10.ex1)": [
       "RUNNER_CARD_REZZED"
     ],
     "CR examples, chapter 9 > resolves Archangel's subroutine when encountered from HQ (CR 9.1.8h.ex1)": [
@@ -919,7 +919,7 @@
     "creation-and-control > cac-primitives > Awakening Center rez_hosted > hosts a bioroid ice via InstallDestination host_upgrade, ignoring install cost": [
       "RUNNER_CARD_REZZED"
     ],
-    "creation-and-control > cac-primitives > Awakening Center rez_hosted > passing all ice offers to rez the hosted ice for \u22127\u00a2 and forces an encounter; trashed at run end": [
+    "creation-and-control > cac-primitives > Awakening Center rez_hosted > passing all ice offers to rez the hosted ice for −7¢ and forces an encounter; trashed at run end": [
       "RUNNER_CARD_REZZED"
     ],
     "creation-and-control > cac-primitives > Tyr's Hand break_interrupt / prevent_pending_subroutine_break > [trash] paid ability prevents the pending subroutine break": [
@@ -958,7 +958,7 @@
     "strength pump (CR 3.9.5b / 3.9.5g) > break illegal when breaker strength < ice strength": [
       "RUNNER_CARD_REZZED"
     ],
-    "strength pump (CR 3.9.5b / 3.9.5g) > demo: pump Marjanah past Palisade \u2192 successful run": [
+    "strength pump (CR 3.9.5b / 3.9.5g) > demo: pump Marjanah past Palisade → successful run": [
       "RUNNER_CARD_REZZED"
     ],
     "strength pump (CR 3.9.5b / 3.9.5g) > pump paid ability raises strength; queryLegality lists pump then break": [
@@ -1002,13 +1002,13 @@
     "ice / rez / break / jack-out > jack-out after declining rez ends run unsuccessfully (CR 6.6.3)": [
       "RUNNER_CARD_REZZED"
     ],
-    "ice / rez / break / jack-out > rez + break with Marjanah then continue \u2192 successful empty breach": [
+    "ice / rez / break / jack-out > rez + break with Marjanah then continue → successful empty breach": [
       "RUNNER_CARD_REZZED"
     ],
     "ice / rez / break / jack-out > rez then unbroken ETR ends the run unsuccessfully (CR 6.5.5 / 6.8.4)": [
       "RUNNER_CARD_REZZED"
     ],
-    "timing step graph > draw window, mandatory draw, then action PAW \u2192 takeAction": [
+    "timing step graph > draw window, mandatory draw, then action PAW → takeAction": [
       "RUNNER_CARD_REZZED"
     ],
     "timing step graph > pass on gainClicks stops at the draw paid ability window (11.2_1_b)": [
@@ -1017,7 +1017,7 @@
     "timing step graph > runner gainClicks lands on action PAW (CR 5.3.3)": [
       "RUNNER_CARD_REZZED"
     ],
-    "vertical slice (decline rez) > credit/draw \u2192 install \u2192 run \u2192 approach pass \u2192 jack-out pass \u2192 breach \u2192 end": [
+    "vertical slice (decline rez) > credit/draw → install → run → approach pass → jack-out pass → breach → end": [
       "RUNNER_CARD_REZZED"
     ],
     "vertical slice (decline rez) > lists run on empty remote at takeAction": [
@@ -1025,7 +1025,7 @@
     ]
   },
   "tests/funhouse-nested-cost.test.ts": {
-    "CR C1 \u2014 Funhouse nested cost (1.16.1b / 1.16.11b) > offers take-tag vs ETR when nested cost is payable": [
+    "CR C1 — Funhouse nested cost (1.16.1b / 1.16.11b) > offers take-tag vs ETR when nested cost is payable": [
       "ENCOUNTER_ICE_MISMATCH",
       "NO_ZONE",
       "POSITION_OUT_OF_RANGE",
@@ -1063,7 +1063,7 @@
     ]
   },
   "tests/harden-unsupported.test.ts": {
-    "harden unsupported cards > Liberated Account hosts 16\u00a2, takes 4 per click, trashes when empty": [
+    "harden unsupported cards > Liberated Account hosts 16¢, takes 4 per click, trashes when empty": [
       "RUNNER_CARD_REZZED"
     ],
     "harden unsupported cards > Ping onRez tags the Runner": [
@@ -1153,8 +1153,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "instruction checkpoints (CR 9.11.1) > checkpoints outside the Run Ends phase after the run is complete, before the checkpoint outside the run (CR 10.3.6, 9.2.2b)": [
-      "RUNNER_CARD_REZZED",
-      "RUN_SERVER_MISSING"
+      "RUNNER_CARD_REZZED"
     ],
     "instruction checkpoints (CR 9.11.1) > checkpoints outside the Runner's action phase after it ends, before the Runner discards (CR 10.3.6, 9.2.2a)": [
       "RUNNER_CARD_REZZED"
@@ -1184,15 +1183,13 @@
       "RUNNER_CARD_REZZED"
     ],
     "instruction checkpoints (CR 9.11.1) > checkpoints outside the initiation phase after the run begins, before the Movement Phase (CR 10.3.6, 9.2.2b, 6.9.1f)": [
-      "RUNNER_CARD_REZZED",
-      "RUN_SERVER_MISSING"
+      "RUNNER_CARD_REZZED"
     ],
     "instruction checkpoints (CR 9.11.1) > checkpoints outside the movement phase after the Runner approaches an empty server, before the run is successful (CR 10.3.6, 9.2.2b)": [
       "RUNNER_CARD_REZZED"
     ],
     "instruction checkpoints (CR 9.11.1) > checkpoints outside the run after it is complete, before the Runner receives priority (CR 10.3.6)": [
-      "RUNNER_CARD_REZZED",
-      "RUN_SERVER_MISSING"
+      "RUNNER_CARD_REZZED"
     ],
     "instruction checkpoints (CR 9.11.1) > checkpoints outside the success phase after the breach checkpoint closes, before Run Ends (CR 10.3.6, 9.2.2b)": [
       "RUNNER_CARD_REZZED"
@@ -1524,10 +1521,10 @@
     "midnight-sun > midnight-sun-add-power-counter > MS add_power_counter IR (always) > Endurance-shaped onSuccessfulRunOncePerTurn places a power counter": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-add-power-counter > MS add_power_counter IR (always) > Hyperbaric-shaped paid ability spends 2\u00a2 and places a power counter": [
+    "midnight-sun > midnight-sun-add-power-counter > MS add_power_counter IR (always) > Hyperbaric-shaped paid ability spends 2¢ and places a power counter": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-anemone > MS Anemone trash_hq.then (onRez during run) > onRez during run offers trash\u2192net; decline leaves HQ": [
+    "midnight-sun > midnight-sun-anemone > MS Anemone trash_hq.then (onRez during run) > onRez during run offers trash→net; decline leaves HQ": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
@@ -1578,26 +1575,26 @@
     "midnight-sun > midnight-sun-core-damage > MS core-damage IR (always) > decline path skips draw and sabotage": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-core-damage > MS core-damage IR (always) > onFirstCoreDamageThisTurn fires once per turn (synthetic Es\u00e2)": [
+    "midnight-sun > midnight-sun-core-damage > MS core-damage IR (always) > onFirstCoreDamageThisTurn fires once per turn (synthetic Esâ)": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-elivagar > MS \u00c9liv\u00e1gar may_derez_installed onScore > derezzes chosen asset (not ice-only)": [
+    "midnight-sun > midnight-sun-elivagar > MS Élivágar may_derez_installed onScore > derezzes chosen asset (not ice-only)": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-elivagar > MS \u00c9liv\u00e1gar may_derez_installed onScore > ignores unrezzed ice; decline leaves rezzed ice up": [
+    "midnight-sun > midnight-sun-elivagar > MS Élivágar may_derez_installed onScore > ignores unrezzed ice; decline leaves rezzed ice up": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-elivagar > MS \u00c9liv\u00e1gar may_derez_installed onScore > no choice when nothing rezzed installed": [
+    "midnight-sun > midnight-sun-elivagar > MS Élivágar may_derez_installed onScore > no choice when nothing rezzed installed": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-elivagar > MS \u00c9liv\u00e1gar may_derez_installed onScore > offers rezzed ice and rezzed asset as derez targets": [
+    "midnight-sun > midnight-sun-elivagar > MS Élivágar may_derez_installed onScore > offers rezzed ice and rezzed asset as derez targets": [
       "RUNNER_CARD_REZZED"
     ],
     "midnight-sun > midnight-sun-envelopment-mavirus-steelskin > MS onTrashFromGripOrStack (Steelskin) > offers may-draw when trashed from grip": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-environmental-testing > MS Environmental Testing install-trigger power counters (always) > fourth program install trashes ET and gains 9\u00a2": [
+    "midnight-sun > midnight-sun-environmental-testing > MS Environmental Testing install-trigger power counters (always) > fourth program install trashes ET and gains 9¢": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -1633,37 +1630,37 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-hakarl > MS H\u00e1karl may-derez + bioroid paid-ability lock IR (always) > choosing derez applies lock and blocks bioroid click-break": [
+    "midnight-sun > midnight-sun-hakarl > MS Hákarl may-derez + bioroid paid-ability lock IR (always) > choosing derez applies lock and blocks bioroid click-break": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-hakarl > MS H\u00e1karl may-derez + bioroid paid-ability lock IR (always) > decline leaves bioroid click-break available": [
+    "midnight-sun > midnight-sun-hakarl > MS Hákarl may-derez + bioroid paid-ability lock IR (always) > decline leaves bioroid click-break available": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-hakarl > MS H\u00e1karl may-derez + bioroid paid-ability lock IR (always) > lock clears at beginCorpTurnFlags": [
+    "midnight-sun > midnight-sun-hakarl > MS Hákarl may-derez + bioroid paid-ability lock IR (always) > lock clears at beginCorpTurnFlags": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-hakarl > MS H\u00e1karl may-derez + bioroid paid-ability lock IR (always) > may_derez can target rezzed ice as well as assets": [
+    "midnight-sun > midnight-sun-hakarl > MS Hákarl may-derez + bioroid paid-ability lock IR (always) > may_derez can target rezzed ice as well as assets": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-hakarl > MS H\u00e1karl may-derez + bioroid paid-ability lock IR (always) > no other rezzed cards \u2192 no choice and no lock": [
+    "midnight-sun > midnight-sun-hakarl > MS Hákarl may-derez + bioroid paid-ability lock IR (always) > no other rezzed cards → no choice and no lock": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-hakarl > MS H\u00e1karl may-derez + bioroid paid-ability lock IR (always) > rez during run against this server offers may-derez when another card is rezzed": [
+    "midnight-sun > midnight-sun-hakarl > MS Hákarl may-derez + bioroid paid-ability lock IR (always) > rez during run against this server offers may-derez when another card is rezzed": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-into-the-depths > MS Into the Depths exclusive choices IR (always) > 0 ice passed \u2192 no choices": [
+    "midnight-sun > midnight-sun-into-the-depths > MS Into the Depths exclusive choices IR (always) > 0 ice passed → no choices": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-into-the-depths > MS Into the Depths exclusive choices IR (always) > 1 ice passed \u2192 choose among 3 exclusive options; credits only": [
+    "midnight-sun > midnight-sun-into-the-depths > MS Into the Depths exclusive choices IR (always) > 1 ice passed → choose among 3 exclusive options; credits only": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-into-the-depths > MS Into the Depths exclusive choices IR (always) > 2 ice \u2192 two distinct options; cannot reuse credits": [
+    "midnight-sun > midnight-sun-into-the-depths > MS Into the Depths exclusive choices IR (always) > 2 ice → two distinct options; cannot reuse credits": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-into-the-depths > MS Into the Depths exclusive choices IR (always) > 3 ice \u2192 all three modes; search installs sole stack program": [
+    "midnight-sun > midnight-sun-into-the-depths > MS Into the Depths exclusive choices IR (always) > 3 ice → all three modes; search installs sole stack program": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -1675,16 +1672,16 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-ir > charge IR (CR \u00a710.10) > charge choose auto-picks sole candidate; multi opens pendingChoice": [
+    "midnight-sun > midnight-sun-ir > charge IR (CR §10.10) > charge choose auto-picks sole candidate; multi opens pendingChoice": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-ir > sabotage IR (CR \u00a710.12) > interactive sabotage pauses for Corp resolve_sabotage": [
+    "midnight-sun > midnight-sun-ir > sabotage IR (CR §10.12) > interactive sabotage pauses for Corp resolve_sabotage": [
       "RUNNER_CARD_REZZED"
     ],
     "midnight-sun > midnight-sun-ivik > MS rezCostDiscountPerRezzedSubtype (Ivik) > counts 0 with no rezzed matching ice": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-ivik > MS rezCostDiscountPerRezzedSubtype (Ivik) > counts 1\u00a2 per rezzed code gate": [
+    "midnight-sun > midnight-sun-ivik > MS rezCostDiscountPerRezzedSubtype (Ivik) > counts 1¢ per rezzed code gate": [
       "RUNNER_CARD_REZZED"
     ],
     "midnight-sun > midnight-sun-ivik > MS rezCostDiscountPerRezzedSubtype (Ivik) > floors rez cost at 0 when discount exceeds base": [
@@ -1702,7 +1699,7 @@
     "midnight-sun > midnight-sun-ivik > MS rezCostDiscountPerRezzedSubtype (Ivik) > legality omits rez when Corp still cannot afford after discount": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-ivik > MS rezCostDiscountPerRezzedSubtype (Ivik) > rezzes Ivik paying base\u2212N with N rezzed code gates": [
+    "midnight-sun > midnight-sun-ivik > MS rezCostDiscountPerRezzedSubtype (Ivik) > rezzes Ivik paying base−N with N rezzed code gates": [
       "RUNNER_CARD_REZZED"
     ],
     "midnight-sun > midnight-sun-ivik > MS rezCostDiscountPerRezzedSubtype (Ivik) > stacks with continuous ice rez cost increases (net modifier)": [
@@ -1741,7 +1738,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-mestnichestvo > MS remove_advancements (Mestnichestvo) > encounter choose remove drains Runner 3\u00a2": [
+    "midnight-sun > midnight-sun-mestnichestvo > MS remove_advancements (Mestnichestvo) > encounter choose remove drains Runner 3¢": [
       "RUNNER_CARD_REZZED"
     ],
     "midnight-sun > midnight-sun-moon-pool > MS moon_pool_resolve (Moon Pool) > RFGs self, trashes HQ, reveals Archives agendas into R&D with advancements": [
@@ -1766,11 +1763,11 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-panweave > MS PAN-Weave first-HQ credit transfer (always) > Corp at 0\u00a2: loses nothing; Runner does not gain (if they do)": [
+    "midnight-sun > midnight-sun-panweave > MS PAN-Weave first-HQ credit transfer (always) > Corp at 0¢: loses nothing; Runner does not gain (if they do)": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-panweave > MS PAN-Weave first-HQ credit transfer (always) > first successful HQ: Corp loses 1\u00a2, Runner gains 1\u00a2": [
+    "midnight-sun > midnight-sun-panweave > MS PAN-Weave first-HQ credit transfer (always) > first successful HQ: Corp loses 1¢, Runner gains 1¢": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -1815,7 +1812,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-rigging-up > MS Rigging Up discounted install + may charge IR (always) > installs Hyperbaric at 0\u00a2 (3\u22123) and may charge after powerCountersOnInstall": [
+    "midnight-sun > midnight-sun-rigging-up > MS Rigging Up discounted install + may charge IR (always) > installs Hyperbaric at 0¢ (3−3) and may charge after powerCountersOnInstall": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -1851,7 +1848,7 @@
     "midnight-sun > midnight-sun-vasilisa > MS place_advancements advanceable-only (Vasilisa) > Vasilisa encounter pay-adv path places on advanceable target": [
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-virtuoso-mark-hq > MS Virtuoso mark-HQ IR (always) > HQ mark \u2192 +1 bonus access during mark breach": [
+    "midnight-sun > midnight-sun-virtuoso-mark-hq > MS Virtuoso mark-HQ IR (always) > HQ mark → +1 bonus access during mark breach": [
       "RUNNER_CARD_REZZED"
     ],
     "midnight-sun > midnight-sun-virtuoso-mark-hq > MS Virtuoso mark-HQ IR (always) > fires only on the first successful mark run each turn": [
@@ -1861,7 +1858,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "midnight-sun > midnight-sun-virtuoso-mark-hq > MS Virtuoso mark-HQ IR (always) > non-HQ mark \u2192 post-run HQ breach (not a successful HQ run)": [
+    "midnight-sun > midnight-sun-virtuoso-mark-hq > MS Virtuoso mark-HQ IR (always) > non-HQ mark → post-run HQ breach (not a successful HQ run)": [
       "RUNNER_CARD_REZZED"
     ],
     "midnight-sun > midnight-sun-virtuoso-mark-hq > MS Virtuoso mark-HQ IR (always) > non-mark successful run does not consume the mark trigger": [
@@ -1935,7 +1932,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Allele Repression: swaps 1 HQ \u2194 Archives card per advancement on itself": [
+    "one-off kind outcomes (batch A: immediate effects) > Allele Repression: swaps 1 HQ ↔ Archives card per advancement on itself": [
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Always Be Running: breaks a subroutine on the encountered ice": [
@@ -1990,7 +1987,7 @@
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Bishop: hosts on ice that is not already hosting a Ca\u00efssa": [
+    "one-off kind outcomes (batch A: immediate effects) > Bishop: hosts on ice that is not already hosting a Caïssa": [
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Bloo Moose: removing a heap card from the game gains 2 credits": [
@@ -2013,7 +2010,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Br\u00e2n 1.0: the Corp may install ice from Archives directly inward": [
+    "one-off kind outcomes (batch A: immediate effects) > Brân 1.0: the Corp may install ice from Archives directly inward": [
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Buffer Drive: removed from the game as the cost, not as part of the effect": [
@@ -2023,7 +2020,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Bug: may_pay_reveal_top pays 2\u00a2 to reveal the Corp card just drawn": [
+    "one-off kind outcomes (batch A: immediate effects) > Bug: may_pay_reveal_top pays 2¢ to reveal the Corp card just drawn": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -2082,7 +2079,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Corporate Troubleshooter: spends X\u00a2 to give chosen ice +X strength this turn": [
+    "one-off kind outcomes (batch A: immediate effects) > Corporate Troubleshooter: spends X¢ to give chosen ice +X strength this turn": [
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Counter Surveillance: choosing a server starts a run there": [
@@ -2134,7 +2131,7 @@
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Diversion of Funds: may force Corp to lose up to 5\u00a2 instead of breaching HQ": [
+    "one-off kind outcomes (batch A: immediate effects) > Diversion of Funds: may force Corp to lose up to 5¢ instead of breaching HQ": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -2150,7 +2147,7 @@
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Embezzle: names a type, reveals 2 from HQ, trashes matches for 4\u00a2 each": [
+    "one-off kind outcomes (batch A: immediate effects) > Embezzle: names a type, reveals 2 from HQ, trashes matches for 4¢ each": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -2220,7 +2217,7 @@
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Hafr\u00fan: Corp chooses an installed Runner card that cannot break subs this run": [
+    "one-off kind outcomes (batch A: immediate effects) > Hafrún: Corp chooses an installed Runner card that cannot break subs this run": [
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > Harvester: the Runner chooses which cards to discard down to hand size": [
@@ -2306,7 +2303,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Kabonesa Wu: searches stack for a non-virus program and installs at \u22121\u00a2": [
+    "one-off kind outcomes (batch A: immediate effects) > Kabonesa Wu: searches stack for a non-virus program and installs at −1¢": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -2465,7 +2462,7 @@
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Nuvem S\u00e1: may trash the top card of R&D": [
+    "one-off kind outcomes (batch A: immediate effects) > Nuvem Sá: may trash the top card of R&D": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -2507,7 +2504,7 @@
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Plan B: offers to score an HQ agenda with requirement \u2264 its advancements": [
+    "one-off kind outcomes (batch A: immediate effects) > Plan B: offers to score an HQ agenda with requirement ≤ its advancements": [
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
@@ -2554,7 +2551,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Quarantine System: rezzes up to 3 ice at \u22122\u00a2 per forfeited agenda point": [
+    "one-off kind outcomes (batch A: immediate effects) > Quarantine System: rezzes up to 3 ice at −2¢ per forfeited agenda point": [
       "RUNNER_CARD_REZZED"
     ],
     "one-off kind outcomes (batch A: immediate effects) > RNG Key: names a number for the next card accessed this run": [
@@ -2603,7 +2600,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Reuse: trashes any number from HQ then gains 2\u00a2 per trashed card": [
+    "one-off kind outcomes (batch A: immediate effects) > Reuse: trashes any number from HQ then gains 2¢ per trashed card": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
@@ -2667,12 +2664,12 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Shi.Ky\u016b: Corp spends credits; Runner may take that net or score it as \u22121": [
+    "one-off kind outcomes (batch A: immediate effects) > Shi.Kyū: Corp spends credits; Runner may take that net or score it as −1": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Shiro: Corp may pay 1\u00a2 else Runner breaches R&D with no root access (CR 7.3)": [
+    "one-off kind outcomes (batch A: immediate effects) > Shiro: Corp may pay 1¢ else Runner breaches R&D with no root access (CR 7.3)": [
       "NO_ZONE",
       "POSITION_OUT_OF_RANGE",
       "RUNNER_CARD_REZZED"
@@ -2728,7 +2725,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Standard Procedure: names a type, reveals the grip, gains 2\u00a2 per match": [
+    "one-off kind outcomes (batch A: immediate effects) > Standard Procedure: names a type, reveals the grip, gains 2¢ per match": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -2815,7 +2812,7 @@
     "one-off kind outcomes (batch A: immediate effects) > Transparency Initiative: hosts on an installed agenda and turns it faceup": [
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Trojan Horse: trashes a program with install cost \u2264 last trace excess": [
+    "one-off kind outcomes (batch A: immediate effects) > Trojan Horse: trashes a program with install cost ≤ last trace excess": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -2905,7 +2902,7 @@
     ]
   },
   "tests/parhelion.test.ts": {
-    "parhelion > parhelion-adv-req-reduction > PH Freedom of Information (\u22121 adv req per tag) > scores via host when tags reduce requirement": [
+    "parhelion > parhelion-adv-req-reduction > PH Freedom of Information (−1 adv req per tag) > scores via host when tags reduce requirement": [
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-asmund > PH Asmund Pudlat > may add hosted to grip then trashes when empty": [
@@ -2921,8 +2918,7 @@
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-cyber-power > PH Zenit Chip first successful central draw > draws on first successful central; not on remote; not twice": [
-      "RUNNER_CARD_REZZED",
-      "RUN_SERVER_MISSING"
+      "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-distributed-tracing > PH Distributed Tracing > requires agenda stolen last turn + extra click; gives 1 tag": [
       "RUNNER_CARD_REZZED"
@@ -2933,13 +2929,13 @@
     "parhelion > parhelion-gantulga > PH Tsakhia Bankhar Gantulga > replaces first HQ encounter subs with net damage": [
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-hafrun-klevetnik-unsmiling > PH Hafr\u00fan > wires onRez may-trash-HQ \u2192 forbid runner break for run": [
+    "parhelion > parhelion-hafrun-klevetnik-unsmiling > PH Hafrún > wires onRez may-trash-HQ → forbid runner break for run": [
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-hafrun-klevetnik-unsmiling > PH Klevetnik > wires onRez may-credits \u2192 blank resource until Corp turn end": [
+    "parhelion > parhelion-hafrun-klevetnik-unsmiling > PH Klevetnik > wires onRez may-credits → blank resource until Corp turn end": [
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-hafrun-klevetnik-unsmiling > PH Unsmiling Tsarevna > wires onRez may-credits \u2192 max 1 printed break per encounter": [
+    "parhelion > parhelion-hafrun-klevetnik-unsmiling > PH Unsmiling Tsarevna > wires onRez may-credits → max 1 printed break per encounter": [
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-harmonic-shipment-katorga > PH Bloop rezAdditionalCostDerezSubtype > cannot rez without another rezzed harmonic; derezzes one on rez": [
@@ -2948,7 +2944,7 @@
     "parhelion > parhelion-harmonic-shipment-katorga > PH Pulse onRez + harmonic subroutines > on rez during run loses a runner click; wires from cards-data": [
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-harmonic-shipment-katorga > PH Shipment from Vladisibirsk > requires \u22652 tags and places 4 advancements": [
+    "parhelion > parhelion-harmonic-shipment-katorga > PH Shipment from Vladisibirsk > requires ≥2 tags and places 4 advancements": [
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-harmonic-shipment-katorga > PH lose_credits_per_rezzed_subtype + add_from_heap_to_grip IR > adds sole heap card to grip; multi opens choice": [
@@ -2956,13 +2952,13 @@
       "RUNNER_CARD_REZZED",
       "ZONE_MISMATCH"
     ],
-    "parhelion > parhelion-hendrik-nightmare > PH Mr. Hendrik > Corp may pay 2\u00a2 for interactive core damage; Runner prevents by losing clicks": [
+    "parhelion > parhelion-hendrik-nightmare > PH Mr. Hendrik > Corp may pay 2¢ for interactive core damage; Runner prevents by losing clicks": [
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-hendrik-nightmare > PH Mr. Hendrik > accepting pending damage applies 1 core damage": [
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-hendrik-nightmare > PH Nightmare Archive > Runner may add to score area as \u22121 agenda point": [
+    "parhelion > parhelion-hendrik-nightmare > PH Nightmare Archive > Runner may add to score area as −1 agenda point": [
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-hendrik-nightmare > PH Nightmare Archive > declining scores deals 1 core damage and RFGs": [
@@ -2989,19 +2985,18 @@
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-hybrid-thule-reprise > PH Thule Subsea > fires onAgendaStolen choice when Runner steals": [
-      "RUNNER_CARD_REZZED",
-      "RUN_SERVER_MISSING"
+      "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-issuaq-kimberlite-yakov > PH Issuaq Adaptics > places power on score if agenda not installed/advanced; reduces win": [
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-issuaq-kimberlite-yakov > PH Kimberlite Field > wires may trash rezzed then trash Runner \u2264 rez cost": [
+    "parhelion > parhelion-issuaq-kimberlite-yakov > PH Kimberlite Field > wires may trash rezzed then trash Runner ≤ rez cost": [
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-keeling-timebomb > PH Dr. Vientiane Keeling > wires onRez/onTurnBegin power + runner hand-size penalty": [
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-keeling-timebomb > PH Time Bomb > requires central success to install; detonates at \u22653 power": [
+    "parhelion > parhelion-keeling-timebomb > PH Time Bomb > requires central success to install; detonates at ≥3 power": [
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-matryoshka > PH Matryoshka > matryoshka_break pays X, turns hosted facedown, breaks X subs": [
@@ -3049,18 +3044,18 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-spark-world-tree > PH Spark of Inspiration > sets aside until program; may install \u221210\u00a2; shuffles remainder": [
+    "parhelion > parhelion-spark-world-tree > PH Spark of Inspiration > sets aside until program; may install −10¢; shuffles remainder": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-spark-world-tree > PH World Tree > fires once on first successful run via onSuccessfulRunOncePerTurn": [
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-spark-world-tree > PH World Tree > trash other hardware \u2192 search/install hardware \u22123\u00a2": [
+    "parhelion > parhelion-spark-world-tree > PH World Tree > trash other hardware → search/install hardware −3¢": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "parhelion > parhelion-tremolo-allot-k2cp > PH Tremolo cybernetic break discount > reduces break cost by 1\u00a2 per installed cybernetic": [
+    "parhelion > parhelion-tremolo-allot-k2cp > PH Tremolo cybernetic break discount > reduces break cost by 1¢ per installed cybernetic": [
       "RUNNER_CARD_REZZED"
     ],
     "parhelion > parhelion-tunnel-nanuq > PH Nanuq RFG on uninstall / agenda > onAgendaScoredOrStolen RFGs Nanuq": [
@@ -3187,7 +3182,7 @@
     ]
   },
   "tests/plascrete-prevent.test.ts": {
-    "CR optional \u2014 Plascrete meat prevent interrupt > meat damage opens interrupt PAW and Plascrete can prevent (not net)": [
+    "CR optional — Plascrete meat prevent interrupt > meat damage opens interrupt PAW and Plascrete can prevent (not net)": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ]
@@ -3328,7 +3323,7 @@
     ]
   },
   "tests/remove-tag.test.ts": {
-    "CR G4 \u2014 basic remove tag (5.2.7g / 10.5.4) > offers and resolves {click}+2\u00a2 remove 1 tag while tagged": [
+    "CR G4 — basic remove tag (5.2.7g / 10.5.4) > offers and resolves {click}+2¢ remove 1 tag while tagged": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -3341,12 +3336,12 @@
     ]
   },
   "tests/run-ends-phase.test.ts": {
-    "CR G6 residual \u2014 Run Ends Phase (11.4_6_a\u2013d) > unsuccessful empty-archives run walks 11.4_6_a\u2192b\u2192c\u2192d and empties BP on _b": [
+    "CR G6 residual — Run Ends Phase (11.4_6_a–d) > unsuccessful empty-archives run walks 11.4_6_a→b→c→d and empties BP on _b": [
       "RUNNER_CARD_REZZED"
     ]
   },
   "tests/run-ends-windows.test.ts": {
-    "CR optional \u2014 11.4_6_a multi-window drainage (6.8.2a\u2013c) > routes stacked non-PAW frames to interactive 6.8.2c completion": [
+    "CR optional — 11.4_6_a multi-window drainage (6.8.2a–c) > routes stacked non-PAW frames to interactive 6.8.2c completion": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -3427,7 +3422,7 @@
     ]
   },
   "tests/snare-tag-interrupt.test.ts": {
-    "CR C4 \u2014 Snare tag interrupt before damage (9.1.2a) > accepting tags then continues into net damage": [
+    "CR C4 — Snare tag interrupt before damage (9.1.2a) > accepting tags then continues into net damage": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -3475,7 +3470,7 @@
     "SU21 partial closures > Oaktown installs faceup and pays on advance": [
       "RUNNER_CARD_REZZED"
     ],
-    "SU21 partial closures > Psychographics spends X \u2264 tags for advancements": [
+    "SU21 partial closures > Psychographics spends X ≤ tags for advancements": [
       "RUNNER_CARD_REZZED"
     ],
     "SU21 partial closures > Swordsman / Hortum block AI breaks when flagged": [
@@ -3483,7 +3478,7 @@
     ]
   },
   "tests/success-phase.test.ts": {
-    "CR M1 \u2014 success ternary (6.8.4a) > Flagship on HQ: blocked success is not run_unsuccessful (CR 6.8.4a)": [
+    "CR M1 — success ternary (6.8.4a) > Flagship on HQ: blocked success is not run_unsuccessful (CR 6.8.4a)": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -3498,7 +3493,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "card corpus system-gateway > Offworld Office onScore gains 7\u00a2; Orbital Superiority branches on tags": [
+    "card corpus system-gateway > Offworld Office onScore gains 7¢; Orbital Superiority branches on tags": [
       "RUNNER_CARD_REZZED"
     ],
     "card corpus system-gateway > Palisade gets +2 strength on remotes": [
@@ -3535,7 +3530,7 @@
     "the-automata-initiative > tai-behold-ydl > TAI Behold! + Your Digital Life > Behold onAccess from HQ offers pay-for-tags; Archives skips": [
       "RUNNER_CARD_REZZED"
     ],
-    "the-automata-initiative > tai-front-balanced-chrys-tucana-starlit > TAI v0.85 IR wiring (engine) > Front Company: first Archives run unprotected \u2192 2 net damage": [
+    "the-automata-initiative > tai-front-balanced-chrys-tucana-starlit > TAI v0.85 IR wiring (engine) > Front Company: first Archives run unprotected → 2 net damage": [
       "NO_ZONE"
     ],
     "the-automata-initiative > tai-hermes-salvo-monkey-capy-ablative > TAI Hermes / Salvo / Monkeywrench / Capybara / Ablative > install_from_hq_or_archives excludeAgenda skips agendas": [
@@ -3545,7 +3540,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "the-automata-initiative > tai-oracle-mural-greasing-bahia-vovo > TAI Oracle / Living Mural / Greasing / Bahia / Vov\u00f4 > may_move_source_upgrade_to_another_server_root moves upgrade": [
+    "the-automata-initiative > tai-oracle-mural-greasing-bahia-vovo > TAI Oracle / Living Mural / Greasing / Bahia / Vovô > may_move_source_upgrade_to_another_server_root moves upgrade": [
       "RUNNER_CARD_REZZED"
     ],
     "the-automata-initiative > tai-v086-final-six > Adrian play_psi_game + restrict_run_access > resolves psi sequential bids and spends credits": [
@@ -3577,7 +3572,7 @@
     ]
   },
   "tests/trace-credits.test.ts": {
-    "CR G3 \u2014 trace Runner spends credits (10.8.3) > Runner spend_link deducts credits and raises link strength": [
+    "CR G3 — trace Runner spends credits (10.8.3) > Runner spend_link deducts credits and raises link strength": [
       "RUNNER_CARD_REZZED"
     ]
   },
@@ -3590,13 +3585,13 @@
     "uprising > ur-v144-i-slice > Uprising v1.44.0 I-slice > Hyoubu choose_server stores chosenServerId": [
       "RUNNER_CARD_REZZED"
     ],
-    "uprising > ur-v144-i-slice > Uprising v1.44.0 I-slice > NAPD adds 4+2\u00d7advancement steal cost while active": [
+    "uprising > ur-v144-i-slice > Uprising v1.44.0 I-slice > NAPD adds 4+2×advancement steal cost while active": [
       "RUNNER_CARD_REZZED"
     ],
     "uprising > ur-v144-i-slice > Uprising v1.44.0 I-slice > NEXT gives +2 ice strength and blocks non-icebreaker breaks": [
       "RUNNER_CARD_REZZED"
     ],
-    "uprising > ur-v144-i-slice > Uprising v1.44.0 I-slice > SYNC onRunBegin from play-area offers pay 4\u00a2 or take a tag": [
+    "uprising > ur-v144-i-slice > Uprising v1.44.0 I-slice > SYNC onRunBegin from play-area offers pay 4¢ or take a tag": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -3614,7 +3609,7 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "uprising > ur-v146-k-slice > Uprising v1.46.0 K-slice > Pr\u0101na interrupt prevents 1 net, places power, gains 3\u00a2 (once)": [
+    "uprising > ur-v146-k-slice > Uprising v1.46.0 K-slice > Prāna interrupt prevents 1 net, places power, gains 3¢ (once)": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
@@ -3627,7 +3622,7 @@
     "SU21 reprint / classic cards (post-wave cleanup) > Gordian can break Pop-up Window after strength match": [
       "RUNNER_CARD_REZZED"
     ],
-    "SU21 reprint / classic cards (post-wave cleanup) > Hostile Takeover onScore gains 7\u00a2 and 1 bad publicity": [
+    "SU21 reprint / classic cards (post-wave cleanup) > Hostile Takeover onScore gains 7¢ and 1 bad publicity": [
       "RUNNER_CARD_REZZED"
     ]
   },

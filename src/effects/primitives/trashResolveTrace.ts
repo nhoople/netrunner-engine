@@ -1,4 +1,5 @@
 /** Upstalk (up) Lunar pack primitives. */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { revealCards } from "../../state/reveal.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { emptyRunnerCreditPool } from "../../state/costs.js";
@@ -421,6 +422,7 @@ export function applyLunarUpPrimitive(
       return { ok: true };
     }
     case "may_breach_instead_eden_shard": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "rd")
         return { ok: true };
       const inGrip = state.runner.hand.includes(sourceId);

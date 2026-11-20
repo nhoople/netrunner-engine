@@ -13,7 +13,7 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import { maybeTrashHostsAtStrengthLte } from "../src/effects/corpTrash.js";
+import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { iceAtRunnerPosition } from "../src/state/runPosition.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import type { Action, GameState } from "../src/state/types.js";
@@ -128,7 +128,8 @@ describe("ice uninstalled while it is encountered (CR 8.5.10, 6.2.7c)", () => {
     s.cards["par"] = parasite;
     s.runner.installed = ["par"];
     s.cards["a"]!.hostedCardIds = ["par"];
-    maybeTrashHostsAtStrengthLte(s);
+    // Parasite's static condition is checked at a checkpoint (CR 9.6.7a).
+    checkpointAfterInstruction(s, "test");
     expect(s.cards["a"]?.zone).toBe("corp:archives");
     const t = pass(s);
     expect(t.timingKey).toBe("run.jackOutWindow");

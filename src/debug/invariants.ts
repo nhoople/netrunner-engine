@@ -399,7 +399,10 @@ export function checkInvariants(state: GameState): Problem[] {
   const run = state.run;
   if (run) {
     const server = state.servers[run.attackedServerId];
-    if (!server) {
+    // A server that ceased to exist during the run ends it once any open
+    // paid ability window closes (CR 4.6.8e), so it may be gone meanwhile.
+    const ending = run.endedTheRun || Boolean(run.endAfterPaidAbilityWindow);
+    if (!server && !ending) {
       report(
         "RUN_SERVER_MISSING",
         run.attackedServerId,

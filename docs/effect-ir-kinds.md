@@ -13,8 +13,8 @@ Card counts are from cards `v1.147.25` (2016 cards).
 | Kinds in `KNOWN_PRIMITIVE_KINDS` | 1528 |
 | Kinds used by card JSON | 887 |
 | Kinds used by exactly one card | 734 |
-| Kinds built by the engine | 734 |
-| Kinds built by both cards and the engine | 109 |
+| Kinds built by the engine | 735 |
+| Kinds built by both cards and the engine | 110 |
 | Engine-only kinds (no card uses them; the engine builds them) | 625 |
 | Kinds neither a card nor the engine builds | 16 |
 | Verb groups | 74 |
@@ -54,11 +54,11 @@ Card counts are from cards `v1.147.25` (2016 cards).
 
 ## `add`
 
-55 kinds: 36 used by cards, 24 built by the engine.
+55 kinds: 36 used by cards, 25 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `add_agenda_counter` | `amount: number` | 25 | card |
+| `add_agenda_counter` | `amount: number` | 25 | card, engine |
 | `add_agenda_counters_equal_to_bad_publicity` | — | 0 | engine |
 | `add_agenda_from_hq_to_score_worth_exact_hosted_power` | — | 1 | card |
 | `add_all_hosted_to_grip` | — | 1 | card |

@@ -143,11 +143,18 @@ describe("CR examples, chapter 4", () => {
   it("refuses a second remote while Earth Station's limit is already met (CR 4.6.8f.ex1)", () => {
     const s = createInitialState();
     s.cards[s.corp.identityId]!.maxRemoteServers = 1;
+    // A remote with a card in it: an empty one ceases to exist at the
+    // click's cost checkpoint (CR 10.3.1h).
+    s.cards["pad-0"] = instantiateCard(
+      "pad-campaign",
+      "pad-0",
+      "server:remote-1:root",
+    );
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
       ice: [],
-      root: [],
+      root: ["pad-0"],
     };
     const pad = instantiateCard("pad-campaign", "pad-1", "corp:hq");
     s.cards["pad-1"] = pad;

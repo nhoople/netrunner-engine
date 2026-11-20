@@ -37,3 +37,8 @@ Engine PF-S1 (the printed-text sweep S1 fixes) added three turn fields
 (`firstInstalledCorpCardTrashUsedThisTurn`, `firstInstalledCorpCardTrashMetPending`,
 `advancedSincePreviousCheckpoint`). The replayed state with those three fields removed
 hashes to the old final hash, so only the hash was updated.
+
+Engine RF-1 (the timing re-audit fixes) added the cost checkpoint after a basic action's
+click and after an install cost (CR 10.3.4, 8.5.16d). The replayed state differs from the
+one before only in the log, the id counters, and the checkpoint snapshot (every other
+field is equal), so only the hash was updated.

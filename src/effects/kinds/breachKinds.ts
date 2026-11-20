@@ -3,6 +3,7 @@ import type { ServerId } from "../../state/types.js";
  * Primitive kinds whose procedure is breach.
  * The effect switch in eval.ts dispatches here.
  */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { revealCards } from "../../state/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
@@ -19,6 +20,7 @@ export function applyBreachKinds(
   const source = state.cards[sourceId];
   switch (action.kind) {
     case "may_breach_instead_indexing": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "rd") {
         log(state, `Indexing — not a successful R&D run.`);
         return { ok: true };
@@ -55,6 +57,7 @@ export function applyBreachKinds(
     }
 
     case "breach_instead_record_reconstructor_archives": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "archives") {
         return { ok: true };
       }
@@ -63,6 +66,7 @@ export function applyBreachKinds(
     }
 
     case "may_breach_instead_account_siphon": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Account Siphon — not a successful HQ run.`);
         return { ok: true };
@@ -104,6 +108,7 @@ export function applyBreachKinds(
     }
 
     case "may_breach_instead_escher": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Escher — not a successful HQ run.`);
         return { ok: true };
@@ -145,6 +150,7 @@ export function applyBreachKinds(
     }
 
     case "may_breach_instead_exploratory_romp": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       const server = state.run?.attackedServerId
         ? state.servers[state.run.attackedServerId]
         : undefined;
@@ -190,6 +196,7 @@ export function applyBreachKinds(
     }
 
     case "may_breach_instead_vamp": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Vamp — not a successful HQ run.`);
         return { ok: true };
@@ -266,6 +273,7 @@ export function applyBreachKinds(
     }
 
     case "may_breach_instead_expert_schedule_analyzer": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `${source.title} — no successful HQ run to replace.`);
         return { ok: true };
