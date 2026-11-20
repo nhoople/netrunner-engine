@@ -2321,7 +2321,7 @@ const PUMP_KIND = /"kind":"[a-z_]*pump[a-z_]*"/;
  * interface ability (CR 3.9.5e), so it carries no `interface` flag and works
  * below the ice's strength. A card that has its own pump ability keeps it.
  */
-export function declaredPumpAbility(card: CardInstance): PaidAbility | null {
+function declaredPumpAbility(card: CardInstance): PaidAbility | null {
   const br = card.breaker;
   if (!br || !(br.pumpCredits && br.pumpCredits > 0)) return null;
   if (
