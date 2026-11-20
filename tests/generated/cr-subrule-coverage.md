@@ -15,18 +15,18 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | area 5 | 81 | 24 | 57 |
 | area 6 | 25 | 6 | 19 |
 | area 7 | 11 | 3 | 8 |
-| area 8 | 60 | 14 | 46 |
+| area 8 | 60 | 16 | 44 |
 | area 9 | 8 | 4 | 4 |
-| area 11 | 345 | 101 | 244 |
+| area 11 | 345 | 102 | 243 |
 | area 12 | 22 | 2 | 20 |
 | area 13 | 40 | 13 | 27 |
 | area 14 | 91 | 29 | 62 |
 | area 15 | 51 | 19 | 32 |
-| area 16 | 55 | 11 | 44 |
-| fidelity | 248 | 100 | 148 |
+| area 16 | 55 | 13 | 42 |
+| fidelity | 248 | 102 | 146 |
 | standardization | 47 | 27 | 20 |
 | reference | 280 | 34 | 246 |
-| **Total** | 1512 | 443 | 1069 |
+| **Total** | 1512 | 450 | 1062 |
 
 ## area 1
 
@@ -332,10 +332,10 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 
 | Rule | Section | Cited by |
 |---|---|---|
-| 7.1.1 | 7.1 | — |
+| 7.1.1 | 7.1 | tests/rulings-identity.test.ts › Zahya Sadeghi: a card accessed through Otoroshi counts even when the HQ run then ends unsuccessfully (ruling 2; filed, area 8, CR 7.1.1: Otoroshi's access waits for a breach) |
 | 7.1.2 | 7.1 | tests/fx-salem.test.ts › Quest Completed's list names a rezzed card but not a facedown one, and offers no ice (CR 7.1.2, 10.2.2a) |
 | 7.1.3 | 7.1 | — |
-| 7.1.4 | 7.1 | — |
+| 7.1.4 | 7.1 | tests/rulings-identity.test.ts › the Runner may use Carnivore on a card accessed in a remote server (CR 1.2.1, 7.1.4) |
 | 7.1.5 | 7.1 | tests/fx-salem.test.ts › Quest Completed can access a card in a central server's root, and the Runner may pay to trash it (CR 7.1.5) |
 | 7.1.5a | 7.1 | — |
 | 7.1.5b | 7.1 | — |
@@ -454,7 +454,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.16.1b | 1.16 | tests/cr-examples-ch1.test.ts › cannot pay Obokata Protocol's damage while Guru Davinder would prevent it (CR 1.16.1b.ex1)<br>tests/cr-examples-ch1.test.ts › ends the run when Jesminder prevents Funhouse's tag cost (CR 1.16.1b.ex2)<br>tests/nested-unless.test.ts › resolves the instruction when a tag cost is unpayable (CR 1.16.1b)<br>tests/uprising.test.ts › cannot × basic / additional cost: Earth Station unpayable HQ absent (1.16.1b) |
 | 1.16.1c | 1.16 | tests/cr-examples-ch1.test.ts › does not suffer Zer0's net damage when the once-per-turn ability cannot be used (CR 1.16.1c.ex1)<br>tests/cr-examples-ch1.test.ts › cannot trash SanSan City Grid to score Azef Protocol (CR 1.16.1c.ex2) |
 | 1.16.1d | 1.16 | tests/cr-examples-ch1.test.ts › trashes Beanstalk Royalties with Freedom Khumalo for zero virus counters (CR 1.16.1d.ex1)<br>tests/who-trashes.test.ts › lets the Corp pay a cost of 0 when the root is empty (CR 1.16.1d) |
-| 1.16.2 | 1.16 | — |
+| 1.16.2 | 1.16 | tests/rulings-identity.test.ts › Reina Roja: rezzing the first ice of the turn by forfeiting an agenda for Tithonium costs no extra credit, since the increase is to the rez cost and not an additional cost (ruling 1; filed, area 7, CR 1.16.2: the forfeit is a discount, so Reina's +1 is owed) |
 | 1.16.2a | 1.16 | tests/jnet-interactions-cards.test.ts › Tithe costs 2 to rez under Tread Lightly with Vovô Ozetti: 1 + 3 − 2 (CR 1.16.2a)<br>tests/jnet-interactions-cards.test.ts › with Hernando Cortez and Vovô Ozetti, Tithe's rez cost floors at 0 and the additional cost of 2 (its subroutines) is paid on top (CR 1.16.2a, 1.16.10) |
 | 1.16.2b | 1.16 | tests/cr-examples-ch1.test.ts › pays Cayambe Grid's 6 credits as one payment, so GameNET gains 1 (CR 1.16.2b.ex1) |
 | 1.16.2c | 1.16 | tests/cr-examples-ch1.test.ts › cannot spend more credits on Psychographics than the Runner has tags (CR 1.16.2c.ex1) |
@@ -1015,7 +1015,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.5.4c | 1.5 | — |
 | 1.5.4d | 1.5 | — |
 | 1.6.1 | 1.6 | — |
-| 1.6.1a | 1.6 | — |
+| 1.6.1a | 1.6 | tests/rulings-identity.test.ts › Ayla "Bios" Rahim: the cards are set aside before the starting hand is drawn, so a mulligan leaves them alone (ruling 1; filed, area 16, CR 1.6.1a: set aside after the mulligans, and 2 are never shuffled back) |
 | 1.6.1b | 1.6 | — |
 | 1.6.2 | 1.6 | — |
 | 1.6.3 | 1.6 | — |
@@ -1025,7 +1025,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.6.6a | 1.6 | tests/rng-determinism.test.ts › the same seed gives the same mulligan hand (CR 1.6.6a) |
 | 1.6.7 | 1.6 | — |
 | 1.6.7a | 1.6 | tests/instruction-checkpoints.test.ts › resolves a Corp identity ability before the first turn (CR 1.6.7a) |
-| 1.7.1 | 1.7 | — |
+| 1.7.1 | 1.7 | tests/rulings-identity.test.ts › Jinteki: Personal Evolution: a Runner with an empty grip who steals their seventh agenda point wins before the net damage resolves (ruling 1; filed, area 16, CR 1.7.1: the later flatline overwrites the win) |
 | 1.7.1a | 1.7 | — |
 | 1.7.2 | 1.7 | tests/invariants.test.ts › a winner with the other side's reason (CR 1.7.2): WIN_REASON |
 | 1.7.2a | 1.7 | — |
@@ -1121,8 +1121,8 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.2.9 | 9.2 | — |
 | 9.2.9a | 9.2 | — |
 | 9.2.9b | 9.2 | — |
-| 9.2.9c | 9.2 | — |
-| 9.2.9d | 9.2 | — |
+| 9.2.9c | 9.2 | tests/rulings-identity.test.ts › the Runner is offered Decoy against a tag the Corp gives on its own turn (CR 9.2.9c, 9.2.9d) |
+| 9.2.9d | 9.2 | tests/rulings-identity.test.ts › the Runner is offered Decoy against a tag the Corp gives on its own turn (CR 9.2.9c, 9.2.9d) |
 | 9.2.9e | 9.2 | — |
 | 9.2.9f | 9.2 | — |
 | 9.2.10 | 9.2 | — |
@@ -1133,7 +1133,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.3.1 | 9.3 | — |
 | 9.3.2 | 9.3 | — |
 | 9.3.2a | 9.3 | — |
-| 9.3.2b | 9.3 | tests/sweep-fixes-s1.test.ts › its first-break credit becomes pending as a conditional ability, and a blank Tailor's does not (CR 9.3.2b, 9.6.2) |
+| 9.3.2b | 9.3 | tests/rulings-identity.test.ts › René \"Loup\" Arcemont: the Runner trashes the 2 grip cards for Carnivore before Loup's draw, then gains 1 credit and draws 1 (ruling 1; filed, area 8, CR 9.3.2b: Carnivore's trash never triggers Loup)<br>tests/sweep-fixes-s1.test.ts › its first-break credit becomes pending as a conditional ability, and a blank Tailor's does not (CR 9.3.2b, 9.6.2) |
 | 9.3.2c | 9.3 | — |
 | 9.3.3 | 9.3 | — |
 | 9.3.3a | 9.3 | — |
@@ -1352,7 +1352,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.1.1 | 1.1 | — |
 | 1.1.2 | 1.1 | — |
 | 1.1.3 | 1.1 | tests/current-statics.test.ts › can take the Corp's max hand size below 0 (CR 1.1.3) |
-| 1.2.1 | 1.2 | tests/continuous-effects-reaudit.test.ts › RF: Thunderbolt Armaments' +1 strength lasts 'for the remainder of that run', after the ice's encounter ends (CR 1.2.1, 9.10.1)<br>tests/continuous-effects-reaudit.test.ts › RF: Bad Times' memory limit cut 'until the end of the turn' ends when the Corp's turn ends (CR 1.2.1, 9.10.1, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › Ice Carver's −1 does not lower Lotus Field (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: Monkeywrench's −2 does not lower Lotus Field, whose strength cannot be lowered (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: Parasite's virus counters do not lower Self-Adapting Code Wall (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: an ice with Hush cannot gain Sub Boost's subroutine (CR 1.2.1)<br>tests/hosting-and-trash.test.ts › Marilyn Campaign shuffles itself into R&D instead (CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Umbrella cannot break a code gate that hosts no trojan, even at full strength (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a non-killer paid break breaks only 1 of its printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: breaks made with a killer do not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a subroutine it gained is not printed and does not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Audrey v2 used for real at full strength breaks only 1 of Hammer's printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Anvil: Kongamato cannot break Anvil's first printed subroutine after Anvil's ability (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Matryoshka is offered only as many breaks as Hammer allows, so it does not pay for breaks that cannot happen (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Boi-tatá's break costs 1 credit less after the Runner trashed one of their installed cards this turn (card text, CR 1.2.1)<br>tests/sweep-fixes-s1.test.ts › its hosted credits pay to rez an asset in its root, not an upgrade, and only while it is rezzed (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › after a named card is trashed, the Corp chooses a card name again before the next net damage (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › an accessed asset can still be trashed; only an agenda is protected from stealing and trashing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the first mark run to end uses it even without a breach, so a later breached mark run that turn gains nothing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the Runner cannot lose all clicks to prevent its core damage, which it does not print (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › uses the server the ice protects, and only the turn's first such encounter: a second encounter with the same ice is not replaced (CR 1.2.1)<br>tests/timing-reaudit.test.ts › RF: Chum does 3 net damage when the encounter it boosted ends with a subroutine unbroken, before the Runner approaches the server (CR 9.6.13c, 1.2.1)<br>tests/up-and-over.test.ts › Angel Arena places X power counters, capped only by credits (CR 1.2.1) |
+| 1.2.1 | 1.2 | tests/continuous-effects-reaudit.test.ts › RF: Thunderbolt Armaments' +1 strength lasts 'for the remainder of that run', after the ice's encounter ends (CR 1.2.1, 9.10.1)<br>tests/continuous-effects-reaudit.test.ts › RF: Bad Times' memory limit cut 'until the end of the turn' ends when the Corp's turn ends (CR 1.2.1, 9.10.1, 10.3.1b)<br>tests/continuous-effects-reaudit.test.ts › Ice Carver's −1 does not lower Lotus Field (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: Monkeywrench's −2 does not lower Lotus Field, whose strength cannot be lowered (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: Parasite's virus counters do not lower Self-Adapting Code Wall (CR 1.2.1, 9.12.1a)<br>tests/continuous-effects-reaudit.test.ts › RF: an ice with Hush cannot gain Sub Boost's subroutine (CR 1.2.1)<br>tests/hosting-and-trash.test.ts › Marilyn Campaign shuffles itself into R&D instead (CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Umbrella cannot break a code gate that hosts no trojan, even at full strength (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a non-killer paid break breaks only 1 of its printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: breaks made with a killer do not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a subroutine it gained is not printed and does not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Audrey v2 used for real at full strength breaks only 1 of Hammer's printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Anvil: Kongamato cannot break Anvil's first printed subroutine after Anvil's ability (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Matryoshka is offered only as many breaks as Hammer allows, so it does not pay for breaks that cannot happen (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Boi-tatá's break costs 1 credit less after the Runner trashed one of their installed cards this turn (card text, CR 1.2.1)<br>tests/rulings-identity.test.ts › the Runner may use Carnivore on a card accessed in a remote server (CR 1.2.1, 7.1.4)<br>tests/sweep-fixes-s1.test.ts › its hosted credits pay to rez an asset in its root, not an upgrade, and only while it is rezzed (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › after a named card is trashed, the Corp chooses a card name again before the next net damage (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › an accessed asset can still be trashed; only an agenda is protected from stealing and trashing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the first mark run to end uses it even without a breach, so a later breached mark run that turn gains nothing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the Runner cannot lose all clicks to prevent its core damage, which it does not print (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › uses the server the ice protects, and only the turn's first such encounter: a second encounter with the same ice is not replaced (CR 1.2.1)<br>tests/timing-reaudit.test.ts › RF: Chum does 3 net damage when the encounter it boosted ends with a subroutine unbroken, before the Runner approaches the server (CR 9.6.13c, 1.2.1)<br>tests/up-and-over.test.ts › Angel Arena places X power counters, capped only by credits (CR 1.2.1) |
 | 1.2.2 | 1.2 | tests/confidence-interaction-smoke.test.ts › rez with prevent jack_out drops jack_out from legality (1.2.2)<br>tests/jnet-interactions-runs.test.ts › Inside Job cannot bypass Guard, so the Runner encounters it and its subroutine ends the run (CR 1.2.2, 6.5.8a)<br>tests/lose-click-cost.test.ts › Hákarl 1.0's prohibition stops the paid ability too (CR 1.2.2)<br>tests/runner-break-on-corp-ice.test.ts › bioroid ice breaks are not offered while the Runner cannot use them (CR 1.2.2) |
 | 1.2.3 | 1.2 | tests/jnet-interactions-runs.test.ts › credits spent in the approach window are gone when Tollbooth asks for 3, so it ends the run (CR 6.9.2b, 1.2.3) |
 | 1.2.4 | 1.2 | — |
