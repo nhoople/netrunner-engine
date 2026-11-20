@@ -132,10 +132,13 @@ function iceBoard(): GameState {
 }
 
 describe("uninstalling a card fires its uninstall abilities (CR 8.5.1b)", () => {
-  it("Jua returning Muertos Gang Member to the stack lets the Corp rez a card (CR 8.5.1b, 9.6.13c)", () => {
+  it("Jua returning Muertos Gang Member to the stack lets the Corp rez a card (CR 8.5.1b, 9.1.8g)", () => {
     const s = fresh();
     put(s, "jua", "jua-1", "server:hq:ice");
     s.servers.hq.ice = ["jua-1"];
+    put(s, "ice-wall", "iw-rd", "server:rd:ice");
+    s.servers.rd.ice = ["iw-rd"];
+    s.corp.credits = 0;
     put(s, "muertos-gang-member", "mg-1", "runner:installed");
     put(s, "corroder", "cor-1", "runner:installed");
     s.runner.installed = ["mg-1", "cor-1"];
@@ -148,6 +151,16 @@ describe("uninstalling a card fires its uninstall abilities (CR 8.5.1b)", () => 
         l.includes("Muertos Gang Member becomes pending — uninstalled"),
       ),
     ).toBe(true);
+    // The ability stays active in the stack until it resolves (CR 9.1.8g):
+    // the Corp is asked, and may rez an ice ignoring its cost.
+    const instance = after.pendingAbilities.find(
+      (p) => p.sourceId === "mg-1" && p.abilityKey === "on-uninstall",
+    );
+    expect(instance?.status).not.toBe("cancelled");
+    expect(after.pendingChoice?.chooser).toBe("corp");
+    after = choose(after, "accept");
+    after = choose(after, "muertos-rez:iw-rd");
+    expect(after.cards["iw-rd"]!.rezzed).toBe(true);
   });
 
   it("Jua returning Nanuq to the stack removes Nanuq from the game instead (CR 9.1.8g, 4.9.2)", () => {
