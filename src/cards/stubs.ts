@@ -158,7 +158,9 @@ export function effectiveBreakerStrength(
   // Gebrselassie replacements sync before any strength read (CR 9.9.9a).
   syncHostDurationReplacements(state);
   const card = state.cards[breakerId];
-  const printed = card.breaker?.strength ?? card.strength ?? 0;
+  // The printed strength is the card's own characteristic (CR 3.9.4a, 1.2.1);
+  // the breaker declaration's copy is only a fallback for cards without one.
+  const printed = card.strength ?? card.breaker?.strength ?? 0;
   let increases = 0;
   let decreases = 0;
   // CR 9.12.1d: a blanked source's static ability is not applied.
