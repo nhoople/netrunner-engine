@@ -18208,6 +18208,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/primitives/lookTrashAdd.ts#applyMumbadSiPrimitive",
+          "kinds": []
+        },
+        {
           "site": "src/effects/primitives/moveSearchInstall.ts#installedRunnerCardIds",
           "kinds": []
         },
@@ -21143,6 +21147,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/kinds/otherKinds.ts#accessOneInstalledNonIce",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
           "kinds": []
         },
@@ -23607,6 +23615,10 @@
         },
         {
           "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/otherKinds.ts#accessOneInstalledNonIce",
           "kinds": []
         },
         {

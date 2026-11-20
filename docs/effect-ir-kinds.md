@@ -1900,7 +1900,7 @@ Card counts are from cards `v1.147.25` (2016 cards).
 | `trash_n_from_grip` | `amount: number` | 1 | card |
 | `trash_n_installed_corp` | `count: number`, `chooser: "runner" \| "corp"` | 1 | card, engine |
 | `trash_n_programs_remaining` | `remaining: number` | 0 | engine |
-| `trash_named` | `defId: string` | 0 | engine |
+| `trash_named` | `title: string` | 0 | engine |
 | `trash_named_type` | `cardType: string` | 0 | engine |
 | `trash_next` | — | 0 | engine |
 | `trash_null_grip_card_resolve` | `cardId: string`, `amount?: number` | 0 | engine |

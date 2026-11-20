@@ -6141,7 +6141,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.pendingChoice?.chooser).toBe("corp");
     const after = applyAction(s, {
       type: "choose_option",
-      optionId: "salem:sure-gamble",
+      optionId: "salem:Sure Gamble",
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand).toEqual(["d-1"]);

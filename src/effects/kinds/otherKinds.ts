@@ -103,6 +103,8 @@ import {
 import { fireOnFullyBreak, fireOnForfeit, fireOnAccess } from "../eval.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { hostCard } from "../../state/procedures/host.js";
+import { openFace } from "../../state/seatVisibility.js";
+import { serverLabel } from "../corpAbilityInstall.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -1761,7 +1763,7 @@ export function applyOtherKinds(
       if (!rfg.ok) return rfg;
       const card = state.cards[action.cardId];
       if (!card) {
-        log(state, `Hangeki access — card missing.`);
+        log(state, `${source.title} access — card missing.`);
         return { ok: true };
       }
       let serverId: import("../../state/types.js").ServerId | null = null;
@@ -1775,7 +1777,7 @@ export function applyOtherKinds(
         }
       }
       if (!serverId) {
-        log(state, `Hangeki access — card no longer installed.`);
+        log(state, `${source.title} access — card no longer installed.`);
         return { ok: true };
       }
       if (state.run && !state.run.isPostRunBreach) {
@@ -1791,18 +1793,18 @@ export function applyOtherKinds(
       };
       log(
         state,
-        `${source.title} — pending out-of-run access of ${card.title}.`,
+        // A facedown card's title waits for the access (CR 7.1.2, 10.2.2a).
+        `${source.title} — pending out-of-run access of ${openFace(card, "runner").title ?? "an unrezzed card"}.`,
       );
       return { ok: true };
     }
 
     case "access_one_root_other_server": {
       if (!state.run) {
-        return {
-          ok: false,
-          error: "access_one_root_other_server requires an active run.",
-          cites: [CR.breach],
-        };
+        // Quest Completed shares this kind but is played outside a run:
+        // "Access 1 installed card (non-ice)" names no server and no steal
+        // or trash restriction, so the access follows CR 7.1.5 and 7.1.6.
+        return accessOneInstalledNonIce(ctx);
       }
       const attacked = state.run.attackedServerId;
       const cands: string[] = [];
@@ -4757,4 +4759,49 @@ export function applyOtherKinds(
     default:
       return null;
   }
+}
+
+/**
+ * Quest Completed: "Access 1 installed card (non-ice)." The Runner chooses
+ * any card in the root of any server, central or remote; the access goes
+ * through the out-of-run access path, so the Runner may trash it by paying
+ * its trash cost and must steal an agenda (CR 7.1.5, 7.1.6). A facedown
+ * card's title is not in its label: the Runner may not see it until the
+ * access (CR 7.1.2, 10.2.2a).
+ */
+function accessOneInstalledNonIce(ctx: EffectCtx): EvalResult {
+  const { state, sourceId } = ctx;
+  const source = state.cards[sourceId];
+  const name = source?.title ?? "Quest Completed";
+  const options: { id: string; label: string; effect: Effect }[] = [];
+  for (const [sid, server] of Object.entries(state.servers)) {
+    let unrezzed = 0;
+    for (const id of server.root) {
+      const card = state.cards[id];
+      if (!card || card.type === "ice") continue;
+      const title = openFace(card, "runner").title;
+      unrezzed += title === null ? 1 : 0;
+      const shown = title ?? `unrezzed card ${unrezzed}`;
+      options.push({
+        id: `access-installed:${id}`,
+        label: `Access ${shown} in the root of ${serverLabel(sid)}`,
+        effect: fx.do({
+          kind: "access_installed",
+          cardId: id,
+          onAccess: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
+        }),
+      });
+    }
+  }
+  if (options.length === 0) {
+    log(state, `${name} — no installed non-ice card to access.`);
+    return { ok: true };
+  }
+  openPendingChoose(state, {
+    sourceId,
+    chooser: "runner",
+    options,
+    logLine: `${name} — the Runner chooses 1 installed card (non-ice) to access.`,
+  });
+  return { ok: true };
 }
