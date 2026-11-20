@@ -229,15 +229,17 @@
     },
     "anvil": {
       "cycle": "borealis",
-      "result": "filed",
+      "result": "fixed",
       "abilities": [
         "If you do, the Runner cannot break this ice's printed subroutines for the remainder of this encounter."
       ],
-      "note": "Area 11 (breaking): forbid_runner_break_on_source sets a card-level flag that the break path reads and that clears only when the run moves past the ice, so it can outlast the encounter, and it blocks unprinted subroutines too. The fix is in the break path (FX-breakers).",
+      "note": "forbid_runner_break_on_source set a card-level flag that could outlast the encounter and blocked unprinted subroutines too. It now lives on the encounter and covers printed subroutines only.",
       "cr": [
         "9.10.1",
         "10.3.1b"
-      ]
+      ],
+      "fixedIn": "engine#953",
+      "test": "Anvil: the Runner cannot break its printed subroutines this encounter, and the next encounter with it is unaffected (CR 9.10.1)"
     },
     "architect-deployment-test": {
       "cycle": "ashes",
@@ -315,11 +317,17 @@
     },
     "audrey-v2": {
       "cycle": "liberation",
-      "result": "filed",
+      "result": "fixed",
       "abilities": [
         "Interface → Hosted virus counter: Break up to 2 subroutines."
       ],
-      "note": "Area 11 (breaking): paid-ability breaks (break_encounter_subroutine) check no strength, so Audrey at strength 0 breaks any ice without pumping. The access-trash counter, the break and the grip-trash pump match."
+      "note": "The paid break (break_encounter_subroutine) checked no strength, so Audrey at strength 0 broke any ice without pumping. It is now refused below the ice's strength, before its cost is paid. The access-trash counter and the grip-trash pump match.",
+      "cr": [
+        "3.9.5g",
+        "9.3.6c"
+      ],
+      "fixedIn": "engine#953",
+      "test": "every icebreaker's pump that the card data flags as interface is allowed below the ice's strength, and its breaks are not (CR 3.9.5b, 3.9.5g)"
     },
     "avgustina-ivanovskaya": {
       "cycle": "borealis",
@@ -400,16 +408,18 @@
     },
     "banner": {
       "cycle": "liberation",
-      "result": "filed",
+      "result": "fixed",
       "abilities": [
         "Interface → 2[credit]: Subroutines on the barrier you are encountering cannot end the run for the remainder of this encounter."
       ],
-      "note": "Area 11 (breaking): forbid_end_the_run_this_encounter checks no strength; interface abilities need the breaker's strength. For the FX-breakers session.",
+      "note": "forbid_end_the_run_this_encounter checked no strength. Banner's interface ability is now refused below the barrier's strength.",
       "cr": [
         "3.9.5g",
         "9.3.6c",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#953",
+      "test": "Banner's interface ability cannot be used below the barrier's strength (CR 3.9.5g)"
     },
     "barry-baz-wong-tri-maf-veteran": {
       "cycle": "elevation",
@@ -517,7 +527,7 @@
       "abilities": [
         "If you trashed any of your installed cards this turn, paid abilities on this program cost 1[credit] less to use."
       ],
-      "note": "Area 11 (breaking): the declared-breaker break cost (src/actions/breakSubroutine.ts) never applies the discount; FX-breakers owns the break path. Fixed in engine#950: a trash recorded as the Corp's no longer sets runnerTrashedOwnInstalledThisTurn. Corp trashes that record no player (most Runner-card trash calls) still set it (area 1 finding).",
+      "note": "Area 1 (trash records): Corp trashes that record no player (most Runner-card trash calls) still set runnerTrashedOwnInstalledThisTurn. Fixed in engine#950: a trash recorded as the Corp's no longer sets it. Fixed in engine#953: the basic break action's cost now applies the discount.",
       "cr": [
         "1.14.5a",
         "1.2.1"
@@ -906,7 +916,7 @@
       "abilities": [
         "Whenever you encounter a barrier, you may spend 3 hosted power counters to bypass it."
       ],
-      "note": "Modelled as a paid ability in the encounter window. The printed text is an optional conditional ability met when the encounter begins, so the bypass comes before the Corp's when-encountered abilities; from the paid window it comes too late and can be used after breaking. Same pattern as Afterimage (S2a). Its paid break also skips the strength check (area 11). The counter on full break, break and pump match. Paired cut A: an optional conditional ability met when the encounter begins, not a paid ability. Its break strength is FX-breakers (area 11).",
+      "note": "Modelled as a paid ability in the encounter window. The printed text is an optional conditional ability met when the encounter begins, so the bypass comes before the Corp's when-encountered abilities; from the paid window it comes too late and can be used after breaking. Same pattern as Afterimage (S2a). The counter on full break, break and pump match. Paired cut A: an optional conditional ability met when the encounter begins, not a paid ability. Its paid break's strength check is fixed in engine#953.",
       "cr": [
         "9.3.2b",
         "6.9.3a",
@@ -1526,14 +1536,16 @@
     },
     "hammer": {
       "cycle": "liberation",
-      "result": "filed",
+      "result": "fixed",
       "abilities": [
         "During each encounter with this ice, the Runner cannot break more than 1 of its printed subroutines except using killers."
       ],
-      "note": "Area 11 (breaking): the break limit counts killer breaks and unprinted subroutines, and the paid-ability break path never checks it. For the FX-breakers session.",
+      "note": "The break limit counted killer breaks and unprinted subroutines, and the paid-ability break path never checked it. It now counts only printed subroutines broken by non-killers, on every break path.",
       "cr": [
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#953",
+      "test": "Hammer: breaks made with a killer do not count toward its limit (card text, CR 1.2.1)"
     },
     "hannah-wheels-pilintra": {
       "cycle": "liberation",
@@ -2007,11 +2019,17 @@
     },
     "living-mural": {
       "cycle": "liberation",
-      "result": "filed",
+      "result": "fixed",
       "abilities": [
         "Interface → 1[credit]: Break 1 subroutine on a sentry protecting this server."
       ],
-      "note": "Area 11 (breaking): paid-ability breaks check no strength. Install on ice, Threat 4 +3 for the turn, the host-server limit and the pump match."
+      "note": "The paid break checked no strength. It is now refused below the ice's strength. Install on ice, Threat 4 +3 for the turn, the host-server limit and the pump match.",
+      "cr": [
+        "3.9.5g",
+        "9.3.6c"
+      ],
+      "fixedIn": "engine#953",
+      "test": "a strength-1 Living Mural hosted on a strength-3 Drafter cannot break its subroutine until it is pumped (CR 3.9.5g)"
     },
     "lobisomem": {
       "cycle": "liberation",
@@ -2019,7 +2037,7 @@
       "abilities": [
         "When you install this program and whenever it fully breaks a code gate, place 1 power counter on this program."
       ],
-      "note": "onFullyBreak fires on any full break by Lobisomem, so fully breaking a barrier also places a counter. Only a code gate counts. The install counter, both breaks and the pump match; the paid barrier break skips the strength check (area 11). Paired cut A: a code-gate condition on the fully-break trigger. Its paid break strength is FX-breakers (area 11).",
+      "note": "onFullyBreak fires on any full break by Lobisomem, so fully breaking a barrier also places a counter. Only a code gate counts. The install counter, both breaks and the pump match. Paired cut A: a code-gate condition on the fully-break trigger. Its paid break's strength check is fixed in engine#953.",
       "cr": [
         "6.5.7b",
         "1.2.1"
@@ -3365,11 +3383,17 @@
     },
     "slap-vandal": {
       "cycle": "liberation",
-      "result": "filed",
+      "result": "fixed",
       "abilities": [
         "Interface → 1[credit]: Break 1 subroutine on host ice. Use this ability only once per encounter."
       ],
-      "note": "Area 11 (breaking): paid-ability breaks check no strength. Install on ice, host ice only and once per encounter match."
+      "note": "The paid break (break_host_subroutine) checked no strength. It is now refused below the host's strength. Install on ice, host ice only and once per encounter match.",
+      "cr": [
+        "3.9.5g",
+        "9.3.6c"
+      ],
+      "fixedIn": "engine#953",
+      "test": "a strength-6 Slap Vandal cannot break a subroutine on a strength-7 host ice it has no way to match (CR 3.9.5g)"
     },
     "slash-and-burn-agriculture": {
       "cycle": "liberation",
@@ -3929,11 +3953,18 @@
     },
     "umbrella": {
       "cycle": "liberation",
-      "result": "filed",
+      "result": "fixed",
       "abilities": [
         "Interface → 2[credit]: Break up to 3 code gate subroutines. If at least 1 subroutine was broken this way, each player may draw 1 card."
       ],
-      "note": "Area 11 (breaking): paid-ability breaks check no strength. The trojan-host interface limit and the draws match."
+      "note": "The paid break checked neither strength nor the trojan-host limit. Both are now checked when it is used. The draws match.",
+      "cr": [
+        "3.9.5g",
+        "9.3.6c",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#953",
+      "test": "Umbrella cannot break a code gate that hosts no trojan, even at full strength (card text, CR 1.2.1)"
     },
     "underdome-irregulars": {
       "cycle": "vantage-point",

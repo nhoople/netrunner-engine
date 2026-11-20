@@ -1,4 +1,8 @@
 /** Honor and Profit (hap) deluxe primitives. */
+import {
+  markSubroutineBroken,
+  subroutineBreakBlock,
+} from "../../state/procedures/break.js";
 import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
@@ -37,7 +41,7 @@ function offerSparedSubroutineChoice(
   while (enc.broken.length < subs.length) enc.broken.push(false);
   const pick = Math.max(0, Math.min(leave, subs.length));
   if (pick === 0) {
-    breakUnbrokenExcept(state, new Set());
+    breakUnbrokenExcept(state, sourceId, new Set());
     return { ok: true };
   }
   state.run.pendingSpareSubroutines = { remaining: pick, spared: [] };
@@ -79,6 +83,7 @@ function openSpareSubroutineChoice(
 
 function breakUnbrokenExcept(
   state: EffectCtx["state"],
+  sourceId: string,
   spared: Set<number>,
 ): number {
   const enc = state.run?.encounter;
@@ -88,8 +93,8 @@ function breakUnbrokenExcept(
   while (enc.broken.length < subs.length) enc.broken.push(false);
   let brokenNow = 0;
   for (let i = 0; i < subs.length; i++) {
-    if (spared.has(i) || enc.broken[i]) continue;
-    enc.broken[i] = true;
+    if (spared.has(i) || subroutineBreakBlock(state, sourceId, i)) continue;
+    markSubroutineBroken(state, sourceId, i);
     brokenNow += 1;
   }
   const left = [...spared]
@@ -139,7 +144,7 @@ export function chooseSparedSubroutine(
   }
   const spared = new Set(pending.spared);
   state.run.pendingSpareSubroutines = undefined;
-  breakUnbrokenExcept(state, spared);
+  breakUnbrokenExcept(state, sourceId, spared);
   return { ok: true };
 }
 

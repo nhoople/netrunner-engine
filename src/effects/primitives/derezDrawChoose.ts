@@ -1,3 +1,4 @@
+import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { revealCards } from "../../state/reveal.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
@@ -7,7 +8,6 @@ import { enterLingeringPlayArea } from "../../state/zones.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
-import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnPlay } from "../../state/cardLifecycleHooks.js";
 import { random } from "../../state/rng.js";
@@ -52,21 +52,12 @@ function breakOneSub(
     return { ok: true };
   }
   const ice = state.cards[enc.iceId];
-  const str = breakerStrength(state, sourceId);
-  const iceStr = iceStrength(state, enc.iceId);
-  if (str < iceStr) {
-    return {
-      ok: false,
-      error: `${label} strength ${str} < ice strength ${iceStr}.`,
-      cites: [],
-    };
-  }
-  const idx = enc.broken.findIndex((b) => !b);
-  if (idx < 0) {
+  // Strength was checked when the ability was used (CR 3.9.5g, 9.5.4).
+  const [idx] = breakNextSubroutines(state, sourceId, 1);
+  if (idx === undefined) {
     log(state, `${label} — no unbroken subroutines.`);
     return { ok: true };
   }
-  enc.broken[idx] = true;
   log(
     state,
     `${label} — break "${ice?.subroutines?.[idx]?.text ?? `sub ${idx}`}" on ${ice?.title}.`,
@@ -320,25 +311,11 @@ export function applyRedsandTdPrimitive(
       }
       if (isCodeGate && !isSentry) {
         // Break up to 2 code gate subs
-        const str = breakerStrength(state, sourceId);
-        const iceStr = iceStrength(state, enc.iceId);
-        if (str < iceStr) {
-          return {
-            ok: false,
-            error: `Savant strength ${str} < ice strength ${iceStr}.`,
-            cites: [],
-          };
-        }
-        let broken = 0;
-        for (let i = 0; i < enc.broken.length && broken < 2; i++) {
-          if (!enc.broken[i]) {
-            enc.broken[i] = true;
-            broken++;
-            log(
-              state,
-              `Savant — break "${ice?.subroutines?.[i]?.text ?? `sub ${i}`}" on ${ice?.title}.`,
-            );
-          }
+        for (const i of breakNextSubroutines(state, sourceId, 2)) {
+          log(
+            state,
+            `Savant — break "${ice?.subroutines?.[i]?.text ?? `sub ${i}`}" on ${ice?.title}.`,
+          );
         }
         if (!state.run!.breakersThatBroke) state.run!.breakersThatBroke = [];
         if (!state.run!.breakersThatBroke.includes(sourceId)) {

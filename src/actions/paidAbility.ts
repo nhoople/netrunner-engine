@@ -1,6 +1,7 @@
 /**
  * Paid abilities on installed cards and identities.
  */
+import { paidAbilityBreakBlock } from "../state/procedures/break.js";
 import { log } from "../state/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
 import { drawCards } from "../effects/draw.js";
@@ -541,6 +542,12 @@ export function usePaidAbility(
       CR.encounterBreakPaw,
       CR.paidAbility,
     ]);
+  }
+  // CR 3.9.5g, 9.3.6c: an icebreaker's interface ability needs strength
+  // equal to or greater than the encountered ice's, checked before costs.
+  {
+    const blocked = paidAbilityBreakBlock(state, cardId, ability);
+    if (blocked) return fail(blocked.error, blocked.cites);
   }
   // Text-specified timing restrictions (CR 9.5.2f). Candidate generation
   // also filters these; validation must not rely on the offer list.

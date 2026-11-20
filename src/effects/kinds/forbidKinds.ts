@@ -39,13 +39,15 @@ export function applyForbidKinds(
     }
 
     case "forbid_runner_break_on_source": {
-      source.cannotBreakWithRunnerCardAbilities = true;
+      // Anvil: "the Runner cannot break this ice's printed subroutines for
+      // the remainder of this encounter". It lives on the encounter, so it
+      // ends with it however the encounter ends (CR 9.10.1).
       if (state.run?.encounter?.iceId === sourceId) {
-        state.run.encounter.forbidRunnerBreakThisEncounter = true;
+        state.run.encounter.forbidRunnerBreakPrintedThisEncounter = true;
       }
       log(
         state,
-        `${source.title} — Runner cannot break its printed subroutines with card abilities this encounter.`,
+        `${source.title} — Runner cannot break its printed subroutines this encounter.`,
       );
       return { ok: true };
     }

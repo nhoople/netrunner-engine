@@ -256,6 +256,10 @@
           ]
         },
         {
+          "site": "src/state/procedures/break.ts#printedTest",
+          "kinds": []
+        },
+        {
           "site": "src/timing/graph.ts#STEPS.onResolve",
           "kinds": []
         }
@@ -2110,10 +2114,6 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateRun.ts#breakCostFor",
-          "kinds": []
-        },
-        {
           "site": "src/state/cardDeclarations.ts#onProgramOrHardwareInstalled",
           "kinds": []
         },
@@ -2123,6 +2123,14 @@
         },
         {
           "site": "src/state/continuousCosts.ts#countInstalledIcebreakers",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#breakActionCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#declaredBreakBlock",
           "kinds": []
         }
       ],
@@ -2141,7 +2149,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
+          "site": "src/state/procedures/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -2160,7 +2168,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
+          "site": "src/state/procedures/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -2433,11 +2441,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/actions/breakSubroutine.ts#breakSubroutine",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/state/procedures/break.ts#runnerBreakBlock",
           "kinds": []
         }
       ],
@@ -6748,6 +6752,13 @@
           "kinds": []
         },
         {
+          "site": "src/state/procedures/break.ts#printedTest",
+          "kinds": [],
+          "mirrors": [
+            "src/state/procedures/break.ts#{}"
+          ]
+        },
+        {
           "site": "src/state/reveal.ts#lookAtCards",
           "kinds": []
         },
@@ -7535,7 +7546,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
+          "site": "src/state/procedures/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -7554,11 +7565,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/breakSubroutine.ts#breakSubroutine",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
+          "site": "src/state/procedures/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -7577,11 +7584,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/breakSubroutine.ts#breakSubroutine",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
+          "site": "src/state/procedures/break.ts#interfaceBlock",
           "kinds": []
         }
       ],
@@ -8071,11 +8074,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/breakSubroutine.ts#breakSubroutine",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
+          "site": "src/state/procedures/break.ts#breakerExemptFromCap",
           "kinds": []
         }
       ],
@@ -8094,11 +8093,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/breakSubroutine.ts#breakSubroutine",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
+          "site": "src/state/procedures/break.ts#printedBreakCap",
           "kinds": []
         }
       ],
@@ -13873,6 +13868,10 @@
         {
           "site": "src/state/costs.ts#abilityCost",
           "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#breakActionCost",
+          "kinds": []
         }
       ],
       "kinds": []
@@ -16951,10 +16950,6 @@
           "kinds": []
         },
         {
-          "site": "src/actions/breakSubroutine.ts#breakSubroutine",
-          "kinds": []
-        },
-        {
           "site": "src/actions/breakSubroutine.ts#maybeOpenTyrsHandInterrupt",
           "kinds": []
         },
@@ -17058,6 +17053,10 @@
         },
         {
           "site": "src/state/cardDeclarations.ts#onAccessed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#declaredBreakBlock",
           "kinds": []
         },
         {
@@ -17743,7 +17742,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/breakSubroutine.ts#midwayStationBreakTax",
+          "site": "src/state/procedures/break.ts#midwayStationBreakTax",
           "kinds": []
         }
       ],
@@ -18399,6 +18398,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/procedures/break.ts#runnerBreakBlock",
+          "kinds": []
+        },
+        {
           "site": "src/state/procedures/trash.ts#controllerOf",
           "kinds": []
         },
@@ -18891,10 +18894,6 @@
         },
         {
           "site": "src/cards/stubs.ts#effectiveIceStrength",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
           "kinds": []
         },
         {
@@ -19720,6 +19719,14 @@
           "kinds": []
         },
         {
+          "site": "src/state/procedures/break.ts#declaredBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#printedTest",
+          "kinds": []
+        },
+        {
           "site": "src/timing/graph.ts#STEPS",
           "kinds": []
         },
@@ -20226,15 +20233,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
-          "kinds": []
-        },
-        {
           "site": "src/legality/candidateRun.ts#addPaidWindowCandidates.consider",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#breakCostFor",
           "kinds": []
         },
         {
@@ -20398,6 +20397,22 @@
         },
         {
           "site": "src/state/powerCounters.ts#syncNextSubtypeEtrSubs",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#breakActionCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#breakerExemptFromCap",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#runnerBreakBlock",
           "kinds": []
         },
         {
@@ -22313,6 +22328,22 @@
         },
         {
           "site": "src/state/powerCounters.ts#maybeFirePowerCountersGte",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#declaredBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#runnerBreakBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#subroutineBreakBlock",
           "kinds": []
         },
         {

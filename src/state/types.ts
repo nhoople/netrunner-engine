@@ -4320,8 +4320,19 @@ interface EncounterState {
    * breaker this encounter (Buzzsaw / Cleaver).
    */
   freeBreaksRemaining?: { breakerId: string; remaining: number };
-  /** Anvil: forbid runner break was applied for this encounter only. */
+  /**
+   * Printed subroutines broken this encounter by a breaker the ice exempts
+   * from its cap (Hammer: killers), which the cap does not count.
+   */
+  exemptPrintedBreaks?: number;
+  /** Inazuma: the Runner cannot break any subroutine this encounter. */
   forbidRunnerBreakThisEncounter?: boolean;
+  /**
+   * Anvil: the Runner cannot break this ice's printed subroutines for the
+   * remainder of this encounter. Lives on the encounter so it ends with it
+   * (CR 9.10.1).
+   */
+  forbidRunnerBreakPrintedThisEncounter?: boolean;
   /**
    * Banner: subroutines cannot end the run for the remainder of this encounter.
    */

@@ -330,7 +330,11 @@ describe("parhelion", () => {
           fx.forbidRunnerBreakOnSource(),
         );
         expect(r.ok).toBe(true);
-        expect(s.cards["anv-1"]!.cannotBreakWithRunnerCardAbilities).toBe(true);
+        // Outside an encounter nothing is forbidden, and nothing is left on
+        // the card to outlast an encounter (CR 9.10.1).
+        expect(
+          s.cards["anv-1"]!.cannotBreakWithRunnerCardAbilities,
+        ).toBeUndefined();
       });
     });
   });

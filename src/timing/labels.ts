@@ -663,6 +663,8 @@ export const CR = {
   },
   /** Ability flags (access, interface, interrupt, persistent, threat N, once per turn) (CR 9.3.6). */
   abilityFlag: { number: "9.3.6", id: "rule_ability_flag" },
+  /** Interface abilities: only during an encounter, and only at strength ≥ the ice's (CR 9.3.6c). */
+  interfaceFlag: { number: "9.3.6c", id: "rule_interface_flag" },
   /** Dividends N: agenda counters per excess advancement when scored (CR 10.13.1). */
   dividends: { number: "10.13.1", id: "rule_dividends" },
   /** Dividends checks advancement requirement and counters at score begin (CR 10.13.2). */
@@ -936,6 +938,10 @@ export const CR = {
   icebreakerInterfaceStrength: {
     number: "3.9.5g",
     id: "rule_icebreaker_interface_strength",
+  },
+  icebreakerInterfaceSubtype: {
+    number: "3.9.5h",
+    id: "rule_icebreaker_interface_subtype",
   },
   programStrength: { number: "3.9.4a", id: "rule_icebreakers_strength_value" },
   /**

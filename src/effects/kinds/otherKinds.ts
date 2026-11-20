@@ -14,11 +14,13 @@ import type { ServerId } from "../../state/types.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
 import { chooseCards } from "../chooseCards.js";
+import { effectiveIceSubtypes, serverIdForIce } from "../../cards/stubs.js";
 import {
-  effectiveIceSubtypes,
-  iceBreakExceptSubtype,
-  serverIdForIce,
-} from "../../cards/stubs.js";
+  breakableCount,
+  markSubroutineBroken,
+  nextBreakableSubroutine,
+  runnerBreakBlock,
+} from "../../state/procedures/break.js";
 import { applyRunAccessRestrictions } from "../../state/accessFilter.js";
 import {
   corpInstallCost,
@@ -50,10 +52,6 @@ import {
   blankAbilitiesUntilCorpTurnEnd,
   LINGERING_KIND_GRANTED_SUBTYPES,
 } from "../../state/lingeringEffects.js";
-import {
-  cannotBreakExceptIcebreakerActive,
-  cardHasIcebreakerSubtype,
-} from "../../state/lockdowns.js";
 import { fireOnFlipToBackIfRunMatchesFace } from "../../state/miscConditionalHooks.js";
 import {
   chargeableInstalledIds,
@@ -2221,12 +2219,16 @@ export function applyOtherKinds(
         );
         return { ok: true };
       }
+      {
+        const blocked = runnerBreakBlock(state, sourceId, hostId);
+        if (blocked) return { ok: false, ...blocked };
+      }
       const maxSubs = Math.max(1, action.maxSubs ?? 1);
       let broken = 0;
       for (let n = 0; n < maxSubs; n++) {
-        const idx = enc.broken.findIndex((b) => !b);
+        const idx = nextBreakableSubroutine(state, sourceId);
         if (idx < 0) break;
-        enc.broken[idx] = true;
+        markSubroutineBroken(state, sourceId, idx);
         broken += 1;
         const sub = state.cards[hostId].subroutines?.[idx];
         log(
@@ -2247,39 +2249,6 @@ export function applyOtherKinds(
     }
 
     case "break_encounter_subroutine": {
-      if (state.run?.encounter) {
-        const ice = state.cards[state.run.encounter.iceId];
-        if (ice?.cannotBreakWithRunnerCardAbilities) {
-          return {
-            ok: false,
-            error:
-              "Runner card abilities cannot break subroutines on this ice (Trieste).",
-            cites: [CR.encounterBreakPaw],
-          };
-        }
-        const exceptSubtype = ice
-          ? iceBreakExceptSubtype(state, ice.id)
-          : undefined;
-        if (exceptSubtype && !(source.subtypes ?? []).includes(exceptSubtype)) {
-          return {
-            ok: false,
-            error: `Subroutines on ${ice!.title} can only be broken by a ${exceptSubtype}.`,
-            cites: [CR.encounterBreakPaw],
-          };
-        }
-        if (
-          cannotBreakExceptIcebreakerActive(state) &&
-          !cardHasIcebreakerSubtype(source)
-        ) {
-          return {
-            ok: false,
-            error:
-              "Cannot break subroutines with a non-icebreaker card while NEXT Activation Command is active.",
-            cites: [CR.encounterBreakPaw, CR.lockdownOperation],
-          };
-        }
-      }
-
       const enc = state.run?.encounter;
       if (!enc) {
         log(state, `Break encounter subroutine — no encounter.`);
@@ -2296,20 +2265,27 @@ export function applyOtherKinds(
         );
         return { ok: true };
       }
-      if (
-        typeof action.requireMinStrength === "number" &&
-        (ice?.strength ?? 0) < action.requireMinStrength
-      ) {
-        log(
-          state,
-          `Break encounter subroutine — ice strength ${ice?.strength ?? 0} < ${action.requireMinStrength}.`,
-        );
-        return { ok: true };
+      if (typeof action.requireMinStrength === "number") {
+        const iceStr = iceStrength(state, enc.iceId);
+        if (iceStr < action.requireMinStrength) {
+          log(
+            state,
+            `Break encounter subroutine — ice strength ${iceStr} < ${action.requireMinStrength}.`,
+          );
+          return { ok: true };
+        }
+      }
+      // The ice's own limits (Trieste, "only by a killer", AI, NEXT
+      // Activation Command); the interface strength check (CR 3.9.5g) runs
+      // when the ability is used, before costs such as trashing the breaker.
+      {
+        const blocked = runnerBreakBlock(state, sourceId, enc.iceId);
+        if (blocked) return { ok: false, ...blocked };
       }
       const maxSubs = Math.max(1, action.maxSubs ?? 1);
       let broken = 0;
       for (let n = 0; n < maxSubs; n++) {
-        const idx = enc.broken.findIndex((b) => !b);
+        const idx = nextBreakableSubroutine(state, sourceId);
         if (idx < 0) break;
         if (
           typeof action.payCreditsPerBrokenSub === "number" &&
@@ -2323,7 +2299,7 @@ export function applyOtherKinds(
             `${source.title} pays ${need}¢ to break a subroutine → ${state.runner.credits}¢.`,
           );
         }
-        enc.broken[idx] = true;
+        markSubroutineBroken(state, sourceId, idx);
         broken += 1;
         const sub = ice.subroutines?.[idx];
         log(
@@ -2395,23 +2371,11 @@ export function applyOtherKinds(
         log(state, `Matryoshka break — no encounter.`);
         return { ok: true };
       }
-      if (state.cards[enc.iceId]?.cannotBreakWithRunnerCardAbilities) {
-        return {
-          ok: false,
-          error:
-            "Runner card abilities cannot break subroutines on this ice (Trieste).",
-          cites: [CR.encounterBreakPaw],
-        };
+      {
+        const blocked = runnerBreakBlock(state, sourceId, enc.iceId);
+        if (blocked) return { ok: false, ...blocked };
       }
-      const brStr = breakerStrength(state, sourceId);
-      const iceStr = iceStrength(state, enc.iceId);
-      if (brStr < iceStr) {
-        log(
-          state,
-          `${source.title} — strength ${brStr} < ice ${iceStr}; cannot interface.`,
-        );
-        return { ok: true };
-      }
+      // Strength was checked when the ability was used (CR 3.9.5g, 9.5.4).
       const faceupHosted = (source.hostedCardIds ?? []).filter((id) => {
         const c = state.cards[id];
         return c && c.faceup && c.title === source.title;
@@ -2420,7 +2384,8 @@ export function applyOtherKinds(
         log(state, `${source.title} — no faceup hosted copy to turn facedown.`);
         return { ok: true };
       }
-      const unbroken = enc.broken.filter((b) => !b).length;
+      // Only as many as the encounter's limits let it break (Hammer, Anvil).
+      const unbroken = breakableCount(state, sourceId);
       if (unbroken === 0) {
         log(state, `${source.title} — no unbroken subroutines.`);
         return { ok: true };
@@ -2493,9 +2458,9 @@ export function applyOtherKinds(
         `${source.title} spends ${action.amount}¢; turn hosted ${hosted.title} facedown.`,
       );
       for (let n = 0; n < action.amount; n++) {
-        const idx = enc.broken.findIndex((b) => !b);
+        const idx = nextBreakableSubroutine(state, sourceId);
         if (idx < 0) break;
-        enc.broken[idx] = true;
+        markSubroutineBroken(state, sourceId, idx);
         const sub = state.cards[enc.iceId]?.subroutines?.[idx];
         log(state, `${source.title} breaks "${sub?.text ?? `sub ${idx}`}".`);
       }

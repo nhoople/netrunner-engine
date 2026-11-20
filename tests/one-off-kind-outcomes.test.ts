@@ -5333,7 +5333,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.run?.skipBreach).toBe(true);
   });
 
-  it("Anvil: forbids Runner card abilities from breaking the source this encounter", () => {
+  it("Anvil: forbids breaking its printed subroutines for this encounter only (CR 9.10.1)", () => {
     const s = createInitialState();
     const ice = put(s, "anvil", "anv-1", "server:hq:ice");
     s.run = {
@@ -5341,8 +5341,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       encounter: { iceId: "anv-1", broken: [] },
     } as unknown as GameState["run"];
     runKind(s, "anv-1", "forbid_runner_break_on_source");
-    expect(ice.cannotBreakWithRunnerCardAbilities).toBe(true);
-    expect(s.run?.encounter?.forbidRunnerBreakThisEncounter).toBe(true);
+    expect(ice.cannotBreakWithRunnerCardAbilities).toBeUndefined();
+    expect(s.run?.encounter?.forbidRunnerBreakPrintedThisEncounter).toBe(true);
   });
 
   it("Another Day, Another Paycheck: forces Trace[0]; failure pays agenda points as credits", () => {

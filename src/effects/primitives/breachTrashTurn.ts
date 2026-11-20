@@ -1,4 +1,5 @@
 /** True Colors (tc) Spin pack primitives. */
+import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { log } from "../../state/createGame.js";
 import { drawCards } from "../draw.js";
 import type { EffectCtx } from "../eval.js";
@@ -241,10 +242,11 @@ export function applySpinTcPrimitive(
         log(state, `Sharpshooter — host ice is not destroyer.`);
         return { ok: true };
       }
-      const broken = enc.broken ?? [];
-      for (let i = 0; i < broken.length; i++) broken[i] = true;
-      enc.broken = broken;
-      log(state, `Sharpshooter — break all subroutines on ${ice.title}.`);
+      const broken = breakNextSubroutines(state, sourceId, Infinity);
+      log(
+        state,
+        `Sharpshooter — break ${broken.length} subroutine(s) on ${ice.title}.`,
+      );
       return { ok: true };
     }
     default:

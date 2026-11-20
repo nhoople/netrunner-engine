@@ -1,4 +1,9 @@
 /** Martial Law (ml) Flashpoint pack primitives — v1.126.0. */
+import {
+  breakNextSubroutines,
+  interfaceBlock,
+  runnerBreakBlock,
+} from "../../state/procedures/break.js";
 import { revealCards } from "../../state/reveal.js";
 import {
   corpInstallCost,
@@ -9,7 +14,6 @@ import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffec
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
-import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
@@ -40,17 +44,15 @@ export function applyFlashpointMlPrimitive(
       if (!ice || !(ice.subtypes ?? []).includes("sentry")) {
         return { ok: true };
       }
-      const str = breakerStrength(state, sourceId);
-      const iceStr = iceStrength(state, enc.iceId);
-      if (str < iceStr) {
-        log(state, `MKUltra — cannot interface (str ${str} < ice ${iceStr}).`);
+      // "Then, if this program can interface with the sentry" (CR 3.9.5g).
+      const blocked =
+        interfaceBlock(state, sourceId, enc.iceId) ??
+        runnerBreakBlock(state, sourceId, enc.iceId);
+      if (blocked) {
+        log(state, `MKUltra — cannot interface: ${blocked.error}`);
         return { ok: true };
       }
-      const unbroken = enc.broken
-        .map((b, i) => (!b ? i : -1))
-        .filter((i) => i >= 0);
-      const toBreak = unbroken.slice(0, 2);
-      for (const i of toBreak) enc.broken[i] = true;
+      const toBreak = breakNextSubroutines(state, sourceId, 2);
       if (toBreak.length > 0) {
         log(state, `MKUltra — break ${toBreak.length} sentry subroutine(s).`);
       }
