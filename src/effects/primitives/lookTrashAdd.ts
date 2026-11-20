@@ -10,6 +10,7 @@ import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { catalogCardNames } from "../cardNames.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -174,53 +175,48 @@ export function applyMumbadSiPrimitive(
     }
 
     case "name_reveal_trash_grip_copies": {
-      const titles = new Map<string, string>();
-      for (const c of Object.values(state.cards)) {
-        if (!c.defId || c.type === "identity") continue;
-        if (!titles.has(c.defId)) titles.set(c.defId, c.title);
-      }
-      const options = [...titles.entries()]
-        .slice(0, 40)
-        .map(([defId, title]) => ({
-          id: `salem:${defId}`,
-          label: `Name ${title}`,
-          effect: fx.do({
-            kind: "trash_named",
-            defId,
-          }),
-        }));
-      if (options.length === 0) {
-        log(state, `Salem's Hospitality — no card names available.`);
-        return { ok: true };
-      }
+      // Salem's Hospitality: "Choose a card name" (CR 1.15.1b). Any Runner
+      // card name may be named; the list comes from the catalog, not from the
+      // game's cards, which would show the Corp the titles in the Runner's
+      // grip and stack (CR 10.2.2a, 10.2.2b).
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
-        options,
+        options: catalogCardNames((def) => def.side === "runner").map(
+          (title) => ({
+            id: `salem:${title}`,
+            label: `Name ${title}`,
+            effect: fx.do({ kind: "trash_named", title }),
+          }),
+        ),
+        logLine: `${source?.title ?? "Salem's Hospitality"} — choose a card name.`,
       });
       return { ok: true };
     }
 
     case "trash_named": {
-      const defId = action.defId;
+      // "The Runner reveals the grip and trashes all cards with the chosen
+      // name revealed this way": the whole grip is revealed first (CR 1.21.3),
+      // then the Runner, named by the text, trashes the matches (CR 1.14.5).
       const grip = [...state.runner.hand];
-      let trashed = 0;
-      for (const id of grip) {
-        const c = state.cards[id];
-        if (!c || c.defId !== defId) continue;
-        revealCards(state, [c.id], sourceId);
-        log(state, `Salem's Hospitality — reveal ${c.title}.`);
-        trashCard(state, id);
-        trashed += 1;
-      }
-      for (const id of state.runner.hand) {
-        const c = state.cards[id];
-        if (c) revealCards(state, [c.id], sourceId);
-        log(state, `Salem's Hospitality — reveal ${c.title}.`);
+      const name = source?.title ?? "Salem's Hospitality";
+      revealCards(state, grip, sourceId);
+      const titles = grip.map((id) => state.cards[id]?.title ?? id);
+      log(
+        state,
+        grip.length > 0
+          ? `${name} — the Runner reveals the grip: ${titles.join(", ")}.`
+          : `${name} — the Runner reveals an empty grip.`,
+      );
+      const matches = grip.filter(
+        (id) => state.cards[id]?.title === action.title,
+      );
+      for (const id of matches) {
+        trashCard(state, id, { by: "runner", cause: "ability" });
       }
       log(
         state,
-        `Salem's Hospitality — trash ${trashed} copy/copies of ${defId} from grip.`,
+        `${name} — the Runner trashes ${matches.length} ${matches.length === 1 ? "copy" : "copies"} of ${action.title}.`,
       );
       return { ok: true };
     }

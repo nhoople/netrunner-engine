@@ -28,6 +28,7 @@ import { fireOnRunDeclaredOnThisServerIfTagged } from "../state/miscConditionalH
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { random } from "../state/rng.js";
 import { trashCard } from "../state/procedures/trash.js";
+import { settleDeferredPlayedEvent } from "./play.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };
@@ -126,6 +127,17 @@ export function finishRunReturnToAction(state: GameState): void {
         log(state, `${card.title} trashed (CR ${CR.trashPlayedCard.number}).`);
       }
       log(state, `Play effect complete (CR ${CR.playComplete.number}).`);
+      if (state.pendingPlayedEventTrashId === eventId) {
+        state.pendingPlayedEventTrashId = null;
+      }
+    }
+    // An event whose choice began an access or breach outside a run (Quest
+    // Completed) finishes resolving when that access ends; it is trashed now,
+    // and the action finishes here rather than again on a later choice
+    // (CR 8.6.7g).
+    if (state.pendingPlayedEventTrashId) {
+      settleDeferredPlayedEvent(state);
+      state.deferAfterBasicAction = false;
     }
     state.restrictions = state.restrictions.filter(
       (r) => r.forbid !== "jack_out",

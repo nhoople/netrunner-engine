@@ -3039,7 +3039,8 @@ export type Primitive =
   | { kind: "add_nonvirus_program_to_stack_top" }
   | { kind: "move_program_to_stack_top"; cardId: string }
   | { kind: "name_reveal_trash_grip_copies" }
-  | { kind: "trash_named"; defId: string }
+  /** Salem's Hospitality: reveal the grip, trash the cards with this title. */
+  | { kind: "trash_named"; title: string }
   | { kind: "search_rd_for_any_subtype_to_hq"; subtypes: string[] }
   | { kind: "search_rd_subtype_to_hq_resolve"; cardId: string }
   | { kind: "search_rd_copies_to_hq" }
