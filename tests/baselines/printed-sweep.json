@@ -73,6 +73,11 @@
       "cards": 55
     },
     {
+      "id": "S3h",
+      "cycle": "mumbad",
+      "cards": 114
+    },
+    {
       "id": "S3i",
       "cycle": "flashpoint",
       "cards": 100
@@ -207,6 +212,24 @@
       "result": "matches",
       "note": "Unique; successful run on this server plays a psi game (0-2): bids differ, only Adrian can be accessed; bids match, Adrian cannot be accessed; at Corp turn end may move to another server's root."
     },
+    "advanced-assembly-lines": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "[trash]: Install a non-agenda card from HQ (paying the install cost)."
+      ],
+      "note": "may_install_from_hq_paying_costs offers a Decline after the trash cost is paid; the printed install is mandatory (as Clone Chip and Early Bird). Fix: a mandatory variant of the kind for this card (Red Level Clearance and Bioroid Work Crew are mandatory too). Gain 3 on rez and the no-run limit match.",
+      "cr": [
+        "1.2.1",
+        "1.16.4b",
+        "9.5.3"
+      ]
+    },
+    "advanced-concept-hopper": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "The first run each turn, the Corp may draw 1 or gain 1 (or decline)."
+    },
     "aesops-pawnshop": {
       "cycle": "core-set",
       "result": "matches",
@@ -260,6 +283,19 @@
         "1.2.1"
       ]
     },
+    "aghora": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "1[credit]: +1 strength.",
+        "2[credit]: Swap this program with a deva program from your grip."
+      ],
+      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b; area 3 lists it). The break on ice with rez cost 5 or more matches.",
+      "cr": [
+        "1.2.1",
+        "8.8.4b"
+      ]
+    },
     "aiki": {
       "cycle": "flashpoint",
       "result": "matches",
@@ -307,6 +343,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "Unique; rezzed, lowers the rez cost of ice protecting this server by 2."
+    },
+    "akshara-sareen": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique; +1 allotted click for each player's turns (Runner bonus and Corp bonus while installed)."
     },
     "alarm-clock": {
       "cycle": "liberation",
@@ -454,6 +495,17 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "+1 MU, console; the first event trashed each turn draws 1 (played events reach the heap through trashCard, so they count)."
+    },
+    "ankusa": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "1[credit]: +1 strength."
+      ],
+      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The barrier break and adding a fully broken barrier to HQ match.",
+      "cr": [
+        "1.2.1"
+      ]
     },
     "anoetic-void": {
       "cycle": "system-gateway",
@@ -624,6 +676,24 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "On score the Runner loses 7."
+    },
+    "artist-colony": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "Forfeit 1 agenda: Search your stack for 1 program, resource, or piece of hardware. Install that card."
+      ],
+      "note": "Area 6 (Runner install): install_from_stack pushes the card into the rig inline: no install cost, no MU check, no install triggers, no faceup set, and no fail-to-find. The forfeit cost and the shuffle match.",
+      "cr": [
+        "1.16.4b",
+        "3.9.3b",
+        "8.7.2b"
+      ]
+    },
+    "aryabhata-tech": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Whenever there is a successful trace, the Corp gains 1 and the Runner loses 1 (read in resolveTrace)."
     },
     "ash-2x3zb9cy": {
       "cycle": "genesis",
@@ -805,6 +875,11 @@
       ],
       "note": "Area 6 (Runner install): may_install_from_grip drops programs over free MU, trojans and install-on-ice cards. The run, choose 2 in any order, draw, remove tag and the 4 hosted credits for trash costs match."
     },
+    "bailiff": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Gain 1 whenever the Runner breaks one of its subroutines; End the run."
+    },
     "baker": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -880,6 +955,17 @@
       "result": "matches",
       "note": "Interface 2: break up to 2 barrier subroutines; 1: +1 strength for the rest of the run."
     },
+    "bazaar": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you install a piece of hardware from your grip, you may install another copy of that hardware from your grip (paying all costs)."
+      ],
+      "note": "The trigger (onProgramOrHardwareInstalled) is called only from installRunner: it fires for Bling-hosted hardware, which is not in the grip, and misses grip installs made by effects (Modded's installGripCardDiscounted). With two Bazaars only the first is offered. The root cause, install triggers fired only from the basic install path, is area 6's.",
+      "cr": [
+        "1.2.1"
+      ]
+    },
     "beanstalk-royalties": {
       "cycle": "core-set",
       "result": "matches",
@@ -932,6 +1018,11 @@
       "result": "matches",
       "note": "Unique; at Runner turn begin: Corp 5-9 credits gain 1, 10-14 draw 1, 15 or more gain a click."
     },
+    "bhagat": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique; the first successful HQ run each turn trashes the top card of R&D."
+    },
     "biawak": {
       "cycle": "elevation",
       "result": "matches",
@@ -964,6 +1055,11 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "Play only if tagged; give 1 tag, or remove any number of tags with the Runner losing 5 each and the Corp gaining what was actually lost (gainPerCreditLost reads the real loss)."
+    },
+    "bio-ethics-association": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "At Corp turn begin, 1 net damage if no ice protects its server."
     },
     "bioroid-efficiency-research": {
       "cycle": "creation-and-control",
@@ -1102,10 +1198,26 @@
       "result": "matches",
       "note": "Unique console; +2 MU and +2 maximum hand size."
     },
+    "brahman": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "2[credit]: +1 strength."
+      ],
+      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). Break up to 2 and the encounter-end add to the top of the stack match.",
+      "cr": [
+        "1.2.1"
+      ]
+    },
     "brain-chip": {
       "cycle": "data-and-destiny",
       "result": "matches",
       "note": "Unique console; +X MU and +X maximum hand size, X = the Runner's agenda points."
+    },
+    "brainstorm": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "On encounter gains X 'Do 1 core damage' subroutines, X = grip size at that encounter, until the run ends."
     },
     "braintrust": {
       "cycle": "genesis",
@@ -1369,6 +1481,11 @@
       ],
       "note": "Area 12 (place_advancements): with pick choose it always adds a Decline, so the mandatory counter can be skipped. Candidates (ice protecting this server) and the approach cost of 2 per advanced ice match."
     },
+    "cbi-raid": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Run HQ; if successful, instead of breaching, the Corp puts all of HQ on top of R&D in the order it chooses."
+    },
     "celebrity-gift": {
       "cycle": "spin",
       "result": "matches",
@@ -1489,6 +1606,18 @@
       "result": "matches",
       "note": "Run HQ; if successful, sabotage 4 instead of breaching."
     },
+    "chatterjee-university": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "[click]: Install a program from your grip, lowering the install cost by 1 for each power counter on Chatterjee University. Remove 1 hosted power counter."
+      ],
+      "note": "Area 6 (Runner install): install_chatterjee_program_resolve installs inline, paying from the credit pool only, with no MU check and no install steps (8.5.16). The power counter ability matches.",
+      "cr": [
+        "3.9.3b",
+        "8.5.16"
+      ]
+    },
     "checkpoint": {
       "cycle": "order-and-chaos",
       "result": "wrong",
@@ -1512,6 +1641,11 @@
         "9.6.5c",
         "1.2.1"
       ]
+    },
+    "chetana": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Each player gains 2; psi game, if bids differ net damage equal to the Runner's grip size."
     },
     "chief-slee": {
       "cycle": "flashpoint",
@@ -1619,6 +1753,16 @@
         "1.2.4"
       ]
     },
+    "clone-suffrage-movement": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "At Corp turn begin, if no ice protects its server, may add 1 operation from Archives to HQ."
+    },
+    "clones-are-not-people": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Current (trashed on another current or a stolen agenda); when the Corp scores, it joins the Corp's score area as a 1-point agenda."
+    },
     "closed-accounts": {
       "cycle": "core-set",
       "result": "matches",
@@ -1633,6 +1777,11 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "2 power counters on install; counter: gain 2, only during the Runner's turn (a non-click paid ability, open in every paid window)."
+    },
+    "cobra": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Trash 1 program (the Corp chooses); do 2 net damage."
     },
     "code-siphon": {
       "cycle": "lunar",
@@ -1687,6 +1836,11 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "Advanceable, +1 strength per advancement; 1 tag (2 at 3+ advancements); trash a program (and a resource at 3+ advancements)."
+    },
+    "commercial-bankers-group": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "At Corp turn begin, gain 3 if no ice protects its server."
     },
     "commercialization": {
       "cycle": "genesis",
@@ -1749,6 +1903,14 @@
       "result": "matches",
       "note": "At Corp turn begin may move 1 advancement token from a piece of ice to another installed ice that can be advanced."
     },
+    "consulting-visit": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "Search R&D for an operation and play it (paying all costs). Shuffle R&D."
+      ],
+      "note": "Area 11 (turn structure): the plan's row 'Consulting Visit's play from R&D does not charge the play cost'. The extra click and the influence rule match."
+    },
     "cookbook": {
       "cycle": "system-gateway",
       "result": "fixed",
@@ -1776,6 +1938,16 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "Additional [click]; gain 6, draw 2, add 1 Archives card to HQ."
+    },
+    "corporate-sales-team": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "On score, 10 credits placed on it; at the start of each player's turn the Corp takes 1."
+    },
+    "corporate-scandal": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Current (trashed on another current or a scored agenda); the Corp has 1 additional bad publicity that cannot be removed."
     },
     "corporate-shuffle": {
       "cycle": "spin",
@@ -1828,6 +2000,11 @@
         "9.2.7b",
         "5.6.1b"
       ]
+    },
+    "councilman": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "When the Corp rezzes an asset or upgrade, the Runner may pay its rez cost and trash Councilman to derez it; it cannot be rezzed again this turn."
     },
     "crash-space": {
       "cycle": "core-set",
@@ -2123,6 +2300,18 @@
       "result": "matches",
       "note": "Interrupt, [trash]: prevent 1 tag."
     },
+    "dedicated-neural-net": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "The first time there is a successful run on HQ each turn, you and the Runner secretly spend 0, 1, or 2 credits... If you and the Runner spent a different number of credits, you choose which cards the Runner accesses from HQ for the remainder of this run."
+      ],
+      "note": "graph.ts sets run.tlmCorpChoosesHqAccess before the psi game whatever the bids, and nothing reads it; the psi game's ifBidsDiffer is gain 0 credits. The psi game is played and changes nothing.",
+      "cr": [
+        "1.2.1",
+        "7.3.4b"
+      ]
+    },
     "dedicated-response-team": {
       "cycle": "genesis",
       "result": "matches",
@@ -2144,6 +2333,11 @@
         "1.2.1",
         "1.10.3c"
       ]
+    },
+    "dedication-ceremony": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Place 3 advancement tokens on a faceup card the Corp chooses; it cannot be scored this turn."
     },
     "deep-dive": {
       "cycle": "borealis",
@@ -2284,6 +2478,17 @@
       "result": "matches",
       "note": "Run any server; if successful gain 5."
     },
+    "disposable-hq": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "When the Runner accesses this upgrade, you may add any number of cards from HQ to the bottom of R&D."
+      ],
+      "note": "add_hq_to_bottom_rd moves all of HQ, in hand order, after one accept/decline; the Corp cannot choose which cards or their order. The R&D reveal matches.",
+      "cr": [
+        "1.2.1"
+      ]
+    },
     "disrupter": {
       "cycle": "genesis",
       "result": "matches",
@@ -2315,6 +2520,11 @@
         "10.4.2a",
         "1.2.1"
       ]
+    },
+    "diwan": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Chooses a server on install; the Corp pays 1 more to install in its root or protecting it; trashed when viruses are purged."
     },
     "djinn": {
       "cycle": "core-set",
@@ -2579,6 +2789,18 @@
       ],
       "note": "Area 15 (credit spending): recurringSpendFor use_program pays for any program, not only icebreakers (as Cyberfeeder, S3a). cr-checker also found that refillRecurringCredits and the recurring spend walk only runner.installed, which has no identity, so the credit may never refill or be spendable (not probed)."
     },
+    "election-day": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "Trash all cards in HQ (minimum of 1). Draw 5 cards."
+      ],
+      "note": "trash_hq_draw draws by deck.shift outside the draw procedure, so no draw triggers fire (as Corporate Shuffle). The minimum of 1, the trash and the empty-R&D loss match.",
+      "cr": [
+        "8.4.2",
+        "8.4.5b"
+      ]
+    },
     "eli-1-0": {
       "cycle": "genesis",
       "result": "matches",
@@ -2623,6 +2845,17 @@
       ],
       "note": "Area 5 (Corp install): both installs are inline copies that always make a new remote. The expendable cost, the total discount, the search, shuffle and rez match."
     },
+    "emp-device": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "[trash]: The Corp cannot rez more than 1 piece of ice for the remainder of this run."
+      ],
+      "note": "rez_emp_device_limit_ice_this_run writes run.bfMaxIceRezThisRun and bfIceRezzedThisRun, which nothing reads, so the limit never applies.",
+      "cr": [
+        "1.2.2"
+      ]
+    },
     "empiricist": {
       "cycle": "elevation",
       "result": "matches",
@@ -2632,6 +2865,11 @@
       "cycle": "data-and-destiny",
       "result": "matches",
       "note": "Current (trashed when another current is played or an agenda is scored); the Corp identity loses its printed abilities."
+    },
+    "emptied-mind": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique; at turn begin gain a click if the grip is empty."
     },
     "en-passant": {
       "cycle": "flashpoint",
@@ -2807,6 +3045,16 @@
       "result": "matches",
       "note": "Unique; subroutine: the Runner cannot make another run this turn."
     },
+    "exchange-of-information": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Play only if the Runner is tagged; swap an agenda in each score area."
+    },
+    "exclusive-party": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Limit 6; draw 1, gain 1 per copy of Exclusive Party in the heap."
+    },
     "executive-boot-camp": {
       "cycle": "lunar",
       "result": "matches",
@@ -2816,6 +3064,11 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "On score, 1 agenda counter and shuffle HQ into R&D; click, agenda counter: draw 5."
+    },
+    "executive-search-firm": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Click: search R&D for an executive, sysop or character (the Corp chooses), reveal, add to HQ, shuffle. Alliance influence reduction is deckbuilding."
     },
     "executive-wiretaps": {
       "cycle": "spin",
@@ -2951,6 +3204,11 @@
       "cycle": "flashpoint",
       "result": "matches",
       "note": "Interface 1 credit: break 1 sentry subroutine; X credits (at least 1 from a stealth card): +X strength for the run. The pump's interface flag is in paired cut A's list."
+    },
+    "fear-the-masses": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Limit 6; run HQ; instead of breaching, reveal any number of copies from the grip; the Corp trashes 1 plus that many from the top of R&D."
     },
     "federal-fundraising": {
       "cycle": "liberation",
@@ -3181,6 +3439,11 @@
       "result": "matches",
       "note": "-1 advancement requirement per Runner tag."
     },
+    "freedom-through-equality": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Current (trashed on another current or a scored agenda); when the Runner steals, it joins the Runner's score area as a 1-point agenda."
+    },
     "freelance-coding-contract": {
       "cycle": "creation-and-control",
       "result": "matches",
@@ -3217,6 +3480,14 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "On score or steal, 2 net damage."
+    },
+    "full-immersion-recstudio": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "Full Immersion RecStudio can host up to 2 assets and/or agendas."
+      ],
+      "note": "Area 5 (Corp install): the plan's row 'No Corp install onto a host card, so Full Immersion RecStudio cannot host assets'. The trash cost increase matches."
     },
     "fully-operational": {
       "cycle": "ashes",
@@ -3538,6 +3809,11 @@
       "result": "matches",
       "note": "Cannot be bypassed; end the run."
     },
+    "guru-davinder": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique; interrupt: prevents all net or meat damage, then trashed unless the Runner pays 4."
+    },
     "gyri-labyrinth": {
       "cycle": "spin",
       "result": "wrong",
@@ -3670,6 +3946,14 @@
       ],
       "note": "Area 6 (facedown cards): once facedown it keeps its ability, so a second trash turns it facedown again and it never reaches the heap (8.1.4a, 8.1.4c). Also the Runner is offered accept_installed_trash beside the mandatory interrupt (9.2.9f, area 9 prevention)."
     },
+    "harishchandra-ent-where-youre-the-star": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "While the Runner is tagged, they play with the grip revealed."
+      ],
+      "note": "Area 4 (visibility): the plan's row: the engine lists the grip in revealedHand but the game strips the ids, so the Corp loses information it may see."
+    },
     "harmony-ar-therapy": {
       "cycle": "ashes",
       "result": "matches",
@@ -3679,6 +3963,11 @@
       "cycle": "honor-and-profit",
       "result": "matches",
       "note": "Each player needs 1 fewer agenda point to win (src/state/scoring.ts); minimum deck 40."
+    },
+    "harvester": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Two subroutines: the Runner draws 3, then discards down to maximum hand size."
     },
     "hasty-relocation": {
       "cycle": "flashpoint",
@@ -3791,6 +4080,11 @@
       ],
       "note": "Area 4 (visibility): mustRevealWhenAccessedFromRd only writes a log line; nothing records a reveal (as Ganked!, S2a); it also tests the attacked server, not where the card is accessed. The encounter on access outside Archives, gain 2 and the pay-up-to-2 advancement subroutine match."
     },
+    "heritage-committee": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Draw 3, then add 1 card from HQ to the top of R&D."
+    },
     "hermes": {
       "cycle": "liberation",
       "result": "wrong",
@@ -3806,6 +4100,19 @@
       "cycle": "order-and-chaos",
       "result": "matches",
       "note": "On score 1 agenda counter; click, agenda counter: gain 1 per credit in the Runner's pool."
+    },
+    "high-stakes-job": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "When the run ends, gain 12[credit] if it was successful."
+      ],
+      "note": "The IR uses successful_run on runEvent, which pays at the successful-run step (6.9.5a), before the breach, so the 12 credits can pay trash costs. A run_end trigger on runEvent exists (Run Amok, Marathon). Dirty Laundry (S3c, recorded matches) has the same mistake. The unrezzed-ice target limit matches.",
+      "cr": [
+        "1.2.1",
+        "6.8.5",
+        "6.9.5a"
+      ]
     },
     "himitsu-bako": {
       "cycle": "spin",
@@ -4020,6 +4327,18 @@
       "result": "matches",
       "note": "Link 1; at turn begin gain 2 if the Corp has more agenda points."
     },
+    "ibrahim-salem": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "When your turn begins, name a card type. Look at the Runner's grip and trash 1 card in it of the named type."
+      ],
+      "note": "trash_named_type never calls lookAtCards, so the Corp never looks at the grip: it sees only matching titles in the option labels, and nothing when none match. It also sets faceup on every grip card and leaves it (no visible effect: idsHiddenFrom hides the opponent's hand regardless). Unique, forfeit-to-rez and naming a type match.",
+      "cr": [
+        "1.21.2",
+        "1.21.6"
+      ]
+    },
     "ice-analyzer": {
       "cycle": "creation-and-control",
       "result": "filed",
@@ -4072,6 +4391,11 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "2 virus counters on install; access, once per turn, virus counter: trash the accessed card (src/actions/apply.ts access_trash_with_virus). The area 8 finding on how its choice is wired is already in the findings table."
+    },
+    "improved-protein-source": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "When scored or stolen, the Runner gains 4."
     },
     "improved-tracers": {
       "cycle": "data-and-destiny",
@@ -4128,6 +4452,11 @@
       "result": "matches",
       "note": "Run R&D; if successful the Runner may, instead of breaching, look at the top 5 and arrange them."
     },
+    "indian-union-stock-exchange": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Gain 1 whenever the Corp rezzes or plays an out-of-faction card, itself included."
+    },
     "industrial-genomics-growing-solutions": {
       "cycle": "lunar",
       "result": "matches",
@@ -4173,6 +4502,11 @@
         "9.8.4b"
       ]
     },
+    "information-sifting": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Run HQ; instead of breaching, the Corp splits HQ into 2 facedown piles; the Runner chooses one and accesses each card in it."
+    },
     "inject": {
       "cycle": "lunar",
       "result": "matches",
@@ -4197,6 +4531,11 @@
       "cycle": "spin",
       "result": "matches",
       "note": "Additional cost of a click; install a card the Corp chooses from HQ or Archives, ignoring the install cost (operations are not installable)."
+    },
+    "interrupt-0": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Two subroutines: for the rest of the run, icebreaker break abilities cost 1 more (read in the break procedure)."
     },
     "inti": {
       "cycle": "creation-and-control",
@@ -4358,10 +4697,34 @@
       "result": "matches",
       "note": "Four 1 core damage subroutines; lose click: break 1 subroutine (bioroid break; the subroutines are the same)."
     },
+    "jeeves-model-bioroids": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "The first time you spend [click][click][click] on the same action each turn, gain [click]."
+      ],
+      "note": "fireSiAfterPaidAbilityClicks is called only from paid abilities and operation plays; the basic purge action (3 clicks) never triggers it, and it ignores abilitiesSuppressed.",
+      "cr": [
+        "1.2.1",
+        "5.2.6h"
+      ]
+    },
     "jeitinho": {
       "cycle": "liberation",
       "result": "matches",
       "note": "Unique; at Runner turn end after successful HQ, R&D and Archives runs may become a 0-point assassination agenda, winning at 3; Threat 3: on bypass may spend [click] to install it from the heap."
+    },
+    "jesminder-sareen-girl-behind-the-curtain": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "[interrupt] → The first time each run you would take 1 or more tags, prevent 1 tag."
+      ],
+      "note": "Modelled as preventFirstTagThisTurn: giveTags and canPayTakeTagsNestedCost prevent only while tagsGivenThisTurn is 0, so it works once per turn, and a tag outside a run uses it up. Confirms the plan's area 10 row by code read (no test).",
+      "cr": [
+        "1.2.1",
+        "9.9.5a"
+      ]
     },
     "jinteki-personal-evolution": {
       "cycle": "core-set",
@@ -4427,6 +4790,11 @@
         "You may install 1 card from Archives in the root of a remote server and place 2 advancement counters on it."
       ],
       "note": "Area 5 (Corp install): install_archives_remote_root_with_advancements places the card inline and never trashes an agenda or asset already in that root. Additional click cost, trash any number from HQ, Archives facedown and remove from the game match."
+    },
+    "kala-ghoda-real-tv": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "At Corp turn begin may look at the top card of the stack; trash: the Runner trashes the top card of the stack."
     },
     "karuna": {
       "cycle": "system-gateway",
@@ -4618,6 +4986,17 @@
       "result": "matches",
       "note": "Unique; the first Corp root install each turn: may trash the top of the stack to draw 1."
     },
+    "lakshmi-smartfabrics": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "X hosted power counters: Reveal an agenda worth X points from HQ. The Runner cannot steal copies of that agenda for the remainder of this turn."
+      ],
+      "note": "Writes state.turn.bfCannotStealAgendaDefIds, which nothing reads, so the Runner can still steal. The power counter on any rez and the reveal match.",
+      "cr": [
+        "1.2.2"
+      ]
+    },
     "lampades": {
       "cycle": "vantage-point",
       "result": "fixed",
@@ -4666,6 +5045,11 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "1 link; at the end of the Runner's discard phase, if grip size equals HQ size, may draw 1."
+    },
+    "lateral-growth": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Gain 4; may install 1 card from HQ paying the install cost."
     },
     "launch-campaign": {
       "cycle": "data-and-destiny",
@@ -4766,6 +5150,11 @@
       "result": "matches",
       "note": "Loads 16 credits on install; click: take 4; trashed when empty."
     },
+    "liberated-chela": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "5 clicks and forfeit an agenda: the Corp may forfeit an agenda to remove it from the game, otherwise it joins the Runner's score area as a 2-point agenda."
+    },
     "license-acquisition": {
       "cycle": "lunar",
       "result": "matches",
@@ -4864,6 +5253,19 @@
       "cr": [
         "6.5.7b",
         "1.2.1"
+      ]
+    },
+    "localized-product-line": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "Search R&D for any number of copies of a card, reveal them, and add them to HQ. Shuffle R&D."
+      ],
+      "note": "take_copies always takes every copy: the Corp cannot take fewer or fail to find, and the cards are added before the shuffle.",
+      "cr": [
+        "1.2.1",
+        "8.7.2e",
+        "8.7.3"
       ]
     },
     "lockpick": {
@@ -4999,6 +5401,18 @@
         "1.16.11a"
       ]
     },
+    "magnet": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "When you rez this ice, choose 1 installed program hosted on a piece of ice. Host that program on this ice."
+      ],
+      "note": "host_ice_program_on_self accepts any installed program with a host, so a program on Dinosaurus or NetChip qualifies; the host is not checked to be ice. End the run and blanking hosted programs match.",
+      "cr": [
+        "1.2.1",
+        "1.13.8"
+      ]
+    },
     "magnum-opus": {
       "cycle": "core-set",
       "result": "matches",
@@ -5023,6 +5437,11 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "Additional cost [click]; run Archives, and on approaching Archives change the attacked server to HQ."
+    },
+    "making-an-entrance": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Play only as the first click; look at the top 6 of the stack, trash any, arrange the rest."
     },
     "makler": {
       "cycle": "ashes",
@@ -5212,6 +5631,11 @@
       "result": "matches",
       "note": "At turn begin trash the top 2 cards of the stack, then draw 1."
     },
+    "maya": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique console, +2 MU; once per turn after accessing a card in R&D, may put it on the bottom of R&D and take 1 tag."
+    },
     "mayfly": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -5321,6 +5745,11 @@
       ],
       "fixedIn": "engine#950",
       "test": "declining the extra access does not use up its once per turn, and it is offered once per breach (CR 9.3.6g)"
+    },
+    "merger": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Worth 1 more agenda point in the Runner's score area."
     },
     "merlin": {
       "cycle": "lunar",
@@ -5451,6 +5880,17 @@
       "result": "matches",
       "note": "Install a program or hardware from the grip, 3 less."
     },
+    "mongoose": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "2[credit]: +2 strength."
+      ],
+      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The sentry break and the one-ice-per-run limit match.",
+      "cr": [
+        "1.2.1"
+      ]
+    },
     "monkeywrench": {
       "cycle": "liberation",
       "result": "matches",
@@ -5509,6 +5949,44 @@
       "result": "matches",
       "note": "2 recurring credits for using programs."
     },
+    "mumba-temple": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "2 recurring credits for rezzing. Alliance influence reduction is deckbuilding."
+    },
+    "mumbad-city-grid": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Region; when the Runner passes ice protecting its server, the Corp may swap it with another ice there. cr-checker: the inline swap follows 8.8.3 and 6.2.2f; area 3 lists it only to route through the swap helpers. Unverified: the offer is skipped when another choice is open (graph.ts, !pendingChoice)."
+    },
+    "mumbad-city-hall": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "[click]: Search R&D for an alliance card, reveal it, and play or install it (paying all costs). Shuffle R&D."
+      ],
+      "note": "resolve_mumbad_city_hall_alliance reveals the card and adds it to HQ; it is never played or installed and no cost is paid. The options also list alliance cards the Corp cannot play or install, there is no fail-to-find, and R&D is shuffled before the choice.",
+      "cr": [
+        "1.2.1",
+        "8.7.2b",
+        "8.7.2e",
+        "8.7.3",
+        "1.16.4b"
+      ]
+    },
+    "mumbad-construction-co": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "At Corp turn begin place 1 advancement token on itself; 2 credits: move 1 to a faceup card (installed faceup Corp cards and scored agendas are offered)."
+    },
+    "mumbad-virtual-tour": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "When the Runner accesses this upgrade while it is installed, they must trash it, if able."
+      ],
+      "note": "Area 8 (access): the plan's row: mustTrashWhenAccessedWhileInstalled is read in advanceFromMidAccess, whose options are no-ops resolved by option id in apply.ts. The influence rule matches."
+    },
     "muresh-bodysuit": {
       "cycle": "genesis",
       "result": "wrong",
@@ -5534,6 +6012,11 @@
         "3.9.3",
         "1.2.1"
       ]
+    },
+    "museum-of-history": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique; at Corp turn begin may shuffle 1 card from Archives into R&D. Alliance influence reduction is deckbuilding."
     },
     "mushin-no-shin": {
       "cycle": "honor-and-profit",
@@ -5662,6 +6145,11 @@
         "1.2.1"
       ]
     },
+    "navi-mumbai-city-grid": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Region; during runs on its server the Runner cannot use paid abilities on installed cards except mid-access and icebreaker abilities."
+    },
     "nbn-making-news": {
       "cycle": "core-set",
       "result": "matches",
@@ -5696,6 +6184,11 @@
       "cycle": "honor-and-profit",
       "result": "matches",
       "note": "Region; first advancement counter placed on a card in this root each turn: gain 1."
+    },
+    "nero-severn-information-broker": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "1 link; once per turn on encountering a sentry, may jack out."
     },
     "nerve-agent": {
       "cycle": "genesis",
@@ -5735,6 +6228,11 @@
         "9.9.3d",
         "1.16.11a"
       ]
+    },
+    "netchip": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Limit 6; hosts 1 program with memory cost up to the number of installed NetChips; its memory does not count."
     },
     "networking": {
       "cycle": "genesis",
@@ -5776,6 +6274,18 @@
         "Whenever an agenda is scored or stolen, you may play 1 current from HQ or Archives (paying its play cost)."
       ],
       "note": "Area 11 (operation play path): play_current_card pays and places the current outside the 8.6.7 play steps; choices are not filtered by cost, and when the current is unaffordable the play effect in the same seq still resolves (8.6.7, 1.16.4b)."
+    },
+    "new-construction": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "Whenever you advance this agenda, you may install 1 card from HQ in the root of a new server. If there are 5 or more hosted advancement counters, rez that card, ignoring all costs."
+      ],
+      "note": "install_from_hq_new_remote offers ice, which cannot go in a root, and installs it protecting the new server. Area 5 and 7 also: the install and the rez are inline (no install steps, rez by flag). Install only faceup matches.",
+      "cr": [
+        "3.4.2",
+        "8.5.2d"
+      ]
     },
     "news-hound": {
       "cycle": "data-and-destiny",
@@ -6073,6 +6583,11 @@
       "result": "matches",
       "note": "Loads 6 on rez; take 2 at turn begin; when empty trashed and gain 2 clicks (probe: trashed and +2 clicks after the last take)."
     },
+    "out-of-the-ashes": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Limit 6; make a run; at Runner turn begin, from the heap, may remove itself from the game to make a run."
+    },
     "overclock": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -6102,6 +6617,18 @@
       "result": "matches",
       "note": "When the Corp's turn begins, gain 1."
     },
+    "pad-factory": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "[click]: Place 1 advancement token on a card. You cannot score that card until your next turn begins."
+      ],
+      "note": "The score block is the turn list cannotScoreOrRezCardIds, cleared when the Runner's turn begins, so it ends early, and it also blocks rezzing the card, which the text does not say. bfCannotScoreUntilNextCorpTurn is also written and never read. Targets are limited to cards that can be advanced, but placing a counter is not advancing (1.18.2).",
+      "cr": [
+        "1.2.1",
+        "1.18.2"
+      ]
+    },
     "paintbrush": {
       "cycle": "spin",
       "result": "wrong",
@@ -6119,6 +6646,16 @@
       "result": "matches",
       "note": "Unique; 1 credit at turn begin and on each steal; hosted credits pay for non-connection installs; at 3+ at turn end the Runner trashes 1 installed card."
     },
+    "palana-agroplex": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "At Corp turn begin each player draws 1."
+    },
+    "palana-foods-sustainable-growth": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "The first time each turn the Runner draws, gain 1."
+    },
     "palisade": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -6128,6 +6665,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "Unique; 1 meat damage on install; first successful HQ run each turn: the Corp loses 1, and only if they did the Runner gains 1 (lose_credits then runs only when a credit was lost)."
+    },
+    "panchatantra": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Once per turn on encountering ice, may give it a subtype other than barrier, code gate or sentry for the run."
     },
     "panic-button": {
       "cycle": "spin",
@@ -6202,6 +6744,19 @@
       "cr": [
         "1.2.1",
         "3.5.1a"
+      ]
+    },
+    "patron": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "When your turn begins, you may choose a server.",
+        "The first time each turn you make a successful run on the chosen server, instead of breaching it, draw 2 cards."
+      ],
+      "note": "Declining leaves the server named on an earlier turn chosen (namedServerId is cleared only when used), and the draw uses deck.shift outside the draw procedure, so no draw triggers fire. It also skips the competing breach replacement check Security Testing makes.",
+      "cr": [
+        "9.10.3b",
+        "8.4.2"
       ]
     },
     "paules-cafe": {
@@ -6292,6 +6847,11 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "Click: host a program or hardware from the grip with power counters equal to its install cost; 1 credit (any window) or at turn begin: remove 1; at 0 it is installed ignoring all costs. Hosting is in area 1's inventory."
+    },
+    "personality-profiles": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "When the Runner searches the stack or installs from the heap, they trash 1 random grip card."
     },
     "petty-cash": {
       "cycle": "elevation",
@@ -6453,10 +7013,40 @@
       "result": "matches",
       "note": "Loads 3 power counters, trashed when empty; counter: break up to 2 subroutines, only after a subroutine was broken this encounter."
     },
+    "political-dealings": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "Whenever you draw an agenda, you may reveal and install it."
+      ],
+      "note": "Area 5 (Corp install): the plan's RF row 'Jinja City Grid and Political Dealings drop the second drawn card'; the drawn-card install goes through the Corp install area. The reveal matches."
+    },
+    "political-graffiti": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Run Archives; instead of breaching, host it on a Corp scored agenda as a condition counter: -1 agenda point, trashed on a virus purge."
+    },
+    "political-operative": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "[trash], X[credit]: Trash 1 rezzed card with trash cost equal to X."
+      ],
+      "note": "Area 11 (costs): only the trash is paid as the cost; X is chosen and paid during resolution (as Corporate Troubleshooter), with a Decline after the card is already trashed, and it matches the printed trash cost. The install restriction matches.",
+      "cr": [
+        "1.16.2c",
+        "9.5.7b"
+      ]
+    },
     "pop-up-window": {
       "cycle": "genesis",
       "result": "matches",
       "note": "On encounter the Corp gains 1; end the run unless the Runner pays 1."
+    },
+    "populist-rally": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Play only with a seedy card installed; the Corp gets -1 allotted click next turn."
     },
     "port-anson-grid": {
       "cycle": "lunar",
@@ -6613,6 +7203,11 @@
         "Threat 3 → When you take a tag with this event, you may install 1 program from your heap."
       ],
       "note": "Area 6 (Runner install): the heap install (canInstallHeapCard) drops programs over free MU, trojans and install-on-ice cards. Play only if untagged, the Archives run and the tag instead of the breach match."
+    },
+    "product-recall": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Trash a rezzed asset or upgrade the Corp chooses and gain its trash cost. Alliance influence reduction is deckbuilding."
     },
     "professional-contacts": {
       "cycle": "creation-and-control",
@@ -6774,6 +7369,11 @@
       "result": "matches",
       "note": "Two subroutines: 1 net damage unless the Runner pays 1."
     },
+    "puppet-master": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Whenever the Runner makes a successful run, the Corp may place 1 advancement token on a card that can be advanced."
+    },
     "push-your-luck": {
       "cycle": "honor-and-profit",
       "result": "matches",
@@ -6860,6 +7460,31 @@
       "result": "matches",
       "note": "Run any server; a power counter whenever a subroutine resolves; when the run ends draw 1 per counter and gain 3."
     },
+    "raman-rai": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "Once per turn → When you draw a card, you may lose [click]. If you do, reveal that card and 1 card in Archives of the same type. Swap those cards."
+      ],
+      "note": "Area 3 (swap): the plan lists Raman Rai's swap among the kinds outside the swap helpers. Unique and the influence rule match."
+    },
+    "ramujan-reliant-550-bmi": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Limit 6; interrupt, trash: prevent up to X net or core damage (X = other installed copies + 1) and trash that many from the top of the stack."
+    },
+    "ravana-1-0": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "[subroutine] Resolve 1 subroutine on another rezzed bioroid ice."
+      ],
+      "note": "resolve_bioroid_subroutine always resolves the first subroutine of the first other bioroid; the Corp never chooses. Two Ravanas would recurse; the closed-loop path in may_resolve_subroutine_on_rezzed_ice handles that (10.1.6a). The bioroid click break is the generic one and matches.",
+      "cr": [
+        "1.15.2",
+        "10.1.6a"
+      ]
+    },
     "raymond-flint": {
       "cycle": "spin",
       "result": "matches",
@@ -6903,6 +7528,11 @@
       "cr": [
         "1.14.5a"
       ]
+    },
+    "rebirth": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Limit 1; switch identity with another of the same faction; removed from the game instead of trashed."
     },
     "rebranding-team": {
       "cycle": "data-and-destiny",
@@ -6954,6 +7584,11 @@
       ],
       "note": "Area 5 (Corp install): may_install_from_hq_paying_costs installs through install_hq_card_paying_costs, which always makes a new remote (ice included), as S1b found. Choose-2 of draw, gain, install, click matches."
     },
+    "red-tape": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "All ice gets +3 strength for the rest of the run (fortify_all_ice, run length since engine#948)."
+    },
     "red-team": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -6963,6 +7598,11 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "Unique; on rez may pay up to 4 for that many power counters; runs on this server cost 2 more per counter; a successful central run removes 1."
+    },
+    "reflection": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique console, +1 MU, +1 link; on jack out the Corp reveals 1 random HQ card."
     },
     "refractor": {
       "cycle": "lunar",
@@ -7027,6 +7667,11 @@
         "1.14.5",
         "1.18.2"
       ]
+    },
+    "remote-data-farm": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Corp maximum hand size +2."
     },
     "rene-loup-arcemont-party-animal": {
       "cycle": "system-gateway",
@@ -7144,6 +7789,11 @@
         "9.10.1"
       ]
     },
+    "rigged-results": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Secretly spend up to 2, the Corp guesses; if wrong, choose ice protecting a server, run that server and bypass that ice the first time it is encountered. The run-start loop the playout sweep found is area 2's row."
+    },
     "rigging-up": {
       "cycle": "borealis",
       "result": "filed",
@@ -7225,6 +7875,11 @@
         "8.6.6c"
       ]
     },
+    "run-amok": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Make a run; when it ends, trash 1 ice rezzed during it."
+    },
     "running-hot": {
       "cycle": "borealis",
       "result": "matches",
@@ -7293,6 +7948,19 @@
         "1.2.1"
       ]
     },
+    "sadyojata": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "1[credit]: +1 strength.",
+        "2[credit]: Swap this program with a deva program from your grip."
+      ],
+      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b; area 3 lists it). The break on ice with 3 or more subtypes matches.",
+      "cr": [
+        "1.2.1",
+        "8.8.4b"
+      ]
+    },
     "safety-first": {
       "cycle": "data-and-destiny",
       "result": "wrong",
@@ -7343,6 +8011,16 @@
         "1.2.1",
         "6.5.7a"
       ]
+    },
+    "salems-hospitality": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Name a card (from the Runner catalog since FX-salem, engine#957); the Runner reveals the grip and trashes the copies."
+    },
+    "salsette-slums": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Once per turn while accessing, pay the card's trash cost to remove it from the game."
     },
     "salvage": {
       "cycle": "genesis",
@@ -7608,6 +8286,11 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "For the rest of the run, other ice the Runner encounters gains end the run after its other subroutines (src/timing/graph.ts skips Sensei itself)."
+    },
+    "sensie-actors-union": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "At Corp turn begin, if no ice protects its server, may draw 3 and then add 1 HQ card to the bottom of R&D."
     },
     "sensor-net-activation": {
       "cycle": "flashpoint",
@@ -8043,6 +8726,11 @@
         "2.16.5"
       ]
     },
+    "sports-hopper": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "+1 link; trash: draw 3."
+    },
     "spree": {
       "cycle": "liberation",
       "result": "matches",
@@ -8052,6 +8740,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Draw 3, then shuffle 2 cards from HQ into R&D."
+    },
+    "spy-camera": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Limit 6; click: look at and arrange the top X of the stack (X = installed copies); trash: look at the top of R&D."
     },
     "stargate": {
       "cycle": "ashes",
@@ -8171,6 +8864,11 @@
       "fixedIn": "engine#948",
       "test": "gains 2 credits only on a successful run on the server its ice protects (CR 4.6.6k)"
     },
+    "street-magic": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unbroken subroutines resolve in the Runner's chosen order."
+    },
     "strike-fund": {
       "cycle": "liberation",
       "result": "matches",
@@ -8199,6 +8897,14 @@
         "1.2.1",
         "3.5.1a"
       ]
+    },
+    "subcontract": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "Play up to 2 operations from HQ (paying all costs), resolving them one at a time."
+      ],
+      "note": "Area 11 (turn structure): the plan's row 'Subcontract's plays are counted as actions'. Play only if tagged matches."
     },
     "subliminal-messaging": {
       "cycle": "spin",
@@ -8261,6 +8967,17 @@
       "cycle": "lunar",
       "result": "matches",
       "note": "While scored, barriers +1 strength; when scored gain 1 per rezzed barrier."
+    },
+    "surat-city-grid": {
+      "cycle": "mumbad",
+      "result": "filed",
+      "abilities": [
+        "Whenever you rez another card in the root of or protecting this server, you may rez 1 card, paying 2[credit] less."
+      ],
+      "note": "Area 7 (rez): rez_surat_discount_resolve sets rezzed inline from the printed rez cost: no rez triggers (Surat cannot chain), other modifiers and the cannot-rez locks are ignored. The region limit matches.",
+      "cr": [
+        "8.1.2e"
+      ]
     },
     "sure-gamble": {
       "cycle": "system-gateway",
@@ -8420,6 +9137,11 @@
         "10.8.5"
       ]
     },
+    "tech-trader": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Gain 1 whenever the Runner uses a trash ability."
+    },
     "technical-writer": {
       "cycle": "data-and-destiny",
       "result": "matches",
@@ -8429,6 +9151,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Loads 9 credits, trashed when empty; once per turn, click: take 3."
+    },
+    "temple-of-the-liberated-mind": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique; click: place 1 power counter; once per turn during the Runner's turn, spend 1 power counter: gain a click."
     },
     "temujin-contract": {
       "cycle": "flashpoint",
@@ -8502,6 +9229,11 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "On steal the Corp may add 1 Archives card to HQ; 2 agenda counters on score; once per turn, counter and trash the top of R&D: add 1 Archives card to HQ."
+    },
+    "the-black-file": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique, limit 1; the Corp cannot win except by flatline; at turn begin place 1 power counter, removed from the game at 3."
     },
     "the-board": {
       "cycle": "order-and-chaos",
@@ -8593,6 +9325,11 @@
       "result": "matches",
       "note": "Unique; first virus program install each turn adds 2 virus counters; turn begin: may remove 2 virus counters to draw 2 unless the Corp trashes the top of R&D."
     },
+    "the-noble-path": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Trash the grip, run any server, prevent all damage during that run."
+    },
     "the-personal-touch": {
       "cycle": "core-set",
       "result": "filed",
@@ -8618,6 +9355,11 @@
         "Trash the top 4 cards of your stack. You may install 1 of those cards, paying 3[credit] less."
       ],
       "note": "Area 6 (Runner install): the heap install drops programs over free MU, trojans and install-on-ice cards. Trash 4 and the discount match."
+    },
+    "the-price-of-freedom": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Additional cost: trash an installed connection; the Corp cannot advance during its next turn; removed from the game."
     },
     "the-professor-keeper-of-knowledge": {
       "cycle": "creation-and-control",
@@ -8683,6 +9425,11 @@
         "9.3.2b",
         "9.6.2"
       ]
+    },
+    "the-turning-wheel": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Unique; when an HQ or R&D run ends with no agenda stolen, place 1 power counter; 2 power counters during a run: +1 access on HQ or R&D breaches this run."
     },
     "the-twinning": {
       "cycle": "borealis",
@@ -9175,6 +9922,17 @@
         "9.8.2"
       ]
     },
+    "upayoga": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "[subroutine] Resolve a subroutine on a piece of rezzed psi ice."
+      ],
+      "note": "may_resolve_subroutine_on_rezzed_ice with a subtype is non-mandatory and offers a Decline; the printed subroutine has no 'may' (Mycoweb, cut A, shares the path). The psi subroutine matches.",
+      "cr": [
+        "9.6.9"
+      ]
+    },
     "urban-art-vernissage": {
       "cycle": "liberation",
       "result": "matches",
@@ -9242,6 +10000,19 @@
         "1.2.1"
       ]
     },
+    "vamadeva": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "1[credit]: +1 strength.",
+        "2[credit]: Swap this program with a deva program from your grip."
+      ],
+      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b; area 3 lists it). The break on ice with exactly 1 subroutine matches.",
+      "cr": [
+        "1.2.1",
+        "8.8.4b"
+      ]
+    },
     "vamp": {
       "cycle": "genesis",
       "result": "matches",
@@ -9251,6 +10022,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "Runner loses 2; gain 2; 2 net damage; may draw 1 or 2."
+    },
+    "vanilla": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "End the run."
     },
     "vaporframe-fabricator": {
       "cycle": "ashes",
@@ -9332,6 +10108,18 @@
         "8.4.5"
       ]
     },
+    "vikram-1-0": {
+      "cycle": "mumbad",
+      "result": "wrong",
+      "abilities": [
+        "[subroutine] The Runner cannot use programs for the remainder of this run."
+      ],
+      "note": "cannot_use_programs_this_run_kg writes run.kgCannotUsePrograms and turn.dadCannotUseProgramsThisRun; nothing reads either, so programs stay usable (Jak Sinclair writes the same unread flag). The traces and the bioroid break match.",
+      "cr": [
+        "1.2.2",
+        "9.1.6"
+      ]
+    },
     "viktor-1-0": {
       "cycle": "core-set",
       "result": "matches",
@@ -9405,6 +10193,16 @@
       "fixedIn": "engine#948",
       "test": "Vladisibirsk City Grid: the Corp chooses which other card in its root gets the counters (CR 1.15.2)"
     },
+    "voter-intimidation": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Play only with an agenda in the Runner's score area; psi game, if bids differ trash 1 resource."
+    },
+    "voting-machine-initiative": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "On score, 3 agenda counters; at Runner turn begin may spend 1 and the Runner loses a click."
+    },
     "vovo-ozetti": {
       "cycle": "liberation",
       "result": "matches",
@@ -9434,6 +10232,11 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "Unique; gain [click] when an action is finished for the third time this turn."
+    },
+    "waiver": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Trace 5: reveal the grip and trash each card with play or install cost at most the trace excess."
     },
     "wake-implant-v2a-jrj": {
       "cycle": "borealis",
@@ -9728,6 +10531,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "Remote only; ice protecting this server: on encounter the Corp may trash it to resolve 1 chosen subroutine."
+    },
+    "zealous-judge": {
+      "cycle": "mumbad",
+      "result": "matches",
+      "note": "Rez only if the Runner is tagged; click, 1 credit: give 1 tag."
     },
     "zed-1-0": {
       "cycle": "creation-and-control",
