@@ -47,7 +47,8 @@
     "mutate:rez": "stryker run stryker/rez.config.mjs",
     "mutate:access": "stryker run stryker/access.config.mjs",
     "mutate:damage": "stryker run stryker/damage.config.mjs",
-    "mutate:card-flags": "stryker run stryker/card-flags.config.mjs"
+    "mutate:card-flags": "stryker run stryker/card-flags.config.mjs",
+    "mutate:timing": "stryker run stryker/timing.config.mjs"
   },
   "engines": {
     "node": ">=26"

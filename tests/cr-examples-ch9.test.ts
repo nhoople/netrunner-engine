@@ -28,7 +28,9 @@ import {
   orderBlankingEffects,
 } from "../src/index.js";
 import {
+  addLingeringEffect,
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
+  LINGERING_KIND_RUNNER_MU,
   lingeringIceStrengthOfKind,
 } from "../src/state/lingeringEffects.js";
 
@@ -4717,5 +4719,277 @@ describe("CR examples, chapter 9", () => {
     expect(
       running.log.filter((line) => line.includes("pending instance resolves")),
     ).toHaveLength(1);
+  });
+});
+
+/**
+ * RA-1 timing re-audit: the chapter 9 timing examples no test cited
+ * (tests/baselines/cr-examples.json). An `it.fails` titled "RF:" is a path
+ * the engine plays wrong, kept green until the RF session fixes it.
+ */
+describe("CR examples, chapter 9 timing (RA-1)", () => {
+  /** A board with no Runner card marked rezzed (CR 8.1.4f). */
+  function board(): GameState {
+    const s = createInitialState();
+    for (const card of Object.values(s.cards)) {
+      if (card.side === "runner") card.rezzed = false;
+    }
+    return s;
+  }
+
+  /** Deepest nesting of 10.3 checkpoint frames in these log lines. */
+  function checkpointDepth(lines: string[]): number {
+    let depth = 0;
+    let deepest = 0;
+    for (const line of lines) {
+      if (line.startsWith("Checkpoint open [priority_window]")) continue;
+      if (line.startsWith("Checkpoint close [priority_window]")) continue;
+      if (line.startsWith("Checkpoint open [")) depth += 1;
+      if (line.startsWith("Checkpoint close [")) depth -= 1;
+      deepest = Math.max(deepest, depth);
+    }
+    return deepest;
+  }
+
+  it("makes three Hostile Infrastructure instances pending in one reaction window when Singularity trashes three cards (CR 9.6.4b.ex1)", () => {
+    let s = board();
+    const hi = instantiateCard(
+      "hostile-infrastructure",
+      "hi-1",
+      "server:remote-1:root",
+    );
+    hi.rezzed = true;
+    hi.faceup = true;
+    const data = instantiateCard(
+      "experiential-data",
+      "ed-1",
+      "server:remote-1:root",
+    );
+    const box = instantiateCard("strongbox", "sb-1", "server:remote-1:root");
+    const sing = instantiateCard("singularity", "sing-1", "runner:play-area");
+    for (const card of [hi, data, box, sing]) s.cards[card.id] = card;
+    s.runner.playArea.push("sing-1");
+    for (let i = 0; i < 3; i++) {
+      const id = `grip-${i}`;
+      s.cards[id] = instantiateCard("sure-gamble", id, "runner:grip");
+      s.runner.hand.push(id);
+    }
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["hi-1", "ed-1", "sb-1"],
+    };
+    s.run = {
+      attackedServerId: "remote-1",
+      phase: "success",
+      position: null,
+      successful: true,
+      accessedCardIds: [],
+      accessCandidates: [],
+      randomAccessLimit: null,
+      encounter: null,
+      endedTheRun: false,
+      cannotJackOut: false,
+      accessingCardId: null,
+    };
+    s.activeSide = "runner";
+    const opened = evalEffect(
+      { state: s, sourceId: "sing-1" },
+      fx.do({ kind: "breach_instead_singularity_trash_root" }),
+    );
+    expect(opened.ok).toBe(true);
+    const from = s.log.length;
+    const hand = s.runner.hand.length;
+    s = must(s, { type: "choose_option", optionId: "singularity" });
+    const lines = s.log.slice(from);
+    const windows = lines.filter((line) =>
+      line.startsWith("Reaction window open"),
+    );
+    expect(windows).toHaveLength(1);
+    expect(windows[0]).toContain("with 3 pending instance(s)");
+    expect(
+      lines.filter((line) => line.startsWith("net damage 1:")),
+    ).toHaveLength(3);
+    expect(s.runner.hand).toHaveLength(hand - 3);
+  });
+
+  // The basic install action pays the install cost with no checkpoint after
+  // it (src/actions/installCorp.ts and installRunner.ts). Found by RA-1.
+  it.fails(
+    "RF: runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)",
+    () => {
+      const s = board();
+      s.cards["iw-0"] = instantiateCard("ice-wall", "iw-0", "server:hq:ice");
+      s.servers.hq.ice = ["iw-0"];
+      s.cards["iw-1"] = instantiateCard("ice-wall", "iw-1", "corp:hq");
+      s.corp.hand.push("iw-1");
+      s.corp.credits = 5;
+      s.corp.clicks = 3;
+      s.activeSide = "corp";
+      s.timingKey = "corp.takeAction";
+      const from = s.log.length;
+      const after = must(s, {
+        type: "basic_install",
+        cardId: "iw-1",
+        destination: { kind: "protect", serverId: "hq" },
+      });
+      expect(after.corp.credits).toBe(4);
+      const lines = after.log.slice(from);
+      const installed = at(lines, "Corp installs Ice Wall");
+      const inside = lines
+        .slice(0, installed)
+        .filter((line) => line.startsWith("Checkpoint open ["));
+      // One after the action's click (CR 10.3.4), before the install begins,
+      // and the install's own one after its cost (CR 8.5.16d). Nothing else.
+      expect(inside).toHaveLength(2);
+      expect(inside.every((line) => line.includes("[cost]"))).toBe(true);
+    },
+  );
+
+  it("runs no checkpoint inside the checkpoint that waits on Bad Times' memory choice (CR 9.11.2a.ex2)", () => {
+    const s = board();
+    for (const [id, memory] of [
+      ["mu-1", 1],
+      ["mu-2", 1],
+      ["mu-3", 2],
+    ] as const) {
+      const card = instantiateCard("parasite", id, "runner:installed");
+      card.memoryCost = memory;
+      s.cards[id] = card;
+      s.runner.installed.push(id);
+    }
+    addLingeringEffect(s, {
+      createdBy: s.corp.identityId,
+      duration: { kind: "turn", side: "runner" },
+      kind: LINGERING_KIND_RUNNER_MU,
+      payload: { delta: -2 },
+    });
+    const from = s.log.length;
+    occurCheckpoint(
+      s,
+      "timing",
+      "Bad Times",
+      [CR.checkpointCardRestrictions],
+      "test",
+    );
+    expect(s.checkpoints).toHaveLength(1);
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    const chosen = must(s, {
+      type: "choose_option",
+      optionId: "restrict:mu-3|*",
+    });
+    expect(chosen.cards["mu-3"]?.zone).toBe("runner:heap");
+    expect(chosen.checkpoints).toHaveLength(0);
+    expect(checkpointDepth(chosen.log.slice(from))).toBe(1);
+  });
+
+  it("treats Houdini's stealth sentence as a restriction: the pump needs a stealth credit and runs no checkpoint of its own (CR 9.11.4a.ex1)", () => {
+    function houdiniBoard(withMantle: boolean): GameState {
+      const s = board();
+      const engine = instantiateCard("little-engine", "le-1", "server:hq:ice");
+      engine.rezzed = true;
+      engine.faceup = true;
+      s.cards["le-1"] = engine;
+      s.servers.hq.ice = ["le-1"];
+      s.cards["hou-1"] = instantiateCard(
+        "houdini",
+        "hou-1",
+        "runner:installed",
+      );
+      s.runner.installed = ["hou-1"];
+      if (withMantle) {
+        const mantle = instantiateCard("mantle", "man-1", "runner:installed");
+        mantle.recurringCredits = 1;
+        s.cards["man-1"] = mantle;
+        s.runner.installed.push("man-1");
+      }
+      s.runner.credits = 5;
+      s.activeSide = "runner";
+      s.priorityStack = [];
+      s.run = {
+        attackedServerId: "hq",
+        phase: "encounter",
+        position: 0,
+        successful: null,
+        accessedCardIds: [],
+        accessCandidates: [],
+        randomAccessLimit: null,
+        encounter: {
+          iceId: "le-1",
+          broken: (engine.subroutines ?? []).map(() => false),
+        },
+        endedTheRun: false,
+        cannotJackOut: false,
+        accessingCardId: null,
+      };
+      s.timingKey = "run.encounterPaw";
+      return s;
+    }
+    const pump: Action = {
+      type: "use_paid_ability",
+      cardId: "hou-1",
+      abilityId: "houdini-pump",
+    };
+    expect(applyAction(houdiniBoard(false), pump).ok).toBe(false);
+
+    const s = houdiniBoard(true);
+    const from = s.log.length;
+    const r = applyAction(s, pump);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.state.cards["man-1"]?.recurringCredits).toBe(0);
+    expect(r.state.runner.credits).toBe(4);
+    const lines = r.state.log.slice(from);
+    expect(
+      lines.filter((line) => line.startsWith("Checkpoint open [cost]")),
+    ).toHaveLength(1);
+    expect(
+      lines.filter((line) =>
+        line.startsWith("Checkpoint open [instruction] Between instructions"),
+      ),
+    ).toEqual([]);
+  });
+
+  it("treats Psychographics' limit on X as a restriction: X stops at the Runner's 2 tags, and no instruction runs for that sentence (CR 9.3.3f.ex1)", () => {
+    const s = board();
+    s.cards["psy-1"] = instantiateCard("psychographics", "psy-1", "corp:hq");
+    const agenda = instantiateCard(
+      "hostile-takeover",
+      "ht-1",
+      "server:remote-1:root",
+    );
+    agenda.installed = true;
+    s.cards["ht-1"] = agenda;
+    s.corp.hand.push("psy-1");
+    s.servers["remote-1"] = {
+      id: "remote-1",
+      kind: "remote",
+      ice: [],
+      root: ["ht-1"],
+    };
+    s.runner.tags = 2;
+    s.corp.credits = 5;
+    s.corp.clicks = 1;
+    s.activeSide = "corp";
+    s.timingKey = "corp.takeAction";
+    const from = s.log.length;
+    const played = must(s, { type: "play_operation", cardId: "psy-1" });
+    const options = played.pendingChoice?.options.map((o) => o.id) ?? [];
+    expect(options).toContain("psycho:ht-1:2");
+    expect(options.some((id) => id.endsWith(":3"))).toBe(false);
+    expect(
+      played.log
+        .slice(from)
+        .filter((line) =>
+          line.startsWith("Checkpoint open [instruction] Between instructions"),
+        ),
+    ).toEqual([]);
+    const done = must(played, {
+      type: "choose_option",
+      optionId: "psycho:ht-1:2",
+    });
+    expect(done.cards["ht-1"]?.advancementCounters).toBe(2);
+    expect(done.corp.credits).toBe(3);
   });
 });
