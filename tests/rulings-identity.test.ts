@@ -47,6 +47,8 @@ import {
   stackRd,
   toCorpTurn,
   toHand,
+  clearCorpHand,
+  clearRd,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -607,8 +609,7 @@ describe("Zahya Sadeghi: Versatile Smuggler", () => {
     let s = runnerTurn(fresh(), 2);
     setIdentity(s, "runner", "zahya-sadeghi-versatile-smuggler");
     toHand(s, "runner", "the-makers-eye", "me-1");
-    for (const id of s.corp.deck) delete s.cards[id];
-    s.corp.deck = [];
+    clearRd(s);
     stackRd(s, [
       ["pad-campaign", "pad-1"],
       ["bacterial-programming", "bp-1"],
@@ -795,8 +796,7 @@ describe('René "Loup" Arcemont: Party Animal', () => {
     s.runner.deck = [];
     put(s, "corroder", "top-1", "runner:stack");
     s.runner.deck.push("top-1");
-    for (const id of s.corp.hand) delete s.cards[id];
-    s.corp.hand = [];
+    clearCorpHand(s);
     toHand(s, "corp", "pad-campaign", "pad-1");
     s = must(s, { type: "basic_run", serverId: "hq" });
     s = drive(s, (x) =>
@@ -1055,11 +1055,9 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     let s = corpTurn(fresh(), 5);
     setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
     installRoot(s, "alexa-belsky", "ab-1");
-    for (const id of s.corp.hand) delete s.cards[id];
-    s.corp.hand = [];
+    clearCorpHand(s);
     toHand(s, "corp", "rashida-jaheem", "rj-1");
-    for (const id of s.corp.deck) delete s.cards[id];
-    s.corp.deck = [];
+    clearRd(s);
     stackRd(s, [["hedge-fund", "hf-1"]]);
     s.runner.credits = 0;
     s.timingKey = "corp.actionPaw";

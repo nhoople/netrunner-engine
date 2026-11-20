@@ -193,3 +193,49 @@ export function toCorpTurn(s: GameState): GameState {
   s = must(s, { type: "basic_gain_credit" });
   return drive(s, atCorpAction);
 }
+
+const WALK_ORDER: Action["type"][] = [
+  "continue_run",
+  "access_card",
+  "finish_access",
+  "finish_breach",
+  "pass_window",
+];
+
+/**
+ * Take the obvious step until `stop` (by default the Runner's next action),
+ * choosing the first option of each choice. Returns the cards offered for
+ * access on the way.
+ */
+export function walkThrough(
+  s: GameState,
+  stop: (s: GameState) => boolean = atRunnerAction,
+): { state: GameState; accessed: string[] } {
+  const accessed: string[] = [];
+  for (let i = 0; i < 100 && !stop(s); i++) {
+    if (s.pendingChoice) {
+      s = must(s, { type: "choose_option", optionId: optionIds(s)[0]! });
+      continue;
+    }
+    const legal = legalActions(s);
+    const next = WALK_ORDER.map((t) => legal.find((a) => a.type === t)).find(
+      Boolean,
+    );
+    if (!next) break;
+    if (next.type === "access_card") accessed.push(next.cardId);
+    s = must(s, next);
+  }
+  return { state: s, accessed };
+}
+
+/** Empty HQ, removing its cards from the game state. */
+export function clearCorpHand(s: GameState): void {
+  for (const id of s.corp.hand) delete s.cards[id];
+  s.corp.hand = [];
+}
+
+/** Empty R&D, removing its cards from the game state. */
+export function clearRd(s: GameState): void {
+  for (const id of s.corp.deck) delete s.cards[id];
+  s.corp.deck = [];
+}

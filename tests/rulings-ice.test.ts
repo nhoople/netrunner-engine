@@ -35,6 +35,8 @@ import {
   setIdentity,
   stackRd,
   toHand,
+  clearCorpHand,
+  walkThrough,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -70,29 +72,9 @@ function rezBySendAMessage(
   return s;
 }
 
-const WALK_ORDER = [
-  "continue_run",
-  "access_card",
-  "finish_access",
-  "finish_breach",
-  "pass_window",
-] as const;
-
-/** Take the obvious step (first option of a choice) until `stop`. */
+/** Walk on until `stop` (see `walkThrough`). */
 function walk(s: GameState, stop = atRunnerAction): GameState {
-  for (let i = 0; i < 100 && !stop(s); i++) {
-    if (s.pendingChoice) {
-      s = must(s, { type: "choose_option", optionId: optionIds(s)[0]! });
-      continue;
-    }
-    const legal = legalActions(s);
-    const next = WALK_ORDER.map((t) => legal.find((a) => a.type === t)).find(
-      Boolean,
-    );
-    if (!next) break;
-    s = must(s, next);
-  }
-  return s;
+  return walkThrough(s, stop).state;
 }
 
 // ---------------------------------------------------------------------------
@@ -401,8 +383,7 @@ describe("Ansel 1.0", () => {
     s.servers.hq.ice = [];
     installIce(s, "ice-wall", "iw-in", "hq", false);
     installIce(s, "ansel-1-0", "ansel-1", "hq");
-    for (const id of s.corp.hand) delete s.cards[id];
-    s.corp.hand = [];
+    clearCorpHand(s);
     toHand(s, "corp", "ice-wall", "iw-new");
     s = must(s, { type: "basic_run", serverId: "hq" });
     s = drive(s, (x) => optionIds(x).some((id) => id.includes("iw-new")));
@@ -426,7 +407,7 @@ describe("Ansel 1.0", () => {
     }
     expect(s.corp.discardPile).toContain("ansel-1");
     expect(s.run?.encounter?.iceId).not.toBe("ansel-1");
-    expect(s.run?.forbidStealTrash ?? false).toBe(false);
+    expect(s.run?.cannotStealOrTrash ?? false).toBe(false);
     expect(s.log.join("\n")).not.toMatch(/cannot steal or trash/i);
   });
 
@@ -459,8 +440,7 @@ describe("Ansel 1.0", () => {
     installRunner(s, "carnivore", "carn-1");
     toHand(s, "runner", "sure-gamble", "g-1");
     toHand(s, "runner", "diesel", "g-2");
-    for (const id of s.corp.hand) delete s.cards[id];
-    s.corp.hand = [];
+    clearCorpHand(s);
     toHand(s, "corp", "pad-campaign", "pad-1");
     s = must(s, { type: "basic_run", serverId: "hq" });
     // The Runner loses a click to break "Trash 1 installed Runner card";
@@ -489,8 +469,7 @@ describe("Brân 1.0", () => {
     let s = runnerTurn(fresh(), 10);
     s.servers.hq.ice = [];
     installIce(s, "bran-1-0", "bran-1", "hq");
-    for (const id of s.corp.hand) delete s.cards[id];
-    s.corp.hand = [];
+    clearCorpHand(s);
     toHand(s, "corp", "ice-wall", "iw-new");
     s.corp.credits = 1;
     s = must(s, { type: "basic_run", serverId: "hq" });
@@ -606,6 +585,18 @@ describe("Ivik", () => {
     s = must(s, { type: "rez_ice", cardId: "iv-1" });
     expect(s.cards["iv-1"]!.rezzed).toBe(true);
     expect(s.corp.credits).toBe(0);
+
+    // Control: another rezzed code gate does lower the cost to 6.
+    let c = runnerTurn(fresh(), 10);
+    c.servers.hq.ice = [];
+    installIce(c, "ivik", "iv-1", "hq", false);
+    installIce(c, "enigma", "en-1", "rd");
+    c.corp.credits = 7;
+    c = must(c, { type: "basic_run", serverId: "hq" });
+    const p = applyAction(c, { type: "pass_window" });
+    c = p.ok ? p.state : c;
+    c = must(c, { type: "rez_ice", cardId: "iv-1" });
+    expect(c.corp.credits).toBe(1);
   });
 });
 

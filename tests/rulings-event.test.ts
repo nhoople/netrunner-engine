@@ -39,6 +39,9 @@ import {
   setIdentity,
   stackRd,
   toHand,
+  clearCorpHand,
+  clearRd,
+  walkThrough,
 } from "./rulings-helpers.js";
 
 beforeAll(() => {
@@ -70,34 +73,9 @@ function declineAll(s: GameState): GameState {
   return s;
 }
 
-const WALK_ORDER = [
-  "continue_run",
-  "access_card",
-  "finish_access",
-  "finish_breach",
-  "pass_window",
-] as const;
-
-/**
- * Play the obvious step until the Runner's next action, taking the first
- * option of each choice, and return the cards offered for access.
- */
+/** Walk on to the Runner's next action (see `walkThrough`). */
 function walk(s: GameState): { state: GameState; accessed: string[] } {
-  const accessed: string[] = [];
-  for (let i = 0; i < 100 && !atRunnerAction(s); i++) {
-    if (s.pendingChoice) {
-      s = must(s, { type: "choose_option", optionId: optionIds(s)[0]! });
-      continue;
-    }
-    const legal = legalActions(s);
-    const next = WALK_ORDER.map((t) => legal.find((a) => a.type === t)).find(
-      Boolean,
-    );
-    if (!next) break;
-    if (next.type === "access_card") accessed.push(next.cardId);
-    s = must(s, next);
-  }
-  return { state: s, accessed };
+  return walkThrough(s);
 }
 
 // ---------------------------------------------------------------------------
@@ -141,8 +119,7 @@ describe("Carpe Diem", () => {
   it.skip("Carpe Diem: a successful run made before the server became the mark is not a run on the mark; a later run on it is (ruling 3; filed, area 15, CR 10.11.5: the earlier run uses up the first run on the mark)", () => {
     let s = runnerTurn(fresh());
     setIdentity(s, "runner", "nyusha-sable-sintashta-symphonic-prodigy");
-    for (const id of s.corp.hand) delete s.cards[id];
-    s.corp.hand = [];
+    clearCorpHand(s);
     for (const server of ["hq", "rd", "archives"] as const) {
       s.servers[server].ice = [];
       s = must(s, { type: "basic_run", serverId: server });
@@ -347,15 +324,13 @@ describe("Deep Dive", () => {
   // outside any zone list (NO_ZONE, CR 4.1.2b).
   it.skip("Deep Dive: the Runner gets one chance to spend a click for 1 more access, whatever clicks remain (ruling 1; filed, area 8, CR 1.2.1: every remaining click is spent for more accesses)", () => {
     let s = runnerTurn(fresh());
-    for (const id of s.corp.hand) delete s.cards[id];
-    s.corp.hand = [];
+    clearCorpHand(s);
     for (const server of ["hq", "rd", "archives"] as const) {
       s.servers[server].ice = [];
       s = must(s, { type: "basic_run", serverId: server });
       s = drive(s, atRunnerAction);
     }
-    for (const id of s.corp.deck) delete s.cards[id];
-    s.corp.deck = [];
+    clearRd(s);
     stackRd(
       s,
       Array.from({ length: 8 }, (_, i) => ["hedge-fund", `dd-${i + 1}`]),
@@ -519,11 +494,17 @@ describe("Into the Depths", () => {
   });
 
   it("Into the Depths: passing unrezzed ice counts, though it is not encountered (ruling 2)", () => {
-    const start = runnerTurn(fresh()).log.length;
-    const s = depths([
-      ["ice-wall", "iw-out", false],
-      ["ice-wall", "iw-in", false],
-    ]);
+    let start = 0;
+    const s = depths(
+      [
+        ["ice-wall", "iw-out", false],
+        ["ice-wall", "iw-in", false],
+      ],
+      (x) => {
+        start = x.log.length;
+        return x;
+      },
+    );
     expect(s.log.slice(start).join("\n")).toMatch(/passed 2, resolve 2/);
     expect(optionIds(s)).toEqual(["credits", "search", "charge"]);
   });
@@ -780,14 +761,20 @@ describe("Pinhole Threading", () => {
 // ---------------------------------------------------------------------------
 
 describe("Rigging Up", () => {
+  let chargeOffered = false;
+
   /** Play Rigging Up on `defId`, charging when offered. */
   function rig(defId: string): GameState {
+    chargeOffered = false;
     let s = runnerTurn(fresh(), 5);
     toHand(s, "runner", defId, "card-1");
     toHand(s, "runner", "rigging-up", "ru-1");
     s = must(s, { type: "play_event", cardId: "ru-1" });
     for (let i = 0; i < 6 && s.pendingChoice; i++) {
       const ids = optionIds(s);
+      if (ids.some((id) => /charge/i.test(id) && !/decline|no/i.test(id))) {
+        chargeOffered = true;
+      }
       const choice =
         ids.find((id) => id.includes("card-1")) ??
         ids.find((id) => /charge/i.test(id) && !/decline|no/i.test(id)) ??
@@ -806,6 +793,7 @@ describe("Rigging Up", () => {
   it("Rigging Up: a card with no power counter cannot be charged (ruling 2)", () => {
     const s = rig("corroder");
     expect(s.runner.installed).toContain("card-1");
+    expect(chargeOffered).toBe(false);
     expect(s.cards["card-1"]!.powerCounters ?? 0).toBe(0);
   });
 
