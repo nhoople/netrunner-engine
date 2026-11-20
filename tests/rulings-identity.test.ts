@@ -16,17 +16,40 @@ import {
   createInitialState,
   crDataPresent,
   evalEffect,
-  instantiateCard,
   legalActions,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import type { Action, ServerId } from "../src/state/types.js";
+import type { ServerId } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import { fx } from "../src/effects/ir.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { currentMark } from "../src/state/msKeywords.js";
+import { fireScoreOrStealSideEffects } from "../src/actions/score.js";
+import { hostCard } from "../src/state/procedures/host.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";
+import {
+  atCorpAction,
+  atRunnerAction,
+  corpTurn,
+  drive,
+  fresh,
+  installIce,
+  installRoot,
+  installRunner,
+  must,
+  optionIds,
+  paidAbility,
+  pick,
+  put,
+  runnerTurn,
+  setIdentity,
+  stackRd,
+  toCorpTurn,
+  toHand,
+  clearCorpHand,
+  clearRd,
+} from "./rulings-helpers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -34,153 +57,6 @@ beforeAll(() => {
   assertPinnedTag("v26.03");
   assertCardsPinnedTag("v1.147.25");
 });
-
-// ---------------------------------------------------------------------------
-// Board helpers
-// ---------------------------------------------------------------------------
-
-/** The default board with no Runner card marked rezzed (CR 8.1.4f). */
-function fresh(): GameState {
-  const s = createInitialState();
-  for (const card of Object.values(s.cards)) {
-    if (card.side === "runner") card.rezzed = false;
-  }
-  // Out of the grip and out of the game, so no card is left in no zone.
-  for (const id of s.runner.hand) delete s.cards[id];
-  s.runner.hand = [];
-  s.priorityStack = [];
-  return s;
-}
-
-function put(s: GameState, defId: string, id: string, zone: string) {
-  const card = instantiateCard(defId, id, zone as never);
-  s.cards[id] = card;
-  return card;
-}
-
-/** Replace a side's identity in place, keeping its id. */
-function setIdentity(s: GameState, side: "corp" | "runner", defId: string) {
-  const id = side === "corp" ? s.corp.identityId : s.runner.identityId;
-  return put(s, defId, id, s.cards[id]!.zone);
-}
-
-/** A Corp card alone in the root of a new remote server. */
-function installRoot(s: GameState, defId: string, id: string, rezzed = true) {
-  const serverId = `remote-${id}`;
-  (s.servers as Record<string, unknown>)[serverId] = {
-    id: serverId,
-    kind: "remote",
-    root: [id],
-    ice: [],
-  };
-  const card = put(s, defId, id, `server:${serverId}:root`);
-  card.rezzed = rezzed;
-  card.faceup = rezzed;
-  return card;
-}
-
-/** A piece of ice installed outermost on `server` (index 0 is outermost). */
-function installIce(
-  s: GameState,
-  defId: string,
-  id: string,
-  server: ServerId,
-  rezzed = true,
-) {
-  const card = put(s, defId, id, `server:${server}:ice`);
-  card.rezzed = rezzed;
-  card.faceup = rezzed;
-  s.servers[server]!.ice.unshift(id);
-  return card;
-}
-
-function installRunner(s: GameState, defId: string, id: string) {
-  const card = put(s, defId, id, "runner:installed");
-  s.runner.installed.push(id);
-  return card;
-}
-
-function toHand(
-  s: GameState,
-  side: "corp" | "runner",
-  defId: string,
-  id: string,
-) {
-  put(s, defId, id, side === "corp" ? "corp:hq" : "runner:grip");
-  (side === "corp" ? s.corp : s.runner).hand.push(id);
-}
-
-/** Put cards on top of R&D, first id on top. */
-function stackRd(s: GameState, cards: Array<[string, string]>): void {
-  for (const [defId, id] of [...cards].reverse()) {
-    put(s, defId, id, "corp:rd");
-    s.corp.deck.unshift(id);
-  }
-}
-
-function corpTurn(s: GameState, credits = 10): GameState {
-  s.activeSide = "corp";
-  s.timingKey = "corp.takeAction";
-  s.corp.clicks = 3;
-  s.corp.credits = credits;
-  return s;
-}
-
-function runnerTurn(s: GameState, credits = 10): GameState {
-  s.activeSide = "runner";
-  s.timingKey = "runner.takeAction";
-  s.runner.clicks = 4;
-  s.runner.credits = credits;
-  return s;
-}
-
-function must(state: GameState, action: Action): GameState {
-  const result = applyAction(state, action);
-  if (!result.ok) {
-    throw new Error(
-      `${action.type}: ${result.error} ${JSON.stringify(result.cites)}`,
-    );
-  }
-  return passIdle(result.state);
-}
-
-function optionIds(s: GameState): string[] {
-  return (s.pendingChoice?.options ?? []).map((o) => o.id);
-}
-
-const DRIVE_ORDER: Action["type"][] = [
-  "continue_run",
-  "access_card",
-  "finish_access",
-  "finish_breach",
-  "pass_window",
-  "discard_to_hand_size",
-];
-
-/**
- * Play the obvious step (continue, access, finish, pass) until `stop` holds
- * or a choice opens. A test driver: it reads every candidate, hidden ones too.
- */
-function drive(s: GameState, stop: (s: GameState) => boolean): GameState {
-  for (let i = 0; i < 200; i++) {
-    if (stop(s) || s.pendingChoice || s.done) return s;
-    const legal = legalActions(s);
-    const next = DRIVE_ORDER.map((t) => legal.find((a) => a.type === t)).find(
-      Boolean,
-    );
-    if (!next) {
-      throw new Error(
-        `stuck at ${s.timingKey}: ${legal.map((a) => a.type).join(", ")}`,
-      );
-    }
-    s = must(s, next);
-  }
-  throw new Error(`no stop at ${s.timingKey}`);
-}
-
-const atRunnerAction = (s: GameState) =>
-  s.timingKey === "runner.takeAction" && !s.run;
-const atCorpAction = (s: GameState) => s.timingKey === "corp.takeAction";
 
 // ---------------------------------------------------------------------------
 // Weyland Consortium: Built to Last
@@ -401,6 +277,29 @@ describe("NBN: Reality Plus", () => {
     s = drive(s, (x) => x.runner.tags > 0 && !x.pendingTags);
     expect(s.runner.tags).toBe(1);
     expect(optionIds(s)).toEqual(["gain2", "draw2"]);
+  });
+
+  // Filed under area 8: after Reality Plus draws the Snare! being accessed
+  // into HQ, the Runner is still offered `trash_accessed` on it. A card that
+  // moves while being accessed ends the access (CR 7.1.7).
+  it.skip("NBN: Reality Plus: a Snare! drawn into HQ by the tag's draw ends the access, so the Runner cannot trash it (ruling 4; filed, area 8, CR 7.1.7: the access goes on after the card moves)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "nbn-reality-plus");
+    for (let i = 1; i <= 4; i++) toHand(s, "runner", "sure-gamble", `g-${i}`);
+    stackRd(s, [
+      ["snare", "sn-1"],
+      ["hedge-fund", "hf-1"],
+    ]);
+    s = must(s, { type: "basic_run", serverId: "rd" });
+    s = drive(s, () => false);
+    s = pick(s, "pay");
+    s = pick(s, "draw2");
+    expect(s.corp.hand).toContain("sn-1");
+    expect(
+      legalActions(s).some(
+        (a) => a.type === "trash_accessed" && a.cardId === "sn-1",
+      ),
+    ).toBe(false);
   });
 });
 
@@ -700,6 +599,48 @@ describe("Zahya Sadeghi: Versatile Smuggler", () => {
     );
     expect(optionIds(s)).toContain("zahya-gain");
   });
+
+  // Filed under area 13: Zahya counts the repeat access (3 credits for 3
+  // accesses), but Bacterial Programming's look-and-arrange leaves the
+  // bottom card of R&D in zone "corp:rd" and out of `corp.deck` (the
+  // invariant reports NO_ZONE), whatever the Corp chooses. Every card is in
+  // exactly one zone (CR 4.1.2b).
+  it.skip("Zahya Sadeghi: a card the Runner accesses again after Bacterial Programming rearranges R&D counts again (ruling 1; filed, area 13, CR 4.1.2b: Bacterial Programming leaves a card outside R&D's list)", () => {
+    let s = runnerTurn(fresh(), 2);
+    setIdentity(s, "runner", "zahya-sadeghi-versatile-smuggler");
+    toHand(s, "runner", "the-makers-eye", "me-1");
+    clearRd(s);
+    stackRd(s, [
+      ["pad-campaign", "pad-1"],
+      ["bacterial-programming", "bp-1"],
+      ["hedge-fund", "hf-1"],
+      ["hedge-fund", "hf-2"],
+    ]);
+    s = must(s, { type: "play_event", cardId: "me-1", serverId: "rd" });
+    s = drive(s, (x) => legalActions(x).some((a) => a.type === "steal_agenda"));
+    expect(s.run?.accessedCardIds).toEqual(["pad-1", "bp-1"]);
+    s = must(s, { type: "steal_agenda", cardId: "bp-1" });
+    s = pick(s, "accept");
+    s = pick(s, "begin");
+    s = pick(s, "keep-order");
+    // The Corp puts PAD Campaign back on top: a new object (CR 1.12.3)
+    // the Runner has not accessed this breach.
+    while (optionIds(s).some((id) => id.startsWith("rd-arrange:"))) {
+      s = must(s, { type: "choose_option", optionId: optionIds(s)[0]! });
+    }
+    const third = legalActions(s).find((a) => a.type === "access_card");
+    expect(third && "cardId" in third && s.cards[third.cardId]!.title).toBe(
+      "PAD Campaign",
+    );
+    s = drive(s, (x) => optionIds(x).includes("zahya-gain"));
+    // 3 accesses, PAD Campaign twice: 3 credits.
+    expect(
+      s.pendingChoice?.options.find((o) => o.id === "zahya-gain")?.label,
+    ).toMatch(/3/);
+    const before = s.runner.credits;
+    s = pick(s, "zahya-gain");
+    expect(s.runner.credits).toBe(before + 3);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -855,8 +796,7 @@ describe('René "Loup" Arcemont: Party Animal', () => {
     s.runner.deck = [];
     put(s, "corroder", "top-1", "runner:stack");
     s.runner.deck.push("top-1");
-    for (const id of s.corp.hand) delete s.cards[id];
-    s.corp.hand = [];
+    clearCorpHand(s);
     toHand(s, "corp", "pad-campaign", "pad-1");
     s = must(s, { type: "basic_run", serverId: "hq" });
     s = drive(s, (x) =>
@@ -956,6 +896,388 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     expect(s.pendingChoice).toBeNull();
     expect(s.turn.obSuperheavyUsedThisTurn ?? false).toBe(false);
   });
+
+  it("Ob Superheavy Logistics: after Border Control's trash cost is paid, the Ob search resolves before the run ends, so a found Anemone's rez ability can trigger (ruling 1)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installIce(s, "border-control", "bc-1", "hq");
+    stackRd(s, [["anemone", "an-1"]]);
+    toHand(s, "corp", "hedge-fund", "hq-1");
+    s = must(s, { type: "basic_run", serverId: "hq" });
+    s = drive(s, (x) => !!paidAbility(x, "bc-1"));
+    s = must(s, paidAbility(s, "bc-1")!);
+    // Border Control (printed rez 4) finds Anemone (3), installed on HQ.
+    s = pick(s, "an-1");
+    s = pick(s, "install-dest:hq");
+    expect(s.cards["an-1"]!.rezzed).toBe(true);
+    expect(s.run).not.toBeNull();
+    expect(optionIds(s)).toContain("trash-hq-net");
+  });
+
+  it("Ob Superheavy Logistics: trashing Rashida Jaheem is a cost, so R&D is shuffled before Rashida's 3 cards are drawn (ruling 3)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "rashida-jaheem", "rj-1");
+    s = toCorpTurn(s);
+    const start = s.log.length;
+    s = pick(s, "accept");
+    s = drive(s, atCorpAction);
+    const log = s.log.slice(start);
+    const shuffled = log.findIndex((l) => /shuffle R&D/.test(l));
+    const drew = log.findIndex((l) => /corp draws 3/.test(l));
+    expect(shuffled).toBeGreaterThanOrEqual(0);
+    expect(drew).toBeGreaterThan(shuffled);
+  });
+
+  // Filed under area 7: the Ob install path rezzes with `rez: true` and
+  // skips Daily Quest's rez restriction (`rezOnlyDuringCorpTurn`), so the
+  // card is rezzed on the Runner's turn (CR 1.2.1, 8.1.3).
+  it.skip('Ob Superheavy Logistics: Daily Quest found outside the Corp\'s action phase is installed but stays unrezzed (ruling 4; filed, area 7, CR 8.1.3: rezzed despite "rez only during your action phase")', () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "pad-campaign", "pad-1");
+    stackRd(s, [["daily-quest", "dq-1"]]);
+    s = corpTrashes(s, "pad-1");
+    s = pick(s, "dq-1");
+    if (s.pendingChoice) s = pick(s, "new_remote");
+    expect(s.cards["dq-1"]!.zone).toMatch(/^server:remote/);
+    expect(s.cards["dq-1"]!.rezzed).toBe(false);
+  });
+
+  it("Ob Superheavy Logistics: a card trashed for Azef Protocol's additional cost finds Malapert Data Vault, installed in Azef's root in time to trigger on the score (ruling 5)", () => {
+    let s = corpTurn(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "azef-protocol", "azef-1", false).advancementCounters = 3;
+    installIce(s, "ice-wall", "iw-1", "remote-azef-1" as ServerId);
+    installRoot(s, "pad-campaign", "pad-1");
+    stackRd(s, [
+      ["malapert-data-vault", "mdv-1"],
+      ["hedge-fund", "hf-1"],
+    ]);
+    s.timingKey = "corp.actionPaw";
+    s = must(s, { type: "score_agenda", cardId: "azef-1" });
+    if (s.pendingChoice) s = pick(s, "pad-1");
+    s = pick(s, "mdv-1");
+    s = pick(s, "remote-azef-1");
+    expect(s.cards["mdv-1"]!.zone).toBe("server:remote-azef-1:root");
+    s = drive(s, () => false);
+    expect(s.corp.scoreArea).toContain("azef-1");
+    // Malapert's search is offered for the score from its root.
+    expect(s.pendingChoice?.sourceId).toBe("mdv-1");
+    expect(optionIds(s)).toContain("search");
+  });
+
+  it("Ob Superheavy Logistics: rezzing the found ice ignores Tread Lightly's +3 and Hernando Cortez's credit cost (ruling 7)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRunner(s, "hernando-cortez", "hc-1");
+    installRoot(s, "pad-campaign", "pad-1");
+    toHand(s, "runner", "tread-lightly", "tl-1");
+    stackRd(s, [["ice-wall", "iw-1"]]);
+    s = must(s, { type: "play_event", cardId: "tl-1", serverId: "hq" });
+    s.corp.credits = 10;
+    s = corpTrashes(s, "pad-1");
+    s = pick(s, "iw-1");
+    s = pick(s, "install-dest:rd");
+    expect(s.cards["iw-1"]!.rezzed).toBe(true);
+    expect(s.corp.credits).toBe(10);
+  });
+
+  it("Ob Superheavy Logistics: a rezzed card trashed while installing another card does not trigger it (ruling 8)", () => {
+    let s = corpTurn(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "pad-campaign", "pad-1");
+    toHand(s, "corp", "pad-campaign", "pad-2");
+    stackRd(s, [["ice-wall", "iw-1"]]);
+    s = must(s, {
+      type: "basic_install",
+      cardId: "pad-2",
+      destination: {
+        kind: "remote_root",
+        serverId: "remote-pad-1" as ServerId,
+      },
+    });
+    while (s.pendingChoice && optionIds(s).some((id) => id.includes("pad-1"))) {
+      s = pick(s, "pad-1");
+    }
+    expect(s.corp.discardPile).toContain("pad-1");
+    expect(s.pendingChoice).toBeNull();
+    expect(s.turn.obSuperheavyUsedThisTurn).toBe(false);
+  });
+
+  it("Ob Superheavy Logistics: Archer's forfeit is not a credit cost, so the Corp may decline it and Archer stays unrezzed (ruling 11)", () => {
+    let s = corpTurn(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    put(s, "hostile-takeover", "ag-1", "corp:score");
+    s.corp.scoreArea.push("ag-1");
+    installRoot(s, "funhouse", "fh-1");
+    stackRd(s, [["archer", "ar-1"]]);
+    s = corpTrashes(s, "fh-1");
+    s = pick(s, "ar-1");
+    s = pick(s, "install-dest:hq");
+    expect(s.cards["ar-1"]!.zone).toBe("server:hq:ice");
+    // The forfeit is offered, not taken for the Corp.
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    s = pick(s, "decline");
+    expect(s.cards["ar-1"]!.rezzed).toBe(false);
+    expect(s.corp.scoreArea).toContain("ag-1");
+  });
+
+  it("Ob Superheavy Logistics: ice installed after Envelopment trashes itself mid-encounter is outward from the Runner, who never approaches it (ruling 12)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    s.servers.hq.ice = [];
+    installIce(s, "envelopment", "env-1", "hq").powerCounters = 0;
+    stackRd(s, [["border-control", "bc-1"]]);
+    s = must(s, { type: "basic_run", serverId: "hq" });
+    s = drive(s, (x) => !!x.pendingChoice);
+    // Envelopment (printed rez 5) trashes itself and finds Border Control (4).
+    s = pick(s, "bc-1");
+    s = pick(s, "install-dest:hq");
+    expect(s.servers.hq.ice).toEqual(["bc-1"]);
+    // The Runner passes Envelopment's former position and goes on to the
+    // server: Border Control is never approached or encountered.
+    const start = s.log.length;
+    for (let i = 0; i < 40 && s.run; i++) {
+      expect(s.run.encounter?.iceId).not.toBe("bc-1");
+      const next = legalActions(s).find(
+        (a) => a.type === "pass_window" || a.type === "continue_run",
+      );
+      if (!next) break;
+      s = must(s, next);
+    }
+    const log = s.log.slice(start).join("\n");
+    expect(log).not.toMatch(/Approach ice Border Control/);
+    expect(log).toMatch(/Run successful/);
+  });
+
+  it("Ob Superheavy Logistics: after trashing Alexa Belsky the search runs before HQ is shuffled into R&D, so it cannot find an HQ card (ruling 13)", () => {
+    let s = corpTurn(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "alexa-belsky", "ab-1");
+    clearCorpHand(s);
+    toHand(s, "corp", "rashida-jaheem", "rj-1");
+    clearRd(s);
+    stackRd(s, [["hedge-fund", "hf-1"]]);
+    s.runner.credits = 0;
+    s.timingKey = "corp.actionPaw";
+    s = must(s, paidAbility(s, "ab-1")!);
+    // Alexa (printed rez 1) looks for rez 0: Rashida is still in HQ.
+    expect(optionIds(s).some((id) => id.includes("rj-1"))).toBe(false);
+    // The Runner pays nothing to keep cards in HQ.
+    s = pick(s, "alexa:0");
+    s = drive(s, atCorpAction);
+    expect(s.corp.deck).toContain("rj-1");
+    expect(s.cards["rj-1"]!.zone).toBe("corp:rd");
+  });
+
+  it("Ob Superheavy Logistics: trashing Daruma lets the Corp install a card before the swap, and then swap that new card (ruling 14)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "hostile-takeover", "ht-1", false);
+    put(s, "daruma", "dar-1", "server:remote-ht-1:root");
+    s.servers["remote-ht-1" as ServerId]!.root.push("dar-1");
+    s.cards["dar-1"]!.rezzed = true;
+    s.cards["dar-1"]!.faceup = true;
+    stackRd(s, [["rashida-jaheem", "rj-1"]]);
+    s = must(s, { type: "basic_run", serverId: "remote-ht-1" as ServerId });
+    s = drive(s, (x) => optionIds(x).includes("trash-swap"));
+    s = pick(s, "trash-swap");
+    // Daruma (printed rez 1) finds Rashida Jaheem (0) for a new remote.
+    s = pick(s, "rj-1");
+    s = pick(s, "new_remote");
+    expect(s.cards["rj-1"]!.rezzed).toBe(true);
+    expect(optionIds(s).some((id) => id.includes("rj-1"))).toBe(true);
+  });
+
+  // Filed under area 11: choosing Azef Protocol's root for the found asset
+  // is refused ("Only an agenda installed in a server root can be
+  // scored"), so the Corp cannot pick it. The install is legal; after the
+  // checkpoint the score finds no installed Azef and does nothing
+  // (CR 9.11.1a, 1.17.3).
+  it.skip("Ob Superheavy Logistics: an asset found while paying Azef Protocol's cost and installed in its root trashes Azef, so it is not scored (ruling 15; filed, area 11, CR 9.11.1a: the install is refused because the score then fails)", () => {
+    let s = corpTurn(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "azef-protocol", "azef-1", false).advancementCounters = 3;
+    installIce(s, "ice-wall", "iw-1", "remote-azef-1" as ServerId);
+    installRoot(s, "pad-campaign", "pad-1");
+    stackRd(s, [["alexa-belsky", "ab-1"]]);
+    s.timingKey = "corp.actionPaw";
+    s = must(s, { type: "score_agenda", cardId: "azef-1" });
+    if (s.pendingChoice) s = pick(s, "pad-1");
+    s = pick(s, "ab-1");
+    // Installing the asset there trashes Azef Protocol (CR 8.5.11).
+    s = pick(s, "install-dest:remote-azef-1");
+    s = drive(s, atCorpAction);
+    expect(s.cards["ab-1"]!.zone).toBe("server:remote-azef-1:root");
+    expect(s.corp.scoreArea).not.toContain("azef-1");
+    expect(s.corp.discardPile).toContain("azef-1");
+  });
+
+  // Filed under area 11: when Ob opens a choice in the checkpoint after a
+  // [trash] cost, the paid ability's effect resolves at once, before the
+  // search and install, and reads the trashed card (no counters, no root).
+  // The checkpoint's reaction window resolves Ob in full first
+  // (CR 9.11.1a, 10.3.2).
+  it.skip("Ob Superheavy Logistics: trashing Reconstruction Contract, the Corp may move its counters onto the card Ob just installed (ruling 16; filed, area 11, CR 9.11.1a: the effect resolves before Ob's search)", () => {
+    let s = corpTurn(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "reconstruction-contract", "rc-1").advancementCounters = 2;
+    installRoot(s, "hostile-takeover", "ht-1", false);
+    stackRd(s, [["paper-wall", "pw-1"]]);
+    s.timingKey = "corp.actionPaw";
+    s = must(s, paidAbility(s, "rc-1")!);
+    // Reconstruction Contract (printed rez 1) finds Paper Wall (0).
+    s = pick(s, "pw-1");
+    s = pick(s, "install-dest:hq");
+    s = pick(s, "pw-1");
+    s = drive(s, atCorpAction);
+    expect(s.cards["pw-1"]!.advancementCounters).toBeGreaterThan(0);
+  });
+
+  // Filed with ruling 16: the effect finds Calibration Testing "not in a
+  // server root" and resolves before Ob installs (CR 9.11.1a, 10.3.2).
+  it.skip("Ob Superheavy Logistics: trashing Calibration Testing, the Corp may install a card in its root and place the counter on it (ruling 17; filed, area 11, CR 9.11.1a: the effect resolves before Ob's search)", () => {
+    let s = corpTurn(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "calibration-testing", "ct-1");
+    installIce(s, "ice-wall", "iw-1", "remote-ct-1" as ServerId);
+    stackRd(s, [["pad-campaign", "pad-1"]]);
+    s.timingKey = "corp.actionPaw";
+    s = must(s, paidAbility(s, "ct-1")!);
+    // Calibration Testing (printed rez 3) finds PAD Campaign (2).
+    s = pick(s, "pad-1");
+    s = pick(s, "remote-ct-1");
+    if (s.pendingChoice) s = pick(s, "pad-1");
+    s = drive(s, atCorpAction);
+    expect(s.cards["pad-1"]!.zone).toBe("server:remote-ct-1:root");
+    expect(s.cards["pad-1"]!.advancementCounters).toBe(1);
+  });
+
+  it("Ob Superheavy Logistics: Rashida Jaheem installed by a Svyatogor Excavator trash at turn begin missed that trigger, so it cannot be used that turn (ruling 19)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "svyatogor-excavator", "sv-1");
+    installRoot(s, "malapert-data-vault", "mdv-1");
+    stackRd(s, [["rashida-jaheem", "rj-1"]]);
+    s = toCorpTurn(s);
+    while (s.pendingChoice && !optionIds(s).some((id) => id.includes("rj-1"))) {
+      const ids = optionIds(s);
+      s = must(s, {
+        type: "choose_option",
+        optionId:
+          ids.find((id) => id.includes("mdv-1")) ??
+          ids.find((id) => id === "accept") ??
+          ids[0]!,
+      });
+    }
+    // Svyatogor trashed Malapert (printed rez 1): Ob finds Rashida (0).
+    s = pick(s, "rj-1");
+    s = pick(s, "new_remote");
+    expect(s.cards["rj-1"]!.rezzed).toBe(true);
+    s = drive(s, atCorpAction);
+    expect(s.cards["rj-1"]!.zone).toMatch(/^server:remote/);
+    expect(s.corp.discardPile).not.toContain("rj-1");
+  });
+
+  it("Ob Superheavy Logistics: R&D is shuffled when Spin Doctor is found, before it is installed and draws 2 (ruling 21)", () => {
+    let s = corpTurn(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "malapert-data-vault", "mdv-1");
+    stackRd(s, [["spin-doctor", "sd-1"]]);
+    s = corpTrashes(s, "mdv-1");
+    const start = s.log.length;
+    s = pick(s, "sd-1");
+    if (s.pendingChoice) s = pick(s, "new_remote");
+    s = drive(s, atCorpAction);
+    const log = s.log.slice(start);
+    const shuffled = log.findIndex((l) => /shuffle R&D/.test(l));
+    const drew = log.findIndex((l) => /corp draws 2/.test(l));
+    expect(shuffled).toBeGreaterThanOrEqual(0);
+    expect(drew).toBeGreaterThan(shuffled);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tāo Salonga: Telepresence Magician
+// ---------------------------------------------------------------------------
+
+describe("Tāo Salonga: Telepresence Magician", () => {
+  // Filed under area 2: swapping the encountered ice to R&D leaves the run
+  // on HQ and the encounter on the ice now at HQ's position (the invariant
+  // reports ENCOUNTER_ICE_MISMATCH). The Runner stays with the encountered
+  // ice and the run goes on from its new position (CR 6.2.7d).
+  it.skip("Tāo Salonga: swapping the ice being encountered to another server moves the Runner and the run with it (ruling 1; filed, area 2, CR 6.2.7d: the run stays on the old server)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "runner", "tao-salonga-telepresence-magician");
+    s.servers.hq.ice = [];
+    s.servers.rd.ice = [];
+    installIce(s, "ice-wall", "iw-hq", "hq");
+    installIce(s, "enigma", "en-rd", "rd");
+    s = must(s, { type: "basic_run", serverId: "hq" });
+    s = drive(s, (x) => x.run?.encounter?.iceId === "iw-hq");
+    // An agenda stolen mid-encounter: the steal's side effects fire here.
+    put(s, "hostile-takeover", "ht-1", "runner:score");
+    s.runner.scoreArea.push("ht-1");
+    fireScoreOrStealSideEffects(s, "ht-1", "steal");
+    s = passIdle(s);
+    s = pick(s, "swap-iw-hq-en-rd");
+    expect(s.servers.rd.ice).toEqual(["iw-hq"]);
+    expect(s.run?.attackedServerId).toBe("rd");
+    expect(s.run?.encounter?.iceId).toBe("iw-hq");
+  });
+
+  // Filed under area 3: `swap_two_ice` lists only ice protecting servers,
+  // never ice hosted on Awakening Center (CR 8.8.2).
+  it.skip("Tāo Salonga: ice hosted on Awakening Center can be swapped with a rezzed bioroid protecting a server, not with other ice (ruling 2; filed, area 3, CR 8.8.2: hosted ice is never offered)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "runner", "tao-salonga-telepresence-magician");
+    s.servers.hq.ice = [];
+    s.servers.rd.ice = [];
+    installRoot(s, "awakening-center", "ac-1");
+    put(s, "ansel-1-0", "ansel-1", "hosted:ac-1");
+    hostCard(s, "ansel-1", "ac-1", { faceup: false });
+    installIce(s, "bran-1-0", "bran-1", "hq");
+    installIce(s, "ice-wall", "iw-1", "rd");
+    installIce(s, "ravana-1-0", "rav-1", "archives", false);
+    put(s, "hostile-takeover", "ht-1", "runner:score");
+    s.runner.scoreArea.push("ht-1");
+    fireScoreOrStealSideEffects(s, "ht-1", "steal");
+    s = passIdle(s);
+    const pairs = optionIds(s).filter((id) => id.includes("ansel-1"));
+    expect(pairs.some((id) => id.includes("bran-1"))).toBe(true);
+    expect(pairs.some((id) => id.includes("iw-1"))).toBe(false);
+    expect(pairs.some((id) => id.includes("rav-1"))).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Sportsmetal: Go Big or Go Home
+// ---------------------------------------------------------------------------
+
+describe("Sportsmetal: Go Big or Go Home", () => {
+  // Already filed under area 10 (jnet): Sportsmetal never triggers, since
+  // `fireOnAgendaScoredOrStolen` is never passed the Corp identity
+  // (CR 9.3.7c). The ruling: after the draw, the Runner goes on with the
+  // top card of R&D they have not accessed.
+  it.skip("Sportsmetal: after the Corp draws 2 off a mid-breach steal, the Runner goes on accessing the new top card of R&D (ruling 1; filed, area 10, CR 9.3.7c: Sportsmetal never triggers)", () => {
+    let s = runnerTurn(fresh(), 2);
+    setIdentity(s, "corp", "sportsmetal-go-big-or-go-home");
+    toHand(s, "runner", "the-makers-eye", "me-1");
+    stackRd(s, [
+      ["hostile-takeover", "ht-1"],
+      ["hedge-fund", "hf-1"],
+      ["hedge-fund", "hf-2"],
+      ["pad-campaign", "pad-1"],
+    ]);
+    s = must(s, { type: "play_event", cardId: "me-1", serverId: "rd" });
+    s = drive(s, (x) => legalActions(x).some((a) => a.type === "steal_agenda"));
+    s = must(s, { type: "steal_agenda", cardId: "ht-1" });
+    s = pick(s, "draw");
+    expect(s.corp.hand).toEqual(expect.arrayContaining(["hf-1", "hf-2"]));
+    const next = legalActions(s).find((a) => a.type === "access_card");
+    expect(next && "cardId" in next && next.cardId).toBe("pad-1");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -997,5 +1319,28 @@ describe("Decoy", () => {
       cardId: "decoy-1",
       abilityId: "decoy-prevent-tag",
     });
+  });
+});
+
+describe("Tāo Salonga: Telepresence Magician (swap choices)", () => {
+  // Filed, fix-now: `swap_two_ice` offers only the first installed ice
+  // paired with each other ice (swapKinds.ts), so two pieces of ice that
+  // are not the first can never be swapped. Tāo's text lets the Runner swap
+  // any 2 installed pieces of ice (CR 1.2.1, 8.8.1).
+  it.skip("the Runner may swap any 2 installed pieces of ice, not only the first one (CR 1.2.1, 8.8.1)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "runner", "tao-salonga-telepresence-magician");
+    s.servers.hq.ice = [];
+    s.servers.rd.ice = [];
+    installIce(s, "ice-wall", "iw-hq", "hq");
+    installIce(s, "ice-wall", "iw-rd", "rd");
+    installIce(s, "enigma", "en-arc", "archives");
+    put(s, "hostile-takeover", "ht-1", "runner:score");
+    s.runner.scoreArea.push("ht-1");
+    fireScoreOrStealSideEffects(s, "ht-1", "steal");
+    s = passIdle(s);
+    expect(
+      optionIds(s).some((id) => id.includes("iw-rd") && id.includes("en-arc")),
+    ).toBe(true);
   });
 });
