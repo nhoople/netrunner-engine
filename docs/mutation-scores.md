@@ -10,7 +10,7 @@ Runs are local only, not in CI. Each Phase 3 area records its score here when it
 npm run mutate:swap
 ```
 
-There is one script per area: `mutate:hosting-trash`, `mutate:uninstall`, `mutate:swap`, `mutate:visibility`, `mutate:corp-install`, `mutate:runner-install`, `mutate:rez`, `mutate:access`, `mutate:damage`, `mutate:card-flags`.
+There is one script per area: `mutate:hosting-trash`, `mutate:uninstall`, `mutate:swap`, `mutate:visibility`, `mutate:corp-install`, `mutate:runner-install`, `mutate:rez`, `mutate:access`, `mutate:damage`, `mutate:card-flags`, and `mutate:timing` for the RA-1 timing re-audit.
 
 - `stryker/areas.mjs` sets each area's scope. `mutate` lists the helper files to change. The tests are the files that match the area's globs, plus any test whose text matches its `grep` pattern (CR cites, helper names, card titles).
 - `stryker/<area>.config.mjs` builds the Stryker config. Stryker uses the vitest runner with `stryker/vitest.config.mjs`, which narrows the suite to that area's tests and keeps the invariant hook.
@@ -27,6 +27,7 @@ A score is killed ÷ (killed + survived + no coverage). "Covered" leaves out the
 | 1. Hosting and trash (start) | 2026-11-19 | area 1 branch, first draft | 319 | 183 | 98 | 38 | 57.37% | 65.12% |
 | 1. Hosting and trash (close) | 2026-11-19 | area 1 PR | 317 | 282 | 33 | 2 | 88.96% | 89.52% |
 | 3. Swap | 2026-11-13 | v1.147.252 | 1335 | 429 | 279 | 627 | 32.13% | 60.59% |
+| RA-1. Timing re-audit (start) | 2026-11-19 | v1.147.268 | 387 | 193 | 151 | 43 | 49.87% | 56.10% |
 
 ## 1. Hosting and trash (2026-11-19)
 
@@ -89,3 +90,14 @@ These are the ones the exit criteria count. Each line is a change no test notice
 | `swap_protecting_attacked_ice_pick_other` | 1 | 36 |
 
 The kinds with high no-coverage counts (`swap_pick`, `swap_this_root_with_other_root_or_hq`, `swap_source_ice_with_other`, the `*_protecting_attacked_ice_*` family, `swap_two_ice`) are reached by no test in the area. Some are exercised by tests outside the selection. Widen the area's `grep` before writing new tests for them. Survivors that are only log strings or `StringLiteral` swaps in messages (44 in `swapKinds.ts`) don't need tests.
+
+## RA-1 timing re-audit (2026-11-19)
+
+Files mutated: `src/state/pendingAbilities.ts`, `replacements.ts`, `checkpointSnapshot.ts`, `storedConditionalHooks.ts` and `inlineConditionalHooks.ts`. `src/legality/checkpoints.ts` (4,800 lines) is left out; a run over it would take hours. Killed includes 7 timeouts. Survivors worth a test, for the RF session:
+
+- **The note path** (CR 10.3.1a): emptying `noteStoredConditional` or `noteInlineConditional` survives, as do their duplicate checks. No selected test fails when a noted trigger never reaches the checkpoint, and none notes the same trigger twice between checkpoints (CR 9.6.4b).
+- **Losing pending status** (CR 9.6.10): the identity and accessed-card exceptions in `pendingAbilitySourceStillActive`, and its zone list, survive.
+- **Lifecycle** (CR 9.6.12): `markPendingAbilityResolving` and `markPendingAbilityImminent` status guards survive.
+- **Replacement at interrupt open** (CR 9.9.9b): the loop in `applyActiveReplacementsAtInterruptOpen` survives because `listActiveExpectedReplacements` always returns an empty list. Equivalent until a static replacement is registered.
+- **Snapshot diff** (CR 9.6.6): 30 survivors in `checkpointSnapshot.ts`, mostly fields of the facts and diff that no predicate test reads.
+

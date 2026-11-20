@@ -103,6 +103,26 @@ export const areas = {
     tests: ["tests/*damage*.test.ts", "tests/cr-examples-ch10.test.ts"],
     grep: /dealDamage|resolveDamage|\bdeal_(net|meat|core|brain)_damage\b|\b10\.4\.|Titanium Ribs|Chronos Protocol/,
   },
+  timing: {
+    title: "RA-1. Timing re-audit (9.1–9.3, 9.6, 9.9, 9.11, 10.3)",
+    mutate: [
+      "src/state/pendingAbilities.ts",
+      "src/state/replacements.ts",
+      "src/state/checkpointSnapshot.ts",
+      "src/state/storedConditionalHooks.ts",
+      "src/state/inlineConditionalHooks.ts",
+    ],
+    tests: [
+      "tests/timing-reaudit.test.ts",
+      "tests/pending-abilities.test.ts",
+      "tests/reaction-window-order.test.ts",
+      "tests/replacement-layer-9.9.9.test.ts",
+      "tests/stored-triggers.test.ts",
+      "tests/instruction-checkpoints.test.ts",
+      "tests/choice-timing.test.ts",
+    ],
+    grep: /\b(9\.2\.[89]|9\.6\.\d|9\.9\.\d|9\.11\.\d|10\.3\.\d)|noteInlineConditional|noteStoredConditional|tryApplyReplacement/,
+  },
   "card-flags": {
     title: "10. Card flags and declarations",
     mutate: ["src/state/cardDeclarations.ts"],

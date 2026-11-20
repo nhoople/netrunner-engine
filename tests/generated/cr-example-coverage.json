@@ -3,8 +3,8 @@
   "crTag": "v26.03",
   "totals": {
     "examples": 243,
-    "referenced": 231,
-    "unreferenced": 12
+    "referenced": 236,
+    "unreferenced": 7
   },
   "chapters": [
     {
@@ -74,14 +74,8 @@
       "chapter": "9",
       "title": "Abilities",
       "examples": 89,
-      "referenced": 84,
-      "unreferenced": [
-        "9.3.3f.ex1",
-        "9.6.4b.ex1",
-        "9.11.2a.ex1",
-        "9.11.2a.ex2",
-        "9.11.4a.ex1"
-      ]
+      "referenced": 89,
+      "unreferenced": []
     },
     {
       "chapter": "10",
@@ -509,7 +503,9 @@
     "9.2.8f.ex1": [
       "cr-examples-ch9.test.ts › drops Tollbooth's pending ability when Femme Fatale ends the encounter (CR 9.2.8f.ex1)"
     ],
-    "9.3.3f.ex1": [],
+    "9.3.3f.ex1": [
+      "cr-examples-ch9.test.ts › treats Psychographics' limit on X as a restriction: X stops at the Runner's 2 tags, and no instruction runs for that sentence (CR 9.3.3f.ex1)"
+    ],
     "9.3.6g.ex1": [
       "cr-examples-ch9.test.ts › keeps Zahya's once-per-turn ability when she declines the credit (CR 9.3.6g.ex1)"
     ],
@@ -540,7 +536,9 @@
     "9.5.6c.ex2": [
       "cr-examples-ch9.test.ts › uses Abagnale's trash and interface only on a code gate it can interface (CR 9.5.6c.ex2)"
     ],
-    "9.6.4b.ex1": [],
+    "9.6.4b.ex1": [
+      "cr-examples-ch9.test.ts › makes three Hostile Infrastructure instances pending in one reaction window when Singularity trashes three cards (CR 9.6.4b.ex1)"
+    ],
     "9.6.4b.ex2": [
       "cr-examples-ch9.test.ts › leaves two Blackguard instances pending after Satellite Uplink exposes two cards (CR 9.6.4b.ex2)"
     ],
@@ -670,9 +668,15 @@
     "9.10.5.ex1": [
       "cr-examples-ch9.test.ts › keeps Na'Not'K's paid strength after the run when Gebrselassie hosts on it (CR 9.10.5.ex1)"
     ],
-    "9.11.2a.ex1": [],
-    "9.11.2a.ex2": [],
-    "9.11.4a.ex1": [],
+    "9.11.2a.ex1": [
+      "cr-examples-ch9.test.ts › RF: runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)"
+    ],
+    "9.11.2a.ex2": [
+      "cr-examples-ch9.test.ts › runs no checkpoint inside the checkpoint that waits on Bad Times' memory choice (CR 9.11.2a.ex2)"
+    ],
+    "9.11.4a.ex1": [
+      "cr-examples-ch9.test.ts › treats Houdini's stealth sentence as a restriction: the pump needs a stealth credit and runs no checkpoint of its own (CR 9.11.4a.ex1)"
+    ],
     "9.11.4b.ex1": [
       "cr-examples-ch9.test.ts › offers Shipment from MirrorMorph as three separate installs (CR 9.11.4b.ex1)"
     ],

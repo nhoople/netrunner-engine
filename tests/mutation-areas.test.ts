@@ -15,8 +15,9 @@ const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
 };
 
 describe("mutation areas", () => {
-  it("covers the ten Phase 3 areas", () => {
-    expect(Object.keys(areaMap)).toHaveLength(10);
+  it("covers the ten Phase 3 areas and the RA-1 timing re-audit", () => {
+    expect(Object.keys(areaMap)).toHaveLength(11);
+    expect(Object.keys(areaMap)).toContain("timing");
   });
 
   for (const [name, area] of Object.entries(areaMap)) {
