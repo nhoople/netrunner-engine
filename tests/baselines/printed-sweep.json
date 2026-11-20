@@ -33,6 +33,11 @@
       "cards": 130
     },
     {
+      "id": "S3b",
+      "cycle": "genesis",
+      "cards": 120
+    },
+    {
       "id": "S3a",
       "cycle": "core-set",
       "cards": 113
@@ -213,6 +218,11 @@
       "result": "matches",
       "note": "Unique; at turn begin may run HQ; the first encounter of that run may be bypassed by spending [click][click]."
     },
+    "all-nighter": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Click and trash: gain 2 clicks."
+    },
     "always-have-a-backup-plan": {
       "cycle": "ashes",
       "result": "filed",
@@ -239,6 +249,11 @@
       "result": "matches",
       "note": "Unique; persistent: when a run on this server ends with an agenda stolen, give 2 tags."
     },
+    "amazon-industrial-zone": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Region; when ice is installed protecting this server, the Corp may rez it with its rez cost lowered by 3 (src/actions/installCorp.ts)."
+    },
     "amelia-earhart": {
       "cycle": "liberation",
       "result": "matches",
@@ -248,6 +263,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "Deckbuilding text only (1 copy of each card, up to 2 agendas from each Corp faction); minimum deck 45. No in-game ability."
+    },
+    "andromeda-dispossessed-ristie": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Link 1; starting hand of 9 cards."
     },
     "anemone": {
       "cycle": "borealis",
@@ -369,6 +389,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "On score the Runner loses 7."
+    },
+    "ash-2x3zb9cy": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Unique; successful run on this server: Trace 4, if successful only Ash can be accessed for the rest of the run (upgrade triggers queue only for the attacked server)."
     },
     "ashen-epilogue": {
       "cycle": "liberation",
@@ -576,6 +601,11 @@
       "result": "matches",
       "note": "Steal costs 5 more credits; on score gain 5."
     },
+    "bernice-mai": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Unique; successful run on this server: Trace 5, give 1 tag if successful, trash itself if unsuccessful."
+    },
     "beta-build": {
       "cycle": "vantage-point",
       "result": "filed",
@@ -589,6 +619,11 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "May forfeit 1 agenda while rezzing to pay 10 of the rez cost (offered, not forced, in src/actions/rez.ts); trash program or ETR; trash resource or ETR; ETR."
+    },
+    "big-brother": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Play only if the Runner is tagged; give 2 tags."
     },
     "big-deal": {
       "cycle": "borealis",
@@ -676,6 +711,11 @@
       "result": "matches",
       "note": "Installs only on ice; 1 virus counter on install and turn begin; spend 1 to break 1 subroutine on host."
     },
+    "braintrust": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On score, 1 agenda counter per 2 advancements over 3; ice rez cost -1 per agenda counter."
+    },
     "bran-1-0": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -723,10 +763,23 @@
       "result": "matches",
       "note": "Interface 1 credit breaks 1 sentry subroutine; 1 credit +1 strength; first full break each turn gains 2."
     },
+    "bullfrog": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Psi 0-2; bids differ and this ice installed: the Corp moves it to the outermost position of another server and the run continues there."
+    },
     "bumi-1-0": {
       "cycle": "elevation",
       "result": "matches",
       "note": "Rez during a run on this server: may trash 1 installed trojan; bioroid click break (generic by subtype); trash 1 program; 1 core damage."
+    },
+    "burke-bugs": {
+      "cycle": "genesis",
+      "result": "filed",
+      "abilities": [
+        "[subroutine] Trace[0]. If successful, the Runner trashes 1 program."
+      ],
+      "note": "Area 1 (trash): trash_own_program returns an error when the Runner has no installed program; resolveTrace passes it up, so resolve_trace is refused and the trace cannot resolve (the game gets stuck; checked with a probe). The kind is shared with Ichi 2.0, SDS Drone Deployment, Spec Work and Scavenge, where the error serves as a cost check; the effect use needs to do nothing instead (CR 1.2.4). The trace strength and the Runner's choice of program match."
     },
     "burner": {
       "cycle": "liberation",
@@ -759,6 +812,11 @@
         "you may remove 2 hosted power counters to sabotage 3"
       ],
       "note": "area 12: remove_power_counter removes what is there and sabotage resolves with fewer than 2 counters (CR 1.16.11a, 1.16.1). The area 1 half (the Corp trashing its own card met the trigger, CR 1.14.5a) is fixed in engine#948."
+    },
+    "caduceus": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Trace 3: Corp gains 3. Trace 2: end the run."
     },
     "calvin-b4l3y": {
       "cycle": "ashes",
@@ -851,6 +909,11 @@
       "result": "matches",
       "note": "Play only after successful HQ, R&D and Archives runs this turn; Runner trashes 2 installed Corp cards, then the Corp chooses 1 installed Runner card to trash (pendingTrashAmong is a Corp choice)."
     },
+    "chaos-theory-wunderkind": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Link 0; +1 MU."
+    },
     "charlotte-cacador": {
       "cycle": "liberation",
       "result": "matches",
@@ -877,6 +940,19 @@
         "9.6.5c",
         "1.2.1"
       ]
+    },
+    "chilo-city-grid": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Region; a successful trace during a run on this server gives 1 tag (only the attacked server's root fires, src/state/trace.ts)."
+    },
+    "chimera": {
+      "cycle": "genesis",
+      "result": "filed",
+      "abilities": [
+        "When you rez Chimera, choose sentry, code gate, or barrier. Chimera gains that subtype until derezzed."
+      ],
+      "note": "Area 7 (derez): the gained subtype is cleared only by the turn-end derez sweep in src/timing/graph.ts; a derez by another card (Emergency Shutdown, Crescentus, derez_card) leaves it, so a re-rez stacks a second subtype. The choice on rez, the derez when a turn ends and end the run match."
     },
     "chisel": {
       "cycle": "ashes",
@@ -955,6 +1031,11 @@
       "result": "matches",
       "note": "Advanceable, +1 strength per advancement; 1 tag (2 at 3+ advancements); trash a program (and a resource at 3+ advancements)."
     },
+    "commercialization": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "The Corp chooses a piece of ice and gains 1 per advancement token on it."
+    },
     "complete-image": {
       "cycle": "ashes",
       "result": "fixed",
@@ -969,6 +1050,18 @@
       ],
       "fixedIn": "engine#950",
       "test": "the Corp names from every Runner card name, not from the Runner's grip and stack, so the list shows nothing hidden (CR 10.2.2a, 10.2.2b)"
+    },
+    "compromised-employee": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "1[recurring-credit] Use this credit during traces. Gain 1[credit] whenever the Corp rezzes a piece of ice."
+      ],
+      "note": "Declares a static link 1 that the card does not print (it has the Link subtype only), so recomputeRunnerLink gives the Runner +1 link and every trace is off by one. The recurring credit for traces and the gain on any ice rez match. Fix: drop the link declaration.",
+      "cr": [
+        "1.2.1",
+        "10.8.3"
+      ]
     },
     "concerto": {
       "cycle": "borealis",
@@ -1035,6 +1128,11 @@
         "1.2.1"
       ]
     },
+    "corporate-war": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On score: with at least 7 credits gain 7, otherwise lose all credits."
+    },
     "corroder": {
       "cycle": "core-set",
       "result": "matches",
@@ -1045,6 +1143,18 @@
       "result": "matches",
       "note": "Interface fracter 0 strength: 1 credit breaks 1 barrier subroutine; 1 stealth credit gives the encountered barrier -3 strength for the encounter."
     },
+    "cortez-chip": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "[trash]: Choose a piece of ice. The Corp must pay 2[credit] as an additional cost to rez that ice until the end of the turn."
+      ],
+      "note": "The paid ability lists runner_action_paw, approach_paw and encounter_paw, so it opens in every run window and the Runner's action window but never in the Corp's turn. A paid ability with no window restriction opens in every paid ability window. Fix: list only runner_action_paw (unrestrictedPaidAbility then opens it everywhere). The effect matches.",
+      "cr": [
+        "9.2.7b",
+        "5.6.1b"
+      ]
+    },
     "crash-space": {
       "cycle": "core-set",
       "result": "matches",
@@ -1054,6 +1164,16 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Gain 5 credits; lose a click if any remain."
+    },
+    "creeper": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interface 2 credits: break 1 sentry subroutine; 1 credit: +1 strength; memory cost 0 with at least 2 link."
+    },
+    "crescentus": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Trash: derez the ice fully broken during this encounter (encounter window only)."
     },
     "crypsis": {
       "cycle": "core-set",
@@ -1152,10 +1272,25 @@
         "1.2.1"
       ]
     },
+    "darwin": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interface 2 credits: break 1 subroutine; strength equals hosted virus counters; at turn begin may pay 1 for 1 virus counter."
+    },
     "data-dealer": {
       "cycle": "core-set",
       "result": "matches",
       "note": "[click], forfeit 1 agenda: gain 9."
+    },
+    "data-hound": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Trace 2: the Corp looks at the top X of the stack (X = trace excess), trashes 1 and arranges the rest."
+    },
+    "data-leak-reversal": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Install only after a successful central run this turn; while tagged, click: the Corp trashes the top card of R&D."
     },
     "data-mine": {
       "cycle": "core-set",
@@ -1190,6 +1325,16 @@
       "result": "matches",
       "note": "Interrupt, [trash]: prevent 1 tag."
     },
+    "dedicated-response-team": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "While the Runner is tagged, when a successful run ends, 2 meat damage."
+    },
+    "dedicated-server": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "2 recurring credits, spendable to rez ice."
+    },
     "deep-dive": {
       "cycle": "borealis",
       "result": "filed",
@@ -1200,6 +1345,11 @@
       "cr": [
         "7.1.5"
       ]
+    },
+    "deep-thought": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Successful R&D run: 1 virus counter; with 3 or more, at turn begin may look at the top card of R&D."
     },
     "deja-vu": {
       "cycle": "core-set",
@@ -1234,6 +1384,11 @@
         "[click], add 2 hosted cards to HQ: The Runner may access 1 card in HQ at random"
       ],
       "note": "Already in the plan, area 8 (access): host_random_hq takes the last HQ card, not a random one, and access_random_hq bypasses access_card. Also: 'add 2 hosted cards to HQ' is a cost inside the effect, so the ability can be used with fewer than 2 hosted cards, and the first two are taken without a choice."
+    },
+    "deus-x": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interface, trash: break any number of AP subroutines; interrupt, trash: prevent any amount of net damage."
     },
     "devadatta-drone": {
       "cycle": "elevation",
@@ -1279,10 +1434,27 @@
         "8.7.1"
       ]
     },
+    "dinosaurus": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Dinosaurus can host a single non-AI icebreaker. The memory cost of the hosted icebreaker does not count against your memory limit."
+      ],
+      "note": "Declares muBonus 1, which the card does not print, so memoryLimit() gives the Runner +1 MU on top of the hosted icebreaker's memory not counting. Hosting a single non-AI icebreaker, +2 strength and the console limit match. Fix: drop muBonus.",
+      "cr": [
+        "1.2.1",
+        "2.10.2"
+      ]
+    },
     "direct-access": {
       "cycle": "ashes",
       "result": "matches",
       "note": "Identities lose their abilities while it resolves (read in run start and continuous effects); run any server; at run end may shuffle Direct Access from the heap into the stack."
+    },
+    "disrupter": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interrupt, trash: set the base strength of the trace in progress to 0 (trace interrupt window)."
     },
     "distributed-tracing": {
       "cycle": "borealis",
@@ -1326,6 +1498,19 @@
       "result": "matches",
       "note": "1 tag; 1 net damage; 2 net damage if the Runner has 2 or more tags."
     },
+    "doppelganger": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Once per turn → When a successful run ends, you may run any server."
+      ],
+      "note": "src/timing/graph.ts puts the card in onSuccessfulRunEndFiredIds when the ability becomes pending, so declining the run still uses up the turn. A conditional ability is used only when its optional part is carried out. The trigger successful_run_end_once_per_turn is used only by this card. +1 MU and the console limit match.",
+      "cr": [
+        "9.3.6g",
+        "9.6.9d",
+        "9.1.6b"
+      ]
+    },
     "dr-nuka-vrolyck": {
       "cycle": "borealis",
       "result": "matches",
@@ -1335,6 +1520,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "Unique; 1 power counter on rez and at turn begin; Runner -1 hand size per counter."
+    },
+    "draco": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On rez the Corp may pay any number of credits for that many power counters; +1 strength per power counter; Trace 2: 1 tag and end the run."
     },
     "drafter": {
       "cycle": "ashes",
@@ -1351,10 +1541,20 @@
       "result": "matches",
       "note": "Unique; first successful run each turn draws 1, and gains 1 if the identity is digital or link is 2 or more."
     },
+    "dyson-mem-chip": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "+1 MU, +1 link."
+    },
     "dzmz-optimizer": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "+1 MU; first program installed each turn costs 1 less."
+    },
+    "e3-feedback-implants": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Whenever the Runner breaks a subroutine on ice, may pay 1 to break 1 more subroutine on that ice (src/effects/eval.ts)."
     },
     "earth-station-sea-headquarters": {
       "cycle": "ashes",
@@ -1376,10 +1576,28 @@
       "result": "matches",
       "note": "Power counter whenever harmonic ice is rezzed; gains one ETR subroutine per counter (src/state/powerCounters.ts)."
     },
+    "edge-of-world": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "When the Runner accesses this asset while it is installed, you may pay 3[credit]. If you do, do 1 core damage for each piece of ice protecting this server."
+      ],
+      "note": "may_pay_credits_for_core_damage_per_ice_protecting_this_server deals the core damage with preventByLoseAllClicks (copied from Mr. Hendrik), so a Runner with any click left cancels all of it by losing their clicks, and candidatePending then offers no real prevention. The installed-only access, the 3-credit payment and the count of ice protecting this server match. Fix: drop preventByLoseAllClicks.",
+      "cr": [
+        "1.2.1",
+        "9.9.1b",
+        "10.4.2b"
+      ]
+    },
     "editorial-division-ad-nihilum": {
       "cycle": "vantage-point",
       "result": "matches",
       "note": "First bad publicity taken each turn: may search R&D for a non-agenda black ops, gray ops or liability card, reveal it, add it to HQ, shuffle."
+    },
+    "eli-1-0": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Two end-the-run subroutines; lose click: break 1 subroutine (the engine's bioroid break, by subtype; both subroutines are the same)."
     },
     "elivagar-bifurcation": {
       "cycle": "borealis",
@@ -1394,6 +1612,11 @@
       ],
       "note": "area 13 (search): search_rd_operation_to_top_rd takes the first operation in R&D, with no Corp choice and no option to find nothing, and leaves a stale faceup flag. Lily Lockwell shares the kind. cr-checker: CR 8.7.2, 8.7.2e, 1.15.2, 1.21.1a."
     },
+    "emergency-shutdown": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Play only after a successful HQ run this turn; the Runner chooses 1 rezzed ice to derez."
+    },
     "eminent-domain": {
       "cycle": "liberation",
       "result": "filed",
@@ -1407,6 +1630,11 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "Draw 1 then may put 1 HQ card on top of R&D; 1 net damage and 1 tag; 2 net damage."
+    },
+    "encryption-protocol": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "While rezzed, the trash cost of every installed card is +1."
     },
     "end-of-the-line": {
       "cycle": "borealis",
@@ -1480,6 +1708,18 @@
       "result": "matches",
       "note": "Interface 0 credits breaks 1 code gate subroutine if installed this turn; 2 credits breaks up to 2; 1 credit +1 strength."
     },
+    "eve-campaign": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Place 16[credit] from the bank on Eve Campaign when it is rezzed. When there are no credits left on Eve Campaign, trash it."
+      ],
+      "note": "No trashWhenHostedCreditsEmpty, so takeHostedCredits never trashes it when empty; an empty Eve stays installed taking 0. Same missing flag as Anthill Excavation Contract (S1). Placing 16 on rez and taking 2 at turn begin match.",
+      "cr": [
+        "1.2.1",
+        "9.6.7"
+      ]
+    },
     "event-horizon": {
       "cycle": "vantage-point",
       "result": "wrong",
@@ -1491,6 +1731,11 @@
         "1.16.1c",
         "1.2.1"
       ]
+    },
+    "executive-retreat": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On score, 1 agenda counter and shuffle HQ into R&D; click, agenda counter: draw 5."
     },
     "experiential-data": {
       "cycle": "core-set",
@@ -1527,6 +1772,19 @@
       "result": "matches",
       "note": "The Runner may pay 2 to break 1 subroutine if untagged; add 1 installed Runner card to the grip; 1 tag."
     },
+    "faerie": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Whenever an encounter ends, if you used this program to break a subroutine during that encounter, trash this program."
+      ],
+      "note": "Declares trashAfterBreakingThisRun (Mayfly's flag), which is read only when the run ends, so a 0-credit Faerie breaks every sentry in a run instead of one encounter's. Interface 0 credits: break 1 sentry subroutine and 1 credit: +1 strength match. Fix: trash at the end of the encounter in which it broke.",
+      "cr": [
+        "9.8.4c",
+        "6.9.3e",
+        "1.2.1"
+      ]
+    },
     "false-lead": {
       "cycle": "ashes",
       "result": "matches",
@@ -1559,6 +1817,14 @@
       "result": "matches",
       "note": "1 virus counter on install and turn begin; click, trash: gain 2 credits per hosted virus counter."
     },
+    "fetal-ai": {
+      "cycle": "genesis",
+      "result": "filed",
+      "abilities": [
+        "While the Runner is accessing this agenda in R&D, they must reveal it."
+      ],
+      "note": "Area 4 (visibility): mustRevealWhenAccessedFromRd only writes a log line; nothing records a reveal (already in the findings table for Ganked!). 2 net damage on access outside Archives and the 2-credit additional steal cost match."
+    },
     "finality": {
       "cycle": "borealis",
       "result": "matches",
@@ -1578,6 +1844,11 @@
       ],
       "fixedIn": "engine#948",
       "test": "its access cap persists for the rest of the run after the Runner trashes it while accessing it (CR 9.12.5a)"
+    },
+    "flare": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Trace 6: the Corp trashes 1 hardware, 2 meat damage that cannot be prevented, end the run."
     },
     "flip-switch": {
       "cycle": "ashes",
@@ -1629,6 +1900,11 @@
       "result": "matches",
       "note": "Play only after a successful run last turn; the Corp names a card type, reveals the grip, chooses X up to the count and may pay X to place X advancements on 1 installed card."
     },
+    "force-of-nature": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interface 2 credits: break up to 2 code gate subroutines; 1 credit: +1 strength."
+    },
     "forged-activation-orders": {
       "cycle": "core-set",
       "result": "filed",
@@ -1640,6 +1916,11 @@
         "1.21.1",
         "10.2.2b"
       ]
+    },
+    "foxfire": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Trace 7: the Corp trashes 1 virtual resource or 1 card with the link subtype."
     },
     "fransofia-ward": {
       "cycle": "elevation",
@@ -1660,6 +1941,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "-1 advancement requirement per Runner tag."
+    },
+    "freelancer": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Play only if the Runner is tagged; the Corp trashes up to 2 resources."
     },
     "friend-of-a-friend": {
       "cycle": "liberation",
@@ -1767,6 +2053,11 @@
       "result": "matches",
       "note": "Access, trash Gourmand: trash the non-agenda Corp card being accessed and draw 1."
     },
+    "government-contracts": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Click, click: gain 4."
+    },
     "government-subsidy": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -1779,6 +2070,11 @@
         "You may install 1 card from HQ. You may remove 1 tag to place 1 advancement counter on that card."
       ],
       "note": "Area 5 (Corp install): may_install_from_hq_paying_costs always makes a new remote. Gain 5 and the optional tag-for-advancement match."
+    },
+    "green-level-clearance": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Gain 3 and draw 1."
     },
     "greenmail": {
       "cycle": "elevation",
@@ -1804,6 +2100,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "+1 maximum hand size; on scoring an agenda, may add 1 card from Archives to HQ."
+    },
+    "haas-bioroid-stronger-together": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Bioroid ice has +1 strength."
     },
     "hackerspace": {
       "cycle": "vantage-point",
@@ -1915,6 +2216,11 @@
       "result": "matches",
       "note": "Whenever a hardware is installed or trashed (trash hook covers any zone), look at the top card of R&D."
     },
+    "hokusai-grid": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Region; successful run on this server: 1 net damage (upgrade triggers queue only for the attacked server, src/timing/graph.ts)."
+    },
     "hoshiko-shiro-untold-protagonist": {
       "cycle": "ashes",
       "result": "matches",
@@ -1937,6 +2243,16 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "On score gain 7 and take 1 bad publicity."
+    },
+    "hourglass": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Three subroutines: the Runner loses 1 click if able."
+    },
+    "hq-interface": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Each HQ breach accesses 1 additional card."
     },
     "humanoid-resources": {
       "cycle": "elevation",
@@ -2022,6 +2338,11 @@
       ],
       "note": "area 6 (Runner install): the effect install helpers (may_install_from_grip, install_from_grip_discount, canInstallHeapCard) drop every program that would exceed free MU instead of letting the Runner trash programs to make room, and drop trojans and install-on-ice cards outright. cr-checker: CR 8.5.6c, 3.9.3b, 1.13.6c."
     },
+    "imp": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "2 virus counters on install; access, once per turn, virus counter: trash the accessed card (src/actions/apply.ts access_trash_with_virus). The area 8 finding on how its choice is wired is already in the findings table."
+    },
     "in-the-groove": {
       "cycle": "ashes",
       "result": "matches",
@@ -2034,6 +2355,11 @@
         "While the Runner is accessing this upgrade in R&D, they must reveal it."
       ],
       "note": "Area 4 (visibility): mustRevealWhenAccessedFromRd only writes a log line; nothing records a reveal. The access trigger (the Runner takes 1 tag or the Corp removes 1 bad publicity) matches."
+    },
+    "indexing": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Run R&D; if successful the Runner may, instead of breaching, look at the top 5 and arrange them."
     },
     "infiltration": {
       "cycle": "core-set",
@@ -2067,6 +2393,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "Run any server; bypass the first ice encountered during that run."
+    },
+    "inside-man": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "2 recurring credits, spendable to install hardware."
     },
     "into-the-depths": {
       "cycle": "borealis",
@@ -2127,6 +2458,11 @@
       ],
       "note": "Area 5 (Corp install): may_install_from_hq_paying_costs always makes a new remote. The bounce is resolved in the effect, not paid as the cost (area 11), which plays the same here. 3 credits at turn begin match."
     },
+    "janus-1-0": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Four 1 core damage subroutines; lose click: break 1 subroutine (bioroid break; the subroutines are the same)."
+    },
     "jeitinho": {
       "cycle": "liberation",
       "result": "matches",
@@ -2137,10 +2473,23 @@
       "result": "matches",
       "note": "Whenever an agenda is scored or stolen, 1 net damage (a mandatory pending conditional)."
     },
+    "jinteki-replicating-perfection": {
+      "cycle": "genesis",
+      "result": "filed",
+      "abilities": [
+        "The Runner cannot run on remote servers. Ignore this ability until the end of the turn whenever the Runner runs on a central server."
+      ],
+      "note": "Area 14 (run flow): runs started through pendingStartRun (Charlatan and other card-started runs) never call isRunTargetAllowed, so they can target a remote; may_start_run does not filter its servers either. Already a findings-table row. The basic run check and the central-run unlock match."
+    },
     "jinteki-restoring-humanity": {
       "cycle": "system-gateway",
       "result": "matches",
       "note": "When the Corp's discard phase ends (turn-end step), gain 1 credit if Archives has a facedown card."
+    },
+    "joshua-b": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Unique; at turn begin may gain a click, then take 1 tag when the turn ends."
     },
     "joy-ride": {
       "cycle": "liberation",
@@ -2183,6 +2532,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "1 link; the first program or hardware installed each turn costs 1 less."
+    },
+    "kati-jones": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Unique; once per turn: click to place 3 credits, or click to take all of them."
     },
     "katorga-breakout": {
       "cycle": "borealis",
@@ -2250,6 +2604,11 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "Unique; on encounter a psi game (0-2); if the bids differ the Corp may make the Runner encounter another rezzed ice, then the Konjin encounter resumes."
+    },
+    "kraken": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Play only after stealing an agenda this turn; the Runner chooses a server and the Corp trashes 1 ice protecting it."
     },
     "la-costa-grid": {
       "cycle": "ashes",
@@ -2349,6 +2708,11 @@
         "If the bids differ, you may trash this upgrade. If you do, the Runner moves to the outermost position of this server. They may jack out."
       ],
       "note": "Area 2 (run position): move_runner_to_outermost_attacked only sets the position; it does not move the run to the approach-ice step or guard the phase (as S1b found for Proprionegation). Once per run, the psi game and the optional trash match."
+    },
+    "liberated-account": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Loads 16 credits on install; click: take 4; trashed when empty."
     },
     "lie-low": {
       "cycle": "elevation",
@@ -2569,6 +2933,11 @@
       "fixedIn": "engine#948",
       "test": "the Corp may decline the search, and the card it finds is revealed (CR 9.6.9a, 8.7.3)"
     },
+    "mandatory-upgrades": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "1 additional click each turn."
+    },
     "manegarm-skunkworks": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -2588,6 +2957,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Fracter 1 strength: 2 credits (1 after a successful run this turn) breaks 1 barrier subroutine; 1 credit +1 strength."
+    },
+    "marked-accounts": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "At Corp turn begin take 1 if able; click: place 3."
     },
     "marrow": {
       "cycle": "borealis",
@@ -2722,6 +3096,24 @@
         "5.5.4d"
       ]
     },
+    "midori": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Whenever the Runner approaches a piece of ice protecting this server, you may swap that ice with 1 piece of ice from HQ. If you do, the Runner may jack out. Use this ability only once per run."
+      ],
+      "note": "src/timing/graph.ts marks approachIceTriggersFiredIds when the ability becomes pending, before the Corp chooses, so declining at the outer ice blocks a swap at an inner ice. It should be marked only when the swap happens. onApproachIceOncePerRun is Midori-only. The swap itself is inline and is already on area 3's re-verify list; the jack-out offer matches.",
+      "cr": [
+        "9.6.9",
+        "9.6.9d",
+        "9.1.6b"
+      ]
+    },
+    "midseason-replacements": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Play only if the Runner stole an agenda during their last turn; Trace 6: tags equal to the trace excess."
+    },
     "mimic": {
       "cycle": "core-set",
       "result": "matches",
@@ -2779,6 +3171,11 @@
       "result": "matches",
       "note": "Remove from the game: trash up to 2 HQ cards, reveal up to 2 facedown Archives cards and shuffle them into R&D, may place 1 advancement per agenda revealed. Usable in any paid ability window (src/state/costs.ts unrestrictedPaidAbility)."
     },
+    "morning-star": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interface 1 credit: break any number of barrier subroutines; no pump, as printed."
+    },
     "moshing": {
       "cycle": "ashes",
       "result": "matches",
@@ -2789,10 +3186,28 @@
       "result": "matches",
       "note": "On access while installed, may pay 2 to do 1 core damage; the Runner may lose all clicks to prevent it."
     },
+    "mr-li": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Unique; click: draw 2, then put 1 of them on the bottom of the stack."
+    },
     "mu-safecracker": {
       "cycle": "ashes",
       "result": "matches",
       "note": "Unique; stealth credits only; on a successful HQ run may pay 1 for +1 access, on R&D may pay 2 for +1 access."
+    },
+    "muresh-bodysuit": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "[interrupt] → The first time each turn you would suffer meat damage, prevent 1 meat damage."
+      ],
+      "note": "Modelled as an optional 0-cost paid interrupt with the once_per_turn flag, so the Runner may skip the first meat damage and use it on a later one, or forget it. The printed ability is a mandatory conditional interrupt on the first meat damage each turn.",
+      "cr": [
+        "9.3.7c",
+        "9.6.9b",
+        "9.9.5a"
+      ]
     },
     "muse": {
       "cycle": "liberation",
@@ -2894,10 +3309,25 @@
       "result": "matches",
       "note": "First tag each turn: gain 2 credits or draw 2."
     },
+    "nbn-the-world-is-yours": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Maximum hand size +1."
+    },
     "nebula-talent-management-making-stars": {
       "cycle": "elevation",
       "result": "matches",
       "note": "Action phase end: if an operation was played this turn, gain 1 and flip. Flipped (Gemilang Arena, back face checked against the NRDB catalog): first operation each turn gains a click; a successful HQ or R&D run flips back."
+    },
+    "nerve-agent": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Successful HQ run: 1 virus counter; on an HQ breach choose a number less than the virus counters and access that many more."
+    },
+    "net-police": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Recurring credits equal to the Runner's link, spendable during traces."
     },
     "net-shield": {
       "cycle": "core-set",
@@ -2913,6 +3343,11 @@
         "1.16.11a"
       ]
     },
+    "networking": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Remove 1 tag, then may pay 1 to add this event to the grip."
+    },
     "neural-emp": {
       "cycle": "core-set",
       "result": "matches",
@@ -2927,6 +3362,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Net damage equal to printed agenda points of agendas scored this turn."
+    },
+    "new-angeles-city-hall": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Unique; interrupt, 2 credits: prevent 1 tag; trashed when the Runner steals an agenda."
     },
     "next-activation-command": {
       "cycle": "ashes",
@@ -2982,6 +3422,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "Gain 5; may have each player gain 2."
+    },
+    "notoriety": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Play only after successful runs on R&D, HQ and Archives this turn; added to the score area as a 1-point agenda."
     },
     "nova-initiumia-catalyst-impetus": {
       "cycle": "borealis",
@@ -3097,6 +3542,11 @@
       "result": "matches",
       "note": "Place 5 credits on the event, then run any server, hosted credits spendable during the run."
     },
+    "oversight-ai": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "The Corp rezzes an unrezzed ice ignoring all costs and hosts this as a condition; trash the host if all its subroutines are broken in one encounter."
+    },
     "pad-campaign": {
       "cycle": "core-set",
       "result": "matches",
@@ -3145,6 +3595,11 @@
       "result": "matches",
       "note": "On encounter the Runner loses 1; end the run unless the Runner pays 1."
     },
+    "peacock": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interface 2 credits: break 1 code gate subroutine; 2 credits: +3 strength."
+    },
     "peer-review": {
       "cycle": "elevation",
       "result": "filed",
@@ -3178,6 +3633,11 @@
       "result": "matches",
       "note": "Power counter on rez and on agenda scored or stolen from this server; during a run, power counter: reveal 1 HQ card, Runner cannot steal or trash copies this run."
     },
+    "personal-workshop": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Click: host a program or hardware from the grip with power counters equal to its install cost; 1 credit (any window) or at turn begin: remove 1; at 0 it is installed ignoring all costs. Hosting is in area 1's inventory."
+    },
     "petty-cash": {
       "cycle": "elevation",
       "result": "matches",
@@ -3192,6 +3652,11 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "Unique; 1 power counter at the Corp's discard phase end; first score or steal each turn: remove up to 2 counters for 1 net damage plus 1 per counter removed."
+    },
+    "pheromones": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Recurring credits equal to its virus counters, spendable during runs on HQ; successful HQ run: 1 virus counter."
     },
     "phoneutria": {
       "cycle": "liberation",
@@ -3275,6 +3740,11 @@
         "8.7.3"
       ]
     },
+    "plascrete-carapace": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "4 power counters on install, trashed when empty; interrupt, counter: prevent 1 meat damage."
+    },
     "plutus": {
       "cycle": "elevation",
       "result": "fixed",
@@ -3303,6 +3773,11 @@
       "result": "matches",
       "note": "Loads 3 power counters, trashed when empty; counter: break up to 2 subroutines, only after a subroutine was broken this encounter."
     },
+    "pop-up-window": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On encounter the Corp gains 1; end the run unless the Runner pays 1."
+    },
     "post-truth-dividend": {
       "cycle": "borealis",
       "result": "matches",
@@ -3312,6 +3787,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "On score may forfeit it to give 1 tag and take 1 bad publicity."
+    },
+    "power-grid-overload": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Play only if the Runner made a successful run last turn; Trace 2: the Corp trashes a hardware with install cost at most the trace excess."
     },
     "prana-condenser": {
       "cycle": "ashes",
@@ -3374,6 +3854,18 @@
       "result": "matches",
       "note": "On score may rez 1 ice ignoring all costs (same kind as Send a Message, S1a)."
     },
+    "private-contracts": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Place 14[credit] from the bank on Private Contracts when it is rezzed. When there are no credits left on Private Contracts, trash it."
+      ],
+      "note": "No trashWhenHostedCreditsEmpty, so takeHostedCredits never trashes it when empty; an empty Private Contracts stays installed and unusable. Same missing flag as Anthill Excavation Contract (S1). Placing 14 on rez and click: take 2 match.",
+      "cr": [
+        "1.2.1",
+        "9.6.7"
+      ]
+    },
     "private-security-force": {
       "cycle": "core-set",
       "result": "matches",
@@ -3393,6 +3885,16 @@
       "result": "matches",
       "note": "Unique; first run each turn may look at the top 2 of the stack; once per turn, 1 credit: reveal the top card and may install it if a program or hardware."
     },
+    "project-atlas": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On score, 1 agenda counter per advancement past 3; agenda counter: search R&D for 1 card, reveal it, add it to HQ, shuffle R&D."
+    },
+    "project-beale": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On score, 1 agenda counter per 2 advancements past 3; +1 agenda point per agenda counter."
+    },
     "project-ingatan": {
       "cycle": "elevation",
       "result": "filed",
@@ -3410,6 +3912,11 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "Stolen from anywhere but Archives it enters with 4 agenda counters (replacement); worth 0 while it has counters; one is removed at each Runner turn begin (runnerTurnBeginHooks)."
+    },
+    "project-vitruvius": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On score, 1 agenda counter per advancement past 3; agenda counter: add 1 card from Archives to HQ."
     },
     "project-yagi-uda": {
       "cycle": "ashes",
@@ -3452,6 +3959,11 @@
       "result": "matches",
       "note": "At Corp turn begin reveal the top of R&D and gain 2."
     },
+    "public-sympathy": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Maximum hand size +2."
+    },
     "public-trail": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -3461,6 +3973,16 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "When rezzed during a run on its server the Runner loses [click]; Runner loses 1 per rezzed harmonic ice; ETR unless the Runner spends [click]."
+    },
+    "quality-time": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Draw 5."
+    },
+    "r-d-interface": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Each R&D breach accesses 1 additional card."
     },
     "rabbit-hole": {
       "cycle": "core-set",
@@ -3601,6 +4123,11 @@
       "result": "matches",
       "note": "[click][click][click], trash: gain 9."
     },
+    "replicator": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On installing hardware (Replicator included), may search the stack for another copy, reveal it and add it to the grip, then shuffle."
+    },
     "reprise": {
       "cycle": "borealis",
       "result": "matches",
@@ -3610,6 +4137,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "Install only in the root of HQ; +2 maximum hand size."
+    },
+    "restructured-datapool": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Click: Trace 2, give 1 tag if successful."
     },
     "retirement-plan": {
       "cycle": "vantage-point",
@@ -3624,6 +4156,19 @@
       "result": "matches",
       "note": "Play only if the Runner is tagged; trash 1 installed program or hardware."
     },
+    "retrieval-run": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Run Archives. If successful, instead of breaching Archives, you may install 1 program from your heap, ignoring all costs."
+      ],
+      "note": "The runEvent field skipBreachInstallProgramFromHeap (read in src/timing/graph.ts) always skips the breach, with no 'may', so agendas in Archives cannot be stolen. It also installs the first program in the heap with no choice, inline, with no MU check and no install triggers (area 6's install pattern).",
+      "cr": [
+        "6.7.4c",
+        "8.5.6c",
+        "1.2.1"
+      ]
+    },
     "reverb": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -3633,6 +4178,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "6 power counters on install; interface trash or counter: break 1 sentry subroutine; 2 credits +3 strength."
+    },
+    "rework": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Shuffle 1 card from HQ into R&D."
     },
     "rezeki": {
       "cycle": "ashes",
@@ -3667,6 +4217,11 @@
       "result": "matches",
       "note": "Draw 1 per click remaining."
     },
+    "ronin": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Can be advanced; click, trash: 3 net damage, only with 4 or more advancement counters."
+    },
     "rotary": {
       "cycle": "vantage-point",
       "result": "matches",
@@ -3681,6 +4236,11 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "[click][click][click]: gain 6, then may remove 1 bad publicity."
+    },
+    "ruhr-valley": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Region; running this server costs 1 more click while it is rezzed (src/state/runInitiateTax.ts reads the attacked server's root)."
     },
     "running-hot": {
       "cycle": "borealis",
@@ -3733,6 +4293,11 @@
       "result": "matches",
       "note": "On encounter the Corp names a card type; three 1 net damage subroutines, each +1 net damage when it trashes a card of that type."
     },
+    "salvage": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Advanceable only while rezzed; gains a Trace 2 tag subroutine per advancement counter, after its other subroutines."
+    },
     "salvo-testing": {
       "cycle": "liberation",
       "result": "matches",
@@ -3752,6 +4317,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "Agendas in this server's root get -1 advancement requirement while it is rezzed."
+    },
+    "satellite-uplink": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Expose up to 2 cards."
     },
     "scapegoat": {
       "cycle": "vantage-point",
@@ -3793,6 +4363,11 @@
         "Install 1 program from your heap"
       ],
       "note": "area 6 (Runner install): the effect install helpers (may_install_from_grip, install_from_grip_discount, canInstallHeapCard) drop every program that would exceed free MU instead of letting the Runner trash programs to make room, and drop trojans and install-on-ice cards outright. cr-checker: CR 8.5.6c, 3.9.3b, 1.13.6c."
+    },
+    "scrubber": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "2 recurring credits, spendable on trash costs."
     },
     "sds-drone-deployment": {
       "cycle": "ashes",
@@ -3864,6 +4439,11 @@
       "result": "matches",
       "note": "On score or steal, may rez 1 installed ice ignoring all costs (flag builds rez_ice_ignoring_costs)."
     },
+    "sensei": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "For the rest of the run, other ice the Runner encounters gains end the run after its other subroutines (src/timing/graph.ts skips Sensei itself)."
+    },
     "seraph": {
       "cycle": "liberation",
       "result": "matches",
@@ -3890,6 +4470,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "Can be advanced, +1 strength per advancement; Corp gains 2; trace 3: 1 tag."
+    },
+    "sherlock-1-0": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Two Trace 4 subroutines: the Corp adds 1 installed program to the top of the stack; lose click: break 1 subroutine (bioroid break; the subroutines are the same)."
     },
     "shibboleth": {
       "cycle": "liberation",
@@ -3936,6 +4521,11 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "1 credit on install and on each run begin; at 6 or more takes all, is trashed and draws 1."
+    },
+    "simone-diego": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Unique; 2 recurring credits, spendable to advance cards in the root of or protecting this server."
     },
     "simulation-reset": {
       "cycle": "borealis",
@@ -4028,6 +4618,28 @@
       "result": "matches",
       "note": "[click]: run Archives; if it would be successful, the attacked server becomes HQ."
     },
+    "snitch": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Once per run, you may expose an unrezzed piece of ice when you approach it. You may then jack out."
+      ],
+      "note": "src/timing/graph.ts sets snitchUsedThisRun before the choice opens, so declining at the first unrezzed ice uses it up for the run. Also: the flag is per run rather than per copy, and the !pendingChoice guard skips Snitch when Midori's choice is open at the same ice.",
+      "cr": [
+        "9.1.6",
+        "9.6.9d"
+      ]
+    },
+    "snowball": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interface 1 credit: break 1 barrier subroutine; 1 credit: +1 strength; +1 strength for the run each time it breaks a subroutine."
+    },
+    "snowflake": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Psi 0-2; bids differ: end the run."
+    },
     "solidarity-badge": {
       "cycle": "liberation",
       "result": "matches",
@@ -4065,6 +4677,14 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Unique; draw 2 on rez; remove from the game: shuffle up to 2 from Archives into R&D. The IR's windows list only corp_action_paw, but the engine opens a no-click paid ability in every regular paid-ability window (paidAbilityOpenIn in src/state/costs.ts; checked: Runner action, run initiation, approach and encounter windows all open), as CR 9.2.7b requires."
+    },
+    "spinal-modem": {
+      "cycle": "genesis",
+      "result": "filed",
+      "abilities": [
+        "You can spend hosted credits to use icebreakers."
+      ],
+      "note": "Area 15 (credits, 1.10): recurringSpendFor use_program lets the credits pay for any program; there is no icebreaker-only purpose. Cloak, Cyberfeeder and Ele \"Smoke\" Scovak share it. +1 MU, 2 recurring credits, 1 core damage on a successful trace during a run and the console limit match."
     },
     "spree": {
       "cycle": "liberation",
@@ -4188,6 +4808,11 @@
       "result": "matches",
       "note": "Draw 2; may play 1 non-terminal operation from HQ; Threat 3: if it is the first mandate this turn, may pay 3 to gain [click]."
     },
+    "sunset": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "The Corp chooses a server with 2 or more ice and arranges its ice in any order. Rearrange is in area 2's inventory."
+    },
     "superconducting-hub": {
       "cycle": "system-gateway",
       "result": "matches",
@@ -4207,6 +4832,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Gain 9 credits."
+    },
+    "surge": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Play only if a virus counter was placed on a program this turn; 2 virus counters on that program."
     },
     "svyatogor-excavator": {
       "cycle": "borealis",
@@ -4278,6 +4908,19 @@
       "result": "matches",
       "note": "Loads 9 credits, trashed when empty; once per turn, click: take 3."
     },
+    "test-run": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "Search either your stack or your heap for 1 program. Install that program, ignoring all costs. When your turn ends, if that program has not been uninstalled, add it to the top of your stack."
+      ],
+      "note": "install_program_from_stack_or_heap_free takes the first program in the heap, else the first in the stack: no choice of zone or program, no shuffle after searching the stack, and an inline install with no MU check. Returning the program to the top of the stack at turn end matches. The kind is used only by Test Run.",
+      "cr": [
+        "8.7.2",
+        "8.7.3",
+        "8.5.6c"
+      ]
+    },
     "the-artist": {
       "cycle": "ashes",
       "result": "filed",
@@ -4305,6 +4948,17 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "Unique; when a discard phase ends, if installed this turn, draw 4; interrupt on the first draw each turn: look at draw+1 cards and put 1 on the bottom."
+    },
+    "the-helpful-ai": {
+      "cycle": "genesis",
+      "result": "wrong",
+      "abilities": [
+        "[trash]: Choose an icebreaker. That icebreaker has +2 strength until the end of the turn."
+      ],
+      "note": "Windows are runner_action_paw and encounter_paw only, so it is neither run-wide nor unrestricted: it cannot be used at run initiation, approach, after passing ice or in the Corp's turn. Fix: list only runner_action_paw. Unique, +1 link and the +2 strength until end of turn match.",
+      "cr": [
+        "9.2.7b"
+      ]
     },
     "the-holo-man": {
       "cycle": "liberation",
@@ -4460,6 +5114,11 @@
       "result": "matches",
       "note": "Do 1 net damage; gain 1 credit."
     },
+    "tmi": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "On rez, Trace 2; if unsuccessful, derez itself; end the run subroutine."
+    },
     "tocsin": {
       "cycle": "vantage-point",
       "result": "filed",
@@ -4552,6 +5211,11 @@
       "result": "matches",
       "note": "Unique; the first run begin each turn may move it to the outermost position of the attacked server; may draw 1 and may install ice from HQ on another server ignoring costs; all ice +2 for the run."
     },
+    "trick-of-light": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "The Corp chooses an installed card it can advance, then another card, and moves up to 2 advancement counters (the move_advancements fix in engine#950)."
+    },
     "trick-shot": {
       "cycle": "liberation",
       "result": "matches",
@@ -4611,6 +5275,11 @@
       "result": "matches",
       "note": "Unique; the Runner may lose a click to break 1 chosen subroutine and the Corp gets +1 allotted click next turn; 2 core damage; trash 1 installed Runner card and gain 3; end the run."
     },
+    "tyrant": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Advanceable only while rezzed; gains an end the run subroutine per advancement counter."
+    },
     "ubiquitous-vig": {
       "cycle": "borealis",
       "result": "matches",
@@ -4635,6 +5304,11 @@
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Runner action phase ends: if ice was rezzed this turn draw 2 or remove 1 tag, else trash this."
+    },
+    "underworld-contact": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "At turn begin gain 1 if the Runner has at least 2 link."
     },
     "unity": {
       "cycle": "system-gateway",
@@ -4662,6 +5336,11 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "At turn begin may add an installed non-virus trojan to the grip to host 2 credits; hosted credits pay installs."
+    },
+    "uroboros": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Trace 4: the Runner cannot make another run this turn. Trace 4: end the run."
     },
     "urtica-cipher": {
       "cycle": "system-gateway",
@@ -4695,6 +5374,11 @@
       "cr": [
         "1.2.1"
       ]
+    },
+    "vamp": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Run HQ; if successful the Runner may, instead of breaching, spend X so the Corp loses X, taking 1 tag if X is above 0."
     },
     "vampyronassa": {
       "cycle": "borealis",
@@ -4758,6 +5442,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "Bioroid click break (shared, Runner only); 1 core damage; end the run."
+    },
+    "viper": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Trace 3: the Runner loses 1 click if able. Trace 3: end the run."
     },
     "virtual-intelligence-p-i-you-can-call-me-vic": {
       "cycle": "vantage-point",
@@ -4856,6 +5545,11 @@
         "8.7.1"
       ]
     },
+    "weyland-consortium-because-we-built-it": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "1 recurring credit, spendable to advance ice."
+    },
     "weyland-consortium-building-a-better-world": {
       "cycle": "core-set",
       "result": "matches",
@@ -4876,6 +5570,11 @@
       "fixedIn": "engine#948",
       "test": "placing counters with Seamless Launch is not advancing, so it gains nothing (CR 1.18.2)"
     },
+    "whirlpool": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "The Runner cannot jack out for the rest of the run; trash Whirlpool."
+    },
     "whistleblower": {
       "cycle": "ashes",
       "result": "fixed",
@@ -4895,6 +5594,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Runner loses 3 credits; end the run if the Runner has 6 credits or less."
+    },
+    "whizzard-master-gamer": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Link 0; 3 recurring credits, spendable to trash cards."
     },
     "wildcat-strike": {
       "cycle": "system-gateway",
@@ -4918,6 +5622,11 @@
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Bad publicity on score or steal; Corp action phase end after scoring it this turn: remove all tags, give 3."
+    },
+    "woodcutter": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Advanceable only while rezzed; gains a 1 net damage subroutine per advancement counter."
     },
     "word-on-the-street": {
       "cycle": "vantage-point",
@@ -4951,6 +5660,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "Interface 3: break 1 subroutine on ice with strength 0 or less; interface 1: the encountered ice gets -1 strength for the encounter; 1: +1 strength."
+    },
+    "xanadu": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Unique; every ice costs 1 more to rez."
     },
     "yakov-erikovich-avdakov": {
       "cycle": "borealis",
@@ -4995,6 +5709,11 @@
       "cycle": "borealis",
       "result": "matches",
       "note": "Unique; 1 core damage on install; first successful central run each turn draws 1."
+    },
+    "zu-13-key-master": {
+      "cycle": "genesis",
+      "result": "matches",
+      "note": "Interface 1 credit: break 1 code gate subroutine; 1 credit: +1 strength; memory cost 0 with at least 2 link."
     }
   }
 }
