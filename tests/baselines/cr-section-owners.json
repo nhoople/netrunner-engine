@@ -1,0 +1,4 @@
+{
+  "_comment": "Shrink-only baseline for tests/cr-section-owners.test.ts (CR audit tool 1.13): CR sections whose owner in tests/cr-section-owners.json is `none`. Recorded 2026-11-19 at CR v26.03. A section leaves this list when it gets an owner; a new `none` section fails the test until a dated human decision adds it here.",
+  "none": []
+}
