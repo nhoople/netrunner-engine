@@ -1,6 +1,6 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
 import { revealCards } from "../../state/reveal.js";
-import { addOutermostIce, setRunnerPosition } from "../../state/runPosition.js";
+import { addOutermostIce, moveRunnerToIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { corpInstallCost } from "../../state/costs.js";
 import type { GameState, RuleCite } from "../../state/types.js";
@@ -11,7 +11,8 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
-import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { hostCard } from "../../state/procedures/host.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -22,12 +23,9 @@ function addCompileInstalledToBottom(state: GameState): void {
   if (!id) return;
   const card = state.cards[id];
   if (!card || !state.runner.installed.includes(id)) return;
-  const idx = state.runner.installed.indexOf(id);
-  if (idx >= 0) state.runner.installed.splice(idx, 1);
-  card.zone = "runner:stack";
-  unhostCard(state, card.id);
-  state.runner.deck.push(id);
-  log(state, `Compile — add ${card.title} to bottom of stack.`);
+  uninstallCard(state, id, "deck-bottom", {
+    logLine: `Compile — add ${card.title} to bottom of stack.`,
+  });
 }
 
 function resolveIndependentSourceTrash(state: GameState, cardId: string): void {
@@ -241,9 +239,7 @@ export function applyKitaraWinPrimitive(
         action.serverId as import("../../state/types.js").ServerId;
       const server = state.servers[serverId];
       if (!server) return { ok: true };
-      state.run.attackedServerId = serverId;
-      const pos = server.ice.indexOf(action.iceId);
-      setRunnerPosition(state.run, pos >= 0 ? pos : 0);
+      if (!moveRunnerToIce(state, action.iceId)) return { ok: true };
       state.run.encounter = {
         iceId: action.iceId,
         broken: (state.cards[action.iceId]?.subroutines ?? []).map(() => false),
@@ -600,12 +596,9 @@ export function applyKitaraWinPrimitive(
     case "resolve_intake_bounce": {
       const card = state.cards[action.cardId];
       if (!card) return { ok: true };
-      const idx = state.runner.installed.indexOf(action.cardId);
-      if (idx >= 0) state.runner.installed.splice(idx, 1);
-      card.zone = "runner:grip";
-      unhostCard(state, card.id);
-      state.runner.hand.push(action.cardId);
-      log(state, `Intake — add ${card.title} to grip.`);
+      uninstallCard(state, action.cardId, "hand", {
+        logLine: `Intake — add ${card.title} to grip.`,
+      });
       return { ok: true };
     }
 

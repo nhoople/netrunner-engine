@@ -42,6 +42,7 @@ import { openPendingChoose } from "../state/pendingChoice.js";
 import { fireOnInstallFromNonHq } from "../state/miscConditionalHooks.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { hostCard } from "../state/procedures/host.js";
+import { addOutermostIce } from "../state/runPosition.js";
 
 /** How an install differs from the basic action. */
 export interface CorpInstallOptions {
@@ -427,12 +428,6 @@ function installCorpInner(
   if (trashFirst.length > 0) {
     // The destination does not cease to exist meanwhile (CR 8.5.9).
     state.turn.installDestinationServerId = server.id;
-    const attackedIce =
-      state.run?.attackedServerId === server.id ? [...server.ice] : null;
-    const positionId =
-      attackedIce && typeof state.run?.position === "number"
-        ? attackedIce[state.run.position]
-        : undefined;
     for (const id of trashFirst) {
       const gone = state.cards[id];
       if (!gone) continue;
@@ -445,11 +440,8 @@ function installCorpInner(
           : `Corp trashes a facedown card from ${server.id} before installing (CR ${CR.installTrashLikeCards.number}, ${CR.archivesFacing.number}).`,
       );
     }
-    // Ice outward of the Runner was trashed: their ice keeps its position.
-    if (state.run && positionId && typeof state.run.position === "number") {
-      const at = server.ice.indexOf(positionId);
-      if (at >= 0) state.run.position = at;
-    }
+    // Ice outward of the Runner was trashed: the trash procedure keeps the
+    // Runner in their position (CR 6.2.6).
   }
 
   const iceAlready = card.type === "ice" ? server.ice.length : 0;
@@ -503,18 +495,17 @@ function installCorpInner(
   leaveSourceZone();
 
   if (card.type === "ice") {
-    server.ice.unshift(cardId);
+    // New ice is outermost, so the Runner's ice moves one position inward
+    // in the list (CR 6.2.6a).
+    addOutermostIce(state, server.id, cardId);
     card.zone = `server:${server.id}:ice`;
     card.rezzed = false;
     card.faceup = false;
     card.advancementCounters = card.advancementCounters ?? 0;
-    // New ice is outermost, so the Runner's ice moves one position inward
-    // in the list (CR 6.2.6a).
     if (
       state.run?.attackedServerId === server.id &&
       typeof state.run.position === "number"
     ) {
-      state.run.position += 1;
       log(
         state,
         `The new ice is outward of the Runner, who keeps their position (CR ${CR.iceChangeOutward.number}).`,

@@ -1,4 +1,5 @@
 /** Martial Law (ml) Flashpoint pack primitives — v1.126.0. */
+import { CR } from "../../timing/labels.js";
 import {
   breakNextSubroutines,
   interfaceBlock,
@@ -17,6 +18,7 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { moveRunnerToOutermost } from "../../state/runPosition.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -407,10 +409,9 @@ export function applyFlashpointMlPrimitive(
         log(state, `Mind Game — invalid redirect.`);
         return { ok: true };
       }
-      state.run.attackedServerId = serverId;
-      // Move to outermost ice position (index 0).
-      const iceLen = state.servers[serverId]!.ice.length;
-      (state.run as { position?: number }).position = iceLen > 0 ? 0 : -1;
+      // "The Runner moves to the outermost position of that server"
+      // (CR 6.2.8b): no position, not −1, when it has no ice.
+      const moved = moveRunnerToOutermost(state, serverId);
       (
         state.run as {
           jackOutAdditionalCostAddInstalledToStackBottom?: boolean;
@@ -418,7 +419,9 @@ export function applyFlashpointMlPrimitive(
       ).jackOutAdditionalCostAddInstalledToStackBottom = true;
       log(
         state,
-        `Mind Game — move to outermost of ${serverId}; jack out costs +1 installed to stack bottom.`,
+        moved
+          ? `Mind Game — move to outermost of ${serverId}; jack out costs +1 installed to stack bottom.`
+          : `Mind Game — the Runner cannot move to a position now (CR ${CR.ineffectiveMove.number}); jack out costs +1 installed to stack bottom.`,
       );
       return evalEffect(ctx, fx.do({ kind: "offer_jack_out" }));
     }

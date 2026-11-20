@@ -10,15 +10,14 @@ import {
 import { addOutermostIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { offerRdArrangeChoice } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { unhostCard } from "../../state/procedures/host.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -39,11 +38,7 @@ function exposeIceAndMaybeBounce(
     return { ok: true };
   }
   // Bounce to HQ
-  removeCardFromCurrentZone(state, iceId);
-  state.corp.hand.push(iceId);
-  ice.zone = "corp:hq";
-  ice.rezzed = false;
-  ice.faceup = false;
+  uninstallCard(state, iceId, "hand");
   log(state, `Wari — add ${ice.title} to HQ (${namedSubtype}).`);
   return { ok: true };
 }
@@ -637,13 +632,10 @@ export function applyKitaraDtwnPrimitive(
     case "resolve_jua_bounce": {
       const id = action.cardId;
       if (!state.runner.installed.includes(id)) return { ok: true };
-      state.runner.installed = state.runner.installed.filter((x) => x !== id);
       const card = state.cards[id]!;
-      unhostCard(state, card.id);
-      card.zone = "runner:stack";
-      card.faceup = false;
-      state.runner.deck.unshift(id);
-      log(state, `Jua — add ${card.title} to top of the stack.`);
+      uninstallCard(state, id, "deck-top", {
+        logLine: `Jua — add ${card.title} to top of the stack.`,
+      });
       return { ok: true };
     }
 

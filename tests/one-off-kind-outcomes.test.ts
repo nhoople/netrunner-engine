@@ -52,6 +52,10 @@ function put(
 ): GameState["cards"][string] {
   const card = instantiateCard(defId, id, zone);
   s.cards[id] = card;
+  // Ice given a server zone protects that server (CR 6.2.1, 4.6.9a).
+  const ice = /^server:(.+):ice$/.exec(zone);
+  const server = ice ? s.servers[ice[1]!] : undefined;
+  if (server && !server.ice.includes(id)) server.ice.push(id);
   return card;
 }
 
@@ -660,7 +664,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const komainu = put(s, "komainu", "kom-1", "server:hq:ice");
     komainu.rezzed = true;
     s.servers["hq"].ice = ["kom-1"];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     s.runner.hand = ["a", "b", "c", "d"];
     const base = s.cards["kom-1"]?.subroutines?.length ?? 0;
     runKind(s, "kom-1", "add_net_subs_for_rezzed_ice");
@@ -794,7 +798,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("run-flag kinds set their remainder-of-run restrictions", () => {
     const s = createInitialState();
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     put(s, "armored-servers", "as-1", "corp:identity");
     runKind(s, "as-1", "armored_servers_activate_this_run");
     expect(s.run.armoredServersTrashGripAdditionalCost).toBe(true);
@@ -1437,7 +1441,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Caprice Nisei: differing secret spends end the run; matching spends do not", () => {
     const s = createInitialState();
     put(s, "caprice-nisei", "cap-1", "server:remote-1:root");
-    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    s.run = {
+      attackedServerId: "remote-1",
+      position: null,
+    } as GameState["run"];
     s.runner.credits = 5;
     s.corp.credits = 5;
     runKind(s, "cap-1", "spend_caprice_nisei_secret");
@@ -1452,7 +1459,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
     const s2 = createInitialState();
     put(s2, "caprice-nisei", "cap-1", "server:remote-1:root");
-    s2.run = { attackedServerId: "remote-1" } as GameState["run"];
+    s2.run = {
+      attackedServerId: "remote-1",
+      position: null,
+    } as GameState["run"];
     s2.runner.credits = 5;
     s2.corp.credits = 5;
     runKind(s2, "cap-1", "spend_caprice_nisei_secret");
@@ -1643,7 +1653,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Inazuma locks breaking for the next encounter; Susanoo redirects the run to Archives", () => {
     const s = createInitialState();
     put(s, "inazuma", "inz-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "inz-1", "inazuma_lock_breaking_next_encounter");
     expect(s.run.inazumaLockNextEncounter).toBe(true);
 
@@ -1866,7 +1876,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Interrupt 0: icebreaker break costs rise by the amount for this run", () => {
     const s = createInitialState();
     put(s, "interrupt-0", "int-1", "runner:installed");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "int-1", "break_arm_icebreaker_additional_cost_this_run", {
       amount: 2,
     });
@@ -1876,7 +1886,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Vikram 1.0: the Runner cannot use programs for the rest of the run", () => {
     const s = createInitialState();
     put(s, "vikram-1-0", "vik-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "vik-1", "cannot_use_programs_this_run_kg");
     expect(s.run.kgCannotUsePrograms).toBe(true);
   });
@@ -1998,7 +2008,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Mind Game: on psi differ, the Corp may redirect the run to another server", () => {
     const s = createInitialState();
     put(s, "mind-game", "mg-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "mg-1", "psi_differ_redirect");
     const after = applyAction(s, {
       type: "choose_option",
@@ -2156,6 +2166,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "mad-dash", "md-1", "runner:play");
     s.run = {
+      position: null,
       attackedServerId: "hq",
       agendasStolenThisRun: 1,
       accessCandidates: [],
@@ -2170,6 +2181,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s2, "sure-gamble", "grip-1", "runner:hand");
     s2.runner.hand = ["grip-1"];
     s2.run = {
+      position: null,
       attackedServerId: "hq",
       agendasStolenThisRun: 0,
       accessCandidates: [],
@@ -2500,7 +2512,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "expert-schedule-analyzer", "esa-1", "runner:installed");
     put(s, "hedge-fund", "hq-1", "corp:hand");
     s.corp.hand = ["hq-1"];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "esa-1", "may_breach_instead_expert_schedule_analyzer");
     expect(s.run.skipBreach).toBe(true);
     expect(s.log.some((l) => l.includes("Hedge Fund"))).toBe(true);
@@ -2511,7 +2523,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "code-siphon", "cs-1", "runner:play");
     put(s, "corroder", "stk-1", "runner:stack");
     s.runner.deck = ["stk-1"];
-    s.run = { attackedServerId: "rd" } as GameState["run"];
+    s.run = { attackedServerId: "rd", position: null } as GameState["run"];
     runKind(s, "cs-1", "may_breach_instead_code_siphon");
     const after = applyAction(s, {
       type: "choose_option",
@@ -2525,7 +2537,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "wanton-destruction", "wd-1", "runner:play");
     s.runner.clicks = 2;
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "wd-1", "breach_instead_wanton_destruction");
     expect(s.run.skipBreach).toBe(true);
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
@@ -2537,7 +2549,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "record-reconstructor", "rr-1", "runner:installed");
     put(s, "hedge-fund", "arch-1", "corp:discard");
     s.corp.discardPile = ["arch-1"];
-    s.run = { attackedServerId: "archives" } as GameState["run"];
+    s.run = {
+      attackedServerId: "archives",
+      position: null,
+    } as GameState["run"];
     runKind(s, "rr-1", "breach_instead_record_reconstructor_archives");
     expect(s.run.skipBreach).toBe(true);
   });
@@ -2545,7 +2560,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Hades Shard: breaching Archives instead cannot access its root", () => {
     const s = createInitialState();
     put(s, "hades-shard", "hs-1", "runner:installed");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "hs-1", "breach_archives");
     expect(s.run.attackedServerId).toBe("archives");
     expect(s.run.cannotAccessRoot).toBe(true);
@@ -2766,7 +2781,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       ice: ["iw-1"],
       root: ["hh-1"],
     } as GameState["servers"][string];
-    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    s.run = {
+      attackedServerId: "remote-1",
+      position: null,
+    } as GameState["run"];
     runKind(
       s,
       "hh-1",
@@ -3098,6 +3116,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.rezzed = true;
     s.servers["hq"].ice = ["iw-1"];
     s.run = {
+      position: null,
       attackedServerId: "hq",
       iceRezzedThisRunIds: ["iw-1"],
     } as GameState["run"];
@@ -3112,6 +3131,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.rezzed = true;
     s.servers["hq"].ice = ["km-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "km-1" },
     } as unknown as GameState["run"];
@@ -3277,7 +3297,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Trick Shot: places hosted credits on the run", () => {
     const s = createInitialState();
     put(s, "trick-shot", "ts-1", "runner:play");
-    s.run = { attackedServerId: "rd" } as GameState["run"];
+    s.run = { attackedServerId: "rd", position: null } as GameState["run"];
     runKind(s, "ts-1", "place_event_credits", { amount: 4 });
     expect(s.run.eventCredits).toBe(4);
   });
@@ -3385,7 +3405,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       ice: [],
       root: ["as-1"],
     } as GameState["servers"][string];
-    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    s.run = {
+      attackedServerId: "remote-1",
+      position: null,
+    } as GameState["run"];
     runKind(s, "ltf-1", "trash_attacked_server_root");
     expect(s.corp.discardPile).toContain("as-1");
     expect(s.servers["remote-1"].root).toEqual([]);
@@ -3451,7 +3474,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Marker: the next ice encountered this run gains an end-the-run subroutine", () => {
     const s = createInitialState();
     put(s, "marker", "mk-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "mk-1", "add_etr_to_next_ice");
     expect(s.run.markerExtraEtrNextIce).toBe(true);
   });
@@ -3565,6 +3588,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "stavka", "st-1", "server:hq:ice");
     s.run = {
+      position: null,
       attackedServerId: "hq",
     } as GameState["run"];
     runKind(s, "st-1", "fortify_ice", { amount: 5 });
@@ -3622,6 +3646,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.rezzed = true;
     s.servers["hq"].ice = ["iw-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1" },
     } as unknown as GameState["run"];
@@ -3814,7 +3839,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "ice-wall", "iw-a", "corp:archives");
     s.corp.discardPile = ["iw-a"];
     s.corp.hand = [];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "bran-1", "install_ice_inward_free");
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toContain("bran:iw-a");
@@ -3872,6 +3897,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "hedge-fund", "rd-2", "corp:rd");
     s.corp.deck = ["rd-1", "rd-2"];
     s.run = {
+      position: null,
       attackedServerId: "rd",
       accessingCardId: "rd-1",
     } as unknown as GameState["run"];
@@ -3971,7 +3997,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "project-beale", "sc-1", "corp:score");
     put(s, "nisei-mk-ii", "sc-2", "corp:score");
     s.corp.scoreArea = ["sc-1", "sc-2"];
-    s.run = { attackedServerId: "archives" } as GameState["run"];
+    s.run = {
+      attackedServerId: "archives",
+      position: null,
+    } as GameState["run"];
     runKind(s, "pg-1", "host_on_scored_agenda");
     const opt = s.pendingChoice?.options[0];
     if (!opt) throw new Error("expected a host choice");
@@ -3984,7 +4013,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("RSVP: the Runner cannot spend credits for the remainder of the run", () => {
     const s = createInitialState();
     put(s, "rsvp", "rs-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "rs-1", "forbid_runner_spend_credits_for_run");
     expect(s.run.runnerCannotSpendCreditsForRun).toBe(true);
   });
@@ -4003,6 +4032,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "enigma", "en-1", "server:hq:ice");
     ice.subroutines = [{ text: "Sub A" }, { text: "Sub B" }] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -4021,6 +4051,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.subroutines = [{ text: "End the run." }] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [false] },
     } as unknown as GameState["run"];
@@ -4034,6 +4065,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "enigma", "en-1", "server:hq:ice");
     ice.subroutines = [{ text: "Sub A" }, { text: "Sub B" }] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [true, false] },
     } as unknown as GameState["run"];
@@ -4045,6 +4077,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice2 = put(s2, "enigma", "en-1", "server:hq:ice");
     ice2.subroutines = [{ text: "Sub A" }, { text: "Sub B" }] as never;
     s2.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, true] },
     } as unknown as GameState["run"];
@@ -4057,6 +4090,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "logic-bomb", "lb-1", "runner:installed");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [] },
     } as unknown as GameState["run"];
@@ -4070,6 +4104,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "panchatantra", "pa-1", "runner:installed");
     put(s, "ice-wall", "iw-1", "server:hq:ice");
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [] },
     } as unknown as GameState["run"];
@@ -4173,7 +4208,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Checkpoint: schedules 3 meat damage if this run is successful", () => {
     const s = createInitialState();
     put(s, "checkpoint", "cp-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "cp-1", "checkpoint_schedule_meat_on_successful_run", {
       amount: 3,
     });
@@ -4202,7 +4237,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.subroutines = [{ text: "End the run." }] as never;
     s.servers["hq"].ice = ["iw-1"];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "pk-1", "grant_kusanagi_net_subroutine_this_run");
     const after = applyAction(s, {
       type: "choose_option",
@@ -4241,7 +4276,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "code-replicator", "cr-1", "server:hq:root");
     s.servers["hq"].root = ["cr-1"];
     put(s, "ice-wall", "iw-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     s.turn.cotcLastPassedIceId = "iw-1";
     runKind(s, "cr-1", "cotc_code_replicator");
     expect(s.corp.discardPile).toContain("cr-1");
@@ -4251,7 +4286,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("RNG Key: names a number for the next card accessed this run", () => {
     const s = createInitialState();
     put(s, "rng-key", "rng-1", "runner:installed");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "rng-1", "dtwn_rng_key");
     const after = applyAction(s, { type: "choose_option", optionId: "rng:7" });
     if (!after.ok) throw new Error(after.error);
@@ -4387,7 +4422,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "corroder", "br-1", "runner:installed");
     put(s, "gordian-blade", "br-2", "runner:installed");
     s.runner.installed = ["nre-1", "br-1", "br-2"];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "nre-1", "net_ready_eyes_choose_icebreaker_strength", {
       amount: 1,
     });
@@ -4476,7 +4511,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "takobi", "tk-1", "runner:installed");
     put(s, "corroder", "br-1", "runner:installed");
     s.runner.installed = ["tk-1", "br-1"];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "tk-1", "pump_takobi_breaker", { amount: 3 });
     const after = applyAction(s, {
       type: "choose_option",
@@ -4492,65 +4527,28 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ).toBe(3);
   });
 
-  it("Mandatory Seed Replacement: rearranges ice across servers (CR 8.3.1)", () => {
+  it("Mandatory Seed Replacement: swaps ice between servers, and each server keeps its number of ice (CR 8.3.1, 8.3.2, 6.2.2f)", () => {
     const s = createInitialState();
+    s.cards["runner-program-1"]!.rezzed = false;
     put(s, "mandatory-seed-replacement", "msr-1", "corp:score");
+    s.corp.scoreArea = ["msr-1"];
+    coversKind("rearrange_ice");
     put(s, "ice-wall", "iw-a", "server:hq:ice");
     put(s, "enigma", "en-1", "server:rd:ice");
     s.servers["hq"]!.ice = ["iw-a"];
     s.servers["rd"]!.ice = ["en-1"];
-    // Pool all ice; Done every server until R&D, then stack both there
-    // (printed: any number protecting all servers; CR 8.3.1 allows server change).
+    const before = snapshot(s);
     runKind(s, "msr-1", "rearrange_ice_protecting_all_servers");
     expect(s.pendingChoice?.chooser).toBe("corp");
-    let after = { ok: true as const, state: s };
-    while (
-      after.state.pendingChoice?.options.some(
-        (o) =>
-          o.id === "msr-server-done:hq" || o.id.startsWith("msr-server-done:"),
-      ) &&
-      !after.state.pendingChoice.options.some((o) =>
-        o.id.startsWith("msr-ice:rd:"),
-      )
-    ) {
-      const done = after.state.pendingChoice!.options.find((o) =>
-        o.id.startsWith("msr-server-done:"),
-      )!;
-      // Skip Done on R&D — place ice there instead.
-      if (done.id === "msr-server-done:rd") break;
-      const next = applyAction(after.state, {
-        type: "choose_option",
-        optionId: done.id,
-      });
-      if (!next.ok) throw new Error(next.error);
-      after = next;
-    }
-    // On R&D: place Enigma then Ice Wall (sole remainder auto-places).
-    expect(
-      after.state.pendingChoice?.options.some(
-        (o) => o.id === "msr-ice:rd:en-1",
-      ),
-    ).toBe(true);
-    let next = applyAction(after.state, {
-      type: "choose_option",
-      optionId: "msr-ice:rd:en-1",
+    // HQ's one position is filled first; Enigma goes there, so Ice Wall
+    // takes R&D's.
+    const after = choose(s, "arrange:hq:0:en-1");
+    expectStateDelta(before, after, {
+      "servers.hq.ice": { from: ["iw-a"], to: ["en-1"] },
+      "servers.rd.ice": { from: ["en-1"], to: ["iw-a"] },
+      "cards.en-1.zone": { to: "server:hq:ice" },
+      "cards.iw-a.zone": { to: "server:rd:ice" },
     });
-    if (!next.ok) throw new Error(next.error);
-    after = next;
-    if (
-      after.state.pendingChoice?.options.some((o) => o.id === "msr-ice:rd:iw-a")
-    ) {
-      next = applyAction(after.state, {
-        type: "choose_option",
-        optionId: "msr-ice:rd:iw-a",
-      });
-      if (!next.ok) throw new Error(next.error);
-      after = next;
-    }
-    expect(after.state.servers["hq"]!.ice).toEqual([]);
-    expect(after.state.servers["rd"]!.ice).toEqual(["en-1", "iw-a"]);
-    expect(after.state.cards["en-1"]!.zone).toBe("server:rd:ice");
-    expect(after.state.cards["iw-a"]!.zone).toBe("server:rd:ice");
   });
 
   it("Shiro: Corp may pay 1¢ else Runner breaches R&D with no root access (CR 7.3)", () => {
@@ -4632,6 +4630,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "enigma", "en-1", "server:hq:ice");
     ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -4643,6 +4642,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const raven = put(s2, "data-raven", "dr-1", "server:hq:ice");
     raven.subroutines = [{ text: "A" }] as never;
     s2.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "dr-1", broken: [false] },
     } as unknown as GameState["run"];
@@ -4660,6 +4660,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const raven = put(s, "data-raven", "dr-1", "server:hq:ice");
     raven.subroutines = [{ text: "A" }] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "dr-1", broken: [false] },
     } as unknown as GameState["run"];
@@ -4674,6 +4675,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "enigma", "en-1", "server:hq:ice");
     ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -4689,6 +4691,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.subroutines = [{ text: "End the run." }] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [false] },
     } as unknown as GameState["run"];
@@ -4708,6 +4711,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "rototurret", "rt-1", "server:hq:ice");
     ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "rt-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -4719,6 +4723,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice2 = put(s2, "enigma", "en-1", "server:hq:ice");
     ice2.subroutines = [{ text: "A" }] as never;
     s2.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false] },
     } as unknown as GameState["run"];
@@ -4988,7 +4993,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("TL;DR: arms duplicate subroutines on the next ice encounter this run", () => {
     const s = createInitialState();
     put(s, "tl-dr", "tl-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "tl-1", "arm_duplicate_subs_on_next_ice_encounter");
     expect(s.turn.dadDuplicateSubsOnNextIceEncounter).toBe(true);
   });
@@ -5001,7 +5009,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "pad-campaign", "pad-1", "corp:hand");
     s.corp.hand = ["hf-a", "hf-b", "pad-1"];
     s.corp.deck = [];
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "cbi-1", "breach_instead_cbi_raid");
     expect(s.run?.skipBreach).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("corp");
@@ -5024,7 +5035,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Virtuoso: marks the named server to breach when the run ends", () => {
     const s = createInitialState();
     put(s, "virtuoso", "vir-1", "runner:installed");
-    s.run = { attackedServerId: "archives" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "archives",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "vir-1", "breach_server_when_run_ends", { server: "rd" });
     expect(s.run?.breachWhenRunEnds).toBe("rd");
   });
@@ -5039,6 +5053,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       { text: "Sub C" },
     ] as never;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false, false] },
     } as unknown as GameState["run"];
@@ -5067,6 +5082,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.strength = 0;
     mat.strength = 5;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -5193,6 +5209,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"]!.ice = ["loki-1"];
     s.servers["rd"]!.ice = ["en-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "loki-1", broken: [] },
     } as unknown as GameState["run"];
@@ -5211,7 +5228,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "the-turning-wheel", "tw-1", "runner:installed");
     s.runner.installed = ["tw-1"];
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "tw-1", "choose_turning_wheel_central_bonus_access");
     const after = applyAction(s, {
       type: "choose_option",
@@ -5327,7 +5347,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Holmegaard: forbids access and breach for the remainder of the run", () => {
     const s = createInitialState();
     put(s, "holmegaard", "hol-1", "server:hq:ice");
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "hol-1", "forbid_access_and_breach_this_run");
     expect(s.run?.holmegaardForbidAccessBreach).toBe(true);
     expect(s.run?.skipBreach).toBe(true);
@@ -5337,6 +5360,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     const ice = put(s, "anvil", "anv-1", "server:hq:ice");
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "anv-1", broken: [] },
     } as unknown as GameState["run"];
@@ -5408,7 +5432,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       trojan.subtypes = [...(trojan.subtypes ?? []), "trojan"];
     }
     s.runner.installed = ["imp-1"];
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "sp-1", "host_installed_trojan_on_attacked_ice");
     expect(s.pendingChoice?.chooser).toBe("runner");
     const after = applyAction(s, {
@@ -5508,7 +5535,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "hedge-fund", "hf-b", "corp:hand");
     put(s, "pad-campaign", "pad-1", "corp:hand");
     s.corp.hand = ["hf-a", "hf-b", "pad-1"];
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "is-1", "information_sifting_corp_split_hq");
     expect(s.run?.skipBreach).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("corp");
@@ -5708,7 +5738,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.hand = ["iw-1"];
     put(s, "enigma", "en-1", "server:hq:ice");
     s.servers["hq"]!.ice = ["en-1"];
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "mti-1", "install_mti_ice_innermost_from_hq");
     const after = applyAction(s, {
       type: "choose_option",
@@ -5846,7 +5879,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "diversion-of-funds", "dof-1", "runner:play-area");
     s.corp.credits = 8;
     s.runner.credits = 3;
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "dof-1", "may_breach_instead_diversion_funds_ka");
     expect(s.pendingChoice?.chooser).toBe("runner");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
@@ -5868,7 +5904,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const ice = put(s, "ice-wall", "iw-1", "server:hq:ice");
     ice.advancementCounters = 3;
     s.servers["hq"]!.ice = ["iw-1"];
-    s.run = { attackedServerId: "hq" } as unknown as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+    } as unknown as GameState["run"];
     runKind(s, "er-1", "may_breach_instead_exploratory_romp", { amount: 3 });
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
       expect.arrayContaining(["breach", "romp"]),
@@ -5933,6 +5972,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.hand = ["iw-1"];
     s.servers["hq"]!.ice = ["bloom-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "bloom-1", broken: [] },
     } as unknown as GameState["run"];
@@ -5986,6 +6026,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.rezzed = true;
     s.servers["hq"]!.ice = ["mir-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "mir-1", broken: [true] },
     } as unknown as GameState["run"];
@@ -6065,6 +6106,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "sure-gamble", "sg-0", "runner:stack");
     s.runner.deck = ["sg-0"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "dr-1", broken: [], subroutinesResolved: 2 },
     } as unknown as GameState["run"];
@@ -6079,6 +6121,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "mobius", "mob-1", "runner:play-area");
     s.runner.credits = 2;
     s.run = {
+      position: null,
       attackedServerId: "rd",
       successful: true,
     } as unknown as GameState["run"];
@@ -6092,6 +6135,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s2.runner.credits = 2;
     s2.turn.mobiusSecondRun = true;
     s2.run = {
+      position: null,
       attackedServerId: "rd",
       successful: true,
     } as unknown as GameState["run"];
@@ -6154,7 +6198,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "tori-hanzo", "tori-1", "server:hq:root");
     // May/pay is the interrupt ability's 2¢ cost; this kind only replaces.
-    s.run = { attackedServerId: "hq", netDamageWould: 1 } as GameState["run"];
+    s.run = {
+      attackedServerId: "hq",
+      position: null,
+      netDamageWould: 1,
+    } as GameState["run"];
     s.pendingDamage = {
       type: "net",
       remaining: 3,
@@ -6232,7 +6280,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Transport Monopoly: prevent_declare_run_successful marks the run", () => {
     const s = createInitialState();
     put(s, "transport-monopoly", "tm-1", "corp:score");
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "tm-1", "prevent_declare_run_successful");
     expect(s.run?.cannotDeclareSuccessful).toBe(true);
   });
@@ -6339,6 +6387,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "blackat", "bk-1", "runner:installed");
     s.runner.installed = ["bk-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [] },
     } as unknown as GameState["run"];
@@ -6356,6 +6405,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s2, "blackat", "bk-2", "runner:installed");
     s2.runner.installed = ["bk-2"];
     s2.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [] },
     } as unknown as GameState["run"];
@@ -6433,6 +6483,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.discardPile = ["mar-1"];
     s.runner.clicks = 2;
     s.run = {
+      position: null,
       attackedServerId: "remote-1",
       runSourceId: "mar-1",
     } as GameState["run"];
@@ -6751,6 +6802,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"]!.ice = ["iw-1"];
     s.servers["hq"]!.root = ["mb-1"];
     s.run = {
+      position: null,
       attackedServerId: "hq",
       accessedCardIds: [],
     } as unknown as GameState["run"];
@@ -6835,6 +6887,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.installed = ["prog-1"];
     s.runner.deck = [];
     s.run = {
+      position: null,
       attackedServerId: "hq",
       betaBuildTrackedInstallId: "prog-1",
     } as GameState["run"];
@@ -6852,7 +6905,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.hand = ["ftm-2", "ftm-3"];
     for (let i = 0; i < 5; i++) put(s, "hedge-fund", `rd-${i}`, "corp:rd");
     s.corp.deck = ["rd-0", "rd-1", "rd-2", "rd-3", "rd-4"];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "ftm-1", "reveal_copies_trash_rd");
     expect(s.run?.skipBreach).toBe(true);
     // "reveal any number of copies": the Runner says how many (CR 1.15.2).
@@ -6899,7 +6952,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "hedge-fund", "hf-1", "corp:hand");
     s.corp.hand = ["ht-1", "hf-1"];
     s.servers["hq"]!.root = ["pr-1"];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "pr-1", "reveal_hq_forbid_steal_trash_copies_this_run");
     expect(s.pendingChoice?.chooser).toBe("corp");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
@@ -7270,7 +7323,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       ice: ["iw-1"],
       root: ["sd-1", "pad-1"],
     } as GameState["servers"][string];
-    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    s.run = {
+      attackedServerId: "remote-1",
+      position: null,
+    } as GameState["run"];
     for (let i = 0; i < 4; i++) put(s, "sure-gamble", `sg-${i}`, "runner:hand");
     s.runner.hand = ["sg-0", "sg-1", "sg-2", "sg-3"];
     s.runner.link = 0;
@@ -7288,7 +7344,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     const s = createInitialState();
     put(s, "sensei", "sen-1", "server:hq:ice");
     s.servers["hq"]!.ice = ["sen-1"];
-    s.run = { attackedServerId: "hq" } as GameState["run"];
+    s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "sen-1", "sensei_register_etr_on_other_ice_for_run");
     expect(s.run?.senseiEtrSourceIds).toEqual(["sen-1"]);
   });
@@ -7306,7 +7362,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       ice: [],
       root: ["pad-1", "ht-1"],
     } as GameState["servers"][string];
-    s.run = { attackedServerId: "remote-1" } as GameState["run"];
+    s.run = {
+      attackedServerId: "remote-1",
+      position: null,
+    } as GameState["run"];
     runKind(s, "bic-1", "shuffle_because_i_can_root");
     expect(s.servers["remote-1"]!.root).toEqual([]);
     expect(s.corp.deck).toEqual(
@@ -7491,6 +7550,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.subroutines = [{ text: "A" }, { text: "B" }, { text: "C" }] as never;
     s.servers["hq"]!.ice = ["cobra-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "cobra-1", broken: [false, false, false] },
     } as unknown as GameState["run"];
@@ -7510,6 +7570,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     hunter.subroutines = [{ text: "A" }, { text: "B" }] as never;
     s2.servers["hq"]!.ice = ["hun-1"];
     s2.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "hun-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -7532,6 +7593,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
     s.servers["hq"]!.ice = ["en-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "en-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -7551,6 +7613,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     toll.subroutines = [{ text: "A" }, { text: "B" }] as never;
     s2.servers["hq"]!.ice = ["tb-1"];
     s2.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "tb-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -7625,6 +7688,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.subroutines = [{ text: "A" }, { text: "B" }] as never;
     s.servers["hq"]!.ice = ["wos-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "wos-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -7655,6 +7719,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     tall.subroutines = [{ text: "A" }, { text: "B" }] as never;
     s2.servers["hq"]!.ice = ["heim-1"];
     s2.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "heim-1", broken: [false, false] },
     } as unknown as GameState["run"];
@@ -7991,6 +8056,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.subroutines = [{ text: "ETR" }] as never;
     s.servers["hq"]!.ice = ["iw-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1", broken: [false] },
     } as unknown as GameState["run"];
@@ -8009,6 +8075,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice2.subroutines = [{ text: "ETR" }] as never;
     s2.servers["hq"]!.ice = ["iw-2"];
     s2.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-2", broken: [false] },
     } as unknown as GameState["run"];
@@ -8061,6 +8128,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.link = 0;
     s.runner.clicks = 3;
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "troll-1", broken: [false] },
     } as unknown as GameState["run"];
@@ -8326,6 +8394,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.hand = ["hq-keep", "hq-trash"];
     s.servers["hq"]!.ice = ["ice-1"];
     s.run = {
+      position: null,
       attackedServerId: "hq",
       pendingReencounterIceId: "ice-1",
     } as unknown as GameState["run"];
@@ -8371,6 +8440,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     ice.rezzed = true;
     s.servers["hq"]!.ice = ["iw-1"];
     s.run = {
+      position: null,
       attackedServerId: "hq",
       iceRezzedThisRunIds: ["iw-1"],
     } as unknown as GameState["run"];
@@ -8446,6 +8516,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.hand = ["grip-1"];
     s.servers["hq"]!.ice = ["iw-1"];
     s.run = {
+      position: 0,
       attackedServerId: "hq",
       encounter: { iceId: "iw-1" },
     } as unknown as GameState["run"];
@@ -8470,6 +8541,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "gordian-blade", "unused-1", "runner:installed");
     s.runner.installed = ["used-1", "unused-1"];
     s.run = {
+      position: null,
       attackedServerId: "hq",
       programsUsedThisRun: ["used-1"],
     } as unknown as GameState["run"];
@@ -8683,6 +8755,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"]!.root = ["wow-1"];
     s.runner.installed = ["brk-1", "unused-1"];
     s.run = {
+      position: null,
       attackedServerId: "hq",
       breakersThatBroke: ["brk-1"],
     } as unknown as GameState["run"];

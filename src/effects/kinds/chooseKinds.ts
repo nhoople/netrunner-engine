@@ -664,9 +664,9 @@ export function applyChooseKinds(
           effect: {
             op: "do" as const,
             action: {
-              kind: "rearrange_server_ice" as const,
-              serverId: s.id,
-              order: [],
+              kind: "rearrange_ice" as const,
+              chooser: "corp" as const,
+              serverIds: [s.id],
             },
           },
         })),

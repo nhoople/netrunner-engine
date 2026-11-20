@@ -58,14 +58,6 @@
       "detail": "basic_install at runner.takeAction: Egret must be installed on rezzed ice."
     },
     {
-      "format": "core",
-      "deckSeed": 14,
-      "step": 24,
-      "code": "POSITION_OUT_OF_RANGE",
-      "recorded": "2026-11-13",
-      "detail": "run position 0 is outside hq ice (0)"
-    },
-    {
       "format": "standard",
       "deckSeed": 2,
       "step": 48,

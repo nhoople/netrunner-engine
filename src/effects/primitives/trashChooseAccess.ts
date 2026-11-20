@@ -13,6 +13,7 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { hostCard, unhostCard } from "../../state/procedures/host.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -505,8 +506,12 @@ export function applyRedsandSoPrimitive(
     case "move_to_hq": {
       const cardId = action.cardId;
       if (!cardId || !state.cards[cardId]) return { ok: true };
-      removeCardFromCurrentZone(state, cardId);
       const card = state.cards[cardId]!;
+      if (uninstallCard(state, cardId, "hand")) {
+        log(state, `Replanting — add ${card.title} to HQ.`);
+        return { ok: true };
+      }
+      removeCardFromCurrentZone(state, cardId);
       card.zone = "corp:hq";
       card.rezzed = false;
       card.faceup = false;

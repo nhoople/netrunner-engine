@@ -12,13 +12,13 @@ import {
 import { log } from "../../state/createGame.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../../state/identityFlipHooks.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { fireOnAfterOperationOrExpendable } from "../eval.js";
 
 import { noteCheckpointAndResolvePlay } from "../eval.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 export function applyPlayKinds(
   ctx: EffectCtx,
@@ -255,12 +255,7 @@ export function applyPlayKinds(
         `Corp plays ${card.title} from Archives for ${cost}¢ (Plutus).`,
       );
       noteCheckpointAndResolvePlay(state, cardId, "effect.play");
-      removeCardFromCurrentZone(state, cardId);
-      card.zone = "removed-from-game";
-      card.faceup = true;
-      if (!state.removedFromGame.includes(cardId)) {
-        state.removedFromGame.push(cardId);
-      }
+      removeCardFromGame(state, cardId);
       log(state, `${card.title} removed from the game after resolving.`);
       return { ok: true };
     }
@@ -301,14 +296,7 @@ export function applyPlayKinds(
         state,
         `${source.title} is not trashed; it remains in the play area until it is removed from the game (CR ${CR.playNoTrashIfPlayEffectWillRfg.number}).`,
       );
-      removeCardFromCurrentZone(state, sourceId);
-      source.zone = "removed-from-game";
-      source.faceup = true;
-      source.rezzed = false;
-      if (!state.removedFromGame) state.removedFromGame = [];
-      if (!state.removedFromGame.includes(sourceId)) {
-        state.removedFromGame.push(sourceId);
-      }
+      removeCardFromGame(state, sourceId);
       log(state, `${source.title} is removed from the game.`);
       fireCorpIdentityFlippedFirstOperationPlay(state);
       fireOnAfterOperationOrExpendable(state);

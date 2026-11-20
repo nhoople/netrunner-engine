@@ -19,6 +19,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { moveRunnerToOutermost } from "../../state/runPosition.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -439,7 +440,8 @@ export function applySpinHapPrimitive(
       if (!state.run || state.run.attackedServerId === "archives") {
         return { ok: true };
       }
-      state.run.attackedServerId = "archives";
+      // The Runner's position becomes Archives' outermost (CR 6.2.8b).
+      moveRunnerToOutermost(state, "archives");
       log(state, `Susanoo-no-Mikoto — Runner moves to outermost Archives.`);
       return { ok: true };
     }

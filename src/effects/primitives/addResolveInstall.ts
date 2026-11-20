@@ -8,8 +8,8 @@ import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { unhostCard } from "../../state/procedures/host.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -29,12 +29,7 @@ function serverIdForInstalledCorpCard(
 function addInstalledToGrip(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
   if (!card || !state.runner.installed.includes(cardId)) return;
-  state.runner.installed = state.runner.installed.filter((id) => id !== cardId);
-  unhostCard(state, card.id);
-  card.zone = "runner:grip";
-  card.faceup = true;
-  card.rezzed = false;
-  state.runner.hand.push(cardId);
+  uninstallCard(state, cardId, "hand");
 }
 
 export function applyKitaraSsPrimitive(

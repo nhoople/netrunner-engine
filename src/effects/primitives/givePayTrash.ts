@@ -1,13 +1,13 @@
 /** Crimson Dust (cd) Red Sand pack primitives — v1.134.0. */
 import { log } from "../../state/createGame.js";
 import { addOutermostIce } from "../../state/runPosition.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { corpInstallCost } from "../../state/costs.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -372,16 +372,8 @@ export function applyRedsandCdPrimitive(
         (id) => state.cards[id]?.defId === defId,
       );
       for (const oid of others) {
-        state.corp.discardPile = state.corp.discardPile.filter(
-          (id) => id !== oid,
-        );
-        removeCardFromCurrentZone(state, oid);
+        removeCardFromGame(state, oid);
         const oc = state.cards[oid];
-        if (oc) {
-          oc.zone = "removed-from-game";
-          oc.faceup = true;
-          oc.rezzed = false;
-        }
         log(
           state,
           `Restore — RFG other copy ${oc?.title ?? oid} from Archives.`,

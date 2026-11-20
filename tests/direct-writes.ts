@@ -143,6 +143,23 @@ const ASSIGNMENT_OPERATORS = new Set<ts.SyntaxKind>([
 ]);
 
 let cached: { program: ts.Program; files: string[] } | null = null;
+let sampleCache: { program: ts.Program; files: string[] } | null = null;
+
+/** A program of one test file, to check what the scanner sees. */
+function sampleProgram(path: string): { program: ts.Program; files: string[] } {
+  if (sampleCache && sampleCache.files[0] === path) return sampleCache;
+  const configPath = join(ROOT, "tsconfig.json");
+  const config = ts.readConfigFile(configPath, (p) => ts.sys.readFile(p));
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, ROOT);
+  sampleCache = {
+    program: ts.createProgram({
+      rootNames: [path],
+      options: { ...parsed.options, noEmit: true },
+    }),
+    files: [path],
+  };
+  return sampleCache;
+}
 
 function program(): { program: ts.Program; files: string[] } {
   if (cached) return cached;
@@ -160,9 +177,14 @@ function program(): { program: ts.Program; files: string[] } {
   return cached;
 }
 
-/** Every direct write to a tracked property in src/**. */
-export function scanDirectWrites(): DirectWrite[] {
-  const { program: prog, files } = program();
+/**
+ * Every direct write to a tracked property in src/**, or in the one file
+ * `samplePath` names (a test fixture that checks the scanner).
+ */
+export function scanDirectWrites(samplePath?: string): DirectWrite[] {
+  const { program: prog, files } = samplePath
+    ? sampleProgram(join(ROOT, samplePath))
+    : program();
   const checker = prog.getTypeChecker();
   const out: DirectWrite[] = [];
   for (const path of files) {

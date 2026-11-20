@@ -1,3 +1,4 @@
+import type { ServerId } from "../../state/types.js";
 /**
  * Primitive kinds whose procedure is breach.
  * The effect switch in eval.ts dispatches here.
@@ -123,8 +124,18 @@ export function applyBreachKinds(
             id: "rearrange",
             label: "Instead of breaching: rearrange any ice on any servers",
             effect: {
-              op: "do",
-              action: { kind: "escher_rearrange_pick_server" as const },
+              op: "seq",
+              effects: [
+                { op: "do", action: { kind: "set_skip_breach" as const } },
+                {
+                  op: "do",
+                  action: {
+                    kind: "rearrange_ice" as const,
+                    chooser: "runner" as const,
+                    serverIds: Object.keys(state.servers) as ServerId[],
+                  },
+                },
+              ],
             },
           },
         ],

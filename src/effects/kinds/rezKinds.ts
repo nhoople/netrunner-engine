@@ -3,7 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { moveForfeitedAgendaOutOfGame } from "../../state/scoring.js";
-import { setRunnerPosition } from "../../state/runPosition.js";
+import { moveRunnerToIce } from "../../state/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
@@ -17,6 +17,7 @@ import {
   fireOnRez,
   fireOnAnyIceRez,
 } from "../eval.js";
+import { moveIce } from "../../state/procedures/rearrange.js";
 
 export function applyRezKinds(
   ctx: EffectCtx,
@@ -476,12 +477,7 @@ export function applyRezKinds(
         log(state, `Formicary response — source not installed as ice.`);
         return { ok: true };
       }
-      const toServer = state.servers[attacked];
-      if (!toServer) return { ok: true };
-      fromServer.ice = fromServer.ice.filter((id) => id !== sourceId);
-      toServer.ice.push(sourceId);
-      source.zone = `server:${attacked}:ice`;
-      const innermostIdx = toServer.ice.length - 1;
+      if (!moveIce(state, sourceId, attacked, "innermost")) return { ok: true };
       log(state, `Move ${source.title} to innermost protecting ${attacked}.`);
       if (state.run.forbidNewTimingStructures || state.run.endedTheRun) {
         log(
@@ -490,7 +486,8 @@ export function applyRezKinds(
         );
         return { ok: true };
       }
-      setRunnerPosition(state.run, innermostIdx);
+      // "The Runner moves to this ice and encounters it" (CR 6.2.8a).
+      moveRunnerToIce(state, sourceId);
       state.run.reencounterIceId = sourceId;
       log(
         state,

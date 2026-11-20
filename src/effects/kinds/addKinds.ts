@@ -16,6 +16,7 @@ import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { unhostCard } from "../../state/procedures/host.js";
 import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
 import { CR } from "../../timing/labels.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 export function applyAddKinds(
   ctx: EffectCtx,
@@ -355,21 +356,11 @@ export function applyAddKinds(
         log(state, `Add to grip — card not installed.`);
         return { ok: true };
       }
-      state.runner.installed = state.runner.installed.filter(
-        (id) => id !== cardId,
-      );
-      // Unhost hosted cards if any host relationship.
-      for (const id of [...state.runner.installed]) {
-        const c = state.cards[id];
-        if (c?.hostId === cardId) {
-          unhostCard(state, c.id);
-        }
-      }
-      unhostCard(state, card.id);
-      card.zone = "runner:grip";
-      card.rezzed = false;
-      state.runner.hand.push(cardId);
-      log(state, `Add ${card.title} to the grip.`);
+      // Cards it hosts keep their link; the checkpoint trashes them
+      // (CR 10.3.1g, 1.13.13).
+      uninstallCard(state, cardId, "hand", {
+        logLine: `Add ${card.title} to the grip.`,
+      });
       return { ok: true };
     }
 

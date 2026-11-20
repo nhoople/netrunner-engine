@@ -30,13 +30,17 @@ export const areas = {
   },
   uninstall: {
     title: "2. Uninstall, ice removal, run position, rearrange",
-    mutate: ["src/state/runPosition.ts", "src/effects/kinds/moveKinds.ts"],
+    mutate: [
+      "src/state/runPosition.ts",
+      "src/state/procedures/uninstall.ts",
+      "src/state/procedures/rearrange.ts",
+    ],
     tests: [
       "tests/*uninstall*.test.ts",
       "tests/run-movement-phase.test.ts",
       "tests/ice-installed-outermost.test.ts",
     ],
-    grep: /noteIceUninstalled|removeCardFromCurrentZone|\b(8\.5\.10|6\.2\.4|6\.2\.6|6\.2\.7[ace]?|8\.3\.1|8\.8\.2)\b|Mandatory Seed Replacement|Sunset|Escher|Mind Game|Formicary/,
+    grep: /noteIceUninstalled|removeCardFromCurrentZone|uninstallCard|rearrangeIce|moveIce|\b(8\.5\.1b|8\.5\.10|6\.2\.4|6\.2\.6|6\.2\.7[a-e]?|6\.2\.8[a-c]?|8\.3\.[12]a?|8\.8\.2|4\.9\.2)\b|Mandatory Seed Replacement|Sunset|Escher|Mind Game|Formicary|Nanuq|Muertos Gang Member/,
   },
   swap: {
     title: "3. Swap",
@@ -154,7 +158,11 @@ export const areas = {
 export const sourceScanTests = new Set([
   "tests/ability-hooks.test.ts",
   "tests/card-flag-inventory.test.ts",
+  "tests/cr-citation-topics.test.ts",
+  "tests/cr-cited-text.test.ts",
   "tests/cr-example-coverage.test.ts",
+  "tests/cr-section-owners.test.ts",
+  "tests/cr-subrule-coverage.test.ts",
   "tests/effect-ir-names.test.ts",
   "tests/format-counts.test.ts",
   "tests/invariants-baseline.test.ts",

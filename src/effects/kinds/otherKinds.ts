@@ -6,6 +6,8 @@ import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { catalogCardNames } from "../cardNames.js";
 import {
   iceAtRunnerPosition,
+  moveRunnerToIce,
+  setAttackedServer,
   setRunnerPosition,
 } from "../../state/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
@@ -94,6 +96,7 @@ import {
 } from "../eval.js";
 import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx } from "../ir.js";
+import { rearrangeIce } from "../../state/procedures/rearrange.js";
 import {
   canInstallSetAsideIgnoringCosts,
   shuffleRunnerSetAsideIntoStack,
@@ -105,6 +108,8 @@ import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { hostCard } from "../../state/procedures/host.js";
 import { openFace } from "../../state/seatVisibility.js";
 import { serverLabel } from "../corpAbilityInstall.js";
+import { removeCardFromGame } from "../../state/procedures/uninstall.js";
+import { iceFaceVisible } from "../../state/seatVisibility.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -388,13 +393,14 @@ export function applyOtherKinds(
           cites: [CR.announceServer],
         };
       }
-      state.run.attackedServerId = sid;
-      setRunnerPosition(state.run, server.ice.length > 0 ? 0 : null);
+      // "Instead change the attacked server ... and approach that server":
+      // the Runner approaches the server itself, with no position
+      // (CR 1.2.1, 6.2.5c).
+      setAttackedServer(state.run, sid);
+      setRunnerPosition(state.run, null);
       log(
         state,
-        `Baker — change attacked server to ${sid} and approach${
-          server.ice.length > 0 ? ` ${sid} ice` : ` ${sid}`
-        }.`,
+        `Baker — change attacked server to ${sid} and approach ${sid}.`,
       );
       return { ok: true };
     }
@@ -1017,14 +1023,7 @@ export function applyOtherKinds(
     }
 
     case "rfg_self": {
-      removeCardFromCurrentZone(state, sourceId);
-      source.zone = "removed-from-game";
-      source.faceup = true;
-      source.rezzed = false;
-      if (!state.removedFromGame) state.removedFromGame = [];
-      if (!state.removedFromGame.includes(sourceId)) {
-        state.removedFromGame.push(sourceId);
-      }
+      removeCardFromGame(state, sourceId);
       log(
         state,
         `${source.title} is removed from the game (CR ${CR.playOperation.number}).`,
@@ -1093,14 +1092,7 @@ export function applyOtherKinds(
         log(state, `RFG installed — ${cardId} not in Runner installed.`);
         return { ok: true };
       }
-      removeCardFromCurrentZone(state, cardId);
-      card.zone = "removed-from-game";
-      card.faceup = true;
-      card.rezzed = false;
-      if (!state.removedFromGame) state.removedFromGame = [];
-      if (!state.removedFromGame.includes(cardId)) {
-        state.removedFromGame.push(cardId);
-      }
+      removeCardFromGame(state, cardId);
       log(
         state,
         `Remove ${card.title} from the game (CR ${CR.playOperation.number}).`,
@@ -1538,9 +1530,6 @@ export function applyOtherKinds(
           }
         }
       }
-      state.runner.installed = state.runner.installed.filter(
-        (id) => id !== sourceId,
-      );
       trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
       log(state, `Trash ${source.title}.`);
       if (matches.length === 0) {
@@ -1584,10 +1573,15 @@ export function applyOtherKinds(
         }
       }
       if (!hostServer) return { ok: true };
-      const serverId = hostServer as import("../../state/types.js").ServerId;
-      state.run.attackedServerId = serverId;
-      const pos = state.servers[serverId].ice.indexOf(iceId);
-      setRunnerPosition(state.run, pos >= 0 ? pos : 0);
+      // "Continue the run as if passing" that ice: the Runner moves to its
+      // position (CR 6.2.8a).
+      if (!moveRunnerToIce(state, iceId)) {
+        log(
+          state,
+          `Copycat — the Runner cannot move to a position now (CR ${CR.ineffectiveMove.number}).`,
+        );
+        return { ok: true };
+      }
       state.run.passedIceIds = [...(state.run.passedIceIds ?? []), iceId];
       log(
         state,
@@ -3581,101 +3575,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "escher_rearrange_pick_server": {
-      if (state.run) state.run.skipBreach = true;
-      const servers = Object.values(state.servers).filter(
-        (s) => s.ice.length >= 2,
-      );
-      if (servers.length === 0) {
-        log(state, `${source.title} — no server with 2+ ice to rearrange.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...servers.map((s) => ({
-            id: `escher:${s.id}`,
-            label: `Rearrange ice protecting ${s.id}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "escher_rearrange_server_ice" as const,
-                serverId: s.id,
-                order: [],
-              },
-            },
-          })),
-          {
-            id: "escher:done",
-            label: "Done rearranging",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "runner" as const,
-                amount: 0,
-              },
-            },
-          },
-        ],
-        logLine: `${source.title} — choose a server to rearrange ice, or finish.`,
-      });
-      return { ok: true };
-    }
-
-    case "escher_rearrange_server_ice": {
-      const serverId = action.serverId;
-      const server = state.servers[serverId];
-      if (!server) {
-        log(state, `escher_rearrange_server_ice — unknown server.`);
-        return applyPrimitive(ctx, { kind: "escher_rearrange_pick_server" });
-      }
-      const placed: string[] = [...(action.order ?? [])];
-      const remaining: string[] = server.ice.filter(
-        (id: string) => !placed.includes(id),
-      );
-      if (remaining.length === 0) {
-        server.ice = placed;
-        for (let i = 0; i < placed.length; i++) {
-          const c = state.cards[placed[i]!];
-          if (c) c.zone = `server:${serverId}:ice`;
-        }
-        log(
-          state,
-          `${source.title} — rearranged ice on ${serverId}: ${placed
-            .map((id: string) => state.cards[id]?.title ?? id)
-            .join(" → ")}.`,
-        );
-        return applyPrimitive(ctx, { kind: "escher_rearrange_pick_server" });
-      }
-      if (remaining.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "escher_rearrange_server_ice",
-          serverId,
-          order: [...placed, remaining[0]!],
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: remaining.map((iceId: string) => ({
-          id: `escher-ice-order:${iceId}`,
-          label: `Next (outer→inner): ${state.cards[iceId]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "escher_rearrange_server_ice" as const,
-              serverId,
-              order: [...placed, iceId],
-            },
-          },
-        })),
-        logLine: `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
-      });
-      return { ok: true };
-    }
-
     case "chum_register_next_ice": {
       if (!state.run) {
         log(state, `Chum — no run.`);
@@ -4487,54 +4386,96 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "rearrange_server_ice": {
-      const serverId = action.serverId;
-      const server = state.servers[serverId];
-      if (!server) {
-        log(state, `rearrange_server_ice — unknown server.`);
-        return { ok: true };
-      }
-      const placed: string[] = [...(action.order ?? [])];
-      const remaining: string[] = server.ice.filter(
-        (id: string) => !placed.includes(id),
+    case "rearrange_ice": {
+      // Arrange installed ice (CR 8.3.1, 8.3.2): the chooser fills each
+      // position of the listed servers, outermost first, from their ice.
+      // Nothing moves until every position is filled: no checkpoint occurs
+      // while ice is being arranged (CR 8.3.2a).
+      const serverIds = action.serverIds.filter(
+        (sid) => (state.servers[sid]?.ice.length ?? 0) > 0,
       );
-      if (remaining.length === 0) {
-        server.ice = placed;
-        for (let i = 0; i < placed.length; i++) {
-          const c = state.cards[placed[i]!];
-          if (c) c.zone = `server:${serverId}:ice`;
-        }
+      const slots: { serverId: ServerId; index: number }[] = [];
+      for (const sid of serverIds) {
+        state.servers[sid]!.ice.forEach((_, index) =>
+          slots.push({ serverId: sid, index }),
+        );
+      }
+      if (slots.length < 2) {
+        // CR 8.3.1a: arranging 1 or fewer cards does nothing.
         log(
           state,
-          `${source.title} — rearranged ice on ${serverId}: ${placed
-            .map((id: string) => state.cards[id]?.title ?? id)
-            .join(" → ")}.`,
+          `${source.title} — fewer than 2 ice to arrange (CR ${CR.arrangeOrRearrange.number}).`,
         );
         return { ok: true };
       }
-      if (remaining.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "rearrange_server_ice",
-          serverId,
-          order: [...placed, remaining[0]!],
+      const current = slots.map(
+        (slot) => state.servers[slot.serverId]!.ice[slot.index]!,
+      );
+      // An unrezzed ice is named by where it is now, not by its title, for
+      // a player who may not see its face (CR 1.21.1).
+      const nameFor = (id: string, viewer: "corp" | "runner"): string => {
+        const card = state.cards[id];
+        if (card && iceFaceVisible(card, viewer)) return card.title;
+        const at = slots[current.indexOf(id)];
+        return at
+          ? `the unrezzed ice at ${at.serverId}, position ${at.index + 1}`
+          : "an unrezzed ice";
+      };
+      const placed = [...(action.placed ?? [])];
+      const remaining = current.filter((id) => !placed.includes(id));
+      if (remaining.length === 1) placed.push(remaining[0]!);
+      if (placed.length >= slots.length) {
+        const arrangement: Partial<Record<ServerId, string[]>> = {};
+        slots.forEach((slot, i) => {
+          (arrangement[slot.serverId] ??= []).push(placed[i]!);
         });
+        // The log goes to both players, so it names ice as the Runner sees
+        // them, by their position before the arrangement.
+        const lines = serverIds.map(
+          (sid) =>
+            `${source.title} — ${sid}: ${(arrangement[sid] ?? [])
+              .map((id) => nameFor(id, "runner"))
+              .join(" → ")} (CR ${CR.arrangeIce.number}).`,
+        );
+        if (!rearrangeIce(state, arrangement)) {
+          log(state, `${source.title} — the ice changed; nothing is arranged.`);
+          return { ok: true };
+        }
+        for (const line of lines) log(state, line);
+        return { ok: true };
       }
+      const slot = slots[placed.length]!;
+      const restInPlace = current.slice(placed.length);
+      const keepRest =
+        restInPlace.length === remaining.length &&
+        restInPlace.every((id) => remaining.includes(id));
+      const where = `${slot.serverId}, position ${slot.index + 1} from the outside`;
       openPendingChoose(state, {
         sourceId,
-        chooser: "corp",
-        options: remaining.map((iceId: string) => ({
-          id: `ice-order:${iceId}`,
-          label: `Next (outer→inner): ${state.cards[iceId]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "rearrange_server_ice" as const,
-              serverId,
-              order: [...placed, iceId],
-            },
-          },
-        })),
-        logLine: `${source.title} — choose next ice position (${placed.length + 1}/${server.ice.length}).`,
+        chooser: action.chooser,
+        options: [
+          ...remaining.map((iceId) => ({
+            id: `arrange:${slot.serverId}:${slot.index}:${iceId}`,
+            label: `${nameFor(iceId, action.chooser)} → ${where}`,
+            effect: fx.do({
+              ...action,
+              placed: [...placed, iceId],
+            }),
+          })),
+          ...(keepRest
+            ? [
+                {
+                  id: "arrange:keep-rest",
+                  label: "Leave the rest where they are",
+                  effect: fx.do({
+                    ...action,
+                    placed: [...placed, ...restInPlace],
+                  }),
+                },
+              ]
+            : []),
+        ],
+        logLine: `${source.title} — choose the ice for ${where}.`,
       });
       return { ok: true };
     }
@@ -4671,7 +4612,7 @@ export function applyOtherKinds(
         );
         return { ok: true };
       }
-      state.run.attackedServerId = "hq";
+      setAttackedServer(state.run, "hq");
       state.run.skipBreach = false;
       state.run.accessCandidates = [...state.corp.hand];
       state.run.randomAccessLimit =

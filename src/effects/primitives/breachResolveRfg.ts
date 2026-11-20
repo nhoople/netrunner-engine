@@ -8,6 +8,7 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { setAttackedServer } from "../../state/runPosition.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -53,7 +54,7 @@ export function applyLunarFcPrimitive(
     case "breach_hq_resolve": {
       const cardId = (action as { cardId: string }).cardId;
       if (!state.run) return { ok: true };
-      state.run.attackedServerId = "hq";
+      setAttackedServer(state.run, "hq");
       state.run.cannotAccessRoot = true;
       state.run.accessCandidates = [cardId];
       state.run.randomAccessLimit = 1;
@@ -255,7 +256,7 @@ export function applyLunarFcPrimitive(
         log(state, `Hades Shard — breach Archives outside a run (stub).`);
         return { ok: true };
       }
-      state.run.attackedServerId = "archives";
+      setAttackedServer(state.run, "archives");
       state.run.cannotAccessRoot = true;
       state.run.accessCandidatesPreset = false;
       log(state, `Hades Shard — breach Archives (no root access).`);

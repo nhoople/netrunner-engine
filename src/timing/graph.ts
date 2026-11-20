@@ -86,7 +86,11 @@ import {
 } from "../state/lingeringEffects.js";
 import { serversMatchingSpec } from "../state/runStart.js";
 import { CR } from "./labels.js";
-import { moveRunnerInward, setRunnerPosition } from "../state/runPosition.js";
+import {
+  moveRunnerInward,
+  setAttackedServer,
+  setRunnerPosition,
+} from "../state/runPosition.js";
 import {
   maybeOfferSubroutineOrder,
   takeNextSubroutineIndex,
@@ -190,7 +194,6 @@ import {
 } from "../state/currents.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
 import { noteRunnerClickLose } from "../state/clickHooks.js";
-import { removeCardFromCurrentZone } from "../state/scoring.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
 import {
   cancelPendingIfSourceInactive,
@@ -204,6 +207,10 @@ import {
 } from "../state/pendingAbilities.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { unhostCard } from "../state/procedures/host.js";
+import {
+  removeCardFromGame,
+  uninstallCard,
+} from "../state/procedures/uninstall.js";
 
 const TLDR_COPY_SUFFIX = "-tldr-copy";
 
@@ -1524,9 +1531,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const id of [...s.runner.installed]) {
           const card = s.cards[id];
           if (!card.returnToGripAtDiscardPhase) continue;
-          s.runner.installed = s.runner.installed.filter((x) => x !== id);
-          s.runner.hand.push(id);
-          card.zone = "runner:grip";
+          uninstallCard(s, id, "hand");
           s.log.push(`${card.title} — return to grip (discard phase).`);
         }
         // Kabonesa Wu: RFG tracked installs still installed at turn end.
@@ -1534,14 +1539,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const id of kabonesaTracked) {
           if (!s.runner.installed.includes(id)) continue;
           const card = s.cards[id];
-          s.runner.installed = s.runner.installed.filter((x) => x !== id);
-          if (card) {
-            unhostCard(s, card.id);
-            card.zone = "removed-from-game";
-            card.faceup = true;
-          }
-          if (!s.removedFromGame) s.removedFromGame = [];
-          if (!s.removedFromGame.includes(id)) s.removedFromGame.push(id);
+          uninstallCard(s, id, "removed-from-game");
           s.log.push(
             `Kabonesa Wu — remove ${card?.title ?? id} from the game.`,
           );
@@ -1589,23 +1587,12 @@ export const STEPS: Record<string, TimingStepDef> = {
         for (const id of [...s.runner.installed]) {
           const card = s.cards[id];
           if (!card?.bounceToStackAtTurnEnd) continue;
-          s.runner.installed = s.runner.installed.filter((x) => x !== id);
-          s.runner.deck.unshift(id);
-          card.zone = "runner:stack";
           card.bounceToStackAtTurnEnd = false;
-          card.faceup = false;
           s.log.push(
             `${card.title} returns to the stack at the end of the turn.`,
           );
-          if (card.rfgOnUninstall) {
-            s.runner.deck = s.runner.deck.filter((x) => x !== id);
-            card.zone = "removed-from-game";
-            card.faceup = true;
-            if (!s.removedFromGame.includes(id)) s.removedFromGame.push(id);
-            s.log.push(
-              `${card.title}'s ability remains active and removes it from the game (CR ${CR.abilityRemainsActive.number}).`,
-            );
-          }
+          // Nanuq goes to the removed-from-game zone instead (CR 9.1.8g).
+          uninstallCard(s, id, "deck-top");
         }
         // onRunnerTurnEnd (identity, rig, heap) — note for 10.3.1a.
         noteOnRunnerTurnEnd(s, s.runner.identityId);
@@ -1908,11 +1895,14 @@ export const STEPS: Record<string, TimingStepDef> = {
         !runState.archivesApproachRedirectUsed
       ) {
         runState.archivesApproachRedirectUsed = true;
-        runState.attackedServerId = "hq";
-        setRunnerPosition(runState, 0);
+        // "Instead change the attacked server to HQ and approach HQ": the
+        // Runner approaches the server, not its ice, so has no position
+        // (CR 1.2.1, 6.2.5c).
+        setAttackedServer(runState, "hq");
+        setRunnerPosition(runState, null);
         server = s.servers.hq;
         s.log.push(
-          "Maintenance Access — change attacked server to HQ and approach HQ ice.",
+          "Maintenance Access — change attacked server to HQ and approach HQ.",
         );
       }
       // No ice at the Runner's position: go to the Movement Phase
@@ -4190,7 +4180,7 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.log.push(
             `Redirect successful run from ${s.run.attackedServerId} to ${dest}.`,
           );
-          s.run.attackedServerId = dest;
+          setAttackedServer(s.run, dest);
           s.run.redirectSuccessTo = undefined;
         }
         // Crisium Grid / Flagship: runs against this server cannot be declared
@@ -5189,9 +5179,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         if (runSrc) {
           const runSrcCard = s.cards[runSrc];
           if (runSrcCard?.rfgSelfOnRunEnd) {
-            removeCardFromCurrentZone(s, runSrc);
-            runSrcCard.zone = "removed-from-game";
-            unhostCard(s, runSrcCard.id);
+            removeCardFromGame(s, runSrc);
             s.log.push(
               `${runSrcCard.title} — remove from the game (run ended).`,
             );
@@ -5694,7 +5682,7 @@ export const STEPS: Record<string, TimingStepDef> = {
       if (queued && queued.length > 0) {
         const next = queued.shift()!;
         const run = s.run!;
-        run.attackedServerId = next.server;
+        setAttackedServer(run, next.server);
         run.cannotAccessRoot = next.cannotAccessRoot ?? false;
         run.accessCandidates = [];
         run.randomAccessLimit = null;
@@ -5731,7 +5719,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         run.nestedBreachFromEncounter = false;
         run.cannotAccessRoot = false;
         if (run.attackedServerIdBeforeNestedBreach) {
-          run.attackedServerId = run.attackedServerIdBeforeNestedBreach;
+          setAttackedServer(run, run.attackedServerIdBeforeNestedBreach);
           run.attackedServerIdBeforeNestedBreach = undefined;
         }
         run.resumeEncounterIceId = undefined;

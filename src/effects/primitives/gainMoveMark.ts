@@ -1,10 +1,7 @@
 /** Order and Chaos (oac) deluxe primitives. */
 import { effectiveCorpMaxHandSize } from "../../state/handSize.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
-import {
-  addOutermostIce,
-  iceAtRunnerPosition,
-} from "../../state/runPosition.js";
+import { iceAtRunnerPosition } from "../../state/runPosition.js";
 import { emptyRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage, removePendingDamageEntirely } from "../../state/damage.js";
@@ -18,6 +15,8 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { moveIce } from "../../state/procedures/rearrange.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -308,11 +307,7 @@ export function applyOacPrimitive(
       if (!from || !state.servers[serverId]) {
         return { ok: false, error: "Builder move invalid.", cites: [] };
       }
-      state.servers[from]!.ice = state.servers[from]!.ice.filter(
-        (id) => id !== sourceId,
-      );
-      addOutermostIce(state, serverId, sourceId);
-      source!.zone = `server:${serverId}:ice`;
+      moveIce(state, sourceId, serverId, "outermost");
       log(state, `Builder — move to outermost of ${serverId}.`);
       return { ok: true };
     }
@@ -489,13 +484,9 @@ export function applyOacPrimitive(
           cites: [],
         };
       }
-      state.runner.installed = state.runner.installed.filter(
-        (id) => id !== cardId,
-      );
-      unhostCard(state, card.id);
-      card.zone = "runner:grip";
-      state.runner.hand.push(cardId);
-      log(state, `Uninstall — ${card.title} to grip.`);
+      uninstallCard(state, cardId, "hand", {
+        logLine: `Uninstall — ${card.title} to grip.`,
+      });
       return { ok: true };
     }
 

@@ -3548,6 +3548,12 @@ export interface TurnBookkeeping {
    * moment (CR 10.3.1f).
    */
   agendasLeftScoreArea?: { agendaId: string; hostedIds: string[] }[];
+  /**
+   * Installed cards uninstalled since the last checkpoint, with the cards
+   * they hosted then. Step 10.3.1g trashes those still hosted on them,
+   * wherever the host went, a score area included (CR 8.5.1b, 1.13.13).
+   */
+  hostsUninstalled?: { hostId: string; hostedIds: string[] }[];
   /** Mutate additional-cost trashed ice slot. */
   reuseTrashedFromHq?: number;
   tradeInCredits?: number;

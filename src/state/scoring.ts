@@ -402,6 +402,19 @@ export function removeCardFromCurrentZone(
       { agendaId: cardId, hostedIds: [...(card.hostedCardIds ?? [])] },
     ];
   }
+  // CR 8.5.1b: a card that stops being installed for any reason is
+  // uninstalled, and step 10.3.1g trashes what it hosted (CR 1.13.13).
+  const wasInstalled =
+    state.runner.installed.includes(cardId) ||
+    Object.values(state.servers).some(
+      (server) => server.ice.includes(cardId) || server.root.includes(cardId),
+    );
+  if (wasInstalled && card && (card.hostedCardIds ?? []).length > 0) {
+    state.turn.hostsUninstalled = [
+      ...(state.turn.hostsUninstalled ?? []),
+      { hostId: cardId, hostedIds: [...(card.hostedCardIds ?? [])] },
+    ];
+  }
   if (
     card?.returnHostedBadPublicityOnUninstall &&
     (card.badPublicityCounters ?? 0) > 0

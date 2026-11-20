@@ -50,6 +50,7 @@ import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 import { effectiveIceStrength } from "../cards/stubs.js";
 import { trashCard } from "./procedures/trash.js";
 import { hostCard } from "./procedures/host.js";
+import { removeCardFromGame } from "./procedures/uninstall.js";
 
 /**
  * First time each turn the Runner spends credits from an installed card,
@@ -1309,13 +1310,7 @@ export function payCost(
           `${source.title} trashed — power counters empty (CR ${CR.trashing.number}).`,
         );
       } else if (source.rfgWhenPowerEmpty && (source.powerCounters ?? 0) <= 0) {
-        removeCardFromCurrentZone(state, source.id);
-        source.zone = "removed-from-game";
-        source.faceup = true;
-        if (!state.removedFromGame) state.removedFromGame = [];
-        if (!state.removedFromGame.includes(source.id)) {
-          state.removedFromGame.push(source.id);
-        }
+        removeCardFromGame(state, source.id);
         log(
           state,
           `${source.title} removed from the game — power counters empty.`,
@@ -1471,14 +1466,7 @@ export function payCost(
       }
     }
     if (cost.rfgSelf && source) {
-      removeCardFromCurrentZone(state, source.id);
-      source.zone = "removed-from-game";
-      source.faceup = true;
-      source.rezzed = false;
-      if (!state.removedFromGame) state.removedFromGame = [];
-      if (!state.removedFromGame.includes(source.id)) {
-        state.removedFromGame.push(source.id);
-      }
+      removeCardFromGame(state, source.id);
       log(
         state,
         `${source.title} removed from the game as cost (CR ${CR.trashing.number}).`,

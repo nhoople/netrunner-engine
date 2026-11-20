@@ -26,6 +26,8 @@ A score is killed ÷ (killed + survived + no coverage). "Covered" leaves out the
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1. Hosting and trash (start) | 2026-11-19 | area 1 branch, first draft | 319 | 183 | 98 | 38 | 57.37% | 65.12% |
 | 1. Hosting and trash (close) | 2026-11-19 | area 1 PR | 317 | 282 | 33 | 2 | 88.96% | 89.52% |
+| 2. Uninstall and run position (start) | 2026-11-20 | area 2 branch, first draft | 411 | 351 | 53 | 7 | 85.40% | 86.88% |
+| 2. Uninstall and run position (close) | 2026-11-20 | area 2 PR | 411 | 384 | 25 | 2 | 93.43% | 93.89% |
 | 3. Swap | 2026-11-13 | v1.147.252 | 1335 | 429 | 279 | 627 | 32.13% | 60.59% |
 | RA-1. Timing re-audit (start) | 2026-11-19 | v1.147.268 | 387 | 193 | 151 | 43 | 49.87% | 56.10% |
 | RA-2 Continuous effects (start) | 2026-11-19 | v1.147.268 | 770 | 467 | 217 | 86 | 60.65% | 68.27% |
@@ -49,6 +51,25 @@ No survivor changes the zone, face, host link, prevention window, or trash trigg
 - **Director Haas's pending record** (7): `controller`, `mandatory`, `independentOfSource` and the checkpoint guard. Haas's ability resolves in the same instruction, so no test observes these fields. Area 9 (prevention and pending abilities) can add a test that holds the record open.
 - **Marilyn Campaign's `unhostCard`** (1): Marilyn is never hosted in any card's text.
 - **The checkpoint's `wasInstalled` recompute guard** (1): recomputing link and hand size when nothing changed is harmless.
+
+## 2. Uninstall and run position (2026-11-20)
+
+Files mutated: `src/state/procedures/uninstall.ts` (`uninstallCard`, `removeCardFromGame`, `ceaseVacantPositions`), `src/state/procedures/rearrange.ts` (`rearrangeIce`, `moveIce`) and `src/state/runPosition.ts`. Before area 2 the scope was `runPosition.ts` and `moveKinds.ts`, with no uninstall helper. The start score is the first draft against the area's tests; the branch tests in `tests/uninstall-and-run-position.test.ts` raised it to 93.43%.
+
+| File | Score | Covered | Killed | Survived | No coverage |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `rearrange.ts` | 93.75% | 93.75% | 75 | 5 | 0 |
+| `uninstall.ts` | 93.75% | 94.41% | 135 | 8 | 1 |
+| `runPosition.ts` | 93.05% | 93.55% | 174 | 12 | 1 |
+
+### What survives
+
+No survivor changes a zone, a face, a host link, the Runner's position, the attacked server, or an approach or encounter flag in a CR-cited branch (CR 1.13.12, 4.9.2, 6.2.4, 6.2.6, 6.2.7a–e, 6.2.8a–c, 8.3.1, 8.3.2, 8.5.1b, 9.6.10, 10.3.1i). The 27 are:
+
+- **Log text** (3): the caller's log line, Nanuq's log line, and the vacant-position log.
+- **Equivalent guards** (17): `if (card)` before writing the zone of ice that is in a server's list, `if (encountered)` / `if (encountering)` before `followEncounteredIce` (which returns when the id is not encountered), the `removedFromGame` duplicate guard and its `??=`, recomputing link and hand size after a Corp card leaves, `removeCardFromGame` running the move again after an uninstall already placed the card, `continue` on an empty list, and optional chaining on servers and runs the callers already checked.
+- **`noteIceUninstalled` repeats** (2): a second ice leaving an emptied position, and the forced-encounter flag outside an approach, leave the same state the first time set.
+- **Seeds of an accumulator** (1): `isRearrangement`'s `before` list starting non-empty only adds an id nothing looks up.
 
 ## RA-2 Continuous effects (2026-11-19)
 

@@ -1639,10 +1639,16 @@ export type Primitive =
     }
   /** Sunset: choose a server and rearrange its ice. */
   | { kind: "choose_server_rearrange_ice" }
+  /**
+   * Arrange installed ice (CR 8.3.1, 8.3.2): the chooser fills each position
+   * of `serverIds`, outermost first, from those servers' ice. `placed` holds
+   * the ice chosen so far, in position order.
+   */
   | {
-      kind: "rearrange_server_ice";
-      serverId: import("../state/types.js").ServerId;
-      order: string[];
+      kind: "rearrange_ice";
+      chooser: "corp" | "runner";
+      serverIds: import("../state/types.js").ServerId[];
+      placed?: string[];
     }
   /** Commercialization: choose ice; gain ¢ equal to its advancements. */
   | { kind: "choose_ice_gain_credits_per_advancement" }
@@ -3379,22 +3385,8 @@ export type Primitive =
       kind: "helheim_ice_protecting_this_server_strength_until_end_of_run";
       amount?: number;
     }
+  /** Mandatory Seed Replacement: rearrange the ice protecting all servers. */
   | { kind: "rearrange_ice_protecting_all_servers" }
-  /** Mandatory Seed Replacement: assign pooled ice to the next server (outer→inner). */
-  | {
-      kind: "rearrange_ice_protecting_all_servers_continue";
-      pool: string[];
-      serverIds: string[];
-      serverIndex: number;
-      order: string[];
-    }
-  | {
-      kind: "rearrange_ice_protecting_all_servers_finish_server";
-      pool: string[];
-      serverIds: string[];
-      serverIndex: number;
-      order: string[];
-    }
   | { kind: "swap_2_other_ice_or_2_non_ice" }
   /**
    * Metamorph: swap 2 installed non-ice cards. `cardIds` is the Corp's
@@ -3820,12 +3812,6 @@ export type Primitive =
   | { kind: "set_skip_breach" }
   /** Escher: may instead of breach HQ — rearrange any ice on any servers. */
   | { kind: "may_breach_instead_escher" }
-  | { kind: "escher_rearrange_pick_server" }
-  | {
-      kind: "escher_rearrange_server_ice";
-      serverId: import("../state/types.js").ServerId;
-      order: string[];
-    }
   /**
    * Exploratory Romp: may instead of breach — remove up to `amount`
    * advancement counters from 1 card in the attacked server.
@@ -5381,8 +5367,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "o2_shortage_corp_gains_clicks",
   "helheim_ice_protecting_this_server_strength_until_end_of_run",
   "rearrange_ice_protecting_all_servers",
-  "rearrange_ice_protecting_all_servers_continue",
-  "rearrange_ice_protecting_all_servers_finish_server",
   "swap_2_other_ice_or_2_non_ice",
   "swap_2_non_ice",
   "choose_n_grip_to_stack_top",
@@ -5635,8 +5619,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "resolve_vamp",
   "set_skip_breach",
   "may_breach_instead_escher",
-  "escher_rearrange_pick_server",
-  "escher_rearrange_server_ice",
   "may_breach_instead_exploratory_romp",
   "choose_exploratory_romp_card",
   "remove_up_to",
@@ -5817,7 +5799,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "install_hosted_card_ignore_costs",
   "may_pay_credits_for_core_damage_per_ice_protecting_this_server",
   "choose_server_rearrange_ice",
-  "rearrange_server_ice",
+  "rearrange_ice",
   "choose_ice_gain_credits_per_advancement",
   "gain_credits_from_ice_advancements",
   "choose_one_subtype_until_derez",
@@ -8279,12 +8261,12 @@ export function validateEffectTree(
           return `${path}.action.amount: must be a non-negative number`;
         }
       }
-      if (action.kind === "rearrange_server_ice") {
-        if (typeof action.serverId !== "string" || !action.serverId) {
-          return `${path}.action.serverId: required non-empty string`;
+      if (action.kind === "rearrange_ice") {
+        if (action.chooser !== "corp" && action.chooser !== "runner") {
+          return `${path}.action.chooser: must be "corp" or "runner"`;
         }
-        if (!Array.isArray(action.order)) {
-          return `${path}.action.order: must be a string array`;
+        if (!Array.isArray(action.serverIds)) {
+          return `${path}.action.serverIds: must be a server id array`;
         }
       }
       if (action.kind === "gain_credits_from_ice_advancements") {

@@ -2,19 +2,18 @@
 import { revealCards } from "../../state/reveal.js";
 import {
   iceAtRunnerPosition,
-  setRunnerPosition,
+  moveRunnerToOutermost,
 } from "../../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { unhostCard } from "../../state/procedures/host.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -210,9 +209,7 @@ export function applyRedsandEasPrimitive(
         rfg.installCost ??
         (rfg.defId ? getCardDef(rfg.defId)?.installCost : undefined) ??
         0;
-      removeCardFromCurrentZone(state, rfgId);
-      rfg.zone = "removed-from-game";
-      unhostCard(state, rfg.id);
+      removeCardFromGame(state, rfgId);
       log(state, `Rosetta 2.0 — remove ${rfg.title} from the game.`);
       const matches = state.runner.deck.filter((id) => {
         const c = state.cards[id];
@@ -372,16 +369,18 @@ export function applyRedsandEasPrimitive(
         log(state, `AgInfusion — invalid redirect server.`);
         return { ok: true };
       }
-      run.attackedServerId = sid;
-      const iceCount = state.servers[sid]!.ice.length;
-      setRunnerPosition(run, iceCount > 0 ? iceCount - 1 : null);
+      // "The Runner moves to the outermost position of that server and
+      // encounters any ice there" (CR 6.2.8b). Index 0 is outermost.
+      if (!moveRunnerToOutermost(state, sid)) return { ok: true };
       run.encounter = null;
-      if (iceCount > 0) {
-        const outer = state.servers[sid]!.ice[iceCount - 1]!;
+      const outer = state.servers[sid]!.ice[0];
+      if (outer) {
         run.forceEncounterIceId = outer;
+        // Unrezzed ice is not named: the log goes to both players (CR 1.21.1).
+        const ice = state.cards[outer];
         log(
           state,
-          `AgInfusion — Runner moves to outermost of ${sid} (${state.cards[outer]?.title}).`,
+          `AgInfusion — Runner moves to outermost of ${sid} (${ice?.rezzed ? ice.title : "unrezzed ice"}).`,
         );
       } else {
         log(state, `AgInfusion — Runner moves to ${sid} (no ice).`);

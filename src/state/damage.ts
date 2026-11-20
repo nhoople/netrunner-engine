@@ -946,9 +946,8 @@ export function preventAllPendingNetOrMeat(
     });
     return;
   }
-  state.runner.installed = state.runner.installed.filter(
-    (id) => id !== sourceId,
-  );
+  // The trash procedure uninstalls it, so its "when uninstalled" and
+  // installed-trash triggers see it (CR 8.5.1b).
   trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
   log(state, `${title} — trashed (cannot pay ${pay}¢).`);
 }

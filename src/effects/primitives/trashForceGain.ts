@@ -9,6 +9,7 @@ import { evalEffect, grantAbilityCredits } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -277,15 +278,8 @@ export function applyFlashpoint23sPrimitive(
     case "add_installed_program_to_stack_bottom_resolve": {
       const cardId = action.cardId;
       if (!state.runner.installed.includes(cardId)) return { ok: true };
-      state.runner.installed = state.runner.installed.filter(
-        (id) => id !== cardId,
-      );
-      state.runner.deck.push(cardId);
       const card = state.cards[cardId];
-      if (card) {
-        card.zone = "runner:stack";
-        card.faceup = false;
-      }
+      uninstallCard(state, cardId, "deck-bottom");
       log(
         state,
         `Add ${card?.title ?? cardId} to bottom of the Runner's stack.`,

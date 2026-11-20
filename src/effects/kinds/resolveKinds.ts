@@ -8,7 +8,7 @@ import type { Effect, Primitive } from "../ir.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { removeCardFromCurrentZone, stealAgenda } from "../../state/scoring.js";
+import { stealAgenda } from "../../state/scoring.js";
 import {
   memoryLimit,
   usedMemory,
@@ -41,6 +41,7 @@ import {
 import { fireHostRezStateTriggers } from "../eval.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 export function applyResolveKinds(
   ctx: EffectCtx,
@@ -129,14 +130,7 @@ export function applyResolveKinds(
         // Removing Moon Pool from the game is its cost. A catalog that still
         // trashes it as the cost is caught here.
         if (source.zone !== "removed-from-game") {
-          removeCardFromCurrentZone(state, sourceId);
-          if (!state.removedFromGame) state.removedFromGame = [];
-          if (!state.removedFromGame.includes(sourceId)) {
-            state.removedFromGame.push(sourceId);
-          }
-          source.zone = "removed-from-game";
-          source.faceup = true;
-          source.rezzed = false;
+          removeCardFromGame(state, sourceId);
           log(state, `${source.title} is removed from the game (Moon Pool).`);
         }
         return evalEffect(
@@ -326,14 +320,7 @@ export function applyResolveKinds(
           `${source.title} — Corp draws ${drawn} (requested ${trashN}).`,
         );
       }
-      removeCardFromCurrentZone(state, sourceId);
-      if (!state.removedFromGame) state.removedFromGame = [];
-      if (!state.removedFromGame.includes(sourceId)) {
-        state.removedFromGame.push(sourceId);
-      }
-      source.zone = "removed-from-game";
-      source.faceup = true;
-      source.rezzed = false;
+      removeCardFromGame(state, sourceId);
       log(state, `${source.title} is removed from the game.`);
       return { ok: true };
     }

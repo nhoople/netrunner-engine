@@ -11,6 +11,7 @@ import { fireOnAgendaAccessedOrScored } from "../../state/miscConditionalHooks.j
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -316,15 +317,7 @@ export function applyKitaraTdatdPrimitive(
       const server = state.servers[serverId];
       if (!server) return { ok: true };
       const root = [...server.root];
-      for (const id of root) {
-        server.root = server.root.filter((x) => x !== id);
-        const c = state.cards[id]!;
-        c.zone = "corp:rd";
-        c.faceup = false;
-        c.rezzed = false;
-        c.advancementCounters = 0;
-        state.corp.deck.push(id);
-      }
+      for (const id of root) uninstallCard(state, id, "deck-bottom");
       shuffleInPlace(state, state.corp.deck);
       log(
         state,

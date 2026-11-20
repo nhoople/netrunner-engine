@@ -3,15 +3,19 @@
  * The effect switch in eval.ts dispatches here.
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
-import { setRunnerPosition } from "../../state/runPosition.js";
+import {
+  moveRunnerToIce,
+  moveRunnerToOutermost,
+} from "../../state/runPosition.js";
 import type { Primitive } from "../ir.js";
-import { serverIdForIce } from "../../cards/stubs.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { applyPrimitive } from "../eval.js";
 
 import { fireOnMovedToServerRoot } from "../eval.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
+import { moveIce } from "../../state/procedures/rearrange.js";
 
 export function applyMoveKinds(
   ctx: EffectCtx,
@@ -24,16 +28,7 @@ export function applyMoveKinds(
       const iceId = action.iceId;
       const ice = state.cards[iceId];
       if (!ice || ice.type !== "ice") return { ok: true };
-      const sid = serverIdForIce(state, iceId);
-      if (sid) {
-        state.servers[sid].ice = state.servers[sid].ice.filter(
-          (id) => id !== iceId,
-        );
-      }
-      ice.rezzed = false;
-      ice.zone = "corp:hq";
-      ice.faceup = false;
-      state.corp.hand.push(iceId);
+      if (!uninstallCard(state, iceId, "hand")) return { ok: true };
       log(state, `Add ${ice.title} to HQ.`);
       return { ok: true };
     }
@@ -51,18 +46,18 @@ export function applyMoveKinds(
         return { ok: true };
       }
       const sid = state.run.attackedServerId;
-      const server = state.servers[sid];
-      if (!server) {
-        log(state, `Move to outermost attacked — unknown server.`);
+      if (!moveRunnerToOutermost(state, sid)) {
+        log(
+          state,
+          `The Runner cannot move to a position now (CR ${CR.ineffectiveMove.number}).`,
+        );
         return { ok: true };
       }
-      if (server.ice.length > 0) {
-        setRunnerPosition(state.run, 0);
-        state.log.push(`Runner moves to outermost ice protecting ${sid}.`);
-      } else {
-        setRunnerPosition(state.run, null);
-        state.log.push(`Runner moves to ${sid} (no ice).`);
-      }
+      state.log.push(
+        state.run.position === null
+          ? `Runner moves to ${sid} (no ice) (CR ${CR.moveRunnerToOutermost.number}).`
+          : `Runner moves to outermost ice protecting ${sid} (CR ${CR.moveRunnerToOutermost.number}).`,
+      );
       return { ok: true };
     }
 
@@ -176,17 +171,18 @@ export function applyMoveKinds(
         log(state, `Move to Archives outermost — no active run.`);
         return { ok: true };
       }
-      state.run.attackedServerId = "archives";
-      const arch = state.servers.archives;
-      if (arch.ice.length > 0) {
-        setRunnerPosition(state.run, 0);
-        state.log.push(
-          `Runner moves to outermost Archives ice (Proprionegation).`,
+      if (!moveRunnerToOutermost(state, "archives")) {
+        log(
+          state,
+          `The Runner cannot move to a position now (CR ${CR.ineffectiveMove.number}).`,
         );
-      } else {
-        setRunnerPosition(state.run, null);
-        state.log.push(`Runner moves to Archives (no ice).`);
+        return { ok: true };
       }
+      state.log.push(
+        state.run.position === null
+          ? `Runner moves to Archives (no ice) (CR ${CR.moveRunnerToOutermost.number}).`
+          : `Runner moves to outermost Archives ice (Proprionegation) (CR ${CR.moveRunnerToOutermost.number}).`,
+      );
       return { ok: true };
     }
 
@@ -367,13 +363,9 @@ export function applyMoveKinds(
         log(state, `move_runner_card_to_stack_top — not installed.`);
         return { ok: true };
       }
-      state.runner.installed = state.runner.installed.filter(
-        (id) => id !== cardId,
-      );
-      state.runner.deck.unshift(cardId);
-      card.zone = "runner:stack";
-      card.faceup = false;
-      log(state, `Add ${card.title} to the top of the stack.`);
+      uninstallCard(state, cardId, "deck-top", {
+        logLine: `Add ${card.title} to the top of the stack.`,
+      });
       return { ok: true };
     }
 
@@ -394,12 +386,10 @@ export function applyMoveKinds(
         log(state, `Move ice outermost — source not installed as ice.`);
         return { ok: true };
       }
-      const toServer = state.servers[attacked];
-      if (!toServer) return { ok: true };
-      fromServer.ice = fromServer.ice.filter((id) => id !== sourceId);
-      toServer.ice.unshift(sourceId);
-      source.zone = `server:${attacked}:ice`;
-      setRunnerPosition(state.run, 0);
+      if (!moveIce(state, sourceId, attacked, "outermost")) return { ok: true };
+      // Tributary moves at the start of the run; the Runner then enters the
+      // outermost position, this ice's (CR 6.9.1d).
+      moveRunnerToOutermost(state, attacked);
       log(state, `Move ${source.title} to outermost protecting ${attacked}.`);
       return { ok: true };
     }
@@ -469,17 +459,13 @@ export function applyMoveKinds(
         return { ok: true };
       }
       const toSid = action.serverId as import("../../state/types.js").ServerId;
-      const toServer = state.servers[toSid];
-      if (!toServer) {
+      if (!moveIce(state, sourceId, toSid, "outermost")) {
         log(state, `Bullfrog move leaf — unknown server ${toSid}.`);
         return { ok: true };
       }
-      fromServer.ice = fromServer.ice.filter((id) => id !== sourceId);
-      toServer.ice.unshift(sourceId);
-      source.zone = `server:${toSid}:ice`;
-      state.run.attackedServerId =
-        toSid as import("../../state/types.js").ServerId;
-      setRunnerPosition(state.run, 0);
+      // The Runner continues the run from this ice's new position
+      // (CR 6.2.7d, 6.2.8a).
+      moveRunnerToIce(state, sourceId);
       log(
         state,
         `Move ${source.title} to outermost protecting ${toSid}; run continues.`,
