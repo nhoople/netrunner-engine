@@ -2307,6 +2307,46 @@ export function supportedCardIds(): string[] {
   return ids;
 }
 
+/** A paid ability that raises its own card's strength (`pump_strength`, …). */
+const PUMP_KIND = /"kind":"[a-z_]*pump[a-z_]*"/;
+
+/**
+ * The printed "N[credit]: +M strength" of an icebreaker whose card data
+ * states it only in the breaker declaration (`pumpCredits`, `pumpStrength`)
+ * and has no pump paid ability of its own (CR 3.9.5b, 9.3.7b). It goes
+ * through `pump_strength`, so the icebreaker's strength increase lasts for
+ * the remainder of the current encounter (CR 3.9.5b). Its cost is paid like
+ * any other paid ability's, so Dagger's
+ * `paidAbilitiesUseStealthCreditsOnly` applies to it. A pump is not an
+ * interface ability (CR 3.9.5e), so it carries no `interface` flag and works
+ * below the ice's strength. A card that has its own pump ability keeps it.
+ */
+function declaredPumpAbility(card: CardInstance): PaidAbility | null {
+  const br = card.breaker;
+  if (!br || !(br.pumpCredits && br.pumpCredits > 0)) return null;
+  if (
+    (card.paidAbilities ?? []).some((ab) =>
+      PUMP_KIND.test(JSON.stringify(ab.effect ?? null)),
+    )
+  ) {
+    return null;
+  }
+  const credits = br.pumpCredits;
+  const strength = br.pumpStrength ?? 1;
+  return {
+    id: `${card.defId}-pump`,
+    label: `Pump ${card.title} +${strength} strength`,
+    clickCost: 0,
+    creditCost: credits,
+    cost: { credits },
+    windows: ["encounter_paw"],
+    effect: {
+      op: "do",
+      action: { kind: "pump_strength", amount: strength },
+    },
+  };
+}
+
 /** Instantiate a card from its data definition. */
 
 export function instantiateCard(
@@ -3403,6 +3443,10 @@ export function instantiateCard(
         canonicalizeAbilityFlags(ab);
       }
     }
+  }
+  {
+    const pump = declaredPumpAbility(card);
+    if (pump) card.paidAbilities = [...(card.paidAbilities ?? []), pump];
   }
   if (typeof card.autoPreventNetOrMeatDamagePayOrTrash === "number") {
     card.paidAbilities = [

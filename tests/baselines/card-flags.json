@@ -2034,6 +2034,10 @@
           "kinds": []
         },
         {
+          "site": "src/cards/load.ts#declaredPumpAbility",
+          "kinds": []
+        },
+        {
           "site": "src/cards/stubs.ts#cardExport",
           "kinds": []
         },
@@ -6596,6 +6600,10 @@
           "kinds": []
         },
         {
+          "site": "src/cards/load.ts#declaredPumpAbility",
+          "kinds": []
+        },
+        {
           "site": "src/cards/load.ts#loadAllCardFiles",
           "kinds": []
         },
@@ -7543,6 +7551,10 @@
       "readers": [
         {
           "site": "src/state/procedures/break.ts#interfaceBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#paidAbilityBreakBlock",
           "kinds": []
         }
       ],
@@ -13684,6 +13696,10 @@
         },
         {
           "site": "src/actions/apply.ts#resumeAfterEncounterStartTrace",
+          "kinds": []
+        },
+        {
+          "site": "src/cards/load.ts#declaredPumpAbility",
           "kinds": []
         },
         {
@@ -20904,6 +20920,10 @@
           "kinds": []
         },
         {
+          "site": "src/cards/load.ts#declaredPumpAbility",
+          "kinds": []
+        },
+        {
           "site": "src/cards/load.ts#validateCardShape",
           "kinds": [],
           "mirrors": [
@@ -22356,6 +22376,10 @@
         },
         {
           "site": "src/state/procedures/break.ts#interfaceBlock",
+          "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#paidAbilityBreakBlock",
           "kinds": []
         },
         {

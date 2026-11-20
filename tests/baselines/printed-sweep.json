@@ -386,7 +386,7 @@
       "abilities": [
         "2[credit]: +3 strength."
       ],
-      "note": "The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. Strength 1 and interface 1 credit: break 1 sentry subroutine match; 'cannot interface with ice protecting a remote server' is already on paired cut A's list.",
+      "note": "The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. Strength 1 and interface 1 credit: break 1 sentry subroutine match; 'cannot interface with ice protecting a remote server' is already on paired cut A's list. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
       "cr": [
         "1.2.1",
         "3.9.5b",
@@ -425,7 +425,7 @@
       "abilities": [
         "Interface 1 credit: break 1 subroutine"
       ],
-      "note": "The breaker declares breaksSubtype sentry, so src/state/procedures/break.ts blocks every non-sentry ice; the printed ability names no subtype. The outermost-ice restriction and the 1 credit: +1 strength match.",
+      "note": "The breaker declares breaksSubtype sentry, so src/state/procedures/break.ts blocks every non-sentry ice; the printed ability names no subtype. The outermost-ice restriction and the 1 credit: +1 strength match. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
       "cr": [
         "3.9.5h",
         "1.2.1"
@@ -1348,7 +1348,7 @@
       "abilities": [
         "2[credit]: +4 strength."
       ],
-      "note": "The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. The declaration also says pumpStrength 3 against the printed +4. Strength 2 and 2 credits: break up to 3 barrier subroutines match; the remote-interface limit is on paired cut A's list.",
+      "note": "The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. The declaration also says pumpStrength 3 against the printed +4. Strength 2 and 2 credits: break up to 3 barrier subroutines match; the remote-interface limit is on paired cut A's list. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong. Breach still pumps +3 against printed +4 (card data, paired cut A).",
       "cr": [
         "1.2.1",
         "3.9.5b",
@@ -2272,17 +2272,20 @@
     },
     "cyber-cypher": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Strength 4.",
         "1[credit]: +1 strength."
       ],
-      "note": "breaker.strength 0 overrides printed strength 4 (effectiveBreakerStrength reads breaker.strength first). The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. Choosing a server on install and the chosen-server limit on breaking match.",
+      "note": "Strength 4 and 1 credit: +1 strength, only during runs on the chosen server; fixed in FX-pump (the engine builds the pump from the breaker fields and reads the printed strength first).",
       "cr": [
         "1.2.1",
+        "3.9.4a",
         "3.9.5b",
-        "9.3.6c"
-      ]
+        "9.5.2f"
+      ],
+      "fixedIn": "engine#976",
+      "test": "Cyber-Cypher starts at strength 4 and pays 1 credit for +1 strength only during runs on its chosen server (CR 1.2.1, 3.9.5b)"
     },
     "cyber-threat": {
       "cycle": "lunar",
@@ -2371,16 +2374,17 @@
     },
     "dagger": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "1[credit]: +5 strength. Spend credits only from stealth cards to use this ability."
       ],
-      "note": "The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. The stealth-only flag has no paid ability to apply to. Interface 1 credit: break 1 sentry subroutine matches.",
+      "note": "1 credit: +5 strength, paid only from stealth cards; fixed in FX-pump (the built pump takes the card's stealth-only flag).",
       "cr": [
         "1.2.1",
-        "3.9.5b",
-        "9.3.7b"
-      ]
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "Dagger pays 1 credit for +5 strength only with credits from stealth cards (CR 1.2.1, 3.9.5b)"
     },
     "daily-business-show": {
       "cycle": "lunar",
@@ -2953,7 +2957,7 @@
         "Interface → 1[credit]: Break 1 subroutine. You cannot access cards for the remainder of this run.",
         "1[credit]: +1 strength."
       ],
-      "note": "breakPreventsCardAccessForRun has no reader, so breaking does not stop access; and the pump is only breaker.pumpCredits, which nothing reads (no pump paid ability), so the strength-2 breaker cannot pump. Same pump gap as S3c's note.",
+      "note": "breakPreventsCardAccessForRun has no reader, so breaking does not stop access; and the pump is only breaker.pumpCredits, which nothing reads (no pump paid ability), so the strength-2 breaker cannot pump. Same pump gap as S3c's note. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
       "cr": [
         "1.2.1",
         "3.9.5b",
@@ -3876,8 +3880,19 @@
     },
     "garrote": {
       "cycle": "spin",
-      "result": "matches",
-      "note": "Interface 1 credit: break 1 sentry subroutine; 1 credit: +1 strength."
+      "result": "fixed",
+      "abilities": [
+        "Strength 2.",
+        "1[credit]: +1 strength."
+      ],
+      "note": "Recorded as matches, but the pump was only a breaker field and the declaration's strength 0 overrode printed 2; fixed in FX-pump.",
+      "cr": [
+        "1.2.1",
+        "3.9.4a",
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "Garrote starts at strength 2 and pays 1 credit for +1 strength (CR 3.9.5b)"
     },
     "gaslight": {
       "cycle": "borealis",
@@ -3946,17 +3961,19 @@
     },
     "gingerbread": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Strength 2.",
         "2[credit]: +3 strength."
       ],
-      "note": "breaker.strength 1 overrides printed strength 2. The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. Interface 1 credit: break 1 tracer subroutine matches.",
+      "note": "Strength 2 and 2 credits: +3 strength; fixed in FX-pump.",
       "cr": [
         "1.2.1",
-        "3.9.5b",
-        "9.3.7b"
-      ]
+        "3.9.4a",
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "Gingerbread starts at strength 2 and pays 2 credits for +3 strength (CR 3.9.5b)"
     },
     "glenn-station": {
       "cycle": "order-and-chaos",
@@ -4106,42 +4123,45 @@
     },
     "gs-sherman-m3": {
       "cycle": "data-and-destiny",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "2[credit]: +3 strength."
       ],
-      "note": "The pump is declared only as breaker.pumpCredits/pumpStrength, which nothing reads, and there is no pump paid ability, so the strength-1 breaker cannot raise strength. The interface break and the 0 MU with 2 link match.",
+      "note": "2 credits: +3 strength; fixed in FX-pump.",
       "cr": [
         "1.2.1",
-        "3.9.5b",
-        "3.9.5g"
-      ]
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "GS Sherman M3 starts at strength 1 and pays 2 credits for +3 strength (CR 3.9.5b)"
     },
     "gs-shrike-m2": {
       "cycle": "data-and-destiny",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "2[credit]: +3 strength."
       ],
-      "note": "The pump is declared only as breaker.pumpCredits/pumpStrength, which nothing reads, and there is no pump paid ability, so the strength-1 breaker cannot raise strength. The interface break and the 0 MU with 2 link match.",
+      "note": "2 credits: +3 strength; fixed in FX-pump.",
       "cr": [
         "1.2.1",
-        "3.9.5b",
-        "3.9.5g"
-      ]
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "GS Shrike M2 starts at strength 1 and pays 2 credits for +3 strength (CR 3.9.5b)"
     },
     "gs-striker-m1": {
       "cycle": "data-and-destiny",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "2[credit]: +3 strength."
       ],
-      "note": "The pump is declared only as breaker.pumpCredits/pumpStrength, which nothing reads, and there is no pump paid ability, so the strength-1 breaker cannot raise strength. The interface break and the 0 MU with 2 link match.",
+      "note": "2 credits: +3 strength; fixed in FX-pump.",
       "cr": [
         "1.2.1",
-        "3.9.5b",
-        "3.9.5g"
-      ]
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "GS Striker M1 starts at strength 1 and pays 2 credits for +3 strength (CR 3.9.5b)"
     },
     "guard": {
       "cycle": "honor-and-profit",
@@ -6981,7 +7001,7 @@
       "abilities": [
         "Interface 1 credit: break 1 subroutine"
       ],
-      "note": "The breaker declares breaksSubtype sentry, so it cannot break non-sentry ice; the printed ability names no subtype. The innermost-ice restriction and the 1 credit: +1 strength match.",
+      "note": "The breaker declares breaksSubtype sentry, so it cannot break non-sentry ice; the printed ability names no subtype. The innermost-ice restriction and the 1 credit: +1 strength match. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
       "cr": [
         "3.9.5h",
         "1.2.1"
@@ -7231,7 +7251,7 @@
         "Strength 2.",
         "2[credit]: +2 strength."
       ],
-      "note": "breaker.strength 1 overrides printed strength 2. The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. Interface 1 credit: break 1 code gate subroutine matches; the remote-interface limit is on paired cut A's list.",
+      "note": "breaker.strength 1 overrides printed strength 2. The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. Interface 1 credit: break 1 code gate subroutine matches; the remote-interface limit is on paired cut A's list. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
       "cr": [
         "1.2.1",
         "3.9.5b",
@@ -8940,7 +8960,7 @@
       "abilities": [
         "Interface [trash]: break any number of destroyer subroutines"
       ],
-      "note": "The breaker declaration has breakCredits 0 without breakViaPaidAbilityOnly, so the basic break action breaks destroyer subroutines for 0 credits, repeatedly, without trashing. The trash-to-break paid ability also carries a once_per_turn flag the card does not print. 1 credit: +2 strength matches.",
+      "note": "The breaker declaration has breakCredits 0 without breakViaPaidAbilityOnly, so the basic break action breaks destroyer subroutines for 0 credits, repeatedly, without trashing. The trash-to-break paid ability also carries a once_per_turn flag the card does not print. 1 credit: +2 strength matches. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
       "cr": [
         "1.2.1",
         "9.3.6g"
@@ -10301,8 +10321,19 @@
     },
     "torch": {
       "cycle": "spin",
-      "result": "matches",
-      "note": "Interface 1 credit: break 1 code gate subroutine; 1 credit: +1 strength."
+      "result": "fixed",
+      "abilities": [
+        "Strength 4.",
+        "1[credit]: +1 strength."
+      ],
+      "note": "Recorded as matches, but the pump was only a breaker field and the declaration's strength 0 overrode printed 4; fixed in FX-pump.",
+      "cr": [
+        "1.2.1",
+        "3.9.4a",
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "Torch starts at strength 4 and pays 1 credit for +1 strength (CR 3.9.5b)"
     },
     "tori-hanzo": {
       "cycle": "honor-and-profit",

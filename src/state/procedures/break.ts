@@ -12,7 +12,8 @@
  *   before its costs are paid (CR 3.9.5g: "can only use"). It is keyed on
  *   what the ability does (a break, or another interface effect), never on
  *   the card data's `interface` flag, which 69 pump abilities carry although
- *   their printed text does not.
+ *   their printed text does not. It also applies a program's limit on all
+ *   of its abilities (Cyber-Cypher's chosen server), pumps included.
  * - `runnerBreakBlock`: the ice's and the breaker's own limits on any Runner
  *   break (Trieste, "only by a fracter" (Semak-samun), AI programs, NEXT Activation
  *   Command, Hafrún).
@@ -401,10 +402,23 @@ export function paidAbilityBreakBlock(
   cardId: string,
   ability: PaidAbility,
 ): BreakBlock | null {
-  const enc = state.run?.encounter;
-  if (!enc) return null;
   const card = state.cards[cardId];
   if (!card) return null;
+  // Cyber-Cypher: "Use this program only during runs on the chosen server"
+  // limits every ability on it, its pump as well as its break, in or out of
+  // an encounter: using an ability is using its card (CR 9.1.6), and a
+  // paid ability observes the restrictions of other abilities (CR 9.5.2f).
+  if (
+    card.interfaceRequiresChosenServer &&
+    (!state.run || state.run.attackedServerId !== card.chosenServerId)
+  ) {
+    return block(
+      `${card.title} can only be used during runs on its chosen server.`,
+      [CR.paidAbilityTextRestriction],
+    );
+  }
+  const enc = state.run?.encounter;
+  if (!enc) return null;
   const breaks = effectHasKind(ability.effect, RUNNER_BREAK_KINDS);
   const interfaces =
     cardHasIcebreakerSubtype(card) &&
