@@ -148,8 +148,18 @@ export function offerSkorpiosRfgInsteadOfHeap(
  * Taxes, per-encounter trash limits). Called by `trashCard` before the card
  * moves (`src/state/procedures/trash.ts`).
  */
-export function noteRunnerInstalledCardTrashing(state: GameState): void {
-  state.turn.runnerTrashedOwnInstalledThisTurn = true;
+export function noteRunnerInstalledCardTrashing(
+  state: GameState,
+  card: CardInstance,
+  by: "corp" | "runner" | null,
+): void {
+  // Boi-tatá: "you trashed any of your installed cards" is the Runner's
+  // trash, so a recorded Corp trash does not count. A trash with no recorded
+  // player still does (CR 1.14.5). Simulchip: "an installed program has
+  // already been trashed" is either player's, programs only (CR 1.2.1).
+  if (by !== "corp") state.turn.runnerTrashedOwnInstalledThisTurn = true;
+  if (card.type === "program")
+    state.turn.installedProgramTrashedThisTurn = true;
   fireCotcOnRunnerInstalledTrashed(state);
   const enc = state.run?.encounter;
   if (enc?.iceId) {
@@ -170,9 +180,12 @@ export function noteRunnerCardTrashedToHeap(
   card: CardInstance,
   fromZone: string,
   wasInstalled: boolean,
+  by: "corp" | "runner" | null = null,
 ): void {
   const cardId = card.id;
-  noteTrashMatchingRunnerIdentityFaction(state, cardId);
+  // Storgotic Resonator: "you trash" is the Corp. A Runner card the Runner
+  // trashes (a cost, their own ability) does not meet it (CR 1.14.5).
+  if (by !== "runner") noteTrashMatchingRunnerIdentityFaction(state, cardId);
   fireOnTrashFromGripOrStack(state, card, fromZone);
   // Tri-maf / Rolodex-class: onTrash when Runner card hits heap — note for 10.3.1a.
   if (card.onTrash) {

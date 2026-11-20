@@ -495,11 +495,8 @@ export function applyRevealKinds(
         log(state, `${source.title} — reveal top of stack: empty.`);
         return { ok: true };
       }
-      for (const id of revealed) {
-        state.cards[id]!.faceup = true;
-        revealCards(state, [id], sourceId);
-        log(state, `Reveal stack — ${state.cards[id]!.title}.`);
-      }
+      // Revealed, not turned faceup (CR 1.21.3).
+      revealCards(state, revealed, sourceId);
       if (revealed.length === 1) {
         return applyPrimitive(ctx, {
           kind: "pick_revealed",

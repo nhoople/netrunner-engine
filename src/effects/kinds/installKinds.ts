@@ -363,8 +363,10 @@ export function applyInstallKinds(
         card.zone = `server:${sid}:root`;
       }
       const doRez = card.type !== "agenda";
+      // Installed facedown (CR 8.5.2). An agenda cannot be rezzed, so it is
+      // revealed instead and stays facedown (CR 8.5.13d, 1.21.3).
       card.rezzed = false;
-      card.faceup = card.type === "agenda";
+      card.faceup = false;
       if (card.type === "agenda" || card.type === "asset") {
         card.advancementCounters = card.advancementCounters ?? 0;
       }
@@ -373,6 +375,9 @@ export function applyInstallKinds(
         state,
         `Install ${card.title} from looked R&D on ${sid} ignoring costs.`,
       );
+      if (!doRez) {
+        revealCards(state, [cardId], sourceId, CR.revealForInstallAndRez);
+      }
       fireOnInstall(state, cardId);
       if (!doRez && card.type !== "ice") {
         noteFirstInstallInServerRootThisTurn(state, sid, cardId);
@@ -417,6 +422,12 @@ export function applyInstallKinds(
         returnRdLookedToDeckTop(state);
         return { ok: true };
       }
+      // A refused install leaves the card in R&D with the others: it never
+      // passes through HQ, and it is never faceup there (CR 1.21.6, 10.2.2a).
+      if (iceInstallCapRefuses(state, card)) {
+        returnRdLookedToDeckTop(state);
+        return { ok: true };
+      }
       const cost = corpInstallCost(card, 0);
       if (creditsAvailableForInstall(state, "corp") < cost) {
         log(state, `Install looked R&D card — cannot afford ${cost}¢.`);
@@ -429,7 +440,7 @@ export function applyInstallKinds(
       );
       state.corp.hand.push(cardId);
       card.zone = "corp:hq";
-      card.faceup = true;
+      card.faceup = false;
       const r = evalEffect(
         { state, sourceId },
         {

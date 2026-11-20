@@ -1921,7 +1921,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#beginBreachAccess",
+          "site": "src/state/access.ts#staticBreachAccessBonuses",
           "kinds": []
         }
       ],
@@ -1959,7 +1959,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#beginBreachAccess",
+          "site": "src/state/access.ts#staticBreachAccessBonuses",
           "kinds": []
         }
       ],
@@ -1979,7 +1979,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#beginBreachAccess",
+          "site": "src/state/access.ts#staticBreachAccessBonuses",
           "kinds": []
         }
       ],
@@ -13974,7 +13974,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#beginBreachAccess",
+          "site": "src/state/access.ts#staticBreachAccessBonuses",
           "kinds": []
         },
         {
@@ -16590,7 +16590,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#applyTwinningBonusAccess",
+          "site": "src/state/access.ts#offerTwinningBonusAccess",
           "kinds": []
         }
       ],
@@ -20904,6 +20904,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/cardNames.ts#catalogCardNames",
+          "kinds": []
+        },
+        {
           "site": "src/effects/chooseCard.ts#applyChooseCard",
           "kinds": []
         },
@@ -21832,10 +21836,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#applyTwinningBonusAccess",
-          "kinds": []
-        },
-        {
           "site": "src/state/access.ts#beginBreachAccess",
           "kinds": []
         },
@@ -21864,7 +21864,15 @@
           "kinds": []
         },
         {
+          "site": "src/state/access.ts#offerTwinningBonusAccess",
+          "kinds": []
+        },
+        {
           "site": "src/state/access.ts#offerWakeImplantBonusAccess",
+          "kinds": []
+        },
+        {
+          "site": "src/state/access.ts#staticBreachAccessBonuses",
           "kinds": []
         },
         {
@@ -23331,6 +23339,10 @@
           "kinds": []
         },
         {
+          "site": "src/actions/access.ts#stealOrTrashBlocked",
+          "kinds": []
+        },
+        {
           "site": "src/actions/apply.ts#applyResolved",
           "kinds": []
         },
@@ -23452,6 +23464,10 @@
         },
         {
           "site": "src/demo/verticalSlice.ts#setupEmptyRemoteWithIce",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/cardNames.ts#catalogCardNames",
           "kinds": []
         },
         {
@@ -24167,6 +24183,10 @@
         },
         {
           "site": "src/state/trashHooks.ts#noteRunnerCardTrashedToHeap",
+          "kinds": []
+        },
+        {
+          "site": "src/state/trashHooks.ts#noteRunnerInstalledCardTrashing",
           "kinds": []
         },
         {

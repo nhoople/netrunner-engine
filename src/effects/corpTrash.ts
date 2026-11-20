@@ -20,7 +20,7 @@ import {
   onRunnerTrashedFromServer,
   runnerCannotTrashWhileRezzed,
 } from "../state/cardDeclarations.js";
-import { evalEffect } from "./eval.js";
+import { evalEffect, maybeFireNuvemFirstRdTrash } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
 import { trashCard } from "../state/procedures/trash.js";
 import {
@@ -206,13 +206,29 @@ export function noteCorpCardTrashedToArchives(
     origin.simultaneousSet,
     wasInstalled,
   );
-  maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez);
-  maybeFireHostileArchitecture(state, wasInstalled, cardId, wasRezzed);
-  maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore);
+  maybeFireOnRezzedCardTrashed(state, wasRezzed, printedRez, trashedBy);
+  maybeFireHostileArchitecture(
+    state,
+    wasInstalled,
+    cardId,
+    wasRezzed,
+    trashedBy,
+  );
+  maybeFireYakovCredits(state, wasInstalled, cardId, zoneBefore, wasRezzed);
   if (!origin.simultaneousSet) {
     maybeFireWarroidTracker(state, wasInstalled, trashedBy, zoneBefore);
   }
   maybeFireAuCoOnHqTrash(state, wasFromHq);
+  // Nuvem SA: "The first time you trash a card from R&D during each of your
+  // turns": the Corp's trash, on the Corp's turn, whatever trashed it. A
+  // Runner card trashing from R&D does not meet it (CR 1.14.5).
+  if (
+    zoneBefore === "corp:rd" &&
+    trashedBy !== "runner" &&
+    state.activeSide === "corp"
+  ) {
+    maybeFireNuvemFirstRdTrash(state);
+  }
 }
 
 /**
@@ -258,7 +274,11 @@ function maybeFireHostileArchitecture(
   wasInstalled: boolean,
   trashedId: string,
   trashedWasRezzed: boolean,
+  trashedBy: "corp" | "runner" | null,
 ): void {
+  // "The first time each turn the Runner trashes": a Corp trash neither
+  // meets it nor uses up the turn (CR 1.14.5a).
+  if (trashedBy !== "runner") return;
   if (!wasInstalled || state.turn.hostileArchitectureUsedThisTurn) return;
   // Include the just-trashed card (Hostile Architecture can fire on itself).
   const candidates: string[] = [trashedId];
@@ -288,6 +308,7 @@ function maybeFireYakovCredits(
   wasInstalled: boolean,
   trashedId: string,
   zoneBefore: string,
+  trashedWasRezzed: boolean,
 ): void {
   if (!wasInstalled || state.turn.corpInstallInProgress) return;
   // zone like server:remote-1:root or server:hq:ice
@@ -303,8 +324,10 @@ function maybeFireYakovCredits(
     const card = state.cards[id];
     const n = card?.creditsOnTrashFromThisServer ?? 0;
     if (n <= 0) continue;
-    // Trashed Yakov still pays; other cards must be rezzed.
-    if (id !== trashedId && !card?.rezzed) continue;
+    // Yakov's ability is active only while it is rezzed: a trashed Yakov
+    // pays if it was rezzed when trashed (CR 9.1.8g).
+    const active = id === trashedId ? trashedWasRezzed : Boolean(card?.rezzed);
+    if (!active) continue;
     state.corp.credits += n;
     log(state, `${card!.title} — gain ${n}¢ (card trashed from this server).`);
   }
@@ -338,6 +361,7 @@ function maybeFireOnRezzedCardTrashed(
   state: GameState,
   wasRezzed: boolean,
   printedRez: number | null,
+  trashedBy: "corp" | "runner" | null,
 ): void {
   if (!wasRezzed) return;
   // Always record printed rez for Kimberlite / Ob Superheavy consumers.
@@ -345,6 +369,9 @@ function maybeFireOnRezzedCardTrashed(
     state.turn.lastTrashedRezzedPrintedRezCost = printedRez;
   }
   if (state.turn.corpInstallInProgress) return;
+  // Ob Superheavy Logistics: "When you trash a rezzed card": the Corp's
+  // trash only; a Runner trash neither meets it nor uses it up (CR 1.14.5).
+  if (trashedBy === "runner") return;
   if (state.turn.obSuperheavyUsedThisTurn) return;
   const idCard = state.cards[state.corp.identityId];
   if (!idCard?.onRezzedCardTrashed) return;

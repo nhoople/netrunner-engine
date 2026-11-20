@@ -325,7 +325,7 @@ export interface CostSpec {
   minCreditsFromStealth?: number;
   /**
    * Simulchip: as an additional cost, trash 1 installed program.
-   * Ignored when `runnerTrashedOwnInstalledThisTurn` is already set.
+   * Ignored when `installedProgramTrashedThisTurn` is already set.
    */
   trashInstalledProgramUnlessOwnInstalledTrashedThisTurn?: boolean;
 }
@@ -3877,8 +3877,16 @@ export interface TurnBookkeeping {
   agendaPointsStolenLastTurn: number;
   /** Runner stole or trashed a Corp card this Runner turn (Oppo / Epiphany). */
   runnerStoleOrTrashedCorpCardThisTurn: boolean;
-  /** Runner trashed one of their own installed cards this turn (Boi-tatá). */
+  /**
+   * The Runner trashed one of their own installed cards this turn
+   * (Boi-tatá's "you trashed"). A Corp trash does not set it (CR 1.14.5).
+   */
   runnerTrashedOwnInstalledThisTurn: boolean;
+  /**
+   * An installed program was trashed this turn, by either player
+   * (Simulchip's "an installed program has already been trashed").
+   */
+  installedProgramTrashedThisTurn?: boolean;
   /** Runner stole or trashed a Corp card during their previous turn. */
   runnerStoleOrTrashedCorpCardLastTurn: boolean;
   /** Hangeki: Runner trashed a Corp card this turn (trash-only; not steal). */
@@ -4333,6 +4341,8 @@ interface EncounterState {
   onEncounterPrevented?: boolean;
   /** Sorocaban Blade: installed Runner cards trashed by this ice this encounter. */
   installedRunnerTrashesThisEncounter?: number;
+  /** Tsakhia "Bankhar" Gantulga: this is the turn's first encounter with ice on the chosen server. */
+  gantulgaReplaces?: boolean;
   /**
    * Stick and Poke: synthetic subroutine was prepended for this encounter and
    * must be removed when the encounter ends.
@@ -4566,6 +4576,10 @@ export interface RunState {
   pendingHeliamphoraAccessCardId?: string;
   /** Pretty Mary: already offered may-bonus this breach. */
   prettyMaryBreachResolved?: boolean;
+  /** The Twinning's bonus access was offered this breach. */
+  twinningBreachResolved?: boolean;
+  /** Mercury's bonus access was offered this breach. */
+  mercuryBreachOffered?: boolean;
   /** Additional ice rez cost during this run (Tread Lightly). */
   iceRezCostIncrease?: number;
   /** Running Interference: pay additional rez equal to printed rez cost. */
@@ -4595,6 +4609,8 @@ export interface RunState {
   tlmCorpChoosesHqAccess?: boolean;
   /** Ansel: Runner cannot steal or trash Corp cards this run. */
   cannotStealOrTrash?: boolean;
+  /** Pinhole Threading: an accessed agenda cannot be stolen or trashed this run. */
+  cannotStealOrTrashAgendas?: boolean;
   /**
    * When true, `beginBreachAccess` keeps existing `accessCandidates` /
    * `randomAccessLimit` (Pinhole replace-breach preset).

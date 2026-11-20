@@ -15,10 +15,19 @@ import { fireOnArchivesFacedownTurnedFaceupGte } from "./miscConditionalHooks.js
 import { shuffleInPlace } from "./rng.js";
 
 /** The Twinning: remove power for bonus HQ/R&D access at breach begin. */
-function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
-  if (serverId !== "hq" && serverId !== "rd") return;
+/**
+ * The Twinning: "Whenever you breach HQ or R&D, you may remove up to 2
+ * hosted power counters to access that many additional cards." The Runner
+ * chooses how many, none included (CR 9.6.9, 1.15.2). Offered once per
+ * breach; the breach resumes after the choice.
+ */
+function offerTwinningBonusAccess(
+  state: GameState,
+  serverId: ServerId,
+): boolean {
+  if (serverId !== "hq" && serverId !== "rd") return false;
   const run = state.run;
-  if (!run) return;
+  if (!run || run.twinningBreachResolved) return false;
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
@@ -26,14 +35,37 @@ function applyTwinningBonusAccess(state: GameState, serverId: ServerId): void {
     if (!max || max <= 0) continue;
     const have = card.powerCounters ?? 0;
     if (have <= 0) continue;
-    const rem = Math.min(max, have);
-    card.powerCounters = have - rem;
-    run.bonusAccess = (run.bonusAccess ?? 0) + rem;
+    const upTo = Math.min(max, have);
+    const options: Array<{ id: string; label: string; effect: Effect }> = [];
+    for (let n = 1; n <= upTo; n++) {
+      options.push({
+        id: `twinning-access:${n}`,
+        label: `Remove ${n} power for +${n} access`,
+        effect: {
+          op: "do",
+          action: { kind: "spend_power_for_bonus_access", amount: n },
+        },
+      });
+    }
+    options.push({
+      id: "decline",
+      label: "Decline",
+      effect: {
+        op: "do",
+        action: { kind: "gain_credits", side: "runner", amount: 0 },
+      },
+    });
+    if (!openPendingChoose(state, { sourceId: id, chooser: "runner", options }))
+      continue;
+    run.twinningBreachResolved = true;
+    run.mercuryBreachPending = true;
     log(
       state,
-      `${card.title} — remove ${rem} power for +${rem} access on ${serverId} → ${card.powerCounters} power.`,
+      `${card.title} — may remove up to ${upTo} power for bonus access on ${serverId}.`,
     );
+    return true;
   }
+  return false;
 }
 
 /**
@@ -48,6 +80,9 @@ function offerMercuryBreachBonusAccess(
   const run = state.run;
   if (!run) return false;
   if (state.turn.mercuryBreachBonusUsedThisTurn) return false;
+  // One breach per run: offered once, and a declined offer does not use the
+  // once per turn (CR 9.3.6g).
+  if (run.mercuryBreachOffered) return false;
   if ((run.breakersThatBroke ?? []).length > 0) return false;
   if (abilitiesSuppressed(state, state.runner.identityId)) return false;
   const idCard = state.cards[state.runner.identityId];
@@ -63,7 +98,7 @@ function offerMercuryBreachBonusAccess(
           label: `Access ${amount} additional card(s)`,
           effect: {
             op: "do",
-            action: { kind: "bonus_access", amount },
+            action: { kind: "bonus_access", amount, oncePerTurn: "mercury" },
           },
         },
         {
@@ -78,7 +113,7 @@ function offerMercuryBreachBonusAccess(
     })
   )
     return false;
-  state.turn.mercuryBreachBonusUsedThisTurn = true;
+  run.mercuryBreachOffered = true;
   run.mercuryBreachPending = true;
   log(state, `${idCard.title} — may access +${amount} (no breaks this run).`);
   return true;
@@ -197,8 +232,58 @@ function offerRotaryBreachBonusAccess(
 }
 
 /**
+ * The "+N access" abilities that this breach meets with no choice: Manuel
+ * Lattes de Moura while tagged, and the HQ Interface / R&D Interface /
+ * Mwanza family. They are conditional abilities on the breach; the Runner
+ * may resolve them before an optional one such as Pretty Mary, whose
+ * condition is checked as it resolves (CR 9.6.5d, 9.6.9a).
+ */
+function staticBreachAccessBonuses(
+  state: GameState,
+  serverId: ServerId,
+): { manuel: number; interface: number; interfaceTitle: string | null } {
+  const out = {
+    manuel: 0,
+    interface: 0,
+    interfaceTitle: null as string | null,
+  };
+  if (serverId !== "hq" && serverId !== "rd") return out;
+  if (runnerIsTagged(state)) {
+    for (const rid of state.runner.installed) {
+      if (abilitiesSuppressed(state, rid)) continue;
+      const n = state.cards[rid]?.bonusAccessOnHqRdBreachWhileTagged ?? 0;
+      if (n > 0) out.manuel += n;
+    }
+  }
+  const server = state.servers[serverId];
+  const sources = [...state.runner.installed, ...(server?.root ?? [])];
+  for (const rid of sources) {
+    if (abilitiesSuppressed(state, rid)) continue;
+    const card = state.cards[rid];
+    // Corp root upgrades must be rezzed (or persistent) to contribute.
+    if (
+      (server?.root ?? []).includes(rid) &&
+      !card?.rezzed &&
+      !card?.persistent
+    ) {
+      continue;
+    }
+    const n =
+      serverId === "hq"
+        ? (card?.bonusAccessOnHqBreach ?? 0)
+        : (card?.bonusAccessOnRdBreach ?? 0);
+    if (n > 0) {
+      out.interface += n;
+      out.interfaceTitle ??= card!.title;
+    }
+  }
+  return out;
+}
+
+/**
  * Pretty Mary: when breaching R&D, if already allowed ≥ min R&D accesses,
- * may access +amount more.
+ * may access +amount more. The breach bonuses with no choice (Manuel, R&D
+ * Interface) can resolve first, so they count (CR 9.6.5d, 9.6.9a).
  */
 function offerPrettyMaryBreachBonusAccess(
   state: GameState,
@@ -207,8 +292,11 @@ function offerPrettyMaryBreachBonusAccess(
   if (serverId !== "rd") return false;
   const run = state.run;
   if (!run || run.prettyMaryBreachResolved) return false;
-  // Base R&D access is 1 (top card) + existing bonusAccess.
-  const allowed = 1 + (run.bonusAccess ?? 0);
+  // Base R&D access is 1 (top card) + existing bonusAccess + the constant
+  // bonuses that are added later in this breach.
+  const statics = staticBreachAccessBonuses(state, serverId);
+  const allowed =
+    1 + (run.bonusAccess ?? 0) + statics.manuel + statics.interface;
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
@@ -439,7 +527,9 @@ export function beginBreachAccess(state: GameState): void {
     return;
   }
 
-  applyTwinningBonusAccess(state, serverId);
+  if (offerTwinningBonusAccess(state, serverId)) {
+    return;
+  }
 
   // Climactic Showdown: first HQ/R&D breach this turn → +N access.
   if (
@@ -459,52 +549,20 @@ export function beginBreachAccess(state: GameState): void {
     return;
   }
 
-  // Manuel: +N access on HQ/R&D breach while tagged.
-  if ((serverId === "hq" || serverId === "rd") && runnerIsTagged(state)) {
-    let bonus = 0;
-    for (const rid of state.runner.installed) {
-      if (abilitiesSuppressed(state, rid)) continue;
-      const n = state.cards[rid]?.bonusAccessOnHqRdBreachWhileTagged ?? 0;
-      if (n > 0) bonus += n;
-    }
-    if (bonus > 0) {
-      run.bonusAccess = (run.bonusAccess ?? 0) + bonus;
-      log(state, `Manuel — access +${bonus} while tagged on ${serverId}.`);
-    }
+  const statics = staticBreachAccessBonuses(state, serverId);
+  if (statics.manuel > 0) {
+    run.bonusAccess = (run.bonusAccess ?? 0) + statics.manuel;
+    log(
+      state,
+      `Manuel — access +${statics.manuel} while tagged on ${serverId}.`,
+    );
   }
-
-  // HQ Interface / R&D Interface / Mwanza: +N access whenever breaching that central.
-  if (serverId === "hq" || serverId === "rd") {
-    let bonus = 0;
-    let sourceTitle: string | null = null;
-    const sources = [...state.runner.installed, ...(server?.root ?? [])];
-    for (const rid of sources) {
-      if (abilitiesSuppressed(state, rid)) continue;
-      const card = state.cards[rid];
-      // Corp root upgrades must be rezzed (or persistent) to contribute.
-      if (
-        (server?.root ?? []).includes(rid) &&
-        !card?.rezzed &&
-        !card?.persistent
-      ) {
-        continue;
-      }
-      const n =
-        serverId === "hq"
-          ? (card?.bonusAccessOnHqBreach ?? 0)
-          : (card?.bonusAccessOnRdBreach ?? 0);
-      if (n > 0) {
-        bonus += n;
-        sourceTitle ??= card!.title;
-      }
-    }
-    if (bonus > 0) {
-      run.bonusAccess = (run.bonusAccess ?? 0) + bonus;
-      log(
-        state,
-        `${sourceTitle ?? "Interface"} — access +${bonus} on ${serverId} breach.`,
-      );
-    }
+  if (statics.interface > 0) {
+    run.bonusAccess = (run.bonusAccess ?? 0) + statics.interface;
+    log(
+      state,
+      `${statics.interfaceTitle ?? "Interface"} — access +${statics.interface} on ${serverId} breach.`,
+    );
   }
 
   if (server.kind === "remote") {

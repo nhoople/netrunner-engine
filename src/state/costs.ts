@@ -900,7 +900,7 @@ export function costCardNeed(
   }
   if (
     cost.trashInstalledProgramUnlessOwnInstalledTrashedThisTurn &&
-    !state.turn.runnerTrashedOwnInstalledThisTurn
+    !state.turn.installedProgramTrashedThisTurn
   ) {
     return {
       payer: "runner",
@@ -1044,7 +1044,7 @@ export function canPayCost(
     if (state.runner.tags < (cost.removeTags ?? 0)) return false;
   }
   if (cost.trashInstalledProgramUnlessOwnInstalledTrashedThisTurn) {
-    if (!state.turn.runnerTrashedOwnInstalledThisTurn) {
+    if (!state.turn.installedProgramTrashedThisTurn) {
       const programs = installedProgramsForSimulchipCost(state, source?.id);
       if (programs.length === 0) return false;
     }
@@ -1359,7 +1359,7 @@ export function payCost(
       }
     }
     if (cost.trashInstalledProgramUnlessOwnInstalledTrashedThisTurn) {
-      if (!state.turn.runnerTrashedOwnInstalledThisTurn) {
+      if (!state.turn.installedProgramTrashedThisTurn) {
         const programs = installedProgramsForSimulchipCost(state, source?.id);
         const pick = takeCostCards(state, programs, 1, "first")[0];
         if (pick) {

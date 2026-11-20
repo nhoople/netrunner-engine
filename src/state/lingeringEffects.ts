@@ -373,6 +373,24 @@ export function addAllIceStrengthBoostThisRun(
 }
 
 /**
+ * Register "this ice gets +N strength for the remainder of the run"
+ * (CR 9.10.1). With no run in progress the duration has already ended, so
+ * nothing is created (CR 9.10.4).
+ */
+export function addIceStrengthBoostThisRun(
+  state: GameState,
+  args: { createdBy: string; iceId: string; amount: number },
+): void {
+  if (args.amount === 0 || !state.run) return;
+  addLingeringEffect(state, {
+    createdBy: args.createdBy,
+    duration: { kind: "run" },
+    kind: LINGERING_KIND_ICE_STRENGTH,
+    payload: { iceId: args.iceId, amount: args.amount },
+  });
+}
+
+/**
  * Register an encounter-duration ice strength boost (CR 9.10.1). Requires an
  * active run; no-ops otherwise. Applies while the run is open.
  */

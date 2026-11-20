@@ -112,6 +112,25 @@ export function findHeliamphora(state: GameState): string | null {
 }
 
 /** Mid-access abilities other than pass (`finish_access`) — CR 11.6_2 / 7.2.2. */
+/**
+ * The Runner cannot steal or trash this accessed card: Forbid-style "cannot
+ * steal or trash Corp cards this run", or Pinhole Threading's "if that card
+ * is an agenda, you cannot steal or trash it during this access" (CR 1.2.1).
+ */
+export function stealOrTrashBlocked(
+  state: GameState,
+  cardId: string | null | undefined,
+): boolean {
+  const run = state.run;
+  if (!run) return false;
+  if (run.cannotStealOrTrash) return true;
+  return Boolean(
+    run.cannotStealOrTrashAgendas &&
+    cardId &&
+    state.cards[cardId]?.type === "agenda",
+  );
+}
+
 function hasInteractiveMidAccess(state: GameState): boolean {
   const id = state.run?.accessingCardId;
   if (!id) return false;
@@ -119,7 +138,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
   if (!card) return false;
   if (
     card.trashCost !== undefined &&
-    !state.run!.cannotStealOrTrash &&
+    !stealOrTrashBlocked(state, id) &&
     !runnerCannotTrashWhileRezzed(state, id)
   ) {
     const purpose =
@@ -130,11 +149,12 @@ function hasInteractiveMidAccess(state: GameState): boolean {
   }
   if (carnivoreAvailable(state)) return true;
   if (cupellationHostAvailable(state)) return true;
-  if (state.run!.accessTrashFree && !state.run!.cannotStealOrTrash) return true;
+  if (state.run!.accessTrashFree && !stealOrTrashBlocked(state, id))
+    return true;
   if (
     !state.turn.siSalsetteSlumsUsedThisTurn &&
     card.trashCost !== undefined &&
-    !state.run!.cannotStealOrTrash
+    !stealOrTrashBlocked(state, id)
   ) {
     for (const rid of state.runner.installed) {
       if (abilitiesSuppressed(state, rid)) continue;
@@ -149,7 +169,7 @@ function hasInteractiveMidAccess(state: GameState): boolean {
       }
     }
   }
-  if (!state.run!.cannotStealOrTrash) {
+  if (!stealOrTrashBlocked(state, id)) {
     for (const rid of state.runner.installed) {
       if (abilitiesSuppressed(state, rid)) continue;
       const c = state.cards[rid];
@@ -235,7 +255,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       accessed?.mustTrashWhenAccessedWhileInstalled &&
       !abilitiesSuppressed(state, accessingId) &&
       accessed.trashCost !== undefined &&
-      !state.run!.cannotStealOrTrash
+      !stealOrTrashBlocked(state, accessingId)
     ) {
       const purpose =
         accessed.type === "asset"
@@ -316,7 +336,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
     }
     const natForcesPay =
       accessed?.trashCost !== undefined &&
-      !state.run!.cannotStealOrTrash &&
+      !stealOrTrashBlocked(state, accessingId) &&
       !state.turn.neutralizeAllThreatsCheckedThisTurn &&
       state.runner.installed.some(
         (id) =>
@@ -345,7 +365,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
     if (
       state.turn.ssByAnyMeansActive &&
       state.run!.attackedServerId !== "archives" &&
-      !state.run!.cannotStealOrTrash &&
+      !stealOrTrashBlocked(state, accessingId) &&
       accessed
     ) {
       // The Runner's event trashes the accessed card (CR 1.14.5, 7.1.5).
@@ -378,7 +398,7 @@ export function enterStealAgendaOrComplete(state: GameState): ApplyResult {
   enterStep(state, "access.stealAgenda");
   const id = state.run?.accessingCardId;
   if (id && state.cards[id]?.type === "agenda") {
-    if (state.run?.cannotStealOrTrash) {
+    if (stealOrTrashBlocked(state, id)) {
       return completeAccessAndContinue(state);
     }
     log(

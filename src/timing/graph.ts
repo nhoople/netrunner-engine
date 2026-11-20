@@ -18,6 +18,7 @@ import {
   evalEffect,
   fireOnBypassTriggers,
   fireHostRezStateTriggers,
+  serverHostingCard,
 } from "../effects/eval.js";
 import { syncSubroutinesFromRecords } from "../effects/abilityRecord.js";
 import type { Effect } from "../effects/ir.js";
@@ -2906,7 +2907,11 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(
           `Encounter ${ice.title} (appendix 11.4_3_a / CR 6.5.1) with ${(ice.subroutines ?? subs).length} subroutine(s).`,
         );
-        // Gantulga: first encounter each turn with ice on the named server.
+        // Gantulga: "the first encounter each turn with a piece of ice
+        // protecting the chosen server". The server the ice protects counts,
+        // not the attacked one, and only that one encounter is marked; a
+        // later encounter with the same ice is not (CR 1.2.1).
+        const encIceServer = serverHostingCard(s, iceId)?.id;
         if (!s.turn.gantulgaEncounterIceId) {
           for (const rid of s.runner.installed) {
             if (abilitiesSuppressed(s, rid)) continue;
@@ -2917,9 +2922,10 @@ export const STEPS: Record<string, TimingStepDef> = {
             ) {
               continue;
             }
-            if (g.namedServerId !== runState.attackedServerId) continue;
+            if (g.namedServerId !== encIceServer) continue;
             if ((runState.bypassedIceIds ?? []).includes(iceId)) continue;
             s.turn.gantulgaEncounterIceId = iceId;
+            if (runState.encounter) runState.encounter.gantulgaReplaces = true;
             s.log.push(
               `${g.title} — first encounter with ice protecting ${g.namedServerId}; subs become net damage.`,
             );
@@ -3218,13 +3224,15 @@ export const STEPS: Record<string, TimingStepDef> = {
         enc.subroutinesResolved = (enc.subroutinesResolved ?? 0) + 1;
         // Gantulga replacement: first named-server encounter → Do N net damage.
         let replaced = false;
-        if (s.turn.gantulgaEncounterIceId === enc.iceId) {
+        if (
+          enc.gantulgaReplaces &&
+          s.turn.gantulgaEncounterIceId === enc.iceId
+        ) {
           for (const rid of s.runner.installed) {
             if (abilitiesSuppressed(s, rid)) continue;
             const g = s.cards[rid];
             const n = g.firstEncounterSubsBecomeNetDamage ?? 0;
             if (n <= 0 || !g.namedServerId) continue;
-            if (g.namedServerId !== runState.attackedServerId) continue;
             s.log.push(
               `Resolve subroutine "${sub.text}" as "Do ${n} net damage." from ${ice.title} (CR ${CR.replaceSubroutineResolution.number}).`,
             );
@@ -5084,20 +5092,28 @@ export const STEPS: Record<string, TimingStepDef> = {
             delete card.maxPrintedSubsBreakablePerEncounter;
           }
         }
-        // Info Bounty: first mark run end this turn, gain ¢ if breached
+        // Info Bounty: "The first time each turn a run on your mark ends,
+        // gain 2 if you breached that server during that run." The first
+        // mark run to end uses it, breached or not; the breach is checked
+        // when it resolves (CR 9.6.5, 1.2.1).
         const markSid = runState.attackedServerId;
         if (
           !s.turn.infoBountyMarkRunEndUsed &&
           currentMark(s) &&
-          markSid === currentMark(s) &&
-          runState.breached
+          markSid === currentMark(s)
         ) {
           for (const rid of s.runner.installed) {
             const card = s.cards[rid];
             const n = card?.gainCreditsOnFirstMarkRunEndIfBreached ?? 0;
             if (n <= 0) continue;
-            s.runner.credits += n;
             s.turn.infoBountyMarkRunEndUsed = true;
+            if (!runState.breached) {
+              s.log.push(
+                `${card!.title} — the first mark run ended without a breach; no gain this turn.`,
+              );
+              break;
+            }
+            s.runner.credits += n;
             s.log.push(
               `${card!.title} — gain ${n}¢ (mark run ended after breach).`,
             );
@@ -5709,6 +5725,8 @@ export const STEPS: Record<string, TimingStepDef> = {
         run.onBreachRdPending = false;
         run.onBreachRdResolved = false;
         run.prettyMaryBreachResolved = false;
+        run.mercuryBreachOffered = false;
+        run.twinningBreachResolved = false;
         run.heliamphoraHostInsteadUsedThisBreach = false;
         s.log.push(
           `Queued breach of ${next.server} begins${

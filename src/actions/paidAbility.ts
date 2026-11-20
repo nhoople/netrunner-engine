@@ -1119,9 +1119,13 @@ export function usePaidAbility(
     return cont;
   }
 
+  // Juli Moreira Lee: "the first time each turn you take an action on an
+  // installed resource". Only a paid ability whose cost begins with [click]
+  // is an action (CR 5.2.1).
   if (
     card.type === "resource" &&
     card.side === "runner" &&
+    costBeginsWithClick(ability) &&
     !state.turn.firstResourcePaidAbilityThisTurn
   ) {
     state.turn.firstResourcePaidAbilityThisTurn = true;

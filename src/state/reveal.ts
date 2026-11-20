@@ -9,6 +9,7 @@
  */
 import { CR } from "../timing/labels.js";
 import { log } from "./createGame.js";
+import { noteFirstRevealThisTurn } from "./miscConditionalHooks.js";
 import type {
   GameState,
   LookEvent,
@@ -51,6 +52,9 @@ export function revealCards(
     state,
     `${event.sourceTitle} — reveal ${event.cards.map((c) => c.title).join(", ")} (CR ${rules}).`,
   );
+  // Hyoubu Institute: "The first time each turn you reveal a card". Every
+  // reveal by a Corp ability counts, not only Hyoubu's own (CR 1.21.3).
+  if (source?.side === "corp") noteFirstRevealThisTurn(state);
 }
 
 /**

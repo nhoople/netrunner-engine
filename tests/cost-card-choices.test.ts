@@ -337,7 +337,7 @@ describe("a cost that trashes from the grip asks the Runner which card (CR 1.16.
     installed(s, "gordian-blade", "p-2");
     put(s, "mimic", "heap-1", "runner:heap").faceup = true;
     s.runner.discardPile = ["heap-1"];
-    s.turn.runnerTrashedOwnInstalledThisTurn = true;
+    s.turn.installedProgramTrashedThisTurn = true;
     const after = must(s, {
       type: "use_paid_ability",
       cardId: "sim-1",

@@ -13,8 +13,8 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | Kinds in `KNOWN_PRIMITIVE_KINDS` | 1535 |
 | Kinds used by card JSON | 888 |
 | Kinds used by exactly one card | 736 |
-| Kinds built by the engine | 734 |
-| Kinds built by both cards and the engine | 104 |
+| Kinds built by the engine | 738 |
+| Kinds built by both cards and the engine | 108 |
 | Engine-only kinds (no card uses them; the engine builds them) | 630 |
 | Kinds neither a card nor the engine builds | 17 |
 | Verb groups | 74 |
@@ -920,7 +920,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `may_move_source_upgrade_to_another_server_root` | — | 4 | card |
 | `may_move_up_to_credits_from_pool_to_self` | `amount?: number` | 2 | card |
 | `move_accessed_to_bottom_rd` | — | 1 | card |
-| `move_advancements` | `amount: number` | 2 | card |
+| `move_advancements` | `amount: number`, `toId?: string`, `fromId?: string`, `count?: number` | 2 | card |
 | `move_advancements_resolve` | `destId: string`, `amount: number` | 0 | engine |
 | `move_agenda_to_bottom_rd` | `cardId: string`, `shuffledRd: boolean` | 0 | engine |
 | `move_all_advancements` | — | 1 | card |
@@ -959,14 +959,14 @@ Card counts are from cards `v1.147.24` (2016 cards).
 
 ## `name`
 
-6 kinds: 5 used by cards, 1 built by the engine.
+6 kinds: 5 used by cards, 2 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
 | `name_agenda` | `title: string` | 0 | engine |
 | `name_and_rfg_heap_copies` | — | 1 | card |
 | `name_card` | — | 1 | card |
-| `name_net_damage_loop` | — | 1 | card |
+| `name_net_damage_loop` | — | 1 | card, engine |
 | `name_reveal_trash_grip_copies` | — | 1 | card |
 | `name_type_trash_from_grip` | — | 1 | card |
 
@@ -1342,7 +1342,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 
 ## `reveal`
 
-48 kinds: 31 used by cards, 21 built by the engine.
+48 kinds: 31 used by cards, 22 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -1359,7 +1359,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `reveal_grail_gain_subroutines` | `maxReveal?: number`, `cardIds?: string[]` | 3 | card, engine |
 | `reveal_grip` | — | 1 | card |
 | `reveal_grip_may_trash_chosen_encounter_type` | — | 1 | card |
-| `reveal_grip_may_trash_one` | — | 1 | card |
+| `reveal_grip_may_trash_one` | — | 1 | card, engine |
 | `reveal_grip_trash_cost_lte_excess` | — | 1 | card |
 | `reveal_host_programs` | — | 1 | card |
 | `reveal_hq_forbid_steal_trash_copies_this_run` | — | 1 | card |
@@ -1483,7 +1483,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 
 ## `score`
 
-13 kinds: 8 used by cards, 5 built by the engine.
+13 kinds: 8 used by cards, 6 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -1493,7 +1493,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `score_another_installed_copy_of_self` | — | 1 | card |
 | `score_bifrost_fire_scored_agenda_on` | `cardId: string` | 0 | engine |
 | `score_encrypted_portals_on` | — | 1 | card |
-| `score_facedown_agenda_from_archives_if_clean` | — | 1 | card |
+| `score_facedown_agenda_from_archives_if_clean` | `cardId?: string` | 1 | card, engine |
 | `score_installed_agenda_ignore_requirement` | `cardId: string` | 0 | engine |
 | `score_profiteering_on` | — | 1 | card |
 | `score_project_ares_on` | `past: number` | 1 | card |
@@ -1505,7 +1505,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 
 ## `search`
 
-53 kinds: 37 used by cards, 18 built by the engine.
+53 kinds: 37 used by cards, 19 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -1529,7 +1529,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `search_rd_install_rez_by_printed_rez_cost` | `delta: number`, `cardIds?: string[]` | 1 | card, engine |
 | `search_rd_install_rez_ice_on_source_server` | `totalDiscount: number` | 1 | card |
 | `search_rd_non_agenda` | `reveal?: boolean`, `cardIds?: string[]` | 0 | engine |
-| `search_rd_operation_or_agenda_to_hq` | — | 1 | card |
+| `search_rd_operation_or_agenda_to_hq` | `cardIds?: string[]` | 1 | card, engine |
 | `search_rd_operation_to_top_rd` | — | 2 | card |
 | `search_rd_or_archives_agenda_to_bottom_rd` | — | 1 | card |
 | `search_rd_pick_install_rez_ignore_costs` | `cardId: string` | 0 | engine |
@@ -2045,7 +2045,7 @@ Card counts are from cards `v1.147.24` (2016 cards).
 | `begin_replace_breach_hq_hand_only` | — | 0 | engine |
 | `beth_kilrain_corp_credit_tiers` | — | 1 | card |
 | `bf_place_advancement_on_self` | `amount?: number` | 2 | card |
-| `bonus_access` | `amount: number` | 5 | card, engine |
+| `bonus_access` | `amount: number`, `oncePerTurn?: "mercury"` | 5 | card, engine |
 | `bug_out_bag_load_power` | `amount: number` | 0 | engine |
 | `burner_place` | `cardId: string`, `position: "top" \| "bottom"`, `revealed: string[]`, `movesLeft: number` | 0 | engine |
 | `caissa_bishop_host` | — | 1 | card |
