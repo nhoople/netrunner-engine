@@ -2550,7 +2550,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Inazuma first sub: cannot break on this encounter's ice.
         if (applyInazumaBreakLock && ice && runState.encounter) {
-          ice.cannotBreakWithRunnerCardAbilities = true;
+          // On the encounter only, so it ends with it (CR 9.10.1).
           runState.encounter.forbidRunnerBreakThisEncounter = true;
           s.log.push(
             `Inazuma — Runner cannot break subroutines on ${ice.title} this encounter.`,
@@ -3884,19 +3884,6 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Checkpoint while encounter facts still hold (Persephone reads
         // subroutinesResolved / ice subtypes from run.encounter — CR 10.3.1a).
         checkpointAfterInstruction(s, "run.movement");
-        // Anvil: clear encounter-scoped break forbid (not Trieste lasting forbid).
-        if (
-          pos !== null &&
-          !afterForcedEncounter &&
-          !runState.positionVacated &&
-          runState.encounter?.forbidRunnerBreakThisEncounter
-        ) {
-          const iceId = s.servers[runState.attackedServerId].ice[pos];
-          if (iceId) {
-            const ice = s.cards[iceId];
-            if (ice) ice.cannotBreakWithRunnerCardAbilities = false;
-          }
-        }
         clearEncounterOutsidePlayMark(s, runState.encounter?.iceId);
         // Banner / VSA encounter-scoped flags clear with encounter teardown.
         s.run!.encounter = null;

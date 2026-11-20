@@ -2,14 +2,9 @@
  * Breaking ice subroutines, including bioroid break and the Tyrs Hand interrupt.
  */
 import { log } from "../state/createGame.js";
-import { currentMark } from "../state/msKeywords.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { onFullBreak } from "../state/cardDeclarations.js";
 import { noteVacuousFullBreak } from "../timing/vacuousBreak.js";
-import {
-  cannotBreakExceptIcebreakerActive,
-  cardHasIcebreakerSubtype,
-} from "../state/lockdowns.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
 import {
   ensurePriorityWindow,
@@ -21,14 +16,15 @@ import {
   maybeFireFluxFirstBreakCharge,
 } from "../effects/eval.js";
 import { fireOnFullyBreak, fireOnRez } from "../state/cardLifecycleHooks.js";
+import { effectiveBreakerStrength } from "../cards/stubs.js";
 import {
-  effectiveBreakerStrength,
-  effectiveIceStrength,
-  effectiveIceSubtypes,
-  iceBlocksAiBreak,
-  iceBreakExceptSubtype,
-  isAiBreaker,
-} from "../cards/stubs.js";
+  breakActionCost,
+  declaredBreakBlock,
+  interfaceBlock,
+  markSubroutineBroken,
+  runnerBreakBlock,
+  subroutineBreakBlock,
+} from "../state/procedures/break.js";
 import {
   runnerAvailableCreditsForBreaker,
   spendRunnerCredits,
@@ -56,23 +52,6 @@ function ok(state: GameState): ApplyResult {
   return { ok: true, state };
 }
 
-/** Midway Station Grid-class: +¢ to icebreaker abilities on this server. */
-export function midwayStationBreakTax(state: GameState): number {
-  const attacked = state.run?.attackedServerId;
-  if (!attacked) return 0;
-  const server = state.servers[attacked];
-  if (!server) return 0;
-  let tax = 0;
-  for (const rid of server.root) {
-    if (abilitiesSuppressed(state, rid)) continue;
-    const up = state.cards[rid];
-    if (up?.rezzed && up.runnerIcebreakerAbilityAdditionalCostOnThisServer) {
-      tax += up.runnerIcebreakerAbilityAdditionalCostOnThisServer;
-    }
-  }
-  return tax;
-}
-
 export function breakSubroutine(
   state: GameState,
   breakerId: string,
@@ -93,9 +72,6 @@ export function breakSubroutine(
   if (subIndex < 0 || subIndex >= subs.length) {
     return fail("Invalid subroutine index.", [CR.encounterSubResolve]);
   }
-  if (run.encounter.broken[subIndex]) {
-    return fail("Subroutine already broken.", [CR.fullyBreak]);
-  }
   if (!state.runner.installed.includes(breakerId)) {
     return fail("Breaker is not installed.", [CR.encounterBreakPaw]);
   }
@@ -109,12 +85,6 @@ export function breakSubroutine(
       [CR.encounterBreakPaw],
     );
   }
-  if (breaker.cannotBreakSubsThisRun) {
-    return fail(
-      `${breaker.title}'s abilities cannot break subroutines this run (Hafrún).`,
-      [CR.encounterBreakPaw],
-    );
-  }
   if (breaker.breakOnAtMostOneIcePerRun && state.run?.encounter?.iceId) {
     const used = state.run.kgBreakerUsedOnIceIds ?? {};
     const prior = used[breakerId];
@@ -125,136 +95,16 @@ export function breakSubroutine(
       ]);
     }
   }
-  let maxPrinted = ice.maxPrintedSubsBreakablePerEncounter;
-  const atAdv = ice.maxPrintedSubsBreakablePerEncounterAtAdvancements;
-  if (atAdv && (ice.advancementCounters ?? 0) >= atAdv.threshold) {
-    maxPrinted = atAdv.max;
-  }
-  const exceptSub = ice.maxPrintedSubsBreakExceptSubtype;
-  const breakerExempt =
-    exceptSub && (breaker.subtypes ?? []).includes(exceptSub);
-  if (
-    typeof maxPrinted === "number" &&
-    !breakerExempt &&
-    run.encounter.broken.filter(Boolean).length >= maxPrinted
-  ) {
-    return fail(
-      `Cannot break more than ${maxPrinted} printed subroutine(s) on ${ice.title} this encounter.`,
-      [CR.encounterBreakPaw],
-    );
-  }
-  if (breaker.breaker.breakRequiresAttackingMark) {
-    if (!state.run || state.run.attackedServerId !== currentMark(state)) {
-      return fail(`${breaker.title} can only break ice protecting the mark.`, [
-        CR.encounterBreakPaw,
-      ]);
-    }
-  }
-  if (typeof breaker.breaker.breakRequiresIceStrengthLte === "number") {
-    const iceStr = effectiveIceStrength(state, ice.id);
-    if (iceStr > breaker.breaker.breakRequiresIceStrengthLte) {
-      return fail(
-        `${breaker.title} can only break ice with ${breaker.breaker.breakRequiresIceStrengthLte} or less strength (current ${iceStr}).`,
-        [CR.encounterBreakPaw],
-      );
-    }
-  }
-  if (typeof breaker.breaker.breakRequiresIceSubtypeCountGte === "number") {
-    const need = breaker.breaker.breakRequiresIceSubtypeCountGte;
-    const count = effectiveIceSubtypes(state, ice.id).length;
-    if (count < need) {
-      return fail(
-        `${breaker.title} can only break ice with ${need}+ subtypes (this ice has ${count}).`,
-        [CR.encounterBreakPaw],
-      );
-    }
-  }
-  if (
-    typeof breaker.breaker.breakRequiresIceExactSubroutineCount === "number"
-  ) {
-    const need = breaker.breaker.breakRequiresIceExactSubroutineCount;
-    const count = (ice.subroutines ?? []).length;
-    if (count !== need) {
-      return fail(
-        `${breaker.title} can only break ice with exactly ${need} subroutine(s) (this ice has ${count}).`,
-        [CR.encounterBreakPaw],
-      );
-    }
-  }
-  if (typeof breaker.breaker.breakRequiresIceRezCostGte === "number") {
-    const need = breaker.breaker.breakRequiresIceRezCostGte;
-    const rez = ice.rezCost ?? 0;
-    if (rez < need) {
-      return fail(
-        `${breaker.title} can only break ice with rez cost ≥ ${need} (this ice is ${rez}).`,
-        [CR.encounterBreakPaw],
-      );
-    }
-  }
-  const iceSubs = effectiveIceSubtypes(state, ice.id);
-  const breaksAny = breaker.breaker.breaksSubtype === "*";
-  if (!breaksAny && !iceSubs.includes(breaker.breaker.breaksSubtype)) {
-    return fail(
-      `Breaker cannot break ${breaker.breaker.breaksSubtype} on this ice.`,
-      [CR.encounterBreakPaw],
-    );
-  }
-  if (iceBlocksAiBreak(state, ice.id) && isAiBreaker(breaker)) {
-    return fail("This ice cannot be broken by AI programs.", [
-      CR.encounterBreakPaw,
-    ]);
-  }
-  const exceptSubtype = iceBreakExceptSubtype(state, ice.id);
-  if (exceptSubtype && !(breaker.subtypes ?? []).includes(exceptSubtype)) {
-    return fail(
-      `Subroutines on ${ice.title} can only be broken by a ${exceptSubtype}.`,
-      [CR.encounterBreakPaw],
-    );
-  }
-  if (ice.cannotBreakWithRunnerCardAbilities) {
-    return fail(
-      "Runner card abilities cannot break subroutines on this ice (Trieste).",
-      [CR.encounterBreakPaw],
-    );
-  }
-  if (
-    cannotBreakExceptIcebreakerActive(state) &&
-    !cardHasIcebreakerSubtype(breaker)
-  ) {
-    return fail(
-      "Cannot break subroutines with a non-icebreaker card while NEXT Activation Command is active.",
-      [CR.encounterBreakPaw, CR.lockdownOperation],
-    );
-  }
-
-  const iceStr = effectiveIceStrength(state, ice.id);
+  const declaredBlock = declaredBreakBlock(state, breakerId, ice.id);
+  if (declaredBlock) return fail(declaredBlock.error, declaredBlock.cites);
+  const iceBlock =
+    runnerBreakBlock(state, breakerId, ice.id) ??
+    subroutineBreakBlock(state, breakerId, subIndex) ??
+    interfaceBlock(state, breakerId, ice.id, {
+      maxIceStrength: breaker.breaker.breakRequiresIceStrengthLte,
+    });
+  if (iceBlock) return fail(iceBlock.error, iceBlock.cites);
   const brStr = effectiveBreakerStrength(state, breakerId);
-  if (breaker.interfaceRequiresTrojanHost) {
-    const hasTrojan = Object.values(state.cards).some(
-      (c) =>
-        c.hostId === ice.id &&
-        (c.subtypes ?? []).includes("trojan") &&
-        state.runner.installed.includes(c.id),
-    );
-    if (!hasTrojan) {
-      return fail(`${breaker.title} can only interface ice hosting a trojan.`, [
-        CR.encounterBreakPaw,
-      ]);
-    }
-  }
-  if (breaker.interfaceRequiresEqualStrength) {
-    if (brStr !== iceStr) {
-      return fail(
-        `Breaker strength ${brStr} must equal ice strength ${iceStr}.`,
-        [CR.encounterBreakPaw, CR.icebreakerInterfaceStrength],
-      );
-    }
-  } else if (brStr < iceStr) {
-    return fail(
-      `Breaker strength ${brStr} < ice strength ${iceStr} (CR ${CR.icebreakerInterfaceStrength.number}).`,
-      [CR.encounterBreakPaw, CR.icebreakerInterfaceStrength],
-    );
-  }
 
   const free = run.encounter.freeBreaksRemaining;
   let cost = 0;
@@ -265,27 +115,7 @@ export function breakSubroutine(
     }
     cost = 0;
   } else {
-    cost =
-      breaker.breaker.breakCredits +
-      (state.run?.kgIcebreakerBreakAdditionalCost ?? 0);
-    if (
-      breaker.breaker.breakCreditsDiscountIfSuccessfulRunThisTurn &&
-      state.turn.successfulRunThisTurn
-    ) {
-      cost = Math.max(
-        0,
-        cost - breaker.breaker.breakCreditsDiscountIfSuccessfulRunThisTurn,
-      );
-    }
-    if (breaker.breaker.breakCreditsDiscountPerInstalledSubtype) {
-      const { subtype, amount } =
-        breaker.breaker.breakCreditsDiscountPerInstalledSubtype;
-      const n = state.runner.installed.filter((id) =>
-        (state.cards[id].subtypes ?? []).includes(subtype),
-      ).length;
-      cost = Math.max(0, cost - amount * n);
-    }
-    cost += midwayStationBreakTax(state);
+    cost = breakActionCost(state, breakerId);
     if (runnerAvailableCreditsForBreaker(state) < cost) {
       return fail("Insufficient credits to break.", [CR.encounterBreakPaw]);
     }
@@ -316,7 +146,7 @@ export function breakSubroutine(
       };
     }
   }
-  run.encounter.broken[subIndex] = true;
+  markSubroutineBroken(state, breakerId, subIndex);
   if (run.encounter.broken.every(Boolean)) {
     run.encounter.fullyBrokenByRunner = true;
     noteVacuousFullBreak(state);

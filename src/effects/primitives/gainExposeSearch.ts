@@ -1,5 +1,9 @@
 /** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
 import {
+  markSubroutineBroken,
+  subroutineBreakBlock,
+} from "../../state/procedures/break.js";
+import {
   corpInstallCost,
   subtractRunnerCreditPool,
 } from "../../state/costs.js";
@@ -231,7 +235,12 @@ export function applyKitaraDtwnPrimitive(
         log(state, `${source?.title ?? "Kongamato"} — no unbroken subroutine.`);
         return { ok: true };
       }
-      enc.broken[idx] = true;
+      const blocked = subroutineBreakBlock(state, sourceId, idx);
+      if (blocked) {
+        log(state, `${source?.title ?? "Kongamato"} — ${blocked.error}`);
+        return { ok: true };
+      }
+      markSubroutineBroken(state, sourceId, idx);
       log(
         state,
         `${source?.title ?? "Kongamato"} — break first subroutine (index ${idx}).`,

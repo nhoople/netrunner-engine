@@ -1,4 +1,8 @@
 /** Council of the Crest (cotc) Kitara pack primitives — v1.138.0. */
+import {
+  markSubroutineBroken,
+  subroutineBreakBlock,
+} from "../../state/procedures/break.js";
 import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
@@ -256,7 +260,12 @@ export function applyKitaraCotcPrimitive(
         );
         return { ok: true };
       }
-      enc.broken[idx] = true;
+      const blocked = subroutineBreakBlock(state, sourceId, idx);
+      if (blocked) {
+        log(state, `${source?.title ?? "Gbahali"} — ${blocked.error}`);
+        return { ok: true };
+      }
+      markSubroutineBroken(state, sourceId, idx);
       log(
         state,
         `${source?.title ?? "Gbahali"} — break last subroutine (index ${idx}).`,

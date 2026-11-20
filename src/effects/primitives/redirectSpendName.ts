@@ -1,10 +1,14 @@
 /** Escalation (es) Flashpoint pack primitives — v1.124.0. */
+import {
+  breakNextSubroutines,
+  interfaceBlock,
+  runnerBreakBlock,
+} from "../../state/procedures/break.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
@@ -60,20 +64,15 @@ export function applyFlashpointEsPrimitive(
       if (!ice || !(ice.subtypes ?? []).includes("code gate")) {
         return { ok: true };
       }
-      const str = breakerStrength(state, sourceId);
-      const iceStr = iceStrength(state, enc.iceId);
-      if (str < iceStr) {
-        log(
-          state,
-          `Black Orchestra — cannot interface (str ${str} < ice ${iceStr}).`,
-        );
+      // "Then, if this program can interface with the code gate" (CR 3.9.5g).
+      const blocked =
+        interfaceBlock(state, sourceId, enc.iceId) ??
+        runnerBreakBlock(state, sourceId, enc.iceId);
+      if (blocked) {
+        log(state, `Black Orchestra — cannot interface: ${blocked.error}`);
         return { ok: true };
       }
-      const unbroken = enc.broken
-        .map((b, i) => (!b ? i : -1))
-        .filter((i) => i >= 0);
-      const toBreak = unbroken.slice(0, 2);
-      for (const i of toBreak) enc.broken[i] = true;
+      const toBreak = breakNextSubroutines(state, sourceId, 2);
       if (toBreak.length > 0) {
         log(
           state,

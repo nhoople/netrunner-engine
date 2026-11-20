@@ -1,4 +1,5 @@
 /** The Source (ts) Lunar pack primitives. */
+import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
@@ -7,7 +8,6 @@ import { autoResolveTrace } from "../../state/trace.js";
 import { chargeableInstalledIds, chargeCard } from "../../state/msKeywords.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
@@ -411,21 +411,12 @@ export function applyLunarTsPrimitive(
           cites: [],
         };
       }
-      const str = breakerStrength(state, sourceId);
-      const iceStr = iceStrength(state, enc.iceId);
-      if (str < iceStr) {
-        return {
-          ok: false,
-          error: `Sage strength ${str} < ice strength ${iceStr}.`,
-          cites: [],
-        };
-      }
-      const idx = enc.broken.findIndex((b) => !b);
-      if (idx < 0) {
+      // Strength was checked when the ability was used (CR 3.9.5g, 9.5.4).
+      const [idx] = breakNextSubroutines(state, sourceId, 1);
+      if (idx === undefined) {
         log(state, `Sage — no unbroken subroutines.`);
         return { ok: true };
       }
-      enc.broken[idx] = true;
       log(
         state,
         `Sage — break "${ice?.subroutines?.[idx]?.text ?? `sub ${idx}`}" on ${ice?.title}.`,

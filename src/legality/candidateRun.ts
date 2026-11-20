@@ -7,12 +7,8 @@ import {
   rezCostDiscountPerRezzedSubtype,
   rezCostDiscountPerOtherUnrezzedIce,
   rezCostDiscountIfAgendaScoredOrStolenThisTurn,
-  effectiveBreakerStrength,
   effectiveIceStrength,
   effectiveIceSubtypes,
-  iceBlocksAiBreak,
-  iceBreakExceptSubtype,
-  isAiBreaker,
 } from "../cards/stubs.js";
 import {
   resolveIceRezCostIncrease,
@@ -44,36 +40,19 @@ import {
   naviMumbaiBlocksPaidAbilities,
   paidAbilitiesIncludingHosted,
 } from "../state/cardDeclarations.js";
-import { midwayStationBreakTax } from "../actions/breakSubroutine.js";
+import {
+  breakActionCost,
+  declaredBreakBlock,
+  interfaceBlock,
+  paidAbilityBreakBlock,
+  runnerBreakBlock,
+  subroutineBreakBlock,
+} from "../state/procedures/break.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";
-import {
-  cannotBreakExceptIcebreakerActive,
-  cardHasIcebreakerSubtype,
-} from "../state/lockdowns.js";
 import type { PaidAbilityWindow } from "../state/types.js";
 import type { TimingStepDef } from "../timing/graph.js";
 import { hasAbilityFlag, threatValue } from "../effects/abilityRecord.js";
-
-function breakCostFor(state: GameState, breakerId: string): number {
-  const br = state.cards[breakerId].breaker!;
-  let cost =
-    br.breakCredits + (state.run?.kgIcebreakerBreakAdditionalCost ?? 0);
-  if (
-    br.breakCreditsDiscountIfSuccessfulRunThisTurn &&
-    state.turn.successfulRunThisTurn
-  ) {
-    cost = Math.max(0, cost - br.breakCreditsDiscountIfSuccessfulRunThisTurn);
-  }
-  if (br.breakCreditsDiscountPerInstalledSubtype) {
-    const { subtype, amount } = br.breakCreditsDiscountPerInstalledSubtype;
-    const n = state.runner.installed.filter((id) =>
-      (state.cards[id].subtypes ?? []).includes(subtype),
-    ).length;
-    cost = Math.max(0, cost - amount * n);
-  }
-  return cost + midwayStationBreakTax(state);
-}
 
 function listServers(state: GameState): Server[] {
   return Object.values(state.servers);
@@ -258,13 +237,8 @@ export function addPaidWindowCandidates(
         ) {
           continue;
         }
-        if (
-          cannotBreakExceptIcebreakerActive(state) &&
-          !cardHasIcebreakerSubtype(card) &&
-          JSON.stringify(ab.effect).includes("break_encounter_subroutine")
-        ) {
-          continue;
-        }
+        // CR 3.9.5g, 9.3.6c: interface strength, and the ice's own limits.
+        if (paidAbilityBreakBlock(state, cardId, ab)) continue;
         if (
           ab.requiresAdvancements !== undefined &&
           (card.advancementCounters ?? 0) < ab.requiresAdvancements
@@ -796,113 +770,31 @@ export function addPaidWindowCandidates(
 
   if (step.key === "run.encounterPaw" && state.run?.encounter) {
     const enc = state.run.encounter;
-    const iceStr = effectiveIceStrength(state, enc.iceId);
     const iceSubs = effectiveIceSubtypes(state, enc.iceId);
-    const blocksAi = iceBlocksAiBreak(state, enc.iceId);
     for (let i = 0; i < enc.broken.length; i++) {
       if (enc.broken[i]) continue;
       for (const breakerId of state.runner.installed) {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
         if (abilitiesSuppressed(state, breakerId)) continue;
-        if (br.cannotBreakSubsThisRun) continue;
         if (br.breaker.breakViaPaidAbilityOnly) continue;
         if (
-          cannotBreakExceptIcebreakerActive(state) &&
-          !cardHasIcebreakerSubtype(br)
+          declaredBreakBlock(state, breakerId, enc.iceId) ||
+          runnerBreakBlock(state, breakerId, enc.iceId) ||
+          subroutineBreakBlock(state, breakerId, i) ||
+          interfaceBlock(state, breakerId, enc.iceId, {
+            maxIceStrength: br.breaker.breakRequiresIceStrengthLte,
+          })
         ) {
-          continue;
-        }
-        const iceCard = state.cards[enc.iceId];
-        let maxPrinted = iceCard?.maxPrintedSubsBreakablePerEncounter;
-        const atAdv =
-          iceCard?.maxPrintedSubsBreakablePerEncounterAtAdvancements;
-        if (atAdv && (iceCard?.advancementCounters ?? 0) >= atAdv.threshold) {
-          maxPrinted = atAdv.max;
-        }
-        const exceptSub = iceCard?.maxPrintedSubsBreakExceptSubtype;
-        const breakerExempt =
-          exceptSub && (br.subtypes ?? []).includes(exceptSub);
-        if (
-          typeof maxPrinted === "number" &&
-          !breakerExempt &&
-          enc.broken.filter(Boolean).length >= maxPrinted
-        ) {
-          continue;
-        }
-        if (
-          br.breaker.breakRequiresAttackingMark &&
-          state.run?.attackedServerId !== currentMark(state)
-        ) {
-          continue;
-        }
-        if (blocksAi && isAiBreaker(br)) continue;
-        const exceptBreakerSub = iceBreakExceptSubtype(state, enc.iceId);
-        if (
-          exceptBreakerSub &&
-          !(br.subtypes ?? []).includes(exceptBreakerSub)
-        ) {
-          continue;
-        }
-        const breaksAny = br.breaker.breaksSubtype === "*";
-        if (!breaksAny && !iceSubs.includes(br.breaker.breaksSubtype)) {
-          continue;
-        }
-        if (
-          typeof br.breaker.breakRequiresIceSubtypeCountGte === "number" &&
-          iceSubs.length < br.breaker.breakRequiresIceSubtypeCountGte
-        ) {
-          continue;
-        }
-        if (
-          typeof br.breaker.breakRequiresIceExactSubroutineCount === "number"
-        ) {
-          const need = br.breaker.breakRequiresIceExactSubroutineCount;
-          const iceCard = state.cards[enc.iceId];
-          const subCount = (iceCard?.subroutines ?? []).length;
-          if (subCount !== need) continue;
-        }
-        if (typeof br.breaker.breakRequiresIceRezCostGte === "number") {
-          const need = br.breaker.breakRequiresIceRezCostGte;
-          const iceCard = state.cards[enc.iceId];
-          if ((iceCard?.rezCost ?? 0) < need) continue;
-        }
-        if (
-          br.interfaceRequiresChosenServer &&
-          state.run?.attackedServerId !== br.chosenServerId
-        ) {
-          continue;
-        }
-        if (br.breakerOnlyOutermostIce) {
-          const sid = state.run?.attackedServerId;
-          const iceList = sid ? (state.servers[sid]?.ice ?? []) : [];
-          if (iceList[0] !== enc.iceId) continue;
-        }
-        if (br.breakerOnlyInnermostIce) {
-          const sid = state.run?.attackedServerId;
-          const iceList = sid ? (state.servers[sid]?.ice ?? []) : [];
-          if (iceList[iceList.length - 1] !== enc.iceId) continue;
-        }
-        if (br.interfaceRequiresTrojanHost) {
-          const hasTrojan = Object.values(state.cards).some(
-            (c) =>
-              c.hostId === enc.iceId &&
-              (c.subtypes ?? []).includes("trojan") &&
-              state.runner.installed.includes(c.id),
-          );
-          if (!hasTrojan) continue;
-        }
-        const brStr = effectiveBreakerStrength(state, breakerId);
-        if (br.interfaceRequiresEqualStrength) {
-          if (brStr !== iceStr) continue;
-        } else if (brStr < iceStr) {
           continue;
         }
         const free =
           enc.freeBreaksRemaining?.breakerId === breakerId &&
           (enc.freeBreaksRemaining.remaining ?? 0) > 0;
         if (!free) {
-          if (runnerAvailableCredits(state) < breakCostFor(state, breakerId)) {
+          if (
+            runnerAvailableCredits(state) < breakActionCost(state, breakerId)
+          ) {
             continue;
           }
         }

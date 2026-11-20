@@ -1,4 +1,8 @@
 /** Data and Destiny (dad) deluxe primitives — v1.115.0. */
+import {
+  markSubroutineBroken,
+  subroutineBreakBlock,
+} from "../../state/procedures/break.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { startTrace } from "../../state/trace.js";
@@ -506,12 +510,12 @@ export function applyDadPrimitive(
       const ice = enc ? state.cards[enc.iceId] : undefined;
       if (!enc || !ice?.subroutines) return { ok: true };
       const idx = ice.subroutines.findIndex((s, i) => {
-        if (enc.broken[i]) return false;
+        if (subroutineBreakBlock(state, sourceId, i)) return false;
         const text = (s.text ?? "").toLowerCase();
         return text.includes("end the run");
       });
       if (idx >= 0) {
-        enc.broken[idx] = true;
+        markSubroutineBroken(state, sourceId, idx);
         log(state, `Break ETR subroutine on ${ice.title}.`);
       }
       return { ok: true };
@@ -523,7 +527,7 @@ export function applyDadPrimitive(
       if (!enc || !ice?.subroutines) return { ok: true };
       const unbroken = ice.subroutines
         .map((s, i) => ({ s, i }))
-        .filter(({ i }) => !enc.broken[i]);
+        .filter(({ i }) => !subroutineBreakBlock(state, sourceId, i));
       if (unbroken.length === 0) return { ok: true };
       openPendingChoose(state, {
         sourceId,
@@ -548,7 +552,12 @@ export function applyDadPrimitive(
         enc.iceId === action.iceId &&
         enc.broken[action.index] !== undefined
       ) {
-        enc.broken[action.index] = true;
+        const blocked = subroutineBreakBlock(state, sourceId, action.index);
+        if (blocked) {
+          log(state, `Cannot break that subroutine: ${blocked.error}`);
+          return { ok: true };
+        }
+        markSubroutineBroken(state, sourceId, action.index);
         log(state, `Break subroutine on ${state.cards[action.iceId]?.title}.`);
       }
       return { ok: true };

@@ -188,7 +188,7 @@ export function paidAbilityOpenIn(
   return unrestrictedPaidAbility(ability) && REGULAR_PAID_WINDOWS.has(paw);
 }
 
-function effectHasKind(effect: unknown, kinds: Set<string>): boolean {
+export function effectHasKind(effect: unknown, kinds: Set<string>): boolean {
   if (!effect || typeof effect !== "object") return false;
   const node = effect as {
     kind?: string;
