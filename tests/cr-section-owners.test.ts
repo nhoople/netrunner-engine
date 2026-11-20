@@ -20,7 +20,7 @@
  * This checks that each section has an owner. It does not check subrules
  * (tool 1.17), interactions between cards, or whether a rule is played right.
  */
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { assertPinnedTag, crDataPresent } from "../src/index.js";
@@ -29,9 +29,9 @@ import {
   type CrNode,
   literalCitations,
   loadNodes,
-  rel,
   ROOT,
   scanCitations,
+  testFiles,
 } from "./cr-citations.js";
 
 beforeAll(() => {
@@ -85,21 +85,6 @@ function within(number: string, parent: string): boolean {
   );
 }
 
-/** Every `*.test.ts` under tests/ that CI runs (not tests/jnet), but this one. */
-function testFiles(): string[] {
-  const out: string[] = [];
-  const walk = (dir: string): void => {
-    for (const e of readdirSync(dir, { withFileTypes: true })) {
-      const p = join(dir, e.name);
-      if (e.isDirectory()) {
-        if (rel(p) !== "tests/jnet") walk(p);
-      } else if (e.name.endsWith(".test.ts") && rel(p) !== SELF) out.push(p);
-    }
-  };
-  walk(join(ROOT, "tests"));
-  return out.sort();
-}
-
 type Row = {
   number: string;
   title: string;
@@ -120,7 +105,7 @@ function computeRows(sections: CrNode[], table: OwnerTable): Row[] {
   }
   const testCites = new Map<string, number>();
   const testFileCount = new Map<string, number>();
-  for (const file of testFiles()) {
+  for (const file of testFiles(SELF)) {
     const mine = new Set<string>();
     for (const { number } of literalCitations(readFileSync(file, "utf8"))) {
       const s = sectionOf(number);
