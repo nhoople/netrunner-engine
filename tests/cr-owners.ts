@@ -8,9 +8,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT } from "./cr-citations.js";
 
-export const OWNER_TABLE_PATH = join(ROOT, "tests/cr-section-owners.json");
+const OWNER_TABLE_PATH = join(ROOT, "tests/cr-section-owners.json");
 
-export type Entry = {
+type Entry = {
   owner: string;
   subrules?: Record<string, string>;
   why: string;
