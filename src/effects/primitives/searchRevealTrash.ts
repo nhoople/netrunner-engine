@@ -1,7 +1,7 @@
 /** The Valley (val) SanSan pack primitives. */
 import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
-import { runnerWinsOnEmptyRnd } from "../../state/emptyRnd.js";
+import { CR } from "../../timing/labels.js";
 import { dealDamage } from "../../state/damage.js";
 import { recomputeRunnerMaxHandSize } from "../../state/handSize.js";
 import { mayAdvanceInstalledCard } from "../../state/advanceable.js";
@@ -13,8 +13,11 @@ import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { random } from "../../state/rng.js";
+import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { enterSetAside } from "../../state/zones.js";
+import { corpCanInstallByAbility } from "../corpAbilityInstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -373,81 +376,67 @@ export function applySansanValPrimitive(
     }
 
     case "search_rd_asset_install": {
-      const assets = state.corp.deck.filter(
-        (id) => state.cards[id]?.type === "asset",
-      );
-      if (assets.length === 0) {
-        log(state, `Tech Startup — no asset in R&D.`);
-        for (let i = state.corp.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(random(state) * (i + 1));
-          const tmp = state.corp.deck[i]!;
-          state.corp.deck[i] = state.corp.deck[j]!;
-          state.corp.deck[j] = tmp;
+      // Tech Startup: search R&D for an asset, reveal it, and install it.
+      // Shuffle R&D. A search with a criterion may find nothing
+      // (CR 8.7.2e), so the Corp can stop without a card.
+      // Only an asset the Corp can install may be found (CR 8.7.2b). Copies
+      // of one card answer the same, so each title is tried once.
+      const installableByDef = new Map<string, boolean>();
+      const assets = state.corp.deck.filter((id) => {
+        const card = state.cards[id];
+        if (card?.type !== "asset") return false;
+        const key = card.defId ?? id;
+        let ok = installableByDef.get(key);
+        if (ok === undefined) {
+          ok = corpCanInstallByAbility(state, id);
+          installableByDef.set(key, ok);
         }
+        return ok;
+      });
+      if (!action.cardIds && assets.length > 0) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: assets,
+            count: 1,
+            upTo: true,
+            purpose: "resume",
+            label: "reveal and install",
+            resume: { kind: "search_rd_asset_install" },
+          }),
+        );
+      }
+      const pick = (action.cardIds ?? []).find((id) => assets.includes(id));
+      // The found card is set aside facedown while the deck is shuffled
+      // (CR 8.7.2, 4.8.4); the shuffle comes before the card is acted on
+      // (CR 8.7.3).
+      if (pick) {
+        removeCardFromCurrentZone(state, pick);
+        enterSetAside(state, [pick], { side: "corp", faceup: false });
+      }
+      shuffleInPlace(state, state.corp.deck);
+      const title = source?.title ?? "Tech Startup";
+      if (!pick) {
+        log(
+          state,
+          `${title} — no asset found; shuffle R&D (CR ${CR.failToFind.number}, ${CR.shuffleDeckAfterSearch.number}).`,
+        );
         return { ok: true };
       }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: assets.map((id) => ({
-          id: `tech-startup:${id}`,
-          label: `Install ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "install_asset",
-            cardId: id,
-          }),
-        })),
+      log(
+        state,
+        `${title} — find an asset; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
+      );
+      // Found cards are revealed when the ability resumes (CR 8.7.2c), to
+      // both players (CR 1.21.3).
+      revealCards(state, [pick], sourceId);
+      // The Corp picks the destination through the normal install
+      // process (CR 8.5.16b).
+      return evalEffect(ctx, {
+        op: "do",
+        action: { kind: "install_corp_card", cardId: pick },
       });
-      return { ok: true };
-    }
-
-    case "install_asset": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      if (!card || card.type !== "asset" || !state.corp.deck.includes(cardId)) {
-        return {
-          ok: false,
-          error: "Tech Startup asset not in R&D.",
-          cites: [],
-        };
-      }
-      state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
-      for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.corp.deck[i]!;
-        state.corp.deck[i] = state.corp.deck[j]!;
-        state.corp.deck[j] = tmp;
-      }
-      log(state, `Tech Startup — shuffle R&D.`);
-      const remoteNum = state.nextRemoteNumber++;
-      const sid =
-        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
-      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
-      state.turn.remotesCreatedThisTurn =
-        (state.turn.remotesCreatedThisTurn ?? 0) + 1;
-      state.servers[sid].root.push(cardId);
-      card.zone = `server:${sid}:root`;
-      card.faceup = false;
-      card.rezzed = false;
-      log(state, `Tech Startup — install ${card.title} in ${sid}.`);
-      const idCard = state.cards[state.corp.identityId];
-      if (
-        idCard?.drawOnFirstRemoteCreated &&
-        state.turn.remotesCreatedThisTurn === 1
-      ) {
-        const n = idCard.drawOnFirstRemoteCreated;
-        let drawn = 0;
-        for (let i = 0; i < n; i++) {
-          const top = state.corp.deck.shift();
-          if (!top) break;
-          drawn += 1;
-          state.corp.hand.push(top);
-          state.cards[top]!.zone = "corp:hq";
-        }
-        log(state, `${idCard.title} — draw ${n} (first remote this turn).`);
-        if (drawn < n) runnerWinsOnEmptyRnd(state);
-      }
-      return { ok: true };
     }
 
     default:

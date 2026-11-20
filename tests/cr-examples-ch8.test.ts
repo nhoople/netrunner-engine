@@ -830,13 +830,17 @@ describe("CR examples, chapter 8", () => {
       fx.do({ kind: "search_rd_asset_install" }),
     );
     if (!searching.ok) throw new Error(searching.error);
-    const installed = must(s, {
+    const found = must(s, {
       type: "choose_option",
-      optionId: "tech-startup:pad-1",
+      optionId: "choose-card:pad-1",
+    });
+    const installed = must(found, {
+      type: "choose_option",
+      optionId: "install-dest:__new_remote__",
     });
     const text = installed.log.join("\n");
     const shuffleAt = text.indexOf("shuffle R&D");
-    const installAt = text.indexOf("install PAD Campaign");
+    const installAt = text.indexOf("reveal PAD Campaign");
     const drawAt = text.indexOf("Near-Earth Hub");
     expect(shuffleAt).toBeGreaterThanOrEqual(0);
     expect(shuffleAt).toBeLessThan(installAt);

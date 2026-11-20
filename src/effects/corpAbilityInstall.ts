@@ -109,6 +109,19 @@ function corpAbilityInstallDestinations(
 }
 
 /** Rez an installed card, ignoring all costs (CR 8.5.15). */
+/** Whether an ability could install this Corp card anywhere right now. */
+export function corpCanInstallByAbility(
+  state: GameState,
+  cardId: string,
+): boolean {
+  return (
+    corpAbilityInstallDestinations(state, {
+      kind: "install_corp_card",
+      cardId,
+    }).length > 0
+  );
+}
+
 export function rezInstalledIgnoringCosts(
   state: GameState,
   cardId: string,
@@ -222,7 +235,8 @@ export function applyInstallCorpCard(
   const reachable =
     state.corp.hand.includes(action.cardId) ||
     state.corp.discardPile.includes(action.cardId) ||
-    state.corp.deck.includes(action.cardId);
+    state.corp.deck.includes(action.cardId) ||
+    (state.corp.corpSetAside ?? []).includes(action.cardId);
   if (!card || !reachable || !installable(card.type)) {
     log(
       state,

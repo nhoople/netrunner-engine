@@ -431,7 +431,6 @@
     "install_archives_remote_root_with_advancements",
     "install_asa_non_agenda_same_server",
     "install_asa_resolve",
-    "install_asset",
     "install_asset_from_hq_rez_discount",
     "install_caissa_from_zone_ignore_costs",
     "install_casting_call",

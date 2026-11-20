@@ -13,6 +13,13 @@ export type TrashInterruptResult =
   | { ok: true }
   | { ok: false; error: string; cites: { number: string; id: string }[] };
 
+/**
+ * Only public costs decide whether the window opens. A cost paid with grip
+ * cards (Dummy Box) is left out on purpose: opening the window only when
+ * the Runner holds a matching card would tell the Corp what is in the grip,
+ * which is hidden from them (CR 10.2.2a). Using the ability still needs
+ * the cost (CR 1.16.1).
+ */
 function hasPayableTrashInterrupt(state: GameState): boolean {
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;

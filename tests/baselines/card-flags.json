@@ -3764,10 +3764,6 @@
         {
           "site": "src/actions/installCorp.ts#createRemote",
           "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/searchRevealTrash.ts#applySansanValPrimitive",
-          "kinds": []
         }
       ],
       "kinds": []
@@ -24095,6 +24091,10 @@
         },
         {
           "site": "src/state/costs.ts#creditsAvailableForInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/costs.ts#gripCardsOfPendingTrashType",
           "kinds": []
         },
         {

@@ -886,6 +886,16 @@ export function costCardNeed(
       sourceId,
     };
   }
+  if (cost.trashFromGripSameTypeAsPendingTrash) {
+    return {
+      payer: "runner",
+      candidates: gripCardsOfPendingTrashType(state),
+      count: 1,
+      what: "trash from the grip as a cost",
+      hidden: true,
+      sourceId,
+    };
+  }
   if (cost.trashProgramFromGrip) {
     return {
       payer: "runner",
@@ -924,6 +934,14 @@ export function costCardNeed(
     };
   }
   return null;
+}
+
+/** Grip cards of the same type as the installed card whose trash is pending. */
+function gripCardsOfPendingTrashType(state: GameState): string[] {
+  const pendingId = state.pendingTrashPrevent?.cardId;
+  const type = pendingId ? state.cards[pendingId]?.type : undefined;
+  if (!type) return [];
+  return state.runner.hand.filter((id) => state.cards[id]?.type === type);
 }
 
 /**
@@ -1033,6 +1051,9 @@ export function canPayCost(
   }
   if ((cost.trashFromGrip ?? 0) > 0) {
     if (state.runner.hand.length < (cost.trashFromGrip ?? 0)) return false;
+  }
+  if (cost.trashFromGripSameTypeAsPendingTrash) {
+    if (gripCardsOfPendingTrashType(state).length === 0) return false;
   }
   // trashEntireGrip is always payable (including empty grip).
   if (cost.trashProgramFromGrip) {
@@ -1343,6 +1364,19 @@ export function payCost(
       }
       if (grip.length === 0) {
         log(state, `Trash entire grip as cost (already empty).`);
+      }
+    }
+    if (cost.trashFromGripSameTypeAsPendingTrash) {
+      const id = takeCostCards(
+        state,
+        gripCardsOfPendingTrashType(state),
+        1,
+        "first",
+      )[0];
+      if (id) {
+        const c = state.cards[id];
+        trashCard(state, id, { by: "runner", cause: "cost" });
+        log(state, `Trash ${c.title} (${c.type}) from grip as cost.`);
       }
     }
     if (cost.trashProgramFromGrip) {

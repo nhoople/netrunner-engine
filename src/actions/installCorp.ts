@@ -231,7 +231,13 @@ function installCorpInner(
     handIdx < 0 &&
     Boolean(options.byAbility) &&
     state.corp.deck.includes(cardId);
-  if (handIdx < 0 && !fromArchives && !fromRd) {
+  // A card an ability found and set aside (CR 4.8.4), such as Tech Startup's
+  // asset after R&D was shuffled.
+  const fromSetAside =
+    handIdx < 0 &&
+    Boolean(options.byAbility) &&
+    (state.corp.corpSetAside ?? []).includes(cardId);
+  if (handIdx < 0 && !fromArchives && !fromRd && !fromSetAside) {
     return fail("Card not in HQ.", [CR.corpBasicInstall]);
   }
   const leaveSourceZone = (): void => {
@@ -241,6 +247,10 @@ function installCorpInner(
       );
     } else if (fromRd) {
       state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
+    } else if (fromSetAside) {
+      state.corp.corpSetAside = (state.corp.corpSetAside ?? []).filter(
+        (id) => id !== cardId,
+      );
     } else {
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
     }
@@ -562,16 +572,18 @@ function installCorpInner(
   log(
     state,
     options.byAbility
-      ? `Corp installs a card from ${fromArchives ? "Archives" : fromRd ? "R&D" : "HQ"} on ${server.id}${paid} (CR ${CR.installing.number}).`
+      ? `Corp installs a card from ${fromArchives ? "Archives" : fromRd ? "R&D" : fromSetAside ? "a set-aside zone" : "HQ"} on ${server.id}${paid} (CR ${CR.installing.number}).`
       : `Corp installs ${card.title} on ${server.id} (CR ${CR.corpBasicInstall.number}, ${CR.installing.number}).`,
   );
-  if ((fromArchives || fromRd) && card.onInstallFromNonHq) {
+  if ((fromArchives || fromRd || fromSetAside) && card.onInstallFromNonHq) {
     fireOnInstallFromNonHq(state, cardId);
   }
   fireOnInstall(state, cardId);
   noteInstalledThisTurn(state, cardId);
   cardBecameNewObject(state, cardId);
-  if (!fromArchives && !fromRd) state.turn.corpInstalledFromHqThisTurn = true;
+  if (!fromArchives && !fromRd && !fromSetAside) {
+    state.turn.corpInstalledFromHqThisTurn = true;
+  }
   firePowerCounterOnAnyCorpInstall(state, cardId);
   noteFirstCorpCardInstallEachTurn(state);
   fireTdatd419OnFirstCorpInstall(state, cardId);

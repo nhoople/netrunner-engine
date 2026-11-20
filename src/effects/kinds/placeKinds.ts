@@ -167,7 +167,12 @@ export function applyPlaceKinds(
             for (const id of server.root) {
               if (action.excludeSelf && id === sourceId) continue;
               const c = state.cards[id];
-              if (c && (c.type === "agenda" || c.canAdvance)) {
+              // "A card you can advance" limits the pick (CR 1.18.3); "a
+              // card" does not, since placing is not advancing (CR 1.18.2).
+              if (
+                c &&
+                (action.anyCard || c.type === "agenda" || c.canAdvance)
+              ) {
                 installed.push(id);
               }
             }

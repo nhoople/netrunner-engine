@@ -290,6 +290,11 @@ export interface CostSpec {
   /** Monolith: trash a program from grip as a cost (chooses first found). */
   trashProgramFromGrip?: boolean;
   /**
+   * Dummy Box: trash 1 card from the grip of the same type as the installed
+   * card whose trash is pending. Not payable without one (CR 1.16.1).
+   */
+  trashFromGripSameTypeAsPendingTrash?: boolean;
+  /**
    * Spend hosted power counters equal to the effective strength of the ice
    * being encountered (Baklan Bochkin). Resolved in `abilityCost` when
    * `state` is provided.
