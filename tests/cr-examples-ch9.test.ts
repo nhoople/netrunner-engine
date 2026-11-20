@@ -4808,39 +4808,44 @@ describe("CR examples, chapter 9 timing (RA-1)", () => {
     );
     expect(windows).toHaveLength(1);
     expect(windows[0]).toContain("with 3 pending instance(s)");
-    expect(lines.filter((line) => line.startsWith("net damage 1:"))).toHaveLength(3);
+    expect(
+      lines.filter((line) => line.startsWith("net damage 1:")),
+    ).toHaveLength(3);
     expect(s.runner.hand).toHaveLength(hand - 3);
   });
 
   // The basic install action pays the install cost with no checkpoint after
   // it (src/actions/installCorp.ts and installRunner.ts). Found by RA-1.
-  it.fails("RF: runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)", () => {
-    const s = board();
-    s.cards["iw-0"] = instantiateCard("ice-wall", "iw-0", "server:hq:ice");
-    s.servers.hq.ice = ["iw-0"];
-    s.cards["iw-1"] = instantiateCard("ice-wall", "iw-1", "corp:hq");
-    s.corp.hand.push("iw-1");
-    s.corp.credits = 5;
-    s.corp.clicks = 3;
-    s.activeSide = "corp";
-    s.timingKey = "corp.takeAction";
-    const from = s.log.length;
-    const after = must(s, {
-      type: "basic_install",
-      cardId: "iw-1",
-      destination: { kind: "protect", serverId: "hq" },
-    });
-    expect(after.corp.credits).toBe(4);
-    const lines = after.log.slice(from);
-    const installed = at(lines, "Corp installs Ice Wall");
-    const inside = lines
-      .slice(0, installed)
-      .filter((line) => line.startsWith("Checkpoint open ["));
-    // One after the action's click (CR 10.3.4), before the install begins,
-    // and the install's own one after its cost (CR 8.5.16d). Nothing else.
-    expect(inside).toHaveLength(2);
-    expect(inside.every((line) => line.includes("[cost]"))).toBe(true);
-  });
+  it.fails(
+    "RF: runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)",
+    () => {
+      const s = board();
+      s.cards["iw-0"] = instantiateCard("ice-wall", "iw-0", "server:hq:ice");
+      s.servers.hq.ice = ["iw-0"];
+      s.cards["iw-1"] = instantiateCard("ice-wall", "iw-1", "corp:hq");
+      s.corp.hand.push("iw-1");
+      s.corp.credits = 5;
+      s.corp.clicks = 3;
+      s.activeSide = "corp";
+      s.timingKey = "corp.takeAction";
+      const from = s.log.length;
+      const after = must(s, {
+        type: "basic_install",
+        cardId: "iw-1",
+        destination: { kind: "protect", serverId: "hq" },
+      });
+      expect(after.corp.credits).toBe(4);
+      const lines = after.log.slice(from);
+      const installed = at(lines, "Corp installs Ice Wall");
+      const inside = lines
+        .slice(0, installed)
+        .filter((line) => line.startsWith("Checkpoint open ["));
+      // One after the action's click (CR 10.3.4), before the install begins,
+      // and the install's own one after its cost (CR 8.5.16d). Nothing else.
+      expect(inside).toHaveLength(2);
+      expect(inside.every((line) => line.includes("[cost]"))).toBe(true);
+    },
+  );
 
   it("runs no checkpoint inside the checkpoint that waits on Bad Times' memory choice (CR 9.11.2a.ex2)", () => {
     const s = board();
@@ -4887,7 +4892,11 @@ describe("CR examples, chapter 9 timing (RA-1)", () => {
       engine.faceup = true;
       s.cards["le-1"] = engine;
       s.servers.hq.ice = ["le-1"];
-      s.cards["hou-1"] = instantiateCard("houdini", "hou-1", "runner:installed");
+      s.cards["hou-1"] = instantiateCard(
+        "houdini",
+        "hou-1",
+        "runner:installed",
+      );
       s.runner.installed = ["hou-1"];
       if (withMantle) {
         const mantle = instantiateCard("mantle", "man-1", "runner:installed");
