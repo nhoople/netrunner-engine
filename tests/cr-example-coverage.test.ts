@@ -18,7 +18,7 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { assertPinnedTag, crDataPresent } from "../src/index.js";
-import { compareNumbers } from "./cr-citations.js";
+import { compareNumbers, itTitles } from "./cr-citations.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -57,15 +57,12 @@ function exampleCitations(): Map<string, string[]> {
   const files = readdirSync(join(ROOT, "tests"))
     .filter((f) => /^cr-examples-ch\d+\.test\.ts$/.test(f))
     .sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
-  // it("…"), it.skip('…'), it(`…`) — the title is the first argument.
-  const IT = /\bit(?:\.\w+)?\(\s*(["'`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
   // 6.2.3.ex1, plus follow-ons like `6.2.3.ex1, ex2` or `6.2.3.ex1–3`.
   const EX =
     /(\d+(?:\.\d+)*[a-z]?)\.ex(\d+)((?:\s*(?:,|–|-|\/|and)\s*(?:ex)?\d+)*)/g;
   for (const file of files) {
     const text = readFileSync(join(ROOT, "tests", file), "utf8");
-    for (const m of text.matchAll(IT)) {
-      const title = m[2]!;
+    for (const title of itTitles(text)) {
       for (const r of title.matchAll(EX)) {
         for (const n of [r[2]!, ...(r[3]!.match(/\d+/g) ?? [])]) {
           const number = `${r[1]}.ex${n}`;
