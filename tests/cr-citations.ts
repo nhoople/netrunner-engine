@@ -20,6 +20,22 @@ export type CrNode = {
   text_plain: string;
 };
 
+/** Compare CR numbers part by part: 1.4.5a.ex1 < 1.10.3b.ex1 < 2.1.1.ex1. */
+export function compareNumbers(a: string, b: string): number {
+  const pa = a.split(".");
+  const pb = b.split(".");
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] ?? "";
+    const y = pb[i] ?? "";
+    if (x === y) continue;
+    const nx = parseInt(x.replace(/^ex/, ""), 10);
+    const ny = parseInt(y.replace(/^ex/, ""), 10);
+    if (nx !== ny && !Number.isNaN(nx) && !Number.isNaN(ny)) return nx - ny;
+    return x < y ? -1 : 1;
+  }
+  return 0;
+}
+
 /** Every `.ts` file under src/, as absolute paths, sorted. */
 export function srcFiles(): string[] {
   const files: string[] = [];

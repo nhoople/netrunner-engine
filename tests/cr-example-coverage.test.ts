@@ -18,6 +18,7 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { assertPinnedTag, crDataPresent } from "../src/index.js";
+import { compareNumbers } from "./cr-citations.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -50,22 +51,6 @@ type Coverage = {
   /** example number -> `file › it title` for each test that cites it */
   examples: Record<string, string[]>;
 };
-
-/** Compare CR numbers part by part: 1.4.5a.ex1 < 1.10.3b.ex1 < 2.1.1.ex1. */
-function compareNumbers(a: string, b: string): number {
-  const pa = a.split(".");
-  const pb = b.split(".");
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const x = pa[i] ?? "";
-    const y = pb[i] ?? "";
-    if (x === y) continue;
-    const nx = parseInt(x.replace(/^ex/, ""), 10);
-    const ny = parseInt(y.replace(/^ex/, ""), 10);
-    if (nx !== ny && !Number.isNaN(nx) && !Number.isNaN(ny)) return nx - ny;
-    return x < y ? -1 : 1;
-  }
-  return 0;
-}
 
 function exampleCitations(): Map<string, string[]> {
   const out = new Map<string, string[]>();
