@@ -12,7 +12,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | area 2 | 62 | 20 | 42 |
 | area 3 | 9 | 5 | 4 |
 | area 4 | 33 | 9 | 24 |
-| area 5 | 81 | 23 | 58 |
+| area 5 | 81 | 24 | 57 |
 | area 6 | 25 | 5 | 20 |
 | area 7 | 11 | 3 | 8 |
 | area 8 | 60 | 14 | 46 |
@@ -23,10 +23,10 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | area 14 | 91 | 23 | 68 |
 | area 15 | 51 | 15 | 36 |
 | area 16 | 55 | 11 | 44 |
-| fidelity | 248 | 88 | 160 |
+| fidelity | 248 | 97 | 151 |
 | standardization | 47 | 23 | 24 |
 | reference | 280 | 30 | 250 |
-| **Total** | 1512 | 397 | 1115 |
+| **Total** | 1512 | 407 | 1105 |
 
 ## area 1
 
@@ -278,7 +278,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 8.5.16a | 8.5 | — |
 | 8.5.16b | 8.5 | — |
 | 8.5.16c | 8.5 | — |
-| 8.5.16d | 8.5 | — |
+| 8.5.16d | 8.5 | tests/timing-reaudit.test.ts › RF: runs a checkpoint right after the Runner pays Corroder's install cost, before Corroder is installed (CR 8.5.16d, 10.3.4)<br>tests/timing-reaudit.test.ts › RF: Order of Sol gains 1 credit when the Runner spends their last 5 credits installing Professional Contacts (CR 8.5.16d, 10.3.4) |
 | 8.5.16e | 8.5 | — |
 | 8.5.16f | 8.5 | — |
 
@@ -1068,7 +1068,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.1.6a | 9.1 | — |
 | 9.1.6b | 9.1 | tests/security-nexus.test.ts › is offered again later the same turn after a decline (CR 9.1.6b) |
 | 9.1.6c | 9.1 | tests/cr-examples-ch9.test.ts › uses Cyberfeeder when its credit pays Mimic's break (CR 9.1.6c.ex1) |
-| 9.1.7 | 9.1 | tests/cost-card-choices.test.ts › does not ask when the ability cannot be used at all (CR 9.1.7) |
+| 9.1.7 | 9.1 | tests/cost-card-choices.test.ts › does not ask when the ability cannot be used at all (CR 9.1.7)<br>tests/timing-reaudit.test.ts › RF: does no net damage when the Runner trashes an unrezzed Hostile Infrastructure, whose ability is not active (CR 9.1.7, 9.1.8g) |
 | 9.1.8 | 9.1 | — |
 | 9.1.8a | 9.1 | — |
 | 9.1.8b | 9.1 | tests/cr-examples-ch9.test.ts › does not draw for I've Had Worse when Skorpios removes it from the game (CR 9.1.8b.ex1) |
@@ -1076,7 +1076,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.1.8d | 9.1 | tests/instruction-checkpoints.test.ts › installs Jak Sinclair for 1 credit with 2 link (CR 9.1.8d) |
 | 9.1.8e | 9.1 | — |
 | 9.1.8f | 9.1 | — |
-| 9.1.8g | 9.1 | tests/cr-examples-ch9.test.ts › keeps Hostile Infrastructure active for the cards Singularity trashes with it (CR 9.1.8g.ex1)<br>tests/cr-examples-ch9.test.ts › removes Nanuq from the game after Test Run returns it to the stack (CR 9.1.8g.ex2)<br>tests/sweep-fixes-s2.test.ts › an unrezzed Yakov the Runner trashes gives the Corp nothing; a rezzed one gives 2 credits (CR 9.1.8g) |
+| 9.1.8g | 9.1 | tests/cr-examples-ch9.test.ts › keeps Hostile Infrastructure active for the cards Singularity trashes with it (CR 9.1.8g.ex1)<br>tests/cr-examples-ch9.test.ts › removes Nanuq from the game after Test Run returns it to the stack (CR 9.1.8g.ex2)<br>tests/sweep-fixes-s2.test.ts › an unrezzed Yakov the Runner trashes gives the Corp nothing; a rezzed one gives 2 credits (CR 9.1.8g)<br>tests/timing-reaudit.test.ts › RF: does no net damage when the Runner trashes an unrezzed Hostile Infrastructure, whose ability is not active (CR 9.1.7, 9.1.8g)<br>tests/timing-reaudit.test.ts › does 1 net damage when the Runner trashes a rezzed Hostile Infrastructure (CR 9.1.8g) |
 | 9.1.8h | 9.1 | tests/cr-examples-ch9.test.ts › resolves Archangel's subroutine when encountered from HQ (CR 9.1.8h.ex1)<br>tests/encounter-from-hidden-zone.test.ts › ends the encounter's mark when the run ends during it (CR 9.1.8h, 6.5.9b) |
 | 9.1.8i | 9.1 | — |
 | 9.1.9 | 9.1 | — |
@@ -1116,7 +1116,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.2.8b | 9.2 | tests/reaction-window-order.test.ts › resolves the active player's ability before the inactive player's (CR 9.2.8b)<br>tests/reaction-window-order.test.ts › gives the active player priority even when the other side was marked first (CR 9.2.8b)<br>tests/run-movement-phase.test.ts › gives the Corp the approach-server step even when it cannot pay, and Pass is its only option (CR 9.2.8b) |
 | 9.2.8c | 9.2 | — |
 | 9.2.8d | 9.2 | tests/cr-examples-ch9.test.ts › lets the Runner trigger Drug Dealer before Aesop's Pawnshop instead (CR 9.2.8d)<br>tests/reaction-window-order.test.ts › asks the Runner again while different abilities remain (CR 9.2.8d) |
-| 9.2.8e | 9.2 | — |
+| 9.2.8e | 9.2 | tests/timing-reaudit.test.ts › RF: still does all 3 of Hostile Infrastructure's net damage after Singularity when the Runner could prevent the first (CR 9.6.2, 9.2.8e) |
 | 9.2.8f | 9.2 | tests/cr-examples-ch9.test.ts › drops Tollbooth's pending ability when Femme Fatale ends the encounter (CR 9.2.8f.ex1) |
 | 9.2.9 | 9.2 | — |
 | 9.2.9a | 9.2 | — |
@@ -1141,7 +1141,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.3.3c | 9.3 | — |
 | 9.3.3d | 9.3 | — |
 | 9.3.3e | 9.3 | — |
-| 9.3.3f | 9.3 | — |
+| 9.3.3f | 9.3 | tests/cr-examples-ch9.test.ts › treats Psychographics' limit on X as a restriction: X stops at the Runner's 2 tags, and no instruction runs for that sentence (CR 9.3.3f.ex1) |
 | 9.3.3g | 9.3 | — |
 | 9.3.3h | 9.3 | — |
 | 9.3.4 | 9.3 | — |
@@ -1161,29 +1161,29 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.3.6g | 9.3 | tests/cr-examples-ch9.test.ts › keeps Zahya's once-per-turn ability when she declines the credit (CR 9.3.6g.ex1)<br>tests/sweep-fixes-s2.test.ts › declining does not use it up, it watches any ice rezzed during a run on its server, and the +3 lasts the run (CR 9.3.6g, 9.10.1)<br>tests/sweep-fixes-s2.test.ts › declining the extra access does not use up its once per turn, and it is offered once per breach (CR 9.3.6g) |
 | 9.3.7 | 9.3 | — |
 | 9.3.7a | 9.3 | tests/unregistered-s-w-35.test.ts › can be used only after a successful run on HQ this turn (CR 9.3.7a) |
-| 9.3.7b | 9.3 | tests/ability-record.test.ts › materializes Crypsis paid abilities from records (CR 9.3.7b)<br>tests/ability-record.test.ts › finds a paid ability after paidAbilities is cleared (CR 9.3.7b) |
+| 9.3.7b | 9.3 | tests/ability-record.test.ts › materializes Crypsis paid abilities from records (CR 9.3.7b)<br>tests/ability-record.test.ts › finds a paid ability after paidAbilities is cleared (CR 9.3.7b)<br>tests/timing-reaudit.test.ts › resolves Professional Contacts' paid ability from its record: one click, then 1 credit and 1 card (CR 9.3.7b) |
 | 9.3.7c | 9.3 | — |
 | 9.3.7d | 9.3 | tests/ability-record.test.ts › reads Sure Gamble play instructions from abilities (CR 9.3.7d)<br>tests/ability-record.test.ts › plays Sure Gamble from ability records without onPlay (CR 9.3.7d)<br>tests/ability-record.test.ts › reads the play record when onPlay disagrees (CR 9.3.7d) |
 | 9.3.7e | 9.3 | tests/ability-record.test.ts › materializes Ice Wall subroutines from records (CR 9.3.7e)<br>tests/ability-record.test.ts › restores printed subroutines when subroutines is unset (CR 9.3.7e)<br>tests/ability-record.test.ts › keeps the printed subroutine when a same-id stub disagrees (CR 9.3.7e) |
 | 9.6.1 | 9.6 | — |
 | 9.6.1a | 9.6 | — |
 | 9.6.1b | 9.6 | — |
-| 9.6.2 | 9.6 | tests/sweep-fixes-s1.test.ts › its first-break credit becomes pending as a conditional ability, and a blank Tailor's does not (CR 9.3.2b, 9.6.2) |
+| 9.6.2 | 9.6 | tests/sweep-fixes-s1.test.ts › its first-break credit becomes pending as a conditional ability, and a blank Tailor's does not (CR 9.3.2b, 9.6.2)<br>tests/timing-reaudit.test.ts › RF: still does all 3 of Hostile Infrastructure's net damage after Singularity when the Runner could prevent the first (CR 9.6.2, 9.2.8e) |
 | 9.6.3 | 9.6 | — |
 | 9.6.4 | 9.6 | — |
 | 9.6.4a | 9.6 | — |
-| 9.6.4b | 9.6 | tests/cr-examples-ch9.test.ts › leaves two Blackguard instances pending after Satellite Uplink exposes two cards (CR 9.6.4b.ex2)<br>tests/pending-abilities.test.ts › evaluates expose and draw-set-aside predicates (CR 9.6.4b / 8.4.5a)<br>tests/pending-abilities.test.ts › diffs exposure counts for Blackguard (CR 9.6.4b) |
+| 9.6.4b | 9.6 | tests/cr-examples-ch9.test.ts › leaves two Blackguard instances pending after Satellite Uplink exposes two cards (CR 9.6.4b.ex2)<br>tests/cr-examples-ch9.test.ts › makes three Hostile Infrastructure instances pending in one reaction window when Singularity trashes three cards (CR 9.6.4b.ex1)<br>tests/pending-abilities.test.ts › evaluates expose and draw-set-aside predicates (CR 9.6.4b / 8.4.5a)<br>tests/pending-abilities.test.ts › diffs exposure counts for Blackguard (CR 9.6.4b)<br>tests/timing-reaudit.test.ts › does 3 net damage, one for each card Singularity trashes beside Hostile Infrastructure (CR 9.6.4b) |
 | 9.6.5 | 9.6 | — |
 | 9.6.5a | 9.6 | — |
 | 9.6.5b | 9.6 | tests/cr-examples-ch9.test.ts › does not take Nico Campaign's turn-begin credits after Ob rezzes it (CR 9.6.5b.ex1)<br>tests/cr-examples-ch9.test.ts › rezzes Tranquility Home Grid after the install checkpoint (CR 9.6.5b.ex2) |
-| 9.6.5c | 9.6 | tests/cr-examples-ch9.test.ts › does not score Quantum Predictive Model when Casting Call tags during the access (CR 9.6.5c.ex1)<br>tests/sweep-fixes-s1.test.ts › an HQ card the Runner trashes uses Solidarity Badge's first time but not the first installed Corp card trash (CR 9.6.5c) |
+| 9.6.5c | 9.6 | tests/cr-examples-ch9.test.ts › does not score Quantum Predictive Model when Casting Call tags during the access (CR 9.6.5c.ex1)<br>tests/sweep-fixes-s1.test.ts › an HQ card the Runner trashes uses Solidarity Badge's first time but not the first installed Corp card trash (CR 9.6.5c)<br>tests/timing-reaudit.test.ts › RF: does no net damage when the Corp trashes its own rezzed Hostile Infrastructure (CR 9.6.5c) |
 | 9.6.5d | 9.6 | tests/cr-examples-ch9.test.ts › checks Underworld Contact's link after The Supplier installs Dyson Mem Chip (CR 9.6.5d.ex1)<br>tests/sweep-fixes-s2.test.ts › counts R&D Interface's extra access when deciding whether the Runner may access 2 or more cards (CR 9.6.5d) |
 | 9.6.5e | 9.6 | — |
 | 9.6.6 | 9.6 | — |
 | 9.6.6a | 9.6 | tests/cr-examples-ch9.test.ts › gains 2 credits when the Corp advances a card that had none (CR 9.6.6a.ex1)<br>tests/pending-abilities.test.ts › reports zone changes against the previous snapshot (CR 9.6.6a)<br>tests/pending-abilities.test.ts › diffs advancement-from-zero for Built to Last (CR 9.6.6a)<br>tests/pending-abilities.test.ts › marks Sebastião when the Runner had no tags at the previous checkpoint (CR 9.6.6a)<br>tests/pending-abilities.test.ts › does not mark Sebastião when previous checkpoint had tags (CR 9.6.6a)<br>tests/pending-abilities.test.ts › evaluates had-family trigger predicates as data (CR 9.6.6a) |
 | 9.6.7 | 9.6 | — |
-| 9.6.7a | 9.6 | — |
-| 9.6.7b | 9.6 | — |
+| 9.6.7a | 9.6 | tests/timing-reaudit.test.ts › RF: trashes Wraparound at the next checkpoint once a fracter is installed and Parasite is hosted on it at 0 strength (CR 9.6.7a, 9.6.7b) |
+| 9.6.7b | 9.6 | tests/timing-reaudit.test.ts › RF: trashes Wraparound at the next checkpoint once a fracter is installed and Parasite is hosted on it at 0 strength (CR 9.6.7a, 9.6.7b) |
 | 9.6.7c | 9.6 | — |
 | 9.6.7d | 9.6 | tests/cr-examples-ch9.test.ts › resolves Parasite once when Architect cannot be trashed (CR 9.6.7d.ex1) |
 | 9.6.8 | 9.6 | — |
@@ -1200,13 +1200,13 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.6.13 | 9.6 | — |
 | 9.6.13a | 9.6 | — |
 | 9.6.13b | 9.6 | tests/cr-examples-ch9.test.ts › resolves In the Groove on every install until the turn ends (CR 9.6.13b.ex1) |
-| 9.6.13c | 9.6 | tests/cr-examples-ch9.test.ts › takes Joshua B.'s tag at turn end after Joshua B. is trashed (CR 9.6.13c.ex1) |
+| 9.6.13c | 9.6 | tests/cr-examples-ch9.test.ts › takes Joshua B.'s tag at turn end after Joshua B. is trashed (CR 9.6.13c.ex1)<br>tests/timing-reaudit.test.ts › RF: Chum does 3 net damage when the encounter it boosted ends with a subroutine unbroken, before the Runner approaches the server (CR 9.6.13c, 1.2.1) |
 | 9.6.13d | 9.6 | tests/cr-examples-ch9.test.ts › does not trash Mayfly for a break outside a run (CR 9.6.13d.ex1) |
 | 9.6.14 | 9.6 | — |
 | 9.6.14a | 9.6 | — |
 | 9.6.14b | 9.6 | — |
-| 9.6.14c | 9.6 | — |
-| 9.6.14d | 9.6 | tests/cr-examples-ch9.test.ts › resolves Market Research through 24/7 News Cycle only while the Runner is tagged (CR 9.6.14d.ex1) |
+| 9.6.14c | 9.6 | tests/timing-reaudit.test.ts › RF: 24/7 News Cycle resolving Hostile Takeover's when-scored ability gives 7 credits and 1 bad publicity (CR 9.6.14c, 9.6.14d) |
+| 9.6.14d | 9.6 | tests/cr-examples-ch9.test.ts › resolves Market Research through 24/7 News Cycle only while the Runner is tagged (CR 9.6.14d.ex1)<br>tests/timing-reaudit.test.ts › RF: 24/7 News Cycle resolving Hostile Takeover's when-scored ability gives 7 credits and 1 bad publicity (CR 9.6.14c, 9.6.14d) |
 | 9.6.15 | 9.6 | — |
 | 9.6.15a | 9.6 | — |
 | 9.6.15b | 9.6 | — |
@@ -1252,10 +1252,10 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.9.9 | 9.9 | — |
 | 9.9.9a | 9.9 | tests/cr-examples-ch9.test.ts › ends Gebrselassie's replaced duration at the next checkpoint once it leaves the host (CR 9.9.9a.ex1) |
 | 9.9.9b | 9.9 | tests/replacement-layer-9.9.9.test.ts › applies active expected replacements as the interrupt window opens (CR 9.9.9b) |
-| 9.9.9c | 9.9 | tests/cr-examples-ch9.test.ts › Vacheron steal once (CR 9.9.9c.ex1)<br>tests/replacement-layer-9.9.9.test.ts › applies each replacement only once to an effect (CR 9.9.9c)<br>tests/replacement-layer-9.9.9.test.ts › Vacheron steal uses once-per-effect bookkeeping (CR 9.9.9c.ex1) |
+| 9.9.9c | 9.9 | tests/cr-examples-ch9.test.ts › Vacheron steal once (CR 9.9.9c.ex1)<br>tests/replacement-layer-9.9.9.test.ts › applies each replacement only once to an effect (CR 9.9.9c)<br>tests/replacement-layer-9.9.9.test.ts › Vacheron steal uses once-per-effect bookkeeping (CR 9.9.9c.ex1)<br>tests/timing-reaudit.test.ts › applies a replacement once to one effect, and again to the next effect (CR 9.9.9c) |
 | 9.9.10 | 9.9 | tests/cr-examples-ch9.test.ts › replaces imminent net damage with core damage as Tori Hanzō resolves (CR 9.9.10.ex1) |
 | 9.9.11 | 9.9 | — |
-| 9.9.11a | 9.9 | tests/cr-examples-ch9.test.ts › applies only one breach replacement for Security Testing and Account Siphon (CR 9.9.11a.ex1)<br>tests/cr-examples-ch9.test.ts › lets Showing Off keep the breach expected so Security Testing still replaces it (CR 9.9.11a.ex2) |
+| 9.9.11a | 9.9 | tests/cr-examples-ch9.test.ts › applies only one breach replacement for Security Testing and Account Siphon (CR 9.9.11a.ex1)<br>tests/cr-examples-ch9.test.ts › lets Showing Off keep the breach expected so Security Testing still replaces it (CR 9.9.11a.ex2)<br>tests/timing-reaudit.test.ts › RF: offers no Diversion of Funds replacement once Security Testing has already replaced the breach of HQ (CR 9.9.11a) |
 | 9.11.1 | 9.11 | — |
 | 9.11.1a | 9.11 | tests/instruction-checkpoints.test.ts › runs the cost checkpoint after the cost is paid, before the play abilities (CR 9.11.1a, 8.6.7e) |
 | 9.11.1b | 9.11 | — |
@@ -1263,10 +1263,10 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.11.1d | 9.11 | — |
 | 9.11.1e | 9.11 | — |
 | 9.11.2 | 9.11 | tests/instruction-checkpoints.test.ts › checkpoints after the Corp gains a credit, before the Corp receives priority (CR 10.3.5, 9.11.2) |
-| 9.11.2a | 9.11 | — |
-| 9.11.3 | 9.11 | — |
+| 9.11.2a | 9.11 | tests/cr-examples-ch9.test.ts › RF: runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)<br>tests/cr-examples-ch9.test.ts › runs no checkpoint inside the checkpoint that waits on Bad Times' memory choice (CR 9.11.2a.ex2) |
+| 9.11.3 | 9.11 | tests/timing-reaudit.test.ts › RF: resolves Professional Contacts' one sentence as one instruction, with no checkpoint between the gain and the draw (CR 9.11.3) |
 | 9.11.4 | 9.11 | — |
-| 9.11.4a | 9.11 | — |
+| 9.11.4a | 9.11 | tests/cr-examples-ch9.test.ts › treats Houdini's stealth sentence as a restriction: the pump needs a stealth credit and runs no checkpoint of its own (CR 9.11.4a.ex1) |
 | 9.11.4b | 9.11 | tests/cr-examples-ch9.test.ts › offers Shipment from MirrorMorph as three separate installs (CR 9.11.4b.ex1) |
 | 9.11.4c | 9.11 | tests/cr-examples-ch9.test.ts › grants Tinkering's subtypes when the chosen ice's instruction resolves (CR 9.11.4c.ex1) |
 | 9.11.4d | 9.11 | tests/cr-examples-ch9.test.ts › trashes a grip card after Djinn's search and before Datasucker is added (CR 9.11.4d.ex1) |
@@ -1289,7 +1289,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 10.3.1l | 10.3 | tests/instruction-checkpoints.test.ts › checks counters in the discard piles inside the checkpoint after the Corp gains a credit, and none return to the bank (CR 10.3.1l)<br>tests/instruction-checkpoints.test.ts › returns counters on a discarded card to the bank (CR 10.3.1l) |
 | 10.3.2 | 10.3 | tests/instruction-checkpoints.test.ts › reveals a Find the Truth draw after the checkpoint and before the card enters hand (CR 10.3.2)<br>tests/instruction-checkpoints.test.ts › offers Political Dealings in that window, before the agenda enters HQ (CR 10.3.2)<br>tests/instruction-checkpoints.test.ts › leaves the reaction window closed after the checkpoint for the Corp's credit, because nothing was marked pending (CR 10.3.2)<br>tests/pending-abilities.test.ts › keeps leftover pending off a checkpoint that marks nothing (CR 10.3.2)<br>tests/pending-abilities.test.ts › opens a reaction window only for newly marked pending (CR 9.2.8a / 10.3.2) |
 | 10.3.3 | 10.3 | tests/instruction-checkpoints.test.ts › checkpoints before each player receives priority (CR 10.3.3, 9.2.4e) |
-| 10.3.4 | 10.3 | — |
+| 10.3.4 | 10.3 | tests/timing-reaudit.test.ts › RF: runs a checkpoint right after the Runner pays Corroder's install cost, before Corroder is installed (CR 8.5.16d, 10.3.4)<br>tests/timing-reaudit.test.ts › RF: Order of Sol gains 1 credit when the Runner spends their last 5 credits installing Professional Contacts (CR 8.5.16d, 10.3.4) |
 | 10.3.5 | 10.3 | tests/instruction-checkpoints.test.ts › checkpoints after the Corp gains a credit, before the Corp receives priority (CR 10.3.5, 9.11.2) |
 | 10.3.6 | 10.3 | tests/cr-examples-ch10.test.ts › does not let Jesminder avoid AMAZE tags after the run has ended (CR 10.3.6.ex1)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the run after it is complete, before the Runner receives priority (CR 10.3.6)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the Run Ends phase after the run is complete, before the checkpoint outside the run (CR 10.3.6, 9.2.2b)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the initiation phase after the run begins, before the Movement Phase (CR 10.3.6, 9.2.2b, 6.9.1f)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the approach ice phase after unrezzed ice skips the encounter, before the Runner passes that ice (CR 10.3.6, 9.2.2b)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the encounter phase after the Runner encounters rezzed ice with nothing left to resolve, before the Runner passes that ice (CR 10.3.6, 9.2.2b)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the movement phase after the Runner approaches an empty server, before the run is successful (CR 10.3.6, 9.2.2b)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the breach after it is complete, while the run is still open (CR 10.3.6, 9.2.2c)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the success phase after the breach checkpoint closes, before Run Ends (CR 10.3.6, 9.2.2b)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the access after it is complete, while the breach is still open (CR 10.3.6, 9.2.2d)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the Corp's turn after it is complete, before the Runner gains clicks (CR 10.3.6, 9.2.2a)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the Corp's discard phase after the Runner's turn begins, before the checkpoint outside the Corp's turn (CR 10.3.6, 9.2.2a)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the action phase after it ends, before the Corp discards (CR 10.3.6, 9.2.2a)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the Runner's action phase after it ends, before the Runner discards (CR 10.3.6, 9.2.2a)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the draw phase after the Corp draws, before the Corp receives priority (CR 10.3.6, 9.2.2a)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the Runner's turn after it is complete, before the Corp gains clicks (CR 10.3.6, 9.2.2a)<br>tests/instruction-checkpoints.test.ts › checkpoints outside the Runner's discard phase after the Corp's second turn begins, before the checkpoint outside the Runner's turn (CR 10.3.6, 9.2.2a) |
 
@@ -1352,7 +1352,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.1.1 | 1.1 | — |
 | 1.1.2 | 1.1 | — |
 | 1.1.3 | 1.1 | tests/current-statics.test.ts › can take the Corp's max hand size below 0 (CR 1.1.3) |
-| 1.2.1 | 1.2 | tests/hosting-and-trash.test.ts › Marilyn Campaign shuffles itself into R&D instead (CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Umbrella cannot break a code gate that hosts no trojan, even at full strength (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a non-killer paid break breaks only 1 of its printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: breaks made with a killer do not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a subroutine it gained is not printed and does not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Audrey v2 used for real at full strength breaks only 1 of Hammer's printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Anvil: Kongamato cannot break Anvil's first printed subroutine after Anvil's ability (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Matryoshka is offered only as many breaks as Hammer allows, so it does not pay for breaks that cannot happen (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Boi-tatá's break costs 1 credit less after the Runner trashed one of their installed cards this turn (card text, CR 1.2.1)<br>tests/sweep-fixes-s1.test.ts › its hosted credits pay to rez an asset in its root, not an upgrade, and only while it is rezzed (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › after a named card is trashed, the Corp chooses a card name again before the next net damage (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › an accessed asset can still be trashed; only an agenda is protected from stealing and trashing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the first mark run to end uses it even without a breach, so a later breached mark run that turn gains nothing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the Runner cannot lose all clicks to prevent its core damage, which it does not print (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › uses the server the ice protects, and only the turn's first such encounter: a second encounter with the same ice is not replaced (CR 1.2.1)<br>tests/up-and-over.test.ts › Angel Arena places X power counters, capped only by credits (CR 1.2.1) |
+| 1.2.1 | 1.2 | tests/hosting-and-trash.test.ts › Marilyn Campaign shuffles itself into R&D instead (CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Umbrella cannot break a code gate that hosts no trojan, even at full strength (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a non-killer paid break breaks only 1 of its printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: breaks made with a killer do not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: a subroutine it gained is not printed and does not count toward its limit (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Audrey v2 used for real at full strength breaks only 1 of Hammer's printed subroutines (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Anvil: Kongamato cannot break Anvil's first printed subroutine after Anvil's ability (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Hammer: Matryoshka is offered only as many breaks as Hammer allows, so it does not pay for breaks that cannot happen (card text, CR 1.2.1)<br>tests/icebreaker-strength.test.ts › Boi-tatá's break costs 1 credit less after the Runner trashed one of their installed cards this turn (card text, CR 1.2.1)<br>tests/sweep-fixes-s1.test.ts › its hosted credits pay to rez an asset in its root, not an upgrade, and only while it is rezzed (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › after a named card is trashed, the Corp chooses a card name again before the next net damage (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › an accessed asset can still be trashed; only an agenda is protected from stealing and trashing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the first mark run to end uses it even without a breach, so a later breached mark run that turn gains nothing (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › the Runner cannot lose all clicks to prevent its core damage, which it does not print (CR 1.2.1)<br>tests/sweep-fixes-s2.test.ts › uses the server the ice protects, and only the turn's first such encounter: a second encounter with the same ice is not replaced (CR 1.2.1)<br>tests/timing-reaudit.test.ts › RF: Chum does 3 net damage when the encounter it boosted ends with a subroutine unbroken, before the Runner approaches the server (CR 9.6.13c, 1.2.1)<br>tests/up-and-over.test.ts › Angel Arena places X power counters, capped only by credits (CR 1.2.1) |
 | 1.2.2 | 1.2 | tests/confidence-interaction-smoke.test.ts › rez with prevent jack_out drops jack_out from legality (1.2.2)<br>tests/lose-click-cost.test.ts › Hákarl 1.0's prohibition stops the paid ability too (CR 1.2.2)<br>tests/runner-break-on-corp-ice.test.ts › bioroid ice breaks are not offered while the Runner cannot use them (CR 1.2.2) |
 | 1.2.3 | 1.2 | — |
 | 1.2.4 | 1.2 | — |
