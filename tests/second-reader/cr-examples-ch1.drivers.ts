@@ -18,94 +18,19 @@ import {
 import { accepts, Board, hasOption, offered, take } from "./harness.js";
 import type { Report } from "./harness.js";
 import { legalActions } from "../../src/index.js";
-import type { Action } from "../../src/index.js";
-
-export type Driver = (r: Report) => void;
-
-const WALK: Action["type"][] = [
-  "continue_run",
-  "access_card",
-  "finish_access",
-  "finish_breach",
-  "accept_installed_trash",
-  "pass_window",
-  "discard_to_hand_size",
-];
-
-/**
- * Take the obvious step (continue, access, finish, pass) until `stop` holds
- * or a choice opens. With nothing obvious left it throws, so a driver cannot
- * report a state it did not mean to stop in.
- */
-function drive(s: GameState, stop: (s: GameState) => boolean): GameState {
-  for (let i = 0; i < 200; i++) {
-    if (stop(s) || s.pendingChoice || s.done) return s;
-    const legal = legalActions(s);
-    const next = WALK.map((t) => legal.find((a) => a.type === t)).find(Boolean);
-    if (!next) {
-      throw new Error(
-        `stuck at ${s.timingKey}: ${legal.map((a) => a.type).join(", ")}`,
-      );
-    }
-    s = must(s, next);
-  }
-  throw new Error(`no stop at ${s.timingKey}`);
-}
-
-const run = (s: GameState, server: string): GameState =>
-  must(s, { type: "basic_run", serverId: server as ServerId });
-
-const runOver = (s: GameState): boolean => !s.run;
-/** The window after an encounter, where the Runner may jack out (CR 6.9.4c). */
-const passedIce = (s: GameState): boolean =>
-  !s.run || s.timingKey === "run.jackOutWindow";
-const atAction = (s: GameState): boolean =>
-  s.timingKey === "runner.takeAction" || s.timingKey === "corp.takeAction";
-const toAction = (s: GameState): GameState => drive(s, atAction);
-
-const debug = (...parts: unknown[]): void => {
-  if (process.env.SR_DEBUG) console.log("   ·", ...parts);
-};
-
-/**
- * Play on to `stop`, answering each choice on the way with the first entry
- * of `answers` (a part of an option's id) that one of its options matches.
- * Each answer is used once. A choice no answer fits stops the walk, and the
- * driver reports the state as it is.
- */
-function through(
-  s: GameState,
-  stop: (s: GameState) => boolean,
-  answers: string[] = [],
-): GameState {
-  const left = [...answers];
-  for (let i = 0; i < 30; i++) {
-    s = drive(s, stop);
-    if (!s.pendingChoice) return s;
-    const ids = optionIds(s);
-    const at = left.findIndex((a) => ids.some((id) => id.includes(a)));
-    debug(
-      `choice[${s.pendingChoice.chooser}] ${s.pendingChoice.prompt ?? ""}: ${s.pendingChoice.options
-        .map((o) => `${o.id} "${o.label}"`)
-        .join(" | ")} -> ${at < 0 ? "(stop)" : left[at]}`,
-    );
-    if (at < 0) return s;
-    s = pick(s, left.splice(at, 1)[0]!);
-  }
-  return s;
-}
-
-/** The Runner's paid ability window in the action phase. */
-function runnerWindow(s: GameState): GameState {
-  s.timingKey = "runner.actionPaw";
-  return s;
-}
-
-/** The Corp's paid ability window in its action phase, where it may score and rez. */
-function corpWindow(s: GameState): GameState {
-  s.timingKey = "corp.actionPaw";
-  return s;
-}
+import {
+  atAction,
+  corpWindow,
+  debug,
+  drive,
+  passedIce,
+  run,
+  runnerWindow,
+  runOver,
+  through,
+  toAction,
+} from "./driving.js";
+import type { Driver } from "./driving.js";
 
 export const drivers: Record<string, Driver> = {
   "1.10.3b.ex1": (r) => {

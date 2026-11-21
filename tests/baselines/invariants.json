@@ -3413,6 +3413,24 @@
   "tests/second-reader.test.ts": {
     "the engine agrees with a blind reading of The CR's own examples, chapter 1 (Game Concepts) (read by Claude Fable 5.2) > CR 1.12.3.ex1: The Foundry's search shuffles away the cards Accelerated Beta Test was looking at, so they are not installed or trashed": [
       "NO_ZONE"
+    ],
+    "the engine agrees with a blind reading of The CR's own examples, chapter 6 (Runs) (read by Claude Fable 5.2) > CR 6.2.3.ex2: Slipstream moves the Runner to the innermost ice of a central server, whatever ice is outward of it": [
+      "ENCOUNTER_ICE_MISMATCH"
+    ],
+    "the engine agrees with a blind reading of The CR's own examples, chapter 6 (Runs) (read by Claude Fable 5.2) > recorded differences still differ in the recorded way (remove the entry when the engine is fixed)": [
+      "ENCOUNTER_ICE_MISMATCH",
+      "NO_ZONE",
+      "POSITION_OUT_OF_RANGE"
+    ],
+    "the engine agrees with a blind reading of The CR's own examples, chapter 7 (Accessing Cards and Breaching Servers) (read by Claude Fable 5.2) > CR 7.4.7a.ex1: after Bacterial Programming rearranges R&D the breach goes on from the top and Celebrity Gift is accessed again": [
+      "NO_ZONE"
+    ],
+    "the engine agrees with a blind reading of The CR's own examples, chapter 8 (Card Manipulation) (read by Claude Fable 5.2) > CR 8.3.3b.ex1: Cultivate trashes one of the top five cards of R&D, adds one to HQ and arranges the rest": [
+      "NO_ZONE"
+    ],
+    "the engine agrees with a blind reading of The CR's own examples, chapter 8 (Card Manipulation) (read by Claude Fable 5.2) > recorded differences still differ in the recorded way (remove the entry when the engine is fixed)": [
+      "MULTIPLE_ZONES",
+      "NO_ZONE"
     ]
   },
   "tests/short-game.test.ts": {
