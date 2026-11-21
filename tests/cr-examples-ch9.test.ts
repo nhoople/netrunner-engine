@@ -573,7 +573,9 @@ describe("CR examples, chapter 9", () => {
       expect(s.cards[id]?.rezzed).toBe(false);
       expect(s.corp.discardPile).toContain(id);
     }
-    expect(s.servers["remote-1"]?.root).toEqual([]);
+    // The emptied remote ceases to exist at the checkpoint after the trash,
+    // which ends the run (CR 10.3.1h, 4.6.8e).
+    expect(s.servers["remote-1"]).toBeUndefined();
     expect(s.runner.hand).toEqual([]);
     expect(s.done).toBe(false);
 
@@ -1863,14 +1865,12 @@ describe("CR examples, chapter 9", () => {
     tagged = must(tagged, { type: "choose_option", optionId: "247:mr-1" });
 
     const forfeited = at(tagged.log, "Forfeit AstroScript Pilot Program");
+    // The when-scored ability resolves as when scored (state/whenScored.ts).
     const resolved = at(
       tagged.log,
-      "Market Research's when-scored ability resolves; place 1 agenda counter",
+      "Add 1 agenda counter(s) to Market Research",
     );
     expect(forfeited).toBeLessThan(resolved);
-    expect(tagged.log[resolved]).toContain(
-      CR.whenScoredAdditionalRequirement.number,
-    );
     expect(tagged.cards["mr-1"]?.agendaCounters).toBe(1);
     expect(tagged.corp.scoreArea).toContain("mr-1");
 
@@ -4115,6 +4115,15 @@ describe("CR examples, chapter 9", () => {
     );
     expect(opened.ok).toBe(true);
     s = must(s, { type: "choose_option", optionId: "singularity" });
+    // The Corp controls all three pending instances and chooses their order
+    // (CR 9.2.8d): here Hostile Infrastructure's two, then Warroid Tracker.
+    for (let i = 0; i < 3 && s.pendingChoice; i++) {
+      const options = s.pendingChoice.options;
+      const pick =
+        options.find((o) => o.label === "Hostile Infrastructure") ??
+        options[0]!;
+      s = must(s, { type: "choose_option", optionId: pick.id });
+    }
 
     const hiPending = at(
       s.log,
@@ -4814,38 +4823,35 @@ describe("CR examples, chapter 9 timing (RA-1)", () => {
     expect(s.runner.hand).toHaveLength(hand - 3);
   });
 
-  // The basic install action pays the install cost with no checkpoint after
-  // it (src/actions/installCorp.ts and installRunner.ts). Found by RA-1.
-  it.fails(
-    "RF: runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)",
-    () => {
-      const s = board();
-      s.cards["iw-0"] = instantiateCard("ice-wall", "iw-0", "server:hq:ice");
-      s.servers.hq.ice = ["iw-0"];
-      s.cards["iw-1"] = instantiateCard("ice-wall", "iw-1", "corp:hq");
-      s.corp.hand.push("iw-1");
-      s.corp.credits = 5;
-      s.corp.clicks = 3;
-      s.activeSide = "corp";
-      s.timingKey = "corp.takeAction";
-      const from = s.log.length;
-      const after = must(s, {
-        type: "basic_install",
-        cardId: "iw-1",
-        destination: { kind: "protect", serverId: "hq" },
-      });
-      expect(after.corp.credits).toBe(4);
-      const lines = after.log.slice(from);
-      const installed = at(lines, "Corp installs Ice Wall");
-      const inside = lines
-        .slice(0, installed)
-        .filter((line) => line.startsWith("Checkpoint open ["));
-      // One after the action's click (CR 10.3.4), before the install begins,
-      // and the install's own one after its cost (CR 8.5.16d). Nothing else.
-      expect(inside).toHaveLength(2);
-      expect(inside.every((line) => line.includes("[cost]"))).toBe(true);
-    },
-  );
+  // Found by RA-1, fixed in RF-1: the install cost is paid through
+  // payInstallCost, which runs the cost checkpoint (CR 8.5.16d).
+  it("runs the install's only checkpoint right after Ice Wall's install cost is paid (CR 9.11.2a.ex1)", () => {
+    const s = board();
+    s.cards["iw-0"] = instantiateCard("ice-wall", "iw-0", "server:hq:ice");
+    s.servers.hq.ice = ["iw-0"];
+    s.cards["iw-1"] = instantiateCard("ice-wall", "iw-1", "corp:hq");
+    s.corp.hand.push("iw-1");
+    s.corp.credits = 5;
+    s.corp.clicks = 3;
+    s.activeSide = "corp";
+    s.timingKey = "corp.takeAction";
+    const from = s.log.length;
+    const after = must(s, {
+      type: "basic_install",
+      cardId: "iw-1",
+      destination: { kind: "protect", serverId: "hq" },
+    });
+    expect(after.corp.credits).toBe(4);
+    const lines = after.log.slice(from);
+    const installed = at(lines, "Corp installs Ice Wall");
+    const inside = lines
+      .slice(0, installed)
+      .filter((line) => line.startsWith("Checkpoint open ["));
+    // One after the action's click (CR 10.3.4), before the install begins,
+    // and the install's own one after its cost (CR 8.5.16d). Nothing else.
+    expect(inside).toHaveLength(2);
+    expect(inside.every((line) => line.includes("[cost]"))).toBe(true);
+  });
 
   it("runs no checkpoint inside the checkpoint that waits on Bad Times' memory choice (CR 9.11.2a.ex2)", () => {
     const s = board();

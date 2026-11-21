@@ -8,7 +8,7 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import {
   creditsAvailableForInstall,
-  spendCreditsForInstall,
+  payInstallCost,
   subtractRunnerCreditPool,
 } from "../state/costs.js";
 import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
@@ -169,7 +169,7 @@ export function installGripCardDiscounted(
     log(state, `Install ${card.title} discounted — cannot afford ${cost}¢.`);
     return { ok: true };
   }
-  spendCreditsForInstall(state, "runner", cost);
+  payInstallCost(state, "runner", cost);
   state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
@@ -272,7 +272,7 @@ export function installHeapCardDiscounted(
     log(state, `Install ${card.title} from heap — cannot afford ${cost}¢.`);
     return { ok: true };
   }
-  spendCreditsForInstall(state, "runner", cost);
+  payInstallCost(state, "runner", cost);
   state.runner.discardPile = state.runner.discardPile.filter(
     (x) => x !== cardId,
   );
@@ -567,7 +567,7 @@ export function installStackCardPaying(
     return { ok: true };
   }
   const cost = stackCardInstallCost(state, card, discount);
-  spendCreditsForInstall(state, "runner", cost);
+  payInstallCost(state, "runner", cost);
   state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";

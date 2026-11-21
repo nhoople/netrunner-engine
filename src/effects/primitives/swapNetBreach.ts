@@ -1,4 +1,5 @@
 /** Chrome City (cc) SanSan pack primitives. */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { log } from "../../state/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/lingeringEffects.js";
 import type { RuleCite } from "../../state/types.js";
@@ -154,6 +155,7 @@ export function applySansanCcPrimitive(
     }
 
     case "may_breach_instead_analog_dreamers": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "rd") {
         log(state, `Analog Dreamers — not a successful R&D run.`);
         return { ok: true };

@@ -2117,7 +2117,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
     const lines = s.log.slice(from);
     const opened = at(lines, "Checkpoint open [instruction]");
-    const checked = at(lines, "Conditional abilities checked");
+    const checked = lines.findIndex(
+      (line, i) => i > opened && line.includes("Conditional abilities checked"),
+    );
     const closed = lines.findIndex(
       (line, i) =>
         i > opened && line.includes("Checkpoint close [instruction]"),
@@ -2797,17 +2799,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("checkpoints outside the run after it is complete, before the Runner receives priority (CR 10.3.6)", () => {
     let s = createInitialState();
-    s.servers["remote-1"] = {
-      id: "remote-1",
-      kind: "remote",
-      ice: [],
-      root: [],
-    };
+    // An empty remote would cease to exist at the run's cost checkpoint
+    // (CR 10.3.1h), so the run is on Archives, empty and unprotected.
     s.activeSide = "runner";
     s.runner.clicks = 1;
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
-    s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: "archives" as ServerId });
     // The Runner does not jack out (CR 6.9.4c).
     s = must(s, { type: "continue_run" });
 
@@ -2838,17 +2836,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("checkpoints outside the Run Ends phase after the run is complete, before the checkpoint outside the run (CR 10.3.6, 9.2.2b)", () => {
     let s = createInitialState();
-    s.servers["remote-1"] = {
-      id: "remote-1",
-      kind: "remote",
-      ice: [],
-      root: [],
-    };
+    // An empty remote would cease to exist at the run's cost checkpoint
+    // (CR 10.3.1h), so the run is on Archives, empty and unprotected.
     s.activeSide = "runner";
     s.runner.clicks = 1;
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
-    s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: "archives" as ServerId });
     // The Runner does not jack out (CR 6.9.4c).
     s = must(s, { type: "continue_run" });
 
@@ -2879,17 +2873,13 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
 
   it("checkpoints outside the initiation phase after the run begins, before the Movement Phase (CR 10.3.6, 9.2.2b, 6.9.1f)", () => {
     let s = createInitialState();
-    s.servers["remote-1"] = {
-      id: "remote-1",
-      kind: "remote",
-      ice: [],
-      root: [],
-    };
+    // An empty remote would cease to exist at the run's cost checkpoint
+    // (CR 10.3.1h), so the run is on Archives, empty and unprotected.
     s.activeSide = "runner";
     s.runner.clicks = 1;
     enterStep(s, "runner.takeAction");
     const from = s.log.length;
-    s = must(s, { type: "basic_run", serverId: "remote-1" as ServerId });
+    s = must(s, { type: "basic_run", serverId: "archives" as ServerId });
     // The Runner does not jack out (CR 6.9.4c).
     s = must(s, { type: "continue_run" });
 

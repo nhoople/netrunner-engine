@@ -6,17 +6,9 @@ import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
-import { dealDamage } from "../../state/damage.js";
-import {
-  cancelPendingIfSourceInactive,
-  closeReactionWindow,
-  completePendingAbility,
-  createPendingAbilityInstance,
-  findPendingAbility,
-  markPendingAbilityResolving,
-  openReactionWindow,
-  pruneSettledPendingAbilities,
-} from "../../state/pendingAbilities.js";
+import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
+import { noteStoredConditional } from "../../state/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { pickRandomSubset } from "../../state/rng.js";
 import { drawCards } from "../draw.js";
@@ -1143,108 +1135,54 @@ export function applyTrashKinds(
         log(state, `Trash ${sid} root — empty.`);
       }
       // Simultaneous root trash: per-card triggers (Hostile Infrastructure)
-      // mark one pending instance each; "at least 1" triggers (Warroid) mark
-      // once for the whole set (CR 9.12.2a / 9.1.8g).
-      const createdIds: string[] = [];
+      // meet their condition once for each card; "at least 1" triggers
+      // (Warroid) once for the whole set (CR 9.6.4b, 9.12.2a, 9.1.8g). They
+      // become pending at the checkpoint after this instruction and resolve
+      // in its reaction window (CR 10.3.1a, 10.3.2), so an interrupt during
+      // one instance leaves the rest pending for that window to resume.
+      let noted = 0;
       for (const id of infrastructure) {
         const card = state.cards[id];
         const per = card?.netDamageWheneverRunnerTrashesCorpCard ?? 0;
-        const instances = rootIds.length;
         log(
           state,
-          `${card?.title ?? id} remains active — ${instances} instances become pending (CR ${CR.abilityRemainsActive.number}).`,
+          `${card?.title ?? id} remains active — ${rootIds.length} instances become pending (CR ${CR.abilityRemainsActive.number}).`,
         );
-        for (let n = 0; n < instances; n++) {
-          // CR 9.1.8g — trigger met by the move into Archives stays active
-          // until these instances resolve.
-          const inst = createPendingAbilityInstance(state, {
+        rootIds.forEach((trashedId, n) => {
+          noteInlineConditional(state, {
+            cardId: id,
             abilityKey: "hostile-infrastructure:net-on-trash",
-            sourceId: id,
             controller: "corp",
             mandatory: true,
+            // CR 9.1.8g: the trigger met by the move into Archives stays
+            // active until these instances resolve.
             independentOfSource: true,
-            payload: { kind: "net_damage_on_corp_trash", amount: per },
+            effect: { op: "do", action: { kind: "net_damage", amount: per } },
+            logLine: `${card?.title ?? id} becomes pending — the Runner trashed ${state.cards[trashedId]?.title ?? trashedId} (${n + 1} of ${rootIds.length}).`,
           });
-          createdIds.push(inst.id);
-        }
+          noted += 1;
+        });
       }
       if (rootIds.length > 0) {
         for (const id of atLeastOne) {
           const card = state.cards[id];
-          log(
-            state,
-            `${card?.title ?? id} — one instance becomes pending for this trash (CR ${CR.actOnSet.number}).`,
-          );
-          const inst = createPendingAbilityInstance(state, {
+          noteStoredConditional(state, {
+            cardId: id,
             abilityKey: "warroid-tracker:on-trash-set",
-            sourceId: id,
+            effectKey: "onRunnerTrashFromThisServerRootOrProtecting",
             controller: "corp",
             mandatory: true,
             independentOfSource: true,
-            payload: {
-              kind: "stored_conditional",
-              effectKey: "onRunnerTrashFromThisServerRootOrProtecting",
-            },
+            logLine: `${card?.title ?? id} — one instance becomes pending for this trash (CR ${CR.actOnSet.number}).`,
           });
-          createdIds.push(inst.id);
+          noted += 1;
         }
       }
-      if (createdIds.length === 0) return { ok: true };
-      // Blanked sources still drop (CR 9.6.10); 9.1.8g independents keep.
-      cancelPendingIfSourceInactive(state);
-      const frame = openReactionWindow(state, createdIds, null);
-      for (const pendingId of createdIds) {
-        const inst = findPendingAbility(state, pendingId);
-        if (!inst || inst.status !== "pending") continue;
-        markPendingAbilityResolving(state, pendingId);
-        if (inst.payload?.kind === "net_damage_on_corp_trash") {
-          const result = dealDamage(
-            state,
-            "net",
-            inst.payload.amount,
-            inst.sourceId,
-          );
-          completePendingAbility(state, pendingId, "done");
-          if (
-            result !== "applied" ||
-            state.done ||
-            state.pendingChoice ||
-            state.pendingDamage
-          ) {
-            closeReactionWindow(state, frame.id);
-            pruneSettledPendingAbilities(state);
-            return { ok: true };
-          }
-          continue;
-        }
-        if (inst.payload?.kind === "stored_conditional") {
-          const card = state.cards[inst.sourceId];
-          const effect = card?.[inst.payload.effectKey as keyof typeof card] as
-            import("../ir.js").Effect | undefined;
-          if (effect) {
-            const tracked = evalEffect(
-              { state, sourceId: inst.sourceId },
-              effect,
-            );
-            if (!tracked.ok) {
-              log(
-                state,
-                `${card?.title ?? inst.sourceId} failed: ${tracked.error}`,
-              );
-            }
-          }
-          completePendingAbility(state, pendingId, "done");
-          if (state.pendingChoice || state.trace) {
-            closeReactionWindow(state, frame.id);
-            pruneSettledPendingAbilities(state);
-            return { ok: true };
-          }
-          continue;
-        }
-        completePendingAbility(state, pendingId, "done");
+      // Calvin B4L3Y-class trash triggers of the set were noted by the
+      // trash procedure for this same checkpoint.
+      if (noted > 0 || (state.turn.storedConditionalPending ?? []).length > 0) {
+        checkpointAfterInstruction(state, "trash_attacked_server_root");
       }
-      closeReactionWindow(state, frame.id);
-      pruneSettledPendingAbilities(state);
       return { ok: true };
     }
 

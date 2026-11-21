@@ -110,7 +110,7 @@ import {
   noteCorpActionPhaseEnd,
   noteRunnerActionPhaseEnd,
 } from "../state/phaseEndHooks.js";
-import { resolveStoredConditionalPendings } from "../state/storedTriggers.js";
+import { resumePendingStoredConditionals } from "../state/storedTriggers.js";
 import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import {
   noteCompileFirstEncounter,
@@ -421,9 +421,14 @@ export function resolveDeferredPersistentAmaze(state: GameState): void {
  */
 export function resumeRunnerTurnBeginAbilities(state: GameState): void {
   if (turnBeginPaused(state)) return;
-  const rest = pendingTurnBeginIds(state);
-  if (rest.length === 0) return;
-  resolveStoredConditionalPendings(state, rest);
+  const turnBegin = new Set(pendingTurnBeginIds(state));
+  if (turnBegin.size === 0) return;
+  // Abilities that became pending while the turn-begin window was paused
+  // are in a nested window and resolve first (CR 9.2.8a); then the
+  // turn-begin window itself. Older windows are not this structure's.
+  resumePendingStoredConditionals(state, (ids) =>
+    ids.some((id) => turnBegin.has(id)),
+  );
   noteOpenTurnBeginWaiting(state);
 }
 

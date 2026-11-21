@@ -3349,8 +3349,15 @@ describe("draw on-draw pending (CR 8.4.5a / 10.3.1a / 10.3.2)", () => {
     if (!r.ok) throw new Error(r.error);
     s = r.state;
 
-    const checked = s.log.findIndex((line) =>
-      line.includes("Conditional abilities checked"),
+    // The draw's own checkpoint (CR 8.4.5b), after the click's cost
+    // checkpoint (CR 10.3.4).
+    const drawCheckpoint = s.log.findIndex((line) =>
+      line.startsWith("Checkpoint open [draw]"),
+    );
+    expect(drawCheckpoint).toBeGreaterThanOrEqual(0);
+    const checked = s.log.findIndex(
+      (line, i) =>
+        i > drawCheckpoint && line.includes("Conditional abilities checked"),
     );
     expect(checked).toBeGreaterThanOrEqual(0);
     expect(s.log[checked]).toContain("marked pending");
@@ -3423,6 +3430,19 @@ describe("simultaneous trash multiplicity (CR 9.12.2a)", () => {
     });
     if (!r.ok) throw new Error(r.error);
     s = r.state;
+    // The Corp controls all three and chooses the order (CR 9.2.8d).
+    for (let i = 0; i < 3 && s.pendingChoice; i++) {
+      const pick =
+        s.pendingChoice.options.find(
+          (o) => o.label === "Hostile Infrastructure",
+        ) ?? s.pendingChoice.options[0]!;
+      const next = applyAction(s, {
+        type: "choose_option",
+        optionId: pick.id,
+      });
+      if (!next.ok) throw new Error(next.error);
+      s = next.state;
+    }
 
     const hiPending = s.log.findIndex((line) =>
       line.includes(

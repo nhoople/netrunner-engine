@@ -1,4 +1,5 @@
 /** Data and Destiny (dad) deluxe primitives — v1.115.0. */
+import { whenScoredEffect } from "../../state/whenScored.js";
 import {
   markSubroutineBroken,
   subroutineBreakBlock,
@@ -222,30 +223,22 @@ export function applyDadPrimitive(
       for (const id of state.corp.scoreArea) {
         const card = state.cards[id];
         if (!card) continue;
-        if (card.onScoreIfRunnerTaggedPlaceAgendaCounter) {
-          if ((state.runner.tags ?? 0) > 0) {
-            options.push({
-              id: `247:${id}`,
-              label: `Resolve when-scored on ${card.title}`,
-              effect: fx.do({
-                kind: "gain_credits",
-                side: "corp",
-                amount: 0,
-              }),
-            });
-          } else {
-            log(
-              state,
-              `${card.title}'s when-scored ability cannot resolve; Runner is not tagged (CR ${CR.whenScoredAdditionalRequirement.number}).`,
-            );
-          }
+        if (
+          card.onScoreIfRunnerTaggedPlaceAgendaCounter &&
+          (state.runner.tags ?? 0) <= 0
+        ) {
+          log(
+            state,
+            `${card.title}'s when-scored ability cannot resolve; Runner is not tagged (CR ${CR.whenScoredAdditionalRequirement.number}).`,
+          );
           continue;
         }
-        if (card.onScore) {
+        const whenScored = whenScoredEffect(card);
+        if (whenScored) {
           options.push({
             id: `247:${id}`,
             label: `Resolve when-scored on ${card.title}`,
-            effect: card.onScore,
+            effect: whenScored,
           });
         }
       }

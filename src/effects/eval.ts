@@ -24,7 +24,7 @@ import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import {
   creditsAvailableForInstall,
   installAndRezPaid,
-  spendCreditsForInstall,
+  payInstallCost,
 } from "../state/costs.js";
 import {
   canScoreAgenda,
@@ -829,7 +829,7 @@ export function finishMuseInstall(
     if (from === "stack") shuffleRunnerStack(state);
     return { ok: true };
   }
-  spendCreditsForInstall(state, "runner", cost);
+  payInstallCost(state, "runner", cost);
   removeMuseProgramFromZone(state, cardId, from);
   state.runner.installed.push(cardId);
   card.zone = "runner:installed";
@@ -1946,8 +1946,9 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
           return { ok: true };
         }
         // The current instruction has finished. The next one is not yet
-        // imminent (CR 9.1.2).
-        if (i + 1 < effect.effects.length) {
+        // imminent (CR 9.1.2). One printed sentence is one instruction, with
+        // no checkpoint inside it (CR 9.11.3).
+        if (i + 1 < effect.effects.length && !effect.oneInstruction) {
           occurCheckpoint(
             ctx.state,
             "instruction",

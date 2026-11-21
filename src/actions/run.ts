@@ -344,6 +344,7 @@ export function startRun(
     passedIceIds: [],
     skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
+    ...(mods.skipBreach ? { skipBreachFromRunStart: true } : {}),
     preventAllDamageThisRun: mods.preventAllDamageThisRun ?? false,
     immolationScriptAccessReplace: mods.immolationScriptAccessReplace ?? false,
     accessTrashFree: mods.accessTrashFree ?? false,

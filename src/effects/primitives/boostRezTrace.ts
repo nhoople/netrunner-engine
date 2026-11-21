@@ -1,4 +1,5 @@
 /** The Source (ts) Lunar pack primitives. */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
@@ -321,6 +322,7 @@ export function applyLunarTsPrimitive(
       return { ok: true };
     }
     case "may_breach_instead_code_siphon": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",

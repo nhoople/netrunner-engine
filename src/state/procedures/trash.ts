@@ -50,6 +50,8 @@ import {
   noteCorpCardTrashedToArchives,
 } from "../../effects/corpTrash.js";
 import { noteStoredConditional } from "../storedConditionalHooks.js";
+import { noteInlineConditional } from "../inlineConditionalHooks.js";
+import { abilitiesSuppressed } from "../abilities.js";
 import { noteStoredConditionals } from "../storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { shuffleInPlace } from "../rng.js";
@@ -384,6 +386,8 @@ function trashByCheckpoint(
   const faceup =
     card.side === "runner" || Boolean(card.rezzed) || Boolean(card.faceup);
   const wasInstalled = state.runner.installed.includes(id);
+  const wasInstalledCorp =
+    card.side === "corp" && /^server:[^:]+:(root|ice)$/.test(card.zone);
   unhostCard(state, id);
   removeCardFromCurrentZone(state, id);
   // CR 9.6.10: pending instances from this source end when it leaves play.
@@ -395,7 +399,10 @@ function trashByCheckpoint(
     recomputeRunnerLink(state);
     recomputeRunnerMaxHandSize(state);
   }
-  if (card.onTrash) {
+  // The checkpoint trashes it, not a player (CR 10.3.1), so a Corp "when the Runner
+  // trashes this" trigger is not met (CR 1.14.5a); a Runner card's "when
+  // this is trashed" is.
+  if (card.onTrash && card.side === "runner") {
     noteStoredConditional(state, {
       cardId: id,
       abilityKey: "on-trash",
@@ -406,5 +413,54 @@ function trashByCheckpoint(
       independentOfSource: true,
     });
     state.turn.checkpointTrashNoted = true;
+  }
+  noteOtherCardsTrashTriggers(
+    state,
+    card,
+    wasInstalled && card.type === "program",
+    wasInstalledCorp,
+  );
+}
+
+/**
+ * A card a checkpoint trashes still meets other cards' trash triggers that
+ * do not name who trashes it: Q-Coherence Chip ("When an installed program
+ * is trashed, trash this hardware") and Gravedigger ("Whenever an installed
+ * Corp card is trashed, place 1 virus counter"). They become pending at the
+ * next checkpoint (CR 10.3.1a) and resolve in its reaction window.
+ */
+function noteOtherCardsTrashTriggers(
+  state: GameState,
+  trashed: CardInstance,
+  installedProgram: boolean,
+  installedCorp: boolean,
+): void {
+  if (!installedProgram && !installedCorp) return;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!card) continue;
+    if (installedProgram && card.trashSelfWhenInstalledProgramTrashed) {
+      noteInlineConditional(state, {
+        cardId: id,
+        abilityKey: "on-installed-program-trashed",
+        controller: "runner",
+        mandatory: true,
+        effect: { op: "do", action: { kind: "trash_self" } },
+        logLine: `${card.title} becomes pending — ${trashed.title} was trashed.`,
+      });
+      state.turn.checkpointTrashNoted = true;
+    }
+    if (installedCorp && card.placeVirusCounterWhenInstalledCorpCardTrashed) {
+      noteInlineConditional(state, {
+        cardId: id,
+        abilityKey: `on-installed-corp-card-trashed:${trashed.id}`,
+        controller: "runner",
+        mandatory: true,
+        effect: { op: "do", action: { kind: "add_virus_counter", amount: 1 } },
+        logLine: `${card.title} becomes pending — an installed Corp card was trashed.`,
+      });
+      state.turn.checkpointTrashNoted = true;
+    }
   }
 }

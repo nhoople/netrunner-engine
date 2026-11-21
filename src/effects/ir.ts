@@ -4368,7 +4368,16 @@ export type ChoiceOption = {
 };
 
 export type Effect =
-  | { op: "seq"; effects: Effect[] }
+  | {
+      op: "seq";
+      effects: Effect[];
+      /**
+       * The effects are one printed sentence, so one instruction: no
+       * checkpoint between them (CR 9.11.3, 9.1.2). Without it each effect
+       * is its own instruction.
+       */
+      oneInstruction?: boolean;
+    }
   | { op: "do"; action: Primitive }
   | { op: "if"; cond: Cond; then: Effect; else?: Effect }
   | { op: "prevent"; forbid: "jack_out" }
@@ -7129,6 +7138,12 @@ export function validateEffectTree(
   switch (e.op) {
     case "seq": {
       if (!Array.isArray(e.effects)) return `${path}.effects: not an array`;
+      if (
+        e.oneInstruction !== undefined &&
+        typeof e.oneInstruction !== "boolean"
+      ) {
+        return `${path}.oneInstruction: must be a boolean`;
+      }
       for (let i = 0; i < e.effects.length; i++) {
         const err = validateEffectTree(e.effects[i], `${path}.effects[${i}]`);
         if (err) return err;

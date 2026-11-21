@@ -167,7 +167,7 @@ import {
   finalizePendingSubroutineBreak,
   resolveTyrsHandRezDuringBreakInterrupt,
 } from "./breakSubroutine.js";
-import { spendClick } from "./spendClick.js";
+import { spendActionClicks, spendClick } from "./spendClick.js";
 import { advanceCard, scoreAgendaAction } from "./score.js";
 import {
   applyPatchworkDiscount,
@@ -1040,22 +1040,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
         CR.whenScoredAdditionalRequirement,
       ]);
     }
-    if (agenda.onScoreIfRunnerTaggedPlaceAgendaCounter) {
-      if ((state.runner.tags ?? 0) <= 0) {
-        log(
-          state,
-          `${agenda.title}'s when-scored ability cannot resolve; Runner is not tagged (CR ${CR.whenScoredAdditionalRequirement.number}).`,
-        );
-      } else {
-        agenda.agendaCounters = (agenda.agendaCounters ?? 0) + 1;
-        log(
-          state,
-          `${agenda.title}'s when-scored ability resolves; place 1 agenda counter → ${agenda.agendaCounters} (CR ${CR.whenScoredAdditionalRequirement.number}).`,
-        );
-      }
-    } else if (agenda.onScore) {
-      fireOnScore(state, agendaId);
-    }
+    // The whole when-scored ability, its requirements checked as it
+    // resolves (CR 9.6.14d; state/whenScored.ts).
+    fireOnScore(state, agendaId);
   } else {
     const r = evalEffect(
       {
@@ -2109,6 +2096,9 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!paid.ok) return paid;
       if (next.pendingDamage) return ok(next);
       resumePendingEffectContinuation(next);
+      // The damage was one pending instance's instruction; the rest of its
+      // reaction window resolves next (CR 9.2.8a, 9.2.8d).
+      if (!next.pendingChoice) resumePendingStoredConditionals(next);
       if (
         next.run?.accessingCardId &&
         (next.timingKey === "access.cardAccessed" ||
@@ -2144,6 +2134,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
     }
     if (next.pendingDamage) return ok(next);
     resumePendingEffectContinuation(next);
+    if (!next.pendingChoice) resumePendingStoredConditionals(next);
     // Resume nested access-a-card walk after onAccess damage interrupt.
     if (
       next.run?.accessingCardId &&
@@ -2241,7 +2232,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           gate.cites,
         );
       }
-      const bad = spendClick(next);
+      const bad = spendActionClicks(next, "basic_gain_credit");
       if (bad) return bad;
       const cite =
         next.activeSide === "corp" ? CR.corpBasicCredit : CR.runnerBasicCredit;
@@ -2306,10 +2297,8 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           CR.spendClicks,
         ]);
       }
-      for (let i = 0; i < 3; i++) {
-        const bad = spendClick(next);
-        if (bad) return bad;
-      }
+      const bad = spendActionClicks(next, "basic_purge", 3);
+      if (bad) return bad;
       purgeVirusCounters(next, next.corp.identityId);
       log(
         next,
@@ -2374,7 +2363,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           gate.cites,
         );
       }
-      const bad = spendClick(next);
+      const bad = spendActionClicks(next, "basic_draw");
       if (bad) return bad;
       if (next.activeSide === "runner" && next.turn.ccRunnerCannotDraw) {
         return fail("Runner cannot draw (Lockdown).", [CR.drawing]);
@@ -2479,7 +2468,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           [CR.runnerBasicInstall],
         );
       }
-      const bad = spendClick(next);
+      const bad = spendActionClicks(next, "basic_install");
       if (bad) return bad;
       if (next.activeSide === "runner" && action.trashGripForDiscountCardId) {
         const pw = applyPatchworkDiscount(
@@ -2624,8 +2613,11 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           CR.corpBasicTrashResource,
         ]);
       }
-      next.corp.credits -= pay;
-      const bad = spendClick(next);
+      let bad: ApplyResult | null = null;
+      withCostCheckpoint(next, "basic_trash_resource", () => {
+        next.corp.credits -= pay;
+        bad = spendClick(next);
+      });
       if (bad) return bad;
       trashCard(next, action.cardId);
       log(
@@ -2714,24 +2706,30 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           [CR.abilitiesDuringRun, CR.runnerBasicRun],
         );
       }
-      const bad = spendClick(next);
+      // The click and any additional costs are paid together, then the
+      // cost checkpoint, before the run begins (CR 1.16.10b, 10.3.4).
+      let bad: ApplyResult | null = null;
+      withCostCheckpoint(next, "basic_run", () => {
+        bad = spendClick(next);
+        if (bad) return;
+        if (elpClick) {
+          bad = spendClick(next);
+          if (bad) return;
+          log(
+            next,
+            `Enhanced Login Protocol — spend 1 click to initiate the run (CR ${CR.abilitiesDuringRun.number}).`,
+          );
+        }
+        if (extra > 0) {
+          subtractRunnerCreditPool(next, extra);
+          next.turn.payingFirstRunAdditionalCost = false;
+          log(
+            next,
+            `Runner pays ${extra}¢ additional cost for first run this turn.`,
+          );
+        }
+      });
       if (bad) return bad;
-      if (elpClick) {
-        const extraClick = spendClick(next);
-        if (extraClick) return extraClick;
-        log(
-          next,
-          `Enhanced Login Protocol — spend 1 click to initiate the run (CR ${CR.abilitiesDuringRun.number}).`,
-        );
-      }
-      if (extra > 0) {
-        subtractRunnerCreditPool(next, extra);
-        next.turn.payingFirstRunAdditionalCost = false;
-        log(
-          next,
-          `Runner pays ${extra}¢ additional cost for first run this turn.`,
-        );
-      }
       const walked = startRun(next, action.serverId);
       if (!walked.ok) {
         next.run = null;

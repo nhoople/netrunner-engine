@@ -2,6 +2,7 @@
  * Card lifecycle conditionals (install / rez / play / access / forfeit /
  * break-subroutine) marked onto the pending bag (CR 9.6.2).
  */
+import { whenScoredEffect } from "./whenScored.js";
 import { playEffectFromCard } from "../effects/abilityRecord.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import type { GameState } from "./types.js";
@@ -222,7 +223,7 @@ export function fireOnEncounterEnd(state: GameState, cardId: string): boolean {
 /** Fire a card's onScore when present. */
 export function fireOnScore(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
-  if (!card?.onScore) return false;
+  if (!card || !whenScoredEffect(card)) return false;
   return fireCardConditional(
     state,
     cardId,

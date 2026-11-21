@@ -8,7 +8,7 @@ import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
-  spendCreditsForInstall,
+  payInstallCost,
 } from "../state/costs.js";
 import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
 import { iceInstallCapRefuses } from "../state/staticFlags.js";
@@ -62,7 +62,7 @@ export function applyCorpInstallPrimitive(
         log(state, `Install from HQ — cannot afford ${cost}¢.`);
         return { ok: true };
       }
-      spendCreditsForInstall(state, "corp", cost);
+      payInstallCost(state, "corp", cost);
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
       const remoteNum = state.nextRemoteNumber++;
       const sid = `remote-${remoteNum}` as ServerId;

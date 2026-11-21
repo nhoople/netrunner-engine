@@ -36,6 +36,9 @@ export function createPendingAbilityInstance(
     status: "pending",
     independentOfSource: Boolean(args.independentOfSource),
     windowId: null,
+    ...(activeInPlay(state, args.sourceId) === true
+      ? { sourceActiveInPlay: true }
+      : {}),
     ...(args.payload ? { payload: args.payload } : {}),
   };
   state.pendingAbilities.push(instance);
@@ -135,9 +138,53 @@ export function pendingAbilitySourceStillActive(
       return false;
     }
   }
+  if (sourceTurnedInactive(state, inst)) return false;
   // Blanked sources are inactive (CR 9.12.1d / 9.6.10).
   if (abilitiesSuppressed(state, inst.sourceId)) return false;
   return true;
+}
+
+/**
+ * Whether `cardId` is an installed card whose activity depends on its face:
+ * an asset, upgrade or ice in a server (active while rezzed), or an
+ * installed Runner card (active while faceup) (CR 1.8.3a, 8.1.4a). Returns
+ * null for any other card.
+ */
+function activeInPlay(state: GameState, cardId: string): boolean | null {
+  const card = state.cards[cardId];
+  if (!card) return null;
+  if (
+    /^server:[^:]+:(root|ice)$/.test(card.zone ?? "") &&
+    (card.type === "asset" || card.type === "upgrade" || card.type === "ice")
+  ) {
+    return Boolean(card.rezzed);
+  }
+  if (
+    card.side === "runner" &&
+    card.type !== "identity" &&
+    state.runner.installed.includes(cardId)
+  ) {
+    return card.faceup !== false;
+  }
+  return null;
+}
+
+/**
+ * The instance's source was active in play when it became pending and is no
+ * longer: a derezzed or facedown card is inactive (CR 1.8.3a, 8.1.4a).
+ * Pending instances of an ability that becomes inactive lose pending status
+ * and do not resolve (CR 9.6.10). An ability that became pending while its
+ * card was already inactive, such as one met on access (CR 9.1.8a), is not
+ * affected.
+ */
+export function sourceTurnedInactive(
+  state: GameState,
+  inst: PendingAbilityInstance,
+): boolean {
+  return (
+    inst.sourceActiveInPlay === true &&
+    activeInPlay(state, inst.sourceId) === false
+  );
 }
 
 /**

@@ -2,6 +2,7 @@
  * Advancing a card and scoring an agenda.
  * Stealing during a run stays with access resolution.
  */
+import { whenScoredEffect } from "../state/whenScored.js";
 import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { evalEffect } from "../effects/eval.js";
@@ -11,14 +12,10 @@ import {
 } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damage.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
-import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
 import { onCardAdvanced } from "../state/cardDeclarations.js";
 import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import { noteStoredConditional } from "../state/storedConditionalHooks.js";
-import {
-  fireFirstAdvancementOnServer,
-  fireWouldTakeBadPublicity,
-} from "../state/storedTriggers.js";
+import { fireFirstAdvancementOnServer } from "../state/storedTriggers.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import {
@@ -586,17 +583,6 @@ export function scoreAgendaAction(
       }
     }
   }
-  if ((card.badPublicityOnScore ?? 0) > 0) {
-    const bpGain = card.badPublicityOnScore ?? 0;
-    state.turn.pendingBadPublicityTake = bpGain;
-    if (fireWouldTakeBadPublicity(state)) return ok(state);
-    state.corp.badPublicity = (state.corp.badPublicity ?? 0) + bpGain;
-    log(
-      state,
-      `${card.title} — take ${bpGain} bad publicity → ${state.corp.badPublicity}.`,
-    );
-    fireFirstBadPublicityTake(state, bpGain);
-  }
   if ((card.handSizeBonus ?? 0) !== 0) {
     state.corp.maxHandSize += card.handSizeBonus!;
   }
@@ -608,14 +594,29 @@ export function scoreAgendaAction(
   );
   if (!sideFx.ok) return sideFx;
   if (state.pendingChoice) return sideFx;
-  if (card.onScore) {
-    if (card.onScoreIfRunnerTaggedPlaceAgendaCounter && state.runner.tags > 0) {
-      card.agendaCounters = (card.agendaCounters ?? 0) + 1;
-      log(
-        state,
-        `${card.title} — Runner tagged; place agenda counter → ${card.agendaCounters}.`,
-      );
-    }
+  // The when-scored ability, including Hostile Takeover's bad publicity and
+  // Market Research's counter (CR 9.6.14c).
+  // Market Research's tag requirement is part of its trigger condition, so
+  // it is checked now, as the agenda is scored (CR 9.6.5c).
+  const taggedRequirement = Boolean(
+    card.onScoreIfRunnerTaggedPlaceAgendaCounter,
+  );
+  const whenScored = whenScoredEffect(
+    card,
+    taggedRequirement ? state.runner.tags > 0 : undefined,
+  );
+  if (whenScored && taggedRequirement) {
+    noteInlineConditional(state, {
+      cardId,
+      abilityKey: "on-score",
+      controller: "corp",
+      mandatory: true,
+      effect: whenScored,
+      logLine: `${card.title} becomes pending — scored.`,
+    });
+    checkpointAfterInstruction(state, "scoreAgenda.onScore");
+    if (state.pendingChoice || state.pendingSabotage) return ok(state);
+  } else if (whenScored) {
     noteStoredConditional(state, {
       cardId,
       abilityKey: "on-score",

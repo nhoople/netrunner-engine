@@ -1187,7 +1187,7 @@
   ],
   "failures": [],
   "final": {
-    "stateHash": "6340cfe52e2e724454e3539f52d6d76f90434b5e4f702368a4e28315f35db4e2",
+    "stateHash": "481c1d1321e31aeecbcc27cc4793bc85f714052751c1685e4c0a2d996f6299fa",
     "timingKey": "runner.takeAction",
     "turnNumber": 2,
     "activeSide": "runner",

@@ -1,4 +1,5 @@
 /** Fear and Loathing / Double Time Spin pack primitives. */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { log } from "../../state/createGame.js";
 import { startPsiGame } from "../../state/psi.js";
 import { startTrace } from "../../state/trace.js";
@@ -186,6 +187,7 @@ export function applySpinFalDtPrimitive(
       return { ok: true };
     }
     case "breach_instead_singularity_trash_root": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run) {
         log(state, `Singularity — no active run.`);
         return { ok: true };

@@ -1,4 +1,5 @@
 /** All That Remains (atr) Lunar pack primitives. */
+import { whenScoredEffect } from "../../state/whenScored.js";
 import { CR } from "../../timing/labels.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
@@ -53,7 +54,7 @@ export function applyLunarAtrPrimitive(
         const c = state.cards[id];
         if (!c || c.type !== "agenda") return false;
         if (c.defId === "bifrost-array") return false;
-        return Boolean(c.onScore);
+        return Boolean(whenScoredEffect(c));
       });
       if (candidates.length === 0) {
         log(state, `Bifrost Array — no other scored agenda with when-scored.`);
@@ -89,7 +90,8 @@ export function applyLunarAtrPrimitive(
     case "score_bifrost_fire_scored_agenda_on": {
       const cardId = (action as { cardId: string }).cardId;
       const card = state.cards[cardId];
-      if (!card?.onScore || !state.corp.scoreArea.includes(cardId)) {
+      const whenScored = card ? whenScoredEffect(card) : undefined;
+      if (!card || !whenScored || !state.corp.scoreArea.includes(cardId)) {
         log(state, `Bifrost Array — target agenda not available.`);
         return { ok: true };
       }
@@ -103,7 +105,7 @@ export function applyLunarAtrPrimitive(
           {
             id: "bifrost-resolve",
             label: `Resolve ${card.title} when-scored`,
-            effect: structuredClone(card.onScore),
+            effect: structuredClone(whenScored),
           },
         ],
       });

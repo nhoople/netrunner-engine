@@ -1,4 +1,5 @@
 /** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
+import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import {
   markSubroutineBroken,
   subroutineBreakBlock,
@@ -831,6 +832,8 @@ export function applyKitaraDtwnPrimitive(
       } else if (state.pendingDrawSetAside) {
         state.pendingDrawSetAside.cardIds =
           state.pendingDrawSetAside.cardIds.filter((id) => id !== iceId);
+        // It leaves the set-aside zone for the server (CR 4.1.1c).
+        removeCardFromCurrentZone(state, iceId);
       }
       // Outermost, as the text names no other position (CR 6.2.2a).
       addOutermostIce(state, serverId, iceId);

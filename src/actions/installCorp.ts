@@ -11,12 +11,11 @@ import { evalEffect } from "../effects/eval.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
-  spendCreditsForInstall,
+  payInstallCost,
 } from "../state/costs.js";
 import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import { noteStoredConditional } from "../state/storedConditionalHooks.js";
 import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import { cardBecameNewObject } from "../state/turn.js";
 import { firePowerCounterOnAnyCorpInstall } from "../state/powerCounters.js";
 import {
@@ -334,6 +333,8 @@ function installCorpInner(
   }
 
   let server: Server;
+  // The new remote exists once the card moves into it (CR 8.5.16e).
+  let createdRemote = false;
   if (destination.kind === "new_remote") {
     if (!canCreateAnotherRemote(state)) {
       return fail("Cannot create another remote server.", [
@@ -347,7 +348,7 @@ function installCorpInner(
         state,
         `Created ${server.id} by installing ice (CR ${CR.creatingRemotes.number} / ${CR.remoteExistence.number}).`,
       );
-      fireRunnerOnCorpRemoteServerCreated(state);
+      createdRemote = true;
     } else if (
       card.type === "asset" ||
       card.type === "agenda" ||
@@ -364,7 +365,7 @@ function installCorpInner(
         state,
         `Created ${server.id} for ${card.type} (CR ${CR.agendaAssetRemote.number}).`,
       );
-      fireRunnerOnCorpRemoteServerCreated(state);
+      createdRemote = true;
     } else {
       return fail("Upgrade needs an existing server.", [CR.corpInstallDest]);
     }
@@ -486,12 +487,17 @@ function installCorpInner(
       CR.serverRoot,
     ]);
   }
+  // The destination remote does not cease to exist during the install's
+  // checkpoint (CR 8.5.9).
+  if (server.kind === "remote") {
+    state.turn.installDestinationServerId = server.id;
+  }
   if (creditsAvailableForInstall(state, "corp") < installCost) {
     return fail("Insufficient credits for install cost.", [
       { number: "8.5.11", id: "sec_install_cost" },
     ]);
   }
-  spendCreditsForInstall(state, "corp", installCost);
+  payInstallCost(state, "corp", installCost);
   leaveSourceZone();
 
   if (card.type === "ice") {
@@ -566,6 +572,7 @@ function installCorpInner(
       ? `Corp installs a card from ${fromArchives ? "Archives" : fromRd ? "R&D" : fromSetAside ? "a set-aside zone" : "HQ"} on ${server.id}${paid} (CR ${CR.installing.number}).`
       : `Corp installs ${card.title} on ${server.id} (CR ${CR.corpBasicInstall.number}, ${CR.installing.number}).`,
   );
+  if (createdRemote) noteRunnerOnCorpRemoteServerCreated(state);
   if ((fromArchives || fromRd || fromSetAside) && card.onInstallFromNonHq) {
     fireOnInstallFromNonHq(state, cardId);
   }
@@ -627,7 +634,13 @@ function installCorpInner(
   return ok(state);
 }
 
-function fireRunnerOnCorpRemoteServerCreated(state: GameState): void {
+/**
+ * Astrolabe-class "whenever the Corp creates a remote server" abilities meet
+ * their condition at step 8.5.16e, after the install cost is paid. They
+ * become pending at the checkpoint after the install (CR 10.3.1a), since the
+ * install's only checkpoint is the one after its cost (CR 9.11.2a.ex1).
+ */
+function noteRunnerOnCorpRemoteServerCreated(state: GameState): void {
   for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (!c?.onCorpRemoteServerCreated) continue;
@@ -639,9 +652,6 @@ function fireRunnerOnCorpRemoteServerCreated(state: GameState): void {
       mandatory: true,
       logLine: `${c.title} becomes pending — Corp created a remote server.`,
     });
-  }
-  if ((state.turn.storedConditionalPending ?? []).length > 0) {
-    checkpointAfterInstruction(state, "installCorp.remoteCreated");
   }
 }
 

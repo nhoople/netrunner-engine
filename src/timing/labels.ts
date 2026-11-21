@@ -772,6 +772,11 @@ export const CR = {
     number: "9.6.6a",
     id: "rule_instruction_requirements_past_state",
   },
+  /** A static-condition ability true at the start of a checkpoint becomes pending there (CR 9.6.7a). */
+  staticConditionPending: {
+    number: "9.6.7a",
+    id: "rule_conditional_ability_check_to_become_pending",
+  },
   /** A static-condition ability that did nothing stays quiet until the next timing step (CR 9.6.7d). */
   staticConditionNoEffect: {
     number: "9.6.7d",

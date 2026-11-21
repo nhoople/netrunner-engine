@@ -1,4 +1,5 @@
 /** True Colors (tc) Spin pack primitives. */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { log } from "../../state/createGame.js";
 import { drawCards } from "../draw.js";
@@ -20,6 +21,7 @@ export function applySpinTcPrimitive(
   const { state, sourceId } = ctx;
   switch (action.kind) {
     case "may_breach_instead_keyhole": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       // Printed: "If successful, instead of breaching R&D, look at the top
       // 3 cards of R&D." There is no "may": the Runner does not breach.
       if (!state.run || state.run.attackedServerId !== "rd") {

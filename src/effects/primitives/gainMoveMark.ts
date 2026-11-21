@@ -1,4 +1,5 @@
 /** Order and Chaos (oac) deluxe primitives. */
+import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { effectiveCorpMaxHandSize } from "../../state/handSize.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { iceAtRunnerPosition } from "../../state/runPosition.js";
@@ -414,6 +415,7 @@ export function applyOacPrimitive(
     }
 
     case "breach_instead_wanton_destruction": {
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (state.run) state.run.skipBreach = true;
       const clicks = state.runner.clicks;
       const opts: { id: string; label: string; effect: Effect }[] = [

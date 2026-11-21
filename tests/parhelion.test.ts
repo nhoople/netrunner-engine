@@ -372,7 +372,15 @@ describe("parhelion", () => {
       state: ReturnType<typeof createInitialState>,
     ): ReturnType<typeof createInitialState> {
       let s = state;
-      while (s.run && s.timingKey === "breach.awaitAccess") {
+      while (
+        s.run &&
+        (s.timingKey === "breach.awaitAccess" ||
+          s.timingKey === "access.stealAgenda")
+      ) {
+        if (s.timingKey === "access.stealAgenda") {
+          s = must(s, { type: "steal_agenda", cardId: s.run.accessingCardId! });
+          continue;
+        }
         if (s.run.accessCandidates.length === 0) {
           s = must(s, { type: "finish_breach" });
         } else {
@@ -417,11 +425,18 @@ describe("parhelion", () => {
         }
         s.servers.hq.ice = [];
         s.servers.rd.ice = [];
+        // A remote with an agenda in it: an empty one ceases to exist at
+        // the run's cost checkpoint (CR 10.3.1h).
+        s.cards["ht-r1"] = instantiateCard(
+          "hostile-takeover",
+          "ht-r1",
+          "server:remote-1:root",
+        );
         s.servers["remote-1"] = {
           id: "remote-1" as ServerId,
           kind: "remote",
           ice: [],
-          root: [],
+          root: ["ht-r1"],
         };
         s.activeSide = "runner";
         s.timingKey = "runner.takeAction";
@@ -771,6 +786,7 @@ describe("parhelion", () => {
         s.servers.hq.ice = ["ice-1"];
 
         const gripBefore = s.runner.hand.length;
+
         s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
         // Pass approach → encounter → pass encounter (let sub resolve).
         for (let i = 0; i < 16 && s.run; i++) {
@@ -1070,6 +1086,7 @@ describe("parhelion", () => {
         s.activeSide = "runner";
         s.timingKey = "runner.takeAction";
         s.runner.clicks = 4;
+
         s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
         // Approach PAW — no other harmonic → cannot rez
         let guard = 0;
@@ -1130,6 +1147,7 @@ describe("parhelion", () => {
         s.activeSide = "runner";
         s.timingKey = "runner.takeAction";
         s.runner.clicks = 3;
+
         s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
         let guard = 0;
         while (s.timingKey !== "run.approachPaw" && s.run && guard++ < 20) {
@@ -3435,6 +3453,7 @@ describe("parhelion", () => {
         s.activeSide = "runner";
         s.timingKey = "runner.takeAction";
         s.runner.clicks = 4;
+
         s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
         let guard = 0;
         while (s.timingKey !== "run.encounterPaw" && s.run && guard++ < 20) {
@@ -3610,6 +3629,7 @@ describe("parhelion", () => {
         s.activeSide = "runner";
         s.timingKey = "runner.takeAction";
         s.runner.clicks = 4;
+
         s = must(s, { type: "basic_run", serverId: "hq" as ServerId });
         let guard = 0;
         while (s.timingKey !== "run.encounterPaw" && s.run && guard++ < 20) {

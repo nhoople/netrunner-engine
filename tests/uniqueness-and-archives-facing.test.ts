@@ -131,7 +131,7 @@ describe("uniqueness keeps the card that became active most recently (CR 10.3.1d
 });
 
 describe("a card a checkpoint trashes (CR 10.3.1d, 10.3.1g)", () => {
-  it("meets its own 'when trashed' ability at the next checkpoint (CR 10.3.1a)", () => {
+  it("does not meet Calvin B4L3Y's 'when the Runner trashes this asset' ability, since no player trashed it (CR 1.14.5a, 10.3.1d)", () => {
     const s = createInitialState();
     remoteWith(s, "remote-1", "calvin-b4l3y", "calvin-old", true);
     remoteWith(s, "remote-2", "calvin-b4l3y", "calvin-new", false);
@@ -141,27 +141,44 @@ describe("a card a checkpoint trashes (CR 10.3.1d, 10.3.1g)", () => {
     checkpointAfterInstruction(s, "test.second");
 
     expect(s.cards["calvin-old"].zone).toBe("corp:archives");
-    // Printed: "When this asset is trashed, you may draw 2 cards."
-    expect(s.pendingChoice?.sourceId).toBe("calvin-old");
-    expect(s.pendingChoice?.chooser).toBe("corp");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
-      "draw",
-      "decline",
-    ]);
+    // Printed: "When the Runner trashes this asset, you may draw 2 cards."
+    // The uniqueness rule trashed it, not the Runner.
+    expect(s.pendingChoice).toBeNull();
+    expect(s.log.some((l) => l.includes("Calvin B4L3Y becomes pending"))).toBe(
+      false,
+    );
+  });
+
+  it("meets Rolodex's own 'when Rolodex is trashed' ability at the next checkpoint (CR 10.3.1a, 10.3.1d)", () => {
+    const s = createInitialState();
+    for (const card of Object.values(s.cards)) {
+      if (card.side === "runner") card.rezzed = false;
+    }
+    installRunner(s, "rolodex", "rdx-old");
+    checkpointAfterInstruction(s, "test.first");
+    installRunner(s, "rolodex", "rdx-new");
+    // Two copies made unique for the test, so the older one is trashed.
+    s.cards["rdx-old"].unique = true;
+    s.cards["rdx-new"].unique = true;
+    const stack = s.runner.deck.length;
+    checkpointAfterInstruction(s, "test.second");
+
+    expect(s.cards["rdx-old"].zone).toBe("runner:heap");
     const lines = s.log;
     const trashed = lines.findIndex((l) =>
-      l.includes("Calvin B4L3Y trashed for uniqueness"),
-    );
-    const pending = lines.findIndex((l) =>
-      l.includes("Calvin B4L3Y becomes pending — trashed."),
+      l.includes("Rolodex trashed for uniqueness"),
     );
     const nextCheckpoint = lines.findIndex(
       (l, i) => i > trashed && l.includes("After a checkpoint trashed a card"),
     );
-    // Marked pending in the checkpoint after the one that trashed it.
+    const pending = lines.findIndex((l) =>
+      l.includes("Rolodex becomes pending — trashed."),
+    );
     expect(trashed).toBeGreaterThan(-1);
     expect(nextCheckpoint).toBeGreaterThan(trashed);
     expect(pending).toBeGreaterThan(nextCheckpoint);
+    // "Trash the top 3 cards of your stack."
+    expect(s.runner.deck.length).toBe(Math.max(0, stack - 3));
   });
 
   it("runs no extra checkpoint when the trashed card has no such ability", () => {

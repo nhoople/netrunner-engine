@@ -138,7 +138,6 @@ import {
 } from "../state/pendingAbilities.js";
 import { resolvePendingInWindowOrder } from "../state/storedTriggers.js";
 import { expireLingeringEffects } from "../state/lingeringEffects.js";
-import { applyMumbadDagPrimitive } from "../effects/primitives/hostResolveLook.js";
 import {
   offerRamanRaiSwapWhileSetAside,
   ramanRaiCanOfferSwap,
@@ -149,6 +148,7 @@ import {
   runnerAbilityCarrierIds,
 } from "../state/fenris.js";
 import { trashCard } from "../state/procedures/trash.js";
+import { markStaticHostTrashConditions } from "../effects/corpTrash.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { nextId } from "../state/ids.js";
 
@@ -246,7 +246,8 @@ function finishCheckpointAfterRestrictions(
       !state.pendingChoice &&
       !state.trace &&
       !state.psi &&
-      (state.turn.storedConditionalPending ?? []).length > 0
+      ((state.turn.storedConditionalPending ?? []).length > 0 ||
+        (state.turn.inlineConditionalPending ?? []).length > 0)
     ) {
       occurCheckpoint(
         state,
@@ -365,12 +366,21 @@ function markDrawConditionals(state: GameState, diff: CheckpointDiff): void {
           const asset = state.cards[sourceId];
           if (!asset?.rezzed || !asset.onDrawAgendaMayRevealAndInstall)
             continue;
+          // One instance per drawn agenda, resolved like any other in the
+          // reaction window, so a choice pauses it and the rest resume after
+          // (CR 9.6.4b, 9.2.8a, 9.2.8d).
           createPendingAbilityInstance(state, {
             abilityKey: "political-dealings:may-install-drawn-agenda",
             sourceId,
             controller: "corp",
             mandatory: false,
-            payload: { kind: "may_install_drawn_agenda", cardId },
+            payload: {
+              kind: "inline_conditional",
+              effect: {
+                op: "do",
+                action: { kind: "may_install_drawn_agenda", cardId },
+              },
+            },
           });
         }
       }
@@ -382,16 +392,41 @@ function markDrawConditionals(state: GameState, diff: CheckpointDiff): void {
           const discount =
             up?.onDrawIceMayRevealAndInstallProtectingThisServerPayingLess;
           if (!up?.rezzed || typeof discount !== "number") continue;
+          const drawnTitle = state.cards[cardId]?.title ?? "ice";
           createPendingAbilityInstance(state, {
             abilityKey: "jinja-city-grid:may-install-drawn-ice",
             sourceId,
             controller: "corp",
             mandatory: false,
             payload: {
-              kind: "may_install_drawn_ice",
-              cardId,
-              serverId: serverId as ServerId,
-              discount,
+              kind: "inline_conditional",
+              effect: {
+                op: "choose",
+                chooser: "corp",
+                options: [
+                  {
+                    id: "accept",
+                    label: `Reveal and install ${drawnTitle} protecting ${serverId} (−${discount}¢)`,
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "install_jinja_drawn_ice",
+                        cardId,
+                        serverId: serverId as ServerId,
+                        discount,
+                      },
+                    },
+                  },
+                  {
+                    id: "decline",
+                    label: "Decline",
+                    effect: {
+                      op: "do",
+                      action: { kind: "gain_credits", side: "corp", amount: 0 },
+                    },
+                  },
+                ],
+              },
             },
           });
         }
@@ -3422,6 +3457,7 @@ function markConditionalAbilities(state: GameState): void {
   markCorpTurnBegin(state, diff);
   markRunnerTurnBegin(state, diff);
   markFirstUnsuccessfulRun(state, diff);
+  markStaticHostTrashConditions(state);
   const newlyMarked = pendingAbilitiesWithStatus(state, "pending")
     .filter((p) => !before.has(p.id))
     .map((p) => p.id);
@@ -3540,73 +3576,6 @@ function closeCheckpointReactionWindow(
       if (resolvePendingInWindowOrder(state, orderedIds)) {
         break;
       }
-      continue;
-    }
-    // Optional draw installs open a choice; leave the instance pending until
-    // that choice resolves (and stop offering further draw options).
-    if (
-      inst.payload?.kind === "may_install_drawn_agenda" ||
-      inst.payload?.kind === "may_install_drawn_ice"
-    ) {
-      if (state.pendingChoice) {
-        completePendingAbility(state, inst.id, "cancelled");
-        continue;
-      }
-      markPendingAbilityResolving(state, inst.id);
-      if (inst.payload.kind === "may_install_drawn_agenda") {
-        const r = applyMumbadDagPrimitive(
-          { state, sourceId: inst.sourceId },
-          {
-            kind: "may_install_drawn_agenda",
-            cardId: inst.payload.cardId,
-          },
-        );
-        if (r && !r.ok) {
-          state.log.push(`Political Dealings failed: ${r.error}`);
-          completePendingAbility(state, inst.id, "done");
-          continue;
-        }
-      } else {
-        const drawn = state.cards[inst.payload.cardId];
-        const up = state.cards[inst.sourceId];
-        openPendingChoose(state, {
-          sourceId: inst.sourceId,
-          chooser: "corp",
-          options: [
-            {
-              id: "accept",
-              label: `Reveal and install ${drawn?.title ?? "ice"} protecting ${inst.payload.serverId} (−${inst.payload.discount}¢)`,
-              effect: {
-                op: "do" as const,
-                action: {
-                  kind: "install_jinja_drawn_ice" as const,
-                  cardId: inst.payload.cardId,
-                  serverId: inst.payload.serverId,
-                  discount: inst.payload.discount,
-                },
-              },
-            },
-            {
-              id: "decline",
-              label: "Decline",
-              effect: {
-                op: "do" as const,
-                action: {
-                  kind: "gain_credits" as const,
-                  side: "corp" as const,
-                  amount: 0,
-                },
-              },
-            },
-          ],
-        });
-        state.log.push(
-          `${up?.title ?? "Jinja City Grid"} — may reveal/install drawn ice ${drawn?.title ?? inst.payload.cardId}.`,
-        );
-      }
-      // Choice is the ability's instruction continuation; the pending
-      // instance has been triggered (CR 9.6.12) and is done for the bag.
-      completePendingAbility(state, inst.id, "done");
       continue;
     }
     if (inst.payload?.kind === "may_raman_swap") {
@@ -4399,7 +4368,12 @@ function activeCardsInOrder(state: GameState): CardInstance[] {
   add(state.runner.identityId);
   for (const id of state.corp.scoreArea) add(id);
   for (const id of state.runner.scoreArea) add(id);
-  for (const id of state.runner.installed) add(id);
+  // A facedown installed Runner card has no name or subtypes and is not
+  // active (CR 8.1.4a), so it is neither a unique copy nor a console.
+  for (const id of state.runner.installed) {
+    if (state.cards[id]?.faceup === false) continue;
+    add(id);
+  }
   const servers = Object.values(state.servers).sort((a, b) =>
     a.id.localeCompare(b.id),
   );
