@@ -327,6 +327,8 @@ export function applyKitaraTdatdPrimitive(
     }
 
     case "choose_malia_resource": {
+      // A new rez makes a new choice; an earlier one is forgotten.
+      if (source) delete source.tdatdMaliaBlankTargetId;
       const targets = installedNonVirtualResourceIds(state);
       if (targets.length === 0) {
         log(state, `Malia Z0L0K4 — no installed non-virtual resource.`);

@@ -294,7 +294,9 @@ export function applyLunarUpPrimitive(
       const delta = (action as { delta: number }).delta;
       addLingeringEffect(state, {
         createdBy: sourceId,
-        duration: { kind: "turn", side: "runner" },
+        // "until the end of the turn": the turn in progress, whoever's it is
+        // (Bad Times is played on the Corp's turn; CR 1.2.1, 9.10.1).
+        duration: { kind: "turn" },
         kind: LINGERING_KIND_RUNNER_MU,
         payload: { delta },
       });

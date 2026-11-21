@@ -33,6 +33,7 @@ import { log } from "../createGame.js";
 import { CR } from "../../timing/labels.js";
 import type { CardInstance, GameState, ServerId } from "../types.js";
 import { removeCardFromCurrentZone } from "../scoring.js";
+import { endEffectsOnPreviousObject } from "../turn.js";
 import { cancelPendingIfSourceInactive } from "../pendingAbilities.js";
 import { fireOnUninstall, recomputeRunnerLink } from "../trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../handSize.js";
@@ -92,6 +93,7 @@ export function uninstallCard(
   // Leave the zone first: hosted ice is still installed while the run
   // notes that it left (CR 6.2.7c, 8.5.10). Then end its own host link.
   removeCardFromCurrentZone(state, cardId);
+  endEffectsOnPreviousObject(state, cardId);
   unhostCard(state, cardId);
   // CR 9.6.10: pending instances from this source end when it leaves play.
   cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
@@ -123,6 +125,7 @@ export function removeCardFromGame(state: GameState, cardId: string): void {
   if (!card) return;
   if (uninstallCard(state, cardId, "removed-from-game")) return;
   removeCardFromCurrentZone(state, cardId);
+  endEffectsOnPreviousObject(state, cardId);
   unhostCard(state, cardId);
   card.rezzed = false;
   place(state, card, "removed-from-game", card.side);

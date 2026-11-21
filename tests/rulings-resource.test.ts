@@ -219,10 +219,9 @@ describe("District 99", () => {
 // ---------------------------------------------------------------------------
 
 describe("DJ Fenris", () => {
-  // Filed under area 11: a facedown installed Runner card keeps its paid
-  // abilities (Fenris's gained Quetzal break here; Corroder and No Free
-  // Lunch the same), though its abilities are not active (CR 8.1.4a).
-  it.skip("DJ Fenris: turned facedown by Apocalypse it keeps the hosted identity, which has no effect until Fenris is faceup again (ruling 1; filed, area 11, CR 8.1.4a: facedown Fenris still offers the hosted identity's paid ability)", () => {
+  // A facedown installed Runner card's abilities are not active (CR 8.1.4a),
+  // so Fenris offers no Quetzal break. Fixed in RF-2 (`active.ts`).
+  it("DJ Fenris: turned facedown by Apocalypse it keeps the hosted identity, which has no effect until Fenris is faceup again (ruling 1; CR 8.1.4a)", () => {
     let s = runnerTurn(fresh(), 10);
     clearCorpHand(s);
     clearRd(s);

@@ -34,6 +34,7 @@ import { log } from "../createGame.js";
 import { CR } from "../../timing/labels.js";
 import type { CardInstance, GameState, RuleCite } from "../types.js";
 import { removeCardFromCurrentZone } from "../scoring.js";
+import { endEffectsOnPreviousObject } from "../turn.js";
 import { cancelPendingIfSourceInactive } from "../pendingAbilities.js";
 import { maybeOpenTrashPrevent } from "../trashPrevent.js";
 import { onInstalledProgramTrashed } from "../staticFlags.js";
@@ -153,6 +154,7 @@ export function discardCard(state: GameState, cardId: string): void {
     card.side === "runner" ? true : visibleToRunnerBeforeMove(state, card);
   unhostCard(state, cardId);
   removeCardFromCurrentZone(state, cardId);
+  endEffectsOnPreviousObject(state, cardId);
   placeInDiscardPile(state, card, faceup);
 }
 
@@ -205,6 +207,7 @@ function trashRunnerCard(
   if (wasInstalled) noteRunnerInstalledCardTrashing(state, card, by);
   unhostCard(state, cardId);
   removeCardFromCurrentZone(state, cardId);
+  endEffectsOnPreviousObject(state, cardId);
   // CR 9.6.10: still-pending instances for this source die when it leaves
   // play (including turn-begin leftovers on the bag; CR 9.6.5d). Scoped to
   // cardId so other cards' pendings (and later on-trash triggers for this
@@ -315,6 +318,7 @@ function trashCorpCard(
   if (card.mayShuffleIntoRdWhenTrashed && card.rezzed) {
     unhostCard(state, cardId);
     removeCardFromCurrentZone(state, cardId);
+    endEffectsOnPreviousObject(state, cardId);
     // CR 9.6.10: still-pending instances for this source die when it leaves play.
     cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
     state.corp.deck.push(cardId);
@@ -360,6 +364,7 @@ function trashCorpCard(
   }
   unhostCard(state, cardId);
   removeCardFromCurrentZone(state, cardId);
+  endEffectsOnPreviousObject(state, cardId);
   // CR 9.6.10: still-pending instances for this source die when it leaves
   // play. Scoped to cardId so later on-trash triggers for this card remain.
   cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== cardId);
@@ -390,6 +395,7 @@ function trashByCheckpoint(
     card.side === "corp" && /^server:[^:]+:(root|ice)$/.test(card.zone);
   unhostCard(state, id);
   removeCardFromCurrentZone(state, id);
+  endEffectsOnPreviousObject(state, id);
   // CR 9.6.10: pending instances from this source end when it leaves play.
   cancelPendingIfSourceInactive(state, (inst) => inst.sourceId !== id);
   placeInDiscardPile(state, card, faceup);

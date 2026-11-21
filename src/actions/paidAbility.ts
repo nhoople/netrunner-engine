@@ -7,6 +7,7 @@ import { log } from "../state/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
 import { drawCards } from "../effects/draw.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { facedownInstalledRunnerCard } from "../state/active.js";
 import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,
@@ -399,6 +400,13 @@ export function usePaidAbility(
     )
   ) {
     return fail("An unrezzed card's abilities are not active.", [
+      CR.abilityActive,
+      CR.paidAbility,
+    ]);
+  }
+  // A facedown installed Runner card is inactive too (CR 8.1.4a).
+  if (facedownInstalledRunnerCard(state, cardId)) {
+    return fail("A facedown card's abilities are not active.", [
       CR.abilityActive,
       CR.paidAbility,
     ]);

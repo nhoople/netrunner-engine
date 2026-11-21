@@ -152,6 +152,9 @@ export function applyChooseKinds(
     }
 
     case "choose_rezzed_bioroid_forbid_runner_break": {
+      // A new rez makes a new choice; the earlier choice is forgotten
+      // (Trieste Model Bioroids ruling 2).
+      delete source.triesteChosenIceId;
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
@@ -166,7 +169,7 @@ export function applyChooseKinds(
       }
       if (targets.length === 1) {
         const id = targets[0]!;
-        state.cards[id].cannotBreakWithRunnerCardAbilities = true;
+        source.triesteChosenIceId = id;
         log(
           state,
           `${source.title} — choose ${state.cards[id].title}; Runner card abilities cannot break its subs.`,

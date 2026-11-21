@@ -3,7 +3,10 @@
  * Graph applies the lists; collectors own the continuous math.
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { resolveIceSubtypes } from "./continuousEffects.js";
+import {
+  iceCannotGainAbilities,
+  resolveIceSubtypes,
+} from "./continuousEffects.js";
 import type { Effect } from "../effects/ir.js";
 import type {
   ContinuousGainedSubDecl,
@@ -88,6 +91,8 @@ export function collectFatumaGainedSubs(
     (s) => s.toLowerCase() === "bioroid",
   );
   if (!bioroid) return [];
+  // Hush: the host ice cannot gain abilities (CR 1.2.1).
+  if (iceCannotGainAbilities(state, iceId)) return [];
   const out: ContinuousGainedSub[] = [];
   for (const card of Object.values(state.cards)) {
     if (!card.rezzed) continue;
@@ -115,6 +120,8 @@ export function collectHostedConditionSubsBeforePrinted(
 ): ContinuousGainedSub[] {
   const ice = state.cards[iceId];
   if (!ice) return [];
+  // Hush: the host ice cannot gain abilities (CR 1.2.1).
+  if (iceCannotGainAbilities(state, iceId)) return [];
   const out: ContinuousGainedSub[] = [];
   for (const hid of ice.hostedCardIds ?? []) {
     if (abilitiesSuppressed(state, hid)) continue;
@@ -144,6 +151,8 @@ export function collectSubBoostEtrSubs(
 ): ContinuousGainedSub[] {
   const ice = state.cards[iceId];
   if (!ice) return [];
+  // Hush: the host ice cannot gain abilities (CR 1.2.1).
+  if (iceCannotGainAbilities(state, iceId)) return [];
   const out: ContinuousGainedSub[] = [];
   for (const hid of ice.hostedCardIds ?? []) {
     if (abilitiesSuppressed(state, hid)) continue;

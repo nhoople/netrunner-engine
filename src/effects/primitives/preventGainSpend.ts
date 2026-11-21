@@ -1,3 +1,4 @@
+import { iceStrengthCannotBeLowered } from "../../cards/stubs.js";
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
 import { lookAtCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
@@ -576,7 +577,7 @@ export function applyFlashpointQuPrimitive(
         return { ok: true };
       }
       const ice = state.cards[iceId]!;
-      if (ice.strengthCannotBeLowered) {
+      if (iceStrengthCannotBeLowered(state, iceId)) {
         log(state, `Şifr — ${ice.title} strength cannot be lowered.`);
         return { ok: true };
       }

@@ -21,7 +21,6 @@ import {
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
   LINGERING_KIND_ICE_STRENGTH,
-  LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
   lingeringBreakerStrengthOfKind,
   lingeringEffectsOfKind,
   lingeringIceStrengthOfKind,
@@ -8505,7 +8504,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(after.state.servers["hq"]!.ice).toEqual([]);
   });
 
-  it("Null: trashing a grip card lowers the encountered ice's strength by 2", () => {
+  it("Null: trashing a grip card lowers the encountered ice's strength by 2 for the remainder of the run (CR 1.2.1, 9.10.1)", () => {
     const s = createInitialState();
     put(s, "null-whistleblower", "null-1", "runner:identity");
     put(s, "sure-gamble", "grip-1", "runner:hand");
@@ -8526,12 +8525,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.runner.hand).toEqual([]);
     expect(s.runner.discardPile).toContain("grip-1");
     expect(
-      lingeringIceStrengthOfKind(
-        s,
-        "iw-1",
-        LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
-      ),
+      lingeringIceStrengthOfKind(s, "iw-1", LINGERING_KIND_ICE_STRENGTH),
     ).toBe(-2);
+    expect(s.lingeringEffects.map((e) => e.duration)).toEqual([
+      { kind: "run" },
+    ]);
   });
 
   it("Cold Read: trashes 1 program used this run and cannot be prevented", () => {

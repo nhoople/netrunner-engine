@@ -383,6 +383,20 @@ export function rootRezCostReduction(
   return n;
 }
 
+/**
+ * Lotus Field-class "the strength of this ice cannot be lowered", read only
+ * while the ice's abilities are not blanked (CR 9.12.1d, 1.2.1).
+ */
+export function iceStrengthCannotBeLowered(
+  state: GameState,
+  iceId: string,
+): boolean {
+  const card = state.cards[iceId];
+  return (
+    Boolean(card?.strengthCannotBeLowered) && !abilitiesSuppressed(state, iceId)
+  );
+}
+
 /** Printed ice strength + encounter fortify boosts (CR 3.4.4). */
 export function effectiveIceStrength(state: GameState, iceId: string): number {
   const card = state.cards[iceId];
@@ -492,7 +506,13 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   if (selfOk && typeof card.strengthPerVirusCounter === "number") {
     base += (card.virusCounters ?? 0) * card.strengthPerVirusCounter;
   }
-  // Monkeywrench-class trojans: host / other-ice strength modifiers.
+  // Monkeywrench-class trojans: host / other-ice strength modifiers. A
+  // negative modifier lowers the ice, so it is a decrease (CR 9.12.1a).
+  let hostLower = 0;
+  const hostModify = (n: number) => {
+    if (n < 0) hostLower += -n;
+    else base += n;
+  };
   {
     let serverIce: string[] | null = null;
     for (const server of Object.values(state.servers)) {
@@ -506,15 +526,17 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       if (!trojan?.hostId || abilitiesSuppressed(state, id)) continue;
       if (trojan.hostId === iceId) {
         if (trojan.hostStrengthModifier) {
-          base += trojan.hostStrengthModifier;
+          hostModify(trojan.hostStrengthModifier);
         }
         if (typeof trojan.hostStrengthPerVirusCounter === "number") {
-          base +=
-            (trojan.virusCounters ?? 0) * trojan.hostStrengthPerVirusCounter;
+          hostModify(
+            (trojan.virusCounters ?? 0) * trojan.hostStrengthPerVirusCounter,
+          );
         }
         if (typeof trojan.hostStrengthPerPowerCounter === "number") {
-          base +=
-            (trojan.powerCounters ?? 0) * trojan.hostStrengthPerPowerCounter;
+          hostModify(
+            (trojan.powerCounters ?? 0) * trojan.hostStrengthPerPowerCounter,
+          );
         }
       } else if (
         serverIce &&
@@ -522,7 +544,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
         serverIce.includes(trojan.hostId) &&
         trojan.hostId !== iceId
       ) {
-        base += trojan.otherIceProtectingServerStrengthModifier;
+        hostModify(trojan.otherIceProtectingServerStrengthModifier);
       }
     }
     if (serverIce) {
@@ -547,16 +569,15 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
       }
     }
   }
-  // Wraparound-class is a SET (printed+bonus while condition holds), not an
-  // increase — applied in the CR 9.12.1a set layer below so Şifr can override
-  // it without the bonus re-applying after the set (Wraparound UFAQ).
-  let wraparoundSet: number | undefined;
+  // Wraparound-class "+7 strength while no fracter is installed" is an
+  // increase, applied after any set such as Şifr's (CR 9.12.1a). The CR at
+  // the pin overrides the 2017 UFAQ that treated it as a set.
   if (selfOk && card.strengthBonusIfNoInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfNoInstalledSubtype;
     const has = state.runner.installed.some((id) =>
       (state.cards[id].subtypes ?? []).includes(subtype),
     );
-    if (!has) wraparoundSet = (card.strength ?? 0) + bonus;
+    if (!has) base += bonus;
   }
   if (selfOk && card.strengthBonusIfInstalledSubtype) {
     const { subtype, bonus } = card.strengthBonusIfInstalledSubtype;
@@ -671,8 +692,7 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   // CR 9.12.1a: default → sets → increases → decreases (NSG Şifr+Sandburg).
   const printed = card.strength ?? 0;
   let value = printed;
-  if (typeof wraparoundSet === "number") value = wraparoundSet;
-  // Şifr-class set: lowered to N (never raises; UFAQ Wraparound / Architect).
+  // Şifr-class set: lowered to N (never raises the printed value).
   const enc = state.run?.encounter;
   if (
     enc?.iceId === iceId &&
@@ -693,14 +713,23 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   const tempBoost = lingeringIceStrengthBoost(state, iceId);
   const tempIncrease = Math.max(0, tempBoost);
   let tempDecrease = Math.max(0, -tempBoost);
-  if (card.strengthCannotBeLowered) {
+  if (selfOk && card.strengthCannotBeLowered) {
+    // Same test as `iceStrengthCannotBeLowered`, reusing `selfOk`.
     tempDecrease = 0;
     encounterLower = 0;
-    // allIceStrengthPenalty is also a lower — Lotus Field-class blocks it.
+    // allIceStrengthPenalty and host modifiers are lowers too — Lotus
+    // Field-class blocks them (CR 1.2.1, 9.12.1a).
     penalty = 0;
+    hostLower = 0;
   }
   return (
-    value + increases + tempIncrease - penalty - encounterLower - tempDecrease
+    value +
+    increases +
+    tempIncrease -
+    penalty -
+    encounterLower -
+    tempDecrease -
+    hostLower
   );
 }
 

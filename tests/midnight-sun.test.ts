@@ -39,6 +39,7 @@ import {
   resolveAndAdvance,
   playEffectFromCard,
 } from "../src/index.js";
+import { triesteForbidsRunnerBreak } from "../src/state/procedures/break.js";
 import {
   addBreakerStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
@@ -6596,7 +6597,9 @@ describe("midnight-sun", () => {
           fx.chooseRezzedBioroidForbidRunnerBreak(),
         );
         expect(r.ok).toBe(true);
-        expect(s.cards["bio-1"].cannotBreakWithRunnerCardAbilities).toBe(true);
+        // The choice is kept on the source and read while it is active.
+        expect(s.cards[s.corp.identityId].triesteChosenIceId).toBe("bio-1");
+        expect(triesteForbidsRunnerBreak(s, "bio-1")).toBe(true);
       });
     });
 

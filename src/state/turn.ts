@@ -2,7 +2,10 @@
 
 import { abilitiesSuppressed } from "./abilities.js";
 import { recomputeRunnerMaxHandSize } from "./handSize.js";
-import { lingeringRunnerMuModifier } from "./lingeringEffects.js";
+import {
+  endLingeringEffectsOnCard,
+  lingeringRunnerMuModifier,
+} from "./lingeringEffects.js";
 import type { GameState, TurnBookkeeping } from "./types.js";
 import { agendaPointMu } from "./staticFlags.js";
 
@@ -570,14 +573,46 @@ export function markAbilityUsed(
 }
 
 /**
+ * A card that moved to another zone is a new object (CR 1.12.1), and
+ * restrictions and effects on the previous object end (CR 1.12.2): lingering
+ * effects on it end, and choices that named it (Malia Z0L0K4, Trieste Model
+ * Bioroids) or that it made are forgotten. Lingerings it created stay
+ * (CR 1.12.6a). Called when a card leaves play (trash, uninstall) and when
+ * a card is installed.
+ */
+export function endEffectsOnPreviousObject(
+  state: GameState,
+  cardId: string,
+): void {
+  endLingeringEffectsOnCard(state, cardId);
+  for (const card of Object.values(state.cards)) {
+    const self = card.id === cardId;
+    if (
+      card.tdatdMaliaBlankTargetId &&
+      (self || card.tdatdMaliaBlankTargetId === cardId)
+    ) {
+      delete card.tdatdMaliaBlankTargetId;
+    }
+    if (
+      card.triesteChosenIceId &&
+      (self || card.triesteChosenIceId === cardId)
+    ) {
+      delete card.triesteChosenIceId;
+    }
+  }
+}
+
+/**
  * A card that leaves play and is installed again is a new object, so a
- * once-per-turn use on the previous object does not carry over (CR 1.12.2).
+ * once-per-turn use on the previous object does not carry over, and effects
+ * on the previous object end (CR 1.12.1, 1.12.2).
  */
 export function cardBecameNewObject(state: GameState, cardId: string): void {
   const prefix = `${cardId}:`;
   state.turn.usedAbilities = state.turn.usedAbilities.filter(
     (key) => !key.startsWith(prefix),
   );
+  endEffectsOnPreviousObject(state, cardId);
 }
 
 export function wasAbilityUsed(

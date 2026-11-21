@@ -7,10 +7,9 @@
  * those paths against CR v26.03 by playing a board through the engine.
  *
  * - `it(...)`: the path follows the rule it cites.
- * - `it.fails(...)` titled "RF:": the path is wrong today and the test states
- *   what the CR requires. Vitest passes an `it.fails` only while its
- *   assertions fail, so the re-audit fix session (RF) turns each one into a
- *   plain `it` when it fixes the path.
+ * - RA-2 filed the wrong paths as `it.fails` tests titled "RF:"; session
+ *   RF-2 fixed each one and turned it into a plain `it` (engine #964 lists
+ *   the paths).
  *
  * Paths already covered by a CR example test (9.4.4, 9.4.5, 9.10.3a–c,
  * 9.10.5, 9.12.1c, 9.12.1e) are listed in the PR, not repeated here.
@@ -249,28 +248,54 @@ describe("lingering effects and their expiry at 10.3.1b (CR 9.10)", () => {
     expect(abilitiesSuppressed(s, "dc-1")).toBe(true);
   });
 
-  it.todo(
-    "RF: a lingering effect on a card ends when that card changes zones, since the moved card is a new object (CR 1.12.1, 9.10.1): Klevetnik's blank is keyed by card id, so a blanked resource that is trashed and reinstalled before the Corp's turn ends stays blank. Malia Z0L0K4's chosen-resource id is never cleared either",
-  );
+  it("a lingering blank on a card ends when that card is trashed, since it moved to a new zone and is a new object (CR 1.12.1, 1.12.2, 9.10.1)", () => {
+    const s = runnerTurn();
+    rezzedIce(s, "klevetnik", "klev-1");
+    installRunner(s, "crowdfunding", "cf-1");
+    blankAbilitiesUntilCorpTurnEnd(s, { createdBy: "klev-1", cardId: "cf-1" });
+    expect(abilitiesSuppressed(s, "cf-1")).toBe(true);
+    const before = snapshot(s);
+    trashCard(s, "cf-1", { by: "runner" } as never);
+    expectStateDelta(before, s, {
+      "cards.cf-1.zone": { to: "runner:heap" },
+      lingeringEffects: { to: [] },
+    });
+    // Crowdfunding's heap ability is not blanked by the earlier object's blank.
+    expect(abilitiesSuppressed(s, "cf-1")).toBe(false);
+  });
 
-  it.fails(
-    "RF: Hush on Klevetnik does not end Klevetnik's lingering blank, which exists apart from its source (CR 9.10.1, 9.12.1d)",
-    () => {
-      const s = runnerTurn();
-      rezzedIce(s, "klevetnik", "klev-1");
-      installRunner(s, "daily-casts", "dc-1");
-      blankAbilitiesUntilCorpTurnEnd(s, {
-        createdBy: "klev-1",
-        cardId: "dc-1",
-      });
-      installRunner(s, "hush", "hush-1");
-      hostCard(s, "hush-1", "klev-1", { installed: true } as never);
-      expect(abilitiesSuppressed(s, "klev-1")).toBe(true);
-      // Wrong today: the blanking solver drops every effect whose source is
-      // blanked, but 9.12.1d drops only effects from static abilities.
-      expect(abilitiesSuppressed(s, "dc-1")).toBe(true);
-    },
-  );
+  it("Malia Z0L0K4's chosen resource, trashed and installed again, is a new object and keeps its abilities (CR 1.12.1, 1.12.2)", () => {
+    let s = runnerTurn();
+    const malia = rezzedRemoteAsset(s, "malia-z0l0k4", "malia-1");
+    installRunner(s, "daily-casts", "dc-1");
+    malia.tdatdMaliaBlankTargetId = "dc-1";
+    expect(abilitiesSuppressed(s, "dc-1")).toBe(true);
+    trashCard(s, "dc-1", { by: "runner" } as never);
+    s.runner.discardPile = s.runner.discardPile.filter((id) => id !== "dc-1");
+    s.cards["dc-1"]!.zone = "runner:grip" as never;
+    s.runner.hand.push("dc-1");
+    s = must(s, {
+      type: "basic_install",
+      cardId: "dc-1",
+      destination: { kind: "installed" },
+    } as Action);
+    expect(s.cards["malia-1"]!.tdatdMaliaBlankTargetId).toBeUndefined();
+    expect(abilitiesSuppressed(s, "dc-1")).toBe(false);
+  });
+
+  it("Hush on Klevetnik does not end Klevetnik's lingering blank, which exists apart from its source (CR 9.10.1, 9.12.1d)", () => {
+    const s = runnerTurn();
+    rezzedIce(s, "klevetnik", "klev-1");
+    installRunner(s, "daily-casts", "dc-1");
+    blankAbilitiesUntilCorpTurnEnd(s, {
+      createdBy: "klev-1",
+      cardId: "dc-1",
+    });
+    installRunner(s, "hush", "hush-1");
+    hostCard(s, "hush-1", "klev-1", { installed: true } as never);
+    expect(abilitiesSuppressed(s, "klev-1")).toBe(true);
+    expect(abilitiesSuppressed(s, "dc-1")).toBe(true);
+  });
 
   it("an ice strength boost 'for the remainder of the run' lasts through the run's checkpoints and ends at the checkpoint after the run ends (CR 9.10.1, 10.3.1b)", () => {
     let s = runnerTurn();
@@ -318,44 +343,32 @@ describe("lingering effects and their expiry at 10.3.1b (CR 9.10)", () => {
     expect(effectiveBreakerStrength(s, "cor-1")).toBe(2);
   });
 
-  it.fails(
-    "RF: an icebreaker's pump for the encounter ends when an unbroken subroutine ends the run during that encounter (CR 9.10.1, 10.3.1b, 3.9.5b)",
-    () => {
-      let s = runnerTurn();
-      rezzedIce(s, "ice-wall", "wall-1");
-      installRunner(s, "corroder", "cor-1");
-      s = encountering(s, "wall-1");
-      s = must(s, use("cor-1", "corroder-pump"));
-      expect(effectiveBreakerStrength(s, "cor-1")).toBe(3);
-      s = playUntil(s, runOver);
-      // Wrong today: the encounter-length pump is never removed, so Corroder
-      // is still 3 strength in every later encounter.
-      expect(s.lingeringEffects).toEqual([]);
-      expect(
-        effectiveBreakerStrength(encounterAgain(s, "wall-1"), "cor-1"),
-      ).toBe(2);
-    },
-  );
+  it("an icebreaker's pump for the encounter ends when an unbroken subroutine ends the run during that encounter (CR 6.1.4, 9.10.1, 10.3.1b, 3.9.5b)", () => {
+    let s = runnerTurn();
+    rezzedIce(s, "ice-wall", "wall-1");
+    installRunner(s, "corroder", "cor-1");
+    s = encountering(s, "wall-1");
+    s = must(s, use("cor-1", "corroder-pump"));
+    expect(effectiveBreakerStrength(s, "cor-1")).toBe(3);
+    s = playUntil(s, runOver);
+    expect(s.lingeringEffects).toEqual([]);
+    expect(effectiveBreakerStrength(encounterAgain(s, "wall-1"), "cor-1")).toBe(
+      2,
+    );
+  });
 
-  it.fails(
-    "RF: Datasucker's −1 strength 'until the end of the encounter' does not carry into the next run when the run ends during that encounter (CR 9.10.1, 10.3.1b)",
-    () => {
-      let s = runnerTurn();
-      rezzedIce(s, "ice-wall", "wall-1");
-      const sucker = installRunner(s, "datasucker", "ds-1");
-      sucker.virusCounters = 1;
-      s = encountering(s, "wall-1");
-      s = must(s, use("ds-1", "datasucker-weaken"));
-      expect(effectiveIceStrength(s, "wall-1")).toBe(0);
-      s = playUntil(s, runOver);
-      // Wrong today: the lingering survives, and the ice is 0 strength in
-      // every later run (the reader applies it whenever a run is open).
-      expect(s.lingeringEffects).toEqual([]);
-      expect(effectiveIceStrength(encounterAgain(s, "wall-1"), "wall-1")).toBe(
-        1,
-      );
-    },
-  );
+  it("Datasucker's −1 strength 'until the end of the encounter' does not carry into the next run when the run ends during that encounter (CR 6.1.4, 9.10.1, 10.3.1b)", () => {
+    let s = runnerTurn();
+    rezzedIce(s, "ice-wall", "wall-1");
+    const sucker = installRunner(s, "datasucker", "ds-1");
+    sucker.virusCounters = 1;
+    s = encountering(s, "wall-1");
+    s = must(s, use("ds-1", "datasucker-weaken"));
+    expect(effectiveIceStrength(s, "wall-1")).toBe(0);
+    s = playUntil(s, runOver);
+    expect(s.lingeringEffects).toEqual([]);
+    expect(effectiveIceStrength(encounterAgain(s, "wall-1"), "wall-1")).toBe(1);
+  });
 
   /** Thunderbolt Armaments as the Corp's identity, Stavka unrezzed on HQ. */
   function thunderboltRun(): GameState {
@@ -383,68 +396,56 @@ describe("lingering effects and their expiry at 10.3.1b (CR 9.10)", () => {
     return s;
   }
 
-  it.fails(
-    "RF: Thunderbolt Armaments' +1 strength lasts 'for the remainder of that run', after the ice's encounter ends (CR 1.2.1, 9.10.1)",
-    () => {
-      let s = thunderboltRun();
-      // The Runner trashes Daily Casts for Thunderbolt's subroutine, so the
-      // run goes on past Stavka.
-      s = playUntil(
-        s,
-        (x) => x.timingKey === "run.passIcePaw",
-        (x) =>
-          legalActions(x).find(
-            (a) =>
-              a.type === "choose_option" &&
-              (a as { optionId: string }).optionId === "unless-pay",
-          ),
-      );
-      expect(s.run).toBeTruthy();
-      // Wrong today: the bonus is an encounter-length effect, so it ends here.
-      expect(effectiveIceStrength(s, "stavka-1")).toBe(3);
-    },
-  );
-
-  it.fails(
-    "RF: Thunderbolt Armaments' +1 strength does not carry into the next run when the run ends during the encounter (CR 9.10.1, 10.3.1b)",
-    () => {
-      let s = thunderboltRun();
-      s = playUntil(s, runOver, (x) =>
+  it("Thunderbolt Armaments' +1 strength lasts 'for the remainder of that run', after the ice's encounter ends (CR 1.2.1, 9.10.1)", () => {
+    let s = thunderboltRun();
+    // The Runner trashes Daily Casts for Thunderbolt's subroutine, so the
+    // run goes on past Stavka.
+    s = playUntil(
+      s,
+      (x) => x.timingKey === "run.passIcePaw",
+      (x) =>
         legalActions(x).find(
           (a) =>
             a.type === "choose_option" &&
-            (a as { optionId: string }).optionId === "unless-instruction",
+            (a as { optionId: string }).optionId === "unless-pay",
         ),
-      );
-      expect(
-        effectiveIceStrength(encounterAgain(s, "stavka-1"), "stavka-1"),
-      ).toBe(2);
-    },
-  );
+    );
+    expect(s.run).toBeTruthy();
+    expect(effectiveIceStrength(s, "stavka-1")).toBe(3);
+  });
 
-  it.fails(
-    "RF: Bad Times' memory limit cut 'until the end of the turn' ends when the Corp's turn ends (CR 1.2.1, 9.10.1, 10.3.1b)",
-    () => {
-      let s = createInitialState();
-      for (const card of Object.values(s.cards)) {
-        if (card.side === "runner") card.rezzed = false;
-      }
-      put(s, "bad-times", "bad-1", "corp:hq");
-      s.corp.hand = ["bad-1"];
-      s.runner.tags = 1;
-      s.corp.credits = 10;
-      s.corp.clicks = 1;
-      s.activeSide = "corp";
-      s.timingKey = "corp.takeAction";
-      const printed = memoryLimit(s);
-      s = must(s, { type: "play_operation", cardId: "bad-1" } as Action);
-      expect(memoryLimit(s)).toBe(printed - 2);
-      s = playUntil(s, (x) => x.activeSide === "runner");
-      // Wrong today: the effect is keyed to the Runner's turn, so the Runner
-      // spends their whole next turn at −2 memory.
-      expect(memoryLimit(s)).toBe(printed);
-    },
-  );
+  it("Thunderbolt Armaments' +1 strength does not carry into the next run when the run ends during the encounter (CR 6.1.4, 9.10.1, 10.3.1b)", () => {
+    let s = thunderboltRun();
+    s = playUntil(s, runOver, (x) =>
+      legalActions(x).find(
+        (a) =>
+          a.type === "choose_option" &&
+          (a as { optionId: string }).optionId === "unless-instruction",
+      ),
+    );
+    expect(
+      effectiveIceStrength(encounterAgain(s, "stavka-1"), "stavka-1"),
+    ).toBe(2);
+  });
+
+  it("Bad Times' memory limit cut 'until the end of the turn' ends when the Corp's turn ends (CR 1.2.1, 9.10.1, 10.3.1b)", () => {
+    let s = createInitialState();
+    for (const card of Object.values(s.cards)) {
+      if (card.side === "runner") card.rezzed = false;
+    }
+    put(s, "bad-times", "bad-1", "corp:hq");
+    s.corp.hand = ["bad-1"];
+    s.runner.tags = 1;
+    s.corp.credits = 10;
+    s.corp.clicks = 1;
+    s.activeSide = "corp";
+    s.timingKey = "corp.takeAction";
+    const printed = memoryLimit(s);
+    s = must(s, { type: "play_operation", cardId: "bad-1" } as Action);
+    expect(memoryLimit(s)).toBe(printed - 2);
+    s = playUntil(s, (x) => x.activeSide === "runner");
+    expect(memoryLimit(s)).toBe(printed);
+  });
 });
 
 // --- CR 9.4: static abilities ------------------------------------------------
@@ -458,17 +459,13 @@ describe("static abilities apply only while active (CR 9.4.1)", () => {
     expect(abilitiesSuppressed(s, "hiro-1")).toBe(true);
   });
 
-  it.fails(
-    "RF: Rumor Mill in the heap no longer blanks unique assets (CR 1.8.4a, 3.7.1b, 9.4.1)",
-    () => {
-      const s = runnerTurn();
-      rezzedRemoteAsset(s, "chairman-hiro", "hiro-1");
-      put(s, "rumor-mill", "rm-1", "runner:heap");
-      s.runner.discardPile.push("rm-1");
-      // Wrong today: the collector reads Rumor Mill's flag in every zone.
-      expect(abilitiesSuppressed(s, "hiro-1")).toBe(false);
-    },
-  );
+  it("Rumor Mill in the heap no longer blanks unique assets (CR 1.8.4a, 3.7.1b, 9.4.1)", () => {
+    const s = runnerTurn();
+    rezzedRemoteAsset(s, "chairman-hiro", "hiro-1");
+    put(s, "rumor-mill", "rm-1", "runner:heap");
+    s.runner.discardPile.push("rm-1");
+    expect(abilitiesSuppressed(s, "hiro-1")).toBe(false);
+  });
 });
 
 describe("static conditions (CR 9.4.2)", () => {
@@ -508,17 +505,12 @@ describe("installed Runner cards are active only while faceup (CR 9.4.1, 1.8.4a)
     expect(s.runner.hand).toEqual(before.runner.hand);
   });
 
-  it.fails(
-    "RF: a facedown Paparazzi is inactive and prevents nothing (CR 1.8.4a, 9.4.1)",
-    () => {
-      const s = paparazziBoard(false);
-      const before = snapshot(s);
-      dealDamage(s, "meat", 2, "corp-source");
-      // Wrong today: readers of installed Runner cards check blanking only,
-      // not whether the card is faceup (Apocalypse, Hunting Grounds, Apex).
-      expectStateDelta(before, s, { "runner.hand.length": -2 });
-    },
-  );
+  it("a facedown Paparazzi is inactive and prevents nothing (CR 1.8.4a, 9.4.1)", () => {
+    const s = paparazziBoard(false);
+    const before = snapshot(s);
+    dealDamage(s, "meat", 2, "corp-source");
+    expectStateDelta(before, s, { "runner.hand.length": -2 });
+  });
 });
 
 // --- CR 9.12.1: continuous characteristics ----------------------------------
@@ -568,21 +560,16 @@ describe("continuous characteristics (CR 9.12.1)", () => {
     );
   });
 
-  it.fails(
-    "RF: Hush on Wendigo stops Wendigo's own subtype swap, so it stays a code gate (CR 9.12.1d)",
-    () => {
-      const s = runnerTurn();
-      const wendigo = rezzedIce(s, "wendigo", "wen-1");
-      wendigo.advancementCounters = 1;
-      installRunner(s, "hush", "hush-1");
-      hostCard(s, "hush-1", "wen-1", { installed: true } as never);
-      expect(abilitiesSuppressed(s, "wen-1")).toBe(true);
-      // Wrong today: the morph swap is applied whether or not Wendigo's
-      // abilities are blanked.
-      expect(effectiveIceSubtypes(s, "wen-1")).toContain("code gate");
-      expect(effectiveIceSubtypes(s, "wen-1")).not.toContain("barrier");
-    },
-  );
+  it("Hush on Wendigo stops Wendigo's own subtype swap, so it stays a code gate (CR 9.12.1d)", () => {
+    const s = runnerTurn();
+    const wendigo = rezzedIce(s, "wendigo", "wen-1");
+    wendigo.advancementCounters = 1;
+    installRunner(s, "hush", "hush-1");
+    hostCard(s, "hush-1", "wen-1", { installed: true } as never);
+    expect(abilitiesSuppressed(s, "wen-1")).toBe(true);
+    expect(effectiveIceSubtypes(s, "wen-1")).toContain("code gate");
+    expect(effectiveIceSubtypes(s, "wen-1")).not.toContain("barrier");
+  });
 
   it("Ice Carver's −1 does not lower Lotus Field (CR 1.2.1, 9.12.1a)", () => {
     let s = runnerTurn();
@@ -592,45 +579,33 @@ describe("continuous characteristics (CR 9.12.1)", () => {
     expect(effectiveIceStrength(s, "lotus-1")).toBe(4);
   });
 
-  it.fails(
-    "RF: Monkeywrench's −2 does not lower Lotus Field, whose strength cannot be lowered (CR 1.2.1, 9.12.1a)",
-    () => {
-      const s = runnerTurn();
-      rezzedIce(s, "lotus-field", "lotus-1");
-      installRunner(s, "monkeywrench", "mw-1");
-      hostCard(s, "mw-1", "lotus-1", { installed: true } as never);
-      // Wrong today: host modifiers are summed as increases, so the
-      // cannot-be-lowered check never sees them.
-      expect(effectiveIceStrength(s, "lotus-1")).toBe(4);
-    },
-  );
+  it("Monkeywrench's −2 does not lower Lotus Field, whose strength cannot be lowered (CR 1.2.1, 9.12.1a)", () => {
+    const s = runnerTurn();
+    rezzedIce(s, "lotus-field", "lotus-1");
+    installRunner(s, "monkeywrench", "mw-1");
+    hostCard(s, "mw-1", "lotus-1", { installed: true } as never);
+    expect(effectiveIceStrength(s, "lotus-1")).toBe(4);
+  });
 
-  it.fails(
-    "RF: Parasite's virus counters do not lower Self-Adapting Code Wall (CR 1.2.1, 9.12.1a)",
-    () => {
-      const s = runnerTurn();
-      rezzedIce(s, "self-adapting-code-wall", "sacw-1");
-      const parasite = installRunner(s, "parasite", "par-1");
-      parasite.virusCounters = 1;
-      hostCard(s, "par-1", "sacw-1", { installed: true } as never);
-      expect(effectiveIceStrength(s, "sacw-1")).toBe(1);
-    },
-  );
+  it("Parasite's virus counters do not lower Self-Adapting Code Wall (CR 1.2.1, 9.12.1a)", () => {
+    const s = runnerTurn();
+    rezzedIce(s, "self-adapting-code-wall", "sacw-1");
+    const parasite = installRunner(s, "parasite", "par-1");
+    parasite.virusCounters = 1;
+    hostCard(s, "par-1", "sacw-1", { installed: true } as never);
+    expect(effectiveIceStrength(s, "sacw-1")).toBe(1);
+  });
 
-  it.fails(
-    "RF: a Hushed Lotus Field loses 'cannot be lowered', so Ice Carver lowers it (CR 9.12.1d)",
-    () => {
-      let s = runnerTurn();
-      rezzedIce(s, "lotus-field", "lotus-1");
-      installRunner(s, "hush", "hush-1");
-      hostCard(s, "hush-1", "lotus-1", { installed: true } as never);
-      installRunner(s, "ice-carver", "carver-1");
-      s = encountering(s, "lotus-1");
-      expect(abilitiesSuppressed(s, "lotus-1")).toBe(true);
-      // Wrong today: strengthCannotBeLowered is read without the blanking check.
-      expect(effectiveIceStrength(s, "lotus-1")).toBe(3);
-    },
-  );
+  it("a Hushed Lotus Field loses 'cannot be lowered', so Ice Carver lowers it (CR 9.12.1d)", () => {
+    let s = runnerTurn();
+    rezzedIce(s, "lotus-field", "lotus-1");
+    installRunner(s, "hush", "hush-1");
+    hostCard(s, "hush-1", "lotus-1", { installed: true } as never);
+    installRunner(s, "ice-carver", "carver-1");
+    s = encountering(s, "lotus-1");
+    expect(abilitiesSuppressed(s, "lotus-1")).toBe(true);
+    expect(effectiveIceStrength(s, "lotus-1")).toBe(3);
+  });
 
   it("Sub Boost gives its host ice an End the run subroutine (CR 9.12.1d)", () => {
     const s = runnerTurn();
@@ -642,19 +617,15 @@ describe("continuous characteristics (CR 9.12.1)", () => {
     ]);
   });
 
-  it.fails(
-    "RF: an ice with Hush cannot gain Sub Boost's subroutine (CR 1.2.1)",
-    () => {
-      const s = runnerTurn();
-      rezzedIce(s, "ice-wall", "wall-1");
-      installRunner(s, "hush", "hush-1");
-      hostCard(s, "hush-1", "wall-1", { installed: true } as never);
-      put(s, "sub-boost", "sb-1", "corp:hq");
-      hostCard(s, "sb-1", "wall-1");
-      // Wrong today: nothing reads Hush's "Host ice cannot gain abilities".
-      expect(collectSubBoostEtrSubs(s, "wall-1")).toEqual([]);
-    },
-  );
+  it("an ice with Hush cannot gain Sub Boost's subroutine (CR 1.2.1)", () => {
+    const s = runnerTurn();
+    rezzedIce(s, "ice-wall", "wall-1");
+    installRunner(s, "hush", "hush-1");
+    hostCard(s, "hush-1", "wall-1", { installed: true } as never);
+    put(s, "sub-boost", "sb-1", "corp:hq");
+    hostCard(s, "sb-1", "wall-1");
+    expect(collectSubBoostEtrSubs(s, "wall-1")).toEqual([]);
+  });
 
   it("Monkeywrench lowers its host by 2 and other ice on the server by 1 (CR 9.12.1a)", () => {
     const s = runnerTurn();

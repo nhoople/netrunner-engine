@@ -3634,7 +3634,9 @@ function removeExpiredDurationAbilities(state: GameState): void {
   removed += expireLingeringEffects(state, {
     turn: endedTurn,
     run: passedRun,
-    encounter: Boolean(afterEncounter && state.run),
+    // A run that ends ends the encounter in progress with it (CR 6.1.4,
+    // 6.9.6), so its encounter durations pass at this checkpoint too.
+    encounter: Boolean(afterEncounter && state.run) || passedRun,
     untilCheckpoint: true,
   });
   if (removed === 0) {
