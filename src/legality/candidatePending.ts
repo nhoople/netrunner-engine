@@ -13,13 +13,40 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
-import { applyActionCore } from "../actions/apply.js";
+import { applyTakes } from "./trial.js";
 import {
   printedRezOrPlayCost,
   stealAdditionalCosts,
   stealNetOrMeatPrevented,
   stealOrTrashBlocked,
 } from "../actions/access.js";
+
+/**
+ * Offer a paid interrupt in a pending window when apply takes it. The window
+ * filters above say which abilities are relevant (CR 9.2.9d, 9.9.4d); apply
+ * owns the rest (once per turn, costs, which zone the card is in), so a
+ * relevant interrupt is listed exactly when it can be used.
+ */
+function offerInterrupt(
+  state: GameState,
+  actions: Action[],
+  cardId: string,
+  abilityId: string,
+): void {
+  const action: Action = { type: "use_paid_ability", cardId, abilityId };
+  if (applyTakes(state, action)) actions.push(action);
+}
+
+/**
+ * True when a pending step (an interrupt window, a trace, a psi game, a
+ * choice, an access) owns the position's moves instead of the step's paid
+ * ability window, so that window's priority does not limit them. An
+ * interrupt window has its own priority (CR 9.2.9c), and a paid interrupt
+ * needs no paid ability window (CR 9.9.4d).
+ */
+export function pendingStepOpen(state: GameState): boolean {
+  return collectPendingCandidates(state) !== null;
+}
 
 export function collectPendingCandidates(state: GameState): Action[] | null {
   const actions: Action[] = [];
@@ -87,11 +114,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
-        actions.push({
-          type: "use_paid_ability",
-          cardId: id,
-          abilityId: ab.id,
-        });
+        offerInterrupt(state, actions, id, ab.id);
       }
     }
     return actions;
@@ -129,11 +152,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
-        actions.push({
-          type: "use_paid_ability",
-          cardId: id,
-          abilityId: ab.id,
-        });
+        offerInterrupt(state, actions, id, ab.id);
       }
     }
     return actions;
@@ -154,11 +173,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         if (!ab.windows.includes("expose_interrupt")) continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "corp", cost, card)) continue;
-        actions.push({
-          type: "use_paid_ability",
-          cardId: id,
-          abilityId: ab.id,
-        });
+        offerInterrupt(state, actions, id, ab.id);
       }
     }
     return actions;
@@ -179,11 +194,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           if (!trashInterruptRelevantToActor(ab, pending.by)) continue;
           const cost = abilityCost(ab, state, card);
           if (!canPayCost(state, "runner", cost, card)) continue;
-          actions.push({
-            type: "use_paid_ability",
-            cardId: id,
-            abilityId: ab.id,
-          });
+          offerInterrupt(state, actions, id, ab.id);
         }
       }
     }
@@ -218,11 +229,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         }
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
-        actions.push({
-          type: "use_paid_ability",
-          cardId: id,
-          abilityId: ab.id,
-        });
+        offerInterrupt(state, actions, id, ab.id);
       }
     }
     return actions;
@@ -242,7 +249,10 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       ) {
         continue;
       }
-      if (!card.rezzed && state.corp.credits >= (card.rezCost ?? 0)) {
+      if (
+        !card.rezzed &&
+        applyTakes(state, { type: "rez_asset", cardId: id })
+      ) {
         actions.push({ type: "rez_asset", cardId: id });
       }
       if (card.rezzed && !abilitiesSuppressed(state, id)) {
@@ -250,11 +260,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
           if (!ab.windows.includes("break_interrupt")) continue;
           const cost = abilityCost(ab, state, card);
           if (!canPayCost(state, "corp", cost, card)) continue;
-          actions.push({
-            type: "use_paid_ability",
-            cardId: id,
-            abilityId: ab.id,
-          });
+          offerInterrupt(state, actions, id, ab.id);
         }
       }
     }
@@ -311,11 +317,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         if (!allButNDamageRelevant(state, ab)) continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "runner", cost, card)) continue;
-        actions.push({
-          type: "use_paid_ability",
-          cardId: id,
-          abilityId: ab.id,
-        });
+        offerInterrupt(state, actions, id, ab.id);
       }
     }
     // Corp rezzed sources (Prāna Condenser) during damage interrupt.
@@ -362,11 +364,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         if (!allButNDamageRelevant(state, ab)) continue;
         const cost = abilityCost(ab, state, card);
         if (!canPayCost(state, "corp", cost, card)) continue;
-        actions.push({
-          type: "use_paid_ability",
-          cardId: id,
-          abilityId: ab.id,
-        });
+        offerInterrupt(state, actions, id, ab.id);
       }
     }
     return actions;
@@ -422,94 +420,10 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
     // 11.6_3 — steal agenda (mandatory when able); decline only when steal blocked.
     if (accessKey === "access.stealAgenda") {
       if (card.type === "agenda") {
-        let stealLegal = false;
-        if (!stealOrTrashBlocked(state, id)) {
-          // Haarpsichord: cannot steal more than one agenda per turn.
-          let haarpsichordBlocks = false;
-          const idCard = state.cards[state.corp.identityId];
-          if (
-            idCard?.cannotStealMoreThanOneAgendaPerTurn &&
-            (state.turn.agendasStolenThisTurn ?? 0) >= 1
-          ) {
-            haarpsichordBlocks = true;
-          }
-          // Old Hollywood Grid: cannot steal unless Runner has a copy in score.
-          let ohGridBlocks = false;
-          const attacked = state.run?.attackedServerId;
-          if (attacked) {
-            const root = state.servers[attacked]?.root ?? [];
-            for (const sid of root) {
-              const up = state.cards[sid];
-              if (!up?.cannotStealUnlessCopyInRunnerScore) continue;
-              if (!up.rezzed && !up.persistent) continue;
-              const hasCopy = state.runner.scoreArea.some(
-                (rid) => state.cards[rid]?.title === card.title,
-              );
-              if (!hasCopy) ohGridBlocks = true;
-            }
-          }
-          if (!haarpsichordBlocks && !ohGridBlocks) {
-            const stealClicks = abilitiesSuppressed(state, id)
-              ? 0
-              : (card.stealAdditionalClicks ?? 0);
-            let stealCredits = abilitiesSuppressed(state, id)
-              ? 0
-              : (card.stealAdditionalCredits ?? 0);
-            for (const server of Object.values(state.servers)) {
-              for (const sid of [...server.root, ...server.ice]) {
-                if (abilitiesSuppressed(state, sid)) continue;
-                const c = state.cards[sid];
-                if (!c?.rezzed) continue;
-                stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
-              }
-            }
-            for (const c of Object.values(state.cards)) {
-              if (c.zone !== "corp:play-area") continue;
-              if (abilitiesSuppressed(state, c.id)) continue;
-              stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
-            }
-            for (const rid of state.runner.installed) {
-              if (abilitiesSuppressed(state, rid)) continue;
-              stealCredits +=
-                state.cards[rid]?.stealAdditionalCreditsWhileRezzed ?? 0;
-            }
-            if (attacked) {
-              const root = state.servers[attacked]?.root ?? [];
-              for (const sid of root) {
-                if (abilitiesSuppressed(state, sid)) continue;
-                const c = state.cards[sid];
-                if (!c) continue;
-                if (!c.rezzed && !c.persistent) continue;
-                stealCredits +=
-                  c.stealAdditionalCreditsFromProtectingServer ?? 0;
-              }
-            }
-            stealCredits += stealAdditionalCreditsFromActiveLockdowns(
-              state,
-              id,
-            );
-            const damagePrevented = stealNetOrMeatPrevented(
-              state,
-              id,
-              attacked ?? "",
-            );
-            const hasAdditionalCost =
-              stealClicks > 0 ||
-              stealCredits > 0 ||
-              stealAdditionalCosts(state, attacked ?? "", id).length > 0;
-            if (
-              !damagePrevented &&
-              (stealClicks === 0 || state.runner.clicks >= stealClicks) &&
-              (stealCredits === 0 || state.runner.credits >= stealCredits) &&
-              (!hasAdditionalCost || stealCostsPayable(state, id))
-            ) {
-              actions.push({ type: "steal_agenda", cardId: id });
-              stealLegal = true;
-            }
-            if (stealLegal && hasAdditionalCost) {
-              actions.push({ type: "finish_access" });
-            }
-          }
+        const { stealLegal, additionalCost } = stealDecision(state, id);
+        if (stealLegal) actions.push({ type: "steal_agenda", cardId: id });
+        if (stealLegal && additionalCost) {
+          actions.push({ type: "finish_access" });
         }
         // Film Critic: may host accessed agenda instead of stealing.
         for (const rid of state.runner.installed) {
@@ -693,14 +607,109 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
 }
 
 /**
+ * Whether the Runner may steal the agenda they are accessing, and whether
+ * an additional cost applies to stealing it. The Runner must steal an
+ * accessed agenda (CR 7.1.6) unless they cannot, or an additional cost
+ * applies, which they may decline to pay (CR 7.1.6a, 1.16.10). The steal
+ * candidates and apply's `finish_access` both read this.
+ */
+export function stealDecision(
+  state: GameState,
+  id: string,
+): { stealLegal: boolean; additionalCost: boolean } {
+  const card = state.cards[id]!;
+  let stealLegal = false;
+  let additionalCost = false;
+  if (!stealOrTrashBlocked(state, id)) {
+    // Haarpsichord: cannot steal more than one agenda per turn.
+    let haarpsichordBlocks = false;
+    const idCard = state.cards[state.corp.identityId];
+    if (
+      idCard?.cannotStealMoreThanOneAgendaPerTurn &&
+      (state.turn.agendasStolenThisTurn ?? 0) >= 1
+    ) {
+      haarpsichordBlocks = true;
+    }
+    // Old Hollywood Grid: cannot steal unless Runner has a copy in score.
+    let ohGridBlocks = false;
+    const attacked = state.run?.attackedServerId;
+    if (attacked) {
+      const root = state.servers[attacked]?.root ?? [];
+      for (const sid of root) {
+        const up = state.cards[sid];
+        if (!up?.cannotStealUnlessCopyInRunnerScore) continue;
+        if (!up.rezzed && !up.persistent) continue;
+        const hasCopy = state.runner.scoreArea.some(
+          (rid) => state.cards[rid]?.title === card.title,
+        );
+        if (!hasCopy) ohGridBlocks = true;
+      }
+    }
+    if (!haarpsichordBlocks && !ohGridBlocks) {
+      const stealClicks = abilitiesSuppressed(state, id)
+        ? 0
+        : (card.stealAdditionalClicks ?? 0);
+      let stealCredits = abilitiesSuppressed(state, id)
+        ? 0
+        : (card.stealAdditionalCredits ?? 0);
+      for (const server of Object.values(state.servers)) {
+        for (const sid of [...server.root, ...server.ice]) {
+          if (abilitiesSuppressed(state, sid)) continue;
+          const c = state.cards[sid];
+          if (!c?.rezzed) continue;
+          stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
+        }
+      }
+      for (const c of Object.values(state.cards)) {
+        if (c.zone !== "corp:play-area") continue;
+        if (abilitiesSuppressed(state, c.id)) continue;
+        stealCredits += c.stealAdditionalCreditsWhileRezzed ?? 0;
+      }
+      for (const rid of state.runner.installed) {
+        if (abilitiesSuppressed(state, rid)) continue;
+        stealCredits +=
+          state.cards[rid]?.stealAdditionalCreditsWhileRezzed ?? 0;
+      }
+      if (attacked) {
+        const root = state.servers[attacked]?.root ?? [];
+        for (const sid of root) {
+          if (abilitiesSuppressed(state, sid)) continue;
+          const c = state.cards[sid];
+          if (!c) continue;
+          if (!c.rezzed && !c.persistent) continue;
+          stealCredits += c.stealAdditionalCreditsFromProtectingServer ?? 0;
+        }
+      }
+      stealCredits += stealAdditionalCreditsFromActiveLockdowns(state, id);
+      const damagePrevented = stealNetOrMeatPrevented(
+        state,
+        id,
+        attacked ?? "",
+      );
+      const hasAdditionalCost =
+        stealClicks > 0 ||
+        stealCredits > 0 ||
+        stealAdditionalCosts(state, attacked ?? "", id).length > 0;
+      if (
+        !damagePrevented &&
+        (stealClicks === 0 || state.runner.clicks >= stealClicks) &&
+        (stealCredits === 0 || state.runner.credits >= stealCredits) &&
+        (!hasAdditionalCost || stealCostsPayable(state, id))
+      ) {
+        stealLegal = true;
+      }
+      additionalCost = hasAdditionalCost;
+    }
+  }
+  return { stealLegal, additionalCost };
+}
+
+/**
  * The Runner can pay every additional cost to steal this agenda (CR 1.16.1,
  * 1.16.10b). The costs are effects (SDS Drone Deployment: trash an installed
  * program), so this tries the steal on a copy: legality offers it only when
  * apply would take it.
  */
 function stealCostsPayable(state: GameState, agendaId: string): boolean {
-  return applyActionCore(structuredClone(state), {
-    type: "steal_agenda",
-    cardId: agendaId,
-  }).ok;
+  return applyTakes(state, { type: "steal_agenda", cardId: agendaId });
 }

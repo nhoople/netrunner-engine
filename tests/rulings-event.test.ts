@@ -102,6 +102,8 @@ describe("Carpe Diem", () => {
     const mark = currentMark(s);
     expect(mark).not.toBeNull();
     for (let i = 0; i < 5; i++) {
+      // Back to the action step before the next action (CR 5.2.4).
+      s = drive(s, atRunnerAction);
       s = must(s, { type: "play_event", cardId: "cd-2" });
       s = declineAll(s);
       expect(currentMark(s)).toBe(mark);
@@ -289,12 +291,10 @@ describe("Wildcat Strike", () => {
 // ---------------------------------------------------------------------------
 
 describe("Tread Lightly", () => {
-  // Filed under area 7, fix-now candidate: the rez costs 0 and applyAction
-  // accepts it, but the approach candidates (`addApproachIceCandidates`)
-  // leave out Asteroid Belt's advancement discount, so rez_ice is not
-  // listed unless the Corp holds the full 12 credits. The game host takes
-  // only listed actions (CR 1.16.2a).
-  it.skip("Tread Lightly: Asteroid Belt with 4 advancement counters costs 0 to rez: 9, plus 3, minus 12 (ruling 1; filed, area 7, CR 1.16.2a: the rez is not listed without the undiscounted credits)", () => {
+  // Fixed in FX-legal-moves: the approach candidates try the rez through
+  // apply's own cost (src/legality/trial.ts) instead of a copy that left out
+  // Asteroid Belt's advancement discount (CR 1.16.2a).
+  it("Tread Lightly: Asteroid Belt with 4 advancement counters costs 0 to rez: 9, plus 3, minus 12, and the rez is a legal move (ruling 1; CR 1.16.2a)", () => {
     let s = runnerTurn(fresh());
     s.servers.hq.ice = [];
     installIce(s, "asteroid-belt", "ab-1", "hq", false).advancementCounters = 4;

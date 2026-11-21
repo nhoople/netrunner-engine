@@ -2112,7 +2112,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -2577,7 +2577,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
+          "site": "src/legality/candidatePending.ts#stealDecision",
           "kinds": []
         }
       ],
@@ -2596,7 +2596,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
+          "site": "src/legality/candidatePending.ts#stealDecision",
           "kinds": []
         }
       ],
@@ -2852,7 +2852,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -3535,7 +3535,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -3562,7 +3562,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -3611,7 +3611,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -4348,10 +4348,6 @@
       "readers": [
         {
           "site": "src/actions/rez.ts#firstIceRezIncrease",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addApproachIceCandidates",
           "kinds": []
         }
       ],
@@ -5800,7 +5796,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -5893,7 +5889,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -6259,7 +6255,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -6286,7 +6282,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -6313,7 +6309,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -7267,7 +7263,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -7386,7 +7382,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -7449,7 +7445,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -7472,7 +7468,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -7494,6 +7490,10 @@
         "declaration"
       ],
       "readers": [
+        {
+          "site": "src/actions/installCorp.ts#corpInstallDestinationRefusal",
+          "kinds": []
+        },
         {
           "site": "src/actions/installCorp.ts#installCorpInner",
           "kinds": []
@@ -7865,7 +7865,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -8042,7 +8042,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -13728,7 +13728,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -13979,7 +13979,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
+          "site": "src/legality/candidatePending.ts#stealDecision",
           "kinds": []
         },
         {
@@ -14278,7 +14278,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -14315,7 +14315,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -14451,7 +14451,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -14539,7 +14539,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -14585,11 +14585,11 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates.pushInstall",
+          "site": "src/legality/candidateClicks.ts#addClickActions.pushInstall",
           "kinds": []
         }
       ],
@@ -16434,11 +16434,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addApproachIceCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -16569,7 +16565,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/installCorp.ts#installCorpInner",
+          "site": "src/actions/installCorp.ts#corpInstallDestinationRefusal",
           "kinds": []
         },
         {
@@ -16846,10 +16842,6 @@
         {
           "site": "src/effects/corpAbilityInstall.ts#rezAfterInstall",
           "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addApproachIceCandidates",
-          "kinds": []
         }
       ],
       "kinds": []
@@ -16895,14 +16887,6 @@
         {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
           "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addApproachIceCandidates",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
-          "kinds": []
         }
       ],
       "kinds": [
@@ -16922,7 +16906,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/rez.ts#rezIce",
+          "site": "src/actions/rez.ts#rezzesAsNonIce",
           "kinds": []
         },
         {
@@ -17058,18 +17042,6 @@
           ]
         },
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addApproachIceCandidates",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
-          "kinds": []
-        },
-        {
           "site": "src/legality/checkpoints.ts#resolveBlackguardPendingInstance",
           "kinds": []
         },
@@ -17113,10 +17085,6 @@
         },
         {
           "site": "src/actions/rez.ts#rezIce",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addApproachIceCandidates",
           "kinds": []
         }
       ],
@@ -17256,10 +17224,6 @@
         {
           "site": "src/actions/rez.ts#rezAsset",
           "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
-          "kinds": []
         }
       ],
       "kinds": []
@@ -17278,10 +17242,6 @@
       "readers": [
         {
           "site": "src/actions/rez.ts#rezAsset",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addPaidWindowCandidates",
           "kinds": []
         }
       ],
@@ -17499,7 +17459,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -17542,7 +17502,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -18285,15 +18245,15 @@
           "kinds": []
         },
         {
+          "site": "src/legality/candidateClicks.ts#addClickActions",
+          "kinds": []
+        },
+        {
           "site": "src/legality/candidateClicks.ts#playRestrictionOk",
           "kinds": []
         },
         {
           "site": "src/legality/candidatePending.ts#collectPendingCandidates",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addApproachIceCandidates",
           "kinds": []
         },
         {
@@ -18758,7 +18718,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
+          "site": "src/legality/candidatePending.ts#stealDecision",
           "kinds": []
         }
       ],
@@ -18821,7 +18781,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
+          "site": "src/legality/candidatePending.ts#stealDecision",
           "kinds": []
         }
       ],
@@ -18863,7 +18823,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
+          "site": "src/legality/candidatePending.ts#stealDecision",
           "kinds": []
         }
       ],
@@ -18888,7 +18848,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
+          "site": "src/legality/candidatePending.ts#stealDecision",
           "kinds": []
         }
       ],
@@ -20263,15 +20223,11 @@
           ]
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
           "site": "src/legality/candidateClicks.ts#playRestrictionOk",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateRun.ts#addApproachIceCandidates",
           "kinds": []
         },
         {
@@ -20628,7 +20584,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
@@ -20755,6 +20711,10 @@
         },
         {
           "site": "src/actions/costCards.ts#offer",
+          "kinds": []
+        },
+        {
+          "site": "src/actions/installCorp.ts#corpInstallDestinationRefusal",
           "kinds": []
         },
         {
@@ -21629,7 +21589,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidatePending.ts#collectPendingCandidates",
+          "site": "src/legality/candidatePending.ts#stealDecision",
           "kinds": []
         },
         {
@@ -24060,7 +24020,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -24371,7 +24331,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/candidateClicks.ts#addClickActionCandidates",
+          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {

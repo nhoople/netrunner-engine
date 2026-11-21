@@ -542,10 +542,10 @@ describe("prevention (CR 9.9.5)", () => {
 });
 
 describe("offering prevention while damage is pending (CR 9.9.4d)", () => {
-  // Engine bug, filed under area 9 (damage and prevention): while Neural
-  // EMP's net damage is pending, legalActions lists only accept_damage, so a
-  // table built on it never offers Net Shield; applying the action works.
-  it.skip("legalActions offers Net Shield's prevention while Neural EMP's net damage is pending (CR 9.9.4d)", () => {
+  // Fixed in FX-legal-moves: the paid ability window's priority (the Corp's,
+  // on its turn) no longer hides a Runner interrupt. An interrupt window
+  // gives both players priority (CR 9.2.9c).
+  it("while net damage is pending, Net Shield's prevention is a legal move: legalActions offers it while Neural EMP's net damage is pending (CR 9.9.4d)", () => {
     let s = board({
       corpHand: ["Neural EMP"],
       runnerHand: ["Net Shield", "Sure Gamble"],

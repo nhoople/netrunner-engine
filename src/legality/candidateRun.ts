@@ -4,16 +4,9 @@ import { currentMark } from "../state/msKeywords.js";
 import {
   corpMayRez,
   iceShareServer,
-  rezCostDiscountPerRezzedSubtype,
-  rezCostDiscountPerOtherUnrezzedIce,
-  rezCostDiscountIfAgendaScoredOrStolenThisTurn,
   effectiveIceStrength,
   effectiveIceSubtypes,
 } from "../cards/stubs.js";
-import {
-  resolveIceRezCostIncrease,
-  resolveIceRezCostReduction,
-} from "../state/continuousCosts.js";
 import {
   abilityCost,
   abilityNeedsEncounter,
@@ -48,11 +41,11 @@ import {
   runnerBreakBlock,
   subroutineBreakBlock,
 } from "../state/procedures/break.js";
-import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";
 import type { PaidAbilityWindow } from "../state/types.js";
 import type { TimingStepDef } from "../timing/graph.js";
 import { hasAbilityFlag, threatValue } from "../effects/abilityRecord.js";
+import { applyTakes } from "./trial.js";
 
 function listServers(state: GameState): Server[] {
   return Object.values(state.servers);
@@ -69,81 +62,11 @@ export function addApproachIceCandidates(
 ): void {
   if (step.key === "run.approachPaw") {
     const iceId = approachedIceId(state);
-    if (iceId) {
-      const ice = state.cards[iceId];
-      let increase =
-        (state.run?.iceRezCostIncrease ?? 0) +
-        resolveIceRezCostIncrease(state, iceId) +
-        (state.turn.iceAdditionalRezCostThisTurn[iceId] ?? 0);
-      if (state.turn.iceRezzedThisTurn === 0) {
-        for (const carrierId of runnerAbilityCarrierIds(state)) {
-          if (abilitiesSuppressed(state, carrierId)) continue;
-          increase += state.cards[carrierId]?.firstIceRezCostIncrease ?? 0;
-        }
-      }
-      const discount =
-        rezCostDiscountPerRezzedSubtype(state, iceId) +
-        rezCostDiscountPerOtherUnrezzedIce(state, iceId) +
-        resolveIceRezCostReduction(state, iceId);
-      const cost = Math.max(
-        0,
-        (ice.rezCost ?? 0) +
-          increase -
-          (state.turn.pendingBioroidRezDiscount ?? 0) -
-          discount,
-      );
-      if (
-        ice.rezAdditionalCostForfeitAgenda &&
-        !state.corp.scoreArea.some((id) => !state.cards[id]?.cannotForfeit)
-      ) {
-        // cannot rez without an agenda to forfeit
-      } else if (
-        ice.rezAdditionalCostDerezSubtype &&
-        !Object.values(state.servers).some((srv) =>
-          srv.ice.some((id) => {
-            if (id === iceId) return false;
-            const c = state.cards[id];
-            return (
-              !!c?.rezzed &&
-              (c.subtypes ?? []).includes(ice.rezAdditionalCostDerezSubtype!)
-            );
-          }),
-        )
-      ) {
-        // cannot rez without another rezzed ice of the required subtype
-      } else if (
-        !ice.rezzed &&
-        !state.run?.forbidCorpRezIceDuringRun &&
-        !state.turn.cannotScoreOrRezCardIds.includes(iceId) &&
-        !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(iceId)
-      ) {
-        // DDoS: cannot rez outermost ice during a run this turn.
-        if (
-          state.turn.uotCannotRezOutermostIce &&
-          state.run &&
-          state.servers[state.run.attackedServerId]?.ice[0] === iceId
-        ) {
-          // skip
-        } else {
-          const agendaDisc = ice.rezCostCreditDiscountOnForfeitAgenda ?? 0;
-          const discountedCost = Math.max(0, cost - agendaDisc);
-          let rezIceRecurring = 0;
-          for (const c of Object.values(state.cards)) {
-            if (c.side !== "corp" || !c.rezzed) continue;
-            if (abilitiesSuppressed(state, c.id)) continue;
-            if (!(c.recurringSpendFor ?? []).includes("rez_ice")) continue;
-            rezIceRecurring += c.recurringCredits ?? 0;
-          }
-          const canPay =
-            state.corp.credits + rezIceRecurring >= cost ||
-            (agendaDisc > 0 &&
-              state.corp.scoreArea.length > 0 &&
-              state.corp.credits + rezIceRecurring >= discountedCost);
-          if (canPay) {
-            actions.push({ type: "rez_ice", cardId: iceId });
-          }
-        }
-      }
+    // CR 8.1.2, 6.4.3: the approached ice, while unrezzed. Its cost, its
+    // additional costs and every "cannot rez" are apply's (CR 1.16.2a).
+    if (iceId && !state.cards[iceId]?.rezzed) {
+      const rez: Action = { type: "rez_ice", cardId: iceId };
+      if (applyTakes(state, rez)) actions.push(rez);
     }
   }
 }
@@ -444,9 +367,6 @@ export function addPaidWindowCandidates(
         if (card.side === "corp" && state.corp.discardPile.includes(cardId)) {
           if (!ab.usableFromArchives || paw !== "corp_action_paw") continue;
         }
-        if (card.side === "corp" && state.corp.discardPile.includes(cardId)) {
-          if (!ab.usableFromArchives || paw !== "corp_action_paw") continue;
-        }
         if (card.side === "corp" && state.runner.scoreArea.includes(cardId)) {
           if (!ab.usableFromRunnerScoreArea || paw !== "corp_action_paw") {
             continue;
@@ -514,11 +434,22 @@ export function addPaidWindowCandidates(
           }
           continue;
         }
-        actions.push({
+        const use: Action = {
           type: "use_paid_ability",
           cardId,
           abilityId: ab.id,
-        });
+        };
+        // An ability used from HQ, Archives or the Runner's score area plays
+        // or moves its own card, at costs the ability's own cost leaves out
+        // (Petty Cash plays itself from Archives for its play cost). Apply
+        // owns those, so they are tried (CR 1.16.1, 8.6.2).
+        const outsidePlay =
+          card.side === "corp" &&
+          (state.corp.hand.includes(cardId) ||
+            state.corp.discardPile.includes(cardId) ||
+            state.runner.scoreArea.includes(cardId));
+        if (outsidePlay && !applyTakes(state, use)) continue;
+        actions.push(use);
       }
     };
     if (
@@ -618,26 +549,8 @@ export function addPaidWindowCandidates(
               (card.type === "asset" || card.type === "upgrade") &&
               !card.rezzed
             ) {
-              const cost = Math.max(
-                0,
-                (card.rezCost ?? 0) -
-                  rezCostDiscountIfAgendaScoredOrStolenThisTurn(state, id),
-              );
-              const canForfeit =
-                !card.rezAdditionalCostForfeitAgenda ||
-                state.corp.scoreArea.some(
-                  (sid) => !state.cards[sid]?.cannotForfeit,
-                );
-              if (
-                state.corp.credits >= cost &&
-                canForfeit &&
-                !state.turn.cannotScoreOrRezCardIds.includes(id) &&
-                !state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(id) &&
-                (!card.rezOnlyDuringCorpTurn || state.activeSide === "corp") &&
-                (!card.rezRequiresTagged || runnerIsTagged(state))
-              ) {
-                actions.push({ type: "rez_asset", cardId: id });
-              }
+              const rez: Action = { type: "rez_asset", cardId: id };
+              if (applyTakes(state, rez)) actions.push(rez);
             }
             if (card.rezzed) consider(id);
           }
@@ -651,19 +564,11 @@ export function addPaidWindowCandidates(
             for (const id of server.ice) {
               if (abilitiesSuppressed(state, id)) continue;
               const ice = state.cards[id];
-              if (
-                !ice ||
-                ice.rezzed ||
-                !ice.rezAsNonIceDuringRunsOnServer ||
-                state.turn.cannotScoreOrRezCardIds.includes(id) ||
-                state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(id)
-              ) {
+              if (!ice || ice.rezzed || !ice.rezAsNonIceDuringRunsOnServer) {
                 continue;
               }
-              const cost = Math.max(0, ice.rezCost ?? 0);
-              if (state.corp.credits >= cost) {
-                actions.push({ type: "rez_ice", cardId: id });
-              }
+              const rez: Action = { type: "rez_ice", cardId: id };
+              if (applyTakes(state, rez)) actions.push(rez);
             }
           }
           // Rezzed ice paid abilities (ezaM swap) during Corp action PAW.
@@ -693,12 +598,6 @@ export function addPaidWindowCandidates(
         for (const id of state.runner.installed) {
           const card = state.cards[id];
           if (card?.paidAbilities?.some((a) => a.usableByAnyPlayer)) {
-            consider(id);
-          }
-        }
-        for (const id of state.corp.discardPile) {
-          const card = state.cards[id];
-          if (card?.paidAbilities?.some((a) => a.usableFromArchives)) {
             consider(id);
           }
         }

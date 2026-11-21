@@ -1878,12 +1878,11 @@
     "title": "minigame prevent netdmg resourcetrash",
     "status": "deferred",
     "reason": "Long multi-turn scenario / full-game script; deferred as a later regression batch.",
-    "classification": "engine-bug",
-    "crCite": "9.9.4d",
+    "classification": "agrees",
+    "crCite": "9.9.4d, 9.2.9c",
     "classificationBasis": "probe",
-    "classificationNote": "The resolutions are right when applied (ported, passing). While Neural EMP's net damage is pending, legalActions lists only accept_damage, so a table that offers legalActions never offers Net Shield's prevention; the action itself is accepted.",
-    "nativeTestFile": "tests/jnet-interactions-cards.test.ts",
-    "engineBugArea": "9. Damage"
+    "classificationNote": "The resolutions are right when applied, and while Neural EMP's net damage is pending legalActions offers Net Shield's prevention beside accept_damage (fixed in FX-legal-moves: an interrupt window gives both players priority).",
+    "nativeTestFile": "tests/jnet-interactions-cards.test.ts"
   },
   "game.core.scenarios-test/hb-glacier": {
     "upstreamFile": "test/clj/game/core/scenarios_test.clj",

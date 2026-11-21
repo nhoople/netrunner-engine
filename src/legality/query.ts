@@ -8,6 +8,8 @@ import { CR } from "../timing/labels.js";
 import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
 import { isForbidden } from "./checkpoints.js";
 import { collectCandidateActions } from "./candidates.js";
+import { pendingStepOpen } from "./candidatePending.js";
+import { rezzesAsNonIce } from "../actions/rez.js";
 import {
   currentPriorityWindow,
   paidAbilityActor,
@@ -273,8 +275,9 @@ export function queryLegality(state: GameState): LegalityView {
   const candidates = collectCandidateActions(state);
   const legal: LegalActionEntry[] = [];
 
+  const pendingOpen = once(() => pendingStepOpen(state));
   for (const action of candidates) {
-    const explanation = explainAction(state, action);
+    const explanation = explainWith(state, action, candidates, pendingOpen);
     if (explanation.legal) {
       legal.push({
         action,
@@ -310,61 +313,45 @@ export function explainAction(
   state: GameState,
   action: Action,
 ): ActionExplanation {
-  const window = windowInfo(state);
+  return explainWith(
+    state,
+    action,
+    collectCandidateActions(state),
+    once(() => pendingStepOpen(state)),
+  );
+}
 
-  if (state.done && action.type !== "pass_window") {
-    return {
-      legal: false,
-      action,
-      reason: "Game marked done.",
-      cites: [],
-      window,
-    };
-  }
-
-  const extraRefusal = extraDifferentActionRefusal(state, action);
-  if (extraRefusal) {
-    return {
-      legal: false,
-      action,
-      reason: extraRefusal.error,
-      cites: extraRefusal.cites,
-      window,
-    };
-  }
-
-  // Cannot precedence (CR 1.2.2)
-  const forbidKey =
-    action.type === "continue_run"
-      ? null
-      : (action.type as ForbiddenActionLike);
-  if (forbidKey && isForbiddenActionType(forbidKey)) {
-    const restriction = isForbidden(state, forbidKey);
-    if (restriction) {
-      return {
-        legal: false,
-        action,
-        reason: `Cannot ${restriction.forbid}: forbidden by ${restriction.source}`,
-        cites: [restriction.cite, CR.cannotPrecedence],
-        window,
-      };
+/** A lazily computed value, computed at most once. */
+function once<T>(compute: () => T): () => T {
+  let done = false;
+  let value: T;
+  return () => {
+    if (!done) {
+      value = compute();
+      done = true;
     }
-  }
+    return value;
+  };
+}
 
-  // Window / phase gates
-  const gate = gateAction(state, action);
-  if (!gate.ok) {
-    return {
-      legal: false,
-      action,
-      reason: gate.reason,
-      cites: gate.cites,
-      window,
-    };
-  }
+/**
+ * `explainAction` with the position's candidates, and whether a pending
+ * step is open, computed once for every action in the position.
+ */
+function explainWith(
+  state: GameState,
+  action: Action,
+  candidates: readonly Action[],
+  pendingOpen: () => boolean,
+): ActionExplanation {
+  const window = windowInfo(state);
+  const refusal = windowRefusal(state, action, {
+    priority: true,
+    pendingOpen,
+  });
+  if (refusal) return { legal: false, action, ...refusal, window };
 
   // Must appear among concrete candidates (resources, targets)
-  const candidates = collectCandidateActions(state);
   if (!candidates.some((c) => actionsEqual(c, action))) {
     return {
       legal: false,
@@ -383,6 +370,56 @@ export function explainAction(
     cites: citesForAction(action),
     window,
   };
+}
+
+/**
+ * Why `action` may not be taken in this window at all, whatever its
+ * targets and costs: the game is over, a "cannot" forbids it (CR 1.2.2),
+ * or the timing step does not allow it (CR 5.2.4, 9.2.7a, appendix 11). Null
+ * when the window allows it.
+ *
+ * `applyAction` calls this too (without the priority check, since an
+ * action carries no actor), so the legal-action list and apply share one
+ * window gate.
+ */
+export function windowRefusal(
+  state: GameState,
+  action: Action,
+  opts: { priority: boolean; pendingOpen?: () => boolean },
+): { reason: string; cites: RuleCite[] } | null {
+  if (state.done && action.type !== "pass_window") {
+    return { reason: "Game marked done.", cites: [] };
+  }
+
+  const extraRefusal = extraDifferentActionRefusal(state, action);
+  if (extraRefusal) {
+    return { reason: extraRefusal.error, cites: extraRefusal.cites };
+  }
+
+  // Cannot precedence (CR 1.2.2)
+  const forbidKey =
+    action.type === "continue_run"
+      ? null
+      : (action.type as ForbiddenActionLike);
+  if (forbidKey && isForbiddenActionType(forbidKey)) {
+    const restriction = isForbidden(state, forbidKey);
+    if (restriction) {
+      return {
+        reason: `Cannot ${restriction.forbid}: forbidden by ${restriction.source}`,
+        cites: [restriction.cite, CR.cannotPrecedence],
+      };
+    }
+  }
+
+  // Window / phase gates
+  const gate = gateAction(
+    state,
+    action,
+    opts.priority,
+    opts.pendingOpen ?? (() => pendingStepOpen(state)),
+  );
+  if (!gate.ok) return { reason: gate.reason, cites: gate.cites };
+  return null;
 }
 
 type ForbiddenActionLike = Parameters<typeof isForbidden>[1];
@@ -405,13 +442,22 @@ function isForbiddenActionType(t: string): t is ForbiddenActionLike {
 function gateAction(
   state: GameState,
   action: Action,
+  checkPriority: boolean,
+  pendingOpen: () => boolean,
 ): { ok: true } | { ok: false; reason: string; cites: RuleCite[] } {
   const step = getStep(state);
 
-  if (currentWindow(state.timingKey) && isSimultaneousWindowOption(action)) {
+  if (
+    checkPriority &&
+    currentWindow(state.timingKey) &&
+    isSimultaneousWindowOption(action)
+  ) {
     const actor = actorFor(action, state);
     const holder = priorityFor(state);
-    if (actor !== "system" && actor !== holder) {
+    // An interrupt window has its own priority (CR 9.2.9c), and a paid
+    // interrupt needs no paid ability window (CR 9.9.4d), so the paid
+    // ability window's holder does not limit who may use one.
+    if (actor !== "system" && actor !== holder && !pendingOpen()) {
       return {
         ok: false,
         reason: "The other player has priority.",
@@ -605,7 +651,12 @@ function gateAction(
       return { ok: true };
     }
     case "rez_ice":
-      if (state.timingKey !== "run.approachPaw") {
+      // Rime rezzes during runs on its server wherever non-ice cards can be
+      // rezzed (CR 1.2.1, 8.1.2b); its window is checked by rezIce.
+      if (
+        state.timingKey !== "run.approachPaw" &&
+        !rezzesAsNonIce(state, action.cardId)
+      ) {
         return {
           ok: false,
           reason: "Rez ice only during approach PAW (11.4_2_b).",

@@ -1,3 +1,4 @@
+import { corpInstallDestinationRefusal } from "../actions/installCorp.js";
 import type { Action, GameState, Server, ServerId } from "../state/types.js";
 import { likeCardsAtDestination } from "../actions/installCorp.js";
 import {
@@ -72,7 +73,12 @@ function scoreAgendaBlockedByCannot(state: GameState, cardId: string): boolean {
   return false;
 }
 
-function playRestrictionOk(state: GameState, cardId: string): boolean {
+/**
+ * The card's "play only if" restrictions are met (CR 9.3.3b, 9.1.8c). The
+ * legal-action list's play candidates and apply's play actions both read
+ * this, so a play the list leaves out is one apply refuses.
+ */
+export function playRestrictionOk(state: GameState, cardId: string): boolean {
   const card = state.cards[cardId];
   if (typeof card.playRequiresCreditsLt === "number") {
     const credits =
@@ -341,6 +347,25 @@ function corpIceInstallCost(
 }
 
 export function addClickActionCandidates(
+  state: GameState,
+  actions: Action[],
+  step: TimingStepDef,
+): void {
+  const start = actions.length;
+  addClickActions(state, actions, step);
+  // A Corp install is offered only where installCorp would put the card
+  // (CR 8.5.12, 9.3.3b; Research Station, region and "cannot install" limits).
+  for (let i = actions.length - 1; i >= start; i--) {
+    const a = actions[i]!;
+    if (a.type !== "basic_install") continue;
+    const card = state.cards[a.cardId];
+    if (card?.side !== "corp") continue;
+    if (corpInstallDestinationRefusal(state, card, a.destination))
+      actions.splice(i, 1);
+  }
+}
+
+function addClickActions(
   state: GameState,
   actions: Action[],
   step: TimingStepDef,

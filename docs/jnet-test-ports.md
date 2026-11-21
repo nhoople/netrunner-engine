@@ -72,7 +72,7 @@ Not ported. Each deferred scenario is being classified against the pinned CR (CR
 | `test/clj/game/core/subtypes_test.clj` | 3 | 3 | 0 | 0 | 0 |
 | `test/clj/game/core/rules_test.clj` | 32 | 11 | 12 | 9 | 0 |
 | `test/clj/game/core/runs_test.clj` | 36 | 11 | 17 | 8 | 0 |
-| `test/clj/game/core/scenarios_test.clj` | 13 | 2 | 4 | 7 | 0 |
+| `test/clj/game/core/scenarios_test.clj` | 13 | 2 | 5 | 6 | 0 |
 
 ### Disagreements (for a human decision)
 
@@ -103,7 +103,6 @@ The CR settles these and the engine is wrong. Each is listed under the Phase 3 a
   - `game.core.runs-test/multi-access-reordering-cards-during-multi-access` (CR 1.12.3, 7.4.7a; code) — Cards the Corp rearranges in R&D are new objects (CR 1.12.3, 7.4.7a.ex1), so an already-accessed card can be accessed again. refreshRdDeckCandidate keys eligibility on card id, and ids don't change on a rearrange, so the engine skips it.
 - **9. Damage**
   - `game.core.rules-test/runner-forced-to-discard-below-hand-size-ends-the-game` (CR 1.7.2b; code) — src/state/damage.ts flatlines the Runner as soon as core damage drops max hand size below 0. CR 1.7.2b flatlines only at the beginning of the discard step, and no discard-step check exists, so a hand size made negative by anything else never flatlines.
-  - `game.core.scenarios-test/minigame-prevent-netdmg-resourcetrash` (CR 9.9.4d; probe) — The resolutions are right when applied (ported, passing). While Neural EMP's net damage is pending, legalActions lists only accept_damage, so a table that offers legalActions never offers Net Shield's prevention; the action itself is accepted.
 - **10. Card flags and declarations**
   - `game.core.runs-test/multi-access-correct-handling-of-multi-accesses-with-draws-in-between-accesses` (CR 1.2.1 (card text), 9.3.7c; probe) — Probe: Sportsmetal never triggers when an agenda is stolen. src/actions/score.ts calls fireOnAgendaScoredOrStolen with the Runner identity, the rig, and installed Corp cards, never the Corp identity. The native test checks only the card's shape. The board's own expectations (candidates after draws) follow refreshRdDeckCandidate and look right.
 - **11. Turn structure, actions, breaking and psi**

@@ -44,7 +44,12 @@ import {
 } from "../legality/checkpoints.js";
 import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import { nestPriorityAfterAbility } from "../legality/priority.js";
-import { legalActions as queryLegalActions } from "../legality/query.js";
+import { stealDecision } from "../legality/candidatePending.js";
+import { playRestrictionOk } from "../legality/candidateClicks.js";
+import {
+  legalActions as queryLegalActions,
+  windowRefusal,
+} from "../legality/query.js";
 import {
   evalEffect,
   fireHostRezStateTriggers,
@@ -1693,6 +1698,10 @@ function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
   if (!atTake && (!window || !ability.windows.includes(window))) {
     return fail("Identity ability not usable now.", [CR.identityAbility]);
   }
+  // In a paid ability window it is a paid ability like any other (CR 9.2.7b),
+  // with once-per-turn limits and stipulations (AgInfusion: the approached
+  // ice is unrezzed), so it resolves through the same path the list offers.
+  if (!atTake) return usePaidAbility(state, idCard.id, abilityId);
   const cost = abilityCost(ability, state, idCard);
   if (!canPayCost(state, idCard.side, cost, idCard)) {
     return fail("Cannot pay identity ability cost.", [CR.identityAbility]);
@@ -1728,6 +1737,14 @@ function useIdentityAbility(state: GameState, abilityId: string): ApplyResult {
 export function applyAction(state: GameState, action: Action): ApplyResult {
   const result = applyActionCore(state, action);
   if (!result.ok) return result;
+  // The window gate the legal-action list uses, so apply never takes a move
+  // in a window the list refuses it in (CR 5.2.2, 5.2.4, 9.2.6, 9.2.7b;
+  // appendix 11). Priority stays with the list: an action names no actor.
+  // Checked after the action's own checks, so a refusal names what is wrong
+  // with the card (a rezzed card, an agenda short of counters) before the
+  // window (CR 8.1.2, 1.17.3a).
+  const refusal = windowRefusal(state, action, { priority: false });
+  if (refusal) return fail(refusal.reason, refusal.cites);
   const before = state.pendingChoice;
   const after = result.state.pendingChoice;
   if (
@@ -2111,6 +2128,19 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
     }
     switch (action.type) {
       case "prevent_damage":
+        // Damage only interrupt abilities may prevent offers no plain
+        // prevention (CR 9.9.4d), as the list says.
+        if (
+          next.pendingDamage.interruptPawOnly ||
+          next.pendingDamage.preventByLoseAllClicks
+        ) {
+          return fail("Only an interrupt ability can prevent this damage.", [
+            CR.preventDamage,
+          ]);
+        }
+        if (action.amount < 1 || action.amount > next.pendingDamage.remaining) {
+          return fail("Cannot prevent that much damage.", [CR.preventDamage]);
+        }
         preventPendingDamage(next, action.amount);
         break;
       case "prevent_damage_lose_all_clicks":
@@ -2740,15 +2770,32 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
     }
 
     case "play_operation":
-      return playOperation(next, action.cardId);
-
-    case "play_event":
-      return playEvent(
-        next,
-        action.cardId,
-        action.serverId,
-        action.trashGripForDiscountCardId,
-      );
+    case "play_event": {
+      // The list's "play only if" check (CR 9.3.3b, 9.1.8c). Read before the
+      // play and applied after it, so the play's own reasons come first.
+      const restricted =
+        Boolean(next.cards[action.cardId]) &&
+        !playRestrictionOk(next, action.cardId);
+      const played =
+        action.type === "play_operation"
+          ? playOperation(next, action.cardId)
+          : playEvent(
+              next,
+              action.cardId,
+              action.serverId,
+              action.trashGripForDiscountCardId,
+            );
+      if (played.ok && restricted) {
+        return fail(
+          `${next.cards[action.cardId]?.title ?? action.cardId}: its play restriction is not met.`,
+          [
+            CR.actRestriction,
+            action.type === "play_operation" ? CR.playOperation : CR.playEvent,
+          ],
+        );
+      }
+      return played;
+    }
 
     case "advance":
       return advanceCard(next, action.cardId);
@@ -3273,6 +3320,11 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         return fail("Cannot trash Corp cards this run.", [CR.trashing]);
       }
       const card = next.cards[action.cardId];
+      // A card with no trash cost cannot be trashed with the basic trash
+      // ability (CR 7.1.5a), as the access candidates already say.
+      if (card.trashCost === undefined) {
+        return fail(`${card.title} has no trash cost.`, [CR.noTrashCost]);
+      }
       if (runnerCannotTrashWhileRezzed(next, action.cardId)) {
         return fail(`Cannot trash rezzed ${card.title}.`, [CR.trashing]);
       }
@@ -3629,7 +3681,17 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       }
       // Pass mid-access (11.6_2) → agenda steal step (11.6_3) or complete.
       if (next.timingKey === "access.stealAgenda") {
-        // Declining steal when additional costs block / Runner declines.
+        // The Runner must steal an accessed agenda they are able to steal;
+        // only an additional cost lets them decline (CR 7.1.6, 7.1.6a).
+        const id = next.run.accessingCardId;
+        if (next.cards[id]?.type === "agenda") {
+          const steal = stealDecision(next, id);
+          if (steal.stealLegal && !steal.additionalCost) {
+            return fail("The Runner must steal the accessed agenda.", [
+              CR.midAccessAgenda,
+            ]);
+          }
+        }
         return completeAccessAndContinue(next);
       }
       return enterStealAgendaOrComplete(next);

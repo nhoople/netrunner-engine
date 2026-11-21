@@ -190,6 +190,7 @@ describe("Unscheduled Maintenance", () => {
       cardId: "iw-1",
       destination: { kind: "new_remote" },
     });
+    state = toTakeAction(state, "corp");
 
     // The second ice install this turn is refused and not offered.
     expect(iceInstalls(state)).toEqual([]);

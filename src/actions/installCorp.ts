@@ -27,6 +27,7 @@ import {
 import { fireTdatd419OnFirstCorpInstall } from "../effects/primitives/resolveExposePay.js";
 import type {
   ApplyResult,
+  CardInstance,
   GameState,
   InstallDestination,
   RuleCite,
@@ -197,6 +198,52 @@ function createRemote(state: GameState): Server {
   return server;
 }
 
+/**
+ * Why the Corp may not install `card` at `destination`: a "cannot install"
+ * restriction (Apex-class, regions, Unscheduled Maintenance), a limit on
+ * remote servers, or a card that may only be installed in particular
+ * servers (Research Station, Zato City Grid; CR 1.2.1). Null when the destination is allowed. The legal-action list's
+ * install candidates and `installCorp` both read this.
+ */
+export function corpInstallDestinationRefusal(
+  state: GameState,
+  card: CardInstance,
+  destination: InstallDestination,
+): { error: string; cites: RuleCite[] } | null {
+  const destServer =
+    destination.kind === "remote_root" || destination.kind === "protect"
+      ? destination.serverId
+      : undefined;
+  const blocked = installBlockReason(state, card, destServer);
+  if (blocked) return { error: blocked, cites: [CR.corpBasicInstall] };
+  if (destination.kind === "new_remote" && !canCreateAnotherRemote(state)) {
+    return {
+      error: "Cannot create another remote server.",
+      cites: [CR.corpBasicInstall],
+    };
+  }
+  // An unknown server is installCorp's own refusal, with its own reason.
+  const destKind = destServer ? state.servers[destServer]?.kind : undefined;
+  if (card.remoteOnly && destKind !== undefined && destKind !== "remote") {
+    return {
+      error: "Card may only be installed in a remote server.",
+      cites: [CR.corpBasicInstall],
+    };
+  }
+  if (card.installServers?.length) {
+    const only = {
+      error: `${card.title} may only be installed on ${card.installServers.join("/")}.`,
+      cites: [CR.corpInstallDest],
+    };
+    if (destination.kind === "new_remote") return only;
+    if (destination.kind === "remote_root") {
+      const sid = String(destination.serverId);
+      if (!new Set<string>(card.installServers).has(sid)) return only;
+    }
+  }
+  return null;
+}
+
 export function installCorp(
   state: GameState,
   cardId: string,
@@ -265,30 +312,8 @@ function installCorpInner(
       CR.installing,
     ]);
   }
-  const destServer =
-    destination.kind === "remote_root" || destination.kind === "protect"
-      ? destination.serverId
-      : undefined;
-  const blocked = installBlockReason(state, card, destServer);
-  if (blocked) return fail(blocked, [CR.corpBasicInstall]);
-  if (card.installServers?.length) {
-    const allowed = new Set(card.installServers);
-    if (destination.kind === "new_remote") {
-      return fail(
-        `${card.title} may only be installed on ${card.installServers.join("/")}.`,
-        [CR.corpInstallDest],
-      );
-    }
-    if (destination.kind === "remote_root") {
-      const sid = String(destination.serverId);
-      if (!allowed.has(sid as "hq" | "rd" | "archives")) {
-        return fail(
-          `${card.title} may only be installed on ${card.installServers.join("/")}.`,
-          [CR.corpInstallDest],
-        );
-      }
-    }
-  }
+  const refused = corpInstallDestinationRefusal(state, card, destination);
+  if (refused) return fail(refused.error, refused.cites);
 
   if (destination.kind === "host_upgrade") {
     if (card.type !== "ice" || !(card.subtypes ?? []).includes("bioroid")) {
@@ -336,11 +361,6 @@ function installCorpInner(
   // The new remote exists once the card moves into it (CR 8.5.16e).
   let createdRemote = false;
   if (destination.kind === "new_remote") {
-    if (!canCreateAnotherRemote(state)) {
-      return fail("Cannot create another remote server.", [
-        CR.corpBasicInstall,
-      ]);
-    }
     if (card.type === "ice") {
       server = createRemote(state);
       state.turn.installDestinationServerId = server.id;
@@ -354,11 +374,6 @@ function installCorpInner(
       card.type === "agenda" ||
       card.type === "upgrade"
     ) {
-      if (!canCreateAnotherRemote(state)) {
-        return fail("Cannot create another remote server.", [
-          CR.corpBasicInstall,
-        ]);
-      }
       server = createRemote(state);
       state.turn.installDestinationServerId = server.id;
       log(
@@ -405,12 +420,6 @@ function installCorpInner(
     }
   } else {
     return fail("Corp cannot install to runner .", [CR.corpBasicInstall]);
-  }
-
-  if (card.remoteOnly && server.kind !== "remote") {
-    return fail("Card may only be installed in a remote server.", [
-      CR.corpBasicInstall,
-    ]);
   }
 
   // CR 8.5.16c: trash like cards. An asset or agenda already in the root

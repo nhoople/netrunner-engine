@@ -299,7 +299,7 @@ describe("stored conditional triggers", () => {
     s.corp.credits = 5;
     s.corp.clicks = 2;
     s.activeSide = "corp";
-    s.timingKey = "corp.action";
+    s.timingKey = "corp.takeAction";
     const advanced = must(s, { type: "advance", cardId: "ag-1" });
     expect(advanced.corp.credits).toBe(5);
     expect(advanced.log.join("\n")).toContain("NeoTokyo Grid");

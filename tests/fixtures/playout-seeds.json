@@ -20,18 +20,10 @@
     {
       "format": "standard",
       "deckSeed": 2,
-      "step": 48,
-      "code": "REFUSED",
-      "recorded": "2026-11-13",
-      "detail": "basic_install at corp.takeAction: Cannot create another remote server."
-    },
-    {
-      "format": "eternal",
-      "deckSeed": 1,
-      "step": 6,
-      "code": "REFUSED",
-      "recorded": "2026-11-13",
-      "detail": "basic_install at corp.takeAction: Research Station may only be installed on hq."
+      "step": 79,
+      "code": "NO_ZONE",
+      "recorded": "2026-11-21",
+      "detail": "corp:working-prototype:42 (Working Prototype) is in corp:rd and in no zone list"
     }
   ]
 }

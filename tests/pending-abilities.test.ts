@@ -3765,7 +3765,7 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
     s.corp.credits = 5;
     s.corp.clicks = 2;
     s.activeSide = "corp";
-    s.timingKey = "corp.action";
+    s.timingKey = "corp.takeAction";
     const r = applyAction(s, { type: "advance", cardId: "ag-1" });
     if (!r.ok) throw new Error(r.error);
     s = r.state;

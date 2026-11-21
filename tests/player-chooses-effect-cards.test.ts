@@ -327,7 +327,7 @@ describe("costs: the payer picks (CR 1.16.1)", () => {
       cannotJackOut: false,
       accessingCardId: "pad-1",
     } as never;
-    s.timingKey = "run.access";
+    s.timingKey = "access.midAccess";
     let t = must(s, { type: "access_trash_from_grip" });
     expect(t.pendingCost?.payer).toBe("runner");
     expect(t.pendingCost?.count).toBe(2);

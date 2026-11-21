@@ -4,8 +4,8 @@
   "totals": {
     "rulings": 275,
     "cards": 134,
-    "tested": 96,
-    "filed": 34,
+    "tested": 97,
+    "filed": 33,
     "unreachable": 1,
     "uncited": 144
   },
@@ -20,8 +20,8 @@
     {
       "type": "event",
       "rulings": 44,
-      "tested": 32,
-      "filed": 11,
+      "tested": 33,
+      "filed": 10,
       "uncited": 1
     },
     {
@@ -562,7 +562,7 @@
     "tranquilizer#3": [],
     "tranquilizer#4": [],
     "tread-lightly#1": [
-      "rulings-event.test.ts › Tread Lightly: Asteroid Belt with 4 advancement counters costs 0 to rez: 9, plus 3, minus 12 (ruling 1; filed, area 7, CR 1.16.2a: the rez is not listed without the undiscounted credits)"
+      "rulings-event.test.ts › Tread Lightly: Asteroid Belt with 4 advancement counters costs 0 to rez: 9, plus 3, minus 12, and the rez is a legal move (ruling 1; CR 1.16.2a)"
     ],
     "trieste-model-bioroids#1": [],
     "trieste-model-bioroids#2": [],
@@ -650,7 +650,6 @@
     "tao-salonga-telepresence-magician#1",
     "tao-salonga-telepresence-magician#2",
     "test-run#1",
-    "tread-lightly#1",
     "zahya-sadeghi-versatile-smuggler#1",
     "zahya-sadeghi-versatile-smuggler#2"
   ]
