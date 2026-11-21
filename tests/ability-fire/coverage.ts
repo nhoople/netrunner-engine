@@ -25,9 +25,9 @@ export const REGENERATE = "npx tsx scripts/update-ability-fire.ts";
 /**
  * A test that resolves abilities on this many cards or more is a sweep
  * (card-executes, choice-timing): it runs every card's instructions to see
- * they do not throw, and checks nothing a given ability does. At engine
- * v1.147.273 the 12 such tests resolve abilities on 28 to 1,064 cards, and
- * every other test on 6 or fewer.
+ * they do not throw, and checks nothing a given ability does. When this was
+ * chosen, sweeps resolved abilities on 28 cards or more and every other test
+ * on 6 or fewer; the generated file lists the current sweeps.
  */
 export const SWEEP_CARDS = 20;
 

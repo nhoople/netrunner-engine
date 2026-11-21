@@ -45,16 +45,17 @@ import {
   type NeverFired,
 } from "../tests/ability-fire/coverage.js";
 import { ownerRank } from "../tests/cr-owners.js";
+import { FORMATS } from "../tests/playout/harness.js";
 
 const args = process.argv.slice(2);
 const allowNew = args.includes("--allow-new");
 const playoutsOnly = args.includes("--playouts-only");
 
-const PLAYOUT_FILES = [
-  "tests/learn-to-play-playout.test.ts",
-  "tests/playouts-startup.test.ts",
-  "tests/playouts-core-standard-eternal.test.ts",
-];
+/** The test files that call `describePlayouts` (tests/playout/suite.ts). */
+const PLAYOUT_FILES = readdirSync("tests")
+  .filter((name) => name.endsWith(".test.ts"))
+  .map((name) => `tests/${name}`)
+  .filter((file) => readFileSync(file, "utf8").includes("describePlayouts("));
 
 const cardsTag = JSON.parse(
   readFileSync("vendor/cards-data/PIN.json", "utf8"),
@@ -93,8 +94,11 @@ try {
       for (const test of names) set.add(`${data.file} > ${test}`);
     }
   }
-  if (Object.keys(playouts).length === 0)
-    throw new Error("no playout recorded anything; nothing written");
+  const missing = FORMATS.filter((format) => !playouts[format]);
+  if (missing.length > 0)
+    throw new Error(
+      `no record for playout format(s) ${missing.join(", ")}; nothing written`,
+    );
 
   const previous = existsSync(GENERATED_PATH) ? readGenerated() : undefined;
   // A test that resolves abilities on SWEEP_CARDS cards or more is a sweep.
