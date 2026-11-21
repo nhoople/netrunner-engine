@@ -2,7 +2,10 @@
  * Paid abilities on installed cards and identities.
  */
 import { trashInterruptRelevantToActor } from "../state/trashPrevent.js";
-import { paidAbilityBreakBlock } from "../state/procedures/break.js";
+import {
+  paidAbilityBreakBlock,
+  subroutinesBrokenByRunnerCount,
+} from "../state/procedures/break.js";
 import { log } from "../state/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
 import { drawCards } from "../effects/draw.js";
@@ -923,7 +926,7 @@ export function usePaidAbility(
   }
   if (ability.requireBrokenSubThisEncounter) {
     const enc = state.run?.encounter;
-    if (!enc || !enc.broken.some((b) => b)) {
+    if (subroutinesBrokenByRunnerCount(enc) === 0) {
       return fail(
         "Ability requires a subroutine already broken this encounter.",
         [CR.paidAbility],

@@ -34,6 +34,7 @@ import { fireHostRezStateTriggers } from "../eval.js";
 import { CR } from "../../timing/labels.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { unhostAllFrom, unhostCard } from "../../state/procedures/host.js";
+import { markRemainingSubroutinesNotBrokenByRunner } from "../../state/procedures/break.js";
 
 export function applyTrashKinds(
   ctx: EffectCtx,
@@ -2106,9 +2107,13 @@ export function applyTrashKinds(
       // The cost moves the ice. "This server" stays the server it protected
       // for the rest of this ability (CR 4.6.6i).
       ice.thisServerWhileResolving = state.run?.attackedServerId;
-      // Trash ice; mark all subs broken so the encounter does not keep firing.
+      // Trash ice; no other subroutine fires, and none was broken by the
+      // Runner (CR 6.5.7a).
       trashCard(state, enc.iceId, { by: "corp", cause: "cost" });
-      enc.broken = (ice.subroutines ?? []).map(() => true);
+      markRemainingSubroutinesNotBrokenByRunner(
+        enc,
+        (ice.subroutines ?? []).length,
+      );
       log(state, `Trash ${ice.title}; resolve "${sub.text}" (ZATO City Grid).`);
       const resolved = evalEffect({ state, sourceId: enc.iceId }, sub.effect);
       ice.thisServerWhileResolving = undefined;

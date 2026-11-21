@@ -40,6 +40,8 @@ import {
   paidAbilityBreakBlock,
   runnerBreakBlock,
   subroutineBreakBlock,
+  subroutineBrokenByRunner,
+  subroutinesBrokenByRunnerCount,
 } from "../state/procedures/break.js";
 import { runnerIsTagged } from "../state/tags.js";
 import type { PaidAbilityWindow } from "../state/types.js";
@@ -254,7 +256,7 @@ export function addPaidWindowCandidates(
         }
         if (ab.requireBrokenSubThisEncounter) {
           const enc = state.run?.encounter;
-          if (!enc || !enc.broken.some((b) => b)) continue;
+          if (subroutinesBrokenByRunnerCount(enc) === 0) continue;
         }
         if (ab.requireFullyBrokenThisEncounter) {
           const enc = state.run?.encounter;
@@ -671,7 +673,7 @@ export function addPaidWindowCandidates(
     const enc = state.run.encounter;
     const iceSubs = effectiveIceSubtypes(state, enc.iceId);
     for (let i = 0; i < enc.broken.length; i++) {
-      if (enc.broken[i]) continue;
+      if (subroutineBrokenByRunner(enc, i)) continue;
       for (const breakerId of state.runner.installed) {
         const br = state.cards[breakerId];
         if (!br.breaker) continue;
@@ -722,8 +724,8 @@ export function addPaidWindowCandidates(
       const subs = iceCardForMulti?.subroutines ?? [];
       const unbroken: number[] = [];
       for (let i = 0; i < enc.broken.length; i++) {
-        if (enc.broken[i]) continue;
-        if (subs[i]?.requireLostClickToBreakThisRun && !enc.broken[i]) {
+        if (subroutineBrokenByRunner(enc, i)) continue;
+        if (subs[i]?.requireLostClickToBreakThisRun) {
           if (!state.run?.lostClickToBreakThisRun) continue;
         }
         unbroken.push(i);

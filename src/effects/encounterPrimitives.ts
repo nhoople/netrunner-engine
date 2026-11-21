@@ -11,6 +11,7 @@ import {
 } from "./eval.js";
 import { fireOnEncounterEnd } from "../state/cardLifecycleHooks.js";
 import type { Primitive } from "./ir.js";
+import { markRemainingSubroutinesNotBrokenByRunner } from "../state/procedures/break.js";
 
 export function applyEncounterPrimitive(
   ctx: EffectCtx,
@@ -47,8 +48,12 @@ export function applyEncounterPrimitive(
           `Reaction window closes — ${ice.title} loses its pending status (CR ${CR.reactionWindowCloses.number}).`,
         );
       }
-      // Mark all subs broken and skip to movement via ended encounter.
-      state.run.encounter.broken = (ice.subroutines ?? []).map(() => true);
+      // No subroutine resolves; those not yet broken were bypassed, not
+      // broken by the Runner (CR 6.5.8c).
+      markRemainingSubroutinesNotBrokenByRunner(
+        state.run.encounter,
+        (ice.subroutines ?? []).length,
+      );
       state.run.bypassedIceIds = [...(state.run.bypassedIceIds ?? []), iceId];
       log(
         state,

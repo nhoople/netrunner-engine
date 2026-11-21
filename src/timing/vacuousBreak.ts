@@ -7,13 +7,15 @@ import { log } from "../state/createGame.js";
 import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";
 import { trashCard } from "../state/procedures/trash.js";
+import { allSubroutinesBrokenByRunner } from "../state/procedures/break.js";
 
 export function noteVacuousFullBreak(state: GameState): void {
   const run = state.run;
   const enc = run?.encounter;
   if (!run || !enc || run.endedTheRun) return;
   const broken = enc.broken ?? [];
-  if (!broken.every(Boolean)) return;
+  // Subroutines that resolved or were skipped are not broken (CR 6.5.7a).
+  if (!allSubroutinesBrokenByRunner(enc)) return;
   const ice = state.cards[enc.iceId];
   if (broken.length === 0 && !enc.fullyBrokenByRunner && ice) {
     log(

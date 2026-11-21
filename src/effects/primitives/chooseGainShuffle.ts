@@ -11,6 +11,7 @@ import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { resetEncounterBreaks } from "../../state/procedures/break.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -130,7 +131,10 @@ export function applyRedsandBawPrimitive(
         ...structuredClone(self.baseSubroutines),
       ];
       if (state.run.encounter?.iceId === sourceId) {
-        state.run.encounter.broken = (self.subroutines ?? []).map(() => false);
+        resetEncounterBreaks(
+          state.run.encounter,
+          (self.subroutines ?? []).length,
+        );
       }
       log(
         state,

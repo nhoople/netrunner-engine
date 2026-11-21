@@ -168,6 +168,10 @@ import {
 import { random, shuffleInPlace } from "../state/rng.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { hostCard } from "../state/procedures/host.js";
+import {
+  allSubroutinesBrokenByRunner,
+  subroutinesBrokenByRunnerCount,
+} from "../state/procedures/break.js";
 export {
   fireOnBypassTriggers,
   fireHostRezStateTriggers,
@@ -233,7 +237,10 @@ export function fireAfterBreakSubroutineHooks(
   const enc = state.run?.encounter;
   if (!enc) return;
   // Cyberdelia: first time each turn you fully break ice, gain N¢.
-  if (enc.broken.every(Boolean) && !state.turn.ssFirstFullyBreakCreditsFired) {
+  if (
+    allSubroutinesBrokenByRunner(enc) &&
+    !state.turn.ssFirstFullyBreakCreditsFired
+  ) {
     for (const rid of state.runner.installed) {
       if (abilitiesSuppressed(state, rid)) continue;
       const hw = state.cards[rid];
@@ -546,7 +553,7 @@ export function resolveSide(ctx: EffectCtx, ref: SideRef): Side {
 export function maybeFireFluxFirstBreakCharge(state: GameState): boolean {
   const enc = state.run?.encounter;
   if (!enc) return false;
-  const brokenCount = enc.broken.filter(Boolean).length;
+  const brokenCount = subroutinesBrokenByRunnerCount(enc);
   if (brokenCount !== 1) return false;
   const fired = enc.firstBreakChargeFiredIds ?? [];
   for (const id of state.runner.installed) {

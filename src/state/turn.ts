@@ -585,6 +585,10 @@ export function endEffectsOnPreviousObject(
   cardId: string,
 ): void {
   endLingeringEffectsOnCard(state, cardId);
+  // The card that moved is a new object (CR 1.12.1): Test Run's
+  // end-of-turn return applies only to the program it put into play.
+  const moved = state.cards[cardId];
+  if (moved?.bounceToStackAtTurnEnd) delete moved.bounceToStackAtTurnEnd;
   for (const card of Object.values(state.cards)) {
     const self = card.id === cardId;
     if (

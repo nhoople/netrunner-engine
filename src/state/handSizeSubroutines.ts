@@ -7,6 +7,7 @@ import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
+import { trimEncounterBreaks } from "./procedures/break.js";
 
 export function syncCorpHandSizeSubroutines(
   state: GameState,
@@ -47,6 +48,7 @@ export function syncCorpHandSizeSubroutines(
   const kept = encounter.broken.slice(0, base.length + Math.min(before, n));
   while (kept.length < base.length + n) kept.push(false);
   encounter.broken = kept;
+  trimEncounterBreaks(encounter, base.length + Math.min(before, n));
   if (n > before) {
     log(
       state,

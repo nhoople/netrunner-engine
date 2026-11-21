@@ -161,21 +161,6 @@
   },
   {
     "batch": "cr-examples-ch1",
-    "case": "1.16.1b.ex2",
-    "observations": [
-      {
-        "key": "encounter::run.outcome",
-        "expected": "unsuccessful",
-        "engine": "in-progress"
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "6.1.4",
-    "note": "When an effect ends the run the phase stops. After an encounter ability ends the run with no choice open, the engine goes on to resolve the subroutines of the ice",
-    "area": "14"
-  },
-  {
-    "batch": "cr-examples-ch1",
     "case": "1.16.2c.ex1",
     "observations": [
       {

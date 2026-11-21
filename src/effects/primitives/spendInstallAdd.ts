@@ -20,6 +20,7 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { moveRunnerToOutermost } from "../../state/runPosition.js";
+import { resetEncounterBreaks } from "../../state/procedures/break.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -315,7 +316,7 @@ export function applySpinHapPrimitive(
       }));
       ice.subroutines = [...base, ...extras];
       if (state.run?.encounter?.iceId === sourceId) {
-        state.run.encounter.broken = ice.subroutines.map(() => false);
+        resetEncounterBreaks(state.run.encounter, ice.subroutines.length);
       }
       log(state, `Komainu — gains ${n} net damage subroutine(s).`);
       return { ok: true };

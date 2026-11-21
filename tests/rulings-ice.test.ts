@@ -283,7 +283,7 @@ describe("Tollbooth", () => {
     s = must(s, { type: "basic_run", serverId: "hq" });
     return drive(
       s,
-      (x) => !!x.pendingChoice || x.run?.encounter?.iceId === "tb-1",
+      (x) => !!x.pendingChoice || !x.run || x.run.encounter?.iceId === "tb-1",
     );
   }
 
@@ -352,7 +352,7 @@ describe("Funhouse", () => {
     installIce(s, "funhouse", "fh-1", "hq");
     s = must(s, { type: "basic_run", serverId: "hq" });
     const start = s.log.length;
-    s = drive(s, (x) => !!x.pendingChoice);
+    s = drive(s, (x) => !!x.pendingChoice || !x.run);
     // The Runner is never offered the tag: the cost would be prevented.
     const log = s.log.slice(start).join("\n");
     expect(log).toMatch(/Cannot take 1 tag\(s\) as nested cost/);
