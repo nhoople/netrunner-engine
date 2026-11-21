@@ -194,6 +194,29 @@ export function toCorpTurn(s: GameState): GameState {
   return drive(s, atCorpAction);
 }
 
+/**
+ * Spend the Corp's last click and play on to the Runner's next turn: stops
+ * at the first choice (a turn-begin ability) or the Runner's first action.
+ */
+export function toRunnerTurn(s: GameState): GameState {
+  s.config.stopAfterFirstCycle = false;
+  s.activeSide = "corp";
+  s.timingKey = "corp.takeAction";
+  s.corp.clicks = 1;
+  s = must(s, { type: "basic_gain_credit" });
+  return drive(s, atRunnerAction);
+}
+
+/** Take the first option of each open choice, then go on to `stop`. */
+export function settle(s: GameState, stop = atRunnerAction): GameState {
+  for (let i = 0; i < 10; i++) {
+    s = drive(s, stop);
+    if (!s.pendingChoice) return s;
+    s = must(s, { type: "choose_option", optionId: optionIds(s)[0]! });
+  }
+  return s;
+}
+
 const WALK_ORDER: Action["type"][] = [
   "continue_run",
   "access_card",
