@@ -37,7 +37,7 @@ import {
   startingHandSizeFor,
   type DeckEntry,
 } from "../../src/index.js";
-import { setApplyHook } from "../../src/debug/applyHook.js";
+import { setApplyHook, type ApplyHook } from "../../src/debug/applyHook.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import { fireOnGameStartSetup } from "../../src/state/createGame.js";
 import type {
@@ -634,20 +634,32 @@ function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** Called at each position a playout reaches, with the moves listed there. */
+export type Observe = (
+  state: GameState,
+  step: number,
+  legal: ReturnType<typeof queryLegality>["legal"],
+) => void;
+
 /**
  * Plays `format` from `seed` for up to `steps` actions. The global
  * invariant hook (`tests/setup/invariants.ts`) is paused while it runs: this
  * function checks the same invariants after every action and reports them as
  * failures, so the playouts keep one baseline (`tests/fixtures/playout-seeds.json`)
  * instead of two.
+ *
+ * `applied`, if given, is the apply hook while the playout runs: it sees
+ * every action the playout applies, the driver's passes for idle seats
+ * included (the timing walk, tests/playout/timing-walk.ts).
  */
 export function playout(
   format: Format,
   seed: number,
   steps = PLAYOUT_STEPS,
-  observe?: (state: GameState, step: number) => void,
+  observe?: Observe,
+  applied?: ApplyHook,
 ): PlayoutResult {
-  const previousHook = setApplyHook(null);
+  const previousHook = setApplyHook(applied ?? null);
   try {
     return play(format, seed, steps, observe);
   } finally {
@@ -659,7 +671,7 @@ function play(
   format: Format,
   seed: number,
   steps: number,
-  observe?: (state: GameState, step: number) => void,
+  observe?: Observe,
 ): PlayoutResult {
   const failures: Failure[] = [];
   const seenInvariant = new Set<string>();
@@ -686,7 +698,7 @@ function play(
       });
       break;
     }
-    observe?.(state, step);
+    observe?.(state, step, legal);
     if (legal.length === 0) {
       failures.push({
         code: "NO_LEGAL_ACTION",

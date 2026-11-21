@@ -24,6 +24,7 @@ import {
 } from "../legality/checkpoints.js";
 import { ensurePriorityWindow } from "../legality/priority.js";
 import { CR } from "./labels.js";
+import { runStepHook } from "../debug/stepHook.js";
 
 const MAX_AUTO = 64;
 
@@ -41,6 +42,7 @@ export function enterStep(state: GameState, key: string): void {
   const step = STEPS[key];
   if (!step) throw new Error(`Unknown timing key: ${key}`);
   state.timingKey = key;
+  runStepHook(state, previousKey);
   state.timing = cursorFrom(step);
   if (step.turnPhase) {
     state.turnPhase = step.turnPhase;

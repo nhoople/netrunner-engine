@@ -44,6 +44,23 @@ const CI_SEEDS: Record<Format, number> = {
   eternal: 2,
 };
 
+/**
+ * The seeds CI plays for `format`: 1..`CI_SEEDS`, then every other seed
+ * `tests/fixtures/playout-seeds.json` records for it, in order.
+ */
+export function playoutSeedList(format: Format, seeds = readSeeds()): number[] {
+  const pinned = seeds.entries
+    .filter((e) => e.format === format)
+    .map((e) => e.deckSeed);
+  const list = [
+    ...new Set([
+      ...Array.from({ length: CI_SEEDS[format] }, (_, i) => i + 1),
+      ...pinned,
+    ]),
+  ];
+  return list.sort((a, b) => a - b);
+}
+
 export function describePlayouts(formats: readonly Format[]): void {
   beforeAll(() => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -54,16 +71,7 @@ export function describePlayouts(formats: readonly Format[]): void {
 
   const seeds = readSeeds();
   for (const format of formats) {
-    const pinned = seeds.entries
-      .filter((e) => e.format === format)
-      .map((e) => e.deckSeed);
-    const list = [
-      ...new Set([
-        ...Array.from({ length: CI_SEEDS[format] }, (_, i) => i + 1),
-        ...pinned,
-      ]),
-    ];
-    list.sort((a, b) => a - b);
+    const list = playoutSeedList(format, seeds);
     describe(`playout ${format}`, () => {
       const fired = new Set<string>();
       for (const seed of list) {

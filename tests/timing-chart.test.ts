@@ -6,7 +6,6 @@
  * gates. A click-leading ability stays on the "takes an action" lines
  * (CR 5.2.1, 5.4.1).
  */
-import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { startRun } from "../src/actions/run.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../src/cards/stubs.js";
@@ -27,16 +26,13 @@ import {
   assertPinnedTag,
   crDataPresent,
   queryLegality,
-  vendorPathForPinFile,
 } from "../src/index.js";
-
-interface ChartNode {
-  id: string;
-  number: string;
-  parent_id: string | null;
-  child_ids: string[];
-  text_plain: string;
-}
+import {
+  CHARTS,
+  chartNodes as readChart,
+  loadChartNodes,
+  type ChartNode,
+} from "./timing-chart.js";
 
 interface Arm {
   from: string;
@@ -370,8 +366,6 @@ const NOT_PAID_ABILITY_WINDOWS = new Set([
   "run.completeOtherPriorityWindows",
 ]);
 
-const CHARTS = ["11.2", "11.3", "11.4", "11.5", "11.6"] as const;
-
 function passWindow(state: GameState): GameState {
   const result = applyAction(state, { type: "pass_window" });
   if (!result.ok) throw new Error(`${state.timingKey}: ${result.error}`);
@@ -500,37 +494,22 @@ function standOn(key: string): {
 }
 
 let nodes: ChartNode[] = [];
-const byId = new Map<string, ChartNode>();
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   assertPinnedTag("v26.03");
-  nodes = JSON.parse(
-    readFileSync(vendorPathForPinFile("data/timing-structures.json"), "utf8"),
-  ) as ChartNode[];
-  for (const node of nodes) byId.set(node.id, node);
+  nodes = loadChartNodes();
 });
 
+/** The chart's lines, with each line the graph cites or names as skipped. */
 function chartNodes(prefix: (typeof CHARTS)[number]): ChartNode[] {
-  const phases = nodes
-    .filter((node) => new RegExp(`^${prefix}_\\d+$`).test(node.number))
-    .sort((a, b) =>
-      a.number.localeCompare(b.number, undefined, { numeric: true }),
-    );
-  const out: ChartNode[] = [];
-  const visit = (node: ChartNode) => {
-    const cited =
+  return readChart(
+    nodes,
+    prefix,
+    (node) =>
       Object.values(STEPS).some((step) => step.stepNumber === node.number) ||
-      Object.prototype.hasOwnProperty.call(CHART_SKIPS, node.number);
-    if (node.child_ids.length === 0 || cited) out.push(node);
-    for (const childId of node.child_ids) {
-      const child = byId.get(childId);
-      if (!child) throw new Error(`Missing timing child ${childId}`);
-      visit(child);
-    }
-  };
-  for (const phase of phases) visit(phase);
-  return out;
+      Object.prototype.hasOwnProperty.call(CHART_SKIPS, node.number),
+  );
 }
 
 function engineSteps(prefix: (typeof CHARTS)[number]): TimingStepDef[] {
