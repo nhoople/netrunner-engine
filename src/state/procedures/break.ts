@@ -183,25 +183,118 @@ export function interfaceBlock(
  * the Runner (Chum, The Gauntlet).
  */
 export function encounterFullyBrokenByRunner(
-  enc:
-    NonNullable<NonNullable<GameState["run"]>["encounter"]> | null | undefined,
+  enc: Encounter | null | undefined,
 ): boolean {
   if (!enc) return false;
   if (enc.fullyBrokenByRunner) return true;
-  const notByRunner = enc.notBrokenByRunner ?? [];
-  return (
-    enc.broken.length > 0 &&
-    enc.broken.every((b, i) => b && !notByRunner.includes(i))
-  );
+  return enc.broken.length > 0 && allSubroutinesBrokenByRunner(enc);
+}
+
+type Encounter = NonNullable<NonNullable<GameState["run"]>["encounter"]>;
+
+/**
+ * Subroutine `index` was broken by the Runner this encounter. A subroutine
+ * that resolved, was prevented, was skipped or was bypassed is not broken
+ * (CR 6.5.7a, 6.5.8b): it is marked in `broken` only so it does not fire.
+ * Every reader that asks "did the Runner break it" reads this.
+ */
+export function subroutineBrokenByRunner(
+  enc: Encounter | null | undefined,
+  index: number,
+): boolean {
+  if (!enc || !enc.broken[index]) return false;
+  return !(enc.notBrokenByRunner ?? []).includes(index);
+}
+
+/** How many subroutines the Runner broke this encounter. */
+export function subroutinesBrokenByRunnerCount(
+  enc: Encounter | null | undefined,
+): number {
+  if (!enc) return 0;
+  let n = 0;
+  for (let i = 0; i < enc.broken.length; i++) {
+    if (subroutineBrokenByRunner(enc, i)) n += 1;
+  }
+  return n;
+}
+
+/**
+ * Every subroutine on the ice is broken by the Runner (CR 6.5.7a). True for
+ * ice with no subroutines (CR 9.12.2d); callers decide when that applies.
+ */
+export function allSubroutinesBrokenByRunner(enc: Encounter): boolean {
+  return enc.broken.every((_, i) => subroutineBrokenByRunner(enc, i));
 }
 
 /** Mark subroutine `index` done without the Runner breaking it. */
 export function markSubroutineNotBrokenByRunner(
-  enc: NonNullable<NonNullable<GameState["run"]>["encounter"]>,
+  enc: Encounter,
   index: number,
 ): void {
   enc.broken[index] = true;
-  enc.notBrokenByRunner = [...(enc.notBrokenByRunner ?? []), index];
+  if (!(enc.notBrokenByRunner ?? []).includes(index)) {
+    enc.notBrokenByRunner = [...(enc.notBrokenByRunner ?? []), index];
+  }
+}
+
+/**
+ * The Runner broke subroutine `index`. A subroutine that Mass-Driver kept
+ * from resolving is still unbroken, so the Runner may break it (CR 9.8.5,
+ * 9.8.6); breaking it clears that mark.
+ */
+export function markSubroutineBrokenByRunner(
+  enc: Encounter,
+  index: number,
+): void {
+  enc.broken[index] = true;
+  if (enc.notBrokenByRunner?.includes(index)) {
+    enc.notBrokenByRunner = enc.notBrokenByRunner.filter((i) => i !== index);
+  }
+}
+
+/**
+ * Bypass, or another way the encounter ends with no more subroutines to
+ * resolve: mark every subroutine not yet broken as done without the Runner
+ * breaking it (CR 6.5.8b–c). Subroutines the Runner already broke stay
+ * broken by the Runner.
+ */
+export function markRemainingSubroutinesNotBrokenByRunner(
+  enc: Encounter,
+  count: number = enc.broken.length,
+): void {
+  while (enc.broken.length < count) enc.broken.push(false);
+  for (let i = 0; i < enc.broken.length; i++) {
+    if (!enc.broken[i]) markSubroutineNotBrokenByRunner(enc, i);
+  }
+}
+
+/** The encountered ice's subroutines were replaced: no marks carry over. */
+export function resetEncounterBreaks(enc: Encounter, count: number): void {
+  enc.broken = Array.from({ length: count }, () => false);
+  enc.notBrokenByRunner = undefined;
+}
+
+/**
+ * `delta` subroutines were inserted at `at` (delta > 0), or removed from `at`
+ * (delta < 0): the not-broken-by-the-Runner marks move with their
+ * subroutines, and a removed subroutine's mark goes with it.
+ */
+export function shiftEncounterBreaks(
+  enc: Encounter,
+  at: number,
+  delta: number,
+): void {
+  if (!enc.notBrokenByRunner?.length) return;
+  const removedEnd = delta < 0 ? at - delta : at;
+  enc.notBrokenByRunner = enc.notBrokenByRunner
+    .filter((i) => i < at || i >= removedEnd)
+    .map((i) => (i >= at ? i + delta : i));
+}
+
+/** The encountered ice now has `length` subroutines: drop marks past the end. */
+export function trimEncounterBreaks(enc: Encounter, length: number): void {
+  if (!enc.notBrokenByRunner?.length) return;
+  enc.notBrokenByRunner = enc.notBrokenByRunner.filter((i) => i < length);
 }
 
 /**
@@ -299,6 +392,20 @@ function printedTest(ice: CardInstance): (index: number) => boolean {
 }
 
 /**
+ * The Runner broke a printed subroutine of the encountered ice this encounter
+ * (Mirāju: "if the Runner broke its printed subroutine"; CR 6.5.7a, 9.8.3).
+ */
+export function printedSubroutineBrokenByRunner(
+  ice: CardInstance,
+  enc: Encounter,
+): boolean {
+  const isPrinted = printedTest(ice);
+  return enc.broken.some(
+    (_, i) => isPrinted(i) && subroutineBrokenByRunner(enc, i),
+  );
+}
+
+/**
  * Hammer class: how many printed subroutines this source may break on this
  * ice in one encounter, or undefined when there is no cap for it.
  */
@@ -341,7 +448,7 @@ export function subroutineBreakBlock(
   if (!ice || index < 0 || index >= enc.broken.length) {
     return block("Invalid subroutine index.", [CR.encounterSubResolve]);
   }
-  if (enc.broken[index]) {
+  if (subroutineBrokenByRunner(enc, index)) {
     return block("Subroutine already broken.", [CR.fullyBreak]);
   }
   if (enc.forbidRunnerBreakThisEncounter) {
@@ -363,7 +470,7 @@ export function subroutineBreakBlock(
   if (cap !== undefined) {
     let counted = -(enc.exemptPrintedBreaks ?? 0);
     for (let i = 0; i < enc.broken.length; i++) {
-      if (enc.broken[i] && isPrinted(i)) counted += 1;
+      if (subroutineBrokenByRunner(enc, i) && isPrinted(i)) counted += 1;
     }
     if (counted >= cap) {
       return block(
@@ -402,7 +509,7 @@ export function markSubroutineBroken(
   if (!enc) return;
   const ice = state.cards[enc.iceId];
   if (
-    !enc.broken[index] &&
+    !subroutineBrokenByRunner(enc, index) &&
     ice &&
     sourceId &&
     breakerExemptFromCap(ice, state.cards[sourceId]) &&
@@ -410,7 +517,7 @@ export function markSubroutineBroken(
   ) {
     enc.exemptPrintedBreaks = (enc.exemptPrintedBreaks ?? 0) + 1;
   }
-  enc.broken[index] = true;
+  markSubroutineBrokenByRunner(enc, index);
 }
 
 /**
@@ -421,9 +528,11 @@ export function breakableCount(state: GameState, sourceId: string): number {
   const enc = state.run?.encounter;
   if (!enc) return 0;
   const broken = [...enc.broken];
+  const notByRunner = enc.notBrokenByRunner;
   const exempt = enc.exemptPrintedBreaks;
   const n = breakNextSubroutines(state, sourceId, Infinity).length;
   enc.broken = broken;
+  enc.notBrokenByRunner = notByRunner;
   enc.exemptPrintedBreaks = exempt;
   return n;
 }

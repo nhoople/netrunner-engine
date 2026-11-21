@@ -996,12 +996,10 @@ describe("Steelskin Scarring", () => {
 // ---------------------------------------------------------------------------
 
 describe("Test Run", () => {
-  // Filed under area 2: Test Run's end-of-turn effect follows the card id,
-  // so Corroder returned to the grip and reinstalled by Rejig still goes to
-  // the top of the stack. A card that changes zones is a new object, and
-  // the lingering effect applies only to the object Test Run installed
-  // (CR 1.12.1).
-  it.skip("Test Run: a program reinstalled with Rejig is a new object, so it is not added to the stack at the end of the turn (ruling 1; filed, area 2, CR 1.12.1: the reinstalled program still goes to the stack)", () => {
+  // A card that changes zones is a new object, and the lingering effect
+  // applies only to the object Test Run installed (CR 1.12.1; fixed in
+  // RF-1b).
+  it("Test Run: a program reinstalled with Rejig is a new object, so it is not added to the stack at the end of the turn (ruling 1; CR 1.12.1)", () => {
     let s = runnerTurn(fresh(), 10);
     stack(s, 0);
     put(s, "corroder", "cor-1", "runner:heap");
@@ -1019,6 +1017,7 @@ describe("Test Run", () => {
           ids[0]!,
       });
     }
+    s = drive(s, atRunnerAction);
     expect(s.runner.installed).toContain("cor-1");
     // Rejig's cost returns Corroder to the grip; it installs it again.
     s = must(s, { type: "play_event", cardId: "rj-1" });

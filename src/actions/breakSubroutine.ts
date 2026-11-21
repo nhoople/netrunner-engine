@@ -18,12 +18,15 @@ import {
 import { fireOnFullyBreak, fireOnRez } from "../state/cardLifecycleHooks.js";
 import { effectiveBreakerStrength } from "../cards/stubs.js";
 import {
+  allSubroutinesBrokenByRunner,
   breakActionCost,
   declaredBreakBlock,
   interfaceBlock,
   markSubroutineBroken,
+  markSubroutineBrokenByRunner,
   runnerBreakBlock,
   subroutineBreakBlock,
+  subroutineBrokenByRunner,
 } from "../state/procedures/break.js";
 import {
   runnerAvailableCreditsForBreaker,
@@ -147,7 +150,7 @@ export function breakSubroutine(
     }
   }
   markSubroutineBroken(state, breakerId, subIndex);
-  if (run.encounter.broken.every(Boolean)) {
+  if (allSubroutinesBrokenByRunner(run.encounter)) {
     run.encounter.fullyBrokenByRunner = true;
     noteVacuousFullBreak(state);
   }
@@ -210,16 +213,16 @@ export function breakSubroutine(
     return ok(state);
   }
   // Curupira: every full break.
-  if (run.encounter.broken.every(Boolean))
-    onFullBreak(state, run.encounter.iceId);
-  if (breaker.onFullyBreak && run.encounter.broken.every(Boolean)) {
+  const fully = allSubroutinesBrokenByRunner(run.encounter);
+  if (fully) onFullBreak(state, run.encounter.iceId);
+  if (breaker.onFullyBreak && fully) {
     fireOnFullyBreak(state, breakerId);
     if (state.pendingChoice) return ok(state);
   }
   // Orca / Abaasy: first full break this turn by this program
   if (
     breaker.onFullyBreakOncePerTurn &&
-    run.encounter.broken.every(Boolean) &&
+    fully &&
     !state.turn.onFullyBreakFiredIds.includes(breakerId)
   ) {
     state.turn.onFullyBreakFiredIds.push(breakerId);
@@ -406,7 +409,7 @@ export function finalizePendingSubroutineBreak(
     nestPriorityAfterAbility(state, "break_bioroid_subroutine");
     return ok(state);
   }
-  run.encounter.broken[pending.subIndex] = true;
+  markSubroutineBrokenByRunner(run.encounter, pending.subIndex);
   log(
     state,
     `Break "${ice.subroutines?.[pending.subIndex]?.text ?? ""}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}).`,
@@ -419,7 +422,7 @@ export function finalizePendingSubroutineBreak(
       `${ice.title} — Corp allotted clicks next turn +1 → pending ${state.corpAllottedClicksDeltaNextTurn} (CR ${CR.corpAllottedClicks.number}).`,
     );
   }
-  if (run.encounter.broken.every(Boolean)) {
+  if (allSubroutinesBrokenByRunner(run.encounter)) {
     run.encounter.fullyBrokenByRunner = true;
     noteVacuousFullBreak(state);
   }
@@ -456,7 +459,7 @@ export function breakBioroidSubroutine(
   if (subIndex < 0 || subIndex >= subs.length) {
     return fail("Invalid subroutine index.", [CR.encounterSubResolve]);
   }
-  if (run.encounter.broken[subIndex]) {
+  if (subroutineBrokenByRunner(run.encounter, subIndex)) {
     return fail("Subroutine already broken.", [CR.fullyBreak]);
   }
   if (
@@ -485,7 +488,7 @@ export function breakBioroidSubroutine(
     );
     return ok(state);
   }
-  run.encounter.broken[subIndex] = true;
+  markSubroutineBrokenByRunner(run.encounter, subIndex);
   log(
     state,
     `Runner spends [click] to break "${subs[subIndex].text}" on bioroid ${ice.title} (CR ${CR.encounterBreakPaw.number}, ${CR.spendClicks.number}).`,
@@ -498,7 +501,7 @@ export function breakBioroidSubroutine(
       `${ice.title} — Corp allotted clicks next turn +1 → pending ${state.corpAllottedClicksDeltaNextTurn} (CR ${CR.corpAllottedClicks.number}).`,
     );
   }
-  if (run.encounter.broken.every(Boolean)) {
+  if (allSubroutinesBrokenByRunner(run.encounter)) {
     run.encounter.fullyBrokenByRunner = true;
     noteVacuousFullBreak(state);
   }
@@ -554,7 +557,7 @@ export function breakBioroidSubroutines(
     if (subIndex < 0 || subIndex >= subs.length) {
       return fail("Invalid subroutine index.", [CR.encounterSubResolve]);
     }
-    if (run.encounter.broken[subIndex]) {
+    if (subroutineBrokenByRunner(run.encounter, subIndex)) {
       return fail("Subroutine already broken.", [CR.fullyBreak]);
     }
     if (
@@ -577,7 +580,7 @@ export function breakBioroidSubroutines(
     state.runner.clicks -= maxSubs;
   });
   for (const subIndex of uniq) {
-    run.encounter.broken[subIndex] = true;
+    markSubroutineBrokenByRunner(run.encounter, subIndex);
   }
   run.lostClickToBreakThisRun = true;
   log(
@@ -592,7 +595,7 @@ export function breakBioroidSubroutines(
       `${ice.title} — Corp allotted clicks next turn +1 → pending ${state.corpAllottedClicksDeltaNextTurn} (CR ${CR.corpAllottedClicks.number}).`,
     );
   }
-  if (run.encounter.broken.every(Boolean)) {
+  if (allSubroutinesBrokenByRunner(run.encounter)) {
     run.encounter.fullyBrokenByRunner = true;
     noteVacuousFullBreak(state);
   }

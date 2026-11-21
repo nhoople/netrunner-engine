@@ -4,8 +4,8 @@
   "totals": {
     "rulings": 275,
     "cards": 134,
-    "tested": 196,
-    "filed": 73,
+    "tested": 197,
+    "filed": 72,
     "unreachable": 6,
     "uncited": 0
   },
@@ -20,8 +20,8 @@
     {
       "type": "event",
       "rulings": 44,
-      "tested": 34,
-      "filed": 10,
+      "tested": 35,
+      "filed": 9,
       "uncited": 0
     },
     {
@@ -755,7 +755,7 @@
       "rulings-identity.test.ts › Tāo Salonga: ice hosted on Awakening Center can be swapped with a rezzed bioroid protecting a server, not with other ice (ruling 2; filed, area 3, CR 8.8.2: hosted ice is never offered)"
     ],
     "test-run#1": [
-      "rulings-event.test.ts › Test Run: a program reinstalled with Rejig is a new object, so it is not added to the stack at the end of the turn (ruling 1; filed, area 2, CR 1.12.1: the reinstalled program still goes to the stack)"
+      "rulings-event.test.ts › Test Run: a program reinstalled with Rejig is a new object, so it is not added to the stack at the end of the turn (ruling 1; CR 1.12.1)"
     ],
     "the-twinning#1": [
       "rulings-resource.test.ts › The Twinning: spending Prepaid VoicePAD's recurring credit to play an event places a power counter (ruling 1)"
@@ -961,7 +961,6 @@
     "stoneship-chart-room#2",
     "tao-salonga-telepresence-magician#1",
     "tao-salonga-telepresence-magician#2",
-    "test-run#1",
     "the-twinning#3",
     "the-twinning#4",
     "the-twinning#6",

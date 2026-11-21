@@ -113,6 +113,10 @@ import { openFace } from "../../state/seatVisibility.js";
 import { serverLabel } from "../corpAbilityInstall.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 import { iceFaceVisible } from "../../state/seatVisibility.js";
+import {
+  allSubroutinesBrokenByRunner,
+  resetEncounterBreaks,
+} from "../../state/procedures/break.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -1711,7 +1715,7 @@ export function applyOtherKinds(
         effect: structuredClone(subEffect),
       }));
       ice.subroutines = [...gained];
-      run.encounter.broken = ice.subroutines.map(() => false);
+      resetEncounterBreaks(run.encounter, ice.subroutines.length);
       if (!run.peepingTomIceIds) run.peepingTomIceIds = [];
       if (!run.peepingTomIceIds.includes(sourceId)) {
         run.peepingTomIceIds.push(sourceId);
@@ -2348,11 +2352,11 @@ export function applyOtherKinds(
           }
         }
       }
-      if (enc.broken.every(Boolean) && source.onFullyBreak) {
+      if (allSubroutinesBrokenByRunner(enc) && source.onFullyBreak) {
         fireOnFullyBreak(state, sourceId);
         if (state.pendingChoice) return { ok: true };
       }
-      if (enc.broken.every(Boolean)) {
+      if (allSubroutinesBrokenByRunner(enc)) {
         fireOnFullyBreak(state, enc.iceId);
         if (state.pendingChoice) return { ok: true };
       }

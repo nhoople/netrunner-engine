@@ -33,7 +33,12 @@ import { getCardDef } from "../cards/load.js";
 import { iceStrengthCannotBeLowered } from "../cards/stubs.js";
 import {
   encounterFullyBrokenByRunner,
+  markRemainingSubroutinesNotBrokenByRunner,
   markSubroutineNotBrokenByRunner,
+  printedSubroutineBrokenByRunner,
+  shiftEncounterBreaks,
+  subroutinesBrokenByRunnerCount,
+  trimEncounterBreaks,
 } from "../state/procedures/break.js";
 import {
   collectAdvancementGainedSubs,
@@ -279,6 +284,7 @@ function syncHostedSubBoost(state: GameState, iceId: string): void {
   while (encounter.broken.length < count) encounter.broken.push(false);
   if (encounter.broken.length > count) {
     encounter.broken = encounter.broken.slice(0, count);
+    trimEncounterBreaks(encounter, count);
   }
 }
 
@@ -297,6 +303,7 @@ function syncWardenBeforeSubroutines(state: GameState, iceId: string): void {
     if (keepIds.has(sub.id)) continue;
     subs.splice(i, 1);
     broken.splice(i, 1);
+    shiftEncounterBreaks(encounter, i, -1);
   }
   for (const g of [...gained].reverse()) {
     if (subs.some((sub) => sub.id === g.subId)) continue;
@@ -306,6 +313,7 @@ function syncWardenBeforeSubroutines(state: GameState, iceId: string): void {
       effect: g.effect,
     });
     broken.unshift(false);
+    shiftEncounterBreaks(encounter, 0, 1);
     const source = state.cards[g.sourceId];
     log(
       state,
@@ -2162,6 +2170,9 @@ export const STEPS: Record<string, TimingStepDef> = {
     "The Runner encounters ice.",
     "auto",
     (s) => {
+      // An encounter ability ended the run: the encounter ends with it, no
+      // window opens and no subroutine resolves (CR 6.1.4, 6.9.6).
+      if (s.run?.endedTheRun) return "run.closePriorityWindows";
       const iceId = s.run?.encounter?.iceId;
       if (iceId && (s.run?.bypassedIceIds ?? []).includes(iceId)) {
         return "run.movement";
@@ -2432,8 +2443,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           );
           runState.encounter = {
             iceId,
-            broken: (ice.subroutines ?? []).map(() => true),
+            broken: [],
           };
+          markRemainingSubroutinesNotBrokenByRunner(
+            runState.encounter,
+            (ice.subroutines ?? []).length,
+          );
           fireOnBypassTriggers(s, iceId);
           noteEncounterEndIfRezzed(s, iceId);
         }
@@ -2450,8 +2465,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           // relying on next-step; mark as if fully broken.
           runState.encounter = {
             iceId,
-            broken: (ice.subroutines ?? []).map(() => true),
+            broken: [],
           };
+          markRemainingSubroutinesNotBrokenByRunner(
+            runState.encounter,
+            (ice.subroutines ?? []).length,
+          );
           fireOnBypassTriggers(s, iceId);
           noteEncounterEndIfRezzed(s, iceId);
         }
@@ -2474,8 +2493,12 @@ export const STEPS: Record<string, TimingStepDef> = {
               );
               runState.encounter = {
                 iceId,
-                broken: (ice.subroutines ?? []).map(() => true),
+                broken: [],
               };
+              markRemainingSubroutinesNotBrokenByRunner(
+                runState.encounter,
+                (ice.subroutines ?? []).length,
+              );
               fireOnBypassTriggers(s, iceId);
               noteEncounterEndIfRezzed(s, iceId);
             }
@@ -3185,6 +3208,9 @@ export const STEPS: Record<string, TimingStepDef> = {
     "Are there unbroken subroutines to resolve?",
     "branch",
     (s) => {
+      // The run ended during the encounter: no more subroutines resolve
+      // (CR 6.1.4).
+      if (s.run?.endedTheRun) return "run.closePriorityWindows";
       // The paid ability window has been completed (CR 8.5.10).
       if (encounterEndsEarly(s)) return "run.movement";
       const enc = s.run!.encounter!;
@@ -3440,13 +3466,17 @@ export const STEPS: Record<string, TimingStepDef> = {
           const iceId = s.servers[runState.attackedServerId].ice[pos];
           if (iceId) {
             const iceAtPosition = s.cards[iceId];
-            const brokenNow = runState.encounter?.broken ?? [];
-            // Mirāju replaces passing this ice with a move (CR 6.1.3e).
+            // Mirāju replaces passing this ice with a move (CR 6.1.3e) when
+            // the Runner broke its printed subroutine; a resolved subroutine
+            // is not broken (CR 6.5.7a).
             const passReplaced =
               Boolean(iceAtPosition?.onEncounterEndIfPrintedSubroutineBroken) &&
               Boolean(iceAtPosition?.rezzed) &&
               runState.encounter?.iceId === iceId &&
-              brokenNow.some(Boolean);
+              printedSubroutineBrokenByRunner(
+                iceAtPosition!,
+                runState.encounter,
+              );
             runState.passReplacedByEncounterEnd = passReplaced;
             if (passReplaced) {
               s.log.push(
@@ -3572,28 +3602,15 @@ export const STEPS: Record<string, TimingStepDef> = {
             ) {
               noteEncounterEndIfNotFullyBroken(s, iceId);
             }
-            // Mirāju: if Runner broke printed subroutine, redirect to Archives.
+            // Mirāju: if the Runner broke its printed subroutine, redirect to
+            // Archives (CR 6.5.7a: a resolved subroutine is not broken).
             if (
               ice.onEncounterEndIfPrintedSubroutineBroken &&
               ice.rezzed &&
-              runState.encounter
+              runState.encounter &&
+              printedSubroutineBrokenByRunner(ice, runState.encounter)
             ) {
-              const printedCount = (
-                ice.baseSubroutines ??
-                ice.subroutines ??
-                []
-              ).length;
-              // Printed subs are the trailing baseSubroutines if Loki-style
-              // copies were prepended; for Mirāju base = printed.
-              const broken = runState.encounter.broken ?? [];
-              const printedBroken = broken
-                .slice(Math.max(0, broken.length - printedCount))
-                .some(Boolean);
-              // Simpler: any broken sub counts as printed for Mirāju (single printed sub).
-              const anyBroken = broken.some(Boolean);
-              if (printedBroken || anyBroken) {
-                noteEncounterEndIfPrintedSubroutineBroken(s, iceId);
-              }
+              noteEncounterEndIfPrintedSubroutineBroken(s, iceId);
             }
             // Weyland Builder of Nations: first advanced-ice encounter end → 1 meat.
             if (
@@ -3642,10 +3659,11 @@ export const STEPS: Record<string, TimingStepDef> = {
               }
             }
             // Chief Slee: place power per unbroken sub when any encounter ends.
+            // A subroutine that resolved is unbroken (CR 6.5.7a).
             {
-              const unbroken = (runState.encounter?.broken ?? []).filter(
-                (b) => !b,
-              ).length;
+              const unbroken =
+                (runState.encounter?.broken.length ?? 0) -
+                subroutinesBrokenByRunnerCount(runState.encounter);
               if (unbroken > 0) {
                 for (const server of Object.values(s.servers)) {
                   for (const rid of server.root) {
@@ -3664,8 +3682,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                 }
               }
             }
-            // Mason Bellamy: broke ≥1 sub → Runner loses [click].
-            const brokeAny = (runState.encounter?.broken ?? []).some(Boolean);
+            // Mason Bellamy: broke ≥1 sub → Runner loses [click]. A subroutine
+            // that resolved was not broken (CR 6.5.7a).
+            const brokeAny =
+              subroutinesBrokenByRunnerCount(runState.encounter) > 0;
             if (brokeAny) {
               const server = s.servers[runState.attackedServerId];
               for (const rid of server?.root ?? []) {
@@ -3733,10 +3753,9 @@ export const STEPS: Record<string, TimingStepDef> = {
                 );
               }
             }
-            // Oversight AI: all host subs broken → trash host ice.
-            const allBroken =
-              (runState.encounter?.broken ?? []).length > 0 &&
-              (runState.encounter?.broken ?? []).every(Boolean);
+            // The Runner broke every subroutine; resolved ones do not count
+            // (CR 6.5.7a).
+            const allBroken = encounterFullyBrokenByRunner(runState.encounter);
             if (allBroken) {
               // Fractal Threat Matrix: trash top N of stack.
               const server = s.servers[runState.attackedServerId];

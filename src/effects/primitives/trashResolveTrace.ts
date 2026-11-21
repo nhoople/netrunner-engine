@@ -19,6 +19,7 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { shiftEncounterBreaks } from "../../state/procedures/break.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -112,6 +113,7 @@ export function chooseSubroutinePosition(
   const broken = [...run.encounter.broken];
   broken.splice(at, 0, false);
   run.encounter.broken = broken;
+  shiftEncounterBreaks(run.encounter, at, 1);
   const rest = queue.slice(1);
   run.pendingSubroutineInserts = rest.length > 0 ? rest : undefined;
   log(
