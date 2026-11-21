@@ -333,6 +333,8 @@ describe("Regenesis", () => {
     s = score(s, "rg-1");
     s = drive(s, atCorpAction);
     expect(s.corp.scoreArea).toContain("rg-1");
+    // No reveal is offered: drive stops at any open choice.
+    expect(s.pendingChoice).toBeNull();
     expect(s.corp.scoreArea).not.toContain("arc-ag");
   });
 

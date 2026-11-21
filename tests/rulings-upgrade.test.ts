@@ -365,11 +365,6 @@ describe("Malapert Data Vault", () => {
 // Manegarm Skunkworks
 // ---------------------------------------------------------------------------
 
-/** Manegarm's "end the run unless" is put to the Runner. */
-const manegarmAsks = (s: GameState) =>
-  s.pendingChoice?.sourceId === "up-1" ||
-  s.log.some((l) => /Manegarm Skunkworks/.test(l) && !/rezzes/.test(l));
-
 describe("Manegarm Skunkworks", () => {
   it("Manegarm Skunkworks: rezzed in the paid ability window after the Runner's last chance to jack out, it still applies to the run (ruling 1)", () => {
     let s = runnerTurn(fresh(), 10);
@@ -408,6 +403,6 @@ describe("Manegarm Skunkworks", () => {
     expect(s.pendingChoice?.sourceId ?? null).not.toBe("up-1");
     // Control: in Archives' root it meets its condition on the approach.
     const t = omarRun("archives");
-    expect(manegarmAsks(t)).toBe(true);
+    expect(t.pendingChoice?.sourceId).toBe("up-1");
   });
 });

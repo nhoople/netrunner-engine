@@ -190,6 +190,7 @@ describe("Svyatogor Excavator", () => {
     installRoot(s, "malapert-data-vault", "mdv-1");
     stackRd(s, [["rashida-jaheem", "rj-1"]]);
     s = toCorpTurn(s);
+    const credits = s.corp.credits;
     while (s.pendingChoice && !optionIds(s).some((id) => id.includes("rj-1"))) {
       const ids = optionIds(s);
       s = must(s, {
@@ -208,6 +209,9 @@ describe("Svyatogor Excavator", () => {
     expect(s.pendingChoice).toBeNull();
     expect(s.cards["rj-1"]!.zone).toMatch(/^server:remote/);
     expect(s.corp.discardPile).toContain("mdv-1");
+    // Svyatogor gained 3; Rashida's ability is not offered this turn.
+    expect(s.corp.credits).toBe(credits + 3);
+    expect(paidAbility(s, "rj-1")).toBeUndefined();
   });
 });
 
@@ -252,6 +256,9 @@ describe("Trieste Model Bioroids", () => {
       (a) => a.type === "break_subroutine" && a.breakerId === "cor-1",
     );
 
+  // Today this also passes because of the bug filed under ruling 2 (the
+  // flag is never cleared). A fix for ruling 2 must keep this passing: the
+  // choice survives the ice being derezzed, only Trieste's derez ends it.
   it("Trieste Model Bioroids: the chosen ice derezzed and rezzed again is still the chosen ice (ruling 1)", () => {
     let s = trieste();
     s = must(s, { type: "rez_asset", cardId: "tr-1" });
