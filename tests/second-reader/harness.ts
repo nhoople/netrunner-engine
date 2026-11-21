@@ -39,7 +39,7 @@ import {
 } from "../rulings-helpers.js";
 import type { ServerId } from "../../src/state/types.js";
 
-export type Expectation = {
+type Expectation = {
   at?: string;
   observe: string;
   equals: unknown;
@@ -69,7 +69,7 @@ export type Batch = {
 };
 
 /** `pending`: found by the comparison and not yet read by cr-checker. */
-export type Verdict = "pending" | "engine-wrong" | "reader-wrong" | "cr-open";
+type Verdict = "pending" | "engine-wrong" | "reader-wrong" | "cr-open";
 
 export type Difference = {
   batch: string;
@@ -519,7 +519,7 @@ export function hasOption(s: GameState, part: string): boolean {
 }
 
 /** What the engine is waiting for: used in error messages. */
-export function describe(s: GameState): string {
+function describe(s: GameState): string {
   const choice = s.pendingChoice
     ? ` choice[${s.pendingChoice.chooser}] ${optionIds(s).join(" | ")}`
     : "";

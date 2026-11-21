@@ -63,7 +63,7 @@ const atAction = (s: GameState): boolean =>
   s.timingKey === "runner.takeAction" || s.timingKey === "corp.takeAction";
 const toAction = (s: GameState): GameState => drive(s, atAction);
 
-export const debug = (...parts: unknown[]): void => {
+const debug = (...parts: unknown[]): void => {
   if (process.env.SR_DEBUG) console.log("   ·", ...parts);
 };
 
