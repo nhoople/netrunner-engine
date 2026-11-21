@@ -22,6 +22,7 @@ import {
 import type { Action, GameState } from "../../src/index.js";
 import { agendaPointsFor } from "../../src/state/scoring.js";
 import { memoryLimit, usedMemory } from "../../src/state/turn.js";
+import { hostCard } from "../../src/state/procedures/host.js";
 import { isInstalled } from "../../src/state/procedures/uninstall.js";
 import {
   corpTurn,
@@ -245,11 +246,15 @@ function standard(
   ) {
     return NOT_STANDARD;
   }
-  const id = ids.get(title);
-  if (!id) throw new Error(`driver did not name the card "${title}"`);
+  const named = ids.get(title);
+  if (!named) throw new Error(`driver did not name the card "${title}"`);
   if (duplicates.has(title)) {
     throw new Error(`the position has more than one "${title}"`);
   }
+  // A card the engine made a new object of (CR 1.12.3, for one arranged in
+  // R&D) has a new id: follow it by its title.
+  const renamed = Object.values(s.cards).filter((c) => c.title === title);
+  const id = s.cards[named] || renamed.length !== 1 ? named : renamed[0]!.id;
   const card = s.cards[id];
   switch (fn) {
     case "zone":
@@ -264,7 +269,12 @@ function standard(
       const fields = COUNTER_FIELDS[arg];
       if (!fields) throw new Error(`unknown counter kind "${arg}"`);
       const bag = (card ?? {}) as unknown as Record<string, number>;
-      return fields.reduce((sum, f) => sum + (bag[f] ?? 0), 0);
+      // Credits placed on a run event (Stimhack) are kept on the run.
+      const onRunEvent =
+        arg === "credit" && s.playedRunEventId === id
+          ? ((s.run as { eventCredits?: number } | null)?.eventCredits ?? 0)
+          : 0;
+      return fields.reduce((sum, f) => sum + (bag[f] ?? 0), onRunEvent);
     }
     case "hostedCards":
       return Object.values(s.cards).filter(
@@ -465,6 +475,16 @@ export class Board {
     const card = put(this.s, defId, id, `${side}:score`);
     card.faceup = true;
     (side === "corp" ? this.s.corp : this.s.runner).scoreArea.push(id);
+    return this.remember(id);
+  }
+
+  /** A card hosted faceup on an installed card, not installed itself (Detente). */
+  hostedOn(defId: string, hostId: string): string {
+    const id = this.name(defId);
+    const card = put(this.s, defId, id, `hosted:${hostId}`);
+    hostCard(this.s, id, hostId, { installed: true, faceup: true });
+    card.zone = `hosted:${hostId}` as typeof card.zone;
+    card.rezzed = false;
     return this.remember(id);
   }
 

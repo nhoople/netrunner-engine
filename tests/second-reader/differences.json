@@ -213,5 +213,681 @@
     "rule": "1.2.1",
     "note": "Oaktown Renovation installs only faceup. Mushin No Shin installs it facedown",
     "area": "5"
+  },
+  {
+    "batch": "cr-examples-ch3",
+    "case": "3.4.4a.ex1",
+    "observations": [
+      {
+        "key": "encounter::strength(Archangel)",
+        "expected": 0,
+        "engine": 6
+      },
+      {
+        "key": "encounter::zone(Devil Charm)",
+        "expected": "removed",
+        "engine": "rig"
+      },
+      {
+        "key": "encounter::corp.credits",
+        "expected": 2,
+        "engine": 5
+      },
+      {
+        "key": "after::zone(Gang Sign)",
+        "expected": "grip",
+        "engine": "rig"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "7.3.1",
+    "note": "Gang Sign's breach of HQ happens when the agenda is scored, with no run needed. The engine puts it off until a run begins, so Archangel is never accessed or encountered.",
+    "area": "area 8"
+  },
+  {
+    "batch": "cr-examples-ch3",
+    "case": "3.9.5c.ex1#b",
+    "observations": [
+      {
+        "key": "::legal(approach-pump)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "approach-pump::strength(Gordian Blade)",
+        "expected": 3,
+        "engine": 2
+      },
+      {
+        "key": "encounter::strength(Gordian Blade)",
+        "expected": 3,
+        "engine": 2
+      },
+      {
+        "key": "run-over::runner.credits",
+        "expected": 2,
+        "engine": 3
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.5.2f",
+    "note": "Gordian Blade's strength ability has no Interface flag, so it can be used in the approach window. The card model flags it as interface and offers it only in an encounter.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch3",
+    "case": "3.9.5c.ex1#c",
+    "observations": [
+      {
+        "key": "pump::strength(Gordian Blade)",
+        "expected": 6,
+        "engine": 2
+      },
+      {
+        "key": "pump::runner.credits",
+        "expected": 1,
+        "engine": 5
+      },
+      {
+        "key": "after::runner.credits",
+        "expected": 0,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "7.3.1",
+    "note": "Same missing breach as 3.4.4a.ex1: Gang Sign's breach is put off until a run begins, so there is no encounter outside a run for Gordian Blade's increase to last through.",
+    "area": "area 8"
+  },
+  {
+    "batch": "cr-examples-ch3",
+    "case": "3.9.5d.ex1#a",
+    "observations": [
+      {
+        "key": "::legal(pump)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "pump::runner.credits",
+        "expected": 4,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.5.2f",
+    "note": "Corroder's strength ability has no Interface flag, so it can be used outside an encounter and then lasts until the next checkpoint. The card model offers it only in an encounter.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch3",
+    "case": "3.9.5d.ex1#b",
+    "observations": [
+      {
+        "key": "::legal(approach-pump)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "encounter::runner.credits",
+        "expected": 4,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.5.2f",
+    "note": "Corroder's strength ability can be used in the approach window (step 6.9.2b). The card model offers it only in an encounter.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch4",
+    "case": "4.6.6i.ex1",
+    "observations": [
+      {
+        "key": "::triggered(Warroid Tracker)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "::chooser(trace)",
+        "expected": "runner",
+        "engine": "nobody"
+      },
+      {
+        "key": "trace::runner.heap",
+        "expected": 2,
+        "engine": 0
+      },
+      {
+        "key": "trace::zone(Corroder)",
+        "expected": "heap",
+        "engine": "rig"
+      },
+      {
+        "key": "trace::zone(Gordian Blade)",
+        "expected": "heap",
+        "engine": "rig"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.1.8g",
+    "note": "Trashing Warroid Tracker meets its own trigger condition, and the ability stays active until it resolves. The engine looks for it in the root after the trash and finds nothing, so no trace happens.",
+    "area": "fidelity"
+  },
+  {
+    "batch": "cr-examples-ch4",
+    "case": "4.8.7.ex1",
+    "observations": [
+      {
+        "key": "::corp.hq",
+        "expected": 1,
+        "engine": 5
+      },
+      {
+        "key": "::zone(Hedge Fund)",
+        "expected": "rd",
+        "engine": "hq"
+      },
+      {
+        "key": "::rdBottom",
+        "expected": "Hedge Fund"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "5.6.1e",
+    "note": "The Corp makes one mandatory draw. With Daily Business Show's choice open the engine stays at the mandatory-draw step and draws again on every pass, and it does not hold Daily Business Show to the first draw of the turn.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.1.3e.ex1",
+    "observations": [
+      {
+        "key": "first::run.active",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "second::corp.credits",
+        "expected": 3,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.2.8b",
+    "note": "A move to the outermost position of a server with ice puts the run in the Approach Ice Phase for that ice. After Mirāju's move the engine carries on toward the server, so Mirāju is never approached again.",
+    "area": "area 2"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.1.4b.ex1",
+    "observations": [
+      {
+        "key": "::corp.hq",
+        "expected": 1,
+        "engine": 2
+      },
+      {
+        "key": "::corp.archives",
+        "expected": 1,
+        "engine": 0
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.1.8a",
+    "note": "An ability that triggers when its card is accessed is active even while the card is inactive. With no run in progress the engine treats Ganked! in HQ as inactive and drops its ability, so no encounter happens.",
+    "area": "fidelity"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.1.4c.ex1",
+    "observations": [
+      {
+        "key": "unleash::corp.credits",
+        "expected": 6,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.1.4c",
+    "note": "Unleash lets the Corp resolve a subroutine of the ice it rezzed; the barrier subroutine gains 1 credit and its end-the-run does nothing. After Lycian Multi-Munition's subtype choice the engine never offers the subroutine.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.2.3.ex1",
+    "observations": [
+      {
+        "key": "::legal(to-same-server)",
+        "expected": true,
+        "engine": false
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.2.3",
+    "note": "Rook's printed text lets it move to ice protecting the same server or in the same position. The engine keeps only the same-position ice and, with one left, moves Rook there without asking.",
+    "area": "area 2"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.3.4.ex1#b",
+    "observations": [
+      {
+        "key": "::runner.credits",
+        "expected": 0,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.3.4",
+    "note": "A click lost to break Eli 1.0 during the run is lost during a run on Heinlein Grid's server. The bioroid break does not report the lost click, so the Runner keeps their credits.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.5.9a.ex1",
+    "observations": [
+      {
+        "key": "shiro::run.active",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "run-over::accessed",
+        "expected": [
+          "Chrysalis",
+          "Hedge Fund"
+        ],
+        "engine": [
+          "Chrysalis"
+        ]
+      },
+      {
+        "key": "run-over::run.outcome",
+        "expected": "successful",
+        "engine": "neither"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.5.9a",
+    "note": "After a forced encounter the game returns to the effect that caused it. After Shiro's nested breach and the encounter with Chrysalis the engine ends the whole run, so HQ is never reached.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.7.4a.ex1#a",
+    "observations": [
+      {
+        "key": "run-over::accessed",
+        "expected": [
+          "Hedge Fund"
+        ],
+        "engine": []
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.7.4a",
+    "note": "When the run has moved to a server Because I Can could not have run, its 'If successful' effect does not apply and the breach is normal. The engine skips the breach of Archives altogether.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.7.4c.ex1#a",
+    "observations": [
+      {
+        "key": "trace::decided(Account Siphon)",
+        "expected": false,
+        "engine": true
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.7.4c",
+    "note": "The choice between breaching and Account Siphon's effect is made when the breach would begin, after Ash's trace. The engine asks for it when the run is declared successful, before the trace.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.8.2c.ex1",
+    "observations": [
+      {
+        "key": "::offered(Formicary)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "::rezzed(Formicary)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "::zone(Formicary)",
+        "expected": "ice:remote",
+        "engine": "ice:HQ"
+      },
+      {
+        "key": "::corp.credits",
+        "expected": 3,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.8.2c",
+    "note": "A reaction window open when the run is ended is completed normally, so Formicary can still be rezzed and moved. The engine models Formicary as a paid ability and never offers it once the run has ended.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch6",
+    "case": "6.8.4a.ex1",
+    "observations": [
+      {
+        "key": "::accessed",
+        "expected": [
+          "Hedge Fund",
+          "Crisium Grid"
+        ],
+        "engine": []
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.9.5b",
+    "note": "The Runner breaches the attacked server whether or not the run was declared successful. Under Crisium Grid the engine skips the breach.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.3.1a.ex1#a",
+    "observations": [
+      {
+        "key": "::zone(Palisade)",
+        "expected": "ice:HQ",
+        "engine": "ice:remote"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "8.5.2a",
+    "note": "The Corp chooses the server a card is installed in. Poétrï's install always makes a new remote server and asks nothing.",
+    "area": "area 5"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.3.6.ex1",
+    "observations": [
+      {
+        "key": "hades::zone(Hedge Fund)",
+        "expected": "removed",
+        "engine": "archives"
+      },
+      {
+        "key": "hades::zone(Hades Shard)",
+        "expected": "heap",
+        "engine": "rig"
+      },
+      {
+        "key": "run-over::runner.credits",
+        "expected": 8,
+        "engine": 6
+      },
+      {
+        "key": "run-over::accessed",
+        "expected": [
+          "PAD Campaign",
+          "Enigma",
+          "Ice Wall"
+        ],
+        "engine": [
+          "Ice Wall"
+        ]
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.5.2f",
+    "note": "Hades Shard's trash ability has no timing limit and can be used in a paid ability window during a run. The card model does not offer it in the initiation window, so the breach of Archives never happens.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.3.6.ex2#a",
+    "observations": [
+      {
+        "key": "::accessed",
+        "expected": [
+          "Hedge Fund"
+        ],
+        "engine": [
+          "Hedge Fund",
+          "Wall of Static"
+        ]
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "7.4.2b",
+    "note": "After a card has been accessed under Hudson 1.0's effect no other card can be accessed. The engine models the effect as a random access limit and lets the Runner access the newly trashed Wall of Static too.",
+    "area": "area 8"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.3.6.ex2#b",
+    "observations": [
+      {
+        "key": "::legal(after)",
+        "expected": false,
+        "engine": true
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "7.4.2b",
+    "note": "Having accessed a card under Hudson 1.0's effect, the Runner has no candidates left. The engine still offers the Wall of Static in Archives.",
+    "area": "area 8"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.4.2a.ex1",
+    "observations": [
+      {
+        "key": "flagship::zone(Flagship)",
+        "expected": "hosted:Cupellation",
+        "engine": "root:HQ"
+      },
+      {
+        "key": "flagship::runner.credits",
+        "expected": 4,
+        "engine": 5
+      },
+      {
+        "key": "rest::accessedCount",
+        "expected": 3,
+        "engine": 0
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.9.5b",
+    "note": "The Runner breaches the attacked server whether or not the run was declared successful. Under Flagship the engine skips the breach, as it does under Crisium Grid.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.4.2b.ex1#a",
+    "observations": [
+      {
+        "key": "breach::accessed",
+        "expected": [
+          "PAD Campaign",
+          "Flagship"
+        ],
+        "engine": [
+          "PAD Campaign"
+        ]
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.9.5b",
+    "note": "After Otoroshi's access the Runner still breaches HQ and may access Flagship. Under Flagship the engine skips the breach.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.4.2b.ex1#b",
+    "observations": [
+      {
+        "key": "breach::accessedCount",
+        "expected": 4,
+        "engine": 1
+      },
+      {
+        "key": "breach::zone(Flagship)",
+        "expected": "hosted:Cupellation",
+        "engine": "root:HQ"
+      },
+      {
+        "key": "breach::runner.credits",
+        "expected": 4,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.9.5b",
+    "note": "With Flagship hosted on Cupellation its restriction ends and 2 cards from HQ become candidates. Under Flagship the engine skips the breach.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.4.5.ex1",
+    "observations": [
+      {
+        "key": "::accessed",
+        "expected": [
+          "Georgia Emelyov",
+          "Georgia Emelyov"
+        ],
+        "engine": [
+          "Georgia Emelyov"
+        ]
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "7.4.6d",
+    "note": "A card that enters the discard pile during a breach of Archives becomes a candidate. The engine caps the breach of Archives at the number of cards it started with, so the trashed upgrade is not accessed again.",
+    "area": "area 8"
+  },
+  {
+    "batch": "cr-examples-ch7",
+    "case": "7.4.7a.ex2",
+    "observations": [
+      {
+        "key": "::accessed",
+        "expected": [
+          "Hedge Fund",
+          "Offworld Office",
+          "PAD Campaign",
+          "Ice Wall",
+          "Strongbox"
+        ],
+        "engine": [
+          "Hedge Fund",
+          "Offworld Office",
+          "Ice Wall",
+          "Enigma",
+          "corp-fill-1"
+        ]
+      },
+      {
+        "key": "::runner.clicks",
+        "expected": 2,
+        "engine": 3
+      },
+      {
+        "key": "::zone(PAD Campaign)",
+        "expected": "rd",
+        "engine": "archives"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "7.3.5",
+    "note": "The random access limit counts cards chosen from R&D only: here 4. The engine adds the root upgrade to it, lets all 5 be spent on the deck, and never applies Strongbox's click to the steal, so Seidr Laboratories never triggers.",
+    "area": "area 8"
+  },
+  {
+    "batch": "cr-examples-ch8",
+    "case": "8.2.2.ex1",
+    "observations": [
+      {
+        "key": "::runner.credits",
+        "expected": 4,
+        "engine": 3
+      },
+      {
+        "key": "::faceup(Harbinger)",
+        "expected": false,
+        "engine": true
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "8.5.6c",
+    "note": "When installing a program the Runner may first trash any number of installed programs. The engine offers this only when the memory limit would be exceeded, so Harbinger cannot be trashed this way.",
+    "area": "area 6"
+  },
+  {
+    "batch": "cr-examples-ch8",
+    "case": "8.4.3b.ex1",
+    "observations": [
+      {
+        "key": "::zone(Tollbooth)",
+        "expected": "rd",
+        "engine": "hq"
+      },
+      {
+        "key": "::rdBottom",
+        "expected": "Tollbooth"
+      },
+      {
+        "key": "::corp.hq",
+        "expected": 1,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "5.6.1e",
+    "note": "The Corp makes one mandatory draw. After the Raman Rai and Daily Business Show sequence of the example the engine is still at the mandatory-draw step and draws again on every pass until R&D is empty.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch8",
+    "case": "8.7.2b.ex1",
+    "observations": [
+      {
+        "key": "::legal(find-femme)",
+        "expected": false,
+        "engine": true
+      },
+      {
+        "key": "find-corroder::runner.credits",
+        "expected": 0,
+        "engine": 2
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "8.7.2b",
+    "note": "A card found to be installed must be one the player can install, and its install cost is paid. Artist Colony offers Femme Fatale to a Runner with 2 credits and installs Corroder without charging its cost.",
+    "area": "area 13"
+  },
+  {
+    "batch": "cr-examples-ch8",
+    "case": "8.8.4b.ex1",
+    "observations": [
+      {
+        "key": "::offered(A Teia)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "::zone(Ash 2X3ZB9CY)",
+        "expected": "root:remote",
+        "engine": "hq"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "8.8.4b",
+    "note": "The card swapped in becomes installed, which meets A Teia's condition at the next checkpoint. The engine never offers A Teia's install after Tatu-Bola's swap.",
+    "area": "area 3"
   }
 ]

@@ -13,6 +13,7 @@ The reader writes a batch's expectations without opening `src/`, the existing te
 - `../second-reader.test.ts`: runs each driver and compares its observations with the expectations.
 - `differences.json`: every difference found, with `cr-checker`'s verdict.
 - `harness.ts`: the position builder, the standard observations and the comparison.
+- `driving.ts`: how a driver plays a position on (take the obvious step, answer a named choice, carry out a breach, resolve a trace), shared by every drivers file.
 
 ## Expectation format
 
@@ -84,7 +85,7 @@ The test "recorded differences still differ in the recorded way" runs every `pen
 
 ## Adding a batch
 
-1. Read the CR examples, rulings or scenarios for the batch with the `lookup` skill only, and write `<batch>.json`. Commit it.
+1. Read the CR examples, rulings or scenarios for the batch with the `lookup` skill only, and write `<batch>.json`. Commit it. The CR examples are one batch per chapter (`cr-examples-ch<N>`), because the test checks that every example of the chapter has an entry.
 2. Write `<batch>.drivers.ts`, add the batch to `BATCHES` in `../second-reader.test.ts`, and run it. Record each difference in `differences.json` as `pending`. Commit.
 3. Give the differences to `cr-checker`, record the verdicts, correct the reader's mistakes, and commit.
 

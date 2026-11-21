@@ -1,0 +1,34 @@
+{
+  "batch": "cr-examples-ch2",
+  "title": "The CR's own examples, chapter 2 (Parts of a Card)",
+  "reader": { "model": "claude-fable-5-2", "name": "Claude Fable 5.2" },
+  "sources": { "cr": "v26.03", "cards": "v1.147.25" },
+  "blind": "Written from the CR text, printed card text and rulings (the lookup skill) only. The engine's src/, tests and baselines were not read. Committed before the comparison for this batch existed.",
+  "defaults": "Unless a case says otherwise: the Runner has the default 4 MU and no link, both identities are blank, servers have no ice, the Corp has 5 credits and the Runner 5, zones not mentioned hold only cards with no relevant abilities, and the Corp declines to rez or use anything not listed in the steps.",
+  "cases": [
+    {
+      "id": "2.16.5.ex1",
+      "example": "2.16.5.ex1",
+      "confidence": "stated",
+      "rules": ["2.16.5", "2.16.4"],
+      "cards": ["Tinkering", "Lycan"],
+      "position": "Runner's turn. A rezzed Lycan with 1 advancement counter is the only ice protecting HQ. Tinkering is in the grip.",
+      "steps": [
+        { "label": "before", "do": "Nothing has been played yet." },
+        { "label": "tinker", "do": "The Runner plays Tinkering, choosing Lycan." },
+        { "label": "turn-end", "do": "The Runner's turn ends." }
+      ],
+      "expect": [
+        { "at": "before", "observe": "hasSubtype(Lycan,sentry)", "equals": false, "why": "One printed instance, one removed by Lycan's own ability (odd number of advancement counters)." },
+        { "at": "before", "observe": "hasSubtype(Lycan,code gate)", "equals": true },
+        { "at": "tinker", "observe": "hasSubtype(Lycan,sentry)", "equals": true, "why": "Two instances (printed and Tinkering), one removal: the total is above zero." },
+        { "at": "tinker", "observe": "hasSubtype(Lycan,code gate)", "equals": true },
+        { "at": "tinker", "observe": "hasSubtype(Lycan,barrier)", "equals": true },
+        { "at": "tinker", "observe": "hasSubtype(Lycan,destroyer)", "equals": true },
+        { "at": "turn-end", "observe": "hasSubtype(Lycan,sentry)", "equals": false, "why": "Tinkering lasts until the end of the turn." },
+        { "at": "turn-end", "observe": "hasSubtype(Lycan,barrier)", "equals": false },
+        { "at": "turn-end", "observe": "hasSubtype(Lycan,code gate)", "equals": true }
+      ]
+    }
+  ]
+}

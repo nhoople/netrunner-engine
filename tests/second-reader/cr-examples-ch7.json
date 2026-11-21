@@ -1,0 +1,280 @@
+{
+  "batch": "cr-examples-ch7",
+  "title": "The CR's own examples, chapter 7 (Accessing Cards and Breaching Servers)",
+  "reader": { "model": "claude-fable-5-2", "name": "Claude Fable 5.2" },
+  "sources": { "cr": "v26.03", "cards": "v1.147.25" },
+  "blind": "Written from the CR text, printed card text and rulings (the lookup skill) only. The engine's src/, tests and baselines were not read. Committed before the comparison for this batch existed.",
+  "defaults": "Unless a case says otherwise: the Runner has the default 4 MU and no link, both identities are blank, servers have no ice, the Corp has 5 credits and the Runner 5, the Runner has 4 clicks at the start of their turn, zones not mentioned hold only cards with no relevant abilities, neither player spends credits on a trace, the Runner trashes no accessed card, and the Corp declines to rez or use anything not listed in the steps. 'accessed' lists every card accessed during the steps, in order, across breaches.",
+  "cases": [
+    {
+      "id": "7.3.1a.ex1#a",
+      "example": "7.3.1a.ex1",
+      "confidence": "stated",
+      "rules": ["7.3.1a", "7.1.2"],
+      "cards": ["Scatter Field", "Palisade", "Offworld Office", "Poétrï Luxury Brands: All the Rage", "Legwork"],
+      "position": "Runner's turn, 5 credits. The Corp's identity is Poétrï Luxury Brands: All the Rage. Legwork is in the grip. HQ has no ice and holds exactly three cards: Scatter Field, Palisade and Offworld Office. The random accesses come out in that order.",
+      "steps": [
+        { "label": "steal", "do": "The Runner plays Legwork and the run is successful. The Runner accesses Scatter Field, then Palisade, then Offworld Office, and steals it. The Corp uses Poétrï Luxury Brands to install Palisade from HQ protecting HQ. Read while the breach is still in progress." }
+      ],
+      "expect": [
+        { "observe": "runnerKnows(Palisade)", "equals": true, "why": "Not a standard key: whether what the Runner is shown identifies the installed, unrezzed card. A card accessed during a breach stays visible to the Runner for the rest of that breach." },
+        { "observe": "zone(Palisade)", "equals": "ice:HQ" },
+        { "observe": "rezzed(Palisade)", "equals": false },
+        { "observe": "accessed", "equals": ["Scatter Field", "Palisade", "Offworld Office"] },
+        { "observe": "runner.score", "equals": 2 }
+      ]
+    },
+    {
+      "id": "7.3.1a.ex1#b",
+      "example": "7.3.1a.ex1",
+      "confidence": "stated",
+      "rules": ["7.3.1a"],
+      "cards": ["Scatter Field", "Palisade", "Offworld Office", "Poétrï Luxury Brands: All the Rage", "Legwork", "PAD Campaign"],
+      "position": "Runner's turn, 5 credits. The Corp's identity is Poétrï Luxury Brands: All the Rage. Legwork is in the grip. HQ has no ice and holds exactly four cards: Scatter Field, Palisade, Offworld Office and PAD Campaign. The three random accesses are Scatter Field, Palisade and Offworld Office, in that order.",
+      "steps": [
+        { "label": "steal", "do": "The Runner plays Legwork and the run is successful. The Runner accesses Scatter Field, then Palisade, then Offworld Office, and steals it. The Corp uses Poétrï Luxury Brands to install PAD Campaign from HQ in a new remote server. Read while the breach is still in progress." }
+      ],
+      "expect": [
+        { "observe": "runnerKnows(PAD Campaign)", "equals": false, "why": "Not a standard key: whether what the Runner is shown identifies the installed, unrezzed card. PAD Campaign was not accessed, so it is an unknown card from the rest of HQ." },
+        { "observe": "zone(PAD Campaign)", "equals": "root:remote" },
+        { "observe": "runner.score", "equals": 2 }
+      ]
+    },
+    {
+      "id": "7.3.6.ex1",
+      "example": "7.3.6.ex1",
+      "confidence": "stated",
+      "rules": ["7.3.6", "7.4.3"],
+      "cards": ["Hades Shard", "Archives Interface", "Zahya Sadeghi: Versatile Smuggler", "Hedge Fund", "PAD Campaign", "Enigma", "Ice Wall"],
+      "position": "Runner's turn, 5 credits. The Runner's identity is Zahya Sadeghi: Versatile Smuggler. Hades Shard and Archives Interface are installed. Archives holds exactly three faceup cards: Hedge Fund, PAD Campaign and Enigma. HQ has no ice and holds exactly one card, Ice Wall.",
+      "steps": [
+        { "label": "hades", "do": "The Runner runs HQ. In the paid ability window of the initiation phase the Runner trashes Hades Shard to breach Archives. For Hedge Fund the Runner uses Archives Interface and removes it from the game instead of accessing it. The Runner accesses PAD Campaign and Enigma." },
+        { "label": "run-over", "do": "The run reaches HQ, the Runner accesses Ice Wall, and the run ends. The Runner uses Zahya Sadeghi's ability." }
+      ],
+      "expect": [
+        { "at": "hades", "observe": "zone(Hedge Fund)", "equals": "removed" },
+        { "at": "hades", "observe": "zone(Hades Shard)", "equals": "heap" },
+        { "at": "run-over", "observe": "runner.credits", "equals": 8, "why": "Three accesses were performed during the run: two in Archives and one in HQ. The replaced access is not counted." },
+        { "at": "run-over", "observe": "accessed", "equals": ["PAD Campaign", "Enigma", "Ice Wall"] }
+      ]
+    },
+    {
+      "id": "7.3.6.ex2#a",
+      "example": "7.3.6.ex2",
+      "confidence": "stated",
+      "rules": ["7.3.6", "7.4.2b", "7.4.3"],
+      "cards": ["Immolation Script", "Hudson 1.0", "Wall of Static", "Hedge Fund"],
+      "position": "Runner's turn. Immolation Script is in the grip. A rezzed Hudson 1.0 is the only ice protecting Archives. Archives holds exactly two faceup cards: Wall of Static and Hedge Fund. Another Wall of Static, rezzed, is the only ice protecting HQ. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "breach", "do": "The Runner plays Immolation Script, encounters Hudson 1.0 and breaks nothing, so its subroutines resolve. The run is successful. The Runner first chooses the Wall of Static in Archives and uses Immolation Script's effect, trashing the rezzed Wall of Static protecting HQ instead of accessing. The Runner then chooses Hedge Fund and accesses it. The Runner goes on until there are no candidates." }
+      ],
+      "expect": [
+        { "observe": "accessed", "equals": ["Hedge Fund"], "why": "Replacing the first access means no card was accessed, so another candidate can be chosen. After Hedge Fund the Runner may access no more cards." },
+        { "observe": "corp.archives", "equals": 3 },
+        { "observe": "iceProtecting(HQ)", "equals": 0, "why": "Not a standard key: the number of pieces of ice protecting that server." }
+      ]
+    },
+    {
+      "id": "7.3.6.ex2#b",
+      "example": "7.3.6.ex2",
+      "confidence": "stated",
+      "rules": ["7.3.6", "7.4.2b", "7.4.2"],
+      "cards": ["Immolation Script", "Hudson 1.0", "Wall of Static", "Hedge Fund"],
+      "position": "Runner's turn. Immolation Script is in the grip. A rezzed Hudson 1.0 is the only ice protecting Archives. Archives holds exactly two faceup cards: Wall of Static and Hedge Fund. Another Wall of Static, rezzed, is the only ice protecting HQ. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "breach", "do": "The Runner plays Immolation Script, encounters Hudson 1.0 and breaks nothing, so its subroutines resolve. The run is successful. The Runner first chooses Hedge Fund and accesses it." },
+        { "label": "after", "do": "The Runner tries to choose the Wall of Static in Archives so as to use Immolation Script's effect." }
+      ],
+      "expect": [
+        { "observe": "legal(after)", "equals": false, "why": "Having accessed a card, the Runner is prohibited from accessing more, so there are no candidates to choose and no access to replace." },
+        { "at": "breach", "observe": "accessed", "equals": ["Hedge Fund"] },
+        { "at": "breach", "observe": "corp.archives", "equals": 2 },
+        { "at": "breach", "observe": "iceProtecting(HQ)", "equals": 1, "why": "Not a standard key: the number of pieces of ice protecting that server." }
+      ]
+    },
+    {
+      "id": "7.3.8.ex1",
+      "example": "7.3.8.ex1",
+      "confidence": "stated",
+      "rules": ["7.3.8", "7.4.1"],
+      "cards": ["Clone Retirement", "Raymond Flint", "Georgia Emelyov"],
+      "position": "Runner's turn. Raymond Flint is installed. HQ has no ice and holds exactly two cards, both Clone Retirement. An unrezzed Georgia Emelyov is in the root of HQ. The Corp has no bad publicity.",
+      "steps": [
+        { "label": "run", "do": "The Runner runs HQ. In the breach the Runner first accesses a card from HQ, a Clone Retirement, and steals it, then accesses Georgia Emelyov. Every breach that Raymond Flint causes is carried out." }
+      ],
+      "expect": [
+        { "observe": "accessed", "equals": ["Clone Retirement", "Georgia Emelyov", "Clone Retirement"], "why": "Raymond Flint's breach waits until the current breach ends, so Georgia Emelyov is accessed before the second Clone Retirement." },
+        { "observe": "runner.score", "equals": 2 },
+        { "observe": "corp.badPublicity", "equals": 2 },
+        { "observe": "corp.hq", "equals": 0 }
+      ]
+    },
+    {
+      "id": "7.4.2.ex1",
+      "example": "7.4.2.ex1",
+      "confidence": "stated",
+      "rules": ["7.4.2"],
+      "cards": ["Ash 2X3ZB9CY", "Hedge Fund"],
+      "position": "Runner's turn. A rezzed Ash 2X3ZB9CY is in the root of HQ. HQ has no ice and holds exactly one card, Hedge Fund.",
+      "steps": [
+        { "label": "run", "do": "The Runner runs HQ. The run is successful and Ash's trace resolves with no spending: it is successful. The Runner breaches HQ and goes on until there are no candidates." }
+      ],
+      "expect": [
+        { "observe": "accessed", "equals": ["Ash 2X3ZB9CY"] },
+        { "observe": "run.outcome", "equals": "successful" }
+      ]
+    },
+    {
+      "id": "7.4.2a.ex1",
+      "example": "7.4.2a.ex1",
+      "confidence": "stated",
+      "rules": ["7.4.2a", "7.4.2b", "7.3.5", "9.12.5"],
+      "cards": ["Flagship", "Docklands Pass", "Cupellation", "Hedge Fund", "Ice Wall", "Enigma"],
+      "position": "Runner's turn, 5 credits. Docklands Pass and Cupellation (hosting nothing) are installed. A rezzed Flagship is in the root of HQ. HQ has no ice and holds exactly three cards: Hedge Fund, Ice Wall and Enigma.",
+      "steps": [
+        { "label": "first", "do": "The Runner runs HQ and breaches it, and first accesses one card from HQ at random." },
+        { "label": "flagship", "do": "The Runner accesses Flagship and pays 1 credit to host it on Cupellation." },
+        { "label": "rest", "do": "The Runner goes on accessing until there are no candidates. The run ends." }
+      ],
+      "expect": [
+        { "at": "first", "observe": "candidatesInHq", "equals": 0, "why": "Not a standard key: how many cards in the Corp's hand the Runner may still choose. Having accessed a card other than Flagship, the Runner may access no other card but Flagship." },
+        { "at": "flagship", "observe": "zone(Flagship)", "equals": "hosted:Cupellation" },
+        { "at": "flagship", "observe": "runner.credits", "equals": 4 },
+        { "at": "rest", "observe": "accessedCount", "equals": 3, "why": "Not a standard key: the number of accesses performed. One card from HQ, Flagship, then a second card from HQ: the limit was set to 2 and Flagship's restriction ended when it was hosted." },
+        { "at": "rest", "observe": "run.outcome", "equals": "neither" }
+      ]
+    },
+    {
+      "id": "7.4.2b.ex1#a",
+      "example": "7.4.2b.ex1",
+      "confidence": "stated",
+      "rules": ["7.4.2b", "7.3.5"],
+      "cards": ["Flagship", "Docklands Pass", "Cupellation", "Otoroshi", "PAD Campaign", "Hedge Fund", "Ice Wall", "Enigma"],
+      "position": "Runner's turn, 5 credits. Docklands Pass and Cupellation (hosting nothing) are installed. HQ is protected by a rezzed Otoroshi alone, has a rezzed Flagship in its root, and holds exactly three cards: Hedge Fund, Ice Wall and Enigma. A remote server holds an unrezzed PAD Campaign. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "otoroshi", "do": "The Runner runs HQ, encounters Otoroshi and breaks nothing. The Corp places 1 advancement counter on PAD Campaign and the Runner does not pay 3 credits, so the Runner accesses PAD Campaign." },
+        { "label": "breach", "do": "The Runner passes Otoroshi and breaches HQ. The Runner accesses Flagship without using Cupellation and goes on until there are no candidates." }
+      ],
+      "expect": [
+        { "at": "otoroshi", "observe": "counters(PAD Campaign,advancement)", "equals": 1 },
+        { "at": "otoroshi", "observe": "runner.credits", "equals": 5 },
+        { "at": "breach", "observe": "accessed", "equals": ["PAD Campaign", "Flagship"], "why": "A card was already accessed this run, so no card in the Corp's hand is a candidate." }
+      ]
+    },
+    {
+      "id": "7.4.2b.ex1#b",
+      "example": "7.4.2b.ex1",
+      "confidence": "stated",
+      "rules": ["7.4.2b", "7.4.2a", "7.3.5"],
+      "cards": ["Flagship", "Docklands Pass", "Cupellation", "Otoroshi", "PAD Campaign", "Hedge Fund", "Ice Wall", "Enigma"],
+      "position": "Runner's turn, 5 credits. Docklands Pass and Cupellation (hosting nothing) are installed. HQ is protected by a rezzed Otoroshi alone, has a rezzed Flagship in its root, and holds exactly three cards: Hedge Fund, Ice Wall and Enigma. A remote server holds an unrezzed PAD Campaign. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "otoroshi", "do": "The Runner runs HQ, encounters Otoroshi and breaks nothing. The Corp places 1 advancement counter on PAD Campaign and the Runner does not pay 3 credits, so the Runner accesses PAD Campaign." },
+        { "label": "breach", "do": "The Runner passes Otoroshi and breaches HQ. The Runner accesses Flagship, pays 1 credit to host it on Cupellation, and goes on until there are no candidates." }
+      ],
+      "expect": [
+        { "at": "breach", "observe": "accessedCount", "equals": 4, "why": "Not a standard key: the number of accesses performed during the run. PAD Campaign, Flagship, then 2 cards from HQ: the limit was still set to 2, and the cards in HQ became candidates when Flagship's ability stopped applying." },
+        { "at": "breach", "observe": "zone(Flagship)", "equals": "hosted:Cupellation" },
+        { "at": "breach", "observe": "runner.credits", "equals": 4 }
+      ]
+    },
+    {
+      "id": "7.4.3.ex1",
+      "example": "7.4.3.ex1",
+      "confidence": "stated",
+      "rules": ["7.4.3", "7.4.6d"],
+      "cards": ["Immolation Script", "Wall of Static"],
+      "position": "Runner's turn. Immolation Script is in the grip. Archives has no ice and holds exactly one card, a faceup Wall of Static. Another Wall of Static, rezzed, is the only ice protecting HQ.",
+      "steps": [
+        { "label": "breach", "do": "The Runner plays Immolation Script and the run is successful. The Runner chooses the Wall of Static in Archives and uses Immolation Script's effect, trashing the rezzed Wall of Static protecting HQ instead of accessing. The Runner goes on accessing until there are no candidates." }
+      ],
+      "expect": [
+        { "observe": "accessedCount", "equals": 1, "why": "Not a standard key: the number of accesses performed. The chosen ice is no longer a candidate; the newly trashed copy is a new candidate and is accessed." },
+        { "observe": "accessed", "equals": ["Wall of Static"] },
+        { "observe": "corp.archives", "equals": 2 }
+      ]
+    },
+    {
+      "id": "7.4.3.ex2#a",
+      "example": "7.4.3.ex2",
+      "confidence": "stated",
+      "rules": ["7.4.3", "1.16.10"],
+      "cards": ["Gagarin Deep Space: Expanding the Horizon", "PAD Campaign"],
+      "position": "Runner's turn, 5 credits. The Corp's identity is Gagarin Deep Space: Expanding the Horizon. A remote server with no ice holds exactly one card, an unrezzed PAD Campaign.",
+      "steps": [
+        { "label": "decline", "do": "The Runner runs the remote server, chooses PAD Campaign and declines to pay the 1 credit. The Runner goes on until there are no candidates." }
+      ],
+      "expect": [
+        { "observe": "accessed", "equals": [] },
+        { "observe": "offeredAgain(PAD Campaign)", "equals": false, "why": "Not a standard key: whether the Runner is offered that card again in the same breach. A chosen card stops being a candidate whether or not it is accessed." },
+        { "observe": "runner.credits", "equals": 5 },
+        { "observe": "run.outcome", "equals": "successful" }
+      ]
+    },
+    {
+      "id": "7.4.3.ex2#b",
+      "example": "7.4.3.ex2",
+      "confidence": "derived",
+      "rules": ["7.4.3", "1.16.10"],
+      "cards": ["Gagarin Deep Space: Expanding the Horizon", "PAD Campaign"],
+      "position": "Runner's turn, 5 credits. The Corp's identity is Gagarin Deep Space: Expanding the Horizon. A remote server with no ice holds exactly one card, an unrezzed PAD Campaign.",
+      "steps": [
+        { "label": "pay", "do": "The Runner runs the remote server, chooses PAD Campaign and pays the 1 credit to access it." }
+      ],
+      "expect": [
+        { "observe": "accessed", "equals": ["PAD Campaign"] },
+        { "observe": "runner.credits", "equals": 4 }
+      ]
+    },
+    {
+      "id": "7.4.5.ex1",
+      "example": "7.4.5.ex1",
+      "confidence": "stated",
+      "rules": ["7.4.5", "7.4.6d", "7.1.5b"],
+      "cards": ["Georgia Emelyov"],
+      "position": "Runner's turn, 5 credits. Archives has no ice and its discard pile is empty. An unrezzed Georgia Emelyov is in the root of Archives.",
+      "steps": [
+        { "label": "breach", "do": "The Runner runs Archives, accesses Georgia Emelyov in the root and pays 3 credits to trash it. The Runner goes on accessing until there are no candidates." }
+      ],
+      "expect": [
+        { "observe": "accessed", "equals": ["Georgia Emelyov", "Georgia Emelyov"], "why": "In the discard pile it is a new object and a new candidate, so the same physical card is accessed twice." },
+        { "observe": "runner.credits", "equals": 2 },
+        { "observe": "zone(Georgia Emelyov)", "equals": "archives" }
+      ]
+    },
+    {
+      "id": "7.4.7a.ex1",
+      "example": "7.4.7a.ex1",
+      "confidence": "stated",
+      "rules": ["7.4.7a", "8.3.3"],
+      "cards": ["The Maker's Eye", "Celebrity Gift", "Bacterial Programming"],
+      "position": "Runner's turn, 5 credits. The Maker's Eye is in the grip. R&D has no ice. Its top seven cards, from the top, are Celebrity Gift, Bacterial Programming, Hedge Fund, Ice Wall, Enigma, PAD Campaign and Wall of Static.",
+      "steps": [
+        { "label": "breach", "do": "The Runner plays The Maker's Eye and the run is successful. The Runner accesses Celebrity Gift, then accesses and steals Bacterial Programming. The Corp uses Bacterial Programming's ability, adds and trashes nothing, and arranges the cards so that Celebrity Gift is still on top. The Runner finishes the breach." }
+      ],
+      "expect": [
+        { "observe": "accessed", "equals": ["Celebrity Gift", "Bacterial Programming", "Celebrity Gift"], "why": "The rearranged cards are new objects, so the breach continues from the top and Celebrity Gift is accessed again." },
+        { "observe": "runner.score", "equals": 3 },
+        { "observe": "runner.credits", "equals": 3 }
+      ]
+    },
+    {
+      "id": "7.4.7a.ex2",
+      "example": "7.4.7a.ex2",
+      "confidence": "stated",
+      "rules": ["7.4.7a", "7.3.5", "1.16.10"],
+      "cards": ["Seidr Laboratories: Destiny Defined", "Strongbox", "The Maker's Eye", "R&D Interface", "Hedge Fund", "Offworld Office", "Ice Wall", "Enigma", "PAD Campaign"],
+      "position": "Runner's turn, 4 clicks, 5 credits. The Corp's identity is Seidr Laboratories: Destiny Defined. R&D Interface is installed and The Maker's Eye is in the grip, so the random access limit for the breach is 4. A rezzed Strongbox is in the root of R&D, which has no ice. The top cards of R&D, from the top, are Hedge Fund, Offworld Office, Ice Wall and Enigma. Archives holds exactly one card, a faceup PAD Campaign.",
+      "steps": [
+        { "label": "breach", "do": "The Runner plays The Maker's Eye and the run is successful. The Runner accesses the top card of R&D and leaves it. The second card is Offworld Office: the Runner spends a click for Strongbox's additional cost and steals it. The Corp uses Seidr Laboratories to add PAD Campaign from Archives to the top of R&D. The Runner accesses two more cards from R&D, then Strongbox." }
+      ],
+      "expect": [
+        { "observe": "accessed", "equals": ["Hedge Fund", "Offworld Office", "PAD Campaign", "Ice Wall", "Strongbox"], "why": "The third candidate is the card newly put on top. Under it is Hedge Fund, already accessed and still the same object, so the fourth candidate is the card below that." },
+        { "observe": "runner.clicks", "equals": 2 },
+        { "observe": "runner.score", "equals": 2 },
+        { "observe": "zone(PAD Campaign)", "equals": "rd" },
+        { "observe": "runner.credits", "equals": 3 }
+      ]
+    }
+  ]
+}

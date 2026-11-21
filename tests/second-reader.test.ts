@@ -27,14 +27,30 @@ import {
 } from "./second-reader/harness.js";
 import type { Case, Comparison } from "./second-reader/harness.js";
 import { drivers as ch1 } from "./second-reader/cr-examples-ch1.drivers.js";
-import type { Driver } from "./second-reader/cr-examples-ch1.drivers.js";
+import { drivers as ch2 } from "./second-reader/cr-examples-ch2.drivers.js";
+import { drivers as ch3 } from "./second-reader/cr-examples-ch3.drivers.js";
+import { drivers as ch4 } from "./second-reader/cr-examples-ch4.drivers.js";
+import { drivers as ch5 } from "./second-reader/cr-examples-ch5.drivers.js";
+import { drivers as ch6 } from "./second-reader/cr-examples-ch6.drivers.js";
+import { drivers as ch7 } from "./second-reader/cr-examples-ch7.drivers.js";
+import { drivers as ch8 } from "./second-reader/cr-examples-ch8.drivers.js";
+import type { Driver } from "./second-reader/driving.js";
 
 /** Each batch, the CR chapter its examples come from, and its drivers. */
 const BATCHES: Array<{
   name: string;
   chapter: string;
   drivers: Record<string, Driver>;
-}> = [{ name: "cr-examples-ch1", chapter: "1", drivers: ch1 }];
+}> = [
+  { name: "cr-examples-ch1", chapter: "1", drivers: ch1 },
+  { name: "cr-examples-ch2", chapter: "2", drivers: ch2 },
+  { name: "cr-examples-ch3", chapter: "3", drivers: ch3 },
+  { name: "cr-examples-ch4", chapter: "4", drivers: ch4 },
+  { name: "cr-examples-ch5", chapter: "5", drivers: ch5 },
+  { name: "cr-examples-ch6", chapter: "6", drivers: ch6 },
+  { name: "cr-examples-ch7", chapter: "7", drivers: ch7 },
+  { name: "cr-examples-ch8", chapter: "8", drivers: ch8 },
+];
 
 /**
  * A case whose run meets a recorded invariant problem needs its name written
@@ -44,6 +60,12 @@ const BATCHES: Array<{
 const WRITTEN_TITLES: Record<string, string> = {
   "1.12.3.ex1":
     "CR 1.12.3.ex1: The Foundry's search shuffles away the cards Accelerated Beta Test was looking at, so they are not installed or trashed",
+  "6.2.3.ex2":
+    "CR 6.2.3.ex2: Slipstream moves the Runner to the innermost ice of a central server, whatever ice is outward of it",
+  "7.4.7a.ex1":
+    "CR 7.4.7a.ex1: after Bacterial Programming rearranges R&D the breach goes on from the top and Celebrity Gift is accessed again",
+  "8.3.3b.ex1":
+    "CR 8.3.3b.ex1: Cultivate trashes one of the top five cards of R&D, adds one to HQ and arranges the rest",
 };
 
 /**
@@ -56,6 +78,9 @@ const UNOBSERVED: Record<string, string[]> = {
     "1.10.3c.ex1 legal(spend-one)",
     "1.17.1a.ex1 threat",
   ],
+  // 4.8.7.ex1 is a recorded difference: its entry is checked once it passes.
+  "cr-examples-ch4": ["4.8.7.ex1 runnerCanTell"],
+  "cr-examples-ch8": ["8.3.3b.ex1 runnerCanTell"],
 };
 
 const differences = loadDifferences();
