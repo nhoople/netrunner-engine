@@ -37,6 +37,8 @@ import {
   pick,
   put,
   runnerTurn,
+  toRunnerTurn,
+  settle,
   stackRd,
   toCorpTurn,
   toHand,
@@ -53,27 +55,6 @@ beforeAll(() => {
 /** Walk on to the Runner's next action (see `walkThrough`). */
 function walk(s: GameState, stop = atRunnerAction): GameState {
   return walkThrough(s, stop).state;
-}
-
-/**
- * Spend the Corp's last click and play on to the Runner's next turn: stops
- * at the first choice (a turn-begin ability) or the Runner's first action.
- */
-function toRunnerTurn(s: GameState): GameState {
-  s.config.stopAfterFirstCycle = false;
-  s.corp.clicks = 1;
-  s = must(s, { type: "basic_gain_credit" });
-  return drive(s, atRunnerAction);
-}
-
-/** Take the first option of each open choice, then go on to `stop`. */
-function settle(s: GameState, stop = atRunnerAction): GameState {
-  for (let i = 0; i < 10; i++) {
-    s = drive(s, stop);
-    if (!s.pendingChoice) return s;
-    s = must(s, { type: "choose_option", optionId: optionIds(s)[0]! });
-  }
-  return s;
 }
 
 const atEncounter = (s: GameState) => s.timingKey === "run.encounterPaw";

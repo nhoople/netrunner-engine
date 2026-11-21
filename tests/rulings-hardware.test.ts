@@ -35,6 +35,7 @@ import {
   pick,
   put,
   runnerTurn,
+  toRunnerTurn,
   setIdentity,
   stackRd,
   toHand,
@@ -46,19 +47,6 @@ beforeAll(() => {
   assertPinnedTag("v26.03");
   assertCardsPinnedTag("v1.147.25");
 });
-
-/**
- * Spend the Corp's last click and play on to the Runner's next turn: stops
- * at the first choice (a turn-begin ability) or the Runner's first action.
- */
-function toRunnerTurn(s: GameState): GameState {
-  s.config.stopAfterFirstCycle = false;
-  s.activeSide = "corp";
-  s.timingKey = "corp.takeAction";
-  s.corp.clicks = 1;
-  s = must(s, { type: "basic_gain_credit" });
-  return drive(s, atRunnerAction);
-}
 
 const WALK_ORDER: Action["type"][] = [
   "steal_agenda",

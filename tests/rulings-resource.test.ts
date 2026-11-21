@@ -36,6 +36,7 @@ import {
   pick,
   put,
   runnerTurn,
+  toRunnerTurn,
   setIdentity,
   stackRd,
   toCorpTurn,
@@ -53,19 +54,6 @@ beforeAll(() => {
 /** Walk on to the Runner's next action (see `walkThrough`). */
 function walk(s: GameState, stop = atRunnerAction): GameState {
   return walkThrough(s, stop).state;
-}
-
-/**
- * Spend the Corp's last click and play on to the Runner's next turn: stops
- * at the first choice (a turn-begin ability) or the Runner's first action.
- */
-function toRunnerTurn(s: GameState): GameState {
-  s.config.stopAfterFirstCycle = false;
-  s.activeSide = "corp";
-  s.timingKey = "corp.takeAction";
-  s.corp.clicks = 1;
-  s = must(s, { type: "basic_gain_credit" });
-  return drive(s, atRunnerAction);
 }
 
 // ---------------------------------------------------------------------------
