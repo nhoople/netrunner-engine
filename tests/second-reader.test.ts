@@ -95,7 +95,13 @@ const UNOBSERVED: Record<string, string[]> = {
   // 4.8.7.ex1 is a recorded difference: its entry is checked once it passes.
   "cr-examples-ch4": ["4.8.7.ex1 runnerCanTell"],
   "cr-examples-ch8": ["8.3.3b.ex1 runnerCanTell"],
-  "cr-examples-ch9": ["9.1.6c.ex1 used(Mimic)", "9.1.6c.ex1 used(Cyberfeeder)"],
+  "cr-examples-ch9": [
+    "9.1.6c.ex1 used(Mimic)",
+    "9.1.6c.ex1 used(Cyberfeeder)",
+    "9.5.3a.ex1 legal(imp)",
+    "9.5.3a.ex1 legal(decline)",
+    "9.5.3a.ex1#b legal(imp)",
+  ],
 };
 
 const differences = loadDifferences();

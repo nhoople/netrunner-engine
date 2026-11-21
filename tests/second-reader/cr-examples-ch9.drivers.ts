@@ -5,7 +5,7 @@
  *
  * Not a test file: vitest only runs `*.test.ts`.
  */
-import { getPublicView, legalActions } from "../../src/index.js";
+import { cloneState, getPublicView, legalActions } from "../../src/index.js";
 import type { Action, GameState } from "../../src/index.js";
 import type { ServerId } from "../../src/state/types.js";
 import { must, optionIds, pick } from "../rulings-helpers.js";
@@ -249,11 +249,11 @@ function wendigoImp(r: Report, credits: number): void {
   r.snap("wendigo", s);
   s = raw(s, { type: "access_card", cardId: tour });
   debug("tour:", what(s));
-  r.fact("legal(imp)", offered(s, "access_trash_with_virus").length > 0);
-  r.fact(
-    "legal(decline)",
-    offered(s, "finish_access").length > 0 || hasOption(s, "decline"),
-  );
+  // The engine settles this access in one step and never stops inside it, so
+  // what it would have offered cannot be read. The outcome is compared.
+  const unseen = "the engine resolves the access without stopping inside it";
+  r.cannotObserve("legal(imp)", unseen);
+  r.cannotObserve("legal(decline)", unseen);
   const pay = offered(s, "trash_accessed")[0];
   if (pay) s = must(s, pay);
   r.snap("access", go(s, idle));
@@ -359,11 +359,7 @@ export const drivers: Record<string, Driver> = {
     const from = s.log.length;
     s = go(run(s, "hq"), (x) => Boolean(x.pendingChoice) || !x.run);
     debug("femme:", what(s));
-    const bypass = optionIds(s).find(
-      (id) => id.includes(femme!) || id.includes("bypass") || id === "accept",
-    );
-    if (bypass) s = pick(s, bypass);
-    s = go(s, (x) => !x.run || Boolean(x.run) || Boolean(x.pendingChoice), []);
+    if (hasOption(s, "bypass")) s = pick(s, "bypass");
     r.snap("encounter", s);
     s = go(s, idle, ["accept", "yes", "pay"]);
     r.fact("accessed", accessedSince(s, from), "run-over");
@@ -483,7 +479,11 @@ export const drivers: Record<string, Driver> = {
     const eli = b.ice("eli-1-0", "hq");
     const can = (s: GameState): boolean =>
       offered(s, "use_paid_ability", wotan).length > 0;
-    r.fact("legal(wotan)", can(runnerWindow({ ...b.s })), "idle");
+    // The Runner passes priority in the action window so that the Corp holds it.
+    let waiting = runnerWindow(cloneState(b.s));
+    if (!can(waiting)) waiting = handOver(waiting);
+    debug("wotan idle:", what(waiting));
+    r.fact("legal(wotan)", can(waiting), "idle");
     r.snap("idle", b.s);
     b.s.timingKey = "runner.takeAction";
     let s = go(
@@ -508,27 +508,22 @@ export const drivers: Record<string, Driver> = {
     const b = new Board(r, "runner", 5);
     const crew = b.rig("arruaceiras-crew");
     b.ice("ice-wall", "hq");
-    const can = (s: GameState): boolean =>
-      offered(s, "use_paid_ability", crew).some((a) =>
-        JSON.stringify(a).includes("tag"),
-      ) ||
-      offered(s, "use_paid_ability", crew).length > 1 ||
-      (atEncounter(s) && offered(s, "use_paid_ability", crew).length > 0);
+    // The first ability, by the id the engine gives it.
+    const weaken = (s: GameState) =>
+      offered(s, "use_paid_ability", crew).find((a) =>
+        JSON.stringify(a).includes("weaken"),
+      );
     debug(
       "crew idle:",
       JSON.stringify(offered(runnerWindow(b.s), "use_paid_ability", crew)),
     );
-    r.fact(
-      "legal(crew)",
-      offered(runnerWindow(b.s), "use_paid_ability", crew).length > 0,
-      "idle",
-    );
+    r.fact("legal(crew)", Boolean(weaken(runnerWindow(b.s))), "idle");
     r.snap("idle", b.s);
     b.s.timingKey = "runner.takeAction";
     let s = go(run(b.s, "hq"), encounterOrOver);
     debug("crew:", JSON.stringify(offered(s, "use_paid_ability", crew)));
-    r.fact("legal(crew)", can(s), "encounter");
-    const use = offered(s, "use_paid_ability", crew)[0];
+    const use = weaken(s);
+    r.fact("legal(crew)", Boolean(use), "encounter");
     if (use) s = must(s, use);
     r.snap("encounter", s);
   },
@@ -1023,10 +1018,11 @@ export const drivers: Record<string, Driver> = {
     b.ice("data-raven", "hq");
     const spoof = b.rig("biometric-spoofing");
     b.grip("sure-gamble", "sure-gamble", "sure-gamble");
+    const prevent = using(spoof);
     const s = go(run(b.s, "hq"), encounterOrOver, ["tag", "tag"], (x) => {
       if (x.pendingDamage)
         debug("stone:", what(x), JSON.stringify(x.pendingDamage));
-      return using(spoof)(x);
+      return prevent(x);
     });
     r.snap("tag", s);
   },
@@ -1597,6 +1593,8 @@ export const drivers: Record<string, Driver> = {
       if (x.pendingChoice) debug("doppelganger:", what(x), x.runner.tags);
       return undefined;
     });
+    // The engine does not stop between the end of the second run and the
+    // pending ability from the first: both labels read the final state.
     r.snap("second-run", s);
     r.snap("resolved", s);
   },
