@@ -29,9 +29,10 @@
         "engine": 4
       }
     ],
-    "verdict": "pending",
-    "rule": "1.12.1",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "verdict": "engine-wrong",
+    "rule": "8.5.6a",
+    "note": "Installing an asset in a root must trash the asset already there. Vaporframe Fabricator leaves both in the root, so it is never trashed and Restore finds nothing",
+    "area": "5"
   },
   {
     "batch": "cr-examples-ch1",
@@ -43,9 +44,10 @@
         "engine": true
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "1.13.6c",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "note": "Egret installs only on a rezzed ice. The engine offers an unrezzed ice as its host",
+    "area": "1"
   },
   {
     "batch": "cr-examples-ch1",
@@ -67,9 +69,10 @@
         "engine": 1
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "1.13.9",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "note": "Dhegdheer can host any other program, but the engine never offers it for Leprechaun (a daemon), so the discount and the memory are wrong. Atman also spends every credit on power counters without asking (CR 9.6.9c, fidelity)",
+    "area": "1"
   },
   {
     "batch": "cr-examples-ch1",
@@ -96,9 +99,10 @@
         "engine": 3
       }
     ],
-    "verdict": "pending",
-    "rule": "1.13.13",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "verdict": "engine-wrong",
+    "rule": "8.5.2a",
+    "note": "The Corp may install in a new remote server. IP Enforcement offers only existing remotes and stops with an error when there is none, after the tags are removed",
+    "area": "5"
   },
   {
     "batch": "cr-examples-ch1",
@@ -110,9 +114,10 @@
         "engine": 3
       }
     ],
-    "verdict": "pending",
-    "rule": "1.14.5",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "verdict": "engine-wrong",
+    "rule": "9.6.4b",
+    "note": "A trigger met three times makes three pending instances. Apocalypse trashes the cards one at a time and Hostile Infrastructure fires once",
+    "area": "fidelity (RF)"
   },
   {
     "batch": "cr-examples-ch1",
@@ -129,9 +134,10 @@
         "engine": 0
       }
     ],
-    "verdict": "pending",
-    "rule": "1.15.2c",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "verdict": "engine-wrong",
+    "rule": "10.8.2",
+    "note": "The Corp may spend credits on a trace. The trace on Burke Bugs resolves at once at strength 0 with no chance to spend, as most traces do",
+    "area": "11"
   },
   {
     "batch": "cr-examples-ch1",
@@ -143,9 +149,10 @@
         "engine": "in-progress"
       }
     ],
-    "verdict": "pending",
-    "rule": "1.16.1b",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "verdict": "engine-wrong",
+    "rule": "6.1.4",
+    "note": "When an effect ends the run the phase stops. After an encounter ability ends the run with no choice open, the engine goes on to resolve the subroutines of the ice",
+    "area": "14"
   },
   {
     "batch": "cr-examples-ch1",
@@ -157,9 +164,10 @@
         "engine": false
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "1.16.2c",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "note": "X may be 0. Psychographics offers 1 to 3 only",
+    "area": "11"
   },
   {
     "batch": "cr-examples-ch1",
@@ -181,9 +189,10 @@
         "engine": 0
       }
     ],
-    "verdict": "pending",
-    "rule": "1.16.2f",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "verdict": "engine-wrong",
+    "rule": "8.5.2a",
+    "note": "The Corp chooses where the ice found by Tucana is installed; the engine always uses the server Tucana is in. The ice is also marked rezzed without its when-rezzed ability, so Logjam gets no counter (CR 8.5.15, 8.1.2e)",
+    "area": "5"
   },
   {
     "batch": "cr-examples-ch1",
@@ -195,9 +204,10 @@
         "engine": 0
       }
     ],
-    "verdict": "pending",
-    "rule": "1.16.4d",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "verdict": "engine-wrong",
+    "rule": "5.2.5a",
+    "note": "Takings of the same basic action are the same action. Jeeves Model Bioroids counts clicks inside one action only, so it never gives a click for three plays, draws or credits",
+    "area": "11"
   },
   {
     "batch": "cr-examples-ch1",
@@ -209,8 +219,9 @@
         "engine": false
       }
     ],
-    "verdict": "pending",
-    "rule": "1.18.1",
-    "note": "Found by the comparison; not yet read by cr-checker."
+    "verdict": "engine-wrong",
+    "rule": "1.2.1",
+    "note": "Oaktown Renovation installs only faceup. Mushin No Shin installs it facedown",
+    "area": "5"
   }
 ]

@@ -36,6 +36,16 @@ const BATCHES: Array<{
   drivers: Record<string, Driver>;
 }> = [{ name: "cr-examples-ch1", chapter: "1", drivers: ch1 }];
 
+/**
+ * A case whose run meets a recorded invariant problem needs its name written
+ * out here: tests/invariants-baseline.test.ts looks for a baseline entry's
+ * test name in this file's source.
+ */
+const WRITTEN_TITLES: Record<string, string> = {
+  "1.12.3.ex1":
+    "CR 1.12.3.ex1: The Foundry's search shuffles away the cards Accelerated Beta Test was looking at, so they are not installed or trashed",
+};
+
 const differences = loadDifferences();
 /** Verdicts that leave the engine and the expectation apart. */
 const OPEN = new Set(["pending", "engine-wrong", "cr-open"]);
@@ -82,7 +92,9 @@ for (const { name, chapter, drivers } of BATCHES) {
 
     for (const c of batch.cases) {
       if (c.run === false) continue;
-      const title = `CR ${c.id}: ${c.steps!.map((s) => s.do).join(" ")}`;
+      const title =
+        WRITTEN_TITLES[c.id] ??
+        `CR ${c.id}: ${c.steps!.map((s) => s.do).join(" ")}`;
       const known = open.get(c.id);
       if (known) {
         const filed =

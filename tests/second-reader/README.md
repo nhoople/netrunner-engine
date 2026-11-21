@@ -12,6 +12,7 @@ The reader writes a batch's expectations without opening `src/`, the existing te
 - `<batch>.drivers.ts`: for each case, code that builds the position with the engine's public API and returns the observations the case asks for. A driver does not decide an outcome. It sets up, plays the listed steps, and reports.
 - `../second-reader.test.ts`: runs each driver and compares its observations with the expectations.
 - `differences.json`: every difference found, with `cr-checker`'s verdict.
+- `harness.ts`: the position builder, the standard observations and the comparison.
 
 ## Expectation format
 
@@ -73,8 +74,18 @@ A case may use another key when its `expect` entry explains it in `why`.
 
 ## Differences
 
-When the engine and an expectation differ, `cr-checker` reads the case. Its verdict is one of:
+`differences.json` holds every difference the comparison has found, each with the observations that differed (the expected value and the engine's) and a verdict. A difference starts as `pending`. `cr-checker` then reads the case, and the verdict becomes one of:
 
 - `engine-wrong`: filed under the area that owns the rule, as a skipped test naming the CR rule. This tool does not fix the engine.
-- `reader-wrong`: the expectation is corrected in a later commit, and `differences.json` keeps the original reading.
-- `cr-open`: the CR does not settle it. It goes on the disagreement list for the maintainer.
+- `reader-wrong`: the expectation is corrected in a later commit. Its entry in `differences.json` keeps the original reading, and the corrected `expect` line in the batch file says `corrected`.
+- `cr-open`: the CR does not settle it. It is a skipped test, and it goes on the disagreement list for the maintainer.
+
+The test "recorded differences still differ in the recorded way" runs every `pending`, `engine-wrong` and `cr-open` case and fails when the engine no longer differs as recorded. So an engine fix removes the entry in the same change, and the case becomes an ordinary passing test.
+
+## Adding a batch
+
+1. Read the CR examples, rulings or scenarios for the batch with the `lookup` skill only, and write `<batch>.json`. Commit it.
+2. Write `<batch>.drivers.ts`, add the batch to `BATCHES` in `../second-reader.test.ts`, and run it. Record each difference in `differences.json` as `pending`. Commit.
+3. Give the differences to `cr-checker`, record the verdicts, correct the reader's mistakes, and commit.
+
+The PR names the first two commits, so the order can be checked.

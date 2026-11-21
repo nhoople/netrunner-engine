@@ -3411,7 +3411,7 @@
     ]
   },
   "tests/second-reader.test.ts": {
-    "the engine agrees with a blind reading of The CR's own examples, chapter 1 (Game Concepts) (read by Claude Fable 5.2) > CR 1.12.3.ex1: The Corp scores Accelerated Beta Test, chooses to look at the top 3 cards, and installs and rezzes the top Ice Wall first. The Corp then uses The Foundry to search R&D for the other Ice Wall, reveal it, add it to HQ and shuffle R&D.": [
+    "the engine agrees with a blind reading of The CR's own examples, chapter 1 (Game Concepts) (read by Claude Fable 5.2) > CR 1.12.3.ex1: The Foundry's search shuffles away the cards Accelerated Beta Test was looking at, so they are not installed or trashed": [
       "NO_ZONE"
     ]
   },
