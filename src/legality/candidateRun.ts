@@ -18,6 +18,7 @@ import {
 } from "../state/costs.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import { agendaPointsFor } from "../state/scoring.js";
+import { accessLimitEndsBreach } from "../state/access.js";
 import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
 import {
   isServerAllowedForSpec,
@@ -759,17 +760,12 @@ export function addBreachAccessCandidates(
   state: GameState,
   actions: Action[],
 ): void {
-  const remaining = state.run?.randomAccessLimit;
   const cands = state.run?.accessCandidates ?? [];
-  for (const id of cands) {
-    if (remaining !== null && remaining !== undefined && remaining <= 0) break;
-    actions.push({ type: "access_card", cardId: id });
+  const limitReached = accessLimitEndsBreach(state);
+  if (!limitReached) {
+    for (const id of cands) actions.push({ type: "access_card", cardId: id });
   }
-  if (
-    cands.length === 0 ||
-    remaining === 0 ||
-    (remaining !== null && remaining !== undefined && remaining <= 0)
-  ) {
+  if (cands.length === 0 || limitReached) {
     actions.push({ type: "finish_breach" });
   }
 }

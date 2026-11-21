@@ -751,26 +751,6 @@
   },
   {
     "batch": "cr-examples-ch7",
-    "case": "7.4.5.ex1",
-    "observations": [
-      {
-        "key": "::accessed",
-        "expected": [
-          "Georgia Emelyov",
-          "Georgia Emelyov"
-        ],
-        "engine": [
-          "Georgia Emelyov"
-        ]
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "7.4.6d",
-    "note": "A card that enters the discard pile during a breach of Archives becomes a candidate. The engine caps the breach of Archives at the number of cards it started with, so the trashed upgrade is not accessed again.",
-    "area": "area 8"
-  },
-  {
-    "batch": "cr-examples-ch7",
     "case": "7.4.7a.ex2",
     "observations": [
       {
@@ -787,7 +767,7 @@
           "Offworld Office",
           "Ice Wall",
           "Enigma",
-          "corp-fill-1"
+          "Strongbox"
         ]
       },
       {
@@ -802,8 +782,8 @@
       }
     ],
     "verdict": "engine-wrong",
-    "rule": "7.3.5",
-    "note": "The random access limit counts cards chosen from R&D only: here 4. The engine adds the root upgrade to it, lets all 5 be spent on the deck, and never applies Strongbox's click to the steal, so Seidr Laboratories never triggers.",
+    "rule": "1.16.10",
+    "note": "Strongbox's additional cost to steal is never charged: the engine reads the click only from the agenda itself, not from an upgrade in the server's root, so the Runner keeps the click, Seidr Laboratories never triggers and PAD Campaign stays in Archives. (The random access limit part, CR 7.3.5, was fixed by FX-access: the Runner now takes 4 cards from the deck, then Strongbox.)",
     "area": "area 8"
   },
   {
@@ -909,21 +889,6 @@
     "rule": "7.3.1",
     "note": "Kitsune's subroutine breaches HQ while it resolves, and the run then goes on to its own breach of Archives. The engine moves the attacked server to HQ and puts the breach off to the Success Phase, so Archives is never breached.",
     "area": "area 8"
-  },
-  {
-    "batch": "cr-examples-ch10",
-    "case": "10.1.5.ex2",
-    "observations": [
-      {
-        "key": "run-over::run.outcome",
-        "expected": "successful",
-        "engine": "in-progress"
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "6.9.6d",
-    "note": "After Boomerang's shuffle at the end of a successful run the run is complete and the turn goes on. The engine leaves the run open with no legal move. It also offers a paid bypass of the chosen ice that is not in Boomerang's text.",
-    "area": "area 14"
   },
   {
     "batch": "cr-examples-ch10",
@@ -1039,37 +1004,5 @@
     "rule": "10.8.6c",
     "note": "In a trace the Corp and then the Runner may spend credits. The trace on Gemini's subroutine resolves at once, so neither can.",
     "area": "area 11"
-  },
-  {
-    "batch": "cr-examples-ch10",
-    "case": "10.14.3.ex1",
-    "observations": [
-      {
-        "key": "bid-one::accessed",
-        "expected": [
-          "Adrian Seis"
-        ],
-        "engine": "the run never ends: Adrian Seis's Psi Game starts again each time it resolves"
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "9.6.4b",
-    "note": "A run is declared successful once, so Adrian Seis triggers once: one Psi Game, then the breach. The engine makes two pending instances and starts the Psi Game again each time it resolves; the run never ends.",
-    "area": "fidelity"
-  },
-  {
-    "batch": "cr-examples-ch10",
-    "case": "10.14.3.ex2",
-    "observations": [
-      {
-        "key": "bid-zero::accessed",
-        "expected": [],
-        "engine": "the run never ends: Adrian Seis's Psi Game starts again each time it resolves"
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "9.6.4b",
-    "note": "Adrian Seis triggers once for a successful run. The engine starts its Psi Game again each time it resolves; the run never ends.",
-    "area": "fidelity"
   }
 ]

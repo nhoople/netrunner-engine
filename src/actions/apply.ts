@@ -125,8 +125,10 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import {
+  accessLimitEndsBreach,
   armNestedBreachIfPending,
   beginBreachAccess,
+  spendAccessLimitOnChoice,
 } from "../state/access.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
@@ -907,12 +909,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     }
     const idx = state.run.accessCandidates.indexOf(cardId);
     if (idx >= 0) state.run.accessCandidates.splice(idx, 1);
-    if (state.run.randomAccessLimit !== null) {
-      state.run.randomAccessLimit = Math.max(
-        0,
-        state.run.randomAccessLimit - 1,
-      );
-    }
+    spendAccessLimitOnChoice(state, cardId);
     hostCorpCardFaceupOn(state, heliId, cardId);
     state.run.heliamphoraHostInsteadUsedThisBreach = true;
     state.run.pendingHeliamphoraAccessCardId = undefined;
@@ -1180,8 +1177,12 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   ) {
     return ok(state);
   }
-  releaseSetAsideHostedCards(state);
-  returnSetAsideAdvancements(state);
+  // A paid ability's effect deferred behind this choice still needs the
+  // cards and counters its trash cost set aside (Reconstruction Contract).
+  if (!state.pendingEffectContinuation) {
+    releaseSetAsideHostedCards(state);
+    returnSetAsideAdvancements(state);
+  }
   if (
     state.pendingTrashProgram ||
     state.pendingChoice ||
@@ -1519,7 +1520,12 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     // ETR from jack-out offer
     if (state.run.endedTheRun) {
       enterStep(state, "run.closePriorityWindows");
-    } else {
+    } else if (state.timingKey !== "run.ends" || state.run.isPostRunBreach) {
+      // Run Ends is not skipped: a run-end ability's choice (Boomerang)
+      // pauses it partway, and it resolves again to finish, so the run is
+      // complete (CR 6.9.6d). Its onResolve is written to come back. Once it
+      // has finished and a post-run breach has begun (Virtuoso), the step
+      // goes on to that breach.
       const step = getStep(state);
       if (step.kind === "auto" || step.kind === "branch") {
         const nextKey =
@@ -3004,12 +3010,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       next.run.accessedCardIds.push(action.cardId);
       next.run.accessingCardId = action.cardId;
       next.turn.accessedACardThisTurn = true;
-      if (next.run.randomAccessLimit !== null) {
-        next.run.randomAccessLimit = Math.max(
-          0,
-          next.run.randomAccessLimit - 1,
-        );
-      }
+      spendAccessLimitOnChoice(next, action.cardId);
       // Flagship: re-apply other-than-self access cap after each access.
       applyRunAccessRestrictions(next);
       const card = next.cards[action.cardId];
@@ -3694,15 +3695,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (next.run.accessingCardId) {
         return fail("Finish current access first.", [CR.breach]);
       }
-      const remaining = next.run.randomAccessLimit;
       if (
-        remaining !== null &&
-        remaining > 0 &&
-        next.run.accessCandidates.length > 0
+        next.run.accessCandidates.length > 0 &&
+        !accessLimitEndsBreach(next)
       ) {
-        return fail("Candidates remain.", [CR.remoteCandidates]);
-      }
-      if (remaining === null && next.run.accessCandidates.length > 0) {
         return fail("Candidates remain.", [CR.remoteCandidates]);
       }
       enterStep(next, "breach.complete");

@@ -3,6 +3,7 @@
  * itself is `trashCard` in `src/state/procedures/trash.ts`.
  */
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { isCardActive } from "../state/active.js";
 import { log } from "../state/createGame.js";
 import { CR } from "../timing/labels.js";
 import { agendaPointsFor } from "../state/scoring.js";
@@ -93,7 +94,12 @@ export function markStaticHostTrashConditions(state: GameState): void {
           p.status === "resolving"),
     );
     if (open) continue;
-    if (host.playersCannotTrashThisIce && !abilitiesSuppressed(state, hostId)) {
+    // Only while the host ice is rezzed and active (CR 1.8.3a, 9.1.8).
+    if (
+      host.playersCannotTrashThisIce &&
+      isCardActive(state, hostId) &&
+      !abilitiesSuppressed(state, hostId)
+    ) {
       noteStaticConditionResolvedWithNoEffect(
         state,
         id,
@@ -281,9 +287,14 @@ export function corpTrashRefused(
   trashedBy: "corp" | "runner" | null,
 ): string | null {
   const card = state.cards[cardId];
+  // Architect's "Players cannot trash this ice" applies only while the ice
+  // is rezzed and active (CR 1.8.3a, 9.1.8): an unrezzed Architect is
+  // trashed like any other ice, so the trash cannot tell a facedown
+  // Architect from another facedown ice (CR 10.2.2b).
   if (
     card.playersCannotTrashThisIce &&
     card.zone.endsWith(":ice") &&
+    isCardActive(state, cardId) &&
     !abilitiesSuppressed(state, cardId)
   ) {
     return `Players cannot trash ${card.title}.`;

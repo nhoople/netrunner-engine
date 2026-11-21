@@ -23,6 +23,7 @@ import {
 import { syncSubroutinesFromRecords } from "../effects/abilityRecord.js";
 import type { Effect } from "../effects/ir.js";
 import {
+  accessLimitEndsBreach,
   armNestedBreachIfPending,
   beginBreachAccess,
   refreshRdDeckCandidate,
@@ -4176,6 +4177,20 @@ export const STEPS: Record<string, TimingStepDef> = {
     },
     {
       onResolve: (s) => {
+        // The run is declared successful once (CR 6.9.5a), so its
+        // successful-run abilities meet their trigger once (CR 9.6.4b). A psi
+        // game or trace an ability started here (Adrian Seis) brings the
+        // walk back to this step when it finishes: move on.
+        if (!s.run) return;
+        if (s.run.successPhaseResolved) {
+          // The breach replacement the Runner chooses between (Security
+          // Testing and Account Siphon) waits for any choice open then.
+          if (s.run.deferBreachReplacement && !s.pendingChoice) {
+            openBreachReplacementChoice(s);
+          }
+          return;
+        }
+        s.run.successPhaseResolved = true;
         // Track first successful HQ before the flag is set (PAN-Weave-class).
         let firstSuccessfulHq = false;
         // Track first successful central before HQ/RD/Archives flags (Zenit-class).
@@ -5560,8 +5575,7 @@ export const STEPS: Record<string, TimingStepDef> = {
     (s) => {
       refreshRdDeckCandidate(s);
       const cands = s.run!.accessCandidates;
-      const remaining = s.run!.randomAccessLimit;
-      if (cands.length === 0 || remaining === 0) {
+      if (cands.length === 0 || accessLimitEndsBreach(s)) {
         s.log.push(
           cands.length === 0
             ? "No access candidates — empty server breach completes."

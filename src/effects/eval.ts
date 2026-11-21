@@ -1906,7 +1906,11 @@ export function resumePendingEffectContinuation(state: GameState): void {
   if (effectResolutionBlocked(state)) return;
   state.pendingEffectContinuation = cont.followedBy ?? null;
   const r = evalEffect(
-    { state, sourceId: cont.sourceId },
+    {
+      state,
+      sourceId: cont.sourceId,
+      ...(cont.payerSide ? { payerSide: cont.payerSide } : {}),
+    },
     { op: "seq", effects: cont.effects },
   );
   if (!r.ok) {

@@ -301,7 +301,7 @@ Card counts are from cards `v1.147.25` (2016 cards).
 | `choose_breaker_run` | `strengthBonus?: number` | 1 | card |
 | `choose_card` | `chooser: "corp" \| "runner"`, `zone: "hq" \| "grip" \| "installed" \| "heap" \| "archives" \| "corp_score" \| "runner_score" \| "remote_root"`, `cardType?: string`, `rezzedOnly?: boolean`, `includeSubtypes?: string[]`, `optional?: boolean`, `then: Effect` | 1 | card |
 | `choose_card_type_for_encounter` | — | 2 | card |
-| `choose_cards` | `chooser: "corp" \| "runner"`, `candidates: string[]`, `count: number`, `upTo?: boolean`, `picked: string[]`, `purpose: "discard_to_hand_size" \| "trash_hq" \| "reveal_trash_hq" \| "archives_to_hq" \| "shuffle_archives_to_rd" \| "shuffle_hq_to_rd" \| "trash_grip" \| "shuffle_grip_to_stack" \| "resume"`, `resume?: Primitive`, `label?: string`, `open?: boolean`, `then?: Effect` | 0 | engine |
+| `choose_cards` | `chooser: "corp" \| "runner"`, `candidates: string[]`, `count: number`, `upTo?: boolean`, `picked: string[]`, `purpose: "discard_to_hand_size" \| "trash_hq" \| "reveal_trash_hq" \| "archives_to_hq" \| "shuffle_archives_to_rd" \| "shuffle_hq_to_rd" \| "trash_grip" \| "shuffle_grip_to_stack" \| "resume"`, `resume?: Primitive`, `label?: string`, `open?: boolean`, `search?: boolean`, `then?: Effect` | 0 | engine |
 | `choose_exactly_n` | `n: number`, `options: ChoiceOption[]` | 3 | card |
 | `choose_exploratory_romp_card` | `amount: number` | 0 | engine |
 | `choose_forfeit_runner_scored_agenda` | — | 1 | card |
@@ -1508,13 +1508,13 @@ Card counts are from cards `v1.147.25` (2016 cards).
 | --- | --- | ---: | --- |
 | `may_search_hq_rd_archives_agenda_to_hq_or_rd_bottom` | — | 1 | card |
 | `may_search_rd_install_rez_ignore_costs` | — | 1 | card |
-| `may_search_rd_non_agenda_any_subtype_to_hq` | `subtypes: string[]` | 1 | card |
+| `may_search_rd_non_agenda_any_subtype_to_hq` | `subtypes: string[]`, `cardIds?: string[]` | 1 | card |
 | `may_search_stack_copy_of_last_installed_hardware_add_to_grip` | — | 1 | card |
 | `search_alliance_play_or_install` | — | 1 | card |
 | `search_compile` | `zone: "stack" \| "heap"` | 0 | engine |
 | `search_crypt_install` | — | 1 | card |
 | `search_emergent_install` | `discount: number` | 0 | engine |
-| `search_foundry_copy_to_hq` | `chosen?: boolean` | 1 | card, engine |
+| `search_foundry_copy_to_hq` | `chosen?: boolean`, `declined?: boolean`, `cardIds?: string[]` | 1 | card, engine |
 | `search_install_non_daemon` | — | 1 | card |
 | `search_kabonesa_install` | — | 1 | card |
 | `search_rd_any_card_to_hq` | — | 1 | card |

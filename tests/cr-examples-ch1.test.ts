@@ -332,6 +332,8 @@ describe("CR examples, chapter 1", () => {
     expect(s.turn.rdLookedCards).toEqual([]);
     // The Foundry's "you may search" (CR 9.6.9c).
     s = must(s, { type: "choose_option", optionId: "search" });
+    // The Corp finds the copy (it may also find nothing; CR 8.7.2e).
+    s = must(s, { type: "choose_option", optionId: "choose-card:abt-copy" });
     expect(s.cards["abt-ice"]?.rezzed).toBe(true);
     expect(s.corp.hand).toContain("abt-copy");
     expect(s.corp.discardPile).not.toContain("abt-other");
