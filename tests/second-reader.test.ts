@@ -34,6 +34,7 @@ import { drivers as ch5 } from "./second-reader/cr-examples-ch5.drivers.js";
 import { drivers as ch6 } from "./second-reader/cr-examples-ch6.drivers.js";
 import { drivers as ch7 } from "./second-reader/cr-examples-ch7.drivers.js";
 import { drivers as ch8 } from "./second-reader/cr-examples-ch8.drivers.js";
+import { drivers as ch10 } from "./second-reader/cr-examples-ch10.drivers.js";
 import type { Driver } from "./second-reader/driving.js";
 
 /** Each batch, the CR chapter its examples come from, and its drivers. */
@@ -50,6 +51,7 @@ const BATCHES: Array<{
   { name: "cr-examples-ch6", chapter: "6", drivers: ch6 },
   { name: "cr-examples-ch7", chapter: "7", drivers: ch7 },
   { name: "cr-examples-ch8", chapter: "8", drivers: ch8 },
+  { name: "cr-examples-ch10", chapter: "10", drivers: ch10 },
 ];
 
 /**

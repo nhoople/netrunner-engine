@@ -6,7 +6,12 @@
  *
  * Not a test file: vitest only runs `*.test.ts`.
  */
-import { applyAction, getPublicView, legalActions } from "../../src/index.js";
+import {
+  applyAction,
+  cloneState,
+  getPublicView,
+  legalActions,
+} from "../../src/index.js";
 import type { Action, GameState } from "../../src/index.js";
 import type { ServerId } from "../../src/state/types.js";
 import { approachedIceId } from "../../src/actions/rez.js";
@@ -244,18 +249,14 @@ export function accessing(
   return { s, accessed };
 }
 
-/** Both players bid in an open Psi Game. */
+/** Both players bid in an open Psi Game, each bid made if the engine accepts it. */
 export function psi(s: GameState, corp: number, runner: number): GameState {
   for (let i = 0; i < 2 && s.psi; i++) {
-    const legal = legalActions(s);
-    const runnerBid = legal.find(
-      (a) => a.type === "psi_runner_bid" && a.amount === runner,
-    );
-    const corpBid = legal.find(
-      (a) => a.type === "psi_corp_bid" && a.amount === corp,
-    );
-    const next = runnerBid ?? corpBid;
-    if (!next) break;
+    const next: Action =
+      s.psi.runnerBid === null
+        ? { type: "psi_runner_bid", amount: runner }
+        : { type: "psi_corp_bid", amount: corp };
+    if (!applyAction(cloneState(s), next).ok) break;
     s = must(s, next);
   }
   return s;
