@@ -27,11 +27,14 @@
  * "fixed" is a card a fix session (PF-S1, …) made play as printed: it names
  * the engine PR and a test in tests/ whose name states the printed behavior.
  *
- * Later sessions only add: one `sessions` row and its cycle's cards. A card
- * reprinted in a later cycle keeps the entry of the cycle that first swept it.
+ * Later sessions only add: one `sessions` row per cycle they read and those
+ * cards. A card reprinted in a later cycle keeps the entry of the cycle that
+ * first swept it. A cycle may have more than one row when sessions read it
+ * in parts (S3d read Spin before Second Thoughts could be placed in it; S3m
+ * read Second Thoughts).
  * This test checks that the file is well formed, that every card id exists,
- * that each entry's cycle is one the card was printed in, that each session
- * covers every card printed in its cycle, and that a "matches" card has no
+ * that each entry's cycle is one the card was printed in, that a cycle's rows
+ * together cover every card printed in it, and that a "matches" card has no
  * entry left in the 1.12 baseline (tests/baselines/printed-phrases.json), so
  * 1.12 guards it from then on.
  */
@@ -103,11 +106,17 @@ function testSources(): string {
 /**
  * A printing's `pack` is usually a set id, but some printings use an older
  * name: a set's `legacyCode` (`core`), the set id without `-set`
- * (`revised-core`), or a cycle id (`terminal-directive`). These two match
- * neither and are a gap in the cards data (cards v1.147.24); their cards are
- * Eternal-only, so they matter from S3 on. A new unresolved pack fails below.
+ * (`revised-core`), or a cycle id (`terminal-directive`). Two packs match
+ * none of these, a gap in the cards data (cards v1.147.25). Their printing
+ * codes place them: `stalwart` is 04021–04040, the second Spin data pack,
+ * Second Thoughts; `twenty-three-seconds` is 11001–11020, the first
+ * Flashpoint data pack, 23 Seconds. Each card set lists 20 cards, as these
+ * packs do. A new unresolved pack fails below.
  */
-const UNRESOLVED_PACKS = ["stalwart", "twenty-three-seconds"];
+const PACK_SETS: Record<string, string> = {
+  stalwart: "second-thoughts",
+  "twenty-three-seconds": "23-seconds",
+};
 
 /** Card id → the cycles it was printed in, from printings and card sets. */
 function cyclesByCard(): {
@@ -130,7 +139,7 @@ function cyclesByCard(): {
     }
   }
   const resolve = (pack: string): string | undefined =>
-    cycleOfSet.get(pack) ??
+    cycleOfSet.get(PACK_SETS[pack] ?? pack) ??
     cycleOfSet.get(`${pack}-set`) ??
     (cycleIds.has(pack) ? pack : undefined);
   const byCard = new Map<string, Set<string>>();
@@ -181,8 +190,8 @@ describe("printed-text sweep record", () => {
     expect(loadCardsPin().tag).toMatch(/^v\d+\.\d+\.\d+$/);
   });
 
-  it("finds the cycle of every printing but the known gaps", () => {
-    expect([...unresolvedPacks].sort()).toEqual(UNRESOLVED_PACKS);
+  it("finds the cycle of every printing", () => {
+    expect([...unresolvedPacks].sort()).toEqual([]);
   });
 
   it("lists each session once, with a known cycle", () => {
@@ -192,9 +201,7 @@ describe("printed-text sweep record", () => {
       ),
     );
     const ids = sweep.sessions.map((s) => s.id);
-    const cyc = sweep.sessions.map((s) => s.cycle);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(new Set(cyc).size).toBe(cyc.length);
     for (const s of sweep.sessions) {
       expect(s.id, s.id).toMatch(SESSION_ID);
       expect(knownCycles.has(s.cycle), s.cycle).toBe(true);
@@ -203,13 +210,19 @@ describe("printed-text sweep record", () => {
   });
 
   it("covers every card printed in each session's cycle", () => {
+    const rowsByCycle = new Map<string, Session[]>();
     for (const s of sweep.sessions) {
+      rowsByCycle.set(s.cycle, [...(rowsByCycle.get(s.cycle) ?? []), s]);
+    }
+    for (const [cycle, rows] of rowsByCycle) {
+      const label = rows.map((s) => s.id).join("+");
       const printed = [...cycles]
-        .filter(([, cs]) => cs.has(s.cycle))
+        .filter(([, cs]) => cs.has(cycle))
         .map(([id]) => id);
-      expect(printed.length, `${s.id} card count`).toBe(s.cards);
+      const counted = rows.reduce((sum, s) => sum + s.cards, 0);
+      expect(counted, `${label} card count`).toBe(printed.length);
       const missing = printed.filter((id) => !sweep.cards[id]);
-      expect(missing, `${s.id} cards with no entry`).toEqual([]);
+      expect(missing, `${label} cards with no entry`).toEqual([]);
     }
   });
 
