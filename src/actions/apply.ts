@@ -1177,8 +1177,12 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   ) {
     return ok(state);
   }
-  releaseSetAsideHostedCards(state);
-  returnSetAsideAdvancements(state);
+  // A paid ability's effect deferred behind this choice still needs the
+  // cards and counters its trash cost set aside (Reconstruction Contract).
+  if (!state.pendingEffectContinuation) {
+    releaseSetAsideHostedCards(state);
+    returnSetAsideAdvancements(state);
+  }
   if (
     state.pendingTrashProgram ||
     state.pendingChoice ||

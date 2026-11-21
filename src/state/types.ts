@@ -5466,6 +5466,8 @@ interface PendingSubroutineBreak {
  */
 export interface PendingEffectContinuation {
   sourceId: string;
+  /** Who pays and controls the effects, when not the source's side (a paid ability). */
+  payerSide?: Side;
   effects: import("../effects/ir.js").Effect[];
   /** Runs after `effects`, including when this segment pauses again. */
   followedBy?: PendingEffectContinuation;

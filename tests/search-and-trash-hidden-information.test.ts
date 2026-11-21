@@ -18,8 +18,12 @@ import type { GameState } from "../src/state/types.js";
 import { Board, Report } from "./second-reader/harness.js";
 import { drive as walk, run } from "./second-reader/driving.js";
 import {
+  corpTurn as corpTurnAt,
   drive,
   fresh,
+  installRoot,
+  paidAbility,
+  setIdentity,
   installIce,
   must,
   optionIds,
@@ -166,6 +170,48 @@ describe("other R&D searches with criteria use the shared deck search (CR 8.7.2e
     expect(runnerViewOfChoice(b.s)?.options).toEqual([
       expect.objectContaining({ id: "hidden:0", label: "Hidden" }),
     ]);
+  });
+});
+
+describe("a paid ability's effect waits for a choice its trash cost triggered (CR 10.3.4, 10.3.2)", () => {
+  it("with Ob Superheavy Logistics, Alexa Belsky's shuffle choice still follows Ob's search (CR 10.3.4)", () => {
+    let s = corpTurnAt(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "alexa-belsky", "ab-1", true);
+    toHand(s, "corp", "hedge-fund", "hf-hq");
+    s.runner.credits = 0;
+    s.timingKey = "corp.actionPaw";
+    s = must(s, paidAbility(s, "ab-1")!);
+    expect(optionIds(s)).toEqual(["choose-cards-done"]);
+    s = must(s, { type: "choose_option", optionId: "choose-cards-done" });
+    expect(optionIds(s).some((id) => id.startsWith("alexa:"))).toBe(true);
+  });
+
+  // Filed under area 2 (trash procedure): Ob's trigger checkpoint runs
+  // inside the trash cost, before the advancement counters are set aside,
+  // so they are lost whatever Ob finds (CR 10.3.4, 9.5.5).
+  it.skip("with Ob Superheavy Logistics, Reconstruction Contract still moves its advancements after Ob's search (filed, area 2, CR 10.3.4: the trash's checkpoint runs before the cost is paid)", () => {
+    let s = corpTurnAt(fresh(), 5);
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    const rc = installRoot(s, "reconstruction-contract", "rc-1", true);
+    rc.advancementCounters = 2;
+    installIce(s, "ice-wall", "iw-1", "hq", true);
+    s.timingKey = "corp.actionPaw";
+    s = must(s, paidAbility(s, "rc-1")!);
+    // Ob's search comes first: R&D holds no 0-cost card, so it finds nothing.
+    expect(optionIds(s)).toContain("choose-cards-done");
+    s = must(s, { type: "choose_option", optionId: "choose-cards-done" });
+    // Then Reconstruction Contract's move: both tokens onto Ice Wall.
+    for (let i = 0; i < 6 && s.pendingChoice; i++) {
+      const ids = optionIds(s);
+      const id =
+        ids.find((x) => x.includes("iw-1")) ??
+        ids.find((x) => /(^|:)2$/.test(x)) ??
+        ids[0]!;
+      s = must(s, { type: "choose_option", optionId: id });
+    }
+    expect(s.cards["iw-1"]!.advancementCounters ?? 0).toBe(2);
+    expect(s.corp.discardPile).toContain("rc-1");
   });
 });
 

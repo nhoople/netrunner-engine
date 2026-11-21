@@ -1058,7 +1058,11 @@ export function usePaidAbility(
   // (CR 10.3.4, 10.3.2): it waits on the shared continuation.
   let applied: { ok: true } | { ok: false; error: string; cites: RuleCite[] };
   if (state.pendingChoice && state.pendingChoice !== choiceBeforeCost) {
-    deferContinuationAfter(state, { sourceId: cardId, effects: [ability.effect] });
+    deferContinuationAfter(state, {
+      sourceId: cardId,
+      payerSide: payer,
+      effects: [ability.effect],
+    });
     applied = { ok: true };
   } else {
     applied = evalEffect(ctx, ability.effect);
