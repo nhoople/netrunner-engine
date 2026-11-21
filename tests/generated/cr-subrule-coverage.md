@@ -15,7 +15,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | area 5 | 81 | 25 | 56 |
 | area 6 | 25 | 6 | 19 |
 | area 7 | 11 | 4 | 7 |
-| area 8 | 60 | 17 | 43 |
+| area 8 | 60 | 18 | 42 |
 | area 9 | 8 | 4 | 4 |
 | area 11 | 345 | 103 | 242 |
 | area 12 | 22 | 2 | 20 |
@@ -23,10 +23,10 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | area 14 | 91 | 30 | 61 |
 | area 15 | 51 | 19 | 32 |
 | area 16 | 55 | 13 | 42 |
-| fidelity | 248 | 103 | 145 |
+| fidelity | 248 | 105 | 143 |
 | standardization | 47 | 27 | 20 |
 | reference | 280 | 37 | 243 |
-| **Total** | 1512 | 476 | 1036 |
+| **Total** | 1512 | 479 | 1033 |
 
 ## area 1
 
@@ -265,7 +265,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 8.5.11a | 8.5 | tests/cr-examples-ch1.test.ts › installs PAD Campaign with no install cost (CR 8.5.11a) |
 | 8.5.11b | 8.5 | — |
 | 8.5.11c | 8.5 | — |
-| 8.5.12 | 8.5 | tests/yagi-uda-swap.test.ts › keeps an upgrade's server limit and the one-region limit (CR 8.5.12, 3.6.5) |
+| 8.5.12 | 8.5 | tests/legality-agreement.test.ts › ZATO City Grid is offered only in a remote server, as its text says and apply enforces (CR 8.5.12)<br>tests/yagi-uda-swap.test.ts › keeps an upgrade's server limit and the one-region limit (CR 8.5.12, 3.6.5) |
 | 8.5.13 | 8.5 | — |
 | 8.5.13a | 8.5 | tests/cr-examples-ch8.test.ts › installs an unrevealed upgrade into an occupied remote root and rejects an operation (CR 8.5.13a.ex1)<br>tests/cr-examples-ch8.test.ts › does not reveal ice Brân installs from HQ (CR 8.5.13a.ex2) |
 | 8.5.13b | 8.5 | tests/cr-examples-ch8.test.ts › does not reveal a second region installed into a root that already has one (CR 8.5.13b.ex1) |
@@ -337,11 +337,11 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 7.1.3 | 7.1 | — |
 | 7.1.4 | 7.1 | tests/rulings-identity.test.ts › the Runner may use Carnivore on a card accessed in a remote server (CR 1.2.1, 7.1.4) |
 | 7.1.5 | 7.1 | tests/fx-salem.test.ts › Quest Completed can access a card in a central server's root, and the Runner may pay to trash it (CR 7.1.5) |
-| 7.1.5a | 7.1 | — |
+| 7.1.5a | 7.1 | tests/legality-agreement.test.ts › the Runner cannot trash an accessed agenda, which has no trash cost (CR 7.1.5a) |
 | 7.1.5b | 7.1 | — |
 | 7.1.5c | 7.1 | — |
 | 7.1.5d | 7.1 | — |
-| 7.1.6 | 7.1 | tests/fx-salem.test.ts › Quest Completed accesses a root card outside a run, and the Runner can steal it (CR 7.1.6) |
+| 7.1.6 | 7.1 | tests/fx-salem.test.ts › Quest Completed accesses a root card outside a run, and the Runner can steal it (CR 7.1.6)<br>tests/legality-agreement.test.ts › the Runner must steal an accessed agenda with no additional cost: declining it is refused (CR 7.1.6) |
 | 7.1.6a | 7.1 | — |
 | 7.1.7 | 7.1 | tests/rulings-identity.test.ts › NBN: Reality Plus: a Snare! drawn into HQ by the tag's draw ends the access, so the Runner cannot trash it (ruling 4; filed, area 8, CR 7.1.7: the access goes on after the card moves) |
 | 7.1.8 | 7.1 | — |
@@ -455,7 +455,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.16.1c | 1.16 | tests/cr-examples-ch1.test.ts › does not suffer Zer0's net damage when the once-per-turn ability cannot be used (CR 1.16.1c.ex1)<br>tests/cr-examples-ch1.test.ts › cannot trash SanSan City Grid to score Azef Protocol (CR 1.16.1c.ex2) |
 | 1.16.1d | 1.16 | tests/cr-examples-ch1.test.ts › trashes Beanstalk Royalties with Freedom Khumalo for zero virus counters (CR 1.16.1d.ex1)<br>tests/who-trashes.test.ts › lets the Corp pay a cost of 0 when the root is empty (CR 1.16.1d) |
 | 1.16.2 | 1.16 | tests/rulings-identity.test.ts › Reina Roja: rezzing the first ice of the turn by forfeiting an agenda for Tithonium costs no extra credit, since the increase is to the rez cost and not an additional cost (ruling 1; filed, area 7, CR 1.16.2: the forfeit is a discount, so Reina's +1 is owed) |
-| 1.16.2a | 1.16 | tests/jnet-interactions-cards.test.ts › Tithe costs 2 to rez under Tread Lightly with Vovô Ozetti: 1 + 3 − 2 (CR 1.16.2a)<br>tests/jnet-interactions-cards.test.ts › with Hernando Cortez and Vovô Ozetti, Tithe's rez cost floors at 0 and the additional cost of 2 (its subroutines) is paid on top (CR 1.16.2a, 1.16.10)<br>tests/rulings-event.test.ts › Tread Lightly: Asteroid Belt with 4 advancement counters costs 0 to rez: 9, plus 3, minus 12 (ruling 1; filed, area 7, CR 1.16.2a: the rez is not listed without the undiscounted credits) |
+| 1.16.2a | 1.16 | tests/jnet-interactions-cards.test.ts › Tithe costs 2 to rez under Tread Lightly with Vovô Ozetti: 1 + 3 − 2 (CR 1.16.2a)<br>tests/jnet-interactions-cards.test.ts › with Hernando Cortez and Vovô Ozetti, Tithe's rez cost floors at 0 and the additional cost of 2 (its subroutines) is paid on top (CR 1.16.2a, 1.16.10)<br>tests/rulings-event.test.ts › Tread Lightly: Asteroid Belt with 4 advancement counters costs 0 to rez: 9, plus 3, minus 12, and the rez is a legal move (ruling 1; CR 1.16.2a) |
 | 1.16.2b | 1.16 | tests/cr-examples-ch1.test.ts › pays Cayambe Grid's 6 credits as one payment, so GameNET gains 1 (CR 1.16.2b.ex1) |
 | 1.16.2c | 1.16 | tests/cr-examples-ch1.test.ts › cannot spend more credits on Psychographics than the Runner has tags (CR 1.16.2c.ex1) |
 | 1.16.2d | 1.16 | — |
@@ -1068,7 +1068,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.1.6a | 9.1 | — |
 | 9.1.6b | 9.1 | tests/security-nexus.test.ts › is offered again later the same turn after a decline (CR 9.1.6b) |
 | 9.1.6c | 9.1 | tests/cr-examples-ch9.test.ts › uses Cyberfeeder when its credit pays Mimic's break (CR 9.1.6c.ex1) |
-| 9.1.7 | 9.1 | tests/cost-card-choices.test.ts › does not ask when the ability cannot be used at all (CR 9.1.7)<br>tests/jnet-interactions-rules.test.ts › trashing Director Haas hosted on Worlds Plaza, itself hosted on Full Immersion RecStudio, takes away the Corp's extra click (CR 9.1.7)<br>tests/jnet-interactions-rules.test.ts › after Saker derezzes Kakugo, passing Kakugo does no net damage, so Saker stays in the grip (CR 9.1.7)<br>tests/timing-reaudit.test.ts › does no net damage when the Runner trashes an unrezzed Hostile Infrastructure, whose ability is not active (CR 9.1.7, 9.1.8g) |
+| 9.1.7 | 9.1 | tests/cost-card-choices.test.ts › does not ask when the ability cannot be used at all (CR 9.1.7)<br>tests/jnet-interactions-rules.test.ts › trashing Director Haas hosted on Worlds Plaza, itself hosted on Full Immersion RecStudio, takes away the Corp's extra click (CR 9.1.7)<br>tests/jnet-interactions-rules.test.ts › after Saker derezzes Kakugo, passing Kakugo does no net damage, so Saker stays in the grip (CR 9.1.7)<br>tests/legality-agreement.test.ts › Spin Doctor's ability cannot be used again once it has removed itself from the game (CR 1.8.3a, 9.1.7)<br>tests/timing-reaudit.test.ts › does no net damage when the Runner trashes an unrezzed Hostile Infrastructure, whose ability is not active (CR 9.1.7, 9.1.8g) |
 | 9.1.8 | 9.1 | — |
 | 9.1.8a | 9.1 | — |
 | 9.1.8b | 9.1 | tests/cr-examples-ch9.test.ts › does not draw for I've Had Worse when Skorpios removes it from the game (CR 9.1.8b.ex1) |
@@ -1105,7 +1105,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.2.6d | 9.2 | — |
 | 9.2.7 | 9.2 | — |
 | 9.2.7a | 9.2 | tests/legality.test.ts › approach PAW starts with the Runner, then lists rez (CR 9.2.7a / 11.4_2_b)<br>tests/timing-chart.test.ts › starts a paid ability window with the active player (CR 9.2.7a)<br>tests/timing-chart.test.ts › keeps the other player's option hidden until they receive priority (CR 9.2.7a) |
-| 9.2.7b | 9.2 | — |
+| 9.2.7b | 9.2 | tests/legality-agreement.test.ts › an identity's once-per-turn paid ability is refused a second time however it is named: AgInfusion (CR 9.2.7b, 9.3.6g) |
 | 9.2.7c | 9.2 | tests/priority-no-skip.test.ts › in the paid ability window after a Runner action (CR 5.7.1e), whether or not the facedown card can be rezzed (CR 9.2.7c, 10.2.2a) |
 | 9.2.7d | 9.2 | — |
 | 9.2.7e | 9.2 | tests/priority-no-skip.test.ts › on approached ice, whether or not the Corp can pay to rez it (CR 9.2.7e, 10.2.2a) |
@@ -1137,7 +1137,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.3.2c | 9.3 | — |
 | 9.3.3 | 9.3 | — |
 | 9.3.3a | 9.3 | — |
-| 9.3.3b | 9.3 | — |
+| 9.3.3b | 9.3 | tests/legality-agreement.test.ts › Petty Cash cannot be played after the Corp has finished an action: apply refuses it, as the list does (CR 9.3.3b) |
 | 9.3.3c | 9.3 | — |
 | 9.3.3d | 9.3 | — |
 | 9.3.3e | 9.3 | — |
@@ -1158,7 +1158,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.3.6d | 9.3 | — |
 | 9.3.6e | 9.3 | — |
 | 9.3.6f | 9.3 | — |
-| 9.3.6g | 9.3 | tests/cr-examples-ch9.test.ts › keeps Zahya's once-per-turn ability when she declines the credit (CR 9.3.6g.ex1)<br>tests/sweep-fixes-s2.test.ts › declining does not use it up, it watches any ice rezzed during a run on its server, and the +3 lasts the run (CR 9.3.6g, 9.10.1)<br>tests/sweep-fixes-s2.test.ts › declining the extra access does not use up its once per turn, and it is offered once per breach (CR 9.3.6g) |
+| 9.3.6g | 9.3 | tests/cr-examples-ch9.test.ts › keeps Zahya's once-per-turn ability when she declines the credit (CR 9.3.6g.ex1)<br>tests/legality-agreement.test.ts › an identity's once-per-turn paid ability is refused a second time however it is named: AgInfusion (CR 9.2.7b, 9.3.6g)<br>tests/sweep-fixes-s2.test.ts › declining does not use it up, it watches any ice rezzed during a run on its server, and the +3 lasts the run (CR 9.3.6g, 9.10.1)<br>tests/sweep-fixes-s2.test.ts › declining the extra access does not use up its once per turn, and it is offered once per breach (CR 9.3.6g) |
 | 9.3.7 | 9.3 | — |
 | 9.3.7a | 9.3 | tests/unregistered-s-w-35.test.ts › can be used only after a successful run on HQ this turn (CR 9.3.7a) |
 | 9.3.7b | 9.3 | tests/ability-record.test.ts › materializes Crypsis paid abilities from records (CR 9.3.7b)<br>tests/ability-record.test.ts › finds a paid ability after paidAbilities is cleared (CR 9.3.7b)<br>tests/timing-reaudit.test.ts › resolves Professional Contacts' paid ability from its record: one click, then 1 credit and 1 card (CR 9.3.7b) |
@@ -1229,7 +1229,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.9.4a | 9.9 | — |
 | 9.9.4b | 9.9 | tests/jnet-interactions-rules.test.ts › when Apocalypse trashes the Corp's cards, Marilyn Campaign's interrupt comes first, then the Corp orders Hostile Infrastructure and Calvin B4L3Y (CR 9.9.4b, 9.2.8d) |
 | 9.9.4c | 9.9 | tests/cr-examples-ch9.test.ts › keeps Harbinger's interrupt pending but irrelevant after Sacrificial Construct (CR 9.9.4c.ex1)<br>tests/cr-examples-ch9.test.ts › does not let No One Home fire when it was installed during the tag window (CR 9.9.4c.ex2) |
-| 9.9.4d | 9.9 | tests/cr-examples-ch9.test.ts › lets a Decoy installed during the tag window avoid the other tag (CR 9.9.4d.ex1)<br>tests/jnet-interactions-cards.test.ts › legalActions offers Net Shield's prevention while Neural EMP's net damage is pending (CR 9.9.4d) |
+| 9.9.4d | 9.9 | tests/cr-examples-ch9.test.ts › lets a Decoy installed during the tag window avoid the other tag (CR 9.9.4d.ex1)<br>tests/jnet-interactions-cards.test.ts › while net damage is pending, Net Shield's prevention is a legal move: legalActions offers it while Neural EMP's net damage is pending (CR 9.9.4d)<br>tests/legality-agreement.test.ts › damage only interrupts may prevent cannot be prevented by a plain prevention move: Ronin's net damage (CR 9.9.4d) |
 | 9.9.5 | 9.9 | tests/jnet-interactions-cards.test.ts › Net Shield prevents Neural EMP's net damage for 1 credit; the Corp pays 2 more under Wireless Net Pavilion to trash Off-Campus Apartment, and Fall Guy hosted on it prevents that trash (CR 9.9.5, 1.16.10)<br>tests/the-automata-initiative.test.ts › opens pendingDamage from real net_damage so AirbladeX can prevent (CR 9.9.5 / 9.9.3a / 10.4) |
 | 9.9.5a | 9.9 | tests/cr-examples-ch9.test.ts › counts prevented net damage as Tori Hanzō's first would (CR 9.9.5a.ex1)<br>tests/system-seizure-duration-replacement.test.ts › counts the first would-increase outside a run without attaching a grant (CR 9.9.5a) |
 | 9.9.5b | 9.9 | — |
@@ -1368,7 +1368,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.8.1 | 1.8 | — |
 | 1.8.2 | 1.8 | — |
 | 1.8.3 | 1.8 | — |
-| 1.8.3a | 1.8 | tests/timing-fixes-rf1.test.ts › a rezzed card derezzed while its ability is pending loses that pending instance: Maglectric Rapid derezzing Bernice Mai (CR 9.6.10, 1.8.3a) |
+| 1.8.3a | 1.8 | tests/legality-agreement.test.ts › Spin Doctor's ability cannot be used again once it has removed itself from the game (CR 1.8.3a, 9.1.7)<br>tests/timing-fixes-rf1.test.ts › a rezzed card derezzed while its ability is pending loses that pending instance: Maglectric Rapid derezzing Bernice Mai (CR 9.6.10, 1.8.3a) |
 | 1.8.3b | 1.8 | — |
 | 1.8.3c | 1.8 | — |
 | 1.8.3d | 1.8 | — |
