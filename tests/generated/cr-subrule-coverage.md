@@ -15,18 +15,18 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | area 5 | 81 | 25 | 56 |
 | area 6 | 25 | 6 | 19 |
 | area 7 | 11 | 4 | 7 |
-| area 8 | 60 | 20 | 40 |
+| area 8 | 60 | 21 | 39 |
 | area 9 | 8 | 4 | 4 |
-| area 11 | 345 | 104 | 241 |
+| area 11 | 345 | 106 | 239 |
 | area 12 | 22 | 2 | 20 |
 | area 13 | 40 | 13 | 27 |
 | area 14 | 91 | 37 | 54 |
 | area 15 | 51 | 19 | 32 |
 | area 16 | 55 | 13 | 42 |
-| fidelity | 248 | 107 | 141 |
+| fidelity | 248 | 109 | 139 |
 | standardization | 47 | 28 | 19 |
 | reference | 280 | 37 | 243 |
-| **Total** | 1512 | 492 | 1020 |
+| **Total** | 1512 | 497 | 1015 |
 
 ## area 1
 
@@ -356,7 +356,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 7.3.2 | 7.3 | — |
 | 7.3.2a | 7.3 | — |
 | 7.3.3 | 7.3 | — |
-| 7.3.4 | 7.3 | — |
+| 7.3.4 | 7.3 | tests/timing-walk.test.ts › every turn, run, breach and access in the seeded playouts follows the chapter 11 charts (CR 5.6, 5.7, 6.9, 7.2, 7.3.4, 9.2.7) |
 | 7.3.4a | 7.3 | tests/player-chooses-cards.test.ts › accesses a random card from HQ, the same one for the same seed (CR 7.3.4a) |
 | 7.3.4b | 7.3 | — |
 | 7.3.5 | 7.3 | — |
@@ -584,9 +584,9 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 5.5.4b | 5.5 | — |
 | 5.5.4c | 5.5 | — |
 | 5.5.4d | 5.5 | — |
-| 5.6.1 | 5.6 | — |
+| 5.6.1 | 5.6 | tests/timing-walk.test.ts › passes the Corp's draw phase in chart order (CR 5.6.1) |
 | 5.6.1a | 5.6 | — |
-| 5.6.1b | 5.6 | — |
+| 5.6.1b | 5.6 | tests/timing-walk.test.ts › fails a skipped paid ability window (CR 5.6.1b) |
 | 5.6.1c | 5.6 | — |
 | 5.6.1d | 5.6 | — |
 | 5.6.1e | 5.6 | — |
@@ -894,7 +894,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 6.9.1c | 6.9 | tests/rulings-program.test.ts › Cezve: the run is in progress when Masterwork's run-begin install resolves, so Cezve's credits pay for it (ruling 1; filed, area 15, CR 6.9.1c: Cezve's credits are not counted for the run-begin install) |
 | 6.9.1d | 6.9 | — |
 | 6.9.1e | 6.9 | — |
-| 6.9.1f | 6.9 | tests/instruction-checkpoints.test.ts › checkpoints outside the initiation phase after the run begins, before the Movement Phase (CR 10.3.6, 9.2.2b, 6.9.1f) |
+| 6.9.1f | 6.9 | tests/instruction-checkpoints.test.ts › checkpoints outside the initiation phase after the run begins, before the Movement Phase (CR 10.3.6, 9.2.2b, 6.9.1f)<br>tests/timing-walk.test.ts › lets a run with no ice go from the Initiation Phase to the Movement Phase's paid ability window (CR 6.9.1f, 6.9.4a) |
 | 6.9.2 | 6.9 | — |
 | 6.9.2a | 6.9 | — |
 | 6.9.2b | 6.9 | tests/jnet-interactions-runs.test.ts › credits spent in the approach window are gone when Tollbooth asks for 3, so it ends the run (CR 6.9.2b, 1.2.3) |
@@ -906,7 +906,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 6.9.3d | 6.9 | — |
 | 6.9.3e | 6.9 | — |
 | 6.9.4 | 6.9 | — |
-| 6.9.4a | 6.9 | tests/run-movement-phase.test.ts › meets a root card's pass-all-ice condition before the Runner may jack out (CR 6.9.4a) |
+| 6.9.4a | 6.9 | tests/run-movement-phase.test.ts › meets a root card's pass-all-ice condition before the Runner may jack out (CR 6.9.4a)<br>tests/timing-walk.test.ts › lets a run with no ice go from the Initiation Phase to the Movement Phase's paid ability window (CR 6.9.1f, 6.9.4a) |
 | 6.9.4b | 6.9 | tests/run-movement-phase.test.ts › gives the Runner the 6.9.4b paid ability window |
 | 6.9.4c | 6.9 | tests/priority-no-skip.test.ts › closes the jack-out choice on the Runner's decision alone (CR 6.9.4c)<br>tests/run-movement-phase.test.ts › stops for the Runner's jack-out choice (CR 6.9.4c)<br>tests/run-movement-phase.test.ts › ends the run unsuccessfully when the Runner jacks out (CR 6.9.4c) |
 | 6.9.4d | 6.9 | — |
@@ -916,13 +916,13 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 6.9.4h | 6.9 | tests/approach-server-open-information.test.ts › after the approach-server stop, the checkpoint outside the movement phase still occurs (CR 10.3.6, 6.9.4h) |
 | 6.9.5 | 6.9 | — |
 | 6.9.5a | 6.9 | tests/rulings-program.test.ts › Sneakdoor Beta: with Crisium Grid in Archives the run stays on Archives, is not successful, and the Runner breaches Archives (ruling 2; filed, area 14, CR 6.9.5a: the run is moved to HQ and declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: with Crisium Grid in Archives, a Sneakdoor Beta run stays on Archives, is not successful, and breaches Archives (ruling 5; filed, area 14, CR 6.9.5a: the run is moved to HQ and declared successful) |
-| 6.9.5b | 6.9 | tests/rulings-program.test.ts › Sneakdoor Beta: with Crisium Grid in HQ the attacked server still changes to HQ; the run is not successful, but the Runner breaches HQ (ruling 1; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: a Jailbreak run on HQ breaches HQ but gets no extra access and no card drawn (ruling 1; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: trashed during the breach of HQ, the run still was not successful, so Emergency Shutdown cannot be played (ruling 2; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: the Runner still breaches the server and accesses cards as normal (ruling 3; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: with Crisium Grid in HQ, a Sneakdoor Beta run moves to HQ, is not successful, and breaches HQ (ruling 4; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful) |
+| 6.9.5b | 6.9 | tests/rulings-program.test.ts › Sneakdoor Beta: with Crisium Grid in HQ the attacked server still changes to HQ; the run is not successful, but the Runner breaches HQ (ruling 1; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: a Jailbreak run on HQ breaches HQ but gets no extra access and no card drawn (ruling 1; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: trashed during the breach of HQ, the run still was not successful, so Emergency Shutdown cannot be played (ruling 2; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: the Runner still breaches the server and accesses cards as normal (ruling 3; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/rulings-upgrade.test.ts › Crisium Grid: with Crisium Grid in HQ, a Sneakdoor Beta run moves to HQ, is not successful, and breaches HQ (ruling 4; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)<br>tests/timing-walk.test.ts › fails a breach that begins outside the Success Phase (CR 6.9.5b) |
 | 6.9.5c | 6.9 | — |
 | 6.9.6 | 6.9 | — |
 | 6.9.6a | 6.9 | — |
 | 6.9.6b | 6.9 | — |
 | 6.9.6c | 6.9 | — |
-| 6.9.6d | 6.9 | tests/rulings-program.test.ts › Conduit: the virus counter is placed when the run ends, after the breach of R&D (ruling 1; filed, area 14, CR 6.9.6d: the counter is placed at success, before the breach)<br>tests/rulings-resource.test.ts › Psych Mike: accessing the same R&D card twice in a run (Shiro, then the run's breach) gains 2 credits (ruling 1; filed, area 14, CR 6.9.6d: at the end of the run it finds no R&D accesses and gains nothing) |
+| 6.9.6d | 6.9 | tests/rulings-program.test.ts › Conduit: the virus counter is placed when the run ends, after the breach of R&D (ruling 1; filed, area 14, CR 6.9.6d: the counter is placed at success, before the breach)<br>tests/rulings-resource.test.ts › Psych Mike: accessing the same R&D card twice in a run (Shiro, then the run's breach) gains 2 credits (ruling 1; filed, area 14, CR 6.9.6d: at the end of the run it finds no R&D accesses and gains nothing)<br>tests/timing-walk.test.ts › fails a run that starts its Run Ends Phase again after the run is complete (CR 6.9.6d) |
 
 ## area 15
 
@@ -1103,11 +1103,11 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.2.6b | 9.2 | — |
 | 9.2.6c | 9.2 | — |
 | 9.2.6d | 9.2 | — |
-| 9.2.7 | 9.2 | — |
-| 9.2.7a | 9.2 | tests/legality.test.ts › approach PAW starts with the Runner, then lists rez (CR 9.2.7a / 11.4_2_b)<br>tests/timing-chart.test.ts › starts a paid ability window with the active player (CR 9.2.7a)<br>tests/timing-chart.test.ts › keeps the other player's option hidden until they receive priority (CR 9.2.7a) |
-| 9.2.7b | 9.2 | tests/legality-agreement.test.ts › an identity's once-per-turn paid ability is refused a second time however it is named: AgInfusion (CR 9.2.7b, 9.3.6g) |
-| 9.2.7c | 9.2 | tests/priority-no-skip.test.ts › in the paid ability window after a Runner action (CR 5.7.1e), whether or not the facedown card can be rezzed (CR 9.2.7c, 10.2.2a) |
-| 9.2.7d | 9.2 | — |
+| 9.2.7 | 9.2 | tests/timing-walk.test.ts › every turn, run, breach and access in the seeded playouts follows the chapter 11 charts (CR 5.6, 5.7, 6.9, 7.2, 7.3.4, 9.2.7) |
+| 9.2.7a | 9.2 | tests/legality.test.ts › approach PAW starts with the Runner, then lists rez (CR 9.2.7a / 11.4_2_b)<br>tests/timing-chart.test.ts › starts a paid ability window with the active player (CR 9.2.7a)<br>tests/timing-chart.test.ts › keeps the other player's option hidden until they receive priority (CR 9.2.7a)<br>tests/timing-walk.test.ts › fails a paid ability window the engine leaves without giving a player priority (CR 9.2.7a) |
+| 9.2.7b | 9.2 | tests/legality-agreement.test.ts › an identity's once-per-turn paid ability is refused a second time however it is named: AgInfusion (CR 9.2.7b, 9.3.6g)<br>tests/timing-walk.test.ts › finds Mamba's power counter ability offered only during the encounter, though it prints 'Use this ability only during a run' (CR 9.2.7b; filed under area 11) |
+| 9.2.7c | 9.2 | tests/priority-no-skip.test.ts › in the paid ability window after a Runner action (CR 5.7.1e), whether or not the facedown card can be rezzed (CR 9.2.7c, 10.2.2a)<br>tests/timing-walk.test.ts › fails an asset the Corp can pay for but is not offered to rez at (R) (CR 9.2.7c) |
+| 9.2.7d | 9.2 | tests/timing-walk.test.ts › fails an agenda with enough advancement counters that is not offered to score at (S), and a score offered without (S) (CR 9.2.7d) |
 | 9.2.7e | 9.2 | tests/priority-no-skip.test.ts › on approached ice, whether or not the Corp can pay to rez it (CR 9.2.7e, 10.2.2a) |
 | 9.2.7f | 9.2 | — |
 | 9.2.7g | 9.2 | — |
