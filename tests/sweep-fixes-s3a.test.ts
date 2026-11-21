@@ -178,7 +178,7 @@ describe("Midori", () => {
 });
 
 describe("Snitch", () => {
-  it("declining at the first unrezzed ice keeps its once per run for the next, and its choice does not name the unrezzed ice (CR 9.6.9d, 10.2.2b)", () => {
+  it("declining at the first unrezzed ice keeps its once per run for the next, and its choice does not name the unrezzed ice (CR 9.6.9d, 10.2.2a)", () => {
     let s = runnerTurn(fresh());
     installRunner(s, "snitch", "sn-1");
     installRoot(s, "pad-campaign", "pad-1", false);
@@ -523,7 +523,7 @@ describe("Compromised Employee and Dinosaurus", () => {
 });
 
 describe("Adonis Campaign, Eve Campaign and Private Contracts", () => {
-  it("Adonis Campaign rezzed the normal way puts 12 credits on itself (CR 9.6.4, 1.2.1)", () => {
+  it("Adonis Campaign rezzed the normal way puts 12 credits on itself, as printed (CR 1.2.1)", () => {
     let s = corpTurn(fresh(), 10);
     installRoot(s, "adonis-campaign", "ad-1", false);
     s = must(corpPaw(s), { type: "rez_asset", cardId: "ad-1" });

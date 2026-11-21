@@ -206,13 +206,13 @@
     },
     "accelerated-beta-test": {
       "cycle": "core-set",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "When you score Accelerated Beta Test, you may look at the top 3 cards of R&D. If any of those cards are ice, you may install and rez them, ignoring all costs. Trash the rest of the cards you looked at."
       ],
-      "note": "accelerated_beta_test always looks and always trashes the cards that are not ice; the Corp cannot decline to look, so it cannot avoid the trash. The install (install_ice) is inline, so it does not follow the install steps: no trash of other ice and no when-installed triggers (area 5, with area 7 for the rez). The optional install of each ice and the trash of the rest match.",
+      "note": "Area 5 (Corp install): the install is inline (install_ice), with no trash of other ice and no when-installed triggers; area 7 for the rez. Its NO_ZONE invariant entry comes from the shared R&D look (rdLookedCards splices the cards out of R&D, as Accelerated Diagnostics does), area 13. Fixed in engine#997: the Corp may decline to look, and then nothing is looked at or trashed (test \"the Corp may decline to look at the top 3 cards of R&D, and then nothing is trashed (CR 9.6.9c)\").",
       "cr": [
-        "9.6.9",
+        "9.6.9c",
         "8.5.15",
         "8.5.16",
         "1.2.1"
@@ -294,16 +294,17 @@
     },
     "adonis-campaign": {
       "cycle": "core-set",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Put 12 credits from the bank on Adonis Campaign when rezzed."
       ],
-      "note": "Fix-now. The IR declares hostedCreditsOnInstall: 12, which the normal Corp rez (src/actions/rez.ts) never reads; only ignore-cost rez and install kinds do. A probe rezzed it normally and it hosted 0 credits, so at the next Corp turn begin take_hosted_credits finds 0 and the empty-pool check trashes it: the card gives nothing. It needs a rez trigger with place_hosted_credits, as Marilyn Campaign has. No other Corp card uses the field. The trash when empty and the 3 taken each turn match.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): a rez conditional places 12 credits, as Eve Campaign does, instead of hostedCreditsOnInstall, which the normal Corp rez never read. The trash when empty and the 3 taken each turn match.",
       "cr": [
         "9.3.7c",
-        "8.1.2e",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "Adonis Campaign rezzed the normal way puts 12 credits on itself, as printed (CR 1.2.1)"
     },
     "adrian-seis": {
       "cycle": "liberation",
@@ -1914,11 +1915,18 @@
     },
     "burke-bugs": {
       "cycle": "genesis",
-      "result": "filed",
+      "result": "fixed",
       "abilities": [
         "[subroutine] Trace[0]. If successful, the Runner trashes 1 program."
       ],
-      "note": "Area 1 (trash): trash_own_program returns an error when the Runner has no installed program; resolveTrace passes it up, so resolve_trace is refused and the trace cannot resolve (the game gets stuck; checked with a probe). The kind is shared with Ichi 2.0, SDS Drone Deployment, Spec Work and Scavenge, where the error serves as a cost check; the effect use needs to do nothing instead (CR 1.2.4). The trace strength and the Runner's choice of program match."
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): the trace's success uses trash_program with pick choose, so the Runner chooses (the subroutine names the Runner) and nothing happens with no program; the game no longer gets stuck. trash_program and its choice now record the player who carries out the trash (the Runner here, the Corp for the other 21 ice that use the kind), so Dummy Box is not offered against it (CR 1.14.5). trash_own_program, still shared by Ichi 2.0 and the additional costs of SDS Drone Deployment, Spec Work and Scavenge, keeps its refusal; Ichi 2.0's subroutine use of it is the area 1 row. The trace strength matches.",
+      "cr": [
+        "1.2.1",
+        "1.14.5",
+        "1.15.2"
+      ],
+      "fixedIn": "engine#997",
+      "test": "with two programs installed, the Runner chooses which one to trash (CR 1.15.2)"
     },
     "burner": {
       "cycle": "liberation",
@@ -2591,15 +2599,17 @@
     },
     "compromised-employee": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "1[recurring-credit] Use this credit during traces. Gain 1[credit] whenever the Corp rezzes a piece of ice."
       ],
-      "note": "Declares a static link 1 that the card does not print (it has the Link subtype only), so recomputeRunnerLink gives the Runner +1 link and every trace is off by one. The recurring credit for traces and the gain on any ice rez match. Fix: drop the link declaration.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): the static link 1 it does not print is dropped. The recurring credit for traces and the gain on any ice rez match.",
       "cr": [
         "1.2.1",
         "10.8.3"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "Compromised Employee gives no link, which it does not print (CR 1.2.1)"
     },
     "concerto": {
       "cycle": "borealis",
@@ -2747,16 +2757,18 @@
     },
     "corporate-troubleshooter": {
       "cycle": "core-set",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "X[credit], [trash]: Choose 1 rezzed piece of ice protecting this server. That ice gets +X strength for the remainder of the turn."
       ],
-      "note": "troubleshooter_fortify reads the card's current zone to find 'this server', but the [trash] cost has already moved it to Archives. A probe during a run on its server: the ability is offered, the card is trashed, the log says there is no rezzed ice protecting this server, and no ice gains strength. It never works. 'This server' is the server the card was in. X is not paid as a cost and X=0 is never offered; that part is the plan's area 11 row (CR 1.16.2c).",
+      "note": "A Corp card's [trash] cost records the server it was in (thisServerWhileResolving, src/actions/paidAbility.ts), and troubleshooter_fortify reads it, so the ice protecting that server gets +X. X is still not paid as a cost and X=0 is not offered: the plan's area 11 row (CR 1.16.2c).",
       "cr": [
         "4.6.6i",
         "1.16.2c",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "after its [trash] cost moves it to Archives, 'this server' is still the server it was in, so the chosen ice gets +X strength (CR 4.6.6i)"
     },
     "corporate-war": {
       "cycle": "genesis",
@@ -2780,15 +2792,17 @@
     },
     "cortez-chip": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[trash]: Choose a piece of ice. The Corp must pay 2[credit] as an additional cost to rez that ice until the end of the turn."
       ],
-      "note": "The paid ability lists runner_action_paw, approach_paw and encounter_paw, so it opens in every run window and the Runner's action window but never in the Corp's turn. A paid ability with no window restriction opens in every paid ability window. Fix: list only runner_action_paw (unrestrictedPaidAbility then opens it everywhere). The effect matches.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): its paid ability lists only runner_action_paw, so it opens in every paid ability window, the Corp's turn included (unrestrictedPaidAbility). The effect matches.",
       "cr": [
         "9.2.7b",
         "5.6.1b"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "Cortez Chip and The Helpful AI can be used in every paid ability window, the Corp's turn included (CR 9.2.7b)"
     },
     "councilman": {
       "cycle": "mumbad",
@@ -3189,16 +3203,18 @@
     },
     "data-raven": {
       "cycle": "core-set",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Hosted power counter: Give the Runner 1 tag."
       ],
-      "note": "The paid ability lists the Corp action window and the run windows, so it is not open in the Runner's turn outside a run. A paid ability that is not an action can be used in every paid ability window. Declaring only corp_action_paw opens it everywhere (unrestrictedPaidAbility). The encounter choice (take 1 tag or end the run, the Runner chooses) and the trace match.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): the hosted power counter ability lists only corp_action_paw, so it opens in every paid ability window, the Runner's turn outside a run included. The encounter choice and the trace match.",
       "cr": [
         "9.2.7b",
         "5.7.1b",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "Data Raven's hosted power counter can be spent in the Runner's turn outside a run (CR 9.2.7b)"
     },
     "data-ward": {
       "cycle": "flashpoint",
@@ -3493,15 +3509,17 @@
     },
     "dinosaurus": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Dinosaurus can host a single non-AI icebreaker. The memory cost of the hosted icebreaker does not count against your memory limit."
       ],
-      "note": "Declares muBonus 1, which the card does not print, so memoryLimit() gives the Runner +1 MU on top of the hosted icebreaker's memory not counting. Hosting a single non-AI icebreaker, +2 strength and the console limit match. Fix: drop muBonus.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): the muBonus 1 it does not print is dropped. Hosting a single non-AI icebreaker, its memory not counting, +2 strength and the console limit match.",
       "cr": [
         "1.2.1",
         "2.10.2"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "Dinosaurus gives no extra memory, which it does not print (CR 1.2.1)"
     },
     "direct-access": {
       "cycle": "ashes",
@@ -3688,16 +3706,18 @@
     },
     "doppelganger": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Once per turn → When a successful run ends, you may run any server."
       ],
-      "note": "src/timing/graph.ts puts the card in onSuccessfulRunEndFiredIds when the ability becomes pending, so declining the run still uses up the turn. A conditional ability is used only when its optional part is carried out. The trigger successful_run_end_once_per_turn is used only by this card. +1 MU and the console limit match.",
+      "note": "The turn's use is recorded when the Runner starts the run (queue_start_run), not when the ability becomes pending, so declining keeps it for a later successful run that turn. +1 MU and the console limit match.",
       "cr": [
         "9.3.6g",
         "9.6.9d",
         "9.1.6b"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "declining the run does not use its once per turn; running does, and then it is not offered again that turn (CR 9.6.9d, 9.3.6g)"
     },
     "dorm-computer": {
       "cycle": "sansan",
@@ -3894,16 +3914,17 @@
     },
     "edge-of-world": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When the Runner accesses this asset while it is installed, you may pay 3[credit]. If you do, do 1 core damage for each piece of ice protecting this server."
       ],
-      "note": "may_pay_credits_for_core_damage_per_ice_protecting_this_server deals the core damage with preventByLoseAllClicks (copied from Mr. Hendrik), so a Runner with any click left cancels all of it by losing their clicks, and candidatePending then offers no real prevention. The installed-only access, the 3-credit payment and the count of ice protecting this server match. Fix: drop preventByLoseAllClicks.",
+      "note": "The core damage no longer carries preventByLoseAllClicks, so the Runner cannot cancel it by losing clicks. The installed-only access, the 3-credit payment and the count of ice protecting this server match.",
       "cr": [
         "1.2.1",
-        "9.9.1b",
         "10.4.2b"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "the Runner cannot cancel its core damage by losing all clicks, which it does not print (CR 1.2.1, 10.4.2b)"
     },
     "editorial-division-ad-nihilum": {
       "cycle": "vantage-point",
@@ -4273,15 +4294,17 @@
     },
     "eve-campaign": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Place 16[credit] from the bank on Eve Campaign when it is rezzed. When there are no credits left on Eve Campaign, trash it."
       ],
-      "note": "No trashWhenHostedCreditsEmpty, so takeHostedCredits never trashes it when empty; an empty Eve stays installed taking 0. Same missing flag as Anthill Excavation Contract (S1). Placing 16 on rez and taking 2 at turn begin match.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): trashWhenHostedCreditsEmpty added, so takeHostedCredits trashes it when the last credit is taken. Placing 16 on rez and taking 2 at turn begin match.",
       "cr": [
         "1.2.1",
         "9.6.7"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "Eve Campaign and Private Contracts are trashed when their last credit is taken (CR 1.2.1)"
     },
     "event-horizon": {
       "cycle": "vantage-point",
@@ -4433,16 +4456,19 @@
     },
     "faerie": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever an encounter ends, if you used this program to break a subroutine during that encounter, trash this program."
       ],
-      "note": "Declares trashAfterBreakingThisRun (Mayfly's flag), which is read only when the run ends, so a 0-credit Faerie breaks every sentry in a run instead of one encounter's. Interface 0 credits: break 1 sentry subroutine and 1 credit: +1 strength match. Fix: trash at the end of the encounter in which it broke.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)) and engine: a conditional ability on the new trigger encounter_end_if_broke (hook onEncounterEndIfBroke) trashes it when the encounter in which it broke a subroutine ends, instead of Mayfly's run-end flag, including an encounter that ends because the run ends (CR 6.1.4) or the ice is uninstalled (CR 8.5.10). Interface 0 credits: break 1 sentry subroutine and 1 credit: +1 strength match.",
       "cr": [
-        "9.8.4c",
-        "6.9.3e",
+        "9.6.5a",
+        "6.1.4",
+        "8.5.10",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "is trashed when the encounter in which it broke a subroutine ends, before the run goes on (CR 9.6.5a, 1.2.1)"
     },
     "fairchild": {
       "cycle": "flashpoint",
@@ -8119,16 +8145,18 @@
     },
     "midori": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever the Runner approaches a piece of ice protecting this server, you may swap that ice with 1 piece of ice from HQ. If you do, the Runner may jack out. Use this ability only once per run."
       ],
-      "note": "src/timing/graph.ts marks approachIceTriggersFiredIds when the ability becomes pending, before the Corp chooses, so declining at the outer ice blocks a swap at an inner ice. It should be marked only when the swap happens. onApproachIceOncePerRun is Midori-only. The swap itself is inline and is already on area 3's re-verify list; the jack-out offer matches.",
+      "note": "The run's use is recorded when the swap happens (swap_approached_ice_with_hq), not when the ability becomes pending, so declining at the outer ice keeps it for an inner ice. The swap itself is inline and stays on area 3's re-verify list; the jack-out offer matches.",
       "cr": [
         "9.6.9",
         "9.6.9d",
         "9.1.6b"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "declining the swap at the outer ice keeps its once per run for the next ice; the swap uses it (CR 9.6.9d)"
     },
     "midseason-replacements": {
       "cycle": "genesis",
@@ -8415,11 +8443,11 @@
     },
     "muresh-bodysuit": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "[interrupt] → The first time each turn you would suffer meat damage, prevent 1 meat damage."
       ],
-      "note": "Modelled as an optional 0-cost paid interrupt with the once_per_turn flag, so the Runner may skip the first meat damage and use it on a later one, or forget it. The printed ability is a mandatory conditional interrupt on the first meat damage each turn.",
+      "note": "Area 9 (damage prevention): modelled as an optional 0-cost paid interrupt with once_per_turn. The printed ability is a mandatory conditional interrupt on the first meat damage each turn; it needs the same per-turn first-damage condition as Net Shield and a mandatory interrupt in the shared prevent helper (also in the RF-1b row).",
       "cr": [
         "9.3.7c",
         "9.6.9b",
@@ -8718,11 +8746,11 @@
     },
     "net-shield": {
       "cycle": "core-set",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Interrupt -> The first time each turn you would suffer net damage, you may pay 1[credit] to prevent 1 net damage."
       ],
-      "note": "Modelled as a paid interrupt with the once_per_turn flag, which the card does not print. If the Runner declines or cannot pay on the turn's first net damage, it can still be used on a later one. The printed text is a conditional interrupt met only by the first net damage each turn, with an optional cost.",
+      "note": "Area 9 (damage prevention): modelled as a paid interrupt with once_per_turn, which it does not print. It needs a conditional interrupt met only by the first net damage each turn (a per-turn \"damage would be dealt\" count by type, as run.netDamageWould does per run for Tori Hanzō) with an optional 1-credit cost, in the shared prevent helper; card JSON then drops the flag (cut B).",
       "cr": [
         "9.3.7c",
         "9.3.6g",
@@ -9455,11 +9483,11 @@
     },
     "parasite": {
       "cycle": "core-set",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Install only on a rezzed piece of ice."
       ],
-      "note": "installOnIce only; the Runner install checks a rezzed host for Egret's grant alone (src/actions/installRunner.ts). A probe offered basic_install of Parasite on an unrezzed ice; its strength check could then trash that unrezzed ice. The turn-begins counter, -1 strength per counter and trash at 0 or less match.",
+      "note": "Area 6 (Runner install): \"Install only on a rezzed piece of ice\" needs a rezzed-host check in the Runner install (src/actions/installRunner.ts checks it for Egret's grant alone) and in the install candidates; card JSON then names it (a field beside installOnIce). The turn-begins counter, -1 strength per counter and trash at 0 or less match.",
       "cr": [
         "1.13.6c",
         "9.1.8c",
@@ -9984,15 +10012,17 @@
     },
     "private-contracts": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Place 14[credit] from the bank on Private Contracts when it is rezzed. When there are no credits left on Private Contracts, trash it."
       ],
-      "note": "No trashWhenHostedCreditsEmpty, so takeHostedCredits never trashes it when empty; an empty Private Contracts stays installed and unusable. Same missing flag as Anthill Excavation Contract (S1). Placing 14 on rez and click: take 2 match.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): trashWhenHostedCreditsEmpty added, as for Eve Campaign. Placing 14 on rez and [click]: take 2 match.",
       "cr": [
         "1.2.1",
         "9.6.7"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "Eve Campaign and Private Contracts are trashed when their last credit is taken (CR 1.2.1)"
     },
     "private-security-force": {
       "cycle": "core-set",
@@ -10292,11 +10322,11 @@
     },
     "rabbit-hole": {
       "cycle": "core-set",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "When Rabbit Hole is installed, you may search your stack for another copy of Rabbit Hole and install it by paying its install cost. Shuffle your stack."
       ],
-      "note": "search_stack_same_title_may_install_paying (only Rabbit Hole uses it) always searches, moves the copy to the grip and reveals it, then offers an install from the grip; on a decline or when it cannot pay, the copy stays in the grip. Printed: the search is optional, a found card is set aside facedown and installed from there, and a copy not installed goes back before the shuffle. +1 link matches.",
+      "note": "Area 13 (deck search) and area 6 (Runner install): search_stack_same_title_may_install_paying always searches, reveals the copy into the grip and installs from there. It needs the optional search through chooseCards search mode, the found copy set aside facedown and installed from there paying its cost (no set-aside install helper takes hardware), and a copy not installed returned before the shuffle. +1 link matches.",
       "cr": [
         "9.6.9",
         "8.7.2b",
@@ -10739,15 +10769,16 @@
     },
     "retrieval-run": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Run Archives. If successful, instead of breaching Archives, you may install 1 program from your heap, ignoring all costs."
       ],
-      "note": "The runEvent field skipBreachInstallProgramFromHeap (read in src/timing/graph.ts) always skips the breach, with no 'may', so agendas in Archives cannot be stolen. It also installs the first program in the heap with no choice, inline, with no MU check and no install triggers (area 6's install pattern).",
+      "note": "Area 6 (Runner install): the shared heap install (canInstallHeapCard, installHeapCardDiscounted in src/effects/runnerInstall.ts) leaves out a program that does not fit in free MU, where the Runner may trash programs to make room (CR 3.9.3b, 8.5.6c), and programs installed on ice; Retrieval Run's offer follows it. The choice also opens at the success step rather than when the breach would begin (CR 6.7.4c, area 14, as for every run-event breach replacement). Fixed in engine#997 with card JSON (cards v1.147.26 (engine#997 pins it)): a successful_run conditional on the run event, may_install_heap_program_instead_of_breach, offers \"Breach Archives\" or each heap program, and the chosen one is installed ignoring all costs with install triggers, instead of always skipping the breach and installing the first heap program inline (test \"the Runner may breach Archives instead of installing, and then can steal its agenda (CR 1.2.1, 9.6.9)\").",
       "cr": [
+        "1.2.1",
         "6.7.4c",
-        "8.5.6c",
-        "1.2.1"
+        "3.9.3b",
+        "8.5.6c"
       ]
     },
     "reuse": {
@@ -11041,15 +11072,17 @@
     },
     "sacrificial-construct": {
       "cycle": "core-set",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Interrupt -> [trash]: Prevent a player from trashing 1 installed program or piece of hardware."
       ],
-      "note": "prevent_pending_installed_trash has no type filter and the trash interrupt also opens for resources; a probe offered it against a Corp trash of Aesop's Pawnshop. It needs a program-or-hardware filter. Either player's trash and the [trash] cost match.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)) and engine: requirePendingTrashCardTypes [program, hardware] on its paid ability, read by trashInterruptRelevant (src/state/trashPrevent.ts), so the trash window does not open for a resource and the ability is refused there. Either player's trash and the [trash] cost match.",
       "cr": [
         "9.9.3a",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "prevents the trash of an installed program or piece of hardware, but is not offered for a resource (CR 9.9.3a)"
     },
     "sadaka": {
       "cycle": "kitara",
@@ -11891,14 +11924,15 @@
     },
     "snitch": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Once per run, you may expose an unrezzed piece of ice when you approach it. You may then jack out."
       ],
-      "note": "src/timing/graph.ts sets snitchUsedThisRun before the choice opens, so declining at the first unrezzed ice uses it up for the run. Also: the flag is per run rather than per copy, and the !pendingChoice guard skips Snitch when Midori's choice is open at the same ice.",
+      "note": "Area 14 (run flow): Snitch's choice is built inline in run.approachIce and skipped while another choice is open (the !pendingChoice guard), so Midori's choice at the same ice hides it; it should be a pending conditional in the approach's reaction window. Fixed in engine#997: the use is recorded per copy when the Runner exposes (mark_ability_used_this_run), so declining keeps it for a later ice, and the option label and log no longer name the unrezzed ice before it is exposed, CR 10.2.2a (test \"declining at the first unrezzed ice keeps its once per run for the next, and its choice does not name the unrezzed ice (CR 9.6.9d, 10.2.2a)\").",
       "cr": [
         "9.1.6",
-        "9.6.9d"
+        "9.6.9d",
+        "10.2.2b"
       ]
     },
     "snoop": {
@@ -12737,11 +12771,11 @@
     },
     "test-run": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Search either your stack or your heap for 1 program. Install that program, ignoring all costs. When your turn ends, if that program has not been uninstalled, add it to the top of your stack."
       ],
-      "note": "install_program_from_stack_or_heap_free takes the first program in the heap, else the first in the stack: no choice of zone or program, no shuffle after searching the stack, and an inline install with no MU check. Returning the program to the top of the stack at turn end matches. The kind is used only by Test Run.",
+      "note": "Area 6 (Runner install): the program is still installed inline, with no MU check. Fixed in engine#997: the Runner chooses the stack or the heap and then the program; a stack search uses chooseCards search mode (may find nothing, count hidden), a heap search must find a program if one is there, and the stack is shuffled before the install (test \"the Runner chooses the stack or the heap, then which program; the stack is shuffled and the program installed and marked to return (CR 8.7.1, 8.7.3)\"). Returning the program to the top of the stack at turn end matches.",
       "cr": [
         "8.7.2",
         "8.7.3",
@@ -12861,14 +12895,16 @@
     },
     "the-helpful-ai": {
       "cycle": "genesis",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[trash]: Choose an icebreaker. That icebreaker has +2 strength until the end of the turn."
       ],
-      "note": "Windows are runner_action_paw and encounter_paw only, so it is neither run-wide nor unrestricted: it cannot be used at run initiation, approach, after passing ice or in the Corp's turn. Fix: list only runner_action_paw. Unique, +1 link and the +2 strength until end of turn match.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)): its paid ability lists only runner_action_paw, so it opens in every paid ability window. Unique, +1 link and the +2 strength until end of turn match.",
       "cr": [
         "9.2.7b"
-      ]
+      ],
+      "fixedIn": "engine#997",
+      "test": "Cortez Chip and The Helpful AI can be used in every paid ability window, the Corp's turn included (CR 9.2.7b)"
     },
     "the-holo-man": {
       "cycle": "liberation",
