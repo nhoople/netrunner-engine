@@ -207,6 +207,21 @@ function iceServerId(state: GameState, iceId: string): string | null {
   return null;
 }
 
+/**
+ * Rime-class ice: "During runs against this server, you can rez this ice any
+ * time you could rez non-ice cards" (CR 1.2.1, 8.1.2b). The rez window gate
+ * and `rezIce` both read this.
+ */
+export function rezzesAsNonIce(state: GameState, cardId: string): boolean {
+  const card = state.cards[cardId];
+  return (
+    Boolean(card?.rezAsNonIceDuringRunsOnServer) &&
+    !abilitiesSuppressed(state, cardId) &&
+    Boolean(state.run) &&
+    iceServerId(state, cardId) === state.run!.attackedServerId
+  );
+}
+
 export function rezIce(state: GameState, cardId: string): ApplyResult {
   const card = state.cards[cardId];
   if (!card || card.type !== "ice") {
@@ -222,11 +237,7 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
       [CR.rezProcedure],
     );
   }
-  const asNonIce =
-    Boolean(card.rezAsNonIceDuringRunsOnServer) &&
-    !abilitiesSuppressed(state, cardId) &&
-    Boolean(state.run) &&
-    iceServerId(state, cardId) === state.run!.attackedServerId;
+  const asNonIce = rezzesAsNonIce(state, cardId);
   if (asNonIce) {
     if (!corpMayRez(state.timingKey)) {
       return fail(

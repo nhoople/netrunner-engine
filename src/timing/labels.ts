@@ -1154,6 +1154,15 @@ export const CR = {
   installCost: { number: "8.5.11", id: "sec_install_cost" },
   identityAbility: { number: "9.1.1", id: "rule_ability" },
   midAccessAgenda: { number: "7.1.6", id: "rule_after_mid_access_agenda" },
+  /** A card with no trash cost cannot be trashed with the basic trash ability (CR 7.1.5a). */
+  noTrashCost: { number: "7.1.5a", id: "rule_paying_trash_costs" },
+  /** Which cards are active by default (CR 1.8.3a). */
+  activeCardLocations: {
+    number: "1.8.3a",
+    id: "rule_default_active_card_locations",
+  },
+  /** "Play only if…" and other limits on when or where are restrictions (CR 9.3.3b). */
+  actRestriction: { number: "9.3.3b", id: "rule_act_restriction" },
   /** Mid-access ability opportunity (CR §7.1.4). */
   midAccessAbilityOpportunity: {
     number: "7.1.4",

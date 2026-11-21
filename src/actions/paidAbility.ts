@@ -614,6 +614,15 @@ export function usePaidAbility(
     }
   }
   if (card.side === "corp") {
+    // A card in R&D or removed from the game is inactive, and so are its
+    // paid abilities (CR 1.8.3a, 9.1.7): Spin Doctor cannot be used again.
+    if (state.corp.deck.includes(cardId) || card.zone === "removed-from-game") {
+      return fail("Ability not usable from R&D or from outside the game.", [
+        CR.activeCardLocations,
+        CR.abilityActive,
+        CR.paidAbility,
+      ]);
+    }
     const inHq = state.corp.hand.includes(cardId);
     if (inHq) {
       if (!ability.usableFromHq) {

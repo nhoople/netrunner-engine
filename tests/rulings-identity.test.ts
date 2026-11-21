@@ -79,6 +79,8 @@ describe("Weyland Consortium: Built to Last", () => {
       "corp.credits": 1,
       "cards.ht-1.advancementCounters": 1,
     });
+    // The paid ability window after the action closes before the next action (CR 5.6.2).
+    s = drive(s, atCorpAction);
     const again = snapshot(s);
     s = must(s, { type: "advance", cardId: "ht-1" });
     expectStateDelta(again, s, {
@@ -1301,12 +1303,11 @@ describe("Carnivore", () => {
 });
 
 describe("Decoy", () => {
-  // Filed, fix-now: queryLegality refuses the Runner's tag interrupt with
-  // "The other player has priority" while the Corp holds priority in its
-  // paid ability window, though applyAction accepts it. The game host only
-  // accepts listed actions, so the Runner cannot prevent a tag given on the
-  // Corp's turn. Interrupt windows give both players priority (CR 9.2.9c).
-  it.skip("the Runner is offered Decoy against a tag the Corp gives on its own turn (CR 9.2.9c, 9.2.9d)", () => {
+  // Fixed in FX-legal-moves: queryLegality refused the Runner's tag
+  // interrupt with "The other player has priority" while the Corp held
+  // priority in its paid ability window. Interrupt windows give both players
+  // priority (CR 9.2.9c).
+  it("the Runner is offered Decoy against a tag the Corp gives on its own turn (CR 9.2.9c, 9.2.9d)", () => {
     let s = corpTurn(fresh(), 5);
     s.turn.successfulRunLastTurn = true;
     s.runner.credits = 0;

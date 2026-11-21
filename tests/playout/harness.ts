@@ -645,16 +645,22 @@ export function playout(
   format: Format,
   seed: number,
   steps = PLAYOUT_STEPS,
+  observe?: (state: GameState, step: number) => void,
 ): PlayoutResult {
   const previousHook = setApplyHook(null);
   try {
-    return play(format, seed, steps);
+    return play(format, seed, steps, observe);
   } finally {
     setApplyHook(previousHook);
   }
 }
 
-function play(format: Format, seed: number, steps: number): PlayoutResult {
+function play(
+  format: Format,
+  seed: number,
+  steps: number,
+  observe?: (state: GameState, step: number) => void,
+): PlayoutResult {
   const failures: Failure[] = [];
   const seenInvariant = new Set<string>();
   const noteInvariants = (state: GameState, step: number) => {
@@ -680,6 +686,7 @@ function play(format: Format, seed: number, steps: number): PlayoutResult {
       });
       break;
     }
+    observe?.(state, step);
     if (legal.length === 0) {
       failures.push({
         code: "NO_LEGAL_ACTION",

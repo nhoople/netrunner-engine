@@ -1729,7 +1729,7 @@ describe("CR examples, chapter 9", () => {
     s.runner.clicks = 4;
     s.runner.credits = 1;
     s.activeSide = "runner";
-    s.timingKey = "runner.action";
+    s.timingKey = "runner.takeAction";
     const played = must(s, { type: "play_event", cardId: "groove-1" });
     expect(played.turn.remainderOfTurnOnInstallPrintedCostGte).toHaveLength(1);
     first.zone = "runner:installed";

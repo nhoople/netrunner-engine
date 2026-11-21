@@ -147,6 +147,9 @@ describe("SU21 partial closures", () => {
       destination: { kind: "new_remote" },
     });
     expect(s.cards["oak-1"].faceup).toBe(true);
+    // Both players pass the window after the install (CR 5.2.4, 9.2.7a).
+    while (s.timingKey !== "corp.takeAction")
+      s = must(s, { type: "pass_window" });
     const before = s.corp.credits;
     s = must(s, { type: "advance", cardId: "oak-1" });
     expect(s.corp.credits).toBe(before - 1 + 2);
