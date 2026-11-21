@@ -1156,6 +1156,26 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     expect(s.cards["pad-1"]!.advancementCounters).toBe(1);
   });
 
+  it("Ob Superheavy Logistics: trashing Reconstruction Contract alone in the attacked server ends that server, so Ob cannot install into its root (ruling 18)", () => {
+    let s = runnerTurn(fresh());
+    setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");
+    installRoot(s, "reconstruction-contract", "rc-1");
+    installRoot(s, "hostile-takeover", "ht-1", false);
+    stackRd(s, [["rashida-jaheem", "rj-1"]]);
+    s = must(s, { type: "basic_run", serverId: "remote-rc-1" as ServerId });
+    s = drive(s, (x) => !!paidAbility(x, "rc-1"));
+    s = must(s, paidAbility(s, "rc-1")!);
+    // Reconstruction Contract (printed rez 1) finds Rashida Jaheem (0).
+    s = pick(s, "rj-1");
+    expect(s.servers["remote-rc-1" as ServerId]).toBeUndefined();
+    expect(optionIds(s).some((id) => id.includes("remote-rc-1"))).toBe(false);
+    s = pick(s, "new_remote");
+    expect(s.cards["rj-1"]!.zone).toMatch(/^server:remote/);
+    // The run on the server that ceased to exist ends (CR 4.6.8e).
+    s = drive(s, atRunnerAction);
+    expect(s.run).toBeNull();
+  });
+
   it("Ob Superheavy Logistics: Rashida Jaheem installed by a Svyatogor Excavator trash at turn begin missed that trigger, so it cannot be used that turn (ruling 19)", () => {
     let s = runnerTurn(fresh());
     setIdentity(s, "corp", "ob-superheavy-logistics-extract-export-excel");

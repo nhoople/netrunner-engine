@@ -4,25 +4,25 @@
   "totals": {
     "rulings": 275,
     "cards": 134,
-    "tested": 158,
-    "filed": 57,
-    "unreachable": 2,
-    "uncited": 58
+    "tested": 194,
+    "filed": 75,
+    "unreachable": 6,
+    "uncited": 0
   },
   "types": [
     {
       "type": "identity",
       "rulings": 55,
-      "tested": 39,
+      "tested": 40,
       "filed": 14,
-      "uncited": 1
+      "uncited": 0
     },
     {
       "type": "event",
       "rulings": 44,
-      "tested": 33,
+      "tested": 34,
       "filed": 10,
-      "uncited": 1
+      "uncited": 0
     },
     {
       "type": "ice",
@@ -55,43 +55,51 @@
     {
       "type": "asset",
       "rulings": 17,
-      "tested": 0,
-      "filed": 0,
-      "uncited": 17
+      "tested": 11,
+      "filed": 3,
+      "uncited": 0
     },
     {
       "type": "agenda",
       "rulings": 13,
-      "tested": 0,
-      "filed": 0,
-      "uncited": 13
+      "tested": 8,
+      "filed": 5,
+      "uncited": 0
     },
     {
       "type": "operation",
       "rulings": 13,
-      "tested": 0,
-      "filed": 0,
-      "uncited": 13
+      "tested": 8,
+      "filed": 4,
+      "uncited": 0
     },
     {
       "type": "upgrade",
       "rulings": 13,
-      "tested": 0,
-      "filed": 0,
-      "uncited": 13
+      "tested": 7,
+      "filed": 6,
+      "uncited": 0
     }
   ],
   "rulings": {
     "algernon#1": [
       "rulings-program.test.ts › Algernon: once it pays for the click, the end-of-turn trash still happens after Dr. Lovegood blanks Algernon (ruling 1)"
     ],
-    "amaze-amusements#1": [],
-    "amaze-amusements#2": [],
+    "amaze-amusements#1": [
+      "rulings-upgrade.test.ts › AMAZE Amusements: trashed by Political Operative, not while accessed, its ability does not persist (ruling 1)"
+    ],
+    "amaze-amusements#2": [
+      "rulings-upgrade.test.ts › AMAZE Amusements: accessed and trashed while unrezzed, its ability was never active, so stealing gives no tags (ruling 2)"
+    ],
     "anemone#1": [
       "rulings-ice.test.ts › Anemone: rezzed by Send a Message during a run on its server, its rez ability still triggers (ruling 1)"
     ],
-    "anoetic-void#1": [],
-    "anoetic-void#2": [],
+    "anoetic-void#1": [
+      "rulings-upgrade.test.ts › Anoetic Void: rezzed in the paid ability window after the Runner's last chance to jack out, it still applies to the run (ruling 1)"
+    ],
+    "anoetic-void#2": [
+      "rulings-upgrade.test.ts › Anoetic Void: installed in the root of HQ, it is not a card in HQ, so it cannot be one of the 2 cards trashed (ruling 2)"
+    ],
     "ansel-1-0#1": [
       "rulings-ice.test.ts › Ansel 1.0: trashed while installing ice with its second subroutine, the encounter ends and its third subroutine does not resolve (ruling 1)"
     ],
@@ -107,7 +115,9 @@
     "archer#2": [
       "rulings-ice.test.ts › Archer: forfeiting Braintrust with 1 agenda counter still lowers the rez cost, so Archer costs 3 (ruling 2)"
     ],
-    "artificial-cryptocrash#1": [],
+    "artificial-cryptocrash#1": [
+      "rulings-agenda.test.ts › Artificial Cryptocrash: with fewer than 7 credits the Runner loses all of them (ruling 1)"
+    ],
     "avgustina-ivanovskaya#1": [
       "rulings-resource.test.ts › Avgustina Ivanovskaya: the Corp trashes the sabotaged card, so Demolisher gains the Runner nothing (ruling 1)"
     ],
@@ -117,9 +127,15 @@
     "ayla-bios-rahim-simulant-specialist#2": [
       "rulings-identity.test.ts › Ayla \"Bios\" Rahim: set-aside cards are not installed, so Endless Hunger cannot trash them (ruling 2)"
     ],
-    "azef-protocol#1": [],
-    "azef-protocol#2": [],
-    "azef-protocol#3": [],
+    "azef-protocol#1": [
+      "rulings-agenda.test.ts › Azef Protocol: Malapert Data Vault found by Ob after the cost is paid and installed in Azef's root triggers on the score (ruling 1)"
+    ],
+    "azef-protocol#2": [
+      "rulings-agenda.test.ts › Azef Protocol: an asset found by Ob and installed in Azef's root trashes Azef, so Azef is not scored (ruling 2; filed, area 11, CR 9.11.1a: the install is refused because the score then fails)"
+    ],
+    "azef-protocol#3": [
+      "rulings-agenda.test.ts › Azef Protocol: with 2 counters and SanSan City Grid in its root, the Corp cannot trash SanSan to pay the cost (ruling 3)"
+    ],
     "backstitching#1": [
       "rulings-resource.test.ts › Backstitching: the mark it identifies stays the Runner's mark after Backstitching leaves play (ruling 1)"
     ],
@@ -135,11 +151,21 @@
     "ballista#1": [
       "rulings-ice.test.ts › Ballista: the Corp chooses whether to trash a program or end the run (ruling 1)"
     ],
-    "big-deal#1": [],
-    "bladderwort#1": [],
-    "bladderwort#2": [],
-    "blood-in-the-water#1": [],
-    "blood-in-the-water#2": [],
+    "big-deal#1": [
+      "rulings-operation.test.ts › Big Deal: the Corp may score outside a paid ability window, but only an agenda that meets its advancement requirement (ruling 1)"
+    ],
+    "bladderwort#1": [
+      "rulings-asset.test.ts › Bladderwort: the credit check comes after the 1 credit is gained, so 3 credits become 4 and the Runner takes 1 net damage (ruling 1)"
+    ],
+    "bladderwort#2": [
+      "rulings-asset.test.ts › Bladderwort: two copies resolve one at a time in full, so the first does damage at 4 credits and the second gains to 5 and does none (ruling 2)"
+    ],
+    "blood-in-the-water#1": [
+      "rulings-agenda.test.ts › Blood in the Water: scored with 2 cards in the grip, Amani Senai's trace has base strength 2 (ruling 1; filed, area 12, CR 9.1.8e: Amani reads the printed requirement and traces at 0)"
+    ],
+    "blood-in-the-water#2": [
+      "rulings-agenda.test.ts › Blood in the Water: RNG Key's number must match the grip when the accessed card is revealed, after Hokusai Grid's damage (ruling 2; filed, area 12, CR 9.1.8e: RNG Key reads the printed requirement)"
+    ],
     "botulus#1": [
       "rulings-program.test.ts › Botulus: it is not an icebreaker and has no strength, so it breaks a subroutine on ice of any strength (ruling 1)"
     ],
@@ -197,7 +223,9 @@
     "chastushka#5": [
       "rulings-event.test.ts › Chastushka: the Corp trashes the sabotaged cards, so Demolisher gains the Runner nothing (ruling 5)"
     ],
-    "clearinghouse#1": [],
+    "clearinghouse#1": [
+      "rulings-asset.test.ts › Clearinghouse: the Corp can advance it while it is unrezzed (ruling 1; filed, area 12, CR 1.18.3: no canAdvance in the card data)"
+    ],
     "clot#1": [
       "rulings-program.test.ts › Clot: the Corp may score as soon as the last advancement is placed, so Clot must already be installed to stop it (ruling 1)"
     ],
@@ -219,18 +247,30 @@
     "creative-commission#1": [
       "rulings-event.test.ts › Creative Commission: the Runner may play it with 1 click left; losing a click is part of the effect, not a cost (ruling 1)"
     ],
-    "crisium-grid#1": [],
-    "crisium-grid#2": [],
-    "crisium-grid#3": [],
-    "crisium-grid#4": [],
-    "crisium-grid#5": [],
+    "crisium-grid#1": [
+      "rulings-upgrade.test.ts › Crisium Grid: a Jailbreak run on HQ breaches HQ but gets no extra access and no card drawn (ruling 1; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)"
+    ],
+    "crisium-grid#2": [
+      "rulings-upgrade.test.ts › Crisium Grid: trashed during the breach of HQ, the run still was not successful, so Emergency Shutdown cannot be played (ruling 2; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)"
+    ],
+    "crisium-grid#3": [
+      "rulings-upgrade.test.ts › Crisium Grid: the Runner still breaches the server and accesses cards as normal (ruling 3; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)"
+    ],
+    "crisium-grid#4": [
+      "rulings-upgrade.test.ts › Crisium Grid: with Crisium Grid in HQ, a Sneakdoor Beta run moves to HQ, is not successful, and breaches HQ (ruling 4; filed, area 14, CR 6.9.5b: no breach when the run cannot be declared successful)"
+    ],
+    "crisium-grid#5": [
+      "rulings-upgrade.test.ts › Crisium Grid: with Crisium Grid in Archives, a Sneakdoor Beta run stays on Archives, is not successful, and breaches Archives (ruling 5; filed, area 14, CR 6.9.5a: the run is moved to HQ and declared successful)"
+    ],
     "deep-dive#1": [
       "rulings-event.test.ts › Deep Dive: the Runner gets one chance to spend a click for 1 more access, whatever clicks remain (ruling 1; filed, area 8, CR 1.2.1: every remaining click is spent for more accesses)"
     ],
     "district-99#1": [
       "rulings-resource.test.ts › District 99: a program trashed from the grip by net damage is the first program trashed that turn, so it may gain a power counter (ruling 1)"
     ],
-    "divert-power#1": [],
+    "divert-power#1": [
+      "rulings-operation.test.ts › Divert Power: the Corp may play it and then derez and rez nothing (ruling 1)"
+    ],
     "divide-and-conquer#1": [
       "rulings-event.test.ts › Divide and Conquer: the Runner cannot access upgrades in the root of HQ or R&D during its breaches (ruling 1)"
     ],
@@ -283,7 +323,9 @@
     "esa-afontov-eco-insurrectionist#5": [
       "rulings-identity.test.ts › Esâ Afontov: the Corp trashes the sabotaged cards, so Demolisher gains the Runner nothing (ruling 5)"
     ],
-    "fast-break#1": [],
+    "fast-break#1": [
+      "rulings-operation.test.ts › Fast Break: the Corp chooses how many cards to draw, from 0 to X, before drawing (ruling 1; filed, area 11, CR 1.2.1: all X cards are drawn with no choice)"
+    ],
     "fermenter#1": [
       "rulings-program.test.ts › Fermenter: the Corp gets no chance to purge while it resolves, so the Runner gains for every counter (ruling 1)"
     ],
@@ -296,18 +338,24 @@
     "funhouse#3": [
       "rulings-ice.test.ts › Funhouse: bypassed by Inside Job, its encounter ability never resolves (ruling 3)"
     ],
-    "giordano-memorial-field#1": [],
+    "giordano-memorial-field#1": [
+      "rulings-upgrade.test.ts › Giordano Memorial Field: a run it ends was already declared successful and stays successful (ruling 1; filed, area 14, CR 6.8.4a: the run is also declared unsuccessful)"
+    ],
     "guinea-pig#1": [
       "rulings-event.test.ts › Guinea Pig: the Runner may play it as the only card in the grip (ruling 1)"
     ],
     "hakarl-1-0#1": [
       "rulings-ice.test.ts › Hákarl 1.0: rezzed by Send a Message during a run on its server, its rez ability still triggers (ruling 1)"
     ],
-    "hansei-review#1": [],
+    "hansei-review#1": [
+      "rulings-operation.test.ts › Hansei Review: it is in the play area while it resolves, so with no other card in HQ nothing is trashed (ruling 1)"
+    ],
     "hyperbaric#1": [
       "rulings-program.test.ts › Hyperbaric: installed by Rigging Up, its install counter comes before the charge, so it can be charged to 2 (ruling 1)"
     ],
-    "hyperloop-extension#1": [],
+    "hyperloop-extension#1": [
+      "rulings-agenda.test.ts › Hyperloop Extension: Bifrost Array can resolve its scored ability, so the Corp gains 3 credits (ruling 1; filed, area 11, CR 9.6.14c: a scored-or-stolen ability is not offered as a when-scored ability)"
+    ],
     "ice-carver#1": [
       "rulings-resource.test.ts › Ice Carver: its -1 strength applies as the encounter begins, so Chisel trashes a strength 1 ice with no counters (ruling 1)"
     ],
@@ -329,7 +377,9 @@
     "into-the-depths#3": [
       "rulings-event.test.ts › Into the Depths: ice uninstalled while encountered was not passed, but ice passed before it was uninstalled still counts (ruling 3)"
     ],
-    "into-the-depths#4": [],
+    "into-the-depths#4": [
+      "rulings-event.test.ts › Into the Depths: the same ice passed twice counts twice (ruling 4)"
+    ],
     "ivik#1": [
       "rulings-ice.test.ts › Ivik: made a code gate by Tinkering, it does not lower its own rez cost, since it is not yet rezzed (ruling 1)"
     ],
@@ -378,13 +428,21 @@
     "liza-talking-thunder-prominent-legislator#1": [
       "rulings-identity.test.ts › Liza Talking Thunder: the Runner who prevents the tag still draws the 2 cards (ruling 1)"
     ],
-    "longevity-serum#1": [],
+    "longevity-serum#1": [
+      "rulings-agenda.test.ts › Longevity Serum: the Corp resolves it before the Runner's Spoilers, so the card Spoilers trashes cannot be shuffled back (ruling 1; filed, area 11, CR 9.6.6: Spoilers is never marked pending after Longevity's choice)"
+    ],
     "mache#1": [
       "rulings-hardware.test.ts › Mâché: a card accessed and later trashed by Political Operative was not trashed on access, so no counters; trashing it on access does (ruling 1)"
     ],
-    "malapert-data-vault#1": [],
-    "manegarm-skunkworks#1": [],
-    "manegarm-skunkworks#2": [],
+    "malapert-data-vault#1": [
+      "rulings-upgrade.test.ts › Malapert Data Vault: it triggers on an agenda scored from the root of its own server, not from another server (ruling 1)"
+    ],
+    "manegarm-skunkworks#1": [
+      "rulings-upgrade.test.ts › Manegarm Skunkworks: rezzed in the paid ability window after the Runner's last chance to jack out, it still applies to the run (ruling 1)"
+    ],
+    "manegarm-skunkworks#2": [
+      "rulings-upgrade.test.ts › Manegarm Skunkworks: in R&D's root it does not affect an Omar Keung run moved to R&D, since approaching came before the move (ruling 2)"
+    ],
     "mayfly#1": [
       "rulings-program.test.ts › Mayfly: it may break subroutines on several ice in one run and is trashed once, when the run ends (ruling 1)"
     ],
@@ -397,15 +455,23 @@
     "mestnichestvo#1": [
       "rulings-ice.test.ts › Mestnichestvo: its last counter spent, it is not advanced when the encounter ends, so Builder of Nations does no damage (ruling 1)"
     ],
-    "midnight-3-arcology#1": [],
+    "midnight-3-arcology#1": [
+      "rulings-agenda.test.ts › Midnight-3 Arcology: the Corp does not discard down to maximum hand size this turn (ruling 1)"
+    ],
     "minds-eye#1": [
       "rulings-hardware.test.ts › Mind's Eye: its breach of R&D takes eXer's additional access, but not the cards in R&D's root (ruling 1)"
     ],
-    "mitosis#1": [],
+    "mitosis#1": [
+      "rulings-operation.test.ts › Mitosis: the Corp may play it and install 0 cards (ruling 1; filed, area 5, CR 1.15.2: the first 2 cards in HQ are installed with no choice)"
+    ],
     "mitosis#2": [],
-    "mitosis#3": [],
+    "mitosis#3": [
+      "rulings-operation.test.ts › Mitosis: each card goes in a new remote server of its own, never an existing one (ruling 3)"
+    ],
     "moon-pool#1": [],
-    "moon-pool#2": [],
+    "moon-pool#2": [
+      "rulings-asset.test.ts › Moon Pool: shuffling 0 cards into R&D still shuffles R&D (ruling 2)"
+    ],
     "nbn-reality-plus#1": [
       "rulings-identity.test.ts › NBN: Reality Plus: a tag given by Public Trail is the Runner taking a tag, so the Corp gains 2 credits (ruling 1)"
     ],
@@ -421,8 +487,12 @@
     "networking#1": [
       "rulings-event.test.ts › Networking: added back to the grip it is never trashed, so Aniccam draws nothing (ruling 1; filed, area 11, CR 8.6.7g: it stays in the play area as well as the grip)"
     ],
-    "neurospike#1": [],
-    "nico-campaign#1": [],
+    "neurospike#1": [
+      "rulings-operation.test.ts › Neurospike: an agenda scored and then forfeited this turn still counts its printed points (ruling 1)"
+    ],
+    "nico-campaign#1": [
+      "rulings-asset.test.ts › Nico Campaign: trashed by the Runner, the Corp draws no card; only its own ability draws (ruling 1)"
+    ],
     "no-free-lunch#1": [
       "rulings-resource.test.ts › No Free Lunch: it cannot be used while Gachapon's install is resolving, only with priority in a paid ability window (ruling 1)"
     ],
@@ -438,7 +508,9 @@
     "nyusha-sable-sintashta-symphonic-prodigy#4": [
       "rulings-identity.test.ts › Nyusha \"Sable\" Sintashta: the mark lasts only for the Runner's turn, so there is none on the Corp's turn (ruling 4)"
     ],
-    "oaktown-renovation#1": [],
+    "oaktown-renovation#1": [
+      "rulings-agenda.test.ts › Oaktown Renovation: Seamless Launch places counters without advancing it, so the Corp gains nothing (ruling 1)"
+    ],
     "ob-superheavy-logistics-extract-export-excel#1": [
       "rulings-identity.test.ts › Ob Superheavy Logistics: after Border Control's trash cost is paid, the Ob search resolves before the run ends, so a found Anemone's rez ability can trigger (ruling 1)"
     ],
@@ -490,7 +562,9 @@
     "ob-superheavy-logistics-extract-export-excel#17": [
       "rulings-identity.test.ts › Ob Superheavy Logistics: trashing Calibration Testing, the Corp may install a card in its root and place the counter on it (ruling 17; filed, area 11, CR 9.11.1a: the effect resolves before Ob's search)"
     ],
-    "ob-superheavy-logistics-extract-export-excel#18": [],
+    "ob-superheavy-logistics-extract-export-excel#18": [
+      "rulings-identity.test.ts › Ob Superheavy Logistics: trashing Reconstruction Contract alone in the attacked server ends that server, so Ob cannot install into its root (ruling 18)"
+    ],
     "ob-superheavy-logistics-extract-export-excel#19": [
       "rulings-identity.test.ts › Ob Superheavy Logistics: Rashida Jaheem installed by a Svyatogor Excavator trash at turn begin missed that trigger, so it cannot be used that turn (ruling 19)"
     ],
@@ -546,11 +620,16 @@
     "pravdivost-consulting-political-solutions#3": [
       "rulings-identity.test.ts › Pravdivost Consulting: the Corp cannot use NGO Front with the new counter before the Runner breaches, since no paid ability window is left (ruling 3)"
     ],
-    "predictive-planogram#1": [],
+    "predictive-planogram#1": [
+      "rulings-operation.test.ts › Predictive Planogram: the Corp decides on both before resolving either (ruling 1)",
+      "rulings-operation.test.ts › Predictive Planogram: resolving both, the Corp may draw first and then gain (ruling 1; filed, area 11, CR 9.12.6b: both modes resolve in printed order)"
+    ],
     "psych-mike#1": [
       "rulings-resource.test.ts › Psych Mike: accessing the same R&D card twice in a run (Shiro, then the run's breach) gains 2 credits (ruling 1; filed, area 14, CR 6.9.6d: at the end of the run it finds no R&D accesses and gains nothing)"
     ],
-    "public-trail#1": [],
+    "public-trail#1": [
+      "rulings-operation.test.ts › Public Trail: the tag it gives is the Runner taking a tag, so NBN: Reality Plus triggers (ruling 1)"
+    ],
     "quetzal-free-spirit#1": [
       "rulings-identity.test.ts › Quetzal: Free Spirit: the break is a paid ability, used in the encounter's paid ability window for 0 credits, once per turn (ruling 1)"
     ],
@@ -560,8 +639,12 @@
     "red-team#1": [
       "rulings-resource.test.ts › Red Team: a Sneakdoor Beta run counts as a run on Archives, so Red Team cannot run Archives later that turn (ruling 1)"
     ],
-    "regenesis#1": [],
-    "regenesis#2": [],
+    "regenesis#1": [
+      "rulings-agenda.test.ts › Regenesis: Seamless Launch is in Archives before the Corp can score, so Regenesis adds no agenda (ruling 1)"
+    ],
+    "regenesis#2": [
+      "rulings-agenda.test.ts › Regenesis: Moon Pool trashing nothing from HQ leaves Archives untouched, since Moon Pool itself is removed from the game (ruling 2)"
+    ],
     "reina-roja-freedom-fighter#1": [
       "rulings-identity.test.ts › Reina Roja: rezzing the first ice of the turn by forfeiting an agenda for Tithonium costs no extra credit, since the increase is to the rez cost and not an additional cost (ruling 1; filed, area 7, CR 1.16.2: the forfeit is a discount, so Reina's +1 is owed)"
     ],
@@ -598,16 +681,24 @@
     "scrubber#2": [
       "rulings-resource.test.ts › Scrubber: its credits pay the basic trash cost of an accessed card, but not Political Operative's X (ruling 2)"
     ],
-    "seamless-launch#1": [],
-    "seamless-launch#2": [],
-    "seamless-launch#3": [],
+    "seamless-launch#1": [
+      "rulings-operation.test.ts › Seamless Launch: it can place counters on a card the Corp cannot advance (ruling 1; filed, area 12, CR 1.18.2: only advanceable cards are offered)"
+    ],
+    "seamless-launch#2": [
+      "rulings-operation.test.ts › Seamless Launch: it can place counters on one of the Runner's installed cards (ruling 2; filed, area 12, CR 1.18.2: Runner cards are not offered)"
+    ],
+    "seamless-launch#3": [
+      "rulings-operation.test.ts › Seamless Launch: placing counters is not advancing, so Oaktown Renovation gains nothing (ruling 3)"
+    ],
     "security-testing#1": [
       "rulings-resource.test.ts › Security Testing: trashed during the run on the chosen server, it does not replace the breach (ruling 1)"
     ],
     "security-testing#2": [
       "rulings-resource.test.ts › Security Testing: a breach of HQ replaced by its 2 credits is not a breach, so Docklands Pass adds an access on the next HQ run (ruling 2)"
     ],
-    "send-a-message#1": [],
+    "send-a-message#1": [
+      "rulings-agenda.test.ts › Send a Message: Archer is rezzed ignoring its additional cost, so no agenda is forfeited (ruling 1)"
+    ],
     "smartware-distributor#1": [
       "rulings-resource.test.ts › Smartware Distributor: its action places 3 credits even when credits are already on it (ruling 1)"
     ],
@@ -623,8 +714,12 @@
     "sneakdoor-beta#4": [
       "rulings-program.test.ts › Sneakdoor Beta: a run it starts counts as a run on Archives for Red Team, not HQ (ruling 4)"
     ],
-    "spin-doctor#1": [],
-    "spin-doctor#2": [],
+    "spin-doctor#1": [
+      "rulings-asset.test.ts › Spin Doctor: the Corp may remove it choosing no card in Archives, and R&D is still shuffled (ruling 1)"
+    ],
+    "spin-doctor#2": [
+      "rulings-asset.test.ts › Spin Doctor: with Archives empty the Corp may still use it, to shuffle R&D (ruling 2)"
+    ],
     "spin-doctor#3": [],
     "sportsmetal-go-big-or-go-home#1": [
       "rulings-identity.test.ts › Sportsmetal: after the Corp draws 2 off a mid-breach steal, the Runner goes on accessing the new top card of R&D (ruling 1; filed, area 10, CR 9.3.7c: Sportsmetal never triggers)"
@@ -650,7 +745,9 @@
     "stoneship-chart-room#2": [
       "rulings-resource.test.ts › Stoneship Chart Room: there is a paid ability window after the discard step, so its draw comes before Lat checks the grip (ruling 2; filed, area 11, CR 5.7.2d: Lat triggers at the discard step, before the window)"
     ],
-    "svyatogor-excavator#1": [],
+    "svyatogor-excavator#1": [
+      "rulings-asset.test.ts › Svyatogor Excavator: Rashida Jaheem installed by Ob after its trash missed this turn's trigger, so Rashida cannot be used (ruling 1)"
+    ],
     "tao-salonga-telepresence-magician#1": [
       "rulings-identity.test.ts › Tāo Salonga: swapping the ice being encountered to another server moves the Runner and the run with it (ruling 1; filed, area 2, CR 6.2.7d: the run stays on the old server)"
     ],
@@ -708,16 +805,28 @@
     "tread-lightly#1": [
       "rulings-event.test.ts › Tread Lightly: Asteroid Belt with 4 advancement counters costs 0 to rez: 9, plus 3, minus 12, and the rez is a legal move (ruling 1; CR 1.16.2a)"
     ],
-    "trieste-model-bioroids#1": [],
-    "trieste-model-bioroids#2": [],
-    "trieste-model-bioroids#3": [],
+    "trieste-model-bioroids#1": [
+      "rulings-asset.test.ts › Trieste Model Bioroids: the chosen ice derezzed and rezzed again is still the chosen ice (ruling 1)"
+    ],
+    "trieste-model-bioroids#2": [
+      "rulings-asset.test.ts › Trieste Model Bioroids: derezzed, its effect ends; rezzed again, the Corp makes a new choice (ruling 2; filed, area 10, CR 9.4.1: the chosen ice keeps a card flag after Trieste is derezzed)"
+    ],
+    "trieste-model-bioroids#3": [
+      "rulings-asset.test.ts › Trieste Model Bioroids: Quetzal: Free Spirit's ability cannot break the chosen ice's subroutines (ruling 3)"
+    ],
     "trieste-model-bioroids#4": [],
     "unity#1": [
       "rulings-program.test.ts › Unity: its boost adds the number of installed icebreakers to Unity alone (ruling 1)"
     ],
-    "urtica-cipher#1": [],
-    "urtica-cipher#2": [],
-    "urtica-cipher#3": [],
+    "urtica-cipher#1": [
+      "rulings-asset.test.ts › Urtica Cipher: the Corp can advance it while it is unrezzed (ruling 1; filed, area 12, CR 1.18.3: no canAdvance in the card data)"
+    ],
+    "urtica-cipher#2": [
+      "rulings-asset.test.ts › Urtica Cipher: with no advancement counters it still does 2 net damage (ruling 2)"
+    ],
+    "urtica-cipher#3": [
+      "rulings-asset.test.ts › Urtica Cipher: advanced twice, it does 4 net damage as a single occurrence (ruling 3)"
+    ],
     "verbal-plasticity#1": [
       "rulings-resource.test.ts › Verbal Plasticity: with The Class Act, the draw becomes 2 first, so The Class Act looks at 3 and 1 goes to the bottom (ruling 1; filed, area 11, CR 9.9.3d: the basic draw skips The Class Act's interrupt)"
     ],
@@ -791,27 +900,41 @@
   "filed": [
     "ansel-1-0#3",
     "ayla-bios-rahim-simulant-specialist#1",
+    "azef-protocol#2",
     "backstitching#4",
+    "blood-in-the-water#1",
+    "blood-in-the-water#2",
     "bran-1-0#1",
     "carnivore#1",
     "carnivore#4",
     "carpe-diem#3",
     "cezve#1",
     "cezve#2",
+    "clearinghouse#1",
     "conduit#1",
     "conduit#2",
     "cookbook#1",
+    "crisium-grid#1",
+    "crisium-grid#2",
+    "crisium-grid#3",
+    "crisium-grid#4",
+    "crisium-grid#5",
     "deep-dive#1",
     "diviner#1",
     "diviner#2",
     "diviner#3",
     "dj-fenris#1",
+    "fast-break#1",
     "funhouse#1",
+    "giordano-memorial-field#1",
+    "hyperloop-extension#1",
     "ika#1",
     "jinteki-personal-evolution#1",
     "karuna#1",
     "leech#1",
     "light-the-fire#4",
+    "longevity-serum#1",
+    "mitosis#1",
     "nbn-reality-plus#4",
     "networking#1",
     "ob-superheavy-logistics-extract-export-excel#4",
@@ -829,6 +952,8 @@
     "rene-loup-arcemont-party-animal#1",
     "running-hot#2",
     "scrubber#1",
+    "seamless-launch#1",
+    "seamless-launch#2",
     "sneakdoor-beta#1",
     "sneakdoor-beta#2",
     "sportsmetal-go-big-or-go-home#1",
@@ -842,6 +967,8 @@
     "the-twinning#4",
     "the-twinning#6",
     "tranquilizer#3",
+    "trieste-model-bioroids#2",
+    "urtica-cipher#1",
     "verbal-plasticity#1",
     "virtuoso#9",
     "zahya-sadeghi-versatile-smuggler#1",
