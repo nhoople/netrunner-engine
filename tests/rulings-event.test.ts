@@ -530,6 +530,37 @@ describe("Into the Depths", () => {
     s = drive(s, (x) => optionIds(x).includes("credits"));
     expect(s.log.slice(start).join("\n")).toMatch(/passed 1, resolve 1/);
   });
+
+  it("Into the Depths: the same ice passed twice counts twice (ruling 4)", () => {
+    let s = runnerTurn(fresh(), 10);
+    s.servers.rd.ice = [];
+    installIce(s, "ice-wall", "iw-in", "rd", false);
+    installIce(s, "thimblerig", "th-1", "rd");
+    installRunner(s, "gordian-blade", "gb-1");
+    toHand(s, "runner", "into-the-depths", "itd-1");
+    s = must(s, { type: "play_event", cardId: "itd-1", serverId: "rd" });
+    const start = s.log.length;
+    let swaps = 0;
+    for (let i = 0; i < 60 && !optionIds(s).includes("charge"); i++) {
+      if (s.pendingChoice) {
+        // After the first pass, Thimblerig swaps inward with Ice Wall, so
+        // the Runner approaches and passes it again; then it stays put.
+        s = pick(s, swaps++ === 0 ? "swap-ice:iw-in" : "decline");
+        continue;
+      }
+      const legal = legalActions(s);
+      const next =
+        legal.find((a) => a.type === "break_subroutine") ??
+        legal.find((a) => a.type === "continue_run") ??
+        legal.find((a) => a.type === "pass_window");
+      if (!next) break;
+      s = must(s, next);
+    }
+    expect(swaps).toBe(2);
+    expect(s.servers.rd.ice).toEqual(["iw-in", "th-1"]);
+    expect(s.log.slice(start).join("\n")).toMatch(/passed 2, resolve 2/);
+    expect(optionIds(s)).toEqual(["credits", "search", "charge"]);
+  });
 });
 
 // ---------------------------------------------------------------------------
