@@ -1,0 +1,4722 @@
+{
+  "batch": "cr-examples-ch9",
+  "title": "The CR's own examples, chapter 9 (Abilities)",
+  "reader": {
+    "model": "claude-fable-5-2",
+    "name": "Claude Fable 5.2"
+  },
+  "sources": {
+    "cr": "v26.03",
+    "cards": "v1.147.25"
+  },
+  "blind": "Written from the CR text, printed card text and rulings (the lookup skill, with the modelled abilities filtered out of its card view) only. The engine's code, its tests for these examples and their baselines were not read. Committed before the comparison for this batch existed. This session had read the shared harness and driving helpers, and the hand-over note's list of things earlier reader sessions saw of the engine (Corroder's pump offered only in an encounter, traces resolving with no spending, Hostile Infrastructure firing once for a simultaneous trash, and the rest); nothing here leans on them. While finding the plan rows to read, a search also printed two rows of the plan's findings table (Invasion of Privacy; a flatline on the seventh point and Ayla's setup); neither bears on a chapter 9 example.",
+  "defaults": "Unless a case says otherwise: the Runner has the default 4 MU and no link, both identities are blank, servers have no ice, the Corp has 5 credits and the Runner 5, the Runner has 4 clicks and the Corp 3 at the start of their turn, zones not mentioned hold only cards with no relevant abilities, neither player spends credits on a trace, the Runner trashes no accessed card, and the Corp declines to rez or use anything not listed in the steps. 'accessed' lists every card accessed during the steps, in order, across breaches.",
+  "cases": [
+    {
+      "id": "9.1.2a.ex1",
+      "example": "9.1.2a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.1.2a",
+        "9.5.7b"
+      ],
+      "cards": [
+        "Armand \"Geist\" Walker",
+        "Snare!",
+        "Decoy"
+      ],
+      "position": "Runner's turn. The Runner's identity is Armand \"Geist\" Walker. Decoy is installed. The grip holds exactly 2 cards and the stack holds at least 1. Snare! is the top card of R&D, which has no ice. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "snare",
+          "do": "The Runner runs R&D and accesses Snare!. The Corp pays 4 credits. Before the tag is taken the Runner trashes Decoy to prevent it. Everything then resolves."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "winner",
+          "equals": "none",
+          "why": "Not a standard key: who has won the game. Geist's draw resolves before the damage, so 3 net damage meets 3 cards and the Runner survives."
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 0,
+          "why": "Decoy prevented the 1 tag."
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 0,
+          "why": "2 cards, plus 1 drawn for using Decoy's trash ability, minus 3 for the net damage."
+        },
+        {
+          "observe": "zone(Decoy)",
+          "equals": "heap"
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "9.1.2b.ex1",
+      "example": "9.1.2b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.1.2b",
+        "1.17.1a"
+      ],
+      "cards": [
+        "Attini",
+        "Caldera",
+        "Global Food Initiative"
+      ],
+      "position": "Runner's turn. Global Food Initiative is in the Corp's score area (3 agenda points), so Attini's threat 3 ability is active. A rezzed Attini is the only ice protecting HQ. The Runner has Caldera installed, 10 credits, 4 cards in the grip and no icebreaker.",
+      "steps": [
+        {
+          "label": "subs",
+          "do": "The Runner runs HQ, encounters Attini and breaks nothing. For each subroutine the Runner tries to pay 2 credits, and tries to use Caldera to prevent the net damage. All three subroutines resolve."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(pay-2)",
+          "equals": false,
+          "why": "The Runner cannot spend credits while a subroutine on Attini is resolving."
+        },
+        {
+          "observe": "legal(caldera)",
+          "equals": false,
+          "why": "The interrupt window for the damage is part of the subroutine resolving, so Caldera's 3 credits cannot be spent."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 10
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 1,
+          "why": "Three subroutines, 1 net damage each."
+        }
+      ]
+    },
+    {
+      "id": "9.1.2b.ex1#b",
+      "example": "9.1.2b.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.1.2b",
+        "9.3.6f"
+      ],
+      "cards": [
+        "Attini",
+        "Caldera"
+      ],
+      "position": "As 9.1.2b.ex1, but no player has any agenda points, so Attini's threat 3 ability is not active.",
+      "steps": [
+        {
+          "label": "subs",
+          "do": "The Runner runs HQ, encounters Attini and breaks nothing. For each subroutine the Runner pays 2 credits."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(pay-2)",
+          "equals": true,
+          "why": "Without the threat ability nothing stops the Runner spending credits."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 4
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 4
+        }
+      ]
+    },
+    {
+      "id": "9.1.2b.ex2",
+      "example": "9.1.2b.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.1.2b",
+        "9.3.6g"
+      ],
+      "cards": [
+        "Zahya Sadeghi: Versatile Smuggler",
+        "Direct Access",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. The Runner's identity is Zahya Sadeghi: Versatile Smuggler. Direct Access is in the grip. HQ has no ice and holds exactly one card, Hedge Fund. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "direct",
+          "do": "The Runner plays Direct Access, runs HQ and accesses Hedge Fund. The run ends. The Runner does not shuffle Direct Access into the stack."
+        },
+        {
+          "label": "second",
+          "do": "The Runner takes the basic action to run HQ, accesses Hedge Fund, and when the run ends uses Zahya Sadeghi's ability."
+        }
+      ],
+      "expect": [
+        {
+          "at": "direct",
+          "observe": "legal(zahya)",
+          "equals": false,
+          "why": "The reaction window after the run is still part of Direct Access resolving, and Direct Access removes the identity's ability while it resolves."
+        },
+        {
+          "at": "direct",
+          "observe": "runner.credits",
+          "equals": 4,
+          "why": "5, less 1 to play Direct Access. No credit from Zahya."
+        },
+        {
+          "at": "direct",
+          "observe": "zone(Direct Access)",
+          "equals": "heap"
+        },
+        {
+          "at": "second",
+          "observe": "legal(zahya)",
+          "equals": true,
+          "confidence": "derived",
+          "why": "Direct Access has finished resolving and the once per turn ability has not been used."
+        },
+        {
+          "at": "second",
+          "observe": "runner.credits",
+          "equals": 5,
+          "confidence": "derived",
+          "why": "1 credit for the one card accessed."
+        }
+      ]
+    },
+    {
+      "id": "9.1.4.ex1",
+      "example": "9.1.4.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.1.4",
+        "9.6.12",
+        "1.12.3"
+      ],
+      "cards": [
+        "Compile",
+        "Mayfly",
+        "Ice Wall"
+      ],
+      "position": "Runner's turn. Compile is in the grip and Mayfly is in the stack. A rezzed Ice Wall is the only ice protecting Archives, and Archives is empty. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "run",
+          "do": "The Runner plays Compile and runs Archives. On encountering Ice Wall the Runner searches the stack for Mayfly and installs it, ignoring all costs, then pays 1 credit to break Ice Wall's subroutine with Mayfly. The run goes on and ends."
+        },
+        {
+          "label": "end",
+          "do": "Both 'when the run ends' abilities are pending. The Runner resolves Compile's first, then Mayfly's."
+        }
+      ],
+      "expect": [
+        {
+          "at": "end",
+          "observe": "chooser(order)",
+          "equals": "runner",
+          "why": "Both abilities are the Runner's; the Runner picks the order."
+        },
+        {
+          "at": "end",
+          "observe": "zone(Mayfly)",
+          "equals": "stack",
+          "why": "Compile put it on the bottom of the stack. It is a new object there, so Mayfly's ability has nothing to trash."
+        },
+        {
+          "at": "end",
+          "observe": "stackBottom",
+          "equals": "Mayfly",
+          "why": "Not a standard key: the title of the bottom card of the stack."
+        },
+        {
+          "at": "end",
+          "observe": "runner.credits",
+          "equals": 2,
+          "why": "5, less 2 for Compile and 1 for the break."
+        }
+      ]
+    },
+    {
+      "id": "9.1.4.ex1#b",
+      "example": "9.1.4.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.1.4"
+      ],
+      "cards": [
+        "Compile",
+        "Mayfly",
+        "Ice Wall"
+      ],
+      "position": "As 9.1.4.ex1.",
+      "steps": [
+        {
+          "label": "run",
+          "do": "The Runner plays Compile and runs Archives, installs Mayfly from the stack on encountering Ice Wall and breaks the subroutine with it. The run goes on and ends."
+        },
+        {
+          "label": "end",
+          "do": "The Runner resolves Mayfly's ability first, then Compile's."
+        }
+      ],
+      "expect": [
+        {
+          "at": "end",
+          "observe": "zone(Mayfly)",
+          "equals": "heap",
+          "why": "Mayfly's ability trashes it. Compile's program is then no longer installed, so Compile does nothing."
+        }
+      ]
+    },
+    {
+      "id": "9.1.6c.ex1",
+      "example": "9.1.6c.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.1.6c",
+        "9.1.6a"
+      ],
+      "cards": [
+        "Cyberfeeder",
+        "Mimic",
+        "Neural Katana"
+      ],
+      "position": "Runner's turn. Mimic and Cyberfeeder are installed, and Cyberfeeder holds its 1 recurring credit. A rezzed Neural Katana is the only ice protecting HQ. The Runner has 5 credits and 3 cards in the grip.",
+      "steps": [
+        {
+          "label": "break",
+          "do": "The Runner runs HQ, encounters Neural Katana and breaks its subroutine with Mimic, paying the 1 credit with the credit on Cyberfeeder."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "counters(Cyberfeeder,credit)",
+          "equals": 0
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 5,
+          "why": "The cost came from Cyberfeeder, not the credit pool."
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 3,
+          "why": "The subroutine was broken, so no net damage."
+        },
+        {
+          "observe": "used(Mimic)",
+          "equals": true,
+          "confidence": "stated",
+          "why": "Not a standard key: whether the game treats the card as used. The Runner triggered Mimic's paid ability."
+        },
+        {
+          "observe": "used(Cyberfeeder)",
+          "equals": true,
+          "confidence": "stated",
+          "why": "Not a standard key. Cyberfeeder's ability allowed the credit to be spent, so Cyberfeeder was used too."
+        }
+      ]
+    },
+    {
+      "id": "9.1.8b.ex1",
+      "example": "9.1.8b.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.1.8b"
+      ],
+      "cards": [
+        "I've Had Worse",
+        "Neural Katana"
+      ],
+      "position": "Runner's turn. A rezzed Neural Katana is the only ice protecting HQ. The grip holds exactly 3 cards: I've Had Worse and two others with no abilities that matter. The stack holds at least 3 cards. The Corp's identity is blank. The Runner has no icebreaker.",
+      "steps": [
+        {
+          "label": "damage",
+          "do": "The Runner runs HQ, encounters Neural Katana and breaks nothing. The subroutine does 3 net damage."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(I've Had Worse)",
+          "equals": "heap"
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 3,
+          "why": "All 3 cards are trashed. I've Had Worse's ability is active in the heap, so the Runner draws 3."
+        },
+        {
+          "observe": "runner.heap",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.1.8b.ex1#b",
+      "example": "9.1.8b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.1.8b"
+      ],
+      "cards": [
+        "I've Had Worse",
+        "Skorpios Defense Systems: Persuasive Power",
+        "Neural Katana"
+      ],
+      "position": "As 9.1.8b.ex1, but the Corp's identity is Skorpios Defense Systems: Persuasive Power, which has not removed a card from the game this turn.",
+      "steps": [
+        {
+          "label": "damage",
+          "do": "The Runner runs HQ, encounters Neural Katana and breaks nothing. The subroutine does 3 net damage. The Corp uses Skorpios Defense Systems to remove I've Had Worse from the game."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(I've Had Worse)",
+          "equals": "removed"
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 0,
+          "why": "I've Had Worse did not reach the heap, so its ability is not active and the Runner draws nothing."
+        },
+        {
+          "observe": "runner.heap",
+          "equals": 2
+        },
+        {
+          "observe": "winner",
+          "equals": "none",
+          "why": "Not a standard key: who has won the game. 3 damage against 3 cards is not more than the grip."
+        }
+      ]
+    },
+    {
+      "id": "9.1.8g.ex1",
+      "example": "9.1.8g.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.1.8g",
+        "9.6.4b"
+      ],
+      "cards": [
+        "Singularity",
+        "Hostile Infrastructure",
+        "Tori Hanzō",
+        "AMAZE Amusements"
+      ],
+      "position": "Runner's turn. A remote server with no ice has three cards in its root: a rezzed Hostile Infrastructure and two unrezzed upgrades, Tori Hanzō and AMAZE Amusements. The grip holds Singularity and 4 other cards. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "singularity",
+          "do": "The Runner plays Singularity, running that remote server. The run is successful and all three cards in the root are trashed at once. Hostile Infrastructure's ability resolves for each."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Hostile Infrastructure)",
+          "equals": "archives"
+        },
+        {
+          "observe": "zone(Tori Hanzō)",
+          "equals": "archives"
+        },
+        {
+          "observe": "zone(AMAZE Amusements)",
+          "equals": "archives"
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 1,
+          "why": "4 cards left after playing Singularity; 3 instances of Hostile Infrastructure's ability each do 1 net damage."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 1
+        },
+        {
+          "observe": "runner.clicks",
+          "equals": 2,
+          "why": "Singularity costs an additional click."
+        }
+      ]
+    },
+    {
+      "id": "9.1.8g.ex2",
+      "example": "9.1.8g.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.1.8g"
+      ],
+      "cards": [
+        "Test Run",
+        "Nanuq"
+      ],
+      "position": "Runner's turn. Test Run is in the grip and Nanuq is in the stack. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Runner plays Test Run, searches the stack for Nanuq and installs it, ignoring all costs."
+        },
+        {
+          "label": "turn-ends",
+          "do": "The Runner's turn ends. Test Run's delayed ability adds Nanuq to the top of the stack, and Nanuq's first ability resolves."
+        }
+      ],
+      "expect": [
+        {
+          "at": "play",
+          "observe": "installed(Nanuq)",
+          "equals": true
+        },
+        {
+          "at": "play",
+          "observe": "runner.credits",
+          "equals": 2
+        },
+        {
+          "at": "turn-ends",
+          "observe": "zone(Nanuq)",
+          "equals": "removed",
+          "why": "Being added to the stack uninstalls Nanuq. Its 'when uninstalled' ability stays active in the stack until it resolves, and removes Nanuq from the game."
+        }
+      ]
+    },
+    {
+      "id": "9.1.8h.ex1",
+      "example": "9.1.8h.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.1.8h",
+        "10.8.4"
+      ],
+      "cards": [
+        "Archangel",
+        "Mimic"
+      ],
+      "position": "Runner's turn. HQ has no ice and holds exactly one card, Archangel. Mimic is the Runner's only installed card. The Corp has 5 credits and the Runner has no link.",
+      "steps": [
+        {
+          "label": "access",
+          "do": "The Runner runs HQ and accesses Archangel. The Corp pays 3 credits and the Runner encounters Archangel, breaking nothing. Neither player spends on the trace. The Corp chooses Mimic for the subroutine."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "encountered(Archangel)",
+          "equals": true,
+          "why": "Not a standard key: whether an encounter with Archangel took place."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 2
+        },
+        {
+          "observe": "zone(Mimic)",
+          "equals": "grip",
+          "why": "The subroutine is active during the encounter although Archangel is not installed. Trace 6 against link 0 is successful."
+        },
+        {
+          "observe": "zone(Archangel)",
+          "equals": "hq"
+        }
+      ]
+    },
+    {
+      "id": "9.2.8f.ex1",
+      "example": "9.2.8f.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.2.8f"
+      ],
+      "cards": [
+        "Femme Fatale",
+        "Tollbooth",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Femme Fatale is installed, with Tollbooth as the ice chosen by its 'when installed' ability. A rezzed Tollbooth is the only ice protecting HQ. HQ holds exactly one card, Hedge Fund. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "encounter",
+          "do": "The Runner runs HQ and encounters Tollbooth. The Runner triggers Femme Fatale's ability first and pays 1 credit to bypass Tollbooth."
+        },
+        {
+          "label": "run-over",
+          "do": "The run goes on, the Runner breaches HQ and the run ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "encounter",
+          "observe": "runner.credits",
+          "equals": 4,
+          "why": "1 credit for Tollbooth's one subroutine. Tollbooth's own ability lost its pending status when the encounter ended, so the 3 credits are not paid."
+        },
+        {
+          "at": "encounter",
+          "observe": "run.active",
+          "equals": true
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful"
+        },
+        {
+          "at": "run-over",
+          "observe": "runner.credits",
+          "equals": 4
+        },
+        {
+          "at": "run-over",
+          "observe": "accessed",
+          "equals": [
+            "Hedge Fund"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9.3.3f.ex1",
+      "example": "9.3.3f.ex1",
+      "run": false,
+      "skip": "The example says which kinds of statement are restrictions (a definition of X, a limit on X). It names no card and gives no board position.",
+      "rules": [
+        "9.3.3f"
+      ],
+      "cards": []
+    },
+    {
+      "id": "9.3.6g.ex1",
+      "example": "9.3.6g.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.3.6g",
+        "9.1.6b"
+      ],
+      "cards": [
+        "Zahya Sadeghi: Versatile Smuggler",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. The Runner's identity is Zahya Sadeghi: Versatile Smuggler. HQ has no ice and holds exactly one card, Hedge Fund. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "first",
+          "do": "The Runner runs HQ and accesses Hedge Fund. When the run ends the Runner chooses not to gain a credit from Zahya Sadeghi's ability."
+        },
+        {
+          "label": "second",
+          "do": "The Runner runs HQ again, accesses Hedge Fund, and when the run ends gains 1 credit from Zahya Sadeghi's ability."
+        }
+      ],
+      "expect": [
+        {
+          "at": "first",
+          "observe": "runner.credits",
+          "equals": 5
+        },
+        {
+          "at": "second",
+          "observe": "legal(zahya)",
+          "equals": true,
+          "why": "Declining is not using the ability, so its once per turn limit is not spent."
+        },
+        {
+          "at": "second",
+          "observe": "runner.credits",
+          "equals": 6
+        }
+      ]
+    },
+    {
+      "id": "9.3.6g.ex1#b",
+      "example": "9.3.6g.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.3.6g"
+      ],
+      "cards": [
+        "Zahya Sadeghi: Versatile Smuggler",
+        "Hedge Fund"
+      ],
+      "position": "As 9.3.6g.ex1.",
+      "steps": [
+        {
+          "label": "first",
+          "do": "The Runner runs HQ, accesses Hedge Fund, and when the run ends gains 1 credit from Zahya Sadeghi's ability."
+        },
+        {
+          "label": "second",
+          "do": "The Runner runs HQ again and accesses Hedge Fund. The run ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "first",
+          "observe": "runner.credits",
+          "equals": 6
+        },
+        {
+          "at": "second",
+          "observe": "legal(zahya)",
+          "equals": false,
+          "why": "The ability was used this turn."
+        },
+        {
+          "at": "second",
+          "observe": "runner.credits",
+          "equals": 6
+        }
+      ]
+    },
+    {
+      "id": "9.4.4.ex1",
+      "example": "9.4.4.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.4.4",
+        "9.10.5",
+        "3.9.5b"
+      ],
+      "cards": [
+        "Puffer",
+        "Gebrselassie",
+        "Neural Katana",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Puffer is installed with 1 hosted power counter, and Gebrselassie is hosted on Puffer. A rezzed Neural Katana is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "pump",
+          "do": "The Runner runs HQ, encounters Neural Katana, pays 2 credits for +1 strength on Puffer, then pays 1 credit to break the subroutine."
+        },
+        {
+          "label": "run-over",
+          "do": "The run goes on, the Runner accesses Hedge Fund and the run ends."
+        },
+        {
+          "label": "remove",
+          "do": "The Runner spends a click on Puffer's ability to remove its hosted power counter."
+        },
+        {
+          "label": "turn-ends",
+          "do": "The Runner's turn ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "pump",
+          "observe": "strength(Puffer)",
+          "equals": 4,
+          "why": "2 printed, +1 for the power counter, +1 from the paid ability."
+        },
+        {
+          "at": "run-over",
+          "observe": "strength(Puffer)",
+          "equals": 4,
+          "why": "Gebrselassie makes the paid ability's increase last for the remainder of the turn."
+        },
+        {
+          "at": "run-over",
+          "observe": "runner.credits",
+          "equals": 2
+        },
+        {
+          "at": "remove",
+          "observe": "strength(Puffer)",
+          "equals": 3,
+          "why": "The static ability's increase is not a lingering effect. It is lost at once with the counter; the paid increase stays."
+        },
+        {
+          "at": "remove",
+          "observe": "runner.memoryUsed",
+          "equals": 1,
+          "confidence": "derived"
+        },
+        {
+          "at": "turn-ends",
+          "observe": "strength(Puffer)",
+          "equals": 2,
+          "confidence": "derived",
+          "why": "The turn is over, so the paid increase has expired."
+        }
+      ]
+    },
+    {
+      "id": "9.4.5.ex1",
+      "example": "9.4.5.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.4.5",
+        "9.9.7e"
+      ],
+      "cards": [
+        "The Cleaners",
+        "Flare",
+        "Biometric Spoofing",
+        "Cyberfeeder"
+      ],
+      "position": "Runner's turn. The Cleaners is in the Corp's score area. A rezzed Flare is the only ice protecting HQ. The Runner has Biometric Spoofing and Cyberfeeder installed (Cyberfeeder is the only hardware), 4 cards in the grip, no link and no icebreaker.",
+      "steps": [
+        {
+          "label": "flare",
+          "do": "The Runner runs HQ, encounters Flare and breaks nothing. Neither player spends on the trace. The Corp trashes Cyberfeeder. The Runner tries to trash Biometric Spoofing to prevent the meat damage."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(prevent)",
+          "equals": false,
+          "why": "The Cleaners' extra point keeps the 'cannot be prevented' of Flare's damage: all 3 meat damage are unpreventable."
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 1
+        },
+        {
+          "observe": "zone(Biometric Spoofing)",
+          "equals": "rig"
+        },
+        {
+          "observe": "zone(Cyberfeeder)",
+          "equals": "heap"
+        },
+        {
+          "observe": "run.outcome",
+          "equals": "unsuccessful"
+        }
+      ]
+    },
+    {
+      "id": "9.5.3a.ex1",
+      "example": "9.5.3a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.5.3a",
+        "7.1.5c",
+        "9.12.3a"
+      ],
+      "cards": [
+        "Wendigo",
+        "Imp",
+        "Mumbad Virtual Tour"
+      ],
+      "position": "Runner's turn. Imp is installed with 2 virus counters. A remote server has a rezzed Wendigo (no advancement counters) as its only ice and a rezzed Mumbad Virtual Tour as the only card in its root. The Runner has 5 credits and no icebreaker.",
+      "steps": [
+        {
+          "label": "wendigo",
+          "do": "The Runner runs the remote server, encounters Wendigo and breaks nothing. The Corp chooses Imp for the subroutine."
+        },
+        {
+          "label": "access",
+          "do": "The run goes on and the Runner accesses Mumbad Virtual Tour. The Runner tries to use Imp, and tries to leave the card untrashed."
+        }
+      ],
+      "expect": [
+        {
+          "at": "access",
+          "observe": "legal(imp)",
+          "equals": false,
+          "why": "Imp's ability is optional and Wendigo forbids using Imp this run."
+        },
+        {
+          "at": "access",
+          "observe": "legal(decline)",
+          "equals": false,
+          "why": "The Runner can pay the trash cost, so Mumbad Virtual Tour forces the basic trash ability."
+        },
+        {
+          "at": "access",
+          "observe": "zone(Mumbad Virtual Tour)",
+          "equals": "archives"
+        },
+        {
+          "at": "access",
+          "observe": "runner.credits",
+          "equals": 0
+        },
+        {
+          "at": "access",
+          "observe": "counters(Imp,virus)",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.5.3a.ex1#b",
+      "example": "9.5.3a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.5.3a"
+      ],
+      "cards": [
+        "Wendigo",
+        "Imp",
+        "Mumbad Virtual Tour"
+      ],
+      "position": "As 9.5.3a.ex1, but the Runner has 4 credits.",
+      "steps": [
+        {
+          "label": "wendigo",
+          "do": "The Runner runs the remote server, encounters Wendigo and breaks nothing. The Corp chooses Imp for the subroutine."
+        },
+        {
+          "label": "access",
+          "do": "The run goes on and the Runner accesses Mumbad Virtual Tour. The Runner tries to use Imp."
+        }
+      ],
+      "expect": [
+        {
+          "at": "access",
+          "observe": "legal(imp)",
+          "equals": false
+        },
+        {
+          "at": "access",
+          "observe": "zone(Mumbad Virtual Tour)",
+          "equals": "root:remote",
+          "why": "The Runner cannot pay 5 and cannot use Imp, so the card cannot be trashed at all."
+        },
+        {
+          "at": "access",
+          "observe": "runner.credits",
+          "equals": 4
+        },
+        {
+          "at": "access",
+          "observe": "counters(Imp,virus)",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.5.5.ex1",
+      "example": "9.5.5.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.5.5",
+        "4.8.5"
+      ],
+      "cards": [
+        "Fermenter"
+      ],
+      "position": "Runner's turn. Fermenter is installed with 4 hosted virus counters. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "use",
+          "do": "The Runner spends a click and trashes Fermenter to use its ability."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.credits",
+          "equals": 13,
+          "why": "2 credits for each of the 4 counters set aside as the cost was paid."
+        },
+        {
+          "observe": "zone(Fermenter)",
+          "equals": "heap"
+        },
+        {
+          "observe": "runner.clicks",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.5.5.ex2",
+      "example": "9.5.5.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.5.5",
+        "10.3.1"
+      ],
+      "cards": [
+        "Street Peddler",
+        "Corroder",
+        "Mimic",
+        "Sure Gamble"
+      ],
+      "position": "Runner's turn. Street Peddler is installed with three cards hosted on it facedown: Corroder, Mimic and Sure Gamble. The Runner has 5 credits and the heap is empty.",
+      "steps": [
+        {
+          "label": "use",
+          "do": "The Runner trashes Street Peddler to use its ability and installs Corroder."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Corroder)",
+          "equals": "rig"
+        },
+        {
+          "observe": "installed(Corroder)",
+          "equals": true
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 4,
+          "why": "Corroder's install cost of 2, lowered by 1."
+        },
+        {
+          "observe": "zone(Mimic)",
+          "equals": "heap",
+          "why": "The two cards still set aside are trashed at the next checkpoint."
+        },
+        {
+          "observe": "zone(Sure Gamble)",
+          "equals": "heap"
+        },
+        {
+          "observe": "zone(Street Peddler)",
+          "equals": "heap"
+        },
+        {
+          "observe": "runner.heap",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.5.5.ex3",
+      "example": "9.5.5.ex3",
+      "confidence": "stated",
+      "rules": [
+        "9.5.5",
+        "9.5.7"
+      ],
+      "cards": [
+        "Reconstruction Contract",
+        "Ice Wall"
+      ],
+      "position": "Corp's turn, in the Corp's paid ability window before an action. A rezzed Reconstruction Contract with 2 hosted advancement counters is alone in a remote server. A rezzed Ice Wall with no counters protects HQ. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "use",
+          "do": "The Corp trashes Reconstruction Contract to use its ability, chooses Ice Wall and moves both counters to it."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Reconstruction Contract)",
+          "equals": "archives"
+        },
+        {
+          "observe": "counters(Ice Wall,advancement)",
+          "equals": 2,
+          "why": "The counters were set aside as the cost was paid and moved when the instruction resolved."
+        },
+        {
+          "observe": "strength(Ice Wall)",
+          "equals": 3,
+          "confidence": "derived"
+        },
+        {
+          "observe": "corp.clicks",
+          "equals": 3,
+          "why": "Not an action."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 5
+        }
+      ]
+    },
+    {
+      "id": "9.5.6b.ex1",
+      "example": "9.5.6b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.5.6b"
+      ],
+      "cards": [
+        "Project Wotan",
+        "Eli 1.0",
+        "Ice Wall"
+      ],
+      "position": "Runner's turn. Project Wotan is in the Corp's score area with 3 agenda counters. A rezzed Ice Wall is the only ice protecting R&D. A rezzed Eli 1.0 is the only ice protecting HQ. The Runner has no icebreaker.",
+      "steps": [
+        {
+          "label": "idle",
+          "do": "Before any run, in a paid ability window, the Corp tries to use Project Wotan's ability."
+        },
+        {
+          "label": "ice-wall",
+          "do": "The Runner runs R&D. While the Runner approaches Ice Wall the Corp tries to use Project Wotan's ability. The run then ends on Ice Wall's subroutine."
+        },
+        {
+          "label": "eli",
+          "do": "The Runner runs HQ. While the Runner approaches Eli 1.0 the Corp uses Project Wotan's ability."
+        }
+      ],
+      "expect": [
+        {
+          "at": "idle",
+          "observe": "legal(wotan)",
+          "equals": false,
+          "why": "No ice is being approached."
+        },
+        {
+          "at": "ice-wall",
+          "observe": "legal(wotan)",
+          "equals": false,
+          "confidence": "derived",
+          "why": "Ice Wall is not bioroid ice."
+        },
+        {
+          "at": "eli",
+          "observe": "legal(wotan)",
+          "equals": true
+        },
+        {
+          "at": "eli",
+          "observe": "counters(Project Wotan,agenda)",
+          "equals": 2
+        },
+        {
+          "at": "eli",
+          "observe": "subroutineCount(Eli 1.0)",
+          "equals": 3,
+          "confidence": "derived",
+          "why": "Not a standard key: the number of subroutines the ice has. Two printed, plus the 'End the run.' Project Wotan gives it for this run."
+        }
+      ]
+    },
+    {
+      "id": "9.5.6c.ex1",
+      "example": "9.5.6c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.5.6c"
+      ],
+      "cards": [
+        "Arruaceiras Crew",
+        "Ice Wall"
+      ],
+      "position": "Runner's turn. Arruaceiras Crew is installed. A rezzed Ice Wall with no counters is the only ice protecting HQ. The Runner has no tags.",
+      "steps": [
+        {
+          "label": "idle",
+          "do": "Before any run, in a paid ability window, the Runner tries to use Arruaceiras Crew's first ability."
+        },
+        {
+          "label": "encounter",
+          "do": "The Runner runs HQ, encounters Ice Wall and uses Arruaceiras Crew's first ability, taking 1 tag."
+        }
+      ],
+      "expect": [
+        {
+          "at": "idle",
+          "observe": "legal(crew)",
+          "equals": false,
+          "why": "The ability refers to the ice being encountered, so it can be used only during an encounter."
+        },
+        {
+          "at": "idle",
+          "observe": "runner.tags",
+          "equals": 0
+        },
+        {
+          "at": "encounter",
+          "observe": "legal(crew)",
+          "equals": true
+        },
+        {
+          "at": "encounter",
+          "observe": "runner.tags",
+          "equals": 1
+        },
+        {
+          "at": "encounter",
+          "observe": "strength(Ice Wall)",
+          "equals": -1,
+          "confidence": "derived"
+        }
+      ]
+    },
+    {
+      "id": "9.5.6c.ex2",
+      "example": "9.5.6c.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.5.6c",
+        "9.3.6c"
+      ],
+      "cards": [
+        "Abagnale",
+        "Marker",
+        "Ice Wall",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Abagnale (strength 2) is installed. A rezzed Ice Wall is the only ice protecting R&D. A rezzed Marker (a code gate of strength 3) is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "barrier",
+          "do": "The Runner runs R&D and encounters Ice Wall. The Runner tries Abagnale's trash ability and its interface ability. The run ends on the subroutine."
+        },
+        {
+          "label": "gate",
+          "do": "The Runner runs HQ and encounters Marker. Without raising Abagnale's strength the Runner tries its interface ability, then trashes Abagnale to bypass Marker."
+        },
+        {
+          "label": "run-over",
+          "do": "The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "barrier",
+          "observe": "legal(bypass)",
+          "equals": false,
+          "confidence": "derived",
+          "why": "Ice Wall is not a code gate."
+        },
+        {
+          "at": "barrier",
+          "observe": "legal(interface)",
+          "equals": false,
+          "confidence": "derived"
+        },
+        {
+          "at": "gate",
+          "observe": "legal(interface)",
+          "equals": false,
+          "why": "Abagnale's strength of 2 is less than Marker's 3."
+        },
+        {
+          "at": "gate",
+          "observe": "legal(bypass)",
+          "equals": true,
+          "why": "The trash ability needs only an encounter with a code gate, not enough strength."
+        },
+        {
+          "at": "gate",
+          "observe": "zone(Abagnale)",
+          "equals": "heap"
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful"
+        },
+        {
+          "at": "run-over",
+          "observe": "runner.credits",
+          "equals": 5
+        }
+      ]
+    },
+    {
+      "id": "9.6.4b.ex1",
+      "example": "9.6.4b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.4b",
+        "9.12.2a"
+      ],
+      "cards": [
+        "Singularity",
+        "Hostile Infrastructure",
+        "PAD Campaign",
+        "Tori Hanzō",
+        "AMAZE Amusements"
+      ],
+      "position": "Runner's turn. A rezzed Hostile Infrastructure is alone in one remote server. A second remote server with no ice has three unrezzed cards in its root: PAD Campaign, Tori Hanzō and AMAZE Amusements. The grip holds Singularity and 4 other cards. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "singularity",
+          "do": "The Runner plays Singularity, running the second remote server. The run is successful and its three cards are trashed at once."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(PAD Campaign)",
+          "equals": "archives"
+        },
+        {
+          "observe": "zone(Tori Hanzō)",
+          "equals": "archives"
+        },
+        {
+          "observe": "zone(AMAZE Amusements)",
+          "equals": "archives"
+        },
+        {
+          "observe": "zone(Hostile Infrastructure)",
+          "equals": "root:remote"
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 1,
+          "why": "Hostile Infrastructure's condition is met once for each of the 3 cards, so 3 instances each do 1 net damage to the 4 cards left in the grip."
+        }
+      ]
+    },
+    {
+      "id": "9.6.4b.ex2",
+      "example": "9.6.4b.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.6.4b"
+      ],
+      "cards": [
+        "Blackguard",
+        "Satellite Uplink",
+        "PAD Campaign",
+        "Ice Wall"
+      ],
+      "position": "Runner's turn. Blackguard is installed and Satellite Uplink is in the grip. An unrezzed PAD Campaign is alone in a remote server and an unrezzed Ice Wall protects HQ. The Corp has 5 credits and the Runner 5.",
+      "steps": [
+        {
+          "label": "uplink",
+          "do": "The Runner plays Satellite Uplink and exposes PAD Campaign and Ice Wall. Blackguard's ability resolves for each."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "rezzed(PAD Campaign)",
+          "equals": true,
+          "why": "Two instances of Blackguard's ability, one per exposed card. The Corp can pay each rez cost, so it must."
+        },
+        {
+          "observe": "rezzed(Ice Wall)",
+          "equals": true
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 2,
+          "why": "5, less 2 for PAD Campaign and 1 for Ice Wall."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.6.5b.ex1",
+      "example": "9.6.5b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.5b"
+      ],
+      "cards": [
+        "Reaper Function",
+        "Ob Superheavy Logistics: Extract. Export. Excel.",
+        "Nico Campaign"
+      ],
+      "position": "The Corp's turn is about to begin. The Corp's identity is Ob Superheavy Logistics: Extract. Export. Excel. A rezzed Reaper Function is alone in a remote server. Nico Campaign is in R&D. The Corp has 5 credits. The Runner has 3 cards in the grip.",
+      "steps": [
+        {
+          "label": "turn-begins",
+          "do": "The Corp's turn begins. The Corp trashes Reaper Function to do 2 net damage, and uses Ob Superheavy Logistics to search R&D for Nico Campaign, then installs and rezzes it. The 'turn begins' abilities finish resolving."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Reaper Function)",
+          "equals": "archives"
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 1
+        },
+        {
+          "observe": "rezzed(Nico Campaign)",
+          "equals": true
+        },
+        {
+          "observe": "counters(Nico Campaign,credit)",
+          "equals": 9,
+          "why": "Nico Campaign became active after the 'turn begins' condition was processed, so the Corp takes no credits from it this turn."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 5,
+          "why": "Ob Superheavy Logistics ignores the rez cost, and nothing was taken from Nico Campaign."
+        }
+      ]
+    },
+    {
+      "id": "9.6.5b.ex2",
+      "example": "9.6.5b.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.6.5b",
+        "1.16.5c",
+        "1.16.3a"
+      ],
+      "cards": [
+        "Architect Deployment Test",
+        "Tranquility Home Grid"
+      ],
+      "position": "Corp's turn. Architect Deployment Test is installed in a remote server with 4 advancement counters. Tranquility Home Grid is the top card of R&D. HQ is empty and the Corp has 5 credits. The Corp has installed no card this turn.",
+      "steps": [
+        {
+          "label": "score",
+          "do": "The Corp scores Architect Deployment Test, looks at the top 5 cards of R&D, and installs Tranquility Home Grid in the root of a new remote server and rezzes it, ignoring all costs."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "corp.score",
+          "equals": 2
+        },
+        {
+          "observe": "rezzed(Tranquility Home Grid)",
+          "equals": true
+        },
+        {
+          "observe": "installed(Tranquility Home Grid)",
+          "equals": true
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 5,
+          "why": "Tranquility Home Grid was not active at the checkpoint that processed its own install, so its ability gives no 2 credits; the rez cost was ignored."
+        },
+        {
+          "observe": "corp.hq",
+          "equals": 0,
+          "why": "No card was drawn from Tranquility Home Grid either."
+        }
+      ]
+    },
+    {
+      "id": "9.6.5c.ex1",
+      "example": "9.6.5c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.5c"
+      ],
+      "cards": [
+        "Quantum Predictive Model",
+        "Casting Call"
+      ],
+      "position": "Runner's turn. Quantum Predictive Model is installed faceup, alone in a remote server with no ice, with Casting Call hosted on it as a condition counter (the Corp played Casting Call on an earlier turn). The Runner has no tags.",
+      "steps": [
+        {
+          "label": "access",
+          "do": "The Runner runs the remote server and accesses Quantum Predictive Model. Casting Call's ability resolves. The Runner steals the agenda if able."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.tags",
+          "equals": 2,
+          "why": "From Casting Call."
+        },
+        {
+          "observe": "zone(Quantum Predictive Model)",
+          "equals": "runner-score",
+          "why": "The Runner was not tagged when the access began, so Quantum Predictive Model's ability never met its condition, in any order."
+        },
+        {
+          "observe": "runner.score",
+          "equals": 1
+        },
+        {
+          "observe": "corp.score",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "9.6.5d.ex1",
+      "example": "9.6.5d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.5d"
+      ],
+      "cards": [
+        "Underworld Contact",
+        "The Supplier",
+        "Dyson Mem Chip",
+        "Armand \"Geist\" Walker"
+      ],
+      "position": "The Runner's turn is about to begin. The Runner's identity is Armand \"Geist\" Walker (1 link). Underworld Contact is installed. The Supplier is installed with Dyson Mem Chip hosted on it. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "turn-begins",
+          "do": "The Runner's turn begins. The Runner triggers The Supplier first and installs Dyson Mem Chip, then Underworld Contact resolves."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "chooser(order)",
+          "equals": "runner"
+        },
+        {
+          "observe": "installed(Dyson Mem Chip)",
+          "equals": true
+        },
+        {
+          "observe": "zone(Dyson Mem Chip)",
+          "equals": "rig"
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 5,
+          "why": "5, less 1 for Dyson Mem Chip (3 lowered by 2), plus 1 from Underworld Contact, which checks for 2 link when it resolves."
+        },
+        {
+          "observe": "runner.memoryLimit",
+          "equals": 5,
+          "confidence": "derived"
+        }
+      ]
+    },
+    {
+      "id": "9.6.5d.ex1#b",
+      "example": "9.6.5d.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.6.5d"
+      ],
+      "cards": [
+        "Underworld Contact",
+        "The Supplier",
+        "Dyson Mem Chip",
+        "Armand \"Geist\" Walker"
+      ],
+      "position": "As 9.6.5d.ex1.",
+      "steps": [
+        {
+          "label": "turn-begins",
+          "do": "The Runner's turn begins. The Runner triggers Underworld Contact first, then The Supplier, and installs Dyson Mem Chip."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "installed(Dyson Mem Chip)",
+          "equals": true
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 4,
+          "why": "Underworld Contact resolved with only 1 link and gave nothing; then 1 credit for Dyson Mem Chip."
+        }
+      ]
+    },
+    {
+      "id": "9.6.6a.ex1",
+      "example": "9.6.6a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.6a"
+      ],
+      "cards": [
+        "Weyland Consortium: Built to Last",
+        "Ice Wall"
+      ],
+      "position": "Corp's turn. The Corp's identity is Weyland Consortium: Built to Last. A rezzed Ice Wall with no advancement counters protects HQ. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "first",
+          "do": "The Corp takes the basic action to advance Ice Wall."
+        },
+        {
+          "label": "second",
+          "do": "The Corp advances Ice Wall again."
+        }
+      ],
+      "expect": [
+        {
+          "at": "first",
+          "observe": "corp.credits",
+          "equals": 6,
+          "why": "1 paid to advance, 2 gained: the card had no counters at the checkpoint before the advancement."
+        },
+        {
+          "at": "first",
+          "observe": "counters(Ice Wall,advancement)",
+          "equals": 1
+        },
+        {
+          "at": "second",
+          "observe": "corp.credits",
+          "equals": 5,
+          "confidence": "derived",
+          "why": "The card had a counter this time."
+        },
+        {
+          "at": "second",
+          "observe": "counters(Ice Wall,advancement)",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.6.7d.ex1",
+      "example": "9.6.7d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.7d",
+        "9.6.7"
+      ],
+      "cards": [
+        "Parasite",
+        "Architect"
+      ],
+      "position": "Runner's turn. A rezzed Architect protects HQ with Parasite hosted on it, and Parasite has 3 virus counters, so Architect's strength is 0. The Runner has 5 credits. (The example's other half, an interrupt that prevents the trash, names no card and is not built.)",
+      "steps": [
+        {
+          "label": "click",
+          "do": "The Runner takes the basic action to gain 1 credit."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Architect)",
+          "equals": "ice:HQ",
+          "why": "Players cannot trash Architect, so Parasite's ability has no effect it can perform."
+        },
+        {
+          "observe": "strength(Architect)",
+          "equals": 0
+        },
+        {
+          "observe": "zone(Parasite)",
+          "equals": "hosted:Architect"
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 6,
+          "why": "The ability resolves once per timing step and the game goes on."
+        }
+      ]
+    },
+    {
+      "id": "9.6.10.ex1",
+      "example": "9.6.10.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.10"
+      ],
+      "cards": [
+        "Aesop's Pawnshop",
+        "Drug Dealer"
+      ],
+      "position": "The Runner's turn is about to begin. Aesop's Pawnshop and Drug Dealer are installed. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "turn-begins",
+          "do": "The Runner's turn begins. The Runner triggers Aesop's Pawnshop first and trashes Drug Dealer with it."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Drug Dealer)",
+          "equals": "heap"
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 8,
+          "why": "3 from Aesop's Pawnshop. Drug Dealer's pending ability is gone with it, so no credit is lost."
+        }
+      ]
+    },
+    {
+      "id": "9.6.10.ex1#b",
+      "example": "9.6.10.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.6.10",
+        "9.2.8d"
+      ],
+      "cards": [
+        "Aesop's Pawnshop",
+        "Drug Dealer"
+      ],
+      "position": "As 9.6.10.ex1.",
+      "steps": [
+        {
+          "label": "turn-begins",
+          "do": "The Runner's turn begins. The Runner triggers Drug Dealer first, then Aesop's Pawnshop, trashing Drug Dealer."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Drug Dealer)",
+          "equals": "heap"
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 7,
+          "why": "1 lost to Drug Dealer, then 3 gained."
+        }
+      ]
+    },
+    {
+      "id": "9.6.13b.ex1",
+      "example": "9.6.13b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.13b"
+      ],
+      "cards": [
+        "In the Groove",
+        "Corroder",
+        "Mimic",
+        "Sacrificial Construct"
+      ],
+      "position": "Runner's turn, no click spent. The grip holds In the Groove, Corroder, Mimic and Sacrificial Construct. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "groove",
+          "do": "The Runner plays In the Groove as the first click."
+        },
+        {
+          "label": "first",
+          "do": "The Runner installs Corroder and chooses to gain 1 credit."
+        },
+        {
+          "label": "second",
+          "do": "The Runner installs Mimic and chooses to gain 1 credit."
+        },
+        {
+          "label": "zero",
+          "do": "The Runner installs Sacrificial Construct, whose printed install cost is 0."
+        }
+      ],
+      "expect": [
+        {
+          "at": "first",
+          "observe": "runner.credits",
+          "equals": 4,
+          "why": "5, less 2, plus 1."
+        },
+        {
+          "at": "second",
+          "observe": "runner.credits",
+          "equals": 2,
+          "why": "The ability has a stated duration, so it resolves every time its condition is met this turn: 4, less 3, plus 1."
+        },
+        {
+          "at": "zero",
+          "observe": "runner.credits",
+          "equals": 2,
+          "confidence": "derived",
+          "why": "A printed install cost of 0 does not meet the condition."
+        },
+        {
+          "at": "zero",
+          "observe": "runner.clicks",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "9.6.13c.ex1",
+      "example": "9.6.13c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.13c"
+      ],
+      "cards": [
+        "Joshua B."
+      ],
+      "position": "The Runner's turn is about to begin. Joshua B. is installed. The Runner has no tags and an empty grip.",
+      "steps": [
+        {
+          "label": "begin",
+          "do": "The Runner's turn begins and the Runner uses Joshua B. to gain a click."
+        },
+        {
+          "label": "end",
+          "do": "The Runner spends every click gaining credits, and the turn ends."
+        },
+        {
+          "label": "next-end",
+          "do": "The Corp takes its turn without affecting tags. The Runner's next turn begins; the Runner does not use Joshua B., spends every click gaining credits, and that turn ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "begin",
+          "observe": "runner.clicks",
+          "equals": 5
+        },
+        {
+          "at": "end",
+          "observe": "runner.tags",
+          "equals": 1
+        },
+        {
+          "at": "next-end",
+          "observe": "runner.tags",
+          "equals": 1,
+          "confidence": "derived",
+          "why": "The delayed ability resolved once and expired. It does not give a tag at the end of a later turn."
+        }
+      ]
+    },
+    {
+      "id": "9.6.13d.ex1",
+      "example": "9.6.13d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.13d"
+      ],
+      "cards": [
+        "Mayfly",
+        "Gang Sign",
+        "Chrysalis",
+        "Hostile Takeover"
+      ],
+      "position": "Corp's turn. Hostile Takeover is installed in a remote server with 2 advancement counters. HQ holds exactly one card, Chrysalis. The Runner has Gang Sign and Mayfly installed, 5 credits and 3 cards in the grip.",
+      "steps": [
+        {
+          "label": "encounter",
+          "do": "The Corp scores Hostile Takeover. Gang Sign makes the Runner breach HQ, outside any run, and the Runner accesses Chrysalis and encounters it. The Runner pays 1 credit to raise Mayfly's strength to 2 and 1 credit to break the subroutine. The encounter and the breach end."
+        },
+        {
+          "label": "turn-ends",
+          "do": "The Corp's turn ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "encounter",
+          "observe": "run.active",
+          "equals": false
+        },
+        {
+          "at": "encounter",
+          "observe": "runner.grip",
+          "equals": 3,
+          "why": "The subroutine was broken."
+        },
+        {
+          "at": "encounter",
+          "observe": "runner.credits",
+          "equals": 3
+        },
+        {
+          "at": "encounter",
+          "observe": "zone(Mayfly)",
+          "equals": "rig"
+        },
+        {
+          "at": "turn-ends",
+          "observe": "zone(Mayfly)",
+          "equals": "rig",
+          "why": "No run was in progress, so the 'when this run ends' ability was never created and Mayfly is not trashed."
+        }
+      ]
+    },
+    {
+      "id": "9.6.14d.ex1",
+      "example": "9.6.14d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.14d",
+        "9.6.14c",
+        "8.2.5"
+      ],
+      "cards": [
+        "24/7 News Cycle",
+        "AstroScript Pilot Program",
+        "Market Research"
+      ],
+      "position": "Corp's turn. The Corp's score area holds AstroScript Pilot Program with 1 agenda counter and Market Research with none. 24/7 News Cycle is in HQ. The Runner has no tags.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Corp plays 24/7 News Cycle, forfeiting Market Research, and resolves AstroScript Pilot Program's 'when scored' ability."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "counters(AstroScript Pilot Program,agenda)",
+          "equals": 2
+        },
+        {
+          "observe": "zone(Market Research)",
+          "equals": "removed",
+          "confidence": "derived",
+          "why": "A forfeited agenda is removed from the game."
+        },
+        {
+          "observe": "corp.score",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.6.14d.ex1#b",
+      "example": "9.6.14d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.14d"
+      ],
+      "cards": [
+        "24/7 News Cycle",
+        "AstroScript Pilot Program",
+        "Market Research"
+      ],
+      "position": "As 9.6.14d.ex1, but the Runner has 1 tag.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Corp plays 24/7 News Cycle, forfeiting AstroScript Pilot Program, and resolves Market Research's 'when scored' ability."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "counters(Market Research,agenda)",
+          "equals": 1
+        },
+        {
+          "observe": "corp.score",
+          "equals": 3,
+          "confidence": "derived",
+          "why": "Market Research is worth 1 more point while it has an agenda counter."
+        }
+      ]
+    },
+    {
+      "id": "9.6.14d.ex1#c",
+      "example": "9.6.14d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.6.14d"
+      ],
+      "cards": [
+        "24/7 News Cycle",
+        "AstroScript Pilot Program",
+        "Market Research"
+      ],
+      "position": "As 9.6.14d.ex1: the Runner has no tags.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Corp plays 24/7 News Cycle, forfeiting AstroScript Pilot Program, and tries to resolve Market Research's 'when scored' ability."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "counters(Market Research,agenda)",
+          "equals": 0,
+          "why": "The rest of Market Research's condition (the Runner is tagged) is not met, so the ability cannot become pending."
+        },
+        {
+          "observe": "corp.score",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.7.1.ex1",
+      "example": "9.7.1.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.7.1"
+      ],
+      "cards": [
+        "Oppo Research",
+        "PAD Campaign"
+      ],
+      "position": "Corp's turn, no click spent. On the Runner's last turn the Runner trashed a Corp card (a PAD Campaign, accessed in a remote server). Oppo Research is in HQ. No player has agenda points. The Corp has 5 credits and the Runner has no tags.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Corp plays Oppo Research."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(play)",
+          "equals": true
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 2,
+          "why": "The third ability. The threat 3 ability is not active."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 3
+        },
+        {
+          "observe": "actionPhaseOver",
+          "equals": true,
+          "why": "Not a standard key: whether the Corp's action phase has ended with clicks unspent. The second ability ends it after the operation resolves."
+        },
+        {
+          "observe": "zone(Oppo Research)",
+          "equals": "archives"
+        }
+      ]
+    },
+    {
+      "id": "9.7.1.ex1#b",
+      "example": "9.7.1.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.7.1",
+        "9.1.8c"
+      ],
+      "cards": [
+        "Oppo Research"
+      ],
+      "position": "Corp's turn, no click spent. On the Runner's last turn the Runner neither stole nor trashed a Corp card. Oppo Research is in HQ and the Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Corp tries to play Oppo Research."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(play)",
+          "equals": false,
+          "why": "The first ability is a restriction on playing the card."
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "9.7.1.ex1#c",
+      "example": "9.7.1.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.7.1",
+        "9.3.6f"
+      ],
+      "cards": [
+        "Oppo Research",
+        "Global Food Initiative",
+        "PAD Campaign"
+      ],
+      "position": "As 9.7.1.ex1, but Global Food Initiative is in the Corp's score area (3 agenda points) and the Corp has 10 credits.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Corp plays Oppo Research and pays 5 credits for the threat 3 ability."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.tags",
+          "equals": 4,
+          "why": "The two play abilities resolve in sequence."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 3,
+          "why": "10, less 2 to play and 5 for the threat ability."
+        },
+        {
+          "observe": "actionPhaseOver",
+          "equals": true,
+          "why": "Not a standard key: see 9.7.1.ex1."
+        }
+      ]
+    },
+    {
+      "id": "9.8.2c.ex1",
+      "example": "9.8.2c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.8.2c",
+        "9.8.7b"
+      ],
+      "cards": [
+        "Lancelot",
+        "Sub Boost",
+        "Merlin"
+      ],
+      "position": "Runner's turn. A rezzed Lancelot is the only ice protecting HQ, with Sub Boost hosted on it as a condition counter. HQ holds exactly one card, Merlin. The Runner has no installed cards and 4 cards in the grip.",
+      "steps": [
+        {
+          "label": "encounter",
+          "do": "The Runner runs HQ and encounters Lancelot. The Corp reveals Merlin and places its 'Do 2 net damage.' subroutine last, after the 'End the run.' from Sub Boost. The Runner breaks nothing and the subroutines resolve."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "chooser(order)",
+          "equals": "corp"
+        },
+        {
+          "observe": "legal(place-first)",
+          "equals": true,
+          "why": "Before Lancelot's printed subroutine."
+        },
+        {
+          "observe": "legal(place-between)",
+          "equals": true,
+          "why": "Between the printed subroutine and Sub Boost's 'End the run.'"
+        },
+        {
+          "observe": "legal(place-last)",
+          "equals": true
+        },
+        {
+          "observe": "hasSubtype(Lancelot,barrier)",
+          "equals": true,
+          "confidence": "derived"
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 4,
+          "confidence": "derived",
+          "why": "'End the run.' resolves before the net damage, and no more subroutines resolve once the encounter ends."
+        },
+        {
+          "observe": "run.outcome",
+          "equals": "unsuccessful"
+        }
+      ]
+    },
+    {
+      "id": "9.8.2c.ex1#b",
+      "example": "9.8.2c.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.8.2c",
+        "9.8.7b"
+      ],
+      "cards": [
+        "Lancelot",
+        "Sub Boost",
+        "Merlin"
+      ],
+      "position": "As 9.8.2c.ex1.",
+      "steps": [
+        {
+          "label": "encounter",
+          "do": "The Runner runs HQ and encounters Lancelot. The Corp reveals Merlin and places its 'Do 2 net damage.' subroutine first, before Lancelot's printed subroutine. The Runner breaks nothing and the subroutines resolve."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.grip",
+          "equals": 2,
+          "why": "The net damage resolves before the run ends."
+        },
+        {
+          "observe": "run.outcome",
+          "equals": "unsuccessful"
+        }
+      ]
+    },
+    {
+      "id": "9.8.3a.ex1",
+      "example": "9.8.3a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.8.3a",
+        "9.8.3c"
+      ],
+      "cards": [
+        "Loki",
+        "Stick and Poke",
+        "Warden Fatuma",
+        "Tithe"
+      ],
+      "position": "Runner's turn, the first encounter of the turn. A rezzed Loki is the only ice protecting HQ. A rezzed Tithe protects R&D. A rezzed Warden Fatuma is alone in a remote server. The Runner has Stick and Poke installed, no icebreaker, and 3 cards in the grip. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "encounter",
+          "do": "The Runner runs HQ and encounters Loki. Stick and Poke's ability resolves, then Loki's, and the Corp chooses Tithe. The Runner breaks nothing. For the last subroutine the Runner does not shuffle the grip into the stack."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "subroutineOrder(Loki)",
+          "equals": [
+            "Tithe",
+            "Tithe",
+            "Stick and Poke",
+            "Warden Fatuma",
+            "Loki"
+          ],
+          "why": "Not a standard key: for each of Loki's subroutines in order, the card it came from, read once every ability at the start of the encounter has resolved. Among the 'before its other subroutines' ones the most recently added come first, then the printed one."
+        },
+        {
+          "observe": "hasSubtype(Loki,sentry)",
+          "equals": true,
+          "confidence": "derived"
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 6,
+          "confidence": "derived"
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 2,
+          "confidence": "derived",
+          "why": "3, less 1 (Tithe), less 1 and plus 1 (Stick and Poke)."
+        },
+        {
+          "observe": "runner.clicks",
+          "equals": 2,
+          "confidence": "derived",
+          "why": "3 after the run action, less 1 for Warden Fatuma's subroutine."
+        },
+        {
+          "observe": "run.outcome",
+          "equals": "unsuccessful",
+          "confidence": "derived"
+        }
+      ]
+    },
+    {
+      "id": "9.8.3d.ex1",
+      "example": "9.8.3d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.8.3d",
+        "9.8.4b"
+      ],
+      "cards": [
+        "Ashigaru",
+        "Panic Button",
+        "Gbahali",
+        "Corroder"
+      ],
+      "position": "Runner's turn. A rezzed Ashigaru is the only ice protecting HQ and a rezzed Panic Button is in the root of HQ. HQ holds 3 cards and R&D at least 1. The Runner has Corroder and Gbahali installed and 5 credits. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "break3",
+          "do": "The Runner runs HQ, encounters Ashigaru, pays 2 credits to raise Corroder's strength to 4 and 3 credits to break all three subroutines."
+        },
+        {
+          "label": "panic",
+          "do": "In the same paid ability window the Corp pays 1 credit to draw a card with Panic Button."
+        },
+        {
+          "label": "gbahali",
+          "do": "The Runner trashes Gbahali to break the last subroutine on Ashigaru."
+        },
+        {
+          "label": "run-over",
+          "do": "The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "break3",
+          "observe": "unbrokenSubs(Ashigaru)",
+          "equals": 0,
+          "why": "Not a standard key: the number of unbroken subroutines on the ice in this encounter."
+        },
+        {
+          "at": "panic",
+          "observe": "corp.hq",
+          "equals": 4
+        },
+        {
+          "at": "panic",
+          "observe": "subroutineCount(Ashigaru)",
+          "equals": 4,
+          "why": "Not a standard key: the number of subroutines the ice has."
+        },
+        {
+          "at": "panic",
+          "observe": "unbrokenSubs(Ashigaru)",
+          "equals": 1,
+          "why": "The new subroutine is added after the other three and comes into existence unbroken."
+        },
+        {
+          "at": "gbahali",
+          "observe": "unbrokenSubs(Ashigaru)",
+          "equals": 0
+        },
+        {
+          "at": "gbahali",
+          "observe": "zone(Gbahali)",
+          "equals": "heap"
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful"
+        }
+      ]
+    },
+    {
+      "id": "9.8.3d.ex2",
+      "example": "9.8.3d.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.8.3d"
+      ],
+      "cards": [
+        "Ashigaru",
+        "Utopia Shard",
+        "Corroder"
+      ],
+      "position": "Runner's turn. A rezzed Ashigaru is the only ice protecting HQ. HQ holds 3 cards. The Runner has Corroder and Utopia Shard installed and 5 credits.",
+      "steps": [
+        {
+          "label": "break1",
+          "do": "The Runner runs HQ, encounters Ashigaru, pays 2 credits to raise Corroder's strength to 4 and 1 credit to break the first subroutine."
+        },
+        {
+          "label": "shard",
+          "do": "The Runner trashes Utopia Shard and the Corp discards 2 cards from HQ at random."
+        },
+        {
+          "label": "run-over",
+          "do": "The Runner breaks nothing more. The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "break1",
+          "observe": "unbrokenSubs(Ashigaru)",
+          "equals": 2,
+          "why": "Not a standard key: the number of unbroken subroutines on the ice in this encounter."
+        },
+        {
+          "at": "shard",
+          "observe": "corp.hq",
+          "equals": 1
+        },
+        {
+          "at": "shard",
+          "observe": "subroutineCount(Ashigaru)",
+          "equals": 1,
+          "why": "Not a standard key. The last two subroutines are lost, leaving the one already broken."
+        },
+        {
+          "at": "shard",
+          "observe": "unbrokenSubs(Ashigaru)",
+          "equals": 0
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful",
+          "confidence": "derived"
+        },
+        {
+          "at": "run-over",
+          "observe": "runner.credits",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.8.3e.ex1",
+      "example": "9.8.3e.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.8.3e",
+        "9.8.7c"
+      ],
+      "cards": [
+        "Marker",
+        "Brainstorm"
+      ],
+      "position": "Runner's turn. HQ is protected by a rezzed Brainstorm (innermost) and a rezzed Marker (outermost). The Runner has 2 cards in the grip and no icebreaker.",
+      "steps": [
+        {
+          "label": "marker",
+          "do": "The Runner runs HQ, encounters Marker and breaks nothing. Its subroutine resolves and the Runner passes it."
+        },
+        {
+          "label": "brainstorm",
+          "do": "The Runner encounters Brainstorm and breaks nothing. Its subroutines resolve."
+        }
+      ],
+      "expect": [
+        {
+          "at": "brainstorm",
+          "observe": "subroutineOrder(Brainstorm)",
+          "equals": [
+            "Marker",
+            "Brainstorm",
+            "Brainstorm"
+          ],
+          "why": "Not a standard key: for each subroutine on the ice in order, the card whose ability gave it, read once the abilities at the start of the encounter have resolved. Marker's 'End the run.' began to apply first, so it comes before the two core damage subroutines."
+        },
+        {
+          "at": "brainstorm",
+          "observe": "run.outcome",
+          "equals": "unsuccessful"
+        },
+        {
+          "at": "brainstorm",
+          "observe": "runner.grip",
+          "equals": 2,
+          "confidence": "derived",
+          "why": "The run ended on the first subroutine, so no core damage was done."
+        },
+        {
+          "at": "brainstorm",
+          "observe": "runner.coreDamage",
+          "equals": 0,
+          "confidence": "derived",
+          "why": "Not a standard key: core damage the Runner has suffered."
+        }
+      ]
+    },
+    {
+      "id": "9.8.6b.ex1",
+      "example": "9.8.6b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.8.6b",
+        "9.8.6"
+      ],
+      "cards": [
+        "Grappling Hook",
+        "Heimdall 1.0",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Two copies of Grappling Hook are installed. A rezzed Heimdall 1.0 is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. The Runner has 2 cards in the grip and an empty heap.",
+      "steps": [
+        {
+          "label": "first",
+          "do": "The Runner runs HQ, encounters Heimdall 1.0 and trashes one Grappling Hook, choosing 'Do 1 core damage.' as the subroutine that will not be broken."
+        },
+        {
+          "label": "second",
+          "do": "The Runner trashes the other Grappling Hook, choosing one of the already broken 'End the run.' subroutines as the one that will not be broken."
+        },
+        {
+          "label": "run-over",
+          "do": "The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "first",
+          "observe": "unbrokenSubs(Heimdall 1.0)",
+          "equals": 1,
+          "why": "Not a standard key: the number of unbroken subroutines on the ice in this encounter."
+        },
+        {
+          "at": "second",
+          "observe": "legal(choose-broken)",
+          "equals": true,
+          "why": "Grappling Hook does not try to break its target, so a broken subroutine may be chosen."
+        },
+        {
+          "at": "second",
+          "observe": "unbrokenSubs(Heimdall 1.0)",
+          "equals": 0
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful"
+        },
+        {
+          "at": "run-over",
+          "observe": "runner.grip",
+          "equals": 2
+        },
+        {
+          "at": "run-over",
+          "observe": "runner.heap",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.8.7c.ex1",
+      "example": "9.8.7c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.8.7c"
+      ],
+      "cards": [
+        "Little Engine"
+      ],
+      "position": "Runner's turn. A rezzed Little Engine is the only ice protecting HQ. The Runner has 5 credits and no icebreaker.",
+      "steps": [
+        {
+          "label": "encounter",
+          "do": "The Runner runs HQ, encounters Little Engine and breaks nothing."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "run.outcome",
+          "equals": "unsuccessful"
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 5,
+          "why": "The first subroutine ended the run and the encounter, so the third never resolves."
+        }
+      ]
+    },
+    {
+      "id": "9.8.9.ex1",
+      "example": "9.8.9.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.8.9"
+      ],
+      "cards": [
+        "Bloop",
+        "Tsakhia \"Bankhar\" Gantulga",
+        "Persephone"
+      ],
+      "position": "Runner's turn. Tsakhia \"Bankhar\" Gantulga is installed and the Runner chose HQ with it when this turn began. Persephone is installed. A rezzed Bloop is the only ice protecting HQ. The Runner has 4 cards in the grip, an empty heap and at least 1 card in the stack. R&D holds at least 3 cards and Archives is empty.",
+      "steps": [
+        {
+          "label": "bloop",
+          "do": "The Runner runs HQ, encounters Bloop (the first encounter this turn) and breaks nothing. Each of the three subroutines is replaced by 'Do 1 net damage.'"
+        },
+        {
+          "label": "pass",
+          "do": "The Runner passes Bloop and uses Persephone, trashing the top card of the stack."
+        }
+      ],
+      "expect": [
+        {
+          "at": "bloop",
+          "observe": "runner.grip",
+          "equals": 1
+        },
+        {
+          "at": "bloop",
+          "observe": "runner.coreDamage",
+          "equals": 0,
+          "why": "Not a standard key: core damage the Runner has suffered. The core damage subroutine was replaced."
+        },
+        {
+          "at": "bloop",
+          "observe": "zone(Persephone)",
+          "equals": "rig",
+          "why": "The 'Trash 1 installed program.' subroutines were replaced."
+        },
+        {
+          "at": "pass",
+          "observe": "corp.archives",
+          "equals": 3,
+          "why": "The three replacement subroutines count as resolving from Bloop, so Persephone trashes 3 cards from R&D."
+        },
+        {
+          "at": "pass",
+          "observe": "runner.heap",
+          "equals": 4,
+          "why": "3 cards trashed by damage and the top card of the stack."
+        }
+      ]
+    },
+    {
+      "id": "9.9.2.ex1",
+      "example": "9.9.2.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.2"
+      ],
+      "cards": [
+        "Process Automation"
+      ],
+      "position": "Runner's turn. Process Automation is the only card in the grip. The Runner has 5 credits and at least 1 card in the stack.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Runner plays Process Automation."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.credits",
+          "equals": 7
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "9.9.2.ex2",
+      "example": "9.9.2.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.9.2"
+      ],
+      "cards": [
+        "Process Automation",
+        "Lockdown",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. A rezzed Lockdown is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. Process Automation is the only card in the grip. The Runner has 5 credits, no icebreaker, and at least 1 card in the stack.",
+      "steps": [
+        {
+          "label": "lockdown",
+          "do": "The Runner runs HQ, encounters Lockdown and breaks nothing. Its subroutine resolves. The run goes on and ends."
+        },
+        {
+          "label": "play",
+          "do": "The Runner plays Process Automation."
+        }
+      ],
+      "expect": [
+        {
+          "at": "play",
+          "observe": "legal(play)",
+          "equals": true,
+          "confidence": "derived",
+          "why": "The event can still change the game state by giving credits."
+        },
+        {
+          "at": "play",
+          "observe": "runner.credits",
+          "equals": 7
+        },
+        {
+          "at": "play",
+          "observe": "runner.grip",
+          "equals": 0,
+          "why": "The Runner cannot draw cards for the remainder of the turn, so the expected effect is only the 2 credits."
+        }
+      ]
+    },
+    {
+      "id": "9.9.3d.ex1",
+      "example": "9.9.3d.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.9.3d"
+      ],
+      "cards": [
+        "The Class Act",
+        "Corroder",
+        "Mimic"
+      ],
+      "position": "Runner's turn. The Class Act is installed and was installed on an earlier turn. The top card of the stack is Corroder and the second is Mimic; more cards lie under them. The grip is empty. The Runner has drawn no card this turn.",
+      "steps": [
+        {
+          "label": "draw",
+          "do": "The Runner takes the basic action to draw a card. The Class Act's interrupt resolves: the Runner looks at the top 2 cards and adds Corroder to the bottom of the stack."
+        },
+        {
+          "label": "draw-again",
+          "do": "The Runner takes the basic action to draw a card again."
+        }
+      ],
+      "expect": [
+        {
+          "at": "draw",
+          "observe": "legal(class-act)",
+          "equals": true,
+          "why": "The interrupt is relevant to an instruction that is expected to draw cards."
+        },
+        {
+          "at": "draw",
+          "observe": "zone(Mimic)",
+          "equals": "grip"
+        },
+        {
+          "at": "draw",
+          "observe": "zone(Corroder)",
+          "equals": "stack"
+        },
+        {
+          "at": "draw",
+          "observe": "stackBottom",
+          "equals": "Corroder",
+          "why": "Not a standard key: the title of the bottom card of the stack."
+        },
+        {
+          "at": "draw",
+          "observe": "runner.grip",
+          "equals": 1
+        },
+        {
+          "at": "draw-again",
+          "observe": "legal(class-act)",
+          "equals": false,
+          "why": "Only the first time each turn."
+        },
+        {
+          "at": "draw-again",
+          "observe": "runner.grip",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.9.4c.ex1",
+      "example": "9.9.4c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.4c",
+        "9.2.9f"
+      ],
+      "cards": [
+        "Harbinger",
+        "Sacrificial Construct",
+        "Rototurret"
+      ],
+      "position": "Runner's turn. Harbinger (the only program) and Sacrificial Construct are installed. A rezzed Rototurret is the only ice protecting HQ. The Runner has no icebreaker.",
+      "steps": [
+        {
+          "label": "trash",
+          "do": "The Runner runs HQ, encounters Rototurret and breaks nothing. The first subroutine would trash Harbinger. The Runner trashes Sacrificial Construct to prevent it, then tries to trigger Harbinger's interrupt. The second subroutine resolves."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(harbinger)",
+          "equals": false,
+          "why": "Harbinger is no longer expected to be trashed, so its pending interrupt is no longer relevant."
+        },
+        {
+          "observe": "zone(Harbinger)",
+          "equals": "rig"
+        },
+        {
+          "observe": "faceup(Harbinger)",
+          "equals": true
+        },
+        {
+          "observe": "zone(Sacrificial Construct)",
+          "equals": "heap"
+        },
+        {
+          "observe": "run.outcome",
+          "equals": "unsuccessful"
+        }
+      ]
+    },
+    {
+      "id": "9.9.4c.ex2",
+      "example": "9.9.4c.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.9.4c",
+        "9.9.4b",
+        "9.1.2a"
+      ],
+      "cards": [
+        "Decoy",
+        "Thunder Art Gallery",
+        "No One Home",
+        "Casting Call",
+        "Hostile Takeover"
+      ],
+      "position": "Runner's turn. Hostile Takeover is installed faceup, alone in a remote server with no ice, with Casting Call hosted on it as a condition counter. The Runner has Decoy and Thunder Art Gallery installed, No One Home as the only card in the grip, 5 credits and no tags, and has avoided or removed no tag this turn.",
+      "steps": [
+        {
+          "label": "tags",
+          "do": "The Runner runs the remote server and accesses Hostile Takeover. Casting Call would give 2 tags. The Runner trashes Decoy to prevent 1 tag, installs No One Home with Thunder Art Gallery, then tries to use No One Home against the remaining tag. The tag is taken."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(No One Home)",
+          "equals": "rig"
+        },
+        {
+          "observe": "legal(no-one-home)",
+          "equals": false,
+          "why": "No One Home was not active when the interrupt window opened, so its conditional interrupt is not pending."
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 1
+        },
+        {
+          "observe": "zone(Decoy)",
+          "equals": "heap"
+        }
+      ]
+    },
+    {
+      "id": "9.9.4d.ex1",
+      "example": "9.9.4d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.4d",
+        "9.1.2a"
+      ],
+      "cards": [
+        "Decoy",
+        "Thunder Art Gallery",
+        "Casting Call",
+        "Hostile Takeover"
+      ],
+      "position": "As 9.9.4c.ex2, but the only card in the grip is a second Decoy and the heap is empty.",
+      "steps": [
+        {
+          "label": "tags",
+          "do": "The Runner runs the remote server and accesses Hostile Takeover. Casting Call would give 2 tags. The Runner trashes the installed Decoy to prevent 1 tag, installs the second Decoy with Thunder Art Gallery (its cost of 1 lowered by 1), then trashes it to prevent the other tag."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(second-decoy)",
+          "equals": true,
+          "why": "A paid ability interrupt need not have been active when the window opened."
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 0
+        },
+        {
+          "observe": "runner.heap",
+          "equals": 2
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 5
+        }
+      ]
+    },
+    {
+      "id": "9.9.5a.ex1",
+      "example": "9.9.5a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.5a"
+      ],
+      "cards": [
+        "Tori Hanzō",
+        "Feedback Filter",
+        "Tithe",
+        "Neural Katana"
+      ],
+      "position": "Runner's turn. HQ is protected by a rezzed Neural Katana (innermost) and a rezzed Tithe (outermost), and a rezzed Tori Hanzō is in the root of HQ. The Runner has Feedback Filter installed, 5 credits, 4 cards in the grip and no icebreaker. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "tithe",
+          "do": "The Runner runs HQ, encounters Tithe and breaks nothing. For the first subroutine's net damage the Runner pays 3 credits to Feedback Filter to prevent it. The second subroutine resolves."
+        },
+        {
+          "label": "katana",
+          "do": "The Runner encounters Neural Katana and breaks nothing. The Corp tries to use Tori Hanzō on its 3 net damage. The Runner prevents nothing."
+        }
+      ],
+      "expect": [
+        {
+          "at": "tithe",
+          "observe": "runner.grip",
+          "equals": 4
+        },
+        {
+          "at": "tithe",
+          "observe": "runner.credits",
+          "equals": 2
+        },
+        {
+          "at": "katana",
+          "observe": "legal(tori)",
+          "equals": false,
+          "why": "This is the second time net damage became imminent during the run. The first was prevented, but it still counts."
+        },
+        {
+          "at": "katana",
+          "observe": "runner.grip",
+          "equals": 1
+        },
+        {
+          "at": "katana",
+          "observe": "runner.coreDamage",
+          "equals": 0,
+          "why": "Not a standard key: core damage the Runner has suffered."
+        },
+        {
+          "at": "katana",
+          "observe": "corp.credits",
+          "equals": 6,
+          "confidence": "derived",
+          "why": "1 from Tithe's second subroutine; nothing paid to Tori Hanzō."
+        }
+      ]
+    },
+    {
+      "id": "9.9.6c.ex1",
+      "example": "9.9.6c.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.9.6c",
+        "1.16.2a"
+      ],
+      "cards": [
+        "Patchwork",
+        "Sure Gamble",
+        "Mimic"
+      ],
+      "position": "Runner's turn. Patchwork is installed and unused this turn. The grip holds Sure Gamble and Mimic. The Runner has 3 credits.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Runner plays Sure Gamble, using Patchwork and trashing Mimic from the grip."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(play)",
+          "equals": true,
+          "why": "Patchwork's interrupt changes the play cost before it is paid (also Patchwork's ruling of 2022-05-27)."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 9,
+          "why": "3, less 3 (5 lowered by 2), plus 9."
+        },
+        {
+          "observe": "zone(Mimic)",
+          "equals": "heap"
+        }
+      ]
+    },
+    {
+      "id": "9.9.7a.ex1",
+      "example": "9.9.7a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.7a"
+      ],
+      "cards": [
+        "Mr. Stone",
+        "Biometric Spoofing",
+        "The Cleaners",
+        "Data Raven"
+      ],
+      "position": "Runner's turn. Two copies of The Cleaners are in the Corp's score area. A rezzed Mr. Stone is alone in a remote server. A rezzed Data Raven is the only ice protecting HQ. The Runner has Biometric Spoofing installed, 3 cards in the grip and no tags.",
+      "steps": [
+        {
+          "label": "tag",
+          "do": "The Runner runs HQ, encounters Data Raven and chooses to take 1 tag. Mr. Stone's ability triggers. While its 1 meat damage is imminent the Runner trashes Biometric Spoofing to prevent 2 damage, then both copies of The Cleaners resolve. The damage resolves."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.tags",
+          "equals": 1
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 2,
+          "why": "1, less 2, is -1 while imminent; two copies of The Cleaners raise it to 1, and 1 meat damage is done."
+        },
+        {
+          "observe": "zone(Biometric Spoofing)",
+          "equals": "heap"
+        }
+      ]
+    },
+    {
+      "id": "9.9.7b.ex1",
+      "example": "9.9.7b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.7b"
+      ],
+      "cards": [
+        "Net-Ready Eyes",
+        "Chrome Parlor",
+        "The Cleaners"
+      ],
+      "position": "Runner's turn. The Cleaners is in the Corp's score area. Chrome Parlor is installed. The grip holds Net-Ready Eyes and 3 other cards. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "install",
+          "do": "The Runner installs Net-Ready Eyes. Chrome Parlor prevents all of the damage from its 'when installed' ability."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "installed(Net-Ready Eyes)",
+          "equals": true
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 3,
+          "why": "All the damage is removed from the expected effects, so there is no value left for The Cleaners to raise."
+        }
+      ]
+    },
+    {
+      "id": "9.9.7d.ex1",
+      "example": "9.9.7d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.7d",
+        "9.9.6b"
+      ],
+      "cards": [
+        "Breached Dome",
+        "Biometric Spoofing",
+        "Corroder"
+      ],
+      "position": "Runner's turn. An unrezzed Breached Dome is alone in a remote server with no ice. The Runner has Biometric Spoofing installed, 3 cards in the grip, an empty heap, and Corroder on top of the stack.",
+      "steps": [
+        {
+          "label": "access",
+          "do": "The Runner runs the remote server and accesses Breached Dome. While its instruction is imminent the Runner trashes Biometric Spoofing to prevent 2 damage. The ability resolves. The Runner does not trash Breached Dome."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.grip",
+          "equals": 3,
+          "why": "The damage value is -1, so no damage is done."
+        },
+        {
+          "observe": "zone(Corroder)",
+          "equals": "heap",
+          "why": "The rest of the instruction still resolves: the top card of the stack is trashed."
+        },
+        {
+          "observe": "runner.heap",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "9.9.7e.ex1",
+      "example": "9.9.7e.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.7e"
+      ],
+      "cards": [
+        "Flare",
+        "The Cleaners",
+        "Guru Davinder"
+      ],
+      "position": "Runner's turn. The Cleaners is in the Corp's score area. A rezzed Flare is the only ice protecting HQ. The Runner has Guru Davinder installed, no hardware, 4 cards in the grip, 5 credits, no link and no icebreaker.",
+      "steps": [
+        {
+          "label": "flare",
+          "do": "The Runner runs HQ, encounters Flare and breaks nothing. Neither player spends on the trace. The Cleaners raises the meat damage from 2 to 3."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.grip",
+          "equals": 1,
+          "why": "All 3 meat damage cannot be prevented, so Guru Davinder prevents none of it."
+        },
+        {
+          "observe": "zone(Guru Davinder)",
+          "equals": "rig",
+          "why": "It prevented no damage, so its second ability does not trigger."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 5
+        },
+        {
+          "observe": "run.outcome",
+          "equals": "unsuccessful"
+        }
+      ]
+    },
+    {
+      "id": "9.9.7f.ex1",
+      "example": "9.9.7f.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.7f",
+        "9.9.7b"
+      ],
+      "cards": [
+        "Angelique Garza Correa",
+        "Plascrete Carapace",
+        "Guru Davinder",
+        "The Cleaners"
+      ],
+      "position": "Runner's turn. The Cleaners is in the Corp's score area. A rezzed Angelique Garza Correa is alone in the root of a remote server with no ice. The Runner has Plascrete Carapace installed with 4 power counters, Guru Davinder installed, 3 cards in the grip and 5 credits. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "access",
+          "do": "The Runner runs the remote server and accesses Angelique Garza Correa. The Corp pays 2 credits. While 'Do 2 meat damage' is imminent the Runner, who has priority first, spends 2 power counters from Plascrete Carapace to prevent 2 meat damage, then resolves Guru Davinder's interrupt. The Runner does not trash the upgrade."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.grip",
+          "equals": 3,
+          "why": "The damage effect was removed altogether, so The Cleaners has nothing to raise."
+        },
+        {
+          "observe": "counters(Plascrete Carapace,power)",
+          "equals": 2
+        },
+        {
+          "observe": "zone(Guru Davinder)",
+          "equals": "rig",
+          "why": "The damage value was already 0 when Guru Davinder's interrupt resolved, so 'prevents 1 or more damage' was not met."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 5,
+          "why": "The Runner is not asked to pay 4."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.9.9a.ex1",
+      "example": "9.9.9a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.9a",
+        "9.10.4a"
+      ],
+      "cards": [
+        "Gebrselassie",
+        "Puffer",
+        "Mimic",
+        "Neural Katana",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Puffer is installed with no power counters and Gebrselassie is hosted on it. Mimic is installed. A rezzed Neural Katana is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "run",
+          "do": "The Runner runs HQ, encounters Neural Katana, pays 2 credits for +1 strength on Puffer and 1 credit to break the subroutine. The run goes on and ends."
+        },
+        {
+          "label": "move",
+          "do": "The Runner spends a click on Gebrselassie's ability and hosts it on Mimic."
+        }
+      ],
+      "expect": [
+        {
+          "at": "run",
+          "observe": "strength(Puffer)",
+          "equals": 3,
+          "why": "Gebrselassie keeps the increase for the remainder of the turn."
+        },
+        {
+          "at": "move",
+          "observe": "zone(Gebrselassie)",
+          "equals": "hosted:Mimic"
+        },
+        {
+          "at": "move",
+          "observe": "strength(Puffer)",
+          "equals": 2,
+          "why": "The replacement no longer applies to Puffer. The increase's own duration (the encounter) has expired, so it ends at the next checkpoint."
+        }
+      ]
+    },
+    {
+      "id": "9.9.9c.ex1",
+      "example": "9.9.9c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.9c"
+      ],
+      "cards": [
+        "Project Vacheron"
+      ],
+      "position": "Runner's turn. HQ has no ice and holds exactly one card, Project Vacheron.",
+      "steps": [
+        {
+          "label": "steal",
+          "do": "The Runner runs HQ, accesses Project Vacheron and steals it."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Project Vacheron)",
+          "equals": "runner-score"
+        },
+        {
+          "observe": "counters(Project Vacheron,agenda)",
+          "equals": 4,
+          "why": "The replacement applies once: the agenda is added with 4 hosted agenda counters."
+        },
+        {
+          "observe": "runner.score",
+          "equals": 0,
+          "confidence": "derived",
+          "why": "Worth 0 agenda points while it has a hosted agenda counter."
+        }
+      ]
+    },
+    {
+      "id": "9.9.10.ex1",
+      "example": "9.9.10.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.10",
+        "9.9.3"
+      ],
+      "cards": [
+        "Tori Hanzō",
+        "Neural Katana",
+        "Feedback Filter"
+      ],
+      "position": "Runner's turn. A rezzed Neural Katana is the only ice protecting HQ and a rezzed Tori Hanzō is in the root of HQ. The Runner has Feedback Filter installed, 5 credits, 4 cards in the grip and no icebreaker. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "tori",
+          "do": "The Runner runs HQ, encounters Neural Katana and breaks nothing. While the 3 net damage is imminent the Runner passes priority, and the Corp pays 2 credits to use Tori Hanzō. The Runner has priority again and has not yet acted."
+        },
+        {
+          "label": "damage",
+          "do": "The Runner uses neither of Feedback Filter's abilities. The damage resolves."
+        }
+      ],
+      "expect": [
+        {
+          "at": "tori",
+          "observe": "legal(prevent-net)",
+          "equals": false,
+          "why": "The expected effect is now 1 core damage, so an interrupt that prevents net damage is no longer relevant."
+        },
+        {
+          "at": "tori",
+          "observe": "legal(prevent-core)",
+          "equals": true,
+          "why": "Feedback Filter's second ability prevents core damage, which is now expected."
+        },
+        {
+          "at": "damage",
+          "observe": "runner.coreDamage",
+          "equals": 1,
+          "why": "Not a standard key: core damage the Runner has suffered."
+        },
+        {
+          "at": "damage",
+          "observe": "runner.grip",
+          "equals": 3
+        },
+        {
+          "at": "damage",
+          "observe": "corp.credits",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.9.11a.ex1",
+      "example": "9.9.11a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.11a",
+        "9.9.11"
+      ],
+      "cards": [
+        "Security Testing",
+        "Account Siphon",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Security Testing is installed and the Runner chose HQ with it when this turn began. Account Siphon is in the grip. HQ has no ice and holds exactly one card, Hedge Fund. The Corp has 5 credits and the Runner 5.",
+      "steps": [
+        {
+          "label": "siphon",
+          "do": "The Runner plays Account Siphon. The run on HQ is successful. The Runner applies Security Testing's replacement effect first."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "chooser(order)",
+          "equals": "runner",
+          "why": "The Runner controls the breach both effects would replace."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 7,
+          "why": "2 from Security Testing. Account Siphon's replacement has no breach left to replace."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 5
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 0
+        },
+        {
+          "observe": "accessed",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "9.9.11a.ex1#b",
+      "example": "9.9.11a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.9.11a"
+      ],
+      "cards": [
+        "Security Testing",
+        "Account Siphon",
+        "Hedge Fund"
+      ],
+      "position": "As 9.9.11a.ex1.",
+      "steps": [
+        {
+          "label": "siphon",
+          "do": "The Runner plays Account Siphon. The run on HQ is successful. The Runner applies Account Siphon's replacement effect first and makes the Corp lose 5 credits."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.credits",
+          "equals": 15,
+          "why": "10 from Account Siphon. Security Testing has nothing left to replace."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 0
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 2
+        },
+        {
+          "observe": "accessed",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "9.9.11a.ex2",
+      "example": "9.9.11a.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.9.11a"
+      ],
+      "cards": [
+        "Security Testing",
+        "Showing Off"
+      ],
+      "position": "Runner's turn. Security Testing is installed and the Runner chose R&D with it when this turn began. Showing Off is in the grip. R&D has no ice. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "run",
+          "do": "The Runner plays Showing Off. The run on R&D is successful. The Runner applies Security Testing's replacement effect first."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.credits",
+          "equals": 5,
+          "why": "5, less 2 for Showing Off, plus 2 from Security Testing."
+        },
+        {
+          "observe": "accessed",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "9.9.11a.ex2#b",
+      "example": "9.9.11a.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.9.11a"
+      ],
+      "cards": [
+        "Security Testing",
+        "Showing Off"
+      ],
+      "position": "As 9.9.11a.ex2.",
+      "steps": [
+        {
+          "label": "run",
+          "do": "The Runner plays Showing Off. The run on R&D is successful. The Runner applies Showing Off's replacement effect first."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.credits",
+          "equals": 5,
+          "why": "After Showing Off the expected effects still include a breach of R&D, so Security Testing replaces it: 2 credits and no breach."
+        },
+        {
+          "observe": "accessed",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "9.10.3a.ex1",
+      "example": "9.10.3a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.10.3a"
+      ],
+      "cards": [
+        "Pelangi",
+        "Mimic",
+        "Ice Wall",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Pelangi is installed with 2 virus counters and Mimic is installed. A rezzed Ice Wall with no counters is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "pelangi",
+          "do": "The Runner runs HQ, encounters Ice Wall and spends a virus counter from Pelangi, choosing sentry. The Runner pays 1 credit to break the subroutine with Mimic."
+        },
+        {
+          "label": "passed",
+          "do": "The encounter ends and the Runner passes Ice Wall."
+        },
+        {
+          "label": "run-over",
+          "do": "The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "pelangi",
+          "observe": "hasSubtype(Ice Wall,sentry)",
+          "equals": true
+        },
+        {
+          "at": "pelangi",
+          "observe": "counters(Pelangi,virus)",
+          "equals": 1
+        },
+        {
+          "at": "pelangi",
+          "observe": "runner.credits",
+          "equals": 4,
+          "confidence": "derived"
+        },
+        {
+          "at": "passed",
+          "observe": "hasSubtype(Ice Wall,sentry)",
+          "equals": false,
+          "why": "The choice and the subtype both expire at the end of the encounter."
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful",
+          "confidence": "derived"
+        }
+      ]
+    },
+    {
+      "id": "9.10.3b.ex1",
+      "example": "9.10.3b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.10.3b"
+      ],
+      "cards": [
+        "Security Testing"
+      ],
+      "position": "The Runner's turn is about to begin. Security Testing is installed. HQ has no ice and holds at least 1 card. The Runner has 5 credits and an empty grip.",
+      "steps": [
+        {
+          "label": "turn-1",
+          "do": "The Runner's turn begins and the Runner chooses HQ with Security Testing. The Runner spends every click gaining credits and the turn ends."
+        },
+        {
+          "label": "turn-2",
+          "do": "The Corp takes its turn and installs or plays nothing. The Runner's next turn begins and the Runner chooses no server. The Runner runs HQ; the run is successful."
+        }
+      ],
+      "expect": [
+        {
+          "at": "turn-1",
+          "observe": "runner.credits",
+          "equals": 9
+        },
+        {
+          "at": "turn-2",
+          "observe": "runner.credits",
+          "equals": 9,
+          "why": "HQ was chosen last turn, not this turn, so the run does not meet Security Testing's condition."
+        },
+        {
+          "at": "turn-2",
+          "observe": "accessedCount",
+          "equals": 1,
+          "why": "Not a standard key: the number of cards accessed in the run. The breach is not replaced."
+        }
+      ]
+    },
+    {
+      "id": "9.10.3c.ex1",
+      "example": "9.10.3c.ex1",
+      "confidence": "derived",
+      "rules": [
+        "9.10.3c"
+      ],
+      "cards": [
+        "Femme Fatale",
+        "Ice Wall",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Femme Fatale is installed, with Ice Wall as the ice chosen by its 'when installed' ability on an earlier turn. A rezzed Ice Wall is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "first",
+          "do": "The Runner runs HQ, encounters Ice Wall and pays 1 credit to bypass it with Femme Fatale. The run goes on and ends."
+        },
+        {
+          "label": "second",
+          "do": "The Runner runs HQ again, encounters Ice Wall and pays 1 credit to bypass it with Femme Fatale. The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "first",
+          "observe": "runner.credits",
+          "equals": 4
+        },
+        {
+          "at": "first",
+          "observe": "run.outcome",
+          "equals": "successful"
+        },
+        {
+          "at": "second",
+          "observe": "legal(bypass)",
+          "equals": true,
+          "why": "The chosen ice is remembered for as long as Femme Fatale stays active."
+        },
+        {
+          "at": "second",
+          "observe": "runner.credits",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.10.5.ex1",
+      "example": "9.10.5.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.10.5",
+        "9.4.4"
+      ],
+      "cards": [
+        "Gebrselassie",
+        "Na'Not'K",
+        "Tithe",
+        "Ice Wall",
+        "Vanilla",
+        "Enigma"
+      ],
+      "position": "Runner's turn. Na'Not'K is installed with Gebrselassie hosted on it. HQ is protected by three rezzed pieces of ice: Vanilla (innermost), Ice Wall, and Tithe (outermost). R&D is protected by one rezzed Enigma. The Runner has 10 credits.",
+      "steps": [
+        {
+          "label": "pump",
+          "do": "The Runner runs HQ, encounters Tithe and pays 3 credits for +2 strength on Na'Not'K."
+        },
+        {
+          "label": "after-run",
+          "do": "The Runner pays 2 credits to break both of Tithe's subroutines, passes Tithe and jacks out. The run ends."
+        },
+        {
+          "label": "second-run",
+          "do": "The Runner runs R&D. The run has begun and the Runner is approaching Enigma."
+        }
+      ],
+      "expect": [
+        {
+          "at": "pump",
+          "observe": "strength(Na'Not'K)",
+          "equals": 6,
+          "why": "1 printed, +3 for the three ice, +2 from the paid ability."
+        },
+        {
+          "at": "after-run",
+          "observe": "strength(Na'Not'K)",
+          "equals": 3,
+          "confidence": "derived",
+          "why": "The static +3 applies only during runs; Gebrselassie keeps the paid +2."
+        },
+        {
+          "at": "after-run",
+          "observe": "runner.credits",
+          "equals": 5
+        },
+        {
+          "at": "second-run",
+          "observe": "strength(Na'Not'K)",
+          "equals": 4,
+          "why": "1 printed, +1 for the one ice, +2 kept by Gebrselassie."
+        }
+      ]
+    },
+    {
+      "id": "9.11.2a.ex1",
+      "example": "9.11.2a.ex1",
+      "run": false,
+      "skip": "The example says the steps of installing a card are not separate instructions and that the only checkpoint is after the install cost is paid. It names no card and gives no position; what a checkpoint lets happen during an install is covered by 9.6.5b.ex2.",
+      "rules": [
+        "9.11.2a"
+      ],
+      "cards": []
+    },
+    {
+      "id": "9.11.2a.ex2",
+      "example": "9.11.2a.ex2",
+      "run": false,
+      "skip": "The example says the steps of a checkpoint are not instructions and no checkpoint happens inside another. It names no card and gives no position.",
+      "rules": [
+        "9.11.2a"
+      ],
+      "cards": []
+    },
+    {
+      "id": "9.11.4a.ex1",
+      "example": "9.11.4a.ex1",
+      "run": false,
+      "skip": "The example classifies a sentence ('Use this ability only by spending credits from a stealth card.') as a restriction and not an instruction. It names no card and gives no position.",
+      "rules": [
+        "9.11.4a"
+      ],
+      "cards": []
+    },
+    {
+      "id": "9.11.4b.ex1",
+      "example": "9.11.4b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.11.4b"
+      ],
+      "cards": [
+        "Shipment from MirrorMorph",
+        "Ice Wall",
+        "Vanilla",
+        "PAD Campaign"
+      ],
+      "position": "Corp's turn. HQ holds Shipment from MirrorMorph, Ice Wall, Vanilla and PAD Campaign. No ice protects HQ. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Corp plays Shipment from MirrorMorph and installs, one at a time, Ice Wall protecting HQ, then Vanilla protecting HQ outside it, then PAD Campaign in a new remote server."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Ice Wall)",
+          "equals": "ice:HQ"
+        },
+        {
+          "observe": "zone(Vanilla)",
+          "equals": "ice:HQ"
+        },
+        {
+          "observe": "zone(PAD Campaign)",
+          "equals": "root:remote"
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 3,
+          "confidence": "derived",
+          "why": "5, less 1 for the operation and 1 to install Vanilla behind which Ice Wall was already installed by the earlier, separate instruction."
+        },
+        {
+          "observe": "corp.hq",
+          "equals": 0
+        },
+        {
+          "observe": "corp.clicks",
+          "equals": 2
+        },
+        {
+          "observe": "legal(stop-after-two)",
+          "equals": true,
+          "confidence": "derived",
+          "why": "Each of the three installs is its own 'you may' instruction."
+        }
+      ]
+    },
+    {
+      "id": "9.11.4c.ex1",
+      "example": "9.11.4c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.11.4c"
+      ],
+      "cards": [
+        "Tinkering",
+        "Ice Wall"
+      ],
+      "position": "Runner's turn. Tinkering is in the grip. A rezzed Ice Wall protects HQ.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Runner plays Tinkering and chooses Ice Wall."
+        },
+        {
+          "label": "turn-ends",
+          "do": "The Runner's turn ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "play",
+          "observe": "hasSubtype(Ice Wall,sentry)",
+          "equals": true
+        },
+        {
+          "at": "play",
+          "observe": "hasSubtype(Ice Wall,code gate)",
+          "equals": true
+        },
+        {
+          "at": "play",
+          "observe": "hasSubtype(Ice Wall,barrier)",
+          "equals": true
+        },
+        {
+          "at": "turn-ends",
+          "observe": "hasSubtype(Ice Wall,sentry)",
+          "equals": false,
+          "confidence": "derived"
+        },
+        {
+          "at": "turn-ends",
+          "observe": "hasSubtype(Ice Wall,barrier)",
+          "equals": true,
+          "confidence": "derived",
+          "why": "Barrier is printed on Ice Wall."
+        }
+      ]
+    },
+    {
+      "id": "9.11.4d.ex1",
+      "example": "9.11.4d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.11.4d"
+      ],
+      "cards": [
+        "Djinn",
+        "Personality Profiles",
+        "Datasucker",
+        "Sure Gamble"
+      ],
+      "position": "Runner's turn. Personality Profiles is in the Corp's score area. Djinn is installed. Datasucker is in the stack. The grip holds exactly one card, Sure Gamble. The Runner has 5 credits.",
+      "steps": [
+        {
+          "label": "search",
+          "do": "The Runner spends a click and 1 credit on Djinn's ability and finds Datasucker."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Sure Gamble)",
+          "equals": "heap",
+          "why": "Personality Profiles resolves after the search and shuffle, while Datasucker is still set aside, so Sure Gamble is the only card in the grip."
+        },
+        {
+          "observe": "zone(Datasucker)",
+          "equals": "grip"
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 1
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 4
+        }
+      ]
+    },
+    {
+      "id": "9.11.4e.ex1",
+      "example": "9.11.4e.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.11.4e"
+      ],
+      "cards": [
+        "Architect",
+        "PAD Campaign",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. A rezzed Architect is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. PAD Campaign is the third card from the top of R&D. Archives is empty. The Runner has no icebreaker. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "first-sub",
+          "do": "The Runner runs HQ, encounters Architect and breaks nothing. For the first subroutine the Corp looks at the top 5 cards of R&D and installs PAD Campaign in a new remote server."
+        },
+        {
+          "label": "run-over",
+          "do": "For the second subroutine the Corp installs nothing. The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "first-sub",
+          "observe": "legal(install-nothing)",
+          "equals": true,
+          "why": "The install is optional: the Corp may decline to choose a target."
+        },
+        {
+          "at": "first-sub",
+          "observe": "zone(PAD Campaign)",
+          "equals": "root:remote"
+        },
+        {
+          "at": "first-sub",
+          "observe": "rezzed(PAD Campaign)",
+          "equals": false,
+          "confidence": "derived"
+        },
+        {
+          "at": "first-sub",
+          "observe": "corp.credits",
+          "equals": 5
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful",
+          "confidence": "derived"
+        },
+        {
+          "at": "run-over",
+          "observe": "corp.hq",
+          "equals": 1,
+          "confidence": "derived"
+        }
+      ]
+    },
+    {
+      "id": "9.11.4g.ex1",
+      "example": "9.11.4g.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.11.4g"
+      ],
+      "cards": [
+        "Data Raven"
+      ],
+      "position": "Runner's turn. A rezzed Data Raven is the only ice protecting HQ. The Runner has no tags.",
+      "steps": [
+        {
+          "label": "choice",
+          "do": "The Runner runs HQ and encounters Data Raven. The Runner chooses to take 1 tag."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "chooser(tag-or-end)",
+          "equals": "runner"
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 1
+        },
+        {
+          "observe": "run.active",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "9.11.4g.ex1#b",
+      "example": "9.11.4g.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.11.4g"
+      ],
+      "cards": [
+        "Data Raven"
+      ],
+      "position": "As 9.11.4g.ex1.",
+      "steps": [
+        {
+          "label": "choice",
+          "do": "The Runner runs HQ and encounters Data Raven. The Runner chooses to end the run."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.tags",
+          "equals": 0
+        },
+        {
+          "observe": "run.outcome",
+          "equals": "unsuccessful"
+        }
+      ]
+    },
+    {
+      "id": "9.12.1c.ex1",
+      "example": "9.12.1c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.1c"
+      ],
+      "cards": [
+        "Chronos Protocol: Selective Mind-mapping",
+        "Titanium Ribs",
+        "Tithe",
+        "Sure Gamble",
+        "Corroder"
+      ],
+      "position": "Runner's turn. The Corp's identity is Chronos Protocol: Selective Mind-mapping. Titanium Ribs is installed. A rezzed Tithe is the only ice protecting HQ. The grip holds exactly Sure Gamble and Corroder. The Runner has suffered no net damage this turn and has no icebreaker.",
+      "steps": [
+        {
+          "label": "damage",
+          "do": "The Runner runs HQ, encounters Tithe and breaks nothing. The first subroutine does 1 net damage. The player who chooses the trashed card chooses Corroder."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "chooser(trashed-card)",
+          "equals": "runner",
+          "why": "Both players are told to make the one choice, so only the active player makes it."
+        },
+        {
+          "observe": "corpLooksAtGrip",
+          "equals": true,
+          "why": "Not a standard key: whether the Corp is shown the Runner's grip. That part of Chronos Protocol's ability is not contradicted, so it happens on either turn."
+        },
+        {
+          "observe": "zone(Corroder)",
+          "equals": "heap"
+        },
+        {
+          "observe": "zone(Sure Gamble)",
+          "equals": "grip"
+        }
+      ]
+    },
+    {
+      "id": "9.12.1c.ex1#b",
+      "example": "9.12.1c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.1c"
+      ],
+      "cards": [
+        "Chronos Protocol: Selective Mind-mapping",
+        "Titanium Ribs",
+        "Prāna Condenser",
+        "Sure Gamble",
+        "Corroder"
+      ],
+      "position": "Corp's turn. The Corp's identity is Chronos Protocol: Selective Mind-mapping. A rezzed Prāna Condenser with 1 hosted power counter is alone in a remote server. The Runner has Titanium Ribs installed and a grip of exactly Sure Gamble and Corroder, and has suffered no net damage this turn.",
+      "steps": [
+        {
+          "label": "damage",
+          "do": "The Corp spends two clicks and trashes Prāna Condenser to do 1 net damage. The player who chooses the trashed card chooses Sure Gamble."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "chooser(trashed-card)",
+          "equals": "corp",
+          "why": "The Corp is the active player."
+        },
+        {
+          "observe": "zone(Sure Gamble)",
+          "equals": "heap"
+        },
+        {
+          "observe": "zone(Corroder)",
+          "equals": "grip"
+        },
+        {
+          "observe": "corp.clicks",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "9.12.1e.ex1",
+      "example": "9.12.1e.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.1e",
+        "9.12.1d"
+      ],
+      "cards": [
+        "Mother Goddess",
+        "Ansel 1.0",
+        "Warden Fatuma",
+        "Hush"
+      ],
+      "position": "Runner's turn. A rezzed Mother Goddess protects HQ with Hush hosted on it. A rezzed Ansel 1.0 protects R&D. A rezzed Warden Fatuma is alone in a remote server.",
+      "steps": [
+        {
+          "label": "look",
+          "do": "Nothing is done: the characteristics of the ice are read as the position stands."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "hasSubtype(Mother Goddess,bioroid)",
+          "equals": false,
+          "why": "Hush's effect is independent and applies first, removing Mother Goddess's ability, so it gains no subtypes."
+        },
+        {
+          "observe": "hasSubtype(Mother Goddess,sentry)",
+          "equals": false
+        },
+        {
+          "observe": "hasSubtype(Mother Goddess,mythic)",
+          "equals": true,
+          "confidence": "derived"
+        },
+        {
+          "observe": "subroutineCount(Mother Goddess)",
+          "equals": 1,
+          "why": "Not a standard key: the number of subroutines the ice has. Not bioroid, so no subroutine from Warden Fatuma."
+        },
+        {
+          "observe": "subroutineCount(Ansel 1.0)",
+          "equals": 4,
+          "why": "Three printed and one from Warden Fatuma."
+        }
+      ]
+    },
+    {
+      "id": "9.12.1e.ex2",
+      "example": "9.12.1e.ex2",
+      "confidence": "derived",
+      "rules": [
+        "9.12.1e"
+      ],
+      "cards": [
+        "Hush",
+        "Magnet",
+        "Ice Wall"
+      ],
+      "position": "Runner's turn. A rezzed Magnet protects HQ with Hush hosted on it. A rezzed Ice Wall protects R&D.",
+      "steps": [
+        {
+          "label": "move",
+          "do": "The Runner spends a click on Hush's ability and hosts it on Ice Wall."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(hush-move)",
+          "equals": true,
+          "why": "Hush's effect is treated as independent and applies first; Magnet's ability no longer exists, so Hush keeps its abilities."
+        },
+        {
+          "observe": "zone(Hush)",
+          "equals": "hosted:Ice Wall"
+        },
+        {
+          "observe": "runner.clicks",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.12.2a.ex1",
+      "example": "9.12.2a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.2a",
+        "9.6.4b"
+      ],
+      "cards": [
+        "Singularity",
+        "Warroid Tracker",
+        "Hostile Infrastructure",
+        "Mimic",
+        "Corroder",
+        "Cyberfeeder"
+      ],
+      "position": "Runner's turn. A remote server with no ice has a rezzed Hostile Infrastructure and a rezzed Warroid Tracker in its root. The Runner has Mimic, Corroder and Cyberfeeder installed, a grip of Singularity and 4 other cards, 5 credits, no link and an empty heap.",
+      "steps": [
+        {
+          "label": "singularity",
+          "do": "The Runner plays Singularity, running that remote server. The run is successful and both cards are trashed at once. Neither player spends on a trace. When told to trash 2 installed cards the Runner trashes Mimic and Corroder."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.grip",
+          "equals": 2,
+          "why": "Hostile Infrastructure sees each trashed card: 2 instances, 1 net damage each, against 4 cards."
+        },
+        {
+          "observe": "zone(Mimic)",
+          "equals": "heap"
+        },
+        {
+          "observe": "zone(Corroder)",
+          "equals": "heap"
+        },
+        {
+          "observe": "zone(Cyberfeeder)",
+          "equals": "rig",
+          "why": "Warroid Tracker sees one event that trashed at least 1 card, so it is pending once: one trace, 2 cards trashed, not 4."
+        },
+        {
+          "observe": "runner.heap",
+          "equals": 5,
+          "why": "Singularity, 2 cards from damage, Mimic and Corroder."
+        }
+      ]
+    },
+    {
+      "id": "9.12.2b.ex1",
+      "example": "9.12.2b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.2b",
+        "9.12.2c"
+      ],
+      "cards": [
+        "Ritual",
+        "The Class Act",
+        "Corroder",
+        "Mimic",
+        "Cyberfeeder",
+        "Decoy"
+      ],
+      "position": "Runner's turn, no click spent. The Class Act is installed and was installed on an earlier turn. Ritual is the only card in the grip. From the top, the stack is Corroder, Mimic, Cyberfeeder, Decoy, then other cards. The Runner has drawn no card this turn.",
+      "steps": [
+        {
+          "label": "ritual",
+          "do": "The Runner plays Ritual with 3 clicks remaining. The Class Act's interrupt resolves once: the Runner looks at the top 4 cards and adds Corroder to the bottom of the stack."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.grip",
+          "equals": 3,
+          "why": "One instance of drawing 3 cards."
+        },
+        {
+          "observe": "zone(Corroder)",
+          "equals": "stack"
+        },
+        {
+          "observe": "zone(Mimic)",
+          "equals": "grip"
+        },
+        {
+          "observe": "zone(Cyberfeeder)",
+          "equals": "grip"
+        },
+        {
+          "observe": "zone(Decoy)",
+          "equals": "grip",
+          "why": "The Runner looked at 4 cards (3 to be drawn plus 1), so the fourth card is drawn once Corroder goes to the bottom."
+        },
+        {
+          "observe": "classActResolved",
+          "equals": 1,
+          "why": "Not a standard key: how many times The Class Act's interrupt resolved while Ritual was played."
+        }
+      ]
+    },
+    {
+      "id": "9.12.2b.ex2",
+      "example": "9.12.2b.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.12.2b"
+      ],
+      "cards": [
+        "Urtica Cipher",
+        "Prāna Condenser"
+      ],
+      "position": "Runner's turn. An Urtica Cipher with 3 hosted advancement counters is alone in a remote server with no ice. A rezzed Prāna Condenser with no counters is alone in another remote server. The Runner has 5 cards in the grip. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "access",
+          "do": "The Runner runs the first remote server and accesses Urtica Cipher. The Corp uses Prāna Condenser as many times as it is allowed to. The Runner does not trash Urtica Cipher."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "counters(Prāna Condenser,power)",
+          "equals": 1,
+          "why": "A single instance of 5 net damage, so the interrupt applies once."
+        },
+        {
+          "observe": "runner.grip",
+          "equals": 1,
+          "why": "5 damage, less the 1 prevented."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 8
+        }
+      ]
+    },
+    {
+      "id": "9.12.2b.ex3",
+      "example": "9.12.2b.ex3",
+      "confidence": "stated",
+      "rules": [
+        "9.12.2b",
+        "9.12.2c"
+      ],
+      "cards": [
+        "NASX",
+        "realloc()",
+        "Ice Wall",
+        "Enigma"
+      ],
+      "position": "Corp's turn. A rezzed NASX with no counters is alone in a remote server. A rezzed Ice Wall (printed rez cost 1) protects HQ and a rezzed Enigma (printed rez cost 3) protects R&D. realloc() is in HQ. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "play",
+          "do": "The Corp plays realloc(), choosing Ice Wall and Enigma, Ice Wall first. Each time NASX's second ability resolves the Corp spends 2 credits."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "counters(NASX,power)",
+          "equals": 4,
+          "why": "Derezzing is not an aggregated effect, so the credits are gained in two separate instances and NASX's ability resolves twice."
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 5,
+          "why": "5, plus 1, less 2, plus 3, less 2."
+        },
+        {
+          "observe": "rezzed(Ice Wall)",
+          "equals": false
+        },
+        {
+          "observe": "rezzed(Enigma)",
+          "equals": false
+        },
+        {
+          "observe": "corp.clicks",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "9.12.2d.ex1",
+      "example": "9.12.2d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.2d",
+        "6.5.7"
+      ],
+      "cards": [
+        "Forked",
+        "Troll",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. Forked is in the grip. A rezzed Troll is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. The Runner has 5 credits and no link.",
+      "steps": [
+        {
+          "label": "troll",
+          "do": "The Runner plays Forked and runs HQ. On encountering Troll neither player spends on the trace, and the Runner chooses to lose a click."
+        },
+        {
+          "label": "run-over",
+          "do": "The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "troll",
+          "observe": "runner.clicks",
+          "equals": 2
+        },
+        {
+          "at": "run-over",
+          "observe": "zone(Troll)",
+          "equals": "archives",
+          "why": "Troll has no subroutines, so all of them count as broken as soon as the encounter reaches the breaking step, and Forked trashes it."
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful"
+        },
+        {
+          "at": "run-over",
+          "observe": "runner.credits",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.12.2e.ex1",
+      "example": "9.12.2e.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.2e",
+        "10.8.4"
+      ],
+      "cards": [
+        "ZATO City Grid",
+        "Surveyor"
+      ],
+      "position": "Runner's turn. A remote server has a rezzed ZATO City Grid in its root and a rezzed Surveyor as its only ice. The Runner has no link and no tags.",
+      "steps": [
+        {
+          "label": "zato",
+          "do": "The Runner runs the remote server and encounters Surveyor. The Corp chooses its first subroutine and trashes Surveyor to resolve it. Neither player spends on the trace."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Surveyor)",
+          "equals": "archives"
+        },
+        {
+          "observe": "traceBase",
+          "equals": 0,
+          "why": "Not a standard key: the base strength of the trace. Surveyor is in Archives, the ability defining X is inactive, so X is 0."
+        },
+        {
+          "observe": "runner.tags",
+          "equals": 0,
+          "confidence": "derived",
+          "why": "Trace strength 0 does not exceed link strength 0, so the trace is unsuccessful."
+        }
+      ]
+    },
+    {
+      "id": "9.12.2e.ex2",
+      "example": "9.12.2e.ex2",
+      "confidence": "stated",
+      "rules": [
+        "9.12.2e"
+      ],
+      "cards": [
+        "Hush",
+        "Surveyor",
+        "Ice Wall"
+      ],
+      "position": "Runner's turn. HQ is protected by two rezzed pieces of ice, Ice Wall (innermost) and Surveyor (outermost). Hush is hosted on Surveyor.",
+      "steps": [
+        {
+          "label": "hushed",
+          "do": "Nothing is done: Surveyor's strength is read as the position stands."
+        },
+        {
+          "label": "moved",
+          "do": "The Runner spends a click on Hush's ability and hosts it on Ice Wall."
+        }
+      ],
+      "expect": [
+        {
+          "at": "hushed",
+          "observe": "strength(Surveyor)",
+          "equals": 0,
+          "why": "The ability defining X is lost, so X is 0."
+        },
+        {
+          "at": "moved",
+          "observe": "strength(Surveyor)",
+          "equals": 4,
+          "confidence": "derived",
+          "why": "X is twice the 2 ice protecting the server once Surveyor has its ability back."
+        }
+      ]
+    },
+    {
+      "id": "9.12.3a.ex1",
+      "example": "9.12.3a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.3a"
+      ],
+      "cards": [
+        "Imp",
+        "Scrubber",
+        "Mumbad Virtual Tour"
+      ],
+      "position": "Runner's turn. Imp is installed with 2 virus counters and unused this turn. Scrubber is installed with its 2 credits. A rezzed Mumbad Virtual Tour is alone in the root of a remote server with no ice. The Runner has 4 credits.",
+      "steps": [
+        {
+          "label": "access",
+          "do": "The Runner runs the remote server and accesses Mumbad Virtual Tour. The Runner tries to leave it untrashed, then spends a virus counter from Imp to trash it."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(decline)",
+          "equals": false,
+          "why": "'Must trash it, if able' forces whatever decisions make the trash possible, using other cards if needed."
+        },
+        {
+          "observe": "legal(imp)",
+          "equals": true
+        },
+        {
+          "observe": "legal(pay-with-scrubber)",
+          "equals": true,
+          "why": "4 credits and Scrubber's 2 cover the trash cost of 5."
+        },
+        {
+          "observe": "zone(Mumbad Virtual Tour)",
+          "equals": "archives"
+        },
+        {
+          "observe": "counters(Imp,virus)",
+          "equals": 1
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 4
+        }
+      ]
+    },
+    {
+      "id": "9.12.3a.ex1#b",
+      "example": "9.12.3a.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.3a"
+      ],
+      "cards": [
+        "Imp",
+        "Scrubber",
+        "Mumbad Virtual Tour"
+      ],
+      "position": "As 9.12.3a.ex1.",
+      "steps": [
+        {
+          "label": "access",
+          "do": "The Runner runs the remote server, accesses Mumbad Virtual Tour and pays its trash cost of 5, using Scrubber's credits for part of it."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Mumbad Virtual Tour)",
+          "equals": "archives"
+        },
+        {
+          "observe": "counters(Imp,virus)",
+          "equals": 2
+        },
+        {
+          "observe": "poolPlusScrubber",
+          "equals": 1,
+          "why": "Not a standard key: the credit pool plus the credits on Scrubber. 6 in all before, less 5."
+        }
+      ]
+    },
+    {
+      "id": "9.12.3b.ex1",
+      "example": "9.12.3b.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.3b"
+      ],
+      "cards": [
+        "Imp",
+        "Neutralize All Threats",
+        "PAD Campaign"
+      ],
+      "position": "Runner's turn. Imp is installed with 2 virus counters and unused this turn. Neutralize All Threats is installed. An unrezzed PAD Campaign (trash cost 4) is alone in a remote server with no ice. The Runner has 3 credits and has accessed no card this turn.",
+      "steps": [
+        {
+          "label": "access",
+          "do": "The Runner runs the remote server and accesses PAD Campaign. The Runner leaves it untrashed."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(decline)",
+          "equals": true,
+          "why": "Neutralize All Threats names the means (paying the trash cost). The Runner cannot do that, and need not use Imp."
+        },
+        {
+          "observe": "legal(imp)",
+          "equals": true,
+          "confidence": "derived",
+          "why": "Imp may still be used by choice."
+        },
+        {
+          "observe": "zone(PAD Campaign)",
+          "equals": "root:remote"
+        },
+        {
+          "observe": "counters(Imp,virus)",
+          "equals": 2
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.12.3c.ex1",
+      "example": "9.12.3c.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.3c"
+      ],
+      "cards": [
+        "Fairchild 2.0",
+        "Hedge Fund"
+      ],
+      "position": "Runner's turn. A rezzed Fairchild 2.0 is the only ice protecting HQ, and HQ holds exactly one card, Hedge Fund. The Runner has no installed cards, 3 credits and 3 cards in the grip.",
+      "steps": [
+        {
+          "label": "subs",
+          "do": "The Runner runs HQ, encounters Fairchild 2.0 and breaks nothing. All three subroutines resolve."
+        },
+        {
+          "label": "run-over",
+          "do": "The run goes on and ends."
+        }
+      ],
+      "expect": [
+        {
+          "at": "subs",
+          "observe": "runner.credits",
+          "equals": 1,
+          "why": "First subroutine: paying 2 is the only choice that can be fully resolved. Second: neither choice can, so nothing happens."
+        },
+        {
+          "at": "subs",
+          "observe": "runner.coreDamage",
+          "equals": 1,
+          "confidence": "derived",
+          "why": "Not a standard key: core damage the Runner has suffered."
+        },
+        {
+          "at": "subs",
+          "observe": "runner.grip",
+          "equals": 2,
+          "confidence": "derived"
+        },
+        {
+          "at": "run-over",
+          "observe": "run.outcome",
+          "equals": "successful",
+          "confidence": "derived"
+        }
+      ]
+    },
+    {
+      "id": "9.12.3d.ex1",
+      "example": "9.12.3d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.3d",
+        "9.11.4g"
+      ],
+      "cards": [
+        "Data Raven",
+        "Decoy"
+      ],
+      "position": "Runner's turn. A rezzed Data Raven is the only ice protecting HQ. Decoy is installed. The Runner has no tags.",
+      "steps": [
+        {
+          "label": "choice",
+          "do": "The Runner runs HQ and encounters Data Raven. The Runner chooses to take 1 tag, then trashes Decoy to prevent it."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "runner.tags",
+          "equals": 0
+        },
+        {
+          "observe": "run.active",
+          "equals": true,
+          "why": "The choice was already made; preventing the tag does not end the run."
+        },
+        {
+          "observe": "zone(Decoy)",
+          "equals": "heap"
+        }
+      ]
+    },
+    {
+      "id": "9.12.3e.ex1",
+      "example": "9.12.3e.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.3e"
+      ],
+      "cards": [
+        "Service Outage",
+        "Always Be Running"
+      ],
+      "position": "Runner's turn, no click spent. Service Outage is the active current (the Corp played it on its last turn). Always Be Running is installed. The Runner has 5 credits and no event in the grip.",
+      "steps": [
+        {
+          "label": "first-click",
+          "do": "The Runner declines to pay Service Outage's additional cost and spends the first click on the basic action to gain 1 credit."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(gain-credit)",
+          "equals": true,
+          "why": "A 'must' cannot force the Runner to pay an additional cost they wish to decline, so the first click may go to another action."
+        },
+        {
+          "observe": "legal(run)",
+          "equals": true,
+          "confidence": "derived",
+          "why": "The Runner may also pay the 1 credit and run."
+        },
+        {
+          "observe": "runner.credits",
+          "equals": 6
+        },
+        {
+          "observe": "runner.clicks",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "9.12.3e.ex1#b",
+      "example": "9.12.3e.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.3e",
+        "8.2.5"
+      ],
+      "cards": [
+        "False Echo",
+        "Archer",
+        "Hostile Takeover"
+      ],
+      "position": "Runner's turn. False Echo is installed. An unrezzed Archer is the only ice protecting HQ. Hostile Takeover is in the Corp's score area. The Corp has 5 credits.",
+      "steps": [
+        {
+          "label": "pass",
+          "do": "The Runner runs HQ; the Corp does not rez Archer as it is approached. The Runner passes Archer and trashes False Echo. The Corp tries to rez Archer without forfeiting an agenda, then rezzes it, paying 4 credits and forfeiting Hostile Takeover."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "legal(rez-without-forfeit)",
+          "equals": false,
+          "why": "The Corp cannot dodge both options by declining the additional cost of one."
+        },
+        {
+          "observe": "legal(add-to-hq)",
+          "equals": true
+        },
+        {
+          "observe": "rezzed(Archer)",
+          "equals": true
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 1
+        },
+        {
+          "observe": "zone(Hostile Takeover)",
+          "equals": "removed",
+          "confidence": "derived"
+        },
+        {
+          "observe": "corp.score",
+          "equals": 0,
+          "confidence": "derived"
+        },
+        {
+          "observe": "zone(False Echo)",
+          "equals": "heap"
+        }
+      ]
+    },
+    {
+      "id": "9.12.3e.ex1#c",
+      "example": "9.12.3e.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.3e"
+      ],
+      "cards": [
+        "False Echo",
+        "Archer",
+        "Hostile Takeover"
+      ],
+      "position": "As 9.12.3e.ex1#b.",
+      "steps": [
+        {
+          "label": "pass",
+          "do": "The Runner runs HQ; the Corp does not rez Archer as it is approached. The Runner passes Archer and trashes False Echo. The Corp adds Archer to HQ."
+        }
+      ],
+      "expect": [
+        {
+          "observe": "zone(Archer)",
+          "equals": "hq"
+        },
+        {
+          "observe": "corp.credits",
+          "equals": 5
+        },
+        {
+          "observe": "corp.score",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "9.12.5d.ex1",
+      "example": "9.12.5d.ex1",
+      "confidence": "stated",
+      "rules": [
+        "9.12.5d",
+        "9.12.5c"
+      ],
+      "cards": [
+        "AMAZE Amusements",
+        "Doppelgänger",
+        "Hostile Takeover",
+        "Market Research"
+      ],
+      "position": "Runner's turn. A remote server with no ice has a rezzed AMAZE Amusements and an unrezzed Hostile Takeover in its root. HQ has no ice and holds exactly one card, Market Research. Doppelgänger is installed and unused this turn. The Runner has 5 credits and no tags.",
+      "steps": [
+        {
+          "label": "first-run",
+          "do": "The Runner runs the remote server, accesses AMAZE Amusements and pays 3 credits to trash it, then accesses and steals Hostile Takeover. The run ends."
+        },
+        {
+          "label": "second-run",
+          "do": "With AMAZE Amusements' ability still pending, the Runner triggers Doppelgänger first and runs HQ, steals Market Research, and that run ends."
+        },
+        {
+          "label": "resolved",
+          "do": "The pending abilities from the end of the first run finish resolving."
+        }
+      ],
+      "expect": [
+        {
+          "at": "first-run",
+          "observe": "zone(AMAZE Amusements)",
+          "equals": "archives"
+        },
+        {
+          "at": "second-run",
+          "observe": "runner.score",
+          "equals": 3
+        },
+        {
+          "at": "resolved",
+          "observe": "runner.tags",
+          "equals": 2,
+          "why": "The instance pending from the first run still resolves. No second instance is created for the second run, though an agenda was stolen during it."
+        },
+        {
+          "at": "resolved",
+          "observe": "runner.credits",
+          "equals": 2
+        }
+      ]
+    }
+  ]
+}

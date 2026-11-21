@@ -34,6 +34,7 @@ import { drivers as ch5 } from "./second-reader/cr-examples-ch5.drivers.js";
 import { drivers as ch6 } from "./second-reader/cr-examples-ch6.drivers.js";
 import { drivers as ch7 } from "./second-reader/cr-examples-ch7.drivers.js";
 import { drivers as ch8 } from "./second-reader/cr-examples-ch8.drivers.js";
+import { drivers as ch9 } from "./second-reader/cr-examples-ch9.drivers.js";
 import { drivers as ch10 } from "./second-reader/cr-examples-ch10.drivers.js";
 import type { Driver } from "./second-reader/driving.js";
 
@@ -51,6 +52,7 @@ const BATCHES: Array<{
   { name: "cr-examples-ch6", chapter: "6", drivers: ch6 },
   { name: "cr-examples-ch7", chapter: "7", drivers: ch7 },
   { name: "cr-examples-ch8", chapter: "8", drivers: ch8 },
+  { name: "cr-examples-ch9", chapter: "9", drivers: ch9 },
   { name: "cr-examples-ch10", chapter: "10", drivers: ch10 },
 ];
 
@@ -68,6 +70,16 @@ const WRITTEN_TITLES: Record<string, string> = {
     "CR 7.4.7a.ex1: after Bacterial Programming rearranges R&D the breach goes on from the top and Celebrity Gift is accessed again",
   "8.3.3b.ex1":
     "CR 8.3.3b.ex1: Cultivate trashes one of the top five cards of R&D, adds one to HQ and arranges the rest",
+  "9.1.4.ex1":
+    "CR 9.1.4.ex1: Compile puts Mayfly on the bottom of the stack first, so Mayfly's own end-of-run trash finds nothing",
+  "9.1.4.ex1#b":
+    "CR 9.1.4.ex1#b: Mayfly's end-of-run trash resolves first, so Compile has no program left to put back",
+  "9.6.5b.ex2":
+    "CR 9.6.5b.ex2: Tranquility Home Grid installed and rezzed by Architect Deployment Test gives nothing for its own install",
+  "9.6.5d.ex1":
+    "CR 9.6.5d.ex1: The Supplier installs Dyson Mem Chip first, so Underworld Contact sees 2 link when it resolves",
+  "9.6.5d.ex1#b":
+    "CR 9.6.5d.ex1#b: Underworld Contact resolves first with 1 link and gives nothing",
 };
 
 /**
@@ -83,6 +95,13 @@ const UNOBSERVED: Record<string, string[]> = {
   // 4.8.7.ex1 is a recorded difference: its entry is checked once it passes.
   "cr-examples-ch4": ["4.8.7.ex1 runnerCanTell"],
   "cr-examples-ch8": ["8.3.3b.ex1 runnerCanTell"],
+  "cr-examples-ch9": [
+    "9.1.6c.ex1 used(Mimic)",
+    "9.1.6c.ex1 used(Cyberfeeder)",
+    "9.5.3a.ex1 legal(imp)",
+    "9.5.3a.ex1 legal(decline)",
+    "9.5.3a.ex1#b legal(imp)",
+  ],
 };
 
 const differences = loadDifferences();

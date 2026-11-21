@@ -1004,5 +1004,304 @@
     "rule": "10.8.6c",
     "note": "In a trace the Corp and then the Runner may spend credits. The trace on Gemini's subroutine resolves at once, so neither can.",
     "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.1.8b.ex1#b",
+    "observations": [
+      {
+        "key": "::zone(I've Had Worse)",
+        "expected": "removed",
+        "engine": "heap"
+      },
+      {
+        "key": "::runner.heap",
+        "expected": 2,
+        "engine": 3
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "10.4.3",
+    "area": "area 9",
+    "note": "Skorpios Defense Systems lets the Corp remove 1 of the cards being trashed together. The engine offers only one of the three cards trashed by the damage (a Sure Gamble), so I've Had Worse cannot be removed. It goes to the heap, and the 3 cards its ability draws are left in the set-aside zone and never reach the grip"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.6.13d.ex1",
+    "observations": [
+      {
+        "key": "encounter::runner.credits",
+        "expected": 3,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "7.3.1",
+    "area": "area 8",
+    "note": "A card ability can tell the Runner to breach a server directly. Gang Sign says 'Whenever the Corp scores an agenda, breach HQ.' The engine puts the breach off until a run begins, so the encounter outside a run that CR 9.6.13d's example needs never happens and Mayfly's 'when this run ends' rule goes untested"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.9.3d.ex1",
+    "observations": [
+      {
+        "key": "draw::legal(class-act)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "draw::zone(Mimic)",
+        "expected": "grip",
+        "engine": "stack"
+      },
+      {
+        "key": "draw::zone(Corroder)",
+        "expected": "stack",
+        "engine": "grip"
+      },
+      {
+        "key": "draw::stackBottom",
+        "expected": "Corroder",
+        "engine": "runner-fill-3"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.9.3d",
+    "area": "fidelity",
+    "note": "The Class Act's interrupt is relevant to any instruction expected to draw cards. The engine does not offer it for the basic action to draw a card (it does for a draw from a card ability), so the top card is drawn with no look"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.9.4c.ex2",
+    "observations": [
+      {
+        "key": "::zone(No One Home)",
+        "expected": "rig",
+        "engine": "grip"
+      },
+      {
+        "key": "::runner.tags",
+        "expected": 1,
+        "engine": 2
+      },
+      {
+        "key": "::zone(Decoy)",
+        "expected": "heap",
+        "engine": "rig"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.9.4",
+    "area": "fidelity",
+    "note": "An interrupt window opens whenever an instruction becomes imminent. The engine gives Casting Call's 2 tags with no window, so Decoy cannot be used, Thunder Art Gallery never triggers and the example's point (No One Home is not pending) is not reached"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.9.4d.ex1",
+    "observations": [
+      {
+        "key": "::legal(second-decoy)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "::runner.tags",
+        "expected": 0,
+        "engine": 2
+      },
+      {
+        "key": "::runner.heap",
+        "expected": 2,
+        "engine": 0
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.9.4d",
+    "area": "fidelity",
+    "note": "A paid ability interrupt need not have been active when the window opened. The engine gives Casting Call's 2 tags with no interrupt window at all, so neither Decoy can be used"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.9.5a.ex1",
+    "observations": [
+      {
+        "key": "katana::legal(tori)",
+        "expected": false,
+        "engine": "the run never goes on: the window after the encounter opens again each time it closes"
+      },
+      {
+        "key": "katana::runner.grip",
+        "expected": 1,
+        "engine": 4
+      },
+      {
+        "key": "katana::runner.coreDamage",
+        "expected": 0,
+        "engine": "the run never goes on: the window after the encounter opens again each time it closes"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.2.4d",
+    "area": "fidelity",
+    "note": "After the Runner pays Feedback Filter to prevent a subroutine's net damage, the engine leaves the subroutine's priority window on its stack. The window after the encounter then opens again every time it closes and the run never goes on (the same happens with Caldera, and when the Corp uses Tori Hanzō). The encounter with Neural Katana is never reached, so Tori Hanzō's 'first time' is not tested"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.9.7a.ex1",
+    "observations": [
+      {
+        "key": "::runner.tags",
+        "expected": 1,
+        "engine": 2
+      },
+      {
+        "key": "::runner.grip",
+        "expected": 2,
+        "engine": 0
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.12.3d",
+    "area": "standardization",
+    "note": "Making a choice between effects is its own instruction, made once (also 9.11.4g). After the Runner uses Biometric Spoofing in the interrupt window of Mr. Stone's damage, the engine asks the Runner to take a tag or end the run a second time; taking it gives a second tag and a second 1 meat damage"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.9.7f.ex1",
+    "observations": [
+      {
+        "key": "::zone(Guru Davinder)",
+        "expected": "rig",
+        "engine": "heap"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.2.9c",
+    "area": "fidelity",
+    "note": "In an interrupt window the active player has priority first, and The Cleaners' printed ability is a conditional interrupt the Corp uses when it has priority. The engine applies its +1 as the window opens, so the damage is 3, two Plascrete Carapace counters leave 1, Guru Davinder then prevents 1 and its second ability triggers. By the example the Runner removes the damage first and Guru Davinder stays"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.11.4e.ex1",
+    "observations": [
+      {
+        "key": "first-sub::rezzed(PAD Campaign)",
+        "expected": false,
+        "engine": true
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "1.2.1",
+    "area": "area 5",
+    "note": "Architect's first subroutine installs 1 of the cards, ignoring the install cost. The engine also rezzes it for free (its option reads 'Install and rez ... ignoring costs')"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.12.1c.ex1",
+    "observations": [
+      {
+        "key": "::corpLooksAtGrip",
+        "expected": true,
+        "engine": false
+      }
+    ],
+    "verdict": "reader-wrong",
+    "rule": "9.12.1c",
+    "note": "The driver's mistake, not the expectation's: it looked for a reveal in the engine's list of reveals. The engine shows the Corp the grip through the choice it opens for the Runner, which both seats see. The driver now reads the Corp's own view and the case agrees; the expectation is unchanged"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.12.1c.ex1#b",
+    "observations": [
+      {
+        "key": "::chooser(trashed-card)",
+        "expected": "corp",
+        "engine": "nobody"
+      },
+      {
+        "key": "::zone(Sure Gamble)",
+        "expected": "heap",
+        "engine": "grip"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.5.5",
+    "area": "area 11",
+    "note": "Prāna Condenser's ability trashes it as a cost and then counts its hosted power counters, which are set aside as the cost is paid. The engine does no damage: the counters go with the card"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.12.2b.ex1",
+    "observations": [
+      {
+        "key": "::runner.grip",
+        "expected": 3,
+        "engine": 4
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "8.6.7f",
+    "area": "area 11",
+    "note": "The click to play an event is paid before its play abilities resolve, so Ritual's 'for each click you have remaining' counts 3 when it is played as the first click of four. The engine counts the clicks the Runner had when the play began and draws 4. (The Class Act's single look, at one more card than is drawn, is right.)"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.12.2b.ex3",
+    "observations": [
+      {
+        "key": "::counters(NASX,power)",
+        "expected": 4,
+        "engine": 3
+      },
+      {
+        "key": "::corp.credits",
+        "expected": 5,
+        "engine": 6
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "1.2.1",
+    "area": "area 11",
+    "note": "NASX lets the Corp spend up to 2 credits each time it gains credits from another card's ability. After the 1 credit gained for Ice Wall the engine offers a spend of 1 only, with 6 credits in the pool. Both instances do resolve separately, as the example says"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.12.3d.ex1",
+    "observations": [
+      {
+        "key": "::runner.tags",
+        "expected": 0,
+        "engine": 1
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.12.3d",
+    "area": "standardization",
+    "note": "Once the Runner has chosen to take the tag, preventing it does not reopen the choice. After Decoy prevents the tag the engine asks the Runner to take a tag or end the run again"
+  },
+  {
+    "batch": "cr-examples-ch9",
+    "case": "9.12.3e.ex1",
+    "observations": [
+      {
+        "key": "::legal(gain-credit)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "::runner.credits",
+        "expected": 6,
+        "engine": 5
+      },
+      {
+        "key": "::runner.clicks",
+        "expected": 3,
+        "engine": 4
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.12.3e",
+    "area": "standardization",
+    "note": "A 'must' cannot force a player to pay an additional cost they wish to decline. With Service Outage active the engine offers a Runner with Always Be Running only runs for the first click"
   }
 ]
