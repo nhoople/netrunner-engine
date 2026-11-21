@@ -136,8 +136,11 @@ function gemini(r: Report, corp: number, runner: number): void {
     );
     const resolve = legal.find((a) => a.type === "resolve_trace");
     if (i < 2 && boost) s = must(s, boost);
-    else if (resolve) s = must(s, resolve);
-    else {
+    else if (resolve) {
+      // A boost the case names that the engine did not offer was not made.
+      if (i < 2 && want > 0) asked = false;
+      s = must(s, resolve);
+    } else {
       asked = false;
       break;
     }
@@ -214,6 +217,8 @@ function seisGame(
   runner: number,
 ): { s: GameState; accessed: string[] | string } {
   for (let i = 0; i < 4 && s.psi; i++) {
+    // A bid the engine refuses is recorded by the case's legal(...) fact;
+    // the game is then played on with a bid of 0.
     const want = accepts(s, bid(runner)) ? runner : 0;
     s = drive(psi(s, corp, want), (x) => Boolean(x.psi) || !x.run);
   }
@@ -270,6 +275,7 @@ export const drivers: Record<string, Driver> = {
     try {
       s = toAction(accessing(s).s);
     } catch (error) {
+      if (!(error as Error).message.startsWith("stuck at")) throw error;
       debug((error as Error).message);
     }
     r.fact(
@@ -297,7 +303,7 @@ export const drivers: Record<string, Driver> = {
     );
     let chooser = "nobody";
     for (let i = 0; i < 6 && s.pendingChoice && s.run; i++) {
-      if (s.pendingChoice.loopCount || i > 0) chooser = s.pendingChoice.chooser;
+      if (s.pendingChoice.loopCount) chooser = s.pendingChoice.chooser;
       s = drive(pick(s, ""), (x) => Boolean(x.pendingChoice) || passedIce(x));
     }
     r.fact("chooser(loop)", chooser);

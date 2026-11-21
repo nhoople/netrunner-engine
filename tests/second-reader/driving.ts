@@ -253,7 +253,7 @@ export function accessing(
 export function psi(s: GameState, corp: number, runner: number): GameState {
   for (let i = 0; i < 2 && s.psi; i++) {
     const next: Action =
-      s.psi.runnerBid === null
+      s.psi.runnerBid == null
         ? { type: "psi_runner_bid", amount: runner }
         : { type: "psi_corp_bid", amount: corp };
     if (!applyAction(cloneState(s), next).ok) break;
