@@ -63,7 +63,13 @@ function foundryRez(rd: string[]): { s: GameState; rdBefore: string[] } {
 
 const runnerViewOfChoice = (s: GameState) => {
   const choice = getPublicView(s, "runner").pendingChoice;
-  return choice && { chooser: choice.chooser, prompt: choice.prompt, options: choice.options };
+  return (
+    choice && {
+      chooser: choice.chooser,
+      prompt: choice.prompt,
+      options: choice.options,
+    }
+  );
 };
 
 describe("The Foundry searches R&D with the shared deck search (CR 8.7.2e, 8.7.3)", () => {
@@ -141,7 +147,9 @@ describe("other R&D searches with criteria use the shared deck search (CR 8.7.2e
 
   it("Editorial Division's search may find nothing even when R&D holds a black ops card (CR 8.7.2e)", () => {
     let s = editorial(["scorched-earth"]);
-    const se = s.corp.deck.find((id) => s.cards[id]!.title === "Scorched Earth")!;
+    const se = s.corp.deck.find(
+      (id) => s.cards[id]!.title === "Scorched Earth",
+    )!;
     expect(optionIds(s)).toEqual([`choose-card:${se}`, "choose-cards-done"]);
     s = must(s, { type: "choose_option", optionId: "choose-cards-done" });
     expect(s.corp.deck).toContain(se);
@@ -157,7 +165,10 @@ describe("other R&D searches with criteria use the shared deck search (CR 8.7.2e
 
   it("Ob Superheavy Logistics asks the Corp even when R&D holds no card of the right rez cost (CR 8.7.2e, 10.2.2b)", () => {
     const b = new Board(new Report(), "corp", 5);
-    const id = b.identity("corp", "ob-superheavy-logistics-extract-export-excel");
+    const id = b.identity(
+      "corp",
+      "ob-superheavy-logistics-extract-export-excel",
+    );
     b.rd(...Array.from({ length: 5 }, () => "hedge-fund"));
     b.s.turn.lastTrashedRezzedPrintedRezCost = 3;
     const r = evalEffect(
@@ -272,10 +283,14 @@ describe("an unrezzed Architect is trashed like any other ice (CR 1.8.3a, 1.8.4,
   }
 
   it("Trypano trashes an unrezzed Architect it is hosted on (CR 1.8.3a, 10.2.2b)", () => {
-    expect(trypanoOnArchitect(false).cards["arch-1"]!.zone).toBe("corp:archives");
+    expect(trypanoOnArchitect(false).cards["arch-1"]!.zone).toBe(
+      "corp:archives",
+    );
   });
 
   it("Trypano cannot trash a rezzed Architect (CR 1.8.3a)", () => {
-    expect(trypanoOnArchitect(true).cards["arch-1"]!.zone).toBe("server:hq:ice");
+    expect(trypanoOnArchitect(true).cards["arch-1"]!.zone).toBe(
+      "server:hq:ice",
+    );
   });
 });

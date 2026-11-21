@@ -16,7 +16,13 @@
 import { describe, expect, it } from "vitest";
 import { evalEffect, fx, legalActions } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
-import { Board, Report, offered, take, hasOption } from "./second-reader/harness.js";
+import {
+  Board,
+  Report,
+  offered,
+  take,
+  hasOption,
+} from "./second-reader/harness.js";
 import {
   accessedSince,
   accessing,
@@ -54,7 +60,9 @@ describe("R&D's random access limit counts only cards from the deck (CR 7.3.5)",
     expect(accessChoices(s).sort()).toEqual([grid, hedge].sort());
     // Take the deck card first: the limit of 1 is reached, and only the
     // upgrade is left. The Runner must access it (CR 7.3.4).
-    const done = accessing(s, { choose: (_x, ids) => ids.find((id) => id === hedge) });
+    const done = accessing(s, {
+      choose: (_x, ids) => ids.find((id) => id === hedge),
+    });
     s = done.s;
     expect(accessedSince(s, from)).toEqual(["Hedge Fund", "Hokusai Grid"]);
   });
@@ -119,11 +127,17 @@ describe("Run Ends finishes after a run-end ability's choice (CR 6.9.6d)", () =>
     let s = take(b.s, "basic_install", boomerang);
     s = toAction(through(s, atAction, [enigma!]));
     s.runner.clicks = 4;
-    s = drive(run(s, "hq"), (x) => x.timingKey === "run.encounterPaw" || !x.run);
+    s = drive(
+      run(s, "hq"),
+      (x) => x.timingKey === "run.encounterPaw" || !x.run,
+    );
     // The engine also offers a bypass that is not in Boomerang's text (filed
     // under area 14, CR 1.2.1); decline it.
     if (s.pendingChoice && hasOption(s, "decline")) {
-      s = drive(pick(s, "decline"), (x) => x.timingKey === "run.encounterPaw" || !x.run);
+      s = drive(
+        pick(s, "decline"),
+        (x) => x.timingKey === "run.encounterPaw" || !x.run,
+      );
     }
     s = take(s, "use_paid_ability", boomerang);
     s = through(s, (x) => !x.run || x.timingKey === "run.jackOutWindow", [
@@ -140,7 +154,9 @@ describe("Run Ends finishes after a run-end ability's choice (CR 6.9.6d)", () =>
     expect(s.run).toBeNull();
     expect(s.timingKey).toBe("runner.takeAction");
     expect(s.runner.deck).toContain(old);
-    expect(legalActions(s).some((a) => a.type === "basic_gain_credit")).toBe(true);
+    expect(legalActions(s).some((a) => a.type === "basic_gain_credit")).toBe(
+      true,
+    );
   });
 });
 
@@ -154,9 +170,15 @@ describe("a breach when the run ends still happens after a run-end choice (CR 6.
     let s = take(b.s, "basic_install", boomerang);
     s = toAction(through(s, atAction, [enigma!]));
     s.runner.clicks = 4;
-    s = drive(run(s, "hq"), (x) => x.timingKey === "run.encounterPaw" || !x.run);
+    s = drive(
+      run(s, "hq"),
+      (x) => x.timingKey === "run.encounterPaw" || !x.run,
+    );
     if (s.pendingChoice && hasOption(s, "decline")) {
-      s = drive(pick(s, "decline"), (x) => x.timingKey === "run.encounterPaw" || !x.run);
+      s = drive(
+        pick(s, "decline"),
+        (x) => x.timingKey === "run.encounterPaw" || !x.run,
+      );
     }
     // As Virtuoso or Cataloguer would: breach R&D when this run ends.
     expect(
@@ -217,7 +239,11 @@ describe("a successful run's abilities resolve once (CR 6.9.5a, 9.6.4b)", () => 
     const b = new Board(new Report(), "runner", 5);
     b.grip("sure-gamble", "sure-gamble", "sure-gamble");
     const [, remote] = b.remote("hokusai-grid", true);
-    const s = toAction(accessing(drive(run(b.s, remote), (x) => !x.run || Boolean(x.pendingChoice))).s);
+    const s = toAction(
+      accessing(
+        drive(run(b.s, remote), (x) => !x.run || Boolean(x.pendingChoice)),
+      ).s,
+    );
     expect(s.runner.hand).toHaveLength(2);
     expect(s.run).toBeNull();
   });

@@ -90,9 +90,7 @@ export function applyLunarTsbPrimitive(
           }),
         );
       }
-      const found = action.cardIds.filter((id) =>
-        state.corp.deck.includes(id),
-      );
+      const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
       for (const id of found) {
         state.corp.deck = state.corp.deck.filter((x) => x !== id);
         state.corp.hand.push(id);

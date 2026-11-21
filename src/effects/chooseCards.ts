@@ -272,8 +272,7 @@ export function applyChooseCards(
     options,
     // The other player may not learn which hidden cards are on offer.
     hiddenFromOpponent:
-      !action.open &&
-      (search || left.some((id) => !openToOpponent(state, id))),
+      !action.open && (search || left.some((id) => !openToOpponent(state, id))),
     ...(search && !action.open ? { optionCountHidden: true } : {}),
     ...(action.open ? { shownToOpponent: true } : {}),
     prompt: `Choose a card to ${verb(action.purpose, action.label)} (${action.picked.length + 1} of ${upTo ? "up to " : ""}${total}).`,
