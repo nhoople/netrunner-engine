@@ -34,7 +34,6 @@ import { basicDrawBonus, remoteRootAccessTax } from "../state/staticFlags.js";
 import {
   onTagsRemoved,
   resolveDeclaration,
-  runnerCannotTrashWhileRezzed,
 } from "../state/cardDeclarations.js";
 import {
   checkpointAfterInstruction,
@@ -197,6 +196,7 @@ import {
   enterStealAgendaOrComplete,
   findCupellationHost,
   findHeliamphora,
+  basicTrashRefusal,
   heliamphoraHostInsteadAvailable,
   hostCorpCardFaceupOn,
   payStealAdditionalCosts,
@@ -3316,18 +3316,10 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       if (!next.run || next.run.accessingCardId !== action.cardId) {
         return fail("Not accessing that card.", [CR.trashing]);
       }
-      if (stealOrTrashBlocked(next, next.run.accessingCardId)) {
-        return fail("Cannot trash Corp cards this run.", [CR.trashing]);
-      }
+      // The same check the access candidates list from (CR 7.1.5a–b).
+      const refusal = basicTrashRefusal(next, action.cardId);
+      if (refusal) return fail(refusal.reason, refusal.cites);
       const card = next.cards[action.cardId];
-      // A card with no trash cost cannot be trashed with the basic trash
-      // ability (CR 7.1.5a), as the access candidates already say.
-      if (card.trashCost === undefined) {
-        return fail(`${card.title} has no trash cost.`, [CR.noTrashCost]);
-      }
-      if (runnerCannotTrashWhileRezzed(next, action.cardId)) {
-        return fail(`Cannot trash rezzed ${card.title}.`, [CR.trashing]);
-      }
       if (card.trashAdditionalCost) {
         if (next.pendingTrashAccessedCardId === action.cardId) {
           next.pendingTrashAccessedCardId = null;

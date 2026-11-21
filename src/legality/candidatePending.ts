@@ -15,6 +15,7 @@ import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
 import { applyTakes } from "./trial.js";
 import {
+  basicTrashRefusal,
   printedRezOrPlayCost,
   stealAdditionalCosts,
   stealNetOrMeatPrevented,
@@ -455,11 +456,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
       accessKey === "access.midAccess" ||
       accessKey === "access.cardAccessed"
     ) {
-      if (
-        card.trashCost !== undefined &&
-        !stealOrTrashBlocked(state, id) &&
-        !runnerCannotTrashWhileRezzed(state, id)
-      ) {
+      if (!basicTrashRefusal(state, id)) {
         const purpose =
           card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
         if (
