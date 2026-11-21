@@ -111,16 +111,16 @@ describe("The Foundry searches R&D with the shared deck search (CR 8.7.2e, 8.7.3
   });
 
   it("The Foundry shuffles R&D even when the Corp does not search (CR 8.7.3)", () => {
-    let { s, rdBefore } = foundryRez(["ice-wall"]);
-    s = must(s, { type: "choose_option", optionId: "decline" });
+    const { s: asked, rdBefore } = foundryRez(["ice-wall"]);
+    const s = must(asked, { type: "choose_option", optionId: "decline" });
     expect([...s.corp.deck].sort()).toEqual([...rdBefore].sort());
     expect(s.corp.deck).not.toEqual(rdBefore);
     expect(s.log.join("\n")).toContain("does not search; shuffle R&D");
   });
 
   it("The Foundry shuffles R&D when the search finds nothing (CR 8.7.3)", () => {
-    let { s, rdBefore } = foundryRez([]);
-    s = must(s, { type: "choose_option", optionId: "search" });
+    const { s: asked, rdBefore } = foundryRez([]);
+    let s = must(asked, { type: "choose_option", optionId: "search" });
     s = must(s, { type: "choose_option", optionId: "choose-cards-done" });
     expect(s.corp.deck).not.toEqual(rdBefore);
     expect(s.log.join("\n")).toContain("no card found; shuffle R&D");
