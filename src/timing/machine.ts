@@ -65,9 +65,11 @@ export function enterStep(state: GameState, key: string): void {
     checkpointAfterEncounterPhase(state);
   }
   // CR 10.3.6 / 6.9.4h: the checkpoint after Movement is outside that phase.
-  // The engine reaches that completion when 11.4_4_g continues to 11.4_5_a.
+  // The engine reaches that completion when 11.4_4_g continues to 11.4_5_a,
+  // directly or after the approach-server stop.
   if (
-    previousKey === "run.approachServer" &&
+    (previousKey === "run.approachServer" ||
+      previousKey === "run.approachServerPaw") &&
     key === "run.success" &&
     state.run !== null
   ) {

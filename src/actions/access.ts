@@ -131,16 +131,53 @@ export function stealOrTrashBlocked(
   );
 }
 
+/**
+ * Why the Runner cannot use the basic trash ability on this accessed card
+ * (CR 7.1.5), or null when they can, credits aside. The access candidates,
+ * apply's `trash_accessed`, and the forced-trash checks all ask this.
+ */
+export function basicTrashRefusal(
+  state: GameState,
+  cardId: string,
+): { reason: string; cites: RuleCite[] } | null {
+  const card = state.cards[cardId];
+  if (!card) return { reason: "No such card.", cites: [CR.trashing] };
+  if (stealOrTrashBlocked(state, cardId)) {
+    return {
+      reason: "Cannot trash Corp cards this run.",
+      cites: [CR.trashing],
+    };
+  }
+  // CR 7.1.5a: a card with no trash cost cannot be trashed this way.
+  if (card.trashCost === undefined) {
+    return {
+      reason: `${card.title} has no trash cost.`,
+      cites: [CR.noTrashCost],
+    };
+  }
+  // CR 7.1.5b: nor can a card in the Corp's discard pile. A card installed
+  // in the root of Archives is not in the discard pile.
+  if (card.zone === "corp:archives") {
+    return {
+      reason: `${card.title} is in Archives and cannot be trashed.`,
+      cites: [CR.trashInArchives],
+    };
+  }
+  if (runnerCannotTrashWhileRezzed(state, cardId)) {
+    return {
+      reason: `Cannot trash rezzed ${card.title}.`,
+      cites: [CR.trashing],
+    };
+  }
+  return null;
+}
+
 function hasInteractiveMidAccess(state: GameState): boolean {
   const id = state.run?.accessingCardId;
   if (!id) return false;
   const card = state.cards[id];
   if (!card) return false;
-  if (
-    card.trashCost !== undefined &&
-    !stealOrTrashBlocked(state, id) &&
-    !runnerCannotTrashWhileRezzed(state, id)
-  ) {
+  if (!basicTrashRefusal(state, id)) {
     const purpose =
       card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
     if (runnerCreditsFor(state, purpose) >= runnerTrashCostForCard(state, id)) {
@@ -254,8 +291,7 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
     if (
       accessed?.mustTrashWhenAccessedWhileInstalled &&
       !abilitiesSuppressed(state, accessingId) &&
-      accessed.trashCost !== undefined &&
-      !stealOrTrashBlocked(state, accessingId)
+      !basicTrashRefusal(state, accessingId)
     ) {
       const purpose =
         accessed.type === "asset"
@@ -334,23 +370,26 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
         }
       }
     }
-    const natForcesPay =
+    // Neutralize All Threats: the first access each turn of a card with a
+    // trash cost uses it up wherever the card is; only the trash is "if
+    // able" (CR 7.1.5d), and a card in Archives cannot be trashed (7.1.5b).
+    const natApplies =
       accessed?.trashCost !== undefined &&
-      !stealOrTrashBlocked(state, accessingId) &&
       !state.turn.neutralizeAllThreatsCheckedThisTurn &&
       state.runner.installed.some(
         (id) =>
           !abilitiesSuppressed(state, id) &&
           state.cards[id]?.mustTrashFirstAccessedCardWithTrashCostEachTurn,
       );
-    if (natForcesPay && accessed) {
+    if (natApplies && accessed) {
       state.turn.neutralizeAllThreatsCheckedThisTurn = true;
+      const refusal = basicTrashRefusal(state, accessingId);
       const purpose =
         accessed.type === "asset"
           ? ("trash_asset" as const)
           : ("trash" as const);
       const cost = runnerTrashCostForCard(state, accessingId);
-      if (runnerCreditsFor(state, purpose) >= cost) {
+      if (!refusal && runnerCreditsFor(state, purpose) >= cost) {
         return applyActionCore(state, {
           type: "trash_accessed",
           cardId: accessingId,
@@ -358,7 +397,9 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
       }
       log(
         state,
-        `Cannot pay ${accessed.title}'s trash cost — another ability is not required (CR ${CR.mustSpecifiedMeans.number}).`,
+        refusal
+          ? `${refusal.reason} Neutralize All Threats does not force it (CR ${CR.mustSpecifiedMeans.number}).`
+          : `Cannot pay ${accessed.title}'s trash cost — another ability is not required (CR ${CR.mustSpecifiedMeans.number}).`,
       );
     }
     // By Any Means: remainder of turn — access not in Archives → trash + 1 meat.

@@ -15,7 +15,7 @@
       "string": 13
     },
     "entries": 863,
-    "withKindBuildingReader": 51,
+    "withKindBuildingReader": 50,
     "unread": 15,
     "unset": 19
   },
@@ -168,9 +168,6 @@
     ],
     "supplierHost": [
       "resolve_supplier_host"
-    ],
-    "trashCost": [
-      "gain_credits"
     ],
     "trashSelfOnCorpIceInstall": [
       "trash_self"
@@ -20662,6 +20659,10 @@
           "kinds": []
         },
         {
+          "site": "src/actions/access.ts#basicTrashRefusal",
+          "kinds": []
+        },
+        {
           "site": "src/actions/access.ts#hostCorpCardFaceupOn",
           "kinds": []
         },
@@ -22798,9 +22799,11 @@
       "readers": [
         {
           "site": "src/actions/access.ts#advanceFromMidAccess",
-          "kinds": [
-            "gain_credits"
-          ]
+          "kinds": []
+        },
+        {
+          "site": "src/actions/access.ts#basicTrashRefusal",
+          "kinds": []
         },
         {
           "site": "src/actions/access.ts#hasInteractiveMidAccess",
@@ -22835,9 +22838,7 @@
           "kinds": []
         }
       ],
-      "kinds": [
-        "gain_credits"
-      ]
+      "kinds": []
     },
     "trashCostIncreasePerFacedownArchivesCard": {
       "cardDef": "number",

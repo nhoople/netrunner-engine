@@ -1156,6 +1156,8 @@ export const CR = {
   midAccessAgenda: { number: "7.1.6", id: "rule_after_mid_access_agenda" },
   /** A card with no trash cost cannot be trashed with the basic trash ability (CR 7.1.5a). */
   noTrashCost: { number: "7.1.5a", id: "rule_paying_trash_costs" },
+  /** The Runner cannot trash or pay the trash cost of a card in Archives (CR 7.1.5b). */
+  trashInArchives: { number: "7.1.5b", id: "rule_trash_in_archives" },
   /** Which cards are active by default (CR 1.8.3a). */
   activeCardLocations: {
     number: "1.8.3a",

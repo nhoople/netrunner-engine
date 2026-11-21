@@ -375,6 +375,16 @@ function endAccessVisibility(
 
 /** The run-end instance that stayed pending resolves once (CR 9.12.5d). */
 
+/**
+ * Some server is protected by an unrezzed piece of ice. Both seats can see
+ * this (CR 10.2.3a, 8.5.3); what the facedown ice is, they cannot.
+ */
+function anyUnrezzedIceInstalled(s: GameState): boolean {
+  return Object.values(s.servers).some((srv) =>
+    srv.ice.some((id) => s.cards[id] && !s.cards[id].rezzed),
+  );
+}
+
 /** The card is hosted on a piece of installed ice. */
 function isHostedOnIce(s: GameState, cardId: string): boolean {
   const hostId = s.cards[cardId]?.hostId;
@@ -3968,21 +3978,15 @@ export const STEPS: Record<string, TimingStepDef> = {
           return "run.approachServerPaw";
         }
       }
-      // Formicary-class: unrezzed ice on any server may respond at approach.
-      for (const srv of Object.values(s.servers)) {
-        for (const id of srv.ice) {
-          const card = s.cards[id];
-          if (
-            card &&
-            !card.rezzed &&
-            !abilitiesSuppressed(s, id) &&
-            (card.paidAbilities ?? []).some(
-              (a) => a.formicaryApproachAnyServer && approachServerAbility(a),
-            )
-          ) {
-            return "run.approachServerPaw";
-          }
-        }
+      // Formicary-class: an unrezzed ice on any server may respond when the
+      // Runner approaches a server. Which facedown ice can do so is hidden
+      // (CR 10.2.2a), and the current step is open to both seats, so the
+      // run stops whenever any unrezzed ice is installed, an open fact
+      // (CR 10.2.3a). Reading the facedown card here would tell the Runner
+      // it is Formicary-class (CR 10.2.2b). Only the Corp holds priority at
+      // this step, and only approach-server abilities may be used there.
+      if (anyUnrezzedIceInstalled(s)) {
+        return "run.approachServerPaw";
       }
       return "run.success";
     },

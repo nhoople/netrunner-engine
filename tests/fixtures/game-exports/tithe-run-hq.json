@@ -1167,6 +1167,18 @@
     },
     {
       "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    },
+    {
+      "action": {
+        "type": "pass_window"
+      },
+      "logSeq": null
+    },
+    {
+      "action": {
         "type": "access_card",
         "cardId": "c_ls3l8j"
       },
@@ -1187,7 +1199,7 @@
   ],
   "failures": [],
   "final": {
-    "stateHash": "481c1d1321e31aeecbcc27cc4793bc85f714052751c1685e4c0a2d996f6299fa",
+    "stateHash": "9e821739eea192c19f0cff795dafb030f078385569af305c43a9a643dd86b8b1",
     "timingKey": "runner.takeAction",
     "turnNumber": 2,
     "activeSide": "runner",

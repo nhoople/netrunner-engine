@@ -357,9 +357,11 @@ describe("CR examples, chapter 7", () => {
     enterStep(s, "breach.awaitAccess");
     expect(s.log.join("\n")).toContain("7.4.5");
     s = must(s, { type: "access_card", cardId: "up-1" });
-    expect(s.run?.accessedCardIds.filter((id) => id === "up-1")).toHaveLength(
-      2,
-    );
+    // Now in Archives, it offers no trash (CR 7.1.5b), so the second access
+    // completes by itself and the breach may end; count both from the log.
+    expect(
+      s.log.filter((l) => l.startsWith("Accessed Ash 2X3ZB9CY")),
+    ).toHaveLength(2);
   });
 
   it("accesses Celebrity Gift again when Bacterial Programming leaves a new copy on top (CR 7.4.7a.ex1)", () => {

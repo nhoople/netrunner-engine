@@ -42,3 +42,12 @@ Engine RF-1 (the timing re-audit fixes) added the cost checkpoint after a basic 
 click and after an install cost (CR 10.3.4, 8.5.16d). The replayed state differs from the
 one before only in the log, the id counters, and the checkpoint snapshot (every other
 field is equal), so only the hash was updated.
+
+Engine FX-small decides whether the run stops when the Runner approaches the server
+(CR 6.9.4g) from open information: it stops whenever an unrezzed ice is installed, so
+the Runner cannot tell a facedown Formicary from other ice (CR 10.2.2b). The fixture's
+unrezzed Palisade on remote-1 now stops the HQ run there, so two passes with
+`logSeq: null` (the Corp's, then the Runner's) were added before the access. The
+replayed state differs from the one before only in the id counters and the checkpoint
+snapshot's id (the stop's priority window, its closing checkpoint, and the checkpoint
+outside the movement phase, CR 10.3.6), so only the hash was updated.

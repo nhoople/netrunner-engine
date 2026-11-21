@@ -360,6 +360,8 @@
     "7.1.4": "During each access, the Runner has 1 opportunity to use a mid-access ability. This occurs after the reaction window at the beginning of the access, and before the Runner steals an accessed agenda.",
     "7.1.5": "The Runner always has the ability \"Access → Pay the trash cost of the accessed card: Trash it.\" This is the basic trash ability.",
     "7.1.5a": "All assets and upgrades have trash costs, as do some ice and operations. If a card does not have a trash cost, the Runner cannot pay its trash cost, and therefore the Runner cannot use the basic trash ability during that access.",
+    "7.1.5b": "The Runner cannot trash or pay the trash cost of a card in the Corp's discard pile, either with the basic trash ability or with other mid-access abilities.",
+    "7.1.5d": "One card, Neutralize All Threats, has the ability \"The first time each turn you access a card with a trash cost, reveal it. You must trash that card by paying its trash cost, if able.\" When this ability applies, the Runner can only use the basic trash ability. They cannot decline to use a mid-access ability or use a mid-access ability available from a card unless they cannot pay the cost of the basic trash ability.",
     "7.1.6": "If, after resolving mid-access abilities, the Runner is still accessing an agenda, they must steal it.",
     "7.1.6a": "Some abilities can create additional costs to steal an agenda. The Runner can decline to pay such costs and not steal the agenda. See section 1.16.10.",
     "7.1.7": "If a card moves to another location while it is being accessed, the access ends immediately.",
