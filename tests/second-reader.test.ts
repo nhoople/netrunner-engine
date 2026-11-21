@@ -78,6 +78,7 @@ const UNOBSERVED: Record<string, string[]> = {
     "1.10.3c.ex1 legal(spend-one)",
     "1.17.1a.ex1 threat",
   ],
+  // 4.8.7.ex1 is a recorded difference: its entry is checked once it passes.
   "cr-examples-ch4": ["4.8.7.ex1 runnerCanTell"],
   "cr-examples-ch8": ["8.3.3b.ex1 runnerCanTell"],
 };

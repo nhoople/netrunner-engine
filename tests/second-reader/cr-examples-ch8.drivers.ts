@@ -202,8 +202,8 @@ export const drivers: Record<string, Driver> = {
       `dbs-bottom:${tollbooth}`,
     ]);
     // Any further stop is Daily Business Show asking again: answer it.
-    for (let i = 0; i < 10 && s.pendingChoice && !s.done; i++) {
-      s = through(pick(s, ""), atAction);
+    for (let i = 0; i < 10 && hasOption(s, "dbs-bottom") && !s.done; i++) {
+      s = through(pick(s, "dbs-bottom"), atAction);
     }
     r.fact("rdBottom", s.cards[s.corp.deck[s.corp.deck.length - 1]!]?.title);
     r.snap("draw", s);

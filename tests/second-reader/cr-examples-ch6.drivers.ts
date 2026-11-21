@@ -684,7 +684,8 @@ export const drivers: Record<string, Driver> = {
     if (!offered(s, "use_paid_ability", nisei).length) {
       s = raw(s, { type: "pass_window" });
     }
-    s = raw(s, offered(s, "use_paid_ability", nisei)[0]!);
+    const end = offered(s, "use_paid_ability", nisei)[0];
+    if (end) s = raw(s, end);
     debug("after nisei:", s.timingKey, Boolean(s.run));
     r.fact("legal(smc)", offered(s, "use_paid_ability", smc).length > 0);
     s = toAction(through(s, atAction));

@@ -22,7 +22,7 @@ import {
 } from "./driving.js";
 import type { Driver } from "./driving.js";
 
-const atEncounter = (s: GameState): boolean =>
+const encounterOrOver = (s: GameState): boolean =>
   s.timingKey === "run.encounterPaw" || !s.run;
 
 /** An encounter outside a run: stop in its paid ability window. */
@@ -74,7 +74,7 @@ export const drivers: Record<string, Driver> = {
     const b = new Board(r, "runner", 5);
     const corroder = b.rig("corroder");
     b.ice("wall-of-static", "hq");
-    let s = drive(run(b.s, "hq"), atEncounter);
+    let s = drive(run(b.s, "hq"), encounterOrOver);
     s = pump(s, corroder, 1);
     r.snap("pump", s);
     s = drive(breakAll(s, corroder), passedIce);
@@ -86,11 +86,11 @@ export const drivers: Record<string, Driver> = {
     const blade = b.rig("gordian-blade");
     b.ice("thimblerig", "hq");
     b.ice("enigma", "hq");
-    let s = drive(run(b.s, "hq"), atEncounter);
+    let s = drive(run(b.s, "hq"), encounterOrOver);
     s = pump(s, blade, 1);
     r.snap("pump", s);
     s = through(breakAll(s, blade), passedIce);
-    s = drive(must(s, { type: "continue_run" }), atEncounter);
+    s = drive(must(s, { type: "continue_run" }), encounterOrOver);
     r.snap("next-encounter", s);
     s = toAction(through(breakAll(s, blade), runOver, ["decline"]));
     r.snap("run-over", s);
@@ -105,7 +105,7 @@ export const drivers: Record<string, Driver> = {
     r.fact("legal(approach-pump)", Boolean(pumpNow));
     if (pumpNow) s = must(s, pumpNow);
     r.snap("approach-pump", s);
-    s = drive(s, atEncounter);
+    s = drive(s, encounterOrOver);
     r.snap("encounter", s);
     s = toAction(through(breakAll(s, blade), runOver));
     r.snap("run-over", s);
@@ -138,7 +138,7 @@ export const drivers: Record<string, Driver> = {
     const pumpNow = offered(s, "use_paid_ability", corroder)[0];
     r.fact("legal(approach-pump)", Boolean(pumpNow));
     if (pumpNow) s = must(s, pumpNow);
-    s = drive(s, atEncounter);
+    s = drive(s, encounterOrOver);
     r.snap("encounter", s);
   },
 };

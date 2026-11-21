@@ -169,8 +169,16 @@ export function encounters(title: string): number {
 
 /** The titles the engine's log says were accessed, from log line `from` on. */
 export function accessedSince(s: GameState, from: number): string[] {
+  // An access logged in both shapes, one line after the other, is one access.
   return s.log
     .slice(from)
+    .filter(
+      (line, i, all) =>
+        !(
+          / — Runner accesses /.test(line) &&
+          /^Accessed /.test(all[i + 1] ?? "")
+        ),
+    )
     .map(
       (line) =>
         /^Accessed (.+?) (\(CR 7\.2\.1|in HQ at random)/.exec(line) ??

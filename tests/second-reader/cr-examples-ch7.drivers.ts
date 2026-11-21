@@ -65,6 +65,9 @@ function poetri(r: Report, extra: string[], install: string) {
     const probe = poetriOnce(new Report(), extra, install, seed);
     if (JSON.stringify(probe.accessed) === JSON.stringify(wanted)) break;
   }
+  if (seed === 200) {
+    throw new Error("no seed gives the accesses the position states");
+  }
   const out = poetriOnce(r, extra, install, seed);
   r.fact("accessed", out.accessed);
   // The engine says in its log when the Runner knows the installed card.
