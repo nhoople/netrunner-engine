@@ -889,5 +889,187 @@
     "rule": "8.8.4b",
     "note": "The card swapped in becomes installed, which meets A Teia's condition at the next checkpoint. The engine never offers A Teia's install after Tatu-Bola's swap.",
     "area": "area 3"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.1.5.ex1",
+    "observations": [
+      {
+        "key": "run-over::accessed",
+        "expected": [
+          "Hedge Fund",
+          "Kitsune"
+        ],
+        "engine": [
+          "Hedge Fund"
+        ]
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "7.3.1",
+    "note": "Kitsune's subroutine breaches HQ while it resolves, and the run then goes on to its own breach of Archives. The engine moves the attacked server to HQ and puts the breach off to the Success Phase, so Archives is never breached.",
+    "area": "area 8"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.1.5.ex2",
+    "observations": [
+      {
+        "key": "run-over::run.outcome",
+        "expected": "successful",
+        "engine": "in-progress"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.9.6d",
+    "note": "After Boomerang's shuffle at the end of a successful run the run is complete and the turn goes on. The engine leaves the run open with no legal move. It also offers a paid bypass of the chosen ice that is not in Boomerang's text.",
+    "area": "area 14"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.3.1j.ex1#a",
+    "observations": [
+      {
+        "key": "::chooser(declare)",
+        "expected": "runner",
+        "engine": "nobody"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "10.3.1j",
+    "note": "The Runner declares whether a card that entered the root during the breach becomes a candidate. The engine asks nothing and makes it one.",
+    "area": "fidelity"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.3.1j.ex1#b",
+    "observations": [
+      {
+        "key": "::legal(declare)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "declare::accessed",
+        "expected": [
+          "Ganked!"
+        ],
+        "engine": [
+          "Ganked!",
+          "Georgia Emelyov"
+        ]
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "10.3.1j",
+    "note": "The Runner may declare that a card that entered the root during the breach does not become a candidate. The engine asks nothing and the card is accessed.",
+    "area": "fidelity"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.4.1.ex1",
+    "observations": [
+      {
+        "key": "punitive::runner.grip",
+        "expected": 1,
+        "engine": 3
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "10.4.1",
+    "note": "Punitive Counterstrike counts the agendas stolen in the Runner's turn that just ended, and The Cleaners adds 1. The engine rolls the stolen points only when the Runner's turn begins, so on the Corp's turn X is 0.",
+    "area": "area 9"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.4.3.ex1#a",
+    "observations": [
+      {
+        "key": "::runner.grip",
+        "expected": 4,
+        "engine": 0
+      }
+    ],
+    "verdict": "reader-wrong",
+    "rule": "1.7.2b",
+    "note": "The reader expected the grip to keep its 4 cards because the Runner is flatlined at once. The CR does not say so: suffering damage is trashing cards, and 'immediately' means the game ends before I've Had Worse can resolve. The expectation on the grip was dropped.",
+    "area": "area 16"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.8.5.ex1#a",
+    "observations": [
+      {
+        "key": "::runner.grip",
+        "expected": 1,
+        "engine": 2
+      },
+      {
+        "key": "::corp.credits",
+        "expected": 2,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "10.8.6c",
+    "note": "In a trace the Corp may spend credits to raise the trace strength. The trace on Gemini's subroutine resolves at once with no chance to spend, so the Corp cannot reach strength 5.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.8.5.ex1#c",
+    "observations": [
+      {
+        "key": "::legal(trace)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "::runner.credits",
+        "expected": 0,
+        "engine": 5
+      },
+      {
+        "key": "::corp.credits",
+        "expected": 2,
+        "engine": 5
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "10.8.6c",
+    "note": "In a trace the Corp and then the Runner may spend credits. The trace on Gemini's subroutine resolves at once, so neither can.",
+    "area": "area 11"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.14.3.ex1",
+    "observations": [
+      {
+        "key": "bid-one::accessed",
+        "expected": [
+          "Adrian Seis"
+        ],
+        "engine": "the run never ends: Adrian Seis's Psi Game starts again each time it resolves"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.6.4b",
+    "note": "A run is declared successful once, so Adrian Seis triggers once: one Psi Game, then the breach. The engine makes two pending instances and starts the Psi Game again each time it resolves; the run never ends.",
+    "area": "fidelity"
+  },
+  {
+    "batch": "cr-examples-ch10",
+    "case": "10.14.3.ex2",
+    "observations": [
+      {
+        "key": "bid-zero::accessed",
+        "expected": [],
+        "engine": "the run never ends: Adrian Seis's Psi Game starts again each time it resolves"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "9.6.4b",
+    "note": "Adrian Seis triggers once for a successful run. The engine starts its Psi Game again each time it resolves; the run never ends.",
+    "area": "fidelity"
   }
 ]
