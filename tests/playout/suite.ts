@@ -7,6 +7,11 @@
  * `tests/fixtures/playout-seeds.json` records for it (a seed pinned from a
  * nightly run). Each playout must fail exactly as its fixture entries say:
  * a new failure fails the test, and so does an entry that no longer happens.
+ *
+ * Each format also records which card abilities fired (CR audit tool 1.18,
+ * tests/ability-fire/recorder.ts) and checks them against
+ * `tests/generated/ability-fire-coverage.json`, so the never-fired list in
+ * tests/ability-fire-coverage.test.ts is what these playouts really do.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -22,6 +27,12 @@ import {
   readSeeds,
   type Format,
 } from "./harness.js";
+import { setSink } from "../ability-fire/recorder.js";
+import {
+  REGENERATE,
+  readGenerated,
+  writePlayoutRecord,
+} from "../ability-fire/coverage.js";
 
 /** Per-format CI seed counts. `npm run playouts` plays more. */
 const CI_SEEDS: Record<Format, number> = {
@@ -54,12 +65,31 @@ export function describePlayouts(formats: readonly Format[]): void {
     ];
     list.sort((a, b) => a - b);
     describe(`playout ${format}`, () => {
+      const fired = new Set<string>();
       for (const seed of list) {
         it(`seed ${seed}, ${PLAYOUT_STEPS} steps`, () => {
-          const result = playout(format, seed);
+          const previous = setSink((key) => fired.add(key));
+          let result: ReturnType<typeof playout>;
+          try {
+            result = playout(format, seed);
+          } finally {
+            setSink(previous);
+          }
           expect(compareWithSeeds(result, seeds.entries)).toEqual([]);
         }, 60_000);
       }
+      it("fires the abilities tests/generated/ability-fire-coverage.json lists for it", () => {
+        const outDir = process.env.ABILITY_FIRE_OUT;
+        if (outDir) {
+          writePlayoutRecord(outDir, format, list, fired);
+          return;
+        }
+        const recorded = readGenerated().playouts[format];
+        expect(
+          { seeds: list, fired: [...fired].sort() },
+          `the abilities playout ${format} fires changed: regenerate with ${REGENERATE}`,
+        ).toEqual(recorded ?? { seeds: [], fired: [] });
+      });
     });
   }
 }
