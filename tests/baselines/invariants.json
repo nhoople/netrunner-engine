@@ -3410,6 +3410,11 @@
       "RUNNER_CARD_REZZED"
     ]
   },
+  "tests/second-reader.test.ts": {
+    "the engine agrees with a blind reading of The CR's own examples, chapter 1 (Game Concepts) (read by Claude Fable 5.2) > CR 1.12.3.ex1: The Foundry's search shuffles away the cards Accelerated Beta Test was looking at, so they are not installed or trashed": [
+      "NO_ZONE"
+    ]
+  },
   "tests/short-game.test.ts": {
     "Phase 1 mechanics smoke > central HQ breach offers an HQ card candidate": [
       "MULTIPLE_ZONES"
