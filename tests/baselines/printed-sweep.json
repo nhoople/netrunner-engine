@@ -111,6 +111,26 @@
       "id": "S3mc",
       "cycle": "flashpoint",
       "cards": 20
+    },
+    {
+      "id": "S3la",
+      "cycle": "reign-and-reverie",
+      "cards": 58
+    },
+    {
+      "id": "S3lb",
+      "cycle": "magnum-opus",
+      "cards": 8
+    },
+    {
+      "id": "S3lc",
+      "cycle": "system-core-2019",
+      "cards": 147
+    },
+    {
+      "id": "S3ld",
+      "cycle": "system-update-2021",
+      "cards": 82
     }
   ],
   "cards": {
@@ -212,6 +232,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "Run HQ; on success may, instead of breaching, have the Corp lose 0-5 (up to what it has), gain 2 per credit lost and take 2 tags."
+    },
+    "acme-consulting-the-truth-you-need": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "While the Runner encounters the outermost ice protecting any server, they count 1 additional tag (effectiveRunnerTags), suppressed when the identity is blanked."
     },
     "active-policing": {
       "cycle": "liberation",
@@ -435,6 +460,11 @@
         "9.6.9"
       ]
     },
+    "akiko-nisei-head-case": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "1 link; whenever the Runner breaches R&D, a psi game with bids 0-2; on matching bids access 1 additional card."
+    },
     "akitaro-watanabe": {
       "cycle": "core-set",
       "result": "matches",
@@ -460,6 +490,11 @@
       "cr": [
         "1.2.1"
       ]
+    },
+    "algernon": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Unique; at turn begin may pay 2 credits to gain [click]; if paid, trashed at turn end with no successful run this turn (also when blanked after use, as the ruling says)."
     },
     "algo-trading": {
       "cycle": "flashpoint",
@@ -728,6 +763,17 @@
       ],
       "note": "Area 6 (Runner install): install_facedown writes the card into installed with no install procedure (Housekeeping and other install triggers miss it), and facedown installed Runner cards keep their abilities (8.1.4a), see Apocalypse. Cannot install non-virtual resources matches."
     },
+    "api-s-keeper-isobel": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "When your turn begins, you may remove an advancement token from an installed card to gain 3[credit]."
+      ],
+      "note": "Area 4 (visibility): remove_advancement_from_installed_gain_credits logs the title of the card, usually an unrezzed agenda or asset (8.5.2, 10.2.2a). Unique, the optional turn-begin trigger and the 3 credits match. cr-checker: confirmed.",
+      "cr": [
+        "10.2.2a"
+      ]
+    },
     "apocalypse": {
       "cycle": "data-and-destiny",
       "result": "filed",
@@ -790,6 +836,19 @@
       "cycle": "order-and-chaos",
       "result": "matches",
       "note": "Interrupt: once per Archives breach, may remove an accessed Archives card from the game instead of accessing it."
+    },
+    "arella-salvatore": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "Whenever an agenda is scored from this server, you may install a card from HQ, ignoring all costs, and place 1 advancement token on it."
+      ],
+      "note": "Area 5 (Corp install): install_hq_card_ignore_costs installs inline: no new remote for ice, no trash of an agenda or asset already in the root (8.5.6a), no upgrade into a central root (8.5.2c), and the card is installed faceup, so the Runner's view shows its title (8.5.2, 10.2.2a; fix-now candidate for the coordinator, shared with Off the Books and the area 5 row). Unique, the scored-from-this-server trigger and the advancement token match. cr-checker: partly (added the faceup view and central-root upgrades).",
+      "cr": [
+        "8.5.2",
+        "8.5.6a",
+        "10.2.2a"
+      ]
     },
     "argus-crackdown": {
       "cycle": "ashes",
@@ -952,6 +1011,18 @@
       "cycle": "liberation",
       "result": "matches",
       "note": "Threat 3 makes each subroutine plain 1 net damage (the Runner cannot spend credits to pay); otherwise 1 net damage unless the Runner pays 2."
+    },
+    "attitude-adjustment": {
+      "cycle": "reign-and-reverie",
+      "result": "wrong",
+      "abilities": [
+        "Reveal up to 2 agendas in HQ and/or Archives. Gain 2[credit] for each agenda revealed, then shuffle those agendas into R&D."
+      ],
+      "note": "may_reveal_shuffle_agendas_into_rd (revealKinds.ts) puts each chosen agenda on the bottom of R&D (deck.push) and shuffles only when the maximum is reached or no agenda is left, so choosing Done after 1 agenda leaves it on the bottom of an unshuffled R&D (1.2.1). Gatekeeper and Descent share the kind. The draw 2 and 2 credits per agenda match. cr-checker: confirmed.",
+      "cr": [
+        "1.2.1",
+        "1.21.6"
+      ]
     },
     "au-co-the-gold-standard-in-clones": {
       "cycle": "elevation",
@@ -1175,6 +1246,11 @@
       "cycle": "core-set",
       "result": "matches",
       "note": "8 credits on install; on a successful remote run may take any number instead of breaching; trashed when empty (the hosted-credit empty check covers hostedCreditsOnInstall)."
+    },
+    "bankroll": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Each successful run may place 1 credit from the bank on it; [trash]: take all hosted credits. The trash ability opens only in the Runner's action window (area 11 tracks narrow windows)."
     },
     "banner": {
       "cycle": "liberation",
@@ -1499,6 +1575,11 @@
       ],
       "note": "Area 13 (shuffle): shuffle_grip_card_into_stack inserts the card at a random position and keeps the rest of the stack in order instead of shuffling (4.2.3). Area 4: the log line 'Shuffle <title> into stack' names the grip card to the Corp (the engine log goes to both seats). Draw 3 matches."
     },
+    "blockchain": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Gains 'Gain 1 credit and the Runner loses 1' before its subroutines for every 2 faceup transaction operations in Archives (continuousGainedSubDecls archives_faceup_per); printed gain/lose and end the run."
+    },
     "bloo-moose": {
       "cycle": "red-sand",
       "result": "matches",
@@ -1575,6 +1656,18 @@
       "cycle": "ashes",
       "result": "matches",
       "note": "Unique; chooses an ice on install and is usable only against it; [trash]: break up to 2 subroutines, and if the run is successful may shuffle a Boomerang from the heap into the stack."
+    },
+    "border-control": {
+      "cycle": "magnum-opus",
+      "result": "wrong",
+      "abilities": [
+        "[trash]: End the run. Use this ability only during a run on this server."
+      ],
+      "note": "The IR sets requireDuringRun, not requireThisServer, so the ability is open during a run on any server: a probe offered it during a run on R&D while it protected HQ, and by the code it applies in the initiate, approach and movement windows (paidAbility.ts gates encounter_paw on the attacked server). The requireThisServer check (paidAbility.ts ~583) would follow the text. Event Horizon has the same IR shape. The 2 subroutines (gain 1 per ice protecting this server; end the run) match. cr-checker: confirmed.",
+      "cr": [
+        "4.6.6i",
+        "9.5.2f"
+      ]
     },
     "borrowed-goods": {
       "cycle": "vantage-point",
@@ -1720,6 +1813,11 @@
       "result": "matches",
       "note": "Play only after a steal or Corp-card trash last turn; ends the action phase; 2 random grip cards revealed and put on top of the stack; Threat 3 may pay 2 to reveal 1 random grip card and shuffle it into the stack."
     },
+    "broad-daylight": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "When scored the Corp may take 1 bad publicity, then places 1 agenda counter per bad publicity; once per turn, [click] and 1 hosted agenda counter: 2 meat damage."
+    },
     "broadcast-square": {
       "cycle": "spin",
       "result": "matches",
@@ -1778,6 +1876,18 @@
       "cycle": "order-and-chaos",
       "result": "matches",
       "note": "Click: move to the outermost position of any server; two subroutines each place 1 advancement on advanceable ice protecting this server. The move writes the ice list directly; area 2 lists Builder for its position helper, no rule broken today."
+    },
+    "building-blocks": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "Reveal a barrier from HQ. Install and rez it, ignoring all costs."
+      ],
+      "note": "Area 5 (Corp install) and area 7 (rez): install_and_rez_hq_ice_protecting_server_ignore_costs installs and rezzes inline: no ice install cap check, no new object, a new remote made outside createRemote, and rezzed = true without the rez procedure (8.1.2e). The reveal and the barrier filter match. cr-checker: confirmed.",
+      "cr": [
+        "8.1.2e",
+        "8.5.16"
+      ]
     },
     "bukhgalter": {
       "cycle": "ashes",
@@ -2702,6 +2812,11 @@
       "result": "matches",
       "note": "The first time each turn the Runner takes the basic gain-1-credit action, the rezzed asset gains the Corp 1 credit (once per turn flag)."
     },
+    "cradle": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Strength 5 minus 1 per card in the grip (stubs.ts); Interface 2 credits: break any number of code gate subroutines; no pump, as printed."
+    },
     "crash-space": {
       "cycle": "core-set",
       "result": "matches",
@@ -2763,6 +2878,17 @@
       "cycle": "sansan",
       "result": "matches",
       "note": "Memory cost 0 with 2 or more link; +1 strength per installed icebreaker (itself included); interface trash: break up to 3 code gate subroutines."
+    },
+    "crowdfunding": {
+      "cycle": "magnum-opus",
+      "result": "filed",
+      "abilities": [
+        "When your turn ends, if you made at least 3 successful runs this turn and this card is in your heap, you may install it, ignoring all costs."
+      ],
+      "note": "Area 6 (Runner install; Crowdfunding is in its inventory): install_crowdfunding_resolve moves the card from the heap to the rig inline, not through the install procedure (no installed-this-turn note, no new object; 8.5.16, 1.12.3). The 3 credits loaded on install, 1 taken each turn, trash and draw 1 when empty, and the optional 3-run condition match. cr-checker: confirmed.",
+      "cr": [
+        "8.5.16"
+      ]
     },
     "crypsis": {
       "cycle": "core-set",
@@ -3008,6 +3134,18 @@
       "cycle": "red-sand",
       "result": "matches",
       "note": "+2 MU; the first run each turn initiated on a server with 2 or more ice draws 2 (a run on a lighter server does not use it up); console limit."
+    },
+    "daruma": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "When the Runner approaches this server, you may trash this upgrade. If you do, choose 1 card in the root of another server or 1 agenda, asset, or upgrade in HQ. Swap that card with 1 card in the root of this server."
+      ],
+      "note": "Area 3 (swap; Daruma is in its inventory): swap_pick splices the root and HQ lists directly: no legality check (an HQ agenda can go into a central root, 8.8.2), the card going to HQ keeps its counters (8.8.4b), and no install or uninstall triggers. Area 4: both log lines name both swapped cards. The optional trash, the approach trigger and the jack-out offer match. cr-checker: confirmed.",
+      "cr": [
+        "8.8.2",
+        "8.8.4b"
+      ]
     },
     "darwin": {
       "cycle": "genesis",
@@ -3414,6 +3552,18 @@
       "result": "matches",
       "note": "Additional cost [click]; play only if the Runner stole an agenda last turn; 1 tag."
     },
+    "district-99": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "The first time each turn a program or a piece of hardware is trashed (from any location), you may place 1 power counter on District 99."
+      ],
+      "note": "Area 10 ('first time each turn' records): noteFirstProgramOrHardwareTrashEachTurn records the turn's first trash only while a card with the field is installed, so a District 99 installed after that trash fires on a later one; 'the first time' is the turn's first such event (9.3.2b, 9.6.5c; Virtuoso's ruling). Same family as Mâché, Psych Mike, Paragon, Thunder Art Gallery. Unique and the 3-counter heap retrieval match. cr-checker: confirmed.",
+      "cr": [
+        "9.3.2b",
+        "9.6.5c"
+      ]
+    },
     "diversified-portfolio": {
       "cycle": "honor-and-profit",
       "result": "matches",
@@ -3427,10 +3577,26 @@
       ],
       "note": "Area 14 (run flow): the RF row 'Diversion of Funds still offers its replacement after Security Testing replaced the breach' (9.9.11a); the choice opens at the successful-run step rather than when the breach would begin (6.7.4c). The additional click and the credit transfer match."
     },
+    "divert-power": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "Derez any number of cards. You may rez a card, lowering its rez cost by 3 for each card that you derezzed this way."
+      ],
+      "note": "Area 7 (rez and derez): derez_any_number_continue sets rezzed = false inline (derez hooks only for ice), and rez_card_with_discount charges the printed rez cost minus the discount, ignoring rez-cost modifiers and cannot-rez effects, with no checkpoint before faceup (8.1.2e). Doing nothing is allowed, as the ruling says. cr-checker: confirmed.",
+      "cr": [
+        "8.1.2e"
+      ]
+    },
     "divested-trust": {
       "cycle": "ashes",
       "result": "matches",
       "note": "When the Runner steals another agenda, may forfeit it to gain 5 and return the stolen agenda to HQ."
+    },
+    "divide-and-conquer": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Run Archives; if successful, after the Archives breach also breach HQ, then R&D, with no access to root cards in those breaches (queuedBreachesAfterCurrent, cannotAccessRoot)."
     },
     "diviner": {
       "cycle": "system-gateway",
@@ -3448,6 +3614,11 @@
       "cycle": "mumbad",
       "result": "matches",
       "note": "Chooses a server on install; the Corp pays 1 more to install in its root or protecting it; trashed when viruses are purged."
+    },
+    "dj-fenris": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Unique, limit 1 per deck; on install hosts a g-mod identity from outside the game whose faction differs from the Runner's identity; gains its text; the hosted identity is removed from the game when Fenris is uninstalled."
     },
     "djinn": {
       "cycle": "core-set",
@@ -3591,6 +3762,11 @@
       "result": "matches",
       "note": "While the Runner is tagged, trace 3 on each run initiated on this server: 1 meat damage that cannot be prevented."
     },
+    "drudge-work": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "3 power counters when rezzed, trashed when empty; [click], 1 hosted power counter: reveal an agenda in HQ or Archives, gain credits equal to its agenda points, shuffle it into R&D."
+    },
     "drug-dealer": {
       "cycle": "sansan",
       "result": "matches",
@@ -3671,6 +3847,11 @@
         "3.9.5b",
         "3.9.5g"
       ]
+    },
+    "eavesdrop": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Installed on a piece of ice (Corp chooses) as a hosted condition counter; whenever the Runner encounters the host ice, trace 3: 1 tag."
     },
     "echelon": {
       "cycle": "system-gateway",
@@ -3826,6 +4007,19 @@
       "cycle": "kitara",
       "result": "matches",
       "note": "Run HQ; instead of breaching, name asset, ice, operation or upgrade, reveal 2 random HQ cards, trash each of the named type and gain 4 per card trashed."
+    },
+    "embolus": {
+      "cycle": "magnum-opus",
+      "result": "wrong",
+      "abilities": [
+        "Hosted power counter: End the run. Use this ability only during a run on this server."
+      ],
+      "note": "Same as Border Control: requireDuringRun without requireThisServer, so a rezzed Embolus passes the approach and encounter window gates during a run on any server (only approach_server_paw checks the attacked server). Also area 11 (costs): the turn-begin 'pay 1 credit' is a choose with lose_credits, not gated on paying (as Byte). Unique; removing 1 counter on every successful run matches. cr-checker: confirmed.",
+      "cr": [
+        "4.6.6i",
+        "9.5.2f",
+        "1.16.11a"
+      ]
     },
     "emergency-shutdown": {
       "cycle": "genesis",
@@ -4313,6 +4507,18 @@
       "result": "matches",
       "note": "When the Corp scores an agenda, add Fan Site to the Runner's score area as a 0-point agenda."
     },
+    "fast-break": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "Draw up to X cards. Install up to X cards in the root of and/or protecting a single remote server."
+      ],
+      "note": "Area 5 (Corp install): install_continue installs inline and never trashes an agenda or asset already in the root, so a remote can hold two (8.5.6a, 3.2.1); its new remote is made outside createRemote; area 4: it logs each installed card's title. Also draw_up_to (draw.ts) always draws min(X, R&D) with no choice of how many, against the ruling and the printed 'up to' (shared with Gatekeeper and Kingmaking). Gain X (agendas in the Runner's score area) matches. cr-checker: partly (added the draw).",
+      "cr": [
+        "8.5.6a",
+        "3.2.1"
+      ]
+    },
     "fast-track": {
       "cycle": "honor-and-profit",
       "result": "filed",
@@ -4506,6 +4712,11 @@
       "result": "matches",
       "note": "Unique, installs only on ice; first break in each encounter with host ice: may charge 1 installed card (firstBreakChargeFiredIds per encounter, src/effects/eval.ts)."
     },
+    "fly-on-the-wall": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "When scored, give the Runner 1 tag."
+    },
     "flyswatter": {
       "cycle": "elevation",
       "result": "matches",
@@ -4558,6 +4769,19 @@
       "cr": [
         "2.16.4",
         "2.16.5"
+      ]
+    },
+    "formicary": {
+      "cycle": "reign-and-reverie",
+      "result": "wrong",
+      "abilities": [
+        "Whenever the Runner approaches a server, you may rez this ice. If you do, move this ice to the innermost position protecting the approached server. The Runner moves to this ice and encounters it."
+      ],
+      "note": "Modelled as a 0-cost paid ability in approach_server_paw (formicaryApproachAnyServer); the printed text is an optional conditional ability, pending in the reaction window after the approach (6.8.2c example, 9.6.2). Also area 7 (rez): rez_move_innermost rezzes inline, skipping the rez procedure (rez-cost modifiers and additional costs, Cyber Threat and other cannot-rez effects, rez-during-run hooks; 8.1.2e). The move, the encounter, and the end-the-run-unless-2-net-damage subroutine match. cr-checker: partly (the inline rez is the larger fault).",
+      "cr": [
+        "6.8.2c",
+        "9.6.2",
+        "8.1.2e"
       ]
     },
     "foxfire": {
@@ -4725,6 +4949,11 @@
       "result": "matches",
       "note": "On encounter may reveal up to 2 grail ice from HQ and add their subroutines in the Corp's chosen order; end the run."
     },
+    "game-changer": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Gain [click] per agenda in the Runner's score area; removed from the game instead of trashed (rfgInsteadOfTrashing, read on the Corp operation path)."
+    },
     "game-day": {
       "cycle": "sansan",
       "result": "wrong",
@@ -4794,6 +5023,18 @@
         "8.7.3",
         "1.14.5",
         "8.7.1"
+      ]
+    },
+    "gatekeeper": {
+      "cycle": "reign-and-reverie",
+      "result": "wrong",
+      "abilities": [
+        "[subroutine] Draw up to 3 cards. Reveal up to 3 agendas in HQ and/or Archives, then shuffle those agendas into R&D."
+      ],
+      "note": "Same kind as Attitude Adjustment: choosing Done before the third agenda leaves the revealed agendas on the bottom of an unshuffled R&D. Also draw_up_to always draws the full 3, with no choice of fewer (as Fast Break). The +6 strength if rezzed this turn, the draw up to 3 and end the run match. cr-checker: confirmed.",
+      "cr": [
+        "1.2.1",
+        "1.21.6"
       ]
     },
     "gauss": {
@@ -4886,6 +5127,11 @@
       ],
       "fixedIn": "engine#976",
       "test": "Gingerbread starts at strength 2 and pays 2 credits for +3 strength (CR 3.9.5b)"
+    },
+    "giordano-memorial-field": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Unique; on a successful run on its server, end the run unless the Runner pays 2 credits per agenda in their score area (unless with a tallied cost, refused when unaffordable). The run stays successful, as the ruling says."
     },
     "glenn-station": {
       "cycle": "order-and-chaos",
@@ -5108,6 +5354,11 @@
       "result": "matches",
       "note": "Cannot be bypassed; end the run."
     },
+    "guinea-pig": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Trash the whole grip, then gain 10."
+    },
     "guru-davinder": {
       "cycle": "mumbad",
       "result": "matches",
@@ -5241,6 +5492,17 @@
       ],
       "fixedIn": "engine#953",
       "test": "Hammer: breaks made with a killer do not count toward its limit (card text, CR 1.2.1)"
+    },
+    "hangeki": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "Choose 1 of your installed cards. The Runner may access that card."
+      ],
+      "note": "Area 8 (access): the existing row: the out-of-run access runs through a breach shell. Area 4 (visibility): hangeki_runner_may_access shows the Runner the label 'Access <title>' and logs the title before any access (10.2.2a, 10.2.2b). The play restrictions, removal from the game if accessed, and -1 agenda point otherwise match. cr-checker: partly (added the label leak).",
+      "cr": [
+        "10.2.2a"
+      ]
     },
     "hannah-wheels-pilintra": {
       "cycle": "liberation",
@@ -5476,6 +5738,17 @@
         "6.9.5a"
       ]
     },
+    "hijacked-router": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "Whenever the Corp creates a server, they lose 1[credit]."
+      ],
+      "note": "Area 5 (Corp install): corpLosesCreditsOnCreateServer is read only in createRemote (installCorp.ts); 18 other sites make a remote server inline (state.nextRemoteNumber, e.g. resolveInstallServerId, Fast Break, Building Blocks), skipping this loss and remotesCreatedThisTurn, drawOnFirstRemoteCreated and gainCreditsOnCreateServer (Turtlebacks) too (4.6.8b). Unique and the trash-for-3 on a successful Archives run match. cr-checker: confirmed (count corrected to 18).",
+      "cr": [
+        "4.6.8b"
+      ]
+    },
     "himitsu-bako": {
       "cycle": "spin",
       "result": "wrong",
@@ -5501,6 +5774,18 @@
       "cycle": "vantage-point",
       "result": "matches",
       "note": "Whenever a hardware is installed or trashed (trash hook covers any zone), look at the top card of R&D."
+    },
+    "hired-help": {
+      "cycle": "magnum-opus",
+      "result": "filed",
+      "abilities": [
+        "As an additional cost to run this server, the Runner must trash 1 agenda from their score area."
+      ],
+      "note": "Area 11: the existing row (engine #932): run.ts forfeits the agenda (forfeit_runner_scored_agenda, removed from the game, 8.2.5) and filters on cannotForfeit; the text says trash it (to Archives, 8.2.12). Limit 1 per deck and the successful-HQ-run exception match. cr-checker: confirmed.",
+      "cr": [
+        "8.2.5",
+        "8.2.12"
+      ]
     },
     "hive": {
       "cycle": "spin",
@@ -5598,6 +5883,11 @@
       "result": "matches",
       "note": "On score gain 7 and take 1 bad publicity."
     },
+    "hot-pursuit": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Run HQ; if successful (6.9.5a) gain 9 and take 1 tag."
+    },
     "houdini": {
       "cycle": "flashpoint",
       "result": "matches",
@@ -5688,6 +5978,11 @@
       "result": "matches",
       "note": "On score may install 1 facedown card from Archives through the shared install_corp_card path."
     },
+    "hydra": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Three subroutines: if tagged 3 net damage / gain 5 / end the run; otherwise 1 tag each."
+    },
     "hyoubu-institute-absolute-clarity": {
       "cycle": "ashes",
       "result": "filed",
@@ -5732,6 +6027,18 @@
       "cycle": "sansan",
       "result": "matches",
       "note": "At turn begin may remove it from the game to gain 3 clicks."
+    },
+    "hyperloop-extension": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "When Hyperloop Extension is scored or stolen, the Corp gains 3[credit]."
+      ],
+      "note": "Area 10: the existing Sportsmetal row: fireOnAgendaScoredOrStolen (score.ts) is called for the Runner identity, the rig and installed Corp cards, never for the scored or stolen agenda itself, so it never gains (probe: scoring it left the Corp at 5 credits; 1.17.6, 1.17.7). cr-checker: confirmed.",
+      "cr": [
+        "1.17.6",
+        "1.17.7"
+      ]
     },
     "hypoxia": {
       "cycle": "borealis",
@@ -5794,6 +6101,17 @@
       "cycle": "elevation",
       "result": "matches",
       "note": "Advanceable; at turn begin may trash it to gain 3 and make the Runner lose 2 per hosted advancement counter."
+    },
+    "ika": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "Interface → 1[credit]: Break up to 2 subroutines on host sentry."
+      ],
+      "note": "Area 11 (breaking): break_host_subroutine loops nextBreakableSubroutine, so it always breaks the first unbroken subroutines in order and as many as it can; the Runner neither chooses which nor fewer than 2 (1.14.5), as Black Orchestra (S3i). The sentry-host check (3.9.5h), the strength gate (paidAbilityBreakBlock/interfaceBlock, 3.9.5g), the 2 credits host ability (any paid ability window) and 2 credits: +3 strength match. cr-checker: confirmed.",
+      "cr": [
+        "1.14.5"
+      ]
     },
     "ikawah-project": {
       "cycle": "kitara",
@@ -5976,6 +6294,11 @@
       "cycle": "genesis",
       "result": "matches",
       "note": "2 recurring credits, spendable to install hardware."
+    },
+    "insight": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Additional cost [click]; the Corp may look at and arrange the top 4 of R&D, then the top 4 are revealed."
     },
     "intake": {
       "cycle": "kitara",
@@ -6321,6 +6644,11 @@
       "fixedIn": "engine#950",
       "test": "a resource's paid ability with no [click] in its cost is not an action and does not meet the trigger (CR 5.2.1)"
     },
+    "jumon": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "From the score area, when the Corp's turn ends, place 2 advancement counters on 1 card in a remote root (any card, Corp's choice)."
+    },
     "k-p-lynn": {
       "cycle": "terminal-directive",
       "result": "matches",
@@ -6592,6 +6920,11 @@
       "result": "matches",
       "note": "Unique; at the Corp's turn begin may trace X (X = power counters): success 1 core damage and trash it, failure 1 power counter."
     },
+    "kyuban": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Install only on ice; whenever the Runner passes the host ice, gain 2."
+    },
     "la-costa-grid": {
       "cycle": "ashes",
       "result": "filed",
@@ -6629,6 +6962,18 @@
         "1.14.5"
       ]
     },
+    "labor-rights": {
+      "cycle": "magnum-opus",
+      "result": "filed",
+      "abilities": [
+        "Trash the top 3 cards of your stack.",
+        "Remove this event from the game instead of trashing it."
+      ],
+      "note": "Area 1: the existing row (P1-l, engine #965): rfgInsteadOfTrashing is read only on the Corp operation path (play.ts), so the event is trashed. Its three trash_top_of_stack instructions also split one sentence (9.11.3; the rulings-event skip files that half under area 11). The heap shuffle of 3 and the draw match. cr-checker: confirmed.",
+      "cr": [
+        "9.11.3"
+      ]
+    },
     "labyrinthine-servers": {
       "cycle": "lunar",
       "result": "filed",
@@ -6640,6 +6985,18 @@
         "6.1.5",
         "9.5.2b",
         "9.9.3a"
+      ]
+    },
+    "lady-liberty": {
+      "cycle": "reign-and-reverie",
+      "result": "wrong",
+      "abilities": [
+        "[click], [click], [click]: Add an agenda from HQ to your score area worth agenda points equal to the exact number of hosted power counters."
+      ],
+      "note": "Fix-now candidate. add_agenda_from_hq_to_score_worth_exact_hosted_power (addKinds.ts) offers every agenda in HQ and overwrites its agendaPoints with the counter count, so with 5 counters a 2-point agenda scores 5. The text allows only an agenda whose own agenda points equal the counters exactly (2.5, 3.2.2b). It also adds the points to agendaPointsScoredThisTurn, though an agenda added directly is not scored (1.17.3e; other add-to-score kinds share this). The turn-begin power counter, limit 1 region per server and limit 1 per deck match. cr-checker: confirmed, fix-now.",
+      "cr": [
+        "1.2.1",
+        "1.17.3e"
       ]
     },
     "lag-time": {
@@ -6945,6 +7302,11 @@
       "fixedIn": "engine#953",
       "test": "a strength-1 Living Mural hosted on a strength-3 Drafter cannot break its subroutine until it is pumped (CR 3.9.5g)"
     },
+    "liza-talking-thunder-prominent-legislator": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "0 link; the first successful central run each turn draws 2 and gives 1 tag (separate effects, so the tag can be avoided, as the ruling says)."
+    },
     "llds-energy-regulator": {
       "cycle": "lunar",
       "result": "wrong",
@@ -7134,6 +7496,18 @@
       "cr": [
         "9.5.2f",
         "1.2.1"
+      ]
+    },
+    "mache": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "The first time you trash an accessed card each turn, you may place power counters on Mâché equal to that card's trash cost."
+      ],
+      "note": "Area 10 ('first time each turn' records): noteAccessTrash records the turn's first access trash only while a card with the field is installed, so a Mâché installed after that trash fires on a later one (9.3.2b, 9.6.5c). Unique, the trash-cost counters (at the time of access, as the ruling says) and 3 counters: draw 1 match. cr-checker: confirmed.",
+      "cr": [
+        "9.3.2b",
+        "9.6.5c"
       ]
     },
     "macrophage": {
@@ -7677,6 +8051,11 @@
       "result": "matches",
       "note": "Worth 1 more agenda point in the Runner's score area."
     },
+    "meridian": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Subroutine: the Runner chooses to add it to their score area as a -1 point agenda, or the Corp gains 4 and the run ends (no gain if taken, as the ruling says)."
+    },
     "merlin": {
       "cycle": "lunar",
       "result": "matches",
@@ -7777,6 +8156,11 @@
         "1.16.10"
       ]
     },
+    "minds-eye": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Console, +1 MU; each successful R&D run may place 1 power counter; [click], 3 hosted power counters: breach R&D with no access to its root (breach_server_standalone)."
+    },
     "mindscaping": {
       "cycle": "liberation",
       "result": "wrong",
@@ -7839,6 +8223,18 @@
       "cycle": "flashpoint",
       "result": "matches",
       "note": "[click][click], X credits: remove X tags."
+    },
+    "miss-bones": {
+      "cycle": "reign-and-reverie",
+      "result": "wrong",
+      "abilities": [
+        "Use these credits to trash installed cards."
+      ],
+      "note": "Fix-now candidate. hostedCreditsSpendFor ['trash'] is spent for every trash or trash_asset purpose (costs.ts), which access.ts uses for every accessed card, so the credits pay to trash cards accessed in HQ, R&D and Archives (1.10.4b). The hosted credits are also spent automatically before the pool, with no choice, and she is trashed inline when empty rather than by a static-condition ability (9.6.7). The 12 credits on install match. cr-checker: confirmed.",
+      "cr": [
+        "1.10.4b",
+        "9.6.7"
+      ]
     },
     "mitosis": {
       "cycle": "borealis",
@@ -8203,6 +8599,11 @@
         "1.2.1"
       ]
     },
+    "nathaniel-gnat-hall-one-of-a-kind": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "0 link; at turn begin gain 1 if the grip has 2 or fewer cards."
+    },
     "navi-mumbai-city-grid": {
       "cycle": "mumbad",
       "result": "matches",
@@ -8366,6 +8767,18 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "Net damage equal to printed agenda points of agendas scored this turn."
+    },
+    "neurostasis": {
+      "cycle": "reign-and-reverie",
+      "result": "wrong",
+      "abilities": [
+        "If you pay 3[credit] when the Runner accesses Neurostasis, choose 1 installed Runner card for each advancement token on Neurostasis. The Runner must shuffle the chosen cards into the stack."
+      ],
+      "note": "shuffle_n_installed_runner_remaining (shuffleKinds.ts) chooses one card, shuffles it into the stack, then reopens the choice; the text chooses all the cards first, then shuffles them together (1.2.1), so a host shuffled first can lose its hosted cards before they can be chosen. Also area 11 (costs): the 3 credits are lose_credits inside the effect, not a paid cost. Can be advanced, and the access trigger matches. cr-checker: partly (the hosted-card loss depends on a checkpoint between picks).",
+      "cr": [
+        "1.2.1",
+        "1.13.13"
+      ]
     },
     "neutralize-all-threats": {
       "cycle": "data-and-destiny",
@@ -8719,6 +9132,11 @@
       "result": "matches",
       "note": "Remote only; while rezzed the Runner cannot initiate a run on its server (runLegality); trashed when the Runner makes a successful run on HQ (graph.ts)."
     },
+    "office-supplies": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Play cost reduced by 1 per link (playCostReducedByLink); gain 4 or draw 4, the Runner's choice."
+    },
     "officer-frank": {
       "cycle": "terminal-directive",
       "result": "wrong",
@@ -8838,6 +9256,17 @@
       "cycle": "order-and-chaos",
       "result": "matches",
       "note": "Unique; can be advanced, rez cost -3 per advancement; trash 1 program; resolve a subroutine on another rezzed ice (mandatory); End the run."
+    },
+    "otoroshi": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "If you do, the Runner accesses that card unless they pay 3[credit]."
+      ],
+      "note": "Area 8 (access): the existing row: access_installed_card only presets run.accessCandidates, so the access waits for the breach. Area 4 (visibility): the Runner's option 'Access <title>' and the log name the unrezzed remote card before access (10.2.2a). The optional placement of up to 3 advancement counters on a remote root card matches. cr-checker: partly (added the label leak).",
+      "cr": [
+        "10.2.2a"
+      ]
     },
     "otto-campaign": {
       "cycle": "elevation",
@@ -9012,6 +9441,18 @@
       ],
       "note": "Area 11 (breaking): spend_x_pump_and_break calls breakNextSubroutines, which breaks the first unbroken subroutines in order and always the most it can, so the Runner neither chooses which subroutines nor 'up to' (1.14.5, 3.9.5f; the findings row on the generic break). It also tests the printed ice.subtypes, not the layered subtypes (3.9.5h). The heap install on encountering a barrier and the pump match."
     },
+    "paragon": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "The first time you make a successful run each turn, you may gain 1[credit] and look at the top card of your stack."
+      ],
+      "note": "Area 10 ('first time each turn' records): onSuccessfulRunOncePerTurn keeps a per-card fired list (graph.ts), so a Paragon installed or unblanked after the turn's first successful run, or a second copy, fires on a later run (9.3.2b, 9.6.5c; Nga and Endurance share the flag). Console, +1 MU, the gain, look and optional bottom match. cr-checker: confirmed.",
+      "cr": [
+        "9.3.2b",
+        "9.6.5c"
+      ]
+    },
     "parasite": {
       "cycle": "core-set",
       "result": "wrong",
@@ -9055,6 +9496,11 @@
         "1.2.1",
         "3.5.1a"
       ]
+    },
+    "patchwork": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Console, +1 MU; once per turn when playing or installing a card the Runner may trash 1 other grip card to pay 2 less (applyPatchworkDiscount, patchworkDiscountUsedThisTurn)."
     },
     "patron": {
       "cycle": "mumbad",
@@ -9106,6 +9552,11 @@
       "cycle": "lunar",
       "result": "matches",
       "note": "Gain 1 per rezzed ice."
+    },
+    "peeping-tom": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "On encounter the Corp names a Runner card type, the grip is revealed, and for the rest of the run the ice has 1 'end the run unless the Runner takes 1 tag' per revealed card of that type."
     },
     "peer-review": {
       "cycle": "elevation",
@@ -9658,6 +10109,18 @@
       ],
       "note": "area 2 (run position): move_runner_to_archives_outermost sets only the attacked server and position. It does not end an encounter in progress or move the run to the approach-ice step (or the movement phase with no ice), and has no Success or Run Ends phase guard. move_runner_to_outermost_attacked has the same gap. cr-checker: CR 6.2.8b, 6.1.3d, 6.2.8c."
     },
+    "psych-mike": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "The first time each turn a successful run on R&D ends, you may gain 1[credit] for each time you accessed a card in R&D during that run."
+      ],
+      "note": "Area 10 ('first time each turn' records): noteFirstSuccessfulRunOnRdEnds returns early with no installed holder, so a Psych Mike installed after the turn's first successful R&D run fires on a later one (9.3.2b, 9.6.5c). Unique and the credit per R&D access match. cr-checker: confirmed.",
+      "cr": [
+        "9.3.2b",
+        "9.6.5c"
+      ]
+    },
     "psychic-field": {
       "cycle": "honor-and-profit",
       "result": "wrong",
@@ -9934,6 +10397,18 @@
       "cycle": "mumbad",
       "result": "matches",
       "note": "Limit 1; switch identity with another of the same faction; removed from the game instead of trashed."
+    },
+    "reboot": {
+      "cycle": "reign-and-reverie",
+      "result": "wrong",
+      "abilities": [
+        "Remove this event from the game."
+      ],
+      "note": "Fix-now candidate. rfg_self is inside the successful-run instruction, so after an unsuccessful run Reboot goes to the heap (probe); 'Remove this event from the game.' is its own sentence, not under 'If successful' (6.7.4, 8.6.6a). Rip Deal's rfgSelfOnRunEnd or a run_end conditional fit. Also area 6 (Runner install): install_up_to_from_heap_facedown_continue installs inline. Run Archives and installing up to 5 facedown instead of breaching match. cr-checker: confirmed.",
+      "cr": [
+        "6.7.4",
+        "8.6.6a"
+      ]
     },
     "rebranding-team": {
       "cycle": "data-and-destiny",
@@ -10720,6 +11195,18 @@
       ],
       "note": "Area 4 (visibility): mustRevealWhenAccessedFromRd only writes a log line; nothing records a reveal (as Ganked!, S2a). The encounter on access outside Archives and the trash 1 program subroutine (Corp chooses) match."
     },
+    "saraswati-mnemonics-endless-exploration": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "[click], 1[credit]: Install 1 card from HQ in the root of a remote server, then place 1 advancement counter on it."
+      ],
+      "note": "Area 5 (Corp install): install_hq_remote_root_place_adv_lock_until_next_corp_turn installs inline, with no trash of an agenda or asset already in the root (8.5.6a), and makes new remotes through resolveInstallServerId (outside createRemote). Area 4: two log lines name the installed card. The advancement counter and the cannot-score-or-rez lock until the next Corp turn match. cr-checker: confirmed.",
+      "cr": [
+        "8.5.6a",
+        "10.2.2a"
+      ]
+    },
     "satellite-grid": {
       "cycle": "order-and-chaos",
       "result": "wrong",
@@ -11299,6 +11786,11 @@
       "result": "matches",
       "note": "The first pass of a rezzed code gate or sentry each turn: the Corp may pay 1 or trash 1 HQ card to make the Runner encounter it again."
     },
+    "siu": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Unique; at the Corp's turn begin may trash it to trace 3: 1 tag."
+    },
     "skorpios-defense-systems-persuasive-power": {
       "cycle": "terminal-directive",
       "result": "wrong",
@@ -11348,6 +11840,18 @@
         "Choose 1 piece of ice protecting a central server in the same position as the passed ice. Move to that ice and approach it. You may jack out."
       ],
       "note": "Area 14 (run flow), the existing row 'Slipstream starts an encounter; its text says approach' (6.2.8a): no rez window and no jack-out offer. The choice labels name unrezzed central ice (area 4). The same-position match is right."
+    },
+    "slot-machine": {
+      "cycle": "magnum-opus",
+      "result": "filed",
+      "abilities": [
+        "[subroutine] If you revealed 3 or more cards that share a type when this encounter began, place 3 advancement tokens on an installed card."
+      ],
+      "note": "Area 12: the existing place_advancements row: the default candidate list keeps only agendas and advanceable cards, but 'an installed card' is any card (1.18.2). Area 4: mo_slot_machine_encounter logs the title of the stack card it moves to the bottom (4.1.5). The encounter move and reveal and the shared-type thresholds match; the shared-type count lives on the run and is not cleared per encounter. cr-checker: confirmed.",
+      "cr": [
+        "1.18.2",
+        "4.1.5"
+      ]
     },
     "smartware-distributor": {
       "cycle": "system-gateway",
@@ -11528,6 +12032,18 @@
       "cycle": "mumbad",
       "result": "matches",
       "note": "+1 link; trash: draw 3."
+    },
+    "sportsmetal-go-big-or-go-home": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "Whenever an agenda is scored or stolen, gain 2[credit] or draw 2 cards."
+      ],
+      "note": "Area 10: the existing row: fireOnAgendaScoredOrStolen never passes the Corp identity, so it never triggers (1.8.3a, 1.17.6, 1.17.7). Hyperloop Extension shares the call. The gain-or-draw choice matches. cr-checker: confirmed.",
+      "cr": [
+        "1.8.3a",
+        "1.17.6"
+      ]
     },
     "spot-the-prey": {
       "cycle": "red-sand",
@@ -12386,6 +12902,11 @@
       "result": "matches",
       "note": "Trash the grip, run any server, prevent all damage during that run."
     },
+    "the-outfit-family-owned-and-operated": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Whenever the Corp takes bad publicity, gain 3 (badPublicityHooks)."
+    },
     "the-personal-touch": {
       "cycle": "core-set",
       "result": "filed",
@@ -12543,6 +13064,18 @@
         "5.5.3b"
       ]
     },
+    "thimblerig": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "When your turn begins and whenever the Runner passes this ice, you may swap this ice with another installed piece of ice."
+      ],
+      "note": "Area 3 (swap): swap_two_installed_ice writes the ice arrays directly, outside the swap helpers; for ice-to-ice swaps this has no effect today (8.8.2, 8.8.3). Area 4: the log names the other ice even when it is unrezzed (10.2.2a). Both triggers, the optional swap and end the run match. cr-checker: partly (the real defect is the log line).",
+      "cr": [
+        "8.8.3",
+        "10.2.2a"
+      ]
+    },
     "thomas-haas": {
       "cycle": "creation-and-control",
       "result": "matches",
@@ -12584,6 +13117,18 @@
       "result": "matches",
       "note": "Whenever the Runner steals an agenda, 1 core damage unless they spend [click] and 2."
     },
+    "thunder-art-gallery": {
+      "cycle": "reign-and-reverie",
+      "result": "filed",
+      "abilities": [
+        "The first time you avoid or remove a tag each turn, you may install a card from your grip, lowering its install cost by 1."
+      ],
+      "note": "Area 10 ('first time each turn' records): onFirstAvoidOrRemoveTagFiredIds is a per-card fired list, so a gallery installed after the turn's first avoid or remove fires on a later one (9.6.5c). Area 6 (Runner install): install_from_grip_discount drops programs that would exceed memory (8.5.6c), trojans and install-on-ice cards, as Credit Kiting (S3k). Unique matches. cr-checker: confirmed.",
+      "cr": [
+        "9.6.5c",
+        "8.5.6c"
+      ]
+    },
     "thunderbolt-armaments-peace-through-power": {
       "cycle": "liberation",
       "result": "matches",
@@ -12604,6 +13149,19 @@
       "cr": [
         "9.6.5d",
         "1.2.1"
+      ]
+    },
+    "timely-public-release": {
+      "cycle": "magnum-opus",
+      "result": "filed",
+      "abilities": [
+        "Hosted agenda counter: Install 1 piece of ice from HQ or Archives in any position protecting a server, ignoring all costs."
+      ],
+      "note": "Area 5 (Corp install): install_ice_resolve splices the ice in inline: no new remote (8.5.2a), no trash of ice (8.5.6b), no install triggers or installed-this-turn note (8.5.16f). Area 4: it logs the ice title, including ice from HQ (4.1.6). The agenda counter on score and the any-position choice match. cr-checker: confirmed.",
+      "cr": [
+        "8.5.2a",
+        "8.5.16f",
+        "4.1.6"
       ]
     },
     "tinkering": {
@@ -12687,6 +13245,11 @@
       "cycle": "system-gateway",
       "result": "matches",
       "note": "On score or steal, give the Runner 1 tag."
+    },
+    "too-big-to-fail": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Play only with less than 10 credits; gain 7 and take 1 bad publicity."
     },
     "top-down-solutions": {
       "cycle": "elevation",
@@ -12991,6 +13554,11 @@
       "result": "matches",
       "note": "Gain 1 whenever the Corp creates a server."
     },
+    "tycoon": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Interface 1 credit: break up to 2 barrier subroutines; 2 credits: +3 strength (its own pump; the pump's interface flag is in paired cut A's list); the Corp gains 2 when an encounter ends in which it broke a subroutine (breakersThatBrokeThisEncounter)."
+    },
     "tyr": {
       "cycle": "ashes",
       "result": "matches",
@@ -13051,6 +13619,11 @@
       ],
       "fixedIn": "engine#953",
       "test": "Umbrella cannot break a code gate that hosts no trojan, even at full strength (card text, CR 1.2.1)"
+    },
+    "under-the-bus": {
+      "cycle": "reign-and-reverie",
+      "result": "matches",
+      "note": "Play only if the Runner accessed a card last turn; the Corp trashes 1 installed connection resource of its choice and takes 1 bad publicity."
     },
     "underdome-irregulars": {
       "cycle": "vantage-point",
@@ -13544,6 +14117,11 @@
         "9.3.2b",
         "1.19.4"
       ]
+    },
+    "watch-the-world-burn": {
+      "cycle": "magnum-opus",
+      "result": "matches",
+      "note": "Terminal, limit 1 per deck; run a remote; the first non-agenda card accessed is removed from the game, and for the rest of the game accessed copies of it (by title) are removed too (rfgPrintedTitlesOnAccess)."
     },
     "watchdog": {
       "cycle": "flashpoint",
