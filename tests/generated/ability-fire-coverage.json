@@ -6,18 +6,18 @@
     "supportedCards": 2016,
     "cardsWithAbilities": 1603,
     "abilities": 2295,
-    "firedInPlayouts": 84,
-    "neverFired": 2211,
-    "neverFiredNoTest": 1320,
-    "neverRun": 171,
+    "firedInPlayouts": 95,
+    "neverFired": 2200,
+    "neverFiredNoTest": 1308,
+    "neverRun": 169,
     "byArea": {
       "area 1": {
-        "neverFired": 286,
-        "noTest": 161,
+        "neverFired": 284,
+        "noTest": 160,
         "neverRun": 16
       },
       "area 2": {
-        "neverFired": 17,
+        "neverFired": 16,
         "noTest": 8,
         "neverRun": 2
       },
@@ -27,8 +27,8 @@
         "neverRun": 0
       },
       "area 4": {
-        "neverFired": 76,
-        "noTest": 35,
+        "neverFired": 75,
+        "noTest": 34,
         "neverRun": 5
       },
       "area 5": {
@@ -52,23 +52,23 @@
         "neverRun": 4
       },
       "area 9": {
-        "neverFired": 164,
-        "noTest": 124,
-        "neverRun": 17
+        "neverFired": 163,
+        "noTest": 121,
+        "neverRun": 15
       },
       "area 11": {
-        "neverFired": 506,
-        "noTest": 294,
+        "neverFired": 502,
+        "noTest": 291,
         "neverRun": 24
       },
       "area 12": {
         "neverFired": 194,
-        "noTest": 126,
+        "noTest": 124,
         "neverRun": 22
       },
       "area 13": {
         "neverFired": 152,
-        "noTest": 78,
+        "noTest": 76,
         "neverRun": 16
       },
       "area 14": {
@@ -77,7 +77,7 @@
         "neverRun": 5
       },
       "area 15": {
-        "neverFired": 447,
+        "neverFired": 445,
         "noTest": 281,
         "neverRun": 46
       },
@@ -122,9 +122,12 @@
         2
       ],
       "fired": [
+        "akiko-nisei-head-case#1",
         "ayla-bios-rahim-simulant-specialist#2",
+        "basilar-synthgland-2kvj#1",
         "brain-cage#2",
         "mass-commercialization#0",
+        "misdirection#0",
         "subliminal-messaging#0"
       ]
     },
@@ -193,15 +196,23 @@
         2
       ],
       "fired": [
+        "anthill-excavation-contract#0",
+        "anthill-excavation-contract#1",
         "baker#0",
         "barry-baz-wong-tri-maf-veteran#1",
         "csr-campaign#0",
+        "curupira#4",
         "daily-quest#2",
+        "federal-fundraising#0",
         "flip-switch#1",
         "ganked#1",
+        "petty-cash#1",
+        "petty-cash#2",
         "regolith-mining-license#1",
         "virtual-service-agent#0",
         "virtual-service-agent#1",
+        "winchester#0",
+        "winchester#1",
         "window-of-opportunity#0"
       ]
     },
@@ -273,9 +284,10 @@
     "aesops-pawnshop#3": 6,
     "aggressive-secretary#1": 2,
     "aggressive-trendsetting#0": 3,
-    "aginfusion-new-miracles-for-a-new-world#0": 1,
+    "aginfusion-new-miracles-for-a-new-world#0": 2,
     "airbladex-jsrf-ed#3": 3,
     "aircheck#1": 1,
+    "akiko-nisei-head-case#1": 1,
     "alexa-belsky#1": 1,
     "allele-repression#1": 1,
     "always-be-running#2": 1,
@@ -343,7 +355,8 @@
     "bamboo-dome#1": 1,
     "bank-job#1": 1,
     "bankroll#1": 1,
-    "barry-baz-wong-tri-maf-veteran#1": 2,
+    "barry-baz-wong-tri-maf-veteran#1": 5,
+    "basilar-synthgland-2kvj#1": 1,
     "beanstalk-royalties#0": 1,
     "because-i-can#1": 2,
     "begemot#2": 1,
@@ -449,11 +462,11 @@
     "corporate-troubleshooter#0": 1,
     "corroder#1": 13,
     "counter-surveillance#0": 1,
-    "creative-commission#0": 1,
+    "creative-commission#0": 2,
     "crowdfunding#3": 3,
     "crypt#1": 1,
-    "csr-campaign#0": 1,
-    "cultivate#0": 1,
+    "csr-campaign#0": 2,
+    "cultivate#0": 2,
     "curupira#1": 1,
     "curupira#3": 1,
     "curupira#4": 2,
@@ -465,7 +478,7 @@
     "cyberdex-virus-suite#2": 1,
     "daeg-first-net-cat#1": 1,
     "daily-casts#2": 1,
-    "daily-quest#2": 2,
+    "daily-quest#2": 3,
     "daruma#0": 1,
     "data-dealer#0": 3,
     "data-folding#0": 1,
@@ -477,14 +490,16 @@
     "davinci#1": 1,
     "ddos#0": 1,
     "dean-lister#1": 1,
-    "decoy#0": 6,
+    "decoy#0": 9,
     "dedicated-response-team#0": 2,
     "defense-construct#1": 1,
     "deja-vu#0": 1,
     "demolisher#3": 1,
     "desperado#2": 1,
+    "detente#3": 1,
     "deuces-wild#0": 1,
     "devil-charm#1": 1,
+    "digital-rights-management#1": 1,
     "direct-access#2": 1,
     "director-haas#2": 2,
     "dirty-laundry#1": 1,
@@ -580,12 +595,13 @@
     "funhouse#1": 1,
     "game-day#1": 1,
     "gamenet-where-dreams-are-real#0": 2,
-    "ganked#1": 5,
+    "ganked#1": 6,
     "gbahali#0": 2,
     "gebrselassie#1": 1,
     "gemini#0": 1,
     "gene-splicer#1": 1,
     "georgia-emelyov#1": 3,
+    "ghosttongue#2": 1,
     "glenn-station#1": 1,
     "glenn-station#2": 1,
     "glut-cipher#1": 3,
@@ -614,7 +630,7 @@
     "hayley-kaplan-universal-scholar#0": 2,
     "heartbeat#2": 1,
     "hearts-and-minds#0": 1,
-    "hedge-fund#0": 18,
+    "hedge-fund#0": 20,
     "helheim-servers#1": 2,
     "heliamphora#1": 1,
     "helium-3-deposit#0": 1,
@@ -639,11 +655,12 @@
     "hush#2": 1,
     "hyoubu-institute-absolute-clarity#0": 1,
     "hyoubu-precog-manifold#2": 1,
+    "hype-machine#1": 1,
     "hyperbaric#1": 2,
     "iain-stirling-retired-spook#0": 1,
     "ibrahim-salem#3": 1,
     "ice-wall#2": 23,
-    "idiosyncresis#1": 2,
+    "idiosyncresis#1": 3,
     "imp#0": 7,
     "inazuma#0": 1,
     "inazuma#1": 1,
@@ -685,6 +702,8 @@
     "k-p-lynn#1": 2,
     "kabonesa-wu-netspace-thrillseeker#1": 1,
     "kala-ghoda-real-tv#0": 1,
+    "karuna#0": 1,
+    "karuna#1": 1,
     "kati-jones#2": 1,
     "katorga-breakout#1": 2,
     "keyhole#1": 1,
@@ -706,12 +725,15 @@
     "lancelot#0": 1,
     "lawyer-up#1": 1,
     "leave-no-trace#1": 1,
+    "leech#0": 1,
+    "leech#1": 1,
     "lethe#0": 1,
     "lethe#1": 1,
     "levy-advanced-research-lab#0": 1,
     "liberated-account#2": 1,
     "liberated-chela#0": 1,
     "license-acquisition#0": 1,
+    "lie-low#1": 1,
     "light-the-fire#0": 3,
     "light-the-fire#1": 4,
     "lilypad#2": 2,
@@ -780,7 +802,7 @@
     "mining-accident#1": 1,
     "miraju#0": 2,
     "mirrormorph-endless-iteration#0": 9,
-    "misdirection#0": 1,
+    "misdirection#0": 2,
     "mitra-aman#1": 3,
     "mkultra#2": 1,
     "mobius#1": 1,
@@ -797,6 +819,7 @@
     "mushin-no-shin#1": 2,
     "muslihat-multifarious-marketeer#1": 1,
     "mutate#0": 1,
+    "mutual-favor#0": 1,
     "mystic-maemi#1": 1,
     "mystic-maemi#2": 1,
     "n-pot#0": 1,
@@ -809,9 +832,9 @@
     "neotokyo-grid#0": 2,
     "net-ready-eyes#1": 1,
     "net-ready-eyes#2": 1,
-    "net-shield#0": 1,
+    "net-shield#0": 4,
     "networking#0": 1,
-    "neural-emp#1": 1,
+    "neural-emp#1": 2,
     "neurospike#0": 1,
     "new-angeles-sol-your-news#0": 1,
     "new-construction#1": 1,
@@ -822,8 +845,8 @@
     "next-sapphire#1": 1,
     "next-sapphire#2": 1,
     "next-wave-2#0": 1,
-    "nico-campaign#0": 1,
-    "nico-campaign#1": 2,
+    "nico-campaign#0": 2,
+    "nico-campaign#1": 3,
     "nightdancer#0": 1,
     "nightdancer#1": 1,
     "nightmare-archive#1": 3,
@@ -843,6 +866,7 @@
     "on-the-lam#0": 2,
     "on-the-lam#1": 1,
     "open-forum#0": 1,
+    "open-market#4": 1,
     "oppo-research#2": 1,
     "oracle-may#2": 1,
     "orca#2": 2,
@@ -852,6 +876,7 @@
     "pad-factory#1": 1,
     "paige-piper#1": 1,
     "paintbrush#0": 1,
+    "palisade#1": 1,
     "pan-weave#2": 5,
     "panchatantra#0": 3,
     "panic-button#1": 1,
@@ -861,18 +886,23 @@
     "parasite#2": 1,
     "paules-cafe#1": 1,
     "pawn#2": 1,
+    "paywall#0": 1,
+    "paywall#1": 1,
     "peer-review#0": 1,
     "pelangi#1": 1,
-    "pennyshaver#1": 1,
+    "pennyshaver#1": 2,
+    "pennyshaver#3": 1,
     "perfect-recall#2": 1,
     "persephone#1": 2,
     "personalized-portal#0": 1,
-    "petty-cash#1": 4,
+    "petty-cash#1": 5,
     "petty-cash#2": 3,
+    "phat-gioan-baotixita#1": 1,
+    "phat-gioan-baotixita#2": 1,
     "philotic-entanglement#2": 1,
     "phoneutria#0": 2,
-    "ping#0": 5,
-    "ping#1": 1,
+    "ping#0": 6,
+    "ping#1": 2,
     "pinhole-threading#1": 3,
     "pivot#1": 2,
     "plan-b#1": 2,
@@ -888,6 +918,7 @@
     "power-to-the-people#1": 1,
     "prana-condenser#1": 2,
     "pravdivost-consulting-political-solutions#0": 3,
+    "predictive-planogram#0": 1,
     "priority-construction#1": 1,
     "priority-requisition#0": 1,
     "process-automation#0": 2,
@@ -911,7 +942,7 @@
     "psychokinesis#1": 1,
     "pt-untaian-lifes-building-blocks#0": 1,
     "public-support#2": 1,
-    "public-trail#0": 5,
+    "public-trail#0": 9,
     "puffer#2": 2,
     "punitive-counterstrike#0": 1,
     "push-your-luck#0": 1,
@@ -939,8 +970,8 @@
     "red-planet-couriers#1": 1,
     "reeducation#0": 1,
     "regenesis#0": 1,
-    "regolith-mining-license#1": 1,
-    "regolith-mining-license#2": 7,
+    "regolith-mining-license#1": 3,
+    "regolith-mining-license#2": 8,
     "remote-enforcement#0": 1,
     "replanting#1": 2,
     "research-grant#0": 1,
@@ -962,6 +993,7 @@
     "rng-key#1": 1,
     "rolodex#0": 1,
     "rolodex#1": 2,
+    "ronin#1": 2,
     "rook#2": 1,
     "rosetta-2-0#0": 1,
     "rototurret#0": 3,
@@ -994,10 +1026,11 @@
     "sealed-vault#0": 2,
     "sealed-vault#1": 1,
     "sealed-vault#2": 1,
-    "seamless-launch#0": 4,
+    "seamless-launch#0": 6,
     "searchlight#1": 1,
     "searchlight#2": 1,
     "sebastiao-souza-pessoa-activist-organizer#1": 1,
+    "secure-and-protect#1": 1,
     "security-chip#0": 1,
     "security-nexus#3": 5,
     "seidr-laboratories-destiny-defined#0": 1,
@@ -1038,8 +1071,8 @@
     "spark-of-inspiration#0": 2,
     "special-order#0": 8,
     "special-report#0": 1,
-    "spin-doctor#1": 2,
-    "spin-doctor#2": 2,
+    "spin-doctor#1": 3,
+    "spin-doctor#2": 4,
     "spoilers#0": 1,
     "spot-the-prey#0": 1,
     "spree#2": 1,
@@ -1073,6 +1106,8 @@
     "svyatogor-excavator#0": 1,
     "symmetrical-visage#1": 1,
     "syn-attack#1": 1,
+    "synapse-global-faster-than-thought#0": 2,
+    "synapse-global-faster-than-thought#1": 2,
     "sync-bre#1": 1,
     "sync-rerouting#2": 4,
     "synthetic-blood#1": 1,
@@ -1084,7 +1119,7 @@
     "taurus#0": 1,
     "team-sponsorship#0": 1,
     "tech-startup#0": 5,
-    "telework-contract#2": 1,
+    "telework-contract#2": 2,
     "temple-of-the-liberated-mind#2": 1,
     "tempus#2": 1,
     "tenma-line#0": 1,
@@ -1117,8 +1152,8 @@
     "thunder-art-gallery#1": 2,
     "tiered-subscription#0": 1,
     "tinkering#0": 3,
-    "tithe#0": 4,
-    "tithe#1": 4,
+    "tithe#0": 5,
+    "tithe#1": 5,
     "tl-dr#0": 2,
     "tollbooth#0": 10,
     "tollbooth#1": 3,
@@ -1127,9 +1162,11 @@
     "touch-ups#1": 2,
     "tracker#1": 1,
     "trade-in#0": 1,
+    "tranquilizer#2": 1,
+    "tranquilizer#3": 1,
     "transparency-initiative#0": 1,
     "transport-monopoly#1": 1,
-    "tree-line#2": 1,
+    "tree-line#2": 2,
     "trickster-taka#1": 1,
     "trickster-taka#2": 1,
     "trojan-horse#1": 1,
@@ -1164,8 +1201,8 @@
     "viktor-1-0#0": 1,
     "viral-weaponization#0": 3,
     "virgo#0": 1,
-    "virtual-service-agent#0": 1,
-    "virtual-service-agent#1": 1,
+    "virtual-service-agent#0": 2,
+    "virtual-service-agent#1": 2,
     "virtuoso#3": 4,
     "virus-breeding-ground#1": 1,
     "vladisibirsk-city-grid#1": 5,
@@ -1188,6 +1225,7 @@
     "will-o-the-wisp#0": 3,
     "windfall#0": 1,
     "window#0": 1,
+    "witch-hunt#1": 1,
     "woman-in-the-red-dress#1": 1,
     "working-prototype#1": 1,
     "world-tree#1": 3,
@@ -3477,7 +3515,7 @@
         "class": "paid",
         "name": "aginfusion-redirect",
         "area": "area 1",
-        "tests": 1,
+        "tests": 2,
         "sweeps": 5
       }
     ],
@@ -3560,15 +3598,6 @@
         "area": "area 14",
         "tests": 0,
         "sweeps": 2
-      }
-    ],
-    "akiko-nisei-head-case": [
-      {
-        "ability": "akiko-nisei-head-case#1",
-        "class": "conditional",
-        "area": "area 11",
-        "tests": 0,
-        "sweeps": 1
       }
     ],
     "alarm-clock": [
@@ -3931,22 +3960,6 @@
         "class": "conditional",
         "area": "area 12",
         "tests": 0,
-        "sweeps": 1
-      }
-    ],
-    "anthill-excavation-contract": [
-      {
-        "ability": "anthill-excavation-contract#0",
-        "class": "conditional",
-        "area": "area 1",
-        "tests": 1,
-        "sweeps": 2
-      },
-      {
-        "ability": "anthill-excavation-contract#1",
-        "class": "conditional",
-        "area": "area 1",
-        "tests": 1,
         "sweeps": 1
       }
     ],
@@ -4670,15 +4683,6 @@
         "area": "area 14",
         "tests": 0,
         "sweeps": 5
-      }
-    ],
-    "basilar-synthgland-2kvj": [
-      {
-        "ability": "basilar-synthgland-2kvj#1",
-        "class": "conditional",
-        "area": "area 9",
-        "tests": 0,
-        "sweeps": 0
       }
     ],
     "bass-ch1r180g4": [
@@ -7084,14 +7088,6 @@
         "area": "area 11",
         "tests": 1,
         "sweeps": 6
-      },
-      {
-        "ability": "curupira#4",
-        "class": "paid",
-        "name": "curupira-pump",
-        "area": "area 11",
-        "tests": 2,
-        "sweeps": 5
       }
     ],
     "customized-secretary": [
@@ -7516,7 +7512,7 @@
         "class": "paid",
         "name": "decoy-prevent-tag",
         "area": "area 15",
-        "tests": 6,
+        "tests": 9,
         "sweeps": 3
       }
     ],
@@ -7665,7 +7661,7 @@
         "class": "paid",
         "name": "detente-return-access",
         "area": "area 1",
-        "tests": 0,
+        "tests": 1,
         "sweeps": 5
       }
     ],
@@ -7720,7 +7716,7 @@
         "ability": "digital-rights-management#1",
         "class": "play",
         "area": "area 13",
-        "tests": 0,
+        "tests": 1,
         "sweeps": 2
       }
     ],
@@ -9436,15 +9432,6 @@
         "sweeps": 0
       }
     ],
-    "federal-fundraising": [
-      {
-        "ability": "federal-fundraising#0",
-        "class": "conditional",
-        "area": "area 4",
-        "tests": 0,
-        "sweeps": 1
-      }
-    ],
     "feedback-filter": [
       {
         "ability": "feedback-filter#0",
@@ -10232,7 +10219,7 @@
         "ability": "ghosttongue#2",
         "class": "conditional",
         "area": "area 9",
-        "tests": 0,
+        "tests": 1,
         "sweeps": 0
       }
     ],
@@ -14504,16 +14491,6 @@
         "sweeps": 0
       }
     ],
-    "misdirection": [
-      {
-        "ability": "misdirection#0",
-        "class": "paid",
-        "name": "misdirection-remove-tags",
-        "area": "area 15",
-        "tests": 1,
-        "sweeps": 5
-      }
-    ],
     "mitosis": [
       {
         "ability": "mitosis#1",
@@ -15190,7 +15167,7 @@
         "class": "paid",
         "name": "net-shield-prevent",
         "area": "area 9",
-        "tests": 1,
+        "tests": 4,
         "sweeps": 3
       }
     ],
@@ -15208,7 +15185,7 @@
         "ability": "neural-emp#1",
         "class": "play",
         "area": "area 9",
-        "tests": 1,
+        "tests": 2,
         "sweeps": 2
       }
     ],
@@ -16307,23 +16284,6 @@
         "sweeps": 1
       }
     ],
-    "petty-cash": [
-      {
-        "ability": "petty-cash#1",
-        "class": "play",
-        "area": "area 15",
-        "tests": 4,
-        "sweeps": 2
-      },
-      {
-        "ability": "petty-cash#2",
-        "class": "paid",
-        "name": "petty-cash-archives",
-        "area": "area 2",
-        "tests": 3,
-        "sweeps": 5
-      }
-    ],
     "pharos": [
       {
         "ability": "pharos#1",
@@ -17082,7 +17042,7 @@
         "ability": "public-trail#0",
         "class": "play",
         "area": "area 15",
-        "tests": 5,
+        "tests": 9,
         "sweeps": 2
       }
     ],
@@ -17895,7 +17855,7 @@
         "class": "paid",
         "name": "ronin-damage",
         "area": "area 9",
-        "tests": 0,
+        "tests": 2,
         "sweeps": 2
       }
     ],
@@ -18463,7 +18423,7 @@
         "ability": "secure-and-protect#1",
         "class": "play",
         "area": "area 13",
-        "tests": 0,
+        "tests": 1,
         "sweeps": 2
       }
     ],
@@ -20985,14 +20945,14 @@
         "ability": "tranquilizer#2",
         "class": "conditional",
         "area": "area 12",
-        "tests": 0,
+        "tests": 1,
         "sweeps": 1
       },
       {
         "ability": "tranquilizer#3",
         "class": "conditional",
         "area": "area 12",
-        "tests": 0,
+        "tests": 1,
         "sweeps": 1
       }
     ],
@@ -21069,7 +21029,7 @@
         "class": "paid",
         "name": "tree-line-expend",
         "area": "area 12",
-        "tests": 1,
+        "tests": 2,
         "sweeps": 5
       },
       {
@@ -22389,24 +22349,6 @@
         "area": "area 1",
         "tests": 3,
         "sweeps": 0
-      }
-    ],
-    "winchester": [
-      {
-        "ability": "winchester#0",
-        "class": "subroutine",
-        "name": "winchester-program",
-        "area": "area 11",
-        "tests": 0,
-        "sweeps": 3
-      },
-      {
-        "ability": "winchester#1",
-        "class": "subroutine",
-        "name": "winchester-hardware",
-        "area": "area 11",
-        "tests": 0,
-        "sweeps": 2
       }
     ],
     "windfall": [
