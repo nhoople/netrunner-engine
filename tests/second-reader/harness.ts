@@ -105,6 +105,10 @@ export class Report {
   readonly ids = new Map<string, string>();
   /** Observations the engine's state cannot show, with the reason. */
   readonly unobserved = new Map<string, string>();
+  /** Titles the position holds more than one copy of. */
+  readonly duplicates = new Set<string>();
+  /** A snapshot that one observation at one step is read from. */
+  readonly snapsFor = new Map<string, GameState>();
 
   /** Keep the state as it is after the step `label`. */
   snap(label: string, s: GameState): GameState {
@@ -112,7 +116,18 @@ export class Report {
     return s;
   }
 
-  /** Record a fact a snapshot cannot show. `at` is the step label, if any. */
+  /**
+   * Read one standard observation at `label` from this state, not from the
+   * step's snapshot: for a fact that holds only between two stops.
+   */
+  snapFor(label: string, observe: string, s: GameState): void {
+    this.snapsFor.set(`${label}::${observe}`, cloneState(s));
+  }
+
+  /**
+   * Record a fact a snapshot cannot show (a legal move, who chooses). A
+   * standard observation cannot be set this way. `at` is the step label.
+   */
   fact(observe: string, value: unknown, at?: string): void {
     this.facts.set(`${at ?? ""}::${observe}`, value);
   }
@@ -136,9 +151,12 @@ function zoneOf(s: GameState, id: string): string {
   const card = s.cards[id];
   if (!card) return "gone";
   if (s.removedFromGame?.includes(id)) return "removed";
-  const hostId = (card as { hostId?: string }).hostId;
-  if (hostId && s.cards[hostId]) return `hosted:${s.cards[hostId]!.title}`;
   const zone = card.zone as string;
+  const hostId = (card as { hostId?: string }).hostId;
+  const inPlay = zone === "runner:installed" || zone.startsWith("server:");
+  if (hostId && s.cards[hostId] && inPlay) {
+    return `hosted:${s.cards[hostId]!.title}`;
+  }
   const server = /^server:(.+):(root|ice)$/.exec(zone);
   if (server) return `${server[2]}:${serverName(server[1]!)}`;
   const hosted = /^hosted:(.+)$/.exec(zone);
@@ -174,6 +192,7 @@ function standard(
   s: GameState,
   observe: string,
   ids: Map<string, string>,
+  duplicates: Set<string> = new Set(),
 ): unknown {
   const simple: Record<string, () => unknown> = {
     "runner.credits": () => s.runner.credits,
@@ -194,6 +213,9 @@ function standard(
     "run.active": () => Boolean(s.run),
     "run.outcome": () => {
       if (s.run) return "in-progress";
+      if (s.turn.successfulRunThisTurn && s.turn.unsuccessfulRunThisTurn) {
+        return "both kinds of run happened this turn";
+      }
       if (s.turn.successfulRunThisTurn) return "successful";
       if (s.turn.unsuccessfulRunThisTurn) return "unsuccessful";
       return "neither";
@@ -225,6 +247,9 @@ function standard(
   }
   const id = ids.get(title);
   if (!id) throw new Error(`driver did not name the card "${title}"`);
+  if (duplicates.has(title)) {
+    throw new Error(`the position has more than one "${title}"`);
+  }
   const card = s.cards[id];
   switch (fn) {
     case "zone":
@@ -279,27 +304,31 @@ export function compare(c: Case, report: Report): Comparison[] {
         key,
         expected: e.equals,
         engine: undefined,
-        agrees: true,
+        agrees: false,
         unobserved,
       };
     }
-    let engine: unknown;
-    if (report.facts.has(key)) {
-      engine = report.facts.get(key);
-    } else if (!e.at && report.facts.has(`${last}::${e.observe}`)) {
-      engine = report.facts.get(`${last}::${e.observe}`);
-    } else {
-      const label = e.at ?? last;
-      const snap = report.snaps.get(label);
-      if (!snap) {
-        throw new Error(`${c.id}: the driver took no snapshot at "${label}"`);
-      }
-      engine = standard(snap, e.observe, report.ids);
-      if (engine === NOT_STANDARD) {
+    const label = e.at ?? last;
+    const snap =
+      report.snapsFor.get(`${label}::${e.observe}`) ?? report.snaps.get(label);
+    let engine = snap
+      ? standard(snap, e.observe, report.ids, report.duplicates)
+      : NOT_STANDARD;
+    const fact = [key, `${last}::${e.observe}`, `::${e.observe}`].find((k) =>
+      report.facts.has(k),
+    );
+    if (engine !== NOT_STANDARD && fact) {
+      throw new Error(
+        `${c.id}: "${e.observe}" is a standard observation; the driver may not set it`,
+      );
+    }
+    if (engine === NOT_STANDARD) {
+      if (!fact) {
         throw new Error(
-          `${c.id}: the driver reported nothing for "${e.observe}"`,
+          `${c.id}: the driver reported nothing for "${e.observe}" at "${label}"`,
         );
       }
+      engine = report.facts.get(fact);
     }
     return {
       key,
@@ -345,7 +374,8 @@ export class Board {
 
   private remember(id: string): string {
     const title = this.s.cards[id]!.title;
-    if (!this.report.ids.has(title)) this.report.ids.set(title, id);
+    if (this.report.ids.has(title)) this.report.duplicates.add(title);
+    else this.report.ids.set(title, id);
     return id;
   }
 

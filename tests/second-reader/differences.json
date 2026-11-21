@@ -1,6 +1,26 @@
 [
   {
     "batch": "cr-examples-ch1",
+    "case": "1.10.3c.ex2",
+    "observations": [
+      {
+        "key": "::zone(The Future Perfect)",
+        "expected": "runner-score",
+        "engine": "hq"
+      },
+      {
+        "key": "::runner.score",
+        "expected": 3,
+        "engine": 0
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "1.2.1",
+    "area": "11",
+    "note": "The Future Perfect only stops the steal when the bids differ. The engine does 1 net damage when they match (here it flatlines a Runner with an empty grip) and still lets the Runner steal when they differ"
+  },
+  {
+    "batch": "cr-examples-ch1",
     "case": "1.12.2.ex1",
     "observations": [
       {

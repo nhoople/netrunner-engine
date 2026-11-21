@@ -33,15 +33,20 @@ const WALK: Action["type"][] = [
 ];
 
 /**
- * Take the obvious step (continue, access, finish, pass) until `stop` holds,
- * a choice opens, or nothing obvious is left.
+ * Take the obvious step (continue, access, finish, pass) until `stop` holds
+ * or a choice opens. With nothing obvious left it throws, so a driver cannot
+ * report a state it did not mean to stop in.
  */
 function drive(s: GameState, stop: (s: GameState) => boolean): GameState {
   for (let i = 0; i < 200; i++) {
     if (stop(s) || s.pendingChoice || s.done) return s;
     const legal = legalActions(s);
     const next = WALK.map((t) => legal.find((a) => a.type === t)).find(Boolean);
-    if (!next) return s;
+    if (!next) {
+      throw new Error(
+        `stuck at ${s.timingKey}: ${legal.map((a) => a.type).join(", ")}`,
+      );
+    }
     s = must(s, next);
   }
   throw new Error(`no stop at ${s.timingKey}`);
@@ -117,14 +122,13 @@ export const drivers: Record<string, Driver> = {
     b.card(feeder).recurringCredits = 1;
     const [atman] = b.grip("atman");
     let s = take(b.s, "basic_install", atman);
-    // The engine asks nothing here: it spends what is available.
-    const spendTwo =
-      hasOption(s, "2") || (s.cards[atman]!.powerCounters ?? 0) >= 2;
-    const spendOne =
-      hasOption(s, "1") || (s.cards[atman]!.powerCounters ?? 0) === 1;
+    // The engine asks nothing here: it spends what is available. So what
+    // it would accept or refuse cannot be seen, only what it did.
+    const noChoice =
+      "The engine does not ask how many credits to spend on Atman; it spends all that are available.";
+    r.cannotObserve("legal(spend-two)", noChoice);
+    r.cannotObserve("legal(spend-one)", noChoice);
     if (s.pendingChoice) s = pick(s, "1");
-    r.fact("legal(spend-two)", spendTwo);
-    r.fact("legal(spend-one)", spendOne);
     r.snap("spend-one", s);
   },
 
@@ -133,7 +137,6 @@ export const drivers: Record<string, Driver> = {
     const ghost = b.rig("ghost-runner");
     b.card(ghost).hostedCredits = 3;
     b.hq("the-future-perfect");
-    b.grip("diesel", "diesel", "diesel");
     let s = drive(run(b.s, "hq"), (x) => Boolean(x.psi));
     r.fact("legal(psi)", accepts(s, { type: "psi_runner_bid", amount: 2 }));
     s = must(s, { type: "psi_runner_bid", amount: 2 });
@@ -640,7 +643,7 @@ export const drivers: Record<string, Driver> = {
     const b = new Board(r, "runner", 5);
     b.rig("corroder");
     b.grip("atman", "femme-fatale");
-    b.stack("corroder");
+    b.stack("leprechaun");
     b.ice("burke-bugs", "hq");
     b.hq("hedge-fund");
     let s = drive(run(b.s, "hq"), (x) => Boolean(x.trace) || passedIce(x));
@@ -975,7 +978,7 @@ export const drivers: Record<string, Driver> = {
     r.snap("ob", s);
     const obOpen = Boolean(s.pendingChoice) && hasOption(s, "install-dest");
     s = through(s, atAction, ["install-dest:hq"]);
-    r.fact("rezzed(Howler)", obOpen && Boolean(s.cards[howler!]?.rezzed), "ob");
+    if (obOpen) r.snapFor("ob", "rezzed(Howler)", s);
     s = toAction(through(s, atAction));
     r.snap("scored", s);
   },

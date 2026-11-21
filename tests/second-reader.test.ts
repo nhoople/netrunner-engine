@@ -46,6 +46,18 @@ const WRITTEN_TITLES: Record<string, string> = {
     "CR 1.12.3.ex1: The Foundry's search shuffles away the cards Accelerated Beta Test was looking at, so they are not installed or trashed",
 };
 
+/**
+ * Observations the engine's state cannot show. They are not compared, so
+ * they are named here and do not count as agreement.
+ */
+const UNOBSERVED: Record<string, string[]> = {
+  "cr-examples-ch1": [
+    "1.10.3c.ex1 legal(spend-two)",
+    "1.10.3c.ex1 legal(spend-one)",
+    "1.17.1a.ex1 threat",
+  ],
+};
+
 const differences = loadDifferences();
 /** Verdicts that leave the engine and the expectation apart. */
 const OPEN = new Set(["pending", "engine-wrong", "cr-open"]);
@@ -58,7 +70,7 @@ function runCase(c: Case, driver: Driver): Comparison[] {
 
 function differing(rows: Comparison[]) {
   return rows
-    .filter((row) => !row.agrees)
+    .filter((row) => !row.agrees && !row.unobserved)
     .map(({ key, expected, engine }) => ({ key, expected, engine }));
 }
 
@@ -109,7 +121,15 @@ for (const { name, chapter, drivers } of BATCHES) {
         continue;
       }
       it(title, () => {
-        expect(differing(runCase(c, drivers[c.id]!))).toEqual([]);
+        const rows = runCase(c, drivers[c.id]!);
+        expect(differing(rows)).toEqual([]);
+        expect(
+          rows
+            .filter((row) => row.unobserved)
+            .map((row) => `${c.id} ${row.key.split("::")[1]}`),
+        ).toEqual(
+          (UNOBSERVED[name] ?? []).filter((u) => u.startsWith(`${c.id} `)),
+        );
       });
     }
 
