@@ -1,7 +1,7 @@
 /** 23 Seconds (23s) Flashpoint pack primitives — v1.122.0. */
 import { CR } from "../../timing/labels.js";
 import { log } from "../../state/createGame.js";
-import { addIceStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
+import { addIceStrengthBoostThisRun } from "../../state/lingeringEffects.js";
 import { startTrace } from "../../state/trace.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
@@ -33,7 +33,7 @@ export function applyFlashpoint23sPrimitive(
         trashCard(state, cardId);
         const iceId = state.run?.encounter?.iceId;
         if (iceId && state.run) {
-          addIceStrengthBoostThisEncounter(state, {
+          addIceStrengthBoostThisRun(state, {
             createdBy: sourceId,
             iceId,
             amount: -amount,
@@ -71,7 +71,7 @@ export function applyFlashpoint23sPrimitive(
       trashCard(state, cardId);
       const iceId = state.run?.encounter?.iceId;
       if (iceId && state.run) {
-        addIceStrengthBoostThisEncounter(state, {
+        addIceStrengthBoostThisRun(state, {
           createdBy: sourceId,
           iceId,
           amount: -amount,

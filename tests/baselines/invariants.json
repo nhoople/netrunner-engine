@@ -3163,7 +3163,7 @@
     "lingering effect registry (CR 9.10.1) > registers mark designation as a turn-duration lingering (CR 10.11.4)": [
       "RUNNER_CARD_REZZED"
     ],
-    "lingering effect registry (CR 9.10.1) > registers runner MU modifiers as a Runner-turn lingering (CR 9.10.1)": [
+    "lingering effect registry (CR 9.10.1) > registers runner MU modifiers as a lingering that ends with the turn in progress (CR 9.10.1)": [
       "RUNNER_CARD_REZZED"
     ],
     "lingering effect registry (CR 9.10.1) > registers this-turn strength boosts as turn-duration lingerings (CR 9.10.1)": [

@@ -308,25 +308,46 @@ describe("pending instances and their reaction window (CR 9.6.2, 9.6.4b, 9.2.8)"
 });
 
 describe("delayed conditional abilities (CR 9.6.13)", () => {
-  // Fix-now. Two faults: the subroutine step marks each resolved subroutine
-  // in `encounter.broken` ("Mark resolved (fired) so we do not re-fire"), so
-  // at the pass Chum reads Hortum as fully broken and never does its damage;
-  // and when it does, graph.ts holds the damage to the Run Ends phase
-  // ("becomes pending for the Run Ends Phase"), not the end of the encounter.
-  it.fails(
-    "RF: Chum does 3 net damage when the encounter it boosted ends with a subroutine unbroken, before the Runner approaches the server (CR 9.6.13c, 1.2.1)",
-    () => {
-      let s = chumEncounterBoard();
-      const hand = s.runner.hand.length;
-      const from = s.log.length;
-      s = passUntilRunEnds(s);
-      expect(s.runner.hand.length).toBe(hand - 3);
-      const lines = s.log.slice(from);
-      expect(at(lines, "net damage 3")).toBeLessThan(
-        at(lines, "Approach server"),
-      );
-    },
-  );
+  // Fixed in RF-2: a resolved subroutine is no longer read as broken by the
+  // Runner (`encounterFullyBrokenByRunner`), and Chum's damage resolves when
+  // the encounter ends, not at the end of the run.
+  it("Chum does 3 net damage when the encounter it boosted ends with a subroutine unbroken, before the Runner approaches the server (CR 9.6.13c, 1.2.1)", () => {
+    let s = chumEncounterBoard();
+    const hand = s.runner.hand.length;
+    const from = s.log.length;
+    s = passUntilRunEnds(s);
+    expect(s.runner.hand.length).toBe(hand - 3);
+    const lines = s.log.slice(from);
+    expect(at(lines, "net damage 3")).toBeLessThan(
+      at(lines, "Approach server"),
+    );
+  });
+
+  it("Chum does its 3 net damage in the Run Ends Phase when an unbroken subroutine ends the run during the encounter it boosted (CR 6.1.4, 6.8.5.ex1, 9.6.13c)", () => {
+    let s = chumEncounterBoard();
+    // Ice Wall's only subroutine ends the run; the Runner breaks nothing.
+    const wall = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
+    wall.rezzed = true;
+    wall.faceup = true;
+    s.cards["ice-1"] = wall;
+    s.run!.encounter = { iceId: "ice-1", broken: [false] };
+    const hand = s.runner.hand.length;
+    const from = s.log.length;
+    s = passUntilRunEnds(s);
+    expect(s.run).toBeNull();
+    expect(s.runner.hand.length).toBe(hand - 3);
+    const lines = s.log.slice(from);
+    expect(at(lines, "net damage 3")).toBeGreaterThan(at(lines, "End the run"));
+  });
+
+  it("Chum does no damage when the Runner breaks every subroutine of the encounter it boosted (CR 1.2.1)", () => {
+    let s = chumEncounterBoard();
+    s.run!.encounter = { iceId: "ice-1", broken: [true, true] };
+    s.run!.encounter.fullyBrokenByRunner = true;
+    const hand = s.runner.hand.length;
+    s = passUntilRunEnds(s);
+    expect(s.runner.hand.length).toBe(hand);
+  });
 });
 
 describe("replacement effects (CR 9.9.9c)", () => {

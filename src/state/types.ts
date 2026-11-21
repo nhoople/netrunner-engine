@@ -1532,6 +1532,12 @@ export interface CardInstance {
   onAgendaAccessedOrScored?: Effect;
   /** Malia: blanked resource id while this asset is rezzed. */
   tdatdMaliaBlankTargetId?: string;
+  /**
+   * Trieste Model Bioroids: the ice chosen when it was rezzed. Runner card
+   * abilities cannot break that ice's subroutines while Trieste is active
+   * (CR 9.4.1); cleared when either card becomes a new object (CR 1.12.2).
+   */
+  triesteChosenIceId?: string;
   /** Whispers in Nalubaale (win) */
   accessTrashNonAgendaWithVirusEqualPrintedCost?: boolean;
   trashHostAtVirus?: number;
@@ -4330,6 +4336,12 @@ interface EncounterState {
   broken: boolean[];
   /** Subroutines that resolved this encounter, including replacements (CR 9.8.9). */
   subroutinesResolved?: number;
+  /**
+   * Indexes marked in `broken` that the Runner did not break: they resolved,
+   * were prevented from resolving, or were skipped. Read through
+   * `encounterFullyBrokenByRunner` (`procedures/break.ts`).
+   */
+  notBrokenByRunner?: number[];
   /** Breaker ids that broke a subroutine this encounter (Crypsis). */
   breakersThatBrokeThisEncounter?: string[];
   /**

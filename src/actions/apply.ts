@@ -788,8 +788,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
   if (optionId.startsWith("forbid-runner-break:")) {
     const iceId = optionId.slice("forbid-runner-break:".length);
     const ice = state.cards[iceId];
-    if (ice) {
-      ice.cannotBreakWithRunnerCardAbilities = true;
+    const trieste = state.cards[sourceId];
+    if (ice && trieste) {
+      trieste.triesteChosenIceId = iceId;
       log(
         state,
         `Choose ${ice.title} — Runner card abilities cannot break its subroutines.`,

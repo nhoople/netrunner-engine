@@ -1,7 +1,8 @@
 /**
  * Şifr encounter strength SET (CR 9.12.1a): lowered to 0 for the encounter.
- * UFAQ: Wraparound stays 0 after a later fracter; cannot raise; Lotus Field
- * cannot be lowered.
+ * Sets apply first, then increases, then decreases, so Wraparound's +7 still
+ * applies after Şifr (decided 2026-11-20: the CR at the pin, not the 2017
+ * UFAQ). Şifr never raises; Lotus Field cannot be lowered.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -46,7 +47,7 @@ function encounterState(
 }
 
 describe("Şifr encounter strength set (CR 9.12.1a)", () => {
-  it("lowers Wraparound to 0; later fracter does not restore the +7", () => {
+  it("Şifr sets Wraparound to 0 before its +7 applies, so it is 7 until a fracter is installed (CR 9.12.1a)", () => {
     let s = createInitialState();
     s = structuredClone(s);
     const wrap = instantiateCard("wraparound", "wrap-1", "server:hq:ice");
@@ -67,13 +68,13 @@ describe("Şifr encounter strength set (CR 9.12.1a)", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.run?.encounter?.strengthLoweredTo).toBe(0);
-    expect(effectiveIceStrength(s, "wrap-1")).toBe(0);
-    expect(iceStrength(s, "wrap-1")).toBe(0);
+    // Set to 0 first, then +7 (CR 9.12.1a).
+    expect(effectiveIceStrength(s, "wrap-1")).toBe(7);
+    expect(iceStrength(s, "wrap-1")).toBe(7);
     expect(s.runner.maxHandSize).toBe(4);
     expect(s.turn.sifrUsedThisTurn).toBe(true);
 
-    // Installing a fracter removes Wraparound's +7 continuous bonus; that is
-    // not applying a −7, so strength stays 0 (UFAQ).
+    // Installing a fracter ends Wraparound's +7; Şifr's set to 0 remains.
     const corr = instantiateCard("corroder", "corr-1", "runner:installed");
     s.cards["corr-1"] = corr;
     s.runner.installed.push("corr-1");

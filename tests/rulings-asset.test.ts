@@ -256,9 +256,7 @@ describe("Trieste Model Bioroids", () => {
       (a) => a.type === "break_subroutine" && a.breakerId === "cor-1",
     );
 
-  // Today this also passes because of the bug filed under ruling 2 (the
-  // flag is never cleared). A fix for ruling 2 must keep this passing: the
-  // choice survives the ice being derezzed, only Trieste's derez ends it.
+  // The choice survives the ice being derezzed; only Trieste's derez ends it.
   it("Trieste Model Bioroids: the chosen ice derezzed and rezzed again is still the chosen ice (ruling 1)", () => {
     let s = trieste();
     s = must(s, { type: "rez_asset", cardId: "tr-1" });
@@ -269,11 +267,9 @@ describe("Trieste Model Bioroids", () => {
     expect(corroderBreaks(s)).toBe(false);
   });
 
-  // Filed under area 10: the rez ability sets the flag
-  // cannotBreakWithRunnerCardAbilities on the chosen ice and nothing clears
-  // it, so the ice stays unbreakable after Trieste is derezzed or trashed.
-  // Trieste's restriction applies only while it is active (CR 9.4.1).
-  it.skip("Trieste Model Bioroids: derezzed, its effect ends; rezzed again, the Corp makes a new choice (ruling 2; filed, area 10, CR 9.4.1: the chosen ice keeps a card flag after Trieste is derezzed)", () => {
+  // Trieste's restriction is its static ability, so it applies only while
+  // Trieste is active (CR 9.4.1, 1.8.3a). Fixed in RF-2.
+  it("Trieste Model Bioroids: derezzed, its effect ends; rezzed again, the Corp makes a new choice (ruling 2; CR 9.4.1, 1.8.3a)", () => {
     let s = trieste();
     s = must(s, { type: "rez_asset", cardId: "tr-1" });
     s = pick(s, "eli-1");

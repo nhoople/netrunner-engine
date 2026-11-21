@@ -25,6 +25,7 @@
  * - `breakActionCost`: what the basic break action costs a declared breaker.
  */
 import { abilitiesSuppressed } from "../abilities.js";
+import { facedownInstalledRunnerCard, isCardActive } from "../active.js";
 import { effectHasKind } from "../costs.js";
 import {
   cannotBreakExceptIcebreakerActive,
@@ -176,6 +177,51 @@ export function interfaceBlock(
 }
 
 /**
+ * The Runner broke every subroutine on the encountered ice (CR 6.2.7, 1.2.1:
+ * "fully break"). A subroutine that resolved, was prevented or was skipped
+ * is marked in `broken` only so it does not fire again; it is not broken by
+ * the Runner (Chum, The Gauntlet).
+ */
+export function encounterFullyBrokenByRunner(
+  enc:
+    NonNullable<NonNullable<GameState["run"]>["encounter"]> | null | undefined,
+): boolean {
+  if (!enc) return false;
+  if (enc.fullyBrokenByRunner) return true;
+  const notByRunner = enc.notBrokenByRunner ?? [];
+  return (
+    enc.broken.length > 0 &&
+    enc.broken.every((b, i) => b && !notByRunner.includes(i))
+  );
+}
+
+/** Mark subroutine `index` done without the Runner breaking it. */
+export function markSubroutineNotBrokenByRunner(
+  enc: NonNullable<NonNullable<GameState["run"]>["encounter"]>,
+  index: number,
+): void {
+  enc.broken[index] = true;
+  enc.notBrokenByRunner = [...(enc.notBrokenByRunner ?? []), index];
+}
+
+/**
+ * Trieste Model Bioroids: "Runner card abilities cannot break subroutines on
+ * the chosen ice." A static ability of Trieste, so it applies only while
+ * Trieste is active and not blanked (CR 9.4.1, 1.8.3a).
+ */
+export function triesteForbidsRunnerBreak(
+  state: GameState,
+  iceId: string,
+): boolean {
+  return Object.values(state.cards).some(
+    (card) =>
+      card.triesteChosenIceId === iceId &&
+      isCardActive(state, card.id) &&
+      !abilitiesSuppressed(state, card.id),
+  );
+}
+
+/**
  * The ice's and the breaker's own limits on any Runner break, whoever's
  * ability it is: Trieste (Runner card abilities), "only by a fracter"
  * (Semak-samun class), no AI programs, NEXT Activation Command (icebreakers
@@ -189,7 +235,17 @@ export function runnerBreakBlock(
   const source = state.cards[sourceId];
   const ice = state.cards[iceId];
   if (!source || !ice) return block("No encountered ice.", [CR.encounterIce]);
-  if (ice.cannotBreakWithRunnerCardAbilities && source.side === "runner") {
+  // A facedown installed Runner card's abilities are not active (CR 8.1.4a).
+  if (facedownInstalledRunnerCard(state, sourceId)) {
+    return block(`A facedown card's abilities are not active.`, [
+      CR.abilityActive,
+    ]);
+  }
+  if (
+    source.side === "runner" &&
+    (ice.cannotBreakWithRunnerCardAbilities ||
+      triesteForbidsRunnerBreak(state, iceId))
+  ) {
     return block(
       `Runner card abilities cannot break subroutines on ${ice.title}.`,
       [CR.encounterBreakPaw],

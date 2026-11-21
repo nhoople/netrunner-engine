@@ -30,6 +30,11 @@ import {
 import { syncNextSubtypeEtrSubs } from "../state/powerCounters.js";
 import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
+import { iceStrengthCannotBeLowered } from "../cards/stubs.js";
+import {
+  encounterFullyBrokenByRunner,
+  markSubroutineNotBrokenByRunner,
+} from "../state/procedures/break.js";
 import {
   collectAdvancementGainedSubs,
   collectBlockchainArchivesSubs,
@@ -2368,7 +2373,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Şifr: once/turn may −1 hand size to set encounter ice strength to 0.
         // Lotus Field-class cannot have strength lowered (UFAQ / CR 9.12.1a).
-        if (!s.turn.sifrUsedThisTurn && !ice.strengthCannotBeLowered) {
+        if (!s.turn.sifrUsedThisTurn && !iceStrengthCannotBeLowered(s, iceId)) {
           for (const rid of s.runner.installed) {
             const c = s.cards[rid];
             if (!c?.sifrMayZeroEncounterIceStrengthOncePerTurn) continue;
@@ -2674,10 +2679,10 @@ export const STEPS: Record<string, TimingStepDef> = {
           const n = s.turn.massDriverSkipSubsNextEncounter;
           s.turn.massDriverSkipSubsNextEncounter = 0;
           const broken = runState.encounter.broken ?? [];
-          for (let i = 0; i < Math.min(n, broken.length); i++) {
-            broken[i] = true;
-          }
           runState.encounter.broken = broken;
+          for (let i = 0; i < Math.min(n, broken.length); i++) {
+            markSubroutineNotBrokenByRunner(runState.encounter, i);
+          }
           // Mark as auto-skipped so they do not resolve.
           s.log.push(
             `Mass-Driver — first ${n} subroutine(s) of this encounter do not resolve.`,
@@ -3218,14 +3223,15 @@ export const STEPS: Record<string, TimingStepDef> = {
         // Tracker: prevent the first subroutine that would resolve this run.
         if (runState.quTrackerPreventFirstSubroutine) {
           runState.quTrackerPreventFirstSubroutine = false;
-          enc.broken[idx] = true;
+          markSubroutineNotBrokenByRunner(enc, idx);
           s.log.push(
             `Tracker — prevent subroutine "${sub.text}" from resolving.`,
           );
           return;
         }
-        // Mark resolved (fired) so we do not re-fire; unbroken means not broken by runner.
-        enc.broken[idx] = true;
+        // Mark resolved (fired) so it does not fire again; the Runner did not
+        // break it (`encounterFullyBrokenByRunner`).
+        markSubroutineNotBrokenByRunner(enc, idx);
         enc.subroutinesResolved = (enc.subroutinesResolved ?? 0) + 1;
         // Gantulga replacement: first named-server encounter → Do N net damage.
         let replaced = false;
@@ -3457,9 +3463,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             // The Gauntlet: track fully broken ice protecting HQ this run.
             if (
               runState.attackedServerId === "hq" &&
-              (Boolean(runState.encounter?.fullyBrokenByRunner) ||
-                ((runState.encounter?.broken?.length ?? 0) > 0 &&
-                  (runState.encounter?.broken ?? []).every(Boolean)))
+              encounterFullyBrokenByRunner(runState.encounter)
             ) {
               runState.inFullyBrokenHqProtectingIceIds = [
                 ...(runState.inFullyBrokenHqProtectingIceIds ?? []),
@@ -3619,22 +3623,22 @@ export const STEPS: Record<string, TimingStepDef> = {
             ) {
               const chumEnc = runState.chumActiveEncounter;
               runState.chumActiveEncounter = undefined;
-              const fully =
-                Boolean(runState.encounter?.fullyBrokenByRunner) ||
-                ((runState.encounter?.broken?.length ?? 0) > 0 &&
-                  (runState.encounter?.broken ?? []).every(Boolean));
+              const fully = encounterFullyBrokenByRunner(runState.encounter);
               if (!fully && chumEnc.netDamageIfNotFullyBroken > 0) {
+                // A delayed conditional ability met as this encounter ends;
+                // it resolves in the reaction window after the encounter and
+                // then expires (CR 9.6.13c), whether or not Chum is still
+                // active (CR 9.10.1).
                 const amount = chumEnc.netDamageIfNotFullyBroken;
-                createPendingAbilityInstance(s, {
-                  abilityKey: "chum:net-on-run-end",
-                  sourceId: chumEnc.chumSourceId,
+                noteInlineConditional(s, {
+                  cardId: chumEnc.chumSourceId,
+                  abilityKey: "chum-net-damage-on-encounter-end",
                   controller: "corp",
                   mandatory: true,
-                  payload: { kind: "chum_net_damage", amount },
+                  independentOfSource: true,
+                  effect: { op: "do", action: { kind: "net_damage", amount } },
+                  logLine: `Chum becomes pending — the encounter ended without the Runner fully breaking the ice (${amount} net damage; CR ${CR.delayedAbilityOnce.number}).`,
                 });
-                s.log.push(
-                  `Chum — ${amount} net damage becomes pending for the Run Ends Phase (CR ${CR.runEndsCondition.number}).`,
-                );
               }
             }
             // Chief Slee: place power per unbroken sub when any encounter ends.
@@ -4838,6 +4842,11 @@ export const STEPS: Record<string, TimingStepDef> = {
         : "run.emptyBpFund",
     {
       onResolve: (s) => {
+        // Chum: the run ended during the boosted encounter, so the encounter
+        // ended too and Chum's delayed conditional ability is met. It
+        // resolves in the Run Ends Phase, while run effects such as The
+        // Noble Path's still apply (CR 6.1.4, 6.8.5.ex1, 9.6.13c).
+        noteChumEncounterEndedByRunEnd(s);
         // CR 6.8.2 / appendix 11.4_6_a — drain open windows by class:
         // a) PAWs close (no further paid abilities / rez);
         // b) phase-begin reaction windows close;
@@ -5221,7 +5230,8 @@ export const STEPS: Record<string, TimingStepDef> = {
           }
         }
         {
-          // Drop still-pending Chum whose source went inactive (CR 9.6.10).
+          // Drop pending instances whose source went inactive (CR 9.6.10);
+          // Chum's is independent of its source (CR 9.6.13).
           cancelPendingIfSourceInactive(s);
           const chumPending = pendingAbilitiesWithStatus(s, "pending").filter(
             (p) => p.payload?.kind === "chum_net_damage",
@@ -5871,3 +5881,34 @@ export const BREACH_STEPS = {
   stealAgenda: STEPS["access.stealAgenda"],
   accessComplete: STEPS["access.complete"],
 } as const;
+
+/**
+ * Chum: "When that encounter ends, if the Runner did not fully break that
+ * ice, do 3 net damage." Called when the run ends with the boosted encounter
+ * still in progress: the encounter ends with the run (CR 6.1.4). The damage
+ * is pending for the Run Ends Phase (CR 6.8.5.ex1). An encounter that ends
+ * while the run goes on is handled where the encounter ends.
+ */
+function noteChumEncounterEndedByRunEnd(s: GameState): void {
+  const runState = s.run;
+  const chumEnc = runState?.chumActiveEncounter;
+  if (!runState || !chumEnc) return;
+  if (runState.encounter?.iceId !== chumEnc.iceId) return;
+  runState.chumActiveEncounter = undefined;
+  if (encounterFullyBrokenByRunner(runState.encounter)) return;
+  if (chumEnc.netDamageIfNotFullyBroken <= 0) return;
+  const amount = chumEnc.netDamageIfNotFullyBroken;
+  createPendingAbilityInstance(s, {
+    abilityKey: "chum:net-on-run-end",
+    sourceId: chumEnc.chumSourceId,
+    controller: "corp",
+    mandatory: true,
+    // A delayed conditional ability is kept by a lingering effect, so it
+    // does not depend on Chum staying active (CR 9.6.13, 9.10.1).
+    independentOfSource: true,
+    payload: { kind: "chum_net_damage", amount },
+  });
+  s.log.push(
+    `Chum — ${amount} net damage becomes pending for the Run Ends Phase (CR ${CR.runEndsCondition.number}).`,
+  );
+}

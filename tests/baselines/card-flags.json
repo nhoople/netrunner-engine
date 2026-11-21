@@ -1852,6 +1852,10 @@
         {
           "site": "src/state/continuousEffects.ts#collectBlankingEffects",
           "kinds": []
+        },
+        {
+          "site": "src/state/continuousEffects.ts#iceCannotGainAbilities",
+          "kinds": []
         }
       ],
       "kinds": []
@@ -9000,7 +9004,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousEffects.ts#resolveIceSubtypeMap",
+          "site": "src/state/continuousEffects.ts#collectSubtypeLayerSteps",
           "kinds": []
         }
       ],
@@ -18306,6 +18310,18 @@
           "kinds": []
         },
         {
+          "site": "src/state/active.ts#facedownInstalledRunnerCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/active.ts#installedCardActive",
+          "kinds": []
+        },
+        {
+          "site": "src/state/active.ts#isCardActive",
+          "kinds": []
+        },
+        {
           "site": "src/state/cardDeclarations.ts#onTrashAbility",
           "kinds": []
         },
@@ -18366,10 +18382,6 @@
         },
         {
           "site": "src/state/miscConditionalHooks.ts#fireOnFirstIceRezEachTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/pendingAbilities.ts#activeInPlay",
           "kinds": []
         },
         {
@@ -19368,15 +19380,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventGainSpend.ts#applyFlashpointQuPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/timing/graph.ts#STEPS.onResolve",
+          "site": "src/cards/stubs.ts#iceStrengthCannotBeLowered",
           "kinds": []
         }
       ],
@@ -20300,11 +20304,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#resolveIceSubtypeMap",
+          "site": "src/state/continuousEffects.ts#collectSubtypeLayerSteps",
           "kinds": [],
           "mirrors": [
             "src/state/continuousEffects.ts#{}"
           ]
+        },
+        {
+          "site": "src/state/continuousEffects.ts#resolveIceSubtypeMap",
+          "kinds": []
         },
         {
           "site": "src/state/continuousEffects.ts#resolveIceSubtypes",
@@ -22274,6 +22282,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/lingeringEffects.ts#endLingeringEffectsOnCard",
+          "kinds": []
+        },
+        {
           "site": "src/state/lockdowns.ts#trashActiveLockdownsAtCorpTurnBegin",
           "kinds": []
         },
@@ -24061,6 +24073,18 @@
           "kinds": []
         },
         {
+          "site": "src/state/active.ts#facedownInstalledRunnerCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/active.ts#installedCardActive",
+          "kinds": []
+        },
+        {
+          "site": "src/state/active.ts#isCardActive",
+          "kinds": []
+        },
+        {
           "site": "src/state/advanceable.ts#mayAdvanceInstalledCard",
           "kinds": []
         },
@@ -24110,6 +24134,14 @@
         },
         {
           "site": "src/state/continuousEffects.ts#collectSubtypeGrantEffects",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuousEffects.ts#collectSubtypeLayerSteps",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuousEffects.ts#iceCannotGainAbilities",
           "kinds": []
         },
         {
@@ -24198,10 +24230,6 @@
         },
         {
           "site": "src/state/iceRezHooks.ts#noteOnAnyIceRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/pendingAbilities.ts#activeInPlay",
           "kinds": []
         },
         {

@@ -1,13 +1,14 @@
 import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
 
 import { abilitiesSuppressed } from "../state/abilities.js";
+import { iceCannotGainAbilities } from "../state/continuousEffects.js";
 import { diffAgainstPreviousCheckpoint } from "../state/checkpointSnapshot.js";
 
 import { log } from "../state/createGame.js";
 import { lookAtChoiceCards } from "../state/reveal.js";
 import {
   addBreakerStrengthBoostThisRun,
-  addIceStrengthBoostThisEncounter,
+  addIceStrengthBoostThisRun,
 } from "../state/lingeringEffects.js";
 import { currentMark } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
@@ -361,7 +362,8 @@ export function fireIceRezDuringRunHooks(
     const isApOrDestroyer =
       subtypes.includes("ap") || subtypes.includes("destroyer");
     if (isApOrDestroyer) {
-      addIceStrengthBoostThisEncounter(state, {
+      // "+1 strength ... for the remainder of that run" (CR 1.2.1, 9.10.1).
+      addIceStrengthBoostThisRun(state, {
         createdBy: state.corp.identityId,
         iceId,
         amount: tb.strengthBonus,
@@ -370,7 +372,11 @@ export function fireIceRezDuringRunHooks(
         state,
         `${idCard!.title} — ${ice.title} gets +${tb.strengthBonus} strength this run.`,
       );
-      if (tb.gainEtrUnlessTrashInstalledSub) {
+      // Hush: the host ice cannot gain abilities (CR 1.2.1).
+      if (
+        tb.gainEtrUnlessTrashInstalledSub &&
+        !iceCannotGainAbilities(state, iceId)
+      ) {
         if (!ice.baseSubroutines) {
           ice.baseSubroutines = ice.subroutines
             ? structuredClone(ice.subroutines)

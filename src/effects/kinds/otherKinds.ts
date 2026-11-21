@@ -16,7 +16,11 @@ import type { ServerId } from "../../state/types.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
 import { chooseCards } from "../chooseCards.js";
-import { effectiveIceSubtypes, serverIdForIce } from "../../cards/stubs.js";
+import {
+  effectiveIceSubtypes,
+  iceStrengthCannotBeLowered,
+  serverIdForIce,
+} from "../../cards/stubs.js";
 import {
   breakableCount,
   markSubroutineBroken,
@@ -293,7 +297,7 @@ export function applyOtherKinds(
         };
       }
       const ice = state.cards[iceId];
-      if (ice.strengthCannotBeLowered) {
+      if (iceStrengthCannotBeLowered(state, iceId)) {
         log(
           state,
           `Weaken ${ice.title} prevented — strength cannot be lowered.`,

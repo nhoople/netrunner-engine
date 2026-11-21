@@ -24,8 +24,8 @@ export const LINGERING_KIND_MARK = "mark";
 export const LINGERING_KIND_GRANTED_SUBTYPES = "granted_subtypes";
 
 /**
- * Runner memory-limit modifier until end of the Runner's turn (CR 9.10.1).
- * Payload: `{ delta: number }`. Cleared when the Runner's turn ends.
+ * Runner memory-limit modifier until the end of the turn (CR 9.10.1).
+ * Payload: `{ delta: number }`. Cleared when the turn in progress ends.
  */
 export const LINGERING_KIND_RUNNER_MU = "runner_mu";
 
@@ -173,7 +173,7 @@ export function lingeringIceStrengthBoost(
   return n;
 }
 
-/** Runner MU modifier from lingerings until Runner turn end (CR 9.10.1). */
+/** Runner MU modifier from lingerings until the turn ends (CR 9.10.1). */
 export function lingeringRunnerMuModifier(state: GameState): number {
   let n = 0;
   for (const e of state.lingeringEffects) {
@@ -419,6 +419,39 @@ export function addBreakerStrengthBoostUntilCheckpoint(
     ...args,
     requestedDuration: "checkpoint",
   });
+}
+
+/**
+ * End the lingerings that apply to `cardId` because it became a new object:
+ * effects on a card apply only while it stays the same object (CR 1.12.1,
+ * 1.12.2). Lingerings it created stay (CR 1.12.6a, 9.10.1).
+ */
+export function endLingeringEffectsOnCard(
+  state: GameState,
+  cardId: string,
+): number {
+  let removed = 0;
+  for (const effect of state.lingeringEffects) {
+    if (effect.expired) continue;
+    const payload = effect.payload as
+      { cardId?: string; iceId?: string; breakerId?: string } | undefined;
+    if (
+      payload?.cardId !== cardId &&
+      payload?.iceId !== cardId &&
+      payload?.breakerId !== cardId
+    ) {
+      continue;
+    }
+    effect.expired = true;
+    removed += 1;
+  }
+  if (removed > 0) {
+    state.lingeringEffects = state.lingeringEffects.filter((e) => !e.expired);
+    state.log.push(
+      `Lingering effects on ${state.cards[cardId]?.title ?? cardId} end: it is a new object (CR 1.12.2).`,
+    );
+  }
+  return removed;
 }
 
 /**

@@ -3252,7 +3252,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     );
   });
 
-  it("registers runner MU modifiers as a Runner-turn lingering (CR 9.10.1)", async () => {
+  it("registers runner MU modifiers as a lingering that ends with the turn in progress (CR 9.10.1)", async () => {
     const {
       LINGERING_KIND_RUNNER_MU,
       lingeringEffectsOfKind,
@@ -3270,14 +3270,9 @@ describe("lingering effect registry (CR 9.10.1)", () => {
     expect(lingeringRunnerMuModifier(s)).toBe(-2);
     const mus = lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU);
     expect(mus).toHaveLength(1);
-    expect(mus[0]!.duration).toEqual({ kind: "turn", side: "runner" });
+    expect(mus[0]!.duration).toEqual({ kind: "turn" });
     expect(mus[0]!.payload).toEqual({ delta: -2 });
     expect(mus[0]!.independent).toBe(true);
-
-    // Corp turn end does not clear Runner-scoped MU.
-    expireLingeringEffects(s, { turn: "corp" });
-    expect(lingeringEffectsOfKind(s, LINGERING_KIND_RUNNER_MU)).toHaveLength(1);
-    expect(lingeringRunnerMuModifier(s)).toBe(-2);
 
     s.timingKey = "runner.turnEnds";
     autoWalk(s);
@@ -3913,7 +3908,7 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
     expect(s.run).toBeNull();
   });
 
-  it("drops Chum pending when Chum is blanked before run end (CR 9.6.10)", () => {
+  it("keeps Chum's pending net damage when Chum is blanked before the run ends: a delayed conditional ability is kept by a lingering effect (CR 9.6.13, 9.10.1)", () => {
     const s = createInitialState();
     const chum = instantiateCard("chum", "chum-1", "server:hq:ice");
     chum.rezzed = true;
@@ -3930,6 +3925,7 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
       sourceId: "chum-1",
       controller: "corp",
       mandatory: true,
+      independentOfSource: true,
       payload: { kind: "chum_net_damage", amount: 3 },
     });
     suppressAbilities(s, chum.id);
@@ -3950,11 +3946,11 @@ describe("Chum run-ends pending (CR 6.8.5)", () => {
     enterStep(s, "run.declareUnsuccessful");
     autoWalk(s);
 
-    expect(pending.status).toBe("cancelled");
-    expect(s.runner.hand).toHaveLength(4);
+    expect(pending.status).toBe("done");
+    expect(s.runner.hand).toHaveLength(1);
     expect(
       s.log.some((line) => line.includes(CR.pendingAbilityInactive.number)),
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 

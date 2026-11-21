@@ -463,11 +463,21 @@ export {
   collectSubtypeGrantEffects,
   resolveIceSubtypeMap,
   resolveIceSubtypes,
+  orderByDependency,
+  unsettledSubtypeLoops,
+  iceCannotGainAbilities,
 } from "./state/continuousEffects.js";
 export type {
   BlankingEffect,
+  DependencyOrder,
+  LayeredEffect,
   SubtypeGrantEffect,
 } from "./state/continuousEffects.js";
+export {
+  facedownInstalledRunnerCard,
+  installedCardActive,
+  isCardActive,
+} from "./state/active.js";
 export {
   applyContinuousGainedSubs,
   collectAdvancementGainedSubs,

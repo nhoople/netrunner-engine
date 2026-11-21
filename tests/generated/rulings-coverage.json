@@ -4,8 +4,8 @@
   "totals": {
     "rulings": 275,
     "cards": 134,
-    "tested": 194,
-    "filed": 75,
+    "tested": 196,
+    "filed": 73,
     "unreachable": 6,
     "uncited": 0
   },
@@ -34,8 +34,8 @@
     {
       "type": "resource",
       "rulings": 34,
-      "tested": 23,
-      "filed": 11,
+      "tested": 24,
+      "filed": 10,
       "uncited": 0
     },
     {
@@ -55,8 +55,8 @@
     {
       "type": "asset",
       "rulings": 17,
-      "tested": 11,
-      "filed": 3,
+      "tested": 12,
+      "filed": 2,
       "uncited": 0
     },
     {
@@ -287,7 +287,7 @@
       "rulings-ice.test.ts › Diviner: it checks the cost of the card the net damage trashed from the grip, not HQ (ruling 3; filed, area 9, CR 1.2.1: it checks the grip count, not the trashed card)"
     ],
     "dj-fenris#1": [
-      "rulings-resource.test.ts › DJ Fenris: turned facedown by Apocalypse it keeps the hosted identity, which has no effect until Fenris is faceup again (ruling 1; filed, area 11, CR 8.1.4a: facedown Fenris still offers the hosted identity's paid ability)"
+      "rulings-resource.test.ts › DJ Fenris: turned facedown by Apocalypse it keeps the hosted identity, which has no effect until Fenris is faceup again (ruling 1; CR 8.1.4a)"
     ],
     "docklands-pass#1": [
       "rulings-hardware.test.ts › Docklands Pass: an HQ breach replaced by Security Testing's 2 credits is not a breach, so the next HQ breach gets the extra access (ruling 1)"
@@ -809,7 +809,7 @@
       "rulings-asset.test.ts › Trieste Model Bioroids: the chosen ice derezzed and rezzed again is still the chosen ice (ruling 1)"
     ],
     "trieste-model-bioroids#2": [
-      "rulings-asset.test.ts › Trieste Model Bioroids: derezzed, its effect ends; rezzed again, the Corp makes a new choice (ruling 2; filed, area 10, CR 9.4.1: the chosen ice keeps a card flag after Trieste is derezzed)"
+      "rulings-asset.test.ts › Trieste Model Bioroids: derezzed, its effect ends; rezzed again, the Corp makes a new choice (ruling 2; CR 9.4.1, 1.8.3a)"
     ],
     "trieste-model-bioroids#3": [
       "rulings-asset.test.ts › Trieste Model Bioroids: Quetzal: Free Spirit's ability cannot break the chosen ice's subroutines (ruling 3)"
@@ -923,7 +923,6 @@
     "diviner#1",
     "diviner#2",
     "diviner#3",
-    "dj-fenris#1",
     "fast-break#1",
     "funhouse#1",
     "giordano-memorial-field#1",
@@ -967,7 +966,6 @@
     "the-twinning#4",
     "the-twinning#6",
     "tranquilizer#3",
-    "trieste-model-bioroids#2",
     "urtica-cipher#1",
     "verbal-plasticity#1",
     "virtuoso#9",
