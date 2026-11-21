@@ -1,0 +1,583 @@
+{
+  "batch": "cr-examples-ch6",
+  "title": "The CR's own examples, chapter 6 (Runs)",
+  "reader": { "model": "claude-fable-5-2", "name": "Claude Fable 5.2" },
+  "sources": { "cr": "v26.03", "cards": "v1.147.25" },
+  "blind": "Written from the CR text, printed card text and rulings (the lookup skill) only. The engine's src/, tests and baselines were not read. Committed before the comparison for this batch existed.",
+  "defaults": "Unless a case says otherwise: the Runner has the default 4 MU and no link, both identities are blank, servers have no ice, the Corp has 5 credits and the Runner 5, the Runner has 4 clicks at the start of their turn, zones not mentioned hold only cards with no relevant abilities, neither player spends credits on a trace, the Runner trashes no accessed card, and the Corp declines to rez or use anything not listed in the steps.",
+  "cases": [
+    {
+      "id": "6.1.2d.ex1",
+      "example": "6.1.2d.ex1",
+      "confidence": "stated",
+      "rules": ["6.1.2d", "6.9.5"],
+      "cards": ["Sneakdoor Beta", "Wall of Static", "Nisei MK II"],
+      "position": "Runner's turn. Sneakdoor Beta is installed. Archives has no ice. A rezzed Wall of Static is the only ice protecting HQ. HQ holds exactly one card, Nisei MK II. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "sneak", "do": "The Runner uses Sneakdoor Beta: the run on Archives reaches the server and the attacked server changes to HQ." }
+      ],
+      "expect": [
+        { "observe": "encountered(Wall of Static)", "equals": false, "why": "Not a standard key: whether the Runner encountered that ice during the run. The attacked server changes directly, without moving the Runner to a position on HQ." },
+        { "observe": "run.outcome", "equals": "successful" },
+        { "observe": "accessed", "equals": ["Nisei MK II"] },
+        { "observe": "zone(Nisei MK II)", "equals": "runner-score" },
+        { "observe": "runner.score", "equals": 2 },
+        { "observe": "runner.clicks", "equals": 3 }
+      ]
+    },
+    {
+      "id": "6.1.3e.ex1",
+      "example": "6.1.3e.ex1",
+      "confidence": "stated",
+      "rules": ["6.1.3e", "6.1.3f", "6.2.8b"],
+      "cards": ["Inversificator", "Mirāju", "Wall of Static"],
+      "position": "Runner's turn, 5 credits. Inversificator is installed. A rezzed Mirāju is the only ice protecting Archives. A rezzed Wall of Static is the only ice protecting HQ. HQ is empty. The Corp has 5 credits.",
+      "steps": [
+        { "label": "first", "do": "The Runner runs Archives, encounters Mirāju and breaks its subroutine with Inversificator. When the encounter ends, Mirāju's ability moves the Runner to the outermost position of Archives instead of passing it; the Runner does not jack out and Mirāju is derezzed." },
+        { "label": "second", "do": "The Runner approaches Mirāju again and the Corp rezzes it. The Runner encounters it and breaks nothing; the Corp does not draw. The encounter ends and the Runner passes Mirāju." },
+        { "label": "run-over", "do": "The run reaches Archives and ends." }
+      ],
+      "expect": [
+        { "at": "first", "observe": "offered(Inversificator)", "equals": false, "why": "Not a standard key: whether Inversificator's swap is offered at this step. Mirāju was not passed, so the condition is not met." },
+        { "at": "first", "observe": "rezzed(Mirāju)", "equals": false },
+        { "at": "first", "observe": "runner.credits", "equals": 4 },
+        { "at": "first", "observe": "run.active", "equals": true },
+        { "at": "second", "observe": "offered(Inversificator)", "equals": false, "why": "This pass does not follow the encounter in which Inversificator fully broke Mirāju." },
+        { "at": "second", "observe": "corp.credits", "equals": 3 },
+        { "at": "run-over", "observe": "zone(Mirāju)", "equals": "ice:Archives" },
+        { "at": "run-over", "observe": "zone(Wall of Static)", "equals": "ice:HQ" },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" }
+      ]
+    },
+    {
+      "id": "6.1.4b.ex1",
+      "example": "6.1.4b.ex1",
+      "confidence": "stated",
+      "rules": ["6.1.4b", "6.5.9a"],
+      "cards": ["Detente", "Ganked!", "Loot Box"],
+      "position": "Runner's turn, 5 credits, no run in progress. Detente is installed and hosts two copies of Ganked!. HQ holds no cards. A rezzed Loot Box is the only ice protecting HQ. The grip is empty and the stack holds at least 3 cards.",
+      "steps": [
+        { "label": "detente", "do": "The Runner uses Detente's ability (a click, and the 2 hosted cards go back to HQ) and accesses a card in HQ at random: a Ganked!. The Corp trashes it and chooses Loot Box. The Runner encounters Loot Box, breaks nothing and does not pay 2 credits for the first subroutine." }
+      ],
+      "expect": [
+        { "observe": "encounter.active", "equals": false, "why": "Not a standard key: whether an encounter is in progress. There is no run to end, but the effect ends the encounter." },
+        { "observe": "zone(Loot Box)", "equals": "ice:HQ", "why": "The second subroutine, which would trash Loot Box, does not resolve." },
+        { "observe": "runner.credits", "equals": 5 },
+        { "observe": "runner.grip", "equals": 0 },
+        { "observe": "runner.clicks", "equals": 3 },
+        { "observe": "corp.hq", "equals": 1 },
+        { "observe": "corp.archives", "equals": 1 },
+        { "observe": "run.active", "equals": false }
+      ]
+    },
+    {
+      "id": "6.1.4c.ex1",
+      "example": "6.1.4c.ex1",
+      "confidence": "stated",
+      "rules": ["6.1.4c"],
+      "cards": ["Unleash", "Lycian Multi-Munition"],
+      "position": "Corp's turn, 3 clicks, 5 credits. The Runner has 1 tag. HQ holds Unleash. An unrezzed Lycian Multi-Munition is the only ice protecting HQ.",
+      "steps": [
+        { "label": "unleash", "do": "The Corp plays Unleash, removing the tag, and rezzes Lycian Multi-Munition, choosing barrier. The Corp resolves its last subroutine." },
+        { "label": "turn-end", "do": "The Corp's turn ends." }
+      ],
+      "expect": [
+        { "at": "unleash", "observe": "corp.credits", "equals": 6, "why": "The rez ignores all costs. The subroutine gains 1 credit; 'end the run' does nothing with no run or encounter." },
+        { "at": "unleash", "observe": "runner.tags", "equals": 0 },
+        { "at": "unleash", "observe": "rezzed(Lycian Multi-Munition)", "equals": true },
+        { "at": "unleash", "observe": "hasSubtype(Lycian Multi-Munition,barrier)", "equals": true },
+        { "at": "unleash", "observe": "corp.clicks", "equals": 2 },
+        { "at": "turn-end", "observe": "rezzed(Lycian Multi-Munition)", "equals": false, "why": "Its own ability derezzes it when a turn ends." }
+      ]
+    },
+    {
+      "id": "6.2.3.ex1",
+      "example": "6.2.3.ex1",
+      "confidence": "stated",
+      "rules": ["6.2.3"],
+      "cards": ["Rook", "Wall of Static", "Enigma", "Tollbooth", "Eli 1.0", "Drafter", "Troll"],
+      "position": "Runner's turn. All ice is rezzed. HQ is protected by Wall of Static (innermost) and Enigma (outermost), and Rook is hosted on Enigma. R&D is protected by Tollbooth (innermost), Eli 1.0 (middle) and Drafter (outermost). Archives is protected by Troll alone.",
+      "steps": [
+        { "label": "to-same-server", "do": "The Runner tries to use Rook's click ability to host it on Wall of Static." },
+        { "label": "to-innermost-rd", "do": "The Runner tries to host it on Tollbooth." },
+        { "label": "to-outermost-rd", "do": "The Runner tries to host it on Drafter." },
+        { "label": "to-single", "do": "The Runner tries to host it on Troll." },
+        { "label": "move", "do": "The Runner uses Rook's click ability to host it on Eli 1.0." }
+      ],
+      "expect": [
+        { "observe": "legal(to-same-server)", "equals": true, "why": "Ice protecting the same server as the current host." },
+        { "observe": "legal(to-innermost-rd)", "equals": false, "why": "Rook's host is second counted from the innermost; Tollbooth is first." },
+        { "observe": "legal(to-outermost-rd)", "equals": false, "why": "Drafter is third counted from the innermost." },
+        { "observe": "legal(to-single)", "equals": false, "why": "A server protected by 1 piece of ice has no second position." },
+        { "observe": "legal(move)", "equals": true, "why": "Eli 1.0 is the second piece of ice counted from the innermost: the same position." },
+        { "at": "move", "observe": "zone(Rook)", "equals": "hosted:Eli 1.0" },
+        { "at": "move", "observe": "runner.clicks", "equals": 3 }
+      ]
+    },
+    {
+      "id": "6.2.3.ex2",
+      "example": "6.2.3.ex2",
+      "confidence": "stated",
+      "rules": ["6.2.3", "6.2.8a"],
+      "cards": ["Slipstream", "Corroder", "Wall of Static", "Enigma", "Tollbooth", "Ice Wall", "PAD Campaign", "Hedge Fund"],
+      "position": "Runner's turn, 5 credits. Slipstream and Corroder are installed. A remote server holds an unrezzed PAD Campaign and is protected by a rezzed Wall of Static alone. HQ is protected by an unrezzed Enigma (innermost) and a rezzed Tollbooth (outermost) and holds exactly one card, Hedge Fund. R&D is protected by an unrezzed Ice Wall alone.",
+      "steps": [
+        { "label": "pass", "do": "The Runner runs the remote server, encounters Wall of Static, raises Corroder's strength once and breaks the subroutine, passes it and trashes Slipstream for its ability." },
+        { "label": "choose-outer", "do": "The Runner tries to choose Tollbooth." },
+        { "label": "choose-rd", "do": "The Runner tries to choose Ice Wall." },
+        { "label": "move", "do": "The Runner chooses Enigma, moves to it and approaches it. The Runner does not jack out and the Corp does not rez Enigma." },
+        { "label": "run-over", "do": "The Runner passes Enigma; the run reaches HQ and ends." }
+      ],
+      "expect": [
+        { "observe": "legal(choose-outer)", "equals": false, "why": "The passed ice was innermost, and Tollbooth is second counted from the innermost." },
+        { "observe": "legal(choose-rd)", "equals": true },
+        { "observe": "legal(move)", "equals": true, "why": "Positions are compared from the innermost, whatever ice is outward of it." },
+        { "at": "move", "observe": "attackedServer", "equals": "HQ", "why": "Not a standard key: the server the run is now against." },
+        { "at": "move", "observe": "zone(Slipstream)", "equals": "heap" },
+        { "at": "run-over", "observe": "runner.credits", "equals": 3, "why": "2 credits for Wall of Static. Tollbooth is outward of the Runner and is never encountered, so no toll." },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "accessed", "equals": ["Hedge Fund"] }
+      ]
+    },
+    {
+      "id": "6.2.5d.ex1",
+      "example": "6.2.5d.ex1",
+      "confidence": "stated",
+      "rules": ["6.2.5d", "6.2.8c", "6.5.9a"],
+      "cards": ["Ganked!", "Cell Portal", "Gordian Blade"],
+      "position": "Runner's turn, 10 credits. Gordian Blade is installed. A rezzed Cell Portal is the only ice protecting HQ. HQ holds no cards; an unrezzed Ganked! is in the root of HQ.",
+      "steps": [
+        { "label": "breach", "do": "The Runner runs HQ, encounters Cell Portal, raises Gordian Blade's strength five times and breaks the subroutine. The run is successful and the Runner accesses Ganked!. The Corp trashes it and chooses Cell Portal. The Runner encounters Cell Portal again and breaks nothing. The subroutine resolves and the Runner does not jack out." },
+        { "label": "run-over", "do": "The breach and the run end." }
+      ],
+      "expect": [
+        { "at": "breach", "observe": "rezzed(Cell Portal)", "equals": false, "why": "The move does nothing in the success phase; the derez still happens." },
+        { "at": "run-over", "observe": "approachedAgain(Cell Portal)", "equals": false, "why": "Not a standard key: whether the Runner approaches Cell Portal again after the forced encounter. The Runner has no position in the success phase and cannot be moved to one." },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "runner.credits", "equals": 4 },
+        { "at": "run-over", "observe": "zone(Ganked!)", "equals": "archives" }
+      ]
+    },
+    {
+      "id": "6.2.6a.ex1",
+      "example": "6.2.6a.ex1",
+      "confidence": "stated",
+      "rules": ["6.2.6a", "6.2.4", "8.5.6b", "8.5.10"],
+      "cards": ["Drafter", "Wall of Static", "Tollbooth", "Hedge Fund"],
+      "position": "Runner's turn. HQ is protected by a rezzed Wall of Static (innermost) and an unrezzed Drafter (outermost). HQ holds exactly two cards, Tollbooth and Hedge Fund. Archives is empty. The Corp has 5 credits. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "drafter", "do": "The Runner runs HQ and approaches Drafter; the Corp rezzes it. The Runner breaks nothing. The Corp declines the first subroutine. For the second, the Corp installs Tollbooth from HQ protecting HQ, trashing both Wall of Static and Drafter as it does." },
+        { "label": "run-over", "do": "The run continues to its end." }
+      ],
+      "expect": [
+        { "at": "drafter", "observe": "zone(Tollbooth)", "equals": "ice:HQ" },
+        { "at": "drafter", "observe": "zone(Drafter)", "equals": "archives" },
+        { "at": "drafter", "observe": "zone(Wall of Static)", "equals": "archives" },
+        { "at": "drafter", "observe": "corp.credits", "equals": 2, "why": "3 to rez Drafter; the install ignores all costs." },
+        { "at": "run-over", "observe": "approached(Tollbooth)", "equals": false, "why": "Not a standard key: whether the Runner approached that ice during the run. The new ice is outward of the Runner's position." },
+        { "at": "run-over", "observe": "rezzed(Tollbooth)", "equals": false },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "accessed", "equals": ["Hedge Fund"] }
+      ]
+    },
+    {
+      "id": "6.2.6b.ex1",
+      "example": "6.2.6b.ex1",
+      "confidence": "stated",
+      "rules": ["6.2.6b", "6.2.2c"],
+      "cards": ["Brân 1.0", "Wall of Static"],
+      "position": "Runner's turn, 4 clicks. A rezzed Brân 1.0 is the only ice protecting R&D. HQ holds exactly one card, Wall of Static. The Corp has 5 credits. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "bran", "do": "The Runner runs R&D, encounters Brân 1.0 and loses 2 clicks to break its second and third subroutines. The first subroutine resolves: the Corp installs Wall of Static from HQ directly inward from Brân 1.0." },
+        { "label": "inner", "do": "The Runner passes Brân 1.0 and approaches Wall of Static. The Corp rezzes it. The Runner encounters it and breaks nothing." }
+      ],
+      "expect": [
+        { "at": "bran", "observe": "zone(Wall of Static)", "equals": "ice:R&D" },
+        { "at": "bran", "observe": "rezzed(Wall of Static)", "equals": false },
+        { "at": "bran", "observe": "runner.clicks", "equals": 1 },
+        { "at": "inner", "observe": "approached(Wall of Static)", "equals": true, "why": "Not a standard key: whether the Runner approached that ice during the run. Its position is inward of the Runner's." },
+        { "at": "inner", "observe": "rezzed(Wall of Static)", "equals": true },
+        { "at": "inner", "observe": "corp.credits", "equals": 2 },
+        { "at": "inner", "observe": "run.outcome", "equals": "unsuccessful" }
+      ]
+    },
+    {
+      "id": "6.2.7d.ex1",
+      "example": "6.2.7d.ex1",
+      "confidence": "stated",
+      "rules": ["6.2.7d", "6.1.2c"],
+      "cards": ["Bullfrog", "Corroder", "Wall of Static", "PAD Campaign", "Hedge Fund"],
+      "position": "Runner's turn, 5 credits. Corroder is installed. A remote server holds an unrezzed PAD Campaign and is protected by a rezzed Bullfrog alone. Archives is protected by a rezzed Wall of Static alone and holds exactly one card, a faceup Hedge Fund. The Corp has 5 credits.",
+      "steps": [
+        { "label": "bullfrog", "do": "The Runner runs the remote server, encounters Bullfrog and breaks nothing. For the subroutine the Corp spends 0 credits and the Runner 1. The Corp moves Bullfrog to the outermost position protecting Archives." },
+        { "label": "run-over", "do": "The Runner passes Bullfrog, encounters Wall of Static, raises Corroder's strength once and breaks the subroutine. The run reaches the server and ends." }
+      ],
+      "expect": [
+        { "at": "bullfrog", "observe": "zone(Bullfrog)", "equals": "ice:Archives" },
+        { "at": "bullfrog", "observe": "attackedServer", "equals": "Archives", "why": "Not a standard key: the server the run is now against." },
+        { "at": "bullfrog", "observe": "run.active", "equals": true },
+        { "at": "bullfrog", "observe": "runner.credits", "equals": 4 },
+        { "at": "bullfrog", "observe": "corp.credits", "equals": 5 },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "accessed", "equals": ["Hedge Fund"], "why": "The run continued from Bullfrog's new position, inward through Wall of Static to Archives." },
+        { "at": "run-over", "observe": "runner.credits", "equals": 2 },
+        { "at": "run-over", "observe": "zone(PAD Campaign)", "equals": "root:remote" }
+      ]
+    },
+    {
+      "id": "6.2.7e.ex1",
+      "example": "6.2.7e.ex1",
+      "confidence": "stated",
+      "rules": ["6.2.7e", "8.8.4a", "8.8.4b", "6.4.3"],
+      "cards": ["Project Yagi-Uda", "Wall of Static", "Eli 1.0"],
+      "position": "Runner's turn. Project Yagi-Uda is in the Corp's score area with 1 agenda counter. A rezzed Wall of Static is the only ice protecting R&D. HQ holds exactly one card, Eli 1.0. The Corp has 5 credits. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "swap", "do": "The Runner runs R&D. In the paid ability window of the initiation phase (step 6.9.1e), before the approach, the Corp spends the agenda counter to swap Eli 1.0 from HQ with Wall of Static. The Runner does not jack out." },
+        { "label": "approach", "do": "The Runner approaches the ice now in that position and the Corp rezzes it. The Runner encounters it, loses no clicks and breaks nothing." }
+      ],
+      "expect": [
+        { "at": "swap", "observe": "zone(Eli 1.0)", "equals": "ice:R&D" },
+        { "at": "swap", "observe": "zone(Wall of Static)", "equals": "hq" },
+        { "at": "swap", "observe": "rezzed(Eli 1.0)", "equals": false, "why": "A Corp card swapped into the play area enters unrezzed." },
+        { "at": "swap", "observe": "counters(Project Yagi-Uda,agenda)", "equals": 0 },
+        { "at": "approach", "observe": "rezzed(Eli 1.0)", "equals": true, "why": "The Runner approaches the new ice, and an approach is the only time the Corp can rez it." },
+        { "at": "approach", "observe": "corp.credits", "equals": 2 },
+        { "at": "approach", "observe": "run.outcome", "equals": "unsuccessful" }
+      ]
+    },
+    {
+      "id": "6.2.7e.ex2",
+      "example": "6.2.7e.ex2",
+      "confidence": "stated",
+      "rules": ["6.2.7e", "6.9.4b", "6.9.4d"],
+      "cards": ["Project Yagi-Uda", "Wall of Static", "Eli 1.0", "Corroder", "Hedge Fund"],
+      "position": "Runner's turn, 5 credits. Corroder is installed. Project Yagi-Uda is in the Corp's score area with 1 agenda counter. A rezzed Wall of Static is the only ice protecting R&D. HQ holds exactly one card, Eli 1.0. The top card of R&D is Hedge Fund. The Corp has 5 credits.",
+      "steps": [
+        { "label": "swap", "do": "The Runner runs R&D, encounters Wall of Static, raises Corroder's strength once, breaks the subroutine and passes it. In the paid ability window of step 6.9.4b the Corp spends the agenda counter to swap Eli 1.0 from HQ with Wall of Static. The Runner does not jack out." },
+        { "label": "run-over", "do": "The run continues to its end." }
+      ],
+      "expect": [
+        { "at": "swap", "observe": "zone(Eli 1.0)", "equals": "ice:R&D" },
+        { "at": "swap", "observe": "zone(Wall of Static)", "equals": "hq" },
+        { "at": "run-over", "observe": "approached(Eli 1.0)", "equals": false, "why": "Not a standard key: whether the Runner approached that ice during the run. The Runner has passed that position and moves on from it." },
+        { "at": "run-over", "observe": "rezzed(Eli 1.0)", "equals": false },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "accessed", "equals": ["Hedge Fund"] },
+        { "at": "run-over", "observe": "runner.credits", "equals": 3 },
+        { "at": "run-over", "observe": "corp.credits", "equals": 5 }
+      ]
+    },
+    {
+      "id": "6.3.2a.ex1#a",
+      "example": "6.3.2a.ex1",
+      "confidence": "stated",
+      "rules": ["6.3.2a"],
+      "cards": ["Off the Grid"],
+      "position": "Runner's turn. A rezzed Off the Grid is alone in the root of a remote server with no ice.",
+      "steps": [
+        { "label": "run-remote", "do": "The Runner tries to take the basic action to run that remote server." },
+        { "label": "run-hq", "do": "The Runner tries to take the basic action to run HQ." }
+      ],
+      "expect": [
+        { "observe": "legal(run-remote)", "equals": false },
+        { "observe": "legal(run-hq)", "equals": true }
+      ]
+    },
+    {
+      "id": "6.3.2a.ex1#b",
+      "example": "6.3.2a.ex1",
+      "confidence": "derived",
+      "rules": ["6.3.2a", "6.2.7d", "6.1.2b"],
+      "cards": ["Off the Grid", "Bullfrog"],
+      "position": "Runner's turn, 5 credits. A rezzed Off the Grid is alone in the root of a remote server with no ice. A rezzed Bullfrog is the only ice protecting HQ. The Corp has 5 credits. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "moved", "do": "The Runner runs HQ, encounters Bullfrog and breaks nothing. For the subroutine the Corp spends 0 credits and the Runner 1. The Corp moves Bullfrog to the outermost position protecting Off the Grid's server." },
+        { "label": "run-over", "do": "The Runner passes Bullfrog; the run reaches the remote server and the Runner accesses Off the Grid." }
+      ],
+      "expect": [
+        { "observe": "legal(moved)", "equals": true, "why": "Off the Grid only forbids announcing its server at the start of a run. It does not interfere with an ability that changes the attacked server during a run." },
+        { "at": "moved", "observe": "attackedServer", "equals": "remote", "why": "Not a standard key: the server the run is now against." },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "accessed", "equals": ["Off the Grid"] }
+      ]
+    },
+    {
+      "id": "6.3.4.ex1#a",
+      "example": "6.3.4.ex1",
+      "confidence": "stated",
+      "rules": ["6.3.4", "6.3.2b", "1.16.10"],
+      "cards": ["Heinlein Grid", "Enhanced Login Protocol"],
+      "position": "Runner's turn, 4 clicks, 5 credits, no run made yet this turn. Enhanced Login Protocol is the Corp's active current. A rezzed Heinlein Grid is alone in the root of a remote server with no ice.",
+      "steps": [
+        { "label": "run", "do": "The Runner takes the basic action to run the remote server, spending the extra click. Read once the run has begun." },
+        { "label": "run-over", "do": "The run reaches the server, the Runner accesses Heinlein Grid and the run ends." }
+      ],
+      "expect": [
+        { "at": "run", "observe": "runner.clicks", "equals": 2 },
+        { "at": "run", "observe": "runner.credits", "equals": 5, "why": "The extra click is spent to initiate the run, before the run formally begins, so it is not spent during the run." },
+        { "at": "run-over", "observe": "runner.credits", "equals": 5 },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" }
+      ]
+    },
+    {
+      "id": "6.3.4.ex1#b",
+      "example": "6.3.4.ex1",
+      "confidence": "derived",
+      "rules": ["6.3.4"],
+      "cards": ["Heinlein Grid", "Eli 1.0"],
+      "position": "Runner's turn, 4 clicks, 5 credits. No current is active. A remote server holds a rezzed Heinlein Grid in its root and is protected by a rezzed Eli 1.0 alone.",
+      "steps": [
+        { "label": "break", "do": "The Runner runs the remote server, encounters Eli 1.0 and loses a click to break one subroutine." }
+      ],
+      "expect": [
+        { "observe": "runner.credits", "equals": 0, "why": "The contrast with the example: this click is lost during the run, so Heinlein Grid takes every credit in the pool." },
+        { "observe": "runner.clicks", "equals": 2 }
+      ]
+    },
+    {
+      "id": "6.5.8c.ex1",
+      "example": "6.5.8c.ex1",
+      "confidence": "stated",
+      "rules": ["6.5.8a", "6.5.8b", "6.5.8c", "9.2.8b", "9.2.8f", "6.5.7c"],
+      "cards": ["Forked", "Troll", "Femme Fatale"],
+      "position": "Runner's turn, 5 credits. Femme Fatale is installed with Troll as its chosen ice. Forked is in the grip. A rezzed Troll is the only ice protecting HQ. HQ is empty.",
+      "steps": [
+        { "label": "bypass", "do": "The Runner plays Forked, running HQ, and encounters Troll. The Runner resolves Femme Fatale's ability first and pays 0 credits to bypass Troll." },
+        { "label": "run-over", "do": "The run reaches HQ and ends." }
+      ],
+      "expect": [
+        { "observe": "legal(bypass)", "equals": true, "why": "Troll has no subroutines, so the price is 0 credits." },
+        { "at": "bypass", "observe": "zone(Troll)", "equals": "ice:HQ", "why": "The step where subroutines can be broken was never reached, so Troll was not fully broken and Forked does not trash it." },
+        { "at": "bypass", "observe": "runner.credits", "equals": 3 },
+        { "at": "bypass", "observe": "runner.clicks", "equals": 3, "why": "The encounter is over before Troll's trace can resolve, so no click is lost." },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "zone(Troll)", "equals": "ice:HQ" }
+      ]
+    },
+    {
+      "id": "6.5.9a.ex1",
+      "example": "6.5.9a.ex1",
+      "confidence": "stated",
+      "rules": ["6.5.9a", "6.5.9c"],
+      "cards": ["Shiro", "Chrysalis", "Hedge Fund"],
+      "position": "Runner's turn, 5 credits, 3 cards in the grip. A rezzed Shiro is the only ice protecting HQ. HQ holds exactly one card, Hedge Fund. The top card of R&D is Chrysalis. The Corp has 5 credits. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "shiro", "do": "The Runner runs HQ, encounters Shiro and breaks nothing. For the first subroutine the Corp leaves the top 3 cards of R&D in order. For the second the Corp does not pay, so the Runner breaches R&D, accesses Chrysalis and encounters it, breaking nothing. Its subroutine resolves." },
+        { "label": "run-over", "do": "The game returns to the encounter with Shiro, which has no subroutine left to resolve. The Runner passes Shiro, the run reaches HQ and the Runner accesses Hedge Fund." }
+      ],
+      "expect": [
+        { "at": "shiro", "observe": "runner.grip", "equals": 1 },
+        { "at": "shiro", "observe": "corp.credits", "equals": 5 },
+        { "at": "shiro", "observe": "run.active", "equals": true, "why": "The forced encounter does not change or end the run it interrupts." },
+        { "at": "run-over", "observe": "accessed", "equals": ["Chrysalis", "Hedge Fund"] },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "zone(Chrysalis)", "equals": "rd" }
+      ]
+    },
+    {
+      "id": "6.5.9b.ex1",
+      "example": "6.5.9b.ex1",
+      "confidence": "stated",
+      "rules": ["6.5.9b", "6.1.4"],
+      "cards": ["The Twins", "Wall of Static", "Corroder"],
+      "position": "Runner's turn, 2 credits. Corroder is installed. A rezzed The Twins is in the root of HQ. A rezzed Wall of Static is the only ice protecting HQ. HQ holds exactly one card, another Wall of Static.",
+      "steps": [
+        { "label": "twins", "do": "The Runner runs HQ, encounters Wall of Static, raises Corroder's strength once, breaks the subroutine and passes it. The Corp uses The Twins, revealing and trashing the Wall of Static in HQ. The Runner encounters the installed Wall of Static again and cannot break it. Its subroutine resolves." }
+      ],
+      "expect": [
+        { "observe": "run.active", "equals": false, "why": "The 'end the run' ends both the extra encounter and the movement phase it interrupted." },
+        { "observe": "run.outcome", "equals": "unsuccessful" },
+        { "observe": "runner.credits", "equals": 0 },
+        { "observe": "corp.hq", "equals": 0 },
+        { "observe": "corp.archives", "equals": 1 }
+      ]
+    },
+    {
+      "id": "6.7.4a.ex1#a",
+      "example": "6.7.4a.ex1",
+      "confidence": "stated",
+      "rules": ["6.7.4a", "6.2.7d"],
+      "cards": ["Because I Can", "Bullfrog", "PAD Campaign", "Hedge Fund"],
+      "position": "Runner's turn, 5 credits. Because I Can is in the grip. Remote server A holds an unrezzed PAD Campaign and is protected by a rezzed Bullfrog alone. Archives has no ice and holds exactly one card, a faceup Hedge Fund. The Corp has 5 credits. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "moved", "do": "The Runner plays Because I Can, running remote server A, encounters Bullfrog and breaks nothing. For the subroutine the Corp spends 0 credits and the Runner 1. The Corp moves Bullfrog to the outermost position protecting Archives." },
+        { "label": "run-over", "do": "The Runner passes Bullfrog and the run on Archives is successful." }
+      ],
+      "expect": [
+        { "at": "run-over", "observe": "offered(Because I Can)", "equals": false, "why": "Not a standard key: whether the Runner is offered the shuffle instead of the breach. The run moved to a central server, which Because I Can could not have run." },
+        { "at": "run-over", "observe": "accessed", "equals": ["Hedge Fund"] },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" },
+        { "at": "run-over", "observe": "zone(PAD Campaign)", "equals": "root:remote" }
+      ]
+    },
+    {
+      "id": "6.7.4a.ex1#b",
+      "example": "6.7.4a.ex1",
+      "confidence": "stated",
+      "rules": ["6.7.4a", "6.2.7d"],
+      "cards": ["Because I Can", "Bullfrog", "PAD Campaign", "Tech Startup"],
+      "position": "Runner's turn, 5 credits. Because I Can is in the grip. Remote server A holds an unrezzed PAD Campaign and is protected by a rezzed Bullfrog alone. Remote server B holds an unrezzed Tech Startup and has no ice. The Corp has 5 credits. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "moved", "do": "The Runner plays Because I Can, running remote server A, encounters Bullfrog and breaks nothing. For the subroutine the Corp spends 0 credits and the Runner 1. The Corp moves Bullfrog to the outermost position protecting remote server B." },
+        { "label": "run-over", "do": "The Runner passes Bullfrog, the run on remote server B is successful, and the Runner uses Because I Can's effect instead of breaching." }
+      ],
+      "expect": [
+        { "at": "run-over", "observe": "offered(Because I Can)", "equals": true, "why": "Not a standard key: whether the Runner is offered the shuffle instead of the breach. Because I Can could have run remote server B to begin with." },
+        { "at": "run-over", "observe": "zone(Tech Startup)", "equals": "rd" },
+        { "at": "run-over", "observe": "accessed", "equals": [] },
+        { "at": "run-over", "observe": "zone(PAD Campaign)", "equals": "root:remote" }
+      ]
+    },
+    {
+      "id": "6.7.4c.ex1#a",
+      "example": "6.7.4c.ex1",
+      "confidence": "stated",
+      "rules": ["6.7.4c", "6.9.5a", "6.9.5b"],
+      "cards": ["Account Siphon", "Ash 2X3ZB9CY", "Hedge Fund"],
+      "position": "Runner's turn, 5 credits. Account Siphon is in the grip. A rezzed Ash 2X3ZB9CY is in the root of HQ. HQ has no ice and holds exactly one card, Hedge Fund. The Corp has 5 credits.",
+      "steps": [
+        { "label": "trace", "do": "The Runner plays Account Siphon. The run is successful and Ash's trace resolves with no spending: it is successful." },
+        { "label": "siphon", "do": "Only now does the Runner decide: they use Account Siphon's effect instead of breaching HQ, and the Corp loses 5 credits." }
+      ],
+      "expect": [
+        { "at": "trace", "observe": "decided(Account Siphon)", "equals": false, "why": "Not a standard key: whether the Runner has already had to choose between breaching and Account Siphon's effect. The choice is made when the breach would begin, after the trace." },
+        { "at": "trace", "observe": "corp.credits", "equals": 5 },
+        { "at": "trace", "observe": "runner.tags", "equals": 0 },
+        { "observe": "legal(siphon)", "equals": true },
+        { "at": "siphon", "observe": "corp.credits", "equals": 0 },
+        { "at": "siphon", "observe": "runner.credits", "equals": 15 },
+        { "at": "siphon", "observe": "runner.tags", "equals": 2 },
+        { "at": "siphon", "observe": "accessed", "equals": [] }
+      ]
+    },
+    {
+      "id": "6.7.4c.ex1#b",
+      "example": "6.7.4c.ex1",
+      "confidence": "stated",
+      "rules": ["6.7.4c", "7.4.2"],
+      "cards": ["Account Siphon", "Ash 2X3ZB9CY", "Hedge Fund"],
+      "position": "Runner's turn, 5 credits. Account Siphon is in the grip. A rezzed Ash 2X3ZB9CY is in the root of HQ. HQ has no ice and holds exactly one card, Hedge Fund. The Corp has 5 credits.",
+      "steps": [
+        { "label": "trace", "do": "The Runner plays Account Siphon. The run is successful and Ash's trace resolves with no spending: it is successful." },
+        { "label": "breach", "do": "The Runner then decides to breach HQ instead of using Account Siphon's effect." }
+      ],
+      "expect": [
+        { "observe": "legal(breach)", "equals": true, "why": "Account Siphon's effect is optional, and the choice comes after the trace." },
+        { "at": "breach", "observe": "accessed", "equals": ["Ash 2X3ZB9CY"] },
+        { "at": "breach", "observe": "corp.credits", "equals": 5 },
+        { "at": "breach", "observe": "runner.tags", "equals": 0 },
+        { "at": "breach", "observe": "runner.credits", "equals": 5 }
+      ]
+    },
+    {
+      "id": "6.8.2a.ex1",
+      "example": "6.8.2a.ex1",
+      "confidence": "stated",
+      "rules": ["6.8.2a", "6.8.3", "6.9.1b"],
+      "cards": ["Nisei MK II", "Self-modifying Code", "Corroder"],
+      "position": "Runner's turn, 0 credits. The Corp has 2 bad publicity. Nisei MK II is in the Corp's score area with 1 agenda counter. Self-modifying Code is installed. The stack holds Corroder. HQ has no ice.",
+      "steps": [
+        { "label": "window", "do": "The Runner runs HQ. In the paid ability window of the initiation phase the Runner passes priority." },
+        { "label": "nisei", "do": "The Corp spends the agenda counter on Nisei MK II to end the run." },
+        { "label": "smc", "do": "The Runner tries to use Self-modifying Code, paying with the bad publicity credits." }
+      ],
+      "expect": [
+        { "at": "window", "observe": "badPublicityFund", "equals": 2 },
+        { "observe": "legal(smc)", "equals": false, "why": "The paid ability window closes when the run is ended; the Runner gets no further chance to act in it." },
+        { "at": "nisei", "observe": "counters(Nisei MK II,agenda)", "equals": 0 },
+        { "at": "nisei", "observe": "run.active", "equals": false },
+        { "at": "nisei", "observe": "run.outcome", "equals": "unsuccessful" },
+        { "at": "nisei", "observe": "zone(Self-modifying Code)", "equals": "rig" },
+        { "at": "nisei", "observe": "runner.credits", "equals": 0 },
+        { "at": "nisei", "observe": "badPublicityFund", "equals": 0 }
+      ]
+    },
+    {
+      "id": "6.8.2b.ex1",
+      "example": "6.8.2b.ex1",
+      "confidence": "stated",
+      "rules": ["6.8.2b", "9.2.8b", "9.2.8f"],
+      "cards": ["Security Nexus", "Tollbooth"],
+      "position": "Runner's turn, 5 credits. Security Nexus is installed, so the Runner has 1 link. A rezzed Tollbooth is the only ice protecting HQ.",
+      "steps": [
+        { "label": "nexus", "do": "The Runner runs HQ and encounters Tollbooth. In the reaction window the Runner uses Security Nexus first. The trace of 5 against 1 link resolves with no spending and is successful." }
+      ],
+      "expect": [
+        { "observe": "runner.tags", "equals": 1 },
+        { "observe": "runner.credits", "equals": 5, "why": "Tollbooth's ability was still pending when the run ended, so it is not resolved and no toll is paid." },
+        { "observe": "run.active", "equals": false },
+        { "observe": "run.outcome", "equals": "unsuccessful" }
+      ]
+    },
+    {
+      "id": "6.8.2c.ex1",
+      "example": "6.8.2c.ex1",
+      "confidence": "stated",
+      "rules": ["6.8.2c", "6.2.5d", "6.2.8c"],
+      "cards": ["Formicary", "Nanisivik Grid", "Wall of Static"],
+      "position": "Runner's turn, 3 cards in the grip. A rezzed Nanisivik Grid is alone in the root of a remote server with no ice. Archives holds exactly one card, a facedown Wall of Static. An unrezzed Formicary is the only ice protecting HQ. The Corp has 5 credits.",
+      "steps": [
+        { "label": "approach", "do": "The Runner runs the remote server and approaches it. Both Corp abilities are pending. The Corp resolves Nanisivik Grid first: it turns Wall of Static faceup and resolves its subroutine, ending the run. The Corp then uses Formicary's ability, which is still pending: it rezzes Formicary and moves it to the innermost position protecting the remote server." }
+      ],
+      "expect": [
+        { "observe": "offered(Formicary)", "equals": true, "why": "Not a standard key: whether Formicary's ability can still be used after the run was ended. The reaction window that was open is completed normally." },
+        { "observe": "rezzed(Formicary)", "equals": true },
+        { "observe": "zone(Formicary)", "equals": "ice:remote" },
+        { "observe": "corp.credits", "equals": 3 },
+        { "observe": "runner.grip", "equals": 3, "why": "No encounter can be started, so Formicary's subroutine never resolves." },
+        { "observe": "run.active", "equals": false },
+        { "observe": "run.outcome", "equals": "unsuccessful", "why": "The run ended before the success phase and the server still exists." }
+      ]
+    },
+    {
+      "id": "6.8.4a.ex1",
+      "example": "6.8.4a.ex1",
+      "confidence": "stated",
+      "rules": ["6.8.4a", "6.9.6c"],
+      "cards": ["Crisium Grid", "Hedge Fund"],
+      "position": "Runner's turn. A rezzed Crisium Grid is in the root of HQ. HQ has no ice and holds exactly one card, Hedge Fund.",
+      "steps": [
+        { "label": "run", "do": "The Runner runs HQ, reaches the server and accesses Hedge Fund, then Crisium Grid. The run ends." }
+      ],
+      "expect": [
+        { "observe": "run.outcome", "equals": "neither", "why": "Crisium Grid stops the run being declared successful, and a run that reached the success phase is not declared unsuccessful." },
+        { "observe": "accessed", "equals": ["Hedge Fund", "Crisium Grid"], "why": "The breach still happens (Crisium Grid ruling of 2022-04-24)." }
+      ]
+    },
+    {
+      "id": "6.8.5.ex1",
+      "example": "6.8.5.ex1",
+      "confidence": "stated",
+      "rules": ["6.8.5", "6.9.6c", "6.9.6d"],
+      "cards": ["The Noble Path", "Chum", "Wall of Static", "Georgia Emelyov"],
+      "position": "Runner's turn. The grip holds The Noble Path and two other cards. HQ is protected by a rezzed Wall of Static (innermost) and a rezzed Chum (outermost). A rezzed Georgia Emelyov is in the root of HQ. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "run", "do": "The Runner plays The Noble Path, running HQ. Chum's subroutine resolves. The Runner passes Chum, encounters Wall of Static and breaks nothing, and its subroutine ends the run." }
+      ],
+      "expect": [
+        { "observe": "winner", "equals": "none", "why": "Not a standard key: who has won the game. Chum's 3 net damage and Georgia Emelyov's 1 both resolve before step 6.9.6d, while The Noble Path still applies, so both are prevented. With an empty grip either one would have flatlined the Runner." },
+        { "observe": "runner.grip", "equals": 0 },
+        { "observe": "runner.heap", "equals": 3, "why": "The Noble Path and the two cards it trashed; no card from damage." },
+        { "observe": "run.outcome", "equals": "unsuccessful" }
+      ],
+      "note": "This case touches Chum, whose +2 strength duration is not yet decided. Nothing here depends on it: Wall of Static's strength is not observed and the Runner breaks nothing."
+    },
+    {
+      "id": "6.8.5.ex2",
+      "example": "6.8.5.ex2",
+      "confidence": "stated",
+      "rules": ["6.8.5", "6.9.6d", "10.4"],
+      "cards": ["The Noble Path", "Dedicated Response Team", "Funhouse"],
+      "position": "Runner's turn, 5 credits, no tags. The Noble Path is the only card in the grip. A rezzed Funhouse is the only ice protecting Archives, and Archives is empty. A rezzed Dedicated Response Team is in a remote server. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "run", "do": "The Runner plays The Noble Path, running Archives, encounters Funhouse and takes 1 tag to keep running. The Runner breaks nothing and pays 4 credits for the subroutine. The run is successful and ends." }
+      ],
+      "expect": [
+        { "observe": "runner.tags", "equals": 1 },
+        { "observe": "runner.credits", "equals": 1 },
+        { "observe": "run.outcome", "equals": "successful" },
+        { "observe": "winner", "equals": "corp", "why": "Not a standard key: who has won the game. Dedicated Response Team triggers when the run ends, which is when The Noble Path expires, so its 2 meat damage is not prevented. The grip is empty, so the Runner is flatlined." }
+      ]
+    }
+  ]
+}

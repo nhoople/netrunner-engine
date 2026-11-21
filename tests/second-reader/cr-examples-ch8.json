@@ -1,0 +1,487 @@
+{
+  "batch": "cr-examples-ch8",
+  "title": "The CR's own examples, chapter 8 (Card Manipulation)",
+  "reader": { "model": "claude-fable-5-2", "name": "Claude Fable 5.2" },
+  "sources": { "cr": "v26.03", "cards": "v1.147.25" },
+  "blind": "Written from the CR text, printed card text and rulings (the lookup skill) only. The engine's src/, tests and baselines were not read. Committed before the comparison for this batch existed.",
+  "defaults": "Unless a case says otherwise: the Runner has the default 4 MU and no link, both identities are blank, servers have no ice, the Corp has 5 credits and the Runner 5, the Runner has 4 clicks and the Corp 3 at the start of their turn, zones not mentioned hold only cards with no relevant abilities, neither player spends credits on a trace, the Runner trashes no accessed card, and the Corp declines to rez or use anything not listed in the steps. 'revealed(Card)' is not a standard key: it says whether the card was revealed to the Runner (CR 1.21) during the steps. 'sameServer(A,B)' is not a standard key: it says whether the two installed cards are in the root of or protecting the same server.",
+  "cases": [
+    {
+      "id": "8.2.2.ex1",
+      "example": "8.2.2.ex1",
+      "confidence": "stated",
+      "rules": ["8.2.2", "8.5.6c", "8.1.4d"],
+      "cards": ["Harbinger", "Wasteland", "Corroder"],
+      "position": "Runner's turn, 5 credits. Harbinger and Wasteland are installed. Corroder is in the grip. The Runner has trashed none of their installed cards this turn.",
+      "steps": [
+        { "label": "install", "do": "The Runner installs Corroder with the basic action and, as part of the installation, chooses to trash Harbinger." }
+      ],
+      "expect": [
+        { "observe": "runner.credits", "equals": 4, "why": "5 - 2 for Corroder + 1 from Wasteland: Harbinger was trashed even though it was turned facedown instead of going to the heap." },
+        { "observe": "zone(Harbinger)", "equals": "rig" },
+        { "observe": "faceup(Harbinger)", "equals": false },
+        { "observe": "runner.heap", "equals": 0 },
+        { "observe": "zone(Corroder)", "equals": "rig" }
+      ]
+    },
+    {
+      "id": "8.2.2a.ex1",
+      "example": "8.2.2a.ex1",
+      "confidence": "stated",
+      "rules": ["8.2.2a"],
+      "cards": ["Rototurret", "Sacrificial Construct", "District 99", "Corroder"],
+      "position": "Runner's turn, 4 clicks. Corroder, Sacrificial Construct and District 99 are installed; District 99 has no power counters. A rezzed Rototurret is the only ice protecting HQ. No card has been trashed this turn.",
+      "steps": [
+        { "label": "first-run", "do": "The Runner runs HQ, encounters Rototurret and breaks nothing. For the first subroutine the Corp chooses Corroder, and the Runner trashes Sacrificial Construct to prevent it. The second subroutine ends the run." },
+        { "label": "second-run", "do": "The Runner runs HQ again and breaks nothing. The Corp trashes Corroder with the first subroutine, and the Runner places a power counter on District 99." }
+      ],
+      "expect": [
+        { "at": "first-run", "observe": "zone(Corroder)", "equals": "rig" },
+        { "at": "first-run", "observe": "zone(Sacrificial Construct)", "equals": "heap" },
+        { "at": "first-run", "observe": "counters(District 99,power)", "equals": 0, "why": "The trash was prevented, so no program was trashed. Sacrificial Construct is a resource." },
+        { "at": "second-run", "observe": "zone(Corroder)", "equals": "heap" },
+        { "at": "second-run", "observe": "counters(District 99,power)", "equals": 1, "why": "This is the first time this turn a program or piece of hardware is trashed, so District 99 can still trigger." },
+        { "at": "second-run", "observe": "runner.clicks", "equals": 2 }
+      ]
+    },
+    {
+      "id": "8.3.3b.ex1",
+      "example": "8.3.3b.ex1",
+      "confidence": "stated",
+      "rules": ["8.3.3", "8.3.3b", "4.8.3"],
+      "cards": ["Cultivate", "Hedge Fund", "Ice Wall", "Enigma", "PAD Campaign", "Wall of Static"],
+      "position": "Corp's turn, 3 clicks, 5 credits. Cultivate is the only card in HQ. The top five cards of R&D, from the top, are Hedge Fund, Ice Wall, Enigma, PAD Campaign and Wall of Static. Archives is empty.",
+      "steps": [
+        { "label": "cultivate", "do": "The Corp plays Cultivate: it trashes Enigma, adds Hedge Fund to HQ and puts the rest back in the order Wall of Static, PAD Campaign, Ice Wall from the top." }
+      ],
+      "expect": [
+        { "observe": "zone(Enigma)", "equals": "archives" },
+        { "observe": "faceup(Enigma)", "equals": false, "why": "It was never visible to the Runner." },
+        { "observe": "zone(Hedge Fund)", "equals": "hq" },
+        { "observe": "corp.hq", "equals": 1 },
+        { "observe": "corp.archives", "equals": 2 },
+        { "observe": "rdTop", "equals": ["Wall of Static", "PAD Campaign", "Ice Wall"], "why": "Not a standard key: the titles of the top 3 cards of R&D, from the top." },
+        { "observe": "runnerCanTell", "equals": false, "why": "Not a standard key: whether what the Runner is shown says which place among the five the trashed card or the card added to HQ came from. The Corp does not declare it." }
+      ]
+    },
+    {
+      "id": "8.4.3b.ex1",
+      "example": "8.4.3b.ex1",
+      "confidence": "stated",
+      "rules": ["8.4.3b", "8.4.5", "8.8.4a", "8.8.4d"],
+      "cards": ["Daily Business Show", "Raman Rai", "Wraparound", "Enigma", "Tollbooth"],
+      "position": "The Runner's turn has just ended and the Corp's turn is about to begin. Daily Business Show and Raman Rai are rezzed, each in its own remote server. HQ is empty. The top two cards of R&D are Wraparound and, under it, Enigma. Archives holds exactly one card, a facedown Tollbooth.",
+      "steps": [
+        { "label": "draw", "do": "The Corp's turn begins and the Corp takes the mandatory draw, setting aside Wraparound and Enigma. The Corp uses Raman Rai, losing a click, to reveal Enigma and the Tollbooth in Archives and swap them. The Corp then uses Daily Business Show to add Tollbooth to the bottom of R&D. Wraparound is added to HQ." }
+      ],
+      "expect": [
+        { "observe": "zone(Wraparound)", "equals": "hq" },
+        { "observe": "zone(Enigma)", "equals": "archives" },
+        { "observe": "faceup(Enigma)", "equals": true, "why": "It was revealed, so it was visible to the Runner at the time of the swap." },
+        { "observe": "zone(Tollbooth)", "equals": "rd", "why": "Swapped into the set-aside cards, Tollbooth counts as drawn, so Daily Business Show can act on it." },
+        { "observe": "rdBottom", "equals": "Tollbooth", "why": "Not a standard key: the title of the bottom card of R&D." },
+        { "observe": "corp.hq", "equals": 1 },
+        { "observe": "corp.clicks", "equals": 2 }
+      ]
+    },
+    {
+      "id": "8.5.5.ex1",
+      "example": "8.5.5.ex1",
+      "confidence": "stated",
+      "rules": ["8.5.5", "9.11.4b"],
+      "cards": ["Mass Install", "Dhegdheer", "Gordian Blade", "Corroder"],
+      "position": "Runner's turn, 8 credits. The grip holds exactly four cards: Mass Install, Dhegdheer, Gordian Blade and Corroder. Nothing is installed.",
+      "steps": [
+        { "label": "mass", "do": "The Runner plays Mass Install and installs Dhegdheer first, then Gordian Blade hosted on Dhegdheer, then Corroder." }
+      ],
+      "expect": [
+        { "observe": "legal(mass)", "equals": true, "why": "The programs are installed one at a time, so Dhegdheer is installed before the next one is chosen." },
+        { "observe": "runner.credits", "equals": 0, "why": "1 for Mass Install, 2 for Dhegdheer, 3 for Gordian Blade (1 less on Dhegdheer), 2 for Corroder." },
+        { "observe": "zone(Gordian Blade)", "equals": "hosted:Dhegdheer" },
+        { "observe": "zone(Corroder)", "equals": "rig" },
+        { "observe": "runner.memoryUsed", "equals": 1 },
+        { "observe": "runner.grip", "equals": 0 }
+      ]
+    },
+    {
+      "id": "8.5.13a.ex1#a",
+      "example": "8.5.13a.ex1",
+      "confidence": "stated",
+      "rules": ["8.5.13a", "8.5.6a"],
+      "cards": ["PAD Campaign", "Ash 2X3ZB9CY"],
+      "position": "Corp's turn, 3 clicks. A remote server with no ice holds an unrezzed PAD Campaign in its root. HQ holds exactly one card, Ash 2X3ZB9CY.",
+      "steps": [
+        { "label": "install", "do": "The Corp takes the basic action to install Ash 2X3ZB9CY in the root of that remote server, trashing nothing." }
+      ],
+      "expect": [
+        { "observe": "legal(install)", "equals": true },
+        { "observe": "sameServer(Ash 2X3ZB9CY,PAD Campaign)", "equals": true },
+        { "observe": "faceup(Ash 2X3ZB9CY)", "equals": false },
+        { "observe": "revealed(Ash 2X3ZB9CY)", "equals": false, "why": "A card is not revealed just to show it has a suitable type." },
+        { "observe": "revealed(PAD Campaign)", "equals": false }
+      ]
+    },
+    {
+      "id": "8.5.13a.ex1#b",
+      "example": "8.5.13a.ex1",
+      "confidence": "derived",
+      "rules": ["8.5.13a", "8.5.6a", "8.5.7"],
+      "cards": ["PAD Campaign", "Daily Quest"],
+      "position": "Corp's turn, 3 clicks. A remote server with no ice holds an unrezzed PAD Campaign in its root. HQ holds exactly one card, Daily Quest.",
+      "steps": [
+        { "label": "install", "do": "The Corp takes the basic action to install Daily Quest in the root of that remote server." }
+      ],
+      "expect": [
+        { "observe": "zone(PAD Campaign)", "equals": "archives", "why": "At most one asset or agenda in a root: installing an asset trashes the other asset." },
+        { "observe": "faceup(PAD Campaign)", "equals": false, "why": "It goes to Archives with the facedown status it had while installed." },
+        { "observe": "zone(Daily Quest)", "equals": "root:remote" },
+        { "observe": "revealed(Daily Quest)", "equals": false },
+        { "observe": "revealed(PAD Campaign)", "equals": false }
+      ]
+    },
+    {
+      "id": "8.5.13a.ex2",
+      "example": "8.5.13a.ex2",
+      "confidence": "stated",
+      "rules": ["8.5.13a", "8.5.2"],
+      "cards": ["Brân 1.0", "Wall of Static"],
+      "position": "Runner's turn, 4 clicks. A rezzed Brân 1.0 is the only ice protecting R&D. HQ holds exactly one card, Wall of Static. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "bran", "do": "The Runner runs R&D, encounters Brân 1.0 and loses 2 clicks to break its second and third subroutines. The first subroutine resolves: the Corp installs Wall of Static from HQ directly inward from Brân 1.0." }
+      ],
+      "expect": [
+        { "observe": "zone(Wall of Static)", "equals": "ice:R&D" },
+        { "observe": "faceup(Wall of Static)", "equals": false },
+        { "observe": "revealed(Wall of Static)", "equals": false, "why": "The Corp does not reveal the card to show that it is a piece of ice." }
+      ]
+    },
+    {
+      "id": "8.5.13b.ex1#a",
+      "example": "8.5.13b.ex1",
+      "confidence": "stated",
+      "rules": ["8.5.13b", "3.6.5"],
+      "cards": ["ZATO City Grid", "Ash 2X3ZB9CY"],
+      "position": "Corp's turn, 3 clicks. A remote server with no ice holds a rezzed ZATO City Grid in its root. HQ holds exactly one card, Ash 2X3ZB9CY.",
+      "steps": [
+        { "label": "install", "do": "The Corp takes the basic action to install Ash 2X3ZB9CY in the root of that remote server, trashing nothing." }
+      ],
+      "expect": [
+        { "observe": "legal(install)", "equals": true },
+        { "observe": "sameServer(Ash 2X3ZB9CY,ZATO City Grid)", "equals": true },
+        { "observe": "revealed(Ash 2X3ZB9CY)", "equals": false, "why": "A card is not revealed to show that it meets the server's limit on regions." }
+      ]
+    },
+    {
+      "id": "8.5.13b.ex1#b",
+      "example": "8.5.13b.ex1",
+      "confidence": "stated",
+      "rules": ["8.5.13b", "3.6.5", "8.5.6a", "8.5.7"],
+      "cards": ["ZATO City Grid", "Nanisivik Grid"],
+      "position": "Corp's turn, 3 clicks. A remote server with no ice holds a rezzed ZATO City Grid in its root. HQ holds exactly one card, Nanisivik Grid.",
+      "steps": [
+        { "label": "keep", "do": "The Corp tries to install Nanisivik Grid in the root of that server without trashing ZATO City Grid." },
+        { "label": "replace", "do": "The Corp installs Nanisivik Grid in the root of that server, trashing ZATO City Grid as part of the installation." }
+      ],
+      "expect": [
+        { "observe": "legal(keep)", "equals": false, "why": "The new card cannot also be a region unless the old one is trashed as part of the installation." },
+        { "observe": "legal(replace)", "equals": true },
+        { "at": "replace", "observe": "zone(ZATO City Grid)", "equals": "archives" },
+        { "at": "replace", "observe": "faceup(ZATO City Grid)", "equals": true, "why": "It was rezzed, and it keeps that status in Archives." },
+        { "at": "replace", "observe": "zone(Nanisivik Grid)", "equals": "root:remote" },
+        { "at": "replace", "observe": "revealed(Nanisivik Grid)", "equals": false }
+      ]
+    },
+    {
+      "id": "8.5.13c.ex1",
+      "example": "8.5.13c.ex1",
+      "confidence": "stated",
+      "rules": ["8.5.13c", "8.5.15", "1.16.4c"],
+      "cards": ["Ob Superheavy Logistics: Extract. Export. Excel.", "Archer", "Svyatogor Excavator", "Cell Portal", "Vanity Project"],
+      "position": "The Runner's turn has just ended and the Corp's turn is about to begin. The Corp's identity is Ob Superheavy Logistics: Extract. Export. Excel. A rezzed Svyatogor Excavator is in a remote server. A rezzed Cell Portal (printed rez cost 5) is the only ice protecting HQ. Vanity Project is in the Corp's score area. R&D holds Archer (printed rez cost 4). The Corp has 5 credits.",
+      "steps": [
+        { "label": "ob", "do": "The Corp's turn begins. The Corp uses Svyatogor Excavator to trash Cell Portal, then uses Ob Superheavy Logistics: it searches R&D for Archer and installs it protecting HQ, but declines to forfeit an agenda, so Archer is not rezzed. Read before the mandatory draw." }
+      ],
+      "expect": [
+        { "observe": "zone(Archer)", "equals": "ice:HQ" },
+        { "observe": "rezzed(Archer)", "equals": false, "why": "The forfeit is an additional cost that is not credits, so it is not ignored and the Corp may decline it (Ob Superheavy Logistics ruling of 2022-11-20)." },
+        { "observe": "revealed(Archer)", "equals": true, "why": "The ability needs a card with printed rez cost 4 and the Runner never otherwise sees the card, so the Corp must reveal it." },
+        { "observe": "zone(Vanity Project)", "equals": "corp-score" },
+        { "observe": "zone(Cell Portal)", "equals": "archives" },
+        { "observe": "corp.credits", "equals": 8, "why": "3 from Svyatogor Excavator; the install ignores credit costs." }
+      ]
+    },
+    {
+      "id": "8.5.13d.ex1",
+      "example": "8.5.13d.ex1",
+      "confidence": "stated",
+      "rules": ["8.5.13d", "8.1.2c", "8.5.15"],
+      "cards": ["Trust Operation", "Offworld Office", "Gang Sign"],
+      "position": "Corp's turn, 3 clicks, 5 credits. The Runner has 1 tag and has Gang Sign installed. HQ holds exactly one card, Trust Operation. Archives holds exactly one card, a facedown Offworld Office.",
+      "steps": [
+        { "label": "trust", "do": "The Corp plays Trust Operation, trashing Gang Sign, and installs Offworld Office from Archives in a new remote server." }
+      ],
+      "expect": [
+        { "observe": "zone(Gang Sign)", "equals": "heap" },
+        { "observe": "zone(Offworld Office)", "equals": "root:remote" },
+        { "observe": "rezzed(Offworld Office)", "equals": false, "why": "Agendas cannot be rezzed." },
+        { "observe": "revealed(Offworld Office)", "equals": true, "why": "An 'install and rez' effect that installs a card the Corp cannot rez makes the Corp reveal it." }
+      ]
+    },
+    {
+      "id": "8.5.13d.ex2#a",
+      "example": "8.5.13d.ex2",
+      "confidence": "inferred",
+      "rules": ["8.5.13d", "8.6.2a"],
+      "cards": ["Ad Blitz", "PAD Campaign"],
+      "position": "Corp's turn, 3 clicks, 5 credits. HQ holds exactly two cards, Ad Blitz and PAD Campaign. Archives is empty.",
+      "steps": [
+        { "label": "blitz", "do": "The Corp plays Ad Blitz with X = 1, spending the extra click, installs PAD Campaign in a new remote server and rezzes it, paying its rez cost." }
+      ],
+      "expect": [
+        { "observe": "zone(PAD Campaign)", "equals": "root:remote" },
+        { "observe": "rezzed(PAD Campaign)", "equals": true },
+        { "observe": "corp.credits", "equals": 2, "why": "5 - 1 for X - 2 to rez. Inferred: the lookup prints a play cost of 0 for Ad Blitz, but its text counts X advertisements, and a play cost of X is chosen when the cost is paid (8.6.2a). The reader takes the play cost to be X." },
+        { "observe": "corp.clicks", "equals": 1 }
+      ]
+    },
+    {
+      "id": "8.5.13d.ex2#b",
+      "example": "8.5.13d.ex2",
+      "confidence": "stated",
+      "rules": ["8.5.13d"],
+      "cards": ["Ad Blitz", "PAD Campaign"],
+      "position": "Corp's turn, 3 clicks, 1 credit. HQ holds exactly two cards, Ad Blitz and PAD Campaign. Archives is empty.",
+      "steps": [
+        { "label": "blitz", "do": "The Corp plays Ad Blitz with X = 1, spending the extra click." },
+        { "label": "install", "do": "The Corp tries to install PAD Campaign with Ad Blitz, although it cannot pay PAD Campaign's rez cost of 2." }
+      ],
+      "expect": [
+        { "observe": "legal(install)", "equals": false, "why": "'If able' means the Corp cannot choose to install a card it is unable to rez." },
+        { "at": "blitz", "observe": "zone(PAD Campaign)", "equals": "hq" }
+      ]
+    },
+    {
+      "id": "8.5.14.ex1",
+      "example": "8.5.14.ex1",
+      "confidence": "stated",
+      "rules": ["8.5.14", "6.2.1"],
+      "cards": ["Nanisivik Grid", "Brân 1.0", "Wall of Static"],
+      "position": "Runner's turn. A rezzed Nanisivik Grid is alone in the root of a remote server with no ice. Archives holds exactly one card, a facedown Brân 1.0. HQ holds exactly one card, Wall of Static.",
+      "steps": [
+        { "label": "nanisivik", "do": "The Runner runs the remote server. When the Runner approaches the server, the Corp uses Nanisivik Grid: it turns Brân 1.0 faceup and resolves its first subroutine." }
+      ],
+      "expect": [
+        { "observe": "faceup(Brân 1.0)", "equals": true },
+        { "observe": "zone(Brân 1.0)", "equals": "archives" },
+        { "observe": "zone(Wall of Static)", "equals": "hq", "why": "This Brân 1.0 protects no server and has no position, so nothing can be installed 'directly inward' from it." },
+        { "observe": "corp.hq", "equals": 1 }
+      ]
+    },
+    {
+      "id": "8.6.3.ex1",
+      "example": "8.6.3.ex1",
+      "confidence": "stated",
+      "rules": ["8.6.3", "9.11.4b"],
+      "cards": ["Subcontract", "Hedge Fund", "Lateral Growth"],
+      "position": "Corp's turn, 3 clicks, 5 credits. The Runner has 1 tag. HQ holds exactly three cards: Subcontract, Hedge Fund and Lateral Growth.",
+      "steps": [
+        { "label": "subcontract", "do": "The Corp plays Subcontract and with it plays Hedge Fund, then Lateral Growth, installing nothing." }
+      ],
+      "expect": [
+        { "observe": "legal(subcontract)", "equals": true },
+        { "observe": "corp.credits", "equals": 11, "why": "5 - 5 + 9, then - 2 + 4: Lateral Growth is paid for with credits Hedge Fund gave." },
+        { "observe": "corp.clicks", "equals": 2 },
+        { "observe": "corp.hq", "equals": 0 },
+        { "observe": "corp.archives", "equals": 3 }
+      ]
+    },
+    {
+      "id": "8.6.4.ex1",
+      "example": "8.6.4.ex1",
+      "confidence": "stated",
+      "rules": ["8.6.4", "9.10"],
+      "cards": ["Test Run", "Corroder"],
+      "position": "Runner's turn, 5 credits. Test Run is the only card in the grip. The heap is empty. The stack holds Corroder and at least 3 other cards.",
+      "steps": [
+        { "label": "play", "do": "The Runner plays Test Run, searches the stack and installs Corroder." },
+        { "label": "turn-end", "do": "The Runner's turn ends with Corroder still installed." }
+      ],
+      "expect": [
+        { "at": "play", "observe": "zone(Test Run)", "equals": "heap", "why": "Test Run is fully resolved and trashed once it has installed the program; its end-of-turn ability no longer depends on it." },
+        { "at": "play", "observe": "zone(Corroder)", "equals": "rig" },
+        { "at": "play", "observe": "runner.credits", "equals": 2 },
+        { "at": "turn-end", "observe": "zone(Corroder)", "equals": "stack" },
+        { "at": "turn-end", "observe": "stackTop", "equals": "Corroder", "why": "Not a standard key: the title of the top card of the stack." }
+      ]
+    },
+    {
+      "id": "8.6.6a.ex1",
+      "example": "8.6.6a.ex1",
+      "confidence": "stated",
+      "rules": ["8.6.6a", "8.6.7g"],
+      "cards": ["Ashen Epilogue"],
+      "position": "Runner's turn, 5 credits. The grip holds Ashen Epilogue and two other cards. The heap holds 3 cards. The stack holds exactly 10 cards.",
+      "steps": [
+        { "label": "play", "do": "The Runner plays Ashen Epilogue." }
+      ],
+      "expect": [
+        { "observe": "zone(Ashen Epilogue)", "equals": "removed", "why": "Its last ability removes it from the game, so it is not in the play area to be trashed." },
+        { "observe": "runner.heap", "equals": 0 },
+        { "observe": "runner.grip", "equals": 5 },
+        { "observe": "runner.credits", "equals": 0 },
+        { "observe": "runner.stack", "equals": 5, "why": "Not a standard key: the number of cards in the stack. 10 + 2 + 3 shuffled together, 5 removed from the game, 5 drawn." }
+      ]
+    },
+    {
+      "id": "8.7.2b.ex1",
+      "example": "8.7.2b.ex1",
+      "confidence": "stated",
+      "rules": ["8.7.2b", "8.2.5"],
+      "cards": ["Artist Colony", "Corroder", "Femme Fatale", "Sure Gamble", "Offworld Office"],
+      "position": "Runner's turn, 2 credits. Artist Colony is installed. Offworld Office is in the Runner's score area. The stack holds Corroder (install cost 2), Femme Fatale (install cost 9), Sure Gamble (an event) and other cards. No ice is installed.",
+      "steps": [
+        { "label": "find-event", "do": "Using Artist Colony, the Runner tries to find Sure Gamble." },
+        { "label": "find-femme", "do": "Using Artist Colony, the Runner tries to find Femme Fatale." },
+        { "label": "find-corroder", "do": "The Runner uses Artist Colony, forfeiting Offworld Office, finds Corroder and installs it." }
+      ],
+      "expect": [
+        { "observe": "legal(find-event)", "equals": false, "why": "Events can never be installed." },
+        { "observe": "legal(find-femme)", "equals": false, "why": "The Runner cannot afford to install it." },
+        { "observe": "legal(find-corroder)", "equals": true },
+        { "at": "find-corroder", "observe": "zone(Corroder)", "equals": "rig" },
+        { "at": "find-corroder", "observe": "runner.credits", "equals": 0 },
+        { "at": "find-corroder", "observe": "zone(Offworld Office)", "equals": "removed" },
+        { "at": "find-corroder", "observe": "runner.score", "equals": 0 }
+      ]
+    },
+    {
+      "id": "8.7.2b.ex2#a",
+      "example": "8.7.2b.ex2",
+      "confidence": "stated",
+      "rules": ["8.7.2b"],
+      "cards": ["Self-modifying Code", "Patchwork", "Imp", "Sure Gamble"],
+      "position": "Runner's turn, exactly 2 credits. Self-modifying Code and Patchwork are installed; Patchwork has not been used this turn. The grip holds exactly one card, Sure Gamble. The stack holds Imp and other cards.",
+      "steps": [
+        { "label": "smc", "do": "The Runner uses Self-modifying Code (2 credits and trashing it), finds Imp and installs it, using Patchwork by trashing Sure Gamble from the grip." }
+      ],
+      "expect": [
+        { "observe": "legal(smc)", "equals": true },
+        { "observe": "zone(Imp)", "equals": "rig" },
+        { "observe": "counters(Imp,virus)", "equals": 2 },
+        { "observe": "runner.credits", "equals": 0 },
+        { "observe": "runner.grip", "equals": 0 },
+        { "observe": "runner.heap", "equals": 2 }
+      ]
+    },
+    {
+      "id": "8.7.2b.ex2#b",
+      "example": "8.7.2b.ex2",
+      "confidence": "stated",
+      "rules": ["8.7.2b"],
+      "cards": ["Self-modifying Code", "Patchwork", "Imp"],
+      "position": "Runner's turn, exactly 2 credits. Self-modifying Code and Patchwork are installed; Patchwork has not been used this turn. The grip is empty. The stack holds Imp and other cards, none of them a program that costs 0 to install.",
+      "steps": [
+        { "label": "smc", "do": "The Runner uses Self-modifying Code, paying 2 credits and trashing it." },
+        { "label": "find-imp", "do": "The Runner tries to find Imp with that search." }
+      ],
+      "expect": [
+        { "observe": "legal(find-imp)", "equals": false, "why": "With no card in the grip Patchwork cannot be used, and the Runner has no credits left for Imp's install cost of 2." },
+        { "at": "smc", "observe": "zone(Imp)", "equals": "stack" }
+      ]
+    },
+    {
+      "id": "8.7.2b.ex3",
+      "example": "8.7.2b.ex3",
+      "confidence": "stated",
+      "rules": ["8.7.2b", "8.5.13d", "8.5.15"],
+      "cards": ["Tucana", "Pharos", "Offworld Office"],
+      "position": "Runner's turn. The Corp has 0 credits. A remote server with no ice holds a rezzed Tucana and an installed Offworld Office. R&D holds Pharos and other cards.",
+      "steps": [
+        { "label": "steal", "do": "The Runner runs the remote server, accesses Offworld Office first and steals it. The Corp uses Tucana: it searches R&D for Pharos and installs it protecting that remote server. It cannot pay to rez it." }
+      ],
+      "expect": [
+        { "observe": "zone(Pharos)", "equals": "ice:remote", "why": "The Corp may find and install Pharos although it cannot afford the rez (7 less 3 is 4, and it has 0)." },
+        { "observe": "rezzed(Pharos)", "equals": false },
+        { "observe": "revealed(Pharos)", "equals": true, "why": "The Corp must reveal it to show that it cannot be rezzed." },
+        { "observe": "corp.credits", "equals": 0 },
+        { "observe": "runner.score", "equals": 2 }
+      ]
+    },
+    {
+      "id": "8.7.3.ex1",
+      "example": "8.7.3.ex1",
+      "confidence": "stated",
+      "rules": ["8.7.3", "8.7.5"],
+      "cards": ["Near-Earth Hub: Broadcast Center", "Tech Startup", "PAD Campaign"],
+      "position": "The Runner's turn has just ended and the Corp's turn is about to begin. The Corp's identity is Near-Earth Hub: Broadcast Center. A rezzed Tech Startup is alone in a remote server. HQ is empty. R&D holds PAD Campaign and at least 5 other cards.",
+      "steps": [
+        { "label": "startup", "do": "The Corp's turn begins. The Corp trashes Tech Startup, searches R&D for PAD Campaign, reveals it and installs it in a new remote server. Read before the mandatory draw." }
+      ],
+      "expect": [
+        { "observe": "shuffledBeforeInstall", "equals": true, "why": "Not a standard key: whether R&D was shuffled before the asset was installed and before Near-Earth Hub's draw. The shuffle comes straight after the search, ahead of anything done with the found card." },
+        { "observe": "zone(PAD Campaign)", "equals": "root:remote" },
+        { "observe": "zone(Tech Startup)", "equals": "archives" },
+        { "observe": "revealed(PAD Campaign)", "equals": true },
+        { "observe": "corp.hq", "equals": 1, "why": "Near-Earth Hub draws 1 card for the new remote server." }
+      ]
+    },
+    {
+      "id": "8.8.2.ex1",
+      "example": "8.8.2.ex1",
+      "confidence": "stated",
+      "rules": ["8.8.2", "8.5.6a"],
+      "cards": ["Metamorph", "Offworld Office", "PAD Campaign", "Ash 2X3ZB9CY"],
+      "position": "Runner's turn. A rezzed Metamorph is the only ice protecting HQ. Remote server A holds an installed Offworld Office alone. Remote server B holds an unrezzed PAD Campaign and an unrezzed Ash 2X3ZB9CY. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "bad-swap", "do": "The Runner runs HQ, encounters Metamorph and breaks nothing. For the subroutine the Corp tries to swap Offworld Office with Ash 2X3ZB9CY." },
+        { "label": "good-swap", "do": "The Corp swaps Offworld Office with PAD Campaign instead." }
+      ],
+      "expect": [
+        { "observe": "legal(bad-swap)", "equals": false, "why": "The agenda would end up in the same remote server as an asset." },
+        { "observe": "legal(good-swap)", "equals": true },
+        { "at": "good-swap", "observe": "sameServer(Offworld Office,Ash 2X3ZB9CY)", "equals": true },
+        { "at": "good-swap", "observe": "sameServer(Offworld Office,PAD Campaign)", "equals": false }
+      ]
+    },
+    {
+      "id": "8.8.3a.ex1",
+      "example": "8.8.3a.ex1",
+      "confidence": "stated",
+      "rules": ["8.8.3", "8.8.3a"],
+      "cards": ["Thimblerig", "Palisade", "Botulus", "PAD Campaign"],
+      "position": "The Runner's turn has just ended and the Corp's turn is about to begin. A rezzed Thimblerig is the only ice protecting HQ. A remote server holds an unrezzed PAD Campaign and is protected by a rezzed Palisade alone. Botulus is hosted on Palisade with 1 virus counter.",
+      "steps": [
+        { "label": "swap", "do": "The Corp's turn begins and the Corp uses Thimblerig to swap it with Palisade." }
+      ],
+      "expect": [
+        { "observe": "zone(Botulus)", "equals": "hosted:Palisade" },
+        { "observe": "counters(Botulus,virus)", "equals": 1 },
+        { "observe": "zone(Palisade)", "equals": "ice:HQ" },
+        { "observe": "zone(Thimblerig)", "equals": "ice:remote" },
+        { "observe": "rezzed(Palisade)", "equals": true },
+        { "observe": "strength(Palisade)", "equals": 2, "why": "It no longer protects a remote server, so it loses the +2." }
+      ]
+    },
+    {
+      "id": "8.8.4b.ex1",
+      "example": "8.8.4b.ex1",
+      "confidence": "stated",
+      "rules": ["8.8.4a", "8.8.4b", "10.3.5"],
+      "cards": ["A Teia: IP Recovery", "Tatu-Bola", "Enigma", "Ash 2X3ZB9CY", "PAD Campaign", "Corroder"],
+      "position": "Runner's turn, 5 credits. Corroder is installed. The Corp's identity is A Teia: IP Recovery. Remote server A holds an unrezzed PAD Campaign and is protected by a rezzed Tatu-Bola alone. No other remote server exists. HQ holds exactly two cards, Enigma and Ash 2X3ZB9CY. The Corp has 5 credits and has installed nothing this turn.",
+      "steps": [
+        { "label": "pass", "do": "The Runner runs remote server A, encounters Tatu-Bola, breaks its subroutine with Corroder and passes it. The Corp swaps Tatu-Bola with Enigma from HQ. The Corp then uses A Teia's ability to install Ash 2X3ZB9CY in the root of a new remote server, and finishes Tatu-Bola's ability." }
+      ],
+      "expect": [
+        { "observe": "offered(A Teia)", "equals": true, "why": "Not a standard key: whether A Teia's install is offered after the swap. The card swapped in becomes installed, and that meets A Teia's condition at the next checkpoint." },
+        { "observe": "zone(Enigma)", "equals": "ice:remote" },
+        { "observe": "rezzed(Enigma)", "equals": false },
+        { "observe": "zone(Tatu-Bola)", "equals": "hq" },
+        { "observe": "zone(Ash 2X3ZB9CY)", "equals": "root:remote" },
+        { "observe": "sameServer(Ash 2X3ZB9CY,PAD Campaign)", "equals": false },
+        { "observe": "corp.credits", "equals": 9 },
+        { "observe": "runner.credits", "equals": 4 }
+      ]
+    }
+  ]
+}

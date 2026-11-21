@@ -1,0 +1,149 @@
+{
+  "batch": "cr-examples-ch4",
+  "title": "The CR's own examples, chapter 4 (Zones)",
+  "reader": { "model": "claude-fable-5-2", "name": "Claude Fable 5.2" },
+  "sources": { "cr": "v26.03", "cards": "v1.147.25" },
+  "blind": "Written from the CR text, printed card text and rulings (the lookup skill) only. The engine's src/, tests and baselines were not read. Committed before the comparison for this batch existed.",
+  "defaults": "Unless a case says otherwise: the Runner has the default 4 MU and no link, both identities are blank, servers have no ice, the Corp has 5 credits and the Runner 5, zones not mentioned hold only cards with no relevant abilities, neither player spends credits on a trace, and the Corp declines to rez or use anything not listed in the steps.",
+  "cases": [
+    {
+      "id": "4.1.2a.ex1",
+      "example": "4.1.2a.ex1",
+      "confidence": "stated",
+      "rules": ["4.1.2a", "5.6.1d"],
+      "cards": ["Clone Suffrage Movement", "Fast Break"],
+      "position": "The Runner's turn has just ended and the Corp's turn is about to begin. Clone Suffrage Movement is rezzed in a remote server with no ice. Archives holds exactly one card, a facedown Fast Break. HQ is empty.",
+      "steps": [
+        { "label": "csm", "do": "The Corp's turn begins. The Corp uses Clone Suffrage Movement and chooses the facedown Fast Break. Read before the mandatory draw." }
+      ],
+      "expect": [
+        { "observe": "zone(Fast Break)", "equals": "hq" },
+        { "observe": "revealed(Fast Break)", "equals": true, "why": "Not a standard key: whether the card was revealed to the Runner. A facedown card moved by an effect that needs it to be an operation must be revealed first." },
+        { "observe": "corp.archives", "equals": 0 }
+      ]
+    },
+    {
+      "id": "4.6.6i.ex1",
+      "example": "4.6.6i.ex1",
+      "confidence": "derived",
+      "rules": ["4.6.6i", "7.1.5", "9.6"],
+      "cards": ["Warroid Tracker", "Corroder", "Gordian Blade", "Gang Sign"],
+      "position": "Runner's turn, 5 credits. A rezzed Warroid Tracker is the only card in the root of a remote server with no ice. The Runner has Corroder, Gordian Blade and Gang Sign installed.",
+      "steps": [
+        { "label": "trash", "do": "The Runner runs the remote server, accesses Warroid Tracker and pays 4 credits to trash it." },
+        { "label": "trace", "do": "Warroid Tracker's ability resolves: Trace 4 with no spending. The Runner trashes Corroder and Gordian Blade." }
+      ],
+      "expect": [
+        { "at": "trash", "observe": "zone(Warroid Tracker)", "equals": "archives" },
+        { "at": "trash", "observe": "runner.credits", "equals": 1 },
+        { "observe": "triggered(Warroid Tracker)", "equals": true, "why": "Not a standard key: whether Warroid Tracker's trace happens. 'This server' still means the server it was trashed from, so its own trashing meets the condition." },
+        { "observe": "chooser(trace)", "equals": "runner", "why": "The Runner trashes 2 of their installed cards: the Runner picks them." },
+        { "at": "trace", "observe": "runner.heap", "equals": 2 },
+        { "at": "trace", "observe": "zone(Corroder)", "equals": "heap" },
+        { "at": "trace", "observe": "zone(Gordian Blade)", "equals": "heap" },
+        { "at": "trace", "observe": "zone(Gang Sign)", "equals": "rig" }
+      ]
+    },
+    {
+      "id": "4.6.6i.ex2",
+      "example": "4.6.6i.ex2",
+      "confidence": "stated",
+      "rules": ["4.6.6i", "8.5.10"],
+      "cards": ["ZATO City Grid", "Border Control", "Ice Wall"],
+      "position": "Runner's turn. A remote server holds a rezzed ZATO City Grid in its root and is protected by a rezzed Ice Wall (innermost) and a rezzed Border Control (outermost). The Corp has 5 credits.",
+      "steps": [
+        { "label": "zato", "do": "The Runner runs the remote server and encounters Border Control. The Corp uses the ability ZATO City Grid gives the ice: it chooses Border Control's first subroutine and trashes Border Control to resolve it." }
+      ],
+      "expect": [
+        { "observe": "corp.credits", "equals": 6, "why": "'This server' is the remote server, but Border Control no longer protects it, so only Ice Wall is counted." },
+        { "observe": "zone(Border Control)", "equals": "archives" },
+        { "observe": "run.active", "equals": true, "why": "The first subroutine does not end the run; the encountered ice was uninstalled, so the run moves on." }
+      ]
+    },
+    {
+      "id": "4.6.6i.ex3",
+      "example": "4.6.6i.ex3",
+      "confidence": "stated",
+      "rules": ["4.6.6i", "6.9.4g"],
+      "cards": ["Nanisivik Grid", "Border Control", "Ice Wall", "Enigma"],
+      "position": "Runner's turn. Nanisivik Grid is rezzed in the root of a remote server with no ice. Archives is protected by two unrezzed pieces of ice, Ice Wall and Enigma, and holds exactly one card, a facedown Border Control. The Corp has 5 credits.",
+      "steps": [
+        { "label": "nanisivik", "do": "The Runner runs the remote server. When the Runner approaches the server, the Corp uses Nanisivik Grid: it turns Border Control faceup and resolves its first subroutine." }
+      ],
+      "expect": [
+        { "observe": "corp.credits", "equals": 7, "why": "Border Control did not move between servers, so 'this server' is Archives, which two pieces of ice protect." },
+        { "observe": "faceup(Border Control)", "equals": true },
+        { "observe": "zone(Border Control)", "equals": "archives" }
+      ]
+    },
+    {
+      "id": "4.6.8f.ex1#a",
+      "example": "4.6.8f.ex1",
+      "confidence": "stated",
+      "rules": ["4.6.8f", "8.5.2a"],
+      "cards": ["Earth Station: SEA Headquarters", "PAD Campaign", "Ice Wall"],
+      "position": "Corp's turn. The Corp's identity is Earth Station: SEA Headquarters, front side up. One remote server exists, with an unrezzed PAD Campaign in its root. HQ holds Ice Wall.",
+      "steps": [
+        { "label": "new-remote", "do": "The Corp tries to install Ice Wall protecting a new remote server." },
+        { "label": "existing", "do": "The Corp installs Ice Wall protecting the existing remote server." }
+      ],
+      "expect": [
+        { "observe": "legal(new-remote)", "equals": false, "why": "Limit 1 remote server, and one exists." },
+        { "observe": "legal(existing)", "equals": true },
+        { "at": "existing", "observe": "zone(Ice Wall)", "equals": "ice:remote" }
+      ]
+    },
+    {
+      "id": "4.6.8f.ex1#b",
+      "example": "4.6.8f.ex1",
+      "confidence": "derived",
+      "rules": ["4.6.8f"],
+      "cards": ["Earth Station: SEA Headquarters", "Ice Wall"],
+      "position": "Corp's turn. The Corp's identity is Earth Station: SEA Headquarters, front side up. No remote server exists. HQ holds Ice Wall.",
+      "steps": [
+        { "label": "new-remote", "do": "The Corp installs Ice Wall protecting a new remote server." }
+      ],
+      "expect": [
+        { "observe": "legal(new-remote)", "equals": true, "why": "One remote server does not go above the limit of 1." },
+        { "observe": "zone(Ice Wall)", "equals": "ice:remote" }
+      ]
+    },
+    {
+      "id": "4.8.3.ex1",
+      "example": "4.8.3.ex1",
+      "confidence": "stated",
+      "rules": ["4.8.3", "8.7.2", "8.6.4"],
+      "cards": ["Exile: Streethawk", "Test Run", "Corroder"],
+      "position": "Runner's turn, 5 credits. The Runner's identity is Exile: Streethawk. Test Run is the only card in the grip. Corroder is the only card in the heap. The stack holds at least 3 cards.",
+      "steps": [
+        { "label": "test-run", "do": "The Runner plays Test Run, searches the heap and installs Corroder." },
+        { "label": "turn-end", "do": "The Runner's turn ends with Corroder still installed." }
+      ],
+      "expect": [
+        { "at": "test-run", "observe": "zone(Corroder)", "equals": "rig" },
+        { "at": "test-run", "observe": "runner.credits", "equals": 2, "why": "Test Run costs 3; the install ignores all costs." },
+        { "at": "test-run", "observe": "runner.grip", "equals": 1, "why": "Exile draws 1 card: the program counts as installed straight from the heap although it was set aside first." },
+        { "at": "test-run", "observe": "zone(Test Run)", "equals": "heap" },
+        { "at": "turn-end", "observe": "zone(Corroder)", "equals": "stack", "why": "Test Run's delayed ability puts it on top of the stack." }
+      ]
+    },
+    {
+      "id": "4.8.7.ex1",
+      "example": "4.8.7.ex1",
+      "confidence": "stated",
+      "rules": ["4.8.7", "8.4.2", "8.4.5"],
+      "cards": ["Daily Business Show", "Hedge Fund", "Ice Wall"],
+      "position": "The Runner's turn has just ended and the Corp's turn is about to begin. Daily Business Show is rezzed in a remote server. HQ is empty. The top two cards of R&D are Hedge Fund, which the Runner accessed last turn and left in place, and under it Ice Wall.",
+      "steps": [
+        { "label": "draw", "do": "The Corp's turn begins and the Corp takes the mandatory draw. Daily Business Show makes it 2 cards. The Corp adds Hedge Fund to the bottom of R&D." }
+      ],
+      "expect": [
+        { "observe": "corp.hq", "equals": 1 },
+        { "observe": "zone(Ice Wall)", "equals": "hq" },
+        { "observe": "zone(Hedge Fund)", "equals": "rd" },
+        { "observe": "rdBottom", "equals": "Hedge Fund", "why": "Not a standard key: the title of the bottom card of R&D." },
+        { "observe": "runnerCanTell", "equals": false, "why": "Not a standard key: whether what the Runner is shown says which of the two drawn cards went to the bottom. The drawn cards are set aside facedown and the Corp can shuffle them, so the Runner is not told." }
+      ]
+    }
+  ]
+}

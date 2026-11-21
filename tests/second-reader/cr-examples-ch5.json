@@ -1,0 +1,100 @@
+{
+  "batch": "cr-examples-ch5",
+  "title": "The CR's own examples, chapter 5 (Turn Structure)",
+  "reader": { "model": "claude-fable-5-2", "name": "Claude Fable 5.2" },
+  "sources": { "cr": "v26.03", "cards": "v1.147.25" },
+  "blind": "Written from the CR text, printed card text and rulings (the lookup skill) only. The engine's src/, tests and baselines were not read. Committed before the comparison for this batch existed.",
+  "defaults": "Unless a case says otherwise: the Runner has the default 4 MU and no link, both identities are blank, servers have no ice, the Corp has 5 credits and the Runner 5, zones not mentioned hold only cards with no relevant abilities, and the Corp declines to rez or use anything not listed in the steps.",
+  "cases": [
+    {
+      "id": "5.2.1a.ex1#a",
+      "example": "5.2.1a.ex1",
+      "confidence": "stated",
+      "rules": ["5.2.1", "5.2.2", "9.2.6", "9.2.7"],
+      "cards": ["Professional Contacts"],
+      "position": "Runner's turn, 4 clicks, 5 credits. Professional Contacts is installed. The grip is empty and the stack holds at least 3 cards. HQ has no ice.",
+      "steps": [
+        { "label": "use", "do": "The Runner uses Professional Contacts as an action." },
+        { "label": "in-run", "do": "The Runner then runs HQ and, in the paid ability window of the initiation phase, tries to use Professional Contacts." }
+      ],
+      "expect": [
+        { "at": "use", "observe": "runner.clicks", "equals": 3 },
+        { "at": "use", "observe": "runner.credits", "equals": 6 },
+        { "at": "use", "observe": "runner.grip", "equals": 1 },
+        { "observe": "legal(in-run)", "equals": false, "why": "Its cost begins with a click, so it is an action, and an action is taken only in an action window." }
+      ]
+    },
+    {
+      "id": "5.2.1a.ex1#b",
+      "example": "5.2.1a.ex1",
+      "confidence": "stated",
+      "rules": ["5.2.1a", "6.9.3b"],
+      "cards": ["Eli 1.0"],
+      "position": "Runner's turn, 4 clicks. A rezzed Eli 1.0 is the only ice protecting HQ. The Runner has no icebreakers.",
+      "steps": [
+        { "label": "break", "do": "The Runner runs HQ, encounters Eli 1.0 and, in the encounter's paid ability window, uses 'Lose click: Break 1 subroutine' twice." },
+        { "label": "run-over", "do": "No subroutine resolves, the Runner passes Eli 1.0 and the run ends." }
+      ],
+      "expect": [
+        { "observe": "legal(break)", "equals": true, "why": "'Lose click' is a cost with a click symbol that does not begin with one, so the ability is not an action and is used in a paid ability window." },
+        { "at": "break", "observe": "runner.clicks", "equals": 1, "why": "One click for the run, two lost to break." },
+        { "at": "run-over", "observe": "run.outcome", "equals": "successful" }
+      ]
+    },
+    {
+      "id": "5.2.2b.ex1",
+      "example": "5.2.2b.ex1",
+      "confidence": "stated",
+      "rules": ["5.2.2a", "5.2.2b", "8.6.5"],
+      "cards": ["Stimhack"],
+      "position": "Runner's turn, 4 clicks, 5 credits. The grip holds Stimhack and two other cards. Archives is empty and has no ice.",
+      "steps": [
+        { "label": "in-run", "do": "The Runner plays Stimhack and runs Archives. Read during the run, before it ends." },
+        { "label": "mid-action", "do": "During that run the Runner tries to take another action, the basic action to gain 1 credit." },
+        { "label": "done", "do": "The run ends, the Runner suffers 1 core damage and Stimhack is trashed." }
+      ],
+      "expect": [
+        { "at": "in-run", "observe": "counters(Stimhack,credit)", "equals": 9 },
+        { "observe": "legal(mid-action)", "equals": false, "why": "The 'play an event' action is not complete until the run and what follows it are done, so no new action window has opened." },
+        { "at": "done", "observe": "zone(Stimhack)", "equals": "heap" },
+        { "at": "done", "observe": "runner.grip", "equals": 1, "why": "Two cards left after playing Stimhack, one trashed by the core damage." },
+        { "at": "done", "observe": "runner.heap", "equals": 2 },
+        { "at": "done", "observe": "runner.coreDamage", "equals": 1, "why": "Not a standard key: core damage the Runner has suffered." },
+        { "at": "done", "observe": "runner.clicks", "equals": 3 },
+        { "at": "done", "observe": "runner.credits", "equals": 5, "why": "The 9 credits were on Stimhack, not in the pool, and are gone with it." }
+      ]
+    },
+    {
+      "id": "5.2.5b.ex1#a",
+      "example": "5.2.5b.ex1",
+      "confidence": "stated",
+      "rules": ["5.2.5a", "5.2.5b"],
+      "cards": ["MirrorMorph: Endless Iteration", "Hedge Fund", "Lateral Growth"],
+      "position": "Corp's turn, 3 clicks, 5 credits. The Corp's identity is MirrorMorph: Endless Iteration. HQ holds Hedge Fund and Lateral Growth.",
+      "steps": [
+        { "label": "third", "do": "The Corp plays Hedge Fund, then plays Lateral Growth without installing a card, then takes the basic action to gain 1 credit." }
+      ],
+      "expect": [
+        { "observe": "offered(MirrorMorph)", "equals": false, "why": "Not a standard key: whether MirrorMorph's ability is offered after the third action. Both plays used the same basic action, so the first two actions were not different." },
+        { "observe": "corp.credits", "equals": 12, "why": "5 - 5 + 9 - 2 + 4 + 1." },
+        { "observe": "corp.clicks", "equals": 0 }
+      ]
+    },
+    {
+      "id": "5.2.5b.ex1#b",
+      "example": "5.2.5b.ex1",
+      "confidence": "derived",
+      "rules": ["5.2.5b"],
+      "cards": ["MirrorMorph: Endless Iteration", "Hedge Fund"],
+      "position": "Corp's turn, 3 clicks, 5 credits. The Corp's identity is MirrorMorph: Endless Iteration. HQ holds Hedge Fund.",
+      "steps": [
+        { "label": "third", "do": "The Corp plays Hedge Fund, takes the basic action to gain 1 credit, then takes the basic action to draw 1 card. For MirrorMorph the Corp chooses to gain 1 credit." }
+      ],
+      "expect": [
+        { "observe": "offered(MirrorMorph)", "equals": true, "why": "Not a standard key: whether MirrorMorph's ability is offered after the third action. Three different basic actions." },
+        { "observe": "corp.credits", "equals": 11, "why": "5 - 5 + 9 + 1, plus 1 from MirrorMorph." },
+        { "observe": "corp.clicks", "equals": 0 }
+      ]
+    }
+  ]
+}
