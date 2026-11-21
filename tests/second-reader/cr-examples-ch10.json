@@ -235,6 +235,7 @@
       "id": "10.4.3.ex1#a",
       "example": "10.4.3.ex1",
       "confidence": "stated",
+      "corrected": "cr-checker, CR 1.7.2b: the first reading also expected the grip to keep its 4 cards. The CR does not say that, so that line was dropped. The original is in differences.json.",
       "rules": ["10.4.3", "10.4.4", "1.7.2b"],
       "cards": ["BOOM!", "I've Had Worse"],
       "position": "Corp's turn, 3 clicks, 5 credits. The Runner has 2 tags and exactly four cards in the grip, one of them I've Had Worse, and nothing that prevents damage. The stack holds at least 3 cards. HQ holds BOOM!.",
@@ -242,8 +243,7 @@
         { "label": "boom", "do": "The Corp plays BOOM!." }
       ],
       "expect": [
-        { "observe": "winner", "equals": "corp", "why": "Not a standard key: who has won the game. 7 damage is more than the 4 cards in the grip, so the Runner is flatlined at once." },
-        { "observe": "runner.grip", "equals": 4, "why": "The Runner is flatlined before any card is trashed, so I've Had Worse has no chance to resolve: no card is drawn." }
+        { "observe": "winner", "equals": "corp", "why": "Not a standard key: who has won the game. 7 damage is more than the 4 cards in the grip, so the Runner is flatlined at once." }
       ]
     },
     {
