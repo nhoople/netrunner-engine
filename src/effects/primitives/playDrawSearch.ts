@@ -20,6 +20,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { trashCorpCardSet } from "../kinds/trashKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -420,12 +421,14 @@ export function applyDadPrimitive(
     }
 
     case "trash_all_installed_corp_cards": {
-      for (const id of installedCorpIds(state)) {
-        const c = state.cards[id];
-        if (!c) continue;
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-      }
+      // One instruction trashes the whole set (CR 9.12.2a): Hostile
+      // Infrastructure has one instance per card, pending with the set's
+      // other trash triggers in one reaction window (CR 9.6.4b, 9.2.8d).
       log(state, `Apocalypse — trash all installed Corp cards.`);
+      trashCorpCardSet(state, installedCorpIds(state), {
+        by: controllerOf(state, sourceId),
+        instruction: "trash_all_installed_corp_cards",
+      });
       return { ok: true };
     }
 

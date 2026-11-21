@@ -2716,7 +2716,11 @@ export type Primitive =
   | { kind: "lose_nasir_all_credits" }
   | { kind: "social_engineering" }
   | { kind: "social_engineering_mark"; iceId: string }
-  | { kind: "search_foundry_copy_to_hq" }
+  | {
+      kind: "search_foundry_copy_to_hq";
+      /** The Corp chose to search ("you may"; CR 9.6.9c). */
+      chosen?: boolean;
+    }
   | { kind: "score_encrypted_portals_on" }
   | { kind: "name_card" }
   | { kind: "set_name"; defId: string }
@@ -3298,7 +3302,17 @@ export type Primitive =
   | { kind: "derez_ice_rez_cost_lte_x" }
   | { kind: "corp_draw_syn_attack_discard_2_or_4" }
   | { kind: "choose_syn_attack_discard"; remaining: number; cardId?: string }
-  | { kind: "spend_credits_place_power_counters" }
+  | {
+      /**
+       * "You may spend any number of credits to place that many power
+       * counters" (Mammon, Atman). With no `amount` the Runner chooses
+       * how many, 0 included (CR 9.6.9c); with `amount` that many are spent.
+       */
+      kind: "spend_credits_place_power_counters";
+      amount?: number;
+      /** Recurring credits for using programs may pay too; default: when the source is a program. */
+      includeProgramRecurring?: boolean;
+    }
   | { kind: "charlatan_run_any_server" }
   | { kind: "charlatan_start_run"; serverId: string }
   | { kind: "derez_remote_ice" }

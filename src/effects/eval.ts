@@ -71,9 +71,11 @@ import {
   closeReactionWindow,
   completePendingAbility,
   createPendingAbilityInstance,
+  currentReactionWindow,
   findPendingAbility,
   markPendingAbilityResolving,
   openReactionWindow,
+  pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
 import { applyMumbadTlmPrimitive } from "./primitives/trashPlaceAccess.js";
@@ -1915,6 +1917,32 @@ export function resumePendingEffectContinuation(state: GameState): void {
   }
 }
 
+/**
+ * After an interrupt paused a reaction window, finish what belongs to that
+ * window first: the rest of the instance that was resolving (CR 9.2.8d).
+ * The window's other pending instances resume next, and an outer
+ * instruction's remainder last (CR 9.11.3, 10.3.2). Returns once the head
+ * continuation belongs to no paused window or play pauses again.
+ */
+export function resumeContinuationsOfPausedWindows(state: GameState): void {
+  const paused = new Set(
+    pendingAbilitiesWithStatus(state, "pending")
+      .map((p) => p.windowId)
+      .filter((id): id is string => Boolean(id)),
+  );
+  for (;;) {
+    const cont = state.pendingEffectContinuation;
+    if (!cont?.windowId || !paused.has(cont.windowId)) return;
+    if (effectResolutionBlocked(state)) return;
+    state.pendingEffectContinuation = cont.followedBy ?? null;
+    const r = evalEffect(
+      { state, sourceId: cont.sourceId },
+      { op: "seq", effects: cont.effects },
+    );
+    if (!r.ok) log(state, `Effect continuation failed: ${r.error}`);
+  }
+}
+
 /** Execute an effect tree against game state (mutates). */
 export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
   switch (effect.op) {
@@ -1954,6 +1982,7 @@ export function evalEffect(ctx: EffectCtx, effect: Effect): EvalResult {
             deferContinuationAfter(ctx.state, {
               sourceId: ctx.sourceId,
               effects: rest,
+              windowId: currentReactionWindow(ctx.state)?.id,
             });
           }
           return { ok: true };

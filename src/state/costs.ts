@@ -418,6 +418,18 @@ export function spendHostedCreditsDuringRuns(
   return left;
 }
 
+/** Recurring ¢ that may pay for using programs (Cyberfeeder for Atman). */
+export function programUseRecurringCreditsAvailable(state: GameState): number {
+  let n = 0;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const card = state.cards[id];
+    if (!(card?.recurringSpendFor ?? []).includes("use_program")) continue;
+    n += card.recurringCredits ?? 0;
+  }
+  return n;
+}
+
 /** Spend recurring credits that can pay for using a program. Returns how many were spent. */
 export function spendProgramUseRecurringCredits(
   state: GameState,

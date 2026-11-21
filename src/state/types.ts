@@ -5457,6 +5457,13 @@ export interface PendingEffectContinuation {
   effects: import("../effects/ir.js").Effect[];
   /** Runs after `effects`, including when this segment pauses again. */
   followedBy?: PendingEffectContinuation;
+  /**
+   * The reaction window open when this remainder was deferred: the rest of
+   * a pending instance resolving in that window. It finishes before the
+   * window's other instances, which finish before any outer instruction
+   * (CR 9.2.8d, 9.11.3, 10.3.2).
+   */
+  windowId?: string;
 }
 
 interface PendingDamage {

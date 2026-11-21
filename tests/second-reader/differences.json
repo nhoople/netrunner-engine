@@ -81,7 +81,7 @@
       {
         "key": "atman::runner.credits",
         "expected": 6,
-        "engine": 0
+        "engine": 5
       },
       {
         "key": "atman::runner.memoryUsed",
@@ -91,7 +91,7 @@
     ],
     "verdict": "engine-wrong",
     "rule": "1.13.9",
-    "note": "Dhegdheer can host any other program, but the engine never offers it for Leprechaun (a daemon), so the discount and the memory are wrong. Atman also spends every credit on power counters without asking (CR 9.6.9c, fidelity)",
+    "note": "Dhegdheer can host any other program, but the engine never offers it for Leprechaun (a daemon), so the discount and the memory are wrong; the credit left after Atman is 1 short for the same reason. (Atman's spend is a choice since RF-1b, CR 9.6.9c.)",
     "area": "1"
   },
   {
@@ -123,21 +123,6 @@
     "rule": "8.5.2a",
     "note": "The Corp may install in a new remote server. IP Enforcement offers only existing remotes and stops with an error when there is none, after the tags are removed",
     "area": "5"
-  },
-  {
-    "batch": "cr-examples-ch1",
-    "case": "1.14.5a.ex1",
-    "observations": [
-      {
-        "key": "apocalypse::runner.grip",
-        "expected": 1,
-        "engine": 3
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "9.6.4b",
-    "note": "A trigger met three times makes three pending instances. Apocalypse trashes the cards one at a time and Hostile Infrastructure fires once",
-    "area": "fidelity (RF)"
   },
   {
     "batch": "cr-examples-ch1",

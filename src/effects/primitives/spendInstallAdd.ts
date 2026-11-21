@@ -179,18 +179,26 @@ export function applySpinHapPrimitive(
         log(state, `Tennin — no installed Corp cards.`);
         return { ok: true };
       }
+      // "You may place": the Corp may decline (CR 9.6.9c).
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
-        options: cands.map((id) => ({
-          id: `tennin:${id}`,
-          label: `Place 1 advancement on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "place_advancements_on",
-            cardId: id,
-            amount: 1,
-          }),
-        })),
+        options: [
+          ...cands.map((id) => ({
+            id: `tennin:${id}`,
+            label: `Place 1 advancement on ${state.cards[id]!.title}`,
+            effect: fx.do({
+              kind: "place_advancements_on",
+              cardId: id,
+              amount: 1,
+            }),
+          })),
+          {
+            id: "decline",
+            label: "Place nothing",
+            effect: fx.gainCredits("corp", 0),
+          },
+        ],
       });
       return { ok: true };
     }

@@ -11,6 +11,8 @@ import {
   assertPinnedTag,
   cardsDataPresent,
   crDataPresent,
+  evalEffect,
+  fx,
   legalActions,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
@@ -233,5 +235,155 @@ describe("no subroutine resolves after an encounter ability ends the run (CR 6.1
     expect(s.run).toBeFalsy();
     expect(s.runner.tags).toBe(0);
     expect(s.runner.credits).toBe(10);
+  });
+});
+
+describe("Apocalypse trashes the Corp's installed cards as one set (CR 9.12.2a, 9.6.4b, 9.2.8d)", () => {
+  /** Hostile Infrastructure, Calvin B4L3Y and Ice Wall installed; Apocalypse in the grip. */
+  function apocalypseBoard(): GameState {
+    const s = runnerTurn(fresh(), 10);
+    installRoot(s, "hostile-infrastructure", "hi-1", true);
+    installRoot(s, "calvin-b4l3y", "calvin-1", true);
+    installIce(s, "ice-wall", "iw-1", "hq");
+    grip(s, 5);
+    toHand(s, "runner", "apocalypse", "apoc-1");
+    s.turn.successfulHqRunThisTurn = true;
+    s.turn.successfulRdRunThisTurn = true;
+    s.turn.successfulArchivesRunThisTurn = true;
+    return s;
+  }
+
+  it("Hostile Infrastructure does 3 net damage when Apocalypse trashes it with 2 other Corp cards (CR 9.6.4b, 9.1.8g)", () => {
+    let s = must(apocalypseBoard(), { type: "play_event", cardId: "apoc-1" });
+    const prompts: string[] = [];
+    for (let i = 0; i < 20 && s.pendingChoice; i++) {
+      prompts.push(s.pendingChoice.prompt ?? "");
+      s = answerAll(s, "draw");
+      s = drive(s, (x) => x.timingKey === "runner.takeAction");
+    }
+    s = drive(s, (x) => x.timingKey === "runner.takeAction");
+    for (const id of ["hi-1", "calvin-1", "iw-1"]) {
+      expect(s.corp.discardPile).toContain(id);
+    }
+    // 5 cards, less Apocalypse played, less 3 net damage.
+    expect(s.runner.hand.length).toBe(2);
+  });
+
+  it("Warroid Tracker has one instance when Apocalypse trashes it and another card of its server (CR 9.12.2a, 9.1.8g)", () => {
+    const s0 = apocalypseBoard();
+    const warroid = put(
+      s0,
+      "warroid-tracker",
+      "wt-1",
+      "server:remote-hi-1:root",
+    );
+    warroid.rezzed = true;
+    warroid.faceup = true;
+    s0.servers["remote-hi-1" as never]!.root.push("wt-1");
+    const from = s0.log.length;
+    const s = must(s0, { type: "play_event", cardId: "apoc-1" });
+    const lines = s.log.slice(from).join("\n");
+    expect(
+      lines.match(/Warroid Tracker — one instance becomes pending/g)?.length,
+    ).toBe(1);
+  });
+
+  it("every Hostile Infrastructure instance resolves before Apocalypse turns the Runner's cards facedown, so Feedback Filter stays usable for each damage (CR 9.11.3, 10.3.2)", () => {
+    const s0 = apocalypseBoard();
+    installRunner(s0, "feedback-filter", "ff-1");
+    s0.cards["ff-1"]!.faceup = true;
+    let s = must(s0, { type: "play_event", cardId: "apoc-1" });
+    const faceupAtDamage: boolean[] = [];
+    for (let i = 0; i < 30; i++) {
+      if (s.pendingDamage) {
+        faceupAtDamage.push(Boolean(s.cards["ff-1"]!.faceup));
+        s = must(s, { type: "accept_damage" });
+        continue;
+      }
+      if (s.pendingChoice) {
+        const opts = s.pendingChoice.options;
+        const hi = opts.find((o) =>
+          /Hostile/.test((o as { label?: string }).label ?? ""),
+        );
+        s = must(s, {
+          type: "choose_option",
+          optionId: (hi ?? opts[opts.length - 1]!).id,
+        });
+        continue;
+      }
+      if (s.timingKey === "runner.takeAction") break;
+      const pass = legalActions(s).find((a) => a.type === "pass_window");
+      if (!pass) break;
+      s = must(s, pass);
+    }
+    expect(faceupAtDamage).toEqual([true, true, true]);
+    expect(s.cards["ff-1"]!.faceup).toBe(false);
+  });
+
+  it("the Corp chooses the order of Hostile Infrastructure's and Calvin B4L3Y's pending abilities after Apocalypse (CR 9.2.8d)", () => {
+    let s = must(apocalypseBoard(), { type: "play_event", cardId: "apoc-1" });
+    s = drive(
+      s,
+      (x) => Boolean(x.pendingChoice) || x.timingKey === "runner.takeAction",
+    );
+    expect(s.pendingChoice?.chooser).toBe("corp");
+    const labels = (s.pendingChoice?.options ?? []).map(
+      (o) => (o as { label?: string }).label ?? o.id,
+    );
+    expect(labels.some((l) => /Hostile Infrastructure/.test(l))).toBe(true);
+    expect(labels.some((l) => /Calvin/.test(l))).toBe(true);
+  });
+});
+
+describe("Atman's install ability is optional in part (CR 9.6.9c, 9.6.2)", () => {
+  it("the Runner chooses how many credits to spend for Atman's power counters, 0 included, after installing it (CR 9.6.9c)", () => {
+    const s0 = runnerTurn(fresh(), 8);
+    toHand(s0, "runner", "atman", "atman-1");
+    let s = must(s0, {
+      type: "basic_install",
+      cardId: "atman-1",
+      destination: { kind: "installed" },
+    });
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    // 8 credits less Atman's install cost of 3: 5 to spend, or none.
+    expect(optionIds(s)).toContain("spend-power:0");
+    expect(optionIds(s)).toContain("spend-power:5");
+    expect(optionIds(s)).not.toContain("spend-power:6");
+    s = must(s, { type: "choose_option", optionId: "spend-power:2" });
+    expect(s.cards["atman-1"]!.powerCounters).toBe(2);
+    expect(s.runner.credits).toBe(3);
+  });
+});
+
+describe("a 'you may' in a conditional ability can be declined (CR 9.6.9c)", () => {
+  it("Tennin Institute's Corp may place no advancement counter (CR 9.6.9c)", () => {
+    let s = fresh();
+    setIdentity(s, "corp", "tennin-institute-the-secrets-within");
+    installIce(s, "ice-wall", "iw-1", "hq", false);
+    evalEffect(
+      { state: s, sourceId: s.corp.identityId },
+      fx.do({ kind: "tennin_place_advancement_on_installed" }),
+    );
+    expect(optionIds(s)).toContain("decline");
+    s = must(s, { type: "choose_option", optionId: "decline" });
+    expect(s.cards["iw-1"]!.advancementCounters ?? 0).toBe(0);
+  });
+
+  it("The Foundry's Corp may decline to search R&D for another copy of the ice it rezzed (CR 9.6.9c)", () => {
+    let s = fresh();
+    setIdentity(s, "corp", "the-foundry-refining-the-process");
+    installIce(s, "ice-wall", "iw-1", "hq");
+    put(s, "ice-wall", "iw-2", "corp:rd");
+    s.corp.deck.unshift("iw-2");
+    s.turn.iceRezzedThisTurn = 1;
+    s.turn.rezzedThisTurnIds = ["iw-1"];
+    evalEffect(
+      { state: s, sourceId: s.corp.identityId },
+      fx.do({ kind: "search_foundry_copy_to_hq" }),
+    );
+    expect(optionIds(s)).toEqual(["search", "decline"]);
+    s = must(s, { type: "choose_option", optionId: "decline" });
+    expect(s.corp.deck).toContain("iw-2");
+    expect(s.corp.hand).not.toContain("iw-2");
   });
 });
