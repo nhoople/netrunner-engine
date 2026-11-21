@@ -5,7 +5,7 @@
  *
  * Not a test file: vitest only runs `*.test.ts`.
  */
-import { legalActions } from "../../src/index.js";
+import { getPublicView, legalActions } from "../../src/index.js";
 import type { Action, GameState } from "../../src/index.js";
 import type { ServerId } from "../../src/state/types.js";
 import { must, optionIds, pick } from "../rulings-helpers.js";
@@ -2008,7 +2008,8 @@ function dataRaven(r: Report, choose: "tag" | "end"): void {
 
 /**
  * 1 net damage with Chronos Protocol and Titanium Ribs both active: who is
- * asked to choose the trashed card, and whether the Corp is shown the grip.
+ * asked to choose the trashed card, and whether the Corp is shown the grip
+ * while the choice is open.
  */
 function chosenDamage(
   r: Report,
@@ -2026,14 +2027,13 @@ function chosenDamage(
       (idle(x) || x.timingKey === "run.jackOutWindow" || !runnersTurn),
     [cardId],
     (x) => {
-      if ((x.reveals ?? []).length > 0) shown = true;
-      if (!x.pendingChoice) return undefined;
-      debug(
-        "damage choice:",
-        what(x),
-        JSON.stringify(x.reveals ?? []).slice(0, 300),
-      );
-      if (hasOption(x, cardId)) chooser = x.pendingChoice.chooser;
+      if (!x.pendingChoice || !hasOption(x, cardId)) return undefined;
+      chooser = x.pendingChoice.chooser;
+      // The Corp is shown the grip when its own view of the game, the one a
+      // host hands that seat, names every card in it.
+      const view = JSON.stringify(getPublicView(x, "corp"));
+      shown = x.runner.hand.every((id) => view.includes(x.cards[id]!.title));
+      debug("damage choice:", what(x), "corp sees the grip:", shown);
       return undefined;
     },
   );
