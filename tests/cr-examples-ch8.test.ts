@@ -31,7 +31,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.25");
+  assertCardsPinnedTag("v1.147.26");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -632,6 +632,9 @@ describe("CR examples, chapter 8", () => {
     s.timingKey = "runner.takeAction";
 
     s = must(s, { type: "play_event", cardId: "tr-1" });
+    // The Runner searches the stack and finds Corroder (CR 8.7.1).
+    s = must(s, { type: "choose_option", optionId: "search-stack" });
+    s = must(s, { type: "choose_option", optionId: "choose-card:co-1" });
 
     const linger = at(s.log, "creates a lingering effect");
     const trashed = at(s.log, "Test Run trashed");

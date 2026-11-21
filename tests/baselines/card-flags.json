@@ -1,5 +1,5 @@
 {
-  "cardsPin": "v1.147.25",
+  "cardsPin": "v1.147.26",
   "counts": {
     "cardDefFlags": 602,
     "cardDefBoolean": 333,
@@ -9,15 +9,15 @@
       "$ref": 1,
       "any": 3,
       "array": 16,
-      "boolean": 333,
+      "boolean": 332,
       "integer": 268,
-      "object": 220,
+      "object": 221,
       "string": 13
     },
     "entries": 863,
     "withKindBuildingReader": 51,
-    "unread": 15,
-    "unset": 19
+    "unread": 14,
+    "unset": 18
   },
   "flagKinds": {
     "addInstalledNonVirusProgramToStackTopOnEncounterEndIfBroke": [
@@ -84,6 +84,7 @@
     "mayExposeApproachedUnrezzedIceOncePerRunThenMayJackOut": [
       "expose",
       "gain_credits",
+      "mark_ability_used_this_run",
       "offer_jack_out"
     ],
     "mayInstallOnScoreOrSteal": [
@@ -196,7 +197,6 @@
     "onFirstNetDamageThisRunOnServer",
     "powerCountersOnInstallEqualPaidX",
     "shredPreventFirstEndTheRun",
-    "skipBreachInstallProgramFromHeap",
     "trashSelfWhenNoPowerCounters",
     "unsupported",
     "usableByAnyPlayer",
@@ -219,7 +219,6 @@
     "powerCountersOnInstallEqualPaidX",
     "prevention",
     "shredPreventFirstEndTheRun",
-    "skipBreachInstallProgramFromHeap",
     "trashSelfWhenNoPowerCounters",
     "usableByAnyPlayer"
   ],
@@ -5946,9 +5945,8 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 15,
+      "cardCount": 14,
       "cards": [
-        "adonis-campaign",
         "armitage-codebusting",
         "bank-job",
         "crowdfunding",
@@ -7836,7 +7834,7 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 79,
+      "cardCount": 78,
       "setVia": [
         "declaration",
         "field"
@@ -8200,6 +8198,7 @@
           "kinds": [
             "expose",
             "gain_credits",
+            "mark_ability_used_this_run",
             "offer_jack_out"
           ]
         }
@@ -8207,6 +8206,7 @@
       "kinds": [
         "expose",
         "gain_credits",
+        "mark_ability_used_this_run",
         "offer_jack_out"
       ]
     },
@@ -9021,7 +9021,7 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 64,
+      "cardCount": 63,
       "setVia": [
         "declaration"
       ],
@@ -9837,6 +9837,10 @@
       ],
       "readers": [
         {
+          "site": "src/effects/kinds/swapKinds.ts#applySwapKinds",
+          "kinds": []
+        },
+        {
           "site": "src/timing/graph.ts#STEPS.onResolve",
           "kinds": []
         }
@@ -10527,6 +10531,27 @@
         },
         {
           "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfRezzed",
+          "kinds": []
+        }
+      ],
+      "kinds": []
+    },
+    "onEncounterEndIfBroke": {
+      "cardDef": "other",
+      "schema": "object",
+      "flag": false,
+      "cardCount": 1,
+      "cards": [
+        "faerie"
+      ],
+      "setVia": [],
+      "readers": [
+        {
+          "site": "src/timing/graph.ts#STEPS.onResolve",
+          "kinds": []
+        },
+        {
+          "site": "src/timing/graph.ts#noteEncounterEndIfBrokeEarly",
           "kinds": []
         }
       ],
@@ -12414,7 +12439,7 @@
       "cardDef": "other",
       "schema": "object",
       "flag": false,
-      "cardCount": 42,
+      "cardCount": 43,
       "setVia": [],
       "readers": [
         {
@@ -13015,6 +13040,10 @@
       ],
       "setVia": [],
       "readers": [
+        {
+          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "kinds": []
+        },
         {
           "site": "src/legality/checkpoints.ts#markSuccessfulRunEndOnce",
           "kinds": []
@@ -18066,6 +18095,10 @@
           "kinds": []
         },
         {
+          "site": "src/actions/paidAbility.ts#serverBeforeTrashCost",
+          "kinds": []
+        },
+        {
           "site": "src/actions/paidAbility.ts#usePaidAbility",
           "kinds": []
         },
@@ -18514,16 +18547,6 @@
         "gain_credits",
         "sifr_zero_encounter_ice_strength"
       ]
-    },
-    "skipBreachInstallProgramFromHeap": {
-      "cardDef": null,
-      "schema": "boolean",
-      "flag": true,
-      "cardCount": 0,
-      "cards": [],
-      "setVia": [],
-      "readers": [],
-      "kinds": []
     },
     "skipOnAccessFromArchives": {
       "cardDef": "boolean",
@@ -22709,6 +22732,10 @@
           "kinds": []
         },
         {
+          "site": "src/timing/graph.ts#noteEncounterEndIfBrokeEarly",
+          "kinds": []
+        },
+        {
           "site": "src/timing/graph.ts#noteOpenTurnBeginWaiting",
           "kinds": []
         },
@@ -22783,9 +22810,8 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 2,
+      "cardCount": 1,
       "cards": [
-        "faerie",
         "mayfly"
       ],
       "setVia": [
@@ -23269,15 +23295,17 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 12,
+      "cardCount": 14,
       "cards": [
         "adonis-campaign",
         "armitage-codebusting",
         "daily-casts",
+        "eve-campaign",
         "ghost-runner",
         "launch-campaign",
         "liberated-account",
         "open-market",
+        "private-contracts",
         "red-team",
         "regolith-mining-license",
         "rogue-trading",
@@ -23645,6 +23673,10 @@
         },
         {
           "site": "src/effects/kinds/addKinds.ts#applyAddKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/breachKinds.ts#applyBreachKinds",
           "kinds": []
         },
         {
@@ -24084,6 +24116,10 @@
           "kinds": []
         },
         {
+          "site": "src/legality/query.ts#gateAction",
+          "kinds": []
+        },
+        {
           "site": "src/state/active.ts#facedownInstalledRunnerCard",
           "kinds": []
         },
@@ -24320,6 +24356,10 @@
         },
         {
           "site": "src/state/trashPrevent.ts#maybeOpenTrashPrevent",
+          "kinds": []
+        },
+        {
+          "site": "src/state/trashPrevent.ts#trashInterruptRelevantToCard",
           "kinds": []
         },
         {

@@ -438,8 +438,6 @@ export interface StartsRunSpec {
   forbidCorpRezIceDuringRun?: boolean;
   /** Shred: first Corp ETR prevented unless Corp trashes X random HQ. */
   shredPreventFirstEndTheRun?: boolean;
-  /** Retrieval Run: on success, skip breach and may install program from heap. */
-  skipBreachInstallProgramFromHeap?: boolean;
   /** Demolition Run: during this run, access → trash for 0¢. */
   accessTrashFree?: boolean;
   /** Skip breaching the attacked server on successful run (replace-breach events). */
@@ -633,6 +631,11 @@ export interface PaidAbility {
    * 9.9.3a). A trash with no recorded actor is not excluded.
    */
   onlyCorpTrashes?: boolean;
+  /**
+   * Trash interrupt relevant only to a pending trash of these card types
+   * (Sacrificial Construct: a program or a piece of hardware). CR 9.9.3a.
+   */
+  requirePendingTrashCardTypes?: CardType[];
   /**
    * Legal only the first time net damage would be dealt this run, and only
    * while this card is installed in the attacked server (CR 9.9.5a).
@@ -1521,6 +1524,8 @@ export interface CardInstance {
   mayPlaceVirusCounterWhenCorpCardTrashed?: boolean;
   corpLosesCreditsOnFirstRunnerInstallEachTurn?: number;
   onEncounterEndIfNotFullyBroken?: Effect;
+  /** Faerie: whenever an encounter ends, if this program broke a subroutine during it (CR 9.6). */
+  onEncounterEndIfBroke?: Effect;
   gainCreditsOnFirstRunnerPlayOrInstallNamedType?: number;
   mayGainCreditWhenRunnerInstallsOrTrashesInstalled?: boolean;
   programInstallCostIncrease?: number;
@@ -4607,8 +4612,6 @@ export interface RunState {
   mercuryBreachPending?: boolean;
   /** Medium: resume beginBreachAccess after virus bonus-access choice. */
   mediumBreachPending?: boolean;
-  /** Snitch: once-per-run expose ability already used. */
-  snitchUsedThisRun?: boolean;
   /**
    * Midori-class: card instance ids whose `onApproachIceOncePerRun`
    * trigger already fired this run.
@@ -4933,8 +4936,6 @@ export interface RunState {
    * Cleared when the run ends.
    */
   senseiEtrSourceIds?: string[];
-  /** On success instead of breach, may install a program from heap ignoring costs. */
-  skipBreachInstallProgramFromHeap?: boolean;
   /**
    * During this run, cards in the root of the attacked server lose all abilities
    * (Light the Fire!).

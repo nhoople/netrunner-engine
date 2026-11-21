@@ -20,7 +20,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.25");
+  assertCardsPinnedTag("v1.147.26");
 });
 
 describe("CR examples, chapter 4", () => {
@@ -192,7 +192,15 @@ describe("CR examples, chapter 4", () => {
     const deckBefore = s.runner.deck.length;
     const installed = evalEffect(
       { state: s, sourceId: "exile-1" },
-      { op: "do", action: { kind: "install_program_from_stack_or_heap_free" } },
+      // The Runner chose to search the heap and found Corroder (CR 8.7.1).
+      {
+        op: "do",
+        action: {
+          kind: "install_program_from_stack_or_heap_free",
+          from: "heap",
+          cardIds: ["prog-1"],
+        },
+      },
     );
     expect(installed.ok).toBe(true);
     expect(s.runner.installed).toContain("prog-1");

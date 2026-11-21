@@ -328,7 +328,7 @@ describe("trace-amount", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("Trace Amount v1.89.0 set-complete", () => {
@@ -350,7 +350,8 @@ describe("trace-amount", () => {
         expect(getCardDef("compromised-employee").recurringSpendFor).toEqual([
           "trace",
         ]);
-        expect(getCardDef("compromised-employee").link).toBe(1);
+        // It prints no link (PF-S3a, CR 1.2.1).
+        expect(getCardDef("compromised-employee").link).toBeUndefined();
         expect(getCardDef("big-brother").playRequiresTagged).toBe(true);
         expect(getCardDef("freelancer").playRequiresTagged).toBe(true);
         expect(

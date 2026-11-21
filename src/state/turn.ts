@@ -616,6 +616,10 @@ export function cardBecameNewObject(state: GameState, cardId: string): void {
   state.turn.usedAbilities = state.turn.usedAbilities.filter(
     (key) => !key.startsWith(prefix),
   );
+  // "This server" from an earlier [trash] cost named the old object's
+  // server (CR 4.6.6i).
+  const card = state.cards[cardId];
+  if (card) delete card.thisServerWhileResolving;
   endEffectsOnPreviousObject(state, cardId);
 }
 

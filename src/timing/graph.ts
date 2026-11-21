@@ -59,10 +59,12 @@ import { resolveIceSubtypes } from "../state/continuousEffects.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { currentMark } from "../state/msKeywords.js";
 import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
-import { beginCorpTurnFlags, beginRunnerTurnFlags } from "../state/turn.js";
+import {
+  beginCorpTurnFlags,
+  beginRunnerTurnFlags,
+  wasAbilityUsedThisRun,
+} from "../state/turn.js";
 import { agendaPointsFor } from "../state/scoring.js";
-import { noteVirusProgramInstalled } from "../state/virusInstall.js";
-import { noteProgramOrHardwareInstalled } from "../state/programHardwareInstall.js";
 import { noteValSuccessfulRunTrigger } from "../effects/sansanValHooks.js";
 import {
   noteDaredevilFirstRun,
@@ -803,6 +805,12 @@ function opening(
  *
  * PAW nodes accept hardcoded paid abilities (pump / fortify) via use_paid_ability.
  */
+/**
+ * Snitch's ability id. Its "once per run" is recorded per copy when the
+ * Runner carries out its optional part (CR 9.1.6b).
+ */
+const SNITCH_EXPOSE = "snitch-expose";
+
 function offerDelayedRunEndOrder(s: GameState): boolean {
   const runState = s.run;
   if (!runState || runState.delayedRunEndOrderResolved) return false;
@@ -2051,26 +2059,18 @@ export const STEPS: Record<string, TimingStepDef> = {
           const card = s.cards[id];
           if (!card?.rezzed || !card.onApproachIce) continue;
           if (abilitiesSuppressed(s, id)) continue;
+          // Midori's "once per run": the ability is used only when its
+          // optional part is carried out (CR 9.6.9d); declining keeps it.
+          // The kind that carries it out records the use.
           if (card.onApproachIceOncePerRun) {
             const fired = s.run?.approachIceTriggersFiredIds ?? [];
             if (fired.includes(id)) continue;
           }
           noteOnApproachIce(s, id);
-          if (card.onApproachIceOncePerRun && s.run) {
-            s.run.approachIceTriggersFiredIds = [
-              ...(s.run.approachIceTriggersFiredIds ?? []),
-              id,
-            ];
-          }
         }
         checkpointAfterInstruction(s, "run.approachIce");
         // Snitch: once per run, approaching unrezzed ice → may expose then jack out.
-        if (
-          !s.pendingChoice &&
-          ice &&
-          !ice.rezzed &&
-          !runState.snitchUsedThisRun
-        ) {
+        if (!s.pendingChoice && ice && !ice.rezzed) {
           for (const id of s.runner.installed) {
             const snitch = s.cards[id];
             if (
@@ -2078,17 +2078,28 @@ export const STEPS: Record<string, TimingStepDef> = {
             ) {
               continue;
             }
-            runState.snitchUsedThisRun = true;
+            // Each copy's "once per run" is used only when its optional part
+            // is carried out (CR 9.6.9d, 9.1.6b); declining keeps it.
+            if (wasAbilityUsedThisRun(s, id, SNITCH_EXPOSE)) continue;
             openPendingChoose(s, {
               sourceId: id,
               chooser: "runner",
               options: [
                 {
                   id: "snitch-expose",
-                  label: `Expose ${ice.title}, then may jack out`,
+                  // The ice is not exposed yet: its title stays hidden from
+                  // the Runner until it is (CR 10.2.2a, 1.21.4).
+                  label: `Expose the approached ice, then may jack out`,
                   effect: {
                     op: "seq",
                     effects: [
+                      {
+                        op: "do",
+                        action: {
+                          kind: "mark_ability_used_this_run",
+                          abilityId: SNITCH_EXPOSE,
+                        },
+                      },
                       {
                         op: "do",
                         action: {
@@ -2114,7 +2125,7 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                 },
               ],
-              logLine: `${snitch.title} — may expose approached ${ice.title}, then may jack out.`,
+              logLine: `${snitch.title} — may expose the approached ice, then may jack out.`,
             });
             break;
           }
@@ -3450,6 +3461,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         const pos = runState.position;
         if (pos !== null && !afterForcedEncounter && runState.positionVacated) {
+          noteEncounterEndIfBrokeEarly(s, "the ice was uninstalled");
           // The Runner passes the position; there is no ice in it to pass
           // (CR 8.5.10). No position is more inward when no ice is.
           runState.passReplacedByEncounterEnd = false;
@@ -3738,6 +3750,24 @@ export const STEPS: Record<string, TimingStepDef> = {
                     action: { kind: "add_nonvirus_program_to_stack_top" },
                   },
                   logLine: `${br.title} becomes pending — encounter end after break (add non-virus to stack).`,
+                });
+              }
+              // Faerie: "Whenever an encounter ends, if you used this program
+              // to break a subroutine during that encounter, trash this
+              // program." A conditional ability met as the encounter ends
+              // (CR 9.6.4), not when the run ends.
+              if (
+                br.onEncounterEndIfBroke &&
+                s.runner.installed.includes(bid) &&
+                !abilitiesSuppressed(s, bid)
+              ) {
+                noteInlineConditional(s, {
+                  cardId: bid,
+                  abilityKey: "encounter-end-if-broke",
+                  controller: "runner",
+                  mandatory: true,
+                  effect: br.onEncounterEndIfBroke,
+                  logLine: `${br.title} becomes pending — it broke a subroutine during this encounter.`,
                 });
               }
               if (!br.removeVirusOrTrashOnEncounterEndIfBroke) continue;
@@ -4453,28 +4483,6 @@ export const STEPS: Record<string, TimingStepDef> = {
             break;
           }
         }
-        if (s.run!.successful && s.run!.skipBreachInstallProgramFromHeap) {
-          s.run!.skipBreach = true;
-          const prog = s.runner.discardPile.find(
-            (id) => s.cards[id].type === "program",
-          );
-          if (prog) {
-            const card = s.cards[prog];
-            s.runner.discardPile = s.runner.discardPile.filter(
-              (x) => x !== prog,
-            );
-            s.runner.installed.push(prog);
-            card.zone = "runner:installed";
-            card.faceup = true;
-            s.log.push(
-              `Retrieval Run — install ${card.title} from heap ignoring costs.`,
-            );
-            noteVirusProgramInstalled(s, prog);
-            noteProgramOrHardwareInstalled(s, prog);
-          } else {
-            s.log.push(`Retrieval Run — no program in heap to install.`);
-          }
-        }
         // Steve Cambridge: first successful HQ each turn (identity + Fenris carriers).
         if (
           s.run!.successful &&
@@ -4881,6 +4889,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // resolves in the Run Ends Phase, while run effects such as The
         // Noble Path's still apply (CR 6.1.4, 6.8.5.ex1, 9.6.13c).
         noteChumEncounterEndedByRunEnd(s);
+        noteEncounterEndIfBrokeEarly(s, "the run ended");
         // CR 6.8.2 / appendix 11.4_6_a — drain open windows by class:
         // a) PAWs close (no further paid abilities / rez);
         // b) phase-begin reaction windows close;
@@ -5250,14 +5259,12 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Doppelgänger: once per turn when a successful run ends — note for 10.3.1a.
         // Note even if a choice is open; checkpoint marks, reaction waits (CR 10.3.2).
+        // The turn's use is recorded only when the Runner starts the run
+        // (queue_start_run): declining does not use it (CR 9.6.9d, 9.3.6g).
         if (runState.successful === true) {
           for (const rid of s.runner.installed) {
             if (s.turn.onSuccessfulRunEndFiredIds.includes(rid)) continue;
-            const before = (s.turn.successfulRunEndOncePendingIds ?? []).length;
             noteSuccessfulRunEndOncePerTurn(s, rid);
-            if ((s.turn.successfulRunEndOncePendingIds ?? []).length > before) {
-              s.turn.onSuccessfulRunEndFiredIds.push(rid);
-            }
           }
           if ((s.turn.successfulRunEndOncePendingIds ?? []).length > 0) {
             checkpointAfterInstruction(s, "run.ends");
@@ -5914,6 +5921,33 @@ export const BREACH_STEPS = {
   stealAgenda: STEPS["access.stealAgenda"],
   accessComplete: STEPS["access.complete"],
 } as const;
+
+/**
+ * Faerie: "Whenever an encounter ends, if you used this program to break a
+ * subroutine during that encounter, trash this program." An encounter also
+ * ends when the run ends during it (CR 6.1.4) or when the encountered ice is
+ * uninstalled (CR 8.5.10), so the ability is met there as well as where an
+ * encounter ends while the run goes on.
+ */
+function noteEncounterEndIfBrokeEarly(s: GameState, why: string): void {
+  const enc = s.run?.encounter;
+  if (!enc) return;
+  for (const bid of enc.breakersThatBrokeThisEncounter ?? []) {
+    const br = s.cards[bid];
+    if (!br?.onEncounterEndIfBroke) continue;
+    if (!s.runner.installed.includes(bid) || abilitiesSuppressed(s, bid)) {
+      continue;
+    }
+    noteInlineConditional(s, {
+      cardId: bid,
+      abilityKey: "encounter-end-if-broke",
+      controller: "runner",
+      mandatory: true,
+      effect: br.onEncounterEndIfBroke,
+      logLine: `${br.title} becomes pending — it broke a subroutine during an encounter that ended because ${why}.`,
+    });
+  }
+}
 
 /**
  * Chum: "When that encounter ends, if the Runner did not fully break that

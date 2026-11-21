@@ -32,7 +32,7 @@ describe("core", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("FFG Core Set final 7 clears", () => {
@@ -272,6 +272,14 @@ describe("core", () => {
           { op: "do", action: { kind: "accelerated_beta_test", n: 3 } },
         );
         expect(r.ok).toBe(true);
+        // "You may look" (CR 9.6.9c): the Corp chooses to look first.
+        expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+          "abt-look",
+          "abt-decline",
+        ]);
+        const look = s.pendingChoice!.options[0]!.effect;
+        s.pendingChoice = null;
+        expect(evalEffect({ state: s, sourceId: "abt" }, look).ok).toBe(true);
         expect(s.pendingChoice?.chooser).toBe("corp");
         expect(s.turn.rdLookedCards).toContain("ice-look");
       });
@@ -396,7 +404,7 @@ describe("core", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("FFG Core Set kickoff (floor v1.86.0 → set-complete v1.87.0)", () => {
@@ -527,7 +535,7 @@ describe("core", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("FFG Core Set additional clears (floor v1.86.0 → v1.87.0)", () => {

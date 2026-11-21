@@ -156,7 +156,12 @@ export const drivers: Record<string, Driver> = {
     let s = must(corpWindow(b.s), { type: "score_agenda", cardId: abt });
     // The Corp searches and finds the other Ice Wall (CR 8.7.2e lets it
     // find nothing; the case has it find the copy).
-    s = through(s, atAction, [`abt-ice:${top}:hq`, "search", "choose-card:"]);
+    s = through(s, atAction, [
+      "abt-look",
+      `abt-ice:${top}:hq`,
+      "search",
+      "choose-card:",
+    ]);
     r.snap("score", s);
   },
 

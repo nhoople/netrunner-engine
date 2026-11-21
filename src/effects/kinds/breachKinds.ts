@@ -11,6 +11,16 @@ import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { applyPrimitive } from "../eval.js";
+import {
+  canInstallHeapCard,
+  gripInstallCostAfterDiscount,
+} from "../runnerInstall.js";
+
+/** A discount that brings a heap card's install cost to 0: "ignoring all costs". */
+function heapCostIgnored(state: EffectCtx["state"], cardId: string): number {
+  const card = state.cards[cardId];
+  return card ? gripInstallCostAfterDiscount(state, card, 0) : 0;
+}
 
 export function applyBreachKinds(
   ctx: EffectCtx,
@@ -19,6 +29,63 @@ export function applyBreachKinds(
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
+    case "may_install_heap_program_instead_of_breach": {
+      // Retrieval Run: "If successful, instead of breaching Archives, you
+      // may install 1 program from your heap, ignoring all costs." The
+      // Runner may breach instead, and picks the program (CR 1.2.1, 9.9.1).
+      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
+      if (!state.run || state.run.attackedServerId !== "archives") {
+        log(
+          state,
+          `${source?.title ?? "Run"} — not a successful Archives run.`,
+        );
+        return { ok: true };
+      }
+      const programs = state.runner.discardPile.filter(
+        (id) =>
+          state.cards[id]?.type === "program" &&
+          canInstallHeapCard(state, id, heapCostIgnored(state, id)),
+      );
+      const options: Array<{ id: string; label: string; effect: Effect }> = [
+        {
+          id: "breach",
+          label: "Breach Archives",
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "runner", amount: 0 },
+          },
+        },
+        ...programs.map((id) => ({
+          id: `install:${id}`,
+          label: `Install ${state.cards[id]!.title} ignoring all costs`,
+          effect: {
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: { kind: "set_skip_breach" as const },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "install_heap_card" as const,
+                  cardId: id,
+                  discount: heapCostIgnored(state, id),
+                },
+              },
+            ],
+          },
+        })),
+      ];
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options,
+        logLine: `${source?.title ?? "Run"} — may install 1 program from the heap instead of breaching Archives.`,
+      });
+      return { ok: true };
+    }
+
     case "may_breach_instead_indexing": {
       if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "rd") {

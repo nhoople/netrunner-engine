@@ -2,7 +2,7 @@
  * Paid abilities on installed cards and identities.
  */
 import { deferContinuationAfter } from "../effects/continuation.js";
-import { trashInterruptRelevantToActor } from "../state/trashPrevent.js";
+import { trashInterruptRelevant } from "../state/trashPrevent.js";
 import {
   paidAbilityBreakBlock,
   subroutinesBrokenByRunnerCount,
@@ -25,6 +25,7 @@ import {
 import {
   evalEffect,
   fireOnAfterOperationOrExpendable,
+  serverHostingCard,
   validatePaidEffect,
 } from "../effects/eval.js";
 import { fireSiAfterPaidAbilityClicks } from "../effects/primitives/lookTrashAdd.js";
@@ -275,7 +276,10 @@ function effectActsOnSourceAdvancements(effect: unknown): boolean {
   );
 }
 
-function finishTrashAbilityIfResolved(state: GameState): void {
+function finishTrashAbilityIfResolved(
+  state: GameState,
+  card?: CardInstance,
+): void {
   if (
     state.pendingChoice ||
     state.pendingEffectContinuation ||
@@ -286,6 +290,20 @@ function finishTrashAbilityIfResolved(state: GameState): void {
   }
   releaseSetAsideHostedCards(state);
   returnSetAsideAdvancements(state);
+  if (card) delete card.thisServerWhileResolving;
+}
+
+/**
+ * The server a Corp card is in before its [trash] cost moves it. "This
+ * server" keeps naming that server while the ability resolves (CR 4.6.6i).
+ */
+function serverBeforeTrashCost(
+  state: GameState,
+  card: CardInstance,
+  cost: CostSpec,
+): string | undefined {
+  if (!cost.trashSelf || card.side !== "corp") return undefined;
+  return serverHostingCard(state, card.id)?.id;
 }
 
 /** A card's paid ability, including one it gains from a hosted icebreaker. */
@@ -487,7 +505,7 @@ export function usePaidAbility(
   const trashInterruptOpen =
     Boolean(state.pendingTrashPrevent) &&
     ability.windows.includes("trash_interrupt") &&
-    trashInterruptRelevantToActor(ability, state.pendingTrashPrevent?.by);
+    trashInterruptRelevant(state, ability, state.pendingTrashPrevent!);
   const traceInterruptOpen =
     Boolean(state.trace) &&
     ability.windows.includes("trace_interrupt") &&
@@ -1000,7 +1018,9 @@ export function usePaidAbility(
     armTrashSetAsideVirus(state, card, cost, ability.effect);
     armTrashSetAsideHosted(state, card, cost, ability.effect);
     armTrashSetAsideAdvancements(state, card, cost, ability.effect);
+    const thisServer = serverBeforeTrashCost(state, card, cost);
     payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
+    if (thisServer) card.thisServerWhileResolving = thisServer;
     if (isOncePerTurn(ability)) {
       markAbilityUsed(state, cardId, abilityId);
     }
@@ -1014,7 +1034,7 @@ export function usePaidAbility(
     resolveGeistAfterTrashCost(state, card, cost);
     const applied = evalEffect(ctx, ability.effect);
     returnSetAsideVirusCounters(state);
-    finishTrashAbilityIfResolved(state);
+    finishTrashAbilityIfResolved(state, card);
     if (!applied.ok) return fail(applied.error, applied.cites);
     const mods = modifiersFromStartsRun(state, ability.startsRun, cardId);
     log(state, `${card.title} starts a run on ${serverId}.`);
@@ -1036,7 +1056,9 @@ export function usePaidAbility(
   armTrashSetAsideHosted(state, card, cost, ability.effect);
   armTrashSetAsideAdvancements(state, card, cost, ability.effect);
   const choiceBeforeCost = state.pendingChoice;
+  const thisServer = serverBeforeTrashCost(state, card, cost);
   payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
+  if (thisServer) card.thisServerWhileResolving = thisServer;
   noteRunnerLostClicksOnCorpIce(state, card, payer, cost);
   if (payer === "corp") {
     fireSiAfterPaidAbilityClicks(state, cost.clicks ?? ability.clickCost ?? 0);
@@ -1068,7 +1090,7 @@ export function usePaidAbility(
     applied = evalEffect(ctx, ability.effect);
   }
   returnSetAsideVirusCounters(state);
-  finishTrashAbilityIfResolved(state);
+  finishTrashAbilityIfResolved(state, card);
   if (!applied.ok) return fail(applied.error, applied.cites);
 
   if (

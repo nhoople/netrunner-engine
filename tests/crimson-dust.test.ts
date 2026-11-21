@@ -17,7 +17,7 @@ describe("crimson-dust", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("Crimson Dust v1.135.0 set-complete", () => {

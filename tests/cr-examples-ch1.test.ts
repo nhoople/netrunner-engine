@@ -32,7 +32,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.25");
+  assertCardsPinnedTag("v1.147.26");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -328,6 +328,8 @@ describe("CR examples, chapter 1", () => {
       fx.do({ kind: "accelerated_beta_test", n: 3 }),
     );
     expect(looked.ok).toBe(true);
+    // "You may look" (CR 9.6.9c).
+    s = must(s, { type: "choose_option", optionId: "abt-look" });
     s = must(s, { type: "choose_option", optionId: "abt-ice:abt-ice:hq" });
     expect(s.turn.rdLookedCards).toEqual([]);
     // The Foundry's "you may search" (CR 9.6.9c).

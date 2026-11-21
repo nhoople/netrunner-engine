@@ -1543,6 +1543,8 @@ export interface CardDef {
   mayPlaceVirusCounterWhenCorpCardTrashed?: boolean;
   corpLosesCreditsOnFirstRunnerInstallEachTurn?: number;
   onEncounterEndIfNotFullyBroken?: Effect;
+  /** Faerie: whenever an encounter ends, if this program broke a subroutine during it. */
+  onEncounterEndIfBroke?: Effect;
   gainCreditsOnFirstRunnerPlayOrInstallNamedType?: number;
   mayGainCreditWhenRunnerInstallsOrTrashesInstalled?: boolean;
   programInstallCostIncrease?: number;
@@ -2137,6 +2139,7 @@ function validateCardShape(raw: unknown, path: string): CardDef {
     c.onEncounterEndIfNotFullyBroken,
     "onEncounterEndIfNotFullyBroken",
   );
+  checkEffect(c.onEncounterEndIfBroke, "onEncounterEndIfBroke");
   checkEffect(
     c.onFirstSuccessfulCentralRunThisTurn,
     "onFirstSuccessfulCentralRunThisTurn",
@@ -3431,6 +3434,9 @@ export function instantiateCard(
         : undefined,
       oncePerPendingDamageInstance: a.oncePerPendingDamageInstance,
       onlyCorpTrashes: a.onlyCorpTrashes,
+      requirePendingTrashCardTypes: a.requirePendingTrashCardTypes
+        ? [...a.requirePendingTrashCardTypes]
+        : undefined,
       requiresCorpCreditsGte: a.requiresCorpCreditsGte,
       startsRun: a.startsRun ? structuredClone(a.startsRun) : undefined,
     }));
@@ -3956,6 +3962,9 @@ export function instantiateCard(
     card.onEncounterEndIfNotFullyBroken = structuredClone(
       def.onEncounterEndIfNotFullyBroken,
     );
+  }
+  if (def.onEncounterEndIfBroke) {
+    card.onEncounterEndIfBroke = structuredClone(def.onEncounterEndIfBroke);
   }
   if (def.onAfterOperationOrExpendable) {
     card.onAfterOperationOrExpendable = structuredClone(

@@ -38,7 +38,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.25");
+  assertCardsPinnedTag("v1.147.26");
 });
 
 const WINDOW_STEP: Partial<Record<PaidAbilityWindow, string>> = {
@@ -894,8 +894,22 @@ function armInterrupt(
     return;
   }
   if (ability.windows.includes("trash_interrupt")) {
+    // An interrupt that prevents only some card types (Sacrificial
+    // Construct) needs a pending trash of one of them (CR 9.9.3a).
+    let target = cardId;
+    const types = ability.requirePendingTrashCardTypes;
+    if (types && !types.includes(state.cards[cardId]!.type)) {
+      const prog = instantiateCard(
+        "corroder",
+        "trash-target",
+        "runner:installed",
+      );
+      state.cards[prog.id] = prog;
+      state.runner.installed.push(prog.id);
+      target = prog.id;
+    }
     state.pendingTrashPrevent = {
-      cardId,
+      cardId: target,
       trashExpected: true,
       pendingInterruptIds: [cardId],
     };

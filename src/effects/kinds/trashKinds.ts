@@ -89,11 +89,13 @@ export function applyTrashKinds(
         );
         return { ok: true };
       }
+      // "The Runner trashes 1 program" names the player who carries it out
+      // and chooses; otherwise the ability's controller does (CR 1.14.5).
+      const runnerTrashes = (source.subroutines ?? []).some((sub) =>
+        /runner trashes/i.test(sub.text ?? ""),
+      );
+      const chooser = runnerTrashes ? "runner" : source.side;
       if (action.pick === "choose" && programs.length > 1) {
-        const runnerTrashes = (source.subroutines ?? []).some((sub) =>
-          /runner trashes/i.test(sub.text ?? ""),
-        );
-        const chooser = runnerTrashes ? "runner" : "corp";
         state.pendingTrashProgram = {
           sourceId,
           candidates: [...programs],
@@ -107,7 +109,7 @@ export function applyTrashKinds(
       }
       const progId = programs[0]!;
       const title = state.cards[progId].title;
-      trashCard(state, progId);
+      trashCard(state, progId, { by: chooser });
       if (state.pendingTrashPrevent) {
         log(
           state,

@@ -1,4 +1,4 @@
-import { trashInterruptRelevantToActor } from "../state/trashPrevent.js";
+import { trashInterruptRelevant } from "../state/trashPrevent.js";
 import type { Action, GameState } from "../state/types.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
 import { abilityCost, canPayCost, runnerCreditsFor } from "../state/costs.js";
@@ -192,7 +192,7 @@ export function collectPendingCandidates(state: GameState): Action[] | null {
         if (abilitiesSuppressed(state, id)) continue;
         for (const ab of card.paidAbilities ?? []) {
           if (!ab.windows.includes("trash_interrupt")) continue;
-          if (!trashInterruptRelevantToActor(ab, pending.by)) continue;
+          if (!trashInterruptRelevant(state, ab, pending)) continue;
           const cost = abilityCost(ab, state, card);
           if (!canPayCost(state, "runner", cost, card)) continue;
           offerInterrupt(state, actions, id, ab.id);

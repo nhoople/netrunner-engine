@@ -9,6 +9,7 @@ import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { enterSetAside } from "../../state/zones.js";
 import { serverHostingCard } from "../eval.js";
+import { markAbilityUsedThisRun } from "../../state/turn.js";
 
 export function applySetKinds(
   ctx: EffectCtx,
@@ -72,6 +73,11 @@ export function applySetKinds(
         })),
         logLine: `${source.title} — set aside top ${aside.length} of R&D (cost ${cost}); access 1.`,
       });
+      return { ok: true };
+    }
+
+    case "mark_ability_used_this_run": {
+      markAbilityUsedThisRun(state, sourceId, action.abilityId);
       return { ok: true };
     }
 

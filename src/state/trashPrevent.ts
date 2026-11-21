@@ -26,6 +26,35 @@ export function trashInterruptRelevantToActor(
 }
 
 /**
+ * Whether a trash interrupt applies to this pending trash: the actor it
+ * names (Dummy Box) and the card types it prevents (Sacrificial Construct:
+ * "1 installed program or piece of hardware"). CR 9.9.3a, 1.2.1.
+ */
+export function trashInterruptRelevant(
+  state: GameState,
+  ability: {
+    onlyCorpTrashes?: boolean;
+    requirePendingTrashCardTypes?: readonly string[];
+  },
+  pending: { cardId: string; by?: "corp" | "runner" | null },
+): boolean {
+  if (!trashInterruptRelevantToActor(ability, pending.by)) return false;
+  return trashInterruptRelevantToCard(state, ability, pending.cardId);
+}
+
+/** The card-type half of {@link trashInterruptRelevant}. */
+export function trashInterruptRelevantToCard(
+  state: GameState,
+  ability: { requirePendingTrashCardTypes?: readonly string[] },
+  cardId: string,
+): boolean {
+  const types = ability.requirePendingTrashCardTypes;
+  if (!types) return true;
+  const type = state.cards[cardId]?.type;
+  return type !== undefined && types.includes(type);
+}
+
+/**
  * Only public costs decide whether the window opens. A cost paid with grip
  * cards (Dummy Box) is left out on purpose: opening the window only when
  * the Runner holds a matching card would tell the Corp what is in the grip,
@@ -34,6 +63,7 @@ export function trashInterruptRelevantToActor(
  */
 function hasPayableTrashInterrupt(
   state: GameState,
+  cardId: string,
   by: "corp" | "runner" | null,
 ): boolean {
   for (const id of state.runner.installed) {
@@ -42,7 +72,7 @@ function hasPayableTrashInterrupt(
     if (!card) continue;
     for (const ab of card.paidAbilities ?? []) {
       if (!ab.windows.includes("trash_interrupt")) continue;
-      if (!trashInterruptRelevantToActor(ab, by)) continue;
+      if (!trashInterruptRelevant(state, ab, { cardId, by })) continue;
       const cost = ab.cost
         ? { ...ab.cost }
         : { clicks: ab.clickCost, credits: ab.creditCost };
@@ -82,7 +112,7 @@ export function maybeOpenTrashPrevent(
   const facedownInterrupt =
     Boolean(card.turnFacedownInsteadOfHeapWhenTrashed) &&
     !abilitiesSuppressed(state, cardId);
-  if (!facedownInterrupt && !hasPayableTrashInterrupt(state, by)) {
+  if (!facedownInterrupt && !hasPayableTrashInterrupt(state, cardId, by)) {
     return false;
   }
   const effectId = allocateEffectIdentity(state, `trash:${cardId}`);

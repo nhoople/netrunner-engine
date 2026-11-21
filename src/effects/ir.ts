@@ -2632,7 +2632,12 @@ export type Primitive =
   /** Sacrificial Construct: prevent pending installed program/hardware trash. */
   | { kind: "prevent_pending_installed_trash"; amount: number }
   /** Accelerated Beta Test: look top n; may install+rez ice ignore costs; trash rest. */
-  | { kind: "accelerated_beta_test"; n: number }
+  | {
+      kind: "accelerated_beta_test";
+      n: number;
+      /** Engine-built: the Corp chose to look (the look is optional, CR 9.6.9c). */
+      look?: boolean;
+    }
   | { kind: "accelerated_beta_test_continue" }
   | { kind: "trash_looked"; cardId: string }
   | {
@@ -3817,6 +3822,11 @@ export type Primitive =
   | { kind: "break_all_destroyer_subroutines_on_encounter" }
   /** Account Siphon: may instead of breach HQ — lose up to 5¢, gain 2×, take 2 tags. */
   | { kind: "may_breach_instead_account_siphon" }
+  /**
+   * Retrieval Run: if successful, instead of breaching Archives, the Runner
+   * may install 1 program from the heap, ignoring all costs.
+   */
+  | { kind: "may_install_heap_program_instead_of_breach" }
   | { kind: "resolve_account_siphon"; loseAmount: number }
   /**
    * Choose which breach replacement applies first (CR 9.9.11a).
@@ -3840,6 +3850,8 @@ export type Primitive =
   | { kind: "may_breach_instead_vamp" }
   | { kind: "resolve_vamp"; spendAmount: number }
   | { kind: "set_skip_breach" }
+  /** Engine-built: an optional part was carried out, so a once-per-run ability is used (CR 9.6.9d). */
+  | { kind: "mark_ability_used_this_run"; abilityId: string }
   /** Escher: may instead of breach HQ — rearrange any ice on any servers. */
   | { kind: "may_breach_instead_escher" }
   /**
@@ -3894,7 +3906,12 @@ export type Primitive =
   | { kind: "trash_passed_unrezzed_ice_resolve"; cardId: string }
   | { kind: "forged_activation_orders" }
   | { kind: "offer_forged_activation_orders_rez"; cardId: string }
-  | { kind: "install_program_from_stack_or_heap_free" }
+  | {
+      /** Test Run. Engine-built steps fill `from`, then `cardIds`. */
+      kind: "install_program_from_stack_or_heap_free";
+      from?: "stack" | "heap";
+      cardIds?: string[];
+    }
   | { kind: "place_advancements_x_from_tags" }
   | {
       kind: "place_advancements_x_from_tags_resolve";
@@ -5652,11 +5669,13 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "runner_pay_credits",
   "break_all_destroyer_subroutines_on_encounter",
   "may_breach_instead_account_siphon",
+  "may_install_heap_program_instead_of_breach",
   "resolve_account_siphon",
   "resolve_breach_replacement",
   "may_breach_instead_vamp",
   "resolve_vamp",
   "set_skip_breach",
+  "mark_ability_used_this_run",
   "may_breach_instead_escher",
   "may_breach_instead_exploratory_romp",
   "choose_exploratory_romp_card",

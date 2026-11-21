@@ -342,7 +342,6 @@ export function startRun(
     shredFirstEndTheRunUsed: false,
     bypassedIceIds: [],
     passedIceIds: [],
-    skipBreachInstallProgramFromHeap: mods.skipBreachInstallProgramFromHeap,
     skipBreach: mods.skipBreach ?? false,
     ...(mods.skipBreach ? { skipBreachFromRunStart: true } : {}),
     preventAllDamageThisRun: mods.preventAllDamageThisRun ?? false,
