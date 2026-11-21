@@ -13,8 +13,8 @@ Card counts are from cards `v1.147.25` (2016 cards).
 | Kinds in `KNOWN_PRIMITIVE_KINDS` | 1528 |
 | Kinds used by card JSON | 887 |
 | Kinds used by exactly one card | 734 |
-| Kinds built by the engine | 735 |
-| Kinds built by both cards and the engine | 110 |
+| Kinds built by the engine | 737 |
+| Kinds built by both cards and the engine | 112 |
 | Engine-only kinds (no card uses them; the engine builds them) | 625 |
 | Kinds neither a card nor the engine builds | 16 |
 | Verb groups | 74 |
@@ -1502,7 +1502,7 @@ Card counts are from cards `v1.147.25` (2016 cards).
 
 ## `search`
 
-53 kinds: 37 used by cards, 20 built by the engine.
+53 kinds: 37 used by cards, 21 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -1514,7 +1514,7 @@ Card counts are from cards `v1.147.25` (2016 cards).
 | `search_compile` | `zone: "stack" \| "heap"` | 0 | engine |
 | `search_crypt_install` | — | 1 | card |
 | `search_emergent_install` | `discount: number` | 0 | engine |
-| `search_foundry_copy_to_hq` | — | 1 | card |
+| `search_foundry_copy_to_hq` | `chosen?: boolean` | 1 | card, engine |
 | `search_install_non_daemon` | — | 1 | card |
 | `search_kabonesa_install` | — | 1 | card |
 | `search_rd_any_card_to_hq` | — | 1 | card |
@@ -1639,7 +1639,7 @@ Card counts are from cards `v1.147.25` (2016 cards).
 
 ## `spend`
 
-23 kinds: 13 used by cards, 10 built by the engine.
+23 kinds: 13 used by cards, 11 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -1647,7 +1647,7 @@ Card counts are from cards `v1.147.25` (2016 cards).
 | `may_spend_voting_machine_lose_click` | — | 1 | card |
 | `spend_caprice_nisei_secret` | — | 1 | card |
 | `spend_click_additional_cost` | — | 1 | card |
-| `spend_credits_place_power_counters` | — | 1 | card |
+| `spend_credits_place_power_counters` | `amount?: number`, `includeProgramRecurring?: boolean` | 1 | card, engine |
 | `spend_enable_hosted_credits_for` | `purposes: Array<"install" \| "trash">` | 1 | card |
 | `spend_lightning_counter_rez_up_to_protecting_attacked` | `maxIce: number` | 0 | engine |
 | `spend_mkultra_pump_and_break` | — | 1 | card |

@@ -826,7 +826,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "mam-1", "spend_credits_place_power_counters");
     const after = applyAction(s, {
       type: "choose_option",
-      optionId: "mammon:3",
+      optionId: "spend-power:3",
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.credits).toBe(1);
@@ -8007,7 +8007,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"]!.ice = ["iw-1"];
     expect(s.cards["iw-1"]?.rezzed).toBeFalsy();
     runKind(s, "ten-1", "tennin_place_advancement_on_installed");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["tennin:iw-1"]);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "tennin:iw-1",
+      "decline",
+    ]);
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "tennin:iw-1",

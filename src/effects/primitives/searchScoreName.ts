@@ -42,6 +42,29 @@ export function applyLunarTsbPrimitive(
       if (!lastId) return { ok: true };
       const title = state.cards[lastId]?.title;
       if (!title) return { ok: true };
+      // "You may search": the Corp may decline (CR 9.6.9c).
+      if (!action.chosen) {
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options: [
+            {
+              id: "search",
+              label: `Search R&D for another ${title}`,
+              effect: fx.do({
+                kind: "search_foundry_copy_to_hq",
+                chosen: true,
+              }),
+            },
+            {
+              id: "decline",
+              label: "Do not search",
+              effect: fx.gainCredits("corp", 0),
+            },
+          ],
+        });
+        return { ok: true };
+      }
       const matches = state.corp.deck.filter(
         (id) => state.cards[id]?.title === title,
       );

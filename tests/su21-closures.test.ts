@@ -297,6 +297,8 @@ describe("SU21 partial closures", () => {
       cardId: "at-1",
       destination: { kind: "installed" },
     });
+    // The Runner chooses how many to spend (CR 9.6.9c).
+    s = must(s, { type: "choose_option", optionId: "spend-power:2" });
     expect(s.cards["at-1"].powerCounters).toBe(2);
     expect(s.runner.credits).toBe(0);
   });

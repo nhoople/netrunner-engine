@@ -6,12 +6,7 @@ import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
 import { addBreakerStrengthBoostThisTurn } from "../state/lingeringEffects.js";
-import {
-  creditsAvailableForInstall,
-  emptyRunnerCreditPool,
-  payInstallCost,
-  spendProgramUseRecurringCredits,
-} from "../state/costs.js";
+import { creditsAvailableForInstall, payInstallCost } from "../state/costs.js";
 import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { installBlockReason } from "../state/staticFlags.js";
@@ -478,16 +473,28 @@ export function installRunner(
   if ((card.powerCountersOnInstall ?? 0) > 0) {
     card.powerCounters = card.powerCountersOnInstall;
   }
-  if (card.installSpendCreditsForPowerCounters) {
-    const fromPool = state.runner.credits;
-    if (fromPool > 0) emptyRunnerCreditPool(state);
-    // Cyberfeeder-class recurring credits can pay Atman's install ability (CR 1.10.3c).
-    const fromRecurring = spendProgramUseRecurringCredits(state, 99);
-    const x = fromPool + fromRecurring;
-    if (x > 0) {
-      card.powerCounters = (card.powerCounters ?? 0) + x;
-      log(state, `${card.title} — spend ${x}¢ for ${x} power counter(s).`);
-    }
+  if (
+    card.installSpendCreditsForPowerCounters &&
+    !abilitiesSuppressed(state, cardId)
+  ) {
+    // Atman: "When you install this program, you may spend any number of
+    // credits…": a conditional ability, pending at the next checkpoint
+    // (CR 9.6.2), whose controller chooses how many, 0 included (CR 9.6.9c).
+    // Cyberfeeder-class recurring credits can pay it (CR 1.10.3c).
+    noteInlineConditional(state, {
+      cardId,
+      abilityKey: "install-spend-credits-for-power-counters",
+      controller: "runner",
+      mandatory: true,
+      effect: {
+        op: "do",
+        action: {
+          kind: "spend_credits_place_power_counters",
+          includeProgramRecurring: true,
+        },
+      },
+      logLine: `${card.title} becomes pending — installed (may spend credits for power counters).`,
+    });
   }
   if (
     (card.handSizeBonus ?? 0) !== 0 ||

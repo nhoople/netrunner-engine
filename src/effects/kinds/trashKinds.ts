@@ -4,6 +4,7 @@
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
+import type { GameState } from "../../state/types.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
@@ -1101,89 +1102,15 @@ export function applyTrashKinds(
       }
       const server = state.servers[sid];
       const rootIds = [...server.root];
-      // Every active Hostile Infrastructure sees each card of the set, the
-      // trashed ones and those in other servers alike (CR 9.12.2a, 9.1.8g).
-      const infrastructure = Object.values(state.servers)
-        .flatMap((other) => [...other.root, ...other.ice])
-        .filter((id) => {
-          const card = state.cards[id];
-          return (
-            Boolean(card?.rezzed) &&
-            (card?.netDamageWheneverRunnerTrashesCorpCard ?? 0) > 0 &&
-            !abilitiesSuppressed(state, id)
-          );
-        });
-      const atLeastOne = rootIds.filter((id) => {
-        const card = state.cards[id];
-        return (
-          Boolean(card?.rezzed) &&
-          Boolean(card?.onRunnerTrashFromThisServerRootOrProtecting) &&
-          !abilitiesSuppressed(state, id)
-        );
-      });
-      for (const id of rootIds) {
-        const card = state.cards[id];
-        trashCard(state, id, {
-          by: controllerOf(state, sourceId),
-          simultaneousSet: true,
-        });
-        log(
-          state,
-          `Trash ${card.title} from ${sid} root (CR ${CR.trashing.number}).`,
-        );
-      }
       if (rootIds.length === 0) {
         log(state, `Trash ${sid} root — empty.`);
       }
-      // Simultaneous root trash: per-card triggers (Hostile Infrastructure)
-      // meet their condition once for each card; "at least 1" triggers
-      // (Warroid) once for the whole set (CR 9.6.4b, 9.12.2a, 9.1.8g). They
-      // become pending at the checkpoint after this instruction and resolve
-      // in its reaction window (CR 10.3.1a, 10.3.2), so an interrupt during
-      // one instance leaves the rest pending for that window to resume.
-      let noted = 0;
-      for (const id of infrastructure) {
-        const card = state.cards[id];
-        const per = card?.netDamageWheneverRunnerTrashesCorpCard ?? 0;
-        log(
-          state,
-          `${card?.title ?? id} remains active — ${rootIds.length} instances become pending (CR ${CR.abilityRemainsActive.number}).`,
-        );
-        rootIds.forEach((trashedId, n) => {
-          noteInlineConditional(state, {
-            cardId: id,
-            abilityKey: "hostile-infrastructure:net-on-trash",
-            controller: "corp",
-            mandatory: true,
-            // CR 9.1.8g: the trigger met by the move into Archives stays
-            // active until these instances resolve.
-            independentOfSource: true,
-            effect: { op: "do", action: { kind: "net_damage", amount: per } },
-            logLine: `${card?.title ?? id} becomes pending — the Runner trashed ${state.cards[trashedId]?.title ?? trashedId} (${n + 1} of ${rootIds.length}).`,
-          });
-          noted += 1;
-        });
-      }
-      if (rootIds.length > 0) {
-        for (const id of atLeastOne) {
-          const card = state.cards[id];
-          noteStoredConditional(state, {
-            cardId: id,
-            abilityKey: "warroid-tracker:on-trash-set",
-            effectKey: "onRunnerTrashFromThisServerRootOrProtecting",
-            controller: "corp",
-            mandatory: true,
-            independentOfSource: true,
-            logLine: `${card?.title ?? id} — one instance becomes pending for this trash (CR ${CR.actOnSet.number}).`,
-          });
-          noted += 1;
-        }
-      }
-      // Calvin B4L3Y-class trash triggers of the set were noted by the
-      // trash procedure for this same checkpoint.
-      if (noted > 0 || (state.turn.storedConditionalPending ?? []).length > 0) {
-        checkpointAfterInstruction(state, "trash_attacked_server_root");
-      }
+      trashCorpCardSet(state, rootIds, {
+        by: controllerOf(state, sourceId),
+        instruction: "trash_attacked_server_root",
+        logEach: (title) =>
+          `Trash ${title} from ${sid} root (CR ${CR.trashing.number}).`,
+      });
       return { ok: true };
     }
 
@@ -2592,5 +2519,118 @@ export function applyTrashKinds(
     }
     default:
       return null;
+  }
+}
+
+/**
+ * Trash a set of Corp cards together, as one instruction (CR 9.12.2a). Each
+ * card goes through the trash procedure; its own trash triggers (Calvin
+ * B4L3Y) are noted there. "Whenever the Runner trashes a Corp card"
+ * (Hostile Infrastructure) meets its condition once for each card of the
+ * set, its own copy included, and stays active for those instances
+ * (CR 9.6.4b, 9.1.8g). All of them become pending at the one checkpoint
+ * after the set and resolve in its reaction window, where the Corp orders
+ * its abilities (CR 10.3.1a, 10.3.2, 9.2.8d). Singularity and Apocalypse
+ * call this.
+ */
+export function trashCorpCardSet(
+  state: GameState,
+  ids: readonly string[],
+  opts: {
+    by: "corp" | "runner" | null;
+    /** The instruction, for the checkpoint's log. */
+    instruction: string;
+    logEach?: (title: string) => string;
+  },
+): void {
+  // Every active Hostile Infrastructure sees each card of the set, the
+  // trashed ones and those elsewhere alike (CR 9.12.2a, 9.1.8g).
+  const infrastructure = Object.values(state.servers)
+    .flatMap((server) => [...server.root, ...server.ice])
+    .filter((id) => {
+      const card = state.cards[id];
+      return (
+        Boolean(card?.rezzed) &&
+        (card?.netDamageWheneverRunnerTrashesCorpCard ?? 0) > 0 &&
+        !abilitiesSuppressed(state, id)
+      );
+    });
+  // "Whenever the Runner trashes at least 1 card from the root of or
+  // protecting this server" (Warroid Tracker): one instance for the set per
+  // source whose server lost a card, itself included (CR 9.12.2a, 9.1.8g).
+  const atLeastOne = Object.entries(state.servers).flatMap(([sid, server]) =>
+    server.root
+      .filter((id) => {
+        const card = state.cards[id];
+        return (
+          Boolean(card?.rezzed) &&
+          Boolean(card?.onRunnerTrashFromThisServerRootOrProtecting) &&
+          !abilitiesSuppressed(state, id)
+        );
+      })
+      .map((id) => ({ id, sid })),
+  );
+  const trashed: string[] = [];
+  const trashedFrom = new Set<string>();
+  for (const id of ids) {
+    const card = state.cards[id];
+    if (!card) continue;
+    const zoneBefore = card.zone;
+    trashCard(state, id, { by: opts.by, simultaneousSet: true });
+    // A card the trash procedure refused is still where it was; one that a
+    // replacement sent elsewhere (Marilyn Campaign) is still trashed.
+    if (card.zone !== zoneBefore) {
+      trashed.push(id);
+      const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
+      if (m) trashedFrom.add(m[1]!);
+    }
+    if (opts.logEach) log(state, opts.logEach(card.title));
+  }
+  let noted = 0;
+  if (opts.by === "runner") {
+    for (const id of infrastructure) {
+      const card = state.cards[id];
+      const per = card?.netDamageWheneverRunnerTrashesCorpCard ?? 0;
+      if (trashed.length === 0) break;
+      log(
+        state,
+        `${card?.title ?? id} remains active — ${trashed.length} instances become pending (CR ${CR.abilityRemainsActive.number}).`,
+      );
+      trashed.forEach((trashedId, n) => {
+        noteInlineConditional(state, {
+          cardId: id,
+          abilityKey: "hostile-infrastructure:net-on-trash",
+          controller: "corp",
+          mandatory: true,
+          // CR 9.1.8g: the trigger met by the move into Archives stays
+          // active until these instances resolve.
+          independentOfSource: true,
+          effect: { op: "do", action: { kind: "net_damage", amount: per } },
+          logLine: `${card?.title ?? id} becomes pending — the Runner trashed ${state.cards[trashedId]?.title ?? trashedId} (${n + 1} of ${trashed.length}).`,
+        });
+        noted += 1;
+      });
+    }
+  }
+  if (opts.by === "runner") {
+    for (const { id, sid } of atLeastOne) {
+      if (!trashedFrom.has(sid)) continue;
+      const card = state.cards[id];
+      noteStoredConditional(state, {
+        cardId: id,
+        abilityKey: "warroid-tracker:on-trash-set",
+        effectKey: "onRunnerTrashFromThisServerRootOrProtecting",
+        controller: "corp",
+        mandatory: true,
+        independentOfSource: true,
+        logLine: `${card?.title ?? id} — one instance becomes pending for this trash (CR ${CR.actOnSet.number}).`,
+      });
+      noted += 1;
+    }
+  }
+  // Calvin B4L3Y-class trash triggers of the set were noted by the trash
+  // procedure for this same checkpoint.
+  if (noted > 0 || (state.turn.storedConditionalPending ?? []).length > 0) {
+    checkpointAfterInstruction(state, opts.instruction);
   }
 }

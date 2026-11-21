@@ -160,10 +160,15 @@ describe("CR examples, chapter 1", () => {
     s.runner.clicks = 1;
     s.activeSide = "runner";
     s.timingKey = "runner.takeAction";
-    const installed = must(s, {
+    let installed = must(s, {
       type: "basic_install",
       cardId: "at-1",
       destination: { kind: "installed" },
+    });
+    // The Runner chooses to spend the 1 credit (CR 9.6.9c).
+    installed = must(installed, {
+      type: "choose_option",
+      optionId: "spend-power:1",
     });
     expect(installed.cards["at-1"]?.powerCounters).toBe(1);
     expect(installed.cards["cf-1"]?.recurringCredits).toBe(0);
@@ -325,6 +330,8 @@ describe("CR examples, chapter 1", () => {
     expect(looked.ok).toBe(true);
     s = must(s, { type: "choose_option", optionId: "abt-ice:abt-ice:hq" });
     expect(s.turn.rdLookedCards).toEqual([]);
+    // The Foundry's "you may search" (CR 9.6.9c).
+    s = must(s, { type: "choose_option", optionId: "search" });
     expect(s.cards["abt-ice"]?.rezzed).toBe(true);
     expect(s.corp.hand).toContain("abt-copy");
     expect(s.corp.discardPile).not.toContain("abt-other");

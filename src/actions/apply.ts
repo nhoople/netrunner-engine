@@ -55,6 +55,7 @@ import {
   payPendingSwapContinuation,
   resumeExclusiveChoicesIfPending,
   resumeExposeUpTo,
+  resumeContinuationsOfPausedWindows,
   resumePendingEffectContinuation,
 } from "../effects/eval.js";
 import {
@@ -2113,10 +2114,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       );
       if (!paid.ok) return paid;
       if (next.pendingDamage) return ok(next);
-      resumePendingEffectContinuation(next);
-      // The damage was one pending instance's instruction; the rest of its
-      // reaction window resolves next (CR 9.2.8a, 9.2.8d).
-      if (!next.pendingChoice) resumePendingStoredConditionals(next);
+      resumeAfterDamage(next);
       if (
         next.run?.accessingCardId &&
         (next.timingKey === "access.cardAccessed" ||
@@ -2164,8 +2162,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         return fail("Pending damage — prevent or accept.", [CR.preventDamage]);
     }
     if (next.pendingDamage) return ok(next);
-    resumePendingEffectContinuation(next);
-    if (!next.pendingChoice) resumePendingStoredConditionals(next);
+    resumeAfterDamage(next);
     // Resume nested access-a-card walk after onAccess damage interrupt.
     if (
       next.run?.accessingCardId &&
@@ -3860,4 +3857,16 @@ export function describeState(state: GameState): string {
   const empty = emptyRemoteExists(state);
   if (empty) lines.push(`Empty remote present: ${empty.id}`);
   return lines.join("\n");
+}
+
+/**
+ * The damage was one instruction, often of a pending instance in a paused
+ * reaction window. The rest of that instance resolves first, then the
+ * window's other instances (CR 9.2.8a, 9.2.8d), and only then the next
+ * instruction of the ability that opened the window (CR 9.11.3, 10.3.2).
+ */
+function resumeAfterDamage(state: GameState): void {
+  resumeContinuationsOfPausedWindows(state);
+  if (!state.pendingChoice) resumePendingStoredConditionals(state);
+  resumePendingEffectContinuation(state);
 }

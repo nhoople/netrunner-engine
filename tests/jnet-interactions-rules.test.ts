@@ -585,8 +585,9 @@ describe("ending the run (CR 6.1.4, 6.8.4)", () => {
 describe("interrupts and simultaneous abilities on trash (CR 9.9.4, 9.2.8d)", () => {
   // jnet: game.core.rules-test/simultaneous-trash-effects
   // Engine bug, filed under RA-1 (9.2.8, 9.6.9, 9.9): Marilyn Campaign's
-  // optional interrupt is applied without asking the Corp, and Hostile
-  // Infrastructure resolves before Calvin B4L3Y with no choice of order.
+  // optional interrupt is applied without asking the Corp; it needs the
+  // trash procedure to pause for the Corp's choice (area 2). Since RF-1b the
+  // Corp orders Hostile Infrastructure and Calvin B4L3Y (timing-fixes-rf1b).
   it.skip("when Apocalypse trashes the Corp's cards, Marilyn Campaign's interrupt comes first, then the Corp orders Hostile Infrastructure and Calvin B4L3Y (CR 9.9.4b, 9.2.8d)", () => {
     let s = board({
       corpHand: ["Hostile Infrastructure", "Marilyn Campaign", "Calvin B4L3Y"],
