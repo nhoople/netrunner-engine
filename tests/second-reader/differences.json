@@ -1,0 +1,216 @@
+[
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.12.2.ex1",
+    "observations": [
+      {
+        "key": "first-use::zone(Vaporframe Fabricator)",
+        "expected": "archives",
+        "engine": "root:remote"
+      },
+      {
+        "key": "restore::corp.credits",
+        "expected": 2,
+        "engine": 4
+      },
+      {
+        "key": "::legal(second-use)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "second-use::installed(Ice Wall)",
+        "expected": true,
+        "engine": false
+      },
+      {
+        "key": "second-use::corp.credits",
+        "expected": 2,
+        "engine": 4
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.12.1",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.13.6c.ex1#a",
+    "observations": [
+      {
+        "key": "::legal(install)",
+        "expected": false,
+        "engine": true
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.13.6c",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.13.9.ex1",
+    "observations": [
+      {
+        "key": "leprechaun::runner.credits",
+        "expected": 9,
+        "engine": 8
+      },
+      {
+        "key": "atman::runner.credits",
+        "expected": 6,
+        "engine": 0
+      },
+      {
+        "key": "atman::runner.memoryUsed",
+        "expected": 0,
+        "engine": 1
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.13.9",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.13.13.ex2",
+    "observations": [
+      {
+        "key": "::zone(Next Big Thing)",
+        "expected": "root:remote",
+        "engine": "runner-score"
+      },
+      {
+        "key": "::counters(Next Big Thing,agenda)",
+        "expected": 0,
+        "engine": 1
+      },
+      {
+        "key": "::counters(Next Big Thing,advancement)",
+        "expected": 1,
+        "engine": 0
+      },
+      {
+        "key": "::runner.score",
+        "expected": 0,
+        "engine": 3
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.13.13",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.14.5a.ex1",
+    "observations": [
+      {
+        "key": "apocalypse::runner.grip",
+        "expected": 1,
+        "engine": 3
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.14.5",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.15.2c.ex1",
+    "observations": [
+      {
+        "key": "::zone(Corroder)",
+        "expected": "heap",
+        "engine": "rig"
+      },
+      {
+        "key": "::runner.heap",
+        "expected": 1,
+        "engine": 0
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.15.2c",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.16.1b.ex2",
+    "observations": [
+      {
+        "key": "encounter::run.outcome",
+        "expected": "unsuccessful",
+        "engine": "in-progress"
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.16.1b",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.16.2c.ex1",
+    "observations": [
+      {
+        "key": "::legal(x0)",
+        "expected": true,
+        "engine": false
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.16.2c",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.16.2f.ex1",
+    "observations": [
+      {
+        "key": "::zone(Logjam)",
+        "expected": "ice:HQ",
+        "engine": "ice:remote"
+      },
+      {
+        "key": "::counters(Logjam,advancement)",
+        "expected": 1,
+        "engine": 0
+      },
+      {
+        "key": "::strength(Logjam)",
+        "expected": 1,
+        "engine": 0
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.16.2f",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.16.4d.ex1",
+    "observations": [
+      {
+        "key": "blue-level::corp.clicks",
+        "expected": 1,
+        "engine": 0
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.16.4d",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  },
+  {
+    "batch": "cr-examples-ch1",
+    "case": "1.18.2.ex1",
+    "observations": [
+      {
+        "key": "mushin::faceup(Oaktown Renovation)",
+        "expected": true,
+        "engine": false
+      }
+    ],
+    "verdict": "pending",
+    "rule": "1.18.1",
+    "note": "Found by the comparison; not yet read by cr-checker."
+  }
+]
