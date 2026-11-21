@@ -923,6 +923,10 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     s = toCorpTurn(s);
     const start = s.log.length;
     s = pick(s, "accept");
+    // Ob's search finds nothing (R&D holds no 0-cost card; CR 8.7.2e).
+    if (optionIds(s).includes("choose-cards-done")) {
+      s = pick(s, "choose-cards-done");
+    }
     s = drive(s, atCorpAction);
     const log = s.log.slice(start);
     const shuffled = log.findIndex((l) => /shuffle R&D/.test(l));
@@ -1064,8 +1068,10 @@ describe("Ob Superheavy Logistics: Extract. Export. Excel.", () => {
     s.runner.credits = 0;
     s.timingKey = "corp.actionPaw";
     s = must(s, paidAbility(s, "ab-1")!);
-    // Alexa (printed rez 1) looks for rez 0: Rashida is still in HQ.
-    expect(optionIds(s).some((id) => id.includes("rj-1"))).toBe(false);
+    // Alexa (printed rez 1) looks for rez 0: Rashida is still in HQ, so
+    // Ob's search can only find nothing (CR 8.7.2e).
+    expect(optionIds(s)).toEqual(["choose-cards-done"]);
+    s = pick(s, "choose-cards-done");
     // The Runner pays nothing to keep cards in HQ.
     s = pick(s, "alexa:0");
     s = drive(s, atCorpAction);

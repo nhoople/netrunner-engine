@@ -154,7 +154,9 @@ export const drivers: Record<string, Driver> = {
       "pad-campaign",
     );
     let s = must(corpWindow(b.s), { type: "score_agenda", cardId: abt });
-    s = through(s, atAction, [`abt-ice:${top}:hq`, "search"]);
+    // The Corp searches and finds the other Ice Wall (CR 8.7.2e lets it
+    // find nothing; the case has it find the copy).
+    s = through(s, atAction, [`abt-ice:${top}:hq`, "search", "choose-card:"]);
     r.snap("score", s);
   },
 

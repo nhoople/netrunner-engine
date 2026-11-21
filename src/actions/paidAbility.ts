@@ -1,6 +1,7 @@
 /**
  * Paid abilities on installed cards and identities.
  */
+import { deferContinuationAfter } from "../effects/continuation.js";
 import { trashInterruptRelevantToActor } from "../state/trashPrevent.js";
 import {
   paidAbilityBreakBlock,
@@ -1034,6 +1035,7 @@ export function usePaidAbility(
   armTrashSetAsideVirus(state, card, cost, ability.effect);
   armTrashSetAsideHosted(state, card, cost, ability.effect);
   armTrashSetAsideAdvancements(state, card, cost, ability.effect);
+  const choiceBeforeCost = state.pendingChoice;
   payCost(state, payer, cost, `use_paid_ability:${abilityId}`, card);
   noteRunnerLostClicksOnCorpIce(state, card, payer, cost);
   if (payer === "corp") {
@@ -1050,7 +1052,17 @@ export function usePaidAbility(
   }
 
   resolveGeistAfterTrashCost(state, card, cost);
-  const applied = evalEffect(ctx, ability.effect);
+  // The cost's checkpoint can open a choice for an ability it triggered
+  // (Ob Superheavy Logistics' search when Alexa Belsky is trashed as a
+  // cost). That reaction window finishes first, then this effect resolves
+  // (CR 10.3.4, 10.3.2): it waits on the shared continuation.
+  let applied: { ok: true } | { ok: false; error: string; cites: RuleCite[] };
+  if (state.pendingChoice && state.pendingChoice !== choiceBeforeCost) {
+    deferContinuationAfter(state, { sourceId: cardId, effects: [ability.effect] });
+    applied = { ok: true };
+  } else {
+    applied = evalEffect(ctx, ability.effect);
+  }
   returnSetAsideVirusCounters(state);
   finishTrashAbilityIfResolved(state);
   if (!applied.ok) return fail(applied.error, applied.cites);

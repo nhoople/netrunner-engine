@@ -27,6 +27,8 @@ export function openPendingChoose(
     prompt?: string;
     /** The options name hidden cards; the other player may not see them. */
     hiddenFromOpponent?: boolean;
+    /** The other player may not learn how many options there are. */
+    optionCountHidden?: boolean;
     /** The other player is looking at the cards the options name. */
     shownToOpponent?: boolean;
     logLine?: string;
@@ -45,6 +47,7 @@ export function openPendingChoose(
     ...(args.loopCount ? { loopCount: true } : {}),
     ...(args.prompt ? { prompt: args.prompt } : {}),
     ...(args.hiddenFromOpponent ? { hiddenFromOpponent: true } : {}),
+    ...(args.optionCountHidden ? { optionCountHidden: true } : {}),
     ...(args.shownToOpponent ? { shownToOpponent: true } : {}),
   };
   if (args.logLine) state.log.push(args.logLine);

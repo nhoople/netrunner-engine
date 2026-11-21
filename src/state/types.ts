@@ -4434,6 +4434,12 @@ export interface RunState {
   netDamageWould?: number;
   successful: boolean | null;
   /**
+   * The Success Phase step has resolved for this run (CR 6.9.5a). A psi
+   * game or trace started there brings the walk back to the step when it
+   * finishes; the step then has nothing left to resolve.
+   */
+  successPhaseResolved?: boolean;
+  /**
    * The attacked remote ceased to exist during an open paid ability window.
    * The run ends when that window closes (CR 4.6.8e).
    */
@@ -4457,6 +4463,12 @@ export interface RunState {
   pendingRootEntryIds?: string[];
   /** How many more cards the Runner may access this breach (centrals). */
   randomAccessLimit: number | null;
+  /**
+   * The breach is a breach of R&D whose `randomAccessLimit` counts only the
+   * candidates chosen from the Corp's deck, not root upgrades (CR 7.3.5).
+   * Set by `beginBreachAccess`; other breaches count every chosen candidate.
+   */
+  randomAccessLimitDeckOnly?: boolean;
   encounter: EncounterState | null;
   /**
    * Subroutines waiting for the Corp to choose each one's position among
@@ -5525,6 +5537,12 @@ interface PendingChoice {
    * the options without their ids or labels.
    */
   hiddenFromOpponent?: boolean;
+  /**
+   * The other player may not learn how many options there are: a search of
+   * a hidden deck offers one option per match, so their view shows a single
+   * hidden option (CR 8.7.2e, 10.2.2b).
+   */
+  optionCountHidden?: boolean;
   /**
    * The other player is looking at the cards the options name, so their
    * view keeps the option ids and labels (Chronos Protocol looks at the

@@ -9,7 +9,8 @@ import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { random } from "../../state/rng.js";
+import { chooseCards } from "../chooseCards.js";
+import { evalEffect, shuffleCorpRdAfterSearch } from "../eval.js";
 import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
@@ -59,31 +60,61 @@ export function applyLunarTsbPrimitive(
             {
               id: "decline",
               label: "Do not search",
-              effect: fx.gainCredits("corp", 0),
+              effect: fx.do({
+                kind: "search_foundry_copy_to_hq",
+                chosen: true,
+                declined: true,
+                cardIds: [],
+              }),
             },
           ],
         });
         return { ok: true };
       }
-      const matches = state.corp.deck.filter(
-        (id) => state.cards[id]?.title === title,
-      );
-      if (matches.length === 0) {
-        log(state, `The Foundry — no copy of ${title} in R&D.`);
-      } else {
-        const pick = matches[0]!;
-        state.corp.deck = state.corp.deck.filter((id) => id !== pick);
-        state.cards[pick]!.faceup = false;
-        state.corp.hand.push(pick);
-        state.cards[pick]!.zone = "corp:hq";
-        revealCards(state, [pick], sourceId);
-        log(state, `The Foundry — reveal ${title} from R&D and add to HQ.`);
+      // The Corp searches with the shared deck search: it may find nothing
+      // even when R&D holds a copy, and the Runner cannot tell which
+      // (CR 8.7.2e, 10.2.2b).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: state.corp.deck.filter(
+              (id) => state.cards[id]?.title === title,
+            ),
+            count: 1,
+            search: true,
+            purpose: "resume",
+            label: `add to HQ (another ${title})`,
+            resume: { kind: "search_foundry_copy_to_hq", chosen: true },
+          }),
+        );
       }
-      for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.corp.deck[i]!;
-        state.corp.deck[i] = state.corp.deck[j]!;
-        state.corp.deck[j] = tmp;
+      const found = action.cardIds.filter((id) =>
+        state.corp.deck.includes(id),
+      );
+      for (const id of found) {
+        state.corp.deck = state.corp.deck.filter((x) => x !== id);
+        state.corp.hand.push(id);
+        state.cards[id]!.zone = "corp:hq";
+        state.cards[id]!.faceup = false;
+      }
+      // "Shuffle R&D." is its own sentence: R&D is shuffled whether or not
+      // the Corp searched or found a copy (decided 2026-11-21; CR 8.7.3).
+      shuffleCorpRdAfterSearch(state);
+      if (found.length > 0) {
+        revealCards(state, found, sourceId);
+        log(
+          state,
+          `The Foundry — reveal ${title} from R&D and add to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
+        );
+      } else {
+        log(
+          state,
+          action.declined
+            ? `The Foundry — the Corp does not search; shuffle R&D.`
+            : `The Foundry — no card found; shuffle R&D (CR ${CR.failToFind.number}, ${CR.shuffleDeckAfterSearch.number}).`,
+        );
       }
       return { ok: true };
     }

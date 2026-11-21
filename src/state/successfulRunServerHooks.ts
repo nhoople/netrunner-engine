@@ -45,15 +45,9 @@ export function noteSuccessfulRunServerAbilities(state: GameState): void {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
     if (!card?.rezzed) continue;
-    if (card.onSuccessfulRun) {
-      pushMark(state, {
-        cardId: id,
-        abilityKey: "on-successful-run",
-        effectKey: "onSuccessfulRun",
-        mandatory: false,
-        logLine: `${card.title} becomes pending — successful run on this server (CR ${CR.ifSuccessfulAbilityOptional.number}).`,
-      });
-    }
+    // A root card's onSuccessfulRun (Adrian Seis, Hokusai Grid) is marked
+    // with the other successful-run abilities in the run.success step; one
+    // trigger makes one instance (CR 9.6.4b).
     if (card.onSuccessfulRunOnThisServer) {
       pushMark(state, {
         cardId: id,

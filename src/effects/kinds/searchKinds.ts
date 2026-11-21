@@ -421,7 +421,7 @@ export function applySearchKinds(
               return t === "operation" || t === "agenda";
             }),
             count: 1,
-            upTo: true,
+            search: true,
             purpose: "resume",
             label: "add to HQ from R&D",
             resume: { kind: "search_rd_operation_or_agenda_to_hq" },
@@ -518,14 +518,16 @@ export function applySearchKinds(
       });
       // The Corp looks through R&D and picks the card. A search with a
       // criterion may fail to find (CR 8.7.1, 8.7.2e).
-      if (!action.cardIds && matches.length > 0) {
+      // The Corp is asked even when nothing matches, so the Runner cannot
+      // tell whether R&D holds a match (CR 10.2.2b).
+      if (!action.cardIds) {
         return evalEffect(
           ctx,
           chooseCards({
             chooser: "corp",
             candidates: matches,
             count: 1,
-            upTo: true,
+            search: true,
             purpose: "resume",
             label: `install and rez (printed rez cost ${targetCost}¢)`,
             resume: {
@@ -700,7 +702,7 @@ export function applySearchKinds(
               (id) => state.cards[id].type !== "agenda",
             ),
             count: 1,
-            upTo: true,
+            search: true,
             purpose: "resume",
             label: "add to HQ from R&D",
             resume: {
@@ -917,46 +919,37 @@ export function applySearchKinds(
         if (!c || c.type === "agenda") return false;
         return (c.subtypes ?? []).some((s) => subtypes.has(s.toLowerCase()));
       });
-      if (matches.length === 0) {
-        for (let i = state.corp.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(random(state) * (i + 1));
-          const tmp = state.corp.deck[i]!;
-          state.corp.deck[i] = state.corp.deck[j]!;
-          state.corp.deck[j] = tmp;
-        }
-        log(state, `${source.title} — no matching non-agenda in R&D.`);
-        return { ok: true };
+      // The shared deck search: the Corp may find nothing, and the Runner
+      // sees the same choice whether or not R&D holds a match (CR 8.7.2e,
+      // 10.2.2b). Finding nothing and not searching look the same, so R&D
+      // is shuffled either way (CR 8.7.3).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: matches,
+            count: 1,
+            search: true,
+            purpose: "resume",
+            label: "reveal and add to HQ (black ops, gray ops or liability)",
+            resume: { ...action },
+          }),
+        );
       }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...matches.map((id) => ({
-            id: `take:${id}`,
-            label: `Reveal ${state.cards[id]!.title}; add to HQ`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "search_rd_take_card_to_hq" as const,
-                cardId: id,
-              },
-            },
-          })),
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "corp" as const,
-                amount: 0,
-              },
-            },
-          },
-        ],
-        logLine: `${source.title} — may search R&D for black ops / gray ops / liability.`,
-      });
+      const found = action.cardIds.find((id) => matches.includes(id));
+      if (found) {
+        // Shuffle R&D, then reveal the card and add it to HQ (CR 8.7.2c).
+        return evalEffect(ctx, {
+          op: "do",
+          action: { kind: "search_rd_take_card_to_hq", cardId: found },
+        });
+      }
+      shuffleCorpRdAfterSearch(state);
+      log(
+        state,
+        `${source.title} — no card found; shuffle R&D (CR ${CR.failToFind.number}, ${CR.shuffleDeckAfterSearch.number}).`,
+      );
       return { ok: true };
     }
 

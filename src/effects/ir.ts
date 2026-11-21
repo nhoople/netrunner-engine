@@ -378,6 +378,13 @@ export type Primitive =
       label?: string;
       /** The other player sees the cards on offer (they are revealed or open). */
       open?: boolean;
+      /**
+       * A search of a hidden deck with criteria (CR 8.7.2e): the searcher is
+       * asked for up to `count` cards even when nothing matches, may find
+       * nothing, and the other player does not see what is on offer, so
+       * whether a match exists stays hidden (CR 10.2.2b). Implies `upTo`.
+       */
+      search?: boolean;
       then?: Effect;
     }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
@@ -2250,7 +2257,12 @@ export type Primitive =
    * Editorial: may search R&D for 1 non-agenda with any listed subtype;
    * reveal and add to HQ; shuffle.
    */
-  | { kind: "may_search_rd_non_agenda_any_subtype_to_hq"; subtypes: string[] }
+  | {
+      kind: "may_search_rd_non_agenda_any_subtype_to_hq";
+      subtypes: string[];
+      /** The search is complete: the card found, or none (CR 8.7.2e). */
+      cardIds?: string[];
+    }
   | { kind: "search_rd_take_card_to_hq"; cardId: string }
   | { kind: "search_stack_non_virus_program_install_ignore_costs_track" }
   | { kind: "return_tracked_install_to_stack_top_if_installed" }
@@ -2718,8 +2730,12 @@ export type Primitive =
   | { kind: "social_engineering_mark"; iceId: string }
   | {
       kind: "search_foundry_copy_to_hq";
-      /** The Corp chose to search ("you may"; CR 9.6.9c). */
+      /** The Corp answered whether to search ("you may"; CR 9.6.9c). */
       chosen?: boolean;
+      /** The Corp chose not to search; R&D is still shuffled. */
+      declined?: boolean;
+      /** The search is complete: the copy found, or none (CR 8.7.2e). */
+      cardIds?: string[];
     }
   | { kind: "score_encrypted_portals_on" }
   | { kind: "name_card" }

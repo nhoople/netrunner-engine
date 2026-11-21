@@ -208,13 +208,20 @@ export function applyChooseCards(
   const left = action.candidates.filter(
     (id) => state.cards[id] && !action.picked.includes(id),
   );
-  const need =
-    Math.min(action.count, action.candidates.length) - action.picked.length;
-  if (need <= 0 || left.length === 0) return finish(ctx, action, evalEffect);
+  // A search of a hidden deck asks for `count` cards whatever matches, so
+  // the other player cannot tell how many matches exist (CR 8.7.2e, 10.2.2b).
+  const search = Boolean(action.search);
+  const total = search
+    ? action.count
+    : Math.min(action.count, action.candidates.length);
+  const need = total - action.picked.length;
+  if (need <= 0 || (left.length === 0 && !search)) {
+    return finish(ctx, action, evalEffect);
+  }
 
   // Nothing to decide: every remaining card must be taken, or the remaining
   // cards cannot be told apart.
-  if (!action.upTo) {
+  if (!action.upTo && !search) {
     const forced =
       left.length <= need ||
       left.every((id) => sameForChoice(state, id, left[0]!));
@@ -236,7 +243,7 @@ export function applyChooseCards(
         action: { ...structuredClone(action), picked: [...action.picked, id] },
       },
     }));
-  if (action.upTo) {
+  if (action.upTo || search) {
     options.push({
       id: "choose-cards-done",
       label: action.picked.length === 0 ? "None" : "Done",
@@ -257,20 +264,22 @@ export function applyChooseCards(
     });
     return { ok: true };
   }
-  const total = Math.min(action.count, action.candidates.length);
   const who = action.chooser === "corp" ? "The Corp" : "The Runner";
+  const upTo = action.upTo || search;
   openPendingChoose(state, {
     sourceId,
     chooser: action.chooser,
     options,
     // The other player may not learn which hidden cards are on offer.
     hiddenFromOpponent:
-      !action.open && left.some((id) => !openToOpponent(state, id)),
+      !action.open &&
+      (search || left.some((id) => !openToOpponent(state, id))),
+    ...(search && !action.open ? { optionCountHidden: true } : {}),
     ...(action.open ? { shownToOpponent: true } : {}),
-    prompt: `Choose a card to ${verb(action.purpose, action.label)} (${action.picked.length + 1} of ${action.upTo ? "up to " : ""}${total}).`,
+    prompt: `Choose a card to ${verb(action.purpose, action.label)} (${action.picked.length + 1} of ${upTo ? "up to " : ""}${total}).`,
     logLine:
       action.picked.length === 0
-        ? `${who} chooses ${action.upTo ? "up to " : ""}${total} card(s) to ${verb(action.purpose, action.label)} (CR ${CR.announceTargets.number}).`
+        ? `${who} chooses ${upTo ? "up to " : ""}${total} card(s) to ${verb(action.purpose, action.label)} (CR ${CR.announceTargets.number}).`
         : undefined,
   });
   if (!state.pendingChoice) return finish(ctx, action, evalEffect);
@@ -287,6 +296,8 @@ export function chooseCards(args: {
   resume?: Primitive;
   label?: string;
   open?: boolean;
+  /** A search of a hidden deck with criteria (CR 8.7.2e); see the IR field. */
+  search?: boolean;
   then?: Effect;
 }): Effect {
   return {
@@ -302,6 +313,7 @@ export function chooseCards(args: {
       ...(args.resume ? { resume: structuredClone(args.resume) } : {}),
       ...(args.label ? { label: args.label } : {}),
       ...(args.open ? { open: true } : {}),
+      ...(args.search ? { search: true } : {}),
       ...(args.then ? { then: structuredClone(args.then) } : {}),
     },
   };

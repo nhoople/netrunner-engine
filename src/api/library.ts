@@ -238,6 +238,12 @@ function publicPendingChoice(state: GameState, viewer: Side) {
     op: "do" as const,
     action: { kind: "gain_credits" as const, side: viewer, amount: 0 },
   };
+  // A search of a hidden deck: how many options there are would tell how
+  // many cards match (CR 8.7.2e, 10.2.2b).
+  if (choice.optionCountHidden && !choice.shownToOpponent) {
+    copy.options = [{ id: "hidden:0", label: "Hidden", effect: noEffect }];
+    return copy;
+  }
   if (choice.shownToOpponent) {
     copy.options = copy.options.map((option) => ({
       ...option,

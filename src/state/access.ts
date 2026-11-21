@@ -494,6 +494,7 @@ export function beginBreachAccess(state: GameState): void {
   run.phase = "breach";
   run.breached = true;
   run.accessingCardId = null;
+  run.randomAccessLimitDeckOnly = false;
 
   if (run.accessCandidatesPreset) {
     run.accessCandidatesPreset = false;
@@ -605,7 +606,10 @@ export function beginBreachAccess(state: GameState): void {
         fireOnArchivesFacedownTurnedFaceupGte(state, rid);
       }
     }
-    run.randomAccessLimit = run.accessCandidates.length;
+    // No limit: the random access limit is for HQ and R&D only (CR 7.3.5),
+    // so every card in Archives is accessed, including a card that enters
+    // the discard pile during the breach (CR 7.4.1d, 7.4.6d).
+    run.randomAccessLimit = null;
     log(
       state,
       `Breach Archives: ${run.accessCandidates.length} candidate(s) (CR ${CR.archivesAccess.number}, ${CR.breachArchivesFaceup.number}).`,
@@ -723,9 +727,13 @@ export function beginBreachAccess(state: GameState): void {
   }
 
   if (serverId === "rd") {
+    // CR 7.3.5: the random access limit counts the cards the Runner chooses
+    // from the deck (1, plus additional accesses); root upgrades are
+    // candidates beside the deck and do not count toward it.
     const top = state.corp.deck[0] ?? null;
     run.accessCandidates = top ? [top, ...upgrades] : [...upgrades];
-    let remaining = top ? 1 + upgrades.length : upgrades.length;
+    run.randomAccessLimitDeckOnly = true;
+    let remaining = 1;
     // Climactic Showdown: first HQ or R&D breach this turn → +N access.
     if ((state.turn.climacticBonusAccessOnFirstHqRdBreach ?? 0) > 0) {
       const n = state.turn.climacticBonusAccessOnFirstHqRdBreach;
@@ -750,6 +758,37 @@ export function beginBreachAccess(state: GameState): void {
   run.accessCandidates = [...server.root];
   run.randomAccessLimit = run.accessCandidates.length;
   applyRunAccessRestrictions(state);
+}
+
+/**
+ * The Runner chose `cardId` as the next card to access: use one of the
+ * breach's access limit. During a breach of R&D only a card chosen from the
+ * Corp's deck counts toward the random access limit; a root upgrade does not
+ * (CR 7.3.5, 7.3.5c). Call before the chosen card leaves its zone.
+ */
+export function spendAccessLimitOnChoice(
+  state: GameState,
+  cardId: string,
+): void {
+  const run = state.run;
+  if (!run || run.randomAccessLimit === null) return;
+  if (run.randomAccessLimitDeckOnly && !state.corp.deck.includes(cardId)) {
+    return;
+  }
+  run.randomAccessLimit = Math.max(0, run.randomAccessLimit - 1);
+}
+
+/**
+ * Whether the access limit ends the breach although candidates remain
+ * (CR 7.3.4). It does when the limit is reached and counts every candidate.
+ * During a breach of R&D the limit counts only deck cards, and
+ * `refreshRdDeckCandidate` stops offering the deck once it is reached, so
+ * the root upgrades left are still accessed.
+ */
+export function accessLimitEndsBreach(state: GameState): boolean {
+  const run = state.run;
+  if (!run || run.randomAccessLimit === null) return false;
+  return run.randomAccessLimit <= 0 && !run.randomAccessLimitDeckOnly;
 }
 
 /**
