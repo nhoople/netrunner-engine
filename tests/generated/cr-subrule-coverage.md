@@ -23,10 +23,10 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | area 14 | 91 | 37 | 54 |
 | area 15 | 51 | 19 | 32 |
 | area 16 | 55 | 13 | 42 |
-| fidelity | 248 | 113 | 135 |
+| fidelity | 248 | 116 | 132 |
 | standardization | 47 | 28 | 19 |
 | reference | 280 | 37 | 243 |
-| **Total** | 1512 | 506 | 1006 |
+| **Total** | 1512 | 509 | 1003 |
 
 ## area 1
 
@@ -484,7 +484,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 1.16.10c | 1.16 | tests/cr-examples-ch1.test.ts › resolves Ob Superheavy Logistics before Azef Protocol is scored (CR 1.16.10c.ex1) |
 | 1.16.11 | 1.16 | — |
 | 1.16.11a | 1.16 | — |
-| 1.16.11b | 1.16 | tests/cr-examples-ch1.test.ts › does not end the run when the Runner pays the nested credit (CR 1.16.11b.ex1)<br>tests/nested-unless.test.ts › offers a shuffle of an empty grip (CR 1.16.11b)<br>tests/rulings-ice.test.ts › Funhouse: taking the tag is a cost; a Runner who takes it and prevents it has not paid, so the run ends (ruling 1; filed, area 11, CR 1.16.11b: the encounter ability resolves again)<br>tests/who-trashes.test.ts › asks the Corp whether to reveal and trash a card to end the run (CR 1.16.11b) |
+| 1.16.11b | 1.16 | tests/cr-examples-ch1.test.ts › does not end the run when the Runner pays the nested credit (CR 1.16.11b.ex1)<br>tests/interrupt-window-run-goes-on.test.ts › Funhouse asks its nested cost once, even with Decoy installed (CR 9.11.4f, 1.16.11b)<br>tests/nested-unless.test.ts › offers a shuffle of an empty grip (CR 1.16.11b)<br>tests/rulings-ice.test.ts › Funhouse: taking the tag is a cost; a Runner who takes it and prevents it has not paid, so the run ends (ruling 1; filed, area 11, CR 1.16.11b: the encounter ability resolves again)<br>tests/who-trashes.test.ts › asks the Corp whether to reveal and trash a card to end the run (CR 1.16.11b) |
 | 1.16.11c | 1.16 | — |
 | 1.16.11d | 1.16 | — |
 | 1.17.1 | 1.17 | — |
@@ -1095,7 +1095,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.2.4a | 9.2 | — |
 | 9.2.4b | 9.2 | — |
 | 9.2.4c | 9.2 | — |
-| 9.2.4d | 9.2 | — |
+| 9.2.4d | 9.2 | tests/interrupt-window-run-goes-on.test.ts › after Feedback Filter prevents Tithe's net damage, the run goes on past the ice (CR 9.2.4d)<br>tests/interrupt-window-run-goes-on.test.ts › after Feedback Filter prevents Mausolus's net damage, the run stops for the tag window of its next subroutine, then goes on (CR 9.2.4d, 9.2.9)<br>tests/interrupt-window-run-goes-on.test.ts › after Caldera prevents 1 of Neural Katana's net damage, the run goes on past the ice (CR 9.2.4d)<br>tests/interrupt-window-run-goes-on.test.ts › after the Corp uses Tori Hanzō on Neural Katana's net damage, the run goes on past the ice (CR 9.2.4d) |
 | 9.2.4e | 9.2 | tests/instruction-checkpoints.test.ts › checkpoints before each player receives priority (CR 10.3.3, 9.2.4e) |
 | 9.2.5 | 9.2 | — |
 | 9.2.6 | 9.2 | — |
@@ -1118,7 +1118,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.2.8d | 9.2 | tests/cr-examples-ch9.test.ts › lets the Runner trigger Drug Dealer before Aesop's Pawnshop instead (CR 9.2.8d)<br>tests/jnet-interactions-cards.test.ts › when MaxX trashes the only card in the stack, the Runner resolves Buffer Drive first to bottom it, then Aniccam draws it (CR 9.2.8d)<br>tests/jnet-interactions-rules.test.ts › when Apocalypse trashes the Corp's cards, Marilyn Campaign's interrupt comes first, then the Corp orders Hostile Infrastructure and Calvin B4L3Y (CR 9.9.4b, 9.2.8d)<br>tests/reaction-window-order.test.ts › asks the Runner again while different abilities remain (CR 9.2.8d)<br>tests/rulings-event.test.ts › Steelskin Scarring: with Buffer Drive, the Runner may draw 2 first and then still use Buffer Drive (ruling 3; filed, area 11, CR 9.2.8d: Steelskin resolves before Buffer Drive is pending)<br>tests/rulings-program.test.ts › Tranquilizer: with Cookbook and Hivemind, resolving Cookbook first derezzes the host at once; Tranquilizer first does not (ruling 3; filed, area 11, CR 9.2.8d: Tranquilizer always resolves first, with no order offered)<br>tests/rulings-resource.test.ts › Cookbook: resolving Cookbook before Tranquilizer derezzes the host ice at once; Tranquilizer first leaves it rezzed (ruling 1; filed, area 11, CR 9.2.8d: Tranquilizer always resolves first, with no order offered)<br>tests/timing-fixes-rf1b.test.ts › the Corp chooses the order of Hostile Infrastructure's and Calvin B4L3Y's pending abilities after Apocalypse (CR 9.2.8d) |
 | 9.2.8e | 9.2 | tests/timing-reaudit.test.ts › still does all 3 of Hostile Infrastructure's net damage after Singularity when the Runner could prevent the first (CR 9.6.2, 9.2.8e) |
 | 9.2.8f | 9.2 | tests/cr-examples-ch9.test.ts › drops Tollbooth's pending ability when Femme Fatale ends the encounter (CR 9.2.8f.ex1) |
-| 9.2.9 | 9.2 | — |
+| 9.2.9 | 9.2 | tests/interrupt-window-run-goes-on.test.ts › after Feedback Filter prevents Mausolus's net damage, the run stops for the tag window of its next subroutine, then goes on (CR 9.2.4d, 9.2.9) |
 | 9.2.9a | 9.2 | — |
 | 9.2.9b | 9.2 | — |
 | 9.2.9c | 9.2 | tests/rulings-identity.test.ts › the Runner is offered Decoy against a tag the Corp gives on its own turn (CR 9.2.9c, 9.2.9d) |
@@ -1271,7 +1271,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.11.4c | 9.11 | tests/cr-examples-ch9.test.ts › grants Tinkering's subtypes when the chosen ice's instruction resolves (CR 9.11.4c.ex1) |
 | 9.11.4d | 9.11 | tests/cr-examples-ch9.test.ts › trashes a grip card after Djinn's search and before Datasucker is added (CR 9.11.4d.ex1) |
 | 9.11.4e | 9.11 | tests/cr-examples-ch9.test.ts › ends Architect's look before the optional install, then closes the look (CR 9.11.4e.ex1) |
-| 9.11.4f | 9.11 | — |
+| 9.11.4f | 9.11 | tests/interrupt-window-run-goes-on.test.ts › Funhouse asks its nested cost once, even with Decoy installed (CR 9.11.4f, 1.16.11b) |
 | 9.11.4g | 9.11 | tests/cr-examples-ch9.test.ts › makes Data Raven's chosen option imminent after the choice checkpoint (CR 9.11.4g.ex1) |
 | 9.11.5 | 9.11 | — |
 | 10.3.1 | 10.3 | — |
@@ -1327,7 +1327,7 @@ A title cites a rule when it names that exact number, with or without `CR `, or 
 | 9.12.3a | 9.12 | tests/cr-examples-ch9.test.ts › makes the Runner choose Imp or Scrubber for Mumbad Virtual Tour (CR 9.12.3a.ex1) |
 | 9.12.3b | 9.12 | tests/cr-examples-ch9.test.ts › does not force Imp when Neutralize All Threats cannot be paid (CR 9.12.3b.ex1) |
 | 9.12.3c | 9.12 | tests/cr-examples-ch9.test.ts › makes the Runner pay Fairchild when that is the only option (CR 9.12.3c.ex1) |
-| 9.12.3d | 9.12 | tests/cr-examples-ch9.test.ts › lets the Runner take Data Raven's tag and avoid it without ending the run (CR 9.12.3d.ex1) |
+| 9.12.3d | 9.12 | tests/cr-examples-ch9.test.ts › lets the Runner take Data Raven's tag and avoid it without ending the run (CR 9.12.3d.ex1)<br>tests/interrupt-window-run-goes-on.test.ts › after Decoy prevents the tag the Runner chose to take, Data Raven does not ask again and the run goes on (CR 9.12.3d) |
 | 9.12.3e | 9.12 | tests/cr-examples-ch9.test.ts › lets the Runner decline Service Outage and then spend Always Be Running's click (CR 9.12.3e.ex1)<br>tests/instruction-checkpoints.test.ts › makes the Corp pay Archer's forfeit when False Echo offers the rez (CR 9.12.3e) |
 | 9.12.4 | 9.12 | — |
 | 9.12.4a | 9.12 | — |

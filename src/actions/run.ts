@@ -38,17 +38,25 @@ function ok(state: GameState): ApplyResult {
   return { ok: true, state };
 }
 
+/**
+ * A choice, trace, psi game, damage or tag window is open, so the run walk
+ * stops for it. A tag window opened by a later subroutine is not walked past
+ * (CR 9.2.9).
+ */
+function runWalkPaused(state: GameState): boolean {
+  return Boolean(
+    state.pendingTrashProgram ||
+    state.pendingChoice ||
+    state.trace ||
+    state.psi ||
+    state.pendingDamage ||
+    state.pendingTags,
+  );
+}
+
 export function advanceRunUntilStop(state: GameState): ApplyResult {
   for (let guard = 0; guard < 64; guard++) {
-    if (
-      state.pendingTrashProgram ||
-      state.pendingChoice ||
-      state.trace ||
-      state.psi ||
-      state.pendingDamage
-    ) {
-      return ok(state);
-    }
+    if (runWalkPaused(state)) return ok(state);
 
     const step = getStep(state);
 
@@ -92,15 +100,7 @@ export function advanceRunUntilStop(state: GameState): ApplyResult {
 
     if (step.kind === "auto" || step.kind === "branch") {
       step.onResolve?.(state);
-      if (
-        state.pendingTrashProgram ||
-        state.pendingChoice ||
-        state.trace ||
-        state.psi ||
-        state.pendingDamage
-      ) {
-        return ok(state);
-      }
+      if (runWalkPaused(state)) return ok(state);
       const nextKey =
         typeof step.next === "function" ? step.next(state) : step.next;
       enterStep(state, nextKey);
