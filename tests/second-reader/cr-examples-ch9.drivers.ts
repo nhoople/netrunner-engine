@@ -6,8 +6,7 @@
  * Not a test file: vitest only runs `*.test.ts`.
  */
 import { cloneState, getPublicView, legalActions } from "../../src/index.js";
-import type { Action, GameState } from "../../src/index.js";
-import type { ServerId } from "../../src/state/types.js";
+import type { GameState } from "../../src/index.js";
 import { must, optionIds, pick } from "../rulings-helpers.js";
 import { accepts, Board, hasOption, offered, take } from "./harness.js";
 import type { Report } from "./harness.js";
@@ -16,16 +15,23 @@ import {
   atAction,
   atEncounter,
   corpWindow,
+  breakSubs,
+  corpTurnBegins,
   debug,
+  encounterOrOver,
+  go,
+  handOver,
+  idle,
+  playRun,
   raw,
+  runnerTurnBegins,
+  spendClicks,
+  using,
+  what,
   run,
   runnerWindow,
 } from "./driving.js";
 import type { Driver } from "./driving.js";
-
-const encounterOrOver = (s: GameState): boolean => atEncounter(s) || !s.run;
-const idle = (s: GameState): boolean =>
-  !s.run && atAction(s) && !s.pendingChoice;
 
 /**
  * `run.outcome` is read from the turn's record of runs. A case that makes an
@@ -36,93 +42,6 @@ function forgetRuns(s: GameState): GameState {
   s.turn.successfulRunThisTurn = false;
   s.turn.unsuccessfulRunThisTurn = false;
   return s;
-}
-
-/** The Runner passes priority without the window being walked on. */
-const handOver = (s: GameState): GameState => raw(s, { type: "pass_window" });
-
-const playRun = (s: GameState, cardId: string, server: string): GameState =>
-  must(s, { type: "play_event", cardId, serverId: server as ServerId });
-
-/** The steps taken when nothing else is asked for, in this order. */
-const OBVIOUS: Action["type"][] = [
-  "continue_run",
-  "access_card",
-  "steal_agenda",
-  "finish_access",
-  "finish_breach",
-  "accept_installed_trash",
-  "accept_damage",
-  "accept_tags",
-  "accept_expose",
-  "resolve_trace",
-  "pass_window",
-  "discard_to_hand_size",
-];
-
-type Hook = (s: GameState) => GameState | undefined;
-
-/**
- * Play on to `stop`. At each stop `hook` goes first: it returns the state
- * after the move the case names, or nothing. An open choice is answered with
- * the first of `answers` (a part of an option's id or label) that fits, each used
- * once; a choice no answer fits is an error, so a driver cannot report a
- * state it did not mean to stop in. Otherwise the obvious step is taken. A trace is resolved with neither player spending.
- */
-function go(
-  s: GameState,
-  stop: (s: GameState) => boolean,
-  answers: string[] = [],
-  hook?: Hook,
-): GameState {
-  const left = [...answers];
-  for (let i = 0; i < 120; i++) {
-    if (stop(s) || s.done) return s;
-    const hooked = hook?.(s);
-    if (hooked) {
-      s = hooked;
-      continue;
-    }
-    if (s.pendingChoice) {
-      const ids = optionIds(s);
-      const fits = (a: string) =>
-        s.pendingChoice!.options.find(
-          (o) => o.id.includes(a) || (o.label ?? "").includes(a),
-        );
-      const at = left.findIndex((a) => Boolean(fits(a)));
-      debug(
-        `choice[${s.pendingChoice.chooser}] ${s.pendingChoice.prompt ?? ""}: ${s.pendingChoice.options
-          .map((o) => `${o.id} "${o.label}"`)
-          .join(" | ")} -> ${at < 0 ? "(stop)" : left[at]}`,
-      );
-      if (at < 0) {
-        throw new Error(
-          `no answer for the choice at ${s.timingKey}: ${ids.join(" | ")}`,
-        );
-      }
-      s = must(s, {
-        type: "choose_option",
-        optionId: fits(left.splice(at, 1)[0]!)!.id,
-      });
-      continue;
-    }
-    const legal = legalActions(s);
-    const next =
-      legal.find((a) => a.type === "boost_trace" && a.credits === 0) ??
-      OBVIOUS.map((t) => legal.find((a) => a.type === t)).find(Boolean);
-    if (process.env.SR_DEBUG === "2") {
-      debug(
-        `${s.timingKey}: ${next?.type} of ${[...new Set(legal.map((a) => a.type))].join(",")}`,
-      );
-    }
-    if (!next) {
-      throw new Error(
-        `stuck at ${s.timingKey}: ${legal.map((a) => a.type).join(", ")}`,
-      );
-    }
-    s = must(s, next);
-  }
-  throw new Error(`no stop at ${s.timingKey}`);
 }
 
 /**
@@ -151,32 +70,10 @@ function passIceAgain(limit = 8): (s: GameState) => boolean {
   };
 }
 
-/** A hook that uses a card's paid ability the first `times` times it is offered. */
-function using(cardId: string, times = 1): Hook {
-  let left = times;
-  return (s) => {
-    const next = offered(s, "use_paid_ability", cardId)[0];
-    if (!next || left <= 0) return undefined;
-    left -= 1;
-    debug("use:", JSON.stringify(next));
-    return must(s, next);
-  };
-}
-
 /** Use a card's paid ability up to `times` times, while the engine offers it. */
 function pump(s: GameState, cardId: string, times: number): GameState {
   for (let i = 0; i < times; i++) {
     const next = offered(s, "use_paid_ability", cardId)[0];
-    if (!next) return s;
-    s = must(s, next);
-  }
-  return s;
-}
-
-/** Break up to `count` subroutines of the encountered ice with one breaker. */
-function breakSubs(s: GameState, breakerId: string, count = 6): GameState {
-  for (let i = 0; i < count; i++) {
-    const next = offered(s, "break_subroutine", breakerId)[0];
     if (!next) return s;
     s = must(s, next);
   }
@@ -199,11 +96,6 @@ const title = (s: GameState, id: string | undefined): string =>
 
 const stackBottom = (s: GameState): string =>
   title(s, s.runner.deck[s.runner.deck.length - 1]);
-
-const what = (s: GameState): string =>
-  `${s.timingKey} choice=${JSON.stringify(optionIds(s))} legal=${[
-    ...new Set(legalActions(s).map((a) => a.type)),
-  ].join(",")}`;
 
 /** Zahya Sadeghi: two runs on HQ, using the identity after the named ones. */
 function zahya(r: Report, useFirst: boolean, direct: boolean): void {
@@ -1672,58 +1564,6 @@ function worse(r: Report, skorpios: boolean): void {
   ]);
   if (skorpios) r.fact("winner", s.winner ?? "none");
   r.snap("damage", s);
-}
-
-/**
- * The Runner spends the last click of the turn and the game is played on to
- * the Corp's first action. The credit the click gives is taken back, so the
- * numbers of the position hold.
- */
-function corpTurnBegins(
-  s: GameState,
-  answers: string[] = [],
-  hook?: Hook,
-  keepCredit = false,
-): GameState {
-  s.config.stopAfterFirstCycle = false;
-  s.activeSide = "runner";
-  s.timingKey = "runner.takeAction";
-  s.runner.clicks = 1;
-  s = raw(s, { type: "basic_gain_credit" });
-  if (!keepCredit) s.runner.credits -= 1;
-  return go(
-    s,
-    (x) => x.timingKey === "corp.takeAction" && !x.pendingChoice,
-    answers,
-    hook,
-  );
-}
-
-/** The same from the Corp's side, on to the Runner's first action. */
-function runnerTurnBegins(
-  s: GameState,
-  answers: string[] = [],
-  hook?: Hook,
-): GameState {
-  s.config.stopAfterFirstCycle = false;
-  s.activeSide = "corp";
-  s.timingKey = "corp.takeAction";
-  s.corp.clicks = 1;
-  s = raw(s, { type: "basic_gain_credit" });
-  s.corp.credits -= 1;
-  return go(
-    s,
-    (x) => x.timingKey === "runner.takeAction" && !x.pendingChoice,
-    answers,
-    hook,
-  );
-}
-
-/** The Runner gains a credit with every click but the last. */
-function spendClicks(s: GameState): GameState {
-  while (s.runner.clicks > 1)
-    s = go(must(s, { type: "basic_gain_credit" }), idle);
-  return s;
 }
 
 /**

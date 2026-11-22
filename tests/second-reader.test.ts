@@ -36,12 +36,17 @@ import { drivers as ch7 } from "./second-reader/cr-examples-ch7.drivers.js";
 import { drivers as ch8 } from "./second-reader/cr-examples-ch8.drivers.js";
 import { drivers as ch9 } from "./second-reader/cr-examples-ch9.drivers.js";
 import { drivers as ch10 } from "./second-reader/cr-examples-ch10.drivers.js";
+import { drivers as rulings1 } from "./second-reader/rulings-sample-1.drivers.js";
 import type { Driver } from "./second-reader/driving.js";
 
-/** Each batch, the CR chapter its examples come from, and its drivers. */
+/**
+ * Each batch and its drivers. A batch of CR examples names its chapter. A
+ * batch with no chapter is a sample of the official rulings, and its file
+ * lists the sampled cards.
+ */
 const BATCHES: Array<{
   name: string;
-  chapter: string;
+  chapter?: string;
   drivers: Record<string, Driver>;
 }> = [
   { name: "cr-examples-ch1", chapter: "1", drivers: ch1 },
@@ -54,6 +59,7 @@ const BATCHES: Array<{
   { name: "cr-examples-ch8", chapter: "8", drivers: ch8 },
   { name: "cr-examples-ch9", chapter: "9", drivers: ch9 },
   { name: "cr-examples-ch10", chapter: "10", drivers: ch10 },
+  { name: "rulings-sample-1", drivers: rulings1 },
 ];
 
 /**
@@ -80,6 +86,12 @@ const WRITTEN_TITLES: Record<string, string> = {
     "CR 9.6.5d.ex1: The Supplier installs Dyson Mem Chip first, so Underworld Contact sees 2 link when it resolves",
   "9.6.5d.ex1#b":
     "CR 9.6.5d.ex1#b: Underworld Contact resolves first with 1 link and gives nothing",
+  "backstitching#4":
+    "Ruling backstitching#4: Backstitching can bypass the ice Konjin makes the Runner encounter, because the run is still on the mark",
+  "pinhole-threading#4":
+    "Ruling pinhole-threading#4: Henry Phillips in HQ's root pays out when a subroutine is broken on ice Ganked! forced, during a Pinhole Threading run on HQ",
+  "pinhole-threading#4-b":
+    "Ruling pinhole-threading#4-b: Henry Phillips beside Ganked! pays nothing, because the run is on HQ",
 };
 
 /**
@@ -129,6 +141,17 @@ function exampleNumbers(chapter: string): string[] {
     .map((n) => n.number);
 }
 
+/** Every ruling on the given cards at the cards pin, as `<card id>#<n>`. */
+function rulingNames(cardIds: string[]): string[] {
+  return cardIds.flatMap((id) => {
+    const file = join(process.cwd(), "vendor/cards-data/rulings", `${id}.json`);
+    const { rulings } = JSON.parse(readFileSync(file, "utf8")) as {
+      rulings: unknown[];
+    };
+    return rulings.map((_, i) => `${id}#${i + 1}`);
+  });
+}
+
 for (const { name, chapter, drivers } of BATCHES) {
   const batch = loadBatch(name);
   const open = new Map(
@@ -138,9 +161,16 @@ for (const { name, chapter, drivers } of BATCHES) {
   );
 
   describe(`the engine agrees with a blind reading of ${batch.title} (read by ${batch.reader.name})`, () => {
-    it(`every example of CR chapter ${chapter} at the pin has an entry, and every position has a driver`, () => {
+    const scope = chapter
+      ? `every example of CR chapter ${chapter} at the pin`
+      : "every ruling on the sampled cards at the pin";
+    it(`${scope} has an entry, and every position has a driver`, () => {
       const have = new Set(batch.cases.map((c) => c.example));
-      expect(exampleNumbers(chapter).filter((n) => !have.has(n))).toEqual([]);
+      const wanted = chapter
+        ? exampleNumbers(chapter)
+        : rulingNames(batch.cards ?? []);
+      expect(wanted.length).toBeGreaterThan(0);
+      expect(wanted.filter((n) => !have.has(n))).toEqual([]);
       const toRun = batch.cases.filter((c) => c.run !== false);
       expect(toRun.filter((c) => !drivers[c.id]).map((c) => c.id)).toEqual([]);
       for (const c of batch.cases.filter((c) => c.run === false)) {
@@ -152,7 +182,7 @@ for (const { name, chapter, drivers } of BATCHES) {
       if (c.run === false) continue;
       const title =
         WRITTEN_TITLES[c.id] ??
-        `CR ${c.id}: ${c.steps!.map((s) => s.do).join(" ")}`;
+        `${chapter ? "CR" : "Ruling"} ${c.id}: ${c.steps!.map((s) => s.do).join(" ")}`;
       const known = open.get(c.id);
       if (known) {
         const filed =
