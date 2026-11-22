@@ -504,16 +504,17 @@
     },
     "alias": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "2[credit]: +3 strength."
       ],
-      "note": "The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. Strength 1 and interface 1 credit: break 1 sentry subroutine match; 'cannot interface with ice protecting a remote server' is already on paired cut A's list. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: the breaker declaration's cannotInterfaceRemoteIce, read in interfaceBlock (src/state/procedures/break.ts), so it cannot interface with ice protecting a remote server. FX-pump (engine#976) fixed the pump and strength.",
       "cr": [
-        "1.2.1",
-        "3.9.5b",
-        "9.3.7b"
-      ]
+        "9.3.6c",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "cannot interface with ice protecting a remote server, but can with ice protecting a central server (CR 9.3.6c)"
     },
     "alice-merchant-clan-agitator": {
       "cycle": "red-sand",
@@ -530,16 +531,17 @@
     },
     "alix-t4lb07": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Place 1 power counter on Alix T4LB07 whenever you install a card."
       ],
-      "note": "firePowerCounterOnAnyCorpInstall (src/state/powerCounters.ts) treats the just-installed card as active (card.rezzed || card.id === installedId), so an Alix installed facedown counts its own install; an unrezzed card's ability is inactive. The flag is Alix-only. Unique and the click, trash: 2 per counter ability match.",
+      "note": "Engine: firePowerCounterOnAnyCorpInstall asks isCardActive, so an unrezzed Alix does not count its own install.",
       "cr": [
-        "1.8.3c",
-        "3.3.2",
+        "1.8.3a",
         "9.1.8"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "places a power counter for an install only while it is rezzed: installed unrezzed, it does not count its own install (CR 1.8.3a, 9.1.8)"
     },
     "all-nighter": {
       "cycle": "genesis",
@@ -556,15 +558,17 @@
     },
     "alpha": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Interface 1 credit: break 1 subroutine"
       ],
-      "note": "The breaker declares breaksSubtype sentry, so src/state/procedures/break.ts blocks every non-sentry ice; the printed ability names no subtype. The outermost-ice restriction and the 1 credit: +1 strength match. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): breaksSubtype \"*\". FX-pump (engine#976) fixed the pump and strength.",
       "cr": [
         "3.9.5h",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "break a subroutine on any ice, not only sentries: the printed ability names no subtype (CR 3.9.5h)"
     },
     "always-be-running": {
       "cycle": "data-and-destiny",
@@ -998,15 +1002,17 @@
     },
     "atman": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When you install this program, you may spend any number of credits to place that many power counters on it."
       ],
-      "note": "installSpendCreditsForPowerCounters (src/actions/installRunner.ts) spends the whole credit pool plus program-use recurring credits with no choice of X. Printed: the Runner chooses any number. +1 strength per counter, equal-strength interface and 1 credit: break 1 subroutine match.",
+      "note": "Already fixed by RF-1b (engine#993): the install ability is a pending conditional with a choice of 0 to N credits.",
       "cr": [
-        "1.2.1",
-        "9.1.6"
-      ]
+        "9.6.9c",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "when installed the Runner chooses how many credits to spend, 0 included (CR 9.6.9c; already fixed by RF-1b)"
     },
     "attini": {
       "cycle": "liberation",
@@ -1771,16 +1777,18 @@
     },
     "breach": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "2[credit]: +4 strength."
       ],
-      "note": "The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. The declaration also says pumpStrength 3 against the printed +4. Strength 2 and 2 credits: break up to 3 barrier subroutines match; the remote-interface limit is on paired cut A's list. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong. Breach still pumps +3 against printed +4 (card data, paired cut A).",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: pumpStrength 4 as printed, and cannotInterfaceRemoteIce read in interfaceBlock. FX-pump (engine#976) fixed the pump and strength.",
       "cr": [
-        "1.2.1",
+        "9.3.6c",
         "3.9.5b",
-        "9.3.7b"
-      ]
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "cannot interface with ice protecting a remote server, but can with ice protecting a central server (CR 9.3.6c)"
     },
     "breached-dome": {
       "cycle": "red-sand",
@@ -1844,15 +1852,17 @@
     },
     "bug": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Install only if you made a successful run on HQ this turn."
       ],
-      "note": "Declares playRequiresSuccessfulHqRunThisTurn, which only the play checks read; Runner installs read installRequiresSuccessfulHqRunThisTurn, so Bug installs at any time. The paid reveal of each drawn card matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): installRequiresSuccessfulHqRunThisTurn.",
       "cr": [
-        "1.2.1",
-        "9.1.8c"
-      ]
+        "9.1.8c",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "can be installed only after a successful run on HQ this turn (CR 1.2.1)"
     },
     "bug-out-bag": {
       "cycle": "red-sand",
@@ -2027,14 +2037,16 @@
     },
     "capstone": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Click: trash any number of grip cards; draw 1 for each with an installed copy"
       ],
-      "note": "trash_capstone_grip_card trashes one card, draws, then reopens the choice over the new grip, so cards Capstone draws can be trashed in the same use. The set should be chosen and trashed together, then the draws made.",
+      "note": "Engine: the Runner chooses the set with chooseCards (upTo), the set is trashed together, then 1 card is drawn per trashed card with an installed copy.",
       "cr": [
         "9.12.2a"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "trashes the chosen grip cards together, then draws 1 for each with a copy installed; cards it draws cannot be trashed (CR 9.12.2a)"
     },
     "captain-padma-isbister-intrepid-explorer": {
       "cycle": "borealis",
@@ -2142,16 +2154,18 @@
     },
     "cerebral-cast": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "You and the Runner secretly spend 0, 1, or 2[credit]. If you and the Runner spent a different number of credits, they must suffer 1 core damage or take 1 tag."
       ],
-      "note": "Confirms 1.12, and it is worse: maxBid 3 allows bids 0-3; matching bids do 2 net damage and differing bids do nothing. Printed: bids 0-2; on a difference the Runner chooses 1 core damage or 1 tag. The play condition matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): maxBid 2; matching bids do nothing; differing bids make the Runner choose 1 core damage or 1 tag.",
       "cr": [
-        "1.2.1",
         "10.14.5",
-        "10.14.6b"
-      ]
+        "10.14.6b",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "bids are 0 to 2 credits, matching bids do nothing, and differing bids make the Runner choose 1 core damage or 1 tag (CR 10.14.5, 10.14.6b)"
     },
     "cerebral-imaging-infinite-frontiers": {
       "cycle": "creation-and-control",
@@ -2203,15 +2217,16 @@
     },
     "chairman-hiro": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When this asset is trashed from anywhere while being accessed, add it to the Runner's score area as an agenda worth 2 agenda points."
       ],
-      "note": "The IR passes agendaPoints -2, so the Runner scores -2 (probe). Unique and the Runner's -2 maximum hand size match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): agendaPoints 2.",
       "cr": [
-        "1.2.1",
-        "10.1.3"
-      ]
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "trashed while accessed, it becomes an agenda worth 2 points in the Runner's score area (CR 1.2.1)"
     },
     "chakana": {
       "cycle": "creation-and-control",
@@ -2438,15 +2453,17 @@
     },
     "clone-chip": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[trash]: Install a program from your heap (paying the install cost)."
       ],
-      "note": "may_install_from_heap adds a Decline after the trash cost is paid; the printed install has no 'may'. Also area 6: the heap filters (canInstallHeapCard) drop programs over free MU, trojans and install-on-ice programs (as Privileged Access).",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): install_from_heap, with no Decline once the cost is paid. The heap filters (MU, trojans, install on ice) stay in area 6.",
       "cr": [
-        "1.2.1",
-        "1.2.4"
-      ]
+        "1.2.4",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "installs a program from the heap with no 'may': there is no Decline once its cost is paid (CR 1.2.4)"
     },
     "clone-retirement": {
       "cycle": "spin",
@@ -2733,15 +2750,17 @@
     },
     "corporate-shuffle": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Shuffle all cards in HQ into R&D. Draw 5 cards."
       ],
-      "note": "shuffle_corporate_hq_to_rd_draw draws 5 inline with deck.pop() (the bottom; the top is index 0), outside the draw procedure: no draw triggers and no loss when R&D is empty. The shuffle and the additional click match.",
+      "note": "Engine: the 5 cards are drawn by the draw primitive, from the top of R&D, with its triggers and the empty-R&D loss.",
       "cr": [
-        "5.1.2",
+        "8.4.2",
         "1.7.2c"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "draws the top 5 cards of R&D through the draw procedure (CR 5.1.2)"
     },
     "corporate-town": {
       "cycle": "sansan",
@@ -3684,15 +3703,17 @@
     },
     "donut-taganes": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "The play cost of operations and events is increased by 1."
       ],
-      "note": "corpPlayCostIncreaseForRunnerEventsOps is summed only for cards in a play area (src/state/costs.ts operationAndEventPlayCostIncreaseTotal); Donut is installed, so the +1 never applies (probe: 0). Unique matches.",
+      "note": "Engine: operationAndEventPlayCostIncreaseTotal reads an installed, active Donut Taganes.",
       "cr": [
-        "1.2.1",
-        "1.16.2a"
-      ]
+        "1.16.2a",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "while installed, raises the play cost of operations and events by 1 (CR 1.16.2a)"
     },
     "doomscroll": {
       "cycle": "elevation",
@@ -3824,15 +3845,16 @@
     },
     "early-bird": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Gain [click]. Run any server."
       ],
-      "note": "may_start_run always offers a Decline; the printed run is mandatory. Play only as the first click and gain a click match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): a runEvent, so the run is mandatory.",
       "cr": [
-        "1.2.1",
-        "9.6.9"
-      ]
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "gains a click and makes a run, with no option to decline the run (CR 1.2.1)"
     },
     "early-premiere": {
       "cycle": "sansan",
@@ -4258,15 +4280,18 @@
     },
     "escher": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "If successful, instead of breaching HQ, rearrange any number of ice protecting all servers."
       ],
-      "note": "escher_rearrange_pick_server / escher_rearrange_server_ice reorder ice within one server at a time, and only servers with 2 or more ice. Printed: ice may move between servers as long as each server keeps its number of ice, so two single-ice servers cannot trade. Run HQ and the optional replacement match. Kind is Escher-only.",
+      "note": "Already fixed by area 2 (engine#971): rearrange_ice arranges ice across servers, keeping each server's number of ice. Fixed in engine#1002: the replacement is mandatory (CR 9.9.8), with no Breach option; card JSON (cards v1.147.27) renames the kind rearrange_ice_instead_of_breach.",
       "cr": [
-        "1.2.1",
-        "8.3.1"
-      ]
+        "9.9.8",
+        "8.3.1",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "instead of breaching HQ the Runner rearranges ice, with no option to breach, and can trade the ice of two single-ice servers, keeping each server's number of ice (CR 9.9.8, 8.3.1)"
     },
     "estelle-moon": {
       "cycle": "terminal-directive",
@@ -4355,14 +4380,17 @@
     },
     "executive-wiretaps": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Reveal all cards in HQ"
       ],
-      "note": "Plays as printed (all of HQ revealed, the additional click), but it uses reveal_hq_gain_credits with 0 credits each, a kind whose name claims a credit gain; it should use a reveal kind. This is the 1.12 phrase hit.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: a plain reveal_hq kind.",
       "cr": [
+        "1.21.3",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "reveals all cards in HQ (CR 1.21.3)"
     },
     "exer": {
       "cycle": "kitara",
@@ -4381,15 +4409,17 @@
     },
     "expert-schedule-analyzer": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "If successful, instead of breaching HQ, you may reveal all cards in HQ"
       ],
-      "note": "may_breach_instead_expert_schedule_analyzer always reveals HQ and skips the breach; the Runner has no choice to breach normally. Click: run HQ matches.",
+      "note": "Engine: the Runner chooses to breach HQ or reveal all cards in HQ instead.",
       "cr": [
         "6.7.4c",
-        "6.9.5b"
-      ]
+        "9.6.9"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "on a successful HQ run the Runner may breach normally instead of revealing HQ (CR 6.7.4c, 9.6.9)"
     },
     "explode-a-palooza": {
       "cycle": "sansan",
@@ -4822,15 +4852,17 @@
     },
     "frame-job": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Forfeit 1 agenda. If you do, give the Corp 1 bad publicity."
       ],
-      "note": "The forfeit is a play restriction, so the event cannot be played with no scored agenda; the only additional cost is the click, and the forfeit is part of the effect. The bad publicity on a forfeit matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: the forfeit is part of the effect (choose_forfeit_runner_scored_agenda with then: give_bad_publicity), so it can be played with no agenda and gives bad publicity only if the Runner forfeits.",
       "cr": [
-        "1.16.10",
+        "1.16.1",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "can be played with no scored agenda, and gives bad publicity only if the Runner forfeits one (CR 1.16.1, 1.2.1)"
     },
     "franchise-city": {
       "cycle": "sansan",
@@ -5397,15 +5429,17 @@
     },
     "gyri-labyrinth": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "The Runner's maximum hand size is reduced by 2 until the beginning of the Corp's next turn"
       ],
-      "note": "Each resolution lowers maxHandSize by 2, but src/state/turn.ts restores 2 once from a boolean, so two resolutions in a turn leave the Runner at -2 for the rest of the game.",
+      "note": "Engine: each resolution adds 2 to a hand-size penalty that the max hand size recompute reads and that clears when the Corp's turn begins (shared with Valley Grid).",
       "cr": [
         "9.10.1",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "each resolution lowers the Runner's maximum hand size by 2 until the Corp's next turn begins, and all of it ends then (CR 9.10.1)"
     },
     "haarpsichord-studios-entertainment-unleashed": {
       "cycle": "sansan",
@@ -5414,15 +5448,17 @@
     },
     "haas-arcology-ai": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "You can advance this asset if it is unrezzed."
       ],
-      "note": "Declares canAdvance with no unrezzed-only limit; src/state/advanceable.ts lets it be advanced while rezzed (only a canAdvanceOnlyWhenRezzed flag exists). Once per turn, click, advancement counter: gain 2 clicks matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: canAdvance \"unrezzed\", read by mayAdvanceInstalledCard.",
       "cr": [
-        "1.2.1",
-        "1.18.3"
-      ]
+        "1.18.3",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "can be advanced while unrezzed, and not once rezzed (CR 1.18.3)"
     },
     "haas-bioroid-architects-of-tomorrow": {
       "cycle": "flashpoint",
@@ -5777,14 +5813,16 @@
     },
     "himitsu-bako": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "1 credit: Add Himitsu-Bako to HQ"
       ],
-      "note": "The paid ability lists corp_action_paw and encounter_paw, so it is neither unrestricted nor run-wide and cannot be used at approach, after passing ice or in the Runner's action window. Fix: list only corp_action_paw. End the run matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): the paid ability lists only corp_action_paw, which opens it in every paid ability window.",
       "cr": [
         "9.2.7b"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "their paid abilities can be used in every paid ability window, as printed with no restriction (CR 9.2.7b)"
     },
     "hippo": {
       "cycle": "kitara",
@@ -5815,15 +5853,17 @@
     },
     "hive": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "5 printed End the run subroutines"
       ],
-      "note": "The IR has 4 end-the-run subroutines where 5 are printed, so it always has one fewer; losing one per Corp agenda point from the last (src/timing/graph.ts) matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): 5 printed 'End the run' subroutines.",
       "cr": [
         "9.8.2b",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "has 5 printed 'End the run' subroutines and loses 1 for each agenda point (CR 9.8.2b)"
     },
     "hivemind": {
       "cycle": "order-and-chaos",
@@ -5876,14 +5916,15 @@
     },
     "hostage": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Search your stack for a connection, reveal it, add it to your grip, may install it, shuffle"
       ],
-      "note": "search_stack_subtype_may_install takes the first connection in the stack, with no choice, and shuffles before the optional install instead of last. The additional click matches.",
+      "note": "Area 6 (moved). Fixed in engine#1002: Engine: a chooseCards search (may find none, count hidden), the stack shuffled when the search ends (CR 8.7.3), the found card revealed and added to the grip, then the install offer. The install itself stays inline (area 6). (test \"the Runner chooses which connection to find, or none, and the stack is shuffled before the install offer (CR 8.7.2e, 8.7.3)\")",
       "cr": [
-        "1.15.2",
-        "1.2.1"
+        "8.7.2e",
+        "8.7.3",
+        "1.15.2"
       ]
     },
     "hostile-architecture": {
@@ -5936,15 +5977,14 @@
     },
     "howler": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "[subroutine] You may install and rez 1 piece of bioroid ice from HQ or Archives directly inward from this ice, ignoring all costs."
       ],
-      "note": "install_rez_bioroid_inward offers no Decline and installs automatically when there is one candidate. Also: install_rez_chosen writes server.ice and sets rezzed inline (areas 5 and 7, install and rez procedures; position writes area 2). The run-end trash and derez match.",
+      "note": "Area 5 and area 7 (moved). Fixed in engine#1002: Card JSON (cards v1.147.27, engine#1002 pins it) and engine: may_install_rez_bioroid_inward offers a Decline even with one candidate. The inline install and rez stay in areas 5 and 7. (test \"the Corp may decline to install a bioroid ice, even when there is only one (CR 9.6.9)\")",
       "cr": [
-        "1.2.1",
         "9.6.9",
-        "8.5.15"
+        "1.2.1"
       ]
     },
     "hq-interface": {
@@ -6113,15 +6153,17 @@
     },
     "ichi-2-0": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[subroutine] Trash 1 installed program. (twice)"
       ],
-      "note": "Uses trash_own_program, which lets the Runner choose the program; Ichi 1.0 uses trash_program (the Corp chooses). Also filed: with no program installed the kind returns an error (area 1, as Burke Bugs), and the 1-click break is offered beside the printed 2-click break (area 11, as Heimdall 2.0). The trace 3 subroutine matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): trash_program, so the Corp chooses the program (CR 1.14.5) and nothing happens with no program. The 1-click bioroid break stays in area 11 (as Heimdall 2.0).",
       "cr": [
         "1.14.5",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "the Corp chooses which installed program its subroutine trashes (CR 1.14.5)"
     },
     "idiosyncresis": {
       "cycle": "elevation",
@@ -6413,15 +6455,17 @@
     },
     "ireress": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "gains [subroutine] The Runner loses 1 credit per bad publicity"
       ],
-      "note": "Modelled as one subroutine that takes 1 credit per bad publicity, so it has 1 subroutine at 0 bad publicity and one break stops all of it. Printed: one gained subroutine per bad publicity, each broken separately.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: a continuous per_bad_publicity declaration gains one 'The Runner loses 1 credit' subroutine per bad publicity, each broken on its own.",
       "cr": [
         "9.8.3d",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "gains one 'The Runner loses 1 credit' subroutine for each bad publicity, each broken on its own (CR 9.8.3d)"
     },
     "isaac-liberdade": {
       "cycle": "liberation",
@@ -6876,14 +6920,16 @@
     },
     "knight": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "If hosted, its click ability cannot host it on the next inward or outward ice"
       ],
-      "note": "Knight uses caissa_rook_host, so when hosted it may move only to ice in the same position (Rook's rule) instead of anywhere but the next inward or outward ice. Interface 2 credits: break 1 subroutine on host ice matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: caissa_rook_host move not_adjacent. Unrezzed ice are named by position in the host choice (CR 10.2.2a).",
       "cr": [
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "Knight hosted on ice may move to any ice but the next one inward or outward (CR 1.2.1)"
     },
     "knobkierie": {
       "cycle": "kitara",
@@ -6903,16 +6949,17 @@
     },
     "komainu": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When the Runner encounters this ice, it gains X '[subroutine] Do 1 net damage.' subroutines for the remainder of this run."
       ],
-      "note": "add_net_subs_for_rezzed_ice sets the subroutines to base + X on each encounter, so a second encounter that run replaces the first set instead of adding to it, and nothing strips them at run end (Brainstorm's grip_size_on_encounter does both). X = grip size matches.",
+      "note": "Engine: add_net_subs_for_rezzed_ice adds X more subroutines on each encounter and registers the ice so the run's end restores its own subroutines.",
       "cr": [
-        "1.2.1",
         "9.10.1",
-        "10.3.1b"
-      ]
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "gains X net damage subroutines on each encounter for the remainder of the run, and loses them when the run ends (CR 9.10.1)"
     },
     "kompromat": {
       "cycle": "vantage-point",
@@ -7352,14 +7399,16 @@
     },
     "llds-processor": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever you install an icebreaker, +1 strength until end of turn"
       ],
-      "note": "nonAiIcebreakerInstallStrengthBonusThisTurn is read only for non-AI icebreakers (src/actions/installRunner.ts); printed covers every icebreaker.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: icebreakerInstallStrengthBonusThisTurn {amount} for every icebreaker (Cybertrooper Talut keeps nonAiOnly).",
       "cr": [
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "gives +1 strength until the end of the turn to every icebreaker installed, AI ones too (CR 1.2.1)"
     },
     "load-testing": {
       "cycle": "red-sand",
@@ -7778,15 +7827,17 @@
     },
     "marker": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "The next ice encountered gains End the run after its subroutines for the remainder of that run"
       ],
-      "note": "src/timing/graph.ts appends the gained subroutine to that ice and nothing removes it, so the ice keeps it after the run.",
+      "note": "Engine: the 'End the run' Marker gives is stripped from the ice (and from its baseSubroutines) when the run ends.",
       "cr": [
         "9.10.1",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "the 'End the run' it gives the next ice lasts only for the remainder of that run (CR 9.10.1)"
     },
     "market-forces": {
       "cycle": "kitara",
@@ -7987,15 +8038,15 @@
     },
     "medical-breakthrough": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Lower the advancement requirement of each Medical Breakthrough by 1. This ability is active even while Medical Breakthrough is in the Runner's score area."
       ],
-      "note": "src/state/scoring.ts counts copies of the title in HQ, R&D, Archives, installed and the Corp's score area (probe: a copy in R&D lowers an installed copy to 3), and not the Runner's score area. Only active copies count: the copy itself and copies in either score area.",
+      "note": "Area 12 (advancement requirement) pending a decision. Part fixed (engine): copies in the Runner's score area now lower it, as printed (CR 9.1.8b). Open for Nathaniel: whether copies in HQ, R&D, Archives or installed (and the card itself) also count, CR 9.1.8e against 1.8.4a; the engine keeps counting them until that is decided.",
       "cr": [
-        "1.2.1",
-        "1.8.4a",
-        "9.1.8b"
+        "9.1.8b",
+        "9.1.8e",
+        "1.8.4a"
       ]
     },
     "medical-research-fundraiser": {
@@ -8954,15 +9005,17 @@
     },
     "nisei-division-the-next-generation": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever you and the Runner reveal secretly spent credits, gain 1[credit]."
       ],
-      "note": "firePsiCreditsRevealed runs on every psi resolution, including Push Your Luck's parity guess and Rigged Results' guess, where the Corp spends nothing. It should fire only when both players secretly spent.",
+      "note": "Engine: psi_credits_revealed fires only when both players secretly spent (not for a Corp guess: Push Your Luck, Rigged Results).",
       "cr": [
-        "1.2.1",
-        "10.14.5"
-      ]
+        "10.14.5",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "gains 1 credit when both players reveal secretly spent credits, and not when the Corp only guesses (CR 10.14.5)"
     },
     "nisei-mk-ii": {
       "cycle": "core-set",
@@ -9194,27 +9247,31 @@
     },
     "omega": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Interface 1 credit: break 1 subroutine"
       ],
-      "note": "The breaker declares breaksSubtype sentry, so it cannot break non-sentry ice; the printed ability names no subtype. The innermost-ice restriction and the 1 credit: +1 strength match. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): breaksSubtype \"*\". FX-pump (engine#976) fixed the pump and strength.",
       "cr": [
         "3.9.5h",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "break a subroutine on any ice, not only sentries: the printed ability names no subtype (CR 3.9.5h)"
     },
     "omni-drive": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "The memory cost of the hosted program does not count against your memory limit."
       ],
-      "note": "Declares hostsAnyProgramMemoryCostLte but no hostedProgramMemoryDoesNotCount, so programMemoryCosts (src/state/turn.ts) still counts the hosted program's MU. Also area 15: recurringSpendFor use_program pays any program, not only the hosted one (Cyberfeeder pattern). Hosting one program of 1 MU or less matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): hostedProgramMemoryDoesNotCount. Its recurring credit paying for any program stays in area 15 (Cyberfeeder pattern).",
       "cr": [
-        "1.2.1",
-        "1.20.3"
-      ]
+        "1.20.3",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "the memory cost of its hosted program does not count against the memory limit (CR 1.20.3)"
     },
     "on-the-lam": {
       "cycle": "flashpoint",
@@ -9246,14 +9303,17 @@
     },
     "oracle-may": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[click]: Choose a card type. Reveal the top card of your stack. If that card has the chosen type, draw it and gain 2[credit]. Otherwise, trash it."
       ],
-      "note": "Plays as printed (reveal_oracle_top_match moves a matching card to the grip and gains 2, otherwise trashes it). The mistake is the kind's name and label, choose_type_reveal_install / 'install if match', which the 1.12 check reads as an install; rename the kind to the procedure it runs. The draw is inline, not the draw procedure.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: renamed choose_card_type_reveal_stack_top, and a match draws through the draw primitive.",
       "cr": [
+        "8.4.2",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "on a match it draws the revealed top card and gains 2 credits (CR 5.1.2)"
     },
     "oracle-thinktank": {
       "cycle": "liberation",
@@ -9313,17 +9373,19 @@
     },
     "overmind": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Interface → Hosted power counter: Break 1 subroutine.",
         "1[credit]: +1 strength."
       ],
-      "note": "The breaker declares breakCredits 1 with breakMaxSubs 99, so 1 credit breaks every subroutine and no counter is spent; strengthPerPowerCounter adds strength the card does not print; the 1 credit pump is missing. Fix-now candidate (breaking). Power counters for unused MU on install match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): a paid ability that pays a hosted power counter to break 1 subroutine (breakViaPaidAbilityOnly), the 1 credit +1 strength pump built from pumpCredits (FX-pump), and no strengthPerPowerCounter.",
       "cr": [
-        "1.2.1",
         "3.9.5b",
-        "9.3.7b"
-      ]
+        "9.3.7b",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "pays a hosted power counter to break 1 subroutine and 1 credit for +1 strength, and its counters do not add strength (CR 1.2.1, 3.9.5b)"
     },
     "overseer-matrix": {
       "cycle": "kitara",
@@ -9381,15 +9443,17 @@
     },
     "paintbrush": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Click: a rezzed ice gains sentry, code gate or barrier until the end of the next run this turn"
       ],
-      "note": "paintbrush_apply_subtype builds a state.run when no run is active (always, for a click ability), and a probe shows the Runner then has no legal action: the game is stuck. No subtype is chosen or granted; paintbrushIceId is never read. Fix-now finding.",
+      "note": "Engine: the Runner picks sentry, code gate or barrier, and the ice gains it as a lingering effect with the new duration next_run_this_turn; no run is created, so the game no longer sticks.",
       "cr": [
-        "1.2.1",
-        "6.1.1"
-      ]
+        "9.10.1",
+        "1.15.2"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "the chosen rezzed ice gains the subtype the Runner picks until the end of the next run this turn, and the Runner can still act (CR 9.10.1, 1.15.2)"
     },
     "paladin-poemu": {
       "cycle": "ashes",
@@ -9501,17 +9565,18 @@
     },
     "passport": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Strength 2.",
         "2[credit]: +2 strength."
       ],
-      "note": "breaker.strength 1 overrides printed strength 2. The breaker declaration's pumpCredits/pumpStrength are read nowhere in src, and the card has no pump paid ability (Corroder has corroder-pump), so it cannot raise strength (probe: no paid abilities). 34 supported breakers share this; fix-now candidate for the coordinator. Interface 1 credit: break 1 code gate subroutine matches; the remote-interface limit is on paired cut A's list. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: cannotInterfaceRemoteIce read in interfaceBlock. FX-pump (engine#976) fixed the pump and strength 2.",
       "cr": [
-        "1.2.1",
-        "3.9.5b",
-        "9.3.7b"
-      ]
+        "9.3.6c",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "cannot interface with ice protecting a remote server, but can with ice protecting a central server (CR 9.3.6c)"
     },
     "patch": {
       "cycle": "order-and-chaos",
@@ -9766,11 +9831,11 @@
     },
     "plan-b": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "If the Runner accesses Plan B, you may reveal and score an agenda from HQ with an advancement requirement equal to or less than the number of advancement tokens on Plan B."
       ],
-      "note": "The access ability is mandatory and offers no Decline. Also area 11 (scoring): score_agenda_from_hq moves the agenda inline with no reveal, no when-scored triggers and no win check. Can be advanced and the requirement filter match.",
+      "note": "Area 11 (moved). Fixed in engine#1002: Card JSON (cards v1.147.27, engine#1002 pins it) and engine: may_reveal_score_from_hq offers a Decline. The inline score (no reveal, triggers or win check) stays in area 11. (test \"the Corp may decline to score an agenda from HQ (CR 9.6.9)\")",
       "cr": [
         "9.6.9",
         "1.17.4"
@@ -10153,16 +10218,18 @@
     },
     "psychic-field": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "If you and the Runner spent a different number of credits, do 1 net damage for each card in the Runner's grip."
       ],
-      "note": "Both the access and expose abilities use maxBid 3, do 2 net damage on matching bids and nothing on differing bids. Printed: bids 0-2; on a difference, 1 net damage per grip card. The access and expose triggers while installed match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): maxBid 2; matching bids do nothing; differing bids do 1 net damage per grip card.",
       "cr": [
-        "1.2.1",
         "10.14.5",
-        "10.14.6b"
-      ]
+        "10.14.6b",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "bids are 0 to 2 credits, matching bids do nothing, and differing bids do 1 net damage for each card in the grip (CR 10.14.5, 10.14.6b)"
     },
     "psychographics": {
       "cycle": "core-set",
@@ -10830,15 +10897,17 @@
     },
     "rielle-kit-peddler-transhuman": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "The first time each turn you encounter a piece of ice, it gains code gate for the remainder of this run."
       ],
-      "note": "src/timing/graph.ts pushes 'code gate' into the ice's subtypes and nothing removes it, so the ice stays a code gate after the run. The first-encounter-each-turn trigger matches. Flag is Kit-only.",
+      "note": "Engine: code gate is a run-duration lingering subtype grant, not a write to the ice's subtypes.",
       "cr": [
-        "1.2.1",
-        "9.10.1"
-      ]
+        "9.10.1",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "the first ice encountered each turn gains code gate for the remainder of the run, and loses it after (CR 9.10.1)"
     },
     "rigged-results": {
       "cycle": "mumbad",
@@ -10930,14 +10999,17 @@
     },
     "rook": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "If hosted, its click ability can only host it on ice protecting the same server or in the same position"
       ],
-      "note": "caissa_rook_host allows only ice in the same position counted from the innermost; ice protecting the same server is missing. The click host on ice with no Caïssa program and +2 rez cost for ice protecting its server match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: caissa_rook_host move same_server_or_position. Second reader 6.2.3.ex1 now agrees.",
       "cr": [
+        "6.2.3",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "Rook hosted on ice may move to ice protecting the same server or in the same position, counted from the innermost (CR 6.2.3)"
     },
     "rosetta-2-0": {
       "cycle": "red-sand",
@@ -11011,11 +11083,11 @@
     },
     "running-interference": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "The Corp must pay X as an additional cost to rez each ice, X its rez cost"
       ],
-      "note": "iceRezAdditionalCostEqualsPrintedRezCost uses the printed rez cost; the card says the rez cost of that ice, which accounts for modifiers. The run and the additional click match.",
+      "note": "Area 7 (rez costs): X is read from the printed rez cost; the card says the rez cost of that ice. The rez procedure does not tell rez-cost modifiers from other additional costs, which X needs.",
       "cr": [
         "8.1.2e",
         "1.16.2"
@@ -11180,14 +11252,14 @@
     },
     "same-old-thing": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "[click], [click], [trash]: Play an event from your heap (paying its play cost)."
       ],
-      "note": "may_play_event_from_heap adds a Decline after the cost is paid. Also area 11 (play costs): play_heap_event_card plays inline with the printed play cost only, no play-cost modifiers, play restrictions or additional costs.",
+      "note": "Area 11 (moved). Fixed in engine#1002: Card JSON (cards v1.147.27, engine#1002 pins it) and engine: play_event_from_heap_paying_costs offers no Decline. The inline play (play costs, restrictions) stays in area 11. (test \"plays an event from the heap with no 'may': there is no Decline once its cost is paid (CR 1.2.4)\")",
       "cr": [
-        "1.2.1",
-        "1.2.4"
+        "1.2.4",
+        "1.2.1"
       ]
     },
     "sand-storm": {
@@ -11589,15 +11661,17 @@
     },
     "sharpshooter": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Interface [trash]: break any number of destroyer subroutines"
       ],
-      "note": "The breaker declaration has breakCredits 0 without breakViaPaidAbilityOnly, so the basic break action breaks destroyer subroutines for 0 credits, repeatedly, without trashing. The trash-to-break paid ability also carries a once_per_turn flag the card does not print. 1 credit: +2 strength matches. FX-pump (engine#976) fixed the pump and strength; the rest stays wrong.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): breakViaPaidAbilityOnly, so the basic break action no longer breaks destroyer subroutines for 0 credits, and the trash ability drops the once_per_turn flag it does not print.",
       "cr": [
-        "1.2.1",
-        "9.3.6g"
-      ]
+        "9.3.6g",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "breaks destroyer subroutines only by trashing itself, and that ability is not once per turn (CR 9.3.6g, 1.2.1)"
     },
     "shattered-remains": {
       "cycle": "lunar",
@@ -11637,14 +11711,16 @@
     },
     "shinobi": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[subroutine] Trace 3: 3 net damage and end the run"
       ],
-      "note": "The third subroutine deals 3 net damage but does not end the run. The rez bad publicity and the first two traces match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): the third subroutine does 3 net damage and ends the run.",
       "cr": [
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "its third subroutine does 3 net damage and ends the run when the trace succeeds (CR 1.2.1)"
     },
     "shipment-from-kaguya": {
       "cycle": "core-set",
@@ -11789,15 +11865,17 @@
     },
     "singularity": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "If successful, instead of breaching that server, trash all cards installed in its root"
       ],
-      "note": "breach_instead_singularity_trash_root lets the Runner choose to breach normally; the text has no may, so the replacement is mandatory. The remote run and the additional click match.",
+      "note": "Engine: the replacement is mandatory; no Breach option.",
       "cr": [
         "6.7.4c",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "instead of breaching the remote server it trashes all cards in its root, with no option to breach (CR 6.7.4c)"
     },
     "sipa": {
       "cycle": "vantage-point",
@@ -11937,14 +12015,16 @@
     },
     "snoop": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Hosted power counter: reveal the grip, trash 1 of those cards"
       ],
-      "note": "The paid ability lists only encounter_paw; printed has no restriction, so it should list only corp_action_paw (unrestricted). The encounter reveal, the Corp's mandatory trash of 1 revealed card and the Trace 3 power counter match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): the paid ability lists only corp_action_paw, which opens it in every paid ability window.",
       "cr": [
         "9.2.7b"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "their paid abilities can be used in every paid ability window, as printed with no restriction (CR 9.2.7b)"
     },
     "snowball": {
       "cycle": "genesis",
@@ -12148,14 +12228,16 @@
     },
     "starlight-crusade-funding": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Ignore any additional costs on each double event you play"
       ],
-      "note": "ignoreAdditionalCostFirstDoubleEventEachTurn ignores the extra click only on the first double event each turn (src/actions/play.ts); printed applies to each. Losing a click when the turn begins matches.",
+      "note": "Engine: the additional click of each double event is ignored; play and legality share eventClicksToPlay.",
       "cr": [
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "ignores the additional click of each double event the Runner plays, not only the first each turn (CR 1.2.1)"
     },
     "starlit-knight": {
       "cycle": "liberation",
@@ -12296,15 +12378,17 @@
     },
     "strongbox": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Persistent: as an additional cost to steal an agenda from this server or its root, the Runner must spend a click"
       ],
-      "note": "stealAdditionalClicks is declared on Strongbox but both readers (src/actions/apply.ts, src/legality/candidatePending.ts) read only the stolen agenda's own field, so Strongbox adds no cost; it is also not persistent.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: a steal_from_protecting_server restriction spend_click_additional_cost (side runner, new field), so stealing from its server costs a click while it is rezzed. Its persistence after a trash stays in area 10 (persistent flag readers, Red Herrings row); the card carries no persistent flag, since that reader would charge it while unrezzed.",
       "cr": [
-        "9.3.6e",
+        "1.16.10",
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "while rezzed, stealing an agenda from its server costs an additional click, and the Runner cannot steal without one (CR 1.16.10)"
     },
     "student-loans": {
       "cycle": "sansan",
@@ -12345,15 +12429,18 @@
     },
     "subliminal-messaging": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When your turn begins ... you may reveal this card and add it to HQ"
       ],
-      "note": "src/timing/graph.ts returns every copy in Archives to HQ inline, with no choice and no reveal, when the Runner made no run last turn; it should be an optional conditional ability among the turn-begin abilities. Gain 1, and a click on the first copy each turn, match.",
+      "note": "Engine: each copy in Archives becomes an optional conditional among the Corp's turn-begin abilities (reveal and add to HQ, or leave it), active in Archives (CR 9.1.8b).",
       "cr": [
         "9.6.9",
-        "1.21.6"
-      ]
+        "9.1.8b",
+        "1.21.3"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "when the Corp's turn begins after a Runner turn with no run, the Corp may reveal it and add it from Archives to HQ, or leave it (CR 9.6.9, 1.21.3)"
     },
     "success": {
       "cycle": "red-sand",
@@ -12469,15 +12556,17 @@
     },
     "susanoo-no-mikoto": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "If the attacked server is not Archives, the Runner moves to the outermost position of Archives instead of passing this ice. The Runner cannot jack out this run until after they encounter a piece of ice."
       ],
-      "note": "redirect_susanoo_to_archives only sets run.attackedServerId: the position and timing step do not move to outermost Archives (position writes are area 2's), and no jack-out lock exists. Unique matches.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): the redirect is followed by forbid_jack_out_until_next_encounter. Area 2 (engine#971) already moved the Runner to outermost Archives through moveRunnerToOutermost.",
       "cr": [
-        "1.2.1",
-        "6.2.8b"
-      ]
+        "6.2.8b",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "moves the Runner to the outermost position of Archives, and the Runner cannot jack out until they encounter a piece of ice (CR 6.2.8b, 1.2.1)"
     },
     "svyatogor-excavator": {
       "cycle": "borealis",
@@ -12486,25 +12575,30 @@
     },
     "swarm": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "You can advance this ice"
       ],
-      "note": "canAdvanceOnlyWhenRezzed blocks advancing it unrezzed; a card that says it can be advanced can be advanced while unrezzed. Rez bad publicity and one gained trash-unless-3 subroutine per advancement match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): canAdvanceOnlyWhenRezzed dropped, so it can be advanced unrezzed (CR 9.1.8f).",
       "cr": [
-        "1.18.3"
-      ]
+        "1.18.3",
+        "9.1.8f"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "can be advanced while unrezzed, as 'You can advance this ice' allows (CR 1.18.3)"
     },
     "sweeps-week": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Gain 1 credit for each card in the Runner's grip"
       ],
-      "note": "gain_credits has side runner and tally side runner, so the Runner gains the credits; the Corp should.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): the Corp gains the credits (the tally's side decides who gains).",
       "cr": [
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "the Corp gains 1 credit for each card in the Runner's grip (CR 1.2.1)"
     },
     "swift": {
       "cycle": "ashes",
@@ -12632,16 +12726,17 @@
     },
     "tallie-perrault": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[trash]: Draw 1 card for each bad publicity the Corp has"
       ],
-      "note": "The [trash] ability draws 1 if the Runner has a tag; it should draw 1 per Corp bad publicity. The optional bad publicity and tag on a gray or black ops trash matches as a choice, but give_bad_publicity_and_tag writes both counters directly (area 15, no take-bad-publicity or tag procedure).",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): the [trash] ability draws 1 per bad publicity (draw tally).",
       "cr": [
         "1.2.1",
-        "10.5.1",
         "10.6.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "its [trash] ability draws 1 card for each bad publicity the Corp has (CR 1.2.1)"
     },
     "tao-salonga-telepresence-magician": {
       "cycle": "system-gateway",
@@ -12739,27 +12834,28 @@
     },
     "tenma-line": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "[click]: Swap 2 pieces of installed ice."
       ],
-      "note": "may_swap_two_installed_ice offers only the first 12 pairs, so with 6 or more ice some swaps cannot be chosen. Also area 3: swap_two_installed_ice writes the ice arrays directly, outside the swap helpers.",
+      "note": "Area 3 (moved). Fixed in engine#1002: Engine: the Corp chooses 2 of all installed ice with chooseCards, so every pair can be chosen. The swap itself stays on area 3's list. (test \"can swap any 2 pieces of installed ice, however many are installed (CR 1.15.2)\")",
       "cr": [
-        "1.2.1",
+        "1.15.2",
         "8.8.1"
       ]
     },
     "tennin-institute-the-secrets-within": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When your turn begins, if the Runner did not make a successful run during their last turn, you may place 1 advancement counter on an installed card."
       ],
-      "note": "The turn-begin ability is mandatory and offers no Decline; the candidates are only Corp cards in roots and ice, while 'an installed card' also covers hosted and Runner cards. The condition matches.",
+      "note": "Already fixed by RF-1b (engine#993): the Corp may decline. The candidates are only installed Corp cards in roots and ice, while 'an installed card' also covers hosted and Runner cards: the shared placing filter, area 12 (as The Holo Man).",
       "cr": [
-        "9.6.9",
-        "1.2.1"
-      ]
+        "9.6.9c"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "the Corp may decline to place an advancement counter when its turn begins (CR 9.6.9c; already fixed by RF-1b)"
     },
     "test-ground": {
       "cycle": "sansan",
@@ -12878,15 +12974,17 @@
     },
     "the-future-perfect": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When the Runner accesses this agenda while it is not installed, play a Psi Game. If the bids differ, the Runner cannot steal this agenda during this access."
       ],
-      "note": "Confirms 1.12: matching bids do 1 net damage and differing bids do nothing. Printed: differing bids stop the steal for this access; matching bids do nothing. Bids 0-2 and the not-installed trigger match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: differing bids resolve forbid_steal_accessed_agenda (run.stealForbiddenAccessCardId, read by stealDecision and cleared when the next card is accessed); matching bids do nothing. Second reader 1.10.3c.ex2 now agrees.",
       "cr": [
-        "1.2.1",
-        "10.14.6d"
-      ]
+        "10.14.6d",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "when the bids differ the Runner cannot steal it during this access; when they match nothing happens and the Runner steals it (CR 10.14.6d, 1.2.1)"
     },
     "the-gauntlet": {
       "cycle": "flashpoint",
@@ -13090,15 +13188,17 @@
     },
     "theophilius-bagbiter": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Your maximum hand size is equal to the number of credits in your credit pool."
       ],
-      "note": "src/state/handSize.ts sets the hand size to credits after adding every increase and decrease, which throws them away (Borrowed Satellite +1, Chairman Hiro -2). The set applies first, then increases, then decreases. Unique and losing all credits on install match.",
+      "note": "Engine: computeRunnerMaxHandSize applies the set to credits first, then increases and decreases.",
       "cr": [
         "9.12.1a",
         "5.5.3b"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "sets the maximum hand size to the credits in the pool first, then other increases apply (CR 9.12.1a)"
     },
     "thimblerig": {
       "cycle": "reign-and-reverie",
@@ -13339,13 +13439,13 @@
     },
     "toshiyuki-sakai": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "If accessed while installed, you may swap him with an agenda or asset from HQ; the Runner can choose not to access the new card"
       ],
-      "note": "swap_with_hq offers only swap options (no decline), and the Runner's choice not to access the new card is not modelled. The swap itself is inline (area 3 lists Sakai). Can be advanced and the advancements moving to the new card match.",
+      "note": "Areas 3 and 8 (moved). Fixed in engine#1002: Card JSON (cards v1.147.27, engine#1002 pins it) and engine: may_swap_with_hq offers a Decline. The inline swap stays on area 3's list, and the Runner's choice not to access the new card is filed under area 8. (test \"the Corp may decline to swap him with a card from HQ (CR 9.6.9)\")",
       "cr": [
-        "1.2.1",
+        "9.6.9",
         "8.8.1"
       ]
     },
@@ -13455,14 +13555,16 @@
     },
     "tri-maf-contact": {
       "cycle": "honor-and-profit",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When this resource is trashed, suffer 3 meat damage."
       ],
-      "note": "Confirms 1.12: the trash ability gives 1 tag. Once per turn and click: gain 2 match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): 3 meat damage when trashed.",
       "cr": [
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1002",
+      "test": "when it is trashed the Runner suffers 3 meat damage (CR 1.2.1)"
     },
     "tribunal": {
       "cycle": "flashpoint",
@@ -13959,15 +14061,16 @@
     },
     "viktor-2-0": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Hosted power counter: Do 1 core damage."
       ],
-      "note": "The paid ability lists corp_action_paw, approach_paw, encounter_paw and approach_server_paw, so it is run-wide plus the Corp's turn but never open in the Runner's turn outside a run; the printed ability has no restriction (as Cortez Chip, S3b). Fix: list only corp_action_paw. Also area 11: the 1-click bioroid break is offered beside the printed 2-click break. Trace 2: power counter and end the run match.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it): the paid ability lists only corp_action_paw, which opens it in every paid ability window. The 1-click bioroid break offered beside the printed 2-click break stays in area 11 (as Heimdall 2.0).",
       "cr": [
-        "9.2.7b",
-        "1.2.1"
-      ]
+        "9.2.7b"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "their paid abilities can be used in every paid ability window, as printed with no restriction (CR 9.2.7b)"
     },
     "violet-level-clearance": {
       "cycle": "flashpoint",
@@ -14484,16 +14587,17 @@
     },
     "zed-1-0": {
       "cycle": "creation-and-control",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[subroutine] If the Runner has lost [click] to break a subroutine during this run, do 1 core damage. (twice)"
       ],
-      "note": "requireLostClickToBreakThisRun is read in src/actions/breakSubroutine.ts as 'cannot be broken until the Runner lost [click] to break this run', so the first click-break on Zed is refused, and the core damage is unconditional when the subroutine resolves. Printed: a condition on the damage, not on breaking. Zed 2.0 carries the same flag. Fix-now candidate (breaking).",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: the break gate is gone; each subroutine does its core damage only if the Runner has lost a click to break this run (new condition lost_click_to_break_this_run). Zed 2.0 (S3j) keeps the old flag.",
       "cr": [
-        "1.2.1",
         "9.8.5",
-        "6.9.3b"
-      ]
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1002",
+      "test": "can be broken by losing a click at once, and its subroutine does core damage only if the Runner has lost a click to break this run (CR 1.2.1, 9.8.5)"
     },
     "zed-2-0": {
       "cycle": "red-sand",
