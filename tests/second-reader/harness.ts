@@ -68,6 +68,8 @@ export type Batch = {
   sources: { cr: string; cards: string };
   /** A rulings batch: the ids of the cards whose rulings it samples. */
   cards?: string[];
+  /** A batch of jinteki scenarios: their names. */
+  scenarios?: string[];
   cases: Case[];
 };
 

@@ -461,3 +461,13 @@ export function spendClicks(s: GameState): GameState {
     s = go(must(s, { type: "basic_gain_credit" }), idle);
   return s;
 }
+
+/** Use a card's paid ability up to `times` times, while the engine offers it. */
+export function pump(s: GameState, cardId: string, times: number): GameState {
+  for (let i = 0; i < times; i++) {
+    const next = offered(s, "use_paid_ability", cardId)[0];
+    if (!next) return s;
+    s = must(s, next);
+  }
+  return s;
+}

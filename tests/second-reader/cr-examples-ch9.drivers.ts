@@ -23,6 +23,7 @@ import {
   handOver,
   idle,
   playRun,
+  pump,
   raw,
   runnerTurnBegins,
   spendClicks,
@@ -68,16 +69,6 @@ function passIceAgain(limit = 8): (s: GameState) => boolean {
     if (s.timingKey === "run.passIcePaw") seen += 1;
     return seen > limit;
   };
-}
-
-/** Use a card's paid ability up to `times` times, while the engine offers it. */
-function pump(s: GameState, cardId: string, times: number): GameState {
-  for (let i = 0; i < times; i++) {
-    const next = offered(s, "use_paid_ability", cardId)[0];
-    if (!next) return s;
-    s = must(s, next);
-  }
-  return s;
 }
 
 const subCount = (s: GameState, iceId: string): number =>

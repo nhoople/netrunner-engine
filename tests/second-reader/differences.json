@@ -1611,5 +1611,166 @@
     "verdict": "reader-wrong",
     "rule": "1.16.1a",
     "note": "The reader had the Runner prevent the tag with Decoy and Funhouse then end the run. Paying a cost cannot be changed by an optional interrupt (CR 1.16.1a), so Decoy cannot be used on a tag taken as a nested cost: the tag is taken and the run goes on. The expectation was corrected; the ruling’s answer (the Runner cannot keep the run by preventing the tag) agrees with it"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "run-timing-redirection-updates-current-ice-5047",
+    "observations": [
+      {
+        "key": "::approaching",
+        "expected": "Ice Wall",
+        "engine": "none"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.2.8b",
+    "area": "area 2",
+    "note": "Moved to the outermost position of Archives, the Runner's position is that ice and the step becomes the Approach Ice Phase. After Susanoo-no-Mikoto's subroutine the engine changes the attacked server to Archives but puts the Runner past the ice, in the window after an encounter: Ice Wall is never approached"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "run-timing-changing-phases-fires-end-of-encounter-events",
+    "observations": [
+      {
+        "key": "next::encountering",
+        "expected": "Ice Wall",
+        "engine": "none"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.2.8b",
+    "area": "area 2",
+    "note": "As run-timing-redirection-updates-current-ice-5047: after Susanoo-no-Mikoto the Runner never approaches or encounters Ice Wall on Archives. Corroder's strength does return to 2"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "forced-encounters-forced-encounters-during-run#b",
+    "observations": [
+      {
+        "key": "::run.outcome",
+        "expected": "successful",
+        "engine": "both kinds of run happened this turn"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.8.4a",
+    "area": "area 14",
+    "note": "A run that reached the Success Phase is not declared unsuccessful. When a forced encounter during the breach ends the run, the engine also records an unsuccessful run"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "forced-encounters-forced-encounters-during-run#c",
+    "observations": [
+      {
+        "key": "::accessed",
+        "expected": [
+          "Ganked!"
+        ],
+        "engine": "the steps cannot be finished: after equal bids Konjin's Psi Game starts again"
+      },
+      {
+        "key": "::run.active",
+        "expected": false,
+        "engine": true
+      },
+      {
+        "key": "::runner.credits",
+        "expected": 4,
+        "engine": 5
+      },
+      {
+        "key": "::run.outcome",
+        "expected": "successful",
+        "engine": "in-progress"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "10.14.6d",
+    "area": "area 11",
+    "note": "With equal bids 'if the bids differ' is not met and Konjin's ability is over. The engine starts Konjin's encounter and its Psi Game again after equal bids, so the run never gets past Konjin and the breach with Ganked! is not reached"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "forced-encounters-forced-encounters-outside-of-run",
+    "observations": [
+      {
+        "key": "forced::run.active",
+        "expected": false,
+        "engine": true
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.1.4b",
+    "area": "area 14",
+    "note": "The CR treats an encounter with no run in progress as its own thing (6.1.4b, 6.5.9a). The engine builds a run for the encounter Quest Completed and Ganked! cause, so a run is in progress during it"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "forced-encounters-forced-encounters-outside-of-run#b",
+    "observations": [
+      {
+        "key": "::run.outcome",
+        "expected": "successful",
+        "engine": "both kinds of run happened this turn"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.1.4b",
+    "area": "area 14",
+    "note": "With no run in progress 'End the run.' ends only the encounter. The engine records an unsuccessful run"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "forced-encounters-forced-encounters-redirection#c",
+    "observations": [
+      {
+        "key": "again::konjinPsiGames",
+        "expected": 2,
+        "engine": 1
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "6.5.9d",
+    "area": "area 11",
+    "note": "During a forced encounter a move 'resolves and changes the parameters of the underlying run normally': Cell Portal puts the run in the Approach Ice Phase at Konjin (6.2.8b), so Konjin is approached and encountered again and starts a second Psi Game. The engine goes back into the first encounter with Konjin (its reminder text, which has no effect) and no second game starts. cr-checker notes a weaker reading, CR 6.2.7c's 'the run continues to the Movement Phase', under which Konjin is passed with no second game"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "forced-encounters-forced-encounters-redirection#d",
+    "observations": [
+      {
+        "key": "::zone(Bullfrog)",
+        "expected": "ice:Archives",
+        "engine": "ice:R&D"
+      },
+      {
+        "key": "::attackedServer",
+        "expected": "HQ",
+        "engine": "the steps cannot be finished: after equal bids Konjin's Psi Game starts again"
+      },
+      {
+        "key": "::run.outcome",
+        "expected": "successful",
+        "engine": "in-progress"
+      }
+    ],
+    "verdict": "engine-wrong",
+    "rule": "10.14.6d",
+    "area": "area 11",
+    "note": "As forced-encounters-forced-encounters-during-run#c: after equal bids on the way in, the engine starts Konjin's Psi Game again, so the breach and the forced encounters inside it are not reached"
+  },
+  {
+    "batch": "jnet-runs",
+    "case": "forced-encounters-forced-encounters-outside-of-run",
+    "observations": [
+      {
+        "key": "forced::strength(Gordian Blade)",
+        "expected": 2,
+        "engine": 3
+      }
+    ],
+    "verdict": "reader-wrong",
+    "rule": "3.9.5c",
+    "note": "The reader had Gordian Blade's '+1 strength for the remainder of this run' expire at once when used in an encounter with no run in progress (CR 9.10.4). CR 3.9.5c's example names this case: the increase lasts for that encounter. The expectation was corrected to 3 during the encounter and 2 after it, which the engine shows"
   }
 ]

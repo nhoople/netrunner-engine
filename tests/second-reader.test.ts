@@ -37,12 +37,14 @@ import { drivers as ch8 } from "./second-reader/cr-examples-ch8.drivers.js";
 import { drivers as ch9 } from "./second-reader/cr-examples-ch9.drivers.js";
 import { drivers as ch10 } from "./second-reader/cr-examples-ch10.drivers.js";
 import { drivers as rulings1 } from "./second-reader/rulings-sample-1.drivers.js";
+import { drivers as jnetRuns } from "./second-reader/jnet-runs.drivers.js";
 import type { Driver } from "./second-reader/driving.js";
 
 /**
  * Each batch and its drivers. A batch of CR examples names its chapter. A
- * batch with no chapter is a sample of the official rulings, and its file
- * lists the sampled cards.
+ * batch with no chapter is a sample of the official rulings, whose file
+ * lists the sampled cards, or a set of jinteki scenarios, whose file lists
+ * their names.
  */
 const BATCHES: Array<{
   name: string;
@@ -60,6 +62,7 @@ const BATCHES: Array<{
   { name: "cr-examples-ch9", chapter: "9", drivers: ch9 },
   { name: "cr-examples-ch10", chapter: "10", drivers: ch10 },
   { name: "rulings-sample-1", drivers: rulings1 },
+  { name: "jnet-runs", drivers: jnetRuns },
 ];
 
 /**
@@ -90,6 +93,8 @@ const WRITTEN_TITLES: Record<string, string> = {
     "Ruling backstitching#4: Backstitching can bypass the ice Konjin makes the Runner encounter, because the run is still on the mark",
   "pinhole-threading#4":
     "Ruling pinhole-threading#4: Henry Phillips in HQ's root pays out when a subroutine is broken on ice Ganked! forced, during a Pinhole Threading run on HQ",
+  "forced-encounters-forced-encounters-redirection":
+    "Scenario forced-encounters-forced-encounters-redirection: Bullfrog moved during a forced encounter takes the run to its new server",
   "pinhole-threading#4-b":
     "Ruling pinhole-threading#4-b: Henry Phillips beside Ganked! pays nothing, because the run is on HQ",
 };
@@ -113,6 +118,12 @@ const UNOBSERVED: Record<string, string[]> = {
     "9.5.3a.ex1 legal(imp)",
     "9.5.3a.ex1 legal(decline)",
     "9.5.3a.ex1#b legal(imp)",
+  ],
+  "jnet-runs": [
+    "run-timing-trashing-a-solo-ice-on-an-empty-server-4940 zone(Ice Wall)",
+    "run-timing-trashing-a-solo-ice-on-an-empty-server-4940 run.active",
+    "run-timing-trashing-a-solo-ice-on-an-empty-server-4940 run.outcome",
+    "run-timing-trashing-a-solo-ice-on-an-empty-server-4940 runner.credits",
   ],
 };
 
@@ -161,14 +172,17 @@ for (const { name, chapter, drivers } of BATCHES) {
   );
 
   describe(`the engine agrees with a blind reading of ${batch.title} (read by ${batch.reader.name})`, () => {
+    const kind = chapter ? "CR" : batch.scenarios ? "Scenario" : "Ruling";
     const scope = chapter
       ? `every example of CR chapter ${chapter} at the pin`
-      : "every ruling on the sampled cards at the pin";
+      : batch.scenarios
+        ? "every scenario the batch lists"
+        : "every ruling on the sampled cards at the pin";
     it(`${scope} has an entry, and every position has a driver`, () => {
       const have = new Set(batch.cases.map((c) => c.example));
       const wanted = chapter
         ? exampleNumbers(chapter)
-        : rulingNames(batch.cards ?? []);
+        : (batch.scenarios ?? rulingNames(batch.cards ?? []));
       expect(wanted.length).toBeGreaterThan(0);
       expect(wanted.filter((n) => !have.has(n))).toEqual([]);
       const toRun = batch.cases.filter((c) => c.run !== false);
@@ -182,7 +196,7 @@ for (const { name, chapter, drivers } of BATCHES) {
       if (c.run === false) continue;
       const title =
         WRITTEN_TITLES[c.id] ??
-        `${chapter ? "CR" : "Ruling"} ${c.id}: ${c.steps!.map((s) => s.do).join(" ")}`;
+        `${kind} ${c.id}: ${c.steps!.map((s) => s.do).join(" ")}`;
       const known = open.get(c.id);
       if (known) {
         const filed =
