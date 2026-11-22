@@ -272,6 +272,48 @@ export function applyRezKinds(
       return { ok: true };
     }
 
+    case "rez_card_ignoring_costs": {
+      // Eliza's Toybox: "Rez a card, ignoring all costs." Any installed
+      // unrezzed card that can be rezzed: ice, an asset or an upgrade
+      // (CR 8.1.1, 8.1.2c). Not "may": with a card to rez, the Corp rezzes
+      // one. The rez itself is the shared inline one (area 7).
+      const unrezzed: string[] = [];
+      for (const server of Object.values(state.servers)) {
+        for (const id of [...server.ice, ...server.root]) {
+          const c = state.cards[id];
+          if (!c || c.rezzed) continue;
+          if (c.type !== "ice" && c.type !== "asset" && c.type !== "upgrade") {
+            continue;
+          }
+          unrezzed.push(id);
+        }
+      }
+      if (unrezzed.length === 0) {
+        log(state, `${source.title} — no unrezzed card to rez.`);
+        return { ok: true };
+      }
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options: unrezzed.map((id) => ({
+          id: `rez-free:${id}`,
+          label: `Rez ${state.cards[id]!.title} ignoring all costs`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "rez_card_with_discount" as const,
+              cardId: id,
+              discount: state.cards[id]!.rezCost ?? 0,
+            },
+          },
+        })),
+        // The option count is hidden information: it would tell the Runner
+        // how many facedown cards are agendas (CR 10.2.2a).
+        optionCountHidden: true,
+        logLine: `${source.title} — rez a card, ignoring all costs.`,
+      });
+      return { ok: true };
+    }
     case "rez_ice_ignoring_costs": {
       const unrezzed: string[] = [];
       for (const server of Object.values(state.servers)) {

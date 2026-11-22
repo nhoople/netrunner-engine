@@ -48,7 +48,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.27");
+  assertCardsPinnedTag("v1.147.28");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -3856,7 +3856,9 @@ describe("CR examples, chapter 9", () => {
     expect(text).not.toContain("rd-1");
     const look = text.indexOf("the Corp looks at 5 card(s)");
     const between = text.indexOf("Between instructions");
-    const offer = text.indexOf("May install and rez one looked R&D card");
+    const offer = text.indexOf(
+      "May install one looked R&D card ignoring the install cost",
+    );
     expect(look).toBeGreaterThan(-1);
     expect(between).toBeGreaterThan(look);
     expect(offer).toBeGreaterThan(between);

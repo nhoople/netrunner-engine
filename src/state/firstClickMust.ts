@@ -27,13 +27,8 @@ export function actionMeetsFirstClickMust(
       (card?.subtypes ?? []).some((name) => name.toLowerCase() === "run")
     );
   }
-  if (action.type === "use_paid_ability" && action.cardId && action.abilityId) {
-    const card = state.cards[action.cardId];
-    return Boolean(
-      card?.paidAbilities?.find((ability) => ability.id === action.abilityId)
-        ?.startsRun,
-    );
-  }
+  // Only the basic action to run a server or to play a run event: a click
+  // ability that starts a run (Sneakdoor Beta) is neither (CR 1.2.1).
   return false;
 }
 

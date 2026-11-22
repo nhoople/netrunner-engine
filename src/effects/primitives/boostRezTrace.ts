@@ -6,12 +6,17 @@ import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
 import { addIceStrengthBoostThisTurn } from "../../state/lingeringEffects.js";
 import { autoResolveTrace } from "../../state/trace.js";
-import { chargeableInstalledIds, chargeCard } from "../../state/msKeywords.js";
+import { chargeCard } from "../../state/msKeywords.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import type { EffectCtx } from "../eval.js";
+import {
+  evalEffect,
+  noteSearchConditionalAbilities,
+  type EffectCtx,
+} from "../eval.js";
+import { chooseCards } from "../chooseCards.js";
+import { shuffleRunnerStack } from "../runnerInstall.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
@@ -36,7 +41,11 @@ export function applyLunarTsPrimitive(
 
   switch (action.kind) {
     case "helium3_place_up_to_2_power": {
-      const cands = chargeableInstalledIds(state, "corp");
+      // "a card with at least 1 power counter on it": any card, either
+      // side's, installed, scored or an identity (CR 1.2.1).
+      const cands = Object.keys(state.cards).filter(
+        (id) => (state.cards[id]!.powerCounters ?? 0) >= 1,
+      );
       if (cands.length === 0) {
         log(state, `Helium-3 Deposit — no card with a power counter.`);
         return { ok: true };
@@ -209,25 +218,18 @@ export function applyLunarTsPrimitive(
       return { ok: true };
     }
     case "trace_virgo_subroutine": {
-      const r = autoResolveTrace(
-        state,
-        sourceId,
-        2,
-        fx.do({ kind: "trace_virgo_success" }),
-      );
+      // "If successful, give the Runner 1 tag. If your trace strength is 5
+      // or greater, give the Runner 1 tag": the second part does not need a
+      // successful trace (CR 10.8.5). Tags go through the tag procedure, so
+      // the Runner can avoid them (CR 9.9.6a).
+      const tag = fx.do({ kind: "give_tags", amount: 1 });
+      const kick = fx.do({
+        kind: "resolve_if_trace_strength_at_least",
+        min: 5,
+        then: tag,
+      });
+      const r = autoResolveTrace(state, sourceId, 2, fx.seq(tag, kick), kick);
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
-      return { ok: true };
-    }
-    case "trace_virgo_success": {
-      state.runner.tags += 1;
-      log(state, `Virgo — give 1 tag → ${state.runner.tags}.`);
-      if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
-        state.runner.tags += 1;
-        log(
-          state,
-          `Virgo — trace strength ≥5, give another tag → ${state.runner.tags}.`,
-        );
-      }
       return { ok: true };
     }
     case "self_destruct_ability": {
@@ -249,8 +251,10 @@ export function applyLunarTsPrimitive(
       const toTrash = [...server.root, ...server.ice].filter(
         (id) => id !== sourceId,
       );
-      // Source already trashed via cost; count it too for Trace X.
-      let trashed = 1;
+      // "Trace[X], where X is equal to the number of cards trashed": the
+      // cards this instruction trashes. Self-destruct was trashed before, as
+      // the cost, so it does not count (CR 1.2.1).
+      let trashed = 0;
       for (const id of toTrash) {
         const card = state.cards[id];
         if (!card) continue;
@@ -342,30 +346,51 @@ export function applyLunarTsPrimitive(
       return { ok: true };
     }
     case "breach_instead_code_siphon": {
-      if (state.run) state.run.skipBreach = true;
-      const programs = state.runner.deck.filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      if (programs.length === 0) {
-        log(state, `Code Siphon — no program in stack.`);
-        return { ok: true };
-      }
-      const iceCount = state.servers.rd?.ice.length ?? 0;
-      const discount = iceCount * 3;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: programs.map((id) => ({
-          id: `code-siphon-install:${id}`,
-          label: `Install ${state.cards[id]!.title} (−${discount}¢), take 1 tag`,
-          effect: fx.do({
-            kind: "install_program",
-            cardId: id,
-            discount,
+      // "Search your stack for 1 program. Install it, paying 3[credit] less
+      // for each piece of ice protecting R&D, and then take 1 tag." Only a
+      // program the Runner can pay for can be found (CR 8.7.2b); the search
+      // may find nothing (CR 8.7.2e); the stack is shuffled once the search
+      // is complete, before the install (CR 8.7.3). The install itself is
+      // inline (area 6).
+      const discount = (state.servers.rd?.ice.length ?? 0) * 3;
+      if (!action.cardIds) {
+        if (state.run) state.run.skipBreach = true;
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: state.runner.deck.filter((id) => {
+              const c = state.cards[id];
+              return (
+                c?.type === "program" &&
+                state.runner.credits >=
+                  Math.max(0, (c.installCost ?? 0) - discount)
+              );
+            }),
+            count: 1,
+            search: true,
+            purpose: "resume",
+            label: "install",
+            resume: { kind: "breach_instead_code_siphon" },
           }),
-        })),
+        );
+      }
+      const id = action.cardIds.find((cid) => state.runner.deck.includes(cid));
+      if (id) state.runner.deck = state.runner.deck.filter((x) => x !== id);
+      shuffleRunnerStack(state);
+      noteSearchConditionalAbilities(state);
+      if (!id) {
+        // "Install it ... and then take 1 tag" has no "if able": with no
+        // program found the install is skipped and the tag is still taken
+        // (CR 1.2.4).
+        log(state, `Code Siphon — no program found; shuffle the stack.`);
+        return evalEffect(ctx, fx.do({ kind: "give_tags", amount: 1 }));
+      }
+      return applyLunarTsPrimitive(ctx, {
+        kind: "install_program",
+        cardId: id,
+        discount,
       });
-      return { ok: true };
     }
     case "install_program": {
       const cardId = (action as { cardId: string }).cardId;
@@ -378,25 +403,21 @@ export function applyLunarTsPrimitive(
         log(state, `Code Siphon — cannot afford ${card.title}.`);
         return { ok: true };
       }
-      // Remove from stack
-      state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
+      // The search already took the card out of the stack.
       subtractRunnerCreditPool(state, cost);
       state.runner.installed.push(cardId);
       card.zone = "runner:installed";
       card.faceup = true;
-      state.runner.tags += 1;
+      // The turn's record of a Runner install (Docklands Crackdown,
+      // Housekeeping); the inline install skips the install procedure.
+      state.turn.runnerInstalledCardThisTurn = true;
       log(
         state,
-        `Code Siphon — install ${card.title} for ${cost}¢ (−${discount}), take 1 tag → ${state.runner.tags}.`,
+        `Code Siphon — install ${card.title} for ${cost}¢ (−${discount}), then take 1 tag.`,
       );
-      // Shuffle stack
-      for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.runner.deck[i]!;
-        state.runner.deck[i] = state.runner.deck[j]!;
-        state.runner.deck[j] = tmp;
-      }
-      return { ok: true };
+      // The tag goes through the tag procedure, so it can be avoided
+      // (CR 9.9.6a).
+      return evalEffect(ctx, fx.do({ kind: "give_tags", amount: 1 }));
     }
     case "break_code_gate_or_barrier": {
       const enc = state.run?.encounter;

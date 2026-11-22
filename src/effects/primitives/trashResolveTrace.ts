@@ -24,36 +24,6 @@ import { shiftEncounterBreaks } from "../../state/procedures/break.js";
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function runnerHardwareIds(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter(
-    (id) => state.cards[id]?.type === "hardware",
-  );
-}
-
-function trashRunnerHardwareChoose(ctx: EffectCtx, label: string): PrimResult {
-  const { state, sourceId } = ctx;
-  const hw = runnerHardwareIds(state);
-  if (hw.length === 0) {
-    log(state, `${label} — no Runner hardware to trash.`);
-    return { ok: true };
-  }
-  if (hw.length === 1) {
-    trashCard(state, hw[0]!);
-    log(state, `${label} — trash ${state.cards[hw[0]!]!.title}.`);
-    return { ok: true };
-  }
-  openPendingChoose(state, {
-    sourceId,
-    chooser: "corp",
-    options: hw.map((id) => ({
-      id: `trash-hw:${id}`,
-      label: `Trash ${state.cards[id]!.title}`,
-      effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
-    })),
-  });
-  return { ok: true };
-}
-
 /** Ask the Corp where the next granted subroutine goes (CR 9.8.2c). */
 function offerSubroutineInsertChoice(state: GameState): void {
   const run = state.run;
@@ -227,20 +197,17 @@ export function applyLunarUpPrimitive(
       return { ok: true };
     }
     case "trace_taurus_subroutine": {
-      const r = autoResolveTrace(
-        state,
-        sourceId,
-        2,
-        fx.do({ kind: "trace_taurus_success" }),
-      );
+      // "If successful, trash 1 piece of hardware. If your trace strength is
+      // 5 or greater, trash 1 piece of hardware": the second part does not
+      // need a successful trace (CR 10.8.5), and waits for the first.
+      const trash = fx.do({ kind: "trash_hardware", pick: "choose" });
+      const kick = fx.do({
+        kind: "resolve_if_trace_strength_at_least",
+        min: 5,
+        then: trash,
+      });
+      const r = autoResolveTrace(state, sourceId, 2, fx.seq(trash, kick), kick);
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
-      return { ok: true };
-    }
-    case "trace_taurus_success": {
-      trashRunnerHardwareChoose(ctx, "Taurus");
-      if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
-        trashRunnerHardwareChoose(ctx, "Taurus (strength ≥5)");
-      }
       return { ok: true };
     }
     case "reveal_grail_gain_subroutines": {
@@ -395,6 +362,15 @@ export function applyLunarUpPrimitive(
     case "lose_nasir_all_credits": {
       emptyRunnerCreditPool(state);
       log(state, `Nasir Meidan — Runner loses all credits in pool.`);
+      // "Gain credits equal to the rez cost of that ice": the ice being
+      // encountered. Its printed rez cost: the rez procedure's modified
+      // value is not exposed outside a rez yet (area 7).
+      const iceId = state.run?.encounter?.iceId;
+      const gain = iceId ? (state.cards[iceId]?.rezCost ?? 0) : 0;
+      if (gain > 0) {
+        state.runner.credits += gain;
+        log(state, `Nasir Meidan — Runner gains ${gain}¢.`);
+      }
       return { ok: true };
     }
     case "social_engineering": {

@@ -1,6 +1,7 @@
 /** Agenda scoring / stealing and game-end checks. */
 
 import { abilitiesSuppressed } from "./abilities.js";
+import { isCardActive } from "./active.js";
 import { log } from "./createGame.js";
 import {
   trashCorpCurrentsOnAgendaStolen,
@@ -16,8 +17,39 @@ import { noteIceUninstalled } from "./runPosition.js";
 import { onAgendaScored, runnerHeapLocked } from "./cardDeclarations.js";
 import { allocateEffectIdentity, tryApplyReplacement } from "./replacements.js";
 
+/**
+ * The Board: "Each agenda in the Runner's score area is worth 1 less agenda
+ * point", while it is active (installed and rezzed, CR 1.8.3a). In the
+ * Runner's score area it is inactive (CR 1.8.4a), so it does not count.
+ */
+function runnerScoredAgendaPointsModifier(state: GameState): number {
+  let total = 0;
+  for (const card of Object.values(state.cards)) {
+    const n = card.runnerScoredAgendaPointsModifier;
+    if (!n || !isCardActive(state, card.id)) continue;
+    if (abilitiesSuppressed(state, card.id)) continue;
+    total += n;
+  }
+  return total;
+}
+
+/**
+ * Agenda points an agenda gets from its agenda counters: Market Research
+ * counts each counter; Domestic Sleepers is worth 1 while it has at least 1
+ * (CR 1.2.1).
+ */
+export function agendaCounterPoints(card: CardInstance): number {
+  const counters = card.agendaCounters ?? 0;
+  const each = (card.agendaPointsPerAgendaCounter ?? 0) * counters;
+  const flat =
+    counters >= 1 ? (card.agendaPointsWhileHasAgendaCounter ?? 0) : 0;
+  return each + flat;
+}
+
 export function agendaPointsFor(state: GameState, side: Side): number {
   const p = side === "corp" ? state.corp : state.runner;
+  const eachRunnerAgenda =
+    side === "runner" ? runnerScoredAgendaPointsModifier(state) : 0;
   return p.scoreArea.reduce((sum, id) => {
     const card = state.cards[id];
     if (
@@ -28,15 +60,14 @@ export function agendaPointsFor(state: GameState, side: Side): number {
       return sum;
     }
     const base = card.agendaPoints ?? 0;
-    const per = card.agendaPointsPerAgendaCounter ?? 0;
-    const fromCounters = per * (card.agendaCounters ?? 0);
+    const fromCounters = agendaCounterPoints(card);
     const runnerMod =
       side === "runner" ? (card.agendaPointsModifierInRunnerScoreArea ?? 0) : 0;
     let hostedMod = 0;
     for (const hid of card.hostedCardIds ?? []) {
       hostedMod += state.cards[hid]?.hostAgendaPointsModifier ?? 0;
     }
-    return sum + base + fromCounters + runnerMod + hostedMod;
+    return sum + base + fromCounters + runnerMod + hostedMod + eachRunnerAgenda;
   }, 0);
 }
 
@@ -205,24 +236,15 @@ export function effectiveAdvancementRequirement(
     }
   }
   if (selfOk) {
-    const perCopy =
-      card.advancementRequirementReductionPerSameTitleAnywhere ?? 0;
+    const perCopy = card.advancementRequirementReductionPerScoredCopy ?? 0;
     if (perCopy > 0) {
-      // Medical Breakthrough: "This ability is active even while Medical
-      // Breakthrough is in the Runner's score area" (CR 9.1.8b), so copies
-      // there count too. Whether copies in HQ, R&D, Archives or installed
-      // count (CR 9.1.8e against 1.8.4a) is open; the engine keeps counting
-      // them until that is decided.
+      // Medical Breakthrough: each copy in the Corp's or the Runner's score
+      // area lowers it by 1, so the first needs 4, the second 3, the third 2.
+      // "This ability is active even while Medical Breakthrough is in the
+      // Runner's score area" (CR 9.1.8b); copies in HQ, R&D, Archives or
+      // installed do not count (CR 1.8.4a; decided 2026-11-21).
       let copies = 0;
-      const zones = [
-        state.corp.hand,
-        state.corp.deck,
-        state.corp.discardPile,
-        ...Object.values(state.servers).flatMap((s) => [...s.root, ...s.ice]),
-        state.corp.scoreArea,
-        state.runner.scoreArea,
-      ];
-      for (const ids of zones) {
+      for (const ids of [state.corp.scoreArea, state.runner.scoreArea]) {
         for (const id of ids) {
           if (state.cards[id]?.defId === card.defId) copies++;
         }
@@ -350,8 +372,7 @@ export function stealAgenda(state: GameState, cardId: string): void {
     card.worthZeroAgendaPointsWhileHasAgendaCounters &&
     (card.agendaCounters ?? 0) >= 1
       ? 0
-      : (card.agendaPoints ?? 0) +
-        (card.agendaPointsPerAgendaCounter ?? 0) * (card.agendaCounters ?? 0);
+      : (card.agendaPoints ?? 0) + agendaCounterPoints(card);
   state.turn.agendaPointsStolenThisTurn += pts;
   state.turn.agendasStolenThisTurn =
     (state.turn.agendasStolenThisTurn ?? 0) + 1;

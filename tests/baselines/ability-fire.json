@@ -1,6 +1,6 @@
 {
   "_comment": "Shrink-only baseline for tests/ability-fire-coverage.test.ts (CR audit tool 1.18). Recorded 2026-11-20: the CR 9.3 ability records on supported cards that no seeded playout fires, by the area they are filed under (tests/ability-fire/abilities.ts). Each area's evidence step reads its list and adds a hand-built test for each; tests/generated/ability-fire-coverage.json says which already have one. An ability leaves the list when a playout fires it. Regenerate with npx tsx scripts/update-ability-fire.ts.",
-  "cardsTag": "v1.147.27",
+  "cardsTag": "v1.147.28",
   "neverFired": {
     "area 1": [
       "abaasy#2",
@@ -157,6 +157,7 @@
       "light-the-fire#1",
       "liquidation#1",
       "llds-energy-regulator#0",
+      "llds-energy-regulator#1",
       "london-library#2",
       "london-library#3",
       "long-term-investment#0",
@@ -561,7 +562,7 @@
       "quest-completed#1",
       "raymond-flint#1",
       "record-reconstructor#0",
-      "shattered-remains#0",
+      "shattered-remains#1",
       "singularity#2",
       "the-turning-wheel#2",
       "vamp#1",
@@ -1228,7 +1229,7 @@
       "wall-to-wall#1",
       "warroid-tracker#0",
       "weir#0",
-      "wendigo#1",
+      "wendigo#2",
       "white-hat#1",
       "word-on-the-street#1",
       "wormhole#2",
@@ -1463,6 +1464,7 @@
       "dreamnet#1",
       "drug-dealer#1",
       "duggars#1",
+      "eden-shard#2",
       "editorial-division-ad-nihilum#0",
       "eli-2-0#1",
       "eminent-domain#1",

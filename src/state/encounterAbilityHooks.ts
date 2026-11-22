@@ -32,12 +32,13 @@ function pushMark(state: GameState, mark: EncounterAbilityPendingMark): void {
 }
 
 /**
- * Queue onEncounterAnyIceOncePerTurn. Also records first-encountered ice
- * for the run when unset.
+ * Queue onEncounterAnyIceOncePerTurn. Also records the first ice encountered
+ * this turn on the run it happens in (Scrubbed).
  */
 export function noteEncounterAnyIceOncePerTurn(state: GameState): void {
   const encountered = state.run?.encounter?.iceId;
-  if (state.run && encountered && !state.run.firstEncounteredIceId) {
+  if (state.run && encountered && !state.turn.iceEncounteredThisTurn) {
+    state.turn.iceEncounteredThisTurn = true;
     state.run.firstEncounteredIceId = encountered;
   }
   if (state.turn.encounterAnyIceHookFiredThisTurn) return;

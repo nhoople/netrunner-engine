@@ -20,7 +20,11 @@ import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
 } from "../state/programHardwareInstall.js";
-import { effectiveMemoryCost, memoryLimit, usedMemory } from "../state/turn.js";
+import {
+  memoryLimit,
+  memoryNeededToInstall,
+  usedMemory,
+} from "../state/turn.js";
 import type { GameState } from "../state/types.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import {
@@ -154,7 +158,7 @@ export function installGripCardDiscounted(
     }
   }
   if (card.type === "program" && !host?.daemonHost) {
-    const need = effectiveMemoryCost(state, cardId);
+    const need = memoryNeededToInstall(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(state, `Install ${card.title} discounted — insufficient MU.`);
       return { ok: true };
@@ -223,7 +227,7 @@ export function canInstallHeapCard(
     return false;
   }
   if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
+    const need = memoryNeededToInstall(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) return false;
   }
   return (
@@ -261,7 +265,7 @@ export function installHeapCardDiscounted(
     return { ok: true };
   }
   if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
+    const need = memoryNeededToInstall(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(state, `Install ${card.title} from heap — insufficient MU.`);
       return { ok: true };
@@ -382,7 +386,7 @@ function canInstallStackProgram(state: GameState, cardId: string): boolean {
   if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
     return false;
   }
-  const need = effectiveMemoryCost(state, cardId);
+  const need = memoryNeededToInstall(state, cardId);
   if (usedMemory(state) + need > memoryLimit(state)) return false;
   return (
     state.runner.credits + patchworkInstallDiscount(state) >=
@@ -524,7 +528,7 @@ function canInstallStackCard(
     return false;
   }
   if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
+    const need = memoryNeededToInstall(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) return false;
   }
   return (
@@ -690,7 +694,7 @@ export function installSetAsideCardPayingNoShuffle(
     if (card.installOnIce || (card.subtypes ?? []).includes("trojan")) {
       return { ok: true };
     }
-    const need = effectiveMemoryCost(state, cardId);
+    const need = memoryNeededToInstall(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(state, `Install ${card.title} — insufficient MU.`);
       return { ok: true };
@@ -766,7 +770,7 @@ export function canInstallSetAsideIgnoringCosts(
   const aside = state.runner.setAside ?? [];
   if (!aside.includes(cardId)) return false;
   if (card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
+    const need = memoryNeededToInstall(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) return false;
   }
   return true;
@@ -846,7 +850,7 @@ export function canInstallSetAsideProgram(
   }
   const aside = state.runner.setAside ?? [];
   if (!aside.includes(cardId)) return false;
-  const need = effectiveMemoryCost(state, cardId);
+  const need = memoryNeededToInstall(state, cardId);
   if (usedMemory(state) + need > memoryLimit(state)) return false;
   return state.runner.credits >= stackCardInstallCost(state, card, discount);
 }

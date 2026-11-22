@@ -1,6 +1,7 @@
 /** Richer cost model + recurring credit refill (CR 1.10 / 1.16). */
 
 import { abilitiesSuppressed } from "./abilities.js";
+import { noteRunnerClickDuringRun } from "./clickHooks.js";
 import { iceAtRunnerPosition } from "./runPosition.js";
 import { log } from "./createGame.js";
 import { dealDamage } from "./damage.js";
@@ -1158,6 +1159,23 @@ export function releaseSetAsideHostedCards(state: GameState): void {
   );
 }
 
+/**
+ * Mark Yale: "Whenever you spend an agenda counter, gain 1[credit]", for
+ * each counter the Corp spends, as a cost of any ability (Firmware Updates,
+ * High-Risk Investment) or of Mark Yale's own (CR 1.2.1).
+ */
+export function noteCorpSpentAgendaCounters(state: GameState, n: number): void {
+  if (n <= 0) return;
+  for (const id of Object.keys(state.cards)) {
+    const c = state.cards[id]!;
+    const per = c.gainCreditsOnSpendAgendaCounter ?? 0;
+    if (per <= 0 || c.side !== "corp" || !c.rezzed) continue;
+    if (abilitiesSuppressed(state, id)) continue;
+    state.corp.credits += per * n;
+    log(state, `${c.title} — gain ${per * n}¢ (agenda counter spent).`);
+  }
+}
+
 export function payCost(
   state: GameState,
   side: Side,
@@ -1168,10 +1186,14 @@ export function payCost(
   const p = side === "corp" ? state.corp : state.runner;
   withCostCheckpoint(state, openedBy, () => {
     p.clicks -= cost.clicks ?? 0;
+    if (side === "runner" && (cost.clicks ?? 0) > 0) {
+      noteRunnerClickDuringRun(state);
+    }
     // CR 1.11.3b: a lost click reduces the clicks but is not spent.
     const lost = cost.loseClicks ?? 0;
     if (lost > 0) {
       p.clicks -= lost;
+      if (side === "runner") noteRunnerClickDuringRun(state);
       log(
         state,
         `${side === "corp" ? "Corp" : "Runner"} loses ${lost} [click] as a cost (CR ${CR.spendClicks.number}).`,
@@ -1307,6 +1329,8 @@ export function payCost(
         state,
         `Spend ${cost.agendaCounters} agenda counter(s) from ${source.title} → ${source.agendaCounters}.`,
       );
+      if (side === "corp")
+        noteCorpSpentAgendaCounters(state, cost.agendaCounters!);
     }
     if (source && (cost.powerCounters ?? 0) > 0) {
       source.powerCounters =

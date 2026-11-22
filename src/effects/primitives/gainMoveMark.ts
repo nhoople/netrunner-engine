@@ -1,16 +1,18 @@
 /** Order and Chaos (oac) deluxe primitives. */
 import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { effectiveCorpMaxHandSize } from "../../state/handSize.js";
-import { abilitiesSuppressed } from "../../state/abilities.js";
 import { iceAtRunnerPosition } from "../../state/runPosition.js";
-import { emptyRunnerCreditPool } from "../../state/costs.js";
+import {
+  emptyRunnerCreditPool,
+  noteCorpSpentAgendaCounters,
+} from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage, removePendingDamageEntirely } from "../../state/damage.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { memoryLimit, usedMemory } from "../../state/turn.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
-import { grantAbilityCredits, type EffectCtx } from "../eval.js";
+import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
@@ -251,17 +253,7 @@ export function applyOacPrimitive(
       }
       card.agendaCounters = (card.agendaCounters ?? 0) - 1;
       state.corp.credits += 2;
-      // Mark Yale continuous: spending an agenda counter also gains 1¢.
-      for (const id of Object.keys(state.cards)) {
-        if (abilitiesSuppressed(state, id)) continue;
-        const c = state.cards[id];
-        const n = (c as { gainCreditsOnSpendAgendaCounter?: number })
-          ?.gainCreditsOnSpendAgendaCounter;
-        if (n && c.rezzed && c.side === "corp") {
-          state.corp.credits += n;
-          log(state, `${c.title} — gain ${n}¢ from agenda counter spend.`);
-        }
-      }
+      noteCorpSpentAgendaCounters(state, 1);
       log(state, `Mark Yale — spend agenda counter on ${card.title}; gain 2¢.`);
       return { ok: true };
     }
@@ -340,14 +332,17 @@ export function applyOacPrimitive(
     }
 
     case "checkpoint_schedule_meat_on_successful_run": {
-      const amount = (action as { amount: number }).amount;
+      // Checkpoint: "do 3 meat damage when this run becomes successful", a
+      // delayed ability that outlives the subroutine (CR 9.6.13c).
+      const amount = (action as { amount?: number }).amount ?? 3;
       if (state.run) {
-        const run = state.run as { checkpointMeatOnSuccess?: number };
-        run.checkpointMeatOnSuccess =
-          (run.checkpointMeatOnSuccess ?? 0) + amount;
+        state.run.delayedMeatDamageOnSuccess = [
+          ...(state.run.delayedMeatDamageOnSuccess ?? []),
+          { sourceId, amount },
+        ];
         log(
           state,
-          `Checkpoint — schedule ${amount} meat damage if this run is successful.`,
+          `${source?.title ?? sourceId} — ${amount} meat damage when this run becomes successful.`,
         );
       }
       return { ok: true };
@@ -416,20 +411,24 @@ export function applyOacPrimitive(
 
     case "breach_instead_wanton_destruction": {
       if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      if (state.run) state.run.skipBreach = true;
       const clicks = state.runner.clicks;
+      // "You may": declining leaves the breach of HQ as normal; only the
+      // replacement skips it (CR 6.7.4c, 9.6.9).
       const opts: { id: string; label: string; effect: Effect }[] = [
         {
           id: "wanton-decline",
-          label: "Decline (breach skipped)",
+          label: "Breach HQ",
           effect: fx.gainCredits("runner", 0),
         },
       ];
       for (let n = 1; n <= clicks; n++) {
         opts.push({
           id: `wanton:${n}`,
-          label: `Spend ${n} [click]: Corp trashes ${n} from HQ at random`,
-          effect: fx.do({ kind: "spend_wanton_clicks_trash_hq", amount: n }),
+          label: `Instead of breaching: spend ${n} [click], the Corp trashes ${n} from HQ at random`,
+          effect: fx.seq(
+            fx.do({ kind: "set_skip_breach" }),
+            fx.do({ kind: "spend_wanton_clicks_trash_hq", amount: n }),
+          ),
         });
       }
       openPendingChoose(state, { sourceId, chooser: "runner", options: opts });
@@ -535,13 +534,9 @@ export function applyOacPrimitive(
     case "draw_if_hq_full": {
       const max = effectiveCorpMaxHandSize(state);
       if (state.corp.hand.length === max) {
-        // draw 1 for runner
-        if (state.runner.deck.length > 0) {
-          const id = state.runner.deck.shift()!;
-          state.cards[id]!.zone = "runner:grip";
-          state.runner.hand.push(id);
-          log(state, `Vigil — HQ full; draw ${state.cards[id]!.title}.`);
-        }
+        // Vigil: a draw, through the draw procedure (CR 8.4.5).
+        log(state, `Vigil — HQ is at the Corp's maximum hand size; draw 1.`);
+        return evalEffect(ctx, fx.draw("runner", 1));
       }
       return { ok: true };
     }

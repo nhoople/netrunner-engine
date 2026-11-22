@@ -653,7 +653,7 @@ export interface CardDef {
   agendaPointsToWinModifierBoth?: number;
   onPsiCreditsRevealed?: Effect;
   onTurnBeginIfNoRunnerSuccessfulRunLastTurn?: Effect;
-  advancementRequirementReductionPerSameTitleAnywhere?: number;
+  advancementRequirementReductionPerScoredCopy?: number;
   onAccessWhileUninstalled?: Effect;
   onAccessWhileInstalled?: Effect;
   onExposeWhileInstalled?: Effect;
@@ -941,6 +941,8 @@ export interface CardDef {
   /** Install only after a successful central run this turn (Time Bomb). */
   installRequiresSuccessfulCentralRunThisTurn?: boolean;
   agendaPointsPerAgendaCounter?: number;
+  /** Domestic Sleepers: worth this many more agenda points while it has at least 1 agenda counter. */
+  agendaPointsWhileHasAgendaCounter?: number;
   cannotBreakWithAi?: boolean;
   cannotBreakWithAiAtAdvancements?: number;
   /** Semak-samun: only breakers with this subtype may break printed subs. */
@@ -1099,6 +1101,8 @@ export interface CardDef {
   preventOneVirusPurgeOnHostedProgram?: boolean;
   /** MemStrips: MU only for virus. */
   muBonusOnlyForVirusPrograms?: boolean;
+  /** I've Had Worse: its trashed-from-grip ability is met only when net or meat damage trashes it. */
+  trashFromGripTriggerOnlyByNetOrMeatDamage?: boolean;
   /** Archives Interface: may RFG instead of access. */
   archivesAccessMayRfgInstead?: { oncePerArchivesBreach: boolean };
   /** The Twins: on pass rezzed ice protecting this server. */
@@ -1603,6 +1607,8 @@ export interface CardDef {
   /** DJ Fenris: return hosted identity to outside-game on uninstall (CR 1.5.4b). */
   returnHostedIdentityToOutsideGameOnUninstall?: boolean;
   agendaPointsModifierInRunnerScoreArea?: number;
+  /** The Board: while active, each agenda in the Runner's score area is worth this many more points. */
+  runnerScoredAgendaPointsModifier?: number;
   onFirstBadPublicityTakeEachTurn?: Effect;
   onArchivesFacedownTurnedFaceupGte?: { min: number; effect: Effect };
   powerCounterOnAgendaScoredOrStolenFromThisServer?: number;
@@ -2434,8 +2440,8 @@ export function instantiateCard(
       def.runnerHandSizePenaltyPerPowerCounter,
     runnerHandSizeBonus: def.runnerHandSizeBonus,
     handSizeEqualsCredits: def.handSizeEqualsCredits,
-    advancementRequirementReductionPerSameTitleAnywhere:
-      def.advancementRequirementReductionPerSameTitleAnywhere,
+    advancementRequirementReductionPerScoredCopy:
+      def.advancementRequirementReductionPerScoredCopy,
     cannotBeBypassed: def.cannotBeBypassed,
     corpPlayCostIncreaseForRunnerEventsOps:
       def.corpPlayCostIncreaseForRunnerEventsOps,
@@ -3194,6 +3200,8 @@ export function instantiateCard(
     preventOneVirusPurgeOnHostedProgram:
       def.preventOneVirusPurgeOnHostedProgram,
     muBonusOnlyForVirusPrograms: def.muBonusOnlyForVirusPrograms,
+    trashFromGripTriggerOnlyByNetOrMeatDamage:
+      def.trashFromGripTriggerOnlyByNetOrMeatDamage,
     archivesAccessMayRfgInstead: def.archivesAccessMayRfgInstead
       ? { ...def.archivesAccessMayRfgInstead }
       : undefined,
@@ -3242,6 +3250,7 @@ export function instantiateCard(
     installRequiresSuccessfulCentralRunThisTurn:
       def.installRequiresSuccessfulCentralRunThisTurn,
     agendaPointsPerAgendaCounter: def.agendaPointsPerAgendaCounter,
+    agendaPointsWhileHasAgendaCounter: def.agendaPointsWhileHasAgendaCounter,
     cannotBreakWithAi: def.cannotBreakWithAi,
     cannotBreakWithAiAtAdvancements: def.cannotBreakWithAiAtAdvancements,
     cannotBreakExceptSubtype: def.cannotBreakExceptSubtype,
@@ -3288,6 +3297,7 @@ export function instantiateCard(
       def.returnHostedIdentityToOutsideGameOnUninstall,
     agendaPointsModifierInRunnerScoreArea:
       def.agendaPointsModifierInRunnerScoreArea,
+    runnerScoredAgendaPointsModifier: def.runnerScoredAgendaPointsModifier,
     canAdvance: def.canAdvance,
     playRequiresSuccessfulHqRunThisTurn:
       def.playRequiresSuccessfulHqRunThisTurn,

@@ -790,6 +790,12 @@ function addClickActions(
                     ) {
                       continue;
                     }
+                    if (
+                      typeof host.maxHostedCards === "number" &&
+                      (host.hostedCardIds ?? []).length >= host.maxHostedCards
+                    ) {
+                      continue;
+                    }
                     if (typeof host.daemonHostMaxMu === "number") {
                       const used = (host.hostedCardIds ?? []).reduce(
                         (sum, id) => sum + effectiveMemoryCost(state, id),

@@ -29,9 +29,7 @@ export function emptyTurnBookkeeping(
     unsuccessfulRunLastTurn: prev?.unsuccessfulRunLastTurn ?? false,
     advertisementRezzedThisTurn: false,
     dadDuplicateSubsOnNextIceEncounter: false,
-    dadPreventWhenEncounteredArmed: false,
     dadBlankedCardIds: [],
-    dadBreakerStrengthBoosts: {},
     dadCannotUseProgramsThisRun: false,
     dadOwnInstalledTrashedThisTurn: 0,
     successfulRunServersThisTurn: [],
@@ -338,9 +336,7 @@ export function beginCorpTurnFlags(state: GameState): void {
     unsuccessfulRunLastTurn: state.turn.unsuccessfulRunThisTurn,
     advertisementRezzedThisTurn: false,
     dadDuplicateSubsOnNextIceEncounter: false,
-    dadPreventWhenEncounteredArmed: false,
     dadBlankedCardIds: [],
-    dadBreakerStrengthBoosts: {},
     dadCannotUseProgramsThisRun: false,
     dadOwnInstalledTrashedThisTurn: 0,
     successfulRunServersThisTurn: [],
@@ -704,6 +700,12 @@ export function programMemoryCosts(
 ): { id: string; cost: number }[] {
   const costs: { id: string; cost: number }[] = [];
   let caissaPool = caissaMuBonusAvailable(state);
+  // MemStrips: "Use the MU on MemStrips only for virus programs." Its MU is
+  // a pool only virus programs draw from, not part of the general limit.
+  let virusPool = restrictedMuBonusAvailable(
+    state,
+    "muBonusOnlyForVirusPrograms",
+  );
   for (const id of state.runner.installed) {
     const c = state.cards[id];
     if (!c || c.type !== "program") continue;
@@ -715,14 +717,10 @@ export function programMemoryCosts(
       if (host?.hostedProgramMemoryDoesNotCount) continue;
     }
     let cost = effectiveMemoryCost(state, id);
-    if ((c.subtypes ?? []).includes("virus")) {
-      for (const hid of state.runner.installed) {
-        if (abilitiesSuppressed(state, hid)) continue;
-        const host = state.cards[hid];
-        if (host?.muBonusOnlyForVirusPrograms) {
-          cost = Math.max(0, cost - (host.muBonus ?? 0));
-        }
-      }
+    if ((c.subtypes ?? []).includes("virus") && virusPool > 0) {
+      const reduce = Math.min(cost, virusPool);
+      cost -= reduce;
+      virusPool -= reduce;
     }
     if (isCaissaProgram(state, id) && caissaPool > 0) {
       const reduce = Math.min(cost, caissaPool);
@@ -732,6 +730,56 @@ export function programMemoryCosts(
     costs.push({ id, cost });
   }
   return costs;
+}
+
+/**
+ * The general MU a program not yet installed would use: its memory cost less
+ * what the restricted MU still free covers (MemStrips for a virus program,
+ * the Caissa pool for a Caissa program). Install checks compare
+ * `usedMemory + memoryNeededToInstall` with `memoryLimit` (CR 1.2.1).
+ */
+export function memoryNeededToInstall(
+  state: GameState,
+  cardId: string,
+): number {
+  const card = state.cards[cardId];
+  let cost = effectiveMemoryCost(state, cardId);
+  if (!card || card.type !== "program") return cost;
+  const restricted: Array<{
+    only: "muBonusOnlyForCaissaPrograms" | "muBonusOnlyForVirusPrograms";
+    matches: (id: string) => boolean;
+  }> = [
+    {
+      only: "muBonusOnlyForVirusPrograms",
+      matches: (id) => (state.cards[id]?.subtypes ?? []).includes("virus"),
+    },
+    {
+      only: "muBonusOnlyForCaissaPrograms",
+      matches: (id) => isCaissaProgram(state, id),
+    },
+  ];
+  for (const { only, matches } of restricted) {
+    if (!matches(cardId)) continue;
+    let pool = restrictedMuBonusAvailable(state, only);
+    // What the installed matching programs already draw from the pool.
+    for (const id of state.runner.installed) {
+      const c = state.cards[id];
+      if (!c || c.type !== "program" || !matches(id)) continue;
+      if (c.hostId && !abilitiesSuppressed(state, c.hostId)) {
+        const host = state.cards[c.hostId];
+        if (
+          host?.daemonHost ||
+          host?.hostedIcebreakerMemoryDoesNotCount ||
+          host?.hostedProgramMemoryDoesNotCount
+        ) {
+          continue;
+        }
+      }
+      pool -= effectiveMemoryCost(state, id);
+    }
+    cost -= Math.min(cost, Math.max(0, pool));
+  }
+  return cost;
 }
 
 export function usedMemory(state: GameState): number {
@@ -757,7 +805,13 @@ export function memoryLimit(state: GameState): number {
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
-    if (c.muBonus && !c.muBonusOnlyForCaissaPrograms) limit += c.muBonus;
+    if (
+      c.muBonus &&
+      !c.muBonusOnlyForCaissaPrograms &&
+      !c.muBonusOnlyForVirusPrograms
+    ) {
+      limit += c.muBonus;
+    }
   }
   limit += lingeringRunnerMuModifier(state);
   return limit;
@@ -771,11 +825,19 @@ function isCaissaProgram(state: GameState, programId: string): boolean {
 }
 
 function caissaMuBonusAvailable(state: GameState): number {
+  return restrictedMuBonusAvailable(state, "muBonusOnlyForCaissaPrograms");
+}
+
+/** MU that only some programs may use (CR 1.2.1). */
+function restrictedMuBonusAvailable(
+  state: GameState,
+  only: "muBonusOnlyForCaissaPrograms" | "muBonusOnlyForVirusPrograms",
+): number {
   let pool = 0;
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const c = state.cards[id];
-    if (c.muBonusOnlyForCaissaPrograms && c.muBonus) {
+    if (c[only] && c.muBonus) {
       pool += c.muBonus;
     }
   }

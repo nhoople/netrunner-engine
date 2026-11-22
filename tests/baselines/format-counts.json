@@ -88,6 +88,17 @@
         "cardDefFlags": 600
       },
       "reason": "PF-S3b: Executive Wiretaps reveals HQ without gaining credits, so it needs a plain reveal_hq (Expert Schedule Analyzer builds it too); The Future Perfect's 'cannot steal this agenda during this access' needs forbid_steal_accessed_agenda (Pinhole Threading's lock lasts the run and also forbids the trash). runner_lose_credits_equal_corp_bad_publicity is gone (Ireress gains one subroutine per bad publicity through the per_bad_publicity declaration). One-card kinds also move because cards changed kind: may_install_from_heap and reveal_hq_gain_credits are left with one card each (Clone Chip and Executive Wiretaps moved off them), while Susanoo-no-Mikoto and Strongbox give forbid_jack_out_until_next_encounter and spend_click_additional_cost a second card. The five renamed may_ and verb-first kinds keep their counts."
+    },
+    {
+      "date": "2026-11-22",
+      "engine": "v1.147.285",
+      "cards": "v1.147.28",
+      "counts": {
+        "knownPrimitiveKinds": 1526,
+        "oneCardKinds": 749,
+        "cardDefFlags": 603
+      },
+      "reason": "PF-S3c: Architect installs without rezzing (CR 8.5.2), which its kind's install-and-rez does not allow, so it gets look_top_n_rd_may_install_ignore_install_cost; Eliza's Toybox rezzes any card, not only ice, so it gets rez_card_ignoring_costs (both one-card kinds). Three card fields are new, each a printed rule no field said: Domestic Sleepers is worth a flat point while it has an agenda counter (agendaPointsWhileHasAgendaCounter; Market Research keeps its per-counter field), The Board lowers every agenda in the Runner's score area while it is active (runnerScoredAgendaPointsModifier; Global Food Initiative keeps its own-card field), and I've Had Worse's trigger is met only by net or meat damage (trashFromGripTriggerOnlyByNetOrMeatDamage; Steelskin Scarring and Strike Fund keep the any-trash trigger). Medical Breakthrough's field is renamed (advancementRequirementReductionPerScoredCopy). Known kinds shrink: the three trace_*_success kinds, prevent_llds_trash_hardware, prevent_pending_when_encountered, add_hw_to_grip and Independent Thinking's two follow-ups are gone, and one engine follow-up, resolve_if_trace_strength_at_least, is new."
     }
   ]
 }

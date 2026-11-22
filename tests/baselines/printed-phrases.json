@@ -1,26 +1,20 @@
 {
-  "cardsPin": "v1.147.27",
+  "cardsPin": "v1.147.28",
   "counts": {
     "cards": 2016,
-    "cardsWithHits": 9,
-    "hits": 9,
+    "cardsWithHits": 7,
+    "hits": 7,
     "kindsInCorpus": 908,
-    "kindsCovered": 707,
+    "kindsCovered": 708,
     "phraseRules": 61,
     "kindPhrases": 18
   },
   "entries": {
-    "architect": [
-      "look_top_n_rd_may_install_and_rez_ignore_costs: no \"rez\""
-    ],
     "flip-switch": [
       "end_the_run: no \"end the run\""
     ],
     "flower-sermon": [
       "look_top_rd_may_advance_may_bottom: no \"advance\""
-    ],
-    "globalsec-security-clearance": [
-      "reveal_top_of_rd: no \"reveal\""
     ],
     "grndl-power-unleashed": [
       "gain_credits: no \"gain or take\""

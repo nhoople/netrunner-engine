@@ -811,7 +811,7 @@ export function refreshRdDeckCandidate(state: GameState): void {
       : null;
   const accessed = new Set(run.accessedCardIds);
   let top: string | null = null;
-  if (run.randomAccessLimit !== 0) {
+  if (run.randomAccessLimit !== 0 && !run.cannotAccessCardsThisRun) {
     const order = run.accessFromBottomOfRd ? [...deck].reverse() : deck;
     for (const id of order) {
       if (accessed.has(id) || prohibited.has(id)) continue;
@@ -820,7 +820,11 @@ export function refreshRdDeckCandidate(state: GameState): void {
       break;
     }
   }
-  run.accessCandidates = top ? [top, ...kept] : [...kept];
+  run.accessCandidates = run.cannotAccessCardsThisRun
+    ? []
+    : top
+      ? [top, ...kept]
+      : [...kept];
 }
 
 export function isCentral(serverId: ServerId): boolean {

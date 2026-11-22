@@ -38,7 +38,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.27");
+  assertCardsPinnedTag("v1.147.28");
 });
 
 const WINDOW_STEP: Partial<Record<PaidAbilityWindow, string>> = {
@@ -895,12 +895,13 @@ function armInterrupt(
   }
   if (ability.windows.includes("trash_interrupt")) {
     // An interrupt that prevents only some card types (Sacrificial
-    // Construct) needs a pending trash of one of them (CR 9.9.3a).
+    // Construct, LLDS Energy Regulator) needs a pending trash of one of
+    // them (CR 9.9.3a).
     let target = cardId;
     const types = ability.requirePendingTrashCardTypes;
     if (types && !types.includes(state.cards[cardId]!.type)) {
       const prog = instantiateCard(
-        "corroder",
+        types.includes("program") ? "corroder" : "plascrete-carapace",
         "trash-target",
         "runner:installed",
       );
@@ -1155,6 +1156,11 @@ describe("later turn steps", () => {
           if (!seatedOnRunner) {
             state.runner.discardPile.push(cardId);
             card.zone = "runner:heap";
+          }
+          // An event's "When this turn ends" exists only for a copy played
+          // this turn (Three Steps Ahead, CR 9.6.13c).
+          if (def.type === "event") {
+            state.turn.eventIdsPlayedThisTurn = [cardId];
           }
         }
         if (spec.field === "onApproachIce" || spec.field === "onApproachServer")

@@ -48,7 +48,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.27");
+  assertCardsPinnedTag("v1.147.28");
 });
 
 /** Replace the Runner's stack with `n` copies of `defId`, ids `st-1`… */

@@ -35,6 +35,7 @@ import { noteFirstInstallInServerRootThisTurn } from "../../state/trashHooks.js"
 import {
   memoryLimit,
   usedMemory,
+  memoryNeededToInstall,
   effectiveMemoryCost,
 } from "../../state/turn.js";
 import { noteVirusProgramInstalled } from "../../state/virusInstall.js";
@@ -363,7 +364,10 @@ export function applyInstallKinds(
         state.servers[sid].root.push(cardId);
         card.zone = `server:${sid}:root`;
       }
-      const doRez = card.type !== "agenda";
+      // Architect installs only ("ignoring the install cost"); Architect
+      // Deployment Test installs and rezzes (CR 8.5.2, 8.5.2a).
+      const rezAfter = action.rez !== false;
+      const doRez = rezAfter && card.type !== "agenda";
       // Installed facedown (CR 8.5.2). An agenda cannot be rezzed, so it is
       // revealed instead and stays facedown (CR 8.5.13d, 1.21.3).
       card.rezzed = false;
@@ -374,9 +378,11 @@ export function applyInstallKinds(
       noteInstalledThisTurn(state, cardId);
       log(
         state,
-        `Install ${card.title} from looked R&D on ${sid} ignoring costs.`,
+        rezAfter
+          ? `Install ${card.title} from looked R&D on ${sid} ignoring costs.`
+          : `Install a card from looked R&D on ${sid} ignoring the install cost.`,
       );
-      if (!doRez) {
+      if (rezAfter && !doRez) {
         revealCards(state, [cardId], sourceId, CR.revealForInstallAndRez);
       }
       fireOnInstall(state, cardId);
@@ -876,7 +882,7 @@ export function applyInstallKinds(
           return false;
         }
         if (c.type === "program") {
-          const need = effectiveMemoryCost(state, id);
+          const need = memoryNeededToInstall(state, id);
           if (usedMemory(state) + need > memoryLimit(state)) return false;
         }
         const cost = gripInstallCostAfterDiscount(state, c, discount);
@@ -1268,7 +1274,7 @@ export function applyInstallKinds(
           return false;
         }
         if (c.type === "program") {
-          const need = effectiveMemoryCost(state, id);
+          const need = memoryNeededToInstall(state, id);
           if (usedMemory(state) + need > memoryLimit(state)) return false;
         }
         const cost = gripInstallCostAfterDiscount(state, c, action.discount);
@@ -1401,7 +1407,7 @@ export function applyInstallKinds(
         log(state, `install_hosted_program — invalid hosted program.`);
         return { ok: true };
       }
-      const need = effectiveMemoryCost(state, cardId);
+      const need = memoryNeededToInstall(state, cardId);
       if (usedMemory(state) + need > memoryLimit(state)) {
         log(state, `install_hosted_program — insufficient MU.`);
         return { ok: true };
@@ -1476,7 +1482,7 @@ export function applyInstallKinds(
         return { ok: true };
       }
       if (card.type === "program") {
-        const need = effectiveMemoryCost(state, cardId);
+        const need = memoryNeededToInstall(state, cardId);
         if (usedMemory(state) + need > memoryLimit(state)) {
           log(state, `install_hosted_card — insufficient MU.`);
           return { ok: true };
@@ -2357,7 +2363,7 @@ export function applyInstallKinds(
         if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
           return false;
         }
-        const need = effectiveMemoryCost(state, id);
+        const need = memoryNeededToInstall(state, id);
         if (usedMemory(state) + need > memoryLimit(state)) return false;
         const cost = gripInstallCostAfterDiscount(state, c, discount);
         return creditsAvailableForInstall(state, "runner") >= cost;
@@ -3100,7 +3106,7 @@ export function applyInstallKinds(
         if (c.installOnIce || (c.subtypes ?? []).includes("trojan")) {
           return false;
         }
-        const need = effectiveMemoryCost(state, id);
+        const need = memoryNeededToInstall(state, id);
         if (usedMemory(state) + need > memoryLimit(state)) return false;
         const cost = gripInstallCostAfterDiscount(state, c, 0);
         return creditsAvailableForInstall(state, "runner") >= cost;
@@ -3609,7 +3615,7 @@ export function applyInstallKinds(
         return { ok: true };
       }
       if (card.type === "program") {
-        const need = effectiveMemoryCost(state, cardId);
+        const need = memoryNeededToInstall(state, cardId);
         if (usedMemory(state) + need > memoryLimit(state)) {
           log(state, `install_hosted_card_ignore_costs — insufficient MU.`);
           return { ok: true };

@@ -1,3 +1,4 @@
+import { noteRunnerClickDuringRun } from "../state/clickHooks.js";
 import type { Effect } from "../effects/ir.js";
 import { endLooksAndReveals, lookAtChoiceCards } from "../state/reveal.js";
 import { setRunnerPosition } from "../state/runPosition.js";
@@ -378,6 +379,11 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
   trashCard(state, cardId, { by: pending.chooser ?? "corp" });
   state.pendingTrashProgram = null;
   log(state, `Trashes ${card.title} (CR ${CR.trashing.number}).`);
+  // The ability resumes after this pause: the rest of its instruction
+  // (Sagittarius's second trash, Colossus's resource) resolves next
+  // (CR 9.11.3).
+  resumePendingEffectContinuation(state);
+  if (effectResolutionBlocked(state)) return ok(state);
   // Resume the run graph from the current auto step (resolveSub).
   const step = getStep(state);
   if (step.kind === "auto" || step.kind === "branch") {
@@ -2737,6 +2743,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         }
       });
       if (bad) return bad;
+      next.turn.runnerTookBasicRunActionThisTurn = true;
       const walked = startRun(next, action.serverId);
       if (!walked.ok) {
         next.run = null;
@@ -3244,6 +3251,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           );
         }
         next.runner.clicks -= stealClicks;
+        noteRunnerClickDuringRun(next);
         log(
           next,
           `Runner spends ${stealClicks} [click] to steal ${agenda.title} → ${next.runner.clicks} (CR ${CR.spendClicks.number}).`,
@@ -3316,21 +3324,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
           next.pendingTrashAccessedCardId = null;
         }
       }
-      let cost = runnerTrashCostForCard(next, action.cardId);
-      const kim = next.cards[next.runner.identityId];
-      if (
-        kim?.firstAccessedOperationTrashFreeEachTurn &&
-        !abilitiesSuppressed(next, next.runner.identityId) &&
-        card.type === "operation" &&
-        !next.turn.firstAccessedOperationTrashedFreeThisTurn
-      ) {
-        cost = 0;
-        next.turn.firstAccessedOperationTrashedFreeThisTurn = true;
-        log(
-          next,
-          `${kim.title} — first accessed operation is trashed for free.`,
-        );
-      }
+      const cost = runnerTrashCostForCard(next, action.cardId);
       const purpose =
         card.type === "asset" ? ("trash_asset" as const) : ("trash" as const);
       if (runnerCreditsFor(next, purpose) < cost) {

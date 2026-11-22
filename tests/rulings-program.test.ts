@@ -49,7 +49,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.27");
+  assertCardsPinnedTag("v1.147.28");
 });
 
 /** Walk on to the Runner's next action (see `walkThrough`). */

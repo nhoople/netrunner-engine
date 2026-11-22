@@ -265,7 +265,12 @@ export type Primitive =
   /** Cohort: may turn 1 facedown Archives card faceup; if so, then. */
   | { kind: "may_turn_facedown_archives_faceup_then"; then: Effect }
   | { kind: "turn_archives_card_faceup"; cardId: string; then?: Effect }
-  | { kind: "add_agenda_counter"; amount: number }
+  | {
+      kind: "add_agenda_counter";
+      amount: number;
+      /** On the agenda that was just scored (Titan Transnational). */
+      onTriggerAgenda?: boolean;
+    }
   /**
    * Dividends N (CR 10.13.1): place N agenda counters for each hosted
    * advancement past the advancement requirement at score begin (CR 10.13.2).
@@ -829,8 +834,15 @@ export type Primitive =
    * ignoring all costs (agendas install without rez).
    */
   | { kind: "look_top_n_rd_may_install_and_rez_ignore_costs"; n: number }
+  /** Architect: install one, ignoring the install cost; no rez. */
+  | { kind: "look_top_n_rd_may_install_ignore_install_cost"; n: number }
   /** Leaf: install+rez one card from `turn.rdLookedCards` ignoring costs. */
-  | { kind: "install_rez_rd_looked_card_ignore_costs"; cardId: string }
+  | {
+      kind: "install_rez_rd_looked_card_ignore_costs";
+      cardId: string;
+      /** false: install only, without rezzing (Architect). */
+      rez?: boolean;
+    }
   /** Leaf: install one card from `turn.rdLookedCards` paying installCost. */
   | { kind: "install_rd_looked_card_paying_costs"; cardId: string }
   /** Leaf: return remaining looked R&D cards to top of deck. */
@@ -1330,6 +1342,8 @@ export type Primitive =
     }
   | { kind: "swap_two_ice" }
   | { kind: "rez_ice_ignoring_costs" }
+  /** Eliza's Toybox: rez any installed card, ignoring all costs. */
+  | { kind: "rez_card_ignoring_costs" }
   | {
       kind: "may_install_from_grip";
       discount?: number;
@@ -1355,7 +1369,11 @@ export type Primitive =
       amount: number;
     }
   /** Oracle Thinktank: shuffle source from Runner score into R&D. */
-  | { kind: "shuffle_source_into_rd" }
+  | {
+      kind: "shuffle_source_into_rd";
+      /** Also usable from the Corp's score area (15 Minutes). */
+      fromCorpScoreArea?: boolean;
+    }
   /**
    * Greasing the Palm: may install one HQ card paying printed install cost.
    */
@@ -1774,7 +1792,11 @@ export type Primitive =
    * Eavesdrop: choose installed ice; host source as a condition counter
    * (no rez).
    */
-  | { kind: "host_on_ice_as_condition" }
+  | {
+      kind: "host_on_ice_as_condition";
+      /** Only rezzed ice (Patch, Sub Boost). */
+      rezzedOnly?: boolean;
+    }
   /** Leaf: host source on chosen ice as condition. */
   | {
       /**
@@ -2754,7 +2776,6 @@ export type Primitive =
   | { kind: "mutate_record_trashed_ice"; iceId: string }
   | { kind: "resolve_mutate_operation" }
   | { kind: "trace_taurus_subroutine" }
-  | { kind: "trace_taurus_success" }
   | {
       kind: "reveal_grail_gain_subroutines";
       maxReveal?: number;
@@ -2796,7 +2817,6 @@ export type Primitive =
   /** Follow-up: trash chosen breaker used this run (Will-o'-the-Wisp). */
   | { kind: "resolve_will_o_wisp_breaker"; cardId: string }
   | { kind: "three_steps_ahead_payout" }
-  | { kind: "prevent_llds_trash_hardware" }
   | { kind: "breach_hq" }
   | { kind: "breach_hq_resolve"; cardId: string }
   | { kind: "wendigo_ban_program" }
@@ -2815,7 +2835,6 @@ export type Primitive =
   | { kind: "may_score_bifrost_trigger_scored_agenda_on" }
   | { kind: "score_bifrost_fire_scored_agenda_on"; cardId: string }
   | { kind: "trace_sagittarius_subroutine" }
-  | { kind: "trace_sagittarius_success" }
   | { kind: "trace_subroutine" }
   | { kind: "trace_success" }
   | { kind: "trace_when_determined" }
@@ -2835,13 +2854,25 @@ export type Primitive =
   | { kind: "trace_troll_encounter" }
   | { kind: "trace_troll_success" }
   | { kind: "trace_virgo_subroutine" }
-  | { kind: "trace_virgo_success" }
+  | {
+      /**
+       * "If your trace strength is N or greater, …": checked when the trace
+       * is determined, successful or not (CR 10.8.5). Built by the engine.
+       */
+      kind: "resolve_if_trace_strength_at_least";
+      min: number;
+      then: Effect;
+    }
   | { kind: "self_destruct_ability" }
   | { kind: "trace_self_destruct_success" }
   | { kind: "move_virus_counters" }
   | { kind: "move_incubator_apply"; cardId: string; amount?: number }
   | { kind: "may_breach_instead_code_siphon" }
-  | { kind: "breach_instead_code_siphon" }
+  | {
+      kind: "breach_instead_code_siphon";
+      /** Filled by the stack search pick. */
+      cardIds?: string[];
+    }
   | { kind: "install_program"; cardId: string; discount: number }
   | { kind: "break_code_gate_or_barrier" }
   | { kind: "firmware_place_advancement_on_advanceable_ice" }
@@ -3022,15 +3053,12 @@ export type Primitive =
   | { kind: "break_encounter_etr_subroutine" }
   | { kind: "break_any_subroutine" }
   | { kind: "break_sub_index"; iceId: string; index: number }
-  | { kind: "prevent_pending_when_encountered" }
   | { kind: "install_top_n_of_stack_facedown"; amount: number }
-  | { kind: "trash_draw" }
   | {
-      kind: "dad_independent_thinking_continue";
-      trashed: string[];
-      remainingPicks: number;
+      kind: "trash_draw";
+      /** Filled by the pick: the installed cards to trash. */
+      cardIds?: string[];
     }
-  | { kind: "dad_independent_thinking_finish"; trashed: string[] }
   | { kind: "blank_installed_abilities" }
   | { kind: "blank_card_this_turn"; cardId: string }
   | { kind: "boost_breakers_per_link" }
@@ -3809,8 +3837,11 @@ export type Primitive =
   | { kind: "corp_lose_two_if_can" }
   | { kind: "trash_hardware_additional_cost" }
   | { kind: "trade_in_record_hw"; cardId: string }
-  | { kind: "resolve_trade_in" }
-  | { kind: "add_hw_to_grip"; cardId: string }
+  | {
+      kind: "resolve_trade_in";
+      /** Filled by the stack search pick. */
+      cardIds?: string[];
+    }
   | { kind: "place_x_counters" }
   | { kind: "place_x_resolve"; amount: number }
   | { kind: "reveal_top_may_bottom" }
@@ -4654,6 +4685,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_operation_or_agenda_to_hq",
   "look_top_n_rd_may_install_one",
   "look_top_n_rd_may_install_and_rez_ignore_costs",
+  "look_top_n_rd_may_install_ignore_install_cost",
   "install_rez_rd_looked_card_ignore_costs",
   "install_rd_looked_card_paying_costs",
   "return_rd_looked_to_deck_top",
@@ -4746,6 +4778,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_to_hq",
   "swap_two_ice",
   "rez_ice_ignoring_costs",
+  "rez_card_ignoring_costs",
   "may_install_from_grip",
   "remove_tags",
   "gain_credits_per_distinct_faceup_archive_type",
@@ -4943,7 +4976,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "mutate_record_trashed_ice",
   "resolve_mutate_operation",
   "trace_taurus_subroutine",
-  "trace_taurus_success",
   "reveal_grail_gain_subroutines",
   "runner_mu_modifier_until_turn_end",
   "cyber_threat",
@@ -4968,7 +5000,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "resolve_will_o_wisp",
   "resolve_will_o_wisp_breaker",
   "three_steps_ahead_payout",
-  "prevent_llds_trash_hardware",
   "breach_hq",
   "breach_hq_resolve",
   "wendigo_ban_program",
@@ -4987,7 +5018,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_score_bifrost_trigger_scored_agenda_on",
   "score_bifrost_fire_scored_agenda_on",
   "trace_sagittarius_subroutine",
-  "trace_sagittarius_success",
   "trace_subroutine",
   "trace_success",
   "trace_when_determined",
@@ -5007,7 +5037,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trace_troll_encounter",
   "trace_troll_success",
   "trace_virgo_subroutine",
-  "trace_virgo_success",
+  "resolve_if_trace_strength_at_least",
   "self_destruct_ability",
   "trace_self_destruct_success",
   "move_virus_counters",
@@ -5156,11 +5186,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "break_encounter_etr_subroutine",
   "break_any_subroutine",
   "break_sub_index",
-  "prevent_pending_when_encountered",
   "install_top_n_of_stack_facedown",
   "trash_draw",
-  "dad_independent_thinking_continue",
-  "dad_independent_thinking_finish",
   "blank_installed_abilities",
   "blank_card_this_turn",
   "boost_breakers_per_link",
@@ -5682,7 +5709,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "trash_hardware_additional_cost",
   "trade_in_record_hw",
   "resolve_trade_in",
-  "add_hw_to_grip",
   "place_x_counters",
   "place_x_resolve",
   "reveal_top_may_bottom",

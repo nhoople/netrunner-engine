@@ -36,7 +36,7 @@ import {
 } from "../src/index.js";
 import { itCalls } from "./cr-citations.js";
 
-const CARDS_TAG = "v1.147.27";
+const CARDS_TAG = "v1.147.28";
 
 beforeAll(() => {
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");

@@ -19,7 +19,7 @@ describe("revised-core", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.27");
+      assertCardsPinnedTag("v1.147.28");
     });
 
     describe("Revised Core Set (core2) v1.135.0 reprints absorb", () => {

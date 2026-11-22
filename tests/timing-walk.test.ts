@@ -90,7 +90,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.27");
+  assertCardsPinnedTag("v1.147.28");
   model = buildChartModel();
 });
 
@@ -409,21 +409,15 @@ describe("the timing walk on a played run", () => {
     return [...walker.failures.keys()];
   }
 
-  it("finds Mamba's power counter ability offered only during the encounter, though it prints 'Use this ability only during a run' (CR 9.2.7b; filed under area 11)", () => {
+  it("offers Mamba's power counter ability in every paid ability window of the run, as 'Use this ability only during a run' prints (CR 9.2.7b; fixed in PF-S3c)", () => {
     let s = runnerTurn(fresh());
     installIce(s, "mamba", "mamba-1", "hq").powerCounters = 2;
     s.corp.credits = 5;
     for (const n of [1, 2, 3, 4, 5])
       toHand(s, "runner", "sure-gamble", `g-${n}`);
     s = drive(s, (x) => x.timingKey === "runner.takeAction");
-    const failures = playRun(s);
-    // Every paid ability window of the run but the encounter's (CR 6.9.1e,
-    // 6.9.2b, 6.9.4b, 6.9.4e).
-    expect(failures).toEqual([
-      "11.4_1_e paid ability mamba mamba-counter not offered",
-      "11.4_2_b paid ability mamba mamba-counter not offered",
-      "11.4_4_b paid ability mamba mamba-counter not offered",
-      "11.4_4_e paid ability mamba mamba-counter not offered",
-    ]);
+    // Every paid ability window of the run (CR 6.9.1e, 6.9.2b, 6.9.3b,
+    // 6.9.4b, 6.9.4e).
+    expect(playRun(s)).toEqual([]);
   });
 });

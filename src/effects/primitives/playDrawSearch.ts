@@ -4,7 +4,6 @@ import {
   markSubroutineBroken,
   subroutineBreakBlock,
 } from "../../state/procedures/break.js";
-import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { startTrace } from "../../state/trace.js";
 import { applyEncounterPrimitive } from "../encounterPrimitives.js";
@@ -21,6 +20,13 @@ import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { trashCorpCardSet } from "../kinds/trashKinds.js";
+import { chooseCards } from "../chooseCards.js";
+import { facedownInstalledRunnerCard } from "../../state/active.js";
+import {
+  addLingeringEffect,
+  LINGERING_KIND_BREAKER_STRENGTH_RUN,
+} from "../../state/lingeringEffects.js";
+import { evalEffect } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -100,17 +106,17 @@ export function applyDadPrimitive(
     }
 
     case "draw_from_bottom_of_rd": {
+      // Shannon Claire: "Draw 1 card from the bottom of R&D" is a draw, so it
+      // goes through the draw procedure (CR 8.4.5): the bottom card moves to
+      // the top, then the Corp draws it (Jinja City Grid, Political Dealings).
+      // With R&D empty the draw still happens, so the Runner wins
+      // (CR 1.7.2c).
       const n = action.amount ?? 1;
-      for (let i = 0; i < n; i++) {
-        // deck.shift() = top; bottom = pop()
-        const id = state.corp.deck.pop();
-        if (!id) break;
-        state.corp.hand.push(id);
-        const c = state.cards[id]!;
-        c.zone = "corp:hq";
-        log(state, `Draw ${c.title} from bottom of R&D.`);
+      for (let i = 0; i < Math.min(n, state.corp.deck.length); i++) {
+        const id = state.corp.deck.pop()!;
+        state.corp.deck.unshift(id);
       }
-      return { ok: true };
+      return evalEffect(ctx, fx.draw("corp", n));
     }
 
     case "search_rd_or_archives_agenda_to_bottom_rd": {
@@ -234,12 +240,16 @@ export function applyDadPrimitive(
           );
           continue;
         }
-        const whenScored = whenScoredEffect(card);
-        if (whenScored) {
+        if (whenScoredEffect(card)) {
+          // The ability resolves as the agenda's own, so "it" is the agenda
+          // (Market Research's counter), not 24/7 News Cycle (CR 9.6.14d).
           options.push({
             id: `247:${id}`,
             label: `Resolve when-scored on ${card.title}`,
-            effect: whenScored,
+            effect: fx.do({
+              kind: "score_bifrost_fire_scored_agenda_on",
+              cardId: id,
+            }),
           });
         }
       }
@@ -442,7 +452,8 @@ export function applyDadPrimitive(
     }
 
     case "trash_installed_prevent_damage": {
-      const cands = installedRunnerIds(state).filter((id) => id !== sourceId);
+      // Heartbeat: "Trash 1 of your installed cards", Heartbeat included.
+      const cands = installedRunnerIds(state);
       if (cands.length === 0) {
         log(state, `Heartbeat — no installed card to trash.`);
         return { ok: true };
@@ -463,20 +474,9 @@ export function applyDadPrimitive(
     }
 
     case "trash_own_installed": {
-      trashCard(state, action.cardId);
-      state.turn.dadOwnInstalledTrashedThisTurn =
-        (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) + 1;
-      if ((state.turn.dadOwnInstalledTrashedThisTurn ?? 0) === 1) {
-        for (const id of state.runner.installed) {
-          if (abilitiesSuppressed(state, id)) continue;
-          const c = state.cards[id];
-          const n = c?.gainCreditsOnFirstOwnInstalledTrashEachTurn;
-          if (typeof n === "number" && n > 0) {
-            state.runner.credits += n;
-            log(state, `${c!.title} — gain ${n}¢ (first own trash).`);
-          }
-        }
-      }
+      // The Runner trashes their own card (Heartbeat, Endless Hunger), which
+      // Wasteland counts (`noteRunnerInstalledCardTrashing`, CR 1.14.5).
+      trashCard(state, action.cardId, { by: "runner" });
       return { ok: true };
     }
 
@@ -559,12 +559,6 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "prevent_pending_when_encountered": {
-      state.turn.dadPreventWhenEncounteredArmed = true;
-      log(state, `Hunting Grounds — prevent when-encountered.`);
-      return { ok: true };
-    }
-
     case "install_top_n_of_stack_facedown": {
       const n = action.amount ?? 3;
       for (let i = 0; i < n; i++) {
@@ -580,99 +574,43 @@ export function applyDadPrimitive(
     }
 
     case "trash_draw": {
-      const cands = installedRunnerIds(state);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...cands.map((id) => ({
-            id: `it:${id}`,
-            label: `Trash ${state.cards[id]!.title}`,
-            effect: fx.do({
-              kind: "dad_independent_thinking_continue",
-              trashed: [id],
-              remainingPicks: 4,
-            }),
-          })),
-          {
-            id: "it-done",
-            label: "Done (trash 0)",
-            effect: fx.do({
-              kind: "dad_independent_thinking_finish",
-              trashed: [],
-            }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "dad_independent_thinking_continue": {
-      const trashed = [...action.trashed];
-      const last = trashed[trashed.length - 1]!;
-      trashCard(state, last);
-      if (action.remainingPicks <= 0) {
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "runner",
-          options: [
-            {
-              id: "it-finish",
-              label: "Finish",
-              effect: fx.do({
-                kind: "dad_independent_thinking_finish",
-                trashed,
-              }),
-            },
-          ],
-        });
-        return { ok: true };
+      // Independent Thinking: "Trash up to 5 of your installed cards. Draw 1
+      // card for each card trashed (or 2 ... if you trashed at least 1
+      // directive)." The Runner picks up to 5, they are trashed together
+      // (CR 9.12.2a), then the Runner draws through the draw procedure
+      // (CR 8.4.5).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: installedRunnerIds(state),
+            count: 5,
+            upTo: true,
+            purpose: "resume",
+            label: "trash",
+            resume: { kind: "trash_draw" },
+          }),
+        );
       }
-      const cands = installedRunnerIds(state);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...cands.map((id) => ({
-            id: `it:${id}`,
-            label: `Trash ${state.cards[id]!.title}`,
-            effect: fx.do({
-              kind: "dad_independent_thinking_continue",
-              trashed: [...trashed, id],
-              remainingPicks: action.remainingPicks - 1,
-            }),
-          })),
-          {
-            id: "it-done",
-            label: `Done (trashed ${trashed.length})`,
-            effect: fx.do({
-              kind: "dad_independent_thinking_finish",
-              trashed,
-            }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "dad_independent_thinking_finish": {
-      const trashed = action.trashed;
-      const hasDirective = trashed.some((id) =>
+      const picked = action.cardIds.filter((id) =>
+        state.runner.installed.includes(id),
+      );
+      const hasDirective = picked.some((id) =>
         (state.cards[id]?.subtypes ?? []).includes("directive"),
       );
-      const per = hasDirective ? 2 : 1;
-      const drawN = trashed.length * per;
-      for (let i = 0; i < drawN; i++) {
-        const id = state.runner.deck.shift();
-        if (!id) break;
-        state.runner.hand.push(id);
-        state.cards[id]!.zone = "runner:grip";
-      }
+      const trashed = picked.filter((id) => {
+        const before = state.cards[id]!.zone;
+        trashCard(state, id, { by: "runner", simultaneousSet: true });
+        return state.cards[id]?.zone !== before;
+      });
+      const draws = trashed.length * (hasDirective ? 2 : 1);
       log(
         state,
-        `Independent Thinking — trashed ${trashed.length}, draw ${drawN}.`,
+        `Independent Thinking — trashed ${trashed.length}, draw ${draws}.`,
       );
-      return { ok: true };
+      if (draws === 0) return { ok: true };
+      return evalEffect(ctx, fx.draw("runner", draws));
     }
 
     case "blank_installed_abilities": {
@@ -701,9 +639,17 @@ export function applyDadPrimitive(
     }
 
     case "boost_breakers_per_link": {
+      // Security Chip: "Choose an icebreaker (or any number of cloud
+      // icebreakers). Each chosen icebreaker has +1 strength for each [link]
+      // you have for the remainder of this run." The boost is a lingering
+      // effect that ends with the run (CR 9.10.1); its amount is the link
+      // when it resolves.
       const link = state.runner.link ?? 0;
+      // A facedown card has no characteristics, so it is no icebreaker
+      // (CR 8.1.4a).
       const breakers = installedRunnerIds(state).filter((id) => {
         const c = state.cards[id];
+        if (facedownInstalledRunnerCard(state, id)) return false;
         return (
           Boolean(c?.breaker) || (c?.subtypes ?? []).includes("icebreaker")
         );
@@ -711,19 +657,31 @@ export function applyDadPrimitive(
       const clouds = breakers.filter((id) =>
         (state.cards[id]?.subtypes ?? []).includes("cloud"),
       );
+      if (breakers.length === 0) {
+        log(state, `Security Chip — no icebreaker installed.`);
+        return { ok: true };
+      }
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
         options: [
-          ...(clouds.length
+          ...(clouds.length > 1
             ? [
                 {
-                  id: "sc-all-cloud",
-                  label: `Boost all cloud icebreakers +${link}`,
-                  effect: fx.do({
-                    kind: "boost_breakers",
-                    cardIds: clouds,
-                    amount: link,
+                  id: "sc-clouds",
+                  label: `Choose any number of cloud icebreakers: +${link} strength each`,
+                  effect: chooseCards({
+                    chooser: "runner",
+                    candidates: clouds,
+                    count: clouds.length,
+                    upTo: true,
+                    purpose: "resume",
+                    label: "boost",
+                    resume: {
+                      kind: "boost_breakers",
+                      cardIds: [],
+                      amount: link,
+                    },
                   }),
                 },
               ]
@@ -743,13 +701,18 @@ export function applyDadPrimitive(
     }
 
     case "boost_breakers": {
-      state.turn.dadBreakerStrengthBoosts =
-        state.turn.dadBreakerStrengthBoosts ?? {};
       for (const id of action.cardIds) {
-        state.turn.dadBreakerStrengthBoosts[id] =
-          (state.turn.dadBreakerStrengthBoosts[id] ?? 0) + action.amount;
+        addLingeringEffect(state, {
+          createdBy: sourceId,
+          duration: { kind: "run" },
+          kind: LINGERING_KIND_BREAKER_STRENGTH_RUN,
+          payload: { breakerId: id, amount: action.amount },
+        });
       }
-      log(state, `Security Chip — boost breakers by ${action.amount}.`);
+      log(
+        state,
+        `Security Chip — ${action.cardIds.length} icebreaker(s) +${action.amount} strength for the remainder of this run.`,
+      );
       return { ok: true };
     }
 

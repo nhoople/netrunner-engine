@@ -17,7 +17,7 @@ describe("order-and-chaos", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.27");
+      assertCardsPinnedTag("v1.147.28");
     });
 
     describe("Order and Chaos v1.108.0 set-complete", () => {
@@ -32,9 +32,9 @@ describe("order-and-chaos", () => {
         );
         expect(getCardDef("orion").rezCostReductionPerAdvancement).toBe(3);
         expect(getCardDef("fire-wall").strengthPerAdvancement).toBe(1);
-        expect(
-          getCardDef("the-board").agendaPointsModifierInRunnerScoreArea,
-        ).toBe(-1);
+        expect(getCardDef("the-board").runnerScoredAgendaPointsModifier).toBe(
+          -1,
+        );
         expect(
           getCardDef("valencia-estevez-the-angel-of-cayambe")
             .corpStartsWithBadPublicity,

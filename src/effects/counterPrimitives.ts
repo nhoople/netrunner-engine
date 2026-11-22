@@ -67,10 +67,17 @@ export function applyCounterPrimitive(
       return { ok: true };
     }
     case "add_agenda_counter": {
-      source.agendaCounters = (source.agendaCounters ?? 0) + action.amount;
+      // Titan Transnational: "place 1 agenda counter on it", the agenda
+      // just scored, not the identity (CR 1.2.1).
+      const agendaId = action.onTriggerAgenda
+        ? state.turn.lastScoredOrStolenAgendaId
+        : sourceId;
+      const target = agendaId ? state.cards[agendaId] : undefined;
+      if (!target) return { ok: true };
+      target.agendaCounters = (target.agendaCounters ?? 0) + action.amount;
       log(
         state,
-        `Add ${action.amount} agenda counter(s) to ${source.title} → ${source.agendaCounters}.`,
+        `Add ${action.amount} agenda counter(s) to ${target.title} → ${target.agendaCounters}.`,
       );
       return { ok: true };
     }

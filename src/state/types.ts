@@ -1897,7 +1897,7 @@ export interface CardInstance {
   runnerHandSizePenaltyPerPowerCounter?: number;
   runnerHandSizeBonus?: number;
   agendaPointsToWinModifierBoth?: number;
-  advancementRequirementReductionPerSameTitleAnywhere?: number;
+  advancementRequirementReductionPerScoredCopy?: number;
   cannotBeBypassed?: boolean;
   corpPlayCostIncreaseForRunnerEventsOps?: number;
   trashSelfWhenInstalledProgramTrashed?: boolean;
@@ -2635,6 +2635,8 @@ export interface CardInstance {
   daemonHostVirusProgramsOnly?: boolean;
   preventOneVirusPurgeOnHostedProgram?: boolean;
   muBonusOnlyForVirusPrograms?: boolean;
+  /** I've Had Worse: its trashed-from-grip ability is met only when net or meat damage trashes it. */
+  trashFromGripTriggerOnlyByNetOrMeatDamage?: boolean;
   archivesAccessMayRfgInstead?: { oncePerArchivesBreach: boolean };
   onPassRezzedIceProtectingThisServer?: Effect;
   playersCannotTrashThisIce?: boolean;
@@ -2648,6 +2650,8 @@ export interface CardInstance {
   agendaCounters?: number;
   /** +agenda points per hosted agenda counter (Beale). */
   agendaPointsPerAgendaCounter?: number;
+  /** Domestic Sleepers: worth this many more agenda points while it has at least 1 agenda counter. */
+  agendaPointsWhileHasAgendaCounter?: number;
   /** Ice cannot be broken by AI programs. */
   cannotBreakWithAi?: boolean;
   /** Ice cannot be broken by AI while advancements >= threshold (Hortum). */
@@ -2733,6 +2737,8 @@ export interface CardInstance {
   returnHostedIdentityToOutsideGameOnUninstall?: boolean;
   /** Let Them Dream: agenda points delta while in Runner score area. */
   agendaPointsModifierInRunnerScoreArea?: number;
+  /** The Board: while active, each agenda in the Runner's score area is worth this many more points. */
+  runnerScoredAgendaPointsModifier?: number;
   /** Editorial: first BP take each turn. */
   onFirstBadPublicityTakeEachTurn?: Effect;
   /**
@@ -3024,12 +3030,8 @@ export interface TurnBookkeeping {
   advertisementRezzedThisTurn: boolean;
   /** TL;DR: duplicate subs on next ice encounter this run/turn. */
   dadDuplicateSubsOnNextIceEncounter?: boolean;
-  /** Hunting Grounds: prevent when-encountered armed. */
-  dadPreventWhenEncounteredArmed?: boolean;
   /** Dr. Lovegood: card ids blanked this turn. */
   dadBlankedCardIds?: string[];
-  /** Security Chip: breaker strength boosts this run/turn. */
-  dadBreakerStrengthBoosts?: Record<string, number>;
   /** Jak Sinclair / Apex: cannot use programs this run. */
   dadCannotUseProgramsThisRun?: boolean;
   /** Wasteland counter: own installed trashes this turn. */
@@ -3682,7 +3684,10 @@ export interface TurnBookkeeping {
   /** The Runner has installed a card this turn (Housekeeping). */
   runnerInstalledCardThisTurn?: boolean;
   openingBadPublicityApplied?: boolean;
+  /** Edward Kim: the Runner has accessed an operation this turn. */
   firstAccessedOperationTrashedFreeThisTurn?: boolean;
+  /** Enhanced Login Protocol: the Runner took the basic run action this turn. */
+  runnerTookBasicRunActionThisTurn?: boolean;
   ignoredFirstIceInstallCostThisTurn?: boolean;
   /** Core (brain) damage points suffered this turn (Esâ-class triggers). */
   coreDamageSufferedThisTurn: number;
@@ -3907,6 +3912,11 @@ export interface TurnBookkeeping {
   runEventsPlayedThisTurn: number;
   /** Events played this turn (Touchstone first-event hosted credits). */
   eventsPlayedThisTurn: number;
+  /**
+   * The events the Runner played this turn. Three Steps Ahead's "When this
+   * turn ends" ability exists only for a copy played this turn (CR 9.6.13c).
+   */
+  eventIdsPlayedThisTurn?: string[];
   /** Sudden Commandment: mandates played this turn (including current). */
   mandatesPlayedThisTurn: number;
   /** First encounter this Runner turn used (Kit). */
@@ -4210,6 +4220,10 @@ export interface TurnBookkeeping {
   stickAndPokeUsedThisTurn: boolean;
   /** Null / Panchatantra: the once-per-turn encounter ability already fired. */
   encounterAnyIceHookFiredThisTurn?: boolean;
+  /** The damage trashing grip cards right now (I've Had Worse). */
+  gripTrashDamageType?: string;
+  /** Scrubbed: the Runner has encountered a piece of ice this turn. */
+  iceEncounteredThisTurn?: boolean;
   /** Maya: the once-per-turn R&D access finish already fired. */
   finishAccessRdHookFiredThisTurn?: boolean;
   /** Sipa: outermost full-break swap already used this turn. */
@@ -4735,8 +4749,18 @@ export interface RunState {
   reconJackOutOffered?: boolean;
   /** Compile: the first encounter of this run already offered the install. */
   compileFirstEncounterFired?: boolean;
-  /** Scrubbed: the first ice encountered this run. */
+  /**
+   * Scrubbed: the first piece of ice encountered this turn, when that
+   * encounter is in this run ("for the remainder of the run").
+   */
   firstEncounteredIceId?: string;
+  /** Eater broke a subroutine: no card can be accessed this run. */
+  cannotAccessCardsThisRun?: boolean;
+  /**
+   * Checkpoint: meat damage to do when this run becomes successful, a
+   * delayed ability created by the subroutine (CR 9.6.13c).
+   */
+  delayedMeatDamageOnSuccess?: Array<{ sourceId: string; amount: number }>;
   /** Port Anson Grid sources that already resolved on this jack out. */
   portAnsonResolvedSourceIds?: string[];
   /** Spear Phishing: bypass the innermost ice protecting the attacked server. */

@@ -1,8 +1,8 @@
 {
-  "tag": "v1.147.27",
+  "tag": "v1.147.28",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.27",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.27",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.28",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.28",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "runner/program",
     "runner/resource"
   ],
-  "notes": "Pair cards v1.147.27. PF-S3b sweep fixes for Creation and Control, Honor and Profit and Spin: paid ability windows (Himitsu-Bako, Snoop, Viktor 2.0), breakers (Alpha, Omega, Alias, Breach, Passport, Sharpshooter, Overmind), ice (Hive, Shinobi, Ichi 2.0, Zed 1.0, Ireress, Swarm, Susanoo-no-Mikoto, Howler), Corp cards (Chairman Hiro, Haas Arcology AI, Strongbox, Plan B, Toshiyuki Sakai, Sweeps Week, Cerebral Cast, Psychic Field, The Future Perfect) and Runner cards (Bug, LLDS Processor, Cybertrooper Talut, Omni-drive, Clone Chip, Same Old Thing, Early Bird, Frame Job, Executive Wiretaps, Oracle May, Tallie Perrault, Tri-Maf Contact, Rook, Knight, Escher) (#309). CR pin v26.03."
+  "notes": "Pair cards v1.147.28. PF-S3c sweep fixes for Lunar, Order and Chaos and Data and Destiny: paid ability windows (Cache, Cyberdex Virus Suite, IT Department, Mamba, Hades Shard, Utopia Shard), Architect installs without rezzing, Eliza's Toybox rezzes any card, LLDS Energy Regulator costs 3 credits or [trash], Unscheduled Maintenance is a Runner current, Shattered Remains and Wendigo can be advanced, Leprechaun hosts 2 programs, Domestic Sleepers, The Board, Improved Tracers, I've Had Worse, Titan Transnational, 15 Minutes, Patch, Sub Boost, Globalsec Security Clearance (looks), Hunting Grounds, Eden Shard's [trash], Medical Breakthrough counts scored copies only (#310). CR pin v26.03."
 }

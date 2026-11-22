@@ -1,21 +1,21 @@
 {
-  "cardsPin": "v1.147.27",
+  "cardsPin": "v1.147.28",
   "counts": {
-    "cardDefFlags": 600,
-    "cardDefBoolean": 332,
-    "cardDefNumber": 268,
-    "schemaProperties": 854,
+    "cardDefFlags": 603,
+    "cardDefBoolean": 333,
+    "cardDefNumber": 270,
+    "schemaProperties": 857,
     "schemaByType": {
       "$ref": 1,
       "any": 3,
       "array": 16,
-      "boolean": 331,
-      "integer": 267,
+      "boolean": 332,
+      "integer": 269,
       "object": 222,
       "oneOf": 1,
       "string": 13
     },
-    "entries": 863,
+    "entries": 866,
     "withKindBuildingReader": 51,
     "unread": 14,
     "unset": 18
@@ -909,7 +909,7 @@
       ],
       "kinds": []
     },
-    "advancementRequirementReductionPerSameTitleAnywhere": {
+    "advancementRequirementReductionPerScoredCopy": {
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
@@ -1164,12 +1164,11 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 4,
+      "cardCount": 3,
       "cards": [
         "global-food-initiative",
         "let-them-dream",
-        "merger",
-        "the-board"
+        "merger"
       ],
       "setVia": [
         "declaration"
@@ -1186,9 +1185,8 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 4,
+      "cardCount": 3,
       "cards": [
-        "domestic-sleepers",
         "market-research",
         "megaprix-qualifier",
         "project-beale"
@@ -1198,15 +1196,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#agendaPointsFor",
-          "kinds": []
-        },
-        {
-          "site": "src/state/scoring.ts#stealAgenda",
+          "site": "src/state/scoring.ts#agendaCounterPoints",
           "kinds": []
         }
       ],
@@ -1245,6 +1235,25 @@
       "readers": [
         {
           "site": "src/state/scoring.ts#checkWinConditions",
+          "kinds": []
+        }
+      ],
+      "kinds": []
+    },
+    "agendaPointsWhileHasAgendaCounter": {
+      "cardDef": "number",
+      "schema": "integer",
+      "flag": true,
+      "cardCount": 1,
+      "cards": [
+        "domestic-sleepers"
+      ],
+      "setVia": [
+        "declaration"
+      ],
+      "readers": [
+        {
+          "site": "src/state/scoring.ts#agendaCounterPoints",
           "kinds": []
         }
       ],
@@ -2258,7 +2267,7 @@
       "cardDef": "other",
       "schema": "oneOf",
       "flag": false,
-      "cardCount": 51,
+      "cardCount": 53,
       "setVia": [
         "declaration"
       ],
@@ -3422,7 +3431,7 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 14,
+      "cardCount": 15,
       "cards": [
         "another-day-another-paycheck",
         "corporate-grant",
@@ -3437,7 +3446,8 @@
         "scrubbed",
         "system-outage",
         "system-seizure",
-        "traffic-jam"
+        "traffic-jam",
+        "unscheduled-maintenance"
       ],
       "setVia": [
         "declaration"
@@ -3454,7 +3464,7 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 21,
+      "cardCount": 20,
       "cards": [
         "cerebral-static",
         "clones-are-not-people",
@@ -3475,8 +3485,7 @@
         "scarcity-of-resources",
         "service-outage",
         "surveillance-sweep",
-        "targeted-marketing",
-        "unscheduled-maintenance"
+        "targeted-marketing"
       ],
       "setVia": [
         "declaration"
@@ -3524,6 +3533,10 @@
         },
         {
           "site": "src/legality/candidateClicks.ts#addClickActions",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turn.ts#memoryNeededToInstall",
           "kinds": []
         },
         {
@@ -3583,11 +3596,10 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 4,
+      "cardCount": 3,
       "cards": [
         "dhegdheer",
         "djinn",
-        "leprechaun",
         "progenitor"
       ],
       "setVia": [
@@ -3741,7 +3753,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/staticFlags.ts#onRunnerTurnEnds",
+          "site": "src/timing/graph.ts#STEPS.onResolve",
           "kinds": []
         }
       ],
@@ -4179,7 +4191,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/access.ts#advanceFromMidAccess",
           "kinds": []
         }
       ],
@@ -4947,7 +4959,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
+          "site": "src/state/trashHooks.ts#noteRunnerTrashedOwnInstalledCard",
           "kinds": []
         },
         {
@@ -5027,11 +5039,8 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
-          "kinds": [],
-          "mirrors": [
-            "src/effects/primitives/gainMoveMark.ts#{}"
-          ]
+          "site": "src/state/costs.ts#noteCorpSpentAgendaCounters",
+          "kinds": []
         }
       ],
       "kinds": []
@@ -6156,6 +6165,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "kinds": []
+        },
+        {
           "site": "src/state/turn.ts#programMemoryCosts",
           "kinds": []
         }
@@ -6177,6 +6190,10 @@
       "readers": [
         {
           "site": "src/actions/installRunner.ts#installRunner",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turn.ts#memoryNeededToInstall",
           "kinds": []
         },
         {
@@ -6526,10 +6543,9 @@
       "cardDef": "other",
       "schema": "object",
       "flag": false,
-      "cardCount": 2,
+      "cardCount": 1,
       "cards": [
-        "haas-bioroid-stronger-together",
-        "improved-tracers"
+        "haas-bioroid-stronger-together"
       ],
       "setVia": [
         "declaration"
@@ -8002,7 +8018,7 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 13,
+      "cardCount": 14,
       "cards": [
         "baba-yaga",
         "bookmark",
@@ -8012,6 +8028,7 @@
         "flame-out",
         "full-immersion-recstudio",
         "glenn-station",
+        "leprechaun",
         "netchip",
         "progenitor",
         "read-write-share",
@@ -9034,15 +9051,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/turn.ts#caissaMuBonusAvailable",
-          "kinds": []
-        },
-        {
           "site": "src/state/turn.ts#memoryLimit",
           "kinds": []
         },
         {
-          "site": "src/state/turn.ts#programMemoryCosts",
+          "site": "src/state/turn.ts#restrictedMuBonusAvailable",
           "kinds": []
         }
       ],
@@ -9067,6 +9080,10 @@
         {
           "site": "src/state/turn.ts#memoryLimit",
           "kinds": []
+        },
+        {
+          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "kinds": []
         }
       ],
       "kinds": []
@@ -9084,6 +9101,14 @@
         "declaration"
       ],
       "readers": [
+        {
+          "site": "src/state/turn.ts#memoryLimit",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turn.ts#memoryNeededToInstall",
+          "kinds": []
+        },
         {
           "site": "src/state/turn.ts#programMemoryCosts",
           "kinds": []
@@ -13709,7 +13734,7 @@
       "cardDef": "other",
       "schema": "array",
       "flag": false,
-      "cardCount": 463,
+      "cardCount": 464,
       "setVia": [],
       "readers": [
         {
@@ -13789,10 +13814,6 @@
         },
         {
           "site": "src/state/expose.ts#hasPayableExposeInterrupt",
-          "kinds": []
-        },
-        {
-          "site": "src/state/firstClickMust.ts#actionMeetsFirstClickMust",
           "kinds": []
         },
         {
@@ -17776,7 +17797,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/clickHooks.ts#noteRunnerClickLose",
+          "site": "src/state/clickHooks.ts#noteRunnerClickDuringRun",
           "kinds": []
         }
       ],
@@ -17796,6 +17817,25 @@
       "readers": [
         {
           "site": "src/state/trashHooks.ts#fireRonaldFiveOnCorpTrash",
+          "kinds": []
+        }
+      ],
+      "kinds": []
+    },
+    "runnerScoredAgendaPointsModifier": {
+      "cardDef": "number",
+      "schema": "integer",
+      "flag": true,
+      "cardCount": 1,
+      "cards": [
+        "the-board"
+      ],
+      "setVia": [
+        "declaration"
+      ],
+      "readers": [
+        {
+          "site": "src/state/scoring.ts#runnerScoredAgendaPointsModifier",
           "kinds": []
         }
       ],
@@ -18351,6 +18391,10 @@
         },
         {
           "site": "src/state/costs.ts#hostedInstallSpendCards",
+          "kinds": []
+        },
+        {
+          "site": "src/state/costs.ts#noteCorpSpentAgendaCounters",
           "kinds": []
         },
         {
@@ -19568,6 +19612,10 @@
         {
           "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
           "kinds": []
+        },
+        {
+          "site": "src/state/staticFlags.ts#traceBaseBonus",
+          "kinds": []
         }
       ],
       "kinds": []
@@ -19759,11 +19807,11 @@
           "kinds": []
         },
         {
-          "site": "src/timing/graph.ts#clearTldrSubroutineCopies",
+          "site": "src/timing/graph.ts#grantTldrSubroutineCopies",
           "kinds": []
         },
         {
-          "site": "src/timing/graph.ts#grantTldrSubroutineCopies",
+          "site": "src/timing/graph.ts#removeTldrSubroutineCopies",
           "kinds": []
         },
         {
@@ -20464,6 +20512,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/turn.ts#memoryNeededToInstall.matches",
+          "kinds": []
+        },
+        {
           "site": "src/state/turn.ts#programMemoryCosts",
           "kinds": []
         },
@@ -20477,10 +20529,6 @@
         },
         {
           "site": "src/timing/graph.ts#sweepDerezAtAnyTurnEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/timing/vacuousBreak.ts#noteVacuousFullBreak",
           "kinds": []
         }
       ],
@@ -21483,10 +21531,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#trashRunnerProgramChoose",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/searchRevealTrash.ts#applySansanValPrimitive",
           "kinds": []
         },
@@ -21568,10 +21612,6 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#offerSubroutineInsertChoice",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveTrace.ts#trashRunnerHardwareChoose",
           "kinds": []
         },
         {
@@ -22103,7 +22143,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/clickHooks.ts#noteRunnerClickLose",
+          "site": "src/state/clickHooks.ts#noteRunnerClickDuringRun",
           "kinds": []
         },
         {
@@ -22140,6 +22180,10 @@
         },
         {
           "site": "src/state/costs.ts#forfeitAgendaAsCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/costs.ts#noteCorpSpentAgendaCounters",
           "kinds": []
         },
         {
@@ -22675,6 +22719,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/trashHooks.ts#noteRunnerTrashedOwnInstalledCard",
+          "kinds": []
+        },
+        {
           "site": "src/state/trashHooks.ts#offerSkorpiosRfgInsteadOfHeap",
           "kinds": []
         },
@@ -22921,6 +22969,25 @@
       "readers": [
         {
           "site": "src/cards/stubs.ts#runnerTrashCostForCard",
+          "kinds": []
+        }
+      ],
+      "kinds": []
+    },
+    "trashFromGripTriggerOnlyByNetOrMeatDamage": {
+      "cardDef": "boolean",
+      "schema": "boolean",
+      "flag": true,
+      "cardCount": 1,
+      "cards": [
+        "ive-had-worse"
+      ],
+      "setVia": [
+        "declaration"
+      ],
+      "readers": [
+        {
+          "site": "src/state/trashHooks.ts#fireOnTrashFromGripOrStack",
           "kinds": []
         }
       ],
@@ -23927,10 +23994,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#trashRunnerProgramChoose",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/searchRevealTrash.ts#applySansanValPrimitive",
           "kinds": []
         },
@@ -24000,10 +24063,6 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveTrace.ts#runnerHardwareIds",
           "kinds": []
         },
         {
@@ -24307,6 +24366,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/runnerTurnEndHooks.ts#noteOnRunnerTurnEnd",
+          "kinds": []
+        },
+        {
           "site": "src/state/scoring.ts#canScoreAgenda",
           "kinds": []
         },
@@ -24359,6 +24422,10 @@
         },
         {
           "site": "src/state/trashPrevent.ts#trashInterruptRelevantToCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/turn.ts#memoryNeededToInstall",
           "kinds": []
         },
         {
@@ -24536,9 +24603,10 @@
       "cardDef": "other",
       "schema": "object",
       "flag": false,
-      "cardCount": 2,
+      "cardCount": 3,
       "cards": [
         "encrypted-portals",
+        "improved-tracers",
         "superior-cyberwalls"
       ],
       "setVia": [

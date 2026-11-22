@@ -268,10 +268,9 @@
       "zone": 7
     },
     "src/effects/primitives/gainMoveMark.ts": {
-      "deck": 1,
-      "hand": 3,
+      "hand": 2,
       "rezzed": 1,
-      "zone": 3
+      "zone": 2
     },
     "src/effects/primitives/givePayTrash.ts": {
       "discardPile": 1,
@@ -320,11 +319,10 @@
     },
     "src/effects/primitives/playDrawSearch.ts": {
       "deck": 7,
-      "hand": 2,
       "installed": 2,
       "rezzed": 2,
       "root": 1,
-      "zone": 6
+      "zone": 4
     },
     "src/effects/primitives/preventGainSpend.ts": {
       "deck": 3,
@@ -348,9 +346,9 @@
       "zone": 5
     },
     "src/effects/primitives/preventSpendTrash.ts": {
-      "deck": 4,
-      "hand": 2,
-      "zone": 2
+      "deck": 3,
+      "hand": 1,
+      "zone": 1
     },
     "src/effects/primitives/redirectSpendName.ts": {
       "deck": 2,
@@ -524,11 +522,6 @@
       "root": 2,
       "scoreArea": 6,
       "zone": 3
-    },
-    "src/state/staticFlags.ts": {
-      "deck": 1,
-      "hand": 1,
-      "zone": 1
     },
     "src/state/zones.ts": {
       "zone": 2
