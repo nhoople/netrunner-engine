@@ -10,6 +10,15 @@ export function noteOnRunnerTurnEnd(state: GameState, cardId: string): void {
   const card = state.cards[cardId];
   if (!card?.onRunnerTurnEnd) return;
   if (abilitiesSuppressed(state, cardId)) return;
+  // An event's "When this turn ends" is a delayed ability its resolution
+  // creates (Three Steps Ahead): a copy discarded unplayed, or played on an
+  // earlier turn, has none (CR 9.6.13c, 1.8.4a).
+  if (
+    card.type === "event" &&
+    !(state.turn.eventIdsPlayedThisTurn ?? []).includes(cardId)
+  ) {
+    return;
+  }
   if (!state.turn.runnerTurnEndPendingIds) {
     state.turn.runnerTurnEndPendingIds = [];
   }

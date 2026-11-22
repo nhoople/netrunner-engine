@@ -8,6 +8,7 @@ import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { allSubroutinesBrokenByRunner } from "../state/procedures/break.js";
+import { effectiveIceSubtypes } from "../cards/stubs.js";
 
 export function noteVacuousFullBreak(state: GameState): void {
   const run = state.run;
@@ -27,7 +28,8 @@ export function noteVacuousFullBreak(state: GameState): void {
   const subtype = run.trashFirstFullyBrokenSubtype;
   if (!subtype || run.trashFirstFullyBrokenSubtypeUsed) return;
   if (!ice?.rezzed) return;
-  const matches = (ice.subtypes ?? []).some(
+  // The ice's current subtypes, gained ones included (Sub Boost's barrier).
+  const matches = effectiveIceSubtypes(state, enc.iceId).some(
     (name) => name.toLowerCase() === subtype.toLowerCase(),
   );
   if (!matches) return;

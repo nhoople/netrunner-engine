@@ -435,21 +435,6 @@
   },
   {
     "batch": "cr-examples-ch6",
-    "case": "6.3.4.ex1#b",
-    "observations": [
-      {
-        "key": "::runner.credits",
-        "expected": 0,
-        "engine": 5
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "6.3.4",
-    "note": "A click lost to break Eli 1.0 during the run is lost during a run on Heinlein Grid's server. The bioroid break does not report the lost click, so the Runner keeps their credits.",
-    "area": "area 14"
-  },
-  {
-    "batch": "cr-examples-ch6",
     "case": "6.5.9a.ex1",
     "observations": [
       {
@@ -578,19 +563,9 @@
     "case": "7.3.6.ex1",
     "observations": [
       {
-        "key": "hades::zone(Hedge Fund)",
-        "expected": "removed",
-        "engine": "archives"
-      },
-      {
-        "key": "hades::zone(Hades Shard)",
-        "expected": "heap",
-        "engine": "rig"
-      },
-      {
         "key": "run-over::runner.credits",
         "expected": 8,
-        "engine": 6
+        "engine": 5
       },
       {
         "key": "run-over::accessed",
@@ -600,14 +575,15 @@
           "Ice Wall"
         ],
         "engine": [
-          "Ice Wall"
+          "PAD Campaign",
+          "Enigma"
         ]
       }
     ],
     "verdict": "engine-wrong",
-    "rule": "9.5.2f",
-    "note": "Hades Shard's trash ability has no timing limit and can be used in a paid ability window during a run. The card model does not offer it in the initiation window, so the breach of Archives never happens.",
-    "area": "area 11"
+    "rule": "7.3.1",
+    "note": "Hades Shard's [trash] is now open in every paid ability window (PF-S3c), so it is used and Hedge Fund leaves the game. breach_archives then turns the run into a run on Archives instead of breaching Archives now, so the run's own breach of its server never happens.",
+    "area": "area 8"
   },
   {
     "batch": "cr-examples-ch7",
@@ -1094,21 +1070,6 @@
     "rule": "9.2.9c",
     "area": "fidelity",
     "note": "In an interrupt window the active player has priority first, and The Cleaners' printed ability is a conditional interrupt the Corp uses when it has priority. The engine applies its +1 as the window opens, so the damage is 3, two Plascrete Carapace counters leave 1, Guru Davinder then prevents 1 and its second ability triggers. By the example the Runner removes the damage first and Guru Davinder stays"
-  },
-  {
-    "batch": "cr-examples-ch9",
-    "case": "9.11.4e.ex1",
-    "observations": [
-      {
-        "key": "first-sub::rezzed(PAD Campaign)",
-        "expected": false,
-        "engine": true
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "1.2.1",
-    "area": "area 5",
-    "note": "Architect's first subroutine installs 1 of the cards, ignoring the install cost. The engine also rezzes it for free (its option reads 'Install and rez ... ignoring costs')"
   },
   {
     "batch": "cr-examples-ch9",

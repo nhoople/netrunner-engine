@@ -21,6 +21,11 @@ export function applyRunAccessRestrictions(state: GameState): void {
     const forbid = new Set(state.turn.cannotAccessCardIdsThisTurn);
     cands = cands.filter((id) => !forbid.has(id));
   }
+  // Eater broke a subroutine this run: no card can be accessed.
+  if (run.cannotAccessCardsThisRun) {
+    cands = [];
+    run.randomAccessLimit = 0;
+  }
   run.accessCandidates = cands;
   applyMaxAccessOtherThanSelf(state);
   if (

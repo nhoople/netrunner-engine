@@ -3,15 +3,19 @@ import { revealCards } from "../../state/reveal.js";
 import { loadCardCatalog } from "../../cards/load.js";
 import { log } from "../../state/createGame.js";
 import { autoResolveTrace } from "../../state/trace.js";
-import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import type { RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { chooseCards } from "../chooseCards.js";
-import { evalEffect, shuffleCorpRdAfterSearch } from "../eval.js";
+import {
+  applyPrimitive,
+  evalEffect,
+  shuffleCorpRdAfterSearch,
+} from "../eval.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -264,7 +268,8 @@ export function applyLunarTsbPrimitive(
           },
           {
             id: "trash",
-            label: "Trash Will-o'-the-Wisp and trash a breaker used this run",
+            label:
+              "Trash Will-o'-the-Wisp: an icebreaker used this run goes to the bottom of the stack",
             effect: fx.do({ kind: "resolve_will_o_wisp" }),
           },
         ],
@@ -272,31 +277,41 @@ export function applyLunarTsbPrimitive(
       return { ok: true };
     }
     case "resolve_will_o_wisp": {
-      // Printed: trash this upgrade; trash 1 breaker used this run (CR 1.2.1).
-      const used = (state.run?.breakersThatBroke ?? []).filter((id) =>
-        state.runner.installed.includes(id),
-      );
-      if (used.length === 0) {
-        log(state, `Will-o'-the-Wisp — no breaker used.`);
+      // "You may trash this upgrade. If you do, choose 1 installed
+      // icebreaker that was used to break at least 1 subroutine during this
+      // run. The Runner adds that icebreaker to the bottom of the stack."
+      // The trash comes first; with no such icebreaker it is still trashed
+      // (CR 1.2.1).
+      const up = state.cards[sourceId];
+      if (!up?.zone.startsWith("server:")) {
+        log(
+          state,
+          `Will-o'-the-Wisp is no longer installed, so it cannot be trashed.`,
+        );
         return { ok: true };
       }
-      const trashSelf = () => {
-        const up = state.cards[sourceId];
-        if (!up || !up.zone.startsWith("server:")) return;
-        trashCard(state, sourceId, { by: "corp" });
-      };
-      if (used.length === 1) {
-        trashCard(state, used[0]!);
-        trashSelf();
-        log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
+      trashCard(state, sourceId, { by: "corp" });
+      const used = (state.run?.breakersThatBroke ?? []).filter(
+        (id) =>
+          state.runner.installed.includes(id) &&
+          (state.cards[id]?.subtypes ?? []).includes("icebreaker"),
+      );
+      if (used.length === 0) {
+        log(state, `Will-o'-the-Wisp — no icebreaker was used this run.`);
         return { ok: true };
+      }
+      if (used.length === 1) {
+        return applyPrimitive(ctx, {
+          kind: "resolve_will_o_wisp_breaker",
+          cardId: used[0]!,
+        });
       }
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options: used.map((id) => ({
           id: `wow-breaker:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
+          label: `${state.cards[id]!.title} to the bottom of the stack`,
           effect: fx.do({
             kind: "resolve_will_o_wisp_breaker",
             cardId: id,
@@ -308,14 +323,11 @@ export function applyLunarTsbPrimitive(
     case "resolve_will_o_wisp_breaker": {
       const cardId = (action as { cardId: string }).cardId;
       if (state.runner.installed.includes(cardId)) {
-        trashCard(state, cardId);
-      }
-      const up = state.cards[sourceId];
-      if (up) {
-        if (up.zone.startsWith("server:")) {
-          trashCard(state, sourceId, { by: "corp" });
-        }
-        log(state, `Will-o'-the-Wisp trashed; breaker trashed.`);
+        uninstallCard(state, cardId, "deck-bottom");
+        log(
+          state,
+          `Will-o'-the-Wisp — the Runner adds ${state.cards[cardId]!.title} to the bottom of the stack.`,
+        );
       }
       return { ok: true };
     }
@@ -330,13 +342,6 @@ export function applyLunarTsbPrimitive(
           `Three Steps Ahead — gain ${gain}¢ (${runs} successful runs).`,
         );
       }
-      return { ok: true };
-    }
-    case "prevent_llds_trash_hardware": {
-      // Printed: prevent a player from trashing 1 installed hardware (CR 1.2.1).
-      // Cost (3¢ or trash) is paid by the ability; this leaf clears the interrupt.
-      preventPendingInstalledTrash(state);
-      log(state, `LLDS Energy Regulator — prevent trash of hardware.`);
       return { ok: true };
     }
     default:

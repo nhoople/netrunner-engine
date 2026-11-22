@@ -89,9 +89,14 @@ export function noteTargetedMarketing(
   }
 }
 
-/** Enhanced Login Protocol spends a click to initiate the run (CR 6.3.4). */
+/**
+ * Enhanced Login Protocol: "As an additional cost to take the basic action
+ * to run a server for the first time each turn, the Runner must spend
+ * [click]." Only basic-action runs count: a run event made first does not
+ * use it up (CR 1.2.1).
+ */
 export function enhancedLoginProtocolClick(state: GameState): boolean {
-  if (state.turn.runnerMadeRunThisTurn) return false;
+  if (state.turn.runnerTookBasicRunActionThisTurn) return false;
   return activeCorpCurrentIds(state).some(
     (id) => state.cards[id]?.title === "Enhanced Login Protocol",
   );

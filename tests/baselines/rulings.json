@@ -1,6 +1,6 @@
 {
   "_comment": "Shrink-only baseline for tests/rulings.test.ts (CR audit tool 1.14). Recorded 2026-11-20 at cards v1.147.25: rulings (card#n, numbered in file order) that no it() title in tests/rulings-*.test.ts cites. `uncited` lists them by card type for later batches, the type with the most rulings first; `unreachable` holds rulings no supported card can reach, with a dated reason. First batch (identities, P1-m): 33 rulings cited, 5 of them filed as findings. Second batch (P1-m, 2026-11-20): 20 identity, 43 event and 34 ice rulings cited, 29 of them filed; ob-superheavy#18 and into-the-depths#4 left for a later batch. Third batch (P1-m, 2026-11-20): 34 resource, 29 program and 22 hardware rulings cited, 24 of them filed; endurance#1 is about the card's art. Fourth batch (P1-m, 2026-11-21): 17 asset, 13 agenda, 13 operation and 13 upgrade rulings, ob-superheavy#18 and into-the-depths#4: 54 cited, 18 of them filed (and the order half of predictive-planogram#1); the 4 left are unreachable, so every reachable ruling is cited.",
-  "cardsTag": "v1.147.27",
+  "cardsTag": "v1.147.28",
   "unreachable": {
     "ob-superheavy-logistics-extract-export-excel#20": "2026-11-20: a question about the card's art (the ships it shows), with no game behavior to test",
     "endurance#1": "2026-11-20: a question about the size of the ship in the card's art, with no game behavior to test",

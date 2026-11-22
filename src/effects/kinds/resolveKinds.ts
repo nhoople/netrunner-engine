@@ -12,7 +12,7 @@ import { stealAgenda } from "../../state/scoring.js";
 import {
   memoryLimit,
   usedMemory,
-  effectiveMemoryCost,
+  memoryNeededToInstall,
 } from "../../state/turn.js";
 import { enterSetAside } from "../../state/zones.js";
 import { resolveBreachReplacement } from "../../timing/breachReplacement.js";
@@ -69,7 +69,7 @@ export function applyResolveKinds(
       const installable = aside.filter((id) => {
         const c = state.cards[id]!;
         if (c.type === "program") {
-          const need = effectiveMemoryCost(state, id);
+          const need = memoryNeededToInstall(state, id);
           if (usedMemory(state) + need > memoryLimit(state)) return false;
           return (
             state.runner.credits >= Math.max(0, (c.installCost ?? 0) - discount)

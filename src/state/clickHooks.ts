@@ -55,10 +55,14 @@ export function noteRunnerClickSpend(state: GameState): void {
   state.turn.sundewRefundServerIdsThisAction = [];
   maybeFireSundewOnClickSpend(state);
   maybeFireSeidrOnClickSpendOrLose(state);
+  noteRunnerClickDuringRun(state);
 }
 
-/** Call when the Runner loses a click (not a spend) during a run. */
-export function noteRunnerClickLose(state: GameState): void {
+/**
+ * Heinlein Grid: "Whenever the Runner loses or spends [click] during a run on
+ * this server, they lose all credits in their credit pool."
+ */
+export function noteRunnerClickDuringRun(state: GameState): void {
   const serverId = state.run?.attackedServerId;
   const server = serverId ? state.servers[serverId] : undefined;
   if (server) {
@@ -74,10 +78,15 @@ export function noteRunnerClickLose(state: GameState): void {
       emptyRunnerCreditPool(state);
       log(
         state,
-        `${card.title} — Runner loses all credits (lost a click during a run on this server).`,
+        `${card.title} — Runner loses all credits (lost or spent a click during a run on this server).`,
       );
     }
   }
+}
+
+/** Call when the Runner loses a click (not a spend) during a run. */
+export function noteRunnerClickLose(state: GameState): void {
+  noteRunnerClickDuringRun(state);
   maybeFireSeidrOnClickSpendOrLose(state);
   fireRunnerValTrigger(
     state,

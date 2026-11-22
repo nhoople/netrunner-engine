@@ -32,7 +32,7 @@ describe("CR 9.3 ability records", () => {
     if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
     if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
     assertPinnedTag("v26.03");
-    assertCardsPinnedTag("v1.147.27");
+    assertCardsPinnedTag("v1.147.28");
   });
 
   it("round-trips a conditional trigger to its hook", () => {
@@ -445,7 +445,7 @@ describe("CR 9.3 ability records", () => {
           windows: ["when_encountered_interrupt"],
           instructions: {
             op: "do",
-            action: { kind: "prevent_pending_when_encountered" },
+            action: { kind: "prevent_current_ice_on_encounter" },
           },
         },
       ],

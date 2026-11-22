@@ -9,7 +9,10 @@ import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive, SideRef } from "./ir.js";
 import { fireRunnerValTrigger } from "./sansanValHooks.js";
-import { maybeFireSeidrOnClickSpendOrLose } from "../state/clickHooks.js";
+import {
+  maybeFireSeidrOnClickSpendOrLose,
+  noteRunnerClickDuringRun,
+} from "../state/clickHooks.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -32,6 +35,7 @@ export function applyClickPrimitive(
       const lost = Math.min(action.amount, p.clicks);
       p.clicks -= lost;
       if (side === "runner" && lost > 0) {
+        noteRunnerClickDuringRun(state);
         maybeFireSeidrOnClickSpendOrLose(state);
         fireRunnerValTrigger(
           state,

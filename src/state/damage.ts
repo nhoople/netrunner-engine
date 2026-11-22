@@ -654,10 +654,12 @@ function sufferPickedDamage(
   const lethal = amount > state.runner.hand.length;
   if (lethal) state.turn.lethalDamageSkippingTrashTriggers = true;
   beginGripOrStackTrashBatch(state);
+  state.turn.gripTrashDamageType = type;
   for (const id of picks) {
     trashToHeap(state, id);
   }
   endGripOrStackTrashBatch(state);
+  state.turn.gripTrashDamageType = undefined;
   if (lethal) state.turn.lethalDamageSkippingTrashTriggers = false;
   const trashed = picks.length;
   left -= trashed;

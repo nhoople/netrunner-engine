@@ -120,7 +120,12 @@ export function applyLookKinds(
       return { ok: true };
     }
 
+    case "look_top_n_rd_may_install_ignore_install_cost":
     case "look_top_n_rd_may_install_and_rez_ignore_costs": {
+      // Architect: "Look at the top 5 cards of R&D. You may install 1 of
+      // those cards, ignoring the install cost": install only, no rez.
+      const rez =
+        action.kind === "look_top_n_rd_may_install_and_rez_ignore_costs";
       const n = action.n ?? 1;
       if (state.turn.rdLookedCards.length > 0) {
         return {
@@ -162,21 +167,29 @@ export function applyLookKinds(
           },
           ...installable.map((id) => {
             const t = state.cards[id]!.type;
-            const rezBit = t === "agenda" ? "" : " and rez";
+            const rezBit = !rez || t === "agenda" ? "" : " and rez";
             return {
               id: `rd-look-install-rez:${id}`,
-              label: `Install${rezBit} ${state.cards[id]!.title} ignoring costs`,
+              label: rez
+                ? `Install${rezBit} ${state.cards[id]!.title} ignoring costs`
+                : `Install ${state.cards[id]!.title} ignoring the install cost`,
               effect: {
                 op: "do" as const,
                 action: {
                   kind: "install_rez_rd_looked_card_ignore_costs" as const,
                   cardId: id,
+                  ...(rez ? {} : { rez: false }),
                 },
               },
             };
           }),
         ],
-        logLine: `May install and rez one looked R&D card ignoring all costs.`,
+        // How many looked cards are offered would tell the Runner how many
+        // are operations (CR 10.2.2a).
+        optionCountHidden: true,
+        logLine: rez
+          ? `May install and rez one looked R&D card ignoring all costs.`
+          : `May install one looked R&D card ignoring the install cost.`,
       });
       return { ok: true };
     }

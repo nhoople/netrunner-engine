@@ -210,7 +210,10 @@ import {
 } from "../state/currents.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
 import { noteRunnerClickLose } from "../state/clickHooks.js";
-import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
+import {
+  computeRunnerMaxHandSize,
+  recomputeRunnerMaxHandSize,
+} from "../state/handSize.js";
 import {
   cancelPendingIfSourceInactive,
   closeReactionWindow,
@@ -247,8 +250,17 @@ function grantTldrSubroutineCopies(state: GameState, iceId: string): void {
   );
 }
 
+/** TL;DR's arming lasts the run; when the run ends it is gone too. */
 function clearTldrSubroutineCopies(state: GameState): void {
   state.turn.dadDuplicateSubsOnNextIceEncounter = false;
+  removeTldrSubroutineCopies(state);
+}
+
+/**
+ * TL;DR's copies last "for the remainder of that encounter" (CR 9.10.1), so
+ * a second encounter with the same ice this run (The Twins) has none.
+ */
+function removeTldrSubroutineCopies(state: GameState): void {
   for (const card of Object.values(state.cards)) {
     if (!card.subroutines?.some((sub) => sub.id.endsWith(TLDR_COPY_SUFFIX))) {
       continue;
@@ -1660,6 +1672,21 @@ export const STEPS: Record<string, TimingStepDef> = {
     {
       onResolve: (s) => {
         onRunnerTurnEnds(s);
+        // Safety First: "When your turn ends, draw 1 card if you do not have
+        // cards in your grip equal to or greater than your maximum hand
+        // size." A draw, through the draw procedure (CR 8.4.5).
+        for (const id of [...s.runner.installed]) {
+          if (abilitiesSuppressed(s, id)) continue;
+          const card = s.cards[id];
+          const n = card?.drawAtTurnEndIfGripBelowMaxHandSize ?? 0;
+          if (n <= 0) continue;
+          if (s.runner.hand.length >= computeRunnerMaxHandSize(s)) continue;
+          s.log.push(`${card!.title} — draw ${n} (grip below max hand size).`);
+          evalEffect(
+            { state: s, sourceId: id },
+            { op: "do", action: { kind: "draw", side: "runner", amount: n } },
+          );
+        }
         // A lingering effect that returns a program to the stack at the end of the turn
         // (Test Run). It no longer depends on the event that created it (CR 8.6.4).
         for (const id of [...s.runner.installed]) {
@@ -3991,6 +4018,7 @@ export const STEPS: Record<string, TimingStepDef> = {
         // subroutinesResolved / ice subtypes from run.encounter — CR 10.3.1a).
         checkpointAfterInstruction(s, "run.movement");
         clearEncounterOutsidePlayMark(s, runState.encounter?.iceId);
+        removeTldrSubroutineCopies(s);
         // Banner / VSA encounter-scoped flags clear with encounter teardown.
         s.run!.encounter = null;
         s.run!.usedAbilitiesThisEncounter = [];
@@ -4351,6 +4379,23 @@ export const STEPS: Record<string, TimingStepDef> = {
               `${card.title} — remove 1 power counter (successful run) → ${card.powerCounters}.`,
             );
           }
+          // Checkpoint: the delayed meat damage of a successful trace
+          // resolves now (CR 9.6.13c).
+          for (const delayed of s.run!.delayedMeatDamageOnSuccess ?? []) {
+            noteInlineConditional(s, {
+              cardId: delayed.sourceId,
+              abilityKey: "delayed-meat-on-successful-run",
+              controller: "corp",
+              mandatory: true,
+              effect: {
+                op: "do",
+                action: { kind: "meat_damage", amount: delayed.amount },
+              },
+              logLine: `${s.cards[delayed.sourceId]?.title ?? delayed.sourceId}'s delayed ability becomes pending — the run is successful.`,
+              independentOfSource: true,
+            });
+          }
+          s.run!.delayedMeatDamageOnSuccess = [];
           // Bandwidth: remove tags granted this run if successful.
           {
             const n = s.run!.bandwidthTagsToRemoveOnSuccess ?? 0;

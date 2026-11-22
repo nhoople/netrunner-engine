@@ -33,7 +33,11 @@ import {
   effectiveAdvancementRequirement,
 } from "../state/scoring.js";
 import { enterSetAside } from "../state/zones.js";
-import { memoryLimit, usedMemory, effectiveMemoryCost } from "../state/turn.js";
+import {
+  memoryLimit,
+  memoryNeededToInstall,
+  usedMemory,
+} from "../state/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import {
@@ -832,7 +836,7 @@ export function finishMuseInstall(
   const hostOnDaemon =
     hostId !== undefined && Boolean(state.cards[hostId]?.daemonHost);
   if (!onIce && !hostOnDaemon && card.type === "program") {
-    const need = effectiveMemoryCost(state, cardId);
+    const need = memoryNeededToInstall(state, cardId);
     if (usedMemory(state) + need > memoryLimit(state)) {
       log(state, `Muse — insufficient MU for ${card.title}.`);
       if (from === "stack") shuffleRunnerStack(state);

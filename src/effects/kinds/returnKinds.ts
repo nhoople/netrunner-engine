@@ -7,6 +7,7 @@ import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import {
+  agendaCounterPoints,
   removeCardFromCurrentZone,
   checkWinConditions,
 } from "../../state/scoring.js";
@@ -379,9 +380,7 @@ export function applyReturnKinds(
         card.worthZeroAgendaPointsWhileHasAgendaCounters &&
         (card.agendaCounters ?? 0) >= 1
           ? 0
-          : (card.agendaPoints ?? 0) +
-            (card.agendaPointsPerAgendaCounter ?? 0) *
-              (card.agendaCounters ?? 0);
+          : (card.agendaPoints ?? 0) + agendaCounterPoints(card);
       state.runner.scoreArea = state.runner.scoreArea.filter(
         (id) => id !== cardId,
       );

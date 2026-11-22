@@ -6,7 +6,7 @@ import { dealDamage } from "../../state/damage.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { syncCorpHandSizeSubroutines } from "../../state/handSizeSubroutines.js";
 import type { RuleCite } from "../../state/types.js";
-import type { EffectCtx } from "../eval.js";
+import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
@@ -14,32 +14,6 @@ import { discardCard, trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashRunnerProgramChoose(ctx: EffectCtx, label: string): PrimResult {
-  const { state, sourceId } = ctx;
-  const programs = state.runner.installed.filter(
-    (id) => state.cards[id]?.type === "program",
-  );
-  if (programs.length === 0) {
-    log(state, `${label} — no Runner programs to trash.`);
-    return { ok: true };
-  }
-  if (programs.length === 1) {
-    trashCard(state, programs[0]!);
-    log(state, `${label} — trash ${state.cards[programs[0]!]!.title}.`);
-    return { ok: true };
-  }
-  openPendingChoose(state, {
-    sourceId,
-    chooser: "corp",
-    options: programs.map((id) => ({
-      id: `trash-prog:${id}`,
-      label: `Trash ${state.cards[id]!.title}`,
-      effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
-    })),
-  });
-  return { ok: true };
-}
 
 export function applyLunarAtrPrimitive(
   ctx: EffectCtx,
@@ -92,10 +66,10 @@ export function applyLunarAtrPrimitive(
       const card = state.cards[cardId];
       const whenScored = card ? whenScoredEffect(card) : undefined;
       if (!card || !whenScored || !state.corp.scoreArea.includes(cardId)) {
-        log(state, `Bifrost Array — target agenda not available.`);
+        log(state, `Resolve when-scored — target agenda not available.`);
         return { ok: true };
       }
-      log(state, `Bifrost Array — trigger when-scored of ${card.title}.`);
+      log(state, `Resolve the when-scored ability of ${card.title}.`);
       // Queue the agenda's onScore as the sole pending choice option so
       // resolution uses cardId as source (via a trampoline pendingChoice).
       openPendingChoose(state, {
@@ -112,22 +86,28 @@ export function applyLunarAtrPrimitive(
       return { ok: true };
     }
     case "trace_sagittarius_subroutine": {
-      const r = autoResolveTrace(
-        state,
-        sourceId,
-        2,
-        fx.do({ kind: "trace_sagittarius_success" }),
-      );
+      // "If successful, trash 1 program. If your trace strength is 5 or
+      // greater, trash 1 program": the second part does not need a
+      // successful trace (CR 10.8.5). Each trash waits for the one before.
+      const trash = fx.do({ kind: "trash_program", pick: "choose" });
+      const kick = fx.do({
+        kind: "resolve_if_trace_strength_at_least",
+        min: 5,
+        then: trash,
+      });
+      const r = autoResolveTrace(state, sourceId, 2, fx.seq(trash, kick), kick);
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "trace_sagittarius_success": {
-      const first = trashRunnerProgramChoose(ctx, "Sagittarius");
-      if (state.pendingChoice) return first;
-      if ((state.turn.lastResolvedTraceStrength ?? 0) >= 5) {
-        return trashRunnerProgramChoose(ctx, "Sagittarius (strength ≥5)");
+    case "resolve_if_trace_strength_at_least": {
+      if ((state.turn.lastResolvedTraceStrength ?? 0) < action.min) {
+        return { ok: true };
       }
-      return first;
+      log(
+        state,
+        `${state.cards[sourceId]?.title ?? sourceId} — trace strength is ${action.min} or greater (CR ${CR.traceConditionals.number}).`,
+      );
+      return evalEffect(ctx, action.then);
     }
     case "trace_subroutine": {
       const whenDetermined = fx.do({ kind: "trace_when_determined" });

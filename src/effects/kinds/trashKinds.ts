@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is trash.
  * The effect switch in eval.ts dispatches here.
  */
+import { facedownInstalledRunnerCard } from "../../state/active.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { GameState } from "../../state/types.js";
@@ -58,8 +59,11 @@ export function applyTrashKinds(
         );
         return { ok: true };
       }
+      // A facedown card has no card type, so it is no program (CR 8.1.4a).
       let programs = state.runner.installed.filter(
-        (id) => state.cards[id].type === "program",
+        (id) =>
+          state.cards[id].type === "program" &&
+          !facedownInstalledRunnerCard(state, id),
       );
       if (action.aiOnly) {
         programs = programs.filter((id) => {
@@ -543,8 +547,11 @@ export function applyTrashKinds(
         );
         return { ok: true };
       }
+      // A facedown card has no card type, so it is no hardware (CR 8.1.4a).
       const hw = state.runner.installed.filter(
-        (id) => state.cards[id].type === "hardware",
+        (id) =>
+          state.cards[id].type === "hardware" &&
+          !facedownInstalledRunnerCard(state, id),
       );
       if (action.pick === "choose") {
         return pendingTrashAmong(state, sourceId, hw, "hardware");

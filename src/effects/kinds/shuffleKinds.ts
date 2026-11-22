@@ -593,8 +593,13 @@ export function applyShuffleKinds(
     }
 
     case "shuffle_source_into_rd": {
-      if (!state.runner.scoreArea.includes(sourceId)) {
-        log(state, `Shuffle into R&D — source not in Runner score area.`);
+      // 15 Minutes is usable from either score area; Oracle Thinktank only
+      // from the Runner's.
+      const inCorpScore =
+        action.fromCorpScoreArea === true &&
+        state.corp.scoreArea.includes(sourceId);
+      if (!state.runner.scoreArea.includes(sourceId) && !inCorpScore) {
+        log(state, `Shuffle into R&D — source not in a score area it can use.`);
         return { ok: true };
       }
       removeCardFromCurrentZone(state, sourceId);
@@ -603,7 +608,7 @@ export function applyShuffleKinds(
       source.faceup = false;
       source.rezzed = false;
       shuffleInPlace(state, state.corp.deck);
-      log(state, `${source.title} — shuffle from Runner score into R&D.`);
+      log(state, `${source.title} — shuffle from a score area into R&D.`);
       return { ok: true };
     }
 

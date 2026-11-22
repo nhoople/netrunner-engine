@@ -1,6 +1,7 @@
 /**
  * Breaking ice subroutines, including bioroid break and the Tyrs Hand interrupt.
  */
+import { noteRunnerClickDuringRun } from "../state/clickHooks.js";
 import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/abilities.js";
 import { onFullBreak } from "../state/cardDeclarations.js";
@@ -150,6 +151,11 @@ export function breakSubroutine(
     }
   }
   markSubroutineBroken(state, breakerId, subIndex);
+  // Eater: "Break 1 subroutine. You cannot access cards for the remainder
+  // of this run" (CR 1.2.1).
+  if (breaker.breaker.breakPreventsCardAccessForRun) {
+    run.cannotAccessCardsThisRun = true;
+  }
   if (allSubroutinesBrokenByRunner(run.encounter)) {
     run.encounter.fullyBrokenByRunner = true;
     noteVacuousFullBreak(state);
@@ -479,6 +485,7 @@ export function breakBioroidSubroutine(
   }
   withCostCheckpoint(state, "break_bioroid_subroutine", () => {
     state.runner.clicks -= 1;
+    noteRunnerClickDuringRun(state);
   });
   run.lostClickToBreakThisRun = true;
   if (maybeOpenTyrsHandInterrupt(state, ice, subIndex)) {
@@ -578,6 +585,7 @@ export function breakBioroidSubroutines(
   }
   withCostCheckpoint(state, "break_bioroid_subroutines", () => {
     state.runner.clicks -= maxSubs;
+    noteRunnerClickDuringRun(state);
   });
   for (const subIndex of uniq) {
     markSubroutineBrokenByRunner(run.encounter, subIndex);

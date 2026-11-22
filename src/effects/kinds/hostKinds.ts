@@ -591,7 +591,12 @@ export function applyHostKinds(
       const targets: string[] = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
-          if (state.cards[id]?.type === "ice") targets.push(id);
+          const ice = state.cards[id];
+          if (ice?.type !== "ice") continue;
+          // Patch and Sub Boost print "a rezzed piece of ice"; Eavesdrop
+          // prints "a piece of ice".
+          if (action.rezzedOnly && !ice.rezzed) continue;
+          targets.push(id);
         }
       }
       if (targets.length === 0) {

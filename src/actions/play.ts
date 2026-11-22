@@ -1288,6 +1288,10 @@ export function playEvent(
     }
   }
   state.turn.eventsPlayedThisTurn += 1;
+  state.turn.eventIdsPlayedThisTurn = [
+    ...(state.turn.eventIdsPlayedThisTurn ?? []),
+    cardId,
+  ];
   if (card.runEvent) {
     if (!serverId) {
       if (!card.runEventOptional) {

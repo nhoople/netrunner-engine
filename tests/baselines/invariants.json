@@ -3452,6 +3452,9 @@
     "the engine agrees with a blind reading of The CR's own examples, chapter 9 (Abilities) (read by Claude Fable 5.2) > CR 9.1.4.ex1: Compile puts Mayfly on the bottom of the stack first, so Mayfly's own end-of-run trash finds nothing": [
       "RUNNER_CARD_REZZED"
     ],
+    "the engine agrees with a blind reading of The CR's own examples, chapter 9 (Abilities) (read by Claude Fable 5.2) > CR 9.11.4e.ex1: Architect installs PAD Campaign from the cards it looked at without rezzing it, and installs nothing with its second subroutine": [
+      "NO_ZONE"
+    ],
     "the engine agrees with a blind reading of The CR's own examples, chapter 9 (Abilities) (read by Claude Fable 5.2) > CR 9.6.5b.ex2: Tranquility Home Grid installed and rezzed by Architect Deployment Test gives nothing for its own install": [
       "NO_ZONE"
     ],

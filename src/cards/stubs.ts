@@ -16,7 +16,10 @@ import { abilitiesSuppressed } from "../state/abilities.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
 import { scoredAgendaIceSubtypeStrengthBonus } from "../state/breakerMods.js";
 import { resolveIceSubtypes } from "../state/continuousEffects.js";
-import { allIceStrengthBonusFromCurrents } from "../state/currents.js";
+import {
+  activeRunnerCurrentIds,
+  allIceStrengthBonusFromCurrents,
+} from "../state/currents.js";
 import { log } from "../state/createGame.js";
 import { syncHostDurationReplacements } from "../state/hostDuration.js";
 import {
@@ -638,11 +641,15 @@ export function effectiveIceStrength(state: GameState, iceId: string): number {
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     penalty += state.cards[id]?.allIceStrengthPenalty ?? 0;
-    if (
-      state.run?.firstEncounteredIceId === iceId &&
-      state.cards[id]?.firstEncounteredIceStrengthPenaltyThisRun
-    ) {
-      penalty += state.cards[id]!.firstEncounteredIceStrengthPenaltyThisRun!;
+  }
+  // Scrubbed's ability is active while the current is in play (CR 3.7.1b).
+  // It gives the first ice encountered each turn -2 strength for the
+  // remainder of that run.
+  if (state.run?.firstEncounteredIceId === iceId) {
+    for (const id of activeRunnerCurrentIds(state)) {
+      if (abilitiesSuppressed(state, id)) continue;
+      penalty +=
+        state.cards[id]?.firstEncounteredIceStrengthPenaltyThisRun ?? 0;
     }
   }
   // Sandburg-class: +N per X Corp credits when credits ≥ threshold.

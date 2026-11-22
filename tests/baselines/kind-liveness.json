@@ -26,6 +26,7 @@
   ],
   "noOpFlags": [
     "flag:accessTrashWithVirus -> src/actions/access.ts#advanceFromMidAccess",
+    "flag:firstAccessedOperationTrashFreeEachTurn -> src/actions/access.ts#advanceFromMidAccess",
     "flag:maySwapIceOnAgendaScoredOrStolen -> kind swap_two_ice",
     "flag:mustTrashFirstAccessedCardWithTrashCostEachTurn -> src/actions/access.ts#advanceFromMidAccess",
     "flag:mustTrashWhenAccessedWhileInstalled -> src/actions/access.ts#advanceFromMidAccess"

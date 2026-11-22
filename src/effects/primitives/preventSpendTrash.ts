@@ -12,8 +12,14 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
+import { chooseCards } from "../chooseCards.js";
+import {
+  addFoundStackCardAfterSearch,
+  evalEffect,
+  noteSearchConditionalAbilities,
+} from "../eval.js";
+import { shuffleRunnerStack } from "../runnerInstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -180,41 +186,38 @@ export function applyLunarUaoPrimitive(
       return { ok: true };
     }
     case "resolve_trade_in": {
-      const half = state.turn.tradeInCredits ?? 0;
-      state.runner.credits += half;
-      state.turn.tradeInCredits = undefined;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "decline-search-hw",
-            label: "Do not search",
-            effect: fx.gainCredits("runner", 0),
-          },
-          ...state.runner.deck
-            .filter((id) => state.cards[id]?.type === "hardware")
-            .map((id) => ({
-              id: `trade-search:${id}`,
-              label: `Add ${state.cards[id]!.title} to grip`,
-              effect: fx.do({ kind: "add_hw_to_grip", cardId: id }),
-            })),
-        ],
-        logLine: `Trade-In — gain ${half}¢; search hardware.`,
-      });
-      return { ok: true };
-    }
-    case "add_hw_to_grip": {
-      const cardId = (action as { cardId: string }).cardId;
-      state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
-      state.runner.hand.push(cardId);
-      state.cards[cardId]!.zone = "runner:grip";
-      state.cards[cardId]!.faceup = true;
-      shuffleInPlace(state, state.runner.deck);
-      log(
-        state,
-        `Trade-In — add ${state.cards[cardId]!.title} to grip; shuffle stack.`,
-      );
+      if (!action.cardIds) {
+        const half = state.turn.tradeInCredits ?? 0;
+        state.runner.credits += half;
+        state.turn.tradeInCredits = undefined;
+        log(state, `Trade-In — gain ${half}¢; search the stack for hardware.`);
+        // A search of the stack: the Runner may find nothing, and the Corp
+        // does not learn how many match (CR 8.7.2e, 10.2.2b).
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: state.runner.deck.filter(
+              (id) => state.cards[id]?.type === "hardware",
+            ),
+            count: 1,
+            search: true,
+            purpose: "resume",
+            label: "reveal and add to the grip",
+            resume: { kind: "resolve_trade_in" },
+          }),
+        );
+      }
+      // "Shuffle your stack" whether or not a card was found (CR 8.7.3).
+      const id = action.cardIds.find((cid) => state.runner.deck.includes(cid));
+      if (!id) {
+        shuffleRunnerStack(state);
+        noteSearchConditionalAbilities(state);
+        log(state, `Trade-In — no hardware found; shuffle the stack.`);
+        return { ok: true };
+      }
+      addFoundStackCardAfterSearch(state, id);
+      revealCards(state, [id], sourceId);
       return { ok: true };
     }
     case "place_x_counters": {

@@ -51,3 +51,9 @@ unrezzed Palisade on remote-1 now stops the HQ run there, so two passes with
 replayed state differs from the one before only in the id counters and the checkpoint
 snapshot's id (the stop's priority window, its closing checkpoint, and the checkpoint
 outside the movement phase, CR 10.3.6), so only the hash was updated.
+
+Engine PF-S3c records two new turn facts: that the Runner took the basic run action
+(Enhanced Login Protocol counts only that, not a run event) and that the Runner has
+encountered a piece of ice this turn (Scrubbed's first ice each turn). The fixture's HQ run
+sets both, so the replayed state differs from the one before only in those two fields;
+only the hash was updated.

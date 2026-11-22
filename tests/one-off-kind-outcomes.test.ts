@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.27");
+  assertCardsPinnedTag("v1.147.28");
 });
 
 function put(
@@ -2544,7 +2544,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.clicks = 2;
     s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "wd-1", "breach_instead_wanton_destruction");
-    expect(s.run.skipBreach).toBe(true);
+    // Declining breaches HQ as normal: only the replacement skips it.
+    expect(s.run.skipBreach ?? false).toBe(false);
     const ids = s.pendingChoice?.options.map((o) => o.id) ?? [];
     expect(ids).toContain("wanton:2");
   });
@@ -4222,9 +4223,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "cp-1", "checkpoint_schedule_meat_on_successful_run", {
       amount: 3,
     });
-    expect(
-      (s.run as { checkpointMeatOnSuccess?: number }).checkpointMeatOnSuccess,
-    ).toBe(3);
+    expect(s.run!.delayedMeatDamageOnSuccess).toEqual([
+      { sourceId: "cp-1", amount: 3 },
+    ]);
   });
 
   it("Malia Z0L0K4: chooses an installed non-virtual resource to blank", () => {
@@ -6304,21 +6305,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(s.pendingChoice?.chooser).toBe("runner");
   });
 
-  it("LLDS Energy Regulator: prevent_llds_trash_hardware clears pending hardware trash", () => {
-    const s = createInitialState();
-    put(s, "llds-energy-regulator", "llds-1", "runner:installed");
-    put(s, "desperado", "desp-1", "runner:installed");
-    s.runner.installed = ["llds-1", "desp-1"];
-    s.pendingTrashPrevent = {
-      cardId: "desp-1",
-      trashExpected: true,
-      pendingInterruptIds: [],
-    };
-    runKind(s, "llds-1", "prevent_llds_trash_hardware");
-    expect(s.pendingTrashPrevent).toBeNull();
-    expect(s.runner.installed).toContain("desp-1");
-  });
-
   it("Zaibatsu Loyalty: prevent_pending_expose stops the expose", () => {
     const s = createInitialState();
     put(s, "zaibatsu-loyalty", "zb-1", "server:remote-1:root");
@@ -6862,11 +6848,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "ti-1", "resolve_trade_in");
     expect(s.runner.credits).toBe(5);
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
-      expect.arrayContaining(["decline-search-hw", "trade-search:desp-1"]),
+      expect.arrayContaining(["choose-cards-done", "choose-card:desp-1"]),
     );
     const after = applyAction(s, {
       type: "choose_option",
-      optionId: "trade-search:desp-1",
+      optionId: "choose-card:desp-1",
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand).toContain("desp-1");
@@ -8791,7 +8777,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.discardPile).toContain("wow-1");
     expect(after.state.servers["hq"]!.root).toEqual([]);
-    expect(after.state.runner.discardPile).toContain("brk-1");
+    // The Runner adds the icebreaker to the bottom of the stack.
+    expect(after.state.runner.deck.at(-1)).toBe("brk-1");
     expect(after.state.runner.installed).toEqual(["unused-1"]);
   });
 
@@ -9035,17 +9022,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.deck = ["sg-0", "sg-1", "sg-2"];
     s.runner.hand = [];
     runKind(s, "it-1", "trash_draw");
-    let after = applyAction(s, {
+    const after = applyAction(s, {
       type: "choose_option",
-      optionId: "it:prog-1",
+      optionId: "choose-card:prog-1",
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.discardPile).toContain("prog-1");
-    after = applyAction(after.state, {
-      type: "choose_option",
-      optionId: "it-done",
-    });
-    if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.hand.length).toBe(1);
   });
 });

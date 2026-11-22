@@ -30,6 +30,7 @@ import {
   effectiveMemoryCost,
   memoryLimit,
   usedMemory,
+  memoryNeededToInstall,
 } from "../state/turn.js";
 import type {
   ApplyResult,
@@ -91,9 +92,9 @@ export function runnerInstallCost(
     card.type === "hardware" ||
     card.type === "resource"
   ) {
-    const isFirst =
-      state.turn.programsInstalledThisTurn === 0 &&
-      state.turn.hardwareInstalledThisTurn === 0;
+    // Docklands Crackdown: "the first card the Runner installs each turn",
+    // a resource included (Housekeeping's record, CR 1.2.1).
+    const isFirst = !state.turn.runnerInstalledCardThisTurn;
     if (isFirst) {
       let bump = 0;
       for (const server of Object.values(state.servers)) {
@@ -331,6 +332,13 @@ export function installRunner(
           CR.runnerBasicInstall,
         ]);
       }
+      // Leprechaun: "can host up to 2 programs" counts programs, not MU.
+      if (
+        typeof host.maxHostedCards === "number" &&
+        (host.hostedCardIds ?? []).length >= host.maxHostedCards
+      ) {
+        return fail("Host has no free host slots.", [CR.runnerBasicInstall]);
+      }
       const maxMu = host.daemonHostMaxMu;
       if (typeof maxMu === "number") {
         const used = (host.hostedCardIds ?? []).reduce((sum, id) => {
@@ -392,7 +400,7 @@ export function installRunner(
         state.cards[destination.hostId]?.hostsAnyProgramMemoryCostLte !==
           undefined,
       );
-    const need = effectiveMemoryCost(state, cardId);
+    const need = memoryNeededToInstall(state, cardId);
     if (!hostExempt && usedMemory(state) + need > memoryLimit(state)) {
       return openMuProgramTrashChoice(
         state,
@@ -728,7 +736,7 @@ export function resolveMuProgramTrash(
     state,
     `Trash ${trashed.title} for memory (CR ${CR.installTrashProgramsForMemory.number}).`,
   );
-  const need = effectiveMemoryCost(state, pending.cardId);
+  const need = memoryNeededToInstall(state, pending.cardId);
   if (usedMemory(state) + need > memoryLimit(state)) {
     return openMuProgramTrashChoice(
       state,

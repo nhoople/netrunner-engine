@@ -108,20 +108,6 @@ export function onRunnerTurnEnds(state: GameState): void {
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];
-    const n = card?.drawAtTurnEndIfGripBelowMaxHandSize ?? 0;
-    if (n <= 0) continue;
-    if (state.runner.hand.length >= state.runner.maxHandSize) continue;
-    for (let i = 0; i < n && state.runner.deck.length > 0; i++) {
-      const drawn = state.runner.deck.shift()!;
-      state.runner.hand.push(drawn);
-      const moved = state.cards[drawn];
-      if (moved) moved.zone = "runner:grip";
-    }
-    log(state, `${card!.title} — draw ${n} (grip below max hand size).`);
-  }
-  for (const id of [...state.runner.installed]) {
-    if (abilitiesSuppressed(state, id)) continue;
-    const card = state.cards[id];
     if (!card?.trashHostedProgramAtEndOfTurnIfHostedCreditsUsed) continue;
     if (!state.turn.hostedCreditsUsedCardIds?.includes(id)) continue;
     const hosted = (card.hostedCardIds ?? []).filter(
@@ -275,11 +261,19 @@ export function iceInstallCapRefuses(
 }
 
 export function traceBaseBonus(state: GameState): number {
-  const serverId = state.run?.attackedServerId;
-  if (!serverId) return 0;
-  const server = state.servers[serverId];
-  if (!server) return 0;
+  // Improved Tracers, while scored: "The base trace strength of each
+  // subroutine is increased by 1" (a trace a subroutine is resolving).
   let bonus = 0;
+  if (state.timingKey === "run.resolveSub") {
+    for (const id of state.corp.scoreArea) {
+      if (abilitiesSuppressed(state, id)) continue;
+      bonus += state.cards[id]?.subroutineTraceBaseStrengthBonus ?? 0;
+    }
+  }
+  const serverId = state.run?.attackedServerId;
+  if (!serverId) return bonus;
+  const server = state.servers[serverId];
+  if (!server) return bonus;
   for (const id of server.root) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];

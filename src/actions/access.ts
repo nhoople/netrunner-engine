@@ -382,6 +382,37 @@ export function advanceFromMidAccess(state: GameState): ApplyResult {
         }
       }
     }
+    // Edward Kim: "Trash the first operation you access each turn at no
+    // cost." The identity's ability trashes it, not the basic trash of
+    // CR 7.1.5 (an operation has no trash cost), and it is mandatory. The
+    // first operation accessed uses it up wherever it is, even one in
+    // Archives, which cannot be trashed (CR 1.2.1, 7.1.5b).
+    const kimId = state.runner.identityId;
+    if (
+      accessed?.type === "operation" &&
+      !state.turn.firstAccessedOperationTrashedFreeThisTurn &&
+      state.cards[kimId]?.firstAccessedOperationTrashFreeEachTurn &&
+      !abilitiesSuppressed(state, kimId)
+    ) {
+      state.turn.firstAccessedOperationTrashedFreeThisTurn = true;
+      if (
+        accessed.zone !== "corp:archives" &&
+        !stealOrTrashBlocked(state, accessingId)
+      ) {
+        trashCard(state, accessingId, { by: "runner", cause: "access" });
+        state.run!.accessingCardId = null;
+        if (state.run) state.run.breachStoleOrTrashed = true;
+        noteAccessTrash(state, 0);
+        log(
+          state,
+          `${state.cards[kimId]!.title} — trash ${accessed.title}, the first operation accessed this turn, at no cost.`,
+        );
+        if (state.pendingChoice || state.pendingDamage || state.done) {
+          return ok(state);
+        }
+        return completeAccessAndContinue(state);
+      }
+    }
     // Neutralize All Threats: the first access each turn of a card with a
     // trash cost uses it up wherever the card is; only the trash is "if
     // able" (CR 7.1.5d), and a card in Archives cannot be trashed (7.1.5b).

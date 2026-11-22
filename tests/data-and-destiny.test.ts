@@ -17,7 +17,7 @@ describe("data-and-destiny", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.27");
+      assertCardsPinnedTag("v1.147.28");
     });
 
     describe("Data and Destiny v1.115.0 set-complete", () => {
@@ -39,7 +39,8 @@ describe("data-and-destiny", () => {
             ?.usableFromRunnerScoreArea,
         ).toBe(true);
         expect(
-          getCardDef("improved-tracers").iceStrengthBonusForSubtype?.subtype,
+          getCardDef("improved-tracers").whileScoredIceSubtypeStrengthBonus
+            ?.subtype,
         ).toBe("tracer");
         expect(
           getCardDef("improved-tracers").subroutineTraceBaseStrengthBonus,

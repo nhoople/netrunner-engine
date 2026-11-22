@@ -85,6 +85,8 @@ const WRITTEN_TITLES: Record<string, string> = {
     "CR 9.1.4.ex1#b: Mayfly's end-of-run trash resolves first, so Compile has no program left to put back",
   "9.6.5b.ex2":
     "CR 9.6.5b.ex2: Tranquility Home Grid installed and rezzed by Architect Deployment Test gives nothing for its own install",
+  "9.11.4e.ex1":
+    "CR 9.11.4e.ex1: Architect installs PAD Campaign from the cards it looked at without rezzing it, and installs nothing with its second subroutine",
   "9.6.5d.ex1":
     "CR 9.6.5d.ex1: The Supplier installs Dyson Mem Chip first, so Underworld Contact sees 2 link when it resolves",
   "9.6.5d.ex1#b":

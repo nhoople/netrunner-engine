@@ -158,6 +158,7 @@ export function noteRunnerInstalledCardTrashing(
   // player still does (CR 1.14.5). Simulchip: "an installed program has
   // already been trashed" is either player's, programs only (CR 1.2.1).
   if (by !== "corp") state.turn.runnerTrashedOwnInstalledThisTurn = true;
+  if (by === "runner") noteRunnerTrashedOwnInstalledCard(state);
   if (card.type === "program")
     state.turn.installedProgramTrashedThisTurn = true;
   fireCotcOnRunnerInstalledTrashed(state);
@@ -168,6 +169,31 @@ export function noteRunnerInstalledCardTrashing(
       enc.installedRunnerTrashesThisEncounter =
         (enc.installedRunnerTrashesThisEncounter ?? 0) + 1;
     }
+  }
+}
+
+/**
+ * Wasteland: "The first time each turn you trash 1 of your installed cards,
+ * gain 1[credit]." Any way the Runner trashes their own installed card: a
+ * [trash] cost, Heartbeat, Independent Thinking, Chop Bot 3000; only the
+ * Runner's own trashes meet it (CR 1.14.5a).
+ * Wasteland trashing itself still gains: the ability its own move meets
+ * stays active (CR 9.1.8g).
+ */
+function noteRunnerTrashedOwnInstalledCard(state: GameState): void {
+  state.turn.dadOwnInstalledTrashedThisTurn =
+    (state.turn.dadOwnInstalledTrashedThisTurn ?? 0) + 1;
+  if (state.turn.dadOwnInstalledTrashedThisTurn !== 1) return;
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    const c = state.cards[id];
+    const n = c?.gainCreditsOnFirstOwnInstalledTrashEachTurn ?? 0;
+    if (n <= 0) continue;
+    state.runner.credits += n;
+    log(
+      state,
+      `${c!.title} — gain ${n}¢ (first own installed card trashed this turn).`,
+    );
   }
 }
 
@@ -303,6 +329,15 @@ function fireOnTrashFromGripOrStack(
 ): void {
   if (!card.onTrashFromGripOrStack) return;
   if (fromZone !== "runner:grip" && fromZone !== "runner:stack") return;
+  // I've Had Worse: "Whenever I've Had Worse is trashed by taking net or
+  // meat damage" (CR 1.2.1). Other grip or stack trashes do not meet it.
+  if (
+    card.trashFromGripTriggerOnlyByNetOrMeatDamage &&
+    state.turn.gripTrashDamageType !== "net" &&
+    state.turn.gripTrashDamageType !== "meat"
+  ) {
+    return;
+  }
   if (state.turn.lethalDamageSkippingTrashTriggers) {
     log(
       state,
