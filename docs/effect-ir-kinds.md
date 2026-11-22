@@ -13,8 +13,8 @@ Card counts are from cards `v1.147.27` (2016 cards).
 | Kinds in `KNOWN_PRIMITIVE_KINDS` | 1531 |
 | Kinds used by card JSON | 889 |
 | Kinds used by exactly one card | 736 |
-| Kinds built by the engine | 741 |
-| Kinds built by both cards and the engine | 115 |
+| Kinds built by the engine | 740 |
+| Kinds built by both cards and the engine | 114 |
 | Engine-only kinds (no card uses them; the engine builds them) | 626 |
 | Kinds neither a card nor the engine builds | 16 |
 | Verb groups | 74 |
@@ -54,7 +54,7 @@ Card counts are from cards `v1.147.27` (2016 cards).
 
 ## `add`
 
-55 kinds: 36 used by cards, 25 built by the engine.
+55 kinds: 36 used by cards, 24 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -105,7 +105,7 @@ Card counts are from cards `v1.147.27` (2016 cards).
 | `add_to_runner_score_as_agenda` | `agendaPoints?: number`, `addSubtypes?: string[]` | 12 | card, engine |
 | `add_virus_counter` | `amount: number` | 34 | card, engine |
 | `may_add_archives_card_to_rd_bottom_only` | — | 1 | card |
-| `may_add_archives_card_to_rd_top` | — | 1 | card, engine |
+| `may_add_archives_card_to_rd_top` | — | 1 | card |
 | `may_add_archives_card_to_rd_top_or_bottom` | — | 1 | card |
 | `may_add_from_heap_to_stack_bottom` | `types?: Array<"program" \| "hardware" \| "resource" \| "event">` | 1 | card |
 | `may_add_from_heap_to_stack_top` | — | 1 | card |

@@ -6,6 +6,7 @@ import type { ServerId } from "../../state/types.js";
 import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
+import { fx } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
@@ -127,8 +128,41 @@ export function applyBreachKinds(
       if (!state.run || state.run.attackedServerId !== "archives") {
         return { ok: true };
       }
-      state.run.skipBreach = true;
-      return applyPrimitive(ctx, { kind: "may_add_archives_card_to_rd_top" });
+      // "Instead of breaching Archives, you may add 1 faceup card from
+      // Archives to the top of R&D."
+      // The ability's controller makes its choices (CR 1.14.5).
+      // Only faceup cards are offered: the facedown ones are not the
+      // Runner's to see (CR 4.4.6c, 10.2.2a). Replacing the breach takes
+      // the card moving (CR 9.9.8); declining leaves the breach as usual
+      // (CR 6.9.5b).
+      const faceup = state.corp.discardPile.filter(
+        (id) => state.cards[id]?.faceup,
+      );
+      if (faceup.length === 0) {
+        log(state, `${source?.title ?? "Run"} — no faceup card in Archives.`);
+        return { ok: true };
+      }
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "breach",
+            label: "Breach Archives",
+            effect: fx.gainCredits("runner", 0),
+          },
+          ...faceup.map((id) => ({
+            id: `rd-top:${id}`,
+            label: `Add ${state.cards[id]!.title} to the top of R&D`,
+            effect: fx.seq(
+              fx.do({ kind: "set_skip_breach" }),
+              fx.do({ kind: "add_archives_card_to_rd_top", cardId: id }),
+            ),
+          })),
+        ],
+        logLine: `${source?.title ?? "Run"} — may add 1 faceup Archives card to the top of R&D instead of breaching.`,
+      });
+      return { ok: true };
     }
 
     case "may_breach_instead_account_siphon": {
