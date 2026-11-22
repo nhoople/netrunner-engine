@@ -81,7 +81,7 @@ export function hostedCardViews(
  * unrezzed installed Corp cards, and facedown Runner cards
  * (CR 1.21.1, 4.4.6c).
  */
-export function idsHiddenFrom(state: GameState, viewer: Side): string[] {
+function idsHiddenFrom(state: GameState, viewer: Side): string[] {
   const other = viewer === "corp" ? state.runner : state.corp;
   const otherHand = new Set(other.hand);
   const decks = new Set([...state.corp.deck, ...state.runner.deck]);
@@ -137,7 +137,7 @@ export function stringsIn(value: unknown, out: Set<string>): void {
  * Runner is accessing (CR 7.1.2) and a card being revealed (CR 1.21.3,
  * 1.21.6).
  */
-export function idsHiddenNow(state: GameState, viewer: Side): Set<string> {
+function idsHiddenNow(state: GameState, viewer: Side): Set<string> {
   const hidden = new Set(idsHiddenFrom(state, viewer));
   for (const id of [...hidden]) {
     if (state.cards[id]?.revealing) hidden.delete(id);
@@ -151,7 +151,7 @@ export function idsHiddenNow(state: GameState, viewer: Side): Set<string> {
  * True when the viewer may not see `sourceId`'s face, so may not learn that
  * one of its abilities is pending or resolving (CR 10.2.2a, 10.2.2b).
  */
-export function sourceHiddenFrom(
+function sourceHiddenFrom(
   state: GameState,
   viewer: Side,
   sourceId: string,
@@ -169,7 +169,7 @@ export function sourceHiddenFrom(
  * (or hosted) card the viewer sees facedown: where it is is open, what it
  * is is not, so the instance stays without its ability or payload.
  */
-export function pendingHiddenFrom(
+function pendingHiddenFrom(
   state: GameState,
   viewer: Side,
   hidden: ReadonlySet<string> = idsHiddenNow(state, viewer),
