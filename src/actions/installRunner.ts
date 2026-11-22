@@ -541,16 +541,17 @@ export function installRunner(
   noteVirusProgramInstalled(state, cardId);
   noteProgramOrHardwareInstalled(state, cardId);
   recomputeRunnerLink(state);
-  if (
-    card.type === "program" &&
-    (card.subtypes ?? []).includes("icebreaker") &&
-    !(card.subtypes ?? []).includes("ai")
-  ) {
+  if (card.type === "program" && (card.subtypes ?? []).includes("icebreaker")) {
+    // Cybertrooper Talut: each non-AI icebreaker; LLDS Processor: each
+    // icebreaker (CR 1.2.1).
+    const nonAi = !(card.subtypes ?? []).includes("ai");
     for (const rid of state.runner.installed) {
       if (rid === cardId) continue;
       if (abilitiesSuppressed(state, rid)) continue;
       const host = state.cards[rid];
-      const bonus = host?.nonAiIcebreakerInstallStrengthBonusThisTurn;
+      const spec = host?.icebreakerInstallStrengthBonusThisTurn;
+      if (!spec || (spec.nonAiOnly && !nonAi)) continue;
+      const bonus = spec.amount;
       if (!bonus) continue;
       addBreakerStrengthBoostThisTurn(state, {
         createdBy: rid,

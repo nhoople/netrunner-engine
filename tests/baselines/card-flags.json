@@ -1,17 +1,18 @@
 {
-  "cardsPin": "v1.147.26",
+  "cardsPin": "v1.147.27",
   "counts": {
-    "cardDefFlags": 602,
-    "cardDefBoolean": 333,
-    "cardDefNumber": 269,
+    "cardDefFlags": 600,
+    "cardDefBoolean": 332,
+    "cardDefNumber": 268,
     "schemaProperties": 854,
     "schemaByType": {
       "$ref": 1,
       "any": 3,
       "array": 16,
-      "boolean": 332,
-      "integer": 268,
-      "object": 221,
+      "boolean": 331,
+      "integer": 267,
+      "object": 222,
+      "oneOf": 1,
       "string": 13
     },
     "entries": 863,
@@ -168,7 +169,8 @@
       "sifr_zero_encounter_ice_strength"
     ],
     "subliminalMessaging": [
-      "gain_credits"
+      "gain_credits",
+      "move_archives_to_hq"
     ],
     "supplierHost": [
       "resolve_supplier_host"
@@ -2145,6 +2147,10 @@
         {
           "site": "src/state/procedures/break.ts#declaredBreakBlock",
           "kinds": []
+        },
+        {
+          "site": "src/state/procedures/break.ts#interfaceBlock",
+          "kinds": []
         }
       ],
       "kinds": []
@@ -2249,28 +2255,16 @@
       ]
     },
     "canAdvance": {
-      "cardDef": "boolean",
-      "schema": "boolean",
-      "flag": true,
+      "cardDef": "other",
+      "schema": "oneOf",
+      "flag": false,
       "cardCount": 51,
       "setVia": [
         "declaration"
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/placeKinds.ts#applyPlaceKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/addResolveInstall.ts#applyKitaraSsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/chooseGainShuffle.ts#canAdvance",
           "kinds": []
         },
         {
@@ -2282,19 +2276,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/preventGainSpend.ts#applyFlashpointQuPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/rezBreachPlace.ts#applyMumbadBfPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/shuffleLookPick.ts#applySansanOhPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
           "kinds": []
         },
         {
@@ -2302,8 +2284,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/advanceable.ts#mayAdvanceInstalledCard",
-          "kinds": []
+          "site": "src/state/advanceable.ts#printsCanBeAdvanced",
+          "kinds": [],
+          "mirrors": [
+            "src/state/advanceable.ts#{card}"
+          ]
         }
       ],
       "kinds": []
@@ -2312,10 +2297,9 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 4,
+      "cardCount": 3,
       "cards": [
         "salvage",
-        "swarm",
         "tyrant",
         "woodcutter"
       ],
@@ -2865,10 +2849,11 @@
       "cardDef": "other",
       "schema": "array",
       "flag": false,
-      "cardCount": 13,
+      "cardCount": 14,
       "cards": [
         "blockchain",
         "brainstorm",
+        "ireress",
         "masvingo",
         "next-opal",
         "salvage",
@@ -6181,9 +6166,10 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 1,
+      "cardCount": 2,
       "cards": [
-        "netchip"
+        "netchip",
+        "omni-drive"
       ],
       "setVia": [
         "declaration"
@@ -6579,6 +6565,26 @@
       ],
       "kinds": []
     },
+    "icebreakerInstallStrengthBonusThisTurn": {
+      "cardDef": "other",
+      "schema": "object",
+      "flag": false,
+      "cardCount": 2,
+      "cards": [
+        "cybertrooper-talut",
+        "llds-processor"
+      ],
+      "setVia": [
+        "declaration"
+      ],
+      "readers": [
+        {
+          "site": "src/actions/installRunner.ts#installRunner",
+          "kinds": []
+        }
+      ],
+      "kinds": []
+    },
     "id": {
       "cardDef": "other",
       "schema": "string",
@@ -6907,7 +6913,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/play.ts#playEvent",
+          "site": "src/actions/play.ts#doubleEventAdditionalCostIgnoredBy",
           "kinds": []
         }
       ],
@@ -7457,8 +7463,9 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 1,
+      "cardCount": 2,
       "cards": [
+        "bug",
         "political-operative"
       ],
       "setVia": [
@@ -9315,26 +9322,6 @@
         },
         {
           "site": "src/state/trashHooks.ts#noteFirstCorpCardTrashEachTurn",
-          "kinds": []
-        }
-      ],
-      "kinds": []
-    },
-    "nonAiIcebreakerInstallStrengthBonusThisTurn": {
-      "cardDef": "number",
-      "schema": "integer",
-      "flag": true,
-      "cardCount": 2,
-      "cards": [
-        "cybertrooper-talut",
-        "llds-processor"
-      ],
-      "setVia": [
-        "declaration"
-      ],
-      "readers": [
-        {
-          "site": "src/actions/installRunner.ts#installRunner",
           "kinds": []
         }
       ],
@@ -13722,7 +13709,7 @@
       "cardDef": "other",
       "schema": "array",
       "flag": false,
-      "cardCount": 462,
+      "cardCount": 463,
       "setVia": [],
       "readers": [
         {
@@ -14303,15 +14290,11 @@
       ],
       "readers": [
         {
-          "site": "src/actions/play.ts#playEvent",
+          "site": "src/actions/play.ts#eventAdditionalClicks",
           "kinds": []
         },
         {
           "site": "src/actions/play.ts#playOperation",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -14340,15 +14323,11 @@
       ],
       "readers": [
         {
-          "site": "src/actions/play.ts#playEvent",
+          "site": "src/actions/play.ts#eventAdditionalClicks",
           "kinds": []
         },
         {
           "site": "src/actions/play.ts#playOperation",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         },
         {
@@ -14362,12 +14341,11 @@
       "cardDef": "other",
       "schema": "object",
       "flag": false,
-      "cardCount": 18,
+      "cardCount": 17,
       "cards": [
         "backroom-machinations",
         "end-of-the-line",
         "finality",
-        "frame-job",
         "hasty-relocation",
         "ip-enforcement",
         "isolation",
@@ -15410,9 +15388,8 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 3,
+      "cardCount": 2,
       "cards": [
-        "bug",
         "emergency-shutdown",
         "leverage"
       ],
@@ -17482,7 +17459,7 @@
       "cardDef": "other",
       "schema": "$ref",
       "flag": false,
-      "cardCount": 91,
+      "cardCount": 92,
       "setVia": [
         "declaration"
       ],
@@ -18243,6 +18220,13 @@
           "kinds": []
         },
         {
+          "site": "src/effects/primitives/preventSpendTrash.ts#applyLunarUaoPrimitive",
+          "kinds": [],
+          "mirrors": [
+            "src/effects/ir.ts#{Primitive}"
+          ]
+        },
+        {
           "site": "src/effects/primitives/resolveExposePay.ts#fireTdatd419OnFirstCorpInstall",
           "kinds": []
         },
@@ -18742,11 +18726,10 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 3,
+      "cardCount": 2,
       "cards": [
         "ikawah-project",
-        "melies-city-luxury-line",
-        "strongbox"
+        "melies-city-luxury-line"
       ],
       "setVia": [
         "declaration"
@@ -18786,10 +18769,11 @@
       "cardDef": "other",
       "schema": "object",
       "flag": false,
-      "cardCount": 2,
+      "cardCount": 3,
       "cards": [
         "ben-musashi",
-        "daniela-jorge-inacio"
+        "daniela-jorge-inacio",
+        "strongbox"
       ],
       "setVia": [],
       "readers": [
@@ -19483,13 +19467,12 @@
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
-      "cardCount": 9,
+      "cardCount": 8,
       "cards": [
         "atman",
         "draco",
         "hyperbaric",
         "nfr",
-        "overmind",
         "puffer",
         "quicksand",
         "study-guide",
@@ -19555,11 +19538,15 @@
         },
         {
           "site": "src/timing/graph.ts#STEPS.onResolve",
-          "kinds": []
+          "kinds": [
+            "gain_credits",
+            "move_archives_to_hq"
+          ]
         }
       ],
       "kinds": [
-        "gain_credits"
+        "gain_credits",
+        "move_archives_to_hq"
       ]
     },
     "subroutineTraceBaseStrengthBonus": {
@@ -19585,7 +19572,7 @@
       "cardDef": "other",
       "schema": "array",
       "flag": false,
-      "cardCount": 300,
+      "cardCount": 299,
       "setVia": [],
       "readers": [
         {
@@ -19861,6 +19848,10 @@
         },
         {
           "site": "src/actions/play.ts#continuePlayedOperation",
+          "kinds": []
+        },
+        {
+          "site": "src/actions/play.ts#doubleEventAdditionalCostIgnoredBy",
           "kinds": []
         },
         {
@@ -21197,6 +21188,10 @@
         },
         {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds.iceName",
           "kinds": []
         },
         {

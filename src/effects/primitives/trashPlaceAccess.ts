@@ -1,4 +1,5 @@
 /** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
+import { printsCanBeAdvanced } from "../../state/advanceable.js";
 import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import {
@@ -533,7 +534,7 @@ export function applyMumbadTlmPrimitive(
         for (const id of [...server.root, ...server.ice]) {
           const card = state.cards[id];
           if (!card) continue;
-          if (card.side === "corp" && card.canAdvance) {
+          if (card.side === "corp" && printsCanBeAdvanced(card)) {
             targets.push(id);
           }
         }

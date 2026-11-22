@@ -57,18 +57,24 @@ export function applyChooseKinds(
       const agendas = state.runner.scoreArea.filter(
         (id) => !state.cards[id]?.cannotForfeit,
       );
+      // Frame Job: the forfeit is part of the effect, not a cost, so with no
+      // agenda to forfeit nothing happens, and "if you do" does not either
+      // (CR 1.16.1, 1.2.1).
       if (agendas.length === 0) {
-        return {
-          ok: false,
-          error: "Must forfeit a scored agenda.",
-          cites: [CR.scoringAgenda],
-        };
+        log(state, `${source.title} — no agenda to forfeit.`);
+        return { ok: true };
       }
+      const forfeit = (cardId: string): Effect => {
+        const step: Effect = {
+          op: "do",
+          action: { kind: "forfeit_runner_scored_agenda", cardId },
+        };
+        return action.then
+          ? { op: "seq", effects: [step, structuredClone(action.then)] }
+          : step;
+      };
       if (agendas.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "forfeit_runner_scored_agenda",
-          cardId: agendas[0]!,
-        });
+        return evalEffect(ctx, forfeit(agendas[0]!));
       }
       openPendingChoose(state, {
         sourceId,
@@ -76,13 +82,7 @@ export function applyChooseKinds(
         options: agendas.map((agId) => ({
           id: `forfeit:${agId}`,
           label: `Forfeit ${state.cards[agId]!.title}`,
-          effect: {
-            op: "do",
-            action: {
-              kind: "forfeit_runner_scored_agenda" as const,
-              cardId: agId,
-            },
-          },
+          effect: forfeit(agId),
         })),
         logLine: `${source.title} — forfeit a scored agenda.`,
       });

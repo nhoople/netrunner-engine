@@ -207,6 +207,7 @@ import {
   printedRezOrPlayCost,
   stealAdditionalCosts,
   stealAdditionalCreditsForAgenda,
+  stealForbiddenThisAccess,
   stealNetOrMeatPrevented,
   stealOrTrashBlocked,
 } from "./access.js";
@@ -2981,6 +2982,8 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       next.run.accessCandidates.splice(idx, 1);
       next.run.accessedCardIds.push(action.cardId);
       next.run.accessingCardId = action.cardId;
+      // A new access: The Future Perfect's lock was for the previous one.
+      next.run.stealForbiddenAccessCardId = undefined;
       next.turn.accessedACardThisTurn = true;
       spendAccessLimitOnChoice(next, action.cardId);
       // Flagship: re-apply other-than-self access cap after each access.
@@ -3209,6 +3212,11 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       }
       if (stealOrTrashBlocked(next, action.cardId)) {
         return fail("Cannot steal Corp cards this run.", [CR.stealingAgenda]);
+      }
+      if (stealForbiddenThisAccess(next, action.cardId)) {
+        return fail("Cannot steal this agenda during this access.", [
+          CR.stealingAgenda,
+        ]);
       }
       const agenda = next.cards[action.cardId];
       const whistleblowerIgnore =

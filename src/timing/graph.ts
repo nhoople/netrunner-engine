@@ -43,6 +43,7 @@ import {
 } from "../state/procedures/break.js";
 import {
   collectAdvancementGainedSubs,
+  collectBadPublicityGainedSubs,
   collectBlockchainArchivesSubs,
   collectBrainstormGripSubs,
   collectFatumaGainedSubs,
@@ -96,6 +97,8 @@ import { log } from "../state/createGame.js";
 import {
   addBreakerStrengthBoostThisEncounter,
   addIceStrengthBoostThisEncounter,
+  addLingeringEffect,
+  LINGERING_KIND_GRANTED_SUBTYPES,
 } from "../state/lingeringEffects.js";
 import { serversMatchingSpec } from "../state/runStart.js";
 import { CR } from "./labels.js";
@@ -409,6 +412,8 @@ function isHostedOnIce(s: GameState, cardId: string): boolean {
   return host?.type === "ice" && host.zone.endsWith(":ice");
 }
 
+/** The id suffix of the subroutine Marker grants for the remainder of a run. */
+const MARKER_ETR = "-marker-etr";
 export function resolveDeferredPersistentAmaze(state: GameState): void {
   const bag = pendingAbilitiesWithStatus(state, "pending").filter(
     (p) => p.payload?.kind === "amaze_give_tags",
@@ -1025,11 +1030,12 @@ export const STEPS: Record<string, TimingStepDef> = {
           s.bfCannotScoreUntilNextCorpTurn = [];
           s.log.push(`PAD Factory — cannot-score until next turn clears.`);
         }
-        // Valley Grid: clear hand-size penalty until beginning of Corp turn.
-        if ((s.runner.valleyGridHandSizePenalty ?? 0) > 0) {
-          s.runner.valleyGridHandSizePenalty = 0;
+        // Valley Grid, Gyri Labyrinth: the hand-size penalty ends when the
+        // Corp's turn begins.
+        if ((s.runner.handSizePenaltyUntilCorpTurn ?? 0) > 0) {
+          s.runner.handSizePenaltyUntilCorpTurn = 0;
           recomputeRunnerMaxHandSize(s);
-          s.log.push(`Valley Grid — hand size penalty clears.`);
+          s.log.push(`Runner max hand size penalty clears (Corp turn begins).`);
         }
         // Jinteki Biotech: choose face before first Corp turn if unset.
         {
@@ -1058,18 +1064,51 @@ export const STEPS: Record<string, TimingStepDef> = {
         }
         // Lockdowns: trash at turn begin before pending conditionals (CR 3.5.1c).
         trashActiveLockdownsAtCorpTurnBegin(s);
-        // Subliminal Messaging: if Runner made no runs last turn, return from Archives.
+        // Subliminal Messaging: "When your turn begins, if this card is in
+        // Archives and the Runner did not initiate any runs during their last
+        // turn, you may reveal this card and add it to HQ." Each copy is an
+        // optional conditional ability among the turn-begin ones (CR 9.6.9,
+        // 10.3.1a).
         if (!s.turn.runnerMadeRunLastTurn) {
-          for (const id of [...s.corp.discardPile]) {
+          for (const id of s.corp.discardPile) {
             const card = s.cards[id];
-            if (!card.subliminalMessaging) continue;
-            s.corp.discardPile = s.corp.discardPile.filter((x) => x !== id);
-            s.corp.hand.push(id);
-            card.zone = "corp:hq";
-            card.faceup = false;
-            s.log.push(
-              `${card.title} — return from Archives (Runner made no runs last turn).`,
-            );
+            if (!card?.subliminalMessaging) continue;
+            noteInlineConditional(s, {
+              cardId: id,
+              abilityKey: "subliminal-messaging-return",
+              controller: "corp",
+              mandatory: true,
+              // It can only meet its condition in Archives, so it is active
+              // there (CR 9.1.8b).
+              independentOfSource: true,
+              effect: {
+                op: "choose",
+                chooser: "corp",
+                options: [
+                  {
+                    id: "add",
+                    label: `Reveal ${card.title} and add it to HQ`,
+                    effect: {
+                      op: "do",
+                      action: {
+                        kind: "move_archives_to_hq",
+                        cardId: id,
+                        reveal: true,
+                      },
+                    },
+                  },
+                  {
+                    id: "decline",
+                    label: "Leave it in Archives",
+                    effect: {
+                      op: "do",
+                      action: { kind: "gain_credits", side: "corp", amount: 0 },
+                    },
+                  },
+                ],
+              },
+              logLine: `${card.title} becomes pending — Corp turn begin (in Archives).`,
+            });
           }
         }
         // Corp turn-begin conditionals — note for 10.3.1a.
@@ -1382,7 +1421,6 @@ export const STEPS: Record<string, TimingStepDef> = {
         s.log.push(`Runner turn begins (appendix 11.3_1_d).`);
         s.turn.leveragePreventRunnerDamage = false;
         s.turn.tlmDedicatedNeuralNetUsedThisTurn = false;
-        s.turn.starlightDoubleEventAdditionalCostIgnored = false;
         // Security Testing: the Runner may choose a server. The choice lasts
         // only until this turn ends (CR 9.10.3b).
         // Patron: choose a server.
@@ -2580,7 +2618,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             ice.subroutines = [
               ...(ice.subroutines ?? []),
               {
-                id: `${ice.defId}-marker-etr`,
+                id: `${ice.defId}${MARKER_ETR}`,
                 text: "End the run.",
                 effect: structuredClone(etrEffect),
               },
@@ -2651,6 +2689,7 @@ export const STEPS: Record<string, TimingStepDef> = {
             ...collectBlockchainArchivesSubs(s, iceId),
             ...collectHostedConditionSubsBeforePrinted(s, iceId),
             ...collectAdvancementGainedSubs(s, iceId),
+            ...collectBadPublicityGainedSubs(s, iceId),
             ...collectNextOpalSubs(s, iceId),
             ...collectTourGuideEtrSubs(s, iceId),
           ];
@@ -2985,12 +3024,17 @@ export const STEPS: Record<string, TimingStepDef> = {
           !s.turn.firstEncounterUsedThisTurn
         ) {
           s.turn.firstEncounterUsedThisTurn = true;
-          if (!(ice.subtypes ?? []).includes("code gate")) {
-            ice.subtypes = [...(ice.subtypes ?? []), "code gate"];
-            s.log.push(
-              `${runnerId.title} — ${ice.title} gains code gate this run.`,
-            );
-          }
+          // "It gains code gate for the remainder of this run": a lingering
+          // effect that ends with the run (CR 9.10.1).
+          addLingeringEffect(s, {
+            createdBy: s.runner.identityId,
+            duration: { kind: "run" },
+            kind: LINGERING_KIND_GRANTED_SUBTYPES,
+            payload: { cardId: iceId, subtypes: ["code gate"] },
+          });
+          s.log.push(
+            `${runnerId.title} — ${ice.title} gains code gate for the remainder of this run.`,
+          );
         }
         syncHostedSubBoost(s, iceId);
         if (
@@ -5394,6 +5438,21 @@ export const STEPS: Record<string, TimingStepDef> = {
           ice.subroutines = ice.baseSubroutines
             ? structuredClone(ice.baseSubroutines)
             : [];
+        }
+        // Marker: the gained "End the run." lasts for the remainder of that
+        // run only (CR 9.10.1).
+        for (const card of Object.values(s.cards)) {
+          if (!card.subroutines?.some((sub) => sub.id.endsWith(MARKER_ETR))) {
+            continue;
+          }
+          card.subroutines = card.subroutines.filter(
+            (sub) => !sub.id.endsWith(MARKER_ETR),
+          );
+          if (card.baseSubroutines) {
+            card.baseSubroutines = card.baseSubroutines.filter(
+              (sub) => !sub.id.endsWith(MARKER_ETR),
+            );
+          }
         }
         // Brainstorm-class: encounter-gained subroutines last only for
         // the remainder of the run; strip them so the next run starts

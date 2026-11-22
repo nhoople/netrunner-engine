@@ -149,25 +149,45 @@ export function applySearchKinds(
 
     case "search_stack_subtype_may_install": {
       const want = action.subtype.toLowerCase();
-      const matches = state.runner.deck.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).some((s) => s.toLowerCase() === want),
-      );
-      if (matches.length === 0) {
-        shuffleRunnerStack(state);
+      if (!action.cardIds) {
+        // The Runner picks which card to find, and may find none; the Corp
+        // does not learn how many match (CR 8.7.1, 8.7.2e, 10.2.2b).
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: state.runner.deck.filter((id) =>
+              (state.cards[id]?.subtypes ?? []).some(
+                (s) => s.toLowerCase() === want,
+              ),
+            ),
+            count: 1,
+            search: true,
+            purpose: "resume",
+            label: "add to the grip",
+            resume: {
+              kind: "search_stack_subtype_may_install",
+              subtype: action.subtype,
+            },
+          }),
+        );
+      }
+      // The stack is shuffled once the search is complete, before the
+      // found card is revealed or installed (CR 8.7.3).
+      const id = action.cardIds.find((cid) => state.runner.deck.includes(cid));
+      if (id) state.runner.deck = state.runner.deck.filter((x) => x !== id);
+      shuffleRunnerStack(state);
+      if (!id) {
         log(state, `Search stack for ${action.subtype} — none found.`);
         return { ok: true };
       }
-      const id = matches[0]!;
-      state.runner.deck = state.runner.deck.filter((x) => x !== id);
       state.runner.hand.push(id);
       state.cards[id]!.zone = "runner:grip";
       state.cards[id]!.faceup = true;
-      shuffleRunnerStack(state);
+      revealCards(state, [id], sourceId);
       log(
         state,
-        matches.length === 1
-          ? `Search stack — add ${state.cards[id]!.title} to grip.`
-          : `Search stack — add ${state.cards[id]!.title} to grip (${matches.length} matches; first selected).`,
+        `Search stack — reveal ${state.cards[id]!.title} and add it to the grip.`,
       );
       const card = state.cards[id]!;
       const cost = gripInstallCostAfterDiscount(state, card, 0);

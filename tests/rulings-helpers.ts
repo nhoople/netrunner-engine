@@ -11,6 +11,8 @@ import {
 import type { GameState } from "../src/index.js";
 import type { Action, ServerId } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
+import type { Effect } from "../src/effects/ir.js";
+import { openPendingChoose } from "../src/state/pendingChoice.js";
 
 /** The default board with no Runner card marked rezzed (CR 8.1.4f). */
 export function fresh(): GameState {
@@ -261,4 +263,23 @@ export function clearCorpHand(s: GameState): void {
 export function clearRd(s: GameState): void {
   for (const id of s.corp.deck) delete s.cards[id];
   s.corp.deck = [];
+}
+
+/**
+ * Open a one-option choice that carries `effect`, so choosing it goes through
+ * `applyAction` and its checkpoint, as an instruction inside a run does. For
+ * tests of an instruction that resolves at once (Singularity, CR 6.7.4c).
+ */
+export function openAsChoice(
+  s: GameState,
+  sourceId: string,
+  optionId: string,
+  effect: Effect,
+): { ok: true } {
+  openPendingChoose(s, {
+    sourceId,
+    chooser: "runner",
+    options: [{ id: optionId, label: optionId, effect }],
+  });
+  return { ok: true };
 }

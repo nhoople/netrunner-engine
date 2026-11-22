@@ -1,4 +1,5 @@
 /** Blood and Water (baw) Red Sand pack primitives — v1.132.0. */
+import { printsCanBeAdvanced } from "../../state/advanceable.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { moveRunnerToOutermost } from "../../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
@@ -34,9 +35,9 @@ function canAdvance(state: EffectCtx["state"], cardId: string): boolean {
   const c = state.cards[cardId];
   if (!c) return false;
   if (c.type === "agenda") return true;
-  if (c.canAdvance) return true;
+  if (printsCanBeAdvanced(c)) return true;
   const def = c.defId ? getCardDef(c.defId) : undefined;
-  return Boolean(def?.canAdvance);
+  return def ? printsCanBeAdvanced({ ...def, rezzed: c.rezzed }) : false;
 }
 
 function iceProtectingHqCount(state: EffectCtx["state"]): number {

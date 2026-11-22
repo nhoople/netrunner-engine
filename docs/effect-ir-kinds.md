@@ -6,21 +6,21 @@ Every primitive kind the engine knows, with its fields, how many cards use it, a
 
 ## Totals
 
-Card counts are from cards `v1.147.26` (2016 cards).
+Card counts are from cards `v1.147.27` (2016 cards).
 
 | Measure | Count |
 | --- | ---: |
-| Kinds in `KNOWN_PRIMITIVE_KINDS` | 1530 |
-| Kinds used by card JSON | 888 |
-| Kinds used by exactly one card | 735 |
-| Kinds built by the engine | 740 |
-| Kinds built by both cards and the engine | 114 |
+| Kinds in `KNOWN_PRIMITIVE_KINDS` | 1531 |
+| Kinds used by card JSON | 889 |
+| Kinds used by exactly one card | 736 |
+| Kinds built by the engine | 741 |
+| Kinds built by both cards and the engine | 115 |
 | Engine-only kinds (no card uses them; the engine builds them) | 626 |
 | Kinds neither a card nor the engine builds | 16 |
 | Verb groups | 74 |
 | Kinds with no standard verb | 212 |
 
-`KNOWN_PRIMITIVE_KINDS` has 1531 entries; `bottom_drawn_card` appears twice, so it names 1530 distinct kinds.
+`KNOWN_PRIMITIVE_KINDS` has 1532 entries; `bottom_drawn_card` appears twice, so it names 1531 distinct kinds.
 
 ## How to read this
 
@@ -32,7 +32,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 ## Verbs
 
-[access](#verb-access) (7) · [add](#verb-add) (55) · [advance](#verb-advance) (4) · [arrange](#verb-arrange) (1) · [blank](#verb-blank) (5) · [boost](#verb-boost) (6) · [bottom](#verb-bottom) (2) · [brain](#verb-brain) (3) · [breach](#verb-breach) (26) · [break](#verb-break) (19) · [bypass](#verb-bypass) (4) · [cannot](#verb-cannot) (5) · [charge](#verb-charge) (2) · [choose](#verb-choose) (44) · [core](#verb-core) (3) · [derez](#verb-derez) (25) · [dividends](#verb-dividends) (1) · [draw](#verb-draw) (16) · [end](#verb-end) (3) · [expose](#verb-expose) (12) · [flip](#verb-flip) (3) · [forbid](#verb-forbid) (16) · [force](#verb-force) (2) · [forfeit](#verb-forfeit) (7) · [fortify](#verb-fortify) (3) · [gain](#verb-gain) (27) · [give](#verb-give) (10) · [grant](#verb-grant) (6) · [host](#verb-host) (35) · [identify](#verb-identify) (1) · [install](#verb-install) (153) · [jack](#verb-jack) (1) · [look](#verb-look) (27) · [lose](#verb-lose) (10) · [mark](#verb-mark) (3) · [meat](#verb-meat) (2) · [move](#verb-move) (40) · [name](#verb-name) (6) · [net](#verb-net) (10) · [offer](#verb-offer) (5) · [pay](#verb-pay) (28) · [pick](#verb-pick) (8) · [place](#verb-place) (36) · [play](#verb-play) (21) · [prevent](#verb-prevent) (23) · [psi](#verb-psi) (1) · [pump](#verb-pump) (4) · [purge](#verb-purge) (1) · [rearrange](#verb-rearrange) (2) · [redirect](#verb-redirect) (5) · [remove](#verb-remove) (22) · [resolve](#verb-resolve) (49) · [return](#verb-return) (16) · [reveal](#verb-reveal) (48) · [rez](#verb-rez) (33) · [rfg](#verb-rfg) (13) · [run](#verb-run) (1) · [sabotage](#verb-sabotage) (1) · [score](#verb-score) (13) · [search](#verb-search) (53) · [set](#verb-set) (11) · [shuffle](#verb-shuffle) (46) · [spend](#verb-spend) (23) · [suffer](#verb-suffer) (2) · [swap](#verb-swap) (39) · [tag](#verb-tag) (1) · [take](#verb-take) (12) · [top](#verb-top) (2) · [trace](#verb-trace) (21) · [trash](#verb-trash) (162) · [turn](#verb-turn) (7) · [uninstall](#verb-uninstall) (2) · [unless](#verb-unless) (1) · [weaken](#verb-weaken) (1) · [no standard verb](#no-standard-verb) (212)
+[access](#verb-access) (7) · [add](#verb-add) (55) · [advance](#verb-advance) (4) · [arrange](#verb-arrange) (1) · [blank](#verb-blank) (5) · [boost](#verb-boost) (6) · [bottom](#verb-bottom) (2) · [brain](#verb-brain) (3) · [breach](#verb-breach) (25) · [break](#verb-break) (19) · [bypass](#verb-bypass) (4) · [cannot](#verb-cannot) (5) · [charge](#verb-charge) (2) · [choose](#verb-choose) (44) · [core](#verb-core) (3) · [derez](#verb-derez) (25) · [dividends](#verb-dividends) (1) · [draw](#verb-draw) (16) · [end](#verb-end) (3) · [expose](#verb-expose) (12) · [flip](#verb-flip) (3) · [forbid](#verb-forbid) (17) · [force](#verb-force) (2) · [forfeit](#verb-forfeit) (7) · [fortify](#verb-fortify) (3) · [gain](#verb-gain) (27) · [give](#verb-give) (10) · [grant](#verb-grant) (6) · [host](#verb-host) (35) · [identify](#verb-identify) (1) · [install](#verb-install) (153) · [jack](#verb-jack) (1) · [look](#verb-look) (27) · [lose](#verb-lose) (9) · [mark](#verb-mark) (3) · [meat](#verb-meat) (2) · [move](#verb-move) (40) · [name](#verb-name) (6) · [net](#verb-net) (10) · [offer](#verb-offer) (5) · [pay](#verb-pay) (28) · [pick](#verb-pick) (8) · [place](#verb-place) (36) · [play](#verb-play) (21) · [prevent](#verb-prevent) (23) · [psi](#verb-psi) (1) · [pump](#verb-pump) (4) · [purge](#verb-purge) (1) · [rearrange](#verb-rearrange) (3) · [redirect](#verb-redirect) (5) · [remove](#verb-remove) (22) · [resolve](#verb-resolve) (49) · [return](#verb-return) (16) · [reveal](#verb-reveal) (49) · [rez](#verb-rez) (33) · [rfg](#verb-rfg) (13) · [run](#verb-run) (1) · [sabotage](#verb-sabotage) (1) · [score](#verb-score) (13) · [search](#verb-search) (53) · [set](#verb-set) (11) · [shuffle](#verb-shuffle) (46) · [spend](#verb-spend) (23) · [suffer](#verb-suffer) (2) · [swap](#verb-swap) (39) · [tag](#verb-tag) (1) · [take](#verb-take) (12) · [top](#verb-top) (2) · [trace](#verb-trace) (21) · [trash](#verb-trash) (162) · [turn](#verb-turn) (7) · [uninstall](#verb-uninstall) (2) · [unless](#verb-unless) (1) · [weaken](#verb-weaken) (1) · [no standard verb](#no-standard-verb) (212)
 
 <a id="verb-access"></a>
 
@@ -193,7 +193,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 ## `breach`
 
-26 kinds: 19 used by cards, 6 built by the engine.
+25 kinds: 18 used by cards, 6 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -217,7 +217,6 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `may_breach_instead_code_siphon` | — | 1 | card |
 | `may_breach_instead_diversion_funds_ka` | — | 1 | card |
 | `may_breach_instead_eden_shard` | — | 0 | none |
-| `may_breach_instead_escher` | — | 1 | card |
 | `may_breach_instead_expert_schedule_analyzer` | — | 1 | card |
 | `may_breach_instead_exploratory_romp` | `amount: number` | 1 | card |
 | `may_breach_instead_indexing` | — | 1 | card |
@@ -239,7 +238,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `break_barrier` | — | 1 | card |
 | `break_code_gate_or_barrier` | — | 1 | card |
 | `break_encounter_etr_subroutine` | — | 0 | engine |
-| `break_encounter_subroutine` | `requireSubtype?: string`, `requireMinStrength?: number`, `maxSubs?: number`, `payCreditsPerBrokenSub?: number`, `thenIfBroke?: Effect` | 34 | card, engine |
+| `break_encounter_subroutine` | `requireSubtype?: string`, `requireMinStrength?: number`, `maxSubs?: number`, `payCreditsPerBrokenSub?: number`, `thenIfBroke?: Effect` | 35 | card, engine |
 | `break_etr_subroutine_trash_installed` | — | 1 | card |
 | `break_first_subroutine` | — | 1 | card |
 | `break_host_subroutine` | `maxSubs?: number`, `requireSubtype?: string` | 4 | card |
@@ -301,10 +300,11 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `choose_breaker_run` | `strengthBonus?: number` | 1 | card |
 | `choose_card` | `chooser: "corp" \| "runner"`, `zone: "hq" \| "grip" \| "installed" \| "heap" \| "archives" \| "corp_score" \| "runner_score" \| "remote_root"`, `cardType?: string`, `rezzedOnly?: boolean`, `includeSubtypes?: string[]`, `optional?: boolean`, `then: Effect` | 1 | card |
 | `choose_card_type_for_encounter` | — | 2 | card |
+| `choose_card_type_reveal_stack_top` | — | 1 | card |
 | `choose_cards` | `chooser: "corp" \| "runner"`, `candidates: string[]`, `count: number`, `upTo?: boolean`, `picked: string[]`, `purpose: "discard_to_hand_size" \| "trash_hq" \| "reveal_trash_hq" \| "archives_to_hq" \| "shuffle_archives_to_rd" \| "shuffle_hq_to_rd" \| "trash_grip" \| "shuffle_grip_to_stack" \| "resume"`, `resume?: Primitive`, `label?: string`, `open?: boolean`, `search?: boolean`, `then?: Effect` | 0 | engine |
 | `choose_exactly_n` | `n: number`, `options: ChoiceOption[]` | 3 | card |
 | `choose_exploratory_romp_card` | `amount: number` | 0 | engine |
-| `choose_forfeit_runner_scored_agenda` | — | 1 | card |
+| `choose_forfeit_runner_scored_agenda` | `then?: Effect` | 1 | card |
 | `choose_grant_encounter_ice_subtype` | — | 1 | card |
 | `choose_hq` | `cardId: string`, `restIds: string[]` | 0 | engine |
 | `choose_ice_additional_rez_cost_this_turn` | `amount: number` | 1 | card |
@@ -336,7 +336,6 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `choose_turning_wheel_central_bonus_access` | — | 1 | card |
 | `choose_type` | — | 1 | card |
 | `choose_type_reveal_gain_etr_unless_tag_for_run` | — | 1 | card |
-| `choose_type_reveal_install` | — | 1 | card |
 | `choose_type_shuffle_grip` | `maxCards: number` | 1 | card |
 | `choose_x_and_load_power` | — | 1 | card |
 | `may_choose_other_rezzed_ice_encounter_then_resume_source` | — | 1 | card |
@@ -351,7 +350,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `core_damage` | `amount: number`, `interactive?: boolean`, `preventByLoseAllClicks?: boolean`, `cannotPrevent?: boolean` | 47 | card, engine |
+| `core_damage` | `amount: number`, `interactive?: boolean`, `preventByLoseAllClicks?: boolean`, `cannotPrevent?: boolean` | 48 | card, engine |
 | `core_or_jack_out` | — | 1 | card |
 | `may_core_if_rezzed_next_ice` | — | 1 | card |
 
@@ -434,7 +433,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | --- | --- | ---: | --- |
 | `end_choice_instruction` | — | 0 | engine |
 | `end_expose_up_to` | — | 0 | engine |
-| `end_the_run` | — | 153 | card, engine |
+| `end_the_run` | — | 154 | card, engine |
 
 <a id="verb-expose"></a>
 
@@ -473,7 +472,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 ## `forbid`
 
-16 kinds: 13 used by cards, 3 built by the engine.
+17 kinds: 14 used by cards, 3 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -484,13 +483,14 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `forbid_install_remainder_of_turn` | — | 1 | card |
 | `forbid_installed_runner_break_for_run` | — | 1 | card |
 | `forbid_installs_until_run_end` | — | 1 | card |
-| `forbid_jack_out_until_next_encounter` | — | 1 | card |
+| `forbid_jack_out_until_next_encounter` | — | 2 | card |
 | `forbid_rez` | `cardId: string` | 0 | engine |
 | `forbid_runner_break_on_source` | — | 1 | card |
 | `forbid_runner_card_break_for_run` | `cardId: string` | 0 | engine |
 | `forbid_runner_runs_this_turn` | — | 3 | card |
 | `forbid_runner_spend_credits_for_run` | — | 1 | card |
 | `forbid_scoring_agendas_this_turn` | — | 2 | card |
+| `forbid_steal_accessed_agenda` | — | 1 | card |
 | `forbid_steal_trash_this_run` | — | 3 | card |
 | `forbid_steal_trash_title_this_run` | `title: string` | 0 | engine |
 
@@ -702,7 +702,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `install_from_grip_discount` | `types: Array<"program" \| "hardware" \| "resource">`, `discount: number`, `mayCharge?: boolean`, `thenOnInstall?: Effect` | 6 | card, engine |
 | `install_from_grip_facedown` | — | 1 | card |
 | `install_from_grip_ignore_cost` | — | 1 | card |
-| `install_from_heap` | `types: Array<"program" \| "hardware" \| "resource">`, `discount?: number` | 2 | card |
+| `install_from_heap` | `types: Array<"program" \| "hardware" \| "resource">`, `discount?: number` | 3 | card |
 | `install_from_hq_continue` | `remaining: number` | 0 | engine |
 | `install_from_hq_new_remote` | — | 1 | card |
 | `install_from_hq_on_remote_root_place_advancement_cannot_score_or_rez_until_next_corp_turn` | `amount: number` | 1 | card |
@@ -766,7 +766,6 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `install_resolve` | `cardId: string`, `lookedIds: string[]`, `discount?: number` | 0 | engine |
 | `install_resource_discount` | `discount: number` | 1 | card |
 | `install_rez_advertisement` | `cardId: string`, `remaining: number` | 0 | engine |
-| `install_rez_bioroid_inward` | — | 1 | card |
 | `install_rez_chosen` | `cardId: string` | 0 | engine |
 | `install_rez_rd_ice_on_source_server` | `cardId: string`, `totalDiscount: number`, `installDiscount?: number` | 0 | engine |
 | `install_rez_rd_looked_card_ignore_costs` | `cardId: string` | 0 | engine |
@@ -801,7 +800,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `may_install_from_archives_ignore_costs` | — | 2 | card |
 | `may_install_from_archives_in_remote_root_with_advancements` | `amount: number` | 1 | card |
 | `may_install_from_grip` | `discount?: number`, `types?: Array<"program" \| "hardware" \| "resource">`, `subtype?: string` | 7 | card, engine |
-| `may_install_from_heap` | `types: Array<"program" \| "hardware" \| "resource">`, `discount?: number` | 2 | card |
+| `may_install_from_heap` | `types: Array<"program" \| "hardware" \| "resource">`, `discount?: number` | 1 | card |
 | `may_install_from_hq_ignore_costs` | — | 2 | card |
 | `may_install_from_hq_ignore_costs_exclude_source_server` | — | 1 | card |
 | `may_install_from_hq_ignore_costs_then_place_advancements` | `amount: number` | 1 | card |
@@ -818,6 +817,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `may_install_one_hosted_card` | `firstThisTurnDiscountPerUniqueConnection?: boolean` | 1 | card |
 | `may_install_one_hosted_program` | — | 1 | card |
 | `may_install_program_hardware_from_last_runner_discarded` | — | 1 | card |
+| `may_install_rez_bioroid_inward` | — | 1 | card |
 
 <a id="verb-jack"></a>
 
@@ -869,7 +869,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 ## `lose`
 
-10 kinds: 9 used by cards, 3 built by the engine.
+9 kinds: 8 used by cards, 3 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -877,12 +877,11 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `lose_2_per_resource_or_trash` | — | 1 | card |
 | `lose_all_credits` | `side: SideRef` | 3 | card |
 | `lose_clicks` | `side: SideRef`, `amount: number` | 25 | card, engine |
-| `lose_credits` | `side: SideRef`, `amount: number`, `tally?: CreditTally`, `then?: Effect`, `gainPerCreditLost?: { side: SideRef; per: number }` | 76 | card, engine |
+| `lose_credits` | `side: SideRef`, `amount: number`, `tally?: CreditTally`, `then?: Effect`, `gainPerCreditLost?: { side: SideRef; per: number }` | 77 | card, engine |
 | `lose_nasir_all_credits` | — | 1 | card |
 | `lose_qianju_click_prevent_tag_until_next_turn` | — | 1 | card |
 | `lose_remaining_clicks` | — | 1 | card |
 | `lose_tempus_clicks` | — | 0 | engine |
-| `runner_lose_credits_equal_corp_bad_publicity` | — | 1 | card |
 
 <a id="verb-mark"></a>
 
@@ -904,7 +903,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `meat_damage` | `amount: number`, `tally?: CreditTally`, `cannotPrevent?: boolean` | 37 | card, engine |
+| `meat_damage` | `amount: number`, `tally?: CreditTally`, `cannotPrevent?: boolean` | 38 | card, engine |
 | `meat_damage_stolen_last_turn` | — | 1 | card |
 
 <a id="verb-move"></a>
@@ -926,7 +925,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `move_agenda_to_bottom_rd` | `cardId: string`, `shuffledRd: boolean` | 0 | engine |
 | `move_all_advancements` | — | 1 | card |
 | `move_any_advancements_from_self_to_advanceable` | — | 1 | card |
-| `move_archives_to_hq` | `cardId: string` | 0 | engine |
+| `move_archives_to_hq` | `cardId: string`, `reveal?: boolean` | 0 | engine |
 | `move_constellation_advancement_between_ice` | — | 1 | card |
 | `move_constellation_apply` | `fromId: string`, `toId: string` | 0 | engine |
 | `move_counter` | — | 1 | card |
@@ -979,7 +978,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `net_damage` | `amount: number`, `tally?: CreditTally` | 80 | card, engine |
+| `net_damage` | `amount: number`, `tally?: CreditTally` | 78 | card, engine |
 | `net_damage_1_plus_copies_of_source_title_in_other_score_area` | — | 1 | card |
 | `net_damage_agenda_points_this_turn` | — | 1 | card |
 | `net_damage_equal_unused_mu` | — | 1 | card |
@@ -1111,7 +1110,6 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `may_play_event_from_heap` | — | 1 | card |
 | `may_play_nonterminal_operation_from_hq` | — | 1 | card |
 | `may_play_operation_from_hq` | — | 1 | card |
 | `may_play_or_install_from_hq` | — | 1 | card |
@@ -1122,6 +1120,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `play_current_card` | `cardId: string` | 0 | engine |
 | `play_current_from_hq_or_archives` | — | 1 | card |
 | `play_event_from_heap` | — | 1 | card |
+| `play_event_from_heap_paying_costs` | — | 1 | card |
 | `play_heap_event_card` | `cardId: string` | 0 | engine |
 | `play_heap_event_ignore_cost` | `cardId: string` | 0 | engine |
 | `play_hq_operation_card` | `cardId: string` | 0 | engine |
@@ -1202,11 +1201,12 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 ## `rearrange`
 
-2 kinds: 1 used by cards, 1 built by the engine.
+3 kinds: 2 used by cards, 1 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
 | `rearrange_ice` | `chooser: "corp" \| "runner"`, `serverIds: import("../state/types.js").ServerId[]`, `placed?: string[]` | 0 | engine |
+| `rearrange_ice_instead_of_breach` | — | 1 | card |
 | `rearrange_ice_protecting_all_servers` | — | 1 | card |
 
 <a id="verb-redirect"></a>
@@ -1341,7 +1341,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 ## `reveal`
 
-48 kinds: 31 used by cards, 22 built by the engine.
+49 kinds: 32 used by cards, 23 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -1349,6 +1349,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `may_reveal_aeneas_gain_one` | `cardId: string` | 0 | engine |
 | `may_reveal_force_draw` | — | 1 | card |
 | `may_reveal_peek_rd_top_for_chosen_type_gain` | `cardType: "agenda" \| "asset" \| "ice" \| "operation" \| "upgrade" \| "event"`, `credits: number` | 0 | engine |
+| `may_reveal_score_from_hq` | — | 1 | card |
 | `may_reveal_shuffle_agendas_into_rd` | `max: number`, `creditsEach?: number` | 3 | card |
 | `reveal_aeneas_gain_resolve` | `cardId: string` | 0 | engine |
 | `reveal_agenda_hq_or_archives_gain_ap_shuffle` | — | 1 | card |
@@ -1361,8 +1362,9 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `reveal_grip_may_trash_one` | — | 1 | card, engine |
 | `reveal_grip_trash_cost_lte_excess` | — | 1 | card |
 | `reveal_host_programs` | — | 1 | card |
+| `reveal_hq` | — | 1 | card, engine |
 | `reveal_hq_forbid_steal_trash_copies_this_run` | — | 1 | card |
-| `reveal_hq_gain_credits` | `maxCards: number`, `creditsEach: number`, `cardIds?: string[]` | 2 | card, engine |
+| `reveal_hq_gain_credits` | `maxCards: number`, `creditsEach: number`, `cardIds?: string[]` | 1 | card, engine |
 | `reveal_hq_subtype_install_and_rez_ignore_costs` | `subtype: string` | 1 | card |
 | `reveal_hyoubu_grip_random` | — | 0 | engine |
 | `reveal_hyoubu_grip_random_or_stack_top` | — | 1 | card |
@@ -1375,7 +1377,6 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `reveal_oracle_top_match` | `cardType: string` | 0 | engine |
 | `reveal_random_hq_card` | — | 1 | card |
 | `reveal_runner_stack_top_to_grip` | `cardId: string` | 0 | engine |
-| `reveal_score_from_hq` | — | 1 | card |
 | `reveal_shuffle_agenda_into_rd` | `cardId: string`, `remainingAfter: number`, `exclude: string[]`, `creditsEach?: number` | 0 | engine |
 | `reveal_then_may_force_draw` | — | 0 | engine |
 | `reveal_top_3` | — | 1 | card |
@@ -1504,7 +1505,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 ## `search`
 
-53 kinds: 37 used by cards, 21 built by the engine.
+53 kinds: 37 used by cards, 22 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -1554,7 +1555,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `search_stack_same_title_may_install_paying` | — | 1 | card |
 | `search_stack_subtype_add_to_grip` | `subtype: string`, `type?: string` | 1 | card |
 | `search_stack_subtype_add_to_grip_pick` | `cardId: string` | 0 | engine |
-| `search_stack_subtype_may_install` | `subtype: string` | 1 | card |
+| `search_stack_subtype_may_install` | `subtype: string`, `cardIds?: string[]` | 1 | card, engine |
 | `search_stack_take_to_grip` | `max?: number` | 1 | card |
 | `search_stack_type_add_to_grip` | `cardType: "program" \| "hardware" \| "resource"` | 1 | card |
 | `search_stack_type_add_to_grip_pick` | `cardId: string` | 0 | engine |
@@ -1648,7 +1649,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `may_spend_to_place_power` | `amount?: number` | 0 | engine |
 | `may_spend_voting_machine_lose_click` | — | 1 | card |
 | `spend_caprice_nisei_secret` | — | 1 | card |
-| `spend_click_additional_cost` | — | 1 | card |
+| `spend_click_additional_cost` | `side?: "corp" \| "runner"` | 2 | card |
 | `spend_credits_place_power_counters` | `amount?: number`, `includeProgramRecurring?: boolean` | 1 | card, engine |
 | `spend_enable_hosted_credits_for` | `purposes: Array<"install" \| "trash">` | 1 | card |
 | `spend_lightning_counter_rez_up_to_protecting_attacked` | `maxIce: number` | 0 | engine |
@@ -1693,7 +1694,8 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `may_swap_ice_with_other_installed` | `iceId?: string` | 1 | card, engine |
 | `may_swap_passed_ice` | `iceId?: string` | 0 | engine |
 | `may_swap_protecting_attacked_ice_with_other_installed` | — | 1 | card |
-| `may_swap_two_installed_ice` | — | 1 | card, engine |
+| `may_swap_two_installed_ice` | `cardIds?: string[]` | 1 | card, engine |
+| `may_swap_with_hq` | — | 1 | card |
 | `swap_2_non_ice` | `cardIds?: string[]` | 0 | engine |
 | `swap_2_other_ice_or_2_non_ice` | — | 1 | card |
 | `swap_2_unrezzed_ice` | — | 1 | card |
@@ -1724,7 +1726,6 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `swap_two_installed_ice` | `otherIceId: string`, `iceId?: string` | 0 | engine |
 | `swap_with_grip_subtype` | `subtype: string` | 3 | card |
 | `swap_with_grip_subtype_resolve` | `cardId: string` | 0 | engine |
-| `swap_with_hq` | — | 1 | card |
 | `swap_yagi_hq_with_attacked_pick` | `hqCardId: string`, `serverCardId: string` | 0 | engine |
 | `swap_yagi_hq_with_attacked_root_or_ice` | — | 1 | card |
 
@@ -1804,7 +1805,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 
 ## `trash`
 
-162 kinds: 96 used by cards, 82 built by the engine.
+162 kinds: 96 used by cards, 81 built by the engine.
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
@@ -1837,7 +1838,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `trash_any_rezzed_give_tags` | — | 1 | card, engine |
 | `trash_attacked_server_root` | — | 1 | card, engine |
 | `trash_bacterial_one` | `cardId: string` | 0 | engine |
-| `trash_capstone_grip_card` | `cardId: string` | 0 | engine |
+| `trash_capstone_grip_card` | `cardIds: string[]` | 0 | engine |
 | `trash_chop_bot_installed_then_draw_or_remove_tag` | — | 1 | card |
 | `trash_chop_bot_then_choose` | `cardId: string` | 0 | engine |
 | `trash_chronos_pick` | `cardId: string` | 0 | engine |
@@ -1860,7 +1861,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `trash_from_grip` | `cardId: string` | 0 | engine |
 | `trash_grip_card` | `cardId: string` | 0 | engine |
 | `trash_grip_card_draw` | `cardId: string` | 0 | engine |
-| `trash_grip_draw_for_installed_dupes` | — | 1 | card, engine |
+| `trash_grip_draw_for_installed_dupes` | — | 1 | card |
 | `trash_grip_hardware_place_hosted_credits` | `cardId: string`, `amount: number` | 0 | engine |
 | `trash_hardware` | `pick: "first" \| "choose"` | 6 | card |
 | `trash_hardware_additional_cost` | — | 1 | card |
@@ -1909,7 +1910,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `trash_one_installed_runner_program` | — | 2 | card |
 | `trash_one_program_used_this_run_cannot_prevent` | — | 1 | card |
 | `trash_own_installed` | `cardId: string` | 0 | engine |
-| `trash_own_program` | — | 4 | card |
+| `trash_own_program` | — | 3 | card |
 | `trash_own_resource` | — | 2 | card |
 | `trash_own_resource_with_subtype` | `subtype: string` | 1 | card |
 | `trash_own_resource_with_subtype_resolve` | `cardId: string` | 0 | engine |
@@ -1919,7 +1920,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `trash_per_tag` | — | 1 | card |
 | `trash_per_tag_continue` | `remaining: number` | 0 | engine |
 | `trash_political_operative_resolve` | `cardId: string` | 0 | engine |
-| `trash_program` | `pick: "first" \| "choose"`, `aiOnly?: boolean`, `excludeSubtypes?: string[]`, `includeSubtypes?: string[]` | 33 | card |
+| `trash_program` | `pick: "first" \| "choose"`, `aiOnly?: boolean`, `excludeSubtypes?: string[]`, `includeSubtypes?: string[]` | 34 | card |
 | `trash_program_cannot_prevent` | `cardId: string` | 0 | engine |
 | `trash_program_or_hardware` | `pick: "first" \| "choose"` | 1 | card |
 | `trash_program_or_top_2_stack` | — | 1 | card |
@@ -2047,7 +2048,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `burner_place` | `cardId: string`, `position: "top" \| "bottom"`, `revealed: string[]`, `movesLeft: number` | 0 | engine |
 | `caissa_bishop_host` | — | 1 | card |
 | `caissa_pawn_host_outermost_central` | — | 1 | card |
-| `caissa_rook_host` | — | 2 | card |
+| `caissa_rook_host` | `move?: "same_server_or_position" \| "not_adjacent"` | 2 | card |
 | `cap_run_access_remaining` | `max: number` | 1 | card |
 | `charlatan_run_any_server` | — | 1 | card |
 | `charlatan_start_run` | `serverId: string` | 0 | engine |
@@ -2134,7 +2135,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `levy_take_program_rest_bottom` | `cardId?: string`, `restIds?: string[]` | 0 | engine |
 | `limit_printed_breaks_on_source_for_run` | `max: number` | 3 | card |
 | `mad_dash_on_run_end` | — | 1 | card |
-| `may_start_run` | `servers: "any" \| "central" \| "hq_rd" \| "rd" \| "hq" \| "archives" \| "remote"`, `bypassFirstEncounterForClicks?: number` | 6 | card, engine |
+| `may_start_run` | `servers: "any" \| "central" \| "hq_rd" \| "rd" \| "hq" \| "archives" \| "remote"`, `bypassFirstEncounterForClicks?: number` | 5 | card, engine |
 | `meeting_of_minds_fetch` | `cardId: string`, `subtype: string` | 0 | engine |
 | `melies_secretly_set_face` | — | 1 | card |
 | `melies_set_face` | `face: "hq" \| "rd" \| "archives"` | 0 | engine |
@@ -2152,7 +2153,7 @@ Card counts are from cards `v1.147.26` (2016 cards).
 | `oh_place_advancements_on` | `cardId: string`, `amount: number` | 0 | engine |
 | `open_forum_hq_to_rd_top` | `cardId: string` | 0 | engine |
 | `oversight_ai_host_on_ice` | `iceId: string` | 0 | engine |
-| `paintbrush_apply_subtype` | `iceId: string` | 0 | engine |
+| `paintbrush_apply_subtype` | `iceId: string`, `subtype?: "sentry" \| "code gate" \| "barrier"` | 0 | engine |
 | `panchatantra_apply_subtype` | `iceId: string`, `subtype: string` | 0 | engine |
 | `patron_set_named_server` | `serverId: string` | 0 | engine |
 | `peeping_tom_apply_type` | `cardType: import("../state/types.js").CardType` | 0 | engine |

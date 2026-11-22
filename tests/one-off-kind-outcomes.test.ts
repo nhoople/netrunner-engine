@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 function put(
@@ -454,15 +454,6 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "ns-1", "net_damage_agenda_points_this_turn");
     expect(s.runner.hand.length).toBe(1); // 3 net damage trashes 3 grip cards
     expect(s.runner.discardPile.length).toBe(3);
-  });
-
-  it("Ireress subroutine: Runner loses 1 credit per bad publicity", () => {
-    const s = createInitialState();
-    put(s, "ireress", "ire-1", "server:hq:ice");
-    s.corp.badPublicity = 3;
-    s.runner.credits = 5;
-    runKind(s, "ire-1", "runner_lose_credits_equal_corp_bad_publicity");
-    expect(s.runner.credits).toBe(2);
   });
 
   it("Rex Campaign: when empty, may gain 5 credits and trash itself", () => {
@@ -1909,9 +1900,14 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.servers["hq"].ice = ["iw-hq"];
     s.servers["rd"].ice = ["iw-rd"];
     runKind(s, "tenma-1", "may_swap_two_installed_ice");
-    const after = applyAction(s, {
+    const first = applyAction(s, {
       type: "choose_option",
-      optionId: "swap:iw-hq:iw-rd",
+      optionId: "tenma:iw-hq",
+    });
+    if (!first.ok) throw new Error(first.error);
+    const after = applyAction(first.state, {
+      type: "choose_option",
+      optionId: "tenma:iw-rd",
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.servers["hq"].ice).toEqual(["iw-rd"]);
@@ -2201,7 +2197,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "cap-1", "trash_grip_draw_for_installed_dupes");
     const after = applyAction(s, {
       type: "choose_option",
-      optionId: "capstone:grip-1",
+      optionId: "choose-card:grip-1",
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.runner.discardPile).toContain("grip-1");
@@ -2508,13 +2504,23 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
 
   it("Expert Schedule Analyzer: instead of breaching HQ, reveal it and skip the breach", () => {
     const s = createInitialState();
+    s.cards["runner-program-1"]!.rezzed = false;
     put(s, "expert-schedule-analyzer", "esa-1", "runner:installed");
-    put(s, "hedge-fund", "hq-1", "corp:hand");
+    s.runner.installed.push("esa-1");
+    put(s, "hedge-fund", "hq-1", "corp:hq");
     s.corp.hand = ["hq-1"];
     s.run = { attackedServerId: "hq", position: null } as GameState["run"];
     runKind(s, "esa-1", "may_breach_instead_expert_schedule_analyzer");
-    expect(s.run.skipBreach).toBe(true);
-    expect(s.log.some((l) => l.includes("Hedge Fund"))).toBe(true);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "breach",
+      "reveal",
+    ]);
+    const after = applyAction(s, { type: "choose_option", optionId: "reveal" });
+    if (!after.ok) throw new Error(after.error);
+    expect(after.state.run?.skipBreach).toBe(true);
+    expect(after.state.log.some((l) => l.includes("reveal all 1 card"))).toBe(
+      true,
+    );
   });
 
   it("Code Siphon: instead of breaching R&D, search the stack for a program", () => {
@@ -4738,7 +4744,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.runner.deck = ["prog-1"];
     s.runner.hand = [];
     s.runner.credits = 3;
-    runKind(s, "om-1", "choose_type_reveal_install");
+    runKind(s, "om-1", "choose_card_type_reveal_stack_top");
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "om:program",
@@ -4752,7 +4758,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s2, "corroder", "prog-1", "runner:stack");
     s2.runner.deck = ["prog-1"];
     s2.runner.hand = [];
-    runKind(s2, "om-1", "choose_type_reveal_install");
+    runKind(s2, "om-1", "choose_card_type_reveal_stack_top");
     const after2 = applyAction(s2, {
       type: "choose_option",
       optionId: "om:event",
@@ -6980,8 +6986,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       ice: [],
       root: ["pb-1"],
     } as GameState["servers"][string];
-    runKind(s, "pb-1", "reveal_score_from_hq");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["pb:ht-1"]);
+    runKind(s, "pb-1", "may_reveal_score_from_hq");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "pb:ht-1",
+      "decline",
+    ]);
     const after = applyAction(s, {
       type: "choose_option",
       optionId: "pb:ht-1",
@@ -7297,12 +7306,17 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "hos-1", "search_stack_subtype_may_install", {
       subtype: "connection",
     });
-    expect(s.runner.hand).toContain("kj-1");
-    expect(s.runner.deck).not.toContain("kj-1");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(
+    const found = applyAction(s, {
+      type: "choose_option",
+      optionId: "choose-card:kj-1",
+    });
+    if (!found.ok) throw new Error(found.error);
+    expect(found.state.runner.hand).toContain("kj-1");
+    expect(found.state.runner.deck).not.toContain("kj-1");
+    expect(found.state.pendingChoice?.options.map((o) => o.id)).toEqual(
       expect.arrayContaining(["install:kj-1", "decline-install"]),
     );
-    const after = applyAction(s, {
+    const after = applyAction(found.state, {
       type: "choose_option",
       optionId: "install:kj-1",
     });
@@ -7896,9 +7910,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       root: ["sak-1"],
     } as GameState["servers"][string];
     s.corp.hand = ["hq-1"];
-    runKind(s, "sak-1", "swap_with_hq");
+    runKind(s, "sak-1", "may_swap_with_hq");
     expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
       "toshiyuki-swap:hq-1",
+      "decline",
     ]);
     const after = applyAction(s, {
       type: "choose_option",

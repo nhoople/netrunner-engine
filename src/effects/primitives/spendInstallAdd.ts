@@ -14,7 +14,8 @@ import {
   effectiveAdvancementRequirement,
 } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import type { EffectCtx } from "../eval.js";
+import { evalEffect, type EffectCtx } from "../eval.js";
+import { serverIdForIce } from "../../cards/stubs.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { random } from "../../state/rng.js";
@@ -316,15 +317,20 @@ export function applySpinHapPrimitive(
       if (!ice.baseSubroutines) {
         ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
       }
-      const base = ice.baseSubroutines ?? [];
+      // "It gains X subroutines for the remainder of this run": each
+      // encounter adds X more, and the run's end removes them (CR 9.10.1).
+      const run = state.run!;
+      const restored = (run.thunderboltGrantedIceIds ??= []);
+      if (!restored.includes(sourceId)) restored.push(sourceId);
+      const have = (ice.subroutines ?? []).length;
       const extras = Array.from({ length: n }, (_, i) => ({
-        id: `${ice.defId}-komainu-${i}`,
+        id: `${ice.defId}-komainu-${have + i}`,
         text: "Do 1 net damage.",
         effect: fx.do({ kind: "net_damage", amount: 1 }),
       }));
-      ice.subroutines = [...base, ...extras];
-      if (state.run?.encounter?.iceId === sourceId) {
-        resetEncounterBreaks(state.run.encounter, ice.subroutines.length);
+      ice.subroutines = [...(ice.subroutines ?? []), ...extras];
+      if (run.encounter?.iceId === sourceId) {
+        resetEncounterBreaks(run.encounter, ice.subroutines.length);
       }
       log(state, `Komainu — gains ${n} net damage subroutine(s).`);
       return { ok: true };
@@ -441,7 +447,7 @@ export function applySpinHapPrimitive(
       state.run.clearCannotJackOutOnNextEncounterBegin = true;
       log(
         state,
-        `Inazuma — Runner cannot jack out this run until after their next ice encounter begins.`,
+        `${state.cards[sourceId]?.title ?? sourceId} — the Runner cannot jack out this run until after they encounter a piece of ice.`,
       );
       return { ok: true };
     }
@@ -656,7 +662,7 @@ export function applySpinHapPrimitive(
       log(state, `Push Your Luck — Corp guessed wrong; gain ${2 * spent}¢.`);
       return { ok: true };
     }
-    case "choose_type_reveal_install": {
+    case "choose_card_type_reveal_stack_top": {
       const types = ["event", "program", "resource", "hardware"];
       openPendingChoose(state, {
         sourceId,
@@ -680,23 +686,29 @@ export function applySpinHapPrimitive(
         `Oracle May — reveal ${state.cards[top]!.title} (${match ? "match" : "no match"}).`,
       );
       // Printed Oracle May: on a match, draw the card and gain 2¢; on a
-      // miss, trash it. (Card text wins, CR 1.2.1.)
-      state.runner.deck.shift();
+      // miss, trash it. (Card text wins, CR 1.2.1.) That card is the top
+      // of the stack, so the draw procedure draws it (CR 8.4.2).
       if (match) {
-        state.runner.hand.push(top);
-        state.cards[top]!.zone = "runner:grip";
-        state.runner.credits += 2;
-        log(
-          state,
-          `Oracle May — draw ${state.cards[top]!.title} and gain 2¢ → ${state.runner.credits}¢.`,
+        log(state, `Oracle May — draw ${state.cards[top]!.title} and gain 2¢.`);
+        const r = evalEffect(
+          ctx,
+          fx.seq(
+            fx.do({ kind: "draw", side: "runner", amount: 1 }),
+            fx.do({ kind: "gain_credits", side: "runner", amount: 2 }),
+          ),
         );
+        // A revealed card goes back to its previous state if it is not
+        // drawn (CR 1.21.3).
+        if (state.runner.deck.includes(top)) state.cards[top]!.faceup = false;
+        return r;
       } else {
+        state.runner.deck.shift();
         trashCard(state, top, { by: "runner" });
         log(state, `Oracle May — trash ${state.cards[top]!.title}.`);
       }
       return { ok: true };
     }
-    case "reveal_score_from_hq": {
+    case "may_reveal_score_from_hq": {
       // Printed: score an HQ agenda whose advancement requirement is ≤ the
       // number of advancement tokens on Plan B (CR 1.2.1: card text wins).
       const planBAdv = state.cards[sourceId]?.advancementCounters ?? 0;
@@ -711,14 +723,22 @@ export function applySpinHapPrimitive(
         log(state, `Plan B — no scoreable agenda in HQ.`);
         return { ok: true };
       }
+      // "You may reveal and score": the Corp may decline (CR 9.6.9).
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
-        options: agendas.map((id) => ({
-          id: `pb:${id}`,
-          label: `Score ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "score_agenda_from_hq", cardId: id }),
-        })),
+        options: [
+          ...agendas.map((id) => ({
+            id: `pb:${id}`,
+            label: `Score ${state.cards[id]!.title}`,
+            effect: fx.do({ kind: "score_agenda_from_hq", cardId: id }),
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.gainCredits("corp", 0),
+          },
+        ],
       });
       return { ok: true };
     }
@@ -764,28 +784,42 @@ export function applySpinHapPrimitive(
         log(state, `Tenma Line — need 2 installed ice.`);
         return { ok: true };
       }
-      const opts: { id: string; label: string; effect: Effect }[] = [];
-      for (let i = 0; i < ice.length; i++) {
-        for (let j = i + 1; j < ice.length; j++) {
-          const a = ice[i]!;
-          const b = ice[j]!;
-          opts.push({
-            id: `swap:${a}:${b}`,
-            label: `Swap ${state.cards[a]!.title} and ${state.cards[b]!.title}`,
-            effect: fx.do({
-              kind: "swap_two_installed_ice",
-              iceId: a,
-              otherIceId: b,
-            }),
-          });
-        }
+      // The Corp makes the choices of its own ability: any 2 pieces of
+      // installed ice, one at a time (CR 1.15.2).
+      //
+      // Two copies of the same ice in different places are different picks.
+      const picked = action.cardIds ?? [];
+      if (picked.length < 2) {
+        const left = ice.filter((id) => !picked.includes(id));
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options: left.map((id) => {
+            const sid = serverIdForIce(state, id);
+            const at = sid ? state.servers[sid]!.ice.indexOf(id) + 1 : 0;
+            return {
+              id: `tenma:${id}`,
+              label: `${picked.length === 0 ? "Swap" : "With"} ${state.cards[id]!.title} (${sid}, position ${at} from the outermost)`,
+              effect: fx.do({
+                kind: "may_swap_two_installed_ice",
+                cardIds: [...picked, id],
+              }),
+            };
+          }),
+          hiddenFromOpponent: left.some((id) => !state.cards[id]?.rezzed),
+          logLine:
+            picked.length === 0
+              ? `Tenma Line — the Corp chooses 2 pieces of installed ice to swap.`
+              : undefined,
+        });
+        return { ok: true };
       }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: opts.slice(0, 12),
-      });
-      return { ok: true };
+      const [a, b] = picked;
+      if (!a || !b) return { ok: true };
+      return evalEffect(
+        ctx,
+        fx.do({ kind: "swap_two_installed_ice", iceId: a, otherIceId: b }),
+      );
     }
     case "corp_pay_credits": {
       const n = Math.min(action.amount ?? 0, state.corp.credits);

@@ -1,4 +1,5 @@
 import { iceStrengthCannotBeLowered } from "../../cards/stubs.js";
+import { printsCanBeAdvanced } from "../../state/advanceable.js";
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
 import { lookAtCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
@@ -360,7 +361,7 @@ export function applyFlashpointQuPrimitive(
         for (const id of [...server.root, ...server.ice]) {
           const c = state.cards[id];
           if (!c) continue;
-          if (c.type === "agenda" || c.canAdvance) targets.push(id);
+          if (c.type === "agenda" || printsCanBeAdvanced(c)) targets.push(id);
         }
       }
       if (targets.length === 0 || credits <= 0 || max <= 0) {

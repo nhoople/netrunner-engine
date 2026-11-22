@@ -1419,23 +1419,40 @@ export function applyOtherKinds(
         currentHost && currentServer
           ? inwardFromInnermost(state.servers[currentServer].ice, currentHost)
           : -1;
+      // Once hosted on ice, the printed limit on where it may move next:
+      // Rook to ice protecting the same server or in the same position
+      // (counted from the innermost); Knight anywhere but the next ice
+      // inward or outward (CR 1.2.1).
       const filtered = candidates.filter((iceId) => {
         if (iceId === currentHost) return false;
         if (!currentHost) return true;
         const sid = serverIdForIce(state, iceId);
         if (!sid) return false;
-        return (
-          inwardFromInnermost(state.servers[sid].ice, iceId) === currentInward
-        );
+        const position = inwardFromInnermost(state.servers[sid].ice, iceId);
+        if (action.move === "not_adjacent") {
+          return !(
+            sid === currentServer && Math.abs(position - currentInward) === 1
+          );
+        }
+        return sid === currentServer || position === currentInward;
       });
       const pickFrom = currentHost ? filtered : candidates;
       if (pickFrom.length === 0) {
         log(
           state,
-          `${source.title} — no ice in the same position, counted from the innermost (CR ${CR.countPositions.number}).`,
+          `${source.title} — no ice it may move to (CR ${CR.countPositions.number}).`,
         );
         return { ok: true };
       }
+      // An unrezzed ice is named by where it is, not by its title: the
+      // Runner may not see its face (CR 1.21.1, 10.2.2a).
+      const iceName = (iceId: string): string => {
+        const ice = state.cards[iceId]!;
+        if (iceFaceVisible(ice, "runner")) return ice.title;
+        const sid = serverIdForIce(state, iceId);
+        const at = sid ? state.servers[sid].ice.indexOf(iceId) + 1 : 0;
+        return `the unrezzed ice at ${sid}, position ${at} from the outermost`;
+      };
       if (pickFrom.length === 1) {
         return applyPrimitive(ctx, {
           kind: "host_program_on_ice",
@@ -1448,7 +1465,7 @@ export function applyOtherKinds(
         chooser: "runner",
         options: pickFrom.map((iceId) => ({
           id: `host:${iceId}`,
-          label: `Host on ${state.cards[iceId]!.title}`,
+          label: `Host on ${iceName(iceId)}`,
           effect: {
             op: "do",
             action: {
@@ -4686,18 +4703,6 @@ export function applyOtherKinds(
       log(
         state,
         `Unorthodox Predictions — cannot break ${action.subtype} subroutines until start of Corp next turn.`,
-      );
-      return { ok: true };
-    }
-
-    case "runner_lose_credits_equal_corp_bad_publicity": {
-      const n = state.corp.badPublicity ?? 0;
-      if (n <= 0) return { ok: true };
-      const lose = Math.min(n, state.runner.credits);
-      subtractRunnerCreditPool(state, lose);
-      log(
-        state,
-        `Runner loses ${lose}¢ (${n} bad publicity) → ${state.runner.credits}¢.`,
       );
       return { ok: true };
     }

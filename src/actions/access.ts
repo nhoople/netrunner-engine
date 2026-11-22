@@ -132,6 +132,18 @@ export function stealOrTrashBlocked(
 }
 
 /**
+ * The Future Perfect: "the Runner cannot steal this agenda during this
+ * access" after differing bids. Steal legality, the steal itself and the
+ * steal step all read this (CR 1.2.2: "cannot" takes precedence).
+ */
+export function stealForbiddenThisAccess(
+  state: GameState,
+  cardId: string | null | undefined,
+): boolean {
+  return Boolean(cardId && state.run?.stealForbiddenAccessCardId === cardId);
+}
+
+/**
  * Why the Runner cannot use the basic trash ability on this accessed card
  * (CR 7.1.5), or null when they can, credits aside. The access candidates,
  * apply's `trash_accessed`, and the forced-trash checks all ask this.
@@ -439,7 +451,7 @@ export function enterStealAgendaOrComplete(state: GameState): ApplyResult {
   enterStep(state, "access.stealAgenda");
   const id = state.run?.accessingCardId;
   if (id && state.cards[id]?.type === "agenda") {
-    if (stealOrTrashBlocked(state, id)) {
+    if (stealOrTrashBlocked(state, id) || stealForbiddenThisAccess(state, id)) {
       return completeAccessAndContinue(state);
     }
     log(

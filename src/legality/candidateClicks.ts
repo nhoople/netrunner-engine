@@ -20,6 +20,7 @@ import {
   wirelessNetPavilionExtra,
 } from "../state/costs.js";
 import { runnerInstallCost } from "../actions/installRunner.js";
+import { eventClicksToPlay } from "../actions/play.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
 import { isRunTargetAllowed } from "../state/runLegality.js";
 import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
@@ -905,13 +906,7 @@ function addClickActions(
               credits >= Math.max(0, cost - patchworkDisc) &&
               state.runner.hand.some((gid) => gid !== id);
             if (!canPayBase && !canPayWithPw) continue;
-            const extra =
-              typeof card.playAdditionalClicks === "number"
-                ? card.playAdditionalClicks
-                : card.playAdditionalClick
-                  ? 1
-                  : 0;
-            if (state.runner.clicks < 1 + extra) continue;
+            if (state.runner.clicks < eventClicksToPlay(state, card)) continue;
             if (!playRestrictionOk(state, id)) continue;
             const pushPlay = (serverId?: ServerId) => {
               if (canPayBase) {
@@ -949,7 +944,8 @@ function addClickActions(
                 const tax = additionalRunInitiateTax(state, sid);
                 if (
                   (tax.clicks > 0 &&
-                    state.runner.clicks < 1 + extra + tax.clicks) ||
+                    state.runner.clicks <
+                      eventClicksToPlay(state, card) + tax.clicks) ||
                   (tax.credits > 0 &&
                     credits <
                       Math.max(0, cost - (canPayWithPw ? patchworkDisc : 0)) +

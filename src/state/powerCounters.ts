@@ -6,6 +6,7 @@
 import { evalEffect } from "../effects/eval.js";
 import { CR } from "../timing/labels.js";
 import { abilitiesSuppressed } from "./abilities.js";
+import { isCardActive } from "./active.js";
 import { log } from "./createGame.js";
 import type { CardInstance, GameState } from "./types.js";
 import type { Effect } from "../effects/ir.js";
@@ -139,7 +140,7 @@ export function syncGainsSubroutinesPerAdvancement(card: CardInstance): void {
 /**
  * Alix T4LB07: place N power on each active card with
  * `powerCounterOnAnyCorpInstall` whenever the Corp installs any card
- * (including the just-installed card itself).
+ * while it is active (CR 1.8.3a).
  */
 export function firePowerCounterOnAnyCorpInstall(
   state: GameState,
@@ -153,8 +154,9 @@ export function firePowerCounterOnAnyCorpInstall(
     // CR 9.12.1d — blanked continuous place-on-install does not fire.
     if (abilitiesSuppressed(state, card.id)) continue;
     if (card.side !== "corp") continue;
-    const active = card.rezzed || card.id === installedId;
-    if (!active) continue;
+    // Only an active card's ability triggers: an Alix installed unrezzed
+    // does not count its own install (CR 1.8.3a, 9.1.8).
+    if (!isCardActive(state, card.id)) continue;
     card.powerCounters = (card.powerCounters ?? 0) + n;
     log(
       state,

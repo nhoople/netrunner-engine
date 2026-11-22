@@ -77,7 +77,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 function must(
@@ -382,8 +382,9 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
       "hive-etr-1",
       "hive-etr-2",
       "hive-etr-3",
+      "hive-etr-4",
     ]);
-    expect(s.run?.encounter?.broken).toEqual([false, false, false]);
+    expect(s.run?.encounter?.broken).toEqual([false, false, false, false]);
   });
 
   it("resolves Enigma's subroutines in the order Street Magic declares (CR 9.8.7d)", () => {

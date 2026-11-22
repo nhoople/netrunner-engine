@@ -1,4 +1,5 @@
 /** Sovereign Sight (ss) Kitara pack primitives — v1.136.0. */
+import { printsCanBeAdvanced } from "../../state/advanceable.js";
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { addOutermostIce } from "../../state/runPosition.js";
@@ -384,7 +385,7 @@ export function applyKitaraSsPrimitive(
           if (!c) continue;
           // Printed: "a card that can be advanced" — agendas, plus cards
           // whose text makes them advanceable (instance canAdvance).
-          if (c.type === "agenda" || c.canAdvance) {
+          if (c.type === "agenda" || printsCanBeAdvanced(c)) {
             dests.push(id);
           }
         }

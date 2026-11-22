@@ -13,6 +13,7 @@
  * Paths that already had a test citing the rule are not repeated here; the
  * PR's path table names the test that covers each.
  */
+import { openAsChoice } from "./rulings-helpers.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   allocateEffectIdentity,
@@ -40,7 +41,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 /** The test board, with no Runner card marked rezzed (CR 8.1.4f). */
@@ -267,8 +268,10 @@ describe("cost checkpoints (CR 10.3.4, 9.11.1a, 8.5.16d)", () => {
 describe("pending instances and their reaction window (CR 9.6.2, 9.6.4b, 9.2.8)", () => {
   it("does 3 net damage, one for each card Singularity trashes beside Hostile Infrastructure (CR 9.6.4b)", () => {
     let s = singularityBoard();
-    const opened = evalEffect(
-      { state: s, sourceId: "sing-1" },
+    const opened = openAsChoice(
+      s,
+      "sing-1",
+      "singularity",
       fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);
@@ -290,8 +293,10 @@ describe("pending instances and their reaction window (CR 9.6.2, 9.6.4b, 9.2.8)"
     );
     s.runner.installed = ["ff-1"];
     s.runner.credits = 10;
-    const opened = evalEffect(
-      { state: s, sourceId: "sing-1" },
+    const opened = openAsChoice(
+      s,
+      "sing-1",
+      "singularity",
       fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);

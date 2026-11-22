@@ -16,16 +16,15 @@ describe("true-colors", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("True Colors v1.98.0 set-complete", () => {
       it("maps key TC fields and primitives", () => {
         expect(getCardDef("garrote").breaker?.breaksSubtype).toBe("sentry");
         expect(
-          getCardDef("llds-processor")
-            .nonAiIcebreakerInstallStrengthBonusThisTurn,
-        ).toBe(1);
+          getCardDef("llds-processor").icebreakerInstallStrengthBonusThisTurn,
+        ).toEqual({ amount: 1 });
         expect(
           getCardDef("curtain-wall").strengthBonusIfOutermostOnServer,
         ).toBe(4);

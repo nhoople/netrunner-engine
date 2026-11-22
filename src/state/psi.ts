@@ -160,7 +160,9 @@ function resolvePsi(state: GameState): void {
       ? `Revealed — Runner spent ${psi.runnerBid}¢; the Corp guessed ${psi.corpGuess === "parity" ? (psi.corpBid === 0 ? "even" : "odd") : `${psi.corpBid}¢`} (CR ${CR.psiRevealSpend.number}).`
       : `Bids revealed — Runner spends ${psi.runnerBid}¢ and the Corp spends ${psi.corpBid}¢ (CR ${CR.psiRevealSpend.number}).`,
   );
-  firePsiCreditsRevealed(state);
+  // Nisei Division: only when both players secretly spent and revealed;
+  // a guess (Push Your Luck, Rigged Results) is not a Corp spend (CR 10.14.5).
+  if (!psi.corpGuess) firePsiCreditsRevealed(state);
   log(
     state,
     `Psi resolves: Runner ${psi.runnerBid}¢ vs Corp ${psi.corpBid}¢ → ${match ? "match" : "differ"}.`,

@@ -1532,6 +1532,8 @@ function evalCond(ctx: EffectCtx, cond: Cond): boolean {
       return memoryLimit(state) - usedMemory(state) >= cond.amount;
     case "subroutine_resolved_this_run":
       return Boolean(state.run?.subroutineResolvedThisRun);
+    case "lost_click_to_break_this_run":
+      return Boolean(state.run?.lostClickToBreakThisRun);
     case "clicks_gained_this_run_gte": {
       return (state.run?.clicksGainedThisRun ?? 0) >= cond.amount;
     }

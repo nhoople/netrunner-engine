@@ -2,8 +2,8 @@
 import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { log } from "../../state/createGame.js";
-import { drawCards } from "../draw.js";
-import type { EffectCtx } from "../eval.js";
+import { chooseCards } from "../chooseCards.js";
+import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
@@ -139,42 +139,45 @@ export function applySpinTcPrimitive(
       return { ok: true };
     }
     case "trash_grip_draw_for_installed_dupes": {
-      const options: Array<{ id: string; label: string; effect: Effect }> =
-        state.runner.hand.map((id) => ({
-          id: `capstone:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_capstone_grip_card", cardId: id }),
-        }));
-      options.push({
-        id: "capstone-done",
-        label: "Done trashing",
-        effect: fx.gainCredits("runner", 0),
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `Capstone — trash cards from grip.`,
-      });
-      return { ok: true };
+      // "Trash any number of cards from your grip": the Runner chooses the
+      // set first, then those cards are trashed together (CR 9.12.2a).
+      return evalEffect(
+        ctx,
+        chooseCards({
+          chooser: "runner",
+          candidates: [...state.runner.hand],
+          count: state.runner.hand.length,
+          upTo: true,
+          purpose: "resume",
+          label: "trash",
+          resume: { kind: "trash_capstone_grip_card", cardIds: [] },
+        }),
+      );
     }
     case "trash_capstone_grip_card": {
-      const id = action.cardId;
-      const title = state.cards[id]?.title;
-      state.runner.hand = state.runner.hand.filter((x) => x !== id);
-      trashCard(state, id);
-      const hasInstalledDupe = state.runner.installed.some(
-        (rid) => state.cards[rid]?.title === title,
-      );
-      if (hasInstalledDupe) {
-        const drawn = drawCards(state, "runner", 1);
-        if (drawn > 0) {
-          log(state, `Capstone — draw 1 (installed duplicate of ${title}).`);
-        }
+      const ids = action.cardIds.filter((id) => state.runner.hand.includes(id));
+      // A copy installed when the cards are trashed counts; the trashed
+      // cards were in the grip, so they are never that copy.
+      const withInstalledCopy = ids.filter((id) => {
+        const title = state.cards[id]?.title;
+        return state.runner.installed.some(
+          (rid) => state.cards[rid]?.title === title,
+        );
+      }).length;
+      for (const id of ids) {
+        trashCard(state, id, { by: "runner" });
       }
-      return applySpinTcPrimitive(ctx, {
-        kind: "trash_grip_draw_for_installed_dupes",
-      })!;
+      log(
+        state,
+        `Capstone — trash ${ids.length} card(s) from the grip; draw ${withInstalledCopy}.`,
+      );
+      if (withInstalledCopy > 0) {
+        return evalEffect(
+          ctx,
+          fx.do({ kind: "draw", side: "runner", amount: withInstalledCopy }),
+        );
+      }
+      return { ok: true };
     }
     case "turn_begin": {
       const card = state.cards[sourceId];

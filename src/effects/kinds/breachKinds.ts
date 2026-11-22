@@ -4,13 +4,12 @@ import type { ServerId } from "../../state/types.js";
  * The effect switch in eval.ts dispatches here.
  */
 import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
-import { revealCards } from "../../state/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
-import { applyPrimitive } from "../eval.js";
+import { applyPrimitive, evalEffect } from "../eval.js";
 import {
   canInstallHeapCard,
   gripInstallCostAfterDiscount,
@@ -174,48 +173,31 @@ export function applyBreachKinds(
       return { ok: true };
     }
 
-    case "may_breach_instead_escher": {
+    case "rearrange_ice_instead_of_breach": {
       if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       if (!state.run || state.run.attackedServerId !== "hq") {
         log(state, `Escher — not a successful HQ run.`);
         return { ok: true };
       }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
+      // "Instead of breaching HQ, rearrange any number of ice" has no "may":
+      // a replacement applies once created (CR 9.9.8). Arranging no ice is
+      // allowed, but the Runner does not breach.
+      log(state, `Escher — instead of breaching HQ, rearrange ice.`);
+      return evalEffect(ctx, {
+        op: "seq",
+        effects: [
+          { op: "do", action: { kind: "set_skip_breach" } },
           {
-            id: "breach",
-            label: "Breach HQ",
-            effect: {
-              op: "do",
-              action: { kind: "gain_credits", side: "runner", amount: 0 },
-            },
-          },
-          {
-            id: "rearrange",
-            label: "Instead of breaching: rearrange any ice on any servers",
-            effect: {
-              op: "seq",
-              effects: [
-                { op: "do", action: { kind: "set_skip_breach" as const } },
-                {
-                  op: "do",
-                  action: {
-                    kind: "rearrange_ice" as const,
-                    chooser: "runner" as const,
-                    serverIds: Object.keys(state.servers) as ServerId[],
-                  },
-                },
-              ],
+            op: "do",
+            action: {
+              kind: "rearrange_ice",
+              chooser: "runner",
+              serverIds: Object.keys(state.servers) as ServerId[],
             },
           },
         ],
-        logLine: `Escher — may instead of breaching HQ.`,
       });
-      return { ok: true };
     }
-
     case "may_breach_instead_exploratory_romp": {
       if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
       const server = state.run?.attackedServerId
@@ -345,12 +327,34 @@ export function applyBreachKinds(
         log(state, `${source.title} — no successful HQ run to replace.`);
         return { ok: true };
       }
-      revealCards(state, state.corp.hand, sourceId);
-      log(
-        state,
-        `${source.title} — reveal HQ (${state.corp.hand.length}); skip breach.`,
-      );
-      state.run.skipBreach = true;
+      // The Runner may still breach normally: this replacement of the
+      // breach is optional (CR 6.7.4c, 9.6.9).
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options: [
+          {
+            id: "breach",
+            label: "Breach HQ",
+            effect: {
+              op: "do",
+              action: { kind: "gain_credits", side: "runner", amount: 0 },
+            },
+          },
+          {
+            id: "reveal",
+            label: "Instead of breaching: reveal all cards in HQ",
+            effect: {
+              op: "seq",
+              effects: [
+                { op: "do", action: { kind: "set_skip_breach" } },
+                { op: "do", action: { kind: "reveal_hq" } },
+              ],
+            },
+          },
+        ],
+        logLine: `${source.title} — may instead of breaching HQ.`,
+      });
       return { ok: true };
     }
 

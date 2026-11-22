@@ -19,7 +19,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 describe("blanked Sundew / Awakening / LLDS (CR 9.12.1d)", () => {
@@ -68,7 +68,7 @@ describe("blanked Sundew / Awakening / LLDS (CR 9.12.1d)", () => {
     s.cards["llds-1"] = llds;
     s.runner.installed = ["llds-1"];
     expect(
-      llds.nonAiIcebreakerInstallStrengthBonusThisTurn ?? 0,
+      llds.icebreakerInstallStrengthBonusThisTurn?.amount ?? 0,
     ).toBeGreaterThan(0);
     expect(abilitiesSuppressed(s, "llds-1")).toBe(false);
     suppressAbilities(s, llds.id);
@@ -86,7 +86,7 @@ describe("blanked Sundew / Awakening / LLDS (CR 9.12.1d)", () => {
     s.cards["ct-1"] = talut;
     s.runner.installed = ["ct-1"];
     expect(
-      talut.nonAiIcebreakerInstallStrengthBonusThisTurn ?? 0,
+      talut.icebreakerInstallStrengthBonusThisTurn?.amount ?? 0,
     ).toBeGreaterThan(0);
     suppressAbilities(s, talut.id);
     expect(abilitiesSuppressed(s, "ct-1")).toBe(true);

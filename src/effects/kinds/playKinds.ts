@@ -113,47 +113,32 @@ export function applyPlayKinds(
       return { ok: true };
     }
 
-    case "may_play_event_from_heap": {
+    case "play_event_from_heap_paying_costs": {
       const candidates = state.runner.discardPile.filter((id) => {
         const c = state.cards[id];
         return c?.type === "event" && state.runner.credits >= (c.playCost ?? 0);
       });
       if (candidates.length === 0) {
-        log(
-          state,
-          `${source.title} — may play event from heap: none affordable.`,
-        );
+        log(state, `${source.title} — play event from heap: none affordable.`);
         return { ok: true };
       }
+      // "Play an event from your heap" has no "may": once the cost is paid
+      // the Runner plays one if able, and chooses which (CR 1.2.4, 1.15.2).
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
-        options: [
-          ...candidates.map((id) => {
-            const c = state.cards[id]!;
-            return {
-              id: `play-heap:${id}`,
-              label: `Play ${c.title} (${c.playCost ?? 0}¢)`,
-              effect: {
-                op: "do" as const,
-                action: { kind: "play_heap_event_card" as const, cardId: id },
-              },
-            };
-          }),
-          {
-            id: "decline",
-            label: "Decline",
+        options: candidates.map((id) => {
+          const c = state.cards[id]!;
+          return {
+            id: `play-heap:${id}`,
+            label: `Play ${c.title} (${c.playCost ?? 0}¢)`,
             effect: {
               op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "runner" as const,
-                amount: 0,
-              },
+              action: { kind: "play_heap_event_card" as const, cardId: id },
             },
-          },
-        ],
-        logLine: `${source.title} — may play an event from the heap.`,
+          };
+        }),
+        logLine: `${source.title} — play an event from the heap.`,
       });
       return { ok: true };
     }

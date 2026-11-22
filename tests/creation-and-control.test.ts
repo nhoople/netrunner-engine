@@ -24,7 +24,7 @@ describe("creation-and-control", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Alix T4LB07 gain_credits_per_power_counter", () => {
@@ -88,10 +88,12 @@ describe("creation-and-control", () => {
       });
     });
 
-    describe("Same Old Thing may_play_event_from_heap", () => {
+    describe("Same Old Thing play_event_from_heap_paying_costs", () => {
       it("validates the primitive", () => {
         expect(
-          validateEffectTree(fx.do({ kind: "may_play_event_from_heap" })),
+          validateEffectTree(
+            fx.do({ kind: "play_event_from_heap_paying_costs" }),
+          ),
         ).toBeNull();
       });
     });
@@ -174,7 +176,7 @@ describe("creation-and-control", () => {
       });
     });
 
-    describe("Howler install_rez_bioroid_inward", () => {
+    describe("Howler may_install_rez_bioroid_inward", () => {
       it("validates the primitive", () => {
         expect(
           validateEffectTree(fx.howlerInstallRezBioroidInward()),
@@ -573,7 +575,7 @@ describe("creation-and-control", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Creation and Control v1.95.0 set-complete", () => {
@@ -597,7 +599,7 @@ describe("creation-and-control", () => {
           1,
         );
         expect(JSON.stringify(getCardDef("escher").runEvent)).toContain(
-          "may_breach_instead_escher",
+          "rearrange_ice_instead_of_breach",
         );
         expect(
           JSON.stringify(

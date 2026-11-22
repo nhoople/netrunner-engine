@@ -417,6 +417,16 @@ export function applyRevealKinds(
       return { ok: true };
     }
 
+    case "reveal_hq": {
+      // Executive Wiretaps: "Reveal all cards in HQ" (CR 1.21.3).
+      revealCards(state, [...state.corp.hand], sourceId);
+      log(
+        state,
+        `${source?.title ?? sourceId} — reveal all ${state.corp.hand.length} card(s) in HQ (CR ${CR.reveal.number}).`,
+      );
+      return { ok: true };
+    }
+
     case "reveal_hq_gain_credits": {
       // "Reveal up to N cards in HQ": the Corp says which, and how many
       // (CR 1.15.2). "Reveal all cards in HQ" leaves nothing to choose; the

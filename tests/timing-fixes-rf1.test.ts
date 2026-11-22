@@ -3,6 +3,7 @@
  * RA-1 (engine #960) found these paths wrong; each test states the behavior
  * the CR settles and cites the rule.
  */
+import { openAsChoice } from "./rulings-helpers.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -32,7 +33,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 /** The test board, with no Runner card marked rezzed (CR 8.1.4f). */
@@ -568,6 +569,7 @@ describe("breach replacements, Singularity (CR 9.9.11a)", () => {
     );
     expect(r.ok).toBe(true);
     expect(s.pendingChoice).toBeNull();
+    expect(s.log.some((l) => l.includes("already replaced"))).toBe(true);
   });
 });
 
@@ -660,8 +662,10 @@ describe("follow-ups from cr-checker on RF-1", () => {
       accessingCardId: null,
     };
     s.activeSide = "runner";
-    const opened = evalEffect(
-      { state: s, sourceId: "sing-1" },
+    const opened = openAsChoice(
+      s,
+      "sing-1",
+      "singularity",
       fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);

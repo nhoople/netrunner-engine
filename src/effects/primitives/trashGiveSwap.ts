@@ -1,9 +1,15 @@
 /** Fear and Loathing / Double Time Spin pack primitives. */
 import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { log } from "../../state/createGame.js";
+import { CR } from "../../timing/labels.js";
 import { startPsiGame } from "../../state/psi.js";
 import { startTrace } from "../../state/trace.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import {
+  addLingeringEffect,
+  LINGERING_KIND_GRANTED_SUBTYPES,
+} from "../../state/lingeringEffects.js";
+import { recomputeRunnerMaxHandSize } from "../../state/handSize.js";
 import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
@@ -134,7 +140,7 @@ export function applySpinFalDtPrimitive(
       log(state, `Trash installed ${card.title}.`);
       return { ok: true };
     }
-    case "swap_with_hq": {
+    case "may_swap_with_hq": {
       const hqAgendaAsset = state.corp.hand.filter((id) => {
         const c = state.cards[id]!;
         return c.type === "agenda" || c.type === "asset";
@@ -143,17 +149,25 @@ export function applySpinFalDtPrimitive(
         log(state, `Toshiyuki Sakai — no agenda/asset in HQ to swap.`);
         return { ok: true };
       }
+      // Printed "you may": the Corp may decline (CR 9.6.9).
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
-        options: hqAgendaAsset.map((id) => ({
-          id: `toshiyuki-swap:${id}`,
-          label: `Swap with ${state.cards[id]!.title} from HQ`,
-          effect: fx.do({
-            kind: "swap_execute",
-            hqCardId: id,
-          }),
-        })),
+        options: [
+          ...hqAgendaAsset.map((id) => ({
+            id: `toshiyuki-swap:${id}`,
+            label: `Swap with ${state.cards[id]!.title} from HQ`,
+            effect: fx.do({
+              kind: "swap_execute",
+              hqCardId: id,
+            }),
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: fx.gainCredits("corp", 0),
+          },
+        ],
         logLine: `Toshiyuki Sakai — may swap with agenda/asset from HQ.`,
       });
       return { ok: true };
@@ -192,27 +206,19 @@ export function applySpinFalDtPrimitive(
         log(state, `Singularity — no active run.`);
         return { ok: true };
       }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "breach",
-            label: "Breach the server",
-            effect: fx.gainCredits("runner", 0),
-          },
-          {
-            id: "singularity",
-            label: "Instead of breaching: trash all cards in the server root",
-            effect: fx.seq(
-              fx.do({ kind: "set_run_skip_breach" }),
-              fx.do({ kind: "trash_attacked_server_root" }),
-            ),
-          },
-        ],
-        logLine: `Singularity — may instead of breaching trash the server root.`,
-      });
-      return { ok: true };
+      // The printed replacement of the breach has no "may", so it is not
+      // optional (CR 6.7.4c).
+      log(
+        state,
+        `Singularity — instead of breaching, trash all cards in the server root.`,
+      );
+      return evalEffect(
+        ctx,
+        fx.seq(
+          fx.do({ kind: "set_run_skip_breach" }),
+          fx.do({ kind: "trash_attacked_server_root" }),
+        ),
+      );
     }
     case "install_program_from_grip": {
       const programs = state.runner.hand.filter(
@@ -270,33 +276,48 @@ export function applySpinFalDtPrimitive(
       return { ok: true };
     }
     case "paintbrush_apply_subtype": {
-      if (!state.run) {
-        state.run = {
-          attackedServerId: "hq",
-          phase: "movement",
-          position: null,
-          successful: null,
-          accessedCardIds: [],
-          accessCandidates: [],
-          randomAccessLimit: null,
-          accessingCardId: null,
-          encounter: null,
-          endedTheRun: false,
-          cannotJackOut: false,
-          paintbrushIceId: action.iceId,
-        };
-      } else {
-        state.run.paintbrushIceId = action.iceId;
+      const ice = state.cards[action.iceId];
+      if (!ice) return { ok: true };
+      if (!action.subtype) {
+        // "That ice gains sentry, code gate or barrier": the Runner chooses
+        // which (CR 1.15.2).
+        const subtypes = ["sentry", "code gate", "barrier"] as const;
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "runner",
+          options: subtypes.map((subtype) => ({
+            id: `paintbrush-subtype:${subtype}`,
+            label: `${ice.title} gains ${subtype}`,
+            effect: fx.do({
+              kind: "paintbrush_apply_subtype",
+              iceId: action.iceId,
+              subtype,
+            }),
+          })),
+          logLine: `Paintbrush — choose the subtype ${ice.title} gains.`,
+        });
+        return { ok: true };
       }
+      // A lingering effect, not a run: it lasts until the end of the next
+      // run this turn (CR 9.10.1).
+      addLingeringEffect(state, {
+        createdBy: sourceId,
+        duration: { kind: "next_run_this_turn" },
+        kind: LINGERING_KIND_GRANTED_SUBTYPES,
+        payload: { cardId: ice.id, subtypes: [action.subtype] },
+      });
       log(
         state,
-        `Paintbrush — ${state.cards[action.iceId]?.title ?? action.iceId} gains chosen subtype until end of next run.`,
+        `Paintbrush — ${ice.title} gains ${action.subtype} until the end of the next run this turn (CR ${CR.lingeringEffect.number}).`,
       );
       return { ok: true };
     }
     case "gyri_labyrinth_reduce_max_hand": {
-      state.runner.maxHandSize = Math.max(0, state.runner.maxHandSize - 2);
-      state.turn.gyriLabyrinthHandPenalty = true;
+      // Each resolution lowers it by 2 more, and all of it ends when the
+      // Corp's next turn begins (CR 9.10.1).
+      state.runner.handSizePenaltyUntilCorpTurn =
+        (state.runner.handSizePenaltyUntilCorpTurn ?? 0) + 2;
+      recomputeRunnerMaxHandSize(state);
       log(
         state,
         `Gyri Labyrinth — Runner max hand size −2 until Corp next turn (${state.runner.maxHandSize}).`,
@@ -382,19 +403,14 @@ export function applySpinFalDtPrimitive(
         state.cards[id]!.faceup = false;
       }
       if (n > 0) shuffleInPlace(state, state.corp.deck);
-      let drawn = 0;
-      for (let i = 0; i < action.draw && state.corp.deck.length > 0; i++) {
-        const id = state.corp.deck.pop()!;
-        state.corp.hand.push(id);
-        state.cards[id]!.zone = "corp:hq";
-        state.cards[id]!.faceup = false;
-        drawn++;
-      }
-      log(
-        state,
-        `Corporate Shuffle — shuffle ${n} from HQ into R&D; draw ${drawn}.`,
+      log(state, `Corporate Shuffle — shuffle ${n} from HQ into R&D.`);
+      // The draw goes through the draw procedure, from the top of R&D
+      // (CR 8.4.2). The Corp loses if R&D is empty when it must draw
+      // (CR 1.7.2c).
+      return evalEffect(
+        ctx,
+        fx.do({ kind: "draw", side: "corp", amount: action.draw }),
       );
-      return { ok: true };
     }
     case "spend_caprice_nisei_secret": {
       // Printed: both players secretly spend 0, 1, or 2 credits; if they

@@ -1,6 +1,7 @@
 /** Daedalus Complex (dc) Red Sand pack primitives — v1.128.0. */
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
+import { revealCards } from "../../state/reveal.js";
 import { mayAdvanceInstalledCard } from "../../state/advanceable.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite } from "../../state/types.js";
@@ -239,11 +240,17 @@ export function applyRedsandDcPrimitive(
       if (!card || !state.corp.discardPile.includes(cardId)) {
         return { ok: true };
       }
+      if (action.reveal) revealCards(state, [cardId], sourceId);
       removeCardFromCurrentZone(state, cardId);
       state.corp.hand.push(cardId);
       card.zone = "corp:hq";
       card.faceup = false;
-      log(state, `Defense Construct — add facedown card from Archives to HQ.`);
+      log(
+        state,
+        action.reveal
+          ? `Reveal ${card.title} and add it from Archives to HQ (CR ${CR.reveal.number}).`
+          : `${state.cards[sourceId]?.title ?? sourceId} — add a card from Archives to HQ.`,
+      );
       return { ok: true };
     }
 

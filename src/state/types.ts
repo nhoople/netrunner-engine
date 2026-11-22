@@ -40,6 +40,12 @@ export type ContinuousGainedSubDecl =
       position?: "after";
       subroutine: { id: string; text: string; effect: Effect };
     }
+  /** Ireress: one subroutine per Corp bad publicity, after printed. */
+  | {
+      kind: "per_bad_publicity";
+      position?: "after";
+      subroutine: { id: string; text: string; effect: Effect };
+    }
   | {
       kind: "per_rezzed_subtype";
       position?: "after";
@@ -188,6 +194,11 @@ export interface BreakerAbility {
   };
   /** Standard credit break only while attacking the mark (Tunnel Vision). */
   breakRequiresAttackingMark?: boolean;
+  /**
+   * Alias, Breach, Passport: "This program cannot interface with ice
+   * protecting a remote server" (CR 9.3.6c).
+   */
+  cannotInterfaceRemoteIce?: boolean;
   /** Wyrm-class: only break when encountered ice effective strength ≤ this. */
   breakRequiresIceStrengthLte?: number;
   /** Sadyojata / Deva: only break ice with at least this many subtypes. */
@@ -1594,8 +1605,15 @@ export interface CardInstance {
 
   /** Aniccam: first event trashed each turn. */
   onFirstEventTrashedThisTurn?: Effect;
-  /** Cybertrooper: +N strength this turn when a non-AI icebreaker is installed. */
-  nonAiIcebreakerInstallStrengthBonusThisTurn?: number;
+  /**
+   * +`amount` strength until the end of the turn for each icebreaker
+   * installed while this card is active: LLDS Processor any icebreaker,
+   * Cybertrooper Talut only a non-AI one (`nonAiOnly`).
+   */
+  icebreakerInstallStrengthBonusThisTurn?: {
+    amount: number;
+    nonAiOnly?: boolean;
+  };
   /** Tranquility Home Grid: first install in this server's root each turn. */
   onFirstInstallInThisServerRootThisTurn?: Effect;
   /**
@@ -2725,7 +2743,7 @@ export interface CardInstance {
   /** Perfect Recall: power on agenda scored/stolen from this server. */
   powerCounterOnAgendaScoredOrStolenFromThisServer?: number;
   /** Card may be advanced (assets/ice). */
-  canAdvance?: boolean;
+  canAdvance?: boolean | "unrezzed";
   /** Rez requires forfeiting 1 scored agenda (Archer, Corporate Town). */
   rezAdditionalCostForfeitAgenda?: boolean;
   /**
@@ -2945,9 +2963,10 @@ export interface PlayerState {
    */
   playArea: string[];
   /**
-   * Valley Grid: cumulative −N max hand size until beginning of Corp's next turn.
+   * Valley Grid, Gyri Labyrinth: cumulative −N max hand size until the
+   * beginning of the Corp's next turn.
    */
-  valleyGridHandSizePenalty?: number;
+  handSizePenaltyUntilCorpTurn?: number;
   /** Corp bad publicity (CR 10.6). */
   badPublicity?: number;
   /** Runner set-aside zone (Ayla). */
@@ -4219,8 +4238,6 @@ export interface TurnBookkeeping {
   forbidBreakIceSubtypesUntilCorpTurnEnd?: string[];
   /** Leverage: Runner prevents all damage until next turn begins. */
   leveragePreventRunnerDamage?: boolean;
-  /** Starlight Crusade Funding: ignored additional cost on first double event this turn. */
-  starlightDoubleEventAdditionalCostIgnored?: boolean;
   /** Raymond Flint: apply HQ hand-only breach when next run starts. */
   pendingRaymondFlintHandOnlyHqBreach?: boolean;
   /** Aniccam: first event-trash ability already marked this turn. */
@@ -4309,8 +4326,6 @@ export interface TurnBookkeeping {
    * once that action is taken.
    */
   extraDifferentAction?: { sourceId: string; differentFrom: string[] } | null;
-  /** Gyri Labyrinth: Runner max hand −2 until Corp next turn begins. */
-  gyriLabyrinthHandPenalty?: boolean;
 }
 
 export type TurnPhase =
@@ -4666,6 +4681,8 @@ export interface RunState {
   cannotStealOrTrash?: boolean;
   /** Pinhole Threading: an accessed agenda cannot be stolen or trashed this run. */
   cannotStealOrTrashAgendas?: boolean;
+  /** The Future Perfect: the card being accessed cannot be stolen during this access. */
+  stealForbiddenAccessCardId?: string;
   /**
    * When true, `beginBreachAccess` keeps existing `accessCandidates` /
    * `randomAccessLimit` (Pinhole replace-breach preset).
@@ -4922,8 +4939,6 @@ export interface RunState {
     picked: number[];
   };
   subroutineResolveOrder?: { iceId: string; indexes: number[] };
-  /** Paintbrush: painted ice id until end of next run. */
-  paintbrushIceId?: string;
   /** Chum: active encounter tracking for not-fully-broken damage. */
   chumActiveEncounter?: {
     iceId: string;
@@ -5335,6 +5350,11 @@ export interface PendingStrengthIncrease {
 export type LingeringDuration =
   | { kind: "turn"; side?: Side }
   | { kind: "run" }
+  /**
+   * "Until the end of the next run this turn" (Paintbrush): ends when the
+   * next run ends, or when the turn ends if no run does (CR 9.10.1).
+   */
+  | { kind: "next_run_this_turn" }
   | { kind: "encounter" }
   | { kind: "until_checkpoint" }
   | { kind: "custom"; label: string };

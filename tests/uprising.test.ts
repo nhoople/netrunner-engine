@@ -35,7 +35,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.35.0 kickoff", () => {
@@ -99,7 +99,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.36.0 A-slice", () => {
@@ -161,7 +161,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.37.1 B-slice", () => {
@@ -264,7 +264,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.38.1 C-slice", () => {
@@ -334,7 +334,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.39.0 D-slice", () => {
@@ -382,7 +382,10 @@ describe("uprising", () => {
       it("Cybertrooper Talut grants link and icebreaker strength", () => {
         const def = getCardDef("cybertrooper-talut");
         expect(def.link).toBe(1);
-        expect(def.nonAiIcebreakerInstallStrengthBonusThisTurn).toBe(2);
+        expect(def.icebreakerInstallStrengthBonusThisTurn).toEqual({
+          amount: 2,
+          nonAiOnly: true,
+        });
       });
 
       it("Tranquility Home Grid is remoteOnly with first-root-install choice", () => {
@@ -410,7 +413,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.42.0 E-slice", () => {
@@ -466,7 +469,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.42.0 F-slice", () => {
@@ -536,7 +539,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.42.0 G-slice", () => {
@@ -613,7 +616,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Uprising v1.43.0 H-slice", () => {
@@ -703,7 +706,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     function must(state: GameState, action: Action): GameState {
@@ -1020,7 +1023,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     function must(state: GameState, action: Action): GameState {
@@ -1361,7 +1364,7 @@ describe("uprising", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     function must(state: GameState, action: Action): GameState {
