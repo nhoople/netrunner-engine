@@ -169,7 +169,10 @@ describe("pending abilities in each seat's view", () => {
         {
           id: "pay",
           label: "Pay",
-          effect: { op: "do", action: { kind: "gain_credits", side: "corp", amount: 0 } },
+          effect: {
+            op: "do",
+            action: { kind: "gain_credits", side: "corp", amount: 0 },
+          },
         },
       ],
     };
@@ -355,7 +358,11 @@ describe("held-over effects in each seat's view", () => {
       effects: [
         {
           op: "do" as const,
-          action: { kind: "gain_credits" as const, side: "corp" as const, amount: 1 },
+          action: {
+            kind: "gain_credits" as const,
+            side: "corp" as const,
+            amount: 1,
+          },
         },
       ],
     };
