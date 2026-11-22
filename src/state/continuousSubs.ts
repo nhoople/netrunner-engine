@@ -3,6 +3,7 @@
  * Graph applies the lists; collectors own the continuous math.
  */
 import { abilitiesSuppressed } from "./abilities.js";
+import { badPublicityConsidered } from "./cardDeclarations.js";
 import {
   iceCannotGainAbilities,
   resolveIceSubtypes,
@@ -74,6 +75,7 @@ export function iceHasWinchesterFamilyDecl(
         "hq_protect_subs",
         "archives_faceup_per",
         "per_advancement",
+        "per_bad_publicity",
         "per_rezzed_subtype",
         "grip_size_on_encounter",
         "etr_per_rezzed_asset",
@@ -255,6 +257,31 @@ export function collectAdvancementGainedSubs(
 }
 
 /**
+ * Ireress: "This ice gains [a subroutine] for each bad publicity you have",
+ * after its printed ones (CR 9.8.3d, 10.6.1).
+ */
+export function collectBadPublicityGainedSubs(
+  state: GameState,
+  iceId: string,
+): ContinuousGainedSub[] {
+  const ice = state.cards[iceId];
+  if (!ice) return [];
+  if (abilitiesSuppressed(state, iceId)) return [];
+  const decl = firstDecl(ice, "per_bad_publicity");
+  const subroutine = decl?.subroutine;
+  if (!subroutine) return [];
+  const n = Math.max(0, badPublicityConsidered(state));
+  return Array.from({ length: n }, (_, i) => ({
+    sourceId: iceId,
+    iceId,
+    subId: `${subroutine.id}-${i}`,
+    text: subroutine.text,
+    effect: structuredClone(subroutine.effect),
+    position: (decl?.position ?? "after") as "before" | "after",
+  }));
+}
+
+/**
  * NEXT Opal-class: one sub per rezzed ice with subtype (layered subtypes).
  */
 export function collectNextOpalSubs(
@@ -359,6 +386,7 @@ function looksLikeContinuousGainedSubId(
   const templates = [
     firstDecl(ice, "archives_faceup_per")?.subroutine.id,
     firstDecl(ice, "per_advancement")?.subroutine.id,
+    firstDecl(ice, "per_bad_publicity")?.subroutine.id,
     firstDecl(ice, "per_rezzed_subtype")?.subroutine.id,
     firstDecl(ice, "grip_size_on_encounter")?.subroutine.id,
     firstDecl(ice, "etr_per_rezzed_asset")?.subroutine?.id,

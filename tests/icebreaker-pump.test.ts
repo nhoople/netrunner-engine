@@ -37,7 +37,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
   loadCardCatalog(true);
 });
 
@@ -107,9 +107,9 @@ function must(s: GameState, action: Action): GameState {
 }
 
 /**
- * The 34 icebreakers whose pump was only a card field, with their printed
- * strength and printed pump. Breach prints "2[credit]: +4 strength" but its
- * card data says +3; it is filed for paired cut A and checked separately.
+ * The icebreakers whose pump is only a card field, with their printed
+ * strength and printed pump: FX-pump's 34, and Overmind, whose 1[credit]
+ * pump PF-S3b added to its card data.
  */
 const PRINTED: Array<{
   id: string;
@@ -321,6 +321,14 @@ const PRINTED: Array<{
     test: "Omega starts at strength 1 and pays 1 credit for +1 strength (CR 3.9.5b)",
   },
   {
+    id: "overmind",
+    title: "Overmind",
+    strength: 0,
+    credits: 1,
+    plus: 1,
+    test: "Overmind starts at strength 0 and pays 1 credit for +1 strength (CR 3.9.5b)",
+  },
+  {
     id: "passport",
     title: "Passport",
     strength: 2,
@@ -395,7 +403,7 @@ const PRINTED: Array<{
 ];
 
 /** Printed pumps the card data cannot state yet (paired cut A). */
-const DATA_DIFFERS = new Set(["breach"]);
+const DATA_DIFFERS = new Set<string>();
 
 /** Pumps with a printed limit, tested on their own below. */
 const OWN_TEST = new Set(["dagger", "cyber-cypher"]);
@@ -450,16 +458,10 @@ describe("every icebreaker starts at its printed strength and pumps as printed (
     expect(r.ok && r.paid).toBe(2);
   });
 
-  // Breach prints "2[credit]: +4 strength." Its card data says
-  // pumpStrength 3, so it gains 3 (paired cut A). When the data is fixed this
-  // passes and `it.fails` fails: make it a plain test then.
-  it.fails(
-    "Breach pays 2 credits for +4 strength as printed (CR 1.2.1, 3.9.5b; card data fix in paired cut A)",
-    () => {
-      const r = pumpOnce("breach");
-      expect(r.ok && r.gained).toBe(4);
-    },
-  );
+  it("Breach pays 2 credits for +4 strength as printed (CR 1.2.1, 3.9.5b)", () => {
+    const r = pumpOnce("breach");
+    expect(r.ok && r.gained).toBe(4);
+  });
 
   it("the nine programs whose breaker declaration was below their printed strength start at the printed strength: Torch 4, Sharpshooter 3, Leviathan 3, Garrote 2, Passport 2, Gingerbread 2, Omega 1, Alpha 1, Cyber-Cypher 4 (CR 3.9.4a, 1.2.1)", () => {
     const want: Record<string, number> = {
@@ -556,10 +558,10 @@ describe("the card data's pump fields say what the card prints", () => {
   /**
    * For every icebreaker whose pump the engine builds from its fields, read
    * the printed "N[credit]: +M strength." line and compare. A new card whose
-   * fields disagree with its print fails here. Breach is the one known
-   * difference (paired cut A).
+   * fields disagree with its print fails here. Breach's +4 was fixed in
+   * PF-S3b's paired cards release.
    */
-  it("every built pump costs and gives what the card prints, except Breach (CR 1.2.1)", () => {
+  it("every built pump costs and gives what the card prints (CR 1.2.1)", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "..");
     const dir = join(root, "vendor/cards-data/runner");
     const differs: string[] = [];

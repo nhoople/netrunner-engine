@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is move.
  * The effect switch in eval.ts dispatches here.
  */
+import { printsCanBeAdvanced } from "../../state/advanceable.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import {
   moveRunnerToIce,
@@ -84,7 +85,7 @@ export function applyMoveKinds(
           const c = state.cards[id];
           return (
             c &&
-            (c.type === "agenda" || c.canAdvance) &&
+            (c.type === "agenda" || printsCanBeAdvanced(c)) &&
             sourcesFor(id).length > 0
           );
         });

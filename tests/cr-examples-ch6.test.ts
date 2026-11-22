@@ -28,7 +28,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -296,6 +296,7 @@ describe("CR examples, chapter 6", () => {
     );
     const rook = instantiateCard("rook", "rook-1", "runner:installed");
     rook.hostId = "out-1";
+    outer.hostedCardIds = ["rook-1"];
     s.cards["out-1"] = outer;
     s.cards["in-1"] = inner;
     s.cards["one-1"] = alone;
@@ -307,11 +308,18 @@ describe("CR examples, chapter 6", () => {
     remote(s, "remote-2", ["out-2", "in-2"]);
     s.servers.hq.ice = ["one-1"];
     runnerTurn(s, 1, 5);
-    const moved = must(s, {
+    let moved = must(s, {
       type: "use_paid_ability",
       cardId: "rook-1",
       abilityId: "rook-host",
     });
+    // The 2nd ice from the innermost of another server, or ice protecting
+    // its own server (Rook's printed text); not HQ's only ice.
+    const hosts = (moved.pendingChoice?.options ?? []).map((o) => o.id);
+    expect(hosts).toEqual(expect.arrayContaining(["host:out-2", "host:in-1"]));
+    expect(hosts).not.toContain("host:one-1");
+    expect(hosts).not.toContain("host:in-2");
+    moved = must(moved, { type: "choose_option", optionId: "host:out-2" });
     expect(moved.cards["rook-1"]?.hostId).toBe("out-2");
     expect(moved.cards["one-1"]?.hostedCardIds ?? []).not.toContain("rook-1");
   });

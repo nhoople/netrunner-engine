@@ -352,12 +352,12 @@ export function applySansanValPrimitive(
     }
 
     case "valley_grid_hand_size_penalty_until_next_corp_turn": {
-      state.runner.valleyGridHandSizePenalty =
-        (state.runner.valleyGridHandSizePenalty ?? 0) + 1;
+      state.runner.handSizePenaltyUntilCorpTurn =
+        (state.runner.handSizePenaltyUntilCorpTurn ?? 0) + 1;
       recomputeRunnerMaxHandSize(state);
       log(
         state,
-        `Valley Grid — Runner max hand size −1 until beginning of Corp's next turn (penalty=${state.runner.valleyGridHandSizePenalty}).`,
+        `Valley Grid — Runner max hand size −1 until beginning of Corp's next turn (penalty=${state.runner.handSizePenaltyUntilCorpTurn}).`,
       );
       return { ok: true };
     }

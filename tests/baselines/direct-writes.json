@@ -227,8 +227,7 @@
       "zone": 2
     },
     "src/effects/primitives/breachTrashTurn.ts": {
-      "deck": 2,
-      "hand": 1
+      "deck": 2
     },
     "src/effects/primitives/chooseGainShuffle.ts": {
       "deck": 6,
@@ -419,10 +418,10 @@
     },
     "src/effects/primitives/spendInstallAdd.ts": {
       "deck": 5,
-      "hand": 6,
+      "hand": 5,
       "rezzed": 1,
       "scoreArea": 1,
-      "zone": 7
+      "zone": 6
     },
     "src/effects/primitives/spendMoveTrash.ts": {
       "deck": 1,
@@ -444,12 +443,12 @@
       "zone": 6
     },
     "src/effects/primitives/trashGiveSwap.ts": {
-      "deck": 2,
+      "deck": 1,
       "discardPile": 1,
-      "hand": 5,
+      "hand": 4,
       "rezzed": 1,
       "root": 2,
-      "zone": 5
+      "zone": 4
     },
     "src/effects/primitives/trashPlaceAccess.ts": {
       "deck": 1,
@@ -536,12 +535,12 @@
     },
     "src/timing/graph.ts": {
       "deck": 2,
-      "discardPile": 2,
-      "hand": 7,
+      "discardPile": 1,
+      "hand": 6,
       "installed": 3,
       "removedFromGame": 2,
       "rezzed": 5,
-      "zone": 8
+      "zone": 7
     }
   }
 }

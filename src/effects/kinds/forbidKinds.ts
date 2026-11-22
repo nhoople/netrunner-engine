@@ -38,6 +38,20 @@ export function applyForbidKinds(
       return { ok: true };
     }
 
+    case "forbid_steal_accessed_agenda": {
+      // "The Runner cannot steal this agenda during this access": it lasts
+      // until the next card is accessed (CR 1.2.1).
+      const run = state.run;
+      if (run?.accessingCardId) {
+        run.stealForbiddenAccessCardId = run.accessingCardId;
+        log(
+          state,
+          `${source?.title ?? sourceId} — the Runner cannot steal it during this access.`,
+        );
+      }
+      return { ok: true };
+    }
+
     case "forbid_runner_break_on_source": {
       // Anvil: "the Runner cannot break this ice's printed subroutines for
       // the remainder of this encounter". It lives on the encounter, so it

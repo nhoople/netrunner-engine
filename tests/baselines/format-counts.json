@@ -77,6 +77,17 @@
         "cardDefFlags": 602
       },
       "reason": "PF-S3a: Retrieval Run's optional breach replacement needs its own may_ kind (the old runEvent field always skipped the breach, CR 1.2.1), and a once-per-run ability used only when its optional part is carried out needs mark_ability_used_this_run (Snitch, CR 9.6.9d); no existing kind does either."
+    },
+    {
+      "date": "2026-11-21",
+      "engine": "v1.147.282",
+      "cards": "v1.147.27",
+      "counts": {
+        "knownPrimitiveKinds": 1531,
+        "oneCardKinds": 747,
+        "cardDefFlags": 600
+      },
+      "reason": "PF-S3b: Executive Wiretaps reveals HQ without gaining credits, so it needs a plain reveal_hq (Expert Schedule Analyzer builds it too); The Future Perfect's 'cannot steal this agenda during this access' needs forbid_steal_accessed_agenda (Pinhole Threading's lock lasts the run and also forbids the trash). runner_lose_credits_equal_corp_bad_publicity is gone (Ireress gains one subroutine per bad publicity through the per_bad_publicity declaration). One-card kinds also move because cards changed kind: may_install_from_heap and reveal_hq_gain_credits are left with one card each (Clone Chip and Executive Wiretaps moved off them), while Susanoo-no-Mikoto and Strongbox give forbid_jack_out_until_next_encounter and spend_click_additional_cost a second card. The five renamed may_ and verb-first kinds keep their counts."
     }
   ]
 }

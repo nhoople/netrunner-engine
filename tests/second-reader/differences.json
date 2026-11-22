@@ -1,26 +1,6 @@
 [
   {
     "batch": "cr-examples-ch1",
-    "case": "1.10.3c.ex2",
-    "observations": [
-      {
-        "key": "::zone(The Future Perfect)",
-        "expected": "runner-score",
-        "engine": "hq"
-      },
-      {
-        "key": "::runner.score",
-        "expected": 3,
-        "engine": 0
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "1.2.1",
-    "area": "11",
-    "note": "The Future Perfect only stops the steal when the bids differ. The engine does 1 net damage when they match (here it flatlines a Runner with an empty grip) and still lets the Runner steal when they differ"
-  },
-  {
-    "batch": "cr-examples-ch1",
     "case": "1.12.2.ex1",
     "observations": [
       {
@@ -455,21 +435,6 @@
   },
   {
     "batch": "cr-examples-ch6",
-    "case": "6.2.3.ex1",
-    "observations": [
-      {
-        "key": "::legal(to-same-server)",
-        "expected": true,
-        "engine": false
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "6.2.3",
-    "note": "Rook's printed text lets it move to ice protecting the same server or in the same position. The engine keeps only the same-position ice and, with one left, moves Rook there without asking.",
-    "area": "area 2"
-  },
-  {
-    "batch": "cr-examples-ch6",
     "case": "6.3.4.ex1#b",
     "observations": [
       {
@@ -771,11 +736,6 @@
         ]
       },
       {
-        "key": "::runner.clicks",
-        "expected": 2,
-        "engine": 3
-      },
-      {
         "key": "::zone(PAD Campaign)",
         "expected": "rd",
         "engine": "archives"
@@ -783,7 +743,7 @@
     ],
     "verdict": "engine-wrong",
     "rule": "1.16.10",
-    "note": "Strongbox's additional cost to steal is never charged: the engine reads the click only from the agenda itself, not from an upgrade in the server's root, so the Runner keeps the click, Seidr Laboratories never triggers and PAD Campaign stays in Archives. (The random access limit part, CR 7.3.5, was fixed by FX-access: the Runner now takes 4 cards from the deck, then Strongbox.)",
+    "note": "Strongbox's click is now charged (PF-S3b), but Seidr Laboratories still does not put PAD Campaign on top of R&D, so the Runner accesses Enigma instead of PAD Campaign. (The random access limit part, CR 7.3.5, was fixed by FX-access.)",
     "area": "area 8"
   },
   {

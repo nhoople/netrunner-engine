@@ -2,6 +2,7 @@
  * Pending ability instances, checkpoint diffs, reaction windows, lingering
  * registry, and damage expected-effects (CR 9.6 / 9.9.2 / 9.10 / 10.3).
  */
+import { openAsChoice } from "./rulings-helpers.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   CR,
@@ -47,7 +48,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
@@ -3414,8 +3415,10 @@ describe("simultaneous trash multiplicity (CR 9.12.2a)", () => {
     };
     s.activeSide = "runner";
 
-    const opened = evalEffect(
-      { state: s, sourceId: "sing-1" },
+    const opened = openAsChoice(
+      s,
+      "sing-1",
+      "singularity",
       fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);

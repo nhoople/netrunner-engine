@@ -513,7 +513,10 @@ export interface CardDef {
    */
   loseCreditsOnFirstAdvertisementRezThisTurn?: number;
   onFirstEventTrashedThisTurn?: Effect;
-  nonAiIcebreakerInstallStrengthBonusThisTurn?: number;
+  icebreakerInstallStrengthBonusThisTurn?: {
+    amount: number;
+    nonAiOnly?: boolean;
+  };
   onFirstInstallInThisServerRootThisTurn?: Effect;
   additionalTagsDuringOutermostIceEncounter?: number;
   /** Whenever Runner installs a program or hardware (e.g. Environmental Testing). */
@@ -1603,7 +1606,7 @@ export interface CardDef {
   onFirstBadPublicityTakeEachTurn?: Effect;
   onArchivesFacedownTurnedFaceupGte?: { min: number; effect: Effect };
   powerCounterOnAgendaScoredOrStolenFromThisServer?: number;
-  canAdvance?: boolean;
+  canAdvance?: boolean | "unrezzed";
   playRequiresSuccessfulHqRunThisTurn?: boolean;
   playRequiresSuccessfulAllCentralsThisTurn?: boolean;
   playRequiresCorpBadPublicityGte?: number;
@@ -4162,9 +4165,10 @@ export function instantiateCard(
       def.onFirstEventTrashedThisTurn,
     );
   }
-  if (def.nonAiIcebreakerInstallStrengthBonusThisTurn !== undefined) {
-    card.nonAiIcebreakerInstallStrengthBonusThisTurn =
-      def.nonAiIcebreakerInstallStrengthBonusThisTurn;
+  if (def.icebreakerInstallStrengthBonusThisTurn !== undefined) {
+    card.icebreakerInstallStrengthBonusThisTurn = {
+      ...def.icebreakerInstallStrengthBonusThisTurn,
+    };
   }
   if (def.onFirstInstallInThisServerRootThisTurn) {
     card.onFirstInstallInThisServerRootThisTurn = structuredClone(

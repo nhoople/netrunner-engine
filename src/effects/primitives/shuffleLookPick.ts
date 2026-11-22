@@ -1,4 +1,5 @@
 /** Old Hollywood (oh) SanSan pack primitives. */
+import { printsCanBeAdvanced } from "../../state/advanceable.js";
 import { lookAtCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
@@ -185,7 +186,7 @@ export function applySansanOhPrimitive(
         for (const id of [...server.root, ...server.ice]) {
           const c = state.cards[id];
           if (!c || c.side !== "corp") continue;
-          if (c.type === "agenda" || c.canAdvance) targets.push(id);
+          if (c.type === "agenda" || printsCanBeAdvanced(c)) targets.push(id);
         }
       }
       if (targets.length === 0) {
@@ -253,7 +254,7 @@ export function applySansanOhPrimitive(
         for (const id of server.root) {
           const c = state.cards[id];
           if (!c) continue;
-          if (c.type === "agenda" || c.canAdvance) targets.push(id);
+          if (c.type === "agenda" || printsCanBeAdvanced(c)) targets.push(id);
         }
       }
       if (targets.length === 0) {
@@ -492,7 +493,7 @@ export function applySansanOhPrimitive(
           if (id === sourceId) continue;
           const c = state.cards[id];
           if (!c || c.side !== "corp") continue;
-          if (c.type === "agenda" || c.canAdvance) targets.push(id);
+          if (c.type === "agenda" || printsCanBeAdvanced(c)) targets.push(id);
         }
       }
       if (targets.length === 0) {

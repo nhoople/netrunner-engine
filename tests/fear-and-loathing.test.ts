@@ -16,7 +16,7 @@ describe("fear-and-loathing", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.26");
+      assertCardsPinnedTag("v1.147.27");
     });
 
     describe("Fear and Loathing v1.99.0 set-complete", () => {
@@ -25,7 +25,12 @@ describe("fear-and-loathing", () => {
         expect(getCardDef("blackmail").playRequiresCorpBadPublicityGte).toBe(1);
         expect(getCardDef("alpha").breakerOnlyOutermostIce).toBe(true);
         expect(getCardDef("omega").breakerOnlyInnermostIce).toBe(true);
-        expect(getCardDef("strongbox").stealAdditionalClicks).toBe(1);
+        expect(
+          getCardDef("strongbox").stealAdditionalCostFromProtectingServer,
+        ).toEqual({
+          op: "do",
+          action: { kind: "spend_click_additional_cost", side: "runner" },
+        });
       });
     });
   });

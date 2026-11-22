@@ -12,7 +12,16 @@ import { corpHandSizeFromCurrents } from "./currents.js";
  * (CR 9.12.1d).
  */
 export function computeRunnerMaxHandSize(state: GameState): number {
-  let n = 5 - (state.runner.coreDamage ?? 0) + agendaPointHandSize(state);
+  // CR 9.12.1a: a set applies first (Theophilius Bagbiter: "equal to the
+  // number of credits in your credit pool"), then increases, then decreases.
+  const setToCredits = state.runner.installed.some(
+    (id) =>
+      !abilitiesSuppressed(state, id) && state.cards[id]?.handSizeEqualsCredits,
+  );
+  let n =
+    (setToCredits ? state.runner.credits : 5) -
+    (state.runner.coreDamage ?? 0) +
+    agendaPointHandSize(state);
   const defCounts = new Map<string, number>();
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
@@ -65,14 +74,7 @@ export function computeRunnerMaxHandSize(state: GameState): number {
       if (per !== 0) n -= (c.powerCounters ?? 0) * per;
     }
   }
-  n -= state.runner.valleyGridHandSizePenalty ?? 0;
-  for (const id of state.runner.installed) {
-    if (abilitiesSuppressed(state, id)) continue;
-    if (state.cards[id]?.handSizeEqualsCredits) {
-      n = state.runner.credits;
-      break;
-    }
-  }
+  n -= state.runner.handSizePenaltyUntilCorpTurn ?? 0;
   // Şifr: −1 max hand size until the Runner's next turn begins (CR 9.12.1a
   // decrease after any set-to-credits). Survives recompute while the flag is on.
   if (state.turn.sifrHandSizePenaltyActive) n -= 1;

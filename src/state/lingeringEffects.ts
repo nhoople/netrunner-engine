@@ -474,6 +474,9 @@ export function expireLingeringEffects(
     let expire = false;
     if (d.kind === "until_checkpoint" && ended.untilCheckpoint) expire = true;
     if (d.kind === "run" && ended.run) expire = true;
+    if (d.kind === "next_run_this_turn" && (ended.run || ended.turn)) {
+      expire = true;
+    }
     if (d.kind === "encounter" && ended.encounter) expire = true;
     if (d.kind === "turn" && ended.turn) {
       if (!d.side || d.side === ended.turn) expire = true;

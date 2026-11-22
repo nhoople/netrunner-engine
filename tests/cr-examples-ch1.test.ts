@@ -32,7 +32,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -1029,8 +1029,15 @@ describe("CR examples, chapter 1", () => {
     };
     evalEffect(
       { state: s, sourceId: "howler-1" },
-      fx.do({ kind: "install_rez_bioroid_inward" }),
+      fx.do({ kind: "may_install_rez_bioroid_inward" }),
     );
+    // "You may install": the Corp chooses the ice, or declines (CR 9.6.9).
+    const install = s.pendingChoice?.options.find(
+      (o) => o.id === "howler:eli-1",
+    );
+    expect(s.pendingChoice?.options.map((o) => o.id)).toContain("decline");
+    s.pendingChoice = null;
+    evalEffect({ state: s, sourceId: "howler-1" }, install!.effect);
     expect(s.cards["eli-1"]?.rezzed).toBe(true);
     expect(s.servers["remote-1"]?.ice).toContain("eli-1");
     enterStep(s, "run.ends");

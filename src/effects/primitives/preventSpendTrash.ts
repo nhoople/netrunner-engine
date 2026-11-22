@@ -1,6 +1,7 @@
 /** Up and Over (uao) Lunar pack primitives. */
 import { revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
+import { CR } from "../../timing/labels.js";
 import {
   canPayCost,
   emptyRunnerCreditPool,
@@ -47,11 +48,21 @@ export function applyLunarUaoPrimitive(
       return { ok: true };
     }
     case "spend_click_additional_cost": {
-      if ((state.corp.clicks ?? 0) < 1) {
-        return { ok: false, error: "Cannot spend click for Reuse.", cites: [] };
+      // A cost that cannot be paid in full is not paid (CR 1.16.1a).
+      const player = action.side === "runner" ? state.runner : state.corp;
+      const title = state.cards[ctx.sourceId]?.title ?? ctx.sourceId;
+      if ((player.clicks ?? 0) < 1) {
+        return {
+          ok: false,
+          error: `Cannot spend [click] for ${title}.`,
+          cites: [CR.spendClicks],
+        };
       }
-      state.corp.clicks -= 1;
-      log(state, `Reuse — spend 1 click (additional cost).`);
+      player.clicks -= 1;
+      log(
+        state,
+        `${title} — spend 1 [click] (additional cost, CR ${CR.spendClicks.number}).`,
+      );
       return { ok: true };
     }
     case "trash_hq_tick": {

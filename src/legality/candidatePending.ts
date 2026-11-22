@@ -18,6 +18,7 @@ import {
   basicTrashRefusal,
   printedRezOrPlayCost,
   stealAdditionalCosts,
+  stealForbiddenThisAccess,
   stealNetOrMeatPrevented,
   stealOrTrashBlocked,
 } from "../actions/access.js";
@@ -617,7 +618,7 @@ export function stealDecision(
   const card = state.cards[id]!;
   let stealLegal = false;
   let additionalCost = false;
-  if (!stealOrTrashBlocked(state, id)) {
+  if (!stealOrTrashBlocked(state, id) && !stealForbiddenThisAccess(state, id)) {
     // Haarpsichord: cannot steal more than one agenda per turn.
     let haarpsichordBlocks = false;
     const idCard = state.cards[state.corp.identityId];

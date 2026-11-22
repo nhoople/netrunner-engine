@@ -194,13 +194,26 @@ export type Primitive =
       pick: "first" | "choose";
       cannotPrevent?: boolean;
     }
-  | { kind: "choose_forfeit_runner_scored_agenda" }
+  /**
+   * The Runner forfeits 1 agenda they choose; `then` resolves only if they
+   * do ("if you do", Frame Job). With none to forfeit, nothing happens.
+   */
+  | { kind: "choose_forfeit_runner_scored_agenda"; then?: Effect }
   | { kind: "forfeit_runner_scored_agenda"; cardId: string }
   | { kind: "trash_then_corp_rez_or_hq" }
   | { kind: "rez_ice_by_id"; iceId: string }
   | { kind: "move_unrezzed_ice_to_hq"; iceId: string }
   | { kind: "caissa_pawn_host_outermost_central" }
-  | { kind: "caissa_rook_host" }
+  /**
+   * Rook, Knight: host this program on ice not hosting a Caïssa program.
+   * Once hosted, `move` limits where it may go next: Rook to ice protecting
+   * the same server or in the same position; Knight not to the next ice
+   * inward or outward.
+   */
+  | {
+      kind: "caissa_rook_host";
+      move?: "same_server_or_position" | "not_adjacent";
+    }
   | { kind: "caissa_bishop_host" }
   | { kind: "advance_caissa_host_inward_or_install" }
   | { kind: "reveal_install_or_trash"; discount: number }
@@ -676,7 +689,16 @@ export type Primitive =
    * Hostage: search stack for a card with `subtype`, add to grip, shuffle,
    * then may install that card paying costs.
    */
-  | { kind: "search_stack_subtype_may_install"; subtype: string }
+  /**
+   * Hostage: search the stack for a card with `subtype` (the Runner may find
+   * nothing, CR 8.7.2e), shuffle, reveal it and add it to the grip, then the
+   * Runner may install it. `cardIds` is the found card, filled by the search.
+   */
+  | {
+      kind: "search_stack_subtype_may_install";
+      subtype: string;
+      cardIds?: string[];
+    }
   /**
    * Tinkering: choose a piece of ice; it gains `subtypes` until end of turn.
    */
@@ -921,6 +943,13 @@ export type Primitive =
   | { kind: "trash_installed_runner"; pick: "first" | "choose" }
   | { kind: "forbid_steal_trash_this_run" }
   /**
+   * The Future Perfect: the Runner cannot steal the agenda being accessed
+   * during this access (CR 1.2.1).
+   */
+  | { kind: "forbid_steal_accessed_agenda" }
+  /** Executive Wiretaps: reveal all cards in HQ (CR 1.21.3). */
+  | { kind: "reveal_hq" }
+  /**
    * Instead of breaching the attacked server: access 1 root card of another
    * server; agendas accessed this way cannot be stolen/trashed (Pinhole).
    * Presets access candidates and clears skipBreach when candidates exist.
@@ -1124,7 +1153,7 @@ export type Primitive =
    * Howler: install and rez a bioroid ice from HQ or Archives, inward of
    * source, ignoring all costs; trash Howler and derez it at run end.
    */
-  | { kind: "install_rez_bioroid_inward" }
+  | { kind: "may_install_rez_bioroid_inward" }
   | { kind: "install_rez_chosen"; cardId: string }
   /**
    * Awakening Center: whenever the Runner passes all ice protecting this
@@ -2530,7 +2559,7 @@ export type Primitive =
   | { kind: "peer_review"; cardIds?: string[] }
   | { kind: "play_self_from_archives_then_rfg" }
   /** Same Old Thing: may play an event from the heap, paying its play cost. */
-  | { kind: "may_play_event_from_heap" }
+  | { kind: "play_event_from_heap_paying_costs" }
   | { kind: "play_heap_event_card"; cardId: string }
   | { kind: "remove_bigger_picture_tags" }
   | { kind: "mitra_aman_approach_ice" }
@@ -2665,7 +2694,6 @@ export type Primitive =
   | { kind: "score_unorthodox_predictions_on" }
   | { kind: "reveal_grip" }
   | { kind: "reveal_grip_may_trash_one" }
-  | { kind: "runner_lose_credits_equal_corp_bad_publicity" }
   | { kind: "power_shutdown" }
   | { kind: "draw_top_rd_to_hand" }
   | { kind: "begin_replace_breach_hq_hand_only" }
@@ -2680,7 +2708,8 @@ export type Primitive =
   | { kind: "leverage" }
   | { kind: "leverage_shield_runner" }
   | { kind: "trash_grip_draw_for_installed_dupes" }
-  | { kind: "trash_capstone_grip_card"; cardId: string }
+  /** Capstone: trash the chosen grip cards, then draw per installed copy. */
+  | { kind: "trash_capstone_grip_card"; cardIds: string[] }
   | { kind: "turn_begin" }
   | { kind: "rex_campaign_when_empty" }
   | { kind: "forbid_runner_spend_credits_for_run" }
@@ -2695,14 +2724,24 @@ export type Primitive =
       /** The ability revealed the card, so it goes to Archives faceup (CR 1.21.6, 4.4.6b). */
       revealed?: boolean;
     }
-  | { kind: "swap_with_hq" }
+  | { kind: "may_swap_with_hq" }
   | { kind: "swap_execute"; hqCardId: string }
   /** Double Time — Singularity replace-breach trash root. */
   | { kind: "breach_instead_singularity_trash_root" }
   | { kind: "install_program_from_grip" }
   | { kind: "prevent_trash_resource" }
+  /** Paintbrush: the Runner chooses a rezzed piece of ice. */
   | { kind: "choose_ice_gain_subtype" }
-  | { kind: "paintbrush_apply_subtype"; iceId: string }
+  /**
+   * Paintbrush: the chosen ice gains `subtype` (the Runner chooses sentry,
+   * code gate or barrier when it is absent) until the end of the next run
+   * this turn.
+   */
+  | {
+      kind: "paintbrush_apply_subtype";
+      iceId: string;
+      subtype?: "sentry" | "code gate" | "barrier";
+    }
   | { kind: "gyri_labyrinth_reduce_max_hand" }
   | { kind: "reclamation_order_archives_to_hq" }
   | { kind: "take_reclamation_copies_to_hq"; defId: string; amount: number }
@@ -3263,7 +3302,8 @@ export type Primitive =
       remaining: number;
       cardIds: string[];
     }
-  | { kind: "move_archives_to_hq"; cardId: string }
+  /** Add a card from Archives to HQ; `reveal` shows it first (Subliminal Messaging). */
+  | { kind: "move_archives_to_hq"; cardId: string; reveal?: boolean }
   | { kind: "breach_reduce_access_remainder_of_run"; amount?: number }
   | { kind: "rez_up_to_3_ice_discount" }
   | {
@@ -3756,7 +3796,11 @@ export type Primitive =
     }
   | { kind: "prevent_labyrinthine_jack_out" }
   | { kind: "universal_connectivity_fee_sub" }
-  | { kind: "spend_click_additional_cost" }
+  /**
+   * Spend [click] as an additional cost (CR 1.16.10): the Corp's by default
+   * (Reuse), the Runner's with `side: "runner"` (Strongbox's steal cost).
+   */
+  | { kind: "spend_click_additional_cost"; side?: "corp" | "runner" }
   | { kind: "trash_hq_gain_credits" }
   | { kind: "trash_hq_tick" }
   | { kind: "trash_hq_gain_credits_finalize" }
@@ -3811,12 +3855,16 @@ export type Primitive =
   | { kind: "reveal_top_paid" }
   | { kind: "spend_push_your_luck_secret_guess" }
   | { kind: "gain_credits_twice_secret_spend" }
-  | { kind: "choose_type_reveal_install" }
+  | { kind: "choose_card_type_reveal_stack_top" }
   | { kind: "reveal_oracle_top_match"; cardType: string }
-  | { kind: "reveal_score_from_hq" }
+  | { kind: "may_reveal_score_from_hq" }
   | { kind: "score_agenda_from_hq"; cardId: string }
   | { kind: "pay_tori_hanzo_instead_net" }
-  | { kind: "may_swap_two_installed_ice" }
+  /**
+   * Tenma Line: the Corp chooses 2 pieces of installed ice, then swaps them.
+   * `cardIds` is the pair, filled by the choice.
+   */
+  | { kind: "may_swap_two_installed_ice"; cardIds?: string[] }
   | { kind: "corp_pay_credits"; amount: number }
   | { kind: "runner_pay_credits"; amount: number }
   | { kind: "break_all_destroyer_subroutines_on_encounter" }
@@ -3853,7 +3901,7 @@ export type Primitive =
   /** Engine-built: an optional part was carried out, so a once-per-run ability is used (CR 9.6.9d). */
   | { kind: "mark_ability_used_this_run"; abilityId: string }
   /** Escher: may instead of breach HQ — rearrange any ice on any servers. */
-  | { kind: "may_breach_instead_escher" }
+  | { kind: "rearrange_ice_instead_of_breach" }
   /**
    * Exploratory Romp: may instead of breach — remove up to `amount`
    * advancement counters from 1 card in the attacked server.
@@ -4405,6 +4453,11 @@ export type Cond =
   | { op: "runner_unused_mu_gte"; amount: number }
   /** A subroutine resolved during the current run (Ryō Phoenix). */
   | { op: "subroutine_resolved_this_run" }
+  /**
+   * The Runner has lost [click] to break a subroutine during the current run
+   * (Zed 1.0).
+   */
+  | { op: "lost_click_to_break_this_run" }
   /** Source card was installed this turn (The Class Act). */
   | { op: "self_installed_this_turn" };
 
@@ -4658,7 +4711,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "limit_printed_breaks_on_source_for_run",
   "return_installed_corp_to_hq",
   "install_ice_inward_free",
-  "install_rez_bioroid_inward",
+  "may_install_rez_bioroid_inward",
   "install_rez_chosen",
   "rez_hosted",
   "prevent_pending_subroutine_break",
@@ -4794,7 +4847,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_runner_stack_top_to_grip",
   "peer_review",
   "play_self_from_archives_then_rfg",
-  "may_play_event_from_heap",
+  "play_event_from_heap_paying_costs",
   "play_heap_event_card",
   "remove_bigger_picture_tags",
   "mitra_aman_approach_ice",
@@ -4848,7 +4901,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "score_unorthodox_predictions_on",
   "reveal_grip",
   "reveal_grip_may_trash_one",
-  "runner_lose_credits_equal_corp_bad_publicity",
   "power_shutdown",
   "draw_top_rd_to_hand",
   "begin_replace_breach_hq_hand_only",
@@ -4872,7 +4924,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "give_bad_publicity_and_tag",
   "trash_exec_sysop_clone_remove_bp",
   "trash_installed_corp_card",
-  "swap_with_hq",
+  "may_swap_with_hq",
   "swap_execute",
   "breach_instead_singularity_trash_root",
   "install_program_from_grip",
@@ -5135,6 +5187,8 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "breach_instead_cbi_raid",
   "place_hq_on_top_rd_continue",
   "cannot_steal_copies_of_revealed_agenda",
+  "forbid_steal_accessed_agenda",
+  "reveal_hq",
   "reveal_lakshmi_agenda_resolve",
   "trash_rezzed_gain_trash_cost",
   "resolve_product_recall",
@@ -5659,9 +5713,9 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "reveal_top_paid",
   "spend_push_your_luck_secret_guess",
   "gain_credits_twice_secret_spend",
-  "choose_type_reveal_install",
+  "choose_card_type_reveal_stack_top",
   "reveal_oracle_top_match",
-  "reveal_score_from_hq",
+  "may_reveal_score_from_hq",
   "score_agenda_from_hq",
   "pay_tori_hanzo_instead_net",
   "may_swap_two_installed_ice",
@@ -5676,7 +5730,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "resolve_vamp",
   "set_skip_breach",
   "mark_ability_used_this_run",
-  "may_breach_instead_escher",
+  "rearrange_ice_instead_of_breach",
   "may_breach_instead_exploratory_romp",
   "choose_exploratory_romp_card",
   "remove_up_to",
@@ -6043,6 +6097,7 @@ const KNOWN_COND_OPS = new Set([
   "runner_mu_full",
   "runner_unused_mu_gte",
   "subroutine_resolved_this_run",
+  "lost_click_to_break_this_run",
   "self_installed_this_turn",
 ]);
 
@@ -6409,7 +6464,7 @@ export const fx = {
   vampMayInsteadOfBreach: (): Effect =>
     fx.do({ kind: "may_breach_instead_vamp" }),
   escherMayInsteadOfBreach: (): Effect =>
-    fx.do({ kind: "may_breach_instead_escher" }),
+    fx.do({ kind: "rearrange_ice_instead_of_breach" }),
   exploratoryRompMayInsteadOfBreach: (amount: number): Effect =>
     fx.do({ kind: "may_breach_instead_exploratory_romp", amount }),
   senseiRegisterEtrOnOtherIceForRun: (): Effect =>
@@ -6555,7 +6610,7 @@ export const fx = {
       kind: "may_install_ice_from_hq_protecting_this_server_ignore_costs",
     }),
   mayPlayEventFromHeap: (): Effect =>
-    fx.do({ kind: "may_play_event_from_heap" }),
+    fx.do({ kind: "play_event_from_heap_paying_costs" }),
   trashAttackedServerRoot: (): Effect =>
     fx.do({ kind: "trash_attacked_server_root" }),
   archivesToHq: (amount: number): Effect =>
@@ -6657,7 +6712,7 @@ export const fx = {
   installIceInwardFree: (): Effect =>
     fx.do({ kind: "install_ice_inward_free" }),
   howlerInstallRezBioroidInward: (): Effect =>
-    fx.do({ kind: "install_rez_bioroid_inward" }),
+    fx.do({ kind: "may_install_rez_bioroid_inward" }),
   awakeningCenterRezHosted: (cardId: string): Effect =>
     fx.do({ kind: "rez_hosted", cardId }),
   preventPendingSubroutineBreak: (): Effect =>

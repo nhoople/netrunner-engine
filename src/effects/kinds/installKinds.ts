@@ -759,7 +759,7 @@ export function applyInstallKinds(
       return { ok: true };
     }
 
-    case "install_rez_bioroid_inward": {
+    case "may_install_rez_bioroid_inward": {
       if (!state.run || source.type !== "ice") {
         log(state, `Howler — not during encounter of ice.`);
         return { ok: true };
@@ -783,26 +783,36 @@ export function applyInstallKinds(
         log(state, `Howler — source not protecting attacked server.`);
         return { ok: true };
       }
-      if (candidates.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "install_rez_chosen",
-          cardId: candidates[0]!,
-        });
-      }
+      // "You may install and rez": the Corp may decline, even with one
+      // candidate (CR 9.6.9).
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
-        options: candidates.map((id) => ({
-          id: `howler:${id}`,
-          label: `Install and rez ${state.cards[id]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "install_rez_chosen" as const,
-              cardId: id,
+        options: [
+          ...candidates.map((id) => ({
+            id: `howler:${id}`,
+            label: `Install and rez ${state.cards[id]!.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "install_rez_chosen" as const,
+                cardId: id,
+              },
+            },
+          })),
+          {
+            id: "decline",
+            label: "Decline",
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "gain_credits" as const,
+                side: "corp" as const,
+                amount: 0,
+              },
             },
           },
-        })),
+        ],
         logLine: `Howler — choose a bioroid ice to install and rez.`,
       });
       return { ok: true };

@@ -52,6 +52,7 @@ import {
 import { afterBasicAction } from "../timing/machine.js";
 import type {
   ApplyResult,
+  CardInstance,
   GameState,
   RuleCite,
   ServerId,
@@ -74,6 +75,43 @@ function ok(state: GameState): ApplyResult {
 }
 
 /** Patchwork-class: installed unblanked play/install discount amount. */
+/** The additional [click] an event's play costs, as printed. */
+function eventAdditionalClicks(card: CardInstance): number {
+  return typeof card.playAdditionalClicks === "number"
+    ? card.playAdditionalClicks
+    : card.playAdditionalClick
+      ? 1
+      : 0;
+}
+
+/**
+ * Starlight Crusade Funding: "Ignore any additional costs on each double
+ * event you play" (CR 1.2.1). Returns the card that ignores them, if any.
+ */
+function doubleEventAdditionalCostIgnoredBy(
+  state: GameState,
+  card: CardInstance,
+): string | null {
+  if (!(card.subtypes ?? []).includes("double")) return null;
+  for (const rid of state.runner.installed) {
+    if (abilitiesSuppressed(state, rid)) continue;
+    if (state.cards[rid]?.ignoreAdditionalCostFirstDoubleEventEachTurn) {
+      return rid;
+    }
+  }
+  return null;
+}
+
+/** The [click]s playing this event costs in all (CR 8.6.2, 1.16). */
+export function eventClicksToPlay(
+  state: GameState,
+  card: CardInstance,
+): number {
+  return doubleEventAdditionalCostIgnoredBy(state, card)
+    ? 1
+    : 1 + eventAdditionalClicks(card);
+}
+
 export function patchworkDiscountSource(
   state: GameState,
 ): { id: string; amount: number } | null {
@@ -1078,26 +1116,13 @@ export function playEvent(
       [CR.playEvent],
     );
   }
-  let extraClick =
-    typeof card.playAdditionalClicks === "number"
-      ? card.playAdditionalClicks
-      : card.playAdditionalClick
-        ? 1
-        : 0;
-  if (
-    extraClick > 0 &&
-    (card.subtypes ?? []).includes("double") &&
-    !state.turn.starlightDoubleEventAdditionalCostIgnored
-  ) {
-    for (const rid of state.runner.installed) {
-      if (abilitiesSuppressed(state, rid)) continue;
-      const host = state.cards[rid];
-      if (!host?.ignoreAdditionalCostFirstDoubleEventEachTurn) continue;
-      extraClick = 0;
-      state.turn.starlightDoubleEventAdditionalCostIgnored = true;
-      log(state, `${host.title} — ignore additional cost on double event.`);
-      break;
-    }
+  const ignoredBy = doubleEventAdditionalCostIgnoredBy(state, card);
+  const extraClick = ignoredBy ? 0 : eventAdditionalClicks(card);
+  if (ignoredBy && eventAdditionalClicks(card) > 0) {
+    log(
+      state,
+      `${state.cards[ignoredBy]!.title} — ignore additional cost on double event.`,
+    );
   }
   const clicksNeeded = 1 + extraClick;
   if (state.runner.clicks < clicksNeeded) {

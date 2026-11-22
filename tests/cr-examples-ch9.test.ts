@@ -2,6 +2,7 @@
  * Comprehensive Rules examples from chapter 9.
  * Each test plays that example's board.
  */
+import { openAsChoice } from "./rulings-helpers.js";
 import { hostCard } from "../src/state/procedures/host.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -47,7 +48,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.26");
+  assertCardsPinnedTag("v1.147.27");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -553,8 +554,10 @@ describe("CR examples, chapter 9", () => {
     };
     s.activeSide = "runner";
 
-    const opened = evalEffect(
-      { state: s, sourceId: "sing-1" },
+    const opened = openAsChoice(
+      s,
+      "sing-1",
+      "singularity",
       fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);
@@ -4109,8 +4112,10 @@ describe("CR examples, chapter 9", () => {
     };
     s.activeSide = "runner";
 
-    const opened = evalEffect(
-      { state: s, sourceId: "sing-1" },
+    const opened = openAsChoice(
+      s,
+      "sing-1",
+      "singularity",
       fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);
@@ -4803,8 +4808,10 @@ describe("CR examples, chapter 9 timing (RA-1)", () => {
       accessingCardId: null,
     };
     s.activeSide = "runner";
-    const opened = evalEffect(
-      { state: s, sourceId: "sing-1" },
+    const opened = openAsChoice(
+      s,
+      "sing-1",
+      "singularity",
       fx.do({ kind: "breach_instead_singularity_trash_root" }),
     );
     expect(opened.ok).toBe(true);

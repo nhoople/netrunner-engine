@@ -152,6 +152,17 @@ export function interfaceBlock(
       );
     }
   }
+  // Alias, Breach, Passport: "cannot interface with ice protecting a remote
+  // server" (CR 9.3.6c).
+  if (breaker.breaker?.cannotInterfaceRemoteIce) {
+    const sid = serverIdForIce(state, iceId);
+    if (sid && state.servers[sid]?.kind === "remote") {
+      return block(
+        `${breaker.title} cannot interface with ice protecting a remote server.`,
+        [CR.icebreakerInterface],
+      );
+    }
+  }
   const iceStr = effectiveIceStrength(state, iceId);
   const brStr = effectiveBreakerStrength(state, breakerId);
   if (breaker.interfaceRequiresEqualStrength) {

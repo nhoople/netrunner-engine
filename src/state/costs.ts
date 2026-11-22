@@ -2010,8 +2010,13 @@ export function operationAndEventPlayCostIncreaseTotal(
     if (abilitiesSuppressed(state, c.id)) continue;
     if (c.zone === "corp:play-area" || c.zone === "runner:play-area") {
       n += c.operationAndEventPlayCostIncrease ?? 0;
-      n += c.corpPlayCostIncreaseForRunnerEventsOps ?? 0;
     }
+  }
+  // Donut Taganes: an installed resource raises both players' play costs
+  // while it is active (CR 1.16.2a, 1.8.3a).
+  for (const id of state.runner.installed) {
+    if (abilitiesSuppressed(state, id)) continue;
+    n += state.cards[id]?.corpPlayCostIncreaseForRunnerEventsOps ?? 0;
   }
   return n;
 }

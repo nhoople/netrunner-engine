@@ -208,6 +208,11 @@ export function effectiveAdvancementRequirement(
     const perCopy =
       card.advancementRequirementReductionPerSameTitleAnywhere ?? 0;
     if (perCopy > 0) {
+      // Medical Breakthrough: "This ability is active even while Medical
+      // Breakthrough is in the Runner's score area" (CR 9.1.8b), so copies
+      // there count too. Whether copies in HQ, R&D, Archives or installed
+      // count (CR 9.1.8e against 1.8.4a) is open; the engine keeps counting
+      // them until that is decided.
       let copies = 0;
       const zones = [
         state.corp.hand,
@@ -215,6 +220,7 @@ export function effectiveAdvancementRequirement(
         state.corp.discardPile,
         ...Object.values(state.servers).flatMap((s) => [...s.root, ...s.ice]),
         state.corp.scoreArea,
+        state.runner.scoreArea,
       ];
       for (const ids of zones) {
         for (const id of ids) {
