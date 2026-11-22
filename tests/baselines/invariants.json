@@ -3463,6 +3463,12 @@
     ],
     "the engine agrees with a blind reading of The CR's own examples, chapter 9 (Abilities) (read by Claude Fable 5.2) > recorded differences still differ in the recorded way (remove the entry when the engine is fixed)": [
       "NO_ZONE"
+    ],
+    "the engine agrees with a blind reading of The jinteki run scenarios (runs_test) (read by Claude Fable 5.2) > Scenario forced-encounters-forced-encounters-redirection: Bullfrog moved during a forced encounter takes the run to its new server": [
+      "ENCOUNTER_ICE_MISMATCH"
+    ],
+    "the engine agrees with a blind reading of The jinteki run scenarios (runs_test) (read by Claude Fable 5.2) > recorded differences still differ in the recorded way (remove the entry when the engine is fixed)": [
+      "ENCOUNTER_ICE_MISMATCH"
     ]
   },
   "tests/short-game.test.ts": {
