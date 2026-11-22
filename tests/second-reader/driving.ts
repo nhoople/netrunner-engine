@@ -16,6 +16,7 @@ import type { Action, GameState } from "../../src/index.js";
 import type { ServerId } from "../../src/state/types.js";
 import { approachedIceId } from "../../src/actions/rez.js";
 import { must, optionIds, pick } from "../rulings-helpers.js";
+import { offered } from "./harness.js";
 import type { Report } from "./harness.js";
 
 export type Driver = (r: Report) => void;
@@ -278,4 +279,185 @@ export function runnerSees(s: GameState, cardId: string): boolean {
   };
   walk(getPublicView(s, "runner"));
   return named;
+}
+
+export const encounterOrOver = (s: GameState): boolean =>
+  atEncounter(s) || !s.run;
+
+export const idle = (s: GameState): boolean =>
+  !s.run && atAction(s) && !s.pendingChoice;
+
+/** The Runner passes priority without the window being walked on. */
+export const handOver = (s: GameState): GameState =>
+  raw(s, { type: "pass_window" });
+
+export const playRun = (
+  s: GameState,
+  cardId: string,
+  server: string,
+): GameState =>
+  must(s, { type: "play_event", cardId, serverId: server as ServerId });
+
+/** The steps taken when nothing else is asked for, in this order. */
+const OBVIOUS: Action["type"][] = [
+  "continue_run",
+  "access_card",
+  "steal_agenda",
+  "finish_access",
+  "finish_breach",
+  "accept_installed_trash",
+  "accept_damage",
+  "accept_tags",
+  "accept_expose",
+  "resolve_trace",
+  "pass_window",
+  "discard_to_hand_size",
+];
+
+export type Hook = (s: GameState) => GameState | undefined;
+
+/**
+ * Play on to `stop`. At each stop `hook` goes first: it returns the state
+ * after the move the case names, or nothing. An open choice is answered with
+ * the first of `answers` (a part of an option's id or label) that fits, each used
+ * once; a choice no answer fits is an error, so a driver cannot report a
+ * state it did not mean to stop in. Otherwise the obvious step is taken. A trace is resolved with neither player spending.
+ */
+export function go(
+  s: GameState,
+  stop: (s: GameState) => boolean,
+  answers: string[] = [],
+  hook?: Hook,
+): GameState {
+  const left = [...answers];
+  for (let i = 0; i < 120; i++) {
+    if (stop(s) || s.done) return s;
+    const hooked = hook?.(s);
+    if (hooked) {
+      s = hooked;
+      continue;
+    }
+    if (s.pendingChoice) {
+      const ids = optionIds(s);
+      const fits = (a: string) =>
+        s.pendingChoice!.options.find(
+          (o) => o.id.includes(a) || (o.label ?? "").includes(a),
+        );
+      const at = left.findIndex((a) => Boolean(fits(a)));
+      debug(
+        `choice[${s.pendingChoice.chooser}] ${s.pendingChoice.prompt ?? ""}: ${s.pendingChoice.options
+          .map((o) => `${o.id} "${o.label}"`)
+          .join(" | ")} -> ${at < 0 ? "(stop)" : left[at]}`,
+      );
+      if (at < 0) {
+        throw new Error(
+          `no answer for the choice at ${s.timingKey}: ${ids.join(" | ")}`,
+        );
+      }
+      s = must(s, {
+        type: "choose_option",
+        optionId: fits(left.splice(at, 1)[0]!)!.id,
+      });
+      continue;
+    }
+    const legal = legalActions(s);
+    const next =
+      legal.find((a) => a.type === "boost_trace" && a.credits === 0) ??
+      OBVIOUS.map((t) => legal.find((a) => a.type === t)).find(Boolean);
+    if (process.env.SR_DEBUG === "2") {
+      debug(
+        `${s.timingKey}: ${next?.type} of ${[...new Set(legal.map((a) => a.type))].join(",")}`,
+      );
+    }
+    if (!next) {
+      throw new Error(
+        `stuck at ${s.timingKey}: ${legal.map((a) => a.type).join(", ")}`,
+      );
+    }
+    s = must(s, next);
+  }
+  throw new Error(`no stop at ${s.timingKey}`);
+}
+
+/** A hook that uses a card's paid ability the first `times` times it is offered. */
+export function using(cardId: string, times = 1): Hook {
+  let left = times;
+  return (s) => {
+    const next = offered(s, "use_paid_ability", cardId)[0];
+    if (!next || left <= 0) return undefined;
+    left -= 1;
+    debug("use:", JSON.stringify(next));
+    return must(s, next);
+  };
+}
+
+/** Break up to `count` subroutines of the encountered ice with one breaker. */
+export function breakSubs(
+  s: GameState,
+  breakerId: string,
+  count = 6,
+): GameState {
+  for (let i = 0; i < count; i++) {
+    const next = offered(s, "break_subroutine", breakerId)[0];
+    if (!next) return s;
+    s = must(s, next);
+  }
+  return s;
+}
+
+export const what = (s: GameState): string =>
+  `${s.timingKey} choice=${JSON.stringify(optionIds(s))} legal=${[
+    ...new Set(legalActions(s).map((a) => a.type)),
+  ].join(",")}`;
+
+/**
+ * The Runner spends the last click of the turn and the game is played on to
+ * the Corp's first action. The credit the click gives is taken back, so the
+ * numbers of the position hold.
+ */
+export function corpTurnBegins(
+  s: GameState,
+  answers: string[] = [],
+  hook?: Hook,
+  keepCredit = false,
+): GameState {
+  s.config.stopAfterFirstCycle = false;
+  s.activeSide = "runner";
+  s.timingKey = "runner.takeAction";
+  s.runner.clicks = 1;
+  s = raw(s, { type: "basic_gain_credit" });
+  if (!keepCredit) s.runner.credits -= 1;
+  return go(
+    s,
+    (x) => x.timingKey === "corp.takeAction" && !x.pendingChoice,
+    answers,
+    hook,
+  );
+}
+
+/** The same from the Corp's side, on to the Runner's first action. */
+export function runnerTurnBegins(
+  s: GameState,
+  answers: string[] = [],
+  hook?: Hook,
+): GameState {
+  s.config.stopAfterFirstCycle = false;
+  s.activeSide = "corp";
+  s.timingKey = "corp.takeAction";
+  s.corp.clicks = 1;
+  s = raw(s, { type: "basic_gain_credit" });
+  s.corp.credits -= 1;
+  return go(
+    s,
+    (x) => x.timingKey === "runner.takeAction" && !x.pendingChoice,
+    answers,
+    hook,
+  );
+}
+
+/** The Runner gains a credit with every click but the last. */
+export function spendClicks(s: GameState): GameState {
+  while (s.runner.clicks > 1)
+    s = go(must(s, { type: "basic_gain_credit" }), idle);
+  return s;
 }

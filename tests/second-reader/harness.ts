@@ -66,6 +66,8 @@ export type Batch = {
   title: string;
   reader: { model: string; name: string };
   sources: { cr: string; cards: string };
+  /** A rulings batch: the ids of the cards whose rulings it samples. */
+  cards?: string[];
   cases: Case[];
 };
 

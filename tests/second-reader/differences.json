@@ -1329,8 +1329,9 @@
         "engine": 1
       }
     ],
-    "verdict": "pending",
-    "rule": "6.9.1",
+    "verdict": "engine-wrong",
+    "rule": "6.9.1c",
+    "area": "area 11",
     "note": "The run is in progress when 'run begins' abilities resolve, so Cezve's credits can pay for Masterwork (v37)'s install. With 1 credit in the pool and 2 on Cezve the engine does not offer the install of a 3-credit Cyberfeeder at all; with 3 credits in the pool it does"
   },
   {
@@ -1358,8 +1359,9 @@
         "engine": 2
       }
     ],
-    "verdict": "pending",
-    "rule": "8.5.16",
+    "verdict": "engine-wrong",
+    "rule": "8.5.6c",
+    "area": "area 6",
     "note": "With all 4 MU used and 0 credits in the pool, the engine's 'Install MKUltra from heap' does nothing: it never asks which program to trash and never counts Cezve's credits, so the legal install (trash another program, pay 2 from Cezve) cannot be made. The illegal one (trashing Cezve and paying with its credits) is not made either"
   },
   {
@@ -1372,8 +1374,9 @@
         "engine": "nobody"
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "9.2.8d",
+    "area": "fidelity",
     "note": "Cookbook's and Tranquilizer's abilities meet their conditions together when Tranquilizer is installed, and the Runner picks the order. The engine resolves Tranquilizer's first and only then asks about Cookbook: nobody is asked for an order. The outcome of that order is right"
   },
   {
@@ -1386,8 +1389,9 @@
         "engine": true
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "9.2.8d",
+    "area": "fidelity",
     "note": "As cookbook#1: the Runner cannot resolve Cookbook first, so Tranquilizer never sees 3 counters when it checks and the ice stays rezzed"
   },
   {
@@ -1395,19 +1399,20 @@
     "case": "funhouse#1",
     "observations": [
       {
-        "key": "::runner.tags",
-        "expected": 0,
-        "engine": 1
+        "key": "::legal(decoy)",
+        "expected": false,
+        "engine": true
       },
       {
-        "key": "::run.outcome",
-        "expected": "unsuccessful",
-        "engine": "in-progress"
+        "key": "::runner.tags",
+        "expected": 1,
+        "engine": 3
       }
     ],
-    "verdict": "pending",
-    "rule": "1.16.11",
-    "note": "Taking the tag is a nested cost; a tag that is prevented was not paid, so Funhouse ends the run. After Decoy prevents the tag the engine asks the Runner to take a tag or end the run again; the Runner takes it and the run goes on"
+    "verdict": "engine-wrong",
+    "rule": "1.16.1a",
+    "area": "area 11",
+    "note": "Paying a cost cannot be changed or cancelled by an optional interrupt, and Funhouse's tag is a nested cost. The engine offers Decoy on that tag. Worse, while Decoy is installed and unused the engine asks the Runner to take a tag or end the run again after every tag taken (3 tags here before the driver stops): the encounter cannot go on unless the Runner ends the run or uses Decoy"
   },
   {
     "batch": "rulings-sample-1",
@@ -1419,9 +1424,10 @@
         "engine": 0
       }
     ],
-    "verdict": "pending",
-    "rule": "1.2.1",
-    "note": "Spoilers says 'Whenever the Corp scores an agenda, they trash the top card of R&D.' The engine never triggers it when Longevity Serum is scored, so nothing is trashed and the order the ruling is about is not reached"
+    "verdict": "engine-wrong",
+    "rule": "9.2.8b",
+    "area": "fidelity",
+    "note": "Spoilers and Longevity Serum both trigger when the agenda is scored; the Corp, as active player, resolves first and then Spoilers trashes the top card of R&D. When Longevity Serum opens its choice the engine never marks Spoilers pending, so nothing is trashed"
   },
   {
     "batch": "rulings-sample-1",
@@ -1433,8 +1439,9 @@
         "engine": 1
       }
     ],
-    "verdict": "pending",
-    "rule": "9.9.8",
+    "verdict": "engine-wrong",
+    "rule": "6.7.4b",
+    "area": "area 14",
     "note": "Pinhole Threading replaces the breach with an access that is not a breach. The engine still gives Aumakua its 'finish breaching' counter"
   },
   {
@@ -1447,9 +1454,10 @@
         "engine": true
       }
     ],
-    "verdict": "pending",
-    "rule": "1.2.1",
-    "note": "Border Control's ability can be used 'only during a run on this server'. During the encounter Ganked! forces, the run is still on HQ, but the engine also offers the ability of the Border Control protecting the remote server"
+    "verdict": "engine-wrong",
+    "rule": "6.1.3c",
+    "area": "area 14",
+    "note": "A forced encounter does not change the attacked server, and Border Control's ability can be used 'only during a run on this server'. During the encounter Ganked! forces, the run is still on HQ, but the engine also offers the ability of the Border Control protecting the remote server"
   },
   {
     "batch": "rulings-sample-1",
@@ -1466,8 +1474,9 @@
         "engine": 5
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "1.2.1",
+    "area": "area 8",
     "note": "Loup's ability triggers the first time each turn the Runner trashes a card they are accessing, by any means. The engine does not trigger it when Carnivore trashes the card: no credit, no draw"
   },
   {
@@ -1475,28 +1484,40 @@
     "case": "seamless-launch#1",
     "observations": [
       {
+        "key": "::legal(play)",
+        "expected": true,
+        "engine": false
+      },
+      {
         "key": "::counters(PAD Campaign,advancement)",
         "expected": 2,
         "engine": 0
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "1.18.2",
-    "note": "Seamless Launch places counters; it does not advance, so its target need not be a card the Corp can advance. The engine offers no target and places nothing on a PAD Campaign"
+    "area": "area 12",
+    "note": "Seamless Launch places counters; it does not advance, so its target need not be a card the Corp can advance. The engine offers only agendas and cards that can be advanced: PAD Campaign is not a target and nothing is placed"
   },
   {
     "batch": "rulings-sample-1",
     "case": "seamless-launch#2",
     "observations": [
       {
+        "key": "::legal(play)",
+        "expected": true,
+        "engine": false
+      },
+      {
         "key": "::counters(Corroder,advancement)",
         "expected": 2,
         "engine": 0
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "1.18.2",
-    "note": "As seamless-launch#1: the engine does not offer the Runner's installed Corroder as a target"
+    "area": "area 12",
+    "note": "As seamless-launch#1; the engine also looks only at the Corp's servers, so the Runner's installed Corroder is not a target"
   },
   {
     "batch": "rulings-sample-1",
@@ -1513,9 +1534,9 @@
         "engine": "removed"
       }
     ],
-    "verdict": "pending",
-    "rule": "1.2.1",
-    "note": "The ruling says Spin Doctor's ability cannot be used with nothing in Archives and only 1 card in R&D, because nothing would change. The engine lets the Corp use it and removes Spin Doctor from the game"
+    "verdict": "cr-open",
+    "rule": "9.5.2f",
+    "note": "The ruling says Spin Doctor's ability cannot be used with nothing in Archives and only 1 card in R&D, because nothing would change. CR v26.03 has no rule that an ability must change the game state: a paid ability can be used whenever its cost is paid (9.5.2f), and 'up to 2' allows 0. The engine follows the CR and lets the Corp use it"
   },
   {
     "batch": "rulings-sample-1",
@@ -1537,8 +1558,9 @@
         "engine": 5
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "9.1.8f",
+    "area": "fidelity",
     "note": "An ability that lets a card be advanced is active while the card is unrezzed. The engine never offers to advance Urtica Cipher (its card data has no 'can be advanced' flag)"
   },
   {
@@ -1551,8 +1573,9 @@
         "engine": 5
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "9.1.8f",
+    "area": "fidelity",
     "note": "The position advances Urtica Cipher, which the engine cannot advance (see urtica-cipher#1), so the identity's 2 credits for a first advance are not reached here. CR 9.6.6a.ex1 covers the same ruling with Ice Wall and agrees"
   },
   {
@@ -1565,8 +1588,28 @@
         "engine": 0
       }
     ],
-    "verdict": "pending",
+    "verdict": "engine-wrong",
     "rule": "1.18.2",
+    "area": "area 12",
     "note": "The position places Seamless Launch's counters on a PAD Campaign, which the engine does not offer as a target (see seamless-launch#1). The credits agree; the counters are not placed"
+  },
+  {
+    "batch": "rulings-sample-1",
+    "case": "funhouse#1",
+    "observations": [
+      {
+        "key": "::runner.tags",
+        "expected": 0,
+        "engine": 1
+      },
+      {
+        "key": "::run.outcome",
+        "expected": "unsuccessful",
+        "engine": "in-progress"
+      }
+    ],
+    "verdict": "reader-wrong",
+    "rule": "1.16.1a",
+    "note": "The reader had the Runner prevent the tag with Decoy and Funhouse then end the run. Paying a cost cannot be changed by an optional interrupt (CR 1.16.1a), so Decoy cannot be used on a tag taken as a nested cost: the tag is taken and the run goes on. The expectation was corrected; the ruling’s answer (the Runner cannot keep the run by preventing the tag) agrees with it"
   }
 ]

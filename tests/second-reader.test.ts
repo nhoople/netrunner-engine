@@ -168,7 +168,7 @@ for (const { name, chapter, drivers } of BATCHES) {
       const have = new Set(batch.cases.map((c) => c.example));
       const wanted = chapter
         ? exampleNumbers(chapter)
-        : rulingNames((batch as unknown as { cards: string[] }).cards);
+        : rulingNames(batch.cards ?? []);
       expect(wanted.length).toBeGreaterThan(0);
       expect(wanted.filter((n) => !have.has(n))).toEqual([]);
       const toRun = batch.cases.filter((c) => c.run !== false);

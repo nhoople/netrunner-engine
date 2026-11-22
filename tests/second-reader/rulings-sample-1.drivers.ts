@@ -5,7 +5,7 @@
  *
  * Not a test file: vitest only runs `*.test.ts`.
  */
-import { legalActions } from "../../src/index.js";
+import { cloneState, legalActions } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
 import { currentMark } from "../../src/state/msKeywords.js";
 import { must, optionIds, pick } from "../rulings-helpers.js";
@@ -15,27 +15,23 @@ import {
   accessedSince,
   atAction,
   atEncounter,
-  corpWindow,
-  debug,
-  psi,
-  raw,
-  run,
-} from "./driving.js";
-import type { Driver } from "./driving.js";
-import {
   breakSubs,
   corpTurnBegins,
+  corpWindow,
+  debug,
   encounterOrOver,
   go,
   handOver,
   idle,
   playRun,
+  psi,
+  raw,
+  run,
   runnerTurnBegins,
   spendClicks,
-  using,
   what,
-} from "./cr-examples-ch9.drivers.js";
-
+} from "./driving.js";
+import type { Driver } from "./driving.js";
 const CENTRALS = ["hq", "rd", "archives"];
 
 const mark = (s: GameState): string | null => currentMark(s);
@@ -101,7 +97,8 @@ function seamless(
     if (chosen) s = go(s, idle, [target]);
     else if (!s.pendingChoice) s = go(s, idle);
   }
-  r.fact("legal(play)", can && (chosen || !s.pendingChoice));
+  // Playable only if the engine offers the named card as the target.
+  r.fact("legal(play)", can && chosen);
   r.snap("play", s);
 }
 
@@ -128,10 +125,13 @@ function spinDoctor(r: Report, archives: boolean, rdCards?: number): void {
   r.snap("use", s);
 }
 
-/** Pinhole Threading into HQ, then Ganked! in a remote forces an encounter. */
+/**
+ * Pinhole Threading into HQ, then Ganked! in a remote server forces an
+ * encounter with `iceId`, which protects that server.
+ */
 function pinholeGanked(
   b: Board,
-  remote: string,
+  iceId: string,
   ganked: string,
   hqBreaker?: string,
 ): GameState {
@@ -140,14 +140,14 @@ function pinholeGanked(
     "pinhole",
     ganked,
     "trash-encounter",
-    remote,
+    iceId,
   ]);
   if (hqBreaker && atEncounter(s)) {
     s = breakSubs(s, hqBreaker, 2);
     s = go(must(s, { type: "pass_window" }), (x) => atEncounter(x) || !x.run, [
       "pinhole",
       ganked,
-      remote,
+      iceId,
       "trash-encounter",
     ]);
   }
@@ -394,11 +394,13 @@ export const drivers: Record<string, Driver> = {
     b.grip("sure-gamble", "sure-gamble", "sure-gamble");
     let s = go(run(b.s, "hq"), (x) => Boolean(x.pendingChoice) || !x.run);
     debug("mkultra:", what(s));
-    // The engine asks whether to install, then which program to trash.
+    // Each way is tried on a copy: install, then trash the named program.
+    // If the engine never asks which program to trash, neither way exists
+    // and both facts read false.
     const trashing = (x: GameState, victim: string): GameState | undefined => {
       try {
         let y = go(
-          structuredClone(x),
+          cloneState(x),
           (z) => Boolean(z.pendingChoice) && hasOption(z, victim),
           ["install", ultra!],
         );
@@ -463,17 +465,25 @@ export const drivers: Record<string, Driver> = {
     const b = new Board(r, "runner", 5);
     b.ice("funhouse", "hq");
     const decoy = b.rig("decoy");
-    // Asked a second time, the Runner takes the tag again.
+    let offeredDecoy = false;
+    let asks = 0;
+    // Each time the engine asks, the Runner takes the tag. The walk stops if
+    // the engine is still asking after the third tag.
     const s = go(
       run(b.s, "hq"),
-      encounterOrOver,
-      ["unless-pay", "unless-pay"],
-      using(decoy),
+      (x) => encounterOrOver(x) || (asks >= 3 && hasOption(x, "unless-pay")),
+      ["unless-pay", "unless-pay", "unless-pay"],
+      (x) => {
+        if (hasOption(x, "unless-pay")) asks += 1;
+        // Decoy is not used: the case asks only whether the engine offers it.
+        if (x.pendingTags && offered(x, "use_paid_ability", decoy).length > 0) {
+          offeredDecoy = true;
+        }
+        return undefined;
+      },
     );
-    r.snap(
-      "encounter",
-      go(s, (x) => idle(x) || atEncounter(x)),
-    );
+    r.fact("legal(decoy)", offeredDecoy);
+    r.snap("encounter", s);
   },
 
   "funhouse#2": (r) => {
@@ -602,6 +612,8 @@ export const drivers: Record<string, Driver> = {
     b.ice("hunter", "hq");
     let s = go(run(b.s, "hq"), encounterOrOver);
     s = raw(s, { type: "pass_window" });
+    // The steps are taken one at a time so that a trace, if the engine ever
+    // stops inside one, is seen.
     let inTrace = false;
     for (let i = 0; i < 12 && s.run && !atAction(s); i++) {
       if (s.trace) {
