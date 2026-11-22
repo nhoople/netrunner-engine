@@ -23,8 +23,9 @@ import {
 } from "./driving.js";
 import type { Driver } from "./driving.js";
 
-const encounterOrOver = (s: GameState): boolean => atEncounter(s) || !s.run;
-const idle = (s: GameState): boolean =>
+export const encounterOrOver = (s: GameState): boolean =>
+  atEncounter(s) || !s.run;
+export const idle = (s: GameState): boolean =>
   !s.run && atAction(s) && !s.pendingChoice;
 
 /**
@@ -39,9 +40,14 @@ function forgetRuns(s: GameState): GameState {
 }
 
 /** The Runner passes priority without the window being walked on. */
-const handOver = (s: GameState): GameState => raw(s, { type: "pass_window" });
+export const handOver = (s: GameState): GameState =>
+  raw(s, { type: "pass_window" });
 
-const playRun = (s: GameState, cardId: string, server: string): GameState =>
+export const playRun = (
+  s: GameState,
+  cardId: string,
+  server: string,
+): GameState =>
   must(s, { type: "play_event", cardId, serverId: server as ServerId });
 
 /** The steps taken when nothing else is asked for, in this order. */
@@ -60,7 +66,7 @@ const OBVIOUS: Action["type"][] = [
   "discard_to_hand_size",
 ];
 
-type Hook = (s: GameState) => GameState | undefined;
+export type Hook = (s: GameState) => GameState | undefined;
 
 /**
  * Play on to `stop`. At each stop `hook` goes first: it returns the state
@@ -69,7 +75,7 @@ type Hook = (s: GameState) => GameState | undefined;
  * once; a choice no answer fits is an error, so a driver cannot report a
  * state it did not mean to stop in. Otherwise the obvious step is taken. A trace is resolved with neither player spending.
  */
-function go(
+export function go(
   s: GameState,
   stop: (s: GameState) => boolean,
   answers: string[] = [],
@@ -152,7 +158,7 @@ function passIceAgain(limit = 8): (s: GameState) => boolean {
 }
 
 /** A hook that uses a card's paid ability the first `times` times it is offered. */
-function using(cardId: string, times = 1): Hook {
+export function using(cardId: string, times = 1): Hook {
   let left = times;
   return (s) => {
     const next = offered(s, "use_paid_ability", cardId)[0];
@@ -174,7 +180,11 @@ function pump(s: GameState, cardId: string, times: number): GameState {
 }
 
 /** Break up to `count` subroutines of the encountered ice with one breaker. */
-function breakSubs(s: GameState, breakerId: string, count = 6): GameState {
+export function breakSubs(
+  s: GameState,
+  breakerId: string,
+  count = 6,
+): GameState {
   for (let i = 0; i < count; i++) {
     const next = offered(s, "break_subroutine", breakerId)[0];
     if (!next) return s;
@@ -200,7 +210,7 @@ const title = (s: GameState, id: string | undefined): string =>
 const stackBottom = (s: GameState): string =>
   title(s, s.runner.deck[s.runner.deck.length - 1]);
 
-const what = (s: GameState): string =>
+export const what = (s: GameState): string =>
   `${s.timingKey} choice=${JSON.stringify(optionIds(s))} legal=${[
     ...new Set(legalActions(s).map((a) => a.type)),
   ].join(",")}`;
@@ -1679,7 +1689,7 @@ function worse(r: Report, skorpios: boolean): void {
  * the Corp's first action. The credit the click gives is taken back, so the
  * numbers of the position hold.
  */
-function corpTurnBegins(
+export function corpTurnBegins(
   s: GameState,
   answers: string[] = [],
   hook?: Hook,
@@ -1700,7 +1710,7 @@ function corpTurnBegins(
 }
 
 /** The same from the Corp's side, on to the Runner's first action. */
-function runnerTurnBegins(
+export function runnerTurnBegins(
   s: GameState,
   answers: string[] = [],
   hook?: Hook,
@@ -1720,7 +1730,7 @@ function runnerTurnBegins(
 }
 
 /** The Runner gains a credit with every click but the last. */
-function spendClicks(s: GameState): GameState {
+export function spendClicks(s: GameState): GameState {
   while (s.runner.clicks > 1)
     s = go(must(s, { type: "basic_gain_credit" }), idle);
   return s;

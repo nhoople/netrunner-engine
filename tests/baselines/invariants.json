@@ -3411,6 +3411,17 @@
     ]
   },
   "tests/second-reader.test.ts": {
+    "the engine agrees with a blind reading of A sample of the official rulings (every fifth card that has rulings) (read by Claude Fable 5.2) > Ruling backstitching#4: Backstitching can bypass the ice Konjin makes the Runner encounter, because the run is still on the mark": [
+      "ENCOUNTER_ICE_MISMATCH"
+    ],
+    "the engine agrees with a blind reading of A sample of the official rulings (every fifth card that has rulings) (read by Claude Fable 5.2) > Ruling pinhole-threading#4-b: Henry Phillips beside Ganked! pays nothing, because the run is on HQ": [
+      "ENCOUNTER_ICE_MISMATCH",
+      "POSITION_OUT_OF_RANGE"
+    ],
+    "the engine agrees with a blind reading of A sample of the official rulings (every fifth card that has rulings) (read by Claude Fable 5.2) > Ruling pinhole-threading#4: Henry Phillips in HQ's root pays out when a subroutine is broken on ice Ganked! forced, during a Pinhole Threading run on HQ": [
+      "ENCOUNTER_ICE_MISMATCH",
+      "POSITION_OUT_OF_RANGE"
+    ],
     "the engine agrees with a blind reading of The CR's own examples, chapter 1 (Game Concepts) (read by Claude Fable 5.2) > CR 1.12.3.ex1: The Foundry's search shuffles away the cards Accelerated Beta Test was looking at, so they are not installed or trashed": [
       "NO_ZONE"
     ],
