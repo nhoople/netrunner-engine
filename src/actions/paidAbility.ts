@@ -10,7 +10,10 @@ import {
 import { log } from "../state/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
 import { drawCards } from "../effects/draw.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import {
+  abilitiesSuppressed,
+  runnerCannotUseProgram,
+} from "../state/abilities.js";
 import { facedownInstalledRunnerCard } from "../state/active.js";
 import {
   allButNDamageRelevant,
@@ -430,6 +433,13 @@ export function usePaidAbility(
   if (facedownInstalledRunnerCard(state, cardId)) {
     return fail("A facedown card's abilities are not active.", [
       CR.abilityActive,
+      CR.paidAbility,
+    ]);
+  }
+  // Vikram 1.0: the Runner cannot use programs this run (CR 9.1.6, 1.2.2).
+  if (runnerCannotUseProgram(state, cardId)) {
+    return fail("The Runner cannot use programs for the rest of this run.", [
+      CR.cannotPrecedence,
       CR.paidAbility,
     ]);
   }

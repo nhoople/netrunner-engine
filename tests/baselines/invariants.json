@@ -2331,10 +2331,6 @@
       "NO_ZONE",
       "RUNNER_CARD_REZZED"
     ],
-    "one-off kind outcomes (batch A: immediate effects) > Localized Product Line: takes all copies of a card from R&D to HQ": [
-      "NO_ZONE",
-      "RUNNER_CARD_REZZED"
-    ],
     "one-off kind outcomes (batch A: immediate effects) > Logos: searches the stack for a card and adds it to the grip": [
       "NO_ZONE",
       "RUNNER_CARD_REZZED"

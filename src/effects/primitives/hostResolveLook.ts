@@ -9,7 +9,6 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
-import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { hostCard } from "../../state/procedures/host.js";
 
@@ -429,63 +428,6 @@ export function applyMumbadDagPrimitive(
         state,
         `Political Dealings — reveal and install ${agenda.title} in ${serverId}.`,
       );
-      return { ok: true };
-    }
-
-    case "search_alliance_play_or_install": {
-      const alliance = state.corp.deck.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("alliance"),
-      );
-      // Shuffle R&D regardless (search effect)
-      for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.corp.deck[i]!;
-        state.corp.deck[i] = state.corp.deck[j]!;
-        state.corp.deck[j] = tmp;
-      }
-      if (alliance.length === 0) {
-        log(state, `Mumbad City Hall — no alliance in R&D; shuffle.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: alliance.map((cardId) => {
-          const c = state.cards[cardId]!;
-          return {
-            id: `mch:${cardId}`,
-            label: `Reveal ${c.title} (play/install paying costs)`,
-            effect: fx.do({
-              kind: "resolve_mumbad_city_hall_alliance",
-              cardId,
-            }),
-          };
-        }),
-        logLine: `Mumbad City Hall — choose an alliance from R&D.`,
-      });
-      return { ok: true };
-    }
-
-    case "resolve_mumbad_city_hall_alliance": {
-      const cardId = action.cardId;
-      if (!state.corp.deck.includes(cardId)) return { ok: true };
-      const card = state.cards[cardId]!;
-      state.corp.deck = state.corp.deck.filter((id) => id !== cardId);
-      state.corp.hand.push(cardId);
-      card.zone = "corp:hq";
-      card.faceup = false;
-      revealCards(state, [card.id], sourceId);
-      log(
-        state,
-        `Mumbad City Hall — reveal ${card.title}; added to HQ (play/install paying costs). R&D shuffled.`,
-      );
-      // Shuffle R&D after the search.
-      for (let i = state.corp.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.corp.deck[i]!;
-        state.corp.deck[i] = state.corp.deck[j]!;
-        state.corp.deck[j] = tmp;
-      }
       return { ok: true };
     }
 

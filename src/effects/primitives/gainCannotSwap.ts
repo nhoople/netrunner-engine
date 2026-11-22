@@ -136,23 +136,20 @@ export function applySansanUotPrimitive(
     }
 
     case "host_up_to_3_from_grip_facedown": {
-      const max = source.maxHostedCards ?? 3;
-      const have = source.hostedCardIds?.length ?? 0;
-      const room = max - have;
-      if (room <= 0 || state.runner.hand.length === 0) {
-        log(state, `${source.title} — cannot host more from grip.`);
+      // Bookmark: "Host up to 3 cards from your grip" each time it is used;
+      // the card has no limit on how many it hosts in all (CR 1.2.1).
+      if (state.runner.hand.length === 0) {
+        log(state, `${source.title} — no card in the grip to host.`);
         return { ok: true };
       }
-      state.turn.uotBookmarkHostRemaining = room;
+      state.turn.uotBookmarkHostRemaining = 3;
       return offerBookmarkHostChoice(ctx);
     }
 
     case "uot_bookmark_host_one": {
       const cardId = action.cardId;
       if (!state.runner.hand.includes(cardId)) return { ok: true };
-      const max = source.maxHostedCards ?? 3;
-      const have = source.hostedCardIds?.length ?? 0;
-      if (have >= max) return { ok: true };
+      if ((state.turn.uotBookmarkHostRemaining ?? 0) <= 0) return { ok: true };
       state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
       const card = state.cards[cardId]!;
       hostCard(state, card.id, sourceId, { installed: true });
@@ -416,31 +413,6 @@ export function applySansanUotPrimitive(
       }
       state.corp.credits += 1;
       log(state, `Expo Grid — gain 1¢ → ${state.corp.credits}¢.`);
-      return { ok: true };
-    }
-
-    case "search_rd_any_card_to_hq": {
-      const deck = [...state.corp.deck];
-      if (deck.length === 0) {
-        log(state, `${source.title} — R&D empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: deck.map((cardId) => ({
-          id: `futurenow:${cardId}`,
-          label: `Add ${state.cards[cardId]!.title} to HQ`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "search_rd_take_card_to_hq" as const,
-              cardId,
-            },
-          },
-        })),
-        logLine: `${source.title} — search R&D for a card to add to HQ.`,
-      });
       return { ok: true };
     }
 

@@ -1472,6 +1472,9 @@ export const STEPS: Record<string, TimingStepDef> = {
             });
           }
           if (typeof card.patronChooseServerDrawInsteadOfBreach === "number") {
+            // A server chosen on an earlier turn is gone: the choice lasts
+            // until that turn ends (CR 9.10.3b), so declining leaves none.
+            card.namedServerId = undefined;
             noteInlineConditional(s, {
               cardId: id,
               abilityKey: "patron-choose-server",
@@ -4511,20 +4514,21 @@ export const STEPS: Record<string, TimingStepDef> = {
               typeof drawN === "number" &&
               card.namedServerId === s.run!.attackedServerId
             ) {
-              let drew = 0;
-              for (let i = 0; i < drawN; i++) {
-                if (s.runner.deck.length === 0) break;
-                const top = s.runner.deck.shift()!;
-                s.runner.hand.push(top);
-                s.cards[top]!.zone = "runner:grip";
-                s.cards[top]!.faceup = false;
-                drew += 1;
-              }
               s.run!.skipBreach = true;
               card.namedServerId = undefined;
               s.log.push(
-                `${card.title} — draw ${drew} instead of breaching ${s.run!.attackedServerId}.`,
+                `${card.title} — draw ${drawN} instead of breaching ${s.run!.attackedServerId}.`,
               );
+              // The draw procedure, so draw limits and triggers apply
+              // (CR 8.4.2).
+              const drew = evalEffect(
+                { state: s, sourceId: id },
+                {
+                  op: "do",
+                  action: { kind: "draw", side: "runner", amount: drawN },
+                },
+              );
+              if (!drew.ok) s.log.push(`${card.title} — ${drew.error}`);
               break;
             }
           }

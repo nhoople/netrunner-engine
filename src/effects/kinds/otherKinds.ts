@@ -3922,6 +3922,9 @@ export function applyOtherKinds(
                 ...(bypassClicks !== undefined
                   ? { bypassFirstEncounterForClicks: bypassClicks }
                   : {}),
+                ...(action.preventAllTagsThisRun
+                  ? { preventAllTagsThisRun: true }
+                  : {}),
               },
             },
           })),
@@ -3960,6 +3963,9 @@ export function applyOtherKinds(
               bypassFirstEncounterForClicks:
                 action.bypassFirstEncounterForClicks,
             }
+          : {}),
+        ...(action.preventAllTagsThisRun
+          ? { preventAllTagsThisRun: true }
           : {}),
       };
       log(state, `Pending run on ${action.serverId} (from ${source.title}).`);

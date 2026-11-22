@@ -21,3 +21,21 @@ export function abilitiesSuppressed(state: GameState, cardId: string): boolean {
   if (facedownInstalledRunnerCard(state, cardId)) return true;
   return resolveBlankedCardIds(state).has(cardId);
 }
+
+/**
+ * Vikram 1.0: "The Runner cannot use programs for the remainder of this
+ * run." Using a program is choosing to resolve one of its optional
+ * abilities, a paid ability or a break among them (CR 9.1.6); "cannot"
+ * wins (CR 1.2.2).
+ */
+export function runnerCannotUseProgram(
+  state: GameState,
+  cardId: string,
+): boolean {
+  const card = state.cards[cardId];
+  return Boolean(
+    state.run?.kgCannotUsePrograms &&
+    card?.side === "runner" &&
+    card.type === "program",
+  );
+}

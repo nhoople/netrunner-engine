@@ -29,19 +29,29 @@ type PrimResult =
 
 type EvalEffect = (ctx: EffectCtx, effect: Effect) => PrimResult;
 
-function findPreventFirstTagThisTurn(state: GameState): string | null {
+function findPreventFirstTagEachRun(state: GameState): string | null {
   const idCard = state.cards[state.runner.identityId];
   if (
-    idCard?.preventFirstTagThisTurn &&
+    idCard?.preventFirstTagEachRun &&
     !abilitiesSuppressed(state, idCard.id)
   ) {
     return idCard.id;
   }
   for (const rid of state.runner.installed) {
     if (abilitiesSuppressed(state, rid)) continue;
-    if (state.cards[rid]?.preventFirstTagThisTurn) return rid;
+    if (state.cards[rid]?.preventFirstTagEachRun) return rid;
   }
   return null;
+}
+
+/**
+ * The run during which the Runner would take tags, or null outside a run.
+ * Jesminder Sareen prints "the first time each run you would take 1 or more
+ * tags": the run records that first time, so a second run in the same turn
+ * meets it again (CR 1.2.1, 9.9.5a).
+ */
+function runForTags(state: GameState): GameState["run"] {
+  return state.run && !state.run.isPostRunBreach ? state.run : null;
 }
 
 /**
@@ -53,12 +63,11 @@ export function canPayTakeTagsNestedCost(
   amount: number,
 ): boolean {
   if (amount <= 0) return true;
-  const preventSrc = findPreventFirstTagThisTurn(state);
+  const preventSrc = findPreventFirstTagEachRun(state);
   if (!preventSrc) return true;
-  const duringRun = Boolean(state.run && !state.run.isPostRunBreach);
-  // First tag during a run would be fully prevented for amount === 1.
-  if (duringRun && state.turn.tagsGivenThisTurn === 0 && amount === 1)
-    return false;
+  const run = runForTags(state);
+  // The first tags this run would be prevented by 1, so 1 tag is unpayable.
+  if (run && !run.runnerWouldTakeTagsThisRun && amount === 1) return false;
   return true;
 }
 
@@ -68,28 +77,38 @@ function giveTags(
   cannotBeAvoided: boolean,
 ): PrimResult {
   const { state, sourceId } = ctx;
-  if (state.turn.bbPreventAllTagsThisRun) {
+  const run = runForTags(state);
+  const firstThisRun = Boolean(
+    run && amountIn > 0 && !run.runnerWouldTakeTagsThisRun,
+  );
+  if (run && amountIn > 0) run.runnerWouldTakeTagsThisRun = true;
+  // "Cannot be avoided" wins over Dorm Computer's prevention (CR 1.2.2,
+  // 9.9.5: prevent and avoid are synonymous).
+  if (state.run?.preventAllTagsThisRun && !cannotBeAvoided) {
     log(state, `Dorm Computer — prevent all tags this run.`);
     return { ok: true };
   }
   const tagsBefore = state.runner.tags;
   const beforeTags = state.turn.tagsGivenThisTurn;
   let amount = amountIn;
-  const preventSrc = findPreventFirstTagThisTurn(state);
-  if (!cannotBeAvoided && preventSrc && beforeTags === 0 && amount > 0) {
-    const duringRun = Boolean(state.run && !state.run.isPostRunBreach);
-    if (duringRun) {
-      amount -= 1;
-      log(
-        state,
-        `${state.cards[preventSrc]!.title} — prevent 1 tag (first this turn).`,
-      );
-    } else {
-      log(
-        state,
-        `${state.cards[preventSrc]!.title} — the run has ended, so this tag is not during a run (CR ${CR.checkpointAfterTimingStructure.number}).`,
-      );
-    }
+  const preventSrc = findPreventFirstTagEachRun(state);
+  if (!cannotBeAvoided && preventSrc && firstThisRun) {
+    amount -= 1;
+    log(
+      state,
+      `${state.cards[preventSrc]!.title} — prevent 1 tag (first time this run, CR ${CR.ordinalWould.number}).`,
+    );
+  } else if (
+    !cannotBeAvoided &&
+    preventSrc &&
+    !run &&
+    amount > 0 &&
+    beforeTags === 0
+  ) {
+    log(
+      state,
+      `${state.cards[preventSrc]!.title} — the run has ended, so this tag is not during a run (CR ${CR.checkpointAfterTimingStructure.number}).`,
+    );
   }
   if (amount <= 0) {
     // Still count the prevented instance so further tags this turn land.

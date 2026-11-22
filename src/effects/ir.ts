@@ -403,6 +403,12 @@ export type Primitive =
        * whether a match exists stays hidden (CR 10.2.2b). Implies `upTo`.
        */
       search?: boolean;
+      /**
+       * Titles of the picks: `distinct`, each a different title ("up to X
+       * different sysops (by title)", Recruiting Trip); `same`, every pick
+       * the first pick's title ("copies of a card", Localized Product Line).
+       */
+      titles?: "distinct" | "same";
       then?: Effect;
     }
   | { kind: "trash_hardware"; pick: "first" | "choose" }
@@ -1214,11 +1220,14 @@ export type Primitive =
        * may spend this many clicks to bypass.
        */
       bypassFirstEncounterForClicks?: number;
+      /** Dorm Computer: prevent all tags during the started run. */
+      preventAllTagsThisRun?: boolean;
     }
   | {
       kind: "queue_start_run";
       serverId: string;
       bypassFirstEncounterForClicks?: number;
+      preventAllTagsThisRun?: boolean;
     }
   | {
       kind: "may_install_from_heap";
@@ -1382,6 +1391,14 @@ export type Primitive =
       thenMayRemoveTagToAdvance?: boolean;
       /** Warm Reception: installed card cannot be scored this turn. */
       cannotScoreInstalledCardThisTurn?: boolean;
+      excludeAgenda?: boolean;
+    }
+  /**
+   * Advanced Assembly Lines: install one HQ card paying its install cost,
+   * with no Decline (the printed install is not optional).
+   */
+  | {
+      kind: "install_from_hq_paying_costs";
       excludeAgenda?: boolean;
     }
   /**
@@ -2948,7 +2965,12 @@ export type Primitive =
   | { kind: "search_stack_type_add_to_grip_pick"; cardId: string }
   | { kind: "score_another_installed_copy_of_self" }
   | { kind: "score_installed_agenda_ignore_requirement"; cardId: string }
-  | { kind: "search_rd_up_to_x_subtype_to_hq"; subtype: string }
+  | {
+      kind: "search_rd_up_to_x_subtype_to_hq";
+      subtype: string;
+      /** The search is complete: the cards found (CR 8.7.2e). */
+      cardIds?: string[];
+    }
   /** Chrome City (cc) */
   | { kind: "swap_stolen_with_corp_scored" }
   | { kind: "swap_turntable_resolve"; corpAgendaId: string }
@@ -2968,7 +2990,12 @@ export type Primitive =
       discount?: number;
     }
   | { kind: "expose_and_trash_remote_root" }
-  | { kind: "expose_resolve"; cardId: string }
+  | {
+      kind: "expose_resolve";
+      cardId: string;
+      /** The card's exposures this turn before Drive By's expose. */
+      exposuresBefore?: number;
+    }
   | { kind: "corp_derez_a_card" }
   | { kind: "may_corp_rez_ignoring_cost" }
   | { kind: "corp_rez_ignoring_cost"; cardId: string }
@@ -3094,7 +3121,11 @@ export type Primitive =
   | { kind: "resolve_product_recall"; cardId: string }
   | { kind: "draw_then_discard_down_to_hand_size"; drawAmount?: number }
   | { kind: "draw_then_discard_down_to_hand_size_continue"; cardId: string }
-  | { kind: "add_hq_to_bottom_rd" }
+  | {
+      kind: "add_hq_to_bottom_rd";
+      /** The Corp's picks, in the order they go to the bottom of R&D. */
+      cardIds?: string[];
+    }
   | { kind: "install_from_hq_new_remote" }
   | {
       kind: "install_new_construction_resolve";
@@ -3123,8 +3154,11 @@ export type Primitive =
   | { kind: "resolve_sensie_add_hq_to_bottom_rd"; cardId: string }
   | { kind: "may_install_drawn_agenda"; cardId: string }
   | { kind: "install_agenda"; cardId: string }
-  | { kind: "search_alliance_play_or_install" }
-  | { kind: "resolve_mumbad_city_hall_alliance"; cardId: string }
+  | {
+      kind: "search_alliance_play_or_install";
+      /** The search is complete: the card found, or none (CR 8.7.2e). */
+      cardIds?: string[];
+    }
   | { kind: "may_derez_rezzed"; cardId: string }
   | { kind: "derez_resolve"; cardId: string }
   | { kind: "may_rez_surat_discount"; discount?: number }
@@ -3141,8 +3175,11 @@ export type Primitive =
   | { kind: "trash_named"; title: string }
   | { kind: "search_rd_for_any_subtype_to_hq"; subtypes: string[] }
   | { kind: "search_rd_subtype_to_hq_resolve"; cardId: string }
-  | { kind: "search_rd_copies_to_hq" }
-  | { kind: "take_copies"; defId: string }
+  | {
+      kind: "search_rd_copies_to_hq";
+      /** The search is complete: the copies found (CR 8.7.2e). */
+      cardIds?: string[];
+    }
   | { kind: "may_swap_drawn"; cardId: string }
   | { kind: "swap_raman_rai_resolve"; drawnId: string; archivesId: string }
   | { kind: "bottom_drawn_card"; cardId: string }
@@ -3806,7 +3843,11 @@ export type Primitive =
   | { kind: "trash_any_rezzed_gain_3_each" }
   | { kind: "trash_rezzed_card"; cardId: string }
   | { kind: "lose_2_per_resource_or_trash" }
-  | { kind: "search_rd_any_card_to_hq" }
+  | {
+      kind: "search_rd_any_card_to_hq";
+      /** The search is complete: the card found (CR 8.7.2d). */
+      cardIds?: string[];
+    }
   | { kind: "trash_chronos_pick"; cardId: string }
   /**
    * Titanium Ribs: the Runner's picks for damage being suffered. The last
@@ -4001,6 +4042,11 @@ export type Primitive =
   /** Follow-up: spend X¢, give chosen ice +X strength this turn. */
   | { kind: "fortify_ice_spend_x_resolve"; iceId: string; amount: number }
   | { kind: "resolve_bioroid_subroutine" }
+  /**
+   * Follow-up of may_resolve_subroutine_on_rezzed_ice: resolve subroutine
+   * `subIndex` of `iceId` as that ice's own (its source is that ice).
+   */
+  | { kind: "resolve_ice_subroutine"; iceId: string; subIndex: number }
   /**
    * Nanisivik Grid: may turn 1 facedown ice in Archives faceup; if you do,
    * resolve 1 subroutine on that ice.
@@ -5246,7 +5292,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "may_install_drawn_agenda",
   "install_agenda",
   "search_alliance_play_or_install",
-  "resolve_mumbad_city_hall_alliance",
   "may_derez_rezzed",
   "derez_resolve",
   "may_rez_surat_discount",
@@ -5262,7 +5307,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_for_any_subtype_to_hq",
   "search_rd_subtype_to_hq_resolve",
   "search_rd_copies_to_hq",
-  "take_copies",
   "may_swap_drawn",
   "swap_raman_rai_resolve",
   "bottom_drawn_card",
@@ -5783,6 +5827,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "troubleshooter_fortify",
   "fortify_ice_spend_x_resolve",
   "resolve_bioroid_subroutine",
+  "resolve_ice_subroutine",
   "may_flip_archives_ice_resolve_subroutine",
   "flip_archives_ice_resolve_subroutine",
   "trash_encounter_ice_resolve_subroutine",
@@ -5869,6 +5914,7 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "add_ice_additional_rez_cost_this_turn",
   "shuffle_source_into_rd",
   "may_install_from_hq_paying_costs",
+  "install_from_hq_paying_costs",
   "may_install_from_hq_in_remote_root_paying_costs",
   "install_hq_card_paying_costs",
   "place_advancements_on",

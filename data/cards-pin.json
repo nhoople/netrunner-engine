@@ -1,8 +1,8 @@
 {
-  "tag": "v1.147.28",
+  "tag": "v1.147.29",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.28",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.28",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.29",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.29",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "runner/program",
     "runner/resource"
   ],
-  "notes": "Pair cards v1.147.28. PF-S3c sweep fixes for Lunar, Order and Chaos and Data and Destiny: paid ability windows (Cache, Cyberdex Virus Suite, IT Department, Mamba, Hades Shard, Utopia Shard), Architect installs without rezzing, Eliza's Toybox rezzes any card, LLDS Energy Regulator costs 3 credits or [trash], Unscheduled Maintenance is a Runner current, Shattered Remains and Wendigo can be advanced, Leprechaun hosts 2 programs, Domestic Sleepers, The Board, Improved Tracers, I've Had Worse, Titan Transnational, 15 Minutes, Patch, Sub Boost, Globalsec Security Clearance (looks), Hunting Grounds, Eden Shard's [trash], Medical Breakthrough counts scored copies only (#310). CR pin v26.03."
+  "notes": "Pair cards v1.147.29. PF-S3d sweep fixes for SanSan and Mumbad: Advanced Assembly Lines installs with no Decline (install_from_hq_paying_costs), Study Guide's power counter ability in every paid ability window, High-Stakes Job pays when the run ends, Corporate Town's resource trash cannot be prevented, Bookmark has no total hosting limit, Jesminder Sareen prevents the first tag each run (preventFirstTagEachRun). CR pin v26.03."
 }

@@ -375,16 +375,23 @@ export function installRunner(
         ]);
       }
       hostCard(state, card.id, destination.hostId, { installed: true });
+      // Off-Campus Apartment: "Whenever you install a connection on
+      // Off-Campus Apartment, draw 1 card." A conditional ability: it
+      // becomes pending and draws through the draw procedure (CR 9.6.2,
+      // 8.4.2).
       const drawN = host.drawOnHostConnectionInstall ?? 0;
-      if (drawN > 0) {
-        for (let i = 0; i < drawN; i++) {
-          if (state.runner.deck.length === 0) break;
-          const top = state.runner.deck.shift()!;
-          state.runner.hand.push(top);
-          const drawn = state.cards[top];
-          if (drawn) drawn.zone = "runner:grip";
-        }
-        log(state, `Off-Campus Apartment — draw ${drawN} (hosted connection).`);
+      if (drawN > 0 && !abilitiesSuppressed(state, host.id)) {
+        noteInlineConditional(state, {
+          cardId: host.id,
+          abilityKey: `draw-on-host-connection-install:${card.id}`,
+          controller: "runner",
+          mandatory: true,
+          effect: {
+            op: "do",
+            action: { kind: "draw", side: "runner", amount: drawN },
+          },
+          logLine: `${host.title} becomes pending — connection installed on it (draw ${drawN}).`,
+        });
       }
     } else {
       return fail("Invalid host for card.", [CR.runnerBasicInstall]);

@@ -58,6 +58,8 @@ function scoreAgendaBlockedByCannot(state: GameState, cardId: string): boolean {
   if (state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)) {
     return true;
   }
+  // PAD Factory: cannot score until the Corp's next turn begins.
+  if (state.bfCannotScoreUntilNextCorpTurn?.includes(cardId)) return true;
   if (state.turn.installedThisTurn.includes(cardId)) {
     // Vulnerability Audit-class (CR 9.12.1d when blanked).
     if (

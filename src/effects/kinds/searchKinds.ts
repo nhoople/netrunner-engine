@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is search.
  * The effect switch in eval.ts dispatches here.
  */
-import { revealCards } from "../../state/reveal.js";
+import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { chooseCards } from "../chooseCards.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
@@ -41,6 +41,7 @@ import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { hostCard } from "../../state/procedures/host.js";
+import { removeCardFromCurrentZone } from "../../state/scoring.js";
 
 export function applySearchKinds(
   ctx: EffectCtx,
@@ -930,6 +931,135 @@ export function applySearchKinds(
       return { ok: true };
     }
 
+    case "search_rd_any_card_to_hq": {
+      // The Future is Now: "search R&D for a card and add it to HQ. Shuffle
+      // R&D." With no criteria the Corp finds a card if R&D has one
+      // (CR 8.7.2d). Nothing says to reveal it, so it is not (CR 8.7.2c).
+      if (!action.cardIds) {
+        if (state.corp.deck.length === 0) {
+          shuffleCorpRdAfterSearch(state);
+          log(state, `${source.title} — R&D is empty; nothing to find.`);
+          return { ok: true };
+        }
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.deck],
+            count: 1,
+            purpose: "resume",
+            label: "add to HQ",
+            resume: { ...action },
+          }),
+        );
+      }
+      return finishRdSearchToHq(ctx, action.cardIds, { reveal: false });
+    }
+
+    case "search_rd_copies_to_hq": {
+      // Localized Product Line: "Search R&D for any number of copies of a
+      // card, reveal them, and add them to HQ. Shuffle R&D." The Corp picks
+      // the copies one at a time, all of one title, and may stop at any
+      // number, none included (CR 8.7.2e).
+      if (!action.cardIds) {
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.deck],
+            count: state.corp.deck.length,
+            search: true,
+            titles: "same",
+            purpose: "resume",
+            label: "reveal and add to HQ (copies of one card)",
+            resume: { ...action },
+          }),
+        );
+      }
+      const first = state.cards[action.cardIds[0] ?? ""]?.title;
+      const found = action.cardIds.filter(
+        (id) => state.cards[id]?.title === first,
+      );
+      return finishRdSearchToHq(ctx, found, { reveal: true });
+    }
+
+    case "search_rd_up_to_x_subtype_to_hq": {
+      // Recruiting Trip: "Search R&D for up to X different sysops (by
+      // title), reveal them, and add them to HQ. Shuffle R&D." The Corp
+      // chooses which, one title each, and may find fewer (CR 8.7.2e).
+      const subtype = action.subtype;
+      if (!action.cardIds) {
+        // X is the play cost the Corp chose (CR 8.6.2a). Without that step
+        // it is 0: working it out from R&D would tell the Runner what R&D
+        // holds (CR 10.2.2b).
+        const x = state.turn.lastPlayCostX ?? 0;
+        if (x <= 0) {
+          shuffleCorpRdAfterSearch(state);
+          log(state, `${source.title} — X=0; shuffle R&D.`);
+          return { ok: true };
+        }
+        const matches = state.corp.deck.filter((id) =>
+          (state.cards[id]?.subtypes ?? []).includes(subtype),
+        );
+        // The searcher looks at every card in R&D (CR 8.7.1).
+        lookAtCards(state, [...state.corp.deck], sourceId, "corp");
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: matches,
+            count: x,
+            search: true,
+            titles: "distinct",
+            purpose: "resume",
+            label: `reveal and add to HQ (different ${subtype} titles)`,
+            resume: { ...action },
+          }),
+        );
+      }
+      const seen = new Set<string>();
+      const found = action.cardIds.filter((id) => {
+        const c = state.cards[id];
+        if (!c || !(c.subtypes ?? []).includes(subtype)) return false;
+        if (seen.has(c.title)) return false;
+        seen.add(c.title);
+        return true;
+      });
+      return finishRdSearchToHq(ctx, found, { reveal: true });
+    }
+
+    case "search_alliance_play_or_install": {
+      // Mumbad City Hall: "Search R&D for an alliance card, reveal it, and
+      // play or install it (paying all costs). Shuffle R&D." The Corp may
+      // find nothing (CR 8.7.2e), and R&D is shuffled before the card is
+      // revealed (CR 8.7.3). Playing or installing the card waits for the
+      // Corp install and operation play procedures (areas 5 and 11); until
+      // then it is added to HQ.
+      if (!action.cardIds) {
+        const alliance = state.corp.deck.filter((id) =>
+          (state.cards[id]?.subtypes ?? []).includes("alliance"),
+        );
+        // The searcher looks at every card in R&D (CR 8.7.1).
+        lookAtCards(state, [...state.corp.deck], sourceId, "corp");
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: alliance,
+            count: 1,
+            search: true,
+            purpose: "resume",
+            label: "reveal (alliance card)",
+            resume: { ...action },
+          }),
+        );
+      }
+      const found = action.cardIds.filter((id) =>
+        (state.cards[id]?.subtypes ?? []).includes("alliance"),
+      );
+      return finishRdSearchToHq(ctx, found.slice(0, 1), { reveal: true });
+    }
+
     case "may_search_rd_non_agenda_any_subtype_to_hq": {
       const subtypes = new Set(
         action.subtypes.map((s: string) => s.toLowerCase()),
@@ -1388,4 +1518,42 @@ export function applySearchKinds(
     default:
       return null;
   }
+}
+
+/**
+ * Finish a search of R&D whose found cards go to HQ: the found cards leave
+ * R&D, R&D is shuffled (CR 8.7.3), then each is revealed if the text says so
+ * (CR 8.7.2c) and added to HQ. No card found: R&D is still shuffled.
+ */
+function finishRdSearchToHq(
+  ctx: EffectCtx,
+  cardIds: string[],
+  opts: { reveal: boolean },
+): EvalResult {
+  const { state, sourceId } = ctx;
+  const title = state.cards[sourceId]?.title ?? "Search";
+  const found = cardIds.filter((id) => state.corp.deck.includes(id));
+  for (const id of found) removeCardFromCurrentZone(state, id);
+  shuffleCorpRdAfterSearch(state);
+  if (found.length === 0) {
+    log(
+      state,
+      `${title} — no card found; shuffle R&D (CR ${CR.failToFind.number}, ${CR.shuffleDeckAfterSearch.number}).`,
+    );
+    return { ok: true };
+  }
+  if (opts.reveal) revealCards(state, found, sourceId);
+  for (const id of found) {
+    const card = state.cards[id]!;
+    state.corp.hand.push(id);
+    card.zone = "corp:hq";
+    card.faceup = false;
+  }
+  log(
+    state,
+    opts.reveal
+      ? `${title} — shuffle R&D, reveal ${found.map((id) => state.cards[id]!.title).join(", ")} and add to HQ (CR ${CR.shuffleDeckAfterSearch.number}).`
+      : `${title} — shuffle R&D and add the found card to HQ (CR ${CR.shuffleDeckAfterSearch.number}).`,
+  );
+  return { ok: true };
 }

@@ -25,7 +25,7 @@ describe("future-proof", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("FP primitives IR validate", () => {
@@ -72,7 +72,7 @@ describe("future-proof", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("Future Proof v1.93.0 set-complete", () => {

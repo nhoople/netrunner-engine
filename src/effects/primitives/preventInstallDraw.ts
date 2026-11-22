@@ -25,10 +25,15 @@ export function applySansanBbPrimitive(
 
   switch (action.kind) {
     case "prevent_dorm_computer_run_all_tags": {
-      state.turn.bbPreventAllTagsThisRun = true;
+      // "Whenever you would take tags during that run": the prevention
+      // lasts for the run this ability makes and ends with it (CR 9.10.1).
       const r = evalEffect(ctx, {
         op: "do",
-        action: { kind: "may_start_run", servers: "any" },
+        action: {
+          kind: "may_start_run",
+          servers: "any",
+          preventAllTagsThisRun: true,
+        },
       });
       if (!r.ok) return r;
       log(state, `Dorm Computer — run; prevent all tags this run.`);
@@ -105,16 +110,17 @@ export function applySansanBbPrimitive(
     }
 
     case "draw_until_grip_equals_max_hand_size": {
+      // Game Day: draw the difference through the draw procedure, so draw
+      // limits and draw triggers apply (CR 8.4.2).
       recomputeRunnerMaxHandSize(state);
       const max = state.runner.maxHandSize;
-      while (state.runner.hand.length < max && state.runner.deck.length > 0) {
-        const top = state.runner.deck.shift()!;
-        state.runner.hand.push(top);
-        const c = state.cards[top];
-        if (c) c.zone = "runner:grip";
-      }
+      const need = max - state.runner.hand.length;
       log(state, `Game Day — draw until grip equals max hand size (${max}).`);
-      return { ok: true };
+      if (need <= 0) return { ok: true };
+      return evalEffect(ctx, {
+        op: "do",
+        action: { kind: "draw", side: "runner", amount: need },
+      });
     }
 
     case "host_non_virus_program_ignore_cost": {
@@ -343,56 +349,6 @@ export function applySansanBbPrimitive(
         state,
         `Research Grant — score ${card.title} (ignore advancement requirement).`,
       );
-      return { ok: true };
-    }
-
-    case "search_rd_up_to_x_subtype_to_hq": {
-      const subtype = action.subtype;
-      const maxX = state.corp.credits;
-      // Prefer explicit lastPlayCostX when set (playCostX path); else choose.
-      let x = state.turn.lastPlayCostX;
-      if (x === undefined || x === null) {
-        // Self-contained: pay X = number of distinct matching titles available, capped by credits.
-        const seen = new Set<string>();
-        let available = 0;
-        for (const id of state.corp.deck) {
-          const c = state.cards[id];
-          if (!c || !(c.subtypes ?? []).includes(subtype)) continue;
-          const key = c.defId ?? c.id;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          available += 1;
-        }
-        x = Math.min(maxX, available);
-        state.corp.credits -= x;
-        state.turn.lastPlayCostX = x;
-      }
-      if (x <= 0) {
-        shuffleInPlace(state, state.corp.deck);
-        log(state, `Recruiting Trip — X=0; shuffle R&D.`);
-        return { ok: true };
-      }
-      const seen = new Set<string>();
-      const matches: string[] = [];
-      for (const id of state.corp.deck) {
-        const c = state.cards[id];
-        if (!c) continue;
-        if (!(c.subtypes ?? []).includes(subtype)) continue;
-        if (seen.has(c.defId ?? c.id)) continue;
-        seen.add(c.defId ?? c.id);
-        matches.push(id);
-        if (matches.length >= x) break;
-      }
-      for (const id of matches) {
-        state.corp.deck = state.corp.deck.filter((y) => y !== id);
-        state.corp.hand.push(id);
-        const c = state.cards[id];
-        if (c) c.zone = "corp:hq";
-        revealCards(state, [id], sourceId);
-        log(state, `Recruiting Trip — reveal ${c?.title ?? id}; add to HQ.`);
-      }
-      shuffleInPlace(state, state.corp.deck);
-      log(state, `Recruiting Trip — shuffle R&D (X=${x}).`);
       return { ok: true };
     }
 

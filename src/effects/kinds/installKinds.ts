@@ -2597,7 +2597,11 @@ export function applyInstallKinds(
       );
     }
 
-    case "may_install_from_hq_paying_costs": {
+    case "may_install_from_hq_paying_costs":
+    case "install_from_hq_paying_costs": {
+      // "Install a card from HQ" with no "may" (Advanced Assembly Lines)
+      // offers no Decline once the ability resolves (CR 1.2.1, 1.15.2e).
+      const optional = action.kind === "may_install_from_hq_paying_costs";
       const eligible = state.corp.hand.filter((id) => {
         const t = state.cards[id].type;
         if (action.excludeAgenda && t === "agenda") return false;
@@ -2620,15 +2624,26 @@ export function applyInstallKinds(
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
+        // How many HQ cards can be installed is hidden (CR 10.2.2a).
+        hiddenFromOpponent: true,
+        optionCountHidden: true,
         options: [
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do",
-              action: { kind: "gain_credits", side: "corp", amount: 0 },
-            },
-          },
+          ...(optional
+            ? [
+                {
+                  id: "decline",
+                  label: "Decline",
+                  effect: {
+                    op: "do" as const,
+                    action: {
+                      kind: "gain_credits" as const,
+                      side: "corp" as const,
+                      amount: 0,
+                    },
+                  },
+                },
+              ]
+            : []),
           ...affordable.map((id) => ({
             id: `hq-install:${id}`,
             label: `Install ${state.cards[id].title} for ${corpInstallCost(state.cards[id]!, 0)}¢`,
@@ -2637,17 +2652,19 @@ export function applyInstallKinds(
               action: {
                 kind: "install_hq_card_paying_costs" as const,
                 cardId: id,
-                ...(action.thenMayRemoveTagToAdvance
+                ...(optional && action.thenMayRemoveTagToAdvance
                   ? { thenMayRemoveTagToAdvance: true }
                   : {}),
-                ...(action.cannotScoreInstalledCardThisTurn
+                ...(optional && action.cannotScoreInstalledCardThisTurn
                   ? { cannotScoreInstalledCardThisTurn: true }
                   : {}),
               },
             },
           })),
         ],
-        logLine: `May install one card from HQ paying install costs.`,
+        logLine: optional
+          ? `May install one card from HQ paying install costs.`
+          : `Install one card from HQ paying install costs.`,
       });
       return { ok: true };
     }

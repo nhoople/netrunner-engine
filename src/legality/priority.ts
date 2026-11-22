@@ -261,9 +261,11 @@ export function actorSideForAction(
     case "score_agenda":
     case "basic_purge_virus":
     case "boost_trace":
-    case "choose_trash_program":
     case "resolve_sabotage":
       return "corp";
+    // "The Runner trashes ..." gives the Runner the choice (CR 1.14.5).
+    case "choose_trash_program":
+      return state.pendingTrashProgram?.chooser ?? "corp";
     case "choose_option":
       return state.pendingChoice?.chooser ?? "system";
     case "break_subroutine":

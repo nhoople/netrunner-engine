@@ -133,14 +133,21 @@ export function stealOrTrashBlocked(
 
 /**
  * The Future Perfect: "the Runner cannot steal this agenda during this
- * access" after differing bids. Steal legality, the steal itself and the
- * steal step all read this (CR 1.2.2: "cannot" takes precedence).
+ * access" after differing bids. Lakshmi Smartfabrics: "The Runner cannot
+ * steal copies of that agenda for the remainder of this turn": a copy is
+ * any card with that title (CR 10.1.5). Steal legality, the steal itself and the steal step
+ * all read this (CR 1.2.2: "cannot" takes precedence).
  */
 export function stealForbiddenThisAccess(
   state: GameState,
   cardId: string | null | undefined,
 ): boolean {
-  return Boolean(cardId && state.run?.stealForbiddenAccessCardId === cardId);
+  if (!cardId) return false;
+  if (state.run?.stealForbiddenAccessCardId === cardId) return true;
+  const defId = state.cards[cardId]?.defId;
+  return Boolean(
+    defId && state.turn.bfCannotStealAgendaDefIds?.includes(defId),
+  );
 }
 
 /**

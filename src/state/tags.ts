@@ -37,13 +37,13 @@ export function additionalTagsDuringOutermostIceEncounter(
   return bonus;
 }
 
-/** Effective tag count for "is tagged" / "number of tags" checks. */
+/**
+ * Effective tag count for "number of tags" checks. Paparazzi's "You are
+ * tagged" is not a tag (CR 10.5.2): it makes the Runner tagged, which
+ * `runnerIsTagged` reads, but adds nothing to this count.
+ */
 export function effectiveRunnerTags(state: GameState): number {
   let bonus = additionalTagsDuringOutermostIceEncounter(state);
-  for (const id of state.runner.installed) {
-    if (abilitiesSuppressed(state, id)) continue;
-    if (state.cards[id]?.countsAsTagged) bonus += 1;
-  }
   // MCA Informant / hosted condition counters with additionalTagsWhileHosted.
   for (const card of Object.values(state.cards)) {
     if (!card?.hostId || !card.additionalTagsWhileHosted) continue;
@@ -64,9 +64,18 @@ export function conditionalInterruptRequiresActiveAtOpen(
   return abilityId.startsWith("no-one-home");
 }
 
-/** True when the Runner is considered tagged (includes Acme virtual tags). */
+/**
+ * True when the Runner is considered tagged (includes Acme virtual tags):
+ * they have a tag (CR 10.5.2), or an active card says "You are tagged"
+ * (Paparazzi, CR 1.2.1).
+ */
 export function runnerIsTagged(state: GameState): boolean {
-  return effectiveRunnerTags(state) > 0;
+  if (effectiveRunnerTags(state) > 0) return true;
+  return state.runner.installed.some(
+    (id) =>
+      Boolean(state.cards[id]?.countsAsTagged) &&
+      !abilitiesSuppressed(state, id),
+  );
 }
 
 /** True when Runner has a payable `tag_interrupt` ability (Decoy-class). */

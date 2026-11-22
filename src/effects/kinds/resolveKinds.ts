@@ -460,44 +460,47 @@ export function applyResolveKinds(
     }
 
     case "resolve_bioroid_subroutine": {
-      const others: Array<{ iceId: string; subIndex: number }> = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (id === sourceId) continue;
-          const ice = state.cards[id];
-          if (!ice.rezzed) continue;
-          if (!(ice.subtypes ?? []).includes("bioroid")) continue;
-          const subs = ice.subroutines ?? [];
-          for (let i = 0; i < subs.length; i++) {
-            others.push({ iceId: id, subIndex: i });
-          }
-        }
-      }
-      if (others.length === 0) {
-        log(state, `Resolve bioroid sub — no other rezzed bioroid ice.`);
+      // Ravana 1.0 resolves a subroutine on another bioroid ice. The Corp
+      // chooses the target subroutine (CR 1.15.2), and two Ravanas with
+      // nothing else to resolve are a mandatory loop whose length the Corp
+      // names (CR 10.1.6a).
+      return applyPrimitive(ctx, {
+        kind: "may_resolve_subroutine_on_rezzed_ice",
+        subtype: "bioroid",
+        excludeSelf: true,
+      });
+    }
+
+    case "resolve_ice_subroutine": {
+      const ice = state.cards[action.iceId];
+      const sub = ice?.subroutines?.[action.subIndex];
+      if (!ice?.rezzed || !sub) {
+        log(state, `${source.title} — that subroutine is no longer there.`);
         return { ok: true };
       }
-      const pick = others[0]!;
-      const ice = state.cards[pick.iceId];
-      const sub = ice.subroutines![pick.subIndex]!;
       log(
         state,
         `Resolve "${sub.text}" on ${ice.title} (via ${source.title}).`,
       );
-      return evalEffect({ state, sourceId: pick.iceId }, sub.effect);
+      return evalEffect({ state, sourceId: action.iceId }, sub.effect);
     }
 
     case "may_resolve_subroutine_on_rezzed_ice": {
       const subtype =
         typeof action.subtype === "string" ? action.subtype.toLowerCase() : "";
-      const mandatory = subtype.length === 0;
+      // No card that uses this kind prints "may" (Orion, Wormhole, Upayoga,
+      // Mycoweb, Ravana 1.0): the subroutine is resolved if there is one, and
+      // the Corp chooses which (CR 1.2.1, 1.15.2). "Another" excludes the
+      // source; Upayoga's "a piece of rezzed psi ice" does not.
+      const excludeSelf = subtype.length === 0 || Boolean(action.excludeSelf);
       const isResolveOther = (effect: Effect | undefined): boolean =>
         effect?.op === "do" &&
-        effect.action.kind === "may_resolve_subroutine_on_rezzed_ice";
+        (effect.action.kind === "may_resolve_subroutine_on_rezzed_ice" ||
+          effect.action.kind === "resolve_bioroid_subroutine");
       const picks: Array<{ iceId: string; subIndex: number }> = [];
       for (const server of Object.values(state.servers)) {
         for (const id of server.ice) {
-          if (id === sourceId && (mandatory || action.excludeSelf)) continue;
+          if (id === sourceId && excludeSelf) continue;
           const ice = state.cards[id];
           if (!ice?.rezzed) continue;
           if (
@@ -521,15 +524,13 @@ export function applyResolveKinds(
         );
         return { ok: true };
       }
-      const closedLoop =
-        mandatory &&
-        picks.every((pick) => {
-          const ice = state.cards[pick.iceId];
-          const subs = ice?.subroutines ?? [];
-          return (
-            subs.length > 0 && subs.every((sub) => isResolveOther(sub.effect))
-          );
-        });
+      const closedLoop = picks.every((pick) => {
+        const ice = state.cards[pick.iceId];
+        const subs = ice?.subroutines ?? [];
+        return (
+          subs.length > 0 && subs.every((sub) => isResolveOther(sub.effect))
+        );
+      });
       if (closedLoop) {
         openPendingChoose(state, {
           sourceId,
@@ -546,36 +547,31 @@ export function applyResolveKinds(
         });
         return { ok: true };
       }
+      // The subroutine resolves as its own ice's, so "this ice" in it is
+      // that ice, not the source.
       const options: import("../ir.js").ChoiceOption[] = picks.map((p) => {
         const ice = state.cards[p.iceId]!;
         const sub = ice.subroutines![p.subIndex]!;
         return {
           id: `sub:${p.iceId}:${p.subIndex}`,
           label: `Resolve "${sub.text}" on ${ice.title}`,
-          effect: sub.effect,
-        };
-      });
-      if (!mandatory) {
-        options.push({
-          id: "decline",
-          label: "Decline",
           effect: {
             op: "do" as const,
             action: {
-              kind: "gain_credits" as const,
-              side: "corp" as const,
-              amount: 0,
+              kind: "resolve_ice_subroutine" as const,
+              iceId: p.iceId,
+              subIndex: p.subIndex,
             },
           },
-        });
-      }
+        };
+      });
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",
         options,
-        logLine: mandatory
-          ? `${source.title} — resolve a subroutine on another rezzed ice.`
-          : `${source.title} — may resolve a subroutine on rezzed ${subtype} ice.`,
+        logLine: subtype
+          ? `${source.title} — resolve a subroutine on rezzed ${subtype} ice.`
+          : `${source.title} — resolve a subroutine on another rezzed ice.`,
       });
       return { ok: true };
     }

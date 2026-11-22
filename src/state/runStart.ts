@@ -120,6 +120,8 @@ export interface RunModifiers {
   blockCreditPoolSpendAndLose?: boolean;
   forbidCorpRezIceDuringRun?: boolean;
   preventAllDamageThisRun?: boolean;
+  /** Dorm Computer: prevent all tags during this run. */
+  preventAllTagsThisRun?: boolean;
   icebreakerStrengthBonusIfGripLte?: { gripMax: number; bonus: number };
   icebreakerStrengthBonusIfInstalledProgramsLte?: {
     programsMax: number;

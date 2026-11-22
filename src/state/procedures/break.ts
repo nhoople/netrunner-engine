@@ -24,7 +24,7 @@
  * - `markSubroutineBroken`: marks a subroutine broken and records who broke it.
  * - `breakActionCost`: what the basic break action costs a declared breaker.
  */
-import { abilitiesSuppressed } from "../abilities.js";
+import { abilitiesSuppressed, runnerCannotUseProgram } from "../abilities.js";
 import { facedownInstalledRunnerCard, isCardActive } from "../active.js";
 import { effectHasKind } from "../costs.js";
 import {
@@ -343,6 +343,12 @@ export function runnerBreakBlock(
   if (facedownInstalledRunnerCard(state, sourceId)) {
     return block(`A facedown card's abilities are not active.`, [
       CR.abilityActive,
+    ]);
+  }
+  // Vikram 1.0: the Runner cannot use programs this run (CR 9.1.6, 1.2.2).
+  if (runnerCannotUseProgram(state, sourceId)) {
+    return block(`The Runner cannot use programs for the rest of this run.`, [
+      CR.cannotPrecedence,
     ]);
   }
   if (

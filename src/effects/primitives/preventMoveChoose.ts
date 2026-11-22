@@ -245,10 +245,11 @@ export function applyMumbadKgPrimitive(
     }
 
     case "cannot_use_programs_this_run_kg": {
+      // Read by runnerCannotUseProgram (paid abilities and breaks); it ends
+      // with the run (CR 9.10.1).
       if (state.run) {
         state.run.kgCannotUsePrograms = true;
       }
-      state.turn.dadCannotUseProgramsThisRun = true;
       log(
         state,
         `${source?.title ?? "Vikram"} — Runner cannot use programs this run.`,

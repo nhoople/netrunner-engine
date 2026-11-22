@@ -486,7 +486,8 @@ export function scoreAgendaAction(
   }
   if (
     state.turn.cannotScoreOrRezCardIds.includes(cardId) ||
-    state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId)
+    state.cannotScoreOrRezUntilNextCorpTurnCardIds.includes(cardId) ||
+    state.bfCannotScoreUntilNextCorpTurn?.includes(cardId)
   ) {
     return fail("Cannot score this card for the remainder of this turn.", [
       CR.scoringAgenda,

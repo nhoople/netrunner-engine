@@ -265,6 +265,17 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
   if (state.run?.forbidCorpRezIceDuringRun && card.type === "ice") {
     return fail("The Corp cannot rez ice during this run.", [CR.rezProcedure]);
   }
+  // EMP Device: no more than N ice rezzed for the remainder of this run.
+  if (
+    card.type === "ice" &&
+    state.run?.bfMaxIceRezThisRun !== undefined &&
+    (state.run.bfIceRezzedThisRun ?? 0) >= state.run.bfMaxIceRezThisRun
+  ) {
+    return fail(
+      `The Corp cannot rez more than ${state.run.bfMaxIceRezThisRun} piece of ice for the remainder of this run.`,
+      [CR.cannotPrecedence, CR.rezProcedure],
+    );
+  }
   // DDoS: Corp cannot rez the outermost piece of ice during a run this turn.
   if (state.turn.uotCannotRezOutermostIce && state.run) {
     const sid = iceServerId(state, cardId);
@@ -591,6 +602,9 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
       if (!state.run.iceRezzedThisRunIds) state.run.iceRezzedThisRunIds = [];
       if (!state.run.iceRezzedThisRunIds.includes(cardId)) {
         state.run.iceRezzedThisRunIds.push(cardId);
+      }
+      if (state.run.bfMaxIceRezThisRun !== undefined) {
+        state.run.bfIceRezzedThisRun = (state.run.bfIceRezzedThisRun ?? 0) + 1;
       }
     }
   }

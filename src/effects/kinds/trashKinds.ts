@@ -38,6 +38,18 @@ import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { unhostAllFrom, unhostCard } from "../../state/procedures/host.js";
 import { markRemainingSubroutinesNotBrokenByRunner } from "../../state/procedures/break.js";
 
+/**
+ * Who chooses and carries out a "trash 1 program/hardware" subroutine:
+ * "The Runner trashes ..." names the Runner; otherwise the ability's
+ * controller does (CR 1.14.5).
+ */
+function trashChooser(source: GameState["cards"][string]): "corp" | "runner" {
+  const runnerTrashes = (source.subroutines ?? []).some((sub) =>
+    /runner trashes/i.test(sub.text ?? ""),
+  );
+  return runnerTrashes ? "runner" : source.side;
+}
+
 export function applyTrashKinds(
   ctx: EffectCtx,
   action: Primitive,
@@ -93,12 +105,7 @@ export function applyTrashKinds(
         );
         return { ok: true };
       }
-      // "The Runner trashes 1 program" names the player who carries it out
-      // and chooses; otherwise the ability's controller does (CR 1.14.5).
-      const runnerTrashes = (source.subroutines ?? []).some((sub) =>
-        /runner trashes/i.test(sub.text ?? ""),
-      );
-      const chooser = runnerTrashes ? "runner" : source.side;
+      const chooser = trashChooser(source);
       if (action.pick === "choose" && programs.length > 1) {
         state.pendingTrashProgram = {
           sourceId,
@@ -260,10 +267,14 @@ export function applyTrashKinds(
         );
         return { ok: true };
       }
+      // "Trashing a resource this way cannot be prevented" (Corporate Town,
+      // Character Assassination): no trash interrupt opens (CR 1.2.1).
+      const preventable = action.cannotPrevent ? false : undefined;
       if (action.pick === "choose" && resources.length > 1) {
         state.pendingTrashProgram = {
           sourceId,
           candidates: [...resources],
+          ...(preventable === false ? { preventable } : {}),
         };
         log(
           state,
@@ -273,11 +284,10 @@ export function applyTrashKinds(
       }
       const resId = resources[0]!;
       const title = state.cards[resId].title;
-      if (action.cannotPrevent) {
-        trashCard(state, resId);
-      } else {
-        trashCard(state, resId);
-      }
+      trashCard(state, resId, {
+        by: controllerOf(state, sourceId),
+        ...(preventable === false ? { preventable } : {}),
+      });
       log(
         state,
         `Trash installed resource ${title} (CR ${CR.trashing.number}).`,
@@ -554,7 +564,14 @@ export function applyTrashKinds(
           !facedownInstalledRunnerCard(state, id),
       );
       if (action.pick === "choose") {
-        return pendingTrashAmong(state, sourceId, hw, "hardware");
+        // Lab Dog: "The Runner trashes an installed piece of hardware."
+        return pendingTrashAmong(
+          state,
+          sourceId,
+          hw,
+          "hardware",
+          trashChooser(source),
+        );
       }
       if (hw.length === 0) {
         log(
@@ -2579,6 +2596,19 @@ export function trashCorpCardSet(
       })
       .map((id) => ({ id, sid })),
   );
+  // Ronald Five meets its trigger once per card of the set, itself
+  // included, so its sources are gathered before any card moves to
+  // Archives (CR 9.12.2a, 9.1.8g).
+  const ronaldFive = Object.values(state.servers)
+    .flatMap((server) => server.root)
+    .filter((id) => {
+      const card = state.cards[id];
+      return (
+        Boolean(card?.rezzed) &&
+        Boolean(card?.runnerLosesClickWhenTrashesCorpCard) &&
+        !abilitiesSuppressed(state, id)
+      );
+    });
   const trashed: string[] = [];
   const trashedFrom = new Set<string>();
   for (const id of ids) {
@@ -2594,6 +2624,20 @@ export function trashCorpCardSet(
       if (m) trashedFrom.add(m[1]!);
     }
     if (opts.logEach) log(state, opts.logEach(card.title));
+  }
+  if (opts.by === "runner") {
+    for (const id of ronaldFive) {
+      for (let n = 0; n < trashed.length; n++) {
+        const r = evalEffect(
+          { state, sourceId: id },
+          {
+            op: "do",
+            action: { kind: "lose_clicks", side: "runner", amount: 1 },
+          },
+        );
+        if (!r.ok) log(state, `${state.cards[id]?.title ?? id} — ${r.error}`);
+      }
+    }
   }
   let noted = 0;
   if (opts.by === "runner") {

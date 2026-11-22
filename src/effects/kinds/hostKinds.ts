@@ -407,7 +407,8 @@ export function applyHostKinds(
     }
 
     case "host_ice_program_on_self": {
-      // Magnet: choose 1 installed program hosted on another ice (printed).
+      // Magnet: "choose 1 installed program hosted on a piece of ice". A
+      // program on a Runner card (Dinosaurus, NetChip) is not (CR 1.2.1).
       const hosted: string[] = [];
       for (const id of Object.keys(state.cards)) {
         const c = state.cards[id];
@@ -415,6 +416,7 @@ export function applyHostKinds(
           c.type === "program" &&
           c.hostId &&
           c.hostId !== sourceId &&
+          state.cards[c.hostId]?.type === "ice" &&
           state.runner.installed.includes(id)
         ) {
           hosted.push(id);

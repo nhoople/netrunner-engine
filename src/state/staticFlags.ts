@@ -95,6 +95,16 @@ export function basicDrawBonus(state: GameState): number {
 }
 
 export function onRunnerTurnEnds(state: GameState): void {
+  // Patron: the chosen server lasts until this turn ends (CR 9.10.3b).
+  for (const id of state.runner.installed) {
+    const card = state.cards[id];
+    if (
+      typeof card?.patronChooseServerDrawInsteadOfBreach === "number" &&
+      card.namedServerId
+    ) {
+      card.namedServerId = undefined;
+    }
+  }
   for (const id of state.runner.installed) {
     if (abilitiesSuppressed(state, id)) continue;
     const card = state.cards[id];

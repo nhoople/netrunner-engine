@@ -1,6 +1,31 @@
 {
   "_comment": "Shrink-only baseline for tests/procedure-write-guard.test.ts (CR audit Phase 2, guard 1). Recorded 2026-11-14 at engine v1.147.257, cards v1.147.24. counts: direct writes to procedure-owned state outside the helper modules, by file and property (see tests/direct-writes.ts). raised: hand edits that raised a count, each with a date and reason.",
-  "raised": [],
+  "raised": [
+    {
+      "date": "2026-11-22",
+      "file": "src/effects/kinds/searchKinds.ts",
+      "property": "hand",
+      "reason": "PF-S3d moved the R&D searches of The Future is Now, Localized Product Line, Recruiting Trip and Mumbad City Hall here from four primitive files, so they can use chooseCards' search mode (CR 8.7.2e, 8.7.3). Those files' writes leave the baseline; the deck helper is area 13's."
+    },
+    {
+      "date": "2026-11-22",
+      "file": "src/effects/kinds/searchKinds.ts",
+      "property": "zone",
+      "reason": "PF-S3d moved the R&D searches of The Future is Now, Localized Product Line, Recruiting Trip and Mumbad City Hall here from four primitive files, so they can use chooseCards' search mode (CR 8.7.2e, 8.7.3). Those files' writes leave the baseline; the deck helper is area 13's."
+    },
+    {
+      "date": "2026-11-22",
+      "file": "src/effects/kinds/shuffleKinds.ts",
+      "property": "deck",
+      "reason": "PF-S3d moved Disposable HQ's add-to-bottom-of-R&D here from rezBreachPlace.ts, so the Corp chooses the cards through chooseCards (CR 1.14.5). rezBreachPlace.ts's writes leave the baseline; the deck helper is area 13's."
+    },
+    {
+      "date": "2026-11-22",
+      "file": "src/effects/kinds/shuffleKinds.ts",
+      "property": "zone",
+      "reason": "PF-S3d moved Disposable HQ's add-to-bottom-of-R&D here from rezBreachPlace.ts, so the Corp chooses the cards through chooseCards (CR 1.14.5). rezBreachPlace.ts's writes leave the baseline; the deck helper is area 13's."
+    }
+  ],
   "counts": {
     "src/actions/access.ts": {
       "rezzed": 1,
@@ -27,10 +52,9 @@
       "zone": 4
     },
     "src/actions/installRunner.ts": {
-      "deck": 1,
-      "hand": 2,
+      "hand": 1,
       "installed": 1,
-      "zone": 2
+      "zone": 1
     },
     "src/actions/play.ts": {
       "hand": 2,
@@ -169,22 +193,22 @@
     },
     "src/effects/kinds/searchKinds.ts": {
       "deck": 17,
-      "hand": 12,
+      "hand": 13,
       "ice": 1,
       "installed": 1,
       "rezzed": 1,
       "root": 1,
-      "zone": 16
+      "zone": 17
     },
     "src/effects/kinds/setKinds.ts": {
       "deck": 1
     },
     "src/effects/kinds/shuffleKinds.ts": {
-      "deck": 11,
+      "deck": 12,
       "discardPile": 4,
       "hand": 4,
       "rezzed": 2,
-      "zone": 11
+      "zone": 12
     },
     "src/effects/kinds/swapKinds.ts": {
       "discardPile": 2,
@@ -290,13 +314,13 @@
       "zone": 4
     },
     "src/effects/primitives/hostResolveLook.ts": {
-      "deck": 2,
+      "deck": 1,
       "discardPile": 1,
-      "hand": 7,
+      "hand": 6,
       "installed": 2,
       "rezzed": 3,
       "root": 1,
-      "zone": 7
+      "zone": 6
     },
     "src/effects/primitives/lookInstallTrash.ts": {
       "deck": 5,
@@ -305,10 +329,10 @@
       "zone": 3
     },
     "src/effects/primitives/lookTrashAdd.ts": {
-      "deck": 4,
+      "deck": 3,
       "discardPile": 3,
-      "hand": 4,
-      "zone": 7
+      "hand": 3,
+      "zone": 6
     },
     "src/effects/primitives/moveSearchInstall.ts": {
       "deck": 5,
@@ -332,11 +356,11 @@
       "zone": 4
     },
     "src/effects/primitives/preventInstallDraw.ts": {
-      "deck": 3,
-      "hand": 6,
+      "deck": 1,
+      "hand": 4,
       "installed": 2,
       "rezzed": 1,
-      "zone": 6
+      "zone": 4
     },
     "src/effects/primitives/preventMoveChoose.ts": {
       "deck": 5,
@@ -370,18 +394,13 @@
       "rezzed": 2,
       "zone": 2
     },
-    "src/effects/primitives/revealTrashCannot.ts": {
-      "deck": 1,
-      "hand": 1,
-      "zone": 1
-    },
     "src/effects/primitives/rezBreachPlace.ts": {
-      "deck": 4,
-      "hand": 5,
+      "deck": 3,
+      "hand": 4,
       "ice": 1,
       "rezzed": 2,
       "root": 1,
-      "zone": 6
+      "zone": 5
     },
     "src/effects/primitives/searchRevealTrash.ts": {
       "deck": 2,
@@ -527,13 +546,13 @@
       "zone": 2
     },
     "src/timing/graph.ts": {
-      "deck": 2,
+      "deck": 1,
       "discardPile": 1,
-      "hand": 6,
+      "hand": 5,
       "installed": 3,
       "removedFromGame": 2,
       "rezzed": 5,
-      "zone": 7
+      "zone": 6
     }
   }
 }
