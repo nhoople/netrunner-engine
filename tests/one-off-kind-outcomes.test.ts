@@ -2549,17 +2549,22 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     expect(ids).toContain("wanton:2");
   });
 
-  it("Record Reconstructor: instead of breaching Archives, put a card on top of R&D", () => {
+  it("Record Reconstructor: the Runner may put a faceup Archives card on top of R&D instead of breaching", () => {
     const s = createInitialState();
     put(s, "record-reconstructor", "rr-1", "runner:installed");
-    put(s, "hedge-fund", "arch-1", "corp:discard");
+    put(s, "hedge-fund", "arch-1", "corp:discard").faceup = true;
     s.corp.discardPile = ["arch-1"];
     s.run = {
       attackedServerId: "archives",
       position: null,
     } as GameState["run"];
     runKind(s, "rr-1", "breach_instead_record_reconstructor_archives");
-    expect(s.run.skipBreach).toBe(true);
+    expect(s.pendingChoice?.chooser).toBe("runner");
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "breach",
+      "rd-top:arch-1",
+    ]);
+    expect(s.run.skipBreach ?? false).toBe(false);
   });
 
   it("Hades Shard: breaching Archives instead cannot access its root", () => {

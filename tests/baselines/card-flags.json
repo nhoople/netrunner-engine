@@ -18088,10 +18088,6 @@
           "kinds": []
         },
         {
-          "site": "src/api/library.ts#idsHiddenFrom",
-          "kinds": []
-        },
-        {
           "site": "src/api/library.ts#lingeringPlayAreaViews",
           "kinds": []
         },
@@ -18481,7 +18477,15 @@
           "kinds": []
         },
         {
+          "site": "src/state/seatVisibility.ts#idsHiddenFrom",
+          "kinds": []
+        },
+        {
           "site": "src/state/seatVisibility.ts#openFace",
+          "kinds": []
+        },
+        {
+          "site": "src/state/seatVisibility.ts#seatPendingView.segment",
           "kinds": []
         },
         {
@@ -23555,10 +23559,6 @@
           "kinds": []
         },
         {
-          "site": "src/api/library.ts#idsHiddenFrom",
-          "kinds": []
-        },
-        {
           "site": "src/cards/stubs.ts#applyAdvanceIceRecurringTowardAdvance",
           "kinds": []
         },
@@ -24308,6 +24308,10 @@
         },
         {
           "site": "src/state/scoring.ts#canScoreAgenda",
+          "kinds": []
+        },
+        {
+          "site": "src/state/seatVisibility.ts#idsHiddenFrom",
           "kinds": []
         },
         {

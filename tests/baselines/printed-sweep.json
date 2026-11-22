@@ -10557,17 +10557,19 @@
     },
     "record-reconstructor": {
       "cycle": "spin",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever you make a successful run on Archives, instead of breaching Archives, you may add 1 faceup card from Archives to the top of R&D."
       ],
-      "note": "breach_instead_record_reconstructor_archives sets skipBreach before anything is offered, so a decline or an empty Archives still cancels the breach (6.7.4c, 9.9.8); it then calls Seidr's may_add_archives_card_to_rd_top, whose chooser is the Corp (1.14.5) and which lists facedown Archives cards, naming them to the Runner (4.4.6c).",
+      "note": "Engine: the Runner chooses (1.14.5) between breaching and adding one of the faceup Archives cards only (4.4.6c); the breach is skipped only with a card added, so declining or having no faceup card breaches (9.9.8, 6.9.5b).",
       "cr": [
         "1.14.5",
-        "6.7.4c",
+        "6.9.5b",
         "9.9.8",
         "4.4.6c"
-      ]
+      ],
+      "fixedIn": "engine#1004",
+      "test": "instead of breaching Archives, the Runner may add a faceup Archives card to the top of R&D, and only faceup cards are offered (CR 1.14.5, 4.4.6c)"
     },
     "recruiting-trip": {
       "cycle": "sansan",

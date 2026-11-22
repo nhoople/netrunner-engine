@@ -6283,7 +6283,10 @@ export interface PublicView {
   /** Ice awaiting rez after rezAdditionalCost (Valentão). */
   pendingRezCardId: string | null;
   markServerId: ServerId | null;
-  /** Pending conditional ability instances (CR 9.6.2). Open to both seats. */
+  /**
+   * Pending conditional ability instances (CR 9.6.2), less the other
+   * player's from a card this seat may not see (CR 10.2.2a).
+   */
   pendingAbilities: PendingAbilityInstance[];
   /** Open reaction windows (CR 10.3.2 / 9.2.8). */
   reactionStack: ReactionWindowFrame[];

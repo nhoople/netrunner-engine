@@ -10,18 +10,21 @@ import { seedRng } from "../state/rng.js";
 import { gripRevealed } from "../state/cardDeclarations.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import {
+  choiceHiddenFrom,
   hostedCardViews,
   iceFaceVisible,
   openAdvancement,
   openFace,
   openHostedCredits,
+  seatPendingView,
+  secretIdsFrom,
+  stringsIn,
 } from "../state/seatVisibility.js";
 import { currentMark } from "../state/msKeywords.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
 import type {
   Action,
   ApplyResult,
-  CardInstance,
   GameConfig,
   GameState,
   Intent,
@@ -105,54 +108,6 @@ function lingeringPlayAreaViews(
   return out;
 }
 
-/**
- * Ids of cards whose face the viewer may not see: cards in the other
- * player's hand, facedown cards in either deck, facedown cards in Archives,
- * unrezzed installed Corp cards, and facedown Runner cards
- * (CR 1.21.1, 4.4.6c).
- */
-function idsHiddenFrom(state: GameState, viewer: Side): string[] {
-  const other = viewer === "corp" ? state.runner : state.corp;
-  const otherHand = new Set(other.hand);
-  const decks = new Set([...state.corp.deck, ...state.runner.deck]);
-  const handOpen = viewer === "corp" && gripRevealed(state);
-  const hidden: string[] = [];
-  for (const card of Object.values(state.cards)) {
-    if (card.type === "identity") continue;
-    // The player looking at a card sees it, whoever owns it (CR 1.21.2).
-    if (card.lookedBy === viewer) continue;
-    // A card in a deck is neither faceup nor facedown: neither player sees
-    // it, its owner included (CR 1.21.1a).
-    if (decks.has(card.id)) {
-      hidden.push(card.id);
-      continue;
-    }
-    // A card taken from a deck while an ability resolves is seen by the
-    // player looking at it, or by both when it is revealed (CR 1.21.6).
-    if (takenFromDeck(state, card)) {
-      if (card.lookedBy || !card.faceup) hidden.push(card.id);
-      continue;
-    }
-    if (card.side === viewer) continue;
-    if (otherHand.has(card.id)) {
-      if (!handOpen) hidden.push(card.id);
-      continue;
-    }
-    if (!(card.faceup || card.rezzed)) hidden.push(card.id);
-  }
-  return hidden;
-}
-
-/**
- * True for a card whose zone is still a deck but which is not in it: an
- * ability took it to look at, reveal, or set aside while it resolves.
- */
-function takenFromDeck(state: GameState, card: CardInstance): boolean {
-  if (card.zone !== "corp:rd" && card.zone !== "runner:stack") return false;
-  const player = card.zone === "corp:rd" ? state.corp : state.runner;
-  return !player.deck.includes(card.id);
-}
-
 /** Titles of the cards in or taken from a deck that the viewer may not see. */
 function hiddenDeckTitles(
   state: GameState,
@@ -165,15 +120,6 @@ function hiddenDeckTitles(
       titles.add(card.title);
   }
   return [...titles];
-}
-
-/** Every string inside an effect tree: the card ids it can name. */
-function stringsIn(value: unknown, out: Set<string>): void {
-  if (typeof value === "string") out.add(value);
-  else if (Array.isArray(value)) for (const item of value) stringsIn(item, out);
-  else if (value && typeof value === "object") {
-    for (const item of Object.values(value)) stringsIn(item, out);
-  }
 }
 
 function idNames(optionId: string, cardId: string): boolean {
@@ -212,7 +158,7 @@ export function pendingOptionHiddenFromOpponent(
   const option = choice.options.find((o) => o.id === optionId);
   if (!option) return false;
   const viewer: Side = choice.chooser === "corp" ? "runner" : "corp";
-  const hiddenIds = idsHiddenFrom(state, viewer);
+  const hiddenIds = secretIdsFrom(state, viewer);
   const hiddenSet = new Set(hiddenIds);
   const named = new Set<string>();
   stringsIn(option.effect, named);
@@ -231,6 +177,8 @@ function publicPendingChoice(state: GameState, viewer: Side) {
   if (!choice) return null;
   const copy = structuredClone(choice);
   if (viewer === choice.chooser) return copy;
+  // The viewer may not learn that this choice is open at all (CR 10.2.2a).
+  if (choiceHiddenFrom(state, viewer)) return null;
   // The other player cannot pick an option. They do not get what each
   // option would do, and an option that names a card they may not see is
   // shown without its id or label (CR 1.21.2).
@@ -251,7 +199,7 @@ function publicPendingChoice(state: GameState, viewer: Side) {
     }));
     return copy;
   }
-  const hiddenIds = idsHiddenFrom(state, viewer);
+  const hiddenIds = secretIdsFrom(state, viewer);
   const hiddenSet = new Set(hiddenIds);
   // CR 1.21.2, CR 8.7.1: the chooser is looking at cards this viewer may not
   // see, so a label that names one is not shown either.
@@ -310,6 +258,8 @@ export function getPublicView(state: GameState, side: Side): PublicView {
   const self = side === "corp" ? state.corp : state.runner;
   const opp = side === "corp" ? state.runner : state.corp;
   const oppSide: Side = side === "corp" ? "runner" : "corp";
+  // Pending abilities and held-over effects, filtered for this seat (CR 10.2.2a).
+  const pending = seatPendingView(state, side);
 
   return {
     viewer: side,
@@ -405,9 +355,7 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingEndTheRun: state.pendingEndTheRun
       ? structuredClone(state.pendingEndTheRun)
       : null,
-    pendingEffectContinuation: state.pendingEffectContinuation
-      ? structuredClone(state.pendingEffectContinuation)
-      : null,
+    pendingEffectContinuation: pending.pendingEffectContinuation,
     pendingTrashProgram: state.pendingTrashProgram
       ? structuredClone(state.pendingTrashProgram)
       : null,
@@ -438,8 +386,8 @@ export function getPublicView(state: GameState, side: Side): PublicView {
     pendingScoreAgendaId: state.pendingScoreAgendaId,
     pendingRezCardId: state.pendingRezCardId,
     markServerId: currentMark(state),
-    pendingAbilities: structuredClone(state.pendingAbilities),
-    reactionStack: structuredClone(state.reactionStack),
+    pendingAbilities: pending.pendingAbilities,
+    reactionStack: pending.reactionStack,
     lingeringEffects: structuredClone(state.lingeringEffects),
     priorityStack: structuredClone(state.priorityStack),
     log: [...state.log],
