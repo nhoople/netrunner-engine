@@ -17,6 +17,7 @@ import {
   applyAction,
   evalEffect,
   getCardDef,
+  getPublicView,
   legalActions,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
@@ -686,6 +687,18 @@ describe("Subliminal Messaging", () => {
     expect(optionIds(s)).toEqual(["add", "decline"]);
     s = pick(s, "decline");
     expect(s.corp.discardPile).toContain("sm-1");
+  });
+
+  it("a facedown copy in Archives is not named to the Runner by its choice (CR 10.2.2a)", () => {
+    let s = runnerTurn(fresh());
+    put(s, "subliminal-messaging", "sm-1", "corp:archives").faceup = false;
+    s.corp.discardPile.push("sm-1");
+    s = toCorpTurn(s);
+    expect(s.pendingChoice?.sourceId).toBe("sm-1");
+    const runnerView = getPublicView(s, "runner");
+    expect(JSON.stringify(runnerView.pendingChoice ?? null)).not.toMatch(
+      /Subliminal|Archives/,
+    );
   });
 });
 
