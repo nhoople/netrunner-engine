@@ -71,7 +71,7 @@ import {
 } from "../src/cards/load.js";
 import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir.js";
 
-const CARDS_PIN = "v1.147.25";
+const CARDS_PIN = "v1.147.26";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CARDS_DIR = join(ROOT, "vendor/cards-data");
 const PRINTED_DIR = join(CARDS_DIR, "printed");

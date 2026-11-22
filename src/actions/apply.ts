@@ -371,8 +371,9 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
     return fail("That card is not a legal trash target.", [CR.trashing]);
   }
   const card = state.cards[cardId];
-  // A subroutine's "trash a program": the Corp carries it out (CR 1.14.5).
-  trashCard(state, cardId, { by: "corp" });
+  // A subroutine's "trash a program": the Corp carries it out, unless it
+  // names the Runner ("the Runner trashes 1 program"), CR 1.14.5.
+  trashCard(state, cardId, { by: pending.chooser ?? "corp" });
   state.pendingTrashProgram = null;
   log(state, `Trashes ${card.title} (CR ${CR.trashing.number}).`);
   // Resume the run graph from the current auto step (resolveSub).

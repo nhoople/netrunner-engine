@@ -66,6 +66,17 @@
         "cardDefFlags": 602
       },
       "reason": "shrink"
+    },
+    {
+      "date": "2026-11-21",
+      "engine": "v1.147.280",
+      "cards": "v1.147.26",
+      "counts": {
+        "knownPrimitiveKinds": 1530,
+        "oneCardKinds": 745,
+        "cardDefFlags": 602
+      },
+      "reason": "PF-S3a: Retrieval Run's optional breach replacement needs its own may_ kind (the old runEvent field always skipped the breach, CR 1.2.1), and a once-per-run ability used only when its optional part is carried out needs mark_ability_used_this_run (Snitch, CR 9.6.9d); no existing kind does either."
     }
   ]
 }

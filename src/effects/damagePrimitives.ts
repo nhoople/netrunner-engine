@@ -338,11 +338,13 @@ export function applyDamagePrimitive(
               },
               {
                 op: "do",
+                // Edge of World prints no way to cancel the damage by
+                // losing clicks; the Runner prevents it only with their own
+                // prevention abilities (CR 1.2.1, 10.4.2b).
                 action: {
                   kind: "core_damage",
                   amount: iceCount,
                   interactive: true,
-                  preventByLoseAllClicks: true,
                 },
               },
             ],

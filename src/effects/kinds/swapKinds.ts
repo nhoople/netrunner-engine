@@ -86,6 +86,15 @@ export function applySwapKinds(
         log(state, `Midori swap — invalid ice.`);
         return { ok: true };
       }
+      // Midori's "only once per run": a conditional ability is used once its
+      // optional part is carried out, as here (CR 9.6.9d). Declining did not
+      // use it.
+      if (state.cards[sourceId]?.onApproachIceOncePerRun) {
+        run.approachIceTriggersFiredIds = [
+          ...(run.approachIceTriggersFiredIds ?? []),
+          sourceId,
+        ];
+      }
       // The approached ice leaves play: it is uninstalled (CR 8.8.4b).
       trashHostedOnSwapOut(state, approachedId);
       state.corp.hand = state.corp.hand.filter((id) => id !== replacementId);

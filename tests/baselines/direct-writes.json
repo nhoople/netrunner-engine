@@ -536,12 +536,12 @@
     },
     "src/timing/graph.ts": {
       "deck": 2,
-      "discardPile": 3,
+      "discardPile": 2,
       "hand": 7,
-      "installed": 4,
+      "installed": 3,
       "removedFromGame": 2,
       "rezzed": 5,
-      "zone": 9
+      "zone": 8
     }
   }
 }

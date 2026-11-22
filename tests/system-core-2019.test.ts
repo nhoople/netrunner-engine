@@ -47,7 +47,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.59.0 kickoff", () => {
@@ -110,7 +110,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.60.0 A-slice", () => {
@@ -160,7 +160,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.61.0 B-slice", () => {
@@ -202,7 +202,10 @@ describe("system-core-2019", () => {
 
       it("Adonis Campaign hosts 12¢ and takes 3¢ on turn begin", () => {
         const def = getCardDef("adonis-campaign");
-        expect(def.hostedCreditsOnInstall).toBe(12);
+        // Placed when rezzed, as printed (PF-S3a, CR 1.2.1).
+        expect(def.onRez).toEqual(
+          fx.do({ kind: "place_hosted_credits", amount: 12 }),
+        );
         expect(def.onTurnBegin).toEqual(
           fx.do({ kind: "take_hosted_credits", amount: 3 }),
         );
@@ -216,7 +219,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.62.0 C-slice", () => {
@@ -300,7 +303,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.63.0 D-slice", () => {
@@ -381,7 +384,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.64.0 E-slice", () => {
@@ -464,7 +467,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.65.0 F-slice", () => {
@@ -524,7 +527,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.66.0 G-slice", () => {
@@ -705,7 +708,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.69.0 H-slice", () => {
@@ -805,7 +808,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.69.0 I-slice", () => {
@@ -957,7 +960,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.69.0 J-slice", () => {
@@ -1093,15 +1096,17 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.70.0 K-slice", () => {
-      it("Faerie is a 0¢ sentry breaker that trashes after breaking this run", () => {
+      it("Faerie is a 0¢ sentry breaker that trashes after an encounter in which it broke", () => {
         const def = getCardDef("faerie");
         expect(def.breaker?.breaksSubtype).toBe("sentry");
         expect(def.breaker?.breakCredits).toBe(0);
-        expect(def.trashAfterBreakingThisRun).toBe(true);
+        expect(def.onEncounterEndIfBroke).toEqual(
+          fx.do({ kind: "trash_self" }),
+        );
         expect(def.paidAbilities?.some((a) => a.id === "faerie-pump")).toBe(
           true,
         );
@@ -1212,7 +1217,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.71.0 L-slice", () => {
@@ -1309,7 +1314,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.72.0 M-slice", () => {
@@ -1450,7 +1455,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.73.0 N-slice", () => {
@@ -1585,7 +1590,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("System Core 2019 v1.74.0 O-slice set-complete", () => {

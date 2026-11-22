@@ -11,6 +11,7 @@ import {
   setRunnerPosition,
 } from "../../state/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
+import { serverHostingCard } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
@@ -3386,6 +3387,28 @@ export function applyOtherKinds(
 
     case "accelerated_beta_test": {
       const n = action.n ?? 3;
+      // "You may look at the top 3 cards of R&D": the Corp may decline, and
+      // then nothing is looked at or trashed (CR 9.6.9c, 1.2.1).
+      if (!action.look) {
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "corp",
+          options: [
+            {
+              id: "abt-look",
+              label: `Look at the top ${n} cards of R&D`,
+              effect: fx.do({ kind: "accelerated_beta_test", n, look: true }),
+            },
+            {
+              id: "abt-decline",
+              label: "Decline",
+              effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
+            },
+          ],
+          logLine: `${source?.title ?? "Accelerated Beta Test"} — the Corp may look at the top ${n} cards of R&D.`,
+        });
+        return { ok: true };
+      }
       if (state.turn.rdLookedCards.length > 0) {
         return {
           ok: false,
@@ -3677,10 +3700,10 @@ export function applyOtherKinds(
         log(state, `Corporate Troubleshooter — no credits to spend.`);
         return { ok: true };
       }
-      const zone = source.zone ?? "";
-      const serverId = zone.startsWith("server:")
-        ? (zone.split(":")[1] as ServerId | undefined)
-        : undefined;
+      // The [trash] cost has already moved the card: "this server" is the
+      // server it was in (CR 4.6.6i).
+      const serverId = (source.thisServerWhileResolving ??
+        serverHostingCard(state, sourceId)?.id) as ServerId | undefined;
       const server = serverId ? state.servers[serverId] : undefined;
       const iceTargets = (server?.ice ?? []).filter((id: string) => {
         const c = state.cards[id];
@@ -3904,6 +3927,14 @@ export function applyOtherKinds(
     }
 
     case "queue_start_run": {
+      // Doppelgänger's once per turn is used when the Runner runs, not when
+      // the ability becomes pending (CR 9.6.9d, 9.3.6g).
+      if (
+        source.onSuccessfulRunEndOncePerTurn &&
+        !state.turn.onSuccessfulRunEndFiredIds.includes(sourceId)
+      ) {
+        state.turn.onSuccessfulRunEndFiredIds.push(sourceId);
+      }
       state.pendingStartRun = {
         sourceId,
         serverId: action.serverId as import("../../state/types.js").ServerId,

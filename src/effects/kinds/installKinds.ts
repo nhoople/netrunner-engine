@@ -52,6 +52,7 @@ import {
   applyPrimitive,
 } from "../eval.js";
 import { fx } from "../ir.js";
+import { chooseCards } from "../chooseCards.js";
 import {
   canInstallHeapCard,
   gripInstallCostAfterDiscount,
@@ -1888,17 +1889,74 @@ export function applyInstallKinds(
     }
 
     case "install_program_from_stack_or_heap_free": {
-      const fromHeap = state.runner.discardPile.find(
-        (id) => state.cards[id].type === "program",
-      );
-      const fromStack = state.runner.deck.find(
-        (id) => state.cards[id].type === "program",
-      );
-      const id = fromHeap ?? fromStack;
-      if (!id) {
-        log(state, `Install program from stack/heap — none found.`);
+      // The printed "Search either your stack or your heap for 1 program."
+      //
+      // The player searching picks where to look, then the card it finds
+      // (CR 8.7.1, 1.15.2).
+      if (!action.from) {
+        openPendingChoose(state, {
+          sourceId,
+          chooser: "runner",
+          options: (["stack", "heap"] as const).map((from) => ({
+            id: `search-${from}`,
+            label: `Search your ${from} for 1 program`,
+            effect: fx.do({
+              kind: "install_program_from_stack_or_heap_free",
+              from,
+            }),
+          })),
+          logLine: `${source?.title ?? "Test Run"} — the Runner chooses to search the stack or the heap.`,
+        });
         return { ok: true };
       }
+      const fromStackSearch = action.from === "stack";
+      if (!action.cardIds) {
+        const zone = fromStackSearch
+          ? state.runner.deck
+          : state.runner.discardPile;
+        // A deck search may find nothing, and the Corp does not learn how
+        // many programs the stack holds (CR 8.7.2e, 10.2.2b). The heap is
+        // not a deck: a program there must be found (8.7.2e grants failing
+        // to find only for a deck), and the heap is open to both players.
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "runner",
+            candidates: zone.filter(
+              (cid) => state.cards[cid]?.type === "program",
+            ),
+            count: 1,
+            ...(fromStackSearch ? { search: true } : { open: true }),
+            purpose: "resume",
+            label: "install ignoring all costs",
+            resume: {
+              kind: "install_program_from_stack_or_heap_free",
+              from: action.from,
+            },
+          }),
+        );
+      }
+      const zoneNow = fromStackSearch
+        ? state.runner.deck
+        : state.runner.discardPile;
+      const id = action.cardIds.find((cid) => zoneNow.includes(cid));
+      // The stack is shuffled once the search is complete, before the found
+      // card is installed (CR 8.7.3).
+      if (fromStackSearch) {
+        shuffleRunnerStack(state);
+        log(
+          state,
+          `${source?.title ?? "Test Run"} — shuffle the stack after searching it (CR ${CR.shuffleDeckAfterSearch.number}).`,
+        );
+      }
+      if (!id) {
+        log(
+          state,
+          `${source?.title ?? "Test Run"} — no program found in the ${action.from}.`,
+        );
+        return { ok: true };
+      }
+      const fromHeap = action.from === "heap";
       const card = state.cards[id];
       state.runner.discardPile = state.runner.discardPile.filter(
         (x) => x !== id,
@@ -1917,7 +1975,7 @@ export function applyInstallKinds(
       );
       log(
         state,
-        `${source.title} creates a lingering effect: ${card.title} returns to the stack at the end of the turn, independent of ${source.title}. ${source.title} is fully resolved (CR ${CR.playingLingeringEffects.number}).`,
+        `${source?.title ?? "Test Run"} creates a lingering effect: ${card.title} returns to the stack at the end of the turn, independent of ${source?.title ?? "Test Run"}. ${source?.title ?? "Test Run"} is fully resolved (CR ${CR.playingLingeringEffects.number}).`,
       );
       fireOnInstall(state, id);
       noteVirusProgramInstalled(state, id);

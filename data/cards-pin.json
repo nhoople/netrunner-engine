@@ -1,8 +1,8 @@
 {
-  "tag": "v1.147.25",
+  "tag": "v1.147.26",
   "repo": "https://github.com/nhoople/netrunner-cards-data",
-  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.25",
-  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.25",
+  "rawBase": "https://raw.githubusercontent.com/nhoople/netrunner-cards-data/v1.147.26",
+  "archiveUrl": "https://codeload.github.com/nhoople/netrunner-cards-data/tar.gz/refs/tags/v1.147.26",
   "dataPrefix": "data",
   "required": [
     "schema.json",
@@ -19,5 +19,5 @@
     "runner/program",
     "runner/resource"
   ],
-  "notes": "Pair cards v1.147.25. La Costa Grid places on any root card and Dummy Box takes a same-type grip card as its cost, Corp trashes only (#307); NSG catalog with Startup Balance Update 26.09 (#306). CR pin v26.03."
+  "notes": "Pair cards v1.147.26. PF-S3a sweep fixes: Adonis Campaign places its credits when rezzed, Eve Campaign and Private Contracts trash when empty, Compromised Employee and Dinosaurus drop the link and MU they do not print, Cortez Chip, The Helpful AI and Data Raven open in every paid ability window, Burke Bugs lets the Runner choose and does nothing with no program, Faerie trashes when its encounter ends, Sacrificial Construct prevents only program or hardware trashes, Retrieval Run may breach instead (#308). CR pin v26.03."
 }

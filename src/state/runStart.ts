@@ -103,7 +103,6 @@ export interface RunModifiers {
   backupPlanBypassIceId?: string;
   redirectSuccessTo?: "hq" | "rd" | "archives";
   redirectSuccessChooseHqOrRd?: boolean;
-  skipBreachInstallProgramFromHeap?: boolean;
   skipBreach?: boolean;
   immolationScriptAccessReplace?: boolean;
   accessTrashFree?: boolean;
@@ -219,9 +218,6 @@ export function modifiersFromStartsRun(
   }
   if (spec.redirectSuccessChooseHqOrRd) {
     (mods as RunModifiers).redirectSuccessChooseHqOrRd = true;
-  }
-  if (spec.skipBreachInstallProgramFromHeap) {
-    mods.skipBreachInstallProgramFromHeap = true;
   }
   if (spec.skipBreach) {
     mods.skipBreach = true;

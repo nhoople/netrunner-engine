@@ -1,11 +1,11 @@
 {
-  "cardsPin": "v1.147.25",
+  "cardsPin": "v1.147.26",
   "counts": {
     "cards": 2016,
     "cardsWithHits": 14,
     "hits": 15,
-    "kindsInCorpus": 904,
-    "kindsCovered": 705,
+    "kindsInCorpus": 906,
+    "kindsCovered": 706,
     "phraseRules": 61,
     "kindPhrases": 18
   },

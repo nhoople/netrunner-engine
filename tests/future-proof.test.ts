@@ -25,7 +25,7 @@ describe("future-proof", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("FP primitives IR validate", () => {
@@ -72,7 +72,7 @@ describe("future-proof", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.25");
+      assertCardsPinnedTag("v1.147.26");
     });
 
     describe("Future Proof v1.93.0 set-complete", () => {
@@ -138,8 +138,10 @@ describe("future-proof", () => {
         );
         expect(JSON.stringify(drt.onSuccessfulRunEnd)).toContain("meat_damage");
 
+        // "The Runner trashes 1 program": the Runner chooses, and with no
+        // program installed nothing happens (PF-S3a, CR 1.2.1).
         expect(JSON.stringify(getCardDef("burke-bugs").subroutines)).toContain(
-          "trash_own_program",
+          '"kind":"trash_program","pick":"choose"',
         );
 
         expect(JSON.stringify(getCardDef("corporate-war").onScore)).toContain(
