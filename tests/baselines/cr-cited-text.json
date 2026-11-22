@@ -243,6 +243,7 @@
     "5.3.3": "The Runner's turn does not have a draw phase.",
     "5.4.1": "The action phase is the first phase of the Runner's turn and the second phase of the Corp's turn. It is the only timing structure in which players can take actions, as discussed in section 5.2.",
     "5.5": "Discard Phase",
+    "5.5.2a": "Cards discarded from HQ are always sent to Archives facedown, regardless of whether they have been previously accessed by the Runner.",
     "5.5.2b": "A discarded card is not considered to have been trashed, and vice versa.",
     "5.5.3": "A player's maximum hand size is the maximum number of cards that player can keep in their hand during their discard phase.",
     "5.5.3a": "Players begin the game with a maximum hand size of five cards.",

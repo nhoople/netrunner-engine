@@ -1099,7 +1099,10 @@ export const STEPS: Record<string, TimingStepDef> = {
                   },
                   {
                     id: "decline",
-                    label: "Leave it in Archives",
+                    // A copy discarded from HQ is facedown in Archives
+                    // (CR 5.5.2a); a label that describes the card would
+                    // tell the Runner which facedown card it is (CR 10.2.2a).
+                    label: "Decline",
                     effect: {
                       op: "do",
                       action: { kind: "gain_credits", side: "corp", amount: 0 },
