@@ -58,6 +58,7 @@ import {
   resumeContinuationsOfPausedWindows,
   resumePendingEffectContinuation,
 } from "../effects/eval.js";
+import { effectResolutionBlocked } from "../effects/continuation.js";
 import {
   fireOnAccess,
   fireOnRez,
@@ -1517,37 +1518,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     return ok(state);
   }
 
-  if (state.run) {
-    // ETR from jack-out offer
-    if (state.run.endedTheRun) {
-      enterStep(state, "run.closePriorityWindows");
-    } else if (state.timingKey !== "run.ends" || state.run.isPostRunBreach) {
-      // Run Ends is not skipped: a run-end ability's choice (Boomerang)
-      // pauses it partway, and it resolves again to finish, so the run is
-      // complete (CR 6.9.6d). Its onResolve is written to come back. Once it
-      // has finished and a post-run breach has begun (Virtuoso), the step
-      // goes on to that breach.
-      const step = getStep(state);
-      if (step.kind === "auto" || step.kind === "branch") {
-        const nextKey =
-          typeof step.next === "function" ? step.next(state) : step.next;
-        enterStep(state, nextKey);
-      }
-    }
-    if (
-      state.run.accessingCardId &&
-      (state.timingKey === "access.midAccess" ||
-        state.timingKey === "access.cardAccessed" ||
-        state.timingKey === "access.stealAgenda")
-    ) {
-      autoWalk(state);
-      return advanceFromMidAccess(state);
-    }
-    const cont = advanceRunUntilStop(state);
-    if (!cont.ok) return cont;
-    finishRunReturnToAction(cont.state);
-    return cont;
-  }
+  if (state.run) return continueRunAfterPausedStep(state);
 
   // Resume a seq that paused when this choice window opened.
   resumePendingEffectContinuation(state);
@@ -2052,14 +2023,14 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         );
       }
       if (next.pendingTags) return ok(next);
-      resumePendingEffectContinuation(next);
-      return ok(next);
+      resumeAfterDamage(next);
+      return continueAfterInterruptWindow(next);
     }
     if (action.type === "accept_tags") {
       const taken = acceptPendingTags(next);
       if (taken > 0) fireMeatDamageWhenRunnerTakesTags(next);
-      resumePendingEffectContinuation(next);
-      return ok(next);
+      resumeAfterDamage(next);
+      return continueAfterInterruptWindow(next);
     }
     return fail("Pending tags — avoid or accept.", [CR.tags]);
   }
@@ -2130,7 +2101,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         autoWalk(next);
         return advanceFromMidAccess(next);
       }
-      return ok(next);
+      return continueAfterInterruptWindow(next);
     }
     switch (action.type) {
       case "prevent_damage":
@@ -2179,7 +2150,7 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
       autoWalk(next);
       return advanceFromMidAccess(next);
     }
-    return ok(next);
+    return continueAfterInterruptWindow(next);
   }
 
   if (next.pendingTrashProgram) {
@@ -3857,8 +3828,63 @@ export function describeState(state: GameState): string {
 }
 
 /**
- * The damage was one instruction, often of a pending instance in a paused
- * reaction window. The rest of that instance resolves first, then the
+ * A damage or tag interrupt window has closed (CR 9.2.9). When a run step's
+ * instruction opened it and nothing else is waiting, the run goes on from
+ * that step as it does after a choice, instead of resolving the step again
+ * (CR 9.2.4: the game continues to the next timing step; 9.12.3d).
+ * Elsewhere the walk is left as it was.
+ */
+function continueAfterInterruptWindow(state: GameState): ApplyResult {
+  if (!state.run || effectResolutionBlocked(state) || state.pendingEndTheRun) {
+    return ok(state);
+  }
+  const kind = getStep(state).kind;
+  if (kind !== "auto" && kind !== "branch") return ok(state);
+  return continueRunAfterPausedStep(state);
+}
+
+/**
+ * A choice or an interrupt window opened by a run step's instruction has
+ * closed and nothing else is waiting. The run goes on from that step (CR
+ * 9.2.2): the step's instruction has resolved, so it is not resolved again.
+ * A "choose one" encounter ability is asked once (CR 9.12.3d, 9.11.4g).
+ */
+function continueRunAfterPausedStep(state: GameState): ApplyResult {
+  const run = state.run!;
+  // ETR from jack-out offer
+  if (run.endedTheRun) {
+    enterStep(state, "run.closePriorityWindows");
+  } else if (state.timingKey !== "run.ends" || run.isPostRunBreach) {
+    // Run Ends is not skipped: a run-end ability's choice (Boomerang)
+    // pauses it partway, and it resolves again to finish, so the run is
+    // complete (CR 6.9.6d). Its onResolve is written to come back. Once it
+    // has finished and a post-run breach has begun (Virtuoso), the step
+    // goes on to that breach.
+    const step = getStep(state);
+    if (step.kind === "auto" || step.kind === "branch") {
+      const nextKey =
+        typeof step.next === "function" ? step.next(state) : step.next;
+      enterStep(state, nextKey);
+    }
+  }
+  if (
+    run.accessingCardId &&
+    (state.timingKey === "access.midAccess" ||
+      state.timingKey === "access.cardAccessed" ||
+      state.timingKey === "access.stealAgenda")
+  ) {
+    autoWalk(state);
+    return advanceFromMidAccess(state);
+  }
+  const cont = advanceRunUntilStop(state);
+  if (!cont.ok) return cont;
+  finishRunReturnToAction(cont.state);
+  return cont;
+}
+
+/**
+ * The damage or tags were one instruction, often of a pending instance in a
+ * paused reaction window. The rest of that instance resolves first, then the
  * window's other instances (CR 9.2.8a, 9.2.8d), and only then the next
  * instruction of the ability that opened the window (CR 9.11.3, 10.3.2).
  */

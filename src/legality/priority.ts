@@ -17,6 +17,7 @@ import {
   pushCheckpoint,
 } from "./checkpoints.js";
 import { nextId } from "../state/ids.js";
+import { currentWindow } from "../cards/stubs.js";
 
 export function currentPriorityWindow(
   state: GameState,
@@ -95,6 +96,30 @@ export function nestPriorityAfterAbility(
   state: GameState,
   openedBy: string,
 ): void {
+  const top = currentPriorityWindow(state);
+  // An ability used in an interrupt window opened by a step that has no
+  // priority window of its own (a subroutine's damage, an encounter
+  // ability's tag) belongs to that interrupt window (CR 9.2.9), not to a new
+  // priority window for the step. A frame pushed for that step would never
+  // be passed, so each later window would close back into it (CR 9.2.4d).
+  if (
+    !(top && top.stepKey === state.timingKey) &&
+    !currentWindow(state.timingKey)
+  ) {
+    const frame = pushCheckpoint(
+      state,
+      "priority_window",
+      `Nested priority after ${openedBy}`,
+      [CR.nestedPriorityWindow, CR.interruptWindowPriority],
+      openedBy,
+    );
+    popCheckpoint(state, frame.id);
+    checkpointBeforePriority(
+      state,
+      priorityHolderForStep(state.timingKey, state.activeSide),
+    );
+    return;
+  }
   const outer = ensurePriorityWindow(state);
   outer.consecutivePasses = 0;
   const frame = pushCheckpoint(

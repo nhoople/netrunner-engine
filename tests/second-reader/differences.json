@@ -1122,51 +1122,6 @@
   },
   {
     "batch": "cr-examples-ch9",
-    "case": "9.9.5a.ex1",
-    "observations": [
-      {
-        "key": "katana::legal(tori)",
-        "expected": false,
-        "engine": "the run never goes on: the window after the encounter opens again each time it closes"
-      },
-      {
-        "key": "katana::runner.grip",
-        "expected": 1,
-        "engine": 4
-      },
-      {
-        "key": "katana::runner.coreDamage",
-        "expected": 0,
-        "engine": "the run never goes on: the window after the encounter opens again each time it closes"
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "9.2.4d",
-    "area": "fidelity",
-    "note": "After the Runner pays Feedback Filter to prevent a subroutine's net damage, the engine leaves the subroutine's priority window on its stack. The window after the encounter then opens again every time it closes and the run never goes on (the same happens with Caldera, and when the Corp uses Tori Hanzō). The encounter with Neural Katana is never reached, so Tori Hanzō's 'first time' is not tested"
-  },
-  {
-    "batch": "cr-examples-ch9",
-    "case": "9.9.7a.ex1",
-    "observations": [
-      {
-        "key": "::runner.tags",
-        "expected": 1,
-        "engine": 2
-      },
-      {
-        "key": "::runner.grip",
-        "expected": 2,
-        "engine": 0
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "9.12.3d",
-    "area": "standardization",
-    "note": "Making a choice between effects is its own instruction, made once (also 9.11.4g). After the Runner uses Biometric Spoofing in the interrupt window of Mr. Stone's damage, the engine asks the Runner to take a tag or end the run a second time; taking it gives a second tag and a second 1 meat damage"
-  },
-  {
-    "batch": "cr-examples-ch9",
     "case": "9.9.7f.ex1",
     "observations": [
       {
@@ -1263,21 +1218,6 @@
     "rule": "1.2.1",
     "area": "area 11",
     "note": "NASX lets the Corp spend up to 2 credits each time it gains credits from another card's ability. After the 1 credit gained for Ice Wall the engine offers a spend of 1 only, with 6 credits in the pool. Both instances do resolve separately, as the example says"
-  },
-  {
-    "batch": "cr-examples-ch9",
-    "case": "9.12.3d.ex1",
-    "observations": [
-      {
-        "key": "::runner.tags",
-        "expected": 0,
-        "engine": 1
-      }
-    ],
-    "verdict": "engine-wrong",
-    "rule": "9.12.3d",
-    "area": "standardization",
-    "note": "Once the Runner has chosen to take the tag, preventing it does not reopen the choice. After Decoy prevents the tag the engine asks the Runner to take a tag or end the run again"
   },
   {
     "batch": "cr-examples-ch9",
@@ -1402,17 +1342,12 @@
         "key": "::legal(decoy)",
         "expected": false,
         "engine": true
-      },
-      {
-        "key": "::runner.tags",
-        "expected": 1,
-        "engine": 3
       }
     ],
     "verdict": "engine-wrong",
     "rule": "1.16.1a",
     "area": "area 11",
-    "note": "Paying a cost cannot be changed or cancelled by an optional interrupt, and Funhouse's tag is a nested cost. The engine offers Decoy on that tag. Worse, while Decoy is installed and unused the engine asks the Runner to take a tag or end the run again after every tag taken (3 tags here before the driver stops): the encounter cannot go on unless the Runner ends the run or uses Decoy"
+    "note": "Paying a cost cannot be changed or cancelled by an optional interrupt, and Funhouse's tag is a nested cost. The engine offers Decoy on that tag: the card data models Funhouse's \"unless\" like Data Raven's choice (CR 9.12.3d), so the tag is not marked as a cost. (The repeated \"take 1 tag or end the run\" question while Decoy was installed is fixed: the encounter ability is asked once.)"
   },
   {
     "batch": "rulings-sample-1",

@@ -705,6 +705,11 @@ export const CR = {
     id: "rule_static_modification_keep_restrictions",
   },
   nestedPriorityWindow: { number: "9.2.4d", id: "rule_nested_priority_window" },
+  /** Interrupt windows give both players priority, active player first (CR 9.2.9c). */
+  interruptWindowPriority: {
+    number: "9.2.9c",
+    id: "rule_interrupt_window_priority",
+  },
   paidAbility: { number: "9.5.1", id: "rule_paid_ability" },
   /** Other paid abilities observe restrictions specified in their text (CR 9.5.2f). */
   paidAbilityTextRestriction: {
