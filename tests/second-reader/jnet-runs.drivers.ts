@@ -160,17 +160,12 @@ function questCompleted(
   b.rd("hedge-fund");
   let s = b.s;
   for (const server of ["archives", "rd", "hq"]) s = go(run(s, server), idle);
-  s.runner.clicks = 1;
-  const can = offered(s, "play_event", quest).length > 0;
-  debug("quest completed playable:", can);
-  if (can) {
-    s = raw(s, { type: "play_event", cardId: quest! });
-    s = go(s, (x) => atEncounter(x) || idle(x), [
-      ganked,
-      "trash-encounter",
-      ice,
-    ]);
+  // Without the event there is no position to report on.
+  if (!offered(s, "play_event", quest).length) {
+    throw new Error("the engine does not offer Quest Completed");
   }
+  s = raw(s, { type: "play_event", cardId: quest! });
+  s = go(s, (x) => atEncounter(x) || idle(x), [ganked, "trash-encounter", ice]);
   return { s, ice, programs };
 }
 
@@ -181,16 +176,17 @@ function konjinInto(r: Report, iceDef: string, ganked: boolean) {
   const other = b.ice(iceDef, "rd");
   if (iceDef === "bullfrog") b.ice("ice-wall", "archives");
   const upgrade = ganked ? b.root("ganked", "hq") : undefined;
+  // Called where the walk has stopped: an open Psi Game not yet counted is
+  // one more that Konjin started.
   let games = 0;
-  const count = (x: GameState): undefined => {
+  const counted = new Set<number>();
+  const count = (x: GameState): void => {
     if (x.psi && !counted.has(x.log.length)) {
       counted.add(x.log.length);
       games += 1;
     }
-    return undefined;
   };
-  const counted = new Set<number>();
-  let s = go(run(b.s, "hq"), (x) => Boolean(x.psi) || !x.run, [], count);
+  let s = go(run(b.s, "hq"), (x) => Boolean(x.psi) || !x.run);
   if (ganked) {
     // First Konjin on the way in: equal bids, nothing happens.
     s = psi(s, 0, 0);
@@ -315,7 +311,10 @@ export const drivers: Record<string, Driver> = {
     } catch (error) {
       // Under the test suite's state check (src/debug/invariants.ts) the
       // step throws once the attacked server is gone: nothing can be read.
-      if (!(error instanceof TypeError)) throw error;
+      const fromCheck =
+        error instanceof TypeError &&
+        (error.stack ?? "").includes("invariants");
+      if (!fromCheck) throw error;
       const why =
         "the engine's state check throws when the attacked remote server ceases to exist";
       for (const observe of [
@@ -516,12 +515,11 @@ export const drivers: Record<string, Driver> = {
       s,
       (x) => !x.run || Boolean(x.psi) || !x.cards[other]!.rezzed || passed(x),
       ["continue"],
-      count,
     );
     debug("cell portal:", what(s), s.cards[other]!.rezzed);
     r.fact("attackedServer", attacked(s), "portal");
     r.snap("portal", s);
-    s = go(s, (x) => !x.run || Boolean(x.psi) || passed(x), ["decline"], count);
+    s = go(s, (x) => !x.run || Boolean(x.psi) || passed(x), ["decline"]);
     count(s);
     r.fact("konjinPsiGames", games(), "again");
     r.snap("again", s);
