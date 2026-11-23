@@ -270,7 +270,7 @@ export function fireAfterBreakSubroutineHooks(
     );
   }
   // Henry Phillips: gain N¢ on break during run on this server if Runner tagged.
-  if (state.run?.attackedServerId && effectiveRunnerTags(state) > 0) {
+  if (state.run?.attackedServerId && runnerIsTagged(state)) {
     const root = state.servers[state.run.attackedServerId]?.root ?? [];
     for (const sid of root) {
       const up = state.cards[sid];
@@ -1557,6 +1557,11 @@ export function pendingTrashAmong(
   sourceId: string,
   candidates: string[],
   label: string,
+  /**
+   * Who chooses and carries out the trash: the ability's controller, unless
+   * its text names the Runner ("The Runner trashes", CR 1.14.5).
+   */
+  chooser?: "corp" | "runner",
 ): EvalResult {
   if (candidates.length === 0) {
     log(state, `Trash ${label} — no targets (CR ${CR.trashing.number}).`);
@@ -1566,16 +1571,17 @@ export function pendingTrashAmong(
     state.pendingTrashProgram = {
       sourceId,
       candidates: [...candidates],
+      ...(chooser ? { chooser } : {}),
     };
     log(
       state,
-      `Trash ${label} — Corp must choose among ${candidates.length} (CR ${CR.trashing.number}).`,
+      `Trash ${label} — ${chooser === "runner" ? "Runner" : "Corp"} must choose among ${candidates.length} (CR ${CR.trashing.number}).`,
     );
     return { ok: true };
   }
   const id = candidates[0]!;
   const title = state.cards[id].title;
-  trashCard(state, id);
+  trashCard(state, id, chooser ? { by: chooser } : {});
   log(state, `Trash installed ${title} (CR ${CR.trashing.number}).`);
   return { ok: true };
 }

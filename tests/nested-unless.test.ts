@@ -135,7 +135,7 @@ describe("nested cost unless (CR 1.16.11b)", () => {
 
   it("resolves the instruction when a tag cost is unpayable (CR 1.16.1b)", () => {
     const s = withRun(5);
-    s.cards[s.runner.identityId]!.preventFirstTagThisTurn = true;
+    s.cards[s.runner.identityId]!.preventFirstTagEachRun = true;
     s.turn.tagsGivenThisTurn = 0;
     const r = evalEffect(
       { state: s, sourceId: "ice-1" },

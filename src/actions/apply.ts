@@ -376,7 +376,10 @@ function chooseTrashProgram(state: GameState, cardId: string): ApplyResult {
   const card = state.cards[cardId];
   // A subroutine's "trash a program": the Corp carries it out, unless it
   // names the Runner ("the Runner trashes 1 program"), CR 1.14.5.
-  trashCard(state, cardId, { by: pending.chooser ?? "corp" });
+  trashCard(state, cardId, {
+    by: pending.chooser ?? "corp",
+    ...(pending.preventable === false ? { preventable: false } : {}),
+  });
   state.pendingTrashProgram = null;
   log(state, `Trashes ${card.title} (CR ${CR.trashing.number}).`);
   // The ability resumes after this pause: the rest of its instruction
@@ -1323,6 +1326,9 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       }
       if (pending.forbidCorpRezIceDuringRun) {
         mods.forbidCorpRezIceDuringRun = true;
+      }
+      if (pending.preventAllTagsThisRun) {
+        mods.preventAllTagsThisRun = true;
       }
       if (pending.rfgFirstNonAgendaAccess) {
         mods.rfgFirstNonAgendaAccess = true;

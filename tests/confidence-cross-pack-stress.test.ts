@@ -25,7 +25,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.28");
+  assertCardsPinnedTag("v1.147.29");
 });
 
 function must(state: GameState, action: Action): GameState {
@@ -140,7 +140,7 @@ describe("cross-pack — prevent × cost: AirbladeX (TAI) × Funhouse nested (Ga
   it("Funhouse nested tag cost unpayable under Jesminder-class prevent → ETR", () => {
     let s = createInitialState();
     s = structuredClone(s);
-    s.cards[s.runner.identityId]!.preventFirstTagThisTurn = true;
+    s.cards[s.runner.identityId]!.preventFirstTagEachRun = true;
     s.turn.tagsGivenThisTurn = 0;
     s.run = {
       attackedServerId: "hq",

@@ -89,9 +89,13 @@ export function applyMumbadBfPrimitive(
 
   switch (action.kind) {
     case "rez_emp_device_limit_ice_this_run": {
-      if (state.run) {
+      // "The Corp cannot rez more than 1 piece of ice for the remainder of
+      // this run": ice rezzed before EMP Device was used do not count. A
+      // second use keeps the count the first one started, so it lifts
+      // nothing (CR 1.2.2).
+      if (state.run && state.run.bfMaxIceRezThisRun === undefined) {
         state.run.bfMaxIceRezThisRun = 1;
-        state.run.bfIceRezzedThisRun = state.run.bfIceRezzedThisRun ?? 0;
+        state.run.bfIceRezzedThisRun = 0;
       }
       log(
         state,
@@ -273,32 +277,13 @@ export function applyMumbadBfPrimitive(
       return offerDiscardDownToHandSize(ctx);
     }
 
-    case "add_hq_to_bottom_rd": {
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) {
-        log(state, `Disposable HQ — HQ empty.`);
-        return { ok: true };
-      }
-      for (const id of hq) {
-        state.corp.hand = state.corp.hand.filter((x) => x !== id);
-        state.corp.deck.push(id);
-        const card = state.cards[id]!;
-        card.zone = "corp:rd";
-        card.faceup = false;
-      }
-      log(
-        state,
-        `Disposable HQ — add ${hq.length} HQ card(s) to bottom of R&D.`,
-      );
-      return { ok: true };
-    }
-
     case "install_from_hq_new_remote": {
+      // New Construction: "install 1 card from HQ in the root of a new
+      // server". Ice is not installed in the root of a server (CR 3.4.2), so
+      // it is not offered.
       const eligible = state.corp.hand.filter((id) => {
         const t = state.cards[id]?.type;
-        return (
-          t === "asset" || t === "agenda" || t === "upgrade" || t === "ice"
-        );
+        return t === "asset" || t === "agenda" || t === "upgrade";
       });
       if (eligible.length === 0) {
         log(state, `New Construction — no installable HQ card.`);
@@ -471,9 +456,9 @@ export function applyMumbadBfPrimitive(
       const card = state.cards[id];
       if (!card) return { ok: true };
       card.advancementCounters = (card.advancementCounters ?? 0) + 1;
-      if (!state.turn.cannotScoreOrRezCardIds.includes(id)) {
-        state.turn.cannotScoreOrRezCardIds.push(id);
-      }
+      // "You cannot score that card until your next turn begins": scoring
+      // only, read by the score action and its legality (CR 1.2.2); the
+      // list clears when the Corp's next turn begins.
       state.bfCannotScoreUntilNextCorpTurn = [
         ...(state.bfCannotScoreUntilNextCorpTurn ?? []),
         id,

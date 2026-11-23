@@ -741,27 +741,6 @@ export function fireCorpOnTrash(
   });
 }
 
-/** Ronald Five: whenever Runner trashes a Corp card, they lose [click]. */
-export function fireRonaldFiveOnCorpTrash(state: GameState): void {
-  if (state.activeSide !== "runner") return;
-  for (const server of Object.values(state.servers)) {
-    for (const id of [...server.root]) {
-      const card = state.cards[id];
-      if (!card?.rezzed || !card.runnerLosesClickWhenTrashesCorpCard) continue;
-      if (abilitiesSuppressed(state, id)) continue;
-      if (state.runner.clicks > 0) {
-        state.runner.clicks -= 1;
-        log(
-          state,
-          `${card.title} — Runner loses [click] → ${state.runner.clicks}.`,
-        );
-      } else {
-        log(state, `${card.title} — Runner has no clicks to lose.`);
-      }
-    }
-  }
-}
-
 /** Friday Chip / Death and Taxes: Runner trashed a Corp card. */
 export function fireCotcOnCorpCardTrashed(state: GameState): void {
   for (const id of state.runner.installed) {

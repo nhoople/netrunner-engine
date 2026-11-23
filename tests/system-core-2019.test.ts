@@ -47,7 +47,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.59.0 kickoff", () => {
@@ -110,7 +110,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.60.0 A-slice", () => {
@@ -160,7 +160,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.61.0 B-slice", () => {
@@ -219,7 +219,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.62.0 C-slice", () => {
@@ -303,7 +303,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.63.0 D-slice", () => {
@@ -384,7 +384,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.64.0 E-slice", () => {
@@ -467,7 +467,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.65.0 F-slice", () => {
@@ -527,7 +527,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.66.0 G-slice", () => {
@@ -708,7 +708,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.69.0 H-slice", () => {
@@ -808,7 +808,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.69.0 I-slice", () => {
@@ -960,7 +960,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.69.0 J-slice", () => {
@@ -1096,7 +1096,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.70.0 K-slice", () => {
@@ -1217,7 +1217,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.71.0 L-slice", () => {
@@ -1314,7 +1314,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.72.0 M-slice", () => {
@@ -1461,7 +1461,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.73.0 N-slice", () => {
@@ -1596,7 +1596,7 @@ describe("system-core-2019", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("System Core 2019 v1.74.0 O-slice set-complete", () => {

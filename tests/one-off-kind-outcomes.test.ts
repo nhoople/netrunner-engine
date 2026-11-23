@@ -40,7 +40,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.28");
+  assertCardsPinnedTag("v1.147.29");
 });
 
 function put(
@@ -73,6 +73,23 @@ function choose(s: GameState, optionId: string): GameState {
   const r = applyAction(s, { type: "choose_option", optionId });
   if (!r.ok) throw new Error(`${optionId}: ${r.error}`);
   return r.state;
+}
+
+/**
+ * Answer the open choice by resolving its option directly, as `runKind`
+ * resolves a kind (unit level, no action).
+ */
+function answer(s: GameState, optionId: string): void {
+  const choice = s.pendingChoice;
+  const option = choice?.options.find((o) => o.id === optionId);
+  if (!choice || !option) {
+    throw new Error(
+      `No option ${optionId}; open: ${(choice?.options ?? []).map((o) => o.id).join(", ")}`,
+    );
+  }
+  s.pendingChoice = null;
+  const r = evalEffect({ state: s, sourceId: choice.sourceId }, option.effect);
+  if (!r.ok) throw new Error(`${optionId}: ${r.error ?? "failed"}`);
 }
 
 describe("one-off kind outcomes (batch A: immediate effects)", () => {
@@ -896,13 +913,10 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.deck = ["hf-1", "hf-2"];
     s.corp.hand = [];
     runKind(s, "lpl-1", "search_rd_copies_to_hq");
-    const opt = s.pendingChoice?.options[0];
-    expect(opt?.label).toContain("2×");
-    const after = applyAction(s, { type: "choose_option", optionId: opt!.id });
-    if (!after.ok) throw new Error(after.error);
-    expect(after.state.corp.hand).toEqual(
-      expect.arrayContaining(["hf-1", "hf-2"]),
-    );
+    // The Corp picks the copies one at a time (CR 8.7.2e).
+    answer(s, "choose-card:hf-1");
+    answer(s, "choose-card:hf-2");
+    expect(s.corp.hand).toEqual(expect.arrayContaining(["hf-1", "hf-2"]));
   });
 
   it("Executive Boot Camp: may rez an installed card at a discount", () => {
@@ -2053,9 +2067,11 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     s.corp.hand = ["hq-1", "hq-2"];
     s.corp.deck = ["rd-1"];
     runKind(s, "dhq-1", "add_hq_to_bottom_rd");
+    // The Corp picks which cards, in the order they go under R&D.
+    answer(s, "choose-card:hq-2");
+    answer(s, "choose-card:hq-1");
     expect(s.corp.hand).toEqual([]);
-    expect(s.corp.deck[0]).toBe("rd-1");
-    expect(new Set(s.corp.deck.slice(1))).toEqual(new Set(["hq-1", "hq-2"]));
+    expect(s.corp.deck).toEqual(["rd-1", "hq-2", "hq-1"]);
   });
 
   it("Bloo Moose: removing a heap card from the game gains 2 credits", () => {
@@ -2251,7 +2267,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "fin-1", "search_rd_any_card_to_hq");
     const after = applyAction(s, {
       type: "choose_option",
-      optionId: "futurenow:rd-2",
+      optionId: "choose-card:rd-2",
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.hand).toEqual(["rd-2"]);
@@ -3153,7 +3169,7 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
   it("Drive By: exposes an unrezzed remote root card and trashes it if asset or upgrade", () => {
     const s = createInitialState();
     put(s, "drive-by", "db-1", "runner:play");
-    put(s, "adonis-campaign", "as-1", "remote:1:root");
+    put(s, "adonis-campaign", "as-1", "server:remote-1:root");
     s.servers["remote-1"] = {
       id: "remote-1",
       kind: "remote",
@@ -4495,7 +4511,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.cards["ag-1"]?.advancementCounters).toBe(1);
-    expect(after.state.turn.cannotScoreOrRezCardIds).toContain("ag-1");
+    // Scoring only: the card can still be rezzed (CR 1.2.1).
+    expect(after.state.bfCannotScoreUntilNextCorpTurn).toContain("ag-1");
+    expect(after.state.turn.cannotScoreOrRezCardIds).not.toContain("ag-1");
   });
 
   it("Builder: places an advancement on an advanceable ice protecting its server", () => {
@@ -6301,8 +6319,12 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "dorm-computer", "dc-1", "runner:installed");
     s.runner.installed = ["dc-1"];
     runKind(s, "dc-1", "prevent_dorm_computer_run_all_tags");
-    expect(s.turn.bbPreventAllTagsThisRun).toBe(true);
     expect(s.pendingChoice?.chooser).toBe("runner");
+    // The prevention rides on the run the ability starts.
+    const run = s.pendingChoice!.options.find((o) => o.id === "run:hq")!;
+    expect(JSON.stringify(run.effect)).toContain(
+      '"preventAllTagsThisRun":true',
+    );
   });
 
   it("Zaibatsu Loyalty: prevent_pending_expose stops the expose", () => {
@@ -6455,6 +6477,8 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     put(s, "sure-gamble", "sg-1", "runner:hand");
     s.runner.hand = ["sg-1"];
     runKind(s, "rav-1", "resolve_bioroid_subroutine");
+    // The Corp chooses which subroutine (CR 1.15.2).
+    answer(s, "sub:vik-1:0");
     expect(s.runner.coreDamage).toBe(1);
     expect(s.runner.hand).toEqual([]);
   });
@@ -7166,10 +7190,13 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
       root: ["mch-1"],
     } as GameState["servers"][string];
     runKind(s, "mch-1", "search_alliance_play_or_install");
-    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual(["mch:pr-1"]);
+    expect(s.pendingChoice?.options.map((o) => o.id)).toEqual([
+      "choose-card:pr-1",
+      "choose-cards-done",
+    ]);
     const after = applyAction(s, {
       type: "choose_option",
-      optionId: "mch:pr-1",
+      optionId: "choose-card:pr-1",
     });
     if (!after.ok) throw new Error(after.error);
     expect(after.state.corp.deck).not.toContain("pr-1");
@@ -7234,6 +7261,9 @@ describe("one-off kind outcomes (batch A: immediate effects)", () => {
     runKind(s, "rt-1", "search_rd_up_to_x_subtype_to_hq", {
       subtype: "sysop",
     });
+    // The Corp chooses each sysop (CR 8.7.2e).
+    answer(s, "choose-card:sys-1");
+    answer(s, "choose-card:sys-2");
     expect(s.corp.hand).toEqual(expect.arrayContaining(["sys-1", "sys-2"]));
     expect(s.corp.hand).toHaveLength(2);
     expect(s.corp.deck).toEqual(["hf-1"]);

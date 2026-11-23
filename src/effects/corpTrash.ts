@@ -10,7 +10,6 @@ import { agendaPointsFor } from "../state/scoring.js";
 import {
   fireCorpOnTrash,
   fireCotcOnCorpCardTrashed,
-  fireRonaldFiveOnCorpTrash,
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
   noteTrashMatchingRunnerIdentityFaction,
@@ -28,6 +27,53 @@ import {
   fireOnRezzedCardTrashed,
   fireOnRunnerTrashFromThisServerRootOrProtecting,
 } from "../state/miscConditionalHooks.js";
+
+/**
+ * Ronald Five: "Whenever the Runner trashes a Corp card (including this
+ * asset), they lose [click]." Only a Runner trash meets it (CR 1.14.5a).
+ * Ronald Five trashed by the Runner meets its own trigger condition as it
+ * moves to Archives, and the ability stays active until it resolves
+ * (CR 9.1.8g).
+ * The click is lost through the lose-click procedure (`lose_clicks`).
+ */
+function fireRonaldFiveOnRunnerTrash(
+  state: GameState,
+  trashedId: string,
+  trashedBy: "corp" | "runner" | null | undefined,
+  wasRezzed: boolean,
+): void {
+  if (trashedBy !== "runner") return;
+  const sources: string[] = [];
+  for (const server of Object.values(state.servers)) {
+    for (const id of server.root) {
+      const card = state.cards[id];
+      if (!card?.rezzed || !card.runnerLosesClickWhenTrashesCorpCard) continue;
+      if (abilitiesSuppressed(state, id)) continue;
+      sources.push(id);
+    }
+  }
+  if (
+    wasRezzed &&
+    state.cards[trashedId]?.runnerLosesClickWhenTrashesCorpCard &&
+    !sources.includes(trashedId)
+  ) {
+    sources.push(trashedId);
+  }
+  for (const id of sources) {
+    log(
+      state,
+      `${state.cards[id]!.title} — the Runner trashed a Corp card; they lose [click] (CR ${CR.abilityRemainsActive.number}).`,
+    );
+    const r = evalEffect(
+      { state, sourceId: id },
+      {
+        op: "do",
+        action: { kind: "lose_clicks", side: "runner", amount: 1 },
+      },
+    );
+    if (!r.ok) log(state, `${state.cards[id]!.title} — ${r.error}`);
+  }
+}
 
 function maybeFireThreatGiveTagsOnRezzedTrash(
   state: GameState,
@@ -241,7 +287,11 @@ export function noteCorpCardTrashedToArchives(
   ) {
     fireCorpOnTrash(state, cardId, origin.simultaneousSet);
   }
-  fireRonaldFiveOnCorpTrash(state);
+  // A simultaneous set marks Ronald Five for every card of the set
+  // (trashCorpCardSet, CR 9.12.2a).
+  if (!origin.simultaneousSet) {
+    fireRonaldFiveOnRunnerTrash(state, cardId, trashedBy, wasRezzed);
+  }
   fireCotcOnCorpCardTrashed(state);
   noteTrashMatchingRunnerIdentityFaction(state, cardId);
   state.turn.onTrashSourceServerId = null;

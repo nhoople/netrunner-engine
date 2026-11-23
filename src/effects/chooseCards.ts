@@ -205,9 +205,19 @@ export function applyChooseCards(
 ): PrimResult | null {
   if (action.kind !== "choose_cards") return null;
   const { state, sourceId } = ctx;
-  const left = action.candidates.filter(
-    (id) => state.cards[id] && !action.picked.includes(id),
+  const pickedTitles = new Set(
+    action.picked.map((id) => state.cards[id]?.title),
   );
+  const firstTitle = state.cards[action.picked[0] ?? ""]?.title;
+  const left = action.candidates.filter((id) => {
+    const card = state.cards[id];
+    if (!card || action.picked.includes(id)) return false;
+    if (action.titles === "distinct") return !pickedTitles.has(card.title);
+    if (action.titles === "same" && firstTitle !== undefined) {
+      return card.title === firstTitle;
+    }
+    return true;
+  });
   // A search of a hidden deck asks for `count` cards whatever matches, so
   // the other player cannot tell how many matches exist (CR 8.7.2e, 10.2.2b).
   const search = Boolean(action.search);
@@ -297,6 +307,8 @@ export function chooseCards(args: {
   open?: boolean;
   /** A search of a hidden deck with criteria (CR 8.7.2e); see the IR field. */
   search?: boolean;
+  /** Each pick a different title, or every pick the first pick's title. */
+  titles?: "distinct" | "same";
   then?: Effect;
 }): Effect {
   return {
@@ -313,6 +325,7 @@ export function chooseCards(args: {
       ...(args.label ? { label: args.label } : {}),
       ...(args.open ? { open: true } : {}),
       ...(args.search ? { search: true } : {}),
+      ...(args.titles ? { titles: args.titles } : {}),
       ...(args.then ? { then: structuredClone(args.then) } : {}),
     },
   };

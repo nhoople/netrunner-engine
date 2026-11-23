@@ -1,5 +1,5 @@
 {
-  "cardsPin": "v1.147.28",
+  "cardsPin": "v1.147.29",
   "counts": {
     "cardDefFlags": 603,
     "cardDefBoolean": 333,
@@ -16,7 +16,7 @@
       "string": 13
     },
     "entries": 866,
-    "withKindBuildingReader": 51,
+    "withKindBuildingReader": 52,
     "unread": 14,
     "unset": 18
   },
@@ -69,6 +69,9 @@
     ],
     "hostGainsLoseClickBreakAnySubroutine": [
       "break_any_subroutine"
+    ],
+    "hostsConnectionResources": [
+      "draw"
     ],
     "iceGainsTrashToResolveChosenSubOnEncounter": [
       "gain_credits"
@@ -3299,7 +3302,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/tags.ts#effectiveRunnerTags",
+          "site": "src/state/tags.ts#runnerIsTagged",
           "kinds": []
         }
       ],
@@ -6284,14 +6287,18 @@
       "readers": [
         {
           "site": "src/actions/installRunner.ts#installRunner",
-          "kinds": []
+          "kinds": [
+            "draw"
+          ]
         },
         {
           "site": "src/legality/candidateClicks.ts#addClickActions",
           "kinds": []
         }
       ],
-      "kinds": []
+      "kinds": [
+        "draw"
+      ]
     },
     "hostsUniqueCompanionOrConnectionResources": {
       "cardDef": "other",
@@ -6614,6 +6621,10 @@
       ],
       "readers": [
         {
+          "site": "src/actions/access.ts#stealForbiddenThisAccess",
+          "kinds": []
+        },
+        {
           "site": "src/actions/costCards.ts#costHasChoice",
           "kinds": []
         },
@@ -6663,10 +6674,6 @@
         },
         {
           "site": "src/effects/primitives/hostResolveLook.ts#applyMumbadDagPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookTrashAdd.ts#applyMumbadSiPrimitive",
           "kinds": []
         },
         {
@@ -8018,10 +8025,9 @@
       "cardDef": "number",
       "schema": "integer",
       "flag": true,
-      "cardCount": 14,
+      "cardCount": 13,
       "cards": [
         "baba-yaga",
-        "bookmark",
         "cupellation",
         "dhegdheer",
         "dinosaurus",
@@ -13963,6 +13969,10 @@
       ],
       "readers": [
         {
+          "site": "src/state/staticFlags.ts#onRunnerTurnEnds",
+          "kinds": []
+        },
+        {
           "site": "src/timing/graph.ts#STEPS.onResolve",
           "kinds": [
             "choose_patron_server"
@@ -16017,7 +16027,7 @@
       ],
       "kinds": []
     },
-    "preventFirstTagThisTurn": {
+    "preventFirstTagEachRun": {
       "cardDef": "boolean",
       "schema": "boolean",
       "flag": true,
@@ -16030,7 +16040,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/tagPrimitives.ts#findPreventFirstTagThisTurn",
+          "site": "src/effects/tagPrimitives.ts#findPreventFirstTagEachRun",
           "kinds": []
         }
       ],
@@ -17816,7 +17826,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/trashHooks.ts#fireRonaldFiveOnCorpTrash",
+          "site": "src/effects/corpTrash.ts#fireRonaldFiveOnRunnerTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/trashKinds.ts#trashCorpCardSet",
           "kinds": []
         }
       ],
@@ -18224,6 +18238,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/kinds/trashKinds.ts#trashChooser",
+          "kinds": []
+        },
+        {
           "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
           "kinds": []
         },
@@ -18363,6 +18381,10 @@
         },
         {
           "site": "src/legality/priority.ts#paidAbilityActor",
+          "kinds": []
+        },
+        {
+          "site": "src/state/abilities.ts#runnerCannotUseProgram",
           "kinds": []
         },
         {
@@ -19684,6 +19706,10 @@
         },
         {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/trashKinds.ts#trashChooser",
           "kinds": []
         },
         {
@@ -21039,6 +21065,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/corpTrash.ts#fireRonaldFiveOnRunnerTrash",
+          "kinds": []
+        },
+        {
           "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         },
@@ -21300,6 +21330,10 @@
         },
         {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds.offerInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/kinds/searchKinds.ts#finishRdSearchToHq",
           "kinds": []
         },
         {
@@ -22700,10 +22734,6 @@
         },
         {
           "site": "src/state/trashHooks.ts#fireOnUninstall",
-          "kinds": []
-        },
-        {
-          "site": "src/state/trashHooks.ts#fireRonaldFiveOnCorpTrash",
           "kinds": []
         },
         {
@@ -24171,6 +24201,10 @@
         },
         {
           "site": "src/legality/query.ts#gateAction",
+          "kinds": []
+        },
+        {
+          "site": "src/state/abilities.ts#runnerCannotUseProgram",
           "kinds": []
         },
         {

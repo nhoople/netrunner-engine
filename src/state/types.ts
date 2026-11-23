@@ -1054,11 +1054,11 @@ export interface CardInstance {
   /** Effect IR the first time the Runner receives a tag each turn (identities). */
   onFirstTagThisTurn?: Effect;
   /**
-   * Jesminder-class: the first time each turn you would take a tag, prevent
+   * Jesminder Sareen: the first time each run you would take tags, prevent
    * 1 tag. Also makes nested costs that require taking that tag unpayable
    * (CR 1.16.1b).
    */
-  preventFirstTagThisTurn?: boolean;
+  preventFirstTagEachRun?: boolean;
   /**
    * Runner identity: taking tags when the Runner had none at the previous
    * checkpoint (Sebastião; CR 9.6.6a — marked at 10.3.1a).
@@ -3123,8 +3123,6 @@ export interface TurnBookkeeping {
   valBasicClickDrawTriggerCount: number;
   /** Valley: successful-run trigger count for genetics (Enhanced Vision). */
   valSuccessfulRunTriggerCount: number;
-  /** Breaker Bay: Dorm Computer — prevent all tags for the current/queued run. */
-  bbPreventAllTagsThisRun?: boolean;
   /** Breaker Bay: Recruiting Trip — last chosen play cost X. */
   lastPlayCostX?: number;
   /** Chrome City: Analog Dreamers started this R&D run. */
@@ -4689,6 +4687,13 @@ export interface RunState {
   tlmTurningWheelBonusServer?: "hq" | "rd";
   /** The Noble Path / similar: prevent all Runner damage this run. */
   preventAllDamageThisRun?: boolean;
+  /** Dorm Computer: prevent all tags the Runner would take during this run. */
+  preventAllTagsThisRun?: boolean;
+  /**
+   * The Runner would have taken tags during this run at least once
+   * (Jesminder Sareen's "the first time each run", CR 9.9.5a).
+   */
+  runnerWouldTakeTagsThisRun?: boolean;
   /** Dedicated Neural Net: Corp chooses which HQ cards are accessed. */
   tlmCorpChoosesHqAccess?: boolean;
   /** Ansel: Runner cannot steal or trash Corp cards this run. */
@@ -5559,6 +5564,8 @@ interface PendingTrashProgram {
   candidates: string[];
   /** Who chooses the card to trash (CR 1.14.5). */
   chooser?: "corp" | "runner";
+  /** `false` when the text says the trash "cannot be prevented". */
+  preventable?: false;
 }
 
 /** Corp resolves sabotage N by choosing HQ cards; remainder from R&D top (CR §10.12). */
@@ -5802,6 +5809,8 @@ export interface GameState {
     hiredHelpAgendaTaxPaid?: boolean;
     /** Cyber Threat: the Corp cannot rez ice during this run. */
     forbidCorpRezIceDuringRun?: boolean;
+    /** Dorm Computer: prevent all tags during this run. */
+    preventAllTagsThisRun?: boolean;
     rfgFirstNonAgendaAccess?: boolean;
     lastingRfgCopiesOnAccess?: boolean;
     /** Always Have a Backup Plan: ignore additional costs to run; bypass this ice. */
@@ -6297,6 +6306,7 @@ export interface PublicView {
     onRunEndEffect?: import("../effects/ir.js").Effect;
     hiredHelpAgendaTaxPaid?: boolean;
     forbidCorpRezIceDuringRun?: boolean;
+    preventAllTagsThisRun?: boolean;
     rfgFirstNonAgendaAccess?: boolean;
     lastingRfgCopiesOnAccess?: boolean;
     /** Always Have a Backup Plan: ignore additional costs to run; bypass this ice. */

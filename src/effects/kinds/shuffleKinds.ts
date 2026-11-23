@@ -32,6 +32,44 @@ export function applyShuffleKinds(
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
+    case "add_hq_to_bottom_rd": {
+      // Disposable HQ: "you may add any number of cards from HQ to the
+      // bottom of R&D." The Corp, who resolves it, chooses which cards and
+      // their order: each pick goes under the ones before it (CR 1.14.5,
+      // 1.15.2). The Runner does not see which cards (CR 10.2.2a).
+      if (!action.cardIds) {
+        if (state.corp.hand.length === 0) {
+          log(state, `${source.title} — HQ is empty.`);
+          return { ok: true };
+        }
+        return evalEffect(
+          ctx,
+          chooseCards({
+            chooser: "corp",
+            candidates: [...state.corp.hand],
+            count: state.corp.hand.length,
+            upTo: true,
+            purpose: "resume",
+            label: "add to the bottom of R&D (each under the last)",
+            resume: { ...action },
+          }),
+        );
+      }
+      const moved = action.cardIds.filter((id) => state.corp.hand.includes(id));
+      for (const id of moved) {
+        removeCardFromCurrentZone(state, id);
+        state.corp.deck.push(id);
+        const card = state.cards[id]!;
+        card.zone = "corp:rd";
+        card.faceup = false;
+      }
+      log(
+        state,
+        `${source.title} — add ${moved.length} HQ card(s) to the bottom of R&D.`,
+      );
+      return { ok: true };
+    }
+
     case "shuffle_hq_to_rd": {
       // The Corp chooses which cards leave HQ (CR 1.15.2). When the
       // instruction takes all of HQ there is nothing to choose.

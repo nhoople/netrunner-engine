@@ -212,9 +212,11 @@ function actorFor(action: Action, state: GameState): Side | "system" {
     case "score_agenda":
     case "basic_purge_virus":
     case "boost_trace":
-    case "choose_trash_program":
     case "basic_trash_resource":
       return "corp";
+    // "The Runner trashes ..." gives the Runner the choice (CR 1.14.5).
+    case "choose_trash_program":
+      return state.pendingTrashProgram?.chooser ?? "corp";
     case "resolve_sabotage":
       return "corp";
     case "choose_option":

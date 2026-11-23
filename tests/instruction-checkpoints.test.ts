@@ -77,7 +77,7 @@ beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
   if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
   assertPinnedTag("v26.03");
-  assertCardsPinnedTag("v1.147.28");
+  assertCardsPinnedTag("v1.147.29");
 });
 
 function must(
@@ -1012,16 +1012,19 @@ describe("instruction checkpoints (CR 9.11.1)", () => {
     expect(s.cards["rt-1"]?.zone).toBe("corp:play-area");
 
     s = must(s, { type: "choose_option", optionId: "play-cost-x:1" });
+    // The Corp chooses which sysop it finds (CR 8.7.2e).
+    s = must(s, { type: "choose_option", optionId: "choose-card:sd-1" });
 
     const chosen = at(s.log, "X chosen as 1");
     const paid = at(s.log, "Play cost of 1¢ paid");
     const resolve = at(s.log, "Resolve play abilities of Recruiting Trip");
-    const used = at(s.log, "Recruiting Trip — shuffle R&D (X=1)");
-    const complete = at(s.log, "Play effect complete");
+    const used = at(
+      s.log,
+      "Recruiting Trip — shuffle R&D, reveal Simone Diego",
+    );
     expect(chosen).toBeLessThan(paid);
     expect(paid).toBeLessThan(resolve);
     expect(resolve).toBeLessThan(used);
-    expect(used).toBeLessThan(complete);
     expect(s.log[chosen]).toContain(CR.playCostX.number);
     expect(s.corp.credits).toBe(2);
     expect(s.corp.hand).toContain("sd-1");

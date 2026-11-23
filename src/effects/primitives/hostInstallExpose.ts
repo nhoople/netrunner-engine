@@ -1,7 +1,7 @@
 /** The Underway (uw) SanSan pack primitives. */
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
-import { beginExpose } from "../../state/expose.js";
+import { exposeLegalTargets } from "../../state/expose.js";
 import type { RuleCite } from "../../state/types.js";
 import { fireOnInstall } from "../../state/cardLifecycleHooks.js";
 import type { EffectCtx } from "../eval.js";
@@ -103,16 +103,19 @@ export function applySansanUwPrimitive(
     }
 
     case "expose_and_trash_remote_root": {
-      const targets: string[] = [];
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (sid === "hq" || sid === "rd" || sid === "archives") continue;
-        for (const id of server.root) {
-          const c = state.cards[id];
-          if (!c || c.side !== "corp") continue;
-          if (c.rezzed) continue;
-          targets.push(id);
-        }
-      }
+      // Drive By: "Expose 1 card installed in the root of a remote server."
+      // Only a card that can be exposed is a target (Underway Grid's
+      // server is not, CR 1.21.4).
+      const targets = exposeLegalTargets(state).filter((id) => {
+        const zone = state.cards[id]?.zone ?? "";
+        const m = /^server:([^:]+):root$/.exec(zone);
+        const server = m
+          ? (state.servers as Record<string, { kind: string } | undefined>)[
+              m[1]!
+            ]
+          : undefined;
+        return server?.kind === "remote";
+      });
       if (targets.length === 0) {
         log(state, `Drive By — no unrezzed remote root card to expose.`);
         return { ok: true };
@@ -120,15 +123,32 @@ export function applySansanUwPrimitive(
       openPendingChoose(state, {
         sourceId,
         chooser: "runner",
+        // Labelled by place: the cards are facedown (CR 10.2.2a).
         options: targets.map((id) => ({
           id: `driveby:${id}`,
-          label: `Expose ${state.cards[id]!.title}`,
+          label: `Expose the card in the root of ${state.cards[id]!.zone.split(":")[1]}`,
+          // The expose may wait on the Corp (an interrupt, a rez first);
+          // the trash follows only once it has happened.
           effect: {
-            op: "do" as const,
-            action: {
-              kind: "expose_resolve" as const,
-              cardId: id,
-            },
+            op: "seq" as const,
+            effects: [
+              {
+                op: "do" as const,
+                action: {
+                  kind: "expose" as const,
+                  pick: "choose" as const,
+                  cardId: id,
+                },
+              },
+              {
+                op: "do" as const,
+                action: {
+                  kind: "expose_resolve" as const,
+                  cardId: id,
+                  exposuresBefore: state.turn.exposureCounts?.[id] ?? 0,
+                },
+              },
+            ],
           },
         })),
         logLine: `Drive By — choose a remote root card to expose.`,
@@ -137,10 +157,22 @@ export function applySansanUwPrimitive(
     }
 
     case "expose_resolve": {
+      // "If you do and that card is an asset or upgrade, trash it": only a
+      // card this expose exposed, still installed and unrezzed, is trashed.
+      // The turn's exposure count tells: a prevented expose adds none, even
+      // for a card left faceup by an earlier expose (CR 1.21.4, 9.6.10).
       const cardId = action.cardId;
       const card = state.cards[cardId];
       if (!card) return { ok: true };
-      beginExpose(state, cardId);
+      const exposed =
+        card.zone.startsWith("server:") &&
+        !card.rezzed &&
+        (state.turn.exposureCounts?.[cardId] ?? 0) >
+          (action.exposuresBefore ?? 0);
+      if (!exposed) {
+        log(state, `Drive By — ${cardId} was not exposed; nothing to trash.`);
+        return { ok: true };
+      }
       if (card.type === "asset" || card.type === "upgrade") {
         trashCard(state, cardId, { by: "runner" });
         log(state, `Drive By — trash exposed ${card.title}.`);

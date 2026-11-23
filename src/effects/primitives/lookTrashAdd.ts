@@ -1,5 +1,6 @@
 /** Salsette Island (si) Mumbad pack primitives — v1.119.0. */
 import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
@@ -274,58 +275,6 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "search_rd_copies_to_hq": {
-      const byDef = new Map<string, string[]>();
-      for (const id of state.corp.deck) {
-        const c = state.cards[id];
-        if (!c?.defId) continue;
-        const list = byDef.get(c.defId) ?? [];
-        list.push(id);
-        byDef.set(c.defId, list);
-      }
-      const options = [...byDef.entries()].map(([defId, ids]) => ({
-        id: `lpl:${defId}`,
-        label: `Take ${ids.length}× ${state.cards[ids[0]!]!.title}`,
-        effect: fx.do({
-          kind: "take_copies",
-          defId,
-        }),
-      }));
-      if (options.length === 0) {
-        shuffleInPlace(state, state.corp.deck);
-        log(state, `Localized Product Line — R&D empty; shuffle.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-      });
-      return { ok: true };
-    }
-
-    case "take_copies": {
-      const defId = action.defId;
-      const matches = state.corp.deck.filter(
-        (id) => state.cards[id]?.defId === defId,
-      );
-      for (const id of matches) {
-        const card = state.cards[id]!;
-        state.corp.deck = state.corp.deck.filter((x) => x !== id);
-        state.corp.hand.push(id);
-        card.zone = "corp:hq";
-        card.faceup = false;
-        revealCards(state, [card.id], sourceId);
-        log(state, `Localized Product Line — reveal ${card.title}, add to HQ.`);
-      }
-      shuffleInPlace(state, state.corp.deck);
-      log(
-        state,
-        `Localized Product Line — added ${matches.length} copy/copies; shuffle R&D.`,
-      );
-      return { ok: true };
-    }
-
     case "may_swap_drawn": {
       const drawnId = action.cardId;
       const drawn = state.cards[drawnId];
@@ -496,6 +445,8 @@ export function fireSiAfterPaidAbilityClicks(
     for (const rid of server.root) {
       const jeeves = state.cards[rid];
       if (!jeeves?.rezzed) continue;
+      // A blanked Jeeves gives no click (CR 9.1.9a).
+      if (abilitiesSuppressed(state, rid)) continue;
       const need = jeeves.gainClickFirstTimeSpendClicksGteOnSameActionEachTurn;
       if (typeof need !== "number" || clicksSpent < need) continue;
       state.corp.clicks += 1;

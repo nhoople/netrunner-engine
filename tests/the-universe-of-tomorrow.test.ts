@@ -18,7 +18,7 @@ describe("the-universe-of-tomorrow", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("The Universe of Tomorrow v1.114.0 set-complete", () => {
@@ -43,7 +43,8 @@ describe("the-universe-of-tomorrow", () => {
         expect(
           getCardDef("fisk-investment-seminar").playRequiresFirstClick,
         ).toBe(true);
-        expect(getCardDef("bookmark").maxHostedCards).toBe(3);
+        // Bookmark hosts up to 3 per use, with no total limit (PF-S3d).
+        expect(getCardDef("bookmark").maxHostedCards).toBeUndefined();
         expect(getCardDef("davinci").onSuccessfulRun).toBeTruthy();
         expect(
           getCardDef("wireless-net-pavilion")

@@ -216,6 +216,7 @@ export function startRun(
         bypassFirstEncounterForClicks: mods.bypassFirstEncounterForClicks,
         rfgFirstNonAgendaAccess: mods.rfgFirstNonAgendaAccess,
         lastingRfgCopiesOnAccess: mods.lastingRfgCopiesOnAccess,
+        preventAllTagsThisRun: mods.preventAllTagsThisRun,
       };
       log(
         state,
@@ -345,6 +346,7 @@ export function startRun(
     skipBreach: mods.skipBreach ?? false,
     ...(mods.skipBreach ? { skipBreachFromRunStart: true } : {}),
     preventAllDamageThisRun: mods.preventAllDamageThisRun ?? false,
+    ...(mods.preventAllTagsThisRun ? { preventAllTagsThisRun: true } : {}),
     immolationScriptAccessReplace: mods.immolationScriptAccessReplace ?? false,
     accessTrashFree: mods.accessTrashFree ?? false,
     trashFirstNonAgendaAccessCorpMayPayRezOrPlayCostToPrevent:

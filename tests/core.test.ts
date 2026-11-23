@@ -32,7 +32,7 @@ describe("core", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("FFG Core Set final 7 clears", () => {
@@ -404,7 +404,7 @@ describe("core", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("FFG Core Set kickoff (floor v1.86.0 → set-complete v1.87.0)", () => {
@@ -535,7 +535,7 @@ describe("core", () => {
       if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
       if (!cardsDataPresent()) throw new Error("Run npm run fetch-cards");
       assertPinnedTag("v26.03");
-      assertCardsPinnedTag("v1.147.28");
+      assertCardsPinnedTag("v1.147.29");
     });
 
     describe("FFG Core Set additional clears (floor v1.86.0 → v1.87.0)", () => {

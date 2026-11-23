@@ -99,6 +99,17 @@
         "cardDefFlags": 603
       },
       "reason": "PF-S3c: Architect installs without rezzing (CR 8.5.2), which its kind's install-and-rez does not allow, so it gets look_top_n_rd_may_install_ignore_install_cost; Eliza's Toybox rezzes any card, not only ice, so it gets rez_card_ignoring_costs (both one-card kinds). Three card fields are new, each a printed rule no field said: Domestic Sleepers is worth a flat point while it has an agenda counter (agendaPointsWhileHasAgendaCounter; Market Research keeps its per-counter field), The Board lowers every agenda in the Runner's score area while it is active (runnerScoredAgendaPointsModifier; Global Food Initiative keeps its own-card field), and I've Had Worse's trigger is met only by net or meat damage (trashFromGripTriggerOnlyByNetOrMeatDamage; Steelskin Scarring and Strike Fund keep the any-trash trigger). Medical Breakthrough's field is renamed (advancementRequirementReductionPerScoredCopy). Known kinds shrink: the three trace_*_success kinds, prevent_llds_trash_hardware, prevent_pending_when_encountered, add_hw_to_grip and Independent Thinking's two follow-ups are gone, and one engine follow-up, resolve_if_trace_strength_at_least, is new."
+    },
+    {
+      "date": "2026-11-22",
+      "engine": "v1.147.286",
+      "cards": "v1.147.29",
+      "counts": {
+        "knownPrimitiveKinds": 1526,
+        "oneCardKinds": 750,
+        "cardDefFlags": 603
+      },
+      "reason": "PF-S3d: Advanced Assembly Lines prints a mandatory install from HQ, and may_install_from_hq_paying_costs offers a Decline, so it gets install_from_hq_paying_costs (a one-card kind for now; Bioroid Work Crew and Red Level Clearance print the same mandatory install and can use it when area 5 takes them). Jesminder Sareen's field is renamed (preventFirstTagEachRun). Known kinds: take_copies and resolve_mumbad_city_hall_alliance are gone (Localized Product Line and Mumbad City Hall search through chooseCards), and one engine follow-up, resolve_ice_subroutine, is new: a subroutine resolved by Ravana 1.0, Orion, Wormhole, Upayoga or Mycoweb now resolves as its own ice's (net 1526, as before)."
     }
   ]
 }

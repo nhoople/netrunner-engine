@@ -1,5 +1,5 @@
 {
-  "cardsPin": "v1.147.28",
+  "cardsPin": "v1.147.29",
   "crPin": "v26.03",
   "sessions": [
     {
@@ -316,15 +316,16 @@
     },
     "advanced-assembly-lines": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "[trash]: Install a non-agenda card from HQ (paying the install cost)."
       ],
-      "note": "may_install_from_hq_paying_costs offers a Decline after the trash cost is paid; the printed install is mandatory (as Clone Chip and Early Bird). Fix: a mandatory variant of the kind for this card (Red Level Clearance and Bioroid Work Crew are mandatory too). Gain 3 on rez and the no-run limit match.",
+      "note": "Area 5 (moved). The install goes through install_hq_card_paying_costs, which always makes a new remote (ice included), as Red Level Clearance. Fixed in engine#1006 (card JSON cards v1.147.29): the new kind install_from_hq_paying_costs offers no Decline, and the Runner does not see how many HQ cards could be installed (10.2.2a). Gain 3 on rez and the no-run limit match (test \"installs a non-agenda card from HQ with no Decline once its ability resolves (CR 1.2.1, 1.15.2e)\").",
       "cr": [
         "1.2.1",
         "1.16.4b",
-        "9.5.3"
+        "9.5.3",
+        "8.5.2a"
       ]
     },
     "advanced-concept-hopper": {
@@ -392,15 +393,16 @@
     },
     "aghora": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "1[credit]: +1 strength.",
         "2[credit]: Swap this program with a deva program from your grip."
       ],
-      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b; area 3 lists it). The break on ice with rez cost 5 or more matches.",
+      "note": "Area 3 (moved). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b); it waits for the swap helper. Its pump was already fixed by FX-pump (engine#976) and confirmed in PF-S3d. The break on ice with rez cost 5 or more matches. (test \"Aghora starts at strength 2 and pays 1 credit for +1 strength (CR 3.9.5b)\").",
       "cr": [
         "1.2.1",
-        "8.8.4b"
+        "8.8.4b",
+        "3.9.5b"
       ]
     },
     "aginfusion-new-miracles-for-a-new-world": {
@@ -689,14 +691,17 @@
     },
     "ankusa": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "1[credit]: +1 strength."
       ],
-      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The barrier break and adding a fully broken barrier to HQ match.",
+      "note": "Already fixed by FX-pump (engine#976): its pump is built from the breaker fields and pays as printed; confirmed in PF-S3d. The barrier break and adding a fully broken barrier to HQ match.",
       "cr": [
-        "1.2.1"
-      ]
+        "1.2.1",
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "Ankusa starts at strength 0 and pays 1 credit for +1 strength (CR 3.9.5b)"
     },
     "anoetic-void": {
       "cycle": "system-gateway",
@@ -1238,15 +1243,17 @@
     },
     "bandwidth": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[subroutine] Give the Runner 1 tag. If this run is successful, the Runner removes 1 tag."
       ],
-      "note": "give_tag_remove_if_successful adds the tag with state.runner.tags += 1, skipping the tag procedure, so prevention and avoidance never apply (Dorm Computer's run, first-tag-each-turn preventers). The removal on a successful run matches.",
+      "note": "Fixed in engine#1006: the tag goes through the tag procedure (give_tags), so prevention and avoidance apply. The removal on a successful run matches.",
       "cr": [
         "1.2.1",
         "9.9.6a"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "its tag goes through the tag procedure, so Jesminder Sareen prevents it, and 1 tag is still removed if the run is successful (CR 9.9.6a)"
     },
     "bangun-when-disaster-strikes": {
       "cycle": "elevation",
@@ -1315,13 +1322,14 @@
     },
     "bazaar": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Whenever you install a piece of hardware from your grip, you may install another copy of that hardware from your grip (paying all costs)."
       ],
-      "note": "The trigger (onProgramOrHardwareInstalled) is called only from installRunner: it fires for Bling-hosted hardware, which is not in the grip, and misses grip installs made by effects (Modded's installGripCardDiscounted). With two Bazaars only the first is offered. The root cause, install triggers fired only from the basic install path, is area 6's.",
+      "note": "Area 6 (moved). The trigger is called only from the basic install path: it fires for Bling-hosted hardware, which is not in the grip, and misses grip installs made by effects; the install procedure has to record where a card was installed from (as Autoscripter). With two Bazaars only the first is offered.",
       "cr": [
-        "1.2.1"
+        "1.2.1",
+        "9.6.5c"
       ]
     },
     "beach-party": {
@@ -1649,14 +1657,16 @@
     },
     "bookmark": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[click]: Host up to 3 cards from your grip facedown on this hardware."
       ],
-      "note": "maxHostedCards 3 caps the total hosted at 3, so a second use cannot host more; the printed text limits each use to 3, not the total. The two add-to-grip abilities match.",
+      "note": "Card JSON (cards v1.147.29, engine#1006 pins it) and engine: Bookmark has no maxHostedCards, and each use hosts up to 3 cards, however many it already hosts. The two add-to-grip abilities match.",
       "cr": [
         "1.2.1"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "hosts up to 3 cards each time it is used, with no limit on how many it hosts in all (CR 1.2.1)"
     },
     "boom": {
       "cycle": "flashpoint",
@@ -1713,14 +1723,17 @@
     },
     "brahman": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "2[credit]: +1 strength."
       ],
-      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). Break up to 2 and the encounter-end add to the top of the stack match.",
+      "note": "Already fixed by FX-pump (engine#976): its pump is built from the breaker fields and pays as printed; confirmed in PF-S3d. Break up to 2 and the encounter-end add to the top of the stack match.",
       "cr": [
-        "1.2.1"
-      ]
+        "1.2.1",
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "Brahman starts at strength 3 and pays 2 credits for +1 strength (CR 3.9.5b)"
     },
     "brain-cage": {
       "cycle": "sansan",
@@ -2771,15 +2784,17 @@
     },
     "corporate-town": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When your turn begins, you may trash 1 installed resource. Trashing a resource this way cannot be prevented."
       ],
-      "note": "trash_resource carries no cannotPrevent and trashes the same way either way, so the trash can be prevented. The forfeit-an-agenda rez cost and the Corp's choice match.",
+      "note": "Card JSON (cards v1.147.29, engine#1006 pins it) and engine: trash_resource carries cannotPrevent and the engine now reads it, from the choice and with one resource, so no trash interrupt opens (Character Assassination already printed it in its JSON and gets the same). The forfeit-an-agenda rez cost and the Corp's choice match.",
       "cr": [
         "1.2.1",
         "9.3.3g"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "\"Trashing a resource this way cannot be prevented\": no trash interrupt opens, from the choice or with one resource (CR 1.2.1)"
     },
     "corporate-troubleshooter": {
       "cycle": "core-set",
@@ -3311,11 +3326,11 @@
     },
     "dedicated-neural-net": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "The first time there is a successful run on HQ each turn, you and the Runner secretly spend 0, 1, or 2 credits... If you and the Runner spent a different number of credits, you choose which cards the Runner accesses from HQ for the remainder of this run."
       ],
-      "note": "graph.ts sets run.tlmCorpChoosesHqAccess before the psi game whatever the bids, and nothing reads it; the psi game's ifBidsDiffer is gain 0 credits. The psi game is played and changes nothing.",
+      "note": "Area 8 (moved). \"You choose which cards the Runner accesses from HQ\" needs the access procedure to let the Corp choose the HQ candidates; run.tlmCorpChoosesHqAccess has no reader, and it is set before the psi game whatever the bids, so the reader must come with a bids-differ write. The psi game itself matches.",
       "cr": [
         "1.2.1",
         "7.3.4b"
@@ -3571,14 +3586,17 @@
     },
     "disposable-hq": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When the Runner accesses this upgrade, you may add any number of cards from HQ to the bottom of R&D."
       ],
-      "note": "add_hq_to_bottom_rd moves all of HQ, in hand order, after one accept/decline; the Corp cannot choose which cards or their order. The R&D reveal matches.",
+      "note": "Fixed in engine#1006: add_hq_to_bottom_rd lets the Corp choose any number of HQ cards through chooseCards (hidden from the Runner), and they go to the bottom of R&D in the order chosen. The R&D reveal matches.",
       "cr": [
-        "1.2.1"
-      ]
+        "1.2.1",
+        "1.14.5"
+      ],
+      "fixedIn": "engine#1006",
+      "test": "the Corp chooses which HQ cards go to the bottom of R&D and their order, and may keep the rest (CR 1.14.5)"
     },
     "disrupter": {
       "cycle": "genesis",
@@ -3751,14 +3769,17 @@
     },
     "dorm-computer": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[click], hosted power counter: Run any server. Whenever you would take tags during that run, prevent all of those tags."
       ],
-      "note": "Fix-now: the prevention flag (turn.bbPreventAllTagsThisRun) is cleared only when the turn resets, so it prevents every tag for the rest of the turn, in later runs too. 4 power counters on install and the run match.",
+      "note": "Fixed in engine#1006: the prevention rides on the run the ability starts (run.preventAllTagsThisRun, through may_start_run and queue_start_run), so it ends with that run; the turn flag is gone. A tag that cannot be avoided is not prevented (CR 1.2.2). 4 power counters on install and the run match.",
       "cr": [
-        "1.2.1"
-      ]
+        "1.2.1",
+        "9.10.1"
+      ],
+      "fixedIn": "engine#1006",
+      "test": "prevents every tag during the run it makes, and a tag after that run ends in the same turn is taken (CR 9.10.1)"
     },
     "dr-lovegood": {
       "cycle": "data-and-destiny",
@@ -3797,15 +3818,17 @@
     },
     "drive-by": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Expose 1 card installed in the root of a remote server. If you do and that card is an asset or upgrade, trash it."
       ],
-      "note": "The targets skip exposeLegalTargets, so a card in an Underway Grid server can be exposed and trashed; expose_resolve trashes right after beginExpose even when the expose is still pending or did not happen ('If you do'). The additional click cost matches.",
+      "note": "Fixed in engine#1006: targets come from exposeLegalTargets (remote roots only), and the trash follows the expose instruction, only if this expose happened (the turn's exposure count for the card went up) and the card is still installed and unrezzed. Its options are labelled by server, not by the facedown card's title (10.2.2a). The additional click cost matches.",
       "cr": [
         "1.2.1",
         "1.21.4"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "trashes the card only once it is exposed: an expose the Corp prevents trashes nothing, even for a card an earlier expose left faceup (\"If you do\", CR 1.21.4)"
     },
     "drone-screen": {
       "cycle": "flashpoint",
@@ -4001,15 +4024,18 @@
     },
     "election-day": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Trash all cards in HQ (minimum of 1). Draw 5 cards."
       ],
-      "note": "trash_hq_draw draws by deck.shift outside the draw procedure, so no draw triggers fire (as Corporate Shuffle). The minimum of 1, the trash and the empty-R&D loss match.",
+      "note": "Fixed in engine#1006: the draw goes through the draw procedure (set aside, draw checkpoint, then HQ; an empty R&D loses). The minimum of 1 and the trash match.",
       "cr": [
         "8.4.2",
-        "8.4.5b"
-      ]
+        "8.4.5b",
+        "1.7.2c"
+      ],
+      "fixedIn": "engine#1006",
+      "test": "Election Day draws through the draw procedure: the cards are set aside and checked before reaching HQ (CR 8.4.2)"
     },
     "elective-upgrade": {
       "cycle": "terminal-directive",
@@ -4100,14 +4126,16 @@
     },
     "emp-device": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[trash]: The Corp cannot rez more than 1 piece of ice for the remainder of this run."
       ],
-      "note": "rez_emp_device_limit_ice_this_run writes run.bfMaxIceRezThisRun and bfIceRezzedThisRun, which nothing reads, so the limit never applies.",
+      "note": "Fixed in engine#1006: rez_ice reads the limit (run.bfMaxIceRezThisRun), counting only ice rezzed after EMP Device is used. Rezzes made inline by other cards are area 7's. A second use keeps the first count.",
       "cr": [
         "1.2.2"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "after it is used the Corp can rez only 1 more piece of ice that run (CR 1.2.2)"
     },
     "empiricist": {
       "cycle": "elevation",
@@ -5028,15 +5056,17 @@
     },
     "game-day": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "If you have fewer cards in your grip than your maximum hand size, draw cards until you have cards in your grip equal to your maximum hand size."
       ],
-      "note": "Draws by moving the top of the stack to the grip directly, skipping the draw procedure (Lockdown, Genetics Pavilion, draw triggers), as Vigil (S3f). The additional click cost matches.",
+      "note": "Fixed in engine#1006: it draws the difference through the draw procedure, so draw limits (Genetics Pavilion) and draw triggers apply. The additional click cost matches.",
       "cr": [
         "1.2.1",
         "8.4.2"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "Game Day draws through the draw procedure, so Genetics Pavilion's limit applies (CR 8.4.2)"
     },
     "game-over": {
       "cycle": "ashes",
@@ -5809,16 +5839,18 @@
     },
     "high-stakes-job": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When the run ends, gain 12[credit] if it was successful."
       ],
-      "note": "The IR uses successful_run on runEvent, which pays at the successful-run step (6.9.5a), before the breach, so the 12 credits can pay trash costs. A run_end trigger on runEvent exists (Run Amok, Marathon). Dirty Laundry (S3c, recorded matches) has the same mistake. The unrezzed-ice target limit matches.",
+      "note": "Card JSON (cards v1.147.29, engine#1006 pins it): the gain is a run_end trigger on runEvent with an if run_successful condition (as Marathon), so the 12 credits arrive after the breach. The unrezzed-ice target limit matches.",
       "cr": [
         "1.2.1",
         "6.8.5",
         "6.9.5a"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "the 12 credits come when the run ends, after the breach, so they cannot pay a trash cost in it (CR 6.8.5, 6.9.5a)"
     },
     "hijacked-router": {
       "cycle": "reign-and-reverie",
@@ -6136,15 +6168,17 @@
     },
     "ibrahim-salem": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When your turn begins, name a card type. Look at the Runner's grip and trash 1 card in it of the named type."
       ],
-      "note": "trash_named_type never calls lookAtCards, so the Corp never looks at the grip: it sees only matching titles in the option labels, and nothing when none match. It also sets faceup on every grip card and leaves it (no visible effect: idsHiddenFrom hides the opponent's hand regardless). Unique, forfeit-to-rez and naming a type match.",
+      "note": "Fixed in engine#1006: trash_named_type has the Corp look at the grip (lookAtCards) and no longer turns grip cards faceup; the Corp carries out the trash. Unique, forfeit-to-rez and naming a type match.",
       "cr": [
         "1.21.2",
         "1.21.6"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "the Corp looks at the grip; no grip card is turned faceup or revealed (CR 1.21.2)"
     },
     "ice-analyzer": {
       "cycle": "creation-and-control",
@@ -6612,14 +6646,15 @@
     },
     "jeeves-model-bioroids": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "The first time you spend [click][click][click] on the same action each turn, gain [click]."
       ],
-      "note": "fireSiAfterPaidAbilityClicks is called only from paid abilities and operation plays; the basic purge action (3 clicks) never triggers it, and it ignores abilitiesSuppressed.",
+      "note": "Area 11 (moved). Takings of the same basic action are the same action (5.2.5a), so three basic credit gains, draws or a purge meet it; that needs the action record (second reader 5.2.5a case). Fixed in engine#1006: a blanked Jeeves gives no click (test \"a blanked Jeeves gives no click (CR 9.1.9a)\").",
       "cr": [
         "1.2.1",
-        "5.2.6h"
+        "5.2.6h",
+        "5.2.5a"
       ]
     },
     "jeitinho": {
@@ -6642,15 +6677,17 @@
     },
     "jesminder-sareen-girl-behind-the-curtain": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[interrupt] → The first time each run you would take 1 or more tags, prevent 1 tag."
       ],
-      "note": "Modelled as preventFirstTagThisTurn: giveTags and canPayTakeTagsNestedCost prevent only while tagsGivenThisTurn is 0, so it works once per turn, and a tag outside a run uses it up. Confirms the plan's area 10 row by code read (no test).",
+      "note": "Card JSON (cards v1.147.29, engine#1006 pins it) and engine: the field is preventFirstTagEachRun, and the run records the first time the Runner would take tags (run.runnerWouldTakeTagsThisRun), so each run prevents 1; nested tag costs read the same record. Closes the plan's area 10 row.",
       "cr": [
         "1.2.1",
         "9.9.5a"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "prevents 1 tag the first time tags would be taken in each run, so a second run in the same turn prevents again (CR 1.2.1, 9.9.5a)"
     },
     "jinja-city-grid": {
       "cycle": "kitara",
@@ -7044,15 +7081,17 @@
     },
     "lab-dog": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[subroutine] The Runner trashes an installed piece of hardware. Trash Lab Dog."
       ],
-      "note": "Fix-now: trash_hardware with pick choose opens pendingTrashProgram, whose choice belongs to the Corp (choose_trash_program); the Runner is named, so the Runner chooses which hardware (1.14.5). Trashing Lab Dog matches.",
+      "note": "Fixed in engine#1006: trash_hardware gives \"The Runner trashes\" to the Runner (pendingTrashAmong takes the chooser), and the legality layer gives a pending trash choice to its chooser's seat (it was always the Corp's). Trashing Lab Dog matches.",
       "cr": [
         "1.2.1",
         "1.14.5"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "the Runner chooses which hardware to trash, and the choice is the Runner's seat (CR 1.14.5)"
     },
     "labor-rights": {
       "cycle": "magnum-opus",
@@ -7108,14 +7147,16 @@
     },
     "lakshmi-smartfabrics": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "X hosted power counters: Reveal an agenda worth X points from HQ. The Runner cannot steal copies of that agenda for the remainder of this turn."
       ],
-      "note": "Writes state.turn.bfCannotStealAgendaDefIds, which nothing reads, so the Runner can still steal. The power counter on any rez and the reveal match.",
+      "note": "Fixed in engine#1006: stealForbiddenThisAccess reads turn.bfCannotStealAgendaDefIds, so steal legality, the steal and the steal step refuse copies of the revealed agenda this turn. The power counter on any rez and the reveal match.",
       "cr": [
         "1.2.2"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "the Runner cannot steal copies of the revealed agenda for the rest of the turn (CR 1.2.2)"
     },
     "lampades": {
       "cycle": "vantage-point",
@@ -7451,16 +7492,18 @@
     },
     "localized-product-line": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Search R&D for any number of copies of a card, reveal them, and add them to HQ. Shuffle R&D."
       ],
-      "note": "take_copies always takes every copy: the Corp cannot take fewer or fail to find, and the cards are added before the shuffle.",
+      "note": "Fixed in engine#1006: a chooseCards search (search mode, titles \"same\"): the Corp picks copies of one title one at a time and may stop at any number; R&D is shuffled before the found cards are revealed and added to HQ.",
       "cr": [
         "1.2.1",
         "8.7.2e",
         "8.7.3"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "Localized Product Line: the Corp may take fewer than every copy, all of one title (CR 8.7.2e)"
     },
     "lockdown": {
       "cycle": "sansan",
@@ -7659,15 +7702,17 @@
     },
     "magnet": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When you rez this ice, choose 1 installed program hosted on a piece of ice. Host that program on this ice."
       ],
-      "note": "host_ice_program_on_self accepts any installed program with a host, so a program on Dinosaurus or NetChip qualifies; the host is not checked to be ice. End the run and blanking hosted programs match.",
+      "note": "Fixed in engine#1006: host_ice_program_on_self offers only programs whose host is a piece of ice. End the run and blanking hosted programs match.",
       "cr": [
         "1.2.1",
         "1.13.8"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "offers only programs hosted on a piece of ice, not one hosted on a Runner card (CR 1.2.1)"
     },
     "magnum-opus": {
       "cycle": "core-set",
@@ -8383,14 +8428,17 @@
     },
     "mongoose": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "2[credit]: +2 strength."
       ],
-      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The sentry break and the one-ice-per-run limit match.",
+      "note": "Already fixed by FX-pump (engine#976): its pump is built from the breaker fields and pays as printed; confirmed in PF-S3d. The sentry break and the one-ice-per-run limit match.",
       "cr": [
-        "1.2.1"
-      ]
+        "1.2.1",
+        "3.9.5b"
+      ],
+      "fixedIn": "engine#976",
+      "test": "Mongoose starts at strength 1 and pays 2 credits for +2 strength (CR 3.9.5b)"
     },
     "monkeywrench": {
       "cycle": "liberation",
@@ -8491,11 +8539,11 @@
     },
     "mumbad-city-hall": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "[click]: Search R&D for an alliance card, reveal it, and play or install it (paying all costs). Shuffle R&D."
       ],
-      "note": "resolve_mumbad_city_hall_alliance reveals the card and adds it to HQ; it is never played or installed and no cost is paid. The options also list alliance cards the Corp cannot play or install, there is no fail-to-find, and R&D is shuffled before the choice.",
+      "note": "Area 5 and area 11 (moved). Playing or installing the found card (paying all costs) needs the Corp install procedure and the operation play from an ability; until then the card goes to HQ, and the options do not check it can be played or installed (8.7.2b). Fixed in engine#1006: a chooseCards search, so the Corp may find nothing, and R&D is shuffled before the reveal (test \"Mumbad City Hall: the Corp may find no alliance card, and R&D is still shuffled (CR 8.7.2e, 8.7.3)\").",
       "cr": [
         "1.2.1",
         "8.7.2b",
@@ -8907,11 +8955,11 @@
     },
     "new-construction": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "Whenever you advance this agenda, you may install 1 card from HQ in the root of a new server. If there are 5 or more hosted advancement counters, rez that card, ignoring all costs."
       ],
-      "note": "install_from_hq_new_remote offers ice, which cannot go in a root, and installs it protecting the new server. Area 5 and 7 also: the install and the rez are inline (no install steps, rez by flag). Install only faceup matches.",
+      "note": "Area 5 and area 7 (moved). The install and the rez are inline (no install steps, rez by flag). Fixed in engine#1006: ice is not offered for the root of a new server. Install only faceup matches (test \"does not offer ice: ice is not installed in the root of a server (CR 3.4.2)\").",
       "cr": [
         "3.4.2",
         "8.5.2d"
@@ -9215,15 +9263,18 @@
     },
     "off-campus-apartment": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever you install a connection on Off-Campus Apartment, draw 1 card."
       ],
-      "note": "The draw moves the top of the stack to the grip directly (src/actions/installRunner.ts), skipping the draw procedure (Lockdown, Genetics Pavilion). Hosting any number of connections matches; the hosting is in area 1's inventory.",
+      "note": "Fixed in engine#1006: installing a connection on it marks a pending conditional ability that draws through the draw procedure. Hosting any number of connections matches; the hosting is in area 1's inventory.",
       "cr": [
         "1.2.1",
-        "8.4.2"
-      ]
+        "8.4.2",
+        "9.6.2"
+      ],
+      "fixedIn": "engine#1006",
+      "test": "installing a connection on it draws 1 card through the draw procedure, as a pending conditional ability (CR 9.6.2, 8.4.2)"
     },
     "off-the-books": {
       "cycle": "elevation",
@@ -9446,11 +9497,11 @@
     },
     "pad-factory": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "[click]: Place 1 advancement token on a card. You cannot score that card until your next turn begins."
       ],
-      "note": "The score block is the turn list cannotScoreOrRezCardIds, cleared when the Runner's turn begins, so it ends early, and it also blocks rezzing the card, which the text does not say. bfCannotScoreUntilNextCorpTurn is also written and never read. Targets are limited to cards that can be advanced, but placing a counter is not advancing (1.18.2).",
+      "note": "Area 12 (moved). \"Place 1 advancement token on a card\": targets are limited to cards that can be advanced, but placing a counter is not advancing (1.18.2), the placing filter area 12 owns (Akhet, Big Deal). Fixed in engine#1006: the block is score-only (bfCannotScoreUntilNextCorpTurn, read by the score action and its legality) and lasts until the Corp's next turn begins; the card can still be rezzed (test \"the card cannot be scored until the Corp's next turn begins, and can still be rezzed (CR 1.2.1)\").",
       "cr": [
         "1.2.1",
         "1.18.2"
@@ -9525,15 +9576,17 @@
     },
     "paparazzi": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "You are tagged."
       ],
-      "note": "countsAsTagged adds 1 to effectiveRunnerTags, so with no tags every tag count sees 1 (tags_gte, End the run per tag, Counter Surveillance). The Runner is tagged but has no tag (10.5.2). Preventing all meat damage matches.",
+      "note": "Fixed in engine#1006: countsAsTagged is read by runnerIsTagged only, so the Runner is tagged with no tag and tag counts (tags_gte, per-tag effects) stay 0; Henry Phillips' \"if the Runner is tagged\" reads runnerIsTagged. Preventing all meat damage matches.",
       "cr": [
         "1.2.1",
         "10.5.2"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "\"You are tagged\" makes the Runner tagged without giving a tag: tag counts stay 0 (CR 10.5.2)"
     },
     "paper-trail": {
       "cycle": "terminal-directive",
@@ -9623,15 +9676,16 @@
     },
     "patron": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "When your turn begins, you may choose a server.",
         "The first time each turn you make a successful run on the chosen server, instead of breaching it, draw 2 cards."
       ],
-      "note": "Declining leaves the server named on an earlier turn chosen (namedServerId is cleared only when used), and the draw uses deck.shift outside the draw procedure, so no draw triggers fire. It also skips the competing breach replacement check Security Testing makes.",
+      "note": "Area 11 (moved; already in its row). With Security Testing the Runner does not order the competing breach replacements (9.9.11). Fixed in engine#1006: the chosen server is cleared when the turn begins and when it ends (9.10.3b), and the draw goes through the draw procedure (test \"draws 2 through the draw procedure instead of breaching the chosen server, so Genetics Pavilion's limit applies (CR 8.4.2)\").",
       "cr": [
         "9.10.3b",
-        "8.4.2"
+        "8.4.2",
+        "9.9.11"
       ]
     },
     "paules-cafe": {
@@ -10460,15 +10514,17 @@
     },
     "ravana-1-0": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[subroutine] Resolve 1 subroutine on another rezzed bioroid ice."
       ],
-      "note": "resolve_bioroid_subroutine always resolves the first subroutine of the first other bioroid; the Corp never chooses. Two Ravanas would recurse; the closed-loop path in may_resolve_subroutine_on_rezzed_ice handles that (10.1.6a). The bioroid click break is the generic one and matches.",
+      "note": "Fixed in engine#1006: resolve_bioroid_subroutine is the shared resolve-another-subroutine kind with subtype bioroid, so the Corp chooses the ice and the subroutine, and two Ravanas alone are the mandatory loop the ruling describes (10.1.6a). The bioroid click break matches.",
       "cr": [
         "1.15.2",
         "10.1.6a"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "the Corp chooses which subroutine on another rezzed bioroid ice resolves (CR 1.15.2)"
     },
     "raymond-flint": {
       "cycle": "spin",
@@ -10595,16 +10651,18 @@
     },
     "recruiting-trip": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Search R&D for up to X different sysops (by title), reveal them, and add them to HQ. Shuffle R&D."
       ],
-      "note": "Fix-now: search_rd_up_to_x_subtype_to_hq takes the first X different sysop titles in R&D order; the Corp should choose which ones it finds and may find fewer (8.7.2, 8.7.2e). Paying X, the reveal and the shuffle match.",
+      "note": "Fixed in engine#1006: a chooseCards search (search mode, titles \"distinct\") for up to X sysops; the Corp chooses which and may find fewer, R&D is shuffled before the reveal. The Corp looks at all of R&D (8.7.1), and X is never worked out from R&D. Paying X matches.",
       "cr": [
         "1.2.1",
         "8.7.2",
         "8.7.2e"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "Recruiting Trip: the Corp chooses up to X different sysops by title and may find fewer; R&D is shuffled (CR 8.7.2e, 8.7.3)"
     },
     "red-herrings": {
       "cycle": "core-set",
@@ -11005,16 +11063,18 @@
     },
     "ronald-five": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "Whenever the Runner trashes a Corp card (including this asset), they lose [click]."
       ],
-      "note": "Fix-now: the hook runs after the trash and scans server roots, so trashing Ronald Five itself loses no click (probe: 3 clicks stay 3; another card: 3 to 2; 9.1.8g). It also checks the active side, not who trashed (1.14.5a), and removes the click without the lose-click procedure.",
+      "note": "Fixed in engine#1006: the trigger fires from the Corp trash hooks only when the Runner trashed the card (1.14.5a), Ronald Five meets it when it is the card trashed (9.1.8g), the click is lost through lose_clicks, and in a set trashed together (trashCorpCardSet) it sees every card, itself included (9.12.2a). It still resolves inside the trash rather than as a pending instance (area 1 timing, filed).",
       "cr": [
         "1.2.1",
         "9.1.8g",
         "1.14.5a"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "the Runner loses a click when they trash Ronald Five itself, and not when the Corp trashes a Corp card (CR 9.1.8g, 1.14.5a)"
     },
     "ronin": {
       "cycle": "genesis",
@@ -11187,15 +11247,16 @@
     },
     "sadyojata": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "1[credit]: +1 strength.",
         "2[credit]: Swap this program with a deva program from your grip."
       ],
-      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b; area 3 lists it). The break on ice with 3 or more subtypes matches.",
+      "note": "Area 3 (moved). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b); it waits for the swap helper. Its pump was already fixed by FX-pump (engine#976) and confirmed in PF-S3d. The break on ice with 3 or more subtypes matches. (test \"Sadyojata starts at strength 2 and pays 1 credit for +1 strength (CR 3.9.5b)\").",
       "cr": [
         "1.2.1",
-        "8.8.4b"
+        "8.8.4b",
+        "3.9.5b"
       ]
     },
     "safety-first": {
@@ -12427,15 +12488,17 @@
     },
     "study-guide": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "2[credit]: Place 1 power counter on this program."
       ],
-      "note": "Windows runner_action_paw and encounter_paw, so it is neither unrestricted nor run-wide (not at approach, after passing ice or in the Corp's turn). Fix: list only runner_action_paw, as Cache and The Helpful AI. The break and the strength per counter match.",
+      "note": "Card JSON (cards v1.147.29, engine#1006 pins it): the power counter ability lists only runner_action_paw, so it is open in every paid ability window. The break and the strength per counter match.",
       "cr": [
         "1.2.1",
         "9.2.7b"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "its 2-credit power counter ability is open in every paid ability window (CR 9.2.7b)"
     },
     "sub-boost": {
       "cycle": "order-and-chaos",
@@ -12998,16 +13061,18 @@
     },
     "the-future-is-now": {
       "cycle": "sansan",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "When you score The Future is Now, search R&D for a card and add it to HQ. Shuffle R&D."
       ],
-      "note": "Fix-now (visibility): the kind's follow-up search_rd_take_card_to_hq reveals the found card, so the Runner sees a card the Corp took into HQ (reveals and log). The printed text has no reveal, and a search reveals only when told to (8.7.2c, 10.2.2a). The search and shuffle match.",
+      "note": "Fixed in engine#1006: a chooseCards pick of any R&D card (no criteria, so a card is found if R&D has one, 8.7.2d); R&D is shuffled and the card goes to HQ without a reveal. The search and shuffle match.",
       "cr": [
         "1.2.1",
         "8.7.2c",
         "10.2.2a"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "The Future is Now: the card found goes to HQ without being revealed, and R&D is shuffled (CR 8.7.2c, 10.2.2a)"
     },
     "the-future-perfect": {
       "cycle": "honor-and-profit",
@@ -13882,14 +13947,17 @@
     },
     "upayoga": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[subroutine] Resolve a subroutine on a piece of rezzed psi ice."
       ],
-      "note": "may_resolve_subroutine_on_rezzed_ice with a subtype is non-mandatory and offers a Decline; the printed subroutine has no 'may' (Mycoweb, cut A, shares the path). The psi subroutine matches.",
+      "note": "Fixed in engine#1006: may_resolve_subroutine_on_rezzed_ice never offers a Decline (no card using it prints \"may\"), and with a subtype it offers the source's own subroutines unless excludeSelf is set. Mycoweb (cut A) gets the same: its Decline is gone, its ice-only install field is still cut A's. The psi subroutine matches.",
       "cr": [
-        "9.6.9"
-      ]
+        "9.6.9",
+        "1.2.1"
+      ],
+      "fixedIn": "engine#1006",
+      "test": "resolving a subroutine on a rezzed psi ice is not optional: no Decline, and its own psi subroutine is offered (CR 1.2.1)"
     },
     "upya": {
       "cycle": "kitara",
@@ -13974,15 +14042,16 @@
     },
     "vamadeva": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "filed",
       "abilities": [
         "1[credit]: +1 strength.",
         "2[credit]: Swap this program with a deva program from your grip."
       ],
-      "note": "The pump is only breaker.pumpCredits/pumpStrength, which nothing in src reads, and no paid ability pumps, so it cannot raise strength (S3c cross-cutting finding). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b; area 3 lists it). The break on ice with exactly 1 subroutine matches.",
+      "note": "Area 3 (moved). The deva swap (swap_with_grip_subtype_resolve) moves the cards inline: hosted cards and counters are not trashed and no install or uninstall triggers fire (8.8.4b); it waits for the swap helper. Its pump was already fixed by FX-pump (engine#976) and confirmed in PF-S3d. The break on ice with exactly 1 subroutine matches. (test \"Vamadeva starts at strength 2 and pays 1 credit for +1 strength (CR 3.9.5b)\").",
       "cr": [
         "1.2.1",
-        "8.8.4b"
+        "8.8.4b",
+        "3.9.5b"
       ]
     },
     "vamp": {
@@ -14088,15 +14157,17 @@
     },
     "vikram-1-0": {
       "cycle": "mumbad",
-      "result": "wrong",
+      "result": "fixed",
       "abilities": [
         "[subroutine] The Runner cannot use programs for the remainder of this run."
       ],
-      "note": "cannot_use_programs_this_run_kg writes run.kgCannotUsePrograms and turn.dadCannotUseProgramsThisRun; nothing reads either, so programs stay usable (Jak Sinclair writes the same unread flag). The traces and the bioroid break match.",
+      "note": "Fixed in engine#1006: run.kgCannotUsePrograms is read by runnerCannotUseProgram in usePaidAbility (pumps included) and runnerBreakBlock, so no program paid ability or break is used for the rest of the run. Optional conditional abilities of programs are not covered yet (filed). Jak Sinclair's turn flag stays area 14's. The traces and the bioroid break match.",
       "cr": [
         "1.2.2",
         "9.1.6"
-      ]
+      ],
+      "fixedIn": "engine#1006",
+      "test": "after its first subroutine the Runner cannot use programs this run: no pump, no break (CR 9.1.6, 1.2.2)"
     },
     "viktor-1-0": {
       "cycle": "core-set",

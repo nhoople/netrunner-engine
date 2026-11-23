@@ -432,8 +432,8 @@ export interface CardDef {
   /** Identity: when a rezzed Corp card is trashed (Ob Superheavy). */
   onRezzedCardTrashed?: Effect;
   onFirstTagThisTurn?: Effect;
-  /** Jesminder-class: prevent the first tag taken each turn. */
-  preventFirstTagThisTurn?: boolean;
+  /** Jesminder Sareen: prevent 1 tag the first time each run the Runner would take tags. */
+  preventFirstTagEachRun?: boolean;
   /** Runner identity: taking tags while previously untagged (Sebastião). */
   onTakeTagsWhenUntagged?: Effect;
   connectionBasicTrashAdditionalCostTrashHq?: boolean;
@@ -3954,8 +3954,8 @@ export function instantiateCard(
   if (def.onFirstTagThisTurn) {
     card.onFirstTagThisTurn = structuredClone(def.onFirstTagThisTurn);
   }
-  if (def.preventFirstTagThisTurn) {
-    card.preventFirstTagThisTurn = true;
+  if (def.preventFirstTagEachRun) {
+    card.preventFirstTagEachRun = true;
   }
   if (def.onTakeTagsWhenUntagged) {
     card.onTakeTagsWhenUntagged = structuredClone(def.onTakeTagsWhenUntagged);
