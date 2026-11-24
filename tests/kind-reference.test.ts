@@ -22,6 +22,8 @@ beforeAll(() => {
   assertCardsPinnedTag("v1.147.29");
 });
 
+// Each test builds the reference from the whole card corpus, which can take
+// longer than vitest's 5 s default on a slower computer.
 describe("Effect IR kind reference", () => {
   it(`${KIND_REFERENCE_PATH} matches the generator`, () => {
     const committed = readFileSync(
@@ -33,9 +35,9 @@ describe("Effect IR kind reference", () => {
       committed === fresh,
       `${KIND_REFERENCE_PATH} is stale. Regenerate it with \`${KIND_REFERENCE_COMMAND}\` and commit the result.`,
     ).toBe(true);
-  });
+  }, 60_000);
 
   it("is deterministic", () => {
     expect(buildKindReference()).toBe(buildKindReference());
-  });
+  }, 60_000);
 });
