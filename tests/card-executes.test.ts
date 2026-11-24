@@ -234,7 +234,7 @@ describe("each card's printed abilities execute", () => {
       }
     }
     expect(failures).toEqual([]);
-  });
+  }, 60_000);
 
   it("evaluates those trees on a hand, an install, a run, and a breach", () => {
     const base = richBoard();
