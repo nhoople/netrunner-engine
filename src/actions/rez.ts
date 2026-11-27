@@ -22,11 +22,8 @@ import {
   resolveIceRezCostIncrease,
   resolveIceRezCostReduction,
 } from "../state/continuous/continuousCosts.js";
-import {
-  addRestriction,
-  trashCardsOnForbiddenHosts,
-  withCostCheckpoint,
-} from "../legality/checkpoints.js";
+import { addRestriction, withCostCheckpoint } from "../legality/checkpoints.js";
+import { trashCardsOnForbiddenHosts } from "../legality/checkpointRules.js";
 import {
   ensurePriorityWindow,
   nestPriorityAfterAbility,

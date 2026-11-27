@@ -1138,7 +1138,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkDiscardPileCards",
+          "site": "src/legality/checkpointRules.ts#checkDiscardPileCards",
           "kinds": []
         },
         {
@@ -2465,7 +2465,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#hostedOnForbiddenHost",
+          "site": "src/legality/checkpointRules.ts#hostedOnForbiddenHost",
           "kinds": []
         }
       ],
@@ -3786,7 +3786,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markDaredevilFirstRun",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markDaredevilFirstRun",
           "kinds": []
         },
         {
@@ -3809,7 +3809,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstInstalledTrash",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstInstalledTrash",
           "kinds": []
         },
         {
@@ -4148,7 +4148,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markFirstTrashMatchingRunnerIdFaction",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstTrashMatchingRunnerIdFaction",
           "kinds": []
         },
         {
@@ -5194,7 +5194,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#trashHostedCard",
+          "site": "src/legality/checkpointRules.ts#trashHostedCard",
           "kinds": []
         },
         {
@@ -6713,11 +6713,11 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkDiscardPileCards",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markBuiltToLastFromCheckpointDiff",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markBuiltToLastFromCheckpointDiff",
+          "site": "src/legality/checkpointRules.ts#checkDiscardPileCards",
           "kinds": []
         },
         {
@@ -6873,7 +6873,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markCorpFlippedFirstOperationPlay",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markCorpFlippedFirstOperationPlay",
           "kinds": []
         },
         {
@@ -7979,7 +7979,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#checkUniqueness",
+          "site": "src/legality/checkpointRules.ts#checkUniqueness",
           "kinds": []
         }
       ],
@@ -8135,7 +8135,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#activeRemoteLimit",
+          "site": "src/legality/checkpointRules.ts#activeRemoteLimit",
           "kinds": []
         }
       ],
@@ -8984,7 +8984,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markMirrormorphThirdDistinct",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markMirrormorphThirdDistinct",
           "kinds": []
         },
         {
@@ -9796,7 +9796,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markApproachIce",
+          "site": "src/legality/checkpointRunMarks.ts#markApproachIce",
           "kinds": []
         },
         {
@@ -9847,7 +9847,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markApproachServer",
+          "site": "src/legality/checkpointRunMarks.ts#markApproachServer",
           "kinds": []
         },
         {
@@ -10045,7 +10045,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markBypass",
+          "site": "src/legality/checkpointRunMarks.ts#markBypass",
           "kinds": []
         },
         {
@@ -10246,7 +10246,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markCorpTurnEnd",
+          "site": "src/legality/checkpointHookMarks.ts#markCorpTurnEnd",
           "kinds": []
         },
         {
@@ -10343,7 +10343,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markDrawConditionals",
+          "site": "src/legality/checkpointHookMarks.ts#markDrawConditionals",
           "kinds": [
             "may_install_drawn_agenda"
           ]
@@ -10366,7 +10366,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markDrawConditionals",
+          "site": "src/legality/checkpointHookMarks.ts#markDrawConditionals",
           "kinds": []
         }
       ],
@@ -10393,7 +10393,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markDrawConditionals",
+          "site": "src/legality/checkpointHookMarks.ts#markDrawConditionals",
           "kinds": []
         }
       ],
@@ -10410,7 +10410,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markEachCorpBadPublicityTake",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markEachCorpBadPublicityTake",
           "kinds": []
         },
         {
@@ -10508,7 +10508,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markEncounterEnd",
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterEnd",
           "kinds": []
         },
         {
@@ -10554,7 +10554,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markEncounterEndNotFullyBroken",
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterEndNotFullyBroken",
           "kinds": []
         },
         {
@@ -10579,7 +10579,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markEncounterEndPrintedSubroutineBroken",
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterEndPrintedSubroutineBroken",
           "kinds": []
         },
         {
@@ -10604,7 +10604,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markEncounterEndRezzedThisTurn",
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterEndRezzedThisTurn",
           "kinds": []
         },
         {
@@ -10649,7 +10649,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markEncounterRezzedAfterApproach",
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterRezzedAfterApproach",
           "kinds": []
         },
         {
@@ -10709,7 +10709,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstAccessTrash",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstAccessTrash",
           "kinds": []
         },
         {
@@ -10748,7 +10748,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstAgendaScoredOrStolen",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstAgendaScoredOrStolen",
           "kinds": []
         },
         {
@@ -10769,7 +10769,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstArchivesRunBegin",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstArchivesRunBegin",
           "kinds": []
         },
         {
@@ -10807,7 +10807,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstBadPublicityTake",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstBadPublicityTake",
           "kinds": []
         },
         {
@@ -10884,7 +10884,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstCorpCardInstall",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstCorpCardInstall",
           "kinds": []
         },
         {
@@ -10926,7 +10926,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstCorpRootInstall",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstCorpRootInstall",
           "kinds": []
         },
         {
@@ -10981,7 +10981,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstEncounterEachRun",
+          "site": "src/legality/checkpointRunMarks.ts#markFirstEncounterEachRun",
           "kinds": []
         },
         {
@@ -11025,7 +11025,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstEventTrashed",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstEventTrashed",
           "kinds": []
         },
         {
@@ -11046,7 +11046,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstGripOrStackTrashBatch",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstGripOrStackTrashBatch",
           "kinds": []
         },
         {
@@ -11067,7 +11067,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstHardwareInstall",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstHardwareInstall",
           "kinds": []
         },
         {
@@ -11180,7 +11180,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstPassIce",
+          "site": "src/legality/checkpointRunMarks.ts#markFirstPassIce",
           "kinds": []
         },
         {
@@ -11201,7 +11201,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markSisyphusFirstPass",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markSisyphusFirstPass",
           "kinds": []
         },
         {
@@ -11223,7 +11223,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstProgramInstall",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstProgramInstall",
           "kinds": []
         },
         {
@@ -11244,7 +11244,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstProgramOrHardwareTrash",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstProgramOrHardwareTrash",
           "kinds": []
         },
         {
@@ -11265,7 +11265,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstRdRunBegin",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRdRunBegin",
           "kinds": []
         },
         {
@@ -11290,11 +11290,11 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markFirstRemoteInstallNormal",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRemoteInstallNormal",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markSwapInstallFromZoneDiff",
+          "site": "src/legality/checkpointHookMarks.ts#markSwapInstallFromZoneDiff",
           "kinds": []
         },
         {
@@ -11340,7 +11340,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstRevealThisTurn",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRevealThisTurn",
           "kinds": []
         },
         {
@@ -11366,7 +11366,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstRunBegin",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRunBegin",
           "kinds": []
         },
         {
@@ -11387,7 +11387,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markSeidrFirstClickDuringRun",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markSeidrFirstClickDuringRun",
           "kinds": []
         },
         {
@@ -11408,7 +11408,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstCreditPoolEmpty",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstCreditPoolEmpty",
           "kinds": []
         },
         {
@@ -11430,7 +11430,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstRunnerStoleOrTrashed",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRunnerStoleOrTrashed",
           "kinds": []
         },
         {
@@ -11453,7 +11453,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstSuccessfulCentralRun",
+          "site": "src/legality/checkpointRunMarks.ts#markFirstSuccessfulCentralRun",
           "kinds": []
         },
         {
@@ -11474,7 +11474,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstSuccessfulHqOrRdRun",
+          "site": "src/legality/checkpointRunMarks.ts#markFirstSuccessfulHqOrRdRun",
           "kinds": []
         },
         {
@@ -11500,7 +11500,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstSuccessfulHqRun",
+          "site": "src/legality/checkpointRunMarks.ts#markFirstSuccessfulHqRun",
           "kinds": []
         },
         {
@@ -11525,7 +11525,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstSuccessfulMarkRun",
+          "site": "src/legality/checkpointRunMarks.ts#markFirstSuccessfulMarkRun",
           "kinds": []
         },
         {
@@ -11546,7 +11546,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstSuccessfulRdRunEnd",
+          "site": "src/legality/checkpointRunMarks.ts#markFirstSuccessfulRdRunEnd",
           "kinds": []
         },
         {
@@ -11581,7 +11581,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markValSuccessfulRunTriggers",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markValSuccessfulRunTriggers",
           "kinds": []
         }
       ],
@@ -11598,7 +11598,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstTagThisTurn",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstTagThisTurn",
           "kinds": []
         },
         {
@@ -11619,7 +11619,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstTrashMatchingRunnerIdFaction",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstTrashMatchingRunnerIdFaction",
           "kinds": []
         },
         {
@@ -11640,7 +11640,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstUnsuccessfulRun",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstUnsuccessfulRun",
           "kinds": []
         },
         {
@@ -11662,7 +11662,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markFirstVirusInstall",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstVirusInstall",
           "kinds": []
         },
         {
@@ -11929,7 +11929,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markHostEncounter",
+          "site": "src/legality/checkpointRunMarks.ts#markHostEncounter",
           "kinds": []
         },
         {
@@ -12151,7 +12151,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markIceOnPass",
+          "site": "src/legality/checkpointRunMarks.ts#markIceOnPass",
           "kinds": []
         },
         {
@@ -12173,7 +12173,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markPassAllIceProtectingServer",
+          "site": "src/legality/checkpointRunMarks.ts#markPassAllIceProtectingServer",
           "kinds": []
         },
         {
@@ -12196,7 +12196,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markPassHost",
+          "site": "src/legality/checkpointRunMarks.ts#markPassHost",
           "kinds": []
         },
         {
@@ -12238,7 +12238,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markPassRezzedIce",
+          "site": "src/legality/checkpointRunMarks.ts#markPassRezzedIce",
           "kinds": []
         },
         {
@@ -12264,7 +12264,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markPassRezzedIceProtectingServer",
+          "site": "src/legality/checkpointRunMarks.ts#markPassRezzedIceProtectingServer",
           "kinds": []
         },
         {
@@ -12289,7 +12289,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markPassUnrezzedIce",
+          "site": "src/legality/checkpointRunMarks.ts#markPassUnrezzedIce",
           "kinds": []
         },
         {
@@ -12557,7 +12557,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markRunBegin",
+          "site": "src/legality/checkpointRunMarks.ts#markRunBegin",
           "kinds": []
         },
         {
@@ -12748,7 +12748,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markRunnerTurnEnd",
+          "site": "src/legality/checkpointHookMarks.ts#markRunnerTurnEnd",
           "kinds": []
         },
         {
@@ -12826,7 +12826,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markScoreTurnEnd",
+          "site": "src/legality/checkpointHookMarks.ts#markScoreTurnEnd",
           "kinds": []
         },
         {
@@ -12977,7 +12977,7 @@
           ]
         },
         {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRun",
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRun",
           "kinds": []
         },
         {
@@ -13006,7 +13006,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRunEnd",
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRunEnd",
           "kinds": []
         },
         {
@@ -13031,7 +13031,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRunEndOnce",
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRunEndOnce",
           "kinds": []
         },
         {
@@ -13077,7 +13077,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRunOnRd",
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRunOnRd",
           "kinds": []
         },
         {
@@ -13141,7 +13141,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markOtherServerSuccess",
+          "site": "src/legality/checkpointRunMarks.ts#markOtherServerSuccess",
           "kinds": []
         },
         {
@@ -13218,7 +13218,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markHadNoTagsFromCheckpointDiff",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markHadNoTagsFromCheckpointDiff",
           "kinds": []
         }
       ],
@@ -13476,7 +13476,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markUnsuccessfulRunServer",
+          "site": "src/legality/checkpointHookMarks.ts#markUnsuccessfulRunServer",
           "kinds": []
         },
         {
@@ -14002,7 +14002,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markFirstAgendaScoredOrStolen",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstAgendaScoredOrStolen",
           "kinds": []
         },
         {
@@ -16700,7 +16700,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#trashHostedCard",
+          "site": "src/legality/checkpointRules.ts#trashHostedCard",
           "kinds": []
         },
         {
@@ -16761,7 +16761,7 @@
       ],
       "readers": [
         {
-          "site": "src/legality/checkpoints.ts#markDrawConditionals",
+          "site": "src/legality/checkpointHookMarks.ts#markDrawConditionals",
           "kinds": []
         },
         {
@@ -18292,39 +18292,39 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkUniqueness",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstCorpCardTrashRecord",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markBypass",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstUnsuccessfulRun",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrashRecord",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markValSuccessfulRunTriggers",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markFirstUnsuccessfulRun",
+          "site": "src/legality/checkpointRules.ts#checkUniqueness",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markRunBegin",
+          "site": "src/legality/checkpointRules.ts#restrictionChooser",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRun",
+          "site": "src/legality/checkpointRules.ts#restrictionSetsMixSides",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markValSuccessfulRunTriggers",
+          "site": "src/legality/checkpointRunMarks.ts#markBypass",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#restrictionChooser",
+          "site": "src/legality/checkpointRunMarks.ts#markRunBegin",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#restrictionSetsMixSides",
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRun",
           "kinds": []
         },
         {
@@ -18940,7 +18940,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkDiscardPileCards",
+          "site": "src/legality/checkpointRules.ts#checkDiscardPileCards",
           "kinds": []
         }
       ],
@@ -20227,15 +20227,15 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkDiscardPileCards",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markValRunnerTriggers",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkUniqueness",
+          "site": "src/legality/checkpointRules.ts#checkDiscardPileCards",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markValRunnerTriggers",
+          "site": "src/legality/checkpointRules.ts#checkUniqueness",
           "kinds": []
         },
         {
@@ -21577,11 +21577,263 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkDiscardPileCards",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markBuiltToLastFromCheckpointDiff",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkUniqueness",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markCorpFlippedFirstOperationPlay",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markDaredevilFirstRun",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markEachCorpBadPublicityTake",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstAccessTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstAgendaScoredOrStolen",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstArchivesRunBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstBadPublicityTake",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstCorpCardInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstCorpCardTrashRecord",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstCorpRootInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstCreditPoolEmpty",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstEventTrashed",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstGripOrStackTrashBatch",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstInstalledTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstProgramOrHardwareTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRdRunBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRemoteInstallNormal",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRevealThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRunBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstRunnerStoleOrTrashed",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstTagThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstTrashMatchingRunnerIdFaction",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstUnsuccessfulRun",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markHadNoTagsFromCheckpointDiff",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markMirrormorphThirdDistinct",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markRunnerStoredConditionals",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markSeidrFirstClickDuringRun",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markSisyphusFirstPass",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markValRunnerTriggers",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markValSuccessfulRunTriggers",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointHookMarks.ts#markCorpTurnEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointHookMarks.ts#markDrawConditionals",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointHookMarks.ts#markRunnerTurnEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointHookMarks.ts#markScoreTurnEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointHookMarks.ts#markSwapInstallFromZoneDiff",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointHookMarks.ts#markUnsuccessfulRunServer",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRules.ts#checkDiscardPileCards",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRules.ts#checkUniqueness",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRules.ts#restrictionPlanLabel",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markApproachIce",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markApproachServer",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markBypass",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterEndNotFullyBroken",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterEndPrintedSubroutineBroken",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterEndRezzedThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markEncounterRezzedAfterApproach",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markFirstEncounterEachRun",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markFirstPassIce",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markFirstSuccessfulRdRunEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markFirstSuccessfulRunFamily",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markHostEncounter",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markIceOnPass",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markOtherServerSuccess",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markPassAllIceProtectingServer",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markPassHost",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markPassRezzedIce",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markPassRezzedIceProtectingServer",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markPassUnrezzedIce",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markRunBegin",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRun",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRunEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRunEndOnce",
+          "kinds": []
+        },
+        {
+          "site": "src/legality/checkpointRunMarks.ts#markSuccessfulRunOnRd",
           "kinds": []
         },
         {
@@ -21589,259 +21841,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markApproachIce",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markApproachServer",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markBuiltToLastFromCheckpointDiff",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markBypass",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markCorpFlippedFirstOperationPlay",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markCorpTurnEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markDaredevilFirstRun",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markDrawConditionals",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markEachCorpBadPublicityTake",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markEncounterEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markEncounterEndNotFullyBroken",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markEncounterEndPrintedSubroutineBroken",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markEncounterEndRezzedThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markEncounterRezzedAfterApproach",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstAccessTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstAgendaScoredOrStolen",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstArchivesRunBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstBadPublicityTake",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstCorpCardInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstCorpCardTrashRecord",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstCorpRootInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstCreditPoolEmpty",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstEncounterEachRun",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstEventTrashed",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstGripOrStackTrashBatch",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstInstalledTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstPassIce",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstProgramOrHardwareTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstRdRunBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstRemoteInstallNormal",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstRevealThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstRunBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstRunnerStoleOrTrashed",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstSuccessfulRdRunEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstSuccessfulRunFamily",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstTagThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstTrashMatchingRunnerIdFaction",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markFirstUnsuccessfulRun",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markHadNoTagsFromCheckpointDiff",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markHostEncounter",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markIceOnPass",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markMirrormorphThirdDistinct",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markOtherServerSuccess",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markPassAllIceProtectingServer",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markPassHost",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markPassRezzedIce",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markPassRezzedIceProtectingServer",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markPassUnrezzedIce",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markRunBegin",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markRunnerStoredConditionals",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markRunnerTurnEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markScoreTurnEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markSeidrFirstClickDuringRun",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markSisyphusFirstPass",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRun",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRunEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRunEndOnce",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markSuccessfulRunOnRd",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markSwapInstallFromZoneDiff",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markUnsuccessfulRunServer",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markValRunnerTriggers",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#markValSuccessfulRunTriggers",
-          "kinds": []
-        },
-        {
           "site": "src/legality/checkpoints.ts#resolveBlackguardPendingInstance",
-          "kinds": []
-        },
-        {
-          "site": "src/legality/checkpoints.ts#restrictionPlanLabel",
           "kinds": []
         },
         {
@@ -24012,23 +24012,23 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkDiscardPileCards",
+          "site": "src/legality/checkpointFirstEachTurnMarks.ts#markFirstBadPublicityTake",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markBypass",
+          "site": "src/legality/checkpointHookMarks.ts#markDrawConditionals",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markDrawConditionals",
+          "site": "src/legality/checkpointRules.ts#checkDiscardPileCards",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#markFirstBadPublicityTake",
+          "site": "src/legality/checkpointRules.ts#trashHostedCard",
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#trashHostedCard",
+          "site": "src/legality/checkpointRunMarks.ts#markBypass",
           "kinds": []
         },
         {
@@ -24351,7 +24351,7 @@
           "kinds": []
         },
         {
-          "site": "src/legality/checkpoints.ts#checkUniqueness",
+          "site": "src/legality/checkpointRules.ts#checkUniqueness",
           "kinds": []
         },
         {
