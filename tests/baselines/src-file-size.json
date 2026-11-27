@@ -1,0 +1,16 @@
+{
+  "_comment": "Engine src/ files over the 2,000-line limit (tests/src-file-size.test.ts, repository layout plan slice E0, 2026-11-27). Shrink-only: a file listed here may shrink, not grow, and comes off the list once it is at or under the limit. A count that goes down is recorded with UPDATE_SRC_FILE_SIZE=1 npx vitest run tests/src-file-size.test.ts, which also drops files under the limit. No file is ever added: split a new oversized file instead.",
+  "files": {
+    "src/effects/ir.ts": 8786,
+    "src/state/types.ts": 6331,
+    "src/timing/graph.ts": 6092,
+    "src/effects/kinds/otherKinds.ts": 4794,
+    "src/legality/checkpoints.ts": 4763,
+    "src/cards/load.ts": 4484,
+    "src/effects/kinds/installKinds.ts": 4170,
+    "src/actions/apply.ts": 3911,
+    "src/effects/kinds/trashKinds.ts": 2690,
+    "src/state/costs.ts": 2228,
+    "src/effects/eval.ts": 2163
+  }
+}
