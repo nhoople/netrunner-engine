@@ -38,7 +38,7 @@ import { hostCard } from "../src/state/procedures/host.js";
 import { runnerInstallCost } from "../src/actions/installRunner.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 import { noteOnRunnerTurnEnd } from "../src/state/runnerTurnEndHooks.js";
-import { applyRunAccessRestrictions } from "../src/state/accessFilter.js";
+import { applyRunAccessRestrictions } from "../src/state/access/accessFilter.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
 import {
   actionMeetsFirstClickMust,

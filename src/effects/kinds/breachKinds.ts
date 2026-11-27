@@ -3,7 +3,7 @@ import type { ServerId } from "../../state/types.js";
  * Primitive kinds whose procedure is breach.
  * The effect switch in eval.ts dispatches here.
  */
-import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
+import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { fx } from "../ir.js";

@@ -1,9 +1,9 @@
 /** Run-scoped access candidate filtering (Adrian Seis / Flagship). */
 
-import type { GameState } from "./types.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./createGame.js";
-import { CR } from "../timing/labels.js";
+import type { GameState } from "../types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../createGame.js";
+import { CR } from "../../timing/labels.js";
 
 export function applyRunAccessRestrictions(state: GameState): void {
   const run = state.run;

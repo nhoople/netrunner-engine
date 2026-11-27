@@ -46,7 +46,7 @@ import {
   returnSetAsideVirusCounters,
 } from "../state/costs.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
-import { beginBreachAccess } from "../state/access.js";
+import { beginBreachAccess } from "../state/access/access.js";
 import { runnerIsTagged } from "../state/tags.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import {

@@ -3486,7 +3486,7 @@
     "devadatta-drone": {
       "cycle": "elevation",
       "result": "matches",
-      "note": "2 power counters on install; on each R&D breach may remove 1 for +1 access (optional choice in src/state/access.ts)."
+      "note": "2 power counters on install; on each R&D breach may remove 1 for +1 access (optional choice in src/state/access/access.ts)."
     },
     "devil-charm": {
       "cycle": "ashes",
@@ -14298,7 +14298,7 @@
     "wake-implant-v2a-jrj": {
       "cycle": "borealis",
       "result": "matches",
-      "note": "Unique; 1 meat damage on install; power counter on each successful HQ run; on R&D breach may remove up to 3 for that many more accesses (a choice of how many, src/state/access.ts)."
+      "note": "Unique; 1 meat damage on install; power counter on each successful HQ run; on R&D breach may remove up to 3 for that many more accesses (a choice of how many, src/state/access/access.ts)."
     },
     "wake-up-call": {
       "cycle": "kitara",

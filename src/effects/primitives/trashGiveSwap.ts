@@ -1,5 +1,5 @@
 /** Fear and Loathing / Double Time Spin pack primitives. */
-import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
+import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { log } from "../../state/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { startPsiGame } from "../../state/psi.js";

@@ -62,7 +62,7 @@ import {
 import { purgeVirusCounters } from "../src/state/trashHooks.js";
 import { beginCorpTurnFlags } from "../src/state/turn.js";
 import { noteInstalledCardCreditSpend } from "../src/state/costs.js";
-import { beginBreachAccess } from "../src/state/access.js";
+import { beginBreachAccess } from "../src/state/access/access.js";
 import { currentMark, placeMark } from "../src/state/msKeywords.js";
 import {
   syncPaidAbilitiesFromRecords,

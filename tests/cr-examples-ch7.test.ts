@@ -17,8 +17,8 @@ import {
 import {
   beginBreachAccess,
   refreshRdDeckCandidate,
-} from "../src/state/access.js";
-import { applyRunAccessRestrictions } from "../src/state/accessFilter.js";
+} from "../src/state/access/access.js";
+import { applyRunAccessRestrictions } from "../src/state/access/accessFilter.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 

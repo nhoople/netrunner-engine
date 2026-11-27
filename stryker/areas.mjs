@@ -95,8 +95,8 @@ export const areas = {
     title: "8. Access",
     mutate: [
       "src/actions/access.ts",
-      "src/state/access.ts",
-      "src/state/accessFilter.ts",
+      "src/state/access/access.ts",
+      "src/state/access/accessFilter.ts",
     ],
     tests: ["tests/*access*.test.ts"],
     grep: /\baccess_card\b|\b7\.[1-5]\.|Khusyuk|Deep Dive|Detente/,

@@ -1927,7 +1927,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#beginBreachAccess",
+          "site": "src/state/access/access.ts#beginBreachAccess",
           "kinds": []
         }
       ],
@@ -1948,7 +1948,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#staticBreachAccessBonuses",
+          "site": "src/state/access/access.ts#staticBreachAccessBonuses",
           "kinds": []
         }
       ],
@@ -1967,7 +1967,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#beginBreachAccess",
+          "site": "src/state/access/access.ts#beginBreachAccess",
           "kinds": []
         }
       ],
@@ -1986,7 +1986,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#staticBreachAccessBonuses",
+          "site": "src/state/access/access.ts#staticBreachAccessBonuses",
           "kinds": []
         }
       ],
@@ -2006,7 +2006,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#staticBreachAccessBonuses",
+          "site": "src/state/access/access.ts#staticBreachAccessBonuses",
           "kinds": []
         }
       ],
@@ -2687,7 +2687,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#offerMediumBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerMediumBreachBonusAccess",
           "kinds": []
         }
       ],
@@ -2706,7 +2706,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#offerMediumBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerMediumBreachBonusAccess",
           "kinds": []
         }
       ],
@@ -7985,7 +7985,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/accessFilter.ts#applyMaxAccessOtherThanSelf",
+          "site": "src/state/access/accessFilter.ts#applyMaxAccessOtherThanSelf",
           "kinds": []
         }
       ],
@@ -8721,7 +8721,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#offerWakeImplantBonusAccess",
+          "site": "src/state/access/access.ts#offerWakeImplantBonusAccess",
           "kinds": []
         }
       ],
@@ -8805,7 +8805,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#offerRotaryBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerRotaryBreachBonusAccess",
           "kinds": []
         }
       ],
@@ -9475,7 +9475,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/accessAbilityHooks.ts#noteAccessedCardAbilities",
+          "site": "src/state/access/accessAbilityHooks.ts#noteAccessedCardAbilities",
           "kinds": []
         }
       ],
@@ -9570,7 +9570,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/accessAbilityHooks.ts#noteAccessedCardAbilities",
+          "site": "src/state/access/accessAbilityHooks.ts#noteAccessedCardAbilities",
           "kinds": []
         }
       ],
@@ -9587,7 +9587,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/accessAbilityHooks.ts#noteAccessedCardAbilities",
+          "site": "src/state/access/accessAbilityHooks.ts#noteAccessedCardAbilities",
           "kinds": []
         }
       ],
@@ -9944,7 +9944,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#beginBreachAccess",
+          "site": "src/state/access/access.ts#beginBreachAccess",
           "kinds": []
         },
         {
@@ -9969,7 +9969,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/access.ts#offerCupellationHqBreach",
+          "site": "src/state/access/access.ts#offerCupellationHqBreach",
           "kinds": []
         }
       ],
@@ -9988,7 +9988,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#offerMercuryBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerMercuryBreachBonusAccess",
           "kinds": []
         }
       ],
@@ -10006,7 +10006,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/access.ts#offerOnBreachRd",
+          "site": "src/state/access/access.ts#offerOnBreachRd",
           "kinds": []
         }
       ],
@@ -10025,7 +10025,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#offerPrettyMaryBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerPrettyMaryBreachBonusAccess",
           "kinds": []
         }
       ],
@@ -10724,7 +10724,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/accessAbilityHooks.ts#noteFinishAccessRdOncePerTurn",
+          "site": "src/state/access/accessAbilityHooks.ts#noteFinishAccessRdOncePerTurn",
           "kinds": []
         }
       ],
@@ -14038,7 +14038,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#staticBreachAccessBonuses",
+          "site": "src/state/access/access.ts#staticBreachAccessBonuses",
           "kinds": []
         },
         {
@@ -16652,7 +16652,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/access.ts#offerTwinningBonusAccess",
+          "site": "src/state/access/access.ts#offerTwinningBonusAccess",
           "kinds": []
         }
       ],
@@ -18384,7 +18384,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerCupellationHqBreach",
+          "site": "src/state/access/access.ts#offerCupellationHqBreach",
           "kinds": []
         },
         {
@@ -21977,55 +21977,59 @@
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#beginBreachAccess",
+          "site": "src/state/access/access.ts#beginBreachAccess",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerCupellationHqBreach",
+          "site": "src/state/access/access.ts#offerCupellationHqBreach",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerMediumBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerMediumBreachBonusAccess",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerMercuryBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerMercuryBreachBonusAccess",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerOnBreachRd",
+          "site": "src/state/access/access.ts#offerOnBreachRd",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerPrettyMaryBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerPrettyMaryBreachBonusAccess",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerRotaryBreachBonusAccess",
+          "site": "src/state/access/access.ts#offerRotaryBreachBonusAccess",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerTwinningBonusAccess",
+          "site": "src/state/access/access.ts#offerTwinningBonusAccess",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#offerWakeImplantBonusAccess",
+          "site": "src/state/access/access.ts#offerWakeImplantBonusAccess",
           "kinds": []
         },
         {
-          "site": "src/state/access.ts#staticBreachAccessBonuses",
+          "site": "src/state/access/access.ts#staticBreachAccessBonuses",
           "kinds": []
         },
         {
-          "site": "src/state/accessAbilityHooks.ts#noteAccessedCardAbilities",
+          "site": "src/state/access/accessAbilityHooks.ts#noteAccessedCardAbilities",
           "kinds": []
         },
         {
-          "site": "src/state/accessAbilityHooks.ts#noteFinishAccessRdOncePerTurn",
+          "site": "src/state/access/accessAbilityHooks.ts#noteFinishAccessRdOncePerTurn",
           "kinds": []
         },
         {
-          "site": "src/state/accessFilter.ts#applyMaxAccessOtherThanSelf",
+          "site": "src/state/access/accessFilter.ts#applyMaxAccessOtherThanSelf",
+          "kinds": []
+        },
+        {
+          "site": "src/state/access/breachReplacement.ts#breachAlreadyReplaced",
           "kinds": []
         },
         {
@@ -22034,10 +22038,6 @@
         },
         {
           "site": "src/state/beforeFirstTurnHooks.ts#noteOnBeforeFirstTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/breachReplacement.ts#breachAlreadyReplaced",
           "kinds": []
         },
         {

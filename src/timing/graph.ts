@@ -27,7 +27,7 @@ import {
   armNestedBreachIfPending,
   beginBreachAccess,
   refreshRdDeckCandidate,
-} from "../state/access.js";
+} from "../state/access/access.js";
 import { syncNextSubtypeEtrSubs } from "../state/powerCounters.js";
 import { syncCorpHandSizeSubroutines } from "../state/continuous/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
@@ -135,7 +135,7 @@ import {
 import {
   noteAccessedCardAbilities,
   noteFinishAccessRdOncePerTurn,
-} from "../state/accessAbilityHooks.js";
+} from "../state/access/accessAbilityHooks.js";
 import { noteSuccessfulRunServerAbilities } from "../state/run/successfulRunServerHooks.js";
 import { noteUnsuccessfulRunServerAbilities } from "../state/run/unsuccessfulRunServerHooks.js";
 import {
