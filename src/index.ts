@@ -295,7 +295,6 @@ export {
   loadCardCatalog,
   loadCardPool,
   getCardDef,
-  instantiateCard,
   applyCardDef,
   supportedCardIds,
   loadCardsPin,
@@ -303,6 +302,7 @@ export {
   assertCardsDataPresent,
   assertCardsPinnedTag,
 } from "./cards/load.js";
+export { instantiateCard } from "./cards/instantiateCard.js";
 export { createShortGameState } from "./cards/shortGame.js";
 export {
   isRunTargetAllowed,

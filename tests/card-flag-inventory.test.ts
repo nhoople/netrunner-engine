@@ -8,7 +8,7 @@
  * reads it and builds `swap_two_ice`.
  *
  * This test lists every entry of two kinds:
- *   - each optional boolean or number field on `CardDef` (`src/cards/load.ts`;
+ *   - each optional boolean or number field on `CardDef` (`src/cards/cardDef.ts`;
  *     the loader copies it onto the `CardInstance` field of the same name in
  *     `src/state/types/card.ts` and the two files it extends, except where `instantiateCard` renames it), and
  *   - each top-level property of the pinned `vendor/cards-data/schema.json`.
@@ -231,8 +231,9 @@ const COMPARISONS = new Set([
  * A `def.<x>` that only feeds a comparison or a `?:` condition (`rezzed:
  * def.type === "identity"`) derives y rather than copying x, so it is skipped.
  */
-function instanceTargets(sf: ts.SourceFile): Map<string, Set<string>> {
-  const fn = findFunction(sf, "instantiateCard");
+function instanceTargets(
+  fns: ts.FunctionDeclaration[],
+): Map<string, Set<string>> {
   const out = new Map<string, Set<string>>();
   const note = (target: string, value: ts.Node): void => {
     const walk = (x: ts.Node): void => {
@@ -283,7 +284,7 @@ function instanceTargets(sf: ts.SourceFile): Map<string, Set<string>> {
     }
     ts.forEachChild(n, visit);
   };
-  visit(fn);
+  for (const fn of fns) visit(fn);
   return out;
 }
 
@@ -661,16 +662,31 @@ function buildInventory(): Inventory {
   const program = createProgram();
   const checker = program.getTypeChecker();
   const loadSf = program.getSourceFile(join(ROOT, "src/cards/load.ts"));
+  const cardDefSf = program.getSourceFile(join(ROOT, "src/cards/cardDef.ts"));
+  // `instantiateCard` copies a card's data in two halves, each in its own file.
+  const instantiateSf = program.getSourceFile(
+    join(ROOT, "src/cards/instantiateCard.ts"),
+  );
+  const copySf = program.getSourceFile(
+    join(ROOT, "src/cards/copyOptionalCardFields.ts"),
+  );
   // `CardInstance` extends its trigger hooks and its costs and requirements,
   // each in its own file; together they are the card instance's members.
   const cardSfs = ["card.ts", "cardHooks.ts", "cardCosts.ts"].map((f) =>
     program.getSourceFile(join(ROOT, "src/state/types", f)),
   );
   const fxSf = program.getSourceFile(join(ROOT, "src/effects/ir/fx.ts"));
-  if (!loadSf || cardSfs.some((sf) => !sf) || !fxSf)
+  if (
+    !loadSf ||
+    !cardDefSf ||
+    !instantiateSf ||
+    !copySf ||
+    cardSfs.some((sf) => !sf) ||
+    !fxSf
+  )
     throw new Error("engine sources missing from program");
 
-  const cardDef = findInterface(loadSf, "CardDef");
+  const cardDef = findInterface(cardDefSf, "CardDef");
   const cardInstanceParts = (
     [
       [cardSfs[0], "CardInstance"],
@@ -706,7 +722,11 @@ function buildInventory(): Inventory {
 
   // Readers: CardDef members, and the CardInstance members the loader copies them to.
   // A def field the loader never names is spread or cloned onto the same name.
-  const targets = instanceTargets(loadSf);
+  const loaderCopy = [
+    findFunction(instantiateSf, "instantiateCard"),
+    findFunction(copySf, "copyOptionalCardFields"),
+  ];
+  const targets = instanceTargets(loaderCopy);
   const instanceOf = (field: string): string[] =>
     sorted(targets.get(field) ?? [field]);
   const owners = new Map<ts.Declaration, string>();
@@ -785,7 +805,7 @@ function buildInventory(): Inventory {
 
   // The loader's own copy from CardDef to CardInstance is the mapping, not a read.
   const skip = new Set<ts.Node>([
-    findFunction(loadSf, "instantiateCard"),
+    ...loaderCopy,
     findFunction(loadSf, "applyCardDef"),
   ]);
   const cardKeys = new Set<string>();

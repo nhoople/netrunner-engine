@@ -13,7 +13,7 @@ import type {
   Server,
   ServerId,
 } from "../state/types.js";
-import { instantiateCard } from "./load.js";
+import { instantiateCard } from "./instantiateCard.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {
   return {

@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { createGame, getPublicView } from "../src/api/library.js";
 import { createShortGameState } from "../src/cards/shortGame.js";
-import { instantiateCard } from "../src/cards/load.js";
+import { instantiateCard } from "../src/cards/instantiateCard.js";
 import { removeCardFromCurrentZone } from "../src/state/turnAndActions/scoring.js";
 import {
   enterLingeringPlayArea,

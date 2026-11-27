@@ -19,7 +19,7 @@ import {
   loadCardCatalog,
   STEPS,
 } from "../src/index.js";
-import type { CardDef } from "../src/cards/load.js";
+import type { CardDef } from "../src/cards/cardDef.js";
 import type { Effect } from "../src/effects/ir.js";
 import { cursorFrom } from "../src/timing/graph.js";
 import { agendaPointsFor } from "../src/state/turnAndActions/scoring.js";

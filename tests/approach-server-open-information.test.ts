@@ -19,7 +19,7 @@ import {
   getPublicView,
   legalActions,
 } from "../src/index.js";
-import { instantiateCard } from "../src/cards/load.js";
+import { instantiateCard } from "../src/cards/instantiateCard.js";
 import type { Action, GameState, Side } from "../src/state/types.js";
 
 beforeAll(() => {

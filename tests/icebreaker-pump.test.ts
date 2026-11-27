@@ -8,7 +8,7 @@
  * strength" only in the breaker declaration (`pumpCredits`,
  * `pumpStrength`), which nothing read, so they could not pump. The engine
  * now builds that paid ability from those fields at load
- * (`declaredPumpAbility` in `src/cards/load.ts`), through `pump_strength`.
+ * (`declaredPumpAbility` in `src/cards/copyOptionalCardFields.ts`), through `pump_strength`.
  *
  * CR 3.9.4a, 1.2.1: an icebreaker's strength is its printed strength. Nine
  * programs declared a lower `breaker.strength`, and `effectiveBreakerStrength`

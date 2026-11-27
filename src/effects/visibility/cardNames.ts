@@ -7,7 +7,8 @@
  * (CR 10.2.2a, 10.2.2b). Identities are left out: a name on a card that
  * cannot be in any zone the ability looks at does nothing.
  */
-import { loadCardCatalog, type CardDef } from "../../cards/load.js";
+import { loadCardCatalog } from "../../cards/load.js";
+import { type CardDef } from "../../cards/cardDef.js";
 
 export function catalogCardNames(
   keep: (def: CardDef) => boolean = () => true,

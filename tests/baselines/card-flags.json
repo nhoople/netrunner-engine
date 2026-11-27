@@ -2061,7 +2061,7 @@
           "kinds": []
         },
         {
-          "site": "src/cards/load.ts#declaredPumpAbility",
+          "site": "src/cards/copyOptionalCardFields.ts#declaredPumpAbility",
           "kinds": []
         },
         {
@@ -6637,7 +6637,7 @@
           "kinds": []
         },
         {
-          "site": "src/cards/load.ts#declaredPumpAbility",
+          "site": "src/cards/copyOptionalCardFields.ts#declaredPumpAbility",
           "kinds": []
         },
         {
@@ -13732,7 +13732,7 @@
           "kinds": []
         },
         {
-          "site": "src/cards/load.ts#declaredPumpAbility",
+          "site": "src/cards/copyOptionalCardFields.ts#declaredPumpAbility",
           "kinds": []
         },
         {
@@ -20938,7 +20938,7 @@
           "kinds": []
         },
         {
-          "site": "src/cards/load.ts#declaredPumpAbility",
+          "site": "src/cards/copyOptionalCardFields.ts#declaredPumpAbility",
           "kinds": []
         },
         {

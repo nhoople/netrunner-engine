@@ -151,7 +151,7 @@ stryker/                  # mutation-test configs, one per CR audit area (local 
 src/                      # index.ts: the package entry; cli.ts: the development host
   actions/                # apply.ts: applyAction and choice dispatch; install, run, rez, break, play, score, access, phase
   api/                    # library.ts: createGame / queryLegality / applyIntent / getPublicView
-  cards/                  # load.ts: the card loader; short-game setup and runtime helpers
+  cards/                  # load.ts: the card loader; cardDef.ts: the CardDef type; instantiateCard.ts and copyOptionalCardFields.ts: building a card from its definition; short-game setup and runtime helpers
   cr/                     # reads the pinned CR data in vendor/cr-data/
   debug/                  # hooks tests set: invariants after each action, timing steps, legality agreement
   demo/                   # scripted games and test drivers for the demos

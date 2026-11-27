@@ -21,7 +21,14 @@ import {
 import { RESTRICTION_FIELDS } from "../src/effects/abilityRecord.js";
 import type { AbilityRecord } from "../src/effects/abilityRecord.js";
 
-const WRITERS = new Set(["abilityRecord.ts", "load.ts", "types.ts"]);
+const WRITERS = new Set([
+  "abilityRecord.ts",
+  "load.ts",
+  "cardDef.ts",
+  "instantiateCard.ts",
+  "copyOptionalCardFields.ts",
+  "types.ts",
+]);
 /** The state types `types.ts` re-exports, which declare the hooks too. */
 const WRITER_DIRS = new Set([join(process.cwd(), "src/state/types")]);
 
