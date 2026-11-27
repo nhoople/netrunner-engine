@@ -26,13 +26,12 @@ import {
 } from "../state/hostingAndTrash/trashHooks.js";
 import type {
   ApplyResult,
-  CardInstance,
-  GameState,
   InstallDestination,
-  RuleCite,
-  Server,
-  ServerId,
-} from "../state/types.js";
+} from "../state/types/actions.js";
+import type { CardInstance } from "../state/types/card.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { Server, ServerId } from "../state/types/servers.js";
 import { fx } from "../effects/ir/fx.js";
 import { CR } from "../timing/labels.js";
 import { installBlockReason } from "../state/cardFlags/staticFlags.js";

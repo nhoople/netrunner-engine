@@ -1413,7 +1413,7 @@ export function applySearchKinds(
       shuffleCorpRdAfterSearch(state);
       const remoteNum = state.nextRemoteNumber++;
       const sid =
-        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+        `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
       state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
       if (card.type === "ice") {
         state.servers[sid].ice.push(cardId);

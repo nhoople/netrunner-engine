@@ -1,4 +1,5 @@
-import type { GameState, Side } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { Side } from "../types/shared.js";
 
 /** True only while a hidden-zone search allows this seat to look (CR 8.7.1a). */
 export function mayLookAtHiddenZone(state: GameState, side: Side): boolean {

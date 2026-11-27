@@ -26,7 +26,9 @@ import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { rezInstalledIgnoringCosts } from "../install/corpAbilityInstall.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import type { ServerId, RuleCite, GameState } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
+import type { GameState } from "../../state/types/game.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 import {
   applyContinuousGainedSubs,
@@ -670,7 +672,8 @@ export function applyRezKinds(
         fireOnRez(state, sourceId);
       }
       const attacked = state.run.attackedServerId;
-      let fromServer: import("../../state/types.js").Server | null = null;
+      let fromServer: import("../../state/types/servers.js").Server | null =
+        null;
       for (const server of Object.values(state.servers)) {
         if (server.ice.includes(sourceId)) {
           fromServer = server;

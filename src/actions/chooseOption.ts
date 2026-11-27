@@ -1,11 +1,8 @@
 /** chooseOption: resolve the option a player picked in an open choice (the choose_option action), with the two helpers only it uses. */
 import type { Effect } from "../effects/ir/effect.js";
-import type {
-  GameState,
-  ApplyResult,
-  ServerId,
-  Server,
-} from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
+import type { ApplyResult } from "../state/types/actions.js";
+import type { ServerId, Server } from "../state/types/servers.js";
 import { CR } from "../timing/labels.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
 import { log } from "../state/setupAndEnd/createGame.js";
@@ -1017,7 +1014,7 @@ export function chooseOption(state: GameState, optionId: string): ApplyResult {
       }
       const walked = startRun(
         state,
-        pending.serverId as import("../state/types.js").ServerId,
+        pending.serverId as import("../state/types/servers.js").ServerId,
         mods,
       );
       if (!walked.ok) return walked;

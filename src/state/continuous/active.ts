@@ -15,7 +15,7 @@
  * one. Readers of a source that must be in play (Rumor Mill, the blanking
  * and subtype layers, Trieste Model Bioroids) ask `isCardActive`.
  */
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 const SERVER_ZONE = /^server:[^:]+:(root|ice)$/;
 

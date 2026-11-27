@@ -10,7 +10,7 @@ export type SetPrimitive =
   /** Leaf: store Corp's encounter card-type choice. */
   | {
       kind: "set_encounter_chosen_card_type";
-      cardType: import("../../state/types.js").CardType;
+      cardType: import("../../state/types/shared.js").CardType;
     }
   /** Internal leaf: schedule encounter of chosen protecting ice. */
   | { kind: "set_reencounter_ice"; iceId: string }

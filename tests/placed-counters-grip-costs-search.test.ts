@@ -36,7 +36,8 @@ import {
   type AbilityRecord,
 } from "../src/effects/abilityRecord.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
-import type { ServerId, ZoneId } from "../src/state/types.js";
+import type { ServerId } from "../src/state/types/servers.js";
+import type { ZoneId } from "../src/state/types/shared.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

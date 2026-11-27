@@ -17,7 +17,7 @@ import { type Effect } from "../ir/effect.js";
 import { fx } from "../ir/fx.js";
 import { type Primitive } from "../ir/primitive.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import { countRezzedNextIce } from "../damageAndPrevention/damageAndPreventionKinds.js";
 import { applyKeywordAndCreditKinds } from "../keywordsAndCredits/keywordAndCreditKinds.js";
 import { installedCorpCards } from "../turnAndActions/scoreAndForfeitKinds.js";

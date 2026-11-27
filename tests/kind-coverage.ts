@@ -14,7 +14,7 @@
  */
 import { expect } from "vitest";
 import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir/knownKinds.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 
 /** Records that this `it()` covers `kind`. Fails on a kind the IR does not know. */
 export function coversKind(kind: string): void {

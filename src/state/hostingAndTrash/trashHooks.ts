@@ -5,7 +5,8 @@
 import { dealDamage } from "../damageAndPrevention/damage.js";
 import { log } from "../setupAndEnd/createGame.js";
 import { trashCard } from "./trash.js";
-import type { CardInstance, GameState } from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "../install/programHardwareInstall.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
@@ -294,7 +295,7 @@ export function recomputeRunnerLink(state: GameState): void {
 /** Tranquility-class: first install into this server's root each turn. */
 export function noteFirstInstallInServerRootThisTurn(
   state: GameState,
-  serverId: import("../types.js").ServerId,
+  serverId: import("../types/servers.js").ServerId,
   installedCardId: string,
 ): void {
   const server = state.servers[serverId];
@@ -626,7 +627,7 @@ export function noteFirstProgramOrHardwareTrashEachTurn(
  */
 export function noteFirstRemoteInstallThisTurn(
   state: GameState,
-  serverId: import("../types.js").ServerId,
+  serverId: import("../types/servers.js").ServerId,
 ): void {
   const server = state.servers[serverId];
   if (!server || server.kind !== "remote") return;
@@ -875,11 +876,13 @@ export function noteCorpCardAddedToArchives(state: GameState): void {
  * Valentina-class: whenever 1+ tags are removed, fire `onRemoveTags` on
  * installed Runner cards. Returns the first failure if any effect fails.
  */
-export function fireOnRemoveTags(
-  state: GameState,
-):
+export function fireOnRemoveTags(state: GameState):
   | { ok: true }
-  | { ok: false; error: string; cites: import("../types.js").RuleCite[] } {
+  | {
+      ok: false;
+      error: string;
+      cites: import("../types/restrictions.js").RuleCite[];
+    } {
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
@@ -920,11 +923,13 @@ export function fireOnRemoveTags(
 /**
  * Thunder Art Gallery: first avoid or remove tag each turn while installed.
  */
-export function fireOnFirstAvoidOrRemoveTagThisTurn(
-  state: GameState,
-):
+export function fireOnFirstAvoidOrRemoveTagThisTurn(state: GameState):
   | { ok: true }
-  | { ok: false; error: string; cites: import("../types.js").RuleCite[] } {
+  | {
+      ok: false;
+      error: string;
+      cites: import("../types/restrictions.js").RuleCite[];
+    } {
   if (!state.turn.onFirstAvoidOrRemoveTagFiredIds) {
     state.turn.onFirstAvoidOrRemoveTagFiredIds = [];
   }

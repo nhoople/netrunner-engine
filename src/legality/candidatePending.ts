@@ -1,5 +1,6 @@
 import { trashInterruptRelevant } from "../state/hostingAndTrash/trashPrevent.js";
-import type { Action, GameState } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
 import { abilityCost, canPayCost } from "../state/keywordsAndCredits/costs.js";
 import { runnerCreditsFor } from "../state/keywordsAndCredits/runnerCredits.js";

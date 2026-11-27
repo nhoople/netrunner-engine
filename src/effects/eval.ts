@@ -16,7 +16,9 @@ import {
   agendaPointsFor,
 } from "../state/turnAndActions/scoring.js";
 import { memoryLimit, usedMemory } from "../state/turnAndActions/turn.js";
-import type { GameState, RuleCite, Side } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { Side } from "../state/types/shared.js";
 import { CR } from "../timing/labels.js";
 import { fx } from "./ir/fx.js";
 import { type Cond } from "./ir/cond.js";
@@ -373,7 +375,7 @@ function iceProtectsCentral(state: GameState, iceId: string): boolean {
 export function serverHostingCard(
   state: GameState,
   cardId: string,
-): import("../state/types.js").Server | null {
+): import("../state/types/servers.js").Server | null {
   for (const server of Object.values(state.servers)) {
     if (server.root.includes(cardId) || server.ice.includes(cardId)) {
       return server;
@@ -395,7 +397,7 @@ export function finishPlaceAdvancementsOnTarget(
   ctx: EffectCtx,
   action: Extract<Primitive, { kind: "place_advancements" }>,
   sourceId: string,
-  source: import("../state/types.js").CardInstance,
+  source: import("../state/types/card.js").CardInstance,
   targetId: string,
 ): EvalResult {
   const { state } = ctx;

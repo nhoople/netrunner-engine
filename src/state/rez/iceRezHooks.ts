@@ -4,7 +4,8 @@
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { agendaPointsFor } from "../turnAndActions/scoring.js";
-import type { GameState, StoredConditionalEffectKey } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { StoredConditionalEffectKey } from "../types/pendingAbilities.js";
 import { noteBypassTriggers } from "../run/bypassHooks.js";
 import { noteInlineConditional } from "../triggers/inlineConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";

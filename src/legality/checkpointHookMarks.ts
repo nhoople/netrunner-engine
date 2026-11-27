@@ -1,10 +1,10 @@
 /** Checkpoint marks for conditional abilities on card hooks: draw, swap install, phase and turn begin or end, access, encounter, rez, and stored or inline conditionals (CR 10.3.1a); called by markConditionalAbilities in checkpoints.ts. */
+import type { GameState } from "../state/types/game.js";
+import type { ServerId } from "../state/types/servers.js";
 import type {
-  GameState,
-  ServerId,
   PendingAbilityPayload,
   StoredConditionalEffectKey,
-} from "../state/types.js";
+} from "../state/types/pendingAbilities.js";
 import type { CheckpointDiff } from "../state/triggers/checkpointSnapshot.js";
 import {
   evaluateTriggerPredicate,

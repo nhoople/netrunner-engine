@@ -1,10 +1,8 @@
 /** The checkpoint's other steps, CR 10.3.1b through 10.3.1l: expired durations, agenda point wins, uniqueness, hosting and memory restrictions, remotes, positions, cards entering a breached root, discard piles. */
-import type {
-  GameState,
-  CardInstance,
-  RuleCite,
-  Side,
-} from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
+import type { CardInstance } from "../state/types/card.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { Side } from "../state/types/shared.js";
 import type { CheckpointDiff } from "../state/triggers/checkpointSnapshot.js";
 import {
   evaluateTriggerPredicate,

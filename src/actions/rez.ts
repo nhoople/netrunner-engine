@@ -46,7 +46,9 @@ import {
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
 import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
-import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
+import type { ApplyResult } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
 import { CR } from "../timing/labels.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { fireOnFirstIceRezEachTurn } from "../state/triggers/miscConditionalHooks.js";
@@ -283,8 +285,8 @@ export function rezIce(state: GameState, cardId: string): ApplyResult {
     const sid = iceServerId(state, cardId);
     if (
       sid &&
-      state.servers[sid as import("../state/types.js").ServerId]?.ice[0] ===
-        cardId
+      state.servers[sid as import("../state/types/servers.js").ServerId]
+        ?.ice[0] === cardId
     ) {
       return fail("DDoS — cannot rez outermost ice during a run this turn.", [
         CR.rezProcedure,

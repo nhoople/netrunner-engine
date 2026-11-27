@@ -23,7 +23,8 @@ import {
   isActionLegal,
   queryLegality,
 } from "../src/index.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 import { replayTo, type Format } from "./playout/harness.js";
 import { passIdle } from "../src/demo/passIdle.js";
 

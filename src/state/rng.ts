@@ -8,7 +8,7 @@
  * Nothing in `src/` may call `Math.random`.
  */
 
-import type { GameState } from "./types.js";
+import type { GameState } from "./types/game.js";
 
 /** Stream position used when a state was never seeded. */
 export const DEFAULT_RNG_SEED = 0x9e3779b9;

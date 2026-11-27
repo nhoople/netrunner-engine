@@ -8,7 +8,7 @@ import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "../triggers/companionHooks.js";
 import { noteJobConnectionOrHardwareInstalled } from "./firstInstallDiscount.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { fireRunnerValTrigger } from "../../effects/triggers/firstTimeEachTurnTriggers.js";
 import { onRunnerInstalledProgramOrHardware } from "../cardFlags/staticFlags.js";
 import {

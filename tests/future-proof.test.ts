@@ -16,7 +16,7 @@ import {
   effectiveBreakerStrength,
   playEffectFromCard,
 } from "../src/index.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 import { additionalRunInitiateTax } from "../src/state/run/runInitiateTax.js";
 
 describe("future-proof", () => {

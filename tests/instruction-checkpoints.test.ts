@@ -69,7 +69,8 @@ import {
   LINGERING_KIND_ICE_STRENGTH,
   LINGERING_KIND_RUNNER_MU,
 } from "../src/state/continuous/lingeringEffects.js";
-import type { GameState, ServerId } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import {
   currentMark,
   placeMark,

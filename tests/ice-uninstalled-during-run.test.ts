@@ -16,7 +16,8 @@ import {
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { iceAtRunnerPosition } from "../src/state/uninstallAndPosition/runPosition.js";
 import { removeCardFromCurrentZone } from "../src/state/turnAndActions/scoring.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 

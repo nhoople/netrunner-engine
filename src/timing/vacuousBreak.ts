@@ -4,7 +4,7 @@
  * on it is broken, including when it has none.
  */
 import { log } from "../state/setupAndEnd/createGame.js";
-import type { GameState } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
 import { CR } from "./labels.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { allSubroutinesBrokenByRunner } from "../state/turnAndActions/break.js";

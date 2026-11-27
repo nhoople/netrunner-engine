@@ -1,6 +1,6 @@
 /** GameNET: Corp ability causes Runner spend/lose ≥1¢ during a run → Corp +1¢. */
 
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun } from "../triggers/miscConditionalHooks.js";
 
 /**

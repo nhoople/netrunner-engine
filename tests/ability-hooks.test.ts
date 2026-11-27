@@ -27,9 +27,8 @@ const WRITERS = new Set([
   "cardDef.ts",
   "instantiateCard.ts",
   "copyOptionalCardFields.ts",
-  "types.ts",
 ]);
-/** The state types `types.ts` re-exports, which declare the hooks too. */
+/** The state types in `src/state/types/`, which declare the hooks too. */
 const WRITER_DIRS = new Set([join(process.cwd(), "src/state/types")]);
 
 beforeAll(() => {

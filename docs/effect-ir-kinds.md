@@ -709,7 +709,7 @@ Card counts are from cards `v1.147.29` (2016 cards).
 | `install_from_stack` | `cardId: string` | 0 | engine |
 | `install_gachapon_after_choice` | — | 0 | engine |
 | `install_grip_card` | `cardId: string`, `discount: number`, `hostId?: string` | 0 | engine |
-| `install_haas_pet_project_continue` | `remaining: number`, `serverId: import("../../state/types.js").ServerId \| ""`, `justInstalledId?: string`, `justInstalledFrom?: "hq" \| "archives"`, `asIce?: boolean` | 0 | engine |
+| `install_haas_pet_project_continue` | `remaining: number`, `serverId: import("../../state/types/servers.js").ServerId \| ""`, `justInstalledId?: string`, `justInstalledFrom?: "hq" \| "archives"`, `asIce?: boolean` | 0 | engine |
 | `install_hayley_grip_card` | `cardId: string` | 0 | engine |
 | `install_hayley_same_type_from_grip` | — | 1 | card |
 | `install_heap_card` | `cardId: string`, `discount: number` | 0 | engine |
@@ -944,7 +944,7 @@ Card counts are from cards `v1.147.29` (2016 cards).
 | `move_slipstream` | `iceId: string`, `serverId: string` | 0 | engine |
 | `move_source_ice_to_outermost_another_server_continue_run` | — | 2 | card |
 | `move_source_ice_to_outermost_attacked` | — | 1 | card |
-| `move_source_ice_to_outermost_server_continue_run` | `serverId: import("../../state/types.js").ServerId` | 0 | engine |
+| `move_source_ice_to_outermost_server_continue_run` | `serverId: import("../../state/types/servers.js").ServerId` | 0 | engine |
 | `move_source_upgrade_to_another_server_root` | — | 1 | card |
 | `move_to_hq` | `cardId: string` | 0 | engine |
 | `move_to_outermost` | — | 1 | card |
@@ -1202,7 +1202,7 @@ Card counts are from cards `v1.147.29` (2016 cards).
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `rearrange_ice` | `chooser: "corp" \| "runner"`, `serverIds: import("../../state/types.js").ServerId[]`, `placed?: string[]` | 0 | engine |
+| `rearrange_ice` | `chooser: "corp" \| "runner"`, `serverIds: import("../../state/types/servers.js").ServerId[]`, `placed?: string[]` | 0 | engine |
 | `rearrange_ice_instead_of_breach` | — | 1 | card |
 | `rearrange_ice_protecting_all_servers` | — | 1 | card |
 
@@ -1466,7 +1466,7 @@ Card counts are from cards `v1.147.29` (2016 cards).
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `run_cyber_threat_server` | `serverId: import("../../state/types.js").ServerId` | 0 | engine |
+| `run_cyber_threat_server` | `serverId: import("../../state/types/servers.js").ServerId` | 0 | engine |
 
 <a id="verb-sabotage"></a>
 
@@ -1572,7 +1572,7 @@ Card counts are from cards `v1.147.29` (2016 cards).
 | --- | --- | ---: | --- |
 | `set_aside_access_shuffle` | `installCost: number` | 0 | engine |
 | `set_chosen_server` | `serverId: string` | 0 | engine |
-| `set_encounter_chosen_card_type` | `cardType: import("../../state/types.js").CardType` | 0 | engine |
+| `set_encounter_chosen_card_type` | `cardType: import("../../state/types/shared.js").CardType` | 0 | engine |
 | `set_name` | `defId: string` | 0 | engine |
 | `set_named_server` | `serverId: string` | 0 | engine |
 | `set_nested_encounter_then_resume_source` | `iceId: string` | 0 | engine |
@@ -2089,10 +2089,10 @@ Card counts are from cards `v1.147.29` (2016 cards).
 | `exclusive_choices_per_passed_ice` | `options: ChoiceOption[]` | 1 | card |
 | `express_delivery_finish` | `pickId: string`, `restIds?: string[]` | 0 | engine |
 | `firmware_place_advancement_on_advanceable_ice` | — | 1 | card |
-| `focus_group_after_type` | `cardType: import("../../state/types.js").CardType` | 0 | engine |
+| `focus_group_after_type` | `cardType: import("../../state/types/shared.js").CardType` | 0 | engine |
 | `forged_activation_orders` | — | 1 | card |
 | `fully_operational_step` | `remaining: number` | 0 | engine |
-| `game_over_after_type` | `cardType: import("../../state/types.js").CardType` | 0 | engine |
+| `game_over_after_type` | `cardType: import("../../state/types/shared.js").CardType` | 0 | engine |
 | `game_over_continue` | `remaining: string[]` | 0 | engine |
 | `game_over_process_card` | `cardId: string`, `remaining: string[]` | 0 | engine |
 | `gamedragon_may_host_on_icebreaker` | `allowAi?: boolean`, `requireHost?: boolean` | 4 | card |
@@ -2149,7 +2149,7 @@ Card counts are from cards `v1.147.29` (2016 cards).
 | `paintbrush_apply_subtype` | `iceId: string`, `subtype?: "sentry" \| "code gate" \| "barrier"` | 0 | engine |
 | `panchatantra_apply_subtype` | `iceId: string`, `subtype: string` | 0 | engine |
 | `patron_set_named_server` | `serverId: string` | 0 | engine |
-| `peeping_tom_apply_type` | `cardType: import("../../state/types.js").CardType` | 0 | engine |
+| `peeping_tom_apply_type` | `cardType: import("../../state/types/shared.js").CardType` | 0 | engine |
 | `peer_review` | `cardIds?: string[]` | 1 | card, engine |
 | `power_shutdown` | — | 1 | card |
 | `queue_breaches_after_current` | `servers: Array<"hq" \| "rd" \| "archives" \| string>`, `cannotAccessRoot?: boolean` | 1 | card |

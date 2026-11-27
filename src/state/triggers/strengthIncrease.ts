@@ -17,7 +17,8 @@ import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
 } from "./replacements.js";
-import type { GameState, LingeringEffect } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { LingeringEffect } from "../types/lingering.js";
 import { CR } from "../../timing/labels.js";
 import { nextId } from "../ids.js";
 

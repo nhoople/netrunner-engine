@@ -4,7 +4,9 @@
  * names. Expand kinds as families migrate onto the scanner.
  */
 import type { CheckpointDiff } from "./checkpointSnapshot.js";
-import type { GameState, ServerId, Side } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { ServerId } from "../types/servers.js";
+import type { Side } from "../types/shared.js";
 import type { ValRunnerTriggerFamily } from "../../effects/triggers/firstTimeEachTurnTriggers.js";
 
 export type { ValRunnerTriggerFamily };

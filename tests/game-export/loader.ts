@@ -23,7 +23,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { applyAction, autoWalk, checkInvariants } from "../../src/index.js";
-import type { Action, GameState } from "../../src/state/types.js";
+import type { Action } from "../../src/state/types/actions.js";
+import type { GameState } from "../../src/state/types/game.js";
 import { failureKey, type Failure } from "../playout/harness.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));

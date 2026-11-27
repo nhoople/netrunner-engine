@@ -10,13 +10,10 @@
 import { CR } from "../../timing/labels.js";
 import { log } from "../setupAndEnd/createGame.js";
 import { noteFirstRevealThisTurn } from "../triggers/miscConditionalHooks.js";
-import type {
-  GameState,
-  LookEvent,
-  RevealEvent,
-  RuleCite,
-  Side,
-} from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { LookEvent, RevealEvent } from "../types/publicView.js";
+import type { RuleCite } from "../types/restrictions.js";
+import type { Side } from "../types/shared.js";
 
 const KEPT = 30;
 

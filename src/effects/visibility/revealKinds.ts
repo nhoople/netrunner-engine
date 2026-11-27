@@ -584,7 +584,7 @@ export function applyRevealKinds(
     }
 
     case "reveal_may_advance": {
-      const types: Array<import("../../state/types.js").CardType> = [
+      const types: Array<import("../../state/types/shared.js").CardType> = [
         "event",
         "hardware",
         "program",

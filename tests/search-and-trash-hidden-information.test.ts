@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 import { evalEffect, fx, getPublicView } from "../src/index.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { instantiateCard } from "../src/cards/instantiateCard.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 import { Board, Report } from "./second-reader/harness.js";
 import { drive as walk, run } from "./second-reader/driving.js";
 import {

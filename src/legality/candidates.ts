@@ -1,4 +1,5 @@
-import type { Action, GameState } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
 import { currentWindow } from "../cards/stubs.js";
 import { getStep } from "../timing/machine.js";
 import { isForbidden } from "./checkpoints.js";

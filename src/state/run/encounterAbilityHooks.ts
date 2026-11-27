@@ -3,7 +3,8 @@
  * Notes queues for 10.3.1a (phase 3).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState, StoredConditionalEffectKey } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { StoredConditionalEffectKey } from "../types/pendingAbilities.js";
 
 type EncounterAbilityPendingMark = {
   cardId: string;

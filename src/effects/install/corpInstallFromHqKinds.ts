@@ -32,7 +32,7 @@ import { corpCardInstallable } from "./corpInstall.js";
 import { shuffleRunnerStack } from "./runnerInstall.js";
 import { trashCard, controllerOf } from "../../state/hostingAndTrash/trash.js";
 import { applyInstallCorpCard } from "./corpAbilityInstall.js";
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { shuffleInPlace } from "../../state/rng.js";
@@ -216,11 +216,11 @@ export function applyCorpInstallFromHqKinds(
         const id = action.justInstalledId;
         const card = state.cards[id];
         if (card && state.corp.hand.includes(id)) {
-          let serverId: import("../../state/types.js").ServerId;
+          let serverId: import("../../state/types/servers.js").ServerId;
           if (action.serverId === "__new_remote__") {
             const remoteNum = state.nextRemoteNumber++;
             serverId =
-              `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+              `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
             state.servers[serverId] = {
               id: serverId,
               kind: "remote",
@@ -230,7 +230,7 @@ export function applyCorpInstallFromHqKinds(
             log(state, `Create ${serverId} for HQ install.`);
           } else {
             serverId =
-              action.serverId as import("../../state/types.js").ServerId;
+              action.serverId as import("../../state/types/servers.js").ServerId;
           }
           const dest = state.servers[serverId];
           if (dest) {
@@ -400,7 +400,7 @@ export function applyCorpInstallFromHqKinds(
     case "install_haas_pet_project_continue": {
       let remaining = Math.max(0, action.remaining);
       const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const dest = state.servers[serverId];
       if (!dest || dest.kind !== "remote") {
         log(state, `Pet Project install — invalid remote ${serverId}.`);
@@ -663,7 +663,8 @@ export function applyCorpInstallFromHqKinds(
     case "install_hq_on_remote_ignore_costs": {
       const cardId = action.cardId;
       const card = state.cards[cardId];
-      const destId = action.serverId as import("../../state/types.js").ServerId;
+      const destId =
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const dest = state.servers[destId];
       if (!card || !dest || dest.kind !== "remote") {
         log(state, `HQ remote install — invalid target.`);
@@ -863,7 +864,7 @@ export function applyCorpInstallFromHqKinds(
       if (serverId === "__new_remote__" && !action.justInstalledId) {
         const remoteNum = state.nextRemoteNumber++;
         const sid =
-          `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+          `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
         serverId = sid;
         state.servers[sid] = {
           id: sid,
@@ -878,7 +879,9 @@ export function applyCorpInstallFromHqKinds(
         const card = state.cards[id];
         if (card && state.corp.hand.includes(id)) {
           const dest =
-            state.servers[serverId as import("../../state/types.js").ServerId];
+            state.servers[
+              serverId as import("../../state/types/servers.js").ServerId
+            ];
           if (dest) {
             const asIce = Boolean(action.asIce) || card.type === "ice";
             const cost = corpInstallCost(card, asIce ? dest.ice.length : 0);
@@ -888,7 +891,7 @@ export function applyCorpInstallFromHqKinds(
                 "corp",
                 cost,
                 undefined,
-                serverId as import("../../state/types.js").ServerId,
+                serverId as import("../../state/types/servers.js").ServerId,
               );
               state.corp.hand = state.corp.hand.filter((cid) => cid !== id);
               if (asIce) {
@@ -917,7 +920,9 @@ export function applyCorpInstallFromHqKinds(
       }
       if (remaining <= 0) return { ok: true };
       const dest =
-        state.servers[serverId as import("../../state/types.js").ServerId];
+        state.servers[
+          serverId as import("../../state/types/servers.js").ServerId
+        ];
       if (!dest || dest.kind !== "remote") {
         log(state, `Fast Break install — invalid remote ${serverId}.`);
         return { ok: true };
@@ -1044,7 +1049,7 @@ export function applyCorpInstallFromHqKinds(
       if (remaining <= 0) return { ok: true };
       const remoteNum = state.nextRemoteNumber++;
       const sid =
-        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+        `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
       state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
       log(state, `${source.title} — create ${sid} for Pet Project installs.`);
       return applyPrimitive(ctx, {
@@ -1239,17 +1244,19 @@ export function applyCorpInstallFromHqKinds(
     case "install_remote_enforcement": {
       const ice = state.cards[action.iceId];
       if (!ice) return { ok: true };
-      let serverId = action.serverId as import("../../state/types.js").ServerId;
+      let serverId =
+        action.serverId as import("../../state/types/servers.js").ServerId;
       if (action.serverId === "new-remote") {
         let n = state.nextRemoteNumber ?? 1;
         while (
           state.servers[
-            `remote-${n}` as import("../../state/types.js").ServerId
+            `remote-${n}` as import("../../state/types/servers.js").ServerId
           ]
         ) {
           n += 1;
         }
-        serverId = `remote-${n}` as import("../../state/types.js").ServerId;
+        serverId =
+          `remote-${n}` as import("../../state/types/servers.js").ServerId;
         state.servers[serverId] = {
           id: serverId,
           kind: "remote",

@@ -28,7 +28,8 @@ import {
   loadCardCatalog,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import type { Action, PaidAbility } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { PaidAbility } from "../src/state/types/abilities.js";
 import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import {
   breakActionCost,

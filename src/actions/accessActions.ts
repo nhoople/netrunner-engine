@@ -1,5 +1,6 @@
 /** applyAccessAction: the access and breach actions (CR 7.2, 7.5, 11.5, 11.6) that applyResolved in actions/apply.ts hands over. */
-import type { GameState, Action, ApplyResult } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
+import type { Action, ApplyResult } from "../state/types/actions.js";
 import { actionAllowedHere, enterStep, autoWalk } from "../timing/machine.js";
 import { CR } from "../timing/labels.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";

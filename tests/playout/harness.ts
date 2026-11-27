@@ -40,11 +40,9 @@ import {
 import { setApplyHook, type ApplyHook } from "../../src/debug/applyHook.js";
 import { passIdle } from "../../src/demo/passIdle.js";
 import { fireOnGameStartSetup } from "../../src/state/setupAndEnd/createGame.js";
-import type {
-  CardDef,
-  CardInstance,
-  GameState,
-} from "../../src/state/types.js";
+import type { CardDef } from "../../src/cards/cardDef.js";
+import type { CardInstance } from "../../src/state/types/card.js";
+import type { GameState } from "../../src/state/types/game.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const CARDS = join(ROOT, "vendor/cards-data");

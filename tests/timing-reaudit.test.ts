@@ -34,7 +34,8 @@ import { passIdle } from "../src/demo/passIdle.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { effectiveIceStrength } from "../src/cards/stubs.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";
 
 beforeAll(() => {

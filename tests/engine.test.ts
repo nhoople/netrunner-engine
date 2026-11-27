@@ -23,7 +23,7 @@ import {
   crDataPresent,
   vendorPathForPinFile,
 } from "../src/index.js";
-import type { ServerId } from "../src/state/types.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {

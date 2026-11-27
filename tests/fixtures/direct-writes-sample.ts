@@ -2,7 +2,7 @@
  * Writes that tests/direct-writes.ts must see, for the scanner check in
  * tests/procedure-write-guard.test.ts. Not imported by anything.
  */
-import type { GameState } from "../../src/state/types.js";
+import type { GameState } from "../../src/state/types/game.js";
 
 export function sampleWrites(state: GameState): void {
   // A write through a cast.

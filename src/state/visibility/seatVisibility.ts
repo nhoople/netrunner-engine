@@ -7,15 +7,13 @@ import {
   gripRevealed,
 } from "../cardFlags/cardDeclarations.js";
 import { isInstalled } from "../uninstallAndPosition/uninstall.js";
-import type {
-  CardInstance,
-  GameState,
-  PendingAbilityInstance,
-  PendingEffectContinuation,
-  PublicHostedCardView,
-  ReactionWindowFrame,
-  Side,
-} from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
+import type { PendingAbilityInstance } from "../types/pendingAbilities.js";
+import type { PendingEffectContinuation } from "../types/pendingChoices.js";
+import type { PublicHostedCardView } from "../types/publicView.js";
+import type { ReactionWindowFrame } from "../types/windows.js";
+import type { Side } from "../types/shared.js";
 
 /** Advancement counters hosted on an installed card. Zero stays unset. */
 export function openAdvancement(

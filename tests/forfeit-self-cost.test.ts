@@ -16,7 +16,7 @@ import {
   queryLegality,
 } from "../src/index.js";
 import { agendaPointsFor } from "../src/state/turnAndActions/scoring.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 import {
   syncPaidAbilitiesFromRecords,
   type AbilityRecord,

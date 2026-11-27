@@ -32,7 +32,8 @@ import {
   seedRng,
 } from "../src/index.js";
 import { pickRandomCentral } from "../src/state/keywordsAndCredits/keywords.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { createGame } from "../src/api/library.js";
 import { createShortGameState } from "../src/cards/shortGame.js";

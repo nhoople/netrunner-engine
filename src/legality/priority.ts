@@ -2,13 +2,11 @@
  * Nested priority / paid-ability windows (CR 9.2.4 / 9.2.4d).
  * Replaces the log-only closePriorityWindow stub with a real pass loop.
  */
-import type {
-  Action,
-  GameState,
-  PaidAbility,
-  PriorityWindowFrame,
-  Side,
-} from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { PaidAbility } from "../state/types/abilities.js";
+import type { PriorityWindowFrame } from "../state/types/windows.js";
+import type { Side } from "../state/types/shared.js";
 import { paidAbilitiesFromCard } from "../effects/abilityRecord.js";
 import { CR } from "../timing/labels.js";
 import {

@@ -5,14 +5,10 @@ import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { DEFAULT_CONFIG } from "../state/setupAndEnd/createGame.js";
 import { recomputeRunnerLink } from "../state/hostingAndTrash/trashHooks.js";
 import { emptyTurnBookkeeping } from "../state/turnAndActions/turn.js";
-import type {
-  CardInstance,
-  GameConfig,
-  GameState,
-  PlayerState,
-  Server,
-  ServerId,
-} from "../state/types.js";
+import type { CardInstance } from "../state/types/card.js";
+import type { GameConfig, GameState } from "../state/types/game.js";
+import type { PlayerState } from "../state/types/players.js";
+import type { Server, ServerId } from "../state/types/servers.js";
 import { instantiateCard } from "./instantiateCard.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {

@@ -26,7 +26,9 @@ import {
   windowRefusal,
 } from "../legality/query.js";
 import { setApplyHook } from "./applyHook.js";
-import type { Action, GameState, ServerId } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { ServerId } from "../state/types/servers.js";
 
 /** Stable codes. Baselines key on these, so never rename one. */
 type DisagreementCode =

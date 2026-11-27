@@ -5,7 +5,9 @@ import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { currentMark } from "../keywordsAndCredits/keywords.js";
 import { agendaPointsFor } from "../turnAndActions/scoring.js";
 import { isRunTargetAllowed } from "./runLegality.js";
-import type { GameState, ServerId, StartsRunSpec } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { ServerId } from "../types/servers.js";
+import type { StartsRunSpec } from "../types/abilities.js";
 
 export function serversMatchingSpec(
   state: GameState,

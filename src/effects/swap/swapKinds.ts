@@ -13,7 +13,8 @@ import {
   iceAtRunnerPosition,
   setRunnerPosition,
 } from "../../state/uninstallAndPosition/runPosition.js";
-import type { GameState, Server, ServerId } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { Server, ServerId } from "../../state/types/servers.js";
 import { type Effect } from "../ir/effect.js";
 import { type Primitive } from "../ir/primitive.js";
 import { fx } from "../ir/fx.js";
@@ -550,7 +551,7 @@ export function applySwapKinds(
         );
       } else {
         const otherSid =
-          otherServerId as import("../../state/types.js").ServerId;
+          otherServerId as import("../../state/types/servers.js").ServerId;
         const otherSrv = state.servers[otherSid]!;
         otherSrv.root.splice(otherRootIdx, 1);
         thisServer.root.splice(thisRootIdx, 0, otherId);
@@ -614,7 +615,8 @@ export function applySwapKinds(
     }
 
     case "swap_ice_with_hq": {
-      let serverId: import("../../state/types.js").ServerId | null = null;
+      let serverId: import("../../state/types/servers.js").ServerId | null =
+        null;
       let iceIndex = -1;
       for (const server of Object.values(state.servers)) {
         const idx = server.ice.indexOf(sourceId);
@@ -728,7 +730,8 @@ export function applySwapKinds(
     }
 
     case "swap_source_ice_with_other": {
-      let sourceServerId: import("../../state/types.js").ServerId | null = null;
+      let sourceServerId:
+        import("../../state/types/servers.js").ServerId | null = null;
       let sourceIdx = -1;
       const others: string[] = [];
       for (const server of Object.values(state.servers)) {
@@ -923,9 +926,11 @@ export function applySwapKinds(
     }
 
     case "swap_protecting_attacked_ice_with": {
-      let aServer: import("../../state/types.js").ServerId | null = null;
+      let aServer: import("../../state/types/servers.js").ServerId | null =
+        null;
       let aIdx = -1;
-      let bServer: import("../../state/types.js").ServerId | null = null;
+      let bServer: import("../../state/types/servers.js").ServerId | null =
+        null;
       let bIdx = -1;
       for (const server of Object.values(state.servers)) {
         const ia = server.ice.indexOf(action.protectingIceId);
@@ -960,9 +965,11 @@ export function applySwapKinds(
       const firstId = action.iceId ?? sourceId;
       const first = state.cards[firstId];
       if (!first) return { ok: true };
-      let aServer: import("../../state/types.js").ServerId | null = null;
+      let aServer: import("../../state/types/servers.js").ServerId | null =
+        null;
       let aIdx = -1;
-      let bServer: import("../../state/types.js").ServerId | null = null;
+      let bServer: import("../../state/types/servers.js").ServerId | null =
+        null;
       let bIdx = -1;
       for (const server of Object.values(state.servers)) {
         const ia = server.ice.indexOf(firstId);

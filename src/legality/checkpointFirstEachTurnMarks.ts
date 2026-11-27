@@ -1,5 +1,6 @@
 /** Checkpoint marks for "the first time each turn" conditional abilities (CR 10.3.1a), read from the turn's tallies; called by markConditionalAbilities in checkpoints.ts. */
-import type { GameState, PendingAbilityPayload } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
+import type { PendingAbilityPayload } from "../state/types/pendingAbilities.js";
 import type { CheckpointDiff } from "../state/triggers/checkpointSnapshot.js";
 import {
   evaluateTriggerPredicate,

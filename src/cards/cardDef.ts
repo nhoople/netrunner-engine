@@ -1,10 +1,6 @@
 /** CardDef: what a card's rules file in the cards dataset may declare, as the loader reads it (cards/load.ts) and instantiateCard copies it onto a card. */
-import type {
-  CardType,
-  Side,
-  BreakerAbility,
-  PaidAbility,
-} from "../state/types.js";
+import type { CardType, Side } from "../state/types/shared.js";
+import type { BreakerAbility, PaidAbility } from "../state/types/abilities.js";
 import type { Effect } from "../effects/ir/effect.js";
 import type { AbilityRecord } from "../effects/abilityRecord.js";
 
@@ -621,7 +617,7 @@ export interface CardDef {
   creditsOnScoreOrSteal?: number;
   creditsPerAccessOnCentralRunEnd?: boolean;
   onAccessTrashGain?: { credits: number; draw: number; oncePerTurn?: boolean };
-  runEvent?: import("../state/types.js").StartsRunSpec;
+  runEvent?: import("../state/types/abilities.js").StartsRunSpec;
   /** With runEvent: play without serverId skips the run (Reprise). */
   runEventOptional?: boolean;
   installOnIce?: boolean;
@@ -826,7 +822,7 @@ export interface CardDef {
   /**
    * Continuous gained-sub declarations (M6 / L2).
    */
-  continuousGainedSubDecls?: import("../state/types.js").ContinuousGainedSubDecl[];
+  continuousGainedSubDecls?: import("../state/types/abilities.js").ContinuousGainedSubDecl[];
   recurringSpendFor?: Array<
     | "trash"
     | "trash_asset"

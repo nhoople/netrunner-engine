@@ -12,7 +12,7 @@ import {
   effectiveIceStrength,
   playEffectFromCard,
 } from "../src/index.js";
-import type { ServerId } from "../src/state/types.js";
+import type { ServerId } from "../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

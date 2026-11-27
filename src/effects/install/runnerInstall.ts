@@ -25,7 +25,7 @@ import {
   memoryNeededToInstall,
   usedMemory,
 } from "../../state/turnAndActions/turn.js";
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import { noteVirusProgramInstalled } from "../../state/install/virusInstall.js";
 import {
   daemonInstallDiscount,

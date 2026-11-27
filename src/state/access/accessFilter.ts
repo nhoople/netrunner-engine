@@ -1,6 +1,6 @@
 /** Run-scoped access candidate filtering (Adrian Seis / Flagship). */
 
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";

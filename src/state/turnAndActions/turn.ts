@@ -6,7 +6,8 @@ import {
   endLingeringEffectsOnCard,
   lingeringRunnerMuModifier,
 } from "../continuous/lingeringEffects.js";
-import type { GameState, TurnBookkeeping } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { TurnBookkeeping } from "../types/turn.js";
 import { agendaPointMu } from "../cardFlags/staticFlags.js";
 
 export function emptyTurnBookkeeping(

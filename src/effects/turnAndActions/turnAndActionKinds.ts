@@ -35,7 +35,7 @@ import { placeCurrentAfterPlay } from "../../state/continuous/currents.js";
 import { markAbilityUsed } from "../../state/turnAndActions/turn.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { random } from "../../state/rng.js";
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 
 /** Jeeves: first time spend ≥N clicks on same paid ability each turn → gain click. */
 export function fireSiAfterPaidAbilityClicks(

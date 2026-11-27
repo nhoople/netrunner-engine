@@ -8,7 +8,7 @@ import {
   LINGERING_KIND_ABILITY_BLANK,
   LINGERING_KIND_GRANTED_SUBTYPES,
 } from "./lingeringEffects.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import {
   currentsBlankingCorpIdentity,
   currentsBlankingRunnerIdentity,

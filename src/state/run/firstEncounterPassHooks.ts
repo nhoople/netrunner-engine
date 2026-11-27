@@ -4,7 +4,7 @@
  * 10.3.1a (phase 3).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /** Baklan-class sources on the Runner rig. */
 export function firstEncounterEachRunSourceIds(state: GameState): string[] {

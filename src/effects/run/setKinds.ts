@@ -88,14 +88,14 @@ export function applySetKinds(
 
     case "set_named_server": {
       source.namedServerId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       log(state, `${source.title} names ${action.serverId}.`);
       return { ok: true };
     }
 
     case "set_chosen_server": {
       source.chosenServerId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       log(state, `${source.title} chooses ${action.serverId}.`);
       return { ok: true };
     }

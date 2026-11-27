@@ -2,7 +2,7 @@
 
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 import { wasAbilityUsed } from "../turnAndActions/turn.js";
 import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";

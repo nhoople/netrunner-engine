@@ -3,7 +3,7 @@
  * (phase 3). Distinct from first-* run-begin MetPending families.
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /** Queue a card id whose onRunBegin met. */
 export function noteOnRunBegin(state: GameState, cardId: string): void {

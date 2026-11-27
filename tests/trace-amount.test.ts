@@ -28,7 +28,8 @@ import {
 
 import { fireAfterBreakSubroutineHooks } from "../src/effects/turnAndActions/breakAndPlayHooks.js";
 import { fireOnAnyIceRez } from "../src/effects/eval.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 
 describe("trace-amount", () => {
   describe("ta-primitives", () => {

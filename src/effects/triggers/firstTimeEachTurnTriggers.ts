@@ -1,8 +1,6 @@
 /** Shared Valley (val) hook helpers. */
-import type {
-  GameState,
-  StoredConditionalEffectKey,
-} from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { StoredConditionalEffectKey } from "../../state/types/pendingAbilities.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 
 /** Gene Conditioning Shoppe: genetics fire up to twice per turn. */

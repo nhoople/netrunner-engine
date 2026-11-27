@@ -16,14 +16,11 @@ import {
 } from "../hostingAndTrash/trashHooks.js";
 import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
 import { onTrashAbility } from "../cardFlags/cardDeclarations.js";
-import type {
-  CardInstance,
-  CostSpec,
-  GameState,
-  PaidAbility,
-  ServerId,
-  Side,
-} from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { CostSpec, PaidAbility } from "../types/abilities.js";
+import type { GameState } from "../types/game.js";
+import type { ServerId } from "../types/servers.js";
+import type { Side } from "../types/shared.js";
 import { CR } from "../../timing/labels.js";
 import {
   withCostCheckpoint,

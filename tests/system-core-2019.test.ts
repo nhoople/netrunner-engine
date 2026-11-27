@@ -38,7 +38,7 @@ import {
 } from "../src/state/keywordsAndCredits/runnerCredits.js";
 import { fireHostedCreditsOnAnyIceRez } from "../src/state/counters/powerCounters.js";
 import { modifiersFromStartsRun } from "../src/state/run/runStart.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 import { noteRunnerClickSpend } from "../src/state/turnAndActions/clickHooks.js";
 
 describe("system-core-2019", () => {

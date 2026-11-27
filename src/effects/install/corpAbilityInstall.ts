@@ -17,11 +17,9 @@ import { cloneState, log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { serverName } from "../../state/visibility/seatVisibility.js";
-import type {
-  GameState,
-  InstallDestination,
-  ServerId,
-} from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { InstallDestination } from "../../state/types/actions.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { CR } from "../../timing/labels.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import type { EffectCtx, EvalResult } from "../eval.js";

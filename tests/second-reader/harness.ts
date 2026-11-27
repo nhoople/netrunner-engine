@@ -41,7 +41,7 @@ import {
   stackRd,
   toHand,
 } from "../rulings-helpers.js";
-import type { ServerId } from "../../src/state/types.js";
+import type { ServerId } from "../../src/state/types/servers.js";
 
 type Expectation = {
   at?: string;

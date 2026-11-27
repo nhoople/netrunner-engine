@@ -1,4 +1,6 @@
-import type { Action, GameState, Server } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { Server } from "../state/types/servers.js";
 import { iceAtRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
 import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import {
@@ -45,7 +47,7 @@ import {
   subroutinesBrokenByRunnerCount,
 } from "../state/turnAndActions/break.js";
 import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
-import type { PaidAbilityWindow } from "../state/types.js";
+import type { PaidAbilityWindow } from "../state/types/abilities.js";
 import type { TimingStepDef } from "../timing/graph.js";
 import { hasAbilityFlag, threatValue } from "../effects/abilityRecord.js";
 import { applyTakes } from "./trial.js";
@@ -82,7 +84,7 @@ export function addPaidWindowCandidates(
   mode: "window" | "click-actions" = "window",
 ): void {
   const abilityWindowOpen = (
-    ab: import("../state/types.js").PaidAbility,
+    ab: import("../state/types/abilities.js").PaidAbility,
   ): boolean => {
     if (paidAbilityOpenIn(ab, paw)) return true;
     if (

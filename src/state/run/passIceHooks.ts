@@ -3,7 +3,7 @@
  * this server). Notes MetPending for 10.3.1a (phase 3).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /** Runner onPassUnrezzedIce — queue for 10.3.1a. */
 export function notePassUnrezzedIce(state: GameState): void {

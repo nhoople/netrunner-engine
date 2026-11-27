@@ -16,7 +16,7 @@ import {
 import { type Effect } from "../ir/effect.js";
 import { type Primitive } from "../ir/primitive.js";
 import { fx } from "../ir/fx.js";
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { iceStrengthCannotBeLowered } from "../../cards/stubs.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";

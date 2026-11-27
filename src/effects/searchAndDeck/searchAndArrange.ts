@@ -1,5 +1,5 @@
 /** Search, look-and-arrange and set-aside helpers the effect kinds share (CR 8.7.5, 9.11.4d), moved out of `effects/eval.ts`. */
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import {
   createPendingAbilityInstance,
   openReactionWindow,

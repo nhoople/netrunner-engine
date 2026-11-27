@@ -15,12 +15,10 @@ import {
   costBeginsWithClick,
   paidAbilityOpenIn,
 } from "../src/state/keywordsAndCredits/costs.js";
-import type {
-  Action,
-  GameState,
-  PaidAbility,
-  RunState,
-} from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { PaidAbility } from "../src/state/types/abilities.js";
+import type { RunState } from "../src/state/types/run.js";
 import { priorityHolderForStep } from "../src/legality/priority.js";
 import { STEPS, type TimingStepDef } from "../src/timing/graph.js";
 import { enterStep } from "../src/timing/machine.js";

@@ -25,7 +25,7 @@ import {
   currentPriorityWindow,
   isWindowAct,
 } from "../legality/priority.js";
-import type { GameState } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
 
 const QUIET_RUN_WINDOWS = new Set([
   "run.initiatePaw",

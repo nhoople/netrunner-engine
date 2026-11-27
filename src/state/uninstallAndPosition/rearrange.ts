@@ -22,7 +22,8 @@
  *   (CR 6.2.7a); in the Initiation or Movement Phase the Runner does not move
  *   (CR 6.2.7e).
  */
-import type { GameState, ServerId } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { ServerId } from "../types/servers.js";
 import {
   addOutermostIce,
   followEncounteredIce,

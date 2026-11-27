@@ -26,7 +26,8 @@ import { evalEffect } from "../src/effects/eval.js";
 import { fx } from "../src/effects/ir/fx.js";
 import { resolveRunnerInstallCostDelta } from "../src/state/continuous/continuousCosts.js";
 import { effectiveCorpMaxHandSize } from "../src/state/continuous/handSize.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

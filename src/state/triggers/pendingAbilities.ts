@@ -6,14 +6,14 @@
 import { CR } from "../../timing/labels.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { installedCardActive } from "../continuous/active.js";
+import type { GameState } from "../types/game.js";
 import type {
-  GameState,
   PendingAbilityInstance,
   PendingAbilityPayload,
   PendingAbilityStatus,
-  ReactionWindowFrame,
-  Side,
-} from "../types.js";
+} from "../types/pendingAbilities.js";
+import type { ReactionWindowFrame } from "../types/windows.js";
+import type { Side } from "../types/shared.js";
 import { nextId } from "../ids.js";
 
 export function createPendingAbilityInstance(

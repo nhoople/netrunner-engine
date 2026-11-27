@@ -20,7 +20,9 @@ import {
   fx,
   legalActions,
 } from "../src/index.js";
-import type { Action, GameState, ServerId } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import { STEPS } from "../src/timing/graph.js";
 import { passIdle } from "../src/demo/passIdle.js";
 

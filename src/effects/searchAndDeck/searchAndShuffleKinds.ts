@@ -24,7 +24,7 @@ import { enterSetAside } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { bmCounter, setBmCounter } from "./deckOrderKinds.js";
 import { getCardDef } from "../../cards/load.js";
-import type { RuleCite } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
 import { applyTurnAndActionKinds } from "../turnAndActions/turnAndActionKinds.js";
 
 type PrimResult =

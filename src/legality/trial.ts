@@ -11,7 +11,8 @@
  * (the window, the target, rezzed or not) and this tries the move itself.
  */
 import { applyActionCore } from "../actions/apply.js";
-import type { Action, GameState } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
 
 /**
  * True when apply takes `action` in `state`. Apply works on a copy, so

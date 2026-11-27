@@ -10,7 +10,9 @@ import {
   subtractRunnerCreditPool,
 } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { onCorpAbilityGainedCredits } from "../../state/cardFlags/cardDeclarations.js";
-import type { GameState, RuleCite, Side } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
+import type { Side } from "../../state/types/shared.js";
 import { CR } from "../../timing/labels.js";
 import {
   deferContinuationBefore,

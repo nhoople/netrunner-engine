@@ -1,11 +1,13 @@
 import type {
   CheckpointFrame,
   CheckpointKind,
+} from "../state/types/checkpoints.js";
+import type {
   ForbiddenAction,
-  GameState,
   Restriction,
   RuleCite,
-} from "../state/types.js";
+} from "../state/types/restrictions.js";
+import type { GameState } from "../state/types/game.js";
 import { CR } from "../timing/labels.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {

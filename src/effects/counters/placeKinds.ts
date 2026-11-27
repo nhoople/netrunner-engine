@@ -116,7 +116,10 @@ export function applyPlaceKinds(
         if (zone.startsWith("server:") && zone.endsWith(":root")) {
           const serverId = zone
             .replace(/^server:/, "")
-            .replace(/:root$/, "") as import("../../state/types.js").ServerId;
+            .replace(
+              /:root$/,
+              "",
+            ) as import("../../state/types/servers.js").ServerId;
           const server = state.servers[serverId];
           if (server) {
             for (const id of server.ice) {
@@ -132,7 +135,10 @@ export function applyPlaceKinds(
         if (zone.startsWith("server:") && zone.endsWith(":root")) {
           const serverId = zone
             .replace(/^server:/, "")
-            .replace(/:root$/, "") as import("../../state/types.js").ServerId;
+            .replace(
+              /:root$/,
+              "",
+            ) as import("../../state/types/servers.js").ServerId;
           const server = state.servers[serverId];
           if (server) {
             for (const id of server.ice) {
@@ -145,7 +151,10 @@ export function applyPlaceKinds(
         if (zone.startsWith("server:") && zone.endsWith(":root")) {
           const serverId = zone
             .replace(/^server:/, "")
-            .replace(/:root$/, "") as import("../../state/types.js").ServerId;
+            .replace(
+              /:root$/,
+              "",
+            ) as import("../../state/types/servers.js").ServerId;
           const server = state.servers[serverId];
           if (server) {
             for (const id of [...server.root, ...server.ice]) {
@@ -162,7 +171,10 @@ export function applyPlaceKinds(
         if (zone.startsWith("server:") && zone.endsWith(":root")) {
           const serverId = zone
             .replace(/^server:/, "")
-            .replace(/:root$/, "") as import("../../state/types.js").ServerId;
+            .replace(
+              /:root$/,
+              "",
+            ) as import("../../state/types/servers.js").ServerId;
           const server = state.servers[serverId];
           if (server) {
             for (const id of server.root) {

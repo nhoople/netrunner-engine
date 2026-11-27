@@ -17,7 +17,7 @@ import {
 } from "../src/index.js";
 import { cursorFrom } from "../src/timing/graph.js";
 import type { CardDef } from "../src/cards/cardDef.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

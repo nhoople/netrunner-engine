@@ -56,7 +56,7 @@ import { unhostCard } from "../../state/hostingAndTrash/host.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { enterSetAside } from "../../state/zones.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 
 /** Compile's run-end ability: the program it installed goes to the bottom of the stack. */
 export function addCompileInstalledToBottom(state: GameState): void {

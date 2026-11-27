@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, expect, vi } from "vitest";
 import type { Effect } from "../../src/effects/ir/effect.js";
 import type { Primitive } from "../../src/effects/ir/primitive.js";
-import type { GameState } from "../../src/state/types.js";
+import type { GameState } from "../../src/state/types/game.js";
 
 type Ctx = { state: GameState; sourceId: string };
 

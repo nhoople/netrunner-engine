@@ -13,7 +13,7 @@ import {
   legalActions,
 } from "../../src/index.js";
 import type { Action, GameState } from "../../src/index.js";
-import type { ServerId } from "../../src/state/types.js";
+import type { ServerId } from "../../src/state/types/servers.js";
 import { approachedIceId } from "../../src/actions/rez.js";
 import { must, optionIds, pick } from "../rulings-helpers.js";
 import { offered } from "./harness.js";

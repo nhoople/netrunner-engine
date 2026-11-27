@@ -1,4 +1,5 @@
-import type { GameState, PendingEffectContinuation } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
+import type { PendingEffectContinuation } from "../state/types/pendingChoices.js";
 
 function chainAfter(
   first: PendingEffectContinuation,

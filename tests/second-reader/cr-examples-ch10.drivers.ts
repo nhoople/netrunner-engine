@@ -7,7 +7,7 @@
  */
 import { getPublicView, legalActions } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import type { ServerId } from "../../src/state/types.js";
+import type { ServerId } from "../../src/state/types/servers.js";
 import { must, pick, toCorpTurn } from "../rulings-helpers.js";
 import { accepts, Board, hasOption, offered, take } from "./harness.js";
 import { Report } from "./harness.js";

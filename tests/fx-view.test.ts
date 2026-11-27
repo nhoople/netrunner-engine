@@ -21,12 +21,10 @@ import {
   legalActions,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import type {
-  PendingAbilityInstance,
-  PublicView,
-  ServerId,
-  Side,
-} from "../src/state/types.js";
+import type { PendingAbilityInstance } from "../src/state/types/pendingAbilities.js";
+import type { PublicView } from "../src/state/types/publicView.js";
+import type { ServerId } from "../src/state/types/servers.js";
+import type { Side } from "../src/state/types/shared.js";
 import {
   corpTurn,
   drive,

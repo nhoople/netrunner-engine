@@ -27,7 +27,9 @@ import { resumePendingStoredConditionals } from "../src/state/triggers/storedTri
 import { whenScoredEffect } from "../src/state/turnAndActions/whenScored.js";
 import { resumeRunnerTurnBeginAbilities } from "../src/timing/graph.js";
 import type { Effect } from "../src/effects/ir/effect.js";
-import type { Action, GameState, Side } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { Side } from "../src/state/types/shared.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

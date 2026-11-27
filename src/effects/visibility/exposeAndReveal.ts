@@ -1,5 +1,5 @@
 /** Expose-up-to instructions and first-reveal bookkeeping (CR 9.6.4b, 10.3.1a), moved out of `effects/eval.ts`. */
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import { fireOnFirstRevealEachTurn } from "../../state/triggers/miscConditionalHooks.js";
 import { exposeLegalTargets } from "../../state/visibility/expose.js";
 import { log } from "../../state/setupAndEnd/createGame.js";

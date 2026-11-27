@@ -30,7 +30,7 @@ import {
   runScrapCodeSlice,
   runLibraryApiSlice,
 } from "./demo/verticalSlice.js";
-import type { GameState } from "./state/types.js";
+import type { GameState } from "./state/types/game.js";
 import { assertPinnedTag, crDataPresent, loadPin } from "./cr/load.js";
 import {
   assertCardsPinnedTag,

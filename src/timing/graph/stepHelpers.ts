@@ -1,5 +1,6 @@
 /** The step builders and the procedures the timing steps call, shared by the step files in timing/graph/. It imports only a type from timing/graph.ts, so the step files never need graph.ts while they load. */
-import type { GameState, TurnPhase } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { TurnPhase } from "../../state/types/turn.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../labels.js";
 import {
@@ -297,7 +298,7 @@ export function noteOpenTurnBeginWaiting(state: GameState): void {
 }
 
 export function iceBypassBlockedByServerUpgrade(
-  state: import("../../state/types.js").GameState,
+  state: import("../../state/types/game.js").GameState,
   iceId: string,
 ): boolean {
   const ice = state.cards[iceId];

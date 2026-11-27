@@ -24,7 +24,8 @@ import {
   wasAbilityUsed,
   memoryLimit,
 } from "../src/state/turnAndActions/turn.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 

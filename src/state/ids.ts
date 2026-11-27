@@ -7,7 +7,7 @@
  * same state mints the same ids. Intents may therefore name these ids.
  */
 
-import type { GameState } from "./types.js";
+import type { GameState } from "./types/game.js";
 
 /** Next id for `prefix` in this game, e.g. `pa-1`, `pa-2`. */
 export function nextId(state: GameState, prefix: string): string {

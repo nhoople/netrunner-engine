@@ -1,5 +1,5 @@
 /** Legal targets and restrictions for trashing installed cards (CR 1.16.1c), and the first-R&D-trash hook. */
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
@@ -92,7 +92,7 @@ export function pendingTrashAmong(
 /** Trashing this card must leave a scoring restriction still met (CR 1.16.1c). */
 export function trashingKeepsScoreRestriction(
   state: GameState,
-  agenda: import("../../state/types.js").CardInstance,
+  agenda: import("../../state/types/card.js").CardInstance,
   trashId: string,
 ): boolean {
   if (agenda.type !== "agenda") return true;

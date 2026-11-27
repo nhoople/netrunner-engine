@@ -33,7 +33,7 @@ import { countRezzedNextIce } from "./archivesAndHeapRetrievalKinds.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { offerCbiRaidHqToRd } from "../access/accessKinds.js";
-import type { RuleCite } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

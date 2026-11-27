@@ -3,7 +3,7 @@
  * ends the game. The Runner wins.
  */
 import { log } from "./createGame.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 
 export function runnerWinsOnEmptyRnd(state: GameState): void {

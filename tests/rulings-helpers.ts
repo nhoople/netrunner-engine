@@ -9,7 +9,8 @@ import {
   legalActions,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import type { Action, ServerId } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import type { Effect } from "../src/effects/ir/effect.js";
 import { openPendingChoose } from "../src/state/triggers/pendingChoice.js";

@@ -21,12 +21,9 @@ import {
 import type { Effect } from "../src/effects/ir/effect.js";
 import type { EvalResult } from "../src/effects/eval.js";
 import type { CardDef } from "../src/cards/cardDef.js";
-import type {
-  CardType,
-  GameState,
-  ServerId,
-  ZoneId,
-} from "../src/state/types.js";
+import type { CardType, ZoneId } from "../src/state/types/shared.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { ServerId } from "../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
