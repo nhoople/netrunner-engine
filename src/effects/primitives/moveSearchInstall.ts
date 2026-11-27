@@ -20,39 +20,6 @@ export function applyKitaraCotcPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "resolve_marathon": {
-      state.runner.clicks += 1;
-      const serverId = state.run?.attackedServerId;
-      if (serverId) {
-        if (!state.turn.cotcForbiddenServerIds) {
-          state.turn.cotcForbiddenServerIds = [];
-        }
-        if (!state.turn.cotcForbiddenServerIds.includes(serverId)) {
-          state.turn.cotcForbiddenServerIds.push(serverId);
-        }
-      }
-      // Return Marathon from heap to grip.
-      const eventId = state.run?.runSourceId ?? sourceId;
-      const card = state.cards[eventId];
-      if (card) {
-        state.runner.discardPile = state.runner.discardPile.filter(
-          (id) => id !== eventId,
-        );
-        if (!state.runner.hand.includes(eventId)) {
-          state.runner.hand.push(eventId);
-        }
-        card.zone = "runner:grip";
-        card.faceup = true;
-        log(
-          state,
-          `Marathon — gain [click], add to grip; cannot run ${serverId ?? "server"} again this turn.`,
-        );
-      } else {
-        log(state, `Marathon — gain [click]; forbid server.`);
-      }
-      return { ok: true };
-    }
-
     case "break_last_subroutine": {
       const enc = state.run?.encounter;
       if (!enc) {

@@ -3,8 +3,7 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -28,67 +27,6 @@ export function applyLunarUpPrimitive(
       });
       const r = autoResolveTrace(state, sourceId, 2, fx.seq(trash, kick), kick);
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
-      return { ok: true };
-    }
-    case "cyber_threat": {
-      // Printed: "Choose a server." — centrals, including HQ, are legal.
-      const servers = Object.keys(state.servers) as ServerId[];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: servers.map((sid) => ({
-          id: `cyber:${sid}`,
-          label: `Cyber Threat — ${sid}`,
-          effect: fx.do({ kind: "cyber_threat_server", serverId: sid }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "cyber_threat_server": {
-      const serverId = (action as { serverId: ServerId }).serverId;
-      // Printed: "The Corp may rez 1 piece of ice protecting that server.
-      // If they do not, run that server. The Corp cannot rez ice during
-      // that run." Rezzing costs the printed rez cost as usual.
-      const ice = state.servers[serverId].ice.filter(
-        (id) =>
-          !state.cards[id]?.rezzed &&
-          state.corp.credits >= (state.cards[id]?.rezCost ?? 0),
-      );
-      if (ice.length === 0) {
-        return applyLunarUpPrimitive(ctx, {
-          kind: "run_cyber_threat_server",
-          serverId,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...ice.map((id) => ({
-            id: `rez:${id}`,
-            label: `Rez ${state.cards[id]!.title} (${state.cards[id]!.rezCost ?? 0}¢)`,
-            effect: fx.do({ kind: "corp_rez", iceId: id }),
-          })),
-          {
-            id: "decline",
-            label: "Do not rez — Runner runs this server",
-            effect: fx.do({ kind: "run_cyber_threat_server", serverId }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-    case "run_cyber_threat_server": {
-      const serverId = (action as { serverId: ServerId }).serverId;
-      state.pendingStartRun = {
-        sourceId,
-        serverId,
-        forbidCorpRezIceDuringRun: true,
-      };
-      log(
-        state,
-        `Cyber Threat — Runner runs ${serverId}; the Corp cannot rez ice during this run.`,
-      );
       return { ok: true };
     }
     case "lose_nasir_all_credits": {

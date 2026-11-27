@@ -1,65 +1,6 @@
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import type { GameState, RuleCite } from "../../state/types.js";
-import type { EffectCtx } from "../eval.js";
-import { fx, type Primitive } from "../ir.js";
-import { applySansanOhPrimitive } from "./shuffleLookPick.js";
-import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-
-type PrimResult =
-  { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-export function applyMumbadSiPrimitive(
-  ctx: EffectCtx,
-  action: Primitive,
-): PrimResult | null {
-  const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
-
-  switch (action.kind) {
-    case "choose_patron_server": {
-      const servers = Object.keys(state.servers);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...servers.map((serverId) => ({
-            id: `patron:${serverId}`,
-            label: `Name ${serverId}`,
-            effect: fx.do({
-              kind: "patron_set_named_server",
-              serverId,
-            }),
-          })),
-          {
-            id: "patron:decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "patron_set_named_server": {
-      if (!source) return { ok: true };
-      source.namedServerId =
-        action.serverId as import("../../state/types.js").ServerId;
-      log(state, `Patron — name ${action.serverId}.`);
-      return { ok: true };
-    }
-
-    default:
-      // Delegate arrange helpers used by Making an Entrance trash→arrange flow.
-      if (
-        action.kind === "look_top_n_stack_arrange" ||
-        action.kind === "pick_stack_arrange"
-      ) {
-        return applySansanOhPrimitive(ctx, action);
-      }
-      return null;
-  }
-}
+import type { GameState } from "../../state/types.js";
 
 /** Indian Union Stock Exchange: rez/play out-of-faction → gain credits. */
 export function fireSiAfterCorpRezOrPlay(

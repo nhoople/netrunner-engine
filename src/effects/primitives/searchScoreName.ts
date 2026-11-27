@@ -1,5 +1,4 @@
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
@@ -27,16 +26,6 @@ export function applyLunarTsbPrimitive(
         state.corp.credits += n;
         log(state, `Encrypted Portals — gain ${n}¢ for rezzed code gates.`);
       }
-      return { ok: true };
-    }
-    case "information_overload_encounter": {
-      const r = autoResolveTrace(
-        state,
-        sourceId,
-        1,
-        fx.do({ kind: "give_tags", amount: 1 }),
-      );
-      if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
     case "sealed_vault_store_from_pool": {

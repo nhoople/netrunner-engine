@@ -2117,7 +2117,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
+          "site": "src/effects/run/runKinds.ts#applyRunKinds",
           "kinds": []
         },
         {
@@ -6681,10 +6681,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/chooseGainShuffle.ts#canAdvance",
           "kinds": []
         },
@@ -6698,6 +6694,10 @@
         },
         {
           "site": "src/effects/rez/rezKinds.ts#icePrintedRezCost",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#applyRunKinds",
           "kinds": []
         },
         {
@@ -7080,7 +7080,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/setKinds.ts#applySetKinds",
+          "site": "src/effects/run/setKinds.ts#applySetKinds",
           "kinds": []
         },
         {
@@ -13035,7 +13035,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/effects/run/runKinds.ts#applyRunKinds",
           "kinds": []
         },
         {
@@ -17030,9 +17030,7 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
-          "kinds": [
-            "corp_rez"
-          ]
+          "kinds": []
         },
         {
           "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
@@ -17045,6 +17043,12 @@
         {
           "site": "src/effects/rez/rezKinds.ts#icePrintedRezCost",
           "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#applyRunKinds",
+          "kinds": [
+            "corp_rez"
+          ]
         },
         {
           "site": "src/effects/searchAndDeck/searchKinds.ts#applySearchKinds",
@@ -18248,7 +18252,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/runPrimitives.ts#endTheRun",
+          "site": "src/effects/run/runPrimitives.ts#endTheRun",
           "kinds": []
         },
         {
@@ -19657,10 +19661,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/encounterPrimitives.ts#applyEncounterPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/eval.ts#fireIceRezDuringRunHooks",
           "kinds": []
         },
@@ -19689,10 +19689,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/hostInstallExpose.ts#applySansanUwPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/moveSearchInstall.ts#applyKitaraCotcPrimitive",
           "kinds": []
         },
@@ -19718,6 +19714,18 @@
         },
         {
           "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/encounterPrimitives.ts#applyEncounterPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#applyRunKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#applyRunKindsWhenSourceExists",
           "kinds": []
         },
         {
@@ -19984,10 +19992,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/encounterPrimitives.ts#applyEncounterPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/eval.ts#evalCond",
           "kinds": []
         },
@@ -20188,11 +20192,15 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
+          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
+          "site": "src/effects/run/encounterPrimitives.ts#applyEncounterPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#applyRunKinds",
           "kinds": []
         },
         {
@@ -21053,10 +21061,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/encounterPrimitives.ts#applyEncounterPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/eval.ts#addFoundStackCardAfterSearch",
           "kinds": []
         },
@@ -21373,10 +21377,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/setKinds.ts#applySetKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/boostRezTrace.ts#applyLunarTsPrimitive",
           "kinds": []
         },
@@ -21425,10 +21425,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/hostInstallExpose.ts#applySansanUwPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/lookInstallTrash.ts#applyFlashpointInPrimitive",
           "kinds": []
         },
@@ -21469,19 +21465,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#resolveIndependentSourceTrash",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/revealTrashCannot.ts#applyMumbadFtmPrimitive",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/shuffleInstall.ts#applyMagnumOpusPrimitive",
           "kinds": []
         },
         {
@@ -21501,19 +21489,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashChooseAccess.ts#applyRedsandSoPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
           "kinds": []
         },
         {
@@ -21533,7 +21509,27 @@
           "kinds": []
         },
         {
-          "site": "src/effects/runPrimitives.ts#applyRunPrimitive",
+          "site": "src/effects/run/encounterPrimitives.ts#applyEncounterPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#applyRunKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#applyRunKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#resolveIndependentSourceTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runPrimitives.ts#applyRunPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/setKinds.ts#applySetKinds",
           "kinds": []
         },
         {
@@ -22924,11 +22920,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#resolveDelayedRunEndOrder",
+          "site": "src/effects/run/runKinds.ts#resolveDelayedRunEndOrder",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#resolveIndependentSourceTrash",
+          "site": "src/effects/run/runKinds.ts#resolveIndependentSourceTrash",
           "kinds": []
         },
         {
@@ -24000,10 +23996,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/setKinds.ts#applySetKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/breachResolveRfg.ts#applyLunarFcPrimitive",
           "kinds": []
         },
@@ -24052,10 +24044,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/shuffleInstall.ts#applyMagnumOpusPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/shuffleLookPick.ts#applySansanOhPrimitive",
           "kinds": []
         },
@@ -24065,10 +24053,6 @@
         },
         {
           "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
           "kinds": []
         },
         {
@@ -24093,6 +24077,14 @@
         },
         {
           "site": "src/effects/rez/rezKinds.ts#rezzedIceIds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/runKinds.ts#applyRunKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/run/setKinds.ts#applySetKinds",
           "kinds": []
         },
         {

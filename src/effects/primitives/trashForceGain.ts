@@ -86,51 +86,6 @@ export function applyFlashpoint23sPrimitive(
       return { ok: true };
     }
 
-    case "choose_breaker_run": {
-      const bonus = action.strengthBonus ?? 2;
-      const breakers = state.runner.installed.filter((id) => {
-        const card = state.cards[id];
-        return (
-          card?.type === "program" &&
-          ((card.subtypes ?? []).includes("icebreaker") ||
-            Boolean(card.breaker))
-        );
-      });
-      if (breakers.length === 0) {
-        log(state, `Injection Attack — no installed icebreaker.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: breakers.map((id) => ({
-          id: `inj:${id}`,
-          label: `Choose ${state.cards[id]!.title} (+${bonus} strength)`,
-          effect: fx.do({
-            kind: "injection_attack_run_with_breaker",
-            breakerId: id,
-            strengthBonus: bonus,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "injection_attack_run_with_breaker": {
-      const breakerId = action.breakerId;
-      const bonus = action.strengthBonus ?? 2;
-      // Stash for the ensuing run; applied when the run begins.
-      state.turn.injectionAttackBreakerBonus = {
-        breakerId,
-        amount: bonus,
-      };
-      log(
-        state,
-        `Injection Attack — ${state.cards[breakerId]?.title ?? breakerId} will get +${bonus} strength this run.`,
-      );
-      return evalEffect(ctx, fx.do({ kind: "may_start_run", servers: "any" }));
-    }
-
     case "pay_credits_or_trash_installed": {
       const amount = action.amount ?? 1;
       const side = action.side ?? "runner";

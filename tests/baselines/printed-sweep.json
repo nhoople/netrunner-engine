@@ -1536,7 +1536,7 @@
       "abilities": [
         "Whenever the Runner makes a successful run on this server, they must either suffer 1 core damage or jack out. If the Runner jacks out this way, gain 5[credit], draw 1 card, and trash this upgrade."
       ],
-      "note": "jack_out (src/effects/primitives/derezDrawChoose.ts) sets run.successful = false, so the run is declared unsuccessful though it reached the Success Phase (6.8.4a), and it skips the shared jack-out procedure (jack-out triggers, isForbidden jack_out; 6.1.5, 1.2.2). The core damage option, gain 5, draw 1 and the trash match.",
+      "note": "jack_out (src/effects/run/runKinds.ts) sets run.successful = false, so the run is declared unsuccessful though it reached the Success Phase (6.8.4a), and it skips the shared jack-out procedure (jack-out triggers, isForbidden jack_out; 6.1.5, 1.2.2). The core damage option, gain 5, draw 1 and the trash match.",
       "cr": [
         "6.8.4a",
         "6.1.5",

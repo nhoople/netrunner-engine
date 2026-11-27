@@ -11,23 +11,16 @@ import {
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import { noteCorpOperationPlayed } from "../../state/triggers/cardLifecycleHooks.js";
 import { CR } from "../../timing/labels.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { playEffectFromCard } from "../abilityRecord.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
+import type { RuleCite } from "../../state/types.js";
+import { rfgCard } from "../run/runKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function rfgCard(ctx: EffectCtx, cardId: string): void {
-  const { state } = ctx;
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromGame(state, cardId);
-}
 
 export function applyMumbadTlmPrimitive(
   ctx: EffectCtx,
@@ -206,25 +199,6 @@ export function applyMumbadTlmPrimitive(
           ],
         });
       }
-      return { ok: true };
-    }
-
-    case "tlm_out_of_ashes_rfg_and_run": {
-      if (!state.runner.discardPile.includes(sourceId)) {
-        log(state, `Out of the Ashes — not in heap.`);
-        return { ok: true };
-      }
-      rfgCard(ctx, sourceId);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: (Object.keys(state.servers) as ServerId[]).map((serverId) => ({
-          id: `run:${serverId}`,
-          label: `Run ${serverId}`,
-          effect: fx.do({ kind: "queue_start_run", serverId }),
-        })),
-        logLine: `Out of the Ashes — remove from game; make a run.`,
-      });
       return { ok: true };
     }
 

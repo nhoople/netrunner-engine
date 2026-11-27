@@ -21,7 +21,7 @@ import { applyReturnKinds } from "../uninstallAndPosition/returnKinds.js";
 import { applyRevealKinds } from "../visibility/revealKinds.js";
 import { applyRezKinds } from "../rez/rezKinds.js";
 import { applySearchKinds } from "../searchAndDeck/searchKinds.js";
-import { applySetKinds } from "./setKinds.js";
+import { applySetKinds } from "../run/setKinds.js";
 import { applyShuffleKinds } from "../searchAndDeck/shuffleKinds.js";
 import { applySwapKinds } from "../swap/swapKinds.js";
 
@@ -89,6 +89,10 @@ import {
   applySearchAndShuffleKinds,
   applySearchAndShuffleKindsWhenSourceExists,
 } from "../searchAndDeck/searchAndShuffleKinds.js";
+import {
+  applyRunKinds,
+  applyRunKindsWhenSourceExists,
+} from "../run/runKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -149,6 +153,8 @@ const HANDLERS = [
   applyArchivesAndHeapRetrievalKinds,
   applySearchAndShuffleKinds,
   applySearchAndShuffleKindsWhenSourceExists,
+  applyRunKinds,
+  applyRunKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(
