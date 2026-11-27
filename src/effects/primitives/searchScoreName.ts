@@ -143,37 +143,6 @@ export function applyLunarTsbPrimitive(
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }
-    case "trash_per_tag": {
-      // Each gained subroutine: "The Runner trashes 1 of their installed
-      // cards" — the Runner chooses, one subroutine at a time.
-      const tags = state.runner.tags;
-      if (tags <= 0) {
-        log(state, `Information Overload — Runner has no tags.`);
-        return { ok: true };
-      }
-      return applyLunarTsbPrimitive(ctx, {
-        kind: "trash_per_tag_continue",
-        remaining: tags,
-      });
-    }
-    case "trash_per_tag_continue": {
-      const remaining = action.remaining ?? 0;
-      const installed = [...state.runner.installed];
-      if (remaining <= 0 || installed.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: installed.map((id) => ({
-          id: `io-trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.seq(
-            fx.do({ kind: "trash_own_installed", cardId: id }),
-            fx.do({ kind: "trash_per_tag_continue", remaining: remaining - 1 }),
-          ),
-        })),
-      });
-      return { ok: true };
-    }
     case "sealed_vault_store_from_pool": {
       // Printed: move *any number* of credits from the pool to this asset.
       const pool = state.corp.credits;
@@ -224,26 +193,6 @@ export function applyLunarTsbPrimitive(
         state,
         `Sealed Vault — take ${n}¢ to pool (${card.hostedCredits} hosted).`,
       );
-      return { ok: true };
-    }
-    case "trash_will_o_wisp_breaker_used": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "decline",
-            label: "Do not trash Will-o'-the-Wisp",
-            effect: fx.gainCredits("corp", 0),
-          },
-          {
-            id: "trash",
-            label:
-              "Trash Will-o'-the-Wisp: an icebreaker used this run goes to the bottom of the stack",
-            effect: fx.do({ kind: "resolve_will_o_wisp" }),
-          },
-        ],
-      });
       return { ok: true };
     }
     case "resolve_will_o_wisp": {

@@ -16,11 +16,7 @@ import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function installedRunnerCards(state: EffectCtx["state"]): string[] {
-  return [...state.runner.installed].filter((id) => state.cards[id]);
-}
-
-function installedCorpCards(state: EffectCtx["state"]): string[] {
+export function installedCorpCards(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
@@ -119,54 +115,6 @@ export function applyRedsandBawPrimitive(
           },
         ],
       });
-      return { ok: true };
-    }
-
-    case "warroid_runner_trashes_installed": {
-      const amount = Math.max(1, action.amount ?? 2);
-      const candidates = installedRunnerCards(state);
-      if (candidates.length === 0) {
-        log(state, `Warroid Tracker — Runner has no installed cards.`);
-        return { ok: true };
-      }
-      const n = Math.min(amount, candidates.length);
-      // Ask Runner to pick n cards (simplified: sequential picks).
-      const pickOne = (remaining: number, pool: string[]): Effect => {
-        if (remaining <= 0 || pool.length === 0) {
-          return fx.do({ kind: "gain_credits", side: "runner", amount: 0 });
-        }
-        return {
-          op: "choose",
-          chooser: "runner",
-          options: pool.map((id) => ({
-            id: `trash:${id}`,
-            label: `Trash ${state.cards[id]!.title}`,
-            effect: fx.seq(
-              fx.do({ kind: "trash_warroid_one", cardId: id }),
-              pickOne(
-                remaining - 1,
-                pool.filter((x) => x !== id),
-              ),
-            ),
-          })),
-        };
-      };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: (pickOne(n, candidates) as Extract<Effect, { op: "choose" }>)
-          .options,
-      });
-      return { ok: true };
-    }
-
-    case "trash_warroid_one": {
-      const cardId = (action as { cardId: string }).cardId;
-      if (!state.cards[cardId] || !state.runner.installed.includes(cardId)) {
-        return { ok: true };
-      }
-      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
-      log(state, `Warroid Tracker — trash ${state.cards[cardId]?.title}.`);
       return { ok: true };
     }
 
@@ -294,66 +242,6 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "trash_loop": {
-      const runnerInstalled = installedRunnerCards(state);
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "decline",
-          label: "Decline — Corp draws 1 and gains 5¢",
-          effect: fx.seq(
-            fx.do({ kind: "draw", side: "corp", amount: 1 }),
-            fx.do({ kind: "gain_credits", side: "corp", amount: 5 }),
-          ),
-        },
-      ];
-      for (const id of runnerInstalled) {
-        options.push({
-          id: `trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "runner_trash_standoff_after", cardId: id }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "runner_trash_standoff_after": {
-      const cardId = (action as { cardId: string }).cardId;
-      if (state.runner.installed.includes(cardId)) {
-        trashCard(state, cardId, { by: controllerOf(state, sourceId) });
-        log(state, `Standoff — Runner trashes ${state.cards[cardId]?.title}.`);
-      }
-      const corpInstalled = installedCorpCards(state);
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "decline",
-          label: "Decline (end Standoff)",
-          effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-        },
-      ];
-      for (const id of corpInstalled) {
-        options.push({
-          id: `trash:${id}`,
-          label: `Trash ${state.cards[id]!.title} and repeat`,
-          effect: fx.seq(
-            fx.do({ kind: "corp_trash", cardId: id }),
-            fx.do({ kind: "trash_loop" }),
-          ),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "corp_trash": {
-      const cardId = (action as { cardId: string }).cardId;
-      if (state.cards[cardId]) {
-        trashCard(state, cardId, { by: controllerOf(state, sourceId) });
-        log(state, `Standoff — Corp trashes ${state.cards[cardId]?.title}.`);
-      }
-      return { ok: true };
-    }
-
     case "advance_equal_forfeit_advancement_requirement": {
       const x = state.lastForfeitedAdvancementRequirement ?? 0;
       if (x <= 0) {
@@ -382,25 +270,6 @@ export function applyRedsandBawPrimitive(
             amount: x,
             advance: true,
           }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_whampoa_hq_archives_to_rd_bottom": {
-      // Cost already trashed from HQ; choose Archives card to R&D bottom.
-      const archives = [...state.corp.discardPile];
-      if (archives.length === 0) {
-        log(state, `Whampoa Reclamation — Archives empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: archives.map((id) => ({
-          id: `rd:${id}`,
-          label: `Add ${state.cards[id]!.title} to R&D bottom`,
-          effect: fx.do({ kind: "whampoa_archives_to_rd_bottom", cardId: id }),
         })),
       });
       return { ok: true };

@@ -1,21 +1,17 @@
-import {
-  iceAtRunnerPosition,
-  moveRunnerToOutermost,
-} from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import { fx, type Primitive } from "../ir.js";
+import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function installedCorpCards(state: EffectCtx["state"]): string[] {
+export function installedCorpCards(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
   for (const server of Object.values(state.servers)) {
     for (const id of [...server.root, ...server.ice]) {
@@ -25,7 +21,7 @@ function installedCorpCards(state: EffectCtx["state"]): string[] {
   return out;
 }
 
-function canAdvance(state: EffectCtx["state"], cardId: string): boolean {
+export function canAdvance(state: EffectCtx["state"], cardId: string): boolean {
   const c = state.cards[cardId];
   if (!c) return false;
   if (c.type === "agenda") return true;
@@ -41,59 +37,6 @@ export function applyRedsandEasPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "may_trash_stack_top_then_trash_rd_per_resolved": {
-      const enc = state.run?.encounter;
-      const ice = enc ? state.cards[enc.iceId] : null;
-      const isSentry = (ice?.subtypes ?? []).some(
-        (s) => s.toLowerCase() === "sentry",
-      );
-      if (!enc || !ice || !isSentry) {
-        log(state, `Persephone — pass was not after encountering a sentry.`);
-        return { ok: true };
-      }
-      const resolved = enc.subroutinesResolved ?? 0;
-      if (state.runner.deck.length === 0) {
-        log(state, `Persephone — stack empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "accept",
-            label: `Trash top of stack; trash ${resolved} from R&D`,
-            effect: fx.do({
-              kind: "resolve_trash",
-              amount: resolved,
-            }),
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "resolve_trash": {
-      const amount = Math.max(0, action.amount ?? 0);
-      if (state.runner.deck.length > 0) {
-        const top = state.runner.deck.shift()!;
-        trashCard(state, top, { by: controllerOf(state, sourceId) });
-        log(state, `Persephone — trash ${state.cards[top]?.title} from stack.`);
-      }
-      for (let i = 0; i < amount; i++) {
-        if (state.corp.deck.length === 0) break;
-        const top = state.corp.deck.shift()!;
-        trashCard(state, top, { by: controllerOf(state, sourceId) });
-        log(state, `Persephone — trash ${state.cards[top]?.title} from R&D.`);
-      }
-      return { ok: true };
-    }
-
     case "search_rosetta_rfg_program_install_non_virus": {
       const programs = state.runner.installed.filter(
         (id) => state.cards[id]?.type === "program",
@@ -157,40 +100,6 @@ export function applyRedsandEasPrimitive(
             cardId: id,
             discount,
           }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_aginfusion_approached_unrezzed_redirect": {
-      const run = state.run;
-      if (!run || run.position === null) {
-        log(state, `AgInfusion — no approached ice.`);
-        return { ok: true };
-      }
-      const iceId = iceAtRunnerPosition(state);
-      const ice = iceId ? state.cards[iceId] : null;
-      if (!ice || ice.rezzed) {
-        log(state, `AgInfusion — approached ice must be unrezzed.`);
-        return { ok: true };
-      }
-      trashCard(state, iceId!, { by: controllerOf(state, sourceId) });
-      log(state, `AgInfusion — trash approached ${ice.title}.`);
-      const attacked = run.attackedServerId;
-      const servers = (Object.keys(state.servers) as ServerId[]).filter(
-        (sid) => sid !== attacked,
-      );
-      if (servers.length === 0) {
-        log(state, `AgInfusion — no other server.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: servers.map((sid) => ({
-          id: `server:${sid}`,
-          label: `Move Runner to ${sid}`,
-          effect: fx.do({ kind: "redirect_aginfusion_resolve", serverId: sid }),
         })),
       });
       return { ok: true };
@@ -287,48 +196,6 @@ export function applyRedsandEasPrimitive(
             remaining: remaining.filter((x) => x !== id),
           }),
         })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_hq_place_total_2_advancements": {
-      const hq = [...state.corp.hand];
-      for (const id of hq) {
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-      }
-      log(state, `Audacity — trash all cards from HQ (${hq.length}).`);
-      const advanceable = installedCorpCards(state).filter((id) =>
-        canAdvance(state, id),
-      );
-      if (advanceable.length === 0) {
-        log(state, `Audacity — no advanceable installed cards.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: advanceable.flatMap((id) => {
-          const title = state.cards[id]!.title;
-          return [
-            {
-              id: `adv2:${id}`,
-              label: `Place 2 advancements on ${title}`,
-              effect: fx.do({
-                kind: "place_advancements_on",
-                cardId: id,
-                amount: 2,
-              }),
-            },
-            {
-              id: `adv1:${id}`,
-              label: `Place 1 advancement on ${title} (split)`,
-              effect: fx.do({
-                kind: "place_one_then_choose",
-                cardId: id,
-              }),
-            },
-          ];
-        }),
       });
       return { ok: true };
     }

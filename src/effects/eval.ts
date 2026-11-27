@@ -72,10 +72,6 @@ import { applyMumbadKgPrimitive } from "./primitives/preventMoveChoose.js";
 import { applyMumbadBfPrimitive } from "./primitives/rezBreachPlace.js";
 import { applyMumbadDagPrimitive } from "./primitives/hostResolveLook.js";
 import {
-  applyMumbadSiPrimitive,
-  trashRandomGripForPersonalityProfiles,
-} from "./primitives/lookTrashAdd.js";
-import {
   closeReactionWindow,
   completePendingAbility,
   createPendingAbilityInstance,
@@ -182,6 +178,8 @@ import {
   allSubroutinesBrokenByRunner,
   subroutinesBrokenByRunnerCount,
 } from "../state/turnAndActions/break.js";
+import { applyMumbadSiPrimitive } from "./primitives/lookTrashAdd.js";
+import { trashRandomGripForPersonalityProfiles } from "./hostingAndTrash/runnerHandAndDeckTrashKinds.js";
 export {
   fireOnBypassTriggers,
   fireHostRezStateTriggers,

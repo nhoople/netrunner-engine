@@ -2093,27 +2093,31 @@
           "kinds": []
         },
         {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#installedNonAiIcebreakers",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/install/runnerInstall.ts#countInstalledIcebreakersForCost",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#installedNonAiIcebreakers",
           "kinds": []
         },
         {
@@ -2465,7 +2469,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
         {
@@ -3397,7 +3401,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#maybeFireYakovCredits",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireYakovCredits",
           "kinds": []
         }
       ],
@@ -3952,7 +3956,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#applyCorpHandAndDeckTrashKinds",
           "kinds": []
         },
         {
@@ -4136,15 +4140,15 @@
           "kinds": []
         },
         {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/addKinds.ts#applyAddKinds",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/lookTrashAdd.ts#fireSiAfterCorpRezOrPlay",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
           "kinds": []
         },
         {
@@ -5682,7 +5686,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
           "kinds": []
         }
       ],
@@ -5701,7 +5705,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
           "kinds": [
             "break_any_subroutine"
           ]
@@ -5724,7 +5728,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
           "kinds": []
         }
       ],
@@ -6657,11 +6661,19 @@
           "kinds": []
         },
         {
-          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerHandAndDeckTrashKinds.ts#applyRunnerHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
           "kinds": []
         },
         {
@@ -6681,19 +6693,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/redirectSpendName.ts#applyFlashpointEsPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/searchRevealTrash.ts#applySansanValPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/swapNetBreach.ts#applySansanCcPrimitive",
           "kinds": []
         },
         {
@@ -7032,6 +7036,18 @@
           "kinds": []
         },
         {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
           "kinds": []
         },
@@ -7068,10 +7084,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
           "kinds": []
         },
@@ -7081,22 +7093,6 @@
         },
         {
           "site": "src/effects/kinds/setKinds.ts#applySetKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookInstallTrash.ts#applyFlashpointInPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/moveSearchInstall.ts#applyKitaraCotcPrimitive",
           "kinds": []
         },
         {
@@ -7965,7 +7961,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#noteCorpCardTrashedToArchives",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#noteCorpCardTrashedToArchives",
           "kinds": []
         },
         {
@@ -8042,6 +8038,14 @@
           "kinds": []
         },
         {
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists",
           "kinds": []
         },
@@ -8051,14 +8055,6 @@
         },
         {
           "site": "src/effects/install/runnerInstallFromGripKinds.ts#applyRunnerInstallFromGripKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
           "kinds": []
         },
         {
@@ -8089,7 +8085,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds",
           "kinds": []
         },
         {
@@ -8842,7 +8838,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#maybeFireHostileArchitecture",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireHostileArchitecture",
           "kinds": []
         }
       ],
@@ -9332,11 +9328,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#noteCorpCardTrashedToArchives",
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#trashCorpCardSet",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/trashKinds.ts#trashCorpCardSet",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#noteCorpCardTrashedToArchives",
           "kinds": []
         },
         {
@@ -12552,7 +12548,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#maybeFireOnRezzedCardTrashed",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireOnRezzedCardTrashed",
           "kinds": []
         },
         {
@@ -12686,7 +12682,7 @@
           ]
         },
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#trashRandomGripForPersonalityProfiles",
+          "site": "src/effects/hostingAndTrash/runnerHandAndDeckTrashKinds.ts#trashRandomGripForPersonalityProfiles",
           "kinds": []
         }
       ],
@@ -12705,11 +12701,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#maybeFireWarroidTracker",
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#trashCorpCardSet",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/trashKinds.ts#trashCorpCardSet",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireWarroidTracker",
           "kinds": []
         },
         {
@@ -13759,11 +13755,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashChooseAccess.ts#applyRedsandSoPrimitive",
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds",
           "kinds": []
         },
         {
@@ -15643,11 +15639,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#corpTrashRefused",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#corpTrashRefused",
           "kinds": []
         },
         {
-          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         }
       ],
@@ -15742,7 +15738,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#maybeFireAuCoOnHqTrash",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireAuCoOnHqTrash",
           "kinds": []
         },
         {
@@ -16916,11 +16912,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/install/corpAbilityInstall.ts#rezAfterInstall",
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#applyCorpHandAndDeckTrashKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
+          "site": "src/effects/install/corpAbilityInstall.ts#rezAfterInstall",
           "kinds": []
         },
         {
@@ -17021,6 +17017,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#applyCorpHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
           "kinds": []
         },
@@ -17038,10 +17038,6 @@
         },
         {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
           "kinds": []
         },
         {
@@ -17806,11 +17802,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#fireRonaldFiveOnRunnerTrash",
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#trashCorpCardSet",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/trashKinds.ts#trashCorpCardSet",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#fireRonaldFiveOnRunnerTrash",
           "kinds": []
         }
       ],
@@ -18166,15 +18162,39 @@
           "kinds": []
         },
         {
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#applyCorpHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds.apply",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerHandAndDeckTrashKinds.ts#applyRunnerHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#trashChooser",
+          "kinds": []
+        },
+        {
           "site": "src/effects/install/corpIceInstallKinds.ts#applyCorpIceInstallKinds",
           "kinds": []
         },
         {
           "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
         {
@@ -18187,22 +18207,6 @@
         },
         {
           "site": "src/effects/kinds/shuffleKinds.ts#applyShuffleKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds.apply",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#trashChooser",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
           "kinds": []
         },
         {
@@ -18250,10 +18254,6 @@
           "mirrors": [
             "src/effects/ir/gainPrimitive.ts#{GainPrimitive}"
           ]
-        },
-        {
-          "site": "src/effects/primitives/trashGiveSwap.ts#applySpinFalDtPrimitive",
-          "kinds": []
         },
         {
           "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
@@ -19677,15 +19677,15 @@
           "kinds": []
         },
         {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#trashChooser",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#trashChooser",
           "kinds": []
         },
         {
@@ -20004,6 +20004,42 @@
           "kinds": []
         },
         {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds.isCaissa",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#connectionResources",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#installedNonAiIcebreakers",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerHandAndDeckTrashKinds.ts#applyRunnerHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
           "site": "src/effects/install/corpInstallFromArchivesAndRdKinds.ts#applyCorpInstallFromArchivesAndRdKinds",
           "kinds": []
         },
@@ -20096,15 +20132,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds.isCaissa",
           "kinds": []
         },
         {
@@ -20117,14 +20145,6 @@
         },
         {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/addResolveInstall.ts#applyKitaraSsPrimitive",
           "kinds": []
         },
         {
@@ -20141,10 +20161,6 @@
         },
         {
           "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezRfgTrash.ts#applyRedsandFmPrimitive",
           "kinds": []
         },
         {
@@ -20180,19 +20196,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/preventInstallDraw.ts#applySansanBbPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/redirectSpendName.ts#applyFlashpointEsPrimitive",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/resolveExposePay.ts#installedVirusProgramIds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#installedNonAiIcebreakers",
           "kinds": []
         },
         {
@@ -20216,10 +20224,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/shuffleLookPick.ts#applySansanOhPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/spendHostPrevent.ts#applyFlashpointMlPrimitive",
           "kinds": []
         },
@@ -20232,15 +20236,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashChooseAccess.ts#connectionResources",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashGiveSwap.ts#applySpinFalDtPrimitive",
           "kinds": []
         },
         {
@@ -20549,7 +20545,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/breachResolveRfg.ts#applyLunarFcPrimitive",
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds",
           "kinds": [
             "resolve_supplier_host"
           ]
@@ -20702,7 +20698,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#maybeFireThreatGiveTagsOnRezzedTrash",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireThreatGiveTagsOnRezzedTrash",
           "kinds": []
         }
       ],
@@ -21041,42 +21037,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpTrash.ts#corpTrashRefused",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#fireRonaldFiveOnRunnerTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#maybeFireAuCoOnHqTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#maybeFireHostileArchitecture",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#maybeFireOnRezzedCardTrashed",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#maybeFireThreatGiveTagsOnRezzedTrash",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#maybeFireYakovCredits",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/corpTrash.ts#noteCorpCardTrashedToArchives",
-          "kinds": []
-        },
-        {
           "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
@@ -21190,6 +21150,114 @@
         },
         {
           "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#applyCorpHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#applyCorpHandAndDeckTrashKinds.apply",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#applyTrashAnyHqThenGainPerCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#trashTopOfRd",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds.apply",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#trashCorpCardSet",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#corpTrashRefused",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#fireRonaldFiveOnRunnerTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#markStaticHostTrashConditions",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireAuCoOnHqTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireHostileArchitecture",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireOnRezzedCardTrashed",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireThreatGiveTagsOnRezzedTrash",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#maybeFireYakovCredits",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#noteCorpCardTrashedToArchives",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#offerBookmarkHostChoice",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerHandAndDeckTrashKinds.ts#applyRunnerHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerHandAndDeckTrashKinds.ts#applyRunnerHandAndDeckTrashKinds.apply",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerHandAndDeckTrashKinds.ts#trashRandomGripForPersonalityProfiles",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds.pickOne",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKindsWhenSourceExists",
           "kinds": []
         },
         {
@@ -21309,10 +21377,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
           "kinds": []
         },
@@ -21369,18 +21433,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds.apply",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#trashCorpCardSet",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/addResolveInstall.ts#applyKitaraSsPrimitive",
           "kinds": []
         },
@@ -21405,10 +21457,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/chooseGainShuffle.ts#applyRedsandBawPrimitive.pickOne",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
           "kinds": []
         },
@@ -21429,10 +21477,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/gainCannotSwap.ts#offerBookmarkHostChoice",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
           "kinds": []
         },
@@ -21442,10 +21486,6 @@
         },
         {
           "site": "src/effects/primitives/givePayTrash.ts#applyRedsandCdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/givePayTrash.ts#trashTopOfRd",
           "kinds": []
         },
         {
@@ -21481,10 +21521,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#trashRandomGripForPersonalityProfiles",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/moveSearchInstall.ts#applyKitaraCotcPrimitive",
           "kinds": []
         },
@@ -21510,14 +21546,6 @@
         },
         {
           "site": "src/effects/primitives/preventSpendTrash.ts#applyLunarUaoPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventSpendTrash.ts#applyTrashAnyHqThenGainPerCard",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/redirectSpendName.ts#applyFlashpointEsPrimitive",
           "kinds": []
         },
         {
@@ -21573,10 +21601,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/spendHostPrevent.ts#applyFlashpointMlPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
           "kinds": []
         },
@@ -21598,10 +21622,6 @@
         },
         {
           "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive.apply",
           "kinds": []
         },
         {
@@ -22984,11 +23004,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/hostResolveLook.ts#applyMumbadDagPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/rezBreachPlace.ts#applyMumbadBfPrimitive",
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
           "kinds": []
         },
         {
@@ -23072,7 +23088,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         }
       ],
@@ -23110,7 +23126,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#markStaticHostTrashConditions",
           "kinds": []
         }
       ],
@@ -23740,10 +23756,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/corpTrash.ts#markStaticHostTrashConditions",
-          "kinds": []
-        },
-        {
           "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
@@ -23781,6 +23793,58 @@
         },
         {
           "site": "src/effects/eval.ts#validatePaidEffect.walk",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts#applyCorpHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpInstalledTrashKinds.ts#applyCorpInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/corpTrash.ts#markStaticHostTrashConditions",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostKinds.ts#applyHostKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#applyHostedCardKinds.isCaissa",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#connectionResources",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/hostedCardKinds.ts#installedNonAiIcebreakers",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerHandAndDeckTrashKinds.ts#applyRunnerHandAndDeckTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#applyRunnerInstalledTrashKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#installedPrograms",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/hostingAndTrash/runnerInstalledTrashKinds.ts#runnerPrograms",
           "kinds": []
         },
         {
@@ -23932,19 +23996,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
           "kinds": []
         },
         {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds.isCaissa",
           "kinds": []
         },
         {
@@ -23968,10 +24024,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/addResolveInstall.ts#applyKitaraSsPrimitive",
           "kinds": []
         },
@@ -23981,10 +24033,6 @@
         },
         {
           "site": "src/effects/primitives/breachResolveRfg.ts#applyLunarFcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/breachResolveRfg.ts#runnerPrograms",
           "kinds": []
         },
         {
@@ -24016,10 +24064,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/lookInstallTrash.ts#applyFlashpointInPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/lookTrashAdd.ts#applyMumbadSiPrimitive",
           "kinds": []
         },
@@ -24048,14 +24092,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/redirectSpendName.ts#applyFlashpointEsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveExposePay.ts#applyKitaraTdatdPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/resolveExposePay.ts#faceupAgendaPoints",
           "kinds": []
         },
@@ -24065,10 +24101,6 @@
         },
         {
           "site": "src/effects/primitives/resolveMoveInstall.ts#applyKitaraWinPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#installedNonAiIcebreakers",
           "kinds": []
         },
         {
@@ -24092,10 +24124,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/searchRevealTrash.ts#installedPrograms",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/shuffleInstall.ts#applyMagnumOpusPrimitive",
           "kinds": []
         },
@@ -24104,23 +24132,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/spendHostPrevent.ts#applyFlashpointMlPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/swapNetBreach.ts#applySansanCcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashChooseAccess.ts#connectionResources",
           "kinds": []
         },
         {

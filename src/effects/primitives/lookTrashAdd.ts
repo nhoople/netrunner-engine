@@ -5,10 +5,9 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random, shuffleInPlace } from "../../state/rng.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { revealCards } from "../../state/visibility/reveal.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -21,24 +20,6 @@ export function applyMumbadSiPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "trash_stack_pick": {
-      const cardId = action.cardId;
-      const looked = state.turn.siStackLookedCards ?? [];
-      const idx = looked.indexOf(cardId);
-      if (idx < 0) {
-        log(state, `Making an Entrance — card not in look zone.`);
-        return { ok: true };
-      }
-      looked.splice(idx, 1);
-      state.turn.siStackLookedCards = looked;
-      trashCard(state, cardId);
-      log(
-        state,
-        `Making an Entrance — trash ${state.cards[cardId]!.title} from looked cards.`,
-      );
-      return offerSiStackTrashOrArrange(ctx);
-    }
-
     case "si_stack_done_trashing": {
       return offerSiStackArrangeChoice(ctx);
     }
@@ -97,33 +78,6 @@ export function applyMumbadSiPrimitive(
       }
       uninstallCard(state, cardId, "deck-top");
       log(state, `Brahman — add ${card.title} to the top of the stack.`);
-      return { ok: true };
-    }
-
-    case "trash_named": {
-      // "The Runner reveals the grip and trashes all cards with the chosen
-      // name revealed this way": the whole grip is revealed first (CR 1.21.3),
-      // then the Runner, named by the text, trashes the matches (CR 1.14.5).
-      const grip = [...state.runner.hand];
-      const name = source?.title ?? "Salem's Hospitality";
-      revealCards(state, grip, sourceId);
-      const titles = grip.map((id) => state.cards[id]?.title ?? id);
-      log(
-        state,
-        grip.length > 0
-          ? `${name} — the Runner reveals the grip: ${titles.join(", ")}.`
-          : `${name} — the Runner reveals an empty grip.`,
-      );
-      const matches = grip.filter(
-        (id) => state.cards[id]?.title === action.title,
-      );
-      for (const id of matches) {
-        trashCard(state, id, { by: "runner", cause: "ability" });
-      }
-      log(
-        state,
-        `${name} — the Runner trashes ${matches.length} ${matches.length === 1 ? "copy" : "copies"} of ${action.title}.`,
-      );
       return { ok: true };
     }
 
@@ -279,26 +233,6 @@ export function fireSiAfterPaidAbilityClicks(
       return;
     }
   }
-}
-
-/** Personality Profiles: trash one random grip card for a scored source. */
-export function trashRandomGripForPersonalityProfiles(
-  state: GameState,
-  sourceId: string,
-): void {
-  const card = state.cards[sourceId];
-  if (!card?.onRunnerSearchStackOrInstallFromHeapTrashRandomFromGrip) return;
-  if (state.runner.hand.length === 0) {
-    log(state, `${card.title} — Runner grip empty.`);
-    return;
-  }
-  const idx = Math.floor(random(state) * state.runner.hand.length);
-  const trashId = state.runner.hand[idx]!;
-  trashCard(state, trashId);
-  log(
-    state,
-    `${card.title} — Runner trashes ${state.cards[trashId]!.title} from grip at random.`,
-  );
 }
 
 export function offerSiStackTrashOrArrange(ctx: EffectCtx): PrimResult {

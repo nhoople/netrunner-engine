@@ -8,17 +8,9 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function rfgCard(state: EffectCtx["state"], cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  removeCardFromGame(state, cardId);
-}
 
 export function applyFlashpointQuPrimitive(
   ctx: EffectCtx,
@@ -189,82 +181,6 @@ export function applyFlashpointQuPrimitive(
       log(
         state,
         `Herald — pay ${n}¢ → place ${n} advancement on ${card.title}.`,
-      );
-      return { ok: true };
-    }
-
-    case "trash_installed_virus": {
-      const viruses = state.runner.installed.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("virus"),
-      );
-      if (viruses.length === 0) {
-        log(state, `Macrophage — no installed virus.`);
-        return { ok: true };
-      }
-      if (viruses.length === 1 || action.pick === "first") {
-        const id = viruses[0]!;
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-        log(state, `Macrophage — trash virus ${state.cards[id]!.title}.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: viruses.map((id) => ({
-          id: `trash-virus:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_installed_virus_resolve", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_installed_virus_resolve": {
-      const cardId = action.cardId;
-      if (!cardId || !state.runner.installed.includes(cardId))
-        return { ok: true };
-      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
-      log(state, `Macrophage — trash virus ${state.cards[cardId]!.title}.`);
-      return { ok: true };
-    }
-
-    case "rfg_virus_from_heap": {
-      const viruses = state.runner.discardPile.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("virus"),
-      );
-      if (viruses.length === 0) {
-        log(state, `Macrophage — no virus in heap.`);
-        return { ok: true };
-      }
-      if (viruses.length === 1) {
-        const id = viruses[0]!;
-        rfgCard(state, id);
-        log(
-          state,
-          `Macrophage — RFG virus ${state.cards[id]!.title} from heap.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: viruses.map((id) => ({
-          id: `rfg-heap-virus:${id}`,
-          label: `RFG ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "rfg_virus_from_heap_resolve", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "rfg_virus_from_heap_resolve": {
-      const cardId = action.cardId;
-      if (!cardId || !state.runner.discardPile.includes(cardId))
-        return { ok: true };
-      rfgCard(state, cardId);
-      log(
-        state,
-        `Macrophage — RFG virus ${state.cards[cardId]!.title} from heap.`,
       );
       return { ok: true };
     }

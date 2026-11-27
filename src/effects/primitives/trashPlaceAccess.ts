@@ -19,7 +19,6 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
@@ -40,19 +39,6 @@ export function applyMumbadTlmPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "trash_all_cards_from_grip": {
-      const hand = [...state.runner.hand];
-      for (const id of hand) {
-        state.runner.hand = state.runner.hand.filter((x) => x !== id);
-        trashCard(state, id);
-      }
-      log(
-        state,
-        `${source?.title ?? "The Noble Path"} — trash ${hand.length} card(s) from grip.`,
-      );
-      return { ok: true };
-    }
-
     case "may_corp_forfeit_liberated_chela_or_score": {
       const corpAgendas = state.corp.scoreArea.filter(
         (id) => state.cards[id]?.type === "agenda",

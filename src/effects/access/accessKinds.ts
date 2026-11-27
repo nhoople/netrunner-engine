@@ -32,8 +32,8 @@ import type { RuleCite, GameState } from "../../state/types.js";
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { shuffleInPlace, random } from "../../state/rng.js";
 import { fireOnAgendaAccessedOrScored } from "../../state/triggers/miscConditionalHooks.js";
-import { applySpinTcPrimitive } from "../primitives/breachTrashTurn.js";
 import { applyRunnerInstallFromGripKinds } from "../install/runnerInstallFromGripKinds.js";
+import { applyRunnerInstalledTrashKinds } from "../hostingAndTrash/runnerInstalledTrashKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -765,7 +765,7 @@ export function applyAccessKinds(
       }
       if (looked.length === 1) {
         return (
-          applySpinTcPrimitive(ctx, {
+          applyRunnerInstalledTrashKinds(ctx, {
             kind: "trash_looked_program",
             cardId: looked[0]!,
           }) ?? { ok: true }

@@ -4,13 +4,11 @@ import { CR } from "../../timing/labels.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
-import { syncCorpHandSizeSubroutines } from "../../state/continuous/handSizeSubroutines.js";
 import type { RuleCite } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random } from "../../state/rng.js";
-import { discardCard, trashCard } from "../../state/hostingAndTrash/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -201,45 +199,6 @@ export function applyLunarAtrPrimitive(
           trashCard(state, id);
           log(state, `${res.title} — trashed (Runner is tagged).`);
         }
-      }
-      return { ok: true };
-    }
-    case "trash_connection": {
-      const cardId = (action as { cardId: string }).cardId;
-      if (!state.runner.installed.includes(cardId)) {
-        log(state, `Snatch and Grab — connection already gone.`);
-        return { ok: true };
-      }
-      trashCard(state, cardId);
-      log(state, `Snatch and Grab — trash ${state.cards[cardId]!.title}.`);
-      return { ok: true };
-    }
-    case "corp_discard_random_from_hq": {
-      const amount = Math.max(0, (action as { amount?: number }).amount ?? 2);
-      const hq = [...state.corp.hand];
-      if (hq.length === 0 || amount <= 0) {
-        log(state, `Corp discard random from HQ — nothing to discard.`);
-        return { ok: true };
-      }
-      for (let i = hq.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        [hq[i], hq[j]] = [hq[j]!, hq[i]!];
-      }
-      const pick = hq.slice(0, Math.min(amount, hq.length));
-      for (const id of pick) {
-        // A discard, not a trash (CR 1.19.3); facedown from HQ (CR 4.4.6b).
-        discardCard(state, id);
-        log(
-          state,
-          `Corp discards ${state.cards[id]!.title} from HQ at random.`,
-        );
-      }
-      const encounterIceId = state.run?.encounter?.iceId;
-      if (
-        encounterIceId &&
-        state.cards[encounterIceId]?.dynamicEtrSubroutineCountFromCorpHandSize
-      ) {
-        syncCorpHandSizeSubroutines(state, encounterIceId);
       }
       return { ok: true };
     }

@@ -41,8 +41,8 @@ import { resetEncounterBreaks } from "../../state/turnAndActions/break.js";
 import { facedownInstalledRunnerCard } from "../../state/continuous/active.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
-import { runnerPrograms } from "../primitives/breachResolveRfg.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
+import { runnerPrograms } from "../hostingAndTrash/runnerInstalledTrashKinds.js";
 
 const FORBIDDEN_PANCHATANTRA = new Set(["barrier", "code gate", "sentry"]);
 

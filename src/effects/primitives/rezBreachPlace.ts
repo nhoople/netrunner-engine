@@ -2,13 +2,9 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import {
-  controllerOf,
-  discardCard,
-  trashCard,
-} from "../../state/hostingAndTrash/trash.js";
 import { offerCbiRaidHqToRd } from "../access/accessKinds.js";
 import type { RuleCite } from "../../state/types.js";
+import { discardCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -54,59 +50,6 @@ export function applyMumbadBfPrimitive(
       card.faceup = false;
       log(state, `CBI Raid — ${card.title} to top of R&D.`);
       return offerCbiRaidHqToRd(ctx);
-    }
-
-    case "trash_rezzed_gain_trash_cost": {
-      const targets: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.root) {
-          const c = state.cards[id];
-          if (c?.rezzed && (c.type === "asset" || c.type === "upgrade")) {
-            targets.push(id);
-          }
-        }
-      }
-      if (targets.length === 0) {
-        log(state, `Product Recall — no rezzed asset/upgrade.`);
-        return { ok: true };
-      }
-      if (targets.length === 1) {
-        const id = targets[0]!;
-        const card = state.cards[id]!;
-        const gainAmt = card.trashCost ?? 0;
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-        state.corp.credits += gainAmt;
-        log(state, `Product Recall — trash ${card.title}; gain ${gainAmt}¢.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => {
-          const card = state.cards[id]!;
-          const gainAmt = card.trashCost ?? 0;
-          return {
-            id: `recall:${id}`,
-            label: `Trash ${card.title} → gain ${gainAmt}¢`,
-            effect: fx.do({
-              kind: "resolve_product_recall",
-              cardId: id,
-            }),
-          };
-        }),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_product_recall": {
-      const id = action.cardId;
-      const card = state.cards[id];
-      if (!card?.rezzed) return { ok: true };
-      const gainAmt = card.trashCost ?? 0;
-      trashCard(state, id, { by: controllerOf(state, sourceId) });
-      state.corp.credits += gainAmt;
-      log(state, `Product Recall — trash ${card.title}; gain ${gainAmt}¢.`);
-      return { ok: true };
     }
 
     case "draw_then_discard_down_to_hand_size": {

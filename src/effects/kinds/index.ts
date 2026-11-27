@@ -7,7 +7,7 @@ import { applyChooseKinds } from "../triggers/chooseKinds.js";
 import { applyDerezKinds } from "../rez/derezKinds.js";
 import { applyForbidKinds } from "../continuous/forbidKinds.js";
 import { applyGainKinds } from "./gainKinds.js";
-import { applyHostKinds } from "./hostKinds.js";
+import { applyHostKinds } from "../hostingAndTrash/hostKinds.js";
 
 import { applyLookKinds } from "../visibility/lookKinds.js";
 import { applyMoveKinds } from "./moveKinds.js";
@@ -24,7 +24,7 @@ import { applySearchKinds } from "./searchKinds.js";
 import { applySetKinds } from "./setKinds.js";
 import { applyShuffleKinds } from "./shuffleKinds.js";
 import { applySwapKinds } from "../swap/swapKinds.js";
-import { applyTrashKinds } from "./trashKinds.js";
+
 import {
   applyContinuousKinds,
   applyContinuousKindsWhenSourceExists,
@@ -54,6 +54,23 @@ import {
   applyRunnerInstallFromGripKinds,
   applyRunnerInstallFromGripKindsWhenSourceExists,
 } from "../install/runnerInstallFromGripKinds.js";
+import {
+  applyHostedCardKinds,
+  applyHostedCardKindsWhenSourceExists,
+} from "../hostingAndTrash/hostedCardKinds.js";
+import {
+  applyCorpInstalledTrashKinds,
+  applyCorpInstalledTrashKindsWhenSourceExists,
+} from "../hostingAndTrash/corpInstalledTrashKinds.js";
+import {
+  applyRunnerHandAndDeckTrashKinds,
+  applyRunnerHandAndDeckTrashKindsWhenSourceExists,
+} from "../hostingAndTrash/runnerHandAndDeckTrashKinds.js";
+import { applyCorpHandAndDeckTrashKinds } from "../hostingAndTrash/corpHandAndDeckTrashKinds.js";
+import {
+  applyRunnerInstalledTrashKinds,
+  applyRunnerInstalledTrashKindsWhenSourceExists,
+} from "../hostingAndTrash/runnerInstalledTrashKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -78,7 +95,6 @@ const HANDLERS = [
   applySetKinds,
   applyShuffleKinds,
   applySwapKinds,
-  applyTrashKinds,
   applyContinuousKinds,
   applyContinuousKindsWhenSourceExists,
   applyAccessKinds,
@@ -96,6 +112,15 @@ const HANDLERS = [
   applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists,
   applyRunnerInstallFromGripKinds,
   applyRunnerInstallFromGripKindsWhenSourceExists,
+  applyHostedCardKinds,
+  applyHostedCardKindsWhenSourceExists,
+  applyCorpInstalledTrashKinds,
+  applyCorpInstalledTrashKindsWhenSourceExists,
+  applyRunnerHandAndDeckTrashKinds,
+  applyRunnerHandAndDeckTrashKindsWhenSourceExists,
+  applyCorpHandAndDeckTrashKinds,
+  applyRunnerInstalledTrashKinds,
+  applyRunnerInstalledTrashKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

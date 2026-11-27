@@ -1,12 +1,9 @@
 import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { chooseCards } from "../triggers/chooseCards.js";
-import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { shuffleInPlace } from "../../state/rng.js";
 import type { RuleCite } from "../../state/types.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
+import type { EffectCtx } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -17,22 +14,6 @@ export function applySpinTcPrimitive(
 ): PrimResult | null {
   const { state, sourceId } = ctx;
   switch (action.kind) {
-    case "trash_looked_program": {
-      const id = action.cardId;
-      const rest = (state.turn.rdLookedCards ?? []).filter((x) => x !== id);
-      for (const rid of rest) {
-        state.corp.deck.unshift(rid);
-        state.cards[rid]!.faceup = false;
-      }
-      trashCard(state, id, { by: controllerOf(state, sourceId) });
-      state.turn.rdLookedCards = [];
-      shuffleInPlace(state, state.corp.deck);
-      log(
-        state,
-        `Keyhole — trash ${state.cards[id]?.title ?? id}; shuffle R&D.`,
-      );
-      return { ok: true };
-    }
     case "lawyer_up": {
       const max = Math.min(2, state.runner.tags);
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
@@ -80,47 +61,6 @@ export function applySpinTcPrimitive(
         state,
         `Leverage — Runner prevents all damage until next turn begins.`,
       );
-      return { ok: true };
-    }
-    case "trash_grip_draw_for_installed_dupes": {
-      // "Trash any number of cards from your grip": the Runner chooses the
-      // set first, then those cards are trashed together (CR 9.12.2a).
-      return evalEffect(
-        ctx,
-        chooseCards({
-          chooser: "runner",
-          candidates: [...state.runner.hand],
-          count: state.runner.hand.length,
-          upTo: true,
-          purpose: "resume",
-          label: "trash",
-          resume: { kind: "trash_capstone_grip_card", cardIds: [] },
-        }),
-      );
-    }
-    case "trash_capstone_grip_card": {
-      const ids = action.cardIds.filter((id) => state.runner.hand.includes(id));
-      // A copy installed when the cards are trashed counts; the trashed
-      // cards were in the grip, so they are never that copy.
-      const withInstalledCopy = ids.filter((id) => {
-        const title = state.cards[id]?.title;
-        return state.runner.installed.some(
-          (rid) => state.cards[rid]?.title === title,
-        );
-      }).length;
-      for (const id of ids) {
-        trashCard(state, id, { by: "runner" });
-      }
-      log(
-        state,
-        `Capstone — trash ${ids.length} card(s) from the grip; draw ${withInstalledCopy}.`,
-      );
-      if (withInstalledCopy > 0) {
-        return evalEffect(
-          ctx,
-          fx.do({ kind: "draw", side: "runner", amount: withInstalledCopy }),
-        );
-      }
       return { ok: true };
     }
     case "turn_begin": {

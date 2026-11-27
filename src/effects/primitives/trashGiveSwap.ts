@@ -4,10 +4,8 @@ import { startTrace } from "../../state/turnAndActions/trace.js";
 import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import { applySpinTcPrimitive } from "./breachTrashTurn.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
@@ -19,35 +17,6 @@ export function applySpinFalDtPrimitive(
 ): PrimResult | null {
   const { state, sourceId } = ctx;
   switch (action.kind) {
-    case "corp_trash_from_hq": {
-      // "The Corp trashes 1 card from HQ" — the Corp chooses which card.
-      if (state.corp.hand.length === 0) {
-        log(state, `Hemorrhage — Corp HQ empty.`);
-        return { ok: true };
-      }
-      // The text names the Corp, so the Corp trashes the card although the
-      // ability is the Runner's (CR 1.14.5a).
-      if (state.corp.hand.length === 1) {
-        return evalEffect(
-          ctx,
-          fx.do({
-            kind: "trash_hq_card",
-            cardId: state.corp.hand[0]!,
-            by: "corp",
-          }),
-        );
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: state.corp.hand.map((id) => ({
-          id: `hemorrhage:${id}`,
-          label: `Trash ${state.cards[id]!.title} from HQ`,
-          effect: fx.do({ kind: "trash_hq_card", cardId: id, by: "corp" }),
-        })),
-      });
-      return { ok: true };
-    }
     case "tallie_perrault_on_ops_trashed": {
       // Printed text is a "may": the Runner chooses.
       openPendingChoose(state, {
@@ -75,60 +44,6 @@ export function applySpinFalDtPrimitive(
         state,
         `Tallie Perrault — Corp takes 1 bad publicity; Runner takes 1 tag.`,
       );
-      return { ok: true };
-    }
-    case "trash_exec_sysop_clone_remove_bp": {
-      const subtypes = new Set(["sysop", "executive", "clone"]);
-      const cands: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of [...server.root, ...server.ice]) {
-          const c = state.cards[id]!;
-          if ((c.subtypes ?? []).some((s) => subtypes.has(s))) cands.push(id);
-        }
-      }
-      if (cands.length === 0) {
-        log(state, `Restoring Face — no sysop/executive/clone to trash.`);
-        return { ok: true };
-      }
-      if (cands.length === 1) {
-        const id = cands[0]!;
-        // "Reveal and trash": revealed, so faceup (CR 1.21.6, 4.4.6b).
-        trashCard(state, id, { by: "corp", faceup: true });
-        log(state, `Restoring Face — trash ${state.cards[id]!.title}.`);
-        return applySpinTcPrimitive(ctx, {
-          kind: "remove_bad_publicity_up_to",
-          max: 2,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: cands.map((id) => ({
-          id: `restoring-face:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.seq(
-            fx.do({
-              kind: "trash_installed_corp_card",
-              cardId: id,
-              revealed: true,
-            }),
-            fx.do({ kind: "remove_bad_publicity_up_to", max: 2 }),
-          ),
-        })),
-        logLine: `Restoring Face — choose sysop/executive/clone to trash.`,
-      });
-      return { ok: true };
-    }
-    case "trash_installed_corp_card": {
-      const id = action.cardId;
-      const card = state.cards[id];
-      if (!card || card.side !== "corp") return { ok: true };
-      // A card the ability revealed goes to Archives faceup (CR 1.21.6, 4.4.6b).
-      trashCard(state, id, {
-        by: controllerOf(state, sourceId),
-        faceup: action.revealed ? true : undefined,
-      });
-      log(state, `Trash installed ${card.title}.`);
       return { ok: true };
     }
     case "prevent_trash_resource": {

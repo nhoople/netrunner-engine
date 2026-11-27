@@ -10,15 +10,11 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import { random } from "../../state/rng.js";
 import {
-  controllerOf,
-  discardCard,
-  trashCard,
-} from "../../state/hostingAndTrash/trash.js";
-import {
   programUseRecurringCreditsAvailable,
   spendProgramUseRecurringCredits,
   subtractRunnerCreditPool,
 } from "../../state/keywordsAndCredits/costs.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -79,41 +75,6 @@ export function applyRedsandTdPrimitive(
         chooser: "corp",
         options,
         logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
-      });
-      return { ok: true };
-    }
-
-    case "choose_syn_attack_discard": {
-      // Printed: "The Corp must either discard 2 cards or draw 4 cards."
-      // Discarding from their own HQ is the Corp's choice of cards — not
-      // random (that is Utopia Shard / Officer Frank, a different text).
-      const picked = action.cardId;
-      if (picked) {
-        if (!state.corp.hand.includes(picked)) return { ok: true };
-        // A discard, not a trash (CR 1.19.3); facedown from HQ (CR 4.4.6b).
-        discardCard(state, picked);
-        log(state, `SYN Attack — Corp discards ${state.cards[picked]!.title}.`);
-        const left = (action.remaining ?? 1) - 1;
-        if (left <= 0 || state.corp.hand.length === 0) return { ok: true };
-        return applyRedsandTdPrimitive(ctx, {
-          kind: "choose_syn_attack_discard",
-          remaining: left,
-        });
-      }
-      const remaining = action.remaining ?? 2;
-      if (remaining <= 0 || state.corp.hand.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: state.corp.hand.map((id) => ({
-          id: `syn-discard:${id}`,
-          label: `Discard ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "choose_syn_attack_discard",
-            remaining,
-            cardId: id,
-          }),
-        })),
       });
       return { ok: true };
     }
@@ -345,38 +306,6 @@ export function applyRedsandTdPrimitive(
       return evalEffect(ctx, fx.draw("runner", 1));
     }
 
-    case "trash_per_power": {
-      const n = source?.powerCounters ?? 0;
-      if (n <= 0) {
-        log(state, `Estelle Moon — no power counters.`);
-        return { ok: true };
-      }
-      state.corp.credits += 2 * n;
-      log(state, `Estelle Moon — gain ${2 * n}¢ and draw ${n}.`);
-      return evalEffect(ctx, fx.draw("corp", n));
-    }
-
-    case "trash_installed_icebreaker": {
-      const breakers = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c && (c.subtypes ?? []).some((s) => s === "icebreaker");
-      });
-      if (breakers.length === 0) {
-        log(state, `Holmegaard — no installed icebreakers.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: breakers.map((id) => ({
-          id: `trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "core_or_jack_out": {
       openPendingChoose(state, {
         sourceId,
@@ -420,65 +349,6 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "trash_program_or_top_2_stack": {
-      const programs = state.runner.installed.filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (const id of programs) {
-        options.push({
-          id: `prog:${id}`,
-          label: `Trash program ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
-        });
-      }
-      options.push({
-        id: "mill2",
-        label: "Trash the top 2 cards of the stack",
-        effect: {
-          op: "seq",
-          effects: [
-            fx.do({ kind: "trash_top_of_stack" }),
-            fx.do({ kind: "trash_top_of_stack" }),
-          ],
-        },
-      });
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "trash_hunter_seeker_installed": {
-      const candidates: string[] = [];
-      for (const id of state.runner.installed) {
-        if (state.cards[id]) candidates.push(id);
-      }
-      for (const server of Object.values(state.servers)) {
-        for (const id of [...server.root, ...server.ice]) {
-          if (state.cards[id]) candidates.push(id);
-        }
-      }
-      if (candidates.length === 0) {
-        log(state, `Hunter Seeker — no installed cards.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: candidates.map((id) => ({
-          id: `trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind:
-              state.cards[id]!.side === "runner"
-                ? "trash_installed_runner_card"
-                : "trash_installed_corp_card",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "tag_or_end_the_run": {
       openPendingChoose(state, {
         sourceId,
@@ -514,24 +384,6 @@ export function applyRedsandTdPrimitive(
         });
       }
       openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "trash_one_from_grip": {
-      const grip = [...state.runner.hand];
-      if (grip.length === 0) {
-        log(state, `Weir — grip empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: grip.map((id) => ({
-          id: `trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_from_grip", cardId: id }),
-        })),
-      });
       return { ok: true };
     }
 

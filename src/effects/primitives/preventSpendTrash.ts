@@ -71,29 +71,6 @@ export function applyLunarUaoPrimitive(
       );
       return { ok: true };
     }
-    case "trash_hq_tick": {
-      state.turn.reuseTrashedFromHq = (state.turn.reuseTrashedFromHq ?? 0) + 1;
-      return { ok: true };
-    }
-    case "trash_hq_gain_credits": {
-      // Printed: trash any number, then gain 2¢ each. Only seed the counter
-      // on first entry — re-entry after trash_hq_tick must keep the tally (CR 1.2.1).
-      if (state.turn.reuseTrashedFromHq === undefined) {
-        state.turn.reuseTrashedFromHq = 0;
-      }
-      return applyTrashAnyHqThenGainPerCard(
-        ctx,
-        2,
-        "trash_hq_gain_credits_finalize",
-      );
-    }
-    case "trash_hq_gain_credits_finalize": {
-      const n = state.turn.reuseTrashedFromHq ?? 0;
-      state.corp.credits += n * 2;
-      log(state, `Reuse — gain ${n * 2}¢ for ${n} trashed HQ card(s).`);
-      state.turn.reuseTrashedFromHq = undefined;
-      return { ok: true };
-    }
     case "may_add_archives_card_to_rd_bottom_only": {
       const archives = [...state.corp.discardPile];
       if (archives.length === 0) {
@@ -127,28 +104,6 @@ export function applyLunarUaoPrimitive(
         state.corp.credits -= 2;
         log(state, `Fester — Corp loses 2¢.`);
       }
-      return { ok: true };
-    }
-    case "trash_hardware_additional_cost": {
-      const hw = state.runner.installed.filter(
-        (id) => state.cards[id]?.type === "hardware",
-      );
-      if (hw.length === 0) {
-        return {
-          ok: false,
-          error: "No hardware to trash for Trade-In.",
-          cites: [],
-        };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: hw.map((id) => ({
-          id: `trade-in-hw:${id}`,
-          label: `Trash ${state.cards[id]!.title} (additional cost)`,
-          effect: fx.do({ kind: "trade_in_record_hw", cardId: id }),
-        })),
-      });
       return { ok: true };
     }
     case "trade_in_record_hw": {
@@ -239,46 +194,4 @@ export function applyLunarUaoPrimitive(
     default:
       return null;
   }
-}
-
-function applyTrashAnyHqThenGainPerCard(
-  ctx: EffectCtx,
-  _per: number,
-  finalizeKind: string,
-): PrimResult {
-  const { state, sourceId } = ctx;
-  const hq = [...state.corp.hand];
-  if (hq.length === 0) {
-    const fin = applyLunarUaoPrimitive(ctx, {
-      kind: finalizeKind,
-    } as Primitive);
-    return fin ?? { ok: true };
-  }
-  openPendingChoose(state, {
-    sourceId,
-    chooser: "corp",
-    options: [
-      ...hq.map((id) => ({
-        id: `reuse-trash:${id}`,
-        label: `Trash ${state.cards[id]!.title}`,
-        effect: {
-          op: "seq" as const,
-          effects: [
-            fx.do({ kind: "trash_hq_card", cardId: id }),
-            fx.do({ kind: "trash_hq_tick" }),
-            fx.do({ kind: "trash_hq_gain_credits" }),
-          ],
-        },
-      })),
-      {
-        id: "reuse-done",
-        label: "Done trashing",
-        effect: {
-          op: "do",
-          action: { kind: finalizeKind as "trash_hq_gain_credits_finalize" },
-        },
-      },
-    ],
-  });
-  return { ok: true };
 }

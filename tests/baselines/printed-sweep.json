@@ -2691,7 +2691,7 @@
       "abilities": [
         "Whenever you trash a Corp card, you may place 1 virus counter on Consume."
       ],
-      "note": "fireCotcOnCorpCardTrashed (src/state/hostingAndTrash/trashHooks.ts), called for every Corp card trash (src/effects/corpTrash.ts), does not check who trashed it, so the Corp trashing its own cards counts (1.14.5a), and it places the counter with no choice (9.6.9). The click ability matches.",
+      "note": "fireCotcOnCorpCardTrashed (src/state/hostingAndTrash/trashHooks.ts), called for every Corp card trash (src/effects/hostingAndTrash/corpTrash.ts), does not check who trashed it, so the Corp trashing its own cards counts (1.14.5a), and it places the counter with no choice (9.6.9). The click ability matches.",
       "cr": [
         "1.14.5a",
         "9.6.9"

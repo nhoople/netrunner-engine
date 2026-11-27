@@ -1,14 +1,12 @@
 /** 23 Seconds (23s) Flashpoint pack primitives — v1.122.0. */
 import { CR } from "../../timing/labels.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { addIceStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { startTrace } from "../../state/turnAndActions/trace.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect, grantAbilityCredits } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
@@ -22,65 +20,6 @@ export function applyFlashpoint23sPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "trash_null_grip_lower_encountered_ice_strength": {
-      const amount = action.amount ?? 2;
-      const grip = [...state.runner.hand];
-      if (grip.length === 0) {
-        log(state, `Null — no cards in grip to trash.`);
-        return { ok: true };
-      }
-      const apply = (cardId: string): PrimResult => {
-        trashCard(state, cardId);
-        const iceId = state.run?.encounter?.iceId;
-        if (iceId && state.run) {
-          addIceStrengthBoostThisRun(state, {
-            createdBy: sourceId,
-            iceId,
-            amount: -amount,
-          });
-          log(
-            state,
-            `Null — trash ${state.cards[cardId]?.title}; ice gets −${amount} strength this run.`,
-          );
-        } else {
-          log(state, `Null — trash ${state.cards[cardId]?.title}.`);
-        }
-        return { ok: true };
-      };
-      if (grip.length === 1) return apply(grip[0]!);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: grip.map((id) => ({
-          id: `null-trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_null_grip_card_resolve",
-            cardId: id,
-            amount,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_null_grip_card_resolve": {
-      const cardId = action.cardId;
-      const amount = action.amount ?? 2;
-      if (!state.runner.hand.includes(cardId)) return { ok: true };
-      trashCard(state, cardId);
-      const iceId = state.run?.encounter?.iceId;
-      if (iceId && state.run) {
-        addIceStrengthBoostThisRun(state, {
-          createdBy: sourceId,
-          iceId,
-          amount: -amount,
-        });
-      }
-      log(state, `Null — trash ${state.cards[cardId]?.title}.`);
-      return { ok: true };
-    }
-
     case "force_trace_then_gain_credits": {
       startTrace(
         state,

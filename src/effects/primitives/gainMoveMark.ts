@@ -1,5 +1,4 @@
 import { effectiveCorpMaxHandSize } from "../../state/continuous/handSize.js";
-import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import {
   emptyRunnerCreditPool,
   noteCorpSpentAgendaCounters,
@@ -17,7 +16,6 @@ import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { moveIce } from "../../state/uninstallAndPosition/rearrange.js";
 
@@ -82,82 +80,6 @@ export function applyOacPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "glenn_host_from_hq": {
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) {
-        log(state, `Glenn Station — HQ empty.`);
-        return { ok: true };
-      }
-      const hosted = Object.values(state.cards).filter(
-        (c) => c.hostId === sourceId,
-      );
-      if (hosted.length >= (source?.maxHostedCards ?? 1)) {
-        log(state, `Glenn Station — already hosting a card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: hq.map((id) => ({
-          id: `glenn-host:${id}`,
-          label: `Host ${state.cards[id]!.title} facedown`,
-          effect: fx.do({ kind: "glenn_host_card", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "glenn_host_card": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.corp.hand.includes(cardId)) {
-        return { ok: false, error: "Glenn host target not in HQ.", cites: [] };
-      }
-      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-      card.zone = `hosted:${sourceId}`;
-      hostCard(state, card.id, sourceId, { installed: true });
-      card.rezzed = false;
-      log(state, `Glenn Station — host ${card.title} facedown.`);
-      return { ok: true };
-    }
-
-    case "glenn_retrieve_to_hq": {
-      const hosted = Object.values(state.cards).filter(
-        (c) => c.hostId === sourceId,
-      );
-      if (hosted.length === 0) {
-        log(state, `Glenn Station — no hosted card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: hosted.map((c) => ({
-          id: `glenn-ret:${c.id}`,
-          label: `Add ${c.title} to HQ`,
-          effect: fx.do({ kind: "glenn_retrieve_card", cardId: c.id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "glenn_retrieve_card": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      if (!card || card.hostId !== sourceId) {
-        return {
-          ok: false,
-          error: "Glenn retrieve target not hosted.",
-          cites: [],
-        };
-      }
-      unhostCard(state, card.id);
-      card.zone = "corp:hq";
-      state.corp.hand.push(cardId);
-      log(state, `Glenn Station — add ${card.title} to HQ.`);
       return { ok: true };
     }
 
@@ -358,37 +280,6 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "trash_twins_hq_copy_reencounter": {
-      const atPosition = iceAtRunnerPosition(state);
-      const iceId = state.run?.encounter?.iceId ?? atPosition;
-      if (!iceId) {
-        log(state, `The Twins — no passed ice.`);
-        return { ok: true };
-      }
-      const title = state.cards[iceId]?.title;
-      const copies = state.corp.hand.filter(
-        (id) => state.cards[id]?.title === title,
-      );
-      if (copies.length === 0) {
-        log(state, `The Twins — no HQ copy of ${title}.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: copies.map((id) => ({
-          id: `twins:${id}`,
-          label: `Trash ${state.cards[id]!.title} from HQ; re-encounter`,
-          effect: fx.do({
-            kind: "twins_apply_reencounter",
-            trashId: id,
-            iceId,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "twins_apply_reencounter": {
       const trashId = (action as { trashId: string }).trashId;
       const iceId = (action as { iceId: string }).iceId;
@@ -442,46 +333,6 @@ export function applyOacPrimitive(
       }
       uninstallCard(state, cardId, "hand", {
         logLine: `Uninstall — ${card.title} to grip.`,
-      });
-      return { ok: true };
-    }
-
-    case "trash_chop_bot_installed_then_draw_or_remove_tag": {
-      const cands = state.runner.installed.filter((id) => id !== sourceId);
-      if (cands.length === 0) {
-        log(state, `Chop Bot 3000 — no other installed card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: cands.map((id) => ({
-          id: `chop:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_chop_bot_then_choose", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_chop_bot_then_choose": {
-      const cardId = (action as { cardId: string }).cardId;
-      trashCard(state, cardId);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "chop-draw",
-            label: "Draw 1 card",
-            effect: fx.draw("runner", 1),
-          },
-          {
-            id: "chop-tag",
-            label: "Remove 1 tag",
-            effect: fx.do({ kind: "remove_tags", amount: 1 }),
-          },
-        ],
       });
       return { ok: true };
     }
