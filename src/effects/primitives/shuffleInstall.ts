@@ -2,7 +2,7 @@ import { revealCards } from "../../state/visibility/reveal.js";
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** Magnum Opus (mo) primitives — v1.142.0. */
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";

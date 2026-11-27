@@ -3,7 +3,7 @@ import { openPendingChoose } from "../state/triggers/pendingChoice.js";
  * Runner install from grip, heap, stack, and set-aside.
  * Helpers moved out of eval.ts; the switch still calls them.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import {

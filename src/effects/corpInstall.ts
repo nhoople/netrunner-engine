@@ -3,7 +3,7 @@ import { openPendingChoose } from "../state/triggers/pendingChoice.js";
  * Corp basic install from HQ or Archives, paying costs or ignoring them.
  * Card sequences that install and then advance, rez, or lock stay in eval.ts.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import {
   corpInstallCost,

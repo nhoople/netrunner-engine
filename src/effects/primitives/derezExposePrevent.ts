@@ -1,7 +1,7 @@
 /** Daedalus Complex (dc) Red Sand pack primitives — v1.128.0. */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";

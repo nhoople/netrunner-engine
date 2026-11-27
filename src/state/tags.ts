@@ -1,6 +1,6 @@
 /** Tag interrupt window helpers (CR 9.9.5 / 9.1.2a chain reactions). */
 
-import { log } from "./createGame.js";
+import { log } from "./setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { noteFirstTagThisTurn } from "./triggers/miscConditionalHooks.js";
 import type { GameState } from "./types.js";

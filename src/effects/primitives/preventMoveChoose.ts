@@ -1,7 +1,7 @@
 /** Kala Ghoda (kg) Mumbad pack primitives — v1.116.0. */
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";

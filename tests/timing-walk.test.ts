@@ -21,7 +21,7 @@ import {
   crDataPresent,
   queryLegality,
 } from "../src/index.js";
-import { createInitialState } from "../src/state/createGame.js";
+import { createInitialState } from "../src/state/setupAndEnd/createGame.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { enterStep } from "../src/timing/machine.js";
 import type { StepRecord } from "../src/debug/stepHook.js";

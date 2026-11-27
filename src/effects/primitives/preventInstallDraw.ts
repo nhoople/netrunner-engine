@@ -1,7 +1,7 @@
 /** Breaker Bay (bb) SanSan pack primitives. */
 import { revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";

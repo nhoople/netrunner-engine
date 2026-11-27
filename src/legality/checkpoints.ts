@@ -146,7 +146,7 @@ import type { PendingAbilityPayload } from "../state/types.js";
 import {
   returnHostedIdentityToOutsideGame,
   runnerAbilityCarrierIds,
-} from "../state/fenris.js";
+} from "../state/setupAndEnd/additionalIdentities.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { markStaticHostTrashConditions } from "../effects/corpTrash.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";

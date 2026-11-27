@@ -1,7 +1,7 @@
 import { openPendingChoose } from "../triggers/pendingChoice.js";
 /** Expose interrupt helpers (CR 1.21.4). */
 
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import type { GameState } from "../types.js";
 import { CR } from "../../timing/labels.js";

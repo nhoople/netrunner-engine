@@ -3,7 +3,7 @@
  * the moment that declaration names.
  */
 import { trashCard } from "../hostingAndTrash/trash.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { agendaPointsFor } from "../scoring.js";
 import type { CardInstance, GameState, ServerId } from "../types.js";

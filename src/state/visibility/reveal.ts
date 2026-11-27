@@ -8,7 +8,7 @@
  * followed there.
  */
 import { CR } from "../../timing/labels.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { noteFirstRevealThisTurn } from "../triggers/miscConditionalHooks.js";
 import type {
   GameState,

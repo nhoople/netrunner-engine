@@ -1,8 +1,8 @@
 /** Dual-sided Corp identity hooks (Nebula Talent Management). */
 
-import type { GameState, ServerId } from "./types.js";
-import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import type { GameState, ServerId } from "../types.js";
+import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 
 /**
  * Nebula-class: first operation play while flipped this turn. Records the

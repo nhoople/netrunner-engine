@@ -4,9 +4,9 @@
  * The basic action installs from HQ. An ability may install from HQ or
  * Archives and may ignore the install cost.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
+import { runnerWinsOnEmptyRnd } from "../state/setupAndEnd/emptyRnd.js";
 import { evalEffect } from "../effects/eval.js";
 import {
   corpInstallCost,

@@ -9,7 +9,7 @@ import {
   hostedCreditsSpendableDuringRuns,
   spendHostedCreditsDuringRuns,
 } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../../state/gamenet.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";

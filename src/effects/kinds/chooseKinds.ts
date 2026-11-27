@@ -9,7 +9,7 @@ import {
   corpInstallCost,
   creditsAvailableForInstall,
 } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";

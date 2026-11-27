@@ -2,7 +2,7 @@
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { addIceStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { autoResolveTrace } from "../../state/trace.js";

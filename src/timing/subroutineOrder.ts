@@ -3,7 +3,7 @@
  * resolves (CR 9.8.7d).
  */
 
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "./labels.js";

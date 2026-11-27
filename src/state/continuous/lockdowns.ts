@@ -3,7 +3,7 @@
  * Corp-turn-begin trash, and helpers for continuous/hook iteration.
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import type { CardInstance, GameState } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import { leaveLingeringPlayAreaBag, lingeringPlayAreaIds } from "../zones.js";

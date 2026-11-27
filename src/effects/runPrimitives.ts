@@ -4,7 +4,7 @@
  */
 import { revealCards } from "../state/visibility/reveal.js";
 import { pickRandomSubset } from "../state/rng.js";
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import {
   hasPayableEndTheRunInterrupt,
   openPendingEndTheRun,

@@ -1,5 +1,5 @@
 /** Crimson Dust (cd) Red Sand pack primitives — v1.134.0. */
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { corpInstallCost } from "../../state/costs.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

@@ -8,7 +8,7 @@ import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { GameState } from "../../state/types.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { noteInlineConditional } from "../../state/triggers/inlineConditionalHooks.js";
 import { noteStoredConditional } from "../../state/triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";

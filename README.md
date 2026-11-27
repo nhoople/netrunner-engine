@@ -172,6 +172,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
     rez/             # rezzing and derezzing (CR 8.1): rez-triggered abilities
     run/             # run flow (CR ch. 6): starting a run and its legality and taxes, the hooks each run step fires (run begin, approach, encounter, pass, bypass, success, end), end the run
     searchAndDeck/   # searching and deck order (CR 8.7): when a seat may look at a hidden zone during a search
+    setupAndEnd/     # game setup and end (CR 1.4–1.7): createGame, starting hands, identity faces and additional identities (CR 1.5.4), before-first-turn hooks, the empty R&D loss
     triggers/        # conditional abilities and their machinery (CR 9.6): pending abilities, stored triggers, trigger predicates over checkpoint facts, the conditional collectors that span several areas; interrupts and replacements (9.9); pending choices
     types/           # the game state types, one file per thing they describe: shared words, card (with its hooks and costs), abilities, servers, players, turn, run, restrictions, checkpoints, pending abilities, windows, lingering effects, pending choices, game, actions, public view
     uninstallAndPosition/# uninstalling, rearranging ice, and the Runner's position in a run (CR 8.5.10, 8.3, 6.2)

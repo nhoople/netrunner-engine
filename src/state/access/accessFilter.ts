@@ -2,7 +2,7 @@
 
 import type { GameState } from "../types.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 
 export function applyRunAccessRestrictions(state: GameState): void {

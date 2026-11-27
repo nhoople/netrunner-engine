@@ -1,11 +1,11 @@
 /** The Valley (val) SanSan pack primitives. */
 import { revealCards } from "../../state/visibility/reveal.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
-import { applyIdentityFace } from "../../state/identityFace.js";
+import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
 import { memoryLimit, usedMemory } from "../../state/turn.js";
 import type { RuleCite } from "../../state/types.js";
 import { chooseCards } from "../chooseCards.js";

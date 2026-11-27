@@ -5,7 +5,7 @@
 
 import { evalEffect } from "../../effects/eval.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "../triggers/companionHooks.js";
 import { noteJobConnectionOrHardwareInstalled } from "./firstInstallDiscount.js";
 import type { GameState } from "../types.js";

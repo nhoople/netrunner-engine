@@ -37,7 +37,7 @@ import {
   wasAbilityUsed,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { runnerAbilityCarrierIds } from "../state/fenris.js";
+import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { hasActiveLockdown } from "../state/continuous/lockdowns.js";
 import { corpMayScore } from "../cards/stubs.js";

@@ -5,7 +5,7 @@
 import { effectiveMaxHandSize } from "../state/continuous/handSize.js";
 import { applyAction } from "../actions/apply.js";
 import { queryLegality } from "../legality/query.js";
-import { createInitialState } from "../state/createGame.js";
+import { createInitialState } from "../state/setupAndEnd/createGame.js";
 import { seedRng } from "../state/rng.js";
 import { gripRevealed } from "../state/cardFlags/cardDeclarations.js";
 import { agendaPointsFor } from "../state/scoring.js";

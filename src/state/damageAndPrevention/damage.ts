@@ -2,7 +2,7 @@ import { openPendingChoose } from "../triggers/pendingChoice.js";
 /** Damage types + prevention hooks (CR 10.4). */
 
 import type { Effect } from "../../effects/ir.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import {
   beginGripOrStackTrashBatch,
   endGripOrStackTrashBatch,

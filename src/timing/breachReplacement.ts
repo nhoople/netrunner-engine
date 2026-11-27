@@ -3,7 +3,7 @@
  * which applies first. A later replacement applies only if a breach is still
  * expected (CR 9.9.11a).
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import type { Effect } from "../effects/ir.js";
 import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";

@@ -5,7 +5,7 @@ import {
   resolveRibsPick,
 } from "../../state/damageAndPrevention/damage.js";
 import { setRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir.js";

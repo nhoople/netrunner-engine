@@ -1409,7 +1409,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks before-first-turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnBeforeFirstTurn } =
-      await import("../src/state/beforeFirstTurnHooks.js");
+      await import("../src/state/setupAndEnd/beforeFirstTurnHooks.js");
     const s = createInitialState();
     const seidr = instantiateCard(
       "seidr-laboratories-destiny-defined",
@@ -2321,7 +2321,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Corp flipped first operation play at 10.3.1a (phase 3 scanner)", async () => {
     const { fireCorpIdentityFlippedFirstOperationPlay } =
-      await import("../src/state/identityFlipHooks.js");
+      await import("../src/state/setupAndEnd/identityFlipHooks.js");
     const s = createInitialState();
     const id = s.cards[s.corp.identityId];
     id.identityFlipped = true;
@@ -4694,7 +4694,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
       fireOnFirstHardwareUseDuringRunEachTurn,
     } = await import("../src/state/triggers/miscConditionalHooks.js");
     const { noteOnBeforeFirstTurn } =
-      await import("../src/state/beforeFirstTurnHooks.js");
+      await import("../src/state/setupAndEnd/beforeFirstTurnHooks.js");
     const { maybeFireSeidrOnClickSpendOrLose } =
       await import("../src/state/clickHooks.js");
 

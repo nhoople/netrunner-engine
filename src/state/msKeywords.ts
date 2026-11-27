@@ -3,7 +3,7 @@
  * Sabotage, mark, and charge — used by Effect IR eval / host intents.
  */
 
-import { log } from "./createGame.js";
+import { log } from "./setupAndEnd/createGame.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_MARK,

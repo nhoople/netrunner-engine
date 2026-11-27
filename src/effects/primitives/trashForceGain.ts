@@ -1,6 +1,6 @@
 /** 23 Seconds (23s) Flashpoint pack primitives — v1.122.0. */
 import { CR } from "../../timing/labels.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { addIceStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { startTrace } from "../../state/trace.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

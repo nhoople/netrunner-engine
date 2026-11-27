@@ -3,7 +3,7 @@ import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";

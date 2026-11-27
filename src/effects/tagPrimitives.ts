@@ -3,7 +3,7 @@
  * abilities stay in eval.ts.
  */
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { onTagsRemoved } from "../state/cardFlags/cardDeclarations.js";
 import {
   hasPayableTagInterrupt,

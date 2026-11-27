@@ -3,7 +3,7 @@ import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";

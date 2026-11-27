@@ -2,7 +2,7 @@
  * Damage primitives. Deal, prevent, and pay-for-damage cases extracted from
  * eval.ts. Run-unless-damage and card-specific loops stay in the switch.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import {
   dealDamage,
   preventPendingDamage,

@@ -2,7 +2,7 @@
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { revealCards } from "../../state/visibility/reveal.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";

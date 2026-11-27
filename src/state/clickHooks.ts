@@ -3,7 +3,7 @@
  * (Sundew spend credits; Seidr first click during run).
  */
 import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./createGame.js";
+import { log } from "./setupAndEnd/createGame.js";
 import { emptyRunnerCreditPool } from "./costs.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";

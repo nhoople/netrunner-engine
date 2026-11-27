@@ -22,7 +22,7 @@ import {
   payInstallCost,
   subtractRunnerCreditPool,
 } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   fireOnFirstIceRezEachTurn,
   fireOnInstallProgramFromHeap,

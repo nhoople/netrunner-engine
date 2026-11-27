@@ -4167,15 +4167,15 @@
           ]
         },
         {
-          "site": "src/state/fenris.ts#legalFenrisHostIds",
-          "kinds": []
-        },
-        {
-          "site": "src/state/fenris.ts#legalRebirthIdentityIds",
-          "kinds": []
-        },
-        {
           "site": "src/state/hostingAndTrash/trashHooks.ts#noteTrashMatchingRunnerIdentityFaction",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#legalFenrisHostIds",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#legalRebirthIdentityIds",
           "kinds": []
         }
       ],
@@ -5206,15 +5206,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/fenris.ts#hostFenrisIdentity",
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#hostFenrisIdentity",
           "kinds": []
         },
         {
-          "site": "src/state/fenris.ts#returnHostedIdentityToOutsideGame",
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#returnHostedIdentityToOutsideGame",
           "kinds": []
         },
         {
-          "site": "src/state/fenris.ts#runnerAbilityCarrierIds",
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#runnerAbilityCarrierIds",
           "kinds": []
         }
       ],
@@ -6835,7 +6835,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/identityFace.ts#activeIdentityFaceIndex",
+          "site": "src/state/setupAndEnd/identityFace.ts#activeIdentityFaceIndex",
           "kinds": []
         },
         {
@@ -6864,11 +6864,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/identityFace.ts#activeIdentityFace",
+          "site": "src/state/setupAndEnd/identityFace.ts#activeIdentityFace",
           "kinds": []
         },
         {
-          "site": "src/state/identityFace.ts#activeIdentityFaceIndex",
+          "site": "src/state/setupAndEnd/identityFace.ts#activeIdentityFaceIndex",
           "kinds": []
         }
       ],
@@ -6901,11 +6901,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/identityFlipHooks.ts#fireCorpIdentityFlippedFirstOperationPlay",
+          "site": "src/state/setupAndEnd/identityFlipHooks.ts#fireCorpIdentityFlippedFirstOperationPlay",
           "kinds": []
         },
         {
-          "site": "src/state/identityFlipHooks.ts#fireCorpIdentityFlippedSuccessfulHqOrRdRun",
+          "site": "src/state/setupAndEnd/identityFlipHooks.ts#fireCorpIdentityFlippedSuccessfulHqOrRdRun",
           "kinds": []
         },
         {
@@ -11814,7 +11814,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/createGame.ts#fireOnGameStartSetup",
+          "site": "src/state/setupAndEnd/createGame.ts#fireOnGameStartSetup",
           "kinds": []
         }
       ],
@@ -16732,7 +16732,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/fenris.ts#returnHostedIdentityToOutsideGame",
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#returnHostedIdentityToOutsideGame",
           "kinds": []
         }
       ],
@@ -18783,10 +18783,10 @@
       ],
       "readers": [
         {
-          "site": "src/state/startingHand.ts#startingHandSizeFor",
+          "site": "src/state/setupAndEnd/startingHand.ts#startingHandSizeFor",
           "kinds": [],
           "mirrors": [
-            "src/state/startingHand.ts#{identity}"
+            "src/state/setupAndEnd/startingHand.ts#{identity}"
           ]
         }
       ],
@@ -20490,10 +20490,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/fenris.ts#legalFenrisHostIds",
-          "kinds": []
-        },
-        {
           "site": "src/state/firstClickMust.ts#actionMeetsFirstClickMust",
           "kinds": []
         },
@@ -20535,6 +20531,10 @@
         },
         {
           "site": "src/state/scoring.ts#checkWinConditions",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#legalFenrisHostIds",
           "kinds": []
         },
         {
@@ -22037,10 +22037,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/beforeFirstTurnHooks.ts#noteOnBeforeFirstTurn",
-          "kinds": []
-        },
-        {
           "site": "src/state/cardFlags/cardDeclarations.ts#ensureConditionalSubroutine",
           "kinds": []
         },
@@ -22305,10 +22301,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/createGame.ts#fireOnGameStartSetup",
-          "kinds": []
-        },
-        {
           "site": "src/state/damageAndPrevention/damage.ts#dealDamage",
           "kinds": []
         },
@@ -22330,18 +22322,6 @@
         },
         {
           "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
-          "kinds": []
-        },
-        {
-          "site": "src/state/fenris.ts#hostFenrisIdentity",
-          "kinds": []
-        },
-        {
-          "site": "src/state/fenris.ts#returnHostedIdentityToOutsideGame",
-          "kinds": []
-        },
-        {
-          "site": "src/state/fenris.ts#switchRunnerIdentity",
           "kinds": []
         },
         {
@@ -22442,10 +22422,6 @@
         },
         {
           "site": "src/state/hostingAndTrash/trashPrevent.ts#triggerPendingTrashInterrupt",
-          "kinds": []
-        },
-        {
-          "site": "src/state/identityFlipHooks.ts#fireCorpIdentityFlippedSuccessfulHqOrRdRun",
           "kinds": []
         },
         {
@@ -22598,6 +22574,30 @@
         },
         {
           "site": "src/state/scoring.ts#stealAgenda",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#hostFenrisIdentity",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#returnHostedIdentityToOutsideGame",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#switchRunnerIdentity",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/beforeFirstTurnHooks.ts#noteOnBeforeFirstTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/createGame.ts#fireOnGameStartSetup",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/identityFlipHooks.ts#fireCorpIdentityFlippedSuccessfulHqOrRdRun",
           "kinds": []
         },
         {
@@ -24367,18 +24367,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/fenris.ts#legalFenrisHostIds",
-          "kinds": []
-        },
-        {
-          "site": "src/state/fenris.ts#legalRebirthIdentityIds",
-          "kinds": []
-        },
-        {
-          "site": "src/state/fenris.ts#switchRunnerIdentity",
-          "kinds": []
-        },
-        {
           "site": "src/state/hostingAndTrash/trash.ts#trashByCheckpoint",
           "kinds": []
         },
@@ -24440,6 +24428,18 @@
         },
         {
           "site": "src/state/scoring.ts#canScoreAgenda",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#legalFenrisHostIds",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#legalRebirthIdentityIds",
+          "kinds": []
+        },
+        {
+          "site": "src/state/setupAndEnd/additionalIdentities.ts#switchRunnerIdentity",
           "kinds": []
         },
         {

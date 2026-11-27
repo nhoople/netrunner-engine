@@ -2,7 +2,7 @@
  * Short-game setup from card data for integration tests / library hosts.
  */
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
-import { DEFAULT_CONFIG } from "../state/createGame.js";
+import { DEFAULT_CONFIG } from "../state/setupAndEnd/createGame.js";
 import { recomputeRunnerLink } from "../state/hostingAndTrash/trashHooks.js";
 import { emptyTurnBookkeeping } from "../state/turn.js";
 import type {

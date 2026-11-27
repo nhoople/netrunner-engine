@@ -4,7 +4,7 @@ import {
   markSubroutineBroken,
   subroutineBreakBlock,
 } from "../../state/procedures/break.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { startTrace } from "../../state/trace.js";
 import { applyEncounterPrimitive } from "../encounterPrimitives.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";

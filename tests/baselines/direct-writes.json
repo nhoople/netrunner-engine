@@ -511,14 +511,14 @@
     "src/state/costs.ts": {
       "zone": 1
     },
-    "src/state/createGame.ts": {
+    "src/state/setupAndEnd/createGame.ts": {
       "deck": 2,
       "hand": 2
     },
     "src/state/damageAndPrevention/damage.ts": {
       "deck": 1
     },
-    "src/state/fenris.ts": {
+    "src/state/setupAndEnd/additionalIdentities.ts": {
       "discardPile": 1,
       "installed": 1,
       "removedFromGame": 1,

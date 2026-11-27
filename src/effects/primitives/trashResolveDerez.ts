@@ -5,7 +5,7 @@ import {
   moveRunnerToOutermost,
 } from "../../state/uninstallAndPosition/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";

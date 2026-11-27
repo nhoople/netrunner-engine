@@ -2,7 +2,7 @@ import { syncPaidAbilitiesFromRecords } from "../effects/abilityRecord.js";
 import { CR } from "../timing/labels.js";
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { costBeginsWithClick } from "./costs.js";
-import { log } from "./createGame.js";
+import { log } from "./setupAndEnd/createGame.js";
 import type { Action, GameState, PaidAbility, RuleCite } from "./types.js";
 
 /**

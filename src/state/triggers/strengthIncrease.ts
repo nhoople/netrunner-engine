@@ -6,7 +6,7 @@
  * icebreaker gains a duration rewrite (CR 9.9.5a / 9.9.9 / 1.2.1).
  */
 
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import {
   maybeGrantSystemSeizureRunDuration,
   noteHostDurationReplacement,

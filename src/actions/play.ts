@@ -1,7 +1,7 @@
 /**
  * Playing an operation or an event, including the Patchwork discount.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
@@ -15,7 +15,7 @@ import {
   noteCorpOperationPlayed,
 } from "../state/triggers/cardLifecycleHooks.js";
 import { resumePendingStoredConditionals } from "../state/triggers/storedTriggers.js";
-import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
+import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/setupAndEnd/identityFlipHooks.js";
 import { onRunnerEventPlayed } from "../state/cardFlags/cardDeclarations.js";
 import {
   fireSiAfterCorpRezOrPlay,

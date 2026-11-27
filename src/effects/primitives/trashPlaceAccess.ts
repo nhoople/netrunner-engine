@@ -1,11 +1,11 @@
 /** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { revealCards } from "../../state/visibility/reveal.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   legalRebirthIdentityIds,
   switchRunnerIdentity,
-} from "../../state/fenris.js";
+} from "../../state/setupAndEnd/additionalIdentities.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import {
   fireOnAgendaAddedToRunnerScore,

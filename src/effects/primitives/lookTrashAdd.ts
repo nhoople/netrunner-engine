@@ -1,7 +1,7 @@
 /** Salsette Island (si) Mumbad pack primitives — v1.119.0. */
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";

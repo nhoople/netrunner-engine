@@ -33,7 +33,10 @@ export type {
   TraceState,
   ZoneId,
 } from "./state/types.js";
-export { createInitialState, cloneState } from "./state/createGame.js";
+export {
+  createInitialState,
+  cloneState,
+} from "./state/setupAndEnd/createGame.js";
 export {
   handName,
   deckName,
@@ -382,7 +385,7 @@ export {
   returnHostedIdentityToOutsideGame,
   ensureAdditionalIdentities,
   RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE,
-} from "./state/fenris.js";
+} from "./state/setupAndEnd/additionalIdentities.js";
 export {
   activeLockdownIds,
   hasActiveLockdown,
@@ -437,7 +440,7 @@ export {
   hostedCreditsSpendableDuringRuns,
   hostedCreditsSpendableToUseProgramsDuringRuns,
 } from "./state/costs.js";
-export { startingHandSizeFor } from "./state/startingHand.js";
+export { startingHandSizeFor } from "./state/setupAndEnd/startingHand.js";
 export {
   agendaPointBand,
   deckbuildingReport,

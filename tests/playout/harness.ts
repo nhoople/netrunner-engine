@@ -39,7 +39,7 @@ import {
 } from "../../src/index.js";
 import { setApplyHook, type ApplyHook } from "../../src/debug/applyHook.js";
 import { passIdle } from "../../src/demo/passIdle.js";
-import { fireOnGameStartSetup } from "../../src/state/createGame.js";
+import { fireOnGameStartSetup } from "../../src/state/setupAndEnd/createGame.js";
 import type {
   CardDef,
   CardInstance,
