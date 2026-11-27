@@ -18,10 +18,10 @@ import { offerInstallRezSplit } from "./installChoices.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import {
   corpInstallCost,
-  creditsAvailableForInstall,
   installAndRezPaid,
   payInstallCost,
 } from "../../state/keywordsAndCredits/costs.js";
+import { creditsAvailableForInstall } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { noteInstalledThisTurn } from "../../state/install/programHardwareInstall.js";

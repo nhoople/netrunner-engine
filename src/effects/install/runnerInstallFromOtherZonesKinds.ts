@@ -13,8 +13,10 @@ import { finishMuseInstall } from "./installChoices.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import {
   creditsAvailableForInstall,
-  payInstallCost,
   subtractRunnerCreditPool,
+} from "../../state/keywordsAndCredits/runnerCredits.js";
+import {
+  payInstallCost,
   canPayCost,
   payCost,
 } from "../../state/keywordsAndCredits/costs.js";

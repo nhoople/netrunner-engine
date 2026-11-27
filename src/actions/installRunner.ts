@@ -6,10 +6,8 @@ import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
 import { addBreakerStrengthBoostThisTurn } from "../state/continuous/lingeringEffects.js";
-import {
-  creditsAvailableForInstall,
-  payInstallCost,
-} from "../state/keywordsAndCredits/costs.js";
+import { creditsAvailableForInstall } from "../state/keywordsAndCredits/runnerCredits.js";
+import { payInstallCost } from "../state/keywordsAndCredits/costs.js";
 import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
 import { installBlockReason } from "../state/cardFlags/staticFlags.js";

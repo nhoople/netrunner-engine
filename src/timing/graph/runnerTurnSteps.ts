@@ -7,7 +7,7 @@ import {
   noteOpenTurnBeginWaiting,
   sweepDerezAtAnyTurnEnd,
 } from "./stepHelpers.js";
-import { refillRecurringCredits } from "../../state/keywordsAndCredits/costs.js";
+import { refillRecurringCredits } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { onRunnerTurnBegan } from "../../state/cardFlags/cardDeclarations.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

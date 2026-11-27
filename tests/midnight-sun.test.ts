@@ -61,7 +61,7 @@ import {
 } from "../src/state/counters/powerCounters.js";
 import { purgeVirusCounters } from "../src/state/hostingAndTrash/trashHooks.js";
 import { beginCorpTurnFlags } from "../src/state/turnAndActions/turn.js";
-import { noteInstalledCardCreditSpend } from "../src/state/keywordsAndCredits/costs.js";
+import { noteInstalledCardCreditSpend } from "../src/state/keywordsAndCredits/runnerCredits.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
 import {
   currentMark,

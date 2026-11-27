@@ -3,7 +3,7 @@
  * at the moment that declaration describes.
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { subtractRunnerCreditPool } from "../keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../keywordsAndCredits/runnerCredits.js";
 import { noteTargetedMarketing } from "../continuous/currents.js";
 import { noteAzmariNamedTypeMatch } from "../install/programHardwareInstall.js";
 import { log } from "../setupAndEnd/createGame.js";

@@ -7,9 +7,9 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import {
   corpInstallCost,
-  creditsAvailableForInstall,
   payInstallCost,
 } from "../../state/keywordsAndCredits/costs.js";
+import { creditsAvailableForInstall } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { noteInstalledThisTurn } from "../../state/install/programHardwareInstall.js";
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { cardBecameNewObject } from "../../state/turnAndActions/turn.js";

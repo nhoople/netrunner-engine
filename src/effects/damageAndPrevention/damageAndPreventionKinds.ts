@@ -28,7 +28,7 @@ import { rezzedIceIds } from "../rez/rezKinds.js";
 import {
   emptyRunnerCreditPool,
   subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
+} from "../../state/keywordsAndCredits/runnerCredits.js";
 import type { ServerId } from "../../state/types.js";
 import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
 

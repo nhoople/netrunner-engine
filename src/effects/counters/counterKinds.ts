@@ -16,9 +16,8 @@ import {
   programUseRecurringCreditsAvailable,
   spendProgramUseRecurringCredits,
   subtractRunnerCreditPool,
-  canPayCost,
-  payCost,
-} from "../../state/keywordsAndCredits/costs.js";
+} from "../../state/keywordsAndCredits/runnerCredits.js";
+import { canPayCost, payCost } from "../../state/keywordsAndCredits/costs.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import type { EffectCtx, EvalResult } from "../eval.js";

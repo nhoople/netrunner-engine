@@ -7,9 +7,9 @@ import {
   stealthHostedCreditsAvailable,
   takeFromStealthHostedCredits,
   subtractRunnerCreditPool,
-  noteCorpSpentAgendaCounters,
   emptyRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
+} from "../../state/keywordsAndCredits/runnerCredits.js";
+import { noteCorpSpentAgendaCounters } from "../../state/keywordsAndCredits/costs.js";
 import { CR } from "../../timing/labels.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

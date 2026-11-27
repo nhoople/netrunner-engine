@@ -3063,7 +3063,7 @@
       "abilities": [
         "1[recurring-credit] Use this credit to pay for using icebreakers or for installing virus programs."
       ],
-      "note": "Area 15 (credit spending): recurringSpendFor use_program is read as any program (src/state/keywordsAndCredits/costs.ts, recurringCreditsForProgramOrHardware), so the credit pays non-icebreaker program abilities such as Djinn's search. No icebreaker spend purpose exists; The Toolbox, Spinal Modem and Cloak need it too. The install_virus purpose matches.",
+      "note": "Area 15 (credit spending): recurringSpendFor use_program is read as any program (src/state/keywordsAndCredits/runnerCredits.ts, recurringCreditsForProgramOrHardware), so the credit pays non-icebreaker program abilities such as Djinn's search. No icebreaker spend purpose exists; The Toolbox, Spinal Modem and Cloak need it too. The install_virus purpose matches.",
       "cr": [
         "1.10.4b"
       ]

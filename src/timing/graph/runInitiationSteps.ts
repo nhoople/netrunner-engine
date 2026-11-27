@@ -15,10 +15,8 @@ import {
   setAttackedServer,
   setRunnerPosition,
 } from "../../state/uninstallAndPosition/runPosition.js";
-import {
-  stealthHostedCreditsAvailable,
-  canPayCost,
-} from "../../state/keywordsAndCredits/costs.js";
+import { stealthHostedCreditsAvailable } from "../../state/keywordsAndCredits/runnerCredits.js";
+import { canPayCost } from "../../state/keywordsAndCredits/costs.js";
 import type { TimingStepDef } from "../graph.js";
 
 export const RUN_INITIATION_STEP_DEFS: Record<string, TimingStepDef> = {

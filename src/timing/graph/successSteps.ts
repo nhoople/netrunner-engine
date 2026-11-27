@@ -19,7 +19,7 @@ import { noteSuccessfulRunOnRd } from "../../state/run/successfulRunOnRdHooks.js
 import {
   stealthHostedCreditsAvailable,
   runnerAvailableCredits,
-} from "../../state/keywordsAndCredits/costs.js";
+} from "../../state/keywordsAndCredits/runnerCredits.js";
 import type { Effect } from "../../effects/ir.js";
 import { activeLockdownIds } from "../../state/continuous/lockdowns.js";
 import {

@@ -4,10 +4,8 @@
 import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { evalEffect } from "../effects/eval.js";
-import {
-  canPayCost,
-  runnerCreditsFor,
-} from "../state/keywordsAndCredits/costs.js";
+import { canPayCost } from "../state/keywordsAndCredits/costs.js";
+import { runnerCreditsFor } from "../state/keywordsAndCredits/runnerCredits.js";
 import { dealDamage } from "../state/damageAndPrevention/damage.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
 import {

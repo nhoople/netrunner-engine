@@ -421,14 +421,6 @@ export {
 } from "./state/turnAndActions/trace.js";
 export {
   refillRecurringCredits,
-  abilityCost,
-  payCost,
-  canPayCost,
-  effectiveEventPlayCost,
-  operationAndEventPlayCostIncreaseTotal,
-  eventPlayCostDiscountTotal,
-  firstDoubleOperationClickDiscountAvailable,
-  effectiveOperationExtraClicks,
   runnerAvailableCredits,
   spendRunnerCredits,
   runnerCreditsFor,
@@ -439,6 +431,16 @@ export {
   runnerAvailableCreditsForBreaker,
   hostedCreditsSpendableDuringRuns,
   hostedCreditsSpendableToUseProgramsDuringRuns,
+} from "./state/keywordsAndCredits/runnerCredits.js";
+export {
+  abilityCost,
+  payCost,
+  canPayCost,
+  effectiveEventPlayCost,
+  operationAndEventPlayCostIncreaseTotal,
+  eventPlayCostDiscountTotal,
+  firstDoubleOperationClickDiscountAvailable,
+  effectiveOperationExtraClicks,
 } from "./state/keywordsAndCredits/costs.js";
 export { startingHandSizeFor } from "./state/setupAndEnd/startingHand.js";
 export {

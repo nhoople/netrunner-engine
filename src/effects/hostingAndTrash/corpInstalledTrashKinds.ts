@@ -25,7 +25,7 @@ import {
   canInstallHeapCard,
   gripInstallCostAfterDiscount,
 } from "../install/runnerInstall.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { revealCards, lookAtCards } from "../../state/visibility/reveal.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 import { random } from "../../state/rng.js";

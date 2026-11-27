@@ -30,9 +30,11 @@ import {
   effectiveEventPlayCost,
   firstDoubleOperationClickDiscountAvailable,
   operationAndEventPlayCostIncreaseTotal,
+} from "../state/keywordsAndCredits/costs.js";
+import {
   runnerCreditsFor,
   spendRunnerCreditsFor,
-} from "../state/keywordsAndCredits/costs.js";
+} from "../state/keywordsAndCredits/runnerCredits.js";
 import { forfeitSpecificAgenda } from "./rez.js";
 import { hasActiveLockdown } from "../state/continuous/lockdowns.js";
 import {

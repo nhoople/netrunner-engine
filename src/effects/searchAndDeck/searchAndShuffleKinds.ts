@@ -8,7 +8,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { trashCard, controllerOf } from "../../state/hostingAndTrash/trash.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import {
   uninstallCard,
   removeCardFromGame,
