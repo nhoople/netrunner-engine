@@ -53,28 +53,6 @@ export function applyRedsandFmPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "derez_all_ice_rezzed_this_run": {
-      const ids = state.run?.iceRezzedThisRunIds ?? [];
-      for (const id of ids) {
-        const ice = state.cards[id];
-        if (!ice || ice.type !== "ice" || !ice.rezzed) continue;
-        ice.rezzed = false;
-        log(state, `Leave No Trace — derez ${ice.title}.`);
-      }
-      return { ok: true };
-    }
-
-    case "derez_encountered_ice": {
-      const iceId = state.run?.encounter?.iceId;
-      if (!iceId) return { ok: true };
-      const ice = state.cards[iceId];
-      if (!ice?.rezzed) return { ok: true };
-      ice.rezzed = false;
-      if (state.run) state.run.iceDerezzedThisRun = true;
-      log(state, `${source?.title ?? "Flashbang"} — derez ${ice.title}.`);
-      return { ok: true };
-    }
-
     case "rfg_heap_gain_credits": {
       const heap = [...state.runner.discardPile];
       if (heap.length === 0) {

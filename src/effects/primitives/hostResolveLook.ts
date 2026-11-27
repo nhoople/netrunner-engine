@@ -3,7 +3,6 @@ import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
-import type { GameState, RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
@@ -11,19 +10,10 @@ import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
+import type { RuleCite, ServerId } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function serverIdHostingCard(
-  state: GameState,
-  cardId: string,
-): ServerId | null {
-  const card = state.cards[cardId];
-  if (!card?.zone) return null;
-  const m = /^server:([^:]+):/.exec(card.zone);
-  return m ? (m[1] as ServerId) : null;
-}
 
 export function applyMumbadDagPrimitive(
   ctx: EffectCtx,
@@ -431,170 +421,7 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "may_derez_rezzed": {
-      const rezzedId = action.cardId;
-      const rezzed = state.cards[rezzedId];
-      if (!rezzed?.rezzed || !source) return { ok: true };
-      const cost = rezzed.rezCost ?? 0;
-      if (state.runner.credits < cost) {
-        log(
-          state,
-          `Councilman — cannot pay ${cost}¢ to derez ${rezzed.title}.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "cm:accept",
-            label: `Pay ${cost}¢ and trash Councilman: derez ${rezzed.title}`,
-            effect: fx.do({
-              kind: "derez_resolve",
-              cardId: rezzedId,
-            }),
-          },
-          {
-            id: "cm:decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "derez_resolve": {
-      const rezzedId = action.cardId;
-      const rezzed = state.cards[rezzedId];
-      if (!rezzed?.rezzed || !source) return { ok: true };
-      const cost = rezzed.rezCost ?? 0;
-      if (state.runner.credits < cost) return { ok: true };
-      subtractRunnerCreditPool(state, cost);
-      rezzed.rezzed = false;
-      state.turn.dagCannotRezCardIds = [
-        ...(state.turn.dagCannotRezCardIds ?? []),
-        rezzedId,
-      ];
-      trashCard(state, sourceId);
-      log(
-        state,
-        `Councilman — pay ${cost}¢; derez ${rezzed.title}; cannot rez again this turn.`,
-      );
-      return { ok: true };
-    }
-
-    case "may_rez_surat_discount": {
-      const discount = action.discount ?? 2;
-      const candidates: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of [...server.root, ...server.ice]) {
-          const c = state.cards[id];
-          if (!c || c.rezzed) continue;
-          if (c.side !== "corp") continue;
-          if (c.type === "agenda") continue;
-          const cost = Math.max(0, (c.rezCost ?? 0) - discount);
-          if (state.corp.credits < cost) continue;
-          candidates.push(id);
-        }
-      }
-      if (candidates.length === 0) {
-        log(state, `Surat City Grid — no card to rez at −${discount}¢.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...candidates.map((cardId) => {
-            const c = state.cards[cardId]!;
-            const cost = Math.max(0, (c.rezCost ?? 0) - discount);
-            return {
-              id: `surat:${cardId}`,
-              label: `Rez ${c.title} for ${cost}¢ (−${discount})`,
-              effect: fx.do({
-                kind: "rez_surat_discount_resolve",
-                cardId,
-                discount,
-              }),
-            };
-          }),
-          {
-            id: "surat:decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "rez_surat_discount_resolve": {
-      const cardId = action.cardId;
-      const discount = action.discount ?? 2;
-      const card = state.cards[cardId];
-      if (!card || card.rezzed) return { ok: true };
-      const cost = Math.max(0, (card.rezCost ?? 0) - discount);
-      if (state.corp.credits < cost) return { ok: true };
-      state.corp.credits -= cost;
-      card.rezzed = true;
-      card.faceup = true;
-      log(
-        state,
-        `Surat City Grid — rez ${card.title} for ${cost}¢ (−${discount}).`,
-      );
-      return { ok: true };
-    }
-
     default:
       return null;
-  }
-}
-
-/** Fire Councilman / Surat after Corp rezzes an installed card. */
-export function fireDagAfterCorpRez(state: GameState, rezzedId: string): void {
-  const rezzed = state.cards[rezzedId];
-  if (!rezzed?.rezzed) return;
-
-  // Councilman: asset or upgrade
-  if (rezzed.type === "asset" || rezzed.type === "upgrade") {
-    for (const rid of [...state.runner.installed]) {
-      const cm = state.cards[rid];
-      if (!cm?.onCorpRezAssetOrUpgradeMayPayRezCostTrashSelfDerez) continue;
-      const r = applyMumbadDagPrimitive(
-        { state, sourceId: rid },
-        { kind: "may_derez_rezzed", cardId: rezzedId },
-      );
-      if (r && !r.ok) {
-        log(state, `Councilman failed: ${r.error}`);
-      }
-      if (state.pendingChoice) return;
-    }
-  }
-
-  // Surat City Grid: whenever you rez another card in root/protecting this server
-  const rezzedServer = serverIdHostingCard(state, rezzedId);
-  if (!rezzedServer) return;
-  const server = state.servers[rezzedServer];
-  if (!server) return;
-  for (const upId of server.root) {
-    if (upId === rezzedId) continue;
-    const up = state.cards[upId];
-    if (!up?.rezzed) continue;
-    const discount = up.onRezOtherCardInRootOrProtectingMayRezDiscount;
-    if (typeof discount !== "number") continue;
-    // Triggering rez is in root or ice of this server
-    const inRoot = server.root.includes(rezzedId);
-    const inIce = server.ice.includes(rezzedId);
-    if (!inRoot && !inIce) continue;
-    const r = applyMumbadDagPrimitive(
-      { state, sourceId: upId },
-      { kind: "may_rez_surat_discount", discount },
-    );
-    if (r && !r.ok) {
-      log(state, `Surat City Grid failed: ${r.error}`);
-    }
-    if (state.pendingChoice) return;
   }
 }

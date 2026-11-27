@@ -98,41 +98,6 @@ export function applyLunarTsPrimitive(
       });
       return { ok: true };
     }
-    case "rez_ice_per_tag": {
-      const tags = state.runner.tags;
-      if (tags <= 0) {
-        log(state, `Shoot the Moon — Runner has no tags.`);
-        return { ok: true };
-      }
-      const unrezzed: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (!state.cards[id]?.rezzed) unrezzed.push(id);
-        }
-      }
-      if (unrezzed.length === 0) {
-        log(state, `Shoot the Moon — no unrezzed ice.`);
-        return { ok: true };
-      }
-      state.turn.shootTheMoonRemaining = Math.min(tags, unrezzed.length);
-      return applyShootTheMoonPick(ctx);
-    }
-    case "rez_pick": {
-      const cardId = (action as { cardId: string }).cardId;
-      const ice = state.cards[cardId];
-      if (ice && !ice.rezzed) {
-        ice.rezzed = true;
-        ice.faceup = true;
-        log(state, `Shoot the Moon — rez ${ice.title} ignoring all costs.`);
-      }
-      state.turn.shootTheMoonRemaining =
-        (state.turn.shootTheMoonRemaining ?? 1) - 1;
-      if ((state.turn.shootTheMoonRemaining ?? 0) > 0) {
-        return applyShootTheMoonPick(ctx);
-      }
-      state.turn.shootTheMoonRemaining = undefined;
-      return { ok: true };
-    }
     case "trace_troll_encounter": {
       const r = autoResolveTrace(
         state,
@@ -335,36 +300,4 @@ export function applyLunarTsPrimitive(
     default:
       return null;
   }
-}
-
-function applyShootTheMoonPick(ctx: EffectCtx): PrimResult {
-  const { state, sourceId } = ctx;
-  const unrezzed: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) {
-      if (!state.cards[id]?.rezzed) unrezzed.push(id);
-    }
-  }
-  if (unrezzed.length === 0) {
-    state.turn.shootTheMoonRemaining = undefined;
-    return { ok: true };
-  }
-  const remaining = state.turn.shootTheMoonRemaining ?? 0;
-  openPendingChoose(state, {
-    sourceId,
-    chooser: "corp",
-    options: [
-      ...unrezzed.map((id) => ({
-        id: `stm-rez:${id}`,
-        label: `Rez ${state.cards[id]!.title} (ignoring costs) [${remaining} left]`,
-        effect: fx.do({ kind: "rez_pick", cardId: id }),
-      })),
-      {
-        id: "stm-done",
-        label: "Done rezzing",
-        effect: fx.gainCredits("corp", 0),
-      },
-    ],
-  });
-  return { ok: true };
 }

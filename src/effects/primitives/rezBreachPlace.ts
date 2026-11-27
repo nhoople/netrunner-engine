@@ -52,22 +52,6 @@ export function applyMumbadBfPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "rez_emp_device_limit_ice_this_run": {
-      // "The Corp cannot rez more than 1 piece of ice for the remainder of
-      // this run": ice rezzed before EMP Device was used do not count. A
-      // second use keeps the count the first one started, so it lifts
-      // nothing (CR 1.2.2).
-      if (state.run && state.run.bfMaxIceRezThisRun === undefined) {
-        state.run.bfMaxIceRezThisRun = 1;
-        state.run.bfIceRezzedThisRun = 0;
-      }
-      log(
-        state,
-        `${source?.title ?? "EMP Device"} — Corp cannot rez more than 1 ice this run.`,
-      );
-      return { ok: true };
-    }
-
     case "place_hq_on_top_rd_continue": {
       const id = (action as { cardId?: string }).cardId;
       if (!id || !state.corp.hand.includes(id)) return { ok: true };

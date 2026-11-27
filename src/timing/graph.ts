@@ -59,7 +59,6 @@ import {
 import { resolveIceSubtypes } from "../state/continuous/continuousEffects.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { currentMark } from "../state/keywordsAndCredits/keywords.js";
-import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
 import {
   beginCorpTurnFlags,
   beginRunnerTurnFlags,
@@ -230,6 +229,7 @@ import {
   removeCardFromGame,
   uninstallCard,
 } from "../state/uninstallAndPosition/uninstall.js";
+import { syncAllTourGuideSubs } from "../effects/rez/rezKinds.js";
 
 const TLDR_COPY_SUFFIX = "-tldr-copy";
 

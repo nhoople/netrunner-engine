@@ -126,61 +126,6 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "rez_sensor_net_bioroid_ignoring_costs_derez_turn_end": {
-      const candidates: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          const c = state.cards[id];
-          if (!c || c.rezzed) continue;
-          if (!(c.subtypes ?? []).includes("bioroid")) continue;
-          candidates.push(id);
-        }
-        for (const id of server.root) {
-          const c = state.cards[id];
-          if (!c || c.rezzed) continue;
-          if (!(c.subtypes ?? []).includes("bioroid")) continue;
-          candidates.push(id);
-        }
-      }
-      if (candidates.length === 0) {
-        log(state, `Sensor Net Activation — no unrezzed bioroid.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: candidates.map((id) => ({
-          id: `sensor-net:${id}`,
-          label: `Rez ${state.cards[id]!.title} ignoring all costs`,
-          effect: fx.do({
-            kind: "rez_sensor_net_bioroid_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "rez_sensor_net_bioroid_resolve": {
-      const cardId = action.cardId;
-      const card = cardId ? state.cards[cardId] : undefined;
-      if (!card || card.rezzed) {
-        log(state, `Sensor Net Activation — invalid bioroid.`);
-        return { ok: true };
-      }
-      card.rezzed = true;
-      card.faceup = true;
-      if (!state.turn.sensorNetPendingDerezIds) {
-        state.turn.sensorNetPendingDerezIds = [];
-      }
-      state.turn.sensorNetPendingDerezIds.push(cardId!);
-      log(
-        state,
-        `Sensor Net Activation — rez ${card.title} ignoring costs; derez at turn end.`,
-      );
-      return { ok: true };
-    }
-
     case "look_top5_may_install_remote": {
       if (state.turn.rdLookedCards.length > 0) {
         return {

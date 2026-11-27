@@ -1,5 +1,3 @@
-/** Upstalk (up) Lunar pack primitives. */
-import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { emptyRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
@@ -302,22 +300,6 @@ export function applyLunarUpPrimitive(
       });
       return { ok: true };
     }
-    case "corp_rez": {
-      const iceId = (action as { iceId: string }).iceId;
-      const card = state.cards[iceId]!;
-      const cost = card.rezCost ?? 0;
-      if (state.corp.credits < cost) {
-        log(
-          state,
-          `Cyber Threat — Corp cannot pay ${cost}¢ to rez ${card.title}.`,
-        );
-        return { ok: true };
-      }
-      state.corp.credits -= cost;
-      card.rezzed = true;
-      log(state, `Cyber Threat — Corp rezzed ${card.title} for ${cost}¢.`);
-      return { ok: true };
-    }
     case "run_cyber_threat_server": {
       const serverId = (action as { serverId: ServerId }).serverId;
       state.pendingStartRun = {
@@ -343,34 +325,6 @@ export function applyLunarUpPrimitive(
         state.runner.credits += gain;
         log(state, `Nasir Meidan — Runner gains ${gain}¢.`);
       }
-      return { ok: true };
-    }
-    case "social_engineering": {
-      const unrezzed: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (!state.cards[id]?.rezzed) unrezzed.push(id);
-        }
-      }
-      if (unrezzed.length === 0) {
-        log(state, `Social Engineering — no unrezzed ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: unrezzed.map((id) => ({
-          id: `soc:${id}`,
-          label: `Choose ${openCardName(state, id, "runner")}`,
-          effect: fx.do({ kind: "social_engineering_mark", iceId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "social_engineering_mark": {
-      const iceId = (action as { iceId: string }).iceId;
-      state.turn.socialEngineeringMarkedIce = iceId;
-      log(state, `Social Engineering — marked ${state.cards[iceId]!.title}.`);
       return { ok: true };
     }
     case "install_instead": {

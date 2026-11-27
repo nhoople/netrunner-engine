@@ -8,25 +8,16 @@ import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.j
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
+import { fx, type Primitive } from "../ir.js";
+import { installedIce } from "../rez/rezKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function installedIce(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) {
-      if (state.cards[id]) out.push(id);
-    }
-  }
-  return out;
-}
 
 function installedCorpCards(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
@@ -45,13 +36,6 @@ function canAdvance(state: EffectCtx["state"], cardId: string): boolean {
   if (c.canAdvance) return true;
   const def = c.defId ? getCardDef(c.defId) : undefined;
   return Boolean(def?.canAdvance);
-}
-
-function icePrintedRezCost(state: EffectCtx["state"], iceId: string): number {
-  const c = state.cards[iceId];
-  if (!c) return 0;
-  const def = c.defId ? getCardDef(c.defId) : undefined;
-  return def?.rezCost ?? c.rezCost ?? 0;
 }
 
 function swapTwoInstalledIce(
@@ -141,40 +125,6 @@ export function applyRedsandEasPrimitive(
         trashCard(state, top, { by: controllerOf(state, sourceId) });
         log(state, `Persephone — trash ${state.cards[top]?.title} from R&D.`);
       }
-      return { ok: true };
-    }
-
-    case "derez_rezzed_this_turn": {
-      const rezzedThisTurn = state.turn.rezzedThisTurnIds ?? [];
-      const candidates = installedIce(state).filter((id) => {
-        const ice = state.cards[id];
-        return ice?.rezzed && rezzedThisTurn.includes(id);
-      });
-      if (candidates.length === 0) {
-        log(state, `Rubicon Switch — no ice rezzed this turn.`);
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (const id of candidates) {
-        const x = icePrintedRezCost(state, id);
-        if (state.runner.credits < x) continue;
-        options.push({
-          id: `derez:${id}`,
-          label: `Pay ${x}¢: Derez ${state.cards[id]!.title}`,
-          effect: fx.seq(
-            fx.do({ kind: "lose_credits", side: "runner", amount: x }),
-            fx.do({ kind: "derez_card", cardId: id }),
-          ),
-        });
-      }
-      if (options.length === 0) {
-        log(
-          state,
-          `Rubicon Switch — cannot pay printed rez cost of any candidate.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 

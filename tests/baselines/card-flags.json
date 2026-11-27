@@ -6721,11 +6721,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashResolveDerez.ts#icePrintedRezCost",
+          "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
+          "site": "src/effects/rez/rezKinds.ts#icePrintedRezCost",
           "kinds": []
         },
         {
@@ -8071,6 +8071,10 @@
         },
         {
           "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKindsWhenSourceExists",
           "kinds": []
         },
         {
@@ -10218,7 +10222,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/hostResolveLook.ts#fireDagAfterCorpRez",
+          "site": "src/effects/rez/rezKinds.ts#fireDagAfterCorpRez",
           "kinds": [
             "may_derez_rezzed"
           ]
@@ -12547,7 +12551,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/hostResolveLook.ts#fireDagAfterCorpRez",
+          "site": "src/effects/rez/rezKinds.ts#fireDagAfterCorpRez",
           "kinds": []
         }
       ],
@@ -16924,14 +16928,14 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/rezKinds.ts#applyRezKinds",
+          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": [
             "move_unrezzed_ice_to_hq"
           ]
-        },
-        {
-          "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
-          "kinds": []
         }
       ],
       "kinds": [
@@ -17029,15 +17033,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
         {
@@ -17049,23 +17045,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/givePayTrash.ts#applyRedsandCdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/hostResolveLook.ts#applyMumbadDagPrimitive",
           "kinds": []
         },
         {
@@ -17073,14 +17053,22 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashResolveDerez.ts#icePrintedRezCost",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
           "kinds": [
             "corp_rez"
           ]
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#icePrintedRezCost",
+          "kinds": []
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
@@ -18186,10 +18174,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
@@ -18207,10 +18191,6 @@
         },
         {
           "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
         {
@@ -18247,14 +18227,6 @@
         },
         {
           "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/hostInstallExpose.ts#applySansanUwPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/hostResolveLook.ts#applyMumbadDagPrimitive",
           "kinds": []
         },
         {
@@ -18305,6 +18277,18 @@
         },
         {
           "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKindsWhenSourceExists",
           "kinds": []
         },
         {
@@ -19701,10 +19685,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/rezKinds.ts#applyRezKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
           "kinds": []
         },
@@ -19766,6 +19746,10 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#offerSubroutineInsertChoice",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
         {
@@ -20064,10 +20048,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/rezKinds.ts#applyRezKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
           "kinds": []
         },
@@ -20221,6 +20201,10 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
         {
@@ -21225,10 +21209,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/gainKinds.ts#applyGainKinds",
           "kinds": []
         },
@@ -21301,10 +21281,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/rezKinds.ts#applyRezKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
           "kinds": []
         },
@@ -21354,10 +21330,6 @@
         },
         {
           "site": "src/effects/primitives/boostRezTrace.ts#applyLunarTsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/boostRezTrace.ts#applyShootTheMoonPick",
           "kinds": []
         },
         {
@@ -21618,6 +21590,22 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#offerSubroutineInsertChoice",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyShootTheMoonPick",
           "kinds": []
         },
         {
@@ -23780,10 +23768,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/gainKinds.ts#applyGainKinds",
           "kinds": []
         },
@@ -23829,10 +23813,6 @@
         },
         {
           "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds.finish",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
         {
@@ -23892,10 +23872,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezExposePrevent.ts#rezzedIceIds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/derezRfgTrash.ts#applyRedsandFmPrimitive",
           "kinds": []
         },
@@ -23929,10 +23905,6 @@
         },
         {
           "site": "src/effects/primitives/hostResolveLook.ts#applyMumbadDagPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/hostResolveLook.ts#fireDagAfterCorpRez",
           "kinds": []
         },
         {
@@ -24085,6 +24057,26 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#applyRezKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#fireDagAfterCorpRez",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/rez/rezKinds.ts#rezzedIceIds",
           "kinds": []
         },
         {

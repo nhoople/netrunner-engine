@@ -123,9 +123,6 @@
       "scoreArea": 4,
       "zone": 13
     },
-    "src/effects/kinds/derezKinds.ts": {
-      "rezzed": 8
-    },
     "src/effects/kinds/hostKinds.ts": {
       "deck": 3,
       "hand": 6,
@@ -183,9 +180,6 @@
       "rezzed": 2,
       "zone": 5
     },
-    "src/effects/kinds/rezKinds.ts": {
-      "rezzed": 9
-    },
     "src/effects/kinds/searchKinds.ts": {
       "deck": 17,
       "hand": 13,
@@ -226,7 +220,6 @@
     },
     "src/effects/primitives/boostRezTrace.ts": {
       "installed": 1,
-      "rezzed": 1,
       "zone": 1
     },
     "src/effects/primitives/breachResolveInstall.ts": {
@@ -262,20 +255,18 @@
     },
     "src/effects/primitives/derezExposePrevent.ts": {
       "hand": 1,
-      "rezzed": 1,
       "zone": 1
     },
     "src/effects/primitives/derezRfgTrash.ts": {
       "deck": 4,
       "hand": 5,
-      "rezzed": 2,
       "zone": 7
     },
     "src/effects/primitives/gainCannotSwap.ts": {
-      "hand": 4,
+      "hand": 3,
       "installed": 1,
-      "rezzed": 2,
-      "zone": 4
+      "rezzed": 1,
+      "zone": 3
     },
     "src/effects/primitives/gainExposeSearch.ts": {
       "deck": 7,
@@ -304,7 +295,6 @@
       "discardPile": 2,
       "hand": 2,
       "installed": 1,
-      "rezzed": 3,
       "zone": 4
     },
     "src/effects/primitives/hostResolveLook.ts": {
@@ -312,7 +302,7 @@
       "discardPile": 1,
       "hand": 6,
       "installed": 2,
-      "rezzed": 3,
+      "rezzed": 1,
       "root": 1,
       "zone": 6
     },
@@ -345,7 +335,6 @@
     "src/effects/primitives/preventGainSpend.ts": {
       "deck": 3,
       "removedFromGame": 2,
-      "rezzed": 1,
       "root": 1,
       "zone": 4
     },
@@ -479,8 +468,16 @@
       "deck": 3,
       "ice": 1,
       "installed": 1,
-      "rezzed": 2,
+      "rezzed": 1,
       "zone": 2
+    },
+    "src/effects/rez/derezKinds.ts": {
+      "rezzed": 8
+    },
+    "src/effects/rez/rezKinds.ts": {
+      "hand": 1,
+      "rezzed": 21,
+      "zone": 1
     },
     "src/effects/runnerInstall.ts": {
       "deck": 3,
