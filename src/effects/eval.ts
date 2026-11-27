@@ -173,8 +173,8 @@ import {
   fireOnRez,
 } from "../state/triggers/cardLifecycleHooks.js";
 import { random, shuffleInPlace } from "../state/rng.js";
-import { trashCard } from "../state/procedures/trash.js";
-import { hostCard } from "../state/procedures/host.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
+import { hostCard } from "../state/hostingAndTrash/host.js";
 import {
   allSubroutinesBrokenByRunner,
   subroutinesBrokenByRunnerCount,

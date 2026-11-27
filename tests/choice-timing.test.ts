@@ -6,7 +6,7 @@
  * for that reason, and the encounter and card checks clear once the requirement is met.
  * Conditional abilities run from the turn step that fires them.
  */
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,

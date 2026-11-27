@@ -12,7 +12,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 type PrimResult =

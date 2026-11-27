@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import {
   applyAction,
   assertCardsPinnedTag,

@@ -13,7 +13,7 @@ import {
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
   noteTrashMatchingRunnerIdentityFaction,
-} from "../state/trashHooks.js";
+} from "../state/hostingAndTrash/trashHooks.js";
 import type { GameState } from "../state/types.js";
 import { onInstalledCorpCardTrashed } from "../state/cardFlags/staticFlags.js";
 import {

@@ -34,9 +34,9 @@ import {
   memoryNeededToInstall,
   usedMemory,
 } from "../src/state/turn.js";
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { runnerInstallCost } from "../src/actions/installRunner.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { noteOnRunnerTurnEnd } from "../src/state/runnerTurnEndHooks.js";
 import { applyRunAccessRestrictions } from "../src/state/access/accessFilter.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";

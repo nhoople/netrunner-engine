@@ -166,6 +166,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
     continuous/      # continuous effects (CR 9.12): whether a card is active (1.8), blanking, lingering effects (9.10), currents and lockdowns in the play area, continuous cost, subroutine, strength and hand-size modifiers
     counters/        # counters and advancement: which cards may be advanced, power-counter thresholds
     damageAndPrevention/# damage and its prevention (CR 10.4)
+    hostingAndTrash/ # hosting and trashing (CR 1.13, 1.19): hostCard and trashCard, trash-triggered abilities, trash interrupts
     install/         # installing cards (CR 8.5): install-triggered abilities and install discounts
     procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break
     rez/             # rezzing and derezzing (CR 8.1): rez-triggered abilities

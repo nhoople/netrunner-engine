@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { runnerInstallCost } from "../src/actions/installRunner.js";
-import { recomputeRunnerLink } from "../src/state/trashHooks.js";
+import { recomputeRunnerLink } from "../src/state/hostingAndTrash/trashHooks.js";
 import { installCorp } from "../src/actions/installCorp.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

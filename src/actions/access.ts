@@ -11,7 +11,7 @@ import {
   fireAfterAgendaStolenHooks,
   fireOnSteal,
 } from "../state/triggers/cardLifecycleHooks.js";
-import { noteAccessTrash } from "../state/trashHooks.js";
+import { noteAccessTrash } from "../state/hostingAndTrash/trashHooks.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardFlags/cardDeclarations.js";
 import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/continuous/lockdowns.js";
@@ -29,8 +29,8 @@ import { fireScoreOrStealSideEffects } from "./score.js";
 import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";
 import { applyActionCore } from "./apply.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
-import { hostCard } from "../state/procedures/host.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { hostCard } from "../state/hostingAndTrash/host.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

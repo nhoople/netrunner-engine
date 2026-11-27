@@ -1,7 +1,7 @@
 /**
  * parhelion play tests.
  */
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { describe, expect, it, beforeAll } from "vitest";
 import {
   applyAction,
@@ -31,7 +31,7 @@ import { resolveAndAdvance } from "../src/timing/machine.js";
 import { addBreakerStrengthBoostThisRun } from "../src/state/continuous/lingeringEffects.js";
 import { clearMark, placeMark } from "../src/state/msKeywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 describe("parhelion", () => {
   describe("parhelion-adv-req-reduction", () => {

@@ -4,7 +4,7 @@ import {
   FIRST_CORP_CARD_TRASH_INSTALLED,
   firstCorpCardTrashSources,
   type FirstCorpCardTrashRecord,
-} from "../state/trashHooks.js";
+} from "../state/hostingAndTrash/trashHooks.js";
 import type {
   CardInstance,
   CheckpointFrame,
@@ -147,7 +147,7 @@ import {
   returnHostedIdentityToOutsideGame,
   runnerAbilityCarrierIds,
 } from "../state/fenris.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { markStaticHostTrashConditions } from "../effects/corpTrash.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { nextId } from "../state/ids.js";

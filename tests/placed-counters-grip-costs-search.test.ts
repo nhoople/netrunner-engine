@@ -35,7 +35,7 @@ import {
   syncPaidAbilitiesFromRecords,
   type AbilityRecord,
 } from "../src/effects/abilityRecord.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import type { ServerId, ZoneId } from "../src/state/types.js";
 
 beforeAll(() => {

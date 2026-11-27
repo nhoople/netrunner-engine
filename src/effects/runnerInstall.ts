@@ -35,8 +35,8 @@ import { CR } from "../timing/labels.js";
 import { type EvalResult } from "./eval.js";
 import { fireOnInstallProgramFromHeap } from "../state/triggers/miscConditionalHooks.js";
 import { shuffleInPlace } from "../state/rng.js";
-import { hostCard } from "../state/procedures/host.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { hostCard } from "../state/hostingAndTrash/host.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
 
 function countInstalledIcebreakersForCost(state: GameState): number {
   return state.runner.installed.filter(

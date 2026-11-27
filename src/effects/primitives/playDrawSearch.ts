@@ -18,7 +18,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { trashCorpCardSet } from "../kinds/trashKinds.js";
 import { chooseCards } from "../chooseCards.js";
 import { facedownInstalledRunnerCard } from "../../state/continuous/active.js";

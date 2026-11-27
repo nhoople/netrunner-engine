@@ -3,7 +3,7 @@
  */
 import { describe, expect, it, beforeAll } from "vitest";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import {
   assertCardsPinnedTag,
   assertPinnedTag,

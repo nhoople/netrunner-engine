@@ -2691,7 +2691,7 @@
       "abilities": [
         "Whenever you trash a Corp card, you may place 1 virus counter on Consume."
       ],
-      "note": "fireCotcOnCorpCardTrashed (src/state/trashHooks.ts), called for every Corp card trash (src/effects/corpTrash.ts), does not check who trashed it, so the Corp trashing its own cards counts (1.14.5a), and it places the counter with no choice (9.6.9). The click ability matches.",
+      "note": "fireCotcOnCorpCardTrashed (src/state/hostingAndTrash/trashHooks.ts), called for every Corp card trash (src/effects/corpTrash.ts), does not check who trashed it, so the Corp trashing its own cards counts (1.14.5a), and it places the counter with no choice (9.6.9). The click ability matches.",
       "cr": [
         "1.14.5a",
         "9.6.9"
@@ -3308,7 +3308,7 @@
       "abilities": [
         "Whenever the Runner installs a card or trashes an installed card, you may gain 1[credit]."
       ],
-      "note": "fireCotcOnRunnerInstalledTrashed (src/state/trashHooks.ts) gains on any trash of an installed Runner card, the Corp's included (1.14.5a), and a Runner trash of an installed Corp card gains nothing (the loop in fireCotcOnCorpCardTrashed is empty). The install half and the current's lifetime match.",
+      "note": "fireCotcOnRunnerInstalledTrashed (src/state/hostingAndTrash/trashHooks.ts) gains on any trash of an installed Runner card, the Corp's included (1.14.5a), and a Runner trash of an installed Corp card gains nothing (the loop in fireCotcOnCorpCardTrashed is empty). The install half and the current's lifetime match.",
       "cr": [
         "1.2.1",
         "1.14.5a"
@@ -5783,7 +5783,7 @@
       "abilities": [
         "Play only if the Runner trashed a card while accessing it during their last turn."
       ],
-      "note": "The play condition reads turn.runnerTrashedCorpCardLastTurn, set by any Runner trash of a Corp card (src/state/trashHooks.ts), not only while accessing it. The trace, the trash of 2 installed non-program cards and the bad publicity on failure match.",
+      "note": "The play condition reads turn.runnerTrashedCorpCardLastTurn, set by any Runner trash of a Corp card (src/state/hostingAndTrash/trashHooks.ts), not only while accessing it. The trace, the trash of 2 installed non-program cards and the bad publicity on failure match.",
       "cr": [
         "1.2.1"
       ]
@@ -7866,7 +7866,7 @@
       "abilities": [
         "[interrupt] → When this asset would be trashed, you may shuffle it into R&D instead of adding it to Archives."
       ],
-      "note": "trashCorpCard (src/state/procedures/trash.ts) always shuffles it into R&D when it is rezzed; the Corp gets no choice (9.2.9f; found by area 1, listed in the plan for the sweep to confirm). Load 8 credits on rez, take 2 at turn begin and the trash when empty match.",
+      "note": "trashCorpCard (src/state/hostingAndTrash/trash.ts) always shuffles it into R&D when it is rezzed; the Corp gets no choice (9.2.9f; found by area 1, listed in the plan for the sweep to confirm). Load 8 credits on rez, take 2 at turn begin and the trash when empty match.",
       "cr": [
         "9.2.9f",
         "1.2.1"
@@ -11232,7 +11232,7 @@
       "abilities": [
         "Interrupt -> [trash]: Prevent a player from trashing 1 installed program or piece of hardware."
       ],
-      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)) and engine: requirePendingTrashCardTypes [program, hardware] on its paid ability, read by trashInterruptRelevant (src/state/trashPrevent.ts), so the trash window does not open for a resource and the ability is refused there. Either player's trash and the [trash] cost match.",
+      "note": "Card JSON (cards v1.147.26 (engine#997 pins it)) and engine: requirePendingTrashCardTypes [program, hardware] on its paid ability, read by trashInterruptRelevant (src/state/hostingAndTrash/trashPrevent.ts), so the trash window does not open for a resource and the ability is refused there. Either player's trash and the [trash] cost match.",
       "cr": [
         "9.9.3a",
         "1.2.1"

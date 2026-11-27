@@ -41,7 +41,7 @@ import {
   noteAccessTrash,
   noteFirstCorpRootInstallEachTurn,
   noteFirstCorpCardTrashEachTurn,
-} from "../src/state/trashHooks.js";
+} from "../src/state/hostingAndTrash/trashHooks.js";
 import { noteCorpActionType } from "../src/state/corpActionHooks.js";
 
 describe("the-automata-initiative", () => {

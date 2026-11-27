@@ -36,7 +36,7 @@ import type { CardInstance, GameState, RuleCite } from "../types.js";
 import { removeCardFromCurrentZone } from "../scoring.js";
 import { endEffectsOnPreviousObject } from "../turn.js";
 import { cancelPendingIfSourceInactive } from "../triggers/pendingAbilities.js";
-import { maybeOpenTrashPrevent } from "../trashPrevent.js";
+import { maybeOpenTrashPrevent } from "./trashPrevent.js";
 import { onInstalledProgramTrashed } from "../cardFlags/staticFlags.js";
 import {
   fireOnUninstall,
@@ -44,7 +44,7 @@ import {
   noteRunnerInstalledCardTrashing,
   offerSkorpiosRfgInsteadOfHeap,
   recomputeRunnerLink,
-} from "../trashHooks.js";
+} from "./trashHooks.js";
 import {
   corpTrashRefused,
   maybeFireThreatOnTrash,

@@ -17,7 +17,7 @@ import {
   evalEffect,
   legalActions,
 } from "../src/index.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import type { GameState, ServerId } from "../src/state/types.js";
 import {

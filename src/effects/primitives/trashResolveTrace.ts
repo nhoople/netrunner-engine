@@ -19,7 +19,7 @@ import { chooseCards } from "../chooseCards.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { shiftEncounterBreaks } from "../../state/procedures/break.js";
 
 type PrimResult =

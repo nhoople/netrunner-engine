@@ -2,17 +2,17 @@
  * Trash-triggered card abilities (Steelskin / Mavirus-class).
  */
 
-import { dealDamage } from "./damageAndPrevention/damage.js";
-import { log } from "./createGame.js";
-import { trashCard } from "./procedures/trash.js";
-import type { CardInstance, GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { fireHardwareInstallOrTrash } from "./install/programHardwareInstall.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { type StoredConditionalMark } from "./triggers/storedTriggers.js";
-import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
-import { openPendingChoose } from "./triggers/pendingChoice.js";
+import { dealDamage } from "../damageAndPrevention/damage.js";
+import { log } from "../createGame.js";
+import { trashCard } from "./trash.js";
+import type { CardInstance, GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { fireHardwareInstallOrTrash } from "../install/programHardwareInstall.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { type StoredConditionalMark } from "../triggers/storedTriggers.js";
+import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
+import { openPendingChoose } from "../triggers/pendingChoice.js";
 
 function noteAndCheckpointStored(
   state: GameState,
@@ -294,7 +294,7 @@ export function recomputeRunnerLink(state: GameState): void {
 /** Tranquility-class: first install into this server's root each turn. */
 export function noteFirstInstallInServerRootThisTurn(
   state: GameState,
-  serverId: import("./types.js").ServerId,
+  serverId: import("../types.js").ServerId,
   installedCardId: string,
 ): void {
   const server = state.servers[serverId];
@@ -626,7 +626,7 @@ export function noteFirstProgramOrHardwareTrashEachTurn(
  */
 export function noteFirstRemoteInstallThisTurn(
   state: GameState,
-  serverId: import("./types.js").ServerId,
+  serverId: import("../types.js").ServerId,
 ): void {
   const server = state.servers[serverId];
   if (!server || server.kind !== "remote") return;
@@ -879,7 +879,7 @@ export function fireOnRemoveTags(
   state: GameState,
 ):
   | { ok: true }
-  | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
+  | { ok: false; error: string; cites: import("../types.js").RuleCite[] } {
   const items: StoredConditionalMark[] = [];
   for (const id of [...state.runner.installed]) {
     if (abilitiesSuppressed(state, id)) continue;
@@ -924,7 +924,7 @@ export function fireOnFirstAvoidOrRemoveTagThisTurn(
   state: GameState,
 ):
   | { ok: true }
-  | { ok: false; error: string; cites: import("./types.js").RuleCite[] } {
+  | { ok: false; error: string; cites: import("../types.js").RuleCite[] } {
   if (!state.turn.onFirstAvoidOrRemoveTagFiredIds) {
     state.turn.onFirstAvoidOrRemoveTagFiredIds = [];
   }

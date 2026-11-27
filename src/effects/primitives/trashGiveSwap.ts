@@ -10,14 +10,14 @@ import {
   LINGERING_KIND_GRANTED_SUBTYPES,
 } from "../../state/continuous/lingeringEffects.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
-import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
+import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { applySpinTcPrimitive } from "./breachTrashTurn.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

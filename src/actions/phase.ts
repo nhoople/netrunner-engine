@@ -32,7 +32,7 @@ import {
 } from "../state/triggers/miscConditionalHooks.js";
 import { chooseCards } from "../effects/chooseCards.js";
 import { evalEffect } from "../effects/eval.js";
-import { discardCard } from "../state/procedures/trash.js";
+import { discardCard } from "../state/hostingAndTrash/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

@@ -22,7 +22,7 @@
     "src/actions/access.ts#function advanceFromMidAccess",
     "src/effects/kinds/swapKinds.ts#case swap_two_ice",
     "src/legality/checkpoints.ts#function offerRootEntry",
-    "src/state/trashHooks.ts#function offerSkorpiosRfgInsteadOfHeap"
+    "src/state/hostingAndTrash/trashHooks.ts#function offerSkorpiosRfgInsteadOfHeap"
   ],
   "noOpFlags": [
     "flag:accessTrashWithVirus -> src/actions/access.ts#advanceFromMidAccess",

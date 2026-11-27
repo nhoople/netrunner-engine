@@ -35,8 +35,8 @@ import {
 
 import { fireHostRezStateTriggers } from "../eval.js";
 import { CR } from "../../timing/labels.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
-import { unhostAllFrom, unhostCard } from "../../state/procedures/host.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
+import { unhostAllFrom, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { markRemainingSubroutinesNotBrokenByRunner } from "../../state/procedures/break.js";
 
 /**

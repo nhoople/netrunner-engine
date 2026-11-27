@@ -11,7 +11,7 @@ import {
   leaveLingeringPlayAreaBag,
   lingeringPlayAreaIds,
 } from "../zones.js";
-import { trashCard } from "../procedures/trash.js";
+import { trashCard } from "../hostingAndTrash/trash.js";
 
 export function isCurrentCard(card: CardInstance | undefined): boolean {
   return Boolean(card?.lingerAsCurrent || card?.subtypes?.includes("current"));

@@ -14,7 +14,7 @@ import {
   evalEffect,
   shuffleCorpRdAfterSearch,
 } from "../eval.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 type PrimResult =

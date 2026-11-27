@@ -14,7 +14,7 @@ import {
 } from "../../state/scoring.js";
 import { returnRdLookedToDeckTop } from "../eval.js";
 import { fx } from "../ir.js";
-import { unhostCard } from "../../state/procedures/host.js";
+import { unhostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 export function applyReturnKinds(

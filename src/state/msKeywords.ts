@@ -20,7 +20,7 @@ import type {
   ServerId,
 } from "./types.js";
 import { CR } from "../timing/labels.js";
-import { trashCard } from "./procedures/trash.js";
+import { trashCard } from "./hostingAndTrash/trash.js";
 
 const CENTRAL_SERVERS: CentralServerId[] = ["hq", "rd", "archives"];
 

@@ -23,7 +23,7 @@ import {
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { CR } from "../src/timing/labels.js";
 import type { GameState } from "../src/index.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

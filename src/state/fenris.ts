@@ -8,7 +8,7 @@ import type { CardInstance, GameState } from "./types.js";
 import { log } from "./createGame.js";
 import { applyIdentityFace } from "./identityFace.js";
 import { CR } from "../timing/labels.js";
-import { hostCard, unhostCard } from "./procedures/host.js";
+import { hostCard, unhostCard } from "./hostingAndTrash/host.js";
 
 export const RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE =
   "runner:outside-game-identities" as const;

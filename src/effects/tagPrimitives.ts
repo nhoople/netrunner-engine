@@ -15,14 +15,14 @@ import {
   fireOnRemoveTags,
   fireOnTakeTagsWhenUntagged,
   fireMeatDamageWhenRunnerTakesTags,
-} from "../state/trashHooks.js";
+} from "../state/hostingAndTrash/trashHooks.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
 import { fireOnFirstTagThisTurn } from "../state/triggers/miscConditionalHooks.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

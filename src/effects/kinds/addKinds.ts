@@ -12,9 +12,9 @@ import {
   removeCardFromCurrentZone,
   checkWinConditions,
 } from "../../state/scoring.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
-import { unhostCard } from "../../state/procedures/host.js";
-import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
+import { unhostCard } from "../../state/hostingAndTrash/host.js";
+import { fireOnAgendaAddedToRunnerScore } from "../../state/hostingAndTrash/trashHooks.js";
 import { CR } from "../../timing/labels.js";
 import { uninstallCard } from "../../state/procedures/uninstall.js";
 

@@ -40,8 +40,8 @@ import {
 import type { GameState } from "../src/index.js";
 import type { Action, RunState } from "../src/state/types.js";
 import { addIceStrengthBoostThisRun } from "../src/state/continuous/lingeringEffects.js";
-import { hostCard } from "../src/state/procedures/host.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { collectSubBoostEtrSubs } from "../src/state/continuous/continuousSubs.js";
 import { dealDamage } from "../src/state/damageAndPrevention/damage.js";

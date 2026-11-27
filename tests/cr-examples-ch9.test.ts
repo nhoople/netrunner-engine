@@ -3,7 +3,7 @@
  * Each test plays that example's board.
  */
 import { openAsChoice } from "./rulings-helpers.js";
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -42,7 +42,7 @@ import { beginRunnerTurnFlags } from "../src/state/turn.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { passIdle } from "../src/demo/passIdle.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

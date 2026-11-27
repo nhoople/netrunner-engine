@@ -16,7 +16,7 @@ import {
   controllerOf,
   discardCard,
   trashCard,
-} from "../../state/procedures/trash.js";
+} from "../../state/hostingAndTrash/trash.js";
 import {
   programUseRecurringCreditsAvailable,
   spendProgramUseRecurringCredits,

@@ -9,7 +9,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import type { RuleCite } from "../../state/types.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

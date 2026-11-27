@@ -10,8 +10,8 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { hostCard } from "../../state/procedures/host.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { hostCard } from "../../state/hostingAndTrash/host.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 type PrimResult =

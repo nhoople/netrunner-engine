@@ -355,7 +355,7 @@ describe("uprising", () => {
         const { createInitialState, instantiateCard, occurCheckpoint, CR } =
           await import("../src/index.js");
         const { fireOnFirstEventTrashedThisTurn } =
-          await import("../src/state/trashHooks.js");
+          await import("../src/state/hostingAndTrash/trashHooks.js");
         const s = createInitialState();
         const card = instantiateCard("aniccam", "an", "runner:installed");
         s.cards["an"] = card;

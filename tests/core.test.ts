@@ -23,8 +23,8 @@ import {
 import {
   maybeOpenTrashPrevent,
   preventPendingInstalledTrash,
-} from "../src/state/trashPrevent.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+} from "../src/state/hostingAndTrash/trashPrevent.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 describe("core", () => {
   describe("core-final-7-clears", () => {

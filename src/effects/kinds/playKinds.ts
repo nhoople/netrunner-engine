@@ -17,7 +17,7 @@ import { CR } from "../../timing/labels.js";
 import { fireOnAfterOperationOrExpendable } from "../eval.js";
 
 import { noteCheckpointAndResolvePlay } from "../eval.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 export function applyPlayKinds(

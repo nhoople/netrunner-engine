@@ -9,7 +9,7 @@ import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { catalogCardNames } from "../cardNames.js";
 import { uninstallCard } from "../../state/procedures/uninstall.js";
 

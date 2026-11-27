@@ -14,7 +14,7 @@ import {
 import {
   fireCotcOnCorpCardTrashed,
   purgeVirusCounters,
-} from "../src/state/trashHooks.js";
+} from "../src/state/hostingAndTrash/trashHooks.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

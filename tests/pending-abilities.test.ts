@@ -45,7 +45,7 @@ import {
 } from "../src/state/damageAndPrevention/damage.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 import { currentMark } from "../src/state/msKeywords.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -2251,7 +2251,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first installed trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstInstalledTrashForReaver } =
-      await import("../src/state/trashHooks.js");
+      await import("../src/state/hostingAndTrash/trashHooks.js");
     const s = createInitialState();
     const reaver = instantiateCard("reaver", "rv-1", "runner:installed");
     const top = instantiateCard("sure-gamble", "sg-1", "runner:stack");
@@ -2351,7 +2351,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first trash matching Runner ID faction at 10.3.1a (phase 3 scanner)", async () => {
     const { noteTrashMatchingRunnerIdentityFaction } =
-      await import("../src/state/trashHooks.js");
+      await import("../src/state/hostingAndTrash/trashHooks.js");
     const s = createInitialState();
     const id = s.cards[s.runner.identityId];
     id.faction = "anarch";
@@ -2402,7 +2402,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first access trash at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteAccessTrash } = await import("../src/state/trashHooks.js");
+    const { noteAccessTrash } =
+      await import("../src/state/hostingAndTrash/trashHooks.js");
     const s = createInitialState();
     const mache = instantiateCard("mache", "mache-1", "runner:installed");
     mache.onFirstAccessTrashEachTurn = fx.addPowerCounter(1);
@@ -2432,7 +2433,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first program/hardware trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstProgramOrHardwareTrashEachTurn } =
-      await import("../src/state/trashHooks.js");
+      await import("../src/state/hostingAndTrash/trashHooks.js");
     const s = createInitialState();
     const district = instantiateCard(
       "district-99",
@@ -2470,7 +2471,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first Corp card trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCorpCardTrashEachTurn } =
-      await import("../src/state/trashHooks.js");
+      await import("../src/state/hostingAndTrash/trashHooks.js");
     const s = createInitialState();
     const badge = instantiateCard(
       "solidarity-badge",
@@ -2503,7 +2504,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first Runner steal/trash at 10.3.1a (phase 3 scanner)", async () => {
     const { noteRunnerStoleOrTrashedCorpCard } =
-      await import("../src/state/trashHooks.js");
+      await import("../src/state/hostingAndTrash/trashHooks.js");
     const s = createInitialState();
     const id = s.cards[s.runner.identityId];
     id.onFirstRunnerStoleOrTrashedCorpCardThisTurn = fx.addPowerCounter(1);
@@ -2578,7 +2579,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks A Teia normal remote install at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstRemoteInstallThisTurn } =
-      await import("../src/state/trashHooks.js");
+      await import("../src/state/hostingAndTrash/trashHooks.js");
     const s = createInitialState();
     const teia = instantiateCard(
       "a-teia-ip-recovery",
@@ -3634,7 +3635,7 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
     const {
       noteFirstCorpCardInstallEachTurn,
       noteFirstCorpRootInstallEachTurn,
-    } = await import("../src/state/trashHooks.js");
+    } = await import("../src/state/hostingAndTrash/trashHooks.js");
 
     const s = createInitialState();
     const asa = instantiateCard(
@@ -3731,7 +3732,7 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
 
   it("marks Jackpot! pending when an agenda is added to the Runner score area", async () => {
     const { fireOnAgendaAddedToRunnerScore } =
-      await import("../src/state/trashHooks.js");
+      await import("../src/state/hostingAndTrash/trashHooks.js");
     const s = createInitialState();
     const jackpot = instantiateCard("jackpot", "jp-1", "runner:installed");
     const agenda = instantiateCard("hostile-takeover", "ht-1", "runner:score");
@@ -4892,7 +4893,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
 
   it("marks first event trashed at 10.3.1a (phase 3 scanner)", async () => {
     const { fireOnFirstEventTrashedThisTurn } =
-      await import("../src/state/trashHooks.js");
+      await import("../src/state/hostingAndTrash/trashHooks.js");
 
     const s = createInitialState();
     const aniccam = instantiateCard("aniccam", "an-1", "runner:installed");

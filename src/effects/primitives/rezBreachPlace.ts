@@ -11,7 +11,7 @@ import {
   controllerOf,
   discardCard,
   trashCard,
-} from "../../state/procedures/trash.js";
+} from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

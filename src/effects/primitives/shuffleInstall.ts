@@ -9,7 +9,7 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { unhostCard } from "../../state/procedures/host.js";
+import { unhostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

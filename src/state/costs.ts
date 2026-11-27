@@ -10,7 +10,10 @@ import {
   removeCardFromCurrentZone,
 } from "./scoring.js";
 import { enterSetAside } from "./zones.js";
-import { fireOnRemoveTags, fireOnTakeTagsWhenUntagged } from "./trashHooks.js";
+import {
+  fireOnRemoveTags,
+  fireOnTakeTagsWhenUntagged,
+} from "./hostingAndTrash/trashHooks.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "./triggers/companionHooks.js";
 import { fireRunnerCreditPoolEmpty } from "./triggers/storedTriggers.js";
 import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
@@ -50,8 +53,8 @@ import {
 } from "../legality/checkpoints.js";
 import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
 import { effectiveIceStrength } from "../cards/stubs.js";
-import { trashCard } from "./procedures/trash.js";
-import { hostCard } from "./procedures/host.js";
+import { trashCard } from "./hostingAndTrash/trash.js";
+import { hostCard } from "./hostingAndTrash/host.js";
 import { removeCardFromGame } from "./procedures/uninstall.js";
 
 /**

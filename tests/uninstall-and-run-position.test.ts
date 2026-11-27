@@ -19,7 +19,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import {
   isRearrangement,
   moveIce,

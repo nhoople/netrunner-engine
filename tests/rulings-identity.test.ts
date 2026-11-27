@@ -22,11 +22,11 @@ import type { GameState } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import { fx } from "../src/effects/ir.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { currentMark } from "../src/state/msKeywords.js";
 import { fireScoreOrStealSideEffects } from "../src/actions/score.js";
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";
 import {
   atCorpAction,

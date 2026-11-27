@@ -32,7 +32,7 @@ import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
 } from "../../state/install/programHardwareInstall.js";
-import { noteFirstInstallInServerRootThisTurn } from "../../state/trashHooks.js";
+import { noteFirstInstallInServerRootThisTurn } from "../../state/hostingAndTrash/trashHooks.js";
 import {
   memoryLimit,
   usedMemory,
@@ -70,8 +70,8 @@ import {
 
 import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";
-import { trashCard } from "../../state/procedures/trash.js";
-import { unhostCard } from "../../state/procedures/host.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
+import { unhostCard } from "../../state/hostingAndTrash/host.js";
 
 export function applyInstallKinds(
   ctx: EffectCtx,
