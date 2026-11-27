@@ -15,7 +15,7 @@ import {
   stealAgenda,
   tryApplyReplacement,
 } from "../src/index.js";
-import { dealDamage } from "../src/state/damage.js";
+import { dealDamage } from "../src/state/damageAndPrevention/damage.js";
 import { CR } from "../src/timing/labels.js";
 
 beforeAll(() => {

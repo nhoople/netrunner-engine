@@ -1341,7 +1341,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         }
       ],
@@ -1465,7 +1465,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#preventAllPendingNetOrMeat",
+          "site": "src/state/damageAndPrevention/damage.ts#preventAllPendingNetOrMeat",
           "kinds": []
         }
       ],
@@ -3066,7 +3066,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#resolveDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#resolveDamage",
           "kinds": []
         }
       ],
@@ -6785,7 +6785,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#resolveDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#resolveDamage",
           "kinds": []
         },
         {
@@ -6978,7 +6978,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#resolveDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#resolveDamage",
           "kinds": []
         }
       ],
@@ -10898,7 +10898,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         }
       ],
@@ -10979,7 +10979,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         }
       ],
@@ -10996,7 +10996,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/damage.ts#maybeFireFirstEmptyGripTriggers",
+          "site": "src/state/damageAndPrevention/damage.ts#maybeFireFirstEmptyGripTriggers",
           "kinds": []
         }
       ],
@@ -13233,7 +13233,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         }
       ],
@@ -13807,11 +13807,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#dealDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#dealDamage",
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#hasPayableDamageInterrupt.scan",
+          "site": "src/state/damageAndPrevention/damage.ts#hasPayableDamageInterrupt.scan",
           "kinds": []
         },
         {
@@ -14107,7 +14107,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         }
       ],
@@ -14164,7 +14164,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         }
       ],
@@ -15758,7 +15758,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         }
       ],
@@ -16002,7 +16002,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#dealDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#dealDamage",
           "kinds": []
         }
       ],
@@ -16021,7 +16021,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#chromeParlorPreventsInstallDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#chromeParlorPreventsInstallDamage",
           "kinds": []
         }
       ],
@@ -17623,11 +17623,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#openRibsPick",
+          "site": "src/state/damageAndPrevention/damage.ts#openRibsPick",
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#titaniumRibsChoosesGripTrash",
+          "site": "src/state/damageAndPrevention/damage.ts#titaniumRibsChoosesGripTrash",
           "kinds": []
         }
       ],
@@ -18455,7 +18455,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#resolveDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#resolveDamage",
           "kinds": []
         },
         {
@@ -20486,7 +20486,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#chromeParlorPreventsInstallDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#chromeParlorPreventsInstallDamage",
           "kinds": []
         },
         {
@@ -22309,27 +22309,27 @@
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#dealDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#dealDamage",
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#maybeFireFirstEmptyGripTriggers",
+          "site": "src/state/damageAndPrevention/damage.ts#maybeFireFirstEmptyGripTriggers",
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#openRibsPick",
+          "site": "src/state/damageAndPrevention/damage.ts#openRibsPick",
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#preventAllPendingNetOrMeat",
+          "site": "src/state/damageAndPrevention/damage.ts#preventAllPendingNetOrMeat",
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#resolveDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#resolveDamage",
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         },
         {
@@ -23362,7 +23362,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/damage.ts#resolveDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#resolveDamage",
           "kinds": []
         }
       ],
@@ -24359,11 +24359,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#chromeParlorPreventsInstallDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#chromeParlorPreventsInstallDamage",
           "kinds": []
         },
         {
-          "site": "src/state/damage.ts#sufferPickedDamage",
+          "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
           "kinds": []
         },
         {

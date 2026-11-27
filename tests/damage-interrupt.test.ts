@@ -23,7 +23,7 @@ beforeAll(() => {
 describe("CR G2 — damage interrupt for core + hygiene", () => {
   it("damage.ts has no leftover conflict markers", async () => {
     const { readFileSync } = await import("node:fs");
-    const src = readFileSync("src/state/damage.ts", "utf8");
+    const src = readFileSync("src/state/damageAndPrevention/damage.ts", "utf8");
     expect(src.includes("<<<<<<<")).toBe(false);
     expect(src.includes(">>>>>>>")).toBe(false);
   });

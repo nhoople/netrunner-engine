@@ -10,7 +10,7 @@ import {
   checkpointAfterInstruction,
   withCostCheckpoint,
 } from "../legality/checkpoints.js";
-import { dealDamage } from "../state/damage.js";
+import { dealDamage } from "../state/damageAndPrevention/damage.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { onCardAdvanced } from "../state/cardFlags/cardDeclarations.js";
 import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";

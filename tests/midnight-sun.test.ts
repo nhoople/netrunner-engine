@@ -54,7 +54,7 @@ import type {
 } from "../src/state/types.js";
 import type { Effect } from "../src/index.js";
 import { canScoreAgenda } from "../src/state/scoring.js";
-import { isCoreDamageType } from "../src/state/damage.js";
+import { isCoreDamageType } from "../src/state/damageAndPrevention/damage.js";
 import {
   firePowerOnHarmonicIceRez,
   syncEtrPerPowerCounterSubs,

@@ -2,7 +2,7 @@
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/createGame.js";
 import { CR } from "../../timing/labels.js";
-import { dealDamage } from "../../state/damage.js";
+import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { applyIdentityFace } from "../../state/identityFace.js";

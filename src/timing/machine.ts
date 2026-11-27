@@ -1,5 +1,5 @@
 import type { Action, GameState, RuleCite } from "../state/types.js";
-import { maybeFireFirstEmptyGripTriggers } from "../state/damage.js";
+import { maybeFireFirstEmptyGripTriggers } from "../state/damageAndPrevention/damage.js";
 import { STEPS, cursorFrom, type TimingStepDef } from "./graph.js";
 import { noteVacuousFullBreak } from "./vacuousBreak.js";
 import { currentWindow } from "../cards/stubs.js";

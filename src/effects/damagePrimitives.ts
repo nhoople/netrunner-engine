@@ -8,7 +8,7 @@ import {
   preventPendingDamage,
   addPendingDamage,
   preventAllPendingNetOrMeat,
-} from "../state/damage.js";
+} from "../state/damageAndPrevention/damage.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";

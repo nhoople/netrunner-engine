@@ -39,7 +39,7 @@ import {
 } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { beginExtraDifferentAction } from "../../state/corpActionHooks.js";
-import { dealDamage } from "../../state/damage.js";
+import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import {
   beginExpose,
   exposeLegalTargets,

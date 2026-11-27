@@ -18,7 +18,7 @@ import {
 import {
   dealDamage,
   titaniumRibsChoosesGripTrash,
-} from "../src/state/damage.js";
+} from "../src/state/damageAndPrevention/damage.js";
 import { runnerCannotPlayCurrentEvents } from "../src/state/continuous/currents.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

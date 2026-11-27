@@ -39,7 +39,10 @@ import {
   preventPendingTags,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { dealDamage, preventPendingDamage } from "../src/state/damage.js";
+import {
+  dealDamage,
+  preventPendingDamage,
+} from "../src/state/damageAndPrevention/damage.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 import { currentMark } from "../src/state/msKeywords.js";
 import { trashCard } from "../src/state/procedures/trash.js";
@@ -3595,7 +3598,7 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
 
   it("marks onFirstEmptyGrip pending when the grip empties", async () => {
     const { maybeFireFirstEmptyGripTriggers } =
-      await import("../src/state/damage.js");
+      await import("../src/state/damageAndPrevention/damage.js");
     const s = createInitialState();
     const respiro = instantiateCard(
       "respirocytes",

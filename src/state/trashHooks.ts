@@ -2,7 +2,7 @@
  * Trash-triggered card abilities (Steelskin / Mavirus-class).
  */
 
-import { dealDamage } from "./damage.js";
+import { dealDamage } from "./damageAndPrevention/damage.js";
 import { log } from "./createGame.js";
 import { trashCard } from "./procedures/trash.js";
 import type { CardInstance, GameState } from "./types.js";

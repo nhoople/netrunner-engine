@@ -11690,7 +11690,7 @@
     "sentinel-defense-program": {
       "cycle": "creation-and-control",
       "result": "matches",
-      "note": "While scored, whenever the Runner suffers core damage, 1 net damage (src/state/damage.ts)."
+      "note": "While scored, whenever the Runner suffers core damage, 1 net damage (src/state/damageAndPrevention/damage.ts)."
     },
     "seraph": {
       "cycle": "liberation",

@@ -1386,7 +1386,7 @@
     "crCite": "1.7.2b",
     "engineBugArea": "9. Damage",
     "classificationBasis": "code",
-    "classificationNote": "src/state/damage.ts flatlines the Runner as soon as core damage drops max hand size below 0. CR 1.7.2b flatlines only at the beginning of the discard step, and no discard-step check exists, so a hand size made negative by anything else never flatlines."
+    "classificationNote": "src/state/damageAndPrevention/damage.ts flatlines the Runner as soon as core damage drops max hand size below 0. CR 1.7.2b flatlines only at the beginning of the discard step, and no discard-step check exists, so a hand size made negative by anything else never flatlines."
   },
   "game.core.runs-test/run-timing-with-ice-and-a-breaker": {
     "upstreamCommit": "bc9e2fca073a5b21d247e72877804118e81d5472",

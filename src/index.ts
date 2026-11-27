@@ -396,7 +396,7 @@ export {
   resolveDamage,
   isCoreDamageType,
   hasPayableDamageInterrupt,
-} from "./state/damage.js";
+} from "./state/damageAndPrevention/damage.js";
 export {
   DEFAULT_RNG_SEED,
   setRng,

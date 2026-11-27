@@ -44,7 +44,7 @@ import { hostCard } from "../src/state/procedures/host.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { collectSubBoostEtrSubs } from "../src/state/continuous/continuousSubs.js";
-import { dealDamage } from "../src/state/damage.js";
+import { dealDamage } from "../src/state/damageAndPrevention/damage.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";
 
 beforeAll(() => {

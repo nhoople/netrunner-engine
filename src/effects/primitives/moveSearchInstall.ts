@@ -6,7 +6,7 @@ import {
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
-import { removePendingDamageEntirely } from "../../state/damage.js";
+import { removePendingDamageEntirely } from "../../state/damageAndPrevention/damage.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";

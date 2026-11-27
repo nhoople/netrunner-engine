@@ -1,27 +1,27 @@
-import { openPendingChoose } from "./triggers/pendingChoice.js";
+import { openPendingChoose } from "../triggers/pendingChoice.js";
 /** Damage types + prevention hooks (CR 10.4). */
 
-import type { Effect } from "../effects/ir.js";
-import { log } from "./createGame.js";
+import type { Effect } from "../../effects/ir.js";
+import { log } from "../createGame.js";
 import {
   beginGripOrStackTrashBatch,
   endGripOrStackTrashBatch,
-} from "./trashHooks.js";
-import type { DamageType, GameState, PaidAbility } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { recomputeRunnerMaxHandSize } from "./continuous/handSize.js";
-import { scoredAgendaMeatDamageIncrease } from "./continuous/breakerMods.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { pickRandomSubset } from "./rng.js";
-import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
-import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
-import type { StoredConditionalMark } from "./triggers/storedTriggers.js";
+} from "../trashHooks.js";
+import type { DamageType, GameState, PaidAbility } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";
+import { scoredAgendaMeatDamageIncrease } from "../continuous/breakerMods.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { pickRandomSubset } from "../rng.js";
+import { fireRunnerValTrigger } from "../../effects/sansanValHooks.js";
+import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
+import type { StoredConditionalMark } from "../triggers/storedTriggers.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "./triggers/replacements.js";
-import { controllerOf, trashCard } from "./procedures/trash.js";
+} from "../triggers/replacements.js";
+import { controllerOf, trashCard } from "../procedures/trash.js";
 
 function noteAndCheckpointStored(
   state: GameState,

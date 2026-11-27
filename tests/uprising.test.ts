@@ -24,7 +24,7 @@ import {
 } from "../src/index.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { beginCorpTurnFlags, beginRunnerTurnFlags } from "../src/state/turn.js";
-import { dealDamage } from "../src/state/damage.js";
+import { dealDamage } from "../src/state/damageAndPrevention/damage.js";
 import { agendaPointsFor } from "../src/state/scoring.js";
 import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../src/state/identityFlipHooks.js";
 import { additionalRunInitiateCredits } from "../src/state/run/runInitiateTax.js";

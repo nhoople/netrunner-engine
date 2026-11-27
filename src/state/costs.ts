@@ -4,7 +4,7 @@ import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { noteRunnerClickDuringRun } from "./clickHooks.js";
 import { iceAtRunnerPosition } from "./runPosition.js";
 import { log } from "./createGame.js";
-import { dealDamage } from "./damage.js";
+import { dealDamage } from "./damageAndPrevention/damage.js";
 import {
   moveForfeitedAgendaOutOfGame,
   removeCardFromCurrentZone,
