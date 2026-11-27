@@ -32,12 +32,6 @@ export function applyLunarUaoPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "prevent_labyrinthine_jack_out": {
-      if (!state.run) return { ok: true };
-      state.run.cannotJackOut = true;
-      log(state, `Labyrinthine Servers — Runner cannot jack out this run.`);
-      return { ok: true };
-    }
     case "universal_connectivity_fee_sub": {
       if (state.runner.tags > 0) {
         emptyRunnerCreditPool(state);

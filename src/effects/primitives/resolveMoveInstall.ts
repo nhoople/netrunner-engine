@@ -4,7 +4,6 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
-import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
@@ -187,15 +186,6 @@ export function applyKitaraWinPrimitive(
       trashCard(state, sourceId);
       log(state, `Jackpot! — take ${take}¢ and trash.`);
       return { ok: true };
-    }
-
-    case "win_viral_weaponization": {
-      const n = state.runner.hand.length;
-      if (n <= 0) {
-        log(state, `Viral Weaponization — grip empty.`);
-        return { ok: true };
-      }
-      return evalEffect(ctx, fx.do({ kind: "net_damage", amount: n }));
     }
 
     case "win_standard_procedure": {

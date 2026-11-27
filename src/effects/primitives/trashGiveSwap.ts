@@ -1,7 +1,6 @@
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { startTrace } from "../../state/turnAndActions/trace.js";
-import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
@@ -44,11 +43,6 @@ export function applySpinFalDtPrimitive(
         state,
         `Tallie Perrault — Corp takes 1 bad publicity; Runner takes 1 tag.`,
       );
-      return { ok: true };
-    }
-    case "prevent_trash_resource": {
-      preventPendingInstalledTrash(state);
-      log(state, `Fall Guy — prevent trash of another resource.`);
       return { ok: true };
     }
     case "reclamation_order_archives_to_hq": {

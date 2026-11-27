@@ -3,24 +3,13 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { chargeCard } from "../../state/keywordsAndCredits/keywords.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import type { EffectCtx } from "../eval.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function serverIdForCard(
-  state: EffectCtx["state"],
-  cardId: string,
-): ServerId | null {
-  const zone = state.cards[cardId]?.zone ?? "";
-  if (!zone.startsWith("server:")) return null;
-  const parts = zone.split(":");
-  return (parts[1] as ServerId) ?? null;
-}
 
 export function applyLunarTsPrimitive(
   ctx: EffectCtx,
@@ -121,46 +110,6 @@ export function applyLunarTsPrimitive(
         then: tag,
       });
       const r = autoResolveTrace(state, sourceId, 2, fx.seq(tag, kick), kick);
-      if (!r.ok) return { ok: false, error: r.error, cites: [] };
-      return { ok: true };
-    }
-    case "self_destruct_ability": {
-      // Printed: only during a run on this server. After paying the [trash]
-      // cost the upgrade is in Archives, so use the run's attacked server
-      // (CR 1.2.1).
-      const sid = state.run?.attackedServerId;
-      if (!sid) {
-        log(state, `Self-destruct — only during a run on this server.`);
-        return { ok: true };
-      }
-      const installedOn = serverIdForCard(state, sourceId);
-      if (installedOn && installedOn !== sid) {
-        log(state, `Self-destruct — only during a run on this server.`);
-        return { ok: true };
-      }
-      const server = state.servers[sid];
-      if (!server) return { ok: true };
-      const toTrash = [...server.root, ...server.ice].filter(
-        (id) => id !== sourceId,
-      );
-      // "Trace[X], where X is equal to the number of cards trashed": the
-      // cards this instruction trashes. Self-destruct was trashed before, as
-      // the cost, so it does not count (CR 1.2.1).
-      let trashed = 0;
-      for (const id of toTrash) {
-        const card = state.cards[id];
-        if (!card) continue;
-        trashCard(state, id, { by: "corp" });
-        if (card.zone !== "corp:archives") continue;
-        trashed += 1;
-        log(state, `Self-destruct — trash ${card.title}.`);
-      }
-      const r = autoResolveTrace(
-        state,
-        sourceId,
-        trashed,
-        fx.do({ kind: "trace_self_destruct_success" }),
-      );
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
       return { ok: true };
     }

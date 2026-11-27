@@ -1,13 +1,11 @@
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import type { EffectCtx } from "../eval.js";
-import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -17,53 +15,8 @@ export function applyFlashpointQuPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "prevent_x_damage": {
-      const pending = state.pendingDamage?.remaining ?? 0;
-      if (pending <= 0) {
-        log(state, `Recon Drone — no pending damage.`);
-        return { ok: true };
-      }
-      const maxX = Math.min(pending, state.runner.credits);
-      if (maxX <= 0) {
-        log(state, `Recon Drone — no credits to spend.`);
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (let x = 1; x <= maxX; x++) {
-        options.push({
-          id: `recon-drone-x:${x}`,
-          label: `Spend ${x}¢: prevent ${x} damage`,
-          effect: fx.do({
-            kind: "prevent_x_damage_resolve",
-            amount: x,
-          }),
-        });
-      }
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-      });
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "prevent_x_damage_resolve": {
-      const x = action.amount ?? 0;
-      if (x <= 0 || state.runner.credits < x) {
-        log(state, `Recon Drone — cannot afford ${x}¢.`);
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, x);
-      return evalEffect(
-        ctx,
-        fx.do({ kind: "prevent_pending_damage", amount: x }),
-      );
-    }
-
     case "gain_credits_per_corp_credits": {
       const gainAmt = Math.floor((state.corp.credits ?? 0) / 5);
       if (gainAmt <= 0) {
@@ -74,38 +27,6 @@ export function applyFlashpointQuPrimitive(
       log(
         state,
         `Tapwrm — gain ${gainAmt}¢ (Corp has ${state.corp.credits}¢).`,
-      );
-      return { ok: true };
-    }
-
-    case "prevent_tracker_run_chosen_first_sub": {
-      const serverId = source.chosenServerId as ServerId | undefined;
-      if (!serverId || !state.servers[serverId]) {
-        log(state, `Tracker — no chosen server.`);
-        return { ok: true };
-      }
-      if (state.run) {
-        log(state, `Tracker — already running.`);
-        return { ok: true };
-      }
-      state.run = {
-        attackedServerId: serverId,
-        phase: "initiation",
-        position: null,
-        successful: null,
-        accessedCardIds: [],
-        accessCandidates: [],
-        randomAccessLimit: null,
-        endedTheRun: false,
-        cannotJackOut: false,
-        encounter: null,
-        accessingCardId: null,
-        runSourceId: sourceId,
-        quTrackerPreventFirstSubroutine: true,
-      };
-      log(
-        state,
-        `Tracker — run ${serverId}; first subroutine that would resolve is prevented.`,
       );
       return { ok: true };
     }

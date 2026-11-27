@@ -2,18 +2,18 @@
  * Damage primitives. Deal, prevent, and pay-for-damage cases extracted from
  * eval.ts. Run-unless-damage and card-specific loops stay in the switch.
  */
-import { log } from "../state/setupAndEnd/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   dealDamage,
   preventPendingDamage,
   addPendingDamage,
   preventAllPendingNetOrMeat,
-} from "../state/damageAndPrevention/damage.js";
-import type { GameState, RuleCite } from "../state/types.js";
-import type { EffectCtx } from "./eval.js";
-import { abilityCreditTally } from "./creditTally.js";
-import { fx, type Effect, type Primitive } from "./ir.js";
-import { openPendingChoose } from "../state/triggers/pendingChoice.js";
+} from "../../state/damageAndPrevention/damage.js";
+import type { GameState, RuleCite } from "../../state/types.js";
+import type { EffectCtx } from "../eval.js";
+import { abilityCreditTally } from "../creditTally.js";
+import { fx, type Effect, type Primitive } from "../ir.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

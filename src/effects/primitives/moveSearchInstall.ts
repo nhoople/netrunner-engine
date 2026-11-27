@@ -4,7 +4,6 @@ import {
   subroutineBreakBlock,
 } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { removePendingDamageEntirely } from "../../state/damageAndPrevention/damage.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
@@ -134,49 +133,6 @@ export function applyKitaraCotcPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "cotc_no_one_home": {
-      const mode = (action as { mode?: string }).mode ?? "tags";
-      state.turn.cotcNoOneHomeUsed = true;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "noh-trace",
-            label: "Trace[0]",
-            effect: {
-              op: "do",
-              action: {
-                kind: "trace",
-                strength: 0,
-                onSuccess: fx.do({
-                  kind: "gain_credits",
-                  side: "corp",
-                  amount: 0,
-                }),
-                onFailure: fx.do({
-                  kind: "prevent_no_one_home",
-                  mode,
-                }),
-              },
-            },
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "prevent_no_one_home": {
-      const mode = (action as { mode?: string }).mode ?? "tags";
-      if (mode === "tags") {
-        if (state.pendingTags) state.pendingTags.remaining = 0;
-        log(state, `No One Home — prevent all tags.`);
-      } else {
-        removePendingDamageEntirely(state, "No One Home");
-      }
       return { ok: true };
     }
 

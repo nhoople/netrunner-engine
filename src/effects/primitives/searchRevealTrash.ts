@@ -2,10 +2,8 @@
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
-import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
-import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
 import type { RuleCite } from "../../state/types.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
@@ -20,17 +18,6 @@ import { corpCanInstallByAbility } from "../install/corpAbilityInstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-export function countRezzedNextIce(state: EffectCtx["state"]): number {
-  let n = 0;
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) {
-      const c = state.cards[id];
-      if (c?.rezzed && (c.subtypes ?? []).includes("next")) n += 1;
-    }
-  }
-  return n;
-}
 
 export function applySansanValPrimitive(
   ctx: EffectCtx,
@@ -93,17 +80,6 @@ export function applySansanValPrimitive(
         state,
         `Paige Piper — add ${taken.length} copy/copies of ${installed.title} to heap; shuffle stack.`,
       );
-      return { ok: true };
-    }
-
-    case "next_gold_net_damage": {
-      const x = countRezzedNextIce(state);
-      if (x <= 0) {
-        log(state, `NEXT Gold — X=0, no net damage.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", x, sourceId);
-      log(state, `NEXT Gold — do ${x} net damage (rezzed NEXT ice).`);
       return { ok: true };
     }
 
@@ -248,17 +224,6 @@ export function applySansanValPrimitive(
         state,
         `Genetic Resequencing — place 1 agenda counter on ${card.title} → ${card.agendaCounters}.`,
       );
-      return { ok: true };
-    }
-
-    case "net_damage_equal_unused_mu": {
-      const unused = Math.max(0, memoryLimit(state) - usedMemory(state));
-      if (unused <= 0) {
-        log(state, `Cortex Lock — 0 unused MU.`);
-        return { ok: true };
-      }
-      dealDamage(state, "net", unused, sourceId);
-      log(state, `Cortex Lock — do ${unused} net damage (unused MU).`);
       return { ok: true };
     }
 

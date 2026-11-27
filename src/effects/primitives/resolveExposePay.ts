@@ -190,26 +190,6 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "resolve_tempus": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "lose-clicks",
-            label: "Lose [click][click]",
-            effect: fx.do({ kind: "lose_tempus_clicks" }),
-          },
-          {
-            id: "core",
-            label: "Suffer 1 core damage",
-            effect: fx.do({ kind: "core_damage", amount: 1 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
     case "lose_tempus_clicks": {
       const lose = Math.min(2, state.runner.clicks);
       state.runner.clicks -= lose;
@@ -308,15 +288,6 @@ export function applyKitaraTdatdPrimitive(
         `SSO Industries — place ${amount} advancement on ${c.title} → ${c.advancementCounters}.`,
       );
       return { ok: true };
-    }
-
-    case "tdatd_city_works_meat": {
-      const adv = source?.advancementCounters ?? 0;
-      const amount = 2 + adv;
-      return evalEffect(ctx, {
-        op: "do",
-        action: { kind: "meat_damage", amount },
-      });
     }
 
     case "tdatd_oduduwa_encounter": {

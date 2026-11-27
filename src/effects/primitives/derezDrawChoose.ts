@@ -8,7 +8,6 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
-import { random } from "../../state/rng.js";
 import {
   programUseRecurringCreditsAvailable,
   spendProgramUseRecurringCredits,
@@ -263,66 +262,6 @@ export function applyRedsandTdPrimitive(
       // Events go to heap after play unless otherwise stated
       trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(state, `The Shadow Net — play ${card.title} from heap.`);
-      return { ok: true };
-    }
-
-    case "brain_rewiring_spend_credits_force_bottom_draw": {
-      const max = state.corp.credits;
-      if (max <= 0) {
-        log(state, `Brain Rewiring — no credits.`);
-        return { ok: true };
-      }
-      const gripMax = state.runner.hand.length;
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (let n = 1; n <= Math.min(max, Math.max(gripMax, 1)); n++) {
-        options.push({
-          id: `br:${n}`,
-          label: `Spend ${n}¢`,
-          effect: fx.do({
-            kind: "brain_rewiring_resolve",
-            amount: n,
-          }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "brain_rewiring_resolve": {
-      const n = action.amount ?? 0;
-      if (n <= 0) return { ok: true };
-      state.corp.credits = Math.max(0, state.corp.credits - n);
-      const grip = [...state.runner.hand];
-      const take = Math.min(n, grip.length);
-      // Random bottom
-      for (let i = 0; i < take; i++) {
-        const idx = Math.floor(random(state) * grip.length);
-        const id = grip.splice(idx, 1)[0]!;
-        state.runner.hand = state.runner.hand.filter((x) => x !== id);
-        state.runner.deck.push(id);
-        state.cards[id]!.zone = "runner:stack";
-      }
-      log(state, `Brain Rewiring — Runner bottoms ${take} at random.`);
-      return evalEffect(ctx, fx.draw("runner", 1));
-    }
-
-    case "core_or_jack_out": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "core",
-            label: "Suffer 1 core damage",
-            effect: fx.coreDamage(1),
-          },
-          {
-            id: "jack",
-            label: "Jack out (Corp gains 5¢, draws 1, trashes this)",
-            effect: fx.do({ kind: "jack_out" }),
-          },
-        ],
-      });
       return { ok: true };
     }
 

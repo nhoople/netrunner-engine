@@ -1,5 +1,4 @@
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
-import { catalogCardNames } from "../visibility/cardNames.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
@@ -13,7 +12,6 @@ import {
 } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { beginExtraDifferentAction } from "../../state/turnAndActions/corpActionHooks.js";
-import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
 import { fireOnFlipToBackIfRunMatchesFace } from "../../state/triggers/miscConditionalHooks.js";
 import {
@@ -27,7 +25,6 @@ import {
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
-import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
 import { CR } from "../../timing/labels.js";
 import { drawCards } from "../draw.js";
 import { fx } from "../ir.js";
@@ -44,8 +41,10 @@ import {
   takeFromStealthHostedCredits,
   subtractRunnerCreditPool,
 } from "../../state/keywordsAndCredits/costs.js";
-import { preventPendingExpose } from "../../state/visibility/expose.js";
 import { allSubroutinesBrokenByRunner } from "../../state/turnAndActions/break.js";
+import { shuffleRunnerStack } from "../install/runnerInstall.js";
+import { effectiveIceSubtypes } from "../../cards/stubs.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import {
   fireOnFullyBreak,
   fireOnForfeit,
@@ -55,13 +54,9 @@ import {
   offerBurnerMoves,
   startExclusiveChoicesPerPassedIce,
   offerRdArrangeChoice,
-  resumeExposeUpTo,
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
-import { shuffleRunnerStack } from "../install/runnerInstall.js";
-import { effectiveIceSubtypes } from "../../cards/stubs.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -828,57 +823,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "prevent_pending_subroutine_break": {
-      const pending = state.pendingSubroutineBreak;
-      if (!pending) {
-        log(state, `${source.title} — no pending subroutine break to prevent.`);
-        return { ok: true };
-      }
-      pending.prevented = true;
-      log(state, `${source.title} — prevent 1 subroutine from being broken.`);
-      return { ok: true };
-    }
-
-    case "prevent_pending_end_the_run_from_corp_card_ability": {
-      const pending = state.pendingEndTheRun;
-      if (!pending?.fromCorpCardAbility) {
-        log(
-          state,
-          `${source.title} — no pending Corp-card-ability end the run to prevent.`,
-        );
-        return { ok: true };
-      }
-      state.pendingEndTheRun = null;
-      log(
-        state,
-        `${source.title} — prevent Corp card ability from ending the run.`,
-      );
-      return { ok: true };
-    }
-
-    case "prevent_pending_expose": {
-      preventPendingExpose(state, action.amount);
-      resumeExposeUpTo(state);
-      return { ok: true };
-    }
-
-    case "prevent_pending_installed_trash": {
-      preventPendingInstalledTrash(state);
-      return { ok: true };
-    }
-
-    case "prevent_current_ice_on_encounter": {
-      const enc = state.run?.encounter;
-      if (!enc) {
-        log(state, `prevent_current_ice_on_encounter — no encounter.`);
-        return { ok: true };
-      }
-      enc.onEncounterPrevented = true;
-      enc.onEncounterPending = false;
-      log(state, `Prevent when encountered ability on current ice.`);
-      return { ok: true };
-    }
-
     case "break_host_subroutine": {
       const hostId = source.hostId;
       const enc = state.run?.encounter;
@@ -1307,31 +1251,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "name_net_damage_loop": {
-      // Complete Image: "Choose a card name" (CR 1.2.1). Any Runner card name
-      // may be named; the list comes from the catalog, not from the Runner's
-      // grip and stack, which the Corp may not see (CR 10.2.2a, 10.2.2b).
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: catalogCardNames((def) => def.side === "runner").map(
-          (title) => ({
-            id: `ci-name:${title}`,
-            label: `Name ${title}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "net_named" as const,
-                title,
-              },
-            },
-          }),
-        ),
-        logLine: `${source.title} — choose a card name for net damage loop.`,
-      });
-      return { ok: true };
-    }
-
     case "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice": {
       if (!state.run) {
         log(state, `${source.title} — no run for Backup Plan.`);
@@ -1404,55 +1323,6 @@ export function applyOtherKinds(
             : "") +
           `).`,
       );
-      return { ok: true };
-    }
-
-    case "net_named": {
-      const title = action.title;
-      const before = new Set(state.runner.hand);
-      const namedInGrip = state.runner.hand.filter(
-        (id) => state.cards[id]?.title === title,
-      );
-      dealDamage(state, "net", 1, sourceId);
-      // If interrupt pending, stash continuation to resume loop.
-      if (state.pendingDamage) {
-        state.pendingEffectContinuation = {
-          sourceId,
-          effects: [
-            {
-              op: "do" as const,
-              action: { kind: "net_named" as const, title },
-            },
-          ],
-        };
-        // Mark so after damage resolves we check trash — use a simpler immediate path:
-        // clear continuation; instead check after non-interactive damage below.
-        state.pendingEffectContinuation = null;
-        log(
-          state,
-          `${source.title} — net damage pending; Complete Image loop pauses (fail-closed until accepted).`,
-        );
-        return { ok: true };
-      }
-      // Non-interactive: check whether a named card left grip into heap.
-      const trashedNamed = [...before].some(
-        (id) =>
-          state.cards[id]?.title === title &&
-          state.runner.discardPile.includes(id) &&
-          !state.runner.hand.includes(id),
-      );
-      if (
-        trashedNamed ||
-        namedInGrip.some((id) => state.runner.discardPile.includes(id))
-      ) {
-        // "Repeat this process": choose a card name again, then 1 net damage.
-        log(
-          state,
-          `${source.title} — trashed ${title}; repeat Complete Image.`,
-        );
-        return applyPrimitive(ctx, { kind: "name_net_damage_loop" });
-      }
-      log(state, `${source.title} — no ${title} trashed; Complete Image ends.`);
       return { ok: true };
     }
 

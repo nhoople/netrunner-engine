@@ -158,6 +158,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
   effects/                # eval.ts: the evaluator; ir.ts: points to ir/; shared rules (credits, damage, tags, runs, counters, …)
     access/               # accessing and breaching (CR ch. 7): the breach-replacement kinds and the other access kinds
     continuous/           # effects for a duration (CR 9.10, 9.12): ice and breaker strength (iceStrength.ts), can't-restrictions (forbidKinds.ts), and the boost, grant, blank, hand-size and memory kinds
+    damageAndPrevention/  # damage and its prevention (CR 10.4): damagePrimitives.ts and the prevent kinds
     hostingAndTrash/      # hosting and trashing (CR 1.13, 1.19): corpTrash.ts, the host kinds, and the trash kinds by side and zone
     install/              # installing cards (CR 8.5): corpInstall.ts, runnerInstall.ts, installs by ability (corpAbilityInstall.ts), and the install kinds by side and zone
     ir/                   # the Effect IR types: one Primitive file per kind family (matching kinds/), conditions, effect tree, known kinds, fx builders, validation
