@@ -5,7 +5,7 @@ import { abilityCost, canPayCost, runnerCreditsFor } from "../state/costs.js";
 import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,
-} from "../state/damage.js";
+} from "../state/damageAndPrevention/damage.js";
 import { corpCreditsForTrace } from "../state/trace.js";
 import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";

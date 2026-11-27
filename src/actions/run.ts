@@ -10,7 +10,7 @@ import { evalEffect } from "../effects/eval.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { isForbidden } from "../legality/checkpoints.js";
 import { ensurePriorityWindow } from "../legality/priority.js";
-import { dealDamage } from "../state/damage.js";
+import { dealDamage } from "../state/damageAndPrevention/damage.js";
 import { additionalRunInitiateTax } from "../state/run/runInitiateTax.js";
 import {
   collectPersistentAmazeTags,

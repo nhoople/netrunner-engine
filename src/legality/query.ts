@@ -21,7 +21,7 @@ import {
 import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,
-} from "../state/damage.js";
+} from "../state/damageAndPrevention/damage.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
 
 interface WindowInfo {

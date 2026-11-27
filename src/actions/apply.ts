@@ -92,7 +92,7 @@ import {
   preventPendingDamage,
   preventPendingDamageLoseAllClicks,
   resolveChronosFirstNetPick,
-} from "../state/damage.js";
+} from "../state/damageAndPrevention/damage.js";
 import {
   acceptPendingTags,
   conditionalInterruptRequiresActiveAtOpen,

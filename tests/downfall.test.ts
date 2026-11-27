@@ -29,7 +29,7 @@ import {
   fireRemainderOfTurnOnInstallPrintedCostGte,
 } from "../src/state/install/programHardwareInstall.js";
 import { emptyTurnBookkeeping } from "../src/state/turn.js";
-import { dealDamage } from "../src/state/damage.js";
+import { dealDamage } from "../src/state/damageAndPrevention/damage.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,

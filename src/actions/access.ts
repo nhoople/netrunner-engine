@@ -5,7 +5,7 @@ import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { evalEffect } from "../effects/eval.js";
 import { canPayCost, runnerCreditsFor } from "../state/costs.js";
-import { dealDamage } from "../state/damage.js";
+import { dealDamage } from "../state/damageAndPrevention/damage.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
 import {
   fireAfterAgendaStolenHooks,

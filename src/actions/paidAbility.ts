@@ -18,7 +18,7 @@ import { facedownInstalledRunnerCard } from "../state/continuous/active.js";
 import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,
-} from "../state/damage.js";
+} from "../state/damageAndPrevention/damage.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import {
   currentWindow,

@@ -103,7 +103,10 @@ export const areas = {
   },
   damage: {
     title: "9. Damage",
-    mutate: ["src/state/damage.ts", "src/effects/damagePrimitives.ts"],
+    mutate: [
+      "src/state/damageAndPrevention/damage.ts",
+      "src/effects/damagePrimitives.ts",
+    ],
     tests: ["tests/*damage*.test.ts", "tests/cr-examples-ch10.test.ts"],
     grep: /dealDamage|resolveDamage|\bdeal_(net|meat|core|brain)_damage\b|\b10\.4\.|Titanium Ribs|Chronos Protocol/,
   },

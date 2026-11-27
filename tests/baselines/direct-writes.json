@@ -515,7 +515,7 @@
       "deck": 2,
       "hand": 2
     },
-    "src/state/damage.ts": {
+    "src/state/damageAndPrevention/damage.ts": {
       "deck": 1
     },
     "src/state/fenris.ts": {

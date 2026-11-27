@@ -9,7 +9,7 @@ import {
   activeCorpCurrentIds,
   activeRunnerCurrentIds,
 } from "./continuous/currents.js";
-import { dealDamage } from "./damage.js";
+import { dealDamage } from "./damageAndPrevention/damage.js";
 import {
   hostedCreditsSpendableDuringRuns,
   subtractRunnerCreditPool,

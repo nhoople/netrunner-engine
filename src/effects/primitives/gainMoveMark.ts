@@ -7,7 +7,10 @@ import {
   noteCorpSpentAgendaCounters,
 } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
-import { dealDamage, removePendingDamageEntirely } from "../../state/damage.js";
+import {
+  dealDamage,
+  removePendingDamageEntirely,
+} from "../../state/damageAndPrevention/damage.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { memoryLimit, usedMemory } from "../../state/turn.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

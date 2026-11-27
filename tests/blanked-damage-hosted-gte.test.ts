@@ -13,7 +13,7 @@ import {
   resolveDamage,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { maybeFireFirstEmptyGripTriggers } from "../src/state/damage.js";
+import { maybeFireFirstEmptyGripTriggers } from "../src/state/damageAndPrevention/damage.js";
 import { maybeFireHostedCreditsGte } from "../src/state/hostedCredits.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
