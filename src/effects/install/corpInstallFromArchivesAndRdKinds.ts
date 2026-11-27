@@ -19,7 +19,9 @@ import {
   shuffleCorpRdAfterSearch,
 } from "../searchAndDeck/searchAndArrange.js";
 import { offerInstallRezSplit } from "./installChoices.js";
-import { type Effect, type Primitive, fx } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import {
   corpInstallCost,

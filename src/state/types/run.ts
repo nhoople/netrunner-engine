@@ -1,6 +1,6 @@
 /** The run in progress: its phase, the current encounter, and the run's own bookkeeping. */
 
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type { StartsRunSpec } from "./abilities.js";
 import type { ServerId } from "./servers.js";
 import type { CardType } from "./shared.js";

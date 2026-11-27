@@ -15,7 +15,7 @@
  * - verbs: `PROCEDURE_VERBS` in src/effects/primitiveNames.ts;
  * - card use: every `kind` nested in the card JSON under vendor/cards-data;
  * - engine builds: a `kind: "<name>"` object property in src/ outside the
- *   IR files (src/effects/ir.ts and src/effects/ir/), or a call from outside
+ *   IR files (src/effects/ir/), or a call from outside
  *   them to an `fx` helper (src/effects/ir/fx.ts) that builds the kind.
  *
  * The output depends only on those files, so it is deterministic.
@@ -359,10 +359,10 @@ function fieldsCell(variants) {
 
 /** Build the Markdown text of docs/effect-ir-kinds.md. */
 export function buildKindReference(root = defaultRoot) {
-  // The IR: the pointer src/effects/ir.ts and the files it re-exports.
+  // The IR: the files in src/effects/ir/.
   const irDir = join(root, "src/effects/ir");
   const irDirPaths = listFiles(irDir, ".ts");
-  const irPaths = new Set([join(root, "src/effects/ir.ts"), ...irDirPaths]);
+  const irPaths = new Set(irDirPaths);
   const irSfs = irDirPaths.map(parse);
   const irFile = (name) => {
     const sf = irSfs.find((s) => s.fileName === join(irDir, name));
@@ -482,7 +482,7 @@ export function buildKindReference(root = defaultRoot) {
   );
   L.push(
     "- **Built by** says where the kind comes from. *card*: card JSON names it. " +
-      '*engine*: code in `src/` outside the IR files (`ir.ts` and `ir/`) builds it, either as a `kind: "…"` object property ' +
+      '*engine*: code in `src/` outside the IR files (`ir/`) builds it, either as a `kind: "…"` object property ' +
       "(continuations, flag-driven effects, `applyPrimitive` calls) or through an `fx` helper. " +
       "*none*: nothing builds it, but the IR still declares it.",
   );

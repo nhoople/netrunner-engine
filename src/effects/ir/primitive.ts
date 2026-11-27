@@ -1,6 +1,6 @@
 /**
  * Effect IR: the `Primitive` union, one member type per kind family.
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 import type { AddPrimitive } from "./addPrimitive.js";
 import type { BreachPrimitive } from "./breachPrimitive.js";

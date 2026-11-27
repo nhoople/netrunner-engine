@@ -3,7 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Primitive } from "../ir.js";
+import type { Primitive } from "../ir/primitive.js";
 import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import {
   creditsAvailableForInstall,

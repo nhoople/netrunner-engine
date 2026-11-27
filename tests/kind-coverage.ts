@@ -13,7 +13,7 @@
  *   expectStateDelta(before, s, { "corp.credits": -2 });
  */
 import { expect } from "vitest";
-import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir.js";
+import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir/knownKinds.js";
 import type { GameState } from "../src/state/types.js";
 
 /** Records that this `it()` covers `kind`. Fails on a kind the IR does not know. */

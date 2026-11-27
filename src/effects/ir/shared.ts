@@ -1,6 +1,6 @@
 /**
  * Effect IR: types the primitive kinds share (sides, counted amounts, pump duration).
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 export type SideRef = "corp" | "runner" | "payer" | "controller";
 

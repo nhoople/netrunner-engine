@@ -11,7 +11,7 @@ import {
   canonicalizeAbilityFlags,
   type AbilityFlagValue,
 } from "../effects/abilityRecord.js";
-import { validateEffectTree } from "../effects/ir.js";
+import { validateEffectTree } from "../effects/ir/validate.js";
 import type { CardInstance } from "../state/types.js";
 import type { CardDef } from "./cardDef.js";
 import { instantiateCard } from "./instantiateCard.js";

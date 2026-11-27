@@ -1,6 +1,6 @@
 /** The turn: its phases, and the per-turn flags abilities read (`TurnBookkeeping`). */
 
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type { InstallDestination } from "./actions.js";
 import type { StoredConditionalEffectKey } from "./pendingAbilities.js";
 import type { ServerId } from "./servers.js";
@@ -1011,7 +1011,7 @@ export interface TurnBookkeeping {
    */
   remainderOfTurnOnInstallPrintedCostGte: Array<{
     min: number;
-    effect: import("../../effects/ir.js").Effect;
+    effect: import("../../effects/ir/effect.js").Effect;
     sourceId: string;
   }>;
   /**

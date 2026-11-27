@@ -15,7 +15,9 @@ import { drawCards } from "./draw.js";
 import { shuffleRunnerStack } from "../install/runnerInstall.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { CR } from "../../timing/labels.js";
-import { type Effect, fx, type Primitive } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import { runnerWinsOnEmptyRnd } from "../../state/setupAndEnd/emptyRnd.js";
 import { random } from "../../state/rng.js";
 import {

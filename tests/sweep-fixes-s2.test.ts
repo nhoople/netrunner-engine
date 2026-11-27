@@ -25,7 +25,8 @@ import {
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
 import type { Action, ServerId } from "../src/state/types.js";
-import { fx, type Effect } from "../src/effects/ir.js";
+import { fx } from "../src/effects/ir/fx.js";
+import { type Effect } from "../src/effects/ir/effect.js";
 import {
   endLooksAndReveals,
   revealCards,

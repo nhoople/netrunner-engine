@@ -25,7 +25,8 @@ import type {
 import { CR } from "../../timing/labels.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 
 export type InstallCorpCard = Extract<Primitive, { kind: "install_corp_card" }>;
 

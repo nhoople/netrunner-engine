@@ -1,6 +1,6 @@
 /**
  * Effect IR: construction helpers for stubs and tests.
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 import type { Cond } from "./cond.js";
 import type { ChoiceOption, Effect } from "./effect.js";

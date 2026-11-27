@@ -14,7 +14,9 @@ import {
   evalEffect,
 } from "../eval.js";
 import { fireIceRezDuringRunHooks } from "./rezDuringRunHooks.js";
-import { type Effect, type Primitive, fx } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { syncEtrPerPowerCounterSubs } from "../../state/counters/powerCounters.js";
@@ -332,11 +334,13 @@ export function applyRezKinds(
         );
         return { ok: true };
       }
-      const options: import("../ir.js").ChoiceOption[] = subs.map((sub, i) => ({
-        id: `unleash-sub:${action.cardId}:${i}`,
-        label: `Resolve "${sub.text}" on ${ice.title}`,
-        effect: sub.effect,
-      }));
+      const options: import("../ir/effect.js").ChoiceOption[] = subs.map(
+        (sub, i) => ({
+          id: `unleash-sub:${action.cardId}:${i}`,
+          label: `Resolve "${sub.text}" on ${ice.title}`,
+          effect: sub.effect,
+        }),
+      );
       options.push({
         id: "decline",
         label: "Decline",
@@ -569,23 +573,25 @@ export function applyRezKinds(
         log(state, `May rez ice — no unrezzed installed ice.`);
         return { ok: true };
       }
-      const options: import("../ir.js").ChoiceOption[] = targets.map((id) => {
-        const ice = state.cards[id]!;
-        const base = ice.rezCost ?? 0;
-        const pay = Math.max(0, base - discount);
-        return {
-          id: `rez:${id}`,
-          label: `Rez ${ice.title} for ${pay}¢ (−${discount})`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "rez_ice_with_discount" as const,
-              cardId: id,
-              discount,
+      const options: import("../ir/effect.js").ChoiceOption[] = targets.map(
+        (id) => {
+          const ice = state.cards[id]!;
+          const base = ice.rezCost ?? 0;
+          const pay = Math.max(0, base - discount);
+          return {
+            id: `rez:${id}`,
+            label: `Rez ${ice.title} for ${pay}¢ (−${discount})`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "rez_ice_with_discount" as const,
+                cardId: id,
+                discount,
+              },
             },
-          },
-        };
-      });
+          };
+        },
+      );
       options.push({
         id: "decline",
         label: "Decline",

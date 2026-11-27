@@ -6,7 +6,7 @@
  */
 import type { GameState, Side } from "../../state/types.js";
 import { badPublicityConsidered } from "../../state/cardFlags/cardDeclarations.js";
-import type { CreditTally } from "../ir.js";
+import type { CreditTally } from "../ir/shared.js";
 
 export function abilityCreditTally(
   state: GameState,

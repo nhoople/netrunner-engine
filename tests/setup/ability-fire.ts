@@ -13,7 +13,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, expect, vi } from "vitest";
-import type { Effect, Primitive } from "../../src/effects/ir.js";
+import type { Effect } from "../../src/effects/ir/effect.js";
+import type { Primitive } from "../../src/effects/ir/primitive.js";
 import type { GameState } from "../../src/state/types.js";
 
 type Ctx = { state: GameState; sourceId: string };

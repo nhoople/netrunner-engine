@@ -10,7 +10,7 @@ import {
 import type { RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
-import type { Primitive } from "../ir.js";
+import type { Primitive } from "../ir/primitive.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

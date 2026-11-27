@@ -30,7 +30,7 @@ import {
   cardsDataPresent,
   crDataPresent,
 } from "../src/index.js";
-import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir.js";
+import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir/knownKinds.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

@@ -2,7 +2,7 @@
 
 import { evalEffect } from "../../effects/eval.js";
 import { firePsiCreditsRevealed } from "../triggers/storedTriggers.js";
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
 import {

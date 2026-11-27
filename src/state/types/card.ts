@@ -1,7 +1,7 @@
 /** A card in a game: `CardInstance`, with its trigger hooks and its costs and requirements in their own files. */
 
 import type { AbilityRecord } from "../../effects/abilityRecord.js";
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type {
   BreakerAbility,
   ContinuousGainedSubDecl,

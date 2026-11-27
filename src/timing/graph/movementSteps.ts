@@ -765,7 +765,7 @@ export const MOVEMENT_STEP_DEFS: Record<string, TimingStepDef> = {
               const options: Array<{
                 id: string;
                 label: string;
-                effect: import("../../effects/ir.js").Effect;
+                effect: import("../../effects/ir/effect.js").Effect;
               }> = [];
               if (s.runner.credits >= cost) {
                 options.push({
@@ -800,7 +800,7 @@ export const MOVEMENT_STEP_DEFS: Record<string, TimingStepDef> = {
           const options: Array<{
             id: string;
             label: string;
-            effect: import("../../effects/ir.js").Effect;
+            effect: import("../../effects/ir/effect.js").Effect;
           }> = [];
           if (s.runner.clicks >= tax.clicks) {
             options.push({

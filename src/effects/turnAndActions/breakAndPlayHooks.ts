@@ -6,7 +6,7 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { runnerIsTagged } from "../../state/keywordsAndCredits/tags.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { fireOnBreakSubroutineTriggers } from "../../state/triggers/cardLifecycleHooks.js";
-import type { Effect } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   fireOnGrayOrBlackOpsTrashedAfterResolve,

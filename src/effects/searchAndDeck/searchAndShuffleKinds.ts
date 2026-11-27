@@ -5,7 +5,9 @@
 import { random, shuffleInPlace } from "../../state/rng.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
+import { fx } from "../ir/fx.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { trashCard, controllerOf } from "../../state/hostingAndTrash/trash.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";

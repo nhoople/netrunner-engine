@@ -18,7 +18,7 @@ import {
   loadCardCatalog,
   playEffectFromCard,
 } from "../src/index.js";
-import type { Effect } from "../src/effects/ir.js";
+import type { Effect } from "../src/effects/ir/effect.js";
 import type { EvalResult } from "../src/effects/eval.js";
 import type { CardDef } from "../src/cards/cardDef.js";
 import type {

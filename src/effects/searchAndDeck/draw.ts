@@ -19,7 +19,8 @@ import {
   onCorpDrew,
   onRunnerDrew,
 } from "../../state/cardFlags/staticFlags.js";
-import type { Primitive, SideRef } from "../ir.js";
+import type { Primitive } from "../ir/primitive.js";
+import type { SideRef } from "../ir/shared.js";
 import { fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn } from "../../state/triggers/miscConditionalHooks.js";
 
 /** Class Act-class: installed unblanked would-draw interrupt source. */

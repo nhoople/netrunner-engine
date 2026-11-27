@@ -198,8 +198,8 @@ export interface GameState {
     bypassFirstEncounterForClicks?: number;
     bonusAccess?: number;
     skipBreach?: boolean;
-    onSuccessfulRunEffect?: import("../../effects/ir.js").Effect;
-    onRunEndEffect?: import("../../effects/ir.js").Effect;
+    onSuccessfulRunEffect?: import("../../effects/ir/effect.js").Effect;
+    onRunEndEffect?: import("../../effects/ir/effect.js").Effect;
     /** Hired Help: agenda forfeit already paid for this pending run. */
     hiredHelpAgendaTaxPaid?: boolean;
     /** Cyber Threat: the Corp cannot rez ice during this run. */

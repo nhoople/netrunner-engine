@@ -1,7 +1,7 @@
 /**
- * Effect IR: the `Primitive` members whose verb has no kind family file of its own,
- * matching `../kinds/otherKinds.ts`.
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * Effect IR: the `Primitive` members whose verb has no kind family file of its own here.
+ * Their handlers live in the area folders under `effects/`; the kind registry is `effects/coreKinds.ts`.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 import type { ChoiceOption, Effect } from "./effect.js";
 import type { CreditTally, PumpDuration, SideRef } from "./shared.js";

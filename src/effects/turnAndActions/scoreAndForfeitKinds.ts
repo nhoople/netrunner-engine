@@ -11,7 +11,9 @@ import {
 } from "../../state/turnAndActions/scoring.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
-import { type Effect, fx, type Primitive } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   applyPrimitive,

@@ -8,7 +8,7 @@ import {
   iceCannotGainAbilities,
   resolveIceSubtypes,
 } from "./continuousEffects.js";
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type {
   ContinuousGainedSubDecl,
   GameState,

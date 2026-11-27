@@ -1,6 +1,6 @@
 /** Dispatch for the procedure files split out of the effect switch. */
 import type { EffectCtx, EvalResult } from "./eval.js";
-import type { Primitive } from "./ir.js";
+import type { Primitive } from "./ir/primitive.js";
 import { applyAddKinds } from "./searchAndDeck/addKinds.js";
 import { applyBreachKinds } from "./access/breachKinds.js";
 import { applyChooseKinds } from "./triggers/chooseKinds.js";

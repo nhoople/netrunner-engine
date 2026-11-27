@@ -20,7 +20,7 @@ import {
   stealthHostedCreditsAvailable,
   runnerAvailableCredits,
 } from "../../state/keywordsAndCredits/runnerCredits.js";
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import { activeLockdownIds } from "../../state/continuous/lockdowns.js";
 import {
   activeCorpCurrentIds,

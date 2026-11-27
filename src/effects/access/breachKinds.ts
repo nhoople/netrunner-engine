@@ -5,8 +5,9 @@ import type { ServerId } from "../../state/types.js";
  */
 import { breachAlreadyReplaced } from "../../state/access/breachAlreadyReplaced.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
-import { fx } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";

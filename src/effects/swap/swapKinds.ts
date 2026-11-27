@@ -14,7 +14,9 @@ import {
   setRunnerPosition,
 } from "../../state/uninstallAndPosition/runPosition.js";
 import type { GameState, Server, ServerId } from "../../state/types.js";
-import { type Effect, type Primitive, fx } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { commitCheckpointSnapshot } from "../../state/triggers/checkpointSnapshot.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
@@ -318,7 +320,7 @@ export function applySwapKinds(
         log(state, `Yagi swap — need HQ card and attacked root/ice.`);
         return { ok: true };
       }
-      const options: import("../ir.js").ChoiceOption[] = [];
+      const options: import("../ir/effect.js").ChoiceOption[] = [];
       for (const hqId of hq) {
         for (const srvId of targets) {
           if (!canSwapIntoPlaceOf(state, server, hqId, srvId)) continue;
@@ -455,7 +457,7 @@ export function applySwapKinds(
         log(state, `Daruma swap — no other root or HQ targets.`);
         return { ok: true };
       }
-      const options: import("../ir.js").ChoiceOption[] = [];
+      const options: import("../ir/effect.js").ChoiceOption[] = [];
       for (const rootId of thisRoot) {
         for (const otherId of otherTargets) {
           options.push({

@@ -1,6 +1,6 @@
 /** The trigger hooks on a card instance: every `CardInstance` field named `on<Event>`. */
 
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 
 /**
  * The `CardInstance` fields named `on<Event>`: the card's trigger hooks.
@@ -291,11 +291,11 @@ export interface CardTriggerHooks {
   /** Puppet Master */
   onSuccessfulRunMayPlaceAdvancementOnCanBeAdvanced?: boolean;
   onSuccessfulRdRunMayReplaceSpentRecurringCredit?: boolean;
-  onUnsuccessfulRunOnThisServer?: import("../../effects/ir.js").Effect;
-  onTurnBeginIfRunnerTagged?: import("../../effects/ir.js").Effect;
-  onFirstPassIceEachTurn?: import("../../effects/ir.js").Effect;
-  onRunDeclaredOnThisServerIfTagged?: import("../../effects/ir.js").Effect;
-  onSuccessfulRunThisServer?: import("../../effects/ir.js").Effect;
+  onUnsuccessfulRunOnThisServer?: import("../../effects/ir/effect.js").Effect;
+  onTurnBeginIfRunnerTagged?: import("../../effects/ir/effect.js").Effect;
+  onFirstPassIceEachTurn?: import("../../effects/ir/effect.js").Effect;
+  onRunDeclaredOnThisServerIfTagged?: import("../../effects/ir/effect.js").Effect;
+  onSuccessfulRunThisServer?: import("../../effects/ir/effect.js").Effect;
   onTrashWhileRezzedTakeBadPublicity?: number;
   onTurnEndIfGripEmptyDrawPerPowerThenTrash?: boolean;
   onRunnerTrashFromThisServerRootOrProtecting?: Effect;
@@ -563,7 +563,7 @@ export interface CardTriggerHooks {
   /** Utopia Shard: install from grip instead of breaching HQ. */
   onGripHqSuccessInstallSelfIgnoringCosts?: boolean;
   onPassRezzedIceProtectingThisServer?: Effect;
-  onCorpRemoteServerCreated?: import("../../effects/ir.js").Effect;
+  onCorpRemoteServerCreated?: import("../../effects/ir/effect.js").Effect;
   /** Editorial: first BP take each turn. */
   onFirstBadPublicityTakeEachTurn?: Effect;
   /**

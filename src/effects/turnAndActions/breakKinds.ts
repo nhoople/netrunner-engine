@@ -29,7 +29,9 @@ import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerC
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { noteInlineConditional } from "../../state/triggers/inlineConditionalHooks.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
+import { fx } from "../ir/fx.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";

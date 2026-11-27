@@ -3,7 +3,9 @@
  * (`applyCoreKinds`) dispatches here.
  */
 import { type EffectCtx, type EvalResult, evalEffect } from "../eval.js";
-import { type Effect, type Primitive, fx } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import {
   creditsAvailableForInstall,
   subtractRunnerCreditPool,

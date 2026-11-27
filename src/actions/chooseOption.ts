@@ -1,5 +1,5 @@
 /** chooseOption: resolve the option a player picked in an open choice (the choose_option action), with the two helpers only it uses. */
-import type { Effect } from "../effects/ir.js";
+import type { Effect } from "../effects/ir/effect.js";
 import type {
   GameState,
   ApplyResult,

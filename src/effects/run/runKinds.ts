@@ -15,7 +15,9 @@ import {
 } from "../eval.js";
 import { currentMark } from "../../state/keywordsAndCredits/keywords.js";
 import type { ServerId, GameState } from "../../state/types.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
+import { fx } from "../ir/fx.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
 import { trashCard, controllerOf } from "../../state/hostingAndTrash/trash.js";
 import { applyEncounterPrimitive } from "./encounterPrimitives.js";
 import { openCardName } from "../../state/visibility/seatVisibility.js";
@@ -254,7 +256,7 @@ export function applyRunKinds(
       const options: Array<{
         id: string;
         label: string;
-        effect: import("../ir.js").Effect;
+        effect: import("../ir/effect.js").Effect;
       }> = [];
       for (const iceId of facedownIce) {
         const ice = state.cards[iceId]!;

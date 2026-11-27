@@ -20,7 +20,7 @@ import {
   queryLegality,
 } from "../src/index.js";
 import { primitiveNameFollowsStandard } from "../src/effects/primitiveNames.js";
-import type { Effect } from "../src/effects/ir.js";
+import type { Effect } from "../src/effects/ir/effect.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 
 beforeAll(() => {

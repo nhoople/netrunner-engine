@@ -23,7 +23,7 @@ import {
 } from "../src/index.js";
 import { discardPhase } from "../src/actions/phase.js";
 import { evalEffect } from "../src/effects/eval.js";
-import { fx } from "../src/effects/ir.js";
+import { fx } from "../src/effects/ir/fx.js";
 import { resolveRunnerInstallCostDelta } from "../src/state/continuous/continuousCosts.js";
 import { effectiveCorpMaxHandSize } from "../src/state/continuous/handSize.js";
 import type { Action, GameState } from "../src/state/types.js";

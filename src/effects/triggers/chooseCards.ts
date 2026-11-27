@@ -16,7 +16,8 @@ import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import { deferContinuationAfter } from "../continuation.js";
 import type { EffectCtx } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 

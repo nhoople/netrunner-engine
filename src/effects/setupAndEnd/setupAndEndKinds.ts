@@ -13,7 +13,8 @@ import {
   switchRunnerIdentity,
 } from "../../state/setupAndEnd/additionalIdentities.js";
 import { CR } from "../../timing/labels.js";
-import { fx, type Primitive } from "../ir.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 
 export function applySetupAndEndKinds(

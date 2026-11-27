@@ -769,7 +769,7 @@ export function rezAsset(state: GameState, cardId: string): ApplyResult {
     const max = card.rezSpendCreditsForPowerCounters.max;
     const affordable = Math.min(max, state.corp.credits);
     if (affordable > 0) {
-      const options: import("../effects/ir.js").ChoiceOption[] = [];
+      const options: import("../effects/ir/effect.js").ChoiceOption[] = [];
       for (let n = 0; n <= affordable; n++) {
         options.push({
           id: `rez-power:${n}`,

@@ -24,7 +24,7 @@ Card counts are from cards `v1.147.29` (2016 cards).
 
 - **Fields** come from the kind's member of the `Primitive` union, one file per kind family in `src/effects/ir/` (`Effect` reaches it through `{ op: "do"; action: Primitive }`). `?` marks an optional field. A kind with more than one member lists each, numbered.
 - **Cards** counts the cards whose `abilities` name the kind anywhere, nested or not. A card counts once however often it names the kind.
-- **Built by** says where the kind comes from. *card*: card JSON names it. *engine*: code in `src/` outside the IR files (`ir.ts` and `ir/`) builds it, either as a `kind: "…"` object property (continuations, flag-driven effects, `applyPrimitive` calls) or through an `fx` helper. *none*: nothing builds it, but the IR still declares it.
+- **Built by** says where the kind comes from. *card*: card JSON names it. *engine*: code in `src/` outside the IR files (`ir/`) builds it, either as a `kind: "…"` object property (continuations, flag-driven effects, `applyPrimitive` calls) or through an `fx` helper. *none*: nothing builds it, but the IR still declares it.
 - The engine scan reads string literals only. A kind built from a variable or a computed string is missed.
 - Kinds are grouped by verb, the first word after an optional `may_` and `corp_` or `runner_` (`PROCEDURE_VERBS` in `src/effects/primitiveNames.ts`). Kinds whose name skips the verb rule are listed last.
 

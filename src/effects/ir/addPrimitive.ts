@@ -1,7 +1,7 @@
 /**
  * Effect IR: the `Primitive` members whose procedure is add.
- * Their handlers are in `../kinds/addKinds.ts` (or elsewhere in `effects/`).
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * Their handlers live in the area folders under `effects/`; the kind registry is `effects/coreKinds.ts`.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 export type AddPrimitive =
   /** Kingmaking: may add one HQ agenda with AP ≤ max to Corp score. */

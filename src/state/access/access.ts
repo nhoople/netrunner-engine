@@ -5,7 +5,7 @@ import { openPendingChoose } from "../triggers/pendingChoice.js";
 import { log } from "../setupAndEnd/createGame.js";
 import { applyRunAccessRestrictions } from "./accessFilter.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type { GameState, ServerId } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import { maybeRipDeal } from "../cardFlags/cardDeclarations.js";

@@ -1,7 +1,7 @@
 /**
  * Effect IR: the `Primitive` members whose procedure is gain.
- * Their handlers are in `../kinds/gainKinds.ts` (or elsewhere in `effects/`).
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * Their handlers live in the area folders under `effects/`; the kind registry is `effects/coreKinds.ts`.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 import type { CreditTally, SideRef } from "./shared.js";
 

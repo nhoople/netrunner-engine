@@ -18,13 +18,11 @@ import {
 import { memoryLimit, usedMemory } from "../state/turnAndActions/turn.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import {
-  fx,
-  type Cond,
-  type Effect,
-  type Primitive,
-  type SideRef,
-} from "./ir.js";
+import { fx } from "./ir/fx.js";
+import { type Cond } from "./ir/cond.js";
+import { type Effect } from "./ir/effect.js";
+import { type Primitive } from "./ir/primitive.js";
+import { type SideRef } from "./ir/shared.js";
 import { applyCoreKinds } from "./coreKinds.js";
 
 import {

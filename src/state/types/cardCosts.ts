@@ -1,6 +1,6 @@
 /** The costs, discounts and requirements on a card instance: what it costs, and what it needs before it can be played, installed, rezzed or used. */
 
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 
 /**
  * The `CardInstance` fields whose names say Cost, Discount or Requires (and are

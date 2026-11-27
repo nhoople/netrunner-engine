@@ -8,7 +8,7 @@ import {
   moveRunnerToIce,
   moveRunnerToOutermost,
 } from "../../state/uninstallAndPosition/runPosition.js";
-import type { Primitive } from "../ir.js";
+import type { Primitive } from "../ir/primitive.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";

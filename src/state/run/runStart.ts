@@ -1,6 +1,6 @@
 /** Shared helpers for starting runs from events / paid abilities. */
 
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { currentMark } from "../keywordsAndCredits/keywords.js";
 import { agendaPointsFor } from "../turnAndActions/scoring.js";

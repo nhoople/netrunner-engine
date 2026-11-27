@@ -389,12 +389,9 @@ describe("every look and search kind", () => {
   const kinds = [
     ...new Set(
       [
-        ...[
-          "src/effects/ir.ts",
-          ...readdirSync("src/effects/ir")
-            .filter((f) => f.endsWith(".ts"))
-            .map((f) => `src/effects/ir/${f}`),
-        ]
+        ...readdirSync("src/effects/ir")
+          .filter((f) => f.endsWith(".ts"))
+          .map((f) => `src/effects/ir/${f}`)
           .map((f) => readFileSync(f, "utf8"))
           .join("\n")
           .matchAll(/"((?:look|search)_[a-z0-9_]+)"/g),

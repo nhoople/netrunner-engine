@@ -21,7 +21,7 @@ import {
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
 import { evalEffect } from "../src/effects/eval.js";
-import { fx } from "../src/effects/ir.js";
+import { fx } from "../src/effects/ir/fx.js";
 import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { openCardName } from "../src/state/visibility/seatVisibility.js";
 import type { Side } from "../src/state/types.js";

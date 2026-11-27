@@ -20,7 +20,9 @@ import {
   shuffleCorpRdAfterSearch,
   noteSearchConditionalAbilities,
 } from "../searchAndDeck/searchAndArrange.js";
-import { type Effect, type Primitive, fx } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { applyRunAccessRestrictions } from "../../state/access/accessFilter.js";
 import { log } from "../../state/setupAndEnd/createGame.js";

@@ -1,7 +1,7 @@
 /** Trace initiation and resolution (CR 10.8). */
 
 import { evalEffect, type EffectCtx } from "../../effects/eval.js";
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
