@@ -17997,7 +17997,7 @@
           "kinds": []
         },
         {
-          "site": "src/timing/breachReplacement.ts#securityTestingId",
+          "site": "src/timing/breachReplacementOrder.ts#securityTestingId",
           "kinds": []
         },
         {
@@ -21905,7 +21905,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/access/breachReplacement.ts#breachAlreadyReplaced",
+          "site": "src/state/access/breachAlreadyReplaced.ts#breachAlreadyReplaced",
           "kinds": []
         },
         {
@@ -22657,11 +22657,11 @@
           "kinds": []
         },
         {
-          "site": "src/timing/breachReplacement.ts#applySecurityTesting",
+          "site": "src/timing/breachReplacementOrder.ts#applySecurityTesting",
           "kinds": []
         },
         {
-          "site": "src/timing/breachReplacement.ts#skipSecurityTesting",
+          "site": "src/timing/breachReplacementOrder.ts#skipSecurityTesting",
           "kinds": []
         },
         {
