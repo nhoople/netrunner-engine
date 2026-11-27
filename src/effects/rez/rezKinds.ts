@@ -7,13 +7,13 @@ import { moveRunnerToIce } from "../../state/uninstallAndPosition/runPosition.js
 import {
   type EffectCtx,
   type EvalResult,
-  fireIceRezDuringRunHooks,
   applyPrimitive,
   fireHostRezStateTriggers,
   fireOnRez,
   fireOnAnyIceRez,
   evalEffect,
 } from "../eval.js";
+import { fireIceRezDuringRunHooks } from "./rezDuringRunHooks.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

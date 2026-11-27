@@ -4,8 +4,8 @@
  */
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { preventPendingExpose } from "../../state/visibility/expose.js";
+import { resumeExposeUpTo } from "../visibility/exposeAndReveal.js";
 import {
-  resumeExposeUpTo,
   applyPrimitive,
   evalEffect,
   type EffectCtx,

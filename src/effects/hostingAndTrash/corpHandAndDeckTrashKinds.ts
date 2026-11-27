@@ -13,11 +13,11 @@ import {
 } from "../../state/hostingAndTrash/trash.js";
 import {
   evalEffect,
-  offerCultivateHqChoice,
   type EvalResult,
   applyPrimitive,
   type EffectCtx,
 } from "../eval.js";
+import { offerCultivateHqChoice } from "../searchAndDeck/searchAndArrange.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { type Effect, fx, type Primitive } from "../ir.js";
 import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";

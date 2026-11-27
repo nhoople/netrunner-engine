@@ -34,9 +34,9 @@ import {
 import {
   evalEffect,
   fireHostRezStateTriggers,
-  fireIceRezDuringRunHooks,
   fireOnAnyIceRez,
 } from "../effects/eval.js";
+import { fireIceRezDuringRunHooks } from "../effects/rez/rezDuringRunHooks.js";
 import {
   fireOnForfeit,
   fireOnRez,

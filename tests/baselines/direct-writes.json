@@ -105,14 +105,6 @@
       "hand": 1,
       "zone": 1
     },
-    "src/effects/eval.ts": {
-      "deck": 4,
-      "discardPile": 1,
-      "hand": 2,
-      "installed": 1,
-      "removedFromGame": 2,
-      "zone": 5
-    },
     "src/effects/hostingAndTrash/corpHandAndDeckTrashKinds.ts": {
       "deck": 2,
       "hand": 1,
@@ -194,6 +186,13 @@
       "scoreArea": 1,
       "zone": 16
     },
+    "src/effects/install/installChoices.ts": {
+      "deck": 1,
+      "discardPile": 1,
+      "hand": 1,
+      "installed": 1,
+      "zone": 1
+    },
     "src/effects/install/runnerInstall.ts": {
       "deck": 3,
       "discardPile": 1,
@@ -258,6 +257,12 @@
       "deck": 3,
       "discardPile": 1,
       "hand": 3,
+      "zone": 4
+    },
+    "src/effects/searchAndDeck/searchAndArrange.ts": {
+      "deck": 3,
+      "hand": 1,
+      "removedFromGame": 2,
       "zone": 4
     },
     "src/effects/searchAndDeck/searchAndShuffleKinds.ts": {

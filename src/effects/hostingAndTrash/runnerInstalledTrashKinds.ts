@@ -9,12 +9,10 @@ import { trashCard, controllerOf } from "../../state/hostingAndTrash/trash.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   pendingTrashAmong,
-  applyPrimitive,
   trashInstalledLegalTargets,
   trashingKeepsScoreRestriction,
-  type EffectCtx,
-  type EvalResult,
-} from "../eval.js";
+} from "./trashTargetsAndHooks.js";
+import { applyPrimitive, type EffectCtx, type EvalResult } from "../eval.js";
 import { type Effect, fx, type Primitive } from "../ir.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import type { GameState } from "../../state/types.js";

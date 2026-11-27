@@ -12,7 +12,7 @@ import {
   removeCardFromCurrentZone,
   checkWinConditions,
 } from "../../state/turnAndActions/scoring.js";
-import { returnRdLookedToDeckTop } from "../eval.js";
+import { returnRdLookedToDeckTop } from "../searchAndDeck/searchAndArrange.js";
 import { fx } from "../ir.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";

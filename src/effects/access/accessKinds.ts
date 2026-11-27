@@ -13,11 +13,13 @@ import {
   type EffectCtx,
   type EvalResult,
   fireOnAccess,
-  shuffleCorpRdAfterSearch,
   evalEffect,
   applyPrimitive,
-  noteSearchConditionalAbilities,
 } from "../eval.js";
+import {
+  shuffleCorpRdAfterSearch,
+  noteSearchConditionalAbilities,
+} from "../searchAndDeck/searchAndArrange.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { applyRunAccessRestrictions } from "../../state/access/accessFilter.js";

@@ -4,11 +4,11 @@
 import { log } from "../state/setupAndEnd/createGame.js";
 import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
+import { evalEffect } from "../effects/eval.js";
 import {
-  evalEffect,
   fireGrayBlackOpsTrashedHooks,
   fireOnAfterOperationOrExpendable,
-} from "../effects/eval.js";
+} from "../effects/turnAndActions/breakAndPlayHooks.js";
 import { hasPlayEffect } from "../effects/abilityRecord.js";
 import {
   fireOnPlay,

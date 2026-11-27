@@ -7,13 +7,13 @@ import { revealCards } from "../../state/visibility/reveal.js";
 import {
   type EffectCtx,
   type EvalResult,
-  fireIceRezDuringRunHooks,
   evalEffect,
   applyPrimitive,
   fireOnInstall,
   fireHostRezStateTriggers,
   fireOnRez,
 } from "../eval.js";
+import { fireIceRezDuringRunHooks } from "../rez/rezDuringRunHooks.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import { serverIdForIce } from "../../cards/stubs.js";
 import {

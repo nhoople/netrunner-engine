@@ -8,15 +8,17 @@ import {
   type EffectCtx,
   type EvalResult,
   serverHostingCard,
-  returnRdLookedToDeckTop,
-  shuffleCorpRdAfterSearch,
-  offerInstallRezSplit,
   evalEffect,
   applyPrimitive,
   fireOnInstall,
   fireHostRezStateTriggers,
   fireOnRez,
 } from "../eval.js";
+import {
+  returnRdLookedToDeckTop,
+  shuffleCorpRdAfterSearch,
+} from "../searchAndDeck/searchAndArrange.js";
+import { offerInstallRezSplit } from "./installChoices.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import {

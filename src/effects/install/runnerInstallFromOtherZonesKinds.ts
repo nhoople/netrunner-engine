@@ -5,11 +5,11 @@
 import {
   type EffectCtx,
   type EvalResult,
-  finishMuseInstall,
   evalEffect,
   applyPrimitive,
   fireOnInstall,
 } from "../eval.js";
+import { finishMuseInstall } from "./installChoices.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import {
   creditsAvailableForInstall,

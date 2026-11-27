@@ -11,11 +11,8 @@ import {
   ensurePriorityWindow,
   nestPriorityAfterAbility,
 } from "../legality/priority.js";
-import {
-  evalEffect,
-  fireAfterBreakSubroutineHooks,
-  maybeFireFluxFirstBreakCharge,
-} from "../effects/eval.js";
+import { evalEffect, maybeFireFluxFirstBreakCharge } from "../effects/eval.js";
+import { fireAfterBreakSubroutineHooks } from "../effects/turnAndActions/breakAndPlayHooks.js";
 import {
   fireOnFullyBreak,
   fireOnRez,

@@ -8,13 +8,13 @@ import { revealCards } from "../../state/visibility/reveal.js";
 import {
   type EffectCtx,
   type EvalResult,
-  offerInstallRezSplit,
   evalEffect,
   applyPrimitive,
   fireOnInstall,
   fireHostRezStateTriggers,
   fireOnRez,
 } from "../eval.js";
+import { offerInstallRezSplit } from "./installChoices.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import {
   corpInstallCost,

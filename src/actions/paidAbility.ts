@@ -27,10 +27,10 @@ import {
 } from "../cards/stubs.js";
 import {
   evalEffect,
-  fireOnAfterOperationOrExpendable,
   serverHostingCard,
   validatePaidEffect,
 } from "../effects/eval.js";
+import { fireOnAfterOperationOrExpendable } from "../effects/turnAndActions/breakAndPlayHooks.js";
 import {
   abilityCost,
   abilityNeedsEncounter,
