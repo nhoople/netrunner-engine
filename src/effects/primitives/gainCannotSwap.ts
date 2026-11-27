@@ -11,11 +11,6 @@ import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir.js";
 import type { Primitive } from "../ir.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import {
-  applyContinuousGainedSubs,
-  collectTourGuideEtrSubs,
-  firstDecl,
-} from "../../state/continuous/continuousSubs.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   hostCard,
@@ -25,17 +20,6 @@ import {
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-export function syncAllTourGuideSubs(state: EffectCtx["state"]): void {
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) {
-      const ice = state.cards[id];
-      if (!ice || !firstDecl(ice, "etr_per_rezzed_asset")) continue;
-      // Blanked Tour Guide keeps only printed base subs (CR 9.12.1d).
-      applyContinuousGainedSubs(state, id, collectTourGuideEtrSubs(state, id));
-    }
-  }
-}
 
 export function applySansanUotPrimitive(
   ctx: EffectCtx,
@@ -354,33 +338,6 @@ export function applySansanUotPrimitive(
           },
         })),
       });
-      return { ok: true };
-    }
-
-    case "resolve_worlds_plaza": {
-      const cardId = action.cardId;
-      const discount = action.discount;
-      if (!state.corp.hand.includes(cardId)) return { ok: true };
-      const card = state.cards[cardId]!;
-      if (card.type !== "asset") return { ok: true };
-      const max = source.maxHostedCards ?? 3;
-      if ((source.hostedCardIds?.length ?? 0) >= max) return { ok: true };
-      const cost = Math.max(0, (card.rezCost ?? 0) - discount);
-      if (state.corp.credits < cost) {
-        log(state, `Worlds Plaza — insufficient credits to rez (${cost}¢).`);
-        return { ok: true };
-      }
-      state.corp.credits -= cost;
-      state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-      hostCard(state, card.id, sourceId, { installed: true });
-      card.zone = `hosted:${sourceId}`;
-      card.faceup = true;
-      card.rezzed = true;
-      syncAllTourGuideSubs(state);
-      log(
-        state,
-        `Worlds Plaza — install and rez ${card.title} for ${cost}¢ (−${discount}).`,
-      );
       return { ok: true };
     }
 

@@ -1,4 +1,3 @@
-import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
@@ -24,27 +23,6 @@ import {
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function installedIce(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) {
-      if (state.cards[id]) out.push(id);
-    }
-  }
-  return out;
-}
-
-function remoteIce(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const [sid, server] of Object.entries(state.servers)) {
-    if (sid === "hq" || sid === "rd" || sid === "archives") continue;
-    for (const id of server.ice) {
-      if (state.cards[id]) out.push(id);
-    }
-  }
-  return out;
-}
 
 function breakOneSub(
   state: EffectCtx["state"],
@@ -82,28 +60,6 @@ export function applyRedsandTdPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "derez_ice_rez_cost_lte_x": {
-      const x = state.turn.lastPlayCostX ?? 0;
-      const candidates = installedIce(state).filter((id) => {
-        const ice = state.cards[id];
-        return ice?.rezzed && (ice.rezCost ?? 0) <= x;
-      });
-      if (candidates.length === 0) {
-        log(state, `Brute-Force Hack — no rezzed ice with rez cost ≤ ${x}.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: candidates.map((id) => ({
-          id: `derez:${id}`,
-          label: `Derez ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "derez_card", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "corp_draw_syn_attack_discard_2_or_4": {
       const options: { id: string; label: string; effect: Effect }[] = [
         {
@@ -241,53 +197,6 @@ export function applyRedsandTdPrimitive(
       state.turn.charlatanArmed = true;
       state.pendingChoice = null;
       log(state, `Charlatan — run ${serverId}.`);
-      return { ok: true };
-    }
-
-    case "derez_remote_ice": {
-      const candidates = remoteIce(state).filter(
-        (id) => state.cards[id]?.rezzed,
-      );
-      if (candidates.length === 0) {
-        log(state, `Maxwell James — no rezzed remote ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: candidates.map((id) => ({
-          id: `derez:${id}`,
-          label: `Derez ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "derez_card", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "choose_remote_card_cannot_rez_this_turn": {
-      const candidates: string[] = [];
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (sid === "hq" || sid === "rd" || sid === "archives") continue;
-        for (const id of [...server.root, ...server.ice]) {
-          if (state.cards[id] && !state.cards[id]!.rezzed) candidates.push(id);
-        }
-      }
-      if (candidates.length === 0) {
-        log(state, `Careful Planning — no unrezzed remote cards.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: candidates.map((id) => ({
-          id: `forbid:${id}`,
-          label: `Cannot rez ${openCardName(state, id, "runner")} this turn`,
-          effect: fx.do({
-            kind: "forbid_rez",
-            cardId: id,
-          }),
-        })),
-      });
       return { ok: true };
     }
 

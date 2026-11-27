@@ -5,12 +5,6 @@
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { revealCards } from "../../state/visibility/reveal.js";
-import {
-  applyInstallCorpCard,
-  chooseCorpCardToInstall,
-  corpInstallableIds,
-  rezInstalledIgnoringCosts,
-} from "../corpAbilityInstall.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { serverIdForIce } from "../../cards/stubs.js";
@@ -72,6 +66,11 @@ import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
+import {
+  applyInstallCorpCard,
+  chooseCorpCardToInstall,
+  corpInstallableIds,
+} from "../corpAbilityInstall.js";
 
 export function applyInstallKinds(
   ctx: EffectCtx,
@@ -693,11 +692,6 @@ export function applyInstallKinds(
 
     case "install_corp_card": {
       return applyInstallCorpCard(ctx, action, evalEffect);
-    }
-
-    case "rez_installed_card_ignoring_costs": {
-      rezInstalledIgnoringCosts(state, action.cardId);
-      return { ok: true };
     }
 
     case "install_ice_inward_free": {

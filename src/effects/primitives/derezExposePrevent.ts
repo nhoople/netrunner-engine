@@ -9,8 +9,9 @@ import type { RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
+import { fx, type Primitive } from "../ir.js";
+import { rezzedIceIds } from "../rez/rezKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -18,17 +19,6 @@ type PrimResult =
 function remoteServerCount(state: EffectCtx["state"]): number {
   return Object.keys(state.servers).filter((id) => id.startsWith("remote"))
     .length;
-}
-
-function rezzedIceIds(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const iceId of server.ice) {
-      const ice = state.cards[iceId];
-      if (ice?.rezzed && ice.type === "ice") out.push(iceId);
-    }
-  }
-  return out;
 }
 
 function facedownArchivesIds(state: EffectCtx["state"]): string[] {
@@ -46,57 +36,6 @@ export function applyRedsandDcPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "derez_up_to_ice": {
-      const max = action.max ?? 3;
-      const ice = rezzedIceIds(state);
-      if (ice.length === 0 || max <= 0) {
-        log(state, `Exploit — no rezzed ice to derez.`);
-        return { ok: true };
-      }
-      return evalEffect(
-        ctx,
-        fx.do({
-          kind: "derez_up_to_ice_continue",
-          remaining: max,
-          cardIds: ice,
-        }),
-      );
-    }
-
-    case "derez_up_to_ice_continue": {
-      const remaining = action.remaining ?? 0;
-      const cardIds = (action.cardIds ?? []).filter((id) => {
-        const c = state.cards[id];
-        return c?.rezzed && c.type === "ice";
-      });
-      if (remaining <= 0 || cardIds.length === 0) {
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] =
-        cardIds.map((id) => ({
-          id: `derez:${id}`,
-          label: `Derez ${state.cards[id]!.title}`,
-          effect: {
-            op: "seq",
-            effects: [
-              fx.do({ kind: "derez_card", cardId: id }),
-              fx.do({
-                kind: "derez_up_to_ice_continue",
-                remaining: remaining - 1,
-                cardIds: cardIds.filter((x) => x !== id),
-              }),
-            ],
-          },
-        }));
-      options.push({
-        id: "done",
-        label: "Done",
-        effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-      });
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
     case "expose_non_ice_then_run": {
       const candidates = Object.values(state.cards).filter((c) => {
         if (c.side !== "corp" || c.type === "ice") return false;
@@ -253,109 +192,6 @@ export function applyRedsandDcPrimitive(
           : `${state.cards[sourceId]?.title ?? sourceId} — add a card from Archives to HQ.`,
       );
       return { ok: true };
-    }
-
-    case "rez_up_to_3_ice_discount": {
-      const forfeitedAp = state.lastForfeitedAgendaPoints ?? 1;
-      const discountPer = 2 * forfeitedAp;
-      const unrezzed: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const iceId of server.ice) {
-          const ice = state.cards[iceId];
-          if (ice && !ice.rezzed && ice.type === "ice") unrezzed.push(iceId);
-        }
-      }
-      if (unrezzed.length === 0) {
-        log(state, `Quarantine System — no unrezzed ice.`);
-        return { ok: true };
-      }
-      return evalEffect(
-        ctx,
-        fx.do({
-          kind: "rez_continue",
-          remaining: 3,
-          discount: discountPer,
-          cardIds: unrezzed,
-        }),
-      );
-    }
-
-    case "rez_continue": {
-      const remaining = action.remaining ?? 0;
-      const discount = action.discount ?? 0;
-      const cardIds = (action.cardIds ?? []).filter((id) => {
-        const c = state.cards[id];
-        return c && !c.rezzed && c.type === "ice";
-      });
-      if (remaining <= 0 || cardIds.length === 0) return { ok: true };
-      const options: { id: string; label: string; effect: Effect }[] =
-        cardIds.map((id) => {
-          const ice = state.cards[id]!;
-          const cost = Math.max(0, (ice.rezCost ?? 0) - discount);
-          return {
-            id: `rez:${id}`,
-            label: `Rez ${ice.title} for ${cost}¢ (−${discount})`,
-            effect: fx.do({
-              kind: "rez_one",
-              cardId: id,
-              discount,
-              remaining: remaining - 1,
-              cardIds: cardIds.filter((x) => x !== id),
-            }),
-          };
-        });
-      options.push({
-        id: "done",
-        label: "Done",
-        effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-      });
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "rez_one": {
-      const cardId = action.cardId!;
-      const discount = action.discount ?? 0;
-      const ice = state.cards[cardId];
-      if (!ice || ice.rezzed) {
-        return evalEffect(
-          ctx,
-          fx.do({
-            kind: "rez_continue",
-            remaining: action.remaining ?? 0,
-            discount,
-            cardIds: action.cardIds ?? [],
-          }),
-        );
-      }
-      const cost = Math.max(0, (ice.rezCost ?? 0) - discount);
-      if (state.corp.credits < cost) {
-        log(state, `Quarantine System — cannot afford ${ice.title}.`);
-        return evalEffect(
-          ctx,
-          fx.do({
-            kind: "rez_continue",
-            remaining: action.remaining ?? 0,
-            discount,
-            cardIds: action.cardIds ?? [],
-          }),
-        );
-      }
-      state.corp.credits -= cost;
-      ice.rezzed = true;
-      log(
-        state,
-        `Quarantine System — rez ${ice.title} for ${cost}¢ (discount ${discount}).`,
-      );
-      return evalEffect(
-        ctx,
-        fx.do({
-          kind: "rez_continue",
-          remaining: action.remaining ?? 0,
-          discount,
-          cardIds: action.cardIds ?? [],
-        }),
-      );
     }
 
     case "place_advancements_on_forfeit": {

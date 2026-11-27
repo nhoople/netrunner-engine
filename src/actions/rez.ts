@@ -41,8 +41,6 @@ import {
   fireOnForfeit,
   fireOnRez,
 } from "../state/triggers/cardLifecycleHooks.js";
-import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
-import { fireDagAfterCorpRez } from "../effects/primitives/hostResolveLook.js";
 import { fireSiAfterCorpRezOrPlay } from "../effects/primitives/lookTrashAdd.js";
 import {
   fireHostedCreditsOnAnyIceRez,
@@ -58,6 +56,10 @@ import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { fireOnFirstIceRezEachTurn } from "../state/triggers/miscConditionalHooks.js";
 import { random } from "../state/rng.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
+import {
+  syncAllTourGuideSubs,
+  fireDagAfterCorpRez,
+} from "../effects/rez/rezKinds.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

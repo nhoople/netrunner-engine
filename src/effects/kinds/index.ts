@@ -4,7 +4,7 @@ import type { Primitive } from "../ir.js";
 import { applyAddKinds } from "./addKinds.js";
 import { applyBreachKinds } from "../access/breachKinds.js";
 import { applyChooseKinds } from "../triggers/chooseKinds.js";
-import { applyDerezKinds } from "./derezKinds.js";
+import { applyDerezKinds } from "../rez/derezKinds.js";
 import { applyForbidKinds } from "../continuous/forbidKinds.js";
 import { applyGainKinds } from "./gainKinds.js";
 import { applyHostKinds } from "./hostKinds.js";
@@ -19,7 +19,7 @@ import { applyRemoveKinds } from "./removeKinds.js";
 import { applyResolveKinds } from "../triggers/resolveKinds.js";
 import { applyReturnKinds } from "./returnKinds.js";
 import { applyRevealKinds } from "./revealKinds.js";
-import { applyRezKinds } from "./rezKinds.js";
+import { applyRezKinds } from "../rez/rezKinds.js";
 import { applySearchKinds } from "./searchKinds.js";
 import { applySetKinds } from "./setKinds.js";
 import { applyShuffleKinds } from "./shuffleKinds.js";
@@ -30,6 +30,7 @@ import {
   applyContinuousKindsWhenSourceExists,
 } from "../continuous/continuousKinds.js";
 import { applyAccessKinds } from "../access/accessKinds.js";
+import { applyRezKindsWhenSourceExists } from "../rez/rezKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -59,6 +60,7 @@ const HANDLERS = [
   applyContinuousKinds,
   applyContinuousKindsWhenSourceExists,
   applyAccessKinds,
+  applyRezKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

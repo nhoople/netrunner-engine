@@ -133,27 +133,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "spend_lightning_counter_rez_up_to_protecting_attacked": {
-      if ((source.agendaCounters ?? 0) < 1) {
-        log(state, `${source.title} — no agenda counters.`);
-        return { ok: true };
-      }
-      source.agendaCounters = (source.agendaCounters ?? 0) - 1;
-      const maxIce = Math.max(0, action.maxIce);
-      const serverId = state.run?.attackedServerId;
-      if (serverId) {
-        state.turn.lightningPendingDerez = { serverId, maxIce };
-      }
-      log(
-        state,
-        `${source.title} — remove 1 agenda counter → ${source.agendaCounters}; rez up to ${maxIce} ice.`,
-      );
-      return applyPrimitive(ctx, {
-        kind: "rez_up_to_ice_protecting_attacked_ignore_costs",
-        maxIce,
-      });
-    }
-
     case "redirect_approach_to_server": {
       if (!state.run) {
         return {
@@ -1461,40 +1440,6 @@ export function applyOtherKinds(
       return offerRdArrangeChoice(state, sourceId);
     }
 
-    case "pick_second": {
-      const rezzed: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (id === action.firstIceId) continue;
-          if (state.cards[id]?.rezzed) rezzed.push(id);
-        }
-      }
-      if (rezzed.length === 0) {
-        return {
-          ok: false,
-          error: "realloc() — no second rezzed ice.",
-          cites: [CR.playOperation],
-        };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: rezzed.map((id) => ({
-          id: `realloc-second:${id}`,
-          label: `Choose ${state.cards[id]!.title} (2 of 2)`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "resolve_realloc" as const,
-              iceIds: [action.firstIceId, id] as [string, string],
-            },
-          },
-        })),
-        logLine: `${source.title} — choose second rezzed ice.`,
-      });
-      return { ok: true };
-    }
-
     case "pick_revealed": {
       const pick = action.cardId;
       const revealed = action.revealedIds ?? [];
@@ -2003,28 +1948,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "offer_forged_activation_orders_rez": {
-      const iceId = action.cardId;
-      const ice = iceId ? state.cards[iceId] : undefined;
-      if (!ice || ice.rezzed) return { ok: true };
-      const rezCost = ice.rezCost ?? 0;
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      if (state.corp.credits >= rezCost) {
-        options.push({
-          id: "fao-rez",
-          label: `Rez ${ice.title} for ${rezCost}¢`,
-          effect: fx.do({ kind: "rez_ice_by_id", iceId }),
-        });
-      }
-      options.push({
-        id: "fao-trash",
-        label: `Trash ${ice.title}`,
-        effect: fx.do({ kind: "trash_installed_corp_card", cardId: iceId }),
-      });
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
     case "dividends": {
       // CR 10.13.1 / 10.13.2 — use score-begin snapshot when present.
       const adv =
@@ -2243,39 +2166,6 @@ export function applyOtherKinds(
 
     case "take_different_action_paying_click_less": {
       beginExtraDifferentAction(state, sourceId);
-      return { ok: true };
-    }
-
-    case "realloc_two_rezzed_ice": {
-      const rezzed: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (state.cards[id]?.rezzed) rezzed.push(id);
-        }
-      }
-      if (rezzed.length < 2) {
-        return {
-          ok: false,
-          error: "realloc() requires 2 rezzed ice.",
-          cites: [CR.playOperation],
-        };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: rezzed.map((id) => ({
-          id: `realloc-first:${id}`,
-          label: `Choose ${state.cards[id]!.title} (1 of 2)`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "pick_second" as const,
-              firstIceId: id,
-            },
-          },
-        })),
-        logLine: `${source.title} — choose first rezzed ice.`,
-      });
       return { ok: true };
     }
 
@@ -3034,41 +2924,6 @@ export function applyOtherKinds(
         pick: "choose",
         amount: 1,
       });
-    }
-
-    case "forged_activation_orders": {
-      // Printed: "Choose 1 unrezzed piece of ice. The Corp may rez that
-      // ice. If they do not, they trash it." The Runner chooses the ice;
-      // the Corp chooses rez-or-trash.
-      const targets: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (!state.cards[id].rezzed) targets.push(id);
-        }
-      }
-      if (targets.length === 0) {
-        log(state, `Forged Activation Orders — no unrezzed ice.`);
-        return { ok: true };
-      }
-      if (targets.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "offer_forged_activation_orders_rez",
-          cardId: targets[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: targets.map((id) => ({
-          id: `fao:${id}`,
-          label: `Choose ${openCardName(state, id, "runner")}`,
-          effect: fx.do({
-            kind: "offer_forged_activation_orders_rez",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
     }
 
     case "rehost_on_other_ice": {
