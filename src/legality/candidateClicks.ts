@@ -31,7 +31,7 @@ import {
   isServerAllowedForSpec,
   serversMatchingSpec,
 } from "../state/run/runStart.js";
-import { trashInstalledLegalTargets } from "../effects/eval.js";
+import { trashInstalledLegalTargets } from "../effects/hostingAndTrash/trashTargetsAndHooks.js";
 import { syncLongTermInvestment } from "../state/cardFlags/cardDeclarations.js";
 import {
   memoryLimit,

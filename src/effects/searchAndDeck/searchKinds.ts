@@ -24,12 +24,10 @@ import { corpCardInstallable } from "../install/corpInstall.js";
 import {
   noteSearchConditionalAbilities,
   addFoundStackCardAfterSearch,
-  museEligiblePrograms,
-  serverHostingCard,
   shuffleCorpRdAfterSearch,
-  evalEffect,
-  applyPrimitive,
-} from "../eval.js";
+} from "./searchAndArrange.js";
+import { museEligiblePrograms } from "../install/installChoices.js";
+import { serverHostingCard, evalEffect, applyPrimitive } from "../eval.js";
 import {
   gripInstallCostAfterDiscount,
   searchStackProgramInstall,

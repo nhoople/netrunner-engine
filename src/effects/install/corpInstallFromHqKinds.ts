@@ -7,11 +7,11 @@ import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import {
   type EffectCtx,
   type EvalResult,
-  museZoneCards,
   evalEffect,
   applyPrimitive,
   fireOnInstall,
 } from "../eval.js";
+import { museZoneCards } from "./installChoices.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import {

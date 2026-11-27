@@ -33,7 +33,7 @@ import {
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { stealOrTrashBlocked } from "../src/actions/access.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
-import { fireIceRezDuringRunHooks } from "../src/effects/eval.js";
+import { fireIceRezDuringRunHooks } from "../src/effects/rez/rezDuringRunHooks.js";
 import { placeMark } from "../src/state/keywordsAndCredits/keywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
 

@@ -7,12 +7,12 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import {
   applyPrimitive,
-  trashInstalledLegalTargets,
   type EvalResult,
   evalEffect,
   serverHostingCard,
   type EffectCtx,
 } from "../eval.js";
+import { trashInstalledLegalTargets } from "./trashTargetsAndHooks.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { type Effect, fx, type Primitive } from "../ir.js";
 import { trashCard, controllerOf } from "../../state/hostingAndTrash/trash.js";

@@ -13,12 +13,8 @@ import {
   uninstallCard,
   removeCardFromGame,
 } from "../../state/uninstallAndPosition/uninstall.js";
-import {
-  evalEffect,
-  shuffleCorpRdAfterSearch,
-  type EffectCtx,
-  type EvalResult,
-} from "../eval.js";
+import { evalEffect, type EffectCtx, type EvalResult } from "../eval.js";
+import { shuffleCorpRdAfterSearch } from "./searchAndArrange.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { corpCanInstallByAbility } from "../install/corpAbilityInstall.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";

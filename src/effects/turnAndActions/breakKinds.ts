@@ -19,11 +19,11 @@ import {
   maybeFireFluxFirstBreakCharge,
   fireOnFullyBreak,
   evalEffect,
-  fireAfterBreakSubroutineHooks,
   applyPrimitive,
   type EffectCtx,
   type EvalResult,
 } from "../eval.js";
+import { fireAfterBreakSubroutineHooks } from "./breakAndPlayHooks.js";
 import { iceStrength } from "../continuous/iceStrength.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";

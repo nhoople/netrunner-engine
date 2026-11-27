@@ -16,10 +16,10 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   offerMayChargeCard,
   evalEffect,
-  grantAbilityCredits,
   type EffectCtx,
   type EvalResult,
 } from "../eval.js";
+import { grantAbilityCredits } from "./abilityCreditGain.js";
 import {
   chargeCard,
   chargeableInstalledIds,

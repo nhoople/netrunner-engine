@@ -4,12 +4,11 @@
  */
 import {
   applyPrimitive,
-  offerRdArrangeChoice,
-  offerBurnerMoves,
   evalEffect,
   type EffectCtx,
   type EvalResult,
 } from "../eval.js";
+import { offerRdArrangeChoice, offerBurnerMoves } from "./searchAndArrange.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { drawCards } from "./draw.js";

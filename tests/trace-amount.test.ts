@@ -26,10 +26,8 @@ import {
   lingeringBreakerStrengthOfKind,
 } from "../src/state/continuous/lingeringEffects.js";
 
-import {
-  fireAfterBreakSubroutineHooks,
-  fireOnAnyIceRez,
-} from "../src/effects/eval.js";
+import { fireAfterBreakSubroutineHooks } from "../src/effects/turnAndActions/breakAndPlayHooks.js";
+import { fireOnAnyIceRez } from "../src/effects/eval.js";
 import type { Action, GameState } from "../src/state/types.js";
 
 describe("trace-amount", () => {

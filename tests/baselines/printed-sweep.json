@@ -3873,7 +3873,7 @@
     "e3-feedback-implants": {
       "cycle": "genesis",
       "result": "matches",
-      "note": "Whenever the Runner breaks a subroutine on ice, may pay 1 to break 1 more subroutine on that ice (src/effects/eval.ts)."
+      "note": "Whenever the Runner breaks a subroutine on ice, may pay 1 to break 1 more subroutine on that ice (src/effects/turnAndActions/breakAndPlayHooks.ts)."
     },
     "early-bird": {
       "cycle": "honor-and-profit",

@@ -13,7 +13,10 @@ import {
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
-import { offerRdArrangeChoice, offerCultivateTrashChoice } from "../eval.js";
+import {
+  offerRdArrangeChoice,
+  offerCultivateTrashChoice,
+} from "../searchAndDeck/searchAndArrange.js";
 
 export function applyLookKinds(
   ctx: EffectCtx,

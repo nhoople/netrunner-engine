@@ -9,12 +9,14 @@ import { catalogCardNames } from "./cardNames.js";
 import {
   type EffectCtx,
   type EvalResult,
-  openExposeUpTo,
-  finishExposeUpTo,
-  resumeExposeUpTo,
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
+import {
+  openExposeUpTo,
+  finishExposeUpTo,
+  resumeExposeUpTo,
+} from "./exposeAndReveal.js";
 import { type Effect, type Primitive, fx } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { chooseCards } from "../triggers/chooseCards.js";

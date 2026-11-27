@@ -63,10 +63,10 @@ import {
   fireHostRezStateTriggers,
   payPendingSwapContinuation,
   resumeExclusiveChoicesIfPending,
-  resumeExposeUpTo,
   resumeContinuationsOfPausedWindows,
   resumePendingEffectContinuation,
 } from "../effects/eval.js";
+import { resumeExposeUpTo } from "../effects/visibility/exposeAndReveal.js";
 import { effectResolutionBlocked } from "../effects/continuation.js";
 import {
   fireOnAccess,

@@ -14,7 +14,7 @@ import { fireCorpIdentityFlippedFirstOperationPlay } from "../../state/setupAndE
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
-import { fireOnAfterOperationOrExpendable } from "../eval.js";
+import { fireOnAfterOperationOrExpendable } from "./breakAndPlayHooks.js";
 
 import { noteCheckpointAndResolvePlay } from "../eval.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";

@@ -23,12 +23,9 @@ import {
   effectResolutionBlocked,
 } from "../continuation.js";
 import { drawCards } from "../searchAndDeck/draw.js";
-import {
-  offerBurnerMoves,
-  grantAbilityCredits,
-  evalEffect,
-  applyPrimitive,
-} from "../eval.js";
+import { offerBurnerMoves } from "../searchAndDeck/searchAndArrange.js";
+import { grantAbilityCredits } from "../keywordsAndCredits/abilityCreditGain.js";
+import { evalEffect, applyPrimitive } from "../eval.js";
 import { fx } from "../ir.js";
 import { chooseCards } from "./chooseCards.js";
 import {

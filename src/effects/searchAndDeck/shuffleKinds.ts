@@ -12,9 +12,8 @@ import { CR } from "../../timing/labels.js";
 import {
   heapCardsWithTrashAbilities,
   rfgRunnerSetAside,
-  applyPrimitive,
-  evalEffect,
-} from "../eval.js";
+} from "./searchAndArrange.js";
+import { applyPrimitive, evalEffect } from "../eval.js";
 import {
   shuffleRunnerSetAsideIntoStack,
   shuffleRunnerStack,

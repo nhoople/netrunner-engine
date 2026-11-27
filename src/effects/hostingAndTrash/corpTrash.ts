@@ -20,7 +20,8 @@ import {
   onRunnerTrashedFromServer,
   runnerCannotTrashWhileRezzed,
 } from "../../state/cardFlags/cardDeclarations.js";
-import { evalEffect, maybeFireNuvemFirstRdTrash } from "../eval.js";
+import { evalEffect } from "../eval.js";
+import { maybeFireNuvemFirstRdTrash } from "./trashTargetsAndHooks.js";
 import { iceStrength } from "../continuous/iceStrength.js";
 import { createPendingAbilityInstance } from "../../state/triggers/pendingAbilities.js";
 import {
