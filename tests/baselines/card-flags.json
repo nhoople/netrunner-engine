@@ -1759,7 +1759,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/expose.ts#blackguardIsActive",
+          "site": "src/state/visibility/expose.ts#blackguardIsActive",
           "kinds": []
         }
       ],
@@ -2614,7 +2614,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/expose.ts#exposeLegalTargets",
+          "site": "src/state/visibility/expose.ts#exposeLegalTargets",
           "kinds": []
         }
       ],
@@ -6796,19 +6796,19 @@
           ]
         },
         {
-          "site": "src/state/reveal.ts#lookAtCards",
-          "kinds": []
-        },
-        {
-          "site": "src/state/reveal.ts#revealCards",
-          "kinds": []
-        },
-        {
           "site": "src/state/scoring.ts#effectiveAdvancementRequirement",
           "kinds": []
         },
         {
           "site": "src/state/triggers/storedTriggers.ts#sameAbility",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/reveal.ts#lookAtCards",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/reveal.ts#revealCards",
           "kinds": []
         },
         {
@@ -8345,7 +8345,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/expose.ts#completeExpose",
+          "site": "src/state/visibility/expose.ts#completeExpose",
           "kinds": []
         }
       ],
@@ -8658,7 +8658,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/expose.ts#beginExpose",
+          "site": "src/state/visibility/expose.ts#beginExpose",
           "kinds": []
         }
       ],
@@ -13815,10 +13815,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/expose.ts#hasPayableExposeInterrupt",
-          "kinds": []
-        },
-        {
           "site": "src/state/run/endTheRun.ts#hasPayableEndTheRunInterrupt",
           "kinds": []
         },
@@ -13836,6 +13832,10 @@
         },
         {
           "site": "src/state/trashPrevent.ts#hasPayableTrashInterrupt",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/expose.ts#hasPayableExposeInterrupt",
           "kinds": []
         },
         {
@@ -14240,7 +14240,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/expose.ts#completeExpose",
+          "site": "src/state/visibility/expose.ts#completeExpose",
           "kinds": []
         }
       ],
@@ -18443,14 +18443,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/expose.ts#beginExpose",
-          "kinds": []
-        },
-        {
-          "site": "src/state/expose.ts#exposeLegalTargets",
-          "kinds": []
-        },
-        {
           "site": "src/state/gamenet.ts#noteCorpAbilityCausedRunnerCreditLossOrSpend",
           "kinds": []
         },
@@ -18511,31 +18503,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/reveal.ts#lookAtCards",
-          "kinds": []
-        },
-        {
-          "site": "src/state/reveal.ts#revealCards",
-          "kinds": []
-        },
-        {
           "site": "src/state/scoring.ts#canScoreAgenda",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#hostedCardViews",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#idsHiddenFrom",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#openFace",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#seatPendingView.segment",
           "kinds": []
         },
         {
@@ -18564,6 +18532,38 @@
         },
         {
           "site": "src/state/triggers/storedTriggers.ts#fireCardConditional",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/expose.ts#beginExpose",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/expose.ts#exposeLegalTargets",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/reveal.ts#lookAtCards",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/reveal.ts#revealCards",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#hostedCardViews",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#idsHiddenFrom",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#openFace",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#seatPendingView.segment",
           "kinds": []
         },
         {
@@ -22269,22 +22269,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/expose.ts#beginExpose",
-          "kinds": []
-        },
-        {
-          "site": "src/state/expose.ts#completeExpose",
-          "kinds": []
-        },
-        {
-          "site": "src/state/expose.ts#openExposeInterruptOrComplete",
-          "kinds": []
-        },
-        {
-          "site": "src/state/expose.ts#preventPendingExpose",
-          "kinds": []
-        },
-        {
           "site": "src/state/fenris.ts#hostFenrisIdentity",
           "kinds": []
         },
@@ -22449,14 +22433,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/reveal.ts#lookAtCards",
-          "kinds": []
-        },
-        {
-          "site": "src/state/reveal.ts#revealCards",
-          "kinds": []
-        },
-        {
           "site": "src/state/run/encounterAbilityHooks.ts#noteCompileFirstEncounter",
           "kinds": []
         },
@@ -22506,18 +22482,6 @@
         },
         {
           "site": "src/state/scoring.ts#stealAgenda",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#hostedCardViews",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#openCardName",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#openFace",
           "kinds": []
         },
         {
@@ -22778,6 +22742,42 @@
         },
         {
           "site": "src/state/triggers/strengthIncrease.ts#applyBreakerStrengthIncrease",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/expose.ts#beginExpose",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/expose.ts#completeExpose",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/expose.ts#openExposeInterruptOrComplete",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/expose.ts#preventPendingExpose",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/reveal.ts#lookAtCards",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/reveal.ts#revealCards",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#hostedCardViews",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#openCardName",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#openFace",
           "kinds": []
         },
         {
@@ -24340,10 +24340,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/expose.ts#beginExpose",
-          "kinds": []
-        },
-        {
           "site": "src/state/fenris.ts#legalFenrisHostIds",
           "kinds": []
         },
@@ -24404,18 +24400,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/seatVisibility.ts#hostedCardViews",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#idsHiddenFrom",
-          "kinds": []
-        },
-        {
-          "site": "src/state/seatVisibility.ts#openFace",
-          "kinds": []
-        },
-        {
           "site": "src/state/staticFlags.ts#corpIceInstallBlockReason",
           "kinds": []
         },
@@ -24472,6 +24456,22 @@
         },
         {
           "site": "src/state/turn.ts#programMemoryCosts",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/expose.ts#beginExpose",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#hostedCardViews",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#idsHiddenFrom",
+          "kinds": []
+        },
+        {
+          "site": "src/state/visibility/seatVisibility.ts#openFace",
           "kinds": []
         },
         {

@@ -1,5 +1,5 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import { addOutermostIce, moveRunnerToIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import { corpInstallCost } from "../../state/costs.js";

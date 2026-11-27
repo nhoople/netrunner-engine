@@ -1,5 +1,5 @@
 /** The Universe of Tomorrow (uot) SanSan pack primitives. */
-import { openCardName } from "../../state/seatVisibility.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
 import {
   resolveChronosFirstNetPick,
   resolveRibsPick,

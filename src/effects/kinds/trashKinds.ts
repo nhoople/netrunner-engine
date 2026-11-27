@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is trash.
  * The effect switch in eval.ts dispatches here.
  */
-import { openCardName } from "../../state/seatVisibility.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { facedownInstalledRunnerCard } from "../../state/continuous/active.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";

@@ -1,4 +1,4 @@
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** Magnum Opus (mo) primitives — v1.142.0. */

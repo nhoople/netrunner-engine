@@ -184,8 +184,8 @@ describe("CR citation topics (CR audit 1.5b)", () => {
     const flagged = mismatches.filter((m) => /^1\.18(?:\.|$)/.test(m.number));
     expect(visibility.map((c) => `${c.file} ${c.number}`).sort()).toEqual([
       "src/api/library.ts 1.18.1",
-      "src/state/seatVisibility.ts 1.18",
       "src/state/types/publicView.ts 1.18.1",
+      "src/state/visibility/seatVisibility.ts 1.18",
     ]);
     expect(flagged.map((m) => `${m.file}:${m.line}`).sort()).toEqual(
       visibility.map((c) => `${c.file}:${c.line}`).sort(),

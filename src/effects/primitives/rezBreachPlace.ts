@@ -1,7 +1,7 @@
 /** Business First (bf) Mumbad pack primitives — v1.117.0. */
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";

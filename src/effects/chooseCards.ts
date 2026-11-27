@@ -7,7 +7,7 @@
  * possible. CR 5.5.4c: cards discarded to hand size are chosen by the
  * discarding player and discarded simultaneously.
  */
-import { openCardName } from "../state/seatVisibility.js";
+import { openCardName } from "../state/visibility/seatVisibility.js";
 import { log } from "../state/createGame.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
@@ -18,7 +18,7 @@ import { deferContinuationAfter } from "./continuation.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
 import { trashCard } from "../state/procedures/trash.js";
-import { revealCards } from "../state/reveal.js";
+import { revealCards } from "../state/visibility/reveal.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

@@ -3480,7 +3480,7 @@ describe("interrupt expected effects (CR 9.9.2)", () => {
 
   it("tracks expected expose via the interrupt opener and clears it when prevented", async () => {
     const { beginExpose, preventPendingExpose } =
-      await import("../src/state/expose.js");
+      await import("../src/state/visibility/expose.js");
     const s = createInitialState();
     s.servers["remote-1"] = {
       id: "remote-1",

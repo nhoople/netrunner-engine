@@ -1,5 +1,5 @@
 /** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
-import { openCardName } from "../../state/seatVisibility.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import {
   markSubroutineBroken,

@@ -1,5 +1,5 @@
 /** Up and Over (uao) Lunar pack primitives. */
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/createGame.js";
 import { CR } from "../../timing/labels.js";
 import {

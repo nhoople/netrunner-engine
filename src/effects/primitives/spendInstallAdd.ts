@@ -3,7 +3,7 @@ import {
   markSubroutineBroken,
   subroutineBreakBlock,
 } from "../../state/procedures/break.js";
-import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { CR } from "../../timing/labels.js";

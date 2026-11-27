@@ -1,5 +1,5 @@
 /** Democracy and Dogma (dag) Mumbad pack primitives — v1.118.0. */
-import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";

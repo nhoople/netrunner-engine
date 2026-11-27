@@ -1,5 +1,5 @@
 /** The Valley (val) SanSan pack primitives. */
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { dealDamage } from "../../state/damage.js";

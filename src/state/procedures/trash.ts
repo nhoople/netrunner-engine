@@ -58,7 +58,7 @@ import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { shuffleInPlace } from "../rng.js";
 import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";
 import { unhostCard } from "./host.js";
-import { runnerSeesAccessedCard } from "../seatVisibility.js";
+import { runnerSeesAccessedCard } from "../visibility/seatVisibility.js";
 
 export type TrashBy = "corp" | "runner";
 

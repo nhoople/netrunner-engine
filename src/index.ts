@@ -512,7 +512,7 @@ export {
   iceFaceVisible,
   hostedCardViews,
   runnerSeesAccessedCard,
-} from "./state/seatVisibility.js";
+} from "./state/visibility/seatVisibility.js";
 export {
   serversMatchingSpec,
   isServerAllowedForSpec,

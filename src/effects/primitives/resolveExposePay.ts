@@ -1,9 +1,9 @@
-import { openCardName } from "../../state/seatVisibility.js";
-import { lookAtCards } from "../../state/reveal.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
+import { lookAtCards } from "../../state/visibility/reveal.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** The Devil and the Dragon (tdatd) Kitara pack primitives — v1.139.0. */
 import { log } from "../../state/createGame.js";
-import { beginExpose } from "../../state/expose.js";
+import { beginExpose } from "../../state/visibility/expose.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
