@@ -33,18 +33,7 @@ Pin story for a clean checkout:
 2. **Fetch** into gitignored `vendor/` (CI and local tests both need this).
 3. **Run** tests or development hosts that call the library API.
 
-```bash
-npm install
-npm run prepare-data         # npm run fetch-cr && npm run fetch-cards → vendor/
-# or separately:
-npm run fetch-cr             # pinned CR JSON → vendor/cr-data/
-npm run fetch-cards          # pinned card JSON → vendor/cards-data/
-npm run lint                 # eslint (recommended ruleset)
-npm run typecheck            # tsc --noEmit
-npm test                     # vitest; needs both vendor trees
-```
-
-CI runs `lint`, `typecheck`, and `test` on every PR. Fix only what those surface — no separate Prettier pass.
+The setup command and the checks to run before a commit (the same ones CI runs) are in [`AGENTS.md`](AGENTS.md), their one home. `npm run fetch-cr` and `npm run fetch-cards` fetch one pin each; `npm run prepare-data` runs both.
 
 If the cards-data GitHub tag is not yet published, `fetch-cards` falls back to a local checkout at `../netrunner-cards-data`, `/home/ubuntu/repos/netrunner-cards-data`, or `$CARDS_DATA_ROOT`.
 
@@ -152,31 +141,31 @@ Card abilities are a hand-authored effect language evaluated by `evalEffect`, no
 
 ## Layout
 
+Every top-level folder and every folder under `src/` is listed here; `tests/readme-layout.test.ts` fails on a folder this map leaves out or names wrongly. No `src/` file may pass 2,000 lines (`tests/src-file-size.test.ts`); the files already over it are on a shrink-only list, `tests/baselines/src-file-size.json`.
+
 ```
-data/
-  cr-pin.json      # CR tag pin
-  cards-pin.json   # cards-data tag pin
-vendor/
-  cr-data/         # npm run fetch-cr
-  cards-data/      # npm run fetch-cards (gitignored)
-src/
-  api/library.ts          # createGame / applyIntent / getPublicView
-  effects/eval.ts         # effect evaluator; the kind switch is effects/kinds/
-  effects/kinds/          # one file per procedure in the kind switch
-  effects/primitives/     # printed procedures grouped by verb, not by pack
-  effects/*Primitives.ts  # shared rules (credits, damage, tags, runs, counters, …)
-  cards/                  # load + short-game setup + runtime helpers
-  timing/
-  legality/candidates.ts  # collectCandidateActions coordinator
-  legality/candidate*.ts  # pending interrupts, run windows, click actions
-  actions/apply.ts        # applyAction and choice dispatch
-  actions/                # install, run, rez, break, play, score, access, phase
-  demo/verticalSlice.ts
-tests/
-  confidence-*.test.ts          # interaction smoke / cross-pack / cannot / goldens / fail-closed
-  fixtures/goldens/             # regression transcripts (see README there)
-  cr-*.test.ts                  # CR adherence lock-ins
-  short-game.test.ts
-  system-gateway.test.ts
-  …
+data/                # pins: cr-pin.json (CR tag), cards-pin.json (cards-data tag); cr-term-map.json
+docs/                # Effect IR grammar and generated kind reference, CR adherence gate, pin bump checklist, mutation scores
+scripts/             # fetch the pinned data, seeded playouts, generators for baselines and the kind reference
+stryker/             # mutation-test configs, one per CR audit area (local runs only)
+src/                 # index.ts: the package entry; cli.ts: the development host
+  actions/           # apply.ts: applyAction and choice dispatch; install, run, rez, break, play, score, access, phase
+  api/               # library.ts: createGame / queryLegality / applyIntent / getPublicView
+  cards/             # load.ts: the card loader; short-game setup and runtime helpers
+  cr/                # reads the pinned CR data in vendor/cr-data/
+  debug/             # hooks tests set: invariants after each action, timing steps, legality agreement
+  demo/              # scripted games and test drivers for the demos
+  effects/           # ir.ts: Effect IR kinds and types; eval.ts: the evaluator; shared rules (credits, damage, tags, runs, counters, …)
+    kinds/           # one file per procedure in the kind switch
+    primitives/      # printed procedures grouped by verb, not by pack
+  legality/          # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
+  state/             # types.ts: game state types; costs, run position, seat visibility, and the hooks each timing point fires
+    procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break
+  timing/            # graph.ts: the timing step graph (CR 11.2–11.5); machine.ts: stepping through it
+tests/               # vitest suites, grouped by file name prefix (confidence-*, cr-*, blanked-*, …)
+  baselines/         # shrink-only baselines the guard tests read
+  fixtures/          # goldens/: regression transcripts (see the README there); game exports, playout seeds
+vendor/              # pinned data, fetched by npm run prepare-data
+  cr-data/           # Comprehensive Rules JSON (nodes.json is gitignored)
+  cards-data/        # card definitions (gitignored)
 ```
