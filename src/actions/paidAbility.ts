@@ -6,7 +6,7 @@ import { trashInterruptRelevant } from "../state/hostingAndTrash/trashPrevent.js
 import {
   paidAbilityBreakBlock,
   subroutinesBrokenByRunnerCount,
-} from "../state/procedures/break.js";
+} from "../state/turnAndActions/break.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import { drawCards } from "../effects/draw.js";
@@ -45,10 +45,10 @@ import {
   returnSetAsideAdvancements,
   returnSetAsideVirusCounters,
 } from "../state/keywordsAndCredits/costs.js";
-import { noteCorpActionType } from "../state/corpActionHooks.js";
+import { noteCorpActionType } from "../state/turnAndActions/corpActionHooks.js";
 import { beginBreachAccess } from "../state/access/access.js";
 import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
-import { agendaPointsFor } from "../state/scoring.js";
+import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import {
   hasAbilityFlag,
   syncPaidAbilitiesFromRecords,
@@ -62,7 +62,7 @@ import {
   wasAbilityUsed,
   wasAbilityUsedThisEncounter,
   wasAbilityUsedThisRun,
-} from "../state/turn.js";
+} from "../state/turnAndActions/turn.js";
 import {
   ensurePriorityWindow,
   nestPriorityAfterAbility,

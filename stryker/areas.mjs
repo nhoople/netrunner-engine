@@ -4,7 +4,8 @@
  * Each area lists the helper files Stryker mutates and how to pick the tests
  * that should kill those mutants. The scope follows the Areas table in the
  * meta repo's docs/plans/cr-audit-standardization-program.md. When an area's
- * session moves a procedure into src/state/procedures/, add that module here.
+ * session moves a procedure into its area folder (src/state/<area>/), add
+ * that module here.
  *
  * Tests are picked two ways, and the union is used:
  *   - `tests`: globs of test files named for the area;

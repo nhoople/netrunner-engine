@@ -17,13 +17,13 @@ import {
 } from "../src/index.js";
 import { onAccessed } from "../src/state/cardFlags/cardDeclarations.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
-import { runnerPsiSpendable } from "../src/state/psi.js";
+import { runnerPsiSpendable } from "../src/state/turnAndActions/psi.js";
 import { CR } from "../src/timing/labels.js";
 import {
   markAbilityUsed,
   wasAbilityUsed,
   memoryLimit,
-} from "../src/state/turn.js";
+} from "../src/state/turnAndActions/turn.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";

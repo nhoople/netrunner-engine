@@ -1,7 +1,7 @@
 /**
  * Rezzing ice and assets, including rez-cost modifiers.
  */
-import { moveForfeitedAgendaOutOfGame } from "../state/scoring.js";
+import { moveForfeitedAgendaOutOfGame } from "../state/turnAndActions/scoring.js";
 import { iceAtRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
 import { subtractRunnerCreditPool } from "../state/keywordsAndCredits/costs.js";
 import { log } from "../state/setupAndEnd/createGame.js";

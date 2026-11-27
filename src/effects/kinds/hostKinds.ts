@@ -12,7 +12,7 @@ import {
 } from "../../state/setupAndEnd/additionalIdentities.js";
 import { cancelPendingIfSourceInactive } from "../../state/triggers/pendingAbilities.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { CR } from "../../timing/labels.js";
 import { applyPrimitive, evalEffect } from "../eval.js";
 import { chooseCards } from "../chooseCards.js";

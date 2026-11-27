@@ -36,17 +36,17 @@ import {
   memoryLimit,
   memoryNeededToInstall,
   usedMemory,
-} from "../src/state/turn.js";
+} from "../src/state/turnAndActions/turn.js";
 import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { runnerInstallCost } from "../src/actions/installRunner.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
-import { noteOnRunnerTurnEnd } from "../src/state/runnerTurnEndHooks.js";
+import { noteOnRunnerTurnEnd } from "../src/state/turnAndActions/runnerTurnEndHooks.js";
 import { applyRunAccessRestrictions } from "../src/state/access/accessFilter.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
 import {
   actionMeetsFirstClickMust,
   firstClickMustBlocks,
-} from "../src/state/firstClickMust.js";
+} from "../src/state/turnAndActions/firstClickMust.js";
 import {
   effectiveBreakerStrength,
   effectiveIceStrength,
@@ -56,7 +56,7 @@ import { noteVacuousFullBreak } from "../src/timing/vacuousBreak.js";
 import {
   agendaPointsFor,
   effectiveAdvancementRequirement,
-} from "../src/state/scoring.js";
+} from "../src/state/turnAndActions/scoring.js";
 import {
   mayAdvanceInstalledCard,
   printsCanBeAdvanced,

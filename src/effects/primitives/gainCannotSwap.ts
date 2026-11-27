@@ -6,7 +6,7 @@ import {
 } from "../../state/damageAndPrevention/damage.js";
 import { setRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir.js";
 import type { Primitive } from "../ir.js";

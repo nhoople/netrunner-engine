@@ -5,7 +5,7 @@
 import { log } from "../state/setupAndEnd/createGame.js";
 import { fireFirstBadPublicityTake } from "../state/keywordsAndCredits/badPublicityHooks.js";
 import { fireWouldTakeBadPublicity } from "../state/triggers/storedTriggers.js";
-import { checkWinConditions } from "../state/scoring.js";
+import { checkWinConditions } from "../state/turnAndActions/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";

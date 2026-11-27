@@ -26,12 +26,12 @@ import {
   effectiveBreakerStrength,
   playEffectFromCard,
 } from "../src/index.js";
-import { memoryLimit, usedMemory } from "../src/state/turn.js";
+import { memoryLimit, usedMemory } from "../src/state/turnAndActions/turn.js";
 import {
   beginBreachAccess,
   refreshRdDeckCandidate,
 } from "../src/state/access/access.js";
-import { corpCreditsForTrace } from "../src/state/trace.js";
+import { corpCreditsForTrace } from "../src/state/turnAndActions/trace.js";
 import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
@@ -39,7 +39,7 @@ import {
 import { fireHostedCreditsOnAnyIceRez } from "../src/state/counters/powerCounters.js";
 import { modifiersFromStartsRun } from "../src/state/run/runStart.js";
 import type { GameState } from "../src/state/types.js";
-import { noteRunnerClickSpend } from "../src/state/clickHooks.js";
+import { noteRunnerClickSpend } from "../src/state/turnAndActions/clickHooks.js";
 
 describe("system-core-2019", () => {
   describe("sc19-v159-kickoff", () => {

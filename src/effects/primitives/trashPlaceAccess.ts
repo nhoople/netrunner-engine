@@ -6,7 +6,7 @@ import {
   legalRebirthIdentityIds,
   switchRunnerIdentity,
 } from "../../state/setupAndEnd/additionalIdentities.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import {
   fireOnAgendaAddedToRunnerScore,
   recomputeRunnerLink,

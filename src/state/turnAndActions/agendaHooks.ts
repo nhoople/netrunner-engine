@@ -1,7 +1,7 @@
 /** First agenda scored/stolen this turn (Phật Gioan-class). */
 
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
 
 /**
  * Phật Gioan-class: first agenda scored or stolen this turn. Records the

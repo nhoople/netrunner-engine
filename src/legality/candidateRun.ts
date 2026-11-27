@@ -17,7 +17,7 @@ import {
   runnerAvailableCredits,
 } from "../state/keywordsAndCredits/costs.js";
 import { directHostedTakeFromEmpty } from "../state/keywordsAndCredits/hostedCredits.js";
-import { agendaPointsFor } from "../state/scoring.js";
+import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import { accessLimitEndsBreach } from "../state/access/access.js";
 import { additionalRunInitiateTax } from "../state/run/runInitiateTax.js";
 import {
@@ -28,7 +28,7 @@ import {
   wasAbilityUsed,
   wasAbilityUsedThisEncounter,
   wasAbilityUsedThisRun,
-} from "../state/turn.js";
+} from "../state/turnAndActions/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
   naviMumbaiBlocksPaidAbilities,
@@ -43,7 +43,7 @@ import {
   subroutineBreakBlock,
   subroutineBrokenByRunner,
   subroutinesBrokenByRunnerCount,
-} from "../state/procedures/break.js";
+} from "../state/turnAndActions/break.js";
 import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
 import type { PaidAbilityWindow } from "../state/types.js";
 import type { TimingStepDef } from "../timing/graph.js";

@@ -33,7 +33,7 @@ import {
   spendCreditsForInstall,
 } from "../src/state/keywordsAndCredits/costs.js";
 import type { ServerId } from "../src/state/types.js";
-import { beginRunnerTurnFlags } from "../src/state/turn.js";
+import { beginRunnerTurnFlags } from "../src/state/turnAndActions/turn.js";
 import { isRunTargetAllowed } from "../src/state/run/runLegality.js";
 import { noteProgramOrHardwareInstalled } from "../src/state/install/programHardwareInstall.js";
 import {
@@ -42,7 +42,7 @@ import {
   noteFirstCorpRootInstallEachTurn,
   noteFirstCorpCardTrashEachTurn,
 } from "../src/state/hostingAndTrash/trashHooks.js";
-import { noteCorpActionType } from "../src/state/corpActionHooks.js";
+import { noteCorpActionType } from "../src/state/turnAndActions/corpActionHooks.js";
 
 describe("the-automata-initiative", () => {
   describe("tai-b1001-umbrella-pichacao-cybersand-urban", () => {

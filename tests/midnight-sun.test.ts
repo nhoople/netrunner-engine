@@ -39,7 +39,7 @@ import {
   resolveAndAdvance,
   playEffectFromCard,
 } from "../src/index.js";
-import { triesteForbidsRunnerBreak } from "../src/state/procedures/break.js";
+import { triesteForbidsRunnerBreak } from "../src/state/turnAndActions/break.js";
 import {
   addBreakerStrengthBoostThisRun,
   addIceStrengthBoostThisEncounter,
@@ -53,14 +53,14 @@ import type {
   StartsRunSpec,
 } from "../src/state/types.js";
 import type { Effect } from "../src/index.js";
-import { canScoreAgenda } from "../src/state/scoring.js";
+import { canScoreAgenda } from "../src/state/turnAndActions/scoring.js";
 import { isCoreDamageType } from "../src/state/damageAndPrevention/damage.js";
 import {
   firePowerOnHarmonicIceRez,
   syncEtrPerPowerCounterSubs,
 } from "../src/state/counters/powerCounters.js";
 import { purgeVirusCounters } from "../src/state/hostingAndTrash/trashHooks.js";
-import { beginCorpTurnFlags } from "../src/state/turn.js";
+import { beginCorpTurnFlags } from "../src/state/turnAndActions/turn.js";
 import { noteInstalledCardCreditSpend } from "../src/state/keywordsAndCredits/costs.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
 import {

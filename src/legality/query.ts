@@ -5,10 +5,13 @@ import {
 import type { Action, GameState, RuleCite, Side } from "../state/types.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
 import { costBeginsWithClick } from "../state/keywordsAndCredits/costs.js";
-import { extraDifferentActionRefusal } from "../state/corpActionHooks.js";
+import { extraDifferentActionRefusal } from "../state/turnAndActions/corpActionHooks.js";
 import { actionAllowedHere, getStep } from "../timing/machine.js";
 import { CR } from "../timing/labels.js";
-import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
+import {
+  corpPsiSpendable,
+  runnerPsiSpendable,
+} from "../state/turnAndActions/psi.js";
 import { isForbidden } from "./checkpoints.js";
 import { collectCandidateActions } from "./candidates.js";
 import { pendingStepOpen } from "./candidatePending.js";

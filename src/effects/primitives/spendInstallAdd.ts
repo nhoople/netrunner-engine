@@ -2,17 +2,17 @@
 import {
   markSubroutineBroken,
   subroutineBreakBlock,
-} from "../../state/procedures/break.js";
+} from "../../state/turnAndActions/break.js";
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
-import { startPsiGame } from "../../state/psi.js";
+import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import {
   agendaPointsFor,
   effectiveAdvancementRequirement,
-} from "../../state/scoring.js";
+} from "../../state/turnAndActions/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { serverIdForIce } from "../../cards/stubs.js";
@@ -21,7 +21,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
-import { resetEncounterBreaks } from "../../state/procedures/break.js";
+import { resetEncounterBreaks } from "../../state/turnAndActions/break.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

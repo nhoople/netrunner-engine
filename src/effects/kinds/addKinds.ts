@@ -11,7 +11,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   removeCardFromCurrentZone,
   checkWinConditions,
-} from "../../state/scoring.js";
+} from "../../state/turnAndActions/scoring.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
 import { fireOnAgendaAddedToRunnerScore } from "../../state/hostingAndTrash/trashHooks.js";

@@ -5,7 +5,7 @@
 import { trashCard } from "../hostingAndTrash/trash.js";
 import { log } from "../setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { agendaPointsFor } from "../scoring.js";
+import { agendaPointsFor } from "../turnAndActions/scoring.js";
 import type { CardInstance, GameState, ServerId } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import { fireWouldTakeBadPublicity } from "../triggers/storedTriggers.js";

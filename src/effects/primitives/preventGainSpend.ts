@@ -6,7 +6,7 @@ import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.j
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
-import { removeCardFromCurrentZone } from "../../state/scoring.js";
+import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import type { EffectCtx } from "../eval.js";

@@ -6,7 +6,7 @@ import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { isCardActive } from "../state/continuous/active.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { CR } from "../timing/labels.js";
-import { agendaPointsFor } from "../state/scoring.js";
+import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import {
   fireCorpOnTrash,
   fireCotcOnCorpCardTrashed,

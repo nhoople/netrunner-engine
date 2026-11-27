@@ -7,7 +7,7 @@
  * the encountered ice." CR 9.3.6c says the same of the interface flag. About
  * 38 programs break only through a paid ability, and that path checked no
  * strength, so a strength-1 Curupira broke a strength-3 Wall of Static. Every
- * break now calls the one check in `src/state/procedures/break.ts`.
+ * break now calls the one check in `src/state/turnAndActions/break.ts`.
  *
  * The check is keyed on what an ability does, not on the card data's
  * `interface` flag: 69 pump abilities carry that flag although their printed
@@ -33,7 +33,7 @@ import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import {
   breakActionCost,
   paidAbilityBreakBlock,
-} from "../src/state/procedures/break.js";
+} from "../src/state/turnAndActions/break.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

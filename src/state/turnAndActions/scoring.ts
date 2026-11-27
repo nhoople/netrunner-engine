@@ -1,27 +1,27 @@
 /** Agenda scoring / stealing and game-end checks. */
 
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { isCardActive } from "./continuous/active.js";
-import { log } from "./setupAndEnd/createGame.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { isCardActive } from "../continuous/active.js";
+import { log } from "../setupAndEnd/createGame.js";
 import {
   trashCorpCurrentsOnAgendaStolen,
   trashCurrentsOnAgendaScored,
-} from "./continuous/currents.js";
+} from "../continuous/currents.js";
 import {
   fireOnAgendaAddedToRunnerScore,
   noteRunnerStoleOrTrashedCorpCard,
-} from "./hostingAndTrash/trashHooks.js";
-import type { CardInstance, GameState, Side } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { noteIceUninstalled } from "./uninstallAndPosition/runPosition.js";
+} from "../hostingAndTrash/trashHooks.js";
+import type { CardInstance, GameState, Side } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { noteIceUninstalled } from "../uninstallAndPosition/runPosition.js";
 import {
   onAgendaScored,
   runnerHeapLocked,
-} from "./cardFlags/cardDeclarations.js";
+} from "../cardFlags/cardDeclarations.js";
 import {
   allocateEffectIdentity,
   tryApplyReplacement,
-} from "./triggers/replacements.js";
+} from "../triggers/replacements.js";
 
 /**
  * The Board: "Each agenda in the Runner's score area is worth 1 less agenda
@@ -329,7 +329,7 @@ export function scoreAgenda(state: GameState, cardId: string): void {
   card.zone = "corp:score";
   card.faceup = true;
   card.rezzed = true;
-  card.scoredFromServerId = serverId as import("./types.js").ServerId;
+  card.scoredFromServerId = serverId as import("../types.js").ServerId;
   card.scoredThisTurn = true;
   onAgendaScored(state, card);
   // Hosted advancement counters are removed when the agenda is scored

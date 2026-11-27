@@ -8,12 +8,12 @@ import type { Effect, Primitive } from "../ir.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { stealAgenda } from "../../state/scoring.js";
+import { stealAgenda } from "../../state/turnAndActions/scoring.js";
 import {
   memoryLimit,
   usedMemory,
   memoryNeededToInstall,
-} from "../../state/turn.js";
+} from "../../state/turnAndActions/turn.js";
 import { enterSetAside } from "../../state/zones.js";
 import { resolveBreachReplacement } from "../../timing/breachReplacement.js";
 import { CR } from "../../timing/labels.js";

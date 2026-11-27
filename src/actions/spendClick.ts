@@ -2,7 +2,7 @@
  * Spending one click of the active player.
  */
 import { activePlayer } from "../state/setupAndEnd/createGame.js";
-import { noteRunnerClickSpend } from "../state/clickHooks.js";
+import { noteRunnerClickSpend } from "../state/turnAndActions/clickHooks.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";

@@ -16,9 +16,15 @@ import {
 } from "../state/triggers/cardLifecycleHooks.js";
 import { noteAccessTrash } from "../state/hostingAndTrash/trashHooks.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardFlags/cardDeclarations.js";
-import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
+import {
+  removeCardFromCurrentZone,
+  stealAgenda,
+} from "../state/turnAndActions/scoring.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/continuous/lockdowns.js";
-import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
+import {
+  programBannedThisRun,
+  wasAbilityUsed,
+} from "../state/turnAndActions/turn.js";
 import { autoWalk, enterStep } from "../timing/machine.js";
 import type {
   ApplyResult,

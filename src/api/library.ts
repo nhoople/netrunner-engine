@@ -8,7 +8,7 @@ import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/setupAndEnd/createGame.js";
 import { seedRng } from "../state/rng.js";
 import { gripRevealed } from "../state/cardFlags/cardDeclarations.js";
-import { agendaPointsFor } from "../state/scoring.js";
+import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import {
   choiceHiddenFrom,
   hostedCardViews,

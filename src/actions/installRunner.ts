@@ -34,7 +34,7 @@ import {
   memoryLimit,
   usedMemory,
   memoryNeededToInstall,
-} from "../state/turn.js";
+} from "../state/turnAndActions/turn.js";
 import type {
   ApplyResult,
   GameState,

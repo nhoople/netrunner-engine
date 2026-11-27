@@ -43,7 +43,7 @@ import {
   effectiveRunnerTags,
   runnerIsTagged,
 } from "../state/keywordsAndCredits/tags.js";
-import { noteCorpActionType } from "../state/corpActionHooks.js";
+import { noteCorpActionType } from "../state/turnAndActions/corpActionHooks.js";
 import {
   enterLingeringPlayArea,
   leaveLingeringPlayAreaBag,
@@ -65,7 +65,7 @@ import { hostedPlayableAsGrip } from "./installRunner.js";
 import { finishRunReturnToAction, startRun } from "./run.js";
 import { spendClick } from "./spendClick.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
-import { agendaPointsFor } from "../state/scoring.js";
+import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { unhostCard } from "../state/hostingAndTrash/host.js";
 

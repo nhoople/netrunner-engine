@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is rez.
  * The effect switch in eval.ts dispatches here.
  */
-import { moveForfeitedAgendaOutOfGame } from "../../state/scoring.js";
+import { moveForfeitedAgendaOutOfGame } from "../../state/turnAndActions/scoring.js";
 import { moveRunnerToIce } from "../../state/uninstallAndPosition/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";

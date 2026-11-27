@@ -4,7 +4,7 @@
 import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
 import { DEFAULT_CONFIG } from "../state/setupAndEnd/createGame.js";
 import { recomputeRunnerLink } from "../state/hostingAndTrash/trashHooks.js";
-import { emptyTurnBookkeeping } from "../state/turn.js";
+import { emptyTurnBookkeeping } from "../state/turnAndActions/turn.js";
 import type {
   CardInstance,
   GameConfig,

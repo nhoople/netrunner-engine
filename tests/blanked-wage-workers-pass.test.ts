@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { noteCorpActionType } from "../src/state/corpActionHooks.js";
+import { noteCorpActionType } from "../src/state/turnAndActions/corpActionHooks.js";
 import {
   fireOnPassRezzedIceProtectingThisServer,
   fireOnPassUnrezzedIce,

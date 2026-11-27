@@ -1,11 +1,11 @@
 /** The Source (ts) Lunar pack primitives. */
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
-import { breakNextSubroutines } from "../../state/procedures/break.js";
+import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { addIceStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
-import { autoResolveTrace } from "../../state/trace.js";
+import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { chargeCard } from "../../state/keywordsAndCredits/keywords.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import {

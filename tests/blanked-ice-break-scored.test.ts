@@ -15,7 +15,7 @@ import {
 } from "../src/index.js";
 import { scoredAgendaMeatDamageIncrease } from "../src/state/continuous/breakerMods.js";
 import { geneticsPavilionDrawLimit } from "../src/state/cardFlags/staticFlags.js";
-import { startTrace, spendLink } from "../src/state/trace.js";
+import { startTrace, spendLink } from "../src/state/turnAndActions/trace.js";
 import { fx } from "../src/effects/ir.js";
 import {
   clearSuppressedAbilities,

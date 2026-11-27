@@ -1,9 +1,9 @@
 /** All That Remains (atr) Lunar pack primitives. */
-import { whenScoredEffect } from "../../state/whenScored.js";
+import { whenScoredEffect } from "../../state/turnAndActions/whenScored.js";
 import { CR } from "../../timing/labels.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
-import { autoResolveTrace } from "../../state/trace.js";
+import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { syncCorpHandSizeSubroutines } from "../../state/continuous/handSizeSubroutines.js";
 import type { RuleCite } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";

@@ -11,7 +11,7 @@ import {
   agendaCounterPoints,
   removeCardFromCurrentZone,
   checkWinConditions,
-} from "../../state/scoring.js";
+} from "../../state/turnAndActions/scoring.js";
 import { returnRdLookedToDeckTop } from "../eval.js";
 import { fx } from "../ir.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";

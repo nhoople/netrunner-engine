@@ -26,7 +26,7 @@ import {
   STEPS,
 } from "../src/index.js";
 import { revealCards } from "../src/state/visibility/reveal.js";
-import { removeCardFromCurrentZone } from "../src/state/scoring.js";
+import { removeCardFromCurrentZone } from "../src/state/turnAndActions/scoring.js";
 import type { Action, GameState } from "../src/state/types.js";
 
 beforeAll(() => {

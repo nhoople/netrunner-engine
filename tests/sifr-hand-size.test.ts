@@ -15,7 +15,7 @@ import {
 } from "../src/index.js";
 import type { GameState, ServerId } from "../src/index.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
-import { beginRunnerTurnFlags } from "../src/state/turn.js";
+import { beginRunnerTurnFlags } from "../src/state/turnAndActions/turn.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

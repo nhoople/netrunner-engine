@@ -12,7 +12,7 @@ import { fireRunnerValTrigger } from "./sansanValHooks.js";
 import {
   maybeFireSeidrOnClickSpendOrLose,
   noteRunnerClickDuringRun,
-} from "../state/clickHooks.js";
+} from "../state/turnAndActions/clickHooks.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

@@ -13,7 +13,7 @@ import {
   resolveAndAdvance,
 } from "../src/index.js";
 import { computeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
-import { memoryLimit } from "../src/state/turn.js";
+import { memoryLimit } from "../src/state/turnAndActions/turn.js";
 import { runnerInstallCost } from "../src/actions/installRunner.js";
 import {
   agendaPointMu,

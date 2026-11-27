@@ -2,11 +2,11 @@
  * Runner click spend/lose hooks shared by action apply and encounter graph
  * (Sundew spend credits; Seidr first click during run).
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./setupAndEnd/createGame.js";
-import { emptyRunnerCreditPool } from "./keywordsAndCredits/costs.js";
-import type { GameState } from "./types.js";
-import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../setupAndEnd/createGame.js";
+import { emptyRunnerCreditPool } from "../keywordsAndCredits/costs.js";
+import type { GameState } from "../types.js";
+import { fireRunnerValTrigger } from "../../effects/sansanValHooks.js";
 
 /** Sundew: first Runner click-spend this turn → Corp gains credits. */
 function maybeFireSundewOnClickSpend(state: GameState): void {

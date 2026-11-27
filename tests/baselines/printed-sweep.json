@@ -513,7 +513,7 @@
       "abilities": [
         "2[credit]: +3 strength."
       ],
-      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: the breaker declaration's cannotInterfaceRemoteIce, read in interfaceBlock (src/state/procedures/break.ts), so it cannot interface with ice protecting a remote server. FX-pump (engine#976) fixed the pump and strength.",
+      "note": "Card JSON (cards v1.147.27, engine#1002 pins it) and engine: the breaker declaration's cannotInterfaceRemoteIce, read in interfaceBlock (src/state/turnAndActions/break.ts), so it cannot interface with ice protecting a remote server. FX-pump (engine#976) fixed the pump and strength.",
       "cr": [
         "9.3.6c",
         "1.2.1"
@@ -2249,7 +2249,7 @@
     "chakana": {
       "cycle": "creation-and-control",
       "result": "matches",
-      "note": "Successful R&D run: 1 virus counter; with 3 or more, every agenda's advancement requirement +1 (src/state/scoring.ts)."
+      "note": "Successful R&D run: 1 virus counter; with 3 or more, every agenda's advancement requirement +1 (src/state/turnAndActions/scoring.ts)."
     },
     "chameleon": {
       "cycle": "sansan",
@@ -2349,7 +2349,7 @@
     "chilo-city-grid": {
       "cycle": "genesis",
       "result": "matches",
-      "note": "Region; a successful trace during a run on this server gives 1 tag (only the attacked server's root fires, src/state/trace.ts)."
+      "note": "Region; a successful trace during a run on this server gives 1 tag (only the attacked server's root fires, src/state/turnAndActions/trace.ts)."
     },
     "chimera": {
       "cycle": "genesis",
@@ -5659,7 +5659,7 @@
     "harmony-medtech-biomedical-pioneer": {
       "cycle": "honor-and-profit",
       "result": "matches",
-      "note": "Each player needs 1 fewer agenda point to win (src/state/scoring.ts); minimum deck 40."
+      "note": "Each player needs 1 fewer agenda point to win (src/state/turnAndActions/scoring.ts); minimum deck 40."
     },
     "harvester": {
       "cycle": "mumbad",
@@ -6123,7 +6123,7 @@
       "abilities": [
         "The first time each turn you reveal secretly spent credits, gain that many credits."
       ],
-      "note": "Resolved inline in resolvePsi (src/state/psi.ts), not at the next checkpoint after bids are revealed (10.14.5), with no abilitiesSuppressed check; it also fires in Corp-guess psi variants, where the Corp spent nothing, gaining the guess. The once-per-turn flag is set only on a bid above 0 (cr-checker: the CR does not settle whether a 0 bid is the first reveal).",
+      "note": "Resolved inline in resolvePsi (src/state/turnAndActions/psi.ts), not at the next checkpoint after bids are revealed (10.14.5), with no abilitiesSuppressed check; it also fires in Corp-guess psi variants, where the Corp spent nothing, gaining the guess. The once-per-turn flag is set only on a bid above 0 (cr-checker: the CR does not settle whether a 0 bid is the first reveal).",
       "cr": [
         "10.14.5",
         "10.14.3"

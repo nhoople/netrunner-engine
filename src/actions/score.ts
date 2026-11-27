@@ -2,7 +2,7 @@
  * Advancing a card and scoring an agenda.
  * Stealing during a run stays with access resolution.
  */
-import { whenScoredEffect } from "../state/whenScored.js";
+import { whenScoredEffect } from "../state/turnAndActions/whenScored.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { evalEffect } from "../effects/eval.js";
@@ -11,19 +11,19 @@ import {
   withCostCheckpoint,
 } from "../legality/checkpoints.js";
 import { dealDamage } from "../state/damageAndPrevention/damage.js";
-import { noteCorpActionType } from "../state/corpActionHooks.js";
+import { noteCorpActionType } from "../state/turnAndActions/corpActionHooks.js";
 import { onCardAdvanced } from "../state/cardFlags/cardDeclarations.js";
 import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
 import { noteStoredConditional } from "../state/triggers/storedConditionalHooks.js";
 import { fireFirstAdvancementOnServer } from "../state/triggers/storedTriggers.js";
-import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
+import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/turnAndActions/agendaHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import {
   canScoreAgenda,
   checkWinConditions,
   effectiveAdvancementRequirement,
   scoreAgenda,
-} from "../state/scoring.js";
+} from "../state/turnAndActions/scoring.js";
 import { syncGainsSubroutinesPerAdvancement } from "../state/counters/powerCounters.js";
 import {
   applyAdvanceIceRecurringTowardAdvance,

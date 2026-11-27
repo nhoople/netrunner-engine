@@ -56,7 +56,7 @@ import {
 } from "../src/index.js";
 import { drawCards } from "../src/effects/draw.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
-import { removeCardFromCurrentZone } from "../src/state/scoring.js";
+import { removeCardFromCurrentZone } from "../src/state/turnAndActions/scoring.js";
 import { mayLookAtHiddenZone } from "../src/state/searchAndDeck/hiddenSearch.js";
 import {
   addBreakerStrengthBoostThisRun,

@@ -12,7 +12,7 @@ import {
 } from "../state/keywordsAndCredits/costs.js";
 import { noteInstalledThisTurn } from "../state/install/programHardwareInstall.js";
 import { iceInstallCapRefuses } from "../state/cardFlags/staticFlags.js";
-import { cardBecameNewObject } from "../state/turn.js";
+import { cardBecameNewObject } from "../state/turnAndActions/turn.js";
 import type { GameState, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { type EffectCtx, type EvalResult } from "./eval.js";

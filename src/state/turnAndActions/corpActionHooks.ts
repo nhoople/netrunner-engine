@@ -1,9 +1,9 @@
-import { syncPaidAbilitiesFromRecords } from "../effects/abilityRecord.js";
-import { CR } from "../timing/labels.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { costBeginsWithClick } from "./keywordsAndCredits/costs.js";
-import { log } from "./setupAndEnd/createGame.js";
-import type { Action, GameState, PaidAbility, RuleCite } from "./types.js";
+import { syncPaidAbilitiesFromRecords } from "../../effects/abilityRecord.js";
+import { CR } from "../../timing/labels.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { costBeginsWithClick } from "../keywordsAndCredits/costs.js";
+import { log } from "../setupAndEnd/createGame.js";
+import type { Action, GameState, PaidAbility, RuleCite } from "../types.js";
 
 /**
  * Corp action tracking (Wage Workers + MirrorMorph). `actionKind` names the

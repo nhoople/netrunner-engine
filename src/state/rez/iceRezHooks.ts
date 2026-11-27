@@ -3,7 +3,7 @@
  * Host / any-ice / protecting-server notes for 10.3.1a (phase 3).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { agendaPointsFor } from "../scoring.js";
+import { agendaPointsFor } from "../turnAndActions/scoring.js";
 import type { GameState, StoredConditionalEffectKey } from "../types.js";
 import { syncMauiRecurringCredits } from "../../effects/primitives/chooseGainShuffle.js";
 import { noteBypassTriggers } from "../run/bypassHooks.js";

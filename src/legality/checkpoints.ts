@@ -17,7 +17,11 @@ import type {
   Side,
   StoredConditionalEffectKey,
 } from "../state/types.js";
-import { memoryLimit, programMemoryCosts, usedMemory } from "../state/turn.js";
+import {
+  memoryLimit,
+  programMemoryCosts,
+  usedMemory,
+} from "../state/turnAndActions/turn.js";
 import { CR } from "../timing/labels.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
@@ -28,7 +32,10 @@ import {
 } from "../effects/sansanValHooks.js";
 import { firstUnsuccessfulRunSourceIds } from "../state/run/unsuccessfulRunHooks.js";
 import { firstSuccessfulRunSourceIds } from "../state/run/firstSuccessfulRunHooks.js";
-import { agendaPointsFor, checkWinConditions } from "../state/scoring.js";
+import {
+  agendaPointsFor,
+  checkWinConditions,
+} from "../state/turnAndActions/scoring.js";
 import { trashDurationPassedCurrents } from "../state/continuous/currents.js";
 import { removeRevertedHostDurations } from "../state/triggers/hostDuration.js";
 import { clearAppliedReplacements } from "../state/triggers/replacements.js";

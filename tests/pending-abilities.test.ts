@@ -918,7 +918,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnCorpTurnBegin } =
-      await import("../src/state/corpTurnBeginHooks.js");
+      await import("../src/state/turnAndActions/corpTurnBeginHooks.js");
     const s = createInitialState();
     const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
     s.cards["dd-1"] = dealer;
@@ -1580,7 +1580,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Corp action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteCorpActionPhaseEnd } =
-      await import("../src/state/phaseEndHooks.js");
+      await import("../src/state/turnAndActions/phaseEndHooks.js");
     const s = createInitialState();
     const mercia = instantiateCard("mercia-b4ll4rd", "mer-1", "corp:identity");
     s.cards["mer-1"] = mercia;
@@ -1609,7 +1609,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Runner action-phase-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteRunnerActionPhaseEnd } =
-      await import("../src/state/phaseEndHooks.js");
+      await import("../src/state/turnAndActions/phaseEndHooks.js");
     const s = createInitialState();
     const cacophony = instantiateCard("cacophony", "cac-1", "runner:installed");
     s.cards["cac-1"] = cacophony;
@@ -1809,7 +1809,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Tennin Corp turn-begin at 10.3.1a (phase 3 scanner)", async () => {
     const { noteCorpTenninTurnBegin } =
-      await import("../src/state/corpTurnBeginHooks.js");
+      await import("../src/state/turnAndActions/corpTurnBeginHooks.js");
     const s = createInitialState();
     const id = instantiateCard(
       "tennin-institute-the-secrets-within",
@@ -1845,7 +1845,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks onScoreTurnEnd at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnScoreTurnEnd } =
-      await import("../src/state/corpTurnEndHooks.js");
+      await import("../src/state/turnAndActions/corpTurnEndHooks.js");
     const s = createInitialState();
     const agenda = instantiateCard("viral-weaponization", "vw-1", "corp:score");
     agenda.scoredThisTurn = true;
@@ -1871,7 +1871,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Runner turn-begin at 10.3.1a (phase 3 scanner)", async () => {
     const { noteRunnerRigTurnBegin } =
-      await import("../src/state/runnerTurnBeginHooks.js");
+      await import("../src/state/turnAndActions/runnerTurnBeginHooks.js");
     const s = createInitialState();
     const aesop = instantiateCard(
       "aesops-pawnshop",
@@ -1904,7 +1904,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Runner turn-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnRunnerTurnEnd } =
-      await import("../src/state/runnerTurnEndHooks.js");
+      await import("../src/state/turnAndActions/runnerTurnEndHooks.js");
     const s = createInitialState();
     const crowd = instantiateCard("crowdfunding", "cf-1", "runner:heap");
     s.cards["cf-1"] = crowd;
@@ -1926,7 +1926,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Corp turn-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnCorpTurnEnd } =
-      await import("../src/state/corpTurnEndHooks.js");
+      await import("../src/state/turnAndActions/corpTurnEndHooks.js");
     const s = createInitialState();
     const jumon = instantiateCard("jumon", "jum-1", "corp:score");
     s.cards["jum-1"] = jumon;
@@ -2533,7 +2533,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first agenda scored/stolen at 10.3.1a (phase 3 scanner)", async () => {
     const { fireFirstAgendaScoredOrStolenThisTurn } =
-      await import("../src/state/agendaHooks.js");
+      await import("../src/state/turnAndActions/agendaHooks.js");
     const s = createInitialState();
     const asset = instantiateCard(
       "pad-campaign",
@@ -3698,7 +3698,7 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
 
   it("marks MirrorMorph pending on the third distinct Corp action", async () => {
     const { noteCorpActionType } =
-      await import("../src/state/corpActionHooks.js");
+      await import("../src/state/turnAndActions/corpActionHooks.js");
     const s = createInitialState();
     const morph = instantiateCard(
       "mirrormorph-endless-iteration",
@@ -4697,7 +4697,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
     const { noteOnBeforeFirstTurn } =
       await import("../src/state/setupAndEnd/beforeFirstTurnHooks.js");
     const { maybeFireSeidrOnClickSpendOrLose } =
-      await import("../src/state/clickHooks.js");
+      await import("../src/state/turnAndActions/clickHooks.js");
 
     const s = createInitialState();
     const forum = instantiateCard("open-forum", "of-1", "server:hq:root");
