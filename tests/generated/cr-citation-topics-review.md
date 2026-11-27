@@ -50,7 +50,7 @@ Rule: 9 Abilities › 9.3 Interpreting Card Text › 9.3.7e
 
 | File | Via | Code topic | Sites |
 | --- | --- | --- | --- |
-| `src/timing/graph.ts` | literal | position | 1 |
+| `src/timing/graph/encounterIceSteps.ts` | literal | position | 1 |
 
 ## 6. CR 10.1 — 1 site
 

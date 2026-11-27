@@ -156,10 +156,8 @@ import type {
   Side,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import {
-  resolveDeferredPersistentAmaze,
-  resumeRunnerTurnBeginAbilities,
-} from "../timing/graph.js";
+import { resolveDeferredPersistentAmaze } from "../timing/graph/stepHelpers.js";
+import { resumeRunnerTurnBeginAbilities } from "../timing/graph.js";
 import {
   resumePendingOnCorpDrawCard,
   resumePendingStoredConditionals,

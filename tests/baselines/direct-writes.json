@@ -409,14 +409,27 @@
     "src/state/zones.ts": {
       "zone": 2
     },
-    "src/timing/graph.ts": {
+    "src/timing/graph/corpTurnSteps.ts": {
+      "rezzed": 1
+    },
+    "src/timing/graph/runEndsSteps.ts": {
       "deck": 1,
+      "hand": 1,
+      "rezzed": 1,
+      "zone": 1
+    },
+    "src/timing/graph/runnerTurnSteps.ts": {
+      "rezzed": 1
+    },
+    "src/timing/graph/stepHelpers.ts": {
+      "rezzed": 2
+    },
+    "src/timing/graph/successSteps.ts": {
       "discardPile": 1,
-      "hand": 5,
+      "hand": 4,
       "installed": 3,
       "removedFromGame": 2,
-      "rezzed": 5,
-      "zone": 6
+      "zone": 5
     }
   }
 }
