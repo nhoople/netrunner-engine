@@ -1,7 +1,8 @@
 /** Run target restrictions (Front Company first-run-not-remote, etc.). */
 
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState, ServerId } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { ServerId } from "../types/servers.js";
 
 /** Any rezzed Corp root card forbids the first run of the turn against remotes. */
 function firstRunCannotTargetRemoteActive(state: GameState): boolean {

@@ -8,15 +8,15 @@ import { evalEffect } from "../../effects/eval.js";
 import type { Effect } from "../../effects/ir/effect.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
 import type {
-  CardInstance,
-  GameState,
   PendingAbilityInstance,
   PendingAbilityPayload,
-  ServerId,
-  Side,
   StoredConditionalEffectKey,
-} from "../types.js";
+} from "../types/pendingAbilities.js";
+import type { ServerId } from "../types/servers.js";
+import type { Side } from "../types/shared.js";
 import { CR } from "../../timing/labels.js";
 import { openPendingChoose } from "./pendingChoice.js";
 import {

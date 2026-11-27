@@ -11,7 +11,7 @@
  * the game.
  */
 
-import type { GameState } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
 
 export interface StepRecord {
   /**

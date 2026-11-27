@@ -3,7 +3,7 @@
  * (phase 3).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /** Queue a card id whose onRunnerTurnEnd met. */
 export function noteOnRunnerTurnEnd(state: GameState, cardId: string): void {

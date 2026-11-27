@@ -18,7 +18,7 @@ import {
   type EvalResult,
 } from "../eval.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { iceFaceVisible } from "../../state/visibility/seatVisibility.js";
 import {
   rearrangeIce,
@@ -613,12 +613,13 @@ export function applyUninstallAndPositionKinds(
       trashCard(state, sourceId);
       const passedId = state.run.lastPassedRezzedIceId;
       let passedPos = -1;
-      let passedServer: import("../../state/types.js").ServerId | null = null;
+      let passedServer: import("../../state/types/servers.js").ServerId | null =
+        null;
       for (const [sid, server] of Object.entries(state.servers)) {
         const idx = server.ice.indexOf(passedId);
         if (idx >= 0) {
           passedPos = idx;
-          passedServer = sid as import("../../state/types.js").ServerId;
+          passedServer = sid as import("../../state/types/servers.js").ServerId;
           break;
         }
       }
@@ -659,7 +660,7 @@ export function applyUninstallAndPositionKinds(
     case "move_slipstream": {
       if (!state.run) return { ok: true };
       const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const server = state.servers[serverId];
       if (!server) return { ok: true };
       if (!moveRunnerToIce(state, action.iceId)) return { ok: true };

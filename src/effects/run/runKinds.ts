@@ -14,7 +14,8 @@ import {
   type EvalResult,
 } from "../eval.js";
 import { currentMark } from "../../state/keywordsAndCredits/keywords.js";
-import type { ServerId, GameState } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
+import type { GameState } from "../../state/types/game.js";
 import { fx } from "../ir/fx.js";
 import { type Effect } from "../ir/effect.js";
 import { type Primitive } from "../ir/primitive.js";
@@ -423,7 +424,8 @@ export function applyRunKinds(
       }
       state.pendingStartRun = {
         sourceId,
-        serverId: action.serverId as import("../../state/types.js").ServerId,
+        serverId:
+          action.serverId as import("../../state/types/servers.js").ServerId,
         ...(action.bypassFirstEncounterForClicks !== undefined
           ? {
               bypassFirstEncounterForClicks:
@@ -554,7 +556,7 @@ export function applyRunKinds(
     case "patron_set_named_server": {
       if (!source) return { ok: true };
       source.namedServerId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       log(state, `Patron — name ${action.serverId}.`);
       return { ok: true };
     }

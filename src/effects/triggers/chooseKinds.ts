@@ -28,7 +28,9 @@ export function applyChooseKinds(
   switch (action.kind) {
     case "choose_server_corp_trash_ice_protecting": {
       const servers = (
-        Object.keys(state.servers) as import("../../state/types.js").ServerId[]
+        Object.keys(
+          state.servers,
+        ) as import("../../state/types/servers.js").ServerId[]
       ).filter((sid) => (state.servers[sid]?.ice.length ?? 0) > 0);
       if (servers.length === 0) {
         log(state, `${source.title} — no servers with ice.`);
@@ -94,7 +96,7 @@ export function applyChooseKinds(
         log(state, `Peeping Tom — no encounter on this ice.`);
         return { ok: true };
       }
-      const types: Array<import("../../state/types.js").CardType> = [
+      const types: Array<import("../../state/types/shared.js").CardType> = [
         "event",
         "hardware",
         "program",
@@ -605,7 +607,7 @@ export function applyChooseKinds(
         log(state, `Choose card type — no encounter.`);
         return { ok: true };
       }
-      const types: Array<import("../../state/types.js").CardType> = [
+      const types: Array<import("../../state/types/shared.js").CardType> = [
         "event",
         "hardware",
         "program",

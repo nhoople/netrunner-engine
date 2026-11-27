@@ -3,7 +3,7 @@
  * (phase 3). Caller tracks once-per-turn used ids.
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /**
  * Queue a faceup/rezzed root card whose onSuccessfulRunOtherServerOncePerTurn

@@ -43,7 +43,8 @@ import {
   runnerCanMoveToPosition,
   setAttackedServer,
 } from "../src/state/uninstallAndPosition/runPosition.js";
-import type { GameState, RunState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { RunState } from "../src/state/types/run.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";
 
 beforeAll(() => {

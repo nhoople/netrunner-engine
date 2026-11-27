@@ -4,7 +4,8 @@
  * and Rebirth same-faction identity switch.
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { CardInstance, GameState } from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
 import { log } from "./createGame.js";
 import { applyIdentityFace } from "./identityFace.js";
 import { CR } from "../../timing/labels.js";

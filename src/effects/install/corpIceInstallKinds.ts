@@ -33,7 +33,7 @@ import {
   addOutermostIce,
 } from "../../state/uninstallAndPosition/runPosition.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 
 export function applyCorpIceInstallKinds(
   ctx: EffectCtx,
@@ -158,11 +158,12 @@ export function applyCorpIceInstallKinds(
         trashCard(state, cardId, { by: source.side });
         return { ok: true };
       }
-      let serverId = action.serverId as import("../../state/types.js").ServerId;
+      let serverId =
+        action.serverId as import("../../state/types/servers.js").ServerId;
       if (action.serverId === "__new_remote__") {
         const remoteNum = state.nextRemoteNumber++;
         serverId =
-          `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+          `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
         state.servers[serverId] = {
           id: serverId,
           kind: "remote",
@@ -259,8 +260,10 @@ export function applyCorpIceInstallKinds(
       if (serverId === "__new_remote__") {
         const remoteNum = state.nextRemoteNumber++;
         serverId = `remote-${remoteNum}`;
-        state.servers[serverId as import("../../state/types.js").ServerId] = {
-          id: serverId as import("../../state/types.js").ServerId,
+        state.servers[
+          serverId as import("../../state/types/servers.js").ServerId
+        ] = {
+          id: serverId as import("../../state/types/servers.js").ServerId,
           kind: "remote",
           ice: [],
           root: [],
@@ -269,7 +272,9 @@ export function applyCorpIceInstallKinds(
       }
       if (card && state.corp.hand.includes(cardId)) {
         const dest =
-          state.servers[serverId as import("../../state/types.js").ServerId];
+          state.servers[
+            serverId as import("../../state/types/servers.js").ServerId
+          ];
         if (dest) {
           state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
           dest.ice.unshift(cardId);
@@ -303,7 +308,9 @@ export function applyCorpIceInstallKinds(
         serverIdForIce(state, sourceId) ??
         (() => {
           const m = /^server:([^:]+):ice$/.exec(source.zone);
-          return m ? (m[1] as import("../../state/types.js").ServerId) : null;
+          return m
+            ? (m[1] as import("../../state/types/servers.js").ServerId)
+            : null;
         })();
       if (!serverId) {
         log(
@@ -444,7 +451,7 @@ export function applyCorpIceInstallKinds(
     case "install_hq_ice_protecting_server_ignore_costs": {
       const card = state.cards[action.cardId];
       const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const server = state.servers[serverId];
       if (!card || !server || !state.corp.hand.includes(action.cardId)) {
         log(state, `Install HQ ice — card or server missing.`);
@@ -522,7 +529,7 @@ export function applyCorpIceInstallKinds(
     case "install_hq_ice_protecting_server_paying_costs": {
       const card = state.cards[action.cardId];
       const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const server = state.servers[serverId];
       if (!card || !server || !state.corp.hand.includes(action.cardId)) {
         log(state, `Install HQ ice paying costs — card or server missing.`);
@@ -561,11 +568,12 @@ export function applyCorpIceInstallKinds(
         log(state, `Install+rez HQ ice — card not in HQ.`);
         return { ok: true };
       }
-      let serverId = action.serverId as import("../../state/types.js").ServerId;
+      let serverId =
+        action.serverId as import("../../state/types/servers.js").ServerId;
       if (action.serverId === "new-remote") {
         const remoteNum = state.nextRemoteNumber++;
         serverId =
-          `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+          `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
         state.servers[serverId] = {
           id: serverId,
           kind: "remote",
@@ -636,7 +644,7 @@ export function applyCorpIceInstallKinds(
       if (!state.run) return { ok: true };
       const ice = state.cards[action.iceId];
       const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const server = state.servers[serverId];
       if (!ice || !server) return { ok: true };
       const hqIdx = state.corp.hand.indexOf(action.iceId);

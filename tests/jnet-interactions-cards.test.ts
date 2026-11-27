@@ -16,7 +16,8 @@ import {
   legalActions,
 } from "../src/index.js";
 import { iceStrength } from "../src/effects/continuous/iceStrength.js";
-import type { GameState, ServerId } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import {
   board,
   card,

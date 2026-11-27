@@ -5,13 +5,13 @@
 import type { Effect } from "../effects/ir/effect.js";
 import type {
   BreakerAbility,
-  CardInstance,
-  GameState,
   PaidAbility,
   PaidAbilityWindow,
-  ServerId,
   Subroutine,
-} from "../state/types.js";
+} from "../state/types/abilities.js";
+import type { CardInstance } from "../state/types/card.js";
+import type { GameState } from "../state/types/game.js";
+import type { ServerId } from "../state/types/servers.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/continuous/breakerMods.js";
 import { scoredAgendaIceSubtypeStrengthBonus } from "../state/continuous/breakerMods.js";
@@ -1118,7 +1118,9 @@ export function applyAdvanceThisServerRecurringTowardAdvance(
   }
   if (!targetServerId) return payCost;
   const server =
-    state.servers[targetServerId as import("../state/types.js").ServerId];
+    state.servers[
+      targetServerId as import("../state/types/servers.js").ServerId
+    ];
   if (!server) return payCost;
   let left = payCost;
   for (const id of [...server.root, ...server.ice]) {

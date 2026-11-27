@@ -13,7 +13,8 @@ import { creditsAvailableForInstall } from "../../state/keywordsAndCredits/runne
 import { noteInstalledThisTurn } from "../../state/install/programHardwareInstall.js";
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { cardBecameNewObject } from "../../state/turnAndActions/turn.js";
-import type { GameState, ServerId } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { CR } from "../../timing/labels.js";
 import { type EffectCtx, type EvalResult } from "../eval.js";
 import type { Primitive } from "../ir/primitive.js";

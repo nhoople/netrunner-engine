@@ -8,12 +8,10 @@ import {
 } from "../../state/visibility/seatVisibility.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { isCentral } from "../../state/access/access.js";
-import type {
-  CardInstance,
-  GameState,
-  RuleCite,
-  ServerId,
-} from "../../state/types.js";
+import type { CardInstance } from "../../state/types/card.js";
+import type { GameState } from "../../state/types/game.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir/effect.js";

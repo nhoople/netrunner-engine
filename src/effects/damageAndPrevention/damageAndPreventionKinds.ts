@@ -31,7 +31,7 @@ import {
   emptyRunnerCreditPool,
   subtractRunnerCreditPool,
 } from "../../state/keywordsAndCredits/runnerCredits.js";
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
 
 function serverIdForCard(

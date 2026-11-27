@@ -375,7 +375,7 @@ export type InstallPrimitive =
   | {
       kind: "install_haas_pet_project_continue";
       remaining: number;
-      serverId: import("../../state/types.js").ServerId | "";
+      serverId: import("../../state/types/servers.js").ServerId | "";
       justInstalledId?: string;
       justInstalledFrom?: "hq" | "archives";
       asIce?: boolean;

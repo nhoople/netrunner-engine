@@ -7,7 +7,9 @@ import {
   beginGripOrStackTrashBatch,
   endGripOrStackTrashBatch,
 } from "../hostingAndTrash/trashHooks.js";
-import type { DamageType, GameState, PaidAbility } from "../types.js";
+import type { DamageType } from "../types/shared.js";
+import type { GameState } from "../types/game.js";
+import type { PaidAbility } from "../types/abilities.js";
 import { CR } from "../../timing/labels.js";
 import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";
 import { scoredAgendaMeatDamageIncrease } from "../continuous/breakerMods.js";

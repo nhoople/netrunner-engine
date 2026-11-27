@@ -4,7 +4,8 @@
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { CR } from "../../timing/labels.js";
-import type { GameState, StoredConditionalEffectKey } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { StoredConditionalEffectKey } from "../types/pendingAbilities.js";
 
 type SuccessfulRunServerPendingMark = {
   cardId: string;

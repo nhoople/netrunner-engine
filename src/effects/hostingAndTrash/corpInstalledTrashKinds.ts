@@ -32,7 +32,8 @@ import { revealCards, lookAtCards } from "../../state/visibility/reveal.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 import { random } from "../../state/rng.js";
 import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
-import type { ServerId, GameState } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
+import type { GameState } from "../../state/types/game.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { noteInlineConditional } from "../../state/triggers/inlineConditionalHooks.js";
 import { noteStoredConditional } from "../../state/triggers/storedConditionalHooks.js";
@@ -458,7 +459,8 @@ export function applyCorpInstalledTrashKinds(
     }
 
     case "corp_trash_ice_protecting_server": {
-      const sid = action.serverId as import("../../state/types.js").ServerId;
+      const sid =
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const ice = [...(state.servers[sid]?.ice ?? [])];
       if (ice.length === 0) {
         log(state, `${source.title} — no ice protecting ${action.serverId}.`);
@@ -686,7 +688,8 @@ export function applyCorpInstalledTrashKinds(
     }
 
     case "may_corp_trash_climactic_ice": {
-      const sid = action.serverId as import("../../state/types.js").ServerId;
+      const sid =
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const server = state.servers[sid];
       const iceIds = server?.ice ?? [];
       if (iceIds.length === 0) {
@@ -1253,7 +1256,7 @@ export function applyCorpInstalledTrashKinds(
     }
 
     case "trash_type_may_pay_3_prevent": {
-      const types: Array<import("../../state/types.js").CardType> = [
+      const types: Array<import("../../state/types/shared.js").CardType> = [
         "event",
         "hardware",
         "program",

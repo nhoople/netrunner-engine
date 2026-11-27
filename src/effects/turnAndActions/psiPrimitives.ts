@@ -2,7 +2,7 @@
  * Psi game. Card-specific bid outcomes stay with their packs.
  */
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
-import type { RuleCite } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir/effect.js";
 import type { Primitive } from "../ir/primitive.js";

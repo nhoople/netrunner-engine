@@ -23,17 +23,14 @@ import {
 } from "../state/visibility/seatVisibility.js";
 import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
+import type { Action, ApplyResult, Intent } from "../state/types/actions.js";
+import type { GameConfig, GameState } from "../state/types/game.js";
 import type {
-  Action,
-  ApplyResult,
-  GameConfig,
-  GameState,
-  Intent,
   PublicPlayAreaCardView,
   PublicSetAsideCardView,
   PublicView,
-  Side,
-} from "../state/types.js";
+} from "../state/types/publicView.js";
+import type { Side } from "../state/types/shared.js";
 
 export type CreateGameOptions = Partial<GameConfig> & {
   /**

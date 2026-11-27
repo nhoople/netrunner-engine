@@ -1,5 +1,5 @@
 /** Hooks that fire when ice is rezzed during a run, moved out of `effects/eval.ts`. */
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import { addIceStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { iceCannotGainAbilities } from "../../state/continuous/continuousEffects.js";

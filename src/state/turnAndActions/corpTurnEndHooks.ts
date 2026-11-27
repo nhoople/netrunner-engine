@@ -3,7 +3,7 @@
  * for 10.3.1a (phase 3).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /** Queue a card id whose onCorpTurnEnd met. */
 export function noteOnCorpTurnEnd(state: GameState, cardId: string): void {

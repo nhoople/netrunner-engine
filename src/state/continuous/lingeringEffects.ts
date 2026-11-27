@@ -6,12 +6,9 @@
 import { CR } from "../../timing/labels.js";
 import { cancelPendingIfSourceInactive } from "../triggers/pendingAbilities.js";
 import { applyBreakerStrengthIncrease } from "../triggers/strengthIncrease.js";
-import type {
-  GameState,
-  LingeringDuration,
-  LingeringEffect,
-  Side,
-} from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { LingeringDuration, LingeringEffect } from "../types/lingering.js";
+import type { Side } from "../types/shared.js";
 import { nextId } from "../ids.js";
 
 /** Mark server designation (CR 10.11.4). Payload: `{ serverId: ServerId }`. */

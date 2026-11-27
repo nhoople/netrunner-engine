@@ -15,7 +15,9 @@ import {
   queryLegality,
 } from "../api/library.js";
 import { getStep } from "../timing/machine.js";
-import type { Action, GameState, ServerId } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { ServerId } from "../state/types/servers.js";
 import { passIdle } from "./passIdle.js";
 
 const recorded: Action[] = [];

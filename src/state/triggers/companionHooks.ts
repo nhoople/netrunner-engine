@@ -4,7 +4,7 @@
 
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /**
  * First companion install or companion credit-spend this turn gains credits

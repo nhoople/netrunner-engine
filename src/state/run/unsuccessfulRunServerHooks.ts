@@ -3,7 +3,7 @@
  * (phase 3).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /** Queue rezzed-root onUnsuccessfulRunOnThisServer on the attacked server. */
 export function noteUnsuccessfulRunServerAbilities(state: GameState): void {

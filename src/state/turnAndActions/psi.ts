@@ -14,7 +14,7 @@ import {
   hostedCreditsSpendableDuringRuns,
   subtractRunnerCreditPool,
 } from "../keywordsAndCredits/runnerCredits.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 import { nextId } from "../ids.js";
 

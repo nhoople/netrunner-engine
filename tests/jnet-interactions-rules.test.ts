@@ -17,7 +17,8 @@ import {
 } from "../src/index.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { memoryLimit, usedMemory } from "../src/state/turnAndActions/turn.js";
-import type { GameState, ServerId } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import { applyIntent } from "../src/index.js";
 import {
   board,

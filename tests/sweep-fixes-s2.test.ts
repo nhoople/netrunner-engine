@@ -24,7 +24,8 @@ import {
   openFace,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import type { Action, ServerId } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import { fx } from "../src/effects/ir/fx.js";
 import { type Effect } from "../src/effects/ir/effect.js";
 import {

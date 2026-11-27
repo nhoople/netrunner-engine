@@ -1,4 +1,6 @@
-import type { Action, GameState, RuleCite } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
 import { maybeFireFirstEmptyGripTriggers } from "../state/damageAndPrevention/damage.js";
 import { STEPS, cursorFrom, type TimingStepDef } from "./graph.js";
 import { noteVacuousFullBreak } from "./vacuousBreak.js";

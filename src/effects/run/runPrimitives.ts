@@ -9,7 +9,8 @@ import {
   hasPayableEndTheRunInterrupt,
   openPendingEndTheRun,
 } from "../../state/run/endTheRun.js";
-import type { GameState, RuleCite } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
 import { CR } from "../../timing/labels.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { abilityCreditTally } from "../keywordsAndCredits/creditTally.js";

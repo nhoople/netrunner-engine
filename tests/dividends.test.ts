@@ -8,7 +8,7 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 
 function must(
   state: GameState,

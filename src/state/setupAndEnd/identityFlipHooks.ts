@@ -1,6 +1,7 @@
 /** Dual-sided Corp identity hooks (Nebula Talent Management). */
 
-import type { GameState, ServerId } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { ServerId } from "../types/servers.js";
 import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 

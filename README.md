@@ -174,7 +174,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
     uninstallAndPosition/ # uninstalling and moving cards, and the Runner's position in a run (CR 8.5.10, 6.2): the move and return kinds
     visibility/           # what a seat may see (CR 1.21, 10.2): the reveal, look and expose kinds, faceup and facedown, the card names a player may choose (cardNames.ts)
   legality/               # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
-  state/                  # ids.ts, rng.ts, zones.ts: shared plumbing; types.ts: points to types/. Every other file is in a folder: one per CR audit area, plus continuous/ and triggers/ for the rules no single area owns
+  state/                  # ids.ts, rng.ts, zones.ts: shared plumbing. Every other file is in a folder: one per CR audit area, plus continuous/ and triggers/ for the rules no single area owns
     access/               # accessing cards (CR ch. 7): access candidates and filters, access-step abilities, abilities that replace a breach
     cardFlags/            # card flags and static declarations: what the loader copies onto a card and when each declaration runs
     continuous/           # continuous effects (CR 9.12): whether a card is active (1.8), blanking, lingering effects (9.10), currents and lockdowns in the play area, continuous cost, subroutine, strength and hand-size modifiers

@@ -2,7 +2,9 @@
  * Remaining card-field conditionals outside run-timing / lifecycle
  * helpers — marked onto the pending bag (CR 9.6.2).
  */
-import type { GameState, Side, StoredConditionalEffectKey } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { Side } from "../types/shared.js";
+import type { StoredConditionalEffectKey } from "../types/pendingAbilities.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import {
   fireCardConditional,

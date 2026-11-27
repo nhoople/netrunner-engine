@@ -4,7 +4,9 @@
  */
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { maybeFireHostedCreditsGte } from "../../state/keywordsAndCredits/hostedCredits.js";
-import type { GameState, RuleCite, Side } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
+import type { Side } from "../../state/types/shared.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect } from "../ir/effect.js";

@@ -2,7 +2,7 @@
 
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /**
  * After Corp takes ≥1 bad publicity:

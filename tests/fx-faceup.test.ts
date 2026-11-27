@@ -36,7 +36,9 @@ import {
   openCardName,
   runnerSeesAccessedCard,
 } from "../src/state/visibility/seatVisibility.js";
-import type { Action, ServerId, Side } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { ServerId } from "../src/state/types/servers.js";
+import type { Side } from "../src/state/types/shared.js";
 import {
   fresh,
   installRoot,

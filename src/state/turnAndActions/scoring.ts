@@ -11,7 +11,9 @@ import {
   fireOnAgendaAddedToRunnerScore,
   noteRunnerStoleOrTrashedCorpCard,
 } from "../hostingAndTrash/trashHooks.js";
-import type { CardInstance, GameState, Side } from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
+import type { Side } from "../types/shared.js";
 import { CR } from "../../timing/labels.js";
 import { noteIceUninstalled } from "../uninstallAndPosition/runPosition.js";
 import {
@@ -329,7 +331,7 @@ export function scoreAgenda(state: GameState, cardId: string): void {
   card.zone = "corp:score";
   card.faceup = true;
   card.rezzed = true;
-  card.scoredFromServerId = serverId as import("../types.js").ServerId;
+  card.scoredFromServerId = serverId as import("../types/servers.js").ServerId;
   card.scoredThisTurn = true;
   onAgendaScored(state, card);
   // Hosted advancement counters are removed when the agenda is scored

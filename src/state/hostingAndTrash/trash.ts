@@ -32,7 +32,9 @@
  */
 import { log } from "../setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
-import type { CardInstance, GameState, RuleCite } from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
+import type { RuleCite } from "../types/restrictions.js";
 import { removeCardFromCurrentZone } from "../turnAndActions/scoring.js";
 import { endEffectsOnPreviousObject } from "../turnAndActions/turn.js";
 import { cancelPendingIfSourceInactive } from "../triggers/pendingAbilities.js";

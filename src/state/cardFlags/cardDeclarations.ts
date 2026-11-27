@@ -7,7 +7,10 @@ import { subtractRunnerCreditPool } from "../keywordsAndCredits/runnerCredits.js
 import { noteTargetedMarketing } from "../continuous/currents.js";
 import { noteAzmariNamedTypeMatch } from "../install/programHardwareInstall.js";
 import { log } from "../setupAndEnd/createGame.js";
-import type { CardInstance, GameState, ServerId, Side } from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
+import type { ServerId } from "../types/servers.js";
+import type { Side } from "../types/shared.js";
 import { runnerWinsOnEmptyRnd } from "../setupAndEnd/emptyRnd.js";
 import { CR } from "../../timing/labels.js";
 import { fx } from "../../effects/ir/fx.js";

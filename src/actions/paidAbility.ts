@@ -79,15 +79,12 @@ import {
   modifiersFromStartsRun,
 } from "../state/run/runStart.js";
 import { afterBasicAction, autoWalk, enterStep } from "../timing/machine.js";
-import type {
-  ApplyResult,
-  CardInstance,
-  CostSpec,
-  GameState,
-  PaidAbility,
-  RuleCite,
-  ServerId,
-} from "../state/types.js";
+import type { ApplyResult } from "../state/types/actions.js";
+import type { CardInstance } from "../state/types/card.js";
+import type { CostSpec, PaidAbility } from "../state/types/abilities.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { ServerId } from "../state/types/servers.js";
 import { CR } from "../timing/labels.js";
 import { approachedIceId } from "./rez.js";
 import {

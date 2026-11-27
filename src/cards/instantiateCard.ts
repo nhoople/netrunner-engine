@@ -1,5 +1,5 @@
 /** instantiateCard: build a card instance from its definition; it copies every always-present field here, then calls copyOptionalCardFields. */
-import type { CardInstance } from "../state/types.js";
+import type { CardInstance } from "../state/types/card.js";
 import { getCardDef } from "./load.js";
 import { copyOptionalCardFields } from "./copyOptionalCardFields.js";
 

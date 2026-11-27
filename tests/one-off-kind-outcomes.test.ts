@@ -29,7 +29,7 @@ import {
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 
 import { drawCards } from "../src/effects/searchAndDeck/draw.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 import { onRunnerEventPlayed } from "../src/state/cardFlags/cardDeclarations.js";
 import { beginRunnerTurnFlags } from "../src/state/turnAndActions/turn.js";
 import { RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE } from "../src/state/setupAndEnd/additionalIdentities.js";

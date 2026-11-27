@@ -18,7 +18,7 @@
  * host's behalf.
  */
 import { removeCardFromCurrentZone } from "../turnAndActions/scoring.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 export interface HostOptions {
   /**

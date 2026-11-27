@@ -14,7 +14,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { memoryLimit } from "../src/state/turnAndActions/turn.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";

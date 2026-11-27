@@ -1,6 +1,6 @@
 /** Runner max hand size recompute (CR §5.5.3 / continuous modifiers). */
 
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { abilitiesSuppressed } from "./abilities.js";
 import { agendaPointHandSize } from "../cardFlags/staticFlags.js";
 import { corpHandSizeFromCurrents } from "./currents.js";

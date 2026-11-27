@@ -47,11 +47,11 @@ import {
   lingeringIceStrengthOfKind,
 } from "../src/state/continuous/lingeringEffects.js";
 
+import type { ServerId } from "../src/state/types/servers.js";
 import type {
-  ServerId,
   PaidAbility,
   StartsRunSpec,
-} from "../src/state/types.js";
+} from "../src/state/types/abilities.js";
 import type { Effect } from "../src/index.js";
 import { canScoreAgenda } from "../src/state/turnAndActions/scoring.js";
 import { isCoreDamageType } from "../src/state/damageAndPrevention/damage.js";

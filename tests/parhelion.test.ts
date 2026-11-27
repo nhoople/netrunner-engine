@@ -25,7 +25,7 @@ import {
   playEffectFromCard,
 } from "../src/index.js";
 import { canScoreAgenda } from "../src/state/turnAndActions/scoring.js";
-import type { ServerId } from "../src/state/types.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { resolveAndAdvance } from "../src/timing/machine.js";
 import { addBreakerStrengthBoostThisRun } from "../src/state/continuous/lingeringEffects.js";

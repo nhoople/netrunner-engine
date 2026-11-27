@@ -9,7 +9,8 @@
  */
 
 import { iceAtRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
-import type { GameState, ServerId } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
+import type { ServerId } from "../state/types/servers.js";
 
 /** Stable problem codes. Baselines key on these, so never rename one. */
 export type ProblemCode =

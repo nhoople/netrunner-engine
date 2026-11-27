@@ -17,7 +17,8 @@ import {
   legalActions,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import type { Action, ServerId } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { breakerStrength } from "../src/effects/continuous/iceStrength.js";

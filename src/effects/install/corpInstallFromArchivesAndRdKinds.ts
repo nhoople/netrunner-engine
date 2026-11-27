@@ -41,7 +41,7 @@ import {
   chooseCorpCardToInstall,
   corpInstallableIds,
 } from "./corpAbilityInstall.js";
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 
 function iceCandidatesFromHqOrArchives(
   state: EffectCtx["state"],
@@ -183,7 +183,7 @@ export function applyCorpInstallFromArchivesAndRdKinds(
       returnRdLookedToDeckTop(state);
       const remoteNum = state.nextRemoteNumber++;
       const sid =
-        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+        `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
       state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
       if (card.type === "ice") {
         state.servers[sid].ice.push(cardId);
@@ -477,7 +477,7 @@ export function applyCorpInstallFromArchivesAndRdKinds(
       const bpSubtype = action.badPublicityIfNotSubtype;
       const serverIds = Object.keys(
         state.servers,
-      ) as import("../../state/types.js").ServerId[];
+      ) as import("../../state/types/servers.js").ServerId[];
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const iceId of iceIds) {
         const ice = state.cards[iceId]!;
@@ -558,7 +558,7 @@ export function applyCorpInstallFromArchivesAndRdKinds(
         action.serverId === "new-remote"
           ? undefined
           : state.servers[
-              action.serverId as import("../../state/types.js").ServerId
+              action.serverId as import("../../state/types/servers.js").ServerId
             ];
       const installCost = corpInstallCost(card, destPreview?.ice.length ?? 0);
       const rezCost = card.rezCost ?? 0;
@@ -597,11 +597,11 @@ export function applyCorpInstallFromArchivesAndRdKinds(
         (id) => id !== cardId,
       );
       let destId = action.serverId as
-        import("../../state/types.js").ServerId | "new-remote";
+        import("../../state/types/servers.js").ServerId | "new-remote";
       if (destId === "new-remote") {
         const remoteNum = state.nextRemoteNumber++;
         destId =
-          `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+          `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
         state.servers[destId] = {
           id: destId,
           kind: "remote",
@@ -681,7 +681,7 @@ export function applyCorpInstallFromArchivesAndRdKinds(
     case "install_rd_ice_protecting_central_discount": {
       const card = state.cards[action.cardId];
       const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const server = state.servers[serverId];
       if (!card || !server || server.kind !== "central") {
         log(state, `Install R&D ice on central — missing card/server.`);

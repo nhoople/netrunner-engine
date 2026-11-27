@@ -33,7 +33,7 @@ import { fx } from "../ir/fx.js";
 import { type Effect } from "../ir/effect.js";
 import { type Primitive } from "../ir/primitive.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
-import type { RuleCite } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
 import { CR } from "../../timing/labels.js";
 
 type PrimResult =

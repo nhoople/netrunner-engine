@@ -1,9 +1,7 @@
-import type {
-  Action,
-  GameState,
-  TimingCursor,
-  TurnPhase,
-} from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { TimingCursor } from "../state/types/windows.js";
+import type { TurnPhase } from "../state/types/turn.js";
 import { resumePendingStoredConditionals } from "../state/triggers/storedTriggers.js";
 import {
   turnBeginPaused,

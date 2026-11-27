@@ -4,7 +4,7 @@
  * inline conditional by `fireOnBypassTriggers`.
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /**
  * Queue ice and Runner-installed onBypass sources for the next 10.3.1a

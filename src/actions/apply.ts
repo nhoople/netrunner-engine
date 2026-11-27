@@ -97,14 +97,11 @@ import { resolvePendingOnEncounter } from "../state/run/onEncounter.js";
 import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
 import { beginBreachAccess } from "../state/access/access.js";
 import { isRunTargetAllowed } from "../state/run/runLegality.js";
-import type {
-  Action,
-  ApplyResult,
-  GameState,
-  RuleCite,
-  Server,
-  Side,
-} from "../state/types.js";
+import type { Action, ApplyResult } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { Server } from "../state/types/servers.js";
+import type { Side } from "../state/types/shared.js";
 import { CR } from "../timing/labels.js";
 import { resumePendingStoredConditionals } from "../state/triggers/storedTriggers.js";
 import { installCorp, likeCardsAtDestination } from "./installCorp.js";

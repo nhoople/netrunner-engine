@@ -341,7 +341,7 @@ export type OtherPrimitive =
   /** Leaf: apply Peeping Tom type choice → reveal → gain run-scoped subs. */
   | {
       kind: "peeping_tom_apply_type";
-      cardType: import("../../state/types.js").CardType;
+      cardType: import("../../state/types/shared.js").CardType;
     }
   /** Leaf: Corp picked installed card — Runner may access or decline. */
   | {
@@ -404,7 +404,7 @@ export type OtherPrimitive =
   | {
       kind: "rearrange_ice";
       chooser: "corp" | "runner";
-      serverIds: import("../../state/types.js").ServerId[];
+      serverIds: import("../../state/types/servers.js").ServerId[];
       placed?: string[];
     }
   /** Leaf: force mid-run access of one installed card (Otoroshi). */
@@ -446,7 +446,7 @@ export type OtherPrimitive =
   /** Internal: after Focus Group type choice — reveal, choose X, may pay+place. */
   | {
       kind: "focus_group_after_type";
-      cardType: import("../../state/types.js").CardType;
+      cardType: import("../../state/types/shared.js").CardType;
     }
   /**
    * Divested Trust: may forfeit this scored agenda to gain credits and return
@@ -466,7 +466,7 @@ export type OtherPrimitive =
   /** Internal: after Game Over type choice — process matching installed cards. */
   | {
       kind: "game_over_after_type";
-      cardType: import("../../state/types.js").CardType;
+      cardType: import("../../state/types/shared.js").CardType;
     }
   /** Internal: offer pay-3 prevent or trash for one card, then continue. */
   | {
@@ -639,7 +639,7 @@ export type OtherPrimitive =
   | { kind: "cyber_threat_server"; serverId: string }
   | {
       kind: "run_cyber_threat_server";
-      serverId: import("../../state/types.js").ServerId;
+      serverId: import("../../state/types/servers.js").ServerId;
     }
   | { kind: "lose_nasir_all_credits" }
   | { kind: "social_engineering" }

@@ -3,7 +3,8 @@
  * (phase 3). Multiple Effect keys share one instruction checkpoint.
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState, StoredConditionalEffectKey } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { StoredConditionalEffectKey } from "../types/pendingAbilities.js";
 
 type CorpTurnBeginPendingMark = {
   cardId: string;

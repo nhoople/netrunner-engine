@@ -40,7 +40,8 @@ import {
   resetEncounterBreaks,
   shiftEncounterBreaks,
 } from "../../state/turnAndActions/break.js";
-import type { RuleCite, GameState } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
+import type { GameState } from "../../state/types/game.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { random } from "../../state/rng.js";
 import { loadCardCatalog } from "../../cards/load.js";

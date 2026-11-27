@@ -3,7 +3,8 @@
  * the Valencia first-click-loss hook run here.
  */
 import { log } from "../../state/setupAndEnd/createGame.js";
-import type { RuleCite, Side } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
+import type { Side } from "../../state/types/shared.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { abilityCreditTally } from "../keywordsAndCredits/creditTally.js";

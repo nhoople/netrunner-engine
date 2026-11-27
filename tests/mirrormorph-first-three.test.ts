@@ -19,7 +19,8 @@ import {
   loadCardCatalog,
 } from "../src/index.js";
 import { noteCorpActionType } from "../src/state/turnAndActions/corpActionHooks.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

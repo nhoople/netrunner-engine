@@ -14,7 +14,7 @@ import {
   instantiateCard,
   loadCardCatalog,
 } from "../src/index.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

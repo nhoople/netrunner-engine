@@ -19,7 +19,8 @@ import {
   costBeginsWithClick,
   payCost,
 } from "../src/state/keywordsAndCredits/costs.js";
-import type { GameState, PaidAbility } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { PaidAbility } from "../src/state/types/abilities.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

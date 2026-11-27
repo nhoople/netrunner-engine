@@ -15,12 +15,10 @@ import {
   legalActions,
 } from "../src/index.js";
 import { instantiateCard } from "../src/cards/instantiateCard.js";
-import type {
-  Action,
-  GameState,
-  ServerId,
-  ZoneId,
-} from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { ServerId } from "../src/state/types/servers.js";
+import type { ZoneId } from "../src/state/types/shared.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

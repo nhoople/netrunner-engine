@@ -1,5 +1,5 @@
 /** Hooks after a subroutine is broken and after an operation or event resolves, moved out of `effects/eval.ts`. */
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import { allSubroutinesBrokenByRunner } from "../../state/turnAndActions/break.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/setupAndEnd/createGame.js";

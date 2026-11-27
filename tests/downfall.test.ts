@@ -23,7 +23,7 @@ import {
   CR,
   playEffectFromCard,
 } from "../src/index.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 import {
   noteProgramOrHardwareInstalled,
   fireRemainderOfTurnOnInstallPrintedCostGte,

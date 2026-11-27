@@ -37,7 +37,8 @@ import { revealCards } from "../../state/visibility/reveal.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { agendaPointsFor } from "../../state/turnAndActions/scoring.js";
 import { startTrace } from "../../state/turnAndActions/trace.js";
-import type { ServerId, GameState } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
+import type { GameState } from "../../state/types/game.js";
 
 function iceProtectingHqCount(state: EffectCtx["state"]): number {
   return state.servers.hq?.ice.length ?? 0;

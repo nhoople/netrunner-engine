@@ -11,9 +11,9 @@ import {
 import type { Effect } from "../../effects/ir/effect.js";
 import type {
   ContinuousGainedSubDecl,
-  GameState,
   Subroutine,
-} from "../types.js";
+} from "../types/abilities.js";
+import type { GameState } from "../types/game.js";
 
 export type ContinuousGainedSub = {
   sourceId: string;

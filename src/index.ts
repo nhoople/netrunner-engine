@@ -1,38 +1,46 @@
+export type { Action, ApplyResult, Intent } from "./state/types/actions.js";
+export type { CardInstance } from "./state/types/card.js";
 export type {
-  Action,
-  ApplyResult,
-  CardInstance,
   CheckpointFacts,
   CheckpointFrame,
   CheckpointSnapshot,
+} from "./state/types/checkpoints.js";
+export type {
   CostSpec,
-  DamageType,
-  ExpectedEffects,
-  ForbiddenAction,
-  GameConfig,
-  GameState,
-  Intent,
   InterruptWindow,
-  LingeringDuration,
-  LingeringEffect,
   PaidAbility,
   PaidAbilityWindow,
+} from "./state/types/abilities.js";
+export type { DamageType, ZoneId } from "./state/types/shared.js";
+export type {
+  ExpectedEffects,
+  PriorityWindowFrame,
+  ReactionWindowFrame,
+  TimingCursor,
+} from "./state/types/windows.js";
+export type {
+  ForbiddenAction,
+  Restriction,
+  RuleCite,
+} from "./state/types/restrictions.js";
+export type { GameConfig, GameState } from "./state/types/game.js";
+export type {
+  LingeringDuration,
+  LingeringEffect,
+} from "./state/types/lingering.js";
+export type {
   PendingAbilityInstance,
   PendingAbilityPayload,
   PendingAbilityStatus,
-  PriorityWindowFrame,
+} from "./state/types/pendingAbilities.js";
+export type {
   PublicView,
   PublicHostedCardView,
   PublicPlayAreaCardView,
   PublicSetAsideCardView,
-  ReactionWindowFrame,
-  Restriction,
-  RuleCite,
-  ServerId,
-  TimingCursor,
-  TraceState,
-  ZoneId,
-} from "./state/types.js";
+} from "./state/types/publicView.js";
+export type { ServerId } from "./state/types/servers.js";
+export type { TraceState } from "./state/types/pendingChoices.js";
 export {
   createInitialState,
   cloneState,
@@ -364,7 +372,7 @@ export {
 } from "./state/triggers/replacements.js";
 export type { ActiveExpectedReplacement } from "./state/triggers/replacements.js";
 export { applyBreakerStrengthIncrease } from "./state/triggers/strengthIncrease.js";
-export type { PendingStrengthIncrease } from "./state/types.js";
+export type { PendingStrengthIncrease } from "./state/types/windows.js";
 export { purgeVirusCounters } from "./state/hostingAndTrash/trashHooks.js";
 export {
   discardCard,
@@ -452,7 +460,7 @@ export type {
   DeckIdentity,
   DeckbuildingReport,
 } from "./state/cardFlags/staticFlags.js";
-export type { RecurringSpendPurpose } from "./state/types.js";
+export type { RecurringSpendPurpose } from "./state/types/abilities.js";
 export { abilitiesSuppressed } from "./state/continuous/abilities.js";
 export {
   effectiveRunnerTags,

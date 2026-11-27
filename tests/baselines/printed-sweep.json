@@ -3383,7 +3383,7 @@
       "abilities": [
         "Run R&D. If successful, access X additional cards when you breach R&D. X is equal to your unused MU or 4, whichever is less."
       ],
-      "note": "runEvent.bonusAccessUnusedMuCapped is declared in src/state/types.ts and never read; modifiersFromStartsRun copies only bonusAccess and bonusAccessFromVirus, so there is no additional access (7.3.5b). The R&D run matches.",
+      "note": "runEvent.bonusAccessUnusedMuCapped is declared in src/state/types/abilities.ts and never read; modifiersFromStartsRun copies only bonusAccess and bonusAccessFromVirus, so there is no additional access (7.3.5b). The R&D run matches.",
       "cr": [
         "7.3.5b",
         "1.2.1"

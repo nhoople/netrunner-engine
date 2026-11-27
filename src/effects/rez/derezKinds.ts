@@ -286,7 +286,7 @@ export function applyDerezKinds(
       const maxIce = Math.max(0, action.maxIce);
       if (maxIce <= 0) return { ok: true };
       const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const server = state.servers[serverId];
       const rezzed = (server?.ice ?? []).filter(
         (id) => state.cards[id]?.type === "ice" && state.cards[id]!.rezzed,
@@ -342,7 +342,7 @@ export function applyDerezKinds(
       const remaining = Math.max(0, action.remaining ?? 0);
       if (remaining <= 0) return { ok: true };
       const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const server = state.servers[serverId];
       const rezzed = (server?.ice ?? []).filter(
         (id) =>

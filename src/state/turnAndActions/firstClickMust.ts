@@ -3,7 +3,8 @@
  * declines an additional cost on that run (CR 9.12.3e).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { Action, GameState } from "../types.js";
+import type { Action } from "../types/actions.js";
+import type { GameState } from "../types/game.js";
 
 export function firstClickMustIsActive(state: GameState): boolean {
   if ((state.turn.runnerClicksSpentThisTurn ?? 0) > 0) return false;

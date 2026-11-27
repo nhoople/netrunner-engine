@@ -1,5 +1,7 @@
 import { corpInstallDestinationRefusal } from "../actions/installCorp.js";
-import type { Action, GameState, Server, ServerId } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { Server, ServerId } from "../state/types/servers.js";
 import { likeCardsAtDestination } from "../actions/installCorp.js";
 import {
   actionMeetsFirstClickMust,

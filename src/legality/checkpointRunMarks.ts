@@ -1,9 +1,9 @@
 /** Checkpoint marks for run conditional abilities: run begin, approach, encounter, pass, bypass, success and run end (CR 10.3.1a); called by markConditionalAbilities in checkpoints.ts. */
+import type { GameState } from "../state/types/game.js";
 import type {
-  GameState,
   StoredConditionalEffectKey,
   PendingAbilityPayload,
-} from "../state/types.js";
+} from "../state/types/pendingAbilities.js";
 import type { CheckpointDiff } from "../state/triggers/checkpointSnapshot.js";
 import {
   PREDICATE_FIRST_SUCCESSFUL_HQ_RUN,

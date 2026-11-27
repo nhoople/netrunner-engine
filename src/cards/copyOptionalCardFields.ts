@@ -1,5 +1,6 @@
 /** The second half of instantiateCard: what it sets from a card's data only when the data has it, in the original order, and the declared pump ability it adds (CR 3.9.5b). */
-import type { CardInstance, PaidAbility, Subroutine } from "../state/types.js";
+import type { CardInstance } from "../state/types/card.js";
+import type { PaidAbility, Subroutine } from "../state/types/abilities.js";
 import {
   canonicalizeAbilityFlags,
   syncSubroutinesFromRecords,
@@ -1106,7 +1107,7 @@ export function copyOptionalCardFields(card: CardInstance, def: CardDef): void {
   if (def.prevention) card.prevention = { ...def.prevention };
   if (def.bryanStinsonPlayArchivesTransactionWhileRunnerLt6c) {
     card.bryanStinsonPlayArchivesTransactionWhileRunnerLt6c = true;
-    const bryanAb: import("../state/types.js").PaidAbility = {
+    const bryanAb: import("../state/types/abilities.js").PaidAbility = {
       id: "bryan-stinson-play-tx",
       label:
         "[click]: Play a transaction from Archives, ignoring all costs; RFG it",

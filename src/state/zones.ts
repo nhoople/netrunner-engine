@@ -1,6 +1,8 @@
 /** CR zone display names and ZoneId helpers (CR chapter 4). */
 
-import type { CardInstance, GameState, Side, ZoneId } from "./types.js";
+import type { CardInstance } from "./types/card.js";
+import type { GameState } from "./types/game.js";
+import type { Side, ZoneId } from "./types/shared.js";
 
 /** CR display name for a side's hand (HQ / Grip). */
 export function handName(side: Side): "HQ" | "Grip" {

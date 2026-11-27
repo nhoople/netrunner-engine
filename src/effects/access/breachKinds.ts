@@ -1,4 +1,4 @@
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 /**
  * Primitive kinds whose procedure is breach.
  * The effect switch in eval.ts dispatches here.
@@ -338,7 +338,8 @@ export function applyBreachKinds(
     }
 
     case "breach_server_standalone": {
-      const server = action.server as import("../../state/types.js").ServerId;
+      const server =
+        action.server as import("../../state/types/servers.js").ServerId;
       if (state.run && !state.run.isPostRunBreach) {
         state.run.breachWhenRunEnds = server;
         if (action.cannotAccessRoot) {

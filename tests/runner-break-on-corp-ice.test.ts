@@ -23,7 +23,8 @@ import {
 import { findPaidAbility } from "../src/actions/paidAbility.js";
 import { ensurePriorityWindow } from "../src/legality/priority.js";
 import { costBeginsWithClick } from "../src/state/keywordsAndCredits/costs.js";
-import type { CardInstance, GameState } from "../src/state/types.js";
+import type { CardInstance } from "../src/state/types/card.js";
+import type { GameState } from "../src/state/types/game.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

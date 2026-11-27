@@ -6,7 +6,7 @@ import { type Effect } from "../ir/effect.js";
 import { fx } from "../ir/fx.js";
 import { type Primitive } from "../ir/primitive.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   printsCanBeAdvanced,

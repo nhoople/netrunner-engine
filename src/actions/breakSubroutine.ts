@@ -35,7 +35,9 @@ import {
   subtractRunnerCreditPool,
 } from "../state/keywordsAndCredits/runnerCredits.js";
 import { noteHardwareUsedDuringRun } from "./paidAbility.js";
-import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
+import type { ApplyResult } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
 import { CR } from "../timing/labels.js";
 import {
   fireOnFullyBreakOncePerTurn,

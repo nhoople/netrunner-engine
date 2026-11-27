@@ -35,11 +35,11 @@ import {
 } from "../state/turnAndActions/turn.js";
 import type {
   ApplyResult,
-  GameState,
   InstallDestination,
-  RuleCite,
-  ServerId,
-} from "../state/types.js";
+} from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { ServerId } from "../state/types/servers.js";
 import { CR } from "../timing/labels.js";
 import { fireOnInstallWithoutSpendingCredits } from "../state/triggers/miscConditionalHooks.js";
 import { resolveRunnerInstallCostDelta } from "../state/continuous/continuousCosts.js";

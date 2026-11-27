@@ -22,7 +22,8 @@ import { chooseCards } from "../triggers/chooseCards.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 import { addIceStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { resolveChronosFirstNetPick } from "../../state/damageAndPrevention/damage.js";
-import type { RuleCite, GameState } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
+import type { GameState } from "../../state/types/game.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import { offerSiStackTrashOrArrange } from "../searchAndDeck/deckOrderKinds.js";
 

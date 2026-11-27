@@ -4,7 +4,8 @@
  */
 import { abilitiesSuppressed } from "./abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
-import type { CardInstance, GameState } from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 import {
   enterLingeringPlayArea,

@@ -1,5 +1,5 @@
 /** Credit gains from card abilities (CR 9.12.2b, 9.12.2c) and the first-gain-each-turn hook they fire. */
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import { fireOnCreditsGainedFromAgendaOrOperationAbility } from "../../state/triggers/miscConditionalHooks.js";
 import type { SideRef } from "../ir/shared.js";
 import { type EffectCtx, type EvalResult, applyPrimitive } from "../eval.js";

@@ -5,7 +5,7 @@
  * (CR 9.6.14d). Some of it is stored in card fields rather than `onScore`.
  */
 import type { Effect } from "../../effects/ir/effect.js";
-import type { CardInstance } from "../types.js";
+import type { CardInstance } from "../types/card.js";
 
 export function whenScoredEffect(
   card: CardInstance,

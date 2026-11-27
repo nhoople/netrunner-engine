@@ -6,7 +6,7 @@ import { evalEffect } from "../../effects/eval.js";
 import { CR } from "../../timing/labels.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 
 /**
  * After hosted credits on `cardId` increase, if the card declares

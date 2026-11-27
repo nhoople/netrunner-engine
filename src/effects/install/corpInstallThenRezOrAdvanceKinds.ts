@@ -34,7 +34,7 @@ import {
   corpInstallableIds,
 } from "./corpAbilityInstall.js";
 import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
-import type { ServerId } from "../../state/types.js";
+import type { ServerId } from "../../state/types/servers.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
@@ -88,7 +88,7 @@ export function applyCorpInstallThenRezOrAdvanceKinds(
         state.corp.hand = state.corp.hand.filter((id) => id !== pick);
         const remoteNum = state.nextRemoteNumber++;
         const sid =
-          `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+          `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
         state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
         state.turn.remotesCreatedThisTurn += 1;
         if (card.type === "ice") {
@@ -299,7 +299,9 @@ export function applyCorpInstallThenRezOrAdvanceKinds(
         (id) => id !== cardId,
       );
       const server =
-        state.servers[serverId as import("../../state/types.js").ServerId];
+        state.servers[
+          serverId as import("../../state/types/servers.js").ServerId
+        ];
       if (!server) {
         return {
           ok: false,
@@ -432,7 +434,7 @@ export function applyCorpInstallThenRezOrAdvanceKinds(
       state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
       const remoteNum = state.nextRemoteNumber++;
       const sid =
-        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
+        `remote-${remoteNum}` as import("../../state/types/servers.js").ServerId;
       state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
       if (card.type === "ice") {
         state.servers[sid].ice.push(cardId);

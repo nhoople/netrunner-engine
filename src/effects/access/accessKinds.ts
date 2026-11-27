@@ -32,7 +32,8 @@ import { CR } from "../../timing/labels.js";
 import { shuffleRunnerStack } from "../install/runnerInstall.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { serverLabel } from "../install/corpAbilityInstall.js";
-import type { RuleCite, GameState } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
+import type { GameState } from "../../state/types/game.js";
 import { breachAlreadyReplaced } from "../../state/access/breachAlreadyReplaced.js";
 import { shuffleInPlace, random } from "../../state/rng.js";
 import { fireOnAgendaAccessedOrScored } from "../../state/triggers/miscConditionalHooks.js";
@@ -262,13 +263,14 @@ export function applyAccessKinds(
         log(state, `${source.title} access — card missing.`);
         return { ok: true };
       }
-      let serverId: import("../../state/types.js").ServerId | null = null;
+      let serverId: import("../../state/types/servers.js").ServerId | null =
+        null;
       for (const [sid, server] of Object.entries(state.servers)) {
         if (
           server.root.includes(action.cardId) ||
           server.ice.includes(action.cardId)
         ) {
-          serverId = sid as import("../../state/types.js").ServerId;
+          serverId = sid as import("../../state/types/servers.js").ServerId;
           break;
         }
       }
@@ -423,7 +425,7 @@ export function applyAccessKinds(
       }
       for (const server of action.servers) {
         state.run.queuedBreachesAfterCurrent.push({
-          server: server as import("../../state/types.js").ServerId,
+          server: server as import("../../state/types/servers.js").ServerId,
           ...(action.cannotAccessRoot ? { cannotAccessRoot: true } : {}),
         });
       }

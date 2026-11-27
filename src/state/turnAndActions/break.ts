@@ -48,12 +48,10 @@ import {
   serverIdForIce,
 } from "../../cards/stubs.js";
 import { CR } from "../../timing/labels.js";
-import type {
-  CardInstance,
-  GameState,
-  PaidAbility,
-  RuleCite,
-} from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
+import type { PaidAbility } from "../types/abilities.js";
+import type { RuleCite } from "../types/restrictions.js";
 
 export type BreakBlock = { error: string; cites: RuleCite[] };
 

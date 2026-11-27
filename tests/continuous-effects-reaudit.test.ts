@@ -38,7 +38,8 @@ import {
   resolveBlankedCardIds,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import type { Action, RunState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { RunState } from "../src/state/types/run.js";
 import { addIceStrengthBoostThisRun } from "../src/state/continuous/lingeringEffects.js";
 import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";

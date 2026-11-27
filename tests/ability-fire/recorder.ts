@@ -26,7 +26,7 @@
  */
 import type { Effect } from "../../src/effects/ir/effect.js";
 import type { Primitive } from "../../src/effects/ir/primitive.js";
-import type { GameState } from "../../src/state/types.js";
+import type { GameState } from "../../src/state/types/game.js";
 import { canonical, supportedAbilities } from "./abilities.js";
 
 interface CardIndex {

@@ -22,7 +22,7 @@ import { payCost } from "../src/state/keywordsAndCredits/costs.js";
 import { psiCorpBid, psiRunnerBid } from "../src/state/turnAndActions/psi.js";
 import { completeExpose } from "../src/state/visibility/expose.js";
 import { CR } from "../src/timing/labels.js";
-import type { GameState } from "../src/state/types.js";
+import type { GameState } from "../src/state/types/game.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

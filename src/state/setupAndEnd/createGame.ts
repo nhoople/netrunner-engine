@@ -4,14 +4,10 @@ import { START_STEP, STEPS, cursorFrom } from "../../timing/graph.js";
 import { emptyTurnBookkeeping } from "../turnAndActions/turn.js";
 import { recomputeRunnerLink } from "../hostingAndTrash/trashHooks.js";
 import { DEFAULT_RNG_SEED, seedRng } from "../rng.js";
-import type {
-  CardInstance,
-  GameConfig,
-  GameState,
-  PlayerState,
-  Server,
-  ServerId,
-} from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameConfig, GameState } from "../types/game.js";
+import type { PlayerState } from "../types/players.js";
+import type { Server, ServerId } from "../types/servers.js";
 import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 

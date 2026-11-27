@@ -24,7 +24,7 @@ import { fx } from "../ir/fx.js";
 import { type Primitive } from "../ir/primitive.js";
 import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { syncCorpHandSizeSubroutines } from "../../state/continuous/handSizeSubroutines.js";
-import type { RuleCite } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
 import { installedCorpCards, canAdvance } from "../counters/counterKinds.js";
 import { applySearchAndShuffleKinds } from "../searchAndDeck/searchAndShuffleKinds.js";
 

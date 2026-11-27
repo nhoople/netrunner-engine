@@ -21,7 +21,8 @@ import {
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
 } from "../continuous/lingeringEffects.js";
 import { tryApplyReplacement } from "./replacements.js";
-import type { GameState, LingeringDuration } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { LingeringDuration } from "../types/lingering.js";
 import { CR } from "../../timing/labels.js";
 
 export type HostDurationOriginal = "encounter" | "run";

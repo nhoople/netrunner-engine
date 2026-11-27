@@ -3,7 +3,8 @@
  * first-*) marked onto the pending bag (CR 9.6.2).
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState, StoredConditionalEffectKey } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { StoredConditionalEffectKey } from "../types/pendingAbilities.js";
 import {
   effectFromKey,
   type StoredConditionalMark,

@@ -4,7 +4,8 @@
  * `base` is added before count × per.
  * A total of 0 or less does not happen; the caller skips it.
  */
-import type { GameState, Side } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
+import type { Side } from "../../state/types/shared.js";
 import { badPublicityConsidered } from "../../state/cardFlags/cardDeclarations.js";
 import type { CreditTally } from "../ir/shared.js";
 

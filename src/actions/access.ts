@@ -24,12 +24,10 @@ import {
   wasAbilityUsed,
 } from "../state/turnAndActions/turn.js";
 import { autoWalk, enterStep } from "../timing/machine.js";
-import type {
-  ApplyResult,
-  GameState,
-  RuleCite,
-  ServerId,
-} from "../state/types.js";
+import type { ApplyResult } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { ServerId } from "../state/types/servers.js";
 import type { Effect } from "../effects/ir/effect.js";
 import { CR } from "../timing/labels.js";
 import { fireScoreOrStealSideEffects } from "./score.js";

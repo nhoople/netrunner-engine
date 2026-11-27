@@ -31,12 +31,10 @@ import {
 import { corpMayScore } from "../cards/stubs.js";
 import { nestPriorityAfterAbility } from "../legality/priority.js";
 import { afterBasicAction } from "../timing/machine.js";
-import type {
-  ApplyResult,
-  GameState,
-  RuleCite,
-  ServerId,
-} from "../state/types.js";
+import type { ApplyResult } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { ServerId } from "../state/types/servers.js";
 import { fx } from "../effects/ir/fx.js";
 import { mayAdvanceInstalledCard } from "../state/counters/advanceable.js";
 import { CR } from "../timing/labels.js";

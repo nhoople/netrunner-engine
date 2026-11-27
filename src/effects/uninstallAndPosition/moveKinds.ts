@@ -199,9 +199,14 @@ export function applyMoveKinds(
       }
       const currentSid = zone
         .replace(/^server:/, "")
-        .replace(/:root$/, "") as import("../../state/types.js").ServerId;
+        .replace(
+          /:root$/,
+          "",
+        ) as import("../../state/types/servers.js").ServerId;
       const targets = (
-        Object.keys(state.servers) as import("../../state/types.js").ServerId[]
+        Object.keys(
+          state.servers,
+        ) as import("../../state/types/servers.js").ServerId[]
       ).filter((sid) => sid !== currentSid);
       if (targets.length === 0) {
         log(state, `Move upgrade — no other servers.`);
@@ -237,7 +242,8 @@ export function applyMoveKinds(
     }
 
     case "move_upgrade_to_server_root": {
-      const destId = action.serverId as import("../../state/types.js").ServerId;
+      const destId =
+        action.serverId as import("../../state/types/servers.js").ServerId;
       const dest = state.servers[destId];
       if (!dest || source.type !== "upgrade") {
         log(state, `Move upgrade — invalid destination.`);
@@ -250,7 +256,10 @@ export function applyMoveKinds(
       }
       const fromSid = zone
         .replace(/^server:/, "")
-        .replace(/:root$/, "") as import("../../state/types.js").ServerId;
+        .replace(
+          /:root$/,
+          "",
+        ) as import("../../state/types/servers.js").ServerId;
       const from = state.servers[fromSid];
       if (from) {
         from.root = from.root.filter((id) => id !== sourceId);
@@ -306,9 +315,14 @@ export function applyMoveKinds(
       }
       const currentSid = zone
         .replace(/^server:/, "")
-        .replace(/:root$/, "") as import("../../state/types.js").ServerId;
+        .replace(
+          /:root$/,
+          "",
+        ) as import("../../state/types/servers.js").ServerId;
       const targets = (
-        Object.keys(state.servers) as import("../../state/types.js").ServerId[]
+        Object.keys(
+          state.servers,
+        ) as import("../../state/types/servers.js").ServerId[]
       ).filter((sid) => sid !== currentSid);
       if (targets.length === 0) {
         log(state, `Move upgrade — no other servers.`);
@@ -343,11 +357,14 @@ export function applyMoveKinds(
       }
       const fromSid = zone
         .replace(/^server:/, "")
-        .replace(/:root$/, "") as import("../../state/types.js").ServerId;
+        .replace(
+          /:root$/,
+          "",
+        ) as import("../../state/types/servers.js").ServerId;
       const from = state.servers[fromSid];
       const to =
         state.servers[
-          action.serverId as import("../../state/types.js").ServerId
+          action.serverId as import("../../state/types/servers.js").ServerId
         ];
       if (!from || !to) return { ok: true };
       from.root = from.root.filter((id) => id !== action.cardId);
@@ -376,7 +393,8 @@ export function applyMoveKinds(
         return { ok: true };
       }
       const attacked = state.run.attackedServerId;
-      let fromServer: import("../../state/types.js").Server | null = null;
+      let fromServer: import("../../state/types/servers.js").Server | null =
+        null;
       for (const server of Object.values(state.servers)) {
         if (server.ice.includes(sourceId)) {
           fromServer = server;
@@ -421,7 +439,8 @@ export function applyMoveKinds(
       if (targets.length === 1) {
         return applyPrimitive(ctx, {
           kind: "move_source_ice_to_outermost_server_continue_run",
-          serverId: targets[0]! as import("../../state/types.js").ServerId,
+          serverId:
+            targets[0]! as import("../../state/types/servers.js").ServerId,
         });
       }
       openPendingChoose(state, {
@@ -434,7 +453,7 @@ export function applyMoveKinds(
             op: "do" as const,
             action: {
               kind: "move_source_ice_to_outermost_server_continue_run" as const,
-              serverId: sid as import("../../state/types.js").ServerId,
+              serverId: sid as import("../../state/types/servers.js").ServerId,
             },
           },
         })),
@@ -448,7 +467,8 @@ export function applyMoveKinds(
         log(state, `Bullfrog move leaf — no run or source is not ice.`);
         return { ok: true };
       }
-      let fromServer: import("../../state/types.js").Server | null = null;
+      let fromServer: import("../../state/types/servers.js").Server | null =
+        null;
       for (const server of Object.values(state.servers)) {
         if (server.ice.includes(sourceId)) {
           fromServer = server;
@@ -459,7 +479,8 @@ export function applyMoveKinds(
         log(state, `Bullfrog move leaf — source not installed.`);
         return { ok: true };
       }
-      const toSid = action.serverId as import("../../state/types.js").ServerId;
+      const toSid =
+        action.serverId as import("../../state/types/servers.js").ServerId;
       if (!moveIce(state, sourceId, toSid, "outermost")) {
         log(state, `Bullfrog move leaf — unknown server ${toSid}.`);
         return { ok: true };

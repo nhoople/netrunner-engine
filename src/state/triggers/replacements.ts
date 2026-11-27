@@ -12,7 +12,8 @@
  */
 
 import { log } from "../setupAndEnd/createGame.js";
-import type { ExpectedEffects, GameState } from "../types.js";
+import type { ExpectedEffects } from "../types/windows.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 
 /** Allocate a unique identity for one imminent effect occurrence. */

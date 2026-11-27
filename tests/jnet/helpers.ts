@@ -11,14 +11,11 @@ import {
   legalActions,
   loadCardCatalog,
 } from "../../src/index.js";
-import type {
-  Action,
-  CardInstance,
-  GameState,
-  Server,
-  ServerId,
-  Side,
-} from "../../src/state/types.js";
+import type { Action } from "../../src/state/types/actions.js";
+import type { CardInstance } from "../../src/state/types/card.js";
+import type { GameState } from "../../src/state/types/game.js";
+import type { Server, ServerId } from "../../src/state/types/servers.js";
+import type { Side } from "../../src/state/types/shared.js";
 
 export function must(state: GameState, action: Action): GameState {
   const result = applyIntent(state, action);

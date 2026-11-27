@@ -4,7 +4,8 @@
  */
 
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { CardInstance, GameState } from "../types.js";
+import type { CardInstance } from "../types/card.js";
+import type { GameState } from "../types/game.js";
 
 /** True when the card is hardware or a job/connection resource. */
 function isJobConnectionOrHardware(card: CardInstance): boolean {

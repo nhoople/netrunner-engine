@@ -10,7 +10,8 @@ import {
   createGame,
   queryLegality,
 } from "../src/index.js";
-import type { Action, ApplyResult, GameState } from "../src/state/types.js";
+import type { Action, ApplyResult } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run `npm run fetch-cr` before tests.");

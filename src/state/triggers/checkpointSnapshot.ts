@@ -5,8 +5,8 @@
 import type {
   CheckpointFacts,
   CheckpointSnapshot,
-  GameState,
-} from "../types.js";
+} from "../types/checkpoints.js";
+import type { GameState } from "../types/game.js";
 
 /** Capture the current "had" facts at the start of 10.3.1a. */
 export function captureCheckpointFacts(state: GameState): CheckpointFacts {

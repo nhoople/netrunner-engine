@@ -21,7 +21,7 @@ import {
   queryLegality,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import type { ServerId } from "../src/state/types.js";
+import type { ServerId } from "../src/state/types/servers.js";
 import type { Effect } from "../src/effects/ir/effect.js";
 import { fx } from "../src/effects/ir/fx.js";
 import { paidAbilityOpenIn } from "../src/state/keywordsAndCredits/costs.js";

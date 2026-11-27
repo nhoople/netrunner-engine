@@ -3,7 +3,8 @@
  * Prefer this over inventing new `state.pendingChoice =` shapes in the graph.
  */
 import type { Effect } from "../../effects/ir/effect.js";
-import type { GameState, Side } from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { Side } from "../types/shared.js";
 
 export type PendingChoiceOption = {
   id: string;

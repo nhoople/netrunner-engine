@@ -14,7 +14,7 @@ import {
   noteFirstCorpCardTrashEachTurn,
   noteTrashMatchingRunnerIdentityFaction,
 } from "../../state/hostingAndTrash/trashHooks.js";
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import { onInstalledCorpCardTrashed } from "../../state/cardFlags/staticFlags.js";
 import {
   onRunnerTrashedFromServer,
@@ -264,14 +264,14 @@ export function noteCorpCardTrashedToArchives(
     if (trashedBy === "runner") {
       const serverId = zoneBefore.split(
         ":",
-      )[1] as import("../../state/types.js").ServerId;
+      )[1] as import("../../state/types/servers.js").ServerId;
       if (serverId) onRunnerTrashedFromServer(state, serverId);
     }
   }
   // Capture host server for onTrash effects (Vaporframe Fabricator).
   const zoneMatch = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
   state.turn.onTrashSourceServerId = zoneMatch
-    ? (zoneMatch[1] as import("../../state/types.js").ServerId)
+    ? (zoneMatch[1] as import("../../state/types/servers.js").ServerId)
     : null;
   // Every Corp "trash" trigger reads "When the Runner trashes this card"
   // (Hostile Infrastructure: "...a Corp card (including Hostile
@@ -416,7 +416,8 @@ function maybeFireYakovCredits(
   const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
   if (!m) return;
   const sid = m[1]!;
-  const server = state.servers[sid as import("../../state/types.js").ServerId];
+  const server =
+    state.servers[sid as import("../../state/types/servers.js").ServerId];
   const candidates = new Set<string>([trashedId]);
   if (server) {
     for (const id of [...server.root, ...server.ice]) candidates.add(id);
@@ -447,7 +448,8 @@ function maybeFireWarroidTracker(
   const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
   if (!m) return;
   const sid = m[1]!;
-  const server = state.servers[sid as import("../../state/types.js").ServerId];
+  const server =
+    state.servers[sid as import("../../state/types/servers.js").ServerId];
   if (!server) return;
   for (const id of [...server.root]) {
     if (state.pendingChoice) break;

@@ -5,7 +5,8 @@
 
 import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import type { GameState, RuleCite } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
 import { CR } from "./labels.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 

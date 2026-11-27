@@ -28,7 +28,8 @@ import {
   unsettledSubtypeLoops,
 } from "../src/index.js";
 import type { GameState, LayeredEffect } from "../src/index.js";
-import type { Action, RunState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { RunState } from "../src/state/types/run.js";
 import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { fireIceRezDuringRunHooks } from "../src/effects/rez/rezDuringRunHooks.js";
 import { evalEffect, fx } from "../src/index.js";

@@ -22,7 +22,8 @@ import {
   stealAgenda,
   playEffectFromCard,
 } from "../src/index.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 import {
   beginCorpTurnFlags,
   beginRunnerTurnFlags,

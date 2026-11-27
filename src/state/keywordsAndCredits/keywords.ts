@@ -12,13 +12,10 @@ import {
 import { openPendingChoose } from "../triggers/pendingChoice.js";
 import { maybeFirePowerCountersGte } from "../counters/powerCounters.js";
 import { random } from "../rng.js";
-import type {
-  CentralServerId,
-  GameState,
-  RuleCite,
-  Side,
-  ServerId,
-} from "../types.js";
+import type { CentralServerId, ServerId } from "../types/servers.js";
+import type { GameState } from "../types/game.js";
+import type { RuleCite } from "../types/restrictions.js";
+import type { Side } from "../types/shared.js";
 import { CR } from "../../timing/labels.js";
 import { trashCard } from "../hostingAndTrash/trash.js";
 

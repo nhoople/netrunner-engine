@@ -3,7 +3,9 @@
  */
 import { activePlayer } from "../state/setupAndEnd/createGame.js";
 import { noteRunnerClickSpend } from "../state/turnAndActions/clickHooks.js";
-import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
+import type { ApplyResult } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
 import { CR } from "../timing/labels.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";
 

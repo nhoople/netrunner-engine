@@ -28,7 +28,8 @@ import {
   effectiveMemoryCost,
   usedMemory,
 } from "../src/state/turnAndActions/turn.js";
-import type { Action, GameState } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
 
 describe("what-lies-ahead", () => {
   describe("wla-primitives", () => {

@@ -4,7 +4,7 @@
  * later one has nothing to replace and cannot apply (CR 9.9.11a).
  */
 import { log } from "../setupAndEnd/createGame.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 
 /** True, with a log line, when an earlier replacement already took the breach. */

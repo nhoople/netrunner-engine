@@ -25,7 +25,7 @@ import { CR } from "../../timing/labels.js";
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { random } from "../../state/rng.js";
-import type { RuleCite } from "../../state/types.js";
+import type { RuleCite } from "../../state/types/restrictions.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

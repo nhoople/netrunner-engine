@@ -5,7 +5,7 @@ import type { Effect } from "../../effects/ir/effect.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 import {
   runnerCreditsFor,

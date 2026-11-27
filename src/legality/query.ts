@@ -2,7 +2,10 @@ import {
   trashInterruptRelevantToActor,
   trashInterruptRelevantToCard,
 } from "../state/hostingAndTrash/trashPrevent.js";
-import type { Action, GameState, RuleCite, Side } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
+import type { RuleCite } from "../state/types/restrictions.js";
+import type { Side } from "../state/types/shared.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
 import { costBeginsWithClick } from "../state/keywordsAndCredits/costs.js";
 import { extraDifferentActionRefusal } from "../state/turnAndActions/corpActionHooks.js";

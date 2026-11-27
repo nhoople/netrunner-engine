@@ -1,10 +1,8 @@
 /** Where the Runner's credits come from and how they are spent: the credit pool, recurring, hosted and run event credits, in the order a payment draws on them (CR 1.10, 8.6.5). */
-import type {
-  GameState,
-  CardInstance,
-  Side,
-  RecurringSpendPurpose,
-} from "../types.js";
+import type { GameState } from "../types/game.js";
+import type { CardInstance } from "../types/card.js";
+import type { Side } from "../types/shared.js";
+import type { RecurringSpendPurpose } from "../types/abilities.js";
 import { fireRunnerCreditPoolEmpty } from "../triggers/storedTriggers.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "../triggers/companionHooks.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";

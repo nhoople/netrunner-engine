@@ -4,7 +4,8 @@
  * (`tests/setup/invariants.ts`). Unset by default; the engine never sets it.
  */
 
-import type { Action, GameState } from "../state/types.js";
+import type { Action } from "../state/types/actions.js";
+import type { GameState } from "../state/types/game.js";
 
 export type ApplyHook = (state: GameState, action: Action) => void;
 

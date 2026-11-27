@@ -3,7 +3,10 @@ import { CR } from "../../timing/labels.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { costBeginsWithClick } from "../keywordsAndCredits/costs.js";
 import { log } from "../setupAndEnd/createGame.js";
-import type { Action, GameState, PaidAbility, RuleCite } from "../types.js";
+import type { Action } from "../types/actions.js";
+import type { GameState } from "../types/game.js";
+import type { PaidAbility } from "../types/abilities.js";
+import type { RuleCite } from "../types/restrictions.js";
 
 /**
  * Corp action tracking (Wage Workers + MirrorMorph). `actionKind` names the

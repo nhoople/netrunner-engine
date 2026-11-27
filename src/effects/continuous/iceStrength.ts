@@ -4,7 +4,7 @@
  * path syncs Gebrselassie host-duration replacements first (CR 9.9.9a).
  */
 import { syncHostDurationReplacements } from "../../state/triggers/hostDuration.js";
-import type { GameState } from "../../state/types.js";
+import type { GameState } from "../../state/types/game.js";
 import {
   effectiveBreakerStrength,
   effectiveIceStrength,

@@ -12,7 +12,7 @@ import {
   type AbilityFlagValue,
 } from "../effects/abilityRecord.js";
 import { validateEffectTree } from "../effects/ir/validate.js";
-import type { CardInstance } from "../state/types.js";
+import type { CardInstance } from "../state/types/card.js";
 import type { CardDef } from "./cardDef.js";
 import { instantiateCard } from "./instantiateCard.js";
 

@@ -5,7 +5,7 @@
  */
 import { log } from "../state/setupAndEnd/createGame.js";
 import type { Effect } from "../effects/ir/effect.js";
-import type { GameState } from "../state/types.js";
+import type { GameState } from "../state/types/game.js";
 import { CR } from "./labels.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 

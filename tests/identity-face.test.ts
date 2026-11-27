@@ -6,7 +6,7 @@ import {
   activeIdentityFace,
   applyIdentityFace,
 } from "../src/state/setupAndEnd/identityFace.js";
-import type { CardInstance } from "../src/state/types.js";
+import type { CardInstance } from "../src/state/types/card.js";
 
 function identity(patch: Partial<CardInstance>): CardInstance {
   return patch as CardInstance;

@@ -2,7 +2,7 @@
 
 import { log } from "../setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import type { GameState } from "../types.js";
+import type { GameState } from "../types/game.js";
 import { CR } from "../../timing/labels.js";
 import {
   allocateEffectIdentity,

@@ -14,7 +14,7 @@ export type MovePrimitive =
   /** Leaf: perform Bullfrog move to a specific server. */
   | {
       kind: "move_source_ice_to_outermost_server_continue_run";
-      serverId: import("../../state/types.js").ServerId;
+      serverId: import("../../state/types/servers.js").ServerId;
     }
   /**
    * Vovô Ozetti: may move this upgrade to another server's root.

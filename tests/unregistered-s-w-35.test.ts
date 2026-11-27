@@ -21,7 +21,9 @@ import {
 } from "../src/index.js";
 import { primitiveNameFollowsStandard } from "../src/effects/primitiveNames.js";
 import type { Effect } from "../src/effects/ir/effect.js";
-import type { Action, GameState, ServerId } from "../src/state/types.js";
+import type { Action } from "../src/state/types/actions.js";
+import type { GameState } from "../src/state/types/game.js";
+import type { ServerId } from "../src/state/types/servers.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
