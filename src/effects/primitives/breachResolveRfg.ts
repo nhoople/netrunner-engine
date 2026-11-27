@@ -8,7 +8,6 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
-import { setAttackedServer } from "../../state/uninstallAndPosition/runPosition.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -24,48 +23,8 @@ export function applyLunarFcPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "breach_hq": {
-      const hq = [...state.corp.hand];
-      if (hq.length === 0 || !state.run) {
-        log(state, `Kitsune — no cards in HQ.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "decline",
-            label: "Do not breach HQ",
-            effect: fx.gainCredits("corp", 0),
-          },
-          ...hq.map((id) => ({
-            id: `kitsune:${id}`,
-            label: `Choose ${state.cards[id]!.title} — breach HQ`,
-            effect: fx.do({ kind: "breach_hq_resolve", cardId: id }),
-          })),
-        ],
-      });
-      return { ok: true };
-    }
-    case "breach_hq_resolve": {
-      const cardId = (action as { cardId: string }).cardId;
-      if (!state.run) return { ok: true };
-      setAttackedServer(state.run, "hq");
-      state.run.cannotAccessRoot = true;
-      state.run.accessCandidates = [cardId];
-      state.run.randomAccessLimit = 1;
-      state.run.accessCandidatesPreset = true;
-      state.run.kitsuneIceToTrashAtBreachEnd = sourceId;
-      log(
-        state,
-        `Kitsune — breach HQ; first access ${state.cards[cardId]!.title}.`,
-      );
-      return { ok: true };
-    }
     case "rfg_runner_heap": {
       const heap = [...state.runner.discardPile];
       for (const id of heap) {
@@ -79,33 +38,6 @@ export function applyLunarFcPrimitive(
         state,
         `Chronos Project — remove ${heap.length} heap card(s) from the game.`,
       );
-      return { ok: true };
-    }
-    case "shattered_remains_access": {
-      const adv = source?.advancementCounters ?? 0;
-      if (adv <= 0) {
-        log(state, `Shattered Remains — no advancement counters.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "decline",
-            label: "Do not pay 1¢",
-            effect: fx.gainCredits("corp", 0),
-          },
-          {
-            id: "pay",
-            label: `Pay 1¢ — trash ${adv} hardware`,
-            effect: fx.do({
-              kind: "pay_shattered_remains",
-              hardwareCount: adv,
-            }),
-          },
-        ],
-      });
       return { ok: true };
     }
     case "pay_shattered_remains": {
@@ -219,17 +151,6 @@ export function applyLunarFcPrimitive(
       card.faceup = true;
       recomputeRunnerLink(state);
       log(state, `The Supplier — install ${card.title} for ${cost}¢.`);
-      return { ok: true };
-    }
-    case "breach_archives": {
-      if (!state.run) {
-        log(state, `Hades Shard — breach Archives outside a run (stub).`);
-        return { ok: true };
-      }
-      setAttackedServer(state.run, "archives");
-      state.run.cannotAccessRoot = true;
-      state.run.accessCandidatesPreset = false;
-      log(state, `Hades Shard — breach Archives (no root access).`);
       return { ok: true };
     }
     default:

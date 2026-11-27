@@ -1,5 +1,3 @@
-/** Intervention (in) Flashpoint pack primitives — v1.125.0. */
-import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
@@ -280,59 +278,6 @@ export function applyFlashpointInPrimitive(
         return { ok: true };
       }
       return grantAbilityCredits(ctx, side, amount);
-    }
-
-    case "top_hat_may_instead_of_breach": {
-      const n = Math.max(1, action.n ?? 5);
-      if (!state.run || state.run.attackedServerId !== "rd") {
-        log(state, `Top Hat — no successful R&D run.`);
-        return { ok: true };
-      }
-      const ordered = state.corp.deck.slice(0, n);
-      if (ordered.length === 0) {
-        log(state, `Top Hat — R&D empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...ordered.map((id) => ({
-            id: `top-hat-access:${id}`,
-            label: `Access ${openCardName(state, id, "runner")}`,
-            effect: fx.do({
-              kind: "top_hat_access_instead_of_breach",
-              cardId: id,
-            }),
-          })),
-          {
-            id: "top-hat-decline",
-            label: "Breach R&D normally",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-        logLine: `Top Hat — may access 1 of top ${ordered.length} instead of breach.`,
-      });
-      return { ok: true };
-    }
-
-    case "top_hat_access_instead_of_breach": {
-      const cardId = action.cardId;
-      if (!state.run || !cardId || !state.corp.deck.includes(cardId)) {
-        log(state, `Top Hat — chosen card not on R&D.`);
-        return { ok: true };
-      }
-      state.run.skipBreach = true;
-      state.pendingStandaloneCardAccess = {
-        sourceId,
-        cardId,
-        serverId: "rd",
-      };
-      log(
-        state,
-        `Top Hat — access ${state.cards[cardId]!.title} instead of breaching R&D.`,
-      );
-      return { ok: true };
     }
 
     default:

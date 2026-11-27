@@ -1,5 +1,3 @@
-/** Business First (bf) Mumbad pack primitives — v1.117.0. */
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
@@ -12,6 +10,7 @@ import {
   discardCard,
   trashCard,
 } from "../../state/hostingAndTrash/trash.js";
+import { offerCbiRaidHqToRd } from "../access/accessKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -20,41 +19,6 @@ function nextRemoteId(state: EffectCtx["state"]): ServerId {
   let n = 1;
   while (state.servers[`remote-${n}` as ServerId]) n += 1;
   return `remote-${n}` as ServerId;
-}
-
-/**
- * CBI Raid: Corp chooses the order of every HQ card onto the top of R&D
- * (printed "in the order of their choice"). One pick at a time; a lone
- * remaining card is placed automatically.
- */
-function offerCbiRaidHqToRd(ctx: EffectCtx): PrimResult {
-  const { state, sourceId } = ctx;
-  const hq = [...state.corp.hand];
-  if (hq.length === 0) {
-    log(state, `CBI Raid — HQ empty; skip breach.`);
-    return { ok: true };
-  }
-  if (hq.length === 1) {
-    const id = hq[0]!;
-    state.corp.hand = [];
-    state.corp.deck.unshift(id);
-    const card = state.cards[id]!;
-    card.zone = "corp:rd";
-    card.faceup = false;
-    log(state, `CBI Raid — ${card.title} to top of R&D.`);
-    return { ok: true };
-  }
-  openPendingChoose(state, {
-    sourceId,
-    chooser: "corp",
-    options: hq.map((id) => ({
-      id: `cbi:${id}`,
-      label: `Top of R&D: ${state.cards[id]!.title}`,
-      effect: fx.do({ kind: "place_hq_on_top_rd_continue", cardId: id }),
-    })),
-    logLine: `CBI Raid — Corp chooses next HQ card for top of R&D (${hq.length} left).`,
-  });
-  return { ok: true };
 }
 
 /**
@@ -102,15 +66,6 @@ export function applyMumbadBfPrimitive(
         `${source?.title ?? "EMP Device"} — Corp cannot rez more than 1 ice this run.`,
       );
       return { ok: true };
-    }
-
-    case "breach_instead_cbi_raid": {
-      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      // Printed: instead of breaching HQ, the Corp adds all cards in HQ to
-      // the top of R&D in the order of their choice (CR 1.2.1).
-      if (!state.run) return { ok: true };
-      state.run.skipBreach = true;
-      return offerCbiRaidHqToRd(ctx);
     }
 
     case "place_hq_on_top_rd_continue": {

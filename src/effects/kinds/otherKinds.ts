@@ -23,7 +23,6 @@ import {
   nextBreakableSubroutine,
   runnerBreakBlock,
 } from "../../state/turnAndActions/break.js";
-import { applyRunAccessRestrictions } from "../../state/access/accessFilter.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
@@ -51,14 +50,6 @@ import {
   resolveSabotageAmount,
 } from "../../state/keywordsAndCredits/keywords.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import {
-  moveForfeitedAgendaOutOfGame,
-  removeCardFromCurrentZone,
-  canScoreAgenda,
-  checkWinConditions,
-  scoreAgenda,
-  stealAgenda,
-} from "../../state/turnAndActions/scoring.js";
 import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
@@ -72,12 +63,8 @@ import {
   shuffleRunnerSetAsideIntoStack,
   shuffleRunnerStack,
 } from "../runnerInstall.js";
-
-import { fireOnFullyBreak, fireOnForfeit, fireOnAccess } from "../eval.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
-import { openFace } from "../../state/visibility/seatVisibility.js";
-import { serverLabel } from "../corpAbilityInstall.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import { iceFaceVisible } from "../../state/visibility/seatVisibility.js";
 import {
@@ -85,21 +72,29 @@ import {
   resetEncounterBreaks,
 } from "../../state/turnAndActions/break.js";
 import { effectiveIceSubtypes, serverIdForIce } from "../../cards/stubs.js";
+import { iceStrength } from "../continuous/iceStrength.js";
 import {
+  moveForfeitedAgendaOutOfGame,
+  removeCardFromCurrentZone,
+  canScoreAgenda,
+  checkWinConditions,
+  scoreAgenda,
+} from "../../state/turnAndActions/scoring.js";
+import {
+  fireOnFullyBreak,
+  fireOnForfeit,
   fireAfterBreakSubroutineHooks,
   maybeFireFluxFirstBreakCharge,
   offerMayChargeCard,
   offerBurnerMoves,
   startExclusiveChoicesPerPassedIce,
   offerRdArrangeChoice,
-  shuffleCorpRdAfterSearch,
   openExposeUpTo,
   finishExposeUpTo,
   resumeExposeUpTo,
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
-import { iceStrength } from "../continuous/iceStrength.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -126,16 +121,6 @@ export function applyOtherKinds(
           cites: [CR.paidAbility],
         };
       }
-      return { ok: true };
-    }
-
-    case "spend_power_for_bonus_access": {
-      const have = source.powerCounters ?? 0;
-      const n = Math.min(action.amount, have);
-      if (n <= 0 || !state.run) return { ok: true };
-      source.powerCounters = have - n;
-      state.run.bonusAccess = (state.run.bonusAccess ?? 0) + n;
-      log(state, `${source.title} — spend ${n} power → +${n} bonus access.`);
       return { ok: true };
     }
 
@@ -1408,175 +1393,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "hangeki_runner_may_access": {
-      const card = state.cards[action.cardId];
-      if (!card) {
-        log(state, `Hangeki — chosen card missing.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "hangeki-access",
-            label: `Access ${openCardName(state, action.cardId, "runner")}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "access_installed" as const,
-                cardId: action.cardId,
-                onAccess: action.onAccess,
-              },
-            },
-          },
-          {
-            id: "hangeki-decline",
-            label: "Decline",
-            effect: action.onDecline,
-          },
-        ],
-        logLine: `${source.title} — Runner may access ${card.title}.`,
-      });
-      return { ok: true };
-    }
-
-    case "access_installed": {
-      const rfg = evalEffect({ state, sourceId }, action.onAccess);
-      if (!rfg.ok) return rfg;
-      const card = state.cards[action.cardId];
-      if (!card) {
-        log(state, `${source.title} access — card missing.`);
-        return { ok: true };
-      }
-      let serverId: import("../../state/types.js").ServerId | null = null;
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (
-          server.root.includes(action.cardId) ||
-          server.ice.includes(action.cardId)
-        ) {
-          serverId = sid as import("../../state/types.js").ServerId;
-          break;
-        }
-      }
-      if (!serverId) {
-        log(state, `${source.title} access — card no longer installed.`);
-        return { ok: true };
-      }
-      if (state.run && !state.run.isPostRunBreach) {
-        return applyPrimitive(ctx, {
-          kind: "access_installed_card",
-          cardId: action.cardId,
-        });
-      }
-      state.pendingStandaloneCardAccess = {
-        sourceId,
-        cardId: action.cardId,
-        serverId,
-      };
-      log(
-        state,
-        // A facedown card's title waits for the access (CR 7.1.2, 10.2.2a).
-        `${source.title} — pending out-of-run access of ${openFace(card, "runner").title ?? "an unrezzed card"}.`,
-      );
-      return { ok: true };
-    }
-
-    case "access_one_root_other_server": {
-      if (!state.run) {
-        // Quest Completed shares this kind but is played outside a run:
-        // "Access 1 installed card (non-ice)" names no server and no steal
-        // or trash restriction, so the access follows CR 7.1.5 and 7.1.6.
-        return accessOneInstalledNonIce(ctx);
-      }
-      const attacked = state.run.attackedServerId;
-      const cands: string[] = [];
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (sid === attacked) continue;
-        for (const id of server.root) {
-          cands.push(id);
-        }
-      }
-      // "If that card is an agenda, you cannot steal or trash it": only an
-      // agenda is protected; an asset or upgrade can still be trashed.
-      state.run.cannotStealOrTrashAgendas = true;
-      state.run.accessCandidates = cands;
-      state.run.randomAccessLimit = cands.length > 0 ? 1 : 0;
-      state.run.accessCandidatesPreset = true;
-      state.run.accessedCardIds = state.run.accessedCardIds ?? [];
-      if (cands.length > 0) {
-        // Enter breach instead of ending the run after skipBreach replace.
-        state.run.skipBreach = false;
-        log(
-          state,
-          `${source.title} — instead of breach, access 1 root card among ${cands.length} other-server candidate(s) (cannot steal/trash).`,
-        );
-      } else {
-        log(state, `${source.title} — no other-server root cards to access.`);
-      }
-      return { ok: true };
-    }
-
-    case "access_set_aside": {
-      const aside = [...(state.corp.corpSetAside ?? [])];
-      const pick = action.cardId;
-      if (!aside.includes(pick)) {
-        log(state, `${source.title} — Khusyuk access: card not set aside.`);
-        return { ok: true };
-      }
-      const card = state.cards[pick]!;
-      log(state, `${source.title} — access ${card.title} from set-aside.`);
-      if (card.type === "agenda") {
-        stealAgenda(state, pick);
-      }
-      // Shuffle remaining set-aside (and unstolen pick if still set-aside) into R&D.
-      const remaining = aside.filter(
-        (id) => id !== pick || state.cards[id]?.zone === "corp:set-aside",
-      );
-      for (const id of remaining) {
-        if (state.cards[id]?.zone !== "corp:set-aside") continue;
-        state.corp.deck.push(id);
-        state.cards[id]!.zone = "corp:rd";
-        state.cards[id]!.faceup = false;
-      }
-      state.corp.corpSetAside = [];
-      shuffleCorpRdAfterSearch(state);
-      log(state, `${source.title} — shuffle set-aside into R&D.`);
-      return { ok: true };
-    }
-
-    case "access_random_hq": {
-      const hq = state.corp.hand;
-      if (hq.length === 0) {
-        log(state, `Access random HQ — HQ empty.`);
-        return { ok: true };
-      }
-      const cardId = hq[hq.length - 1]!;
-      const card = state.cards[cardId]!;
-      card.faceup = true;
-      log(state, `Accessed ${card.title} in HQ at random (Detente).`);
-      fireOnAccess(state, cardId);
-      return { ok: true };
-    }
-
-    case "access_installed_card": {
-      if (!state.run) {
-        log(state, `Access installed card — no active run.`);
-        return { ok: true };
-      }
-      const card = state.cards[action.cardId];
-      if (!card || !card.zone.includes(":root")) {
-        log(state, `Access installed card — not in a server root.`);
-        return { ok: true };
-      }
-      state.run.accessCandidates = [action.cardId];
-      state.run.randomAccessLimit = 1;
-      state.run.accessCandidatesPreset = true;
-      state.run.skipBreach = false;
-      log(state, `${source.title} — Runner accesses ${card.title}.`);
-      return { ok: true };
-    }
-
     case "etr_subroutines_per_runner_tags_on_encounter": {
       const ice = state.cards[sourceId];
       const run = state.run;
@@ -2273,29 +2089,6 @@ export function applyOtherKinds(
       state.cards[id].zone = "corp:rd";
       state.cards[id].faceup = false;
       log(state, `${state.cards[id].title} moved from HQ to top of R&D.`);
-      return { ok: true };
-    }
-
-    case "climactic_register_bonus_access": {
-      const amount = Math.max(0, action.amount ?? 2);
-      state.turn.climacticBonusAccessOnFirstHqRdBreach = amount;
-      log(
-        state,
-        `${source.title} — first HQ or R&D breach this turn: access +${amount}.`,
-      );
-      return { ok: true };
-    }
-
-    case "name_agenda": {
-      if (!state.run) {
-        log(state, `Whistleblower name — no run.`);
-        return { ok: true };
-      }
-      state.run.whistleblowerNamedTitle = action.title;
-      log(
-        state,
-        `${source.title} — name ${action.title}; next access of that agenda this run is stolen ignoring costs.`,
-      );
       return { ok: true };
     }
 
@@ -3499,29 +3292,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "queue_breaches_after_current": {
-      if (!state.run) {
-        log(state, `queue_breaches_after_current — no active run.`);
-        return { ok: true };
-      }
-      if (!state.run.queuedBreachesAfterCurrent) {
-        state.run.queuedBreachesAfterCurrent = [];
-      }
-      for (const server of action.servers) {
-        state.run.queuedBreachesAfterCurrent.push({
-          server: server as import("../../state/types.js").ServerId,
-          ...(action.cannotAccessRoot ? { cannotAccessRoot: true } : {}),
-        });
-      }
-      log(
-        state,
-        `${source.title} — queue breaches after current: ${action.servers.join(
-          ", ",
-        )}${action.cannotAccessRoot ? " (cannot access root)" : ""}.`,
-      );
-      return { ok: true };
-    }
-
     case "haas_pet_project_setup": {
       const remaining = Math.max(0, action.remaining);
       if (remaining <= 0) return { ok: true };
@@ -3535,27 +3305,6 @@ export function applyOtherKinds(
         remaining,
         serverId: sid,
       });
-    }
-
-    case "bonus_access": {
-      if (!state.run) {
-        return {
-          ok: false,
-          error: "bonus_access requires an active run.",
-          cites: [CR.breach],
-        };
-      }
-      const n = action.amount;
-      if (action.oncePerTurn === "mercury") {
-        state.turn.mercuryBreachBonusUsedThisTurn = true;
-      }
-      if (n <= 0) return { ok: true };
-      state.run.bonusAccess = (state.run.bonusAccess ?? 0) + n;
-      log(
-        state,
-        `${source.title} — +${n} bonus access (CR ${CR.breach.number}).`,
-      );
-      return { ok: true };
     }
 
     case "fully_operational_step": {
@@ -3622,33 +3371,6 @@ export function applyOtherKinds(
 
     case "exclusive_choices_per_passed_ice": {
       return startExclusiveChoicesPerPassedIce(state, sourceId, action.options);
-    }
-
-    case "restrict_run_access": {
-      if (!state.run) {
-        log(state, `restrict_run_access — no active run.`);
-        return { ok: true };
-      }
-      const ids = action.cardIdsFromSource
-        ? [sourceId]
-        : (action.cardIds ?? []);
-      if (action.mode === "only_source") {
-        state.run.accessOnlyCardIds = [
-          ...(state.run.accessOnlyCardIds ?? []),
-          ...ids,
-        ];
-      } else {
-        state.run.forbiddenAccessCardIds = [
-          ...(state.run.forbiddenAccessCardIds ?? []),
-          ...ids,
-        ];
-      }
-      applyRunAccessRestrictions(state);
-      log(
-        state,
-        `Run access restricted (${action.mode}) for ${ids.join(", ")}.`,
-      );
-      return { ok: true };
     }
 
     case "wall_to_wall_turn_begin": {
@@ -4181,56 +3903,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "begin_replace_breach_hq_hand_only": {
-      if (!state.run) {
-        log(
-          state,
-          `${source.title} — breach HQ (hand only) deferred until a run begins.`,
-        );
-        state.turn.pendingRaymondFlintHandOnlyHqBreach = true;
-        return { ok: true };
-      }
-      if (state.run.phase === "breach" || state.run.breached) {
-        state.run.queuedBreachesAfterCurrent = [
-          ...(state.run.queuedBreachesAfterCurrent ?? []),
-          { server: "hq", cannotAccessRoot: true },
-        ];
-        log(
-          state,
-          `${source.title} — HQ breach waits until the current breach ends (CR ${CR.consecutiveBreaches.number}).`,
-        );
-        return { ok: true };
-      }
-      setAttackedServer(state.run, "hq");
-      state.run.skipBreach = false;
-      state.run.accessCandidates = [...state.corp.hand];
-      state.run.randomAccessLimit =
-        state.run.accessCandidates.length > 0 ? 1 : 0;
-      state.run.accessCandidatesPreset = true;
-      state.run.forbiddenAccessCardIds = [...(state.servers.hq?.root ?? [])];
-      log(state, `${source.title} — breach HQ (hand only; root inaccessible).`);
-      return { ok: true };
-    }
-
-    case "cap_run_access_remaining": {
-      if (!state.run) return { ok: true };
-      const max = action.max;
-      const room = Math.max(0, max - state.run.accessedCardIds.length);
-      if (state.run.randomAccessLimit === null) {
-        state.run.randomAccessLimit = room;
-      } else {
-        state.run.randomAccessLimit = Math.min(
-          state.run.randomAccessLimit,
-          room,
-        );
-      }
-      log(
-        state,
-        `${source.title} — access capped at ${state.run.randomAccessLimit} card(s) this run.`,
-      );
-      return { ok: true };
-    }
-
     case "unorthodox_predictions_lock_subtype": {
       state.turn.forbidBreakIceSubtypesUntilCorpTurnEnd = [action.subtype];
       log(
@@ -4277,49 +3949,4 @@ export function applyOtherKinds(
     default:
       return null;
   }
-}
-
-/**
- * Quest Completed: "Access 1 installed card (non-ice)." The Runner chooses
- * any card in the root of any server, central or remote; the access goes
- * through the out-of-run access path, so the Runner may trash it by paying
- * its trash cost and must steal an agenda (CR 7.1.5, 7.1.6). A facedown
- * card's title is not in its label: the Runner may not see it until the
- * access (CR 7.1.2, 10.2.2a).
- */
-function accessOneInstalledNonIce(ctx: EffectCtx): EvalResult {
-  const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
-  const name = source?.title ?? "Quest Completed";
-  const options: { id: string; label: string; effect: Effect }[] = [];
-  for (const [sid, server] of Object.entries(state.servers)) {
-    let unrezzed = 0;
-    for (const id of server.root) {
-      const card = state.cards[id];
-      if (!card || card.type === "ice") continue;
-      const title = openFace(card, "runner").title;
-      unrezzed += title === null ? 1 : 0;
-      const shown = title ?? `unrezzed card ${unrezzed}`;
-      options.push({
-        id: `access-installed:${id}`,
-        label: `Access ${shown} in the root of ${serverLabel(sid)}`,
-        effect: fx.do({
-          kind: "access_installed",
-          cardId: id,
-          onAccess: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-        }),
-      });
-    }
-  }
-  if (options.length === 0) {
-    log(state, `${name} — no installed non-ice card to access.`);
-    return { ok: true };
-  }
-  openPendingChoose(state, {
-    sourceId,
-    chooser: "runner",
-    options,
-    logLine: `${name} — the Runner chooses 1 installed card (non-ice) to access.`,
-  });
-  return { ok: true };
 }

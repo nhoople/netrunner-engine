@@ -7040,6 +7040,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/access/accessKinds.ts#applyAccessKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
@@ -9643,7 +9647,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/primitives/resolveExposePay.ts#fireTdatdOnAgendaAccessedOrScored",
+          "site": "src/effects/access/accessKinds.ts#fireTdatdOnAgendaAccessedOrScored",
           "kinds": []
         },
         {
@@ -21009,6 +21013,26 @@
           "kinds": []
         },
         {
+          "site": "src/effects/access/accessKinds.ts#accessOneInstalledNonIce",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/access/accessKinds.ts#applyAccessKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/access/accessKinds.ts#offerCbiRaidHqToRd",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/access/accessKinds.ts#offerInfoSiftAssign",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/access/breachKinds.ts#applyBreachKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/badPublicityPrimitives.ts#applyBadPublicityPrimitive",
           "kinds": []
         },
@@ -21201,10 +21225,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/breachKinds.ts#applyBreachKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -21234,10 +21254,6 @@
         },
         {
           "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#accessOneInstalledNonIce",
           "kinds": []
         },
         {
@@ -21517,10 +21533,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/rezBreachPlace.ts#offerCbiRaidHqToRd",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/rezBreachPlace.ts#offerDiscardDownToHandSize",
           "kinds": []
         },
@@ -21590,10 +21602,6 @@
         },
         {
           "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashPlaceAccess.ts#offerInfoSiftAssign",
           "kinds": []
         },
         {
@@ -23672,6 +23680,18 @@
           "kinds": []
         },
         {
+          "site": "src/effects/access/accessKinds.ts#accessOneInstalledNonIce",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/access/accessKinds.ts#applyAccessKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/access/breachKinds.ts#applyBreachKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/cardNames.ts#catalogCardNames",
           "kinds": []
         },
@@ -23760,10 +23780,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/breachKinds.ts#applyBreachKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -23789,10 +23805,6 @@
         },
         {
           "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#accessOneInstalledNonIce",
           "kinds": []
         },
         {

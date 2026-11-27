@@ -8,7 +8,6 @@ import type { GameState, RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
-import { fireOnAgendaAccessedOrScored } from "../../state/triggers/miscConditionalHooks.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
@@ -618,23 +617,6 @@ export function applyKitaraTdatdPrimitive(
 
     default:
       return null;
-  }
-}
-
-/** Fire Kill Switch-class onAgendaAccessedOrScored from active currents / play area. */
-export function fireTdatdOnAgendaAccessedOrScored(state: GameState): void {
-  for (const card of Object.values(state.cards)) {
-    if (!card?.onAgendaAccessedOrScored) continue;
-    const inPlay =
-      card.zone === "corp:play-area" ||
-      card.zone === "runner:play-area" ||
-      (card.rezzed &&
-        Object.values(state.servers).some(
-          (s) => s.root.includes(card.id) || s.ice.includes(card.id),
-        ));
-    if (!inPlay) continue;
-    fireOnAgendaAccessedOrScored(state, card.id);
-    if (state.pendingChoice || state.trace) return;
   }
 }
 

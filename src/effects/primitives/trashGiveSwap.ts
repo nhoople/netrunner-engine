@@ -1,5 +1,3 @@
-/** Fear and Loathing / Double Time Spin pack primitives. */
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { startTrace } from "../../state/turnAndActions/trace.js";
@@ -193,26 +191,6 @@ export function applySpinFalDtPrimitive(
         `Toshiyuki Sakai — swap with ${incoming.title}; new card installed unrezzed with ${adv} advancement(s).`,
       );
       return { ok: true };
-    }
-    case "breach_instead_singularity_trash_root": {
-      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      if (!state.run) {
-        log(state, `Singularity — no active run.`);
-        return { ok: true };
-      }
-      // The printed replacement of the breach has no "may", so it is not
-      // optional (CR 6.7.4c).
-      log(
-        state,
-        `Singularity — instead of breaching, trash all cards in the server root.`,
-      );
-      return evalEffect(
-        ctx,
-        fx.seq(
-          fx.do({ kind: "set_run_skip_breach" }),
-          fx.do({ kind: "trash_attacked_server_root" }),
-        ),
-      );
     }
     case "install_program_from_grip": {
       const programs = state.runner.hand.filter(

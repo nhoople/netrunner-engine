@@ -2,7 +2,7 @@
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { applyAddKinds } from "./addKinds.js";
-import { applyBreachKinds } from "./breachKinds.js";
+import { applyBreachKinds } from "../access/breachKinds.js";
 import { applyChooseKinds } from "../triggers/chooseKinds.js";
 import { applyDerezKinds } from "./derezKinds.js";
 import { applyForbidKinds } from "../continuous/forbidKinds.js";
@@ -29,6 +29,7 @@ import {
   applyContinuousKinds,
   applyContinuousKindsWhenSourceExists,
 } from "../continuous/continuousKinds.js";
+import { applyAccessKinds } from "../access/accessKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -57,6 +58,7 @@ const HANDLERS = [
   applyTrashKinds,
   applyContinuousKinds,
   applyContinuousKindsWhenSourceExists,
+  applyAccessKinds,
 ] as const;
 
 export function applyCoreKinds(

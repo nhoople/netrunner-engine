@@ -41,15 +41,6 @@ export function applyKitaraSsPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "ss_activate_by_any_means": {
-      state.turn.ssByAnyMeansActive = true;
-      log(
-        state,
-        `${source?.title ?? "By Any Means"} — remainder of turn: access not in Archives → trash + 1 meat.`,
-      );
-      return { ok: true };
-    }
-
     case "add_or_remove_power": {
       const have = source?.powerCounters ?? 0;
       const options: { id: string; label: string; effect: Effect }[] = [
