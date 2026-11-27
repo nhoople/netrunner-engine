@@ -1,11 +1,12 @@
-/** The costs, discounts and play or install requirements on a card instance. */
+/** The costs, discounts and requirements on a card instance: what it costs, and what it needs before it can be played, installed, rezzed or used. */
 
 import type { Effect } from "../../effects/ir.js";
 
 /**
  * The `CardInstance` fields whose names say Cost, Discount or Requires (and are
  * not trigger hooks): what the card costs, what makes it cheaper, and what it
- * needs before it can be played or installed.
+ * needs before it can be played, installed, rezzed or used.
+ * `tests/state-types-layout.test.ts` checks the rule.
  */
 export interface CardCostsAndRequirements {
   /** Printed install cost in credits (programs/hardware/resources/ice). */

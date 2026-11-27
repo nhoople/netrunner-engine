@@ -2,7 +2,10 @@
 
 import type { Effect } from "../../effects/ir.js";
 
-/** The `CardInstance` fields named `on<Event>`: the card's trigger hooks. */
+/**
+ * The `CardInstance` fields named `on<Event>`: the card's trigger hooks.
+ * `tests/state-types-layout.test.ts` checks the rule.
+ */
 export interface CardTriggerHooks {
   /**
    * Continuous / on-rez effect IR (e.g. prevent jack-out).
