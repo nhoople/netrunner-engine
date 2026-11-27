@@ -24,7 +24,6 @@ import {
   noteFirstInstallInServerRootThisTurn,
   noteFirstRemoteInstallThisTurn,
 } from "../state/hostingAndTrash/trashHooks.js";
-import { fireTdatd419OnFirstCorpInstall } from "../effects/primitives/resolveExposePay.js";
 import type {
   ApplyResult,
   CardInstance,
@@ -43,6 +42,7 @@ import { fireOnInstallFromNonHq } from "../state/triggers/miscConditionalHooks.j
 import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { hostCard } from "../state/hostingAndTrash/host.js";
 import { addOutermostIce } from "../state/uninstallAndPosition/runPosition.js";
+import { fireTdatd419OnFirstCorpInstall } from "../effects/visibility/visibilityKinds.js";
 
 /** How an install differs from the basic action. */
 export interface CorpInstallOptions {

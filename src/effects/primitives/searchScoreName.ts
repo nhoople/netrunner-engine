@@ -1,6 +1,5 @@
 /** The Spaces Between (tsb) Lunar pack primitives. */
 import { revealCards } from "../../state/visibility/reveal.js";
-import { loadCardCatalog } from "../../cards/load.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import type { RuleCite } from "../../state/types.js";
@@ -132,35 +131,6 @@ export function applyLunarTsbPrimitive(
         state.corp.credits += n;
         log(state, `Encrypted Portals — gain ${n}¢ for rezzed code gates.`);
       }
-      return { ok: true };
-    }
-    case "name_card": {
-      // Printed: "Name a card." Any card in the pool may be named — not
-      // just whichever cards happen to be in the game state.
-      const defs = [...loadCardCatalog().values()]
-        .filter((d) => d.type !== "identity")
-        .sort((a, b) => a.title.localeCompare(b.title));
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: defs.map((d) => ({
-          id: `tm:${d.id}`,
-          label: `Name ${d.title}`,
-          effect: fx.do({
-            kind: "set_name",
-            defId: d.id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "set_name": {
-      const defId = (action as { defId: string }).defId;
-      // The named card is remembered by the current itself, for as long
-      // as it remains in the play area — not by turn state.
-      const source = state.cards[sourceId];
-      if (source) source.namedCardDefId = defId;
-      log(state, `Targeted Marketing — named ${defId}.`);
       return { ok: true };
     }
     case "information_overload_encounter": {

@@ -1,6 +1,5 @@
 /** Station One (so) Red Sand pack primitives — v1.129.0. */
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
-import { revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
@@ -263,39 +262,6 @@ export function applyRedsandSoPrimitive(
       };
       log(state, `Möbius — pending second R&D run.`);
       return { ok: true };
-    }
-
-    case "reveal_host_programs": {
-      const top: string[] = [];
-      for (let i = 0; i < 5 && state.runner.deck.length > 0; i++) {
-        top.push(state.runner.deck.shift()!);
-      }
-      revealCards(state, top, sourceId);
-      const programs = top.filter((id) => state.cards[id]?.type === "program");
-      const rest = top.filter((id) => !programs.includes(id));
-      // Return non-programs to stack temporarily; host choice for programs.
-      for (const id of rest) {
-        state.runner.deck.unshift(id);
-      }
-      if (programs.length === 0) {
-        // shuffle remaining
-        for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(random(state) * (i + 1));
-          [state.runner.deck[i], state.runner.deck[j]] = [
-            state.runner.deck[j]!,
-            state.runner.deck[i]!,
-          ];
-        }
-        log(state, `Customized Secretary — no programs; shuffle stack.`);
-        return { ok: true };
-      }
-      return evalEffect(
-        ctx,
-        fx.do({
-          kind: "host_continue",
-          cardIds: programs,
-        }),
-      );
     }
 
     case "host_continue": {

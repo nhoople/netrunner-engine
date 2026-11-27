@@ -22,13 +22,10 @@ import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { trashCorpCardSet } from "../kinds/trashKinds.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
+import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-export function installedRunnerIds(state: EffectCtx["state"]): string[] {
-  return [...state.runner.installed];
-}
 
 function installedCorpIds(state: EffectCtx["state"]): string[] {
   const out: string[] = [];
@@ -378,15 +375,6 @@ export function applyDadPrimitive(
         by: controllerOf(state, sourceId),
         instruction: "trash_all_installed_corp_cards",
       });
-      return { ok: true };
-    }
-
-    case "turn_all_installed_runner_cards_facedown": {
-      for (const id of installedRunnerIds(state)) {
-        const c = state.cards[id];
-        if (c) c.faceup = false;
-      }
-      log(state, `Apocalypse — turn all installed Runner cards facedown.`);
       return { ok: true };
     }
 

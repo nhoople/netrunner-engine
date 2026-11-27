@@ -1,5 +1,3 @@
-/** Free Mars (fm) Red Sand pack primitives — v1.133.0. */
-import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { evalEffect } from "../eval.js";
@@ -292,31 +290,6 @@ export function applyRedsandFmPrimitive(
         state,
         `Biased Reporting — Corp gains ${gainAmt}¢ (${remaining} ${t}(s) remain) → ${state.corp.credits}¢.`,
       );
-      return { ok: true };
-    }
-
-    case "reveal_top_rd_to_hq_then_hq_to_rd_top": {
-      const top = state.corp.deck.shift();
-      if (top) {
-        state.corp.hand.push(top);
-        const c = state.cards[top];
-        if (c) {
-          c.zone = "corp:hq";
-          c.faceup = false;
-        }
-        revealCards(state, [top], sourceId);
-        log(state, `Open Forum — reveal ${c?.title ?? top} and add to HQ.`);
-      }
-      if (state.corp.hand.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: state.corp.hand.map((id) => ({
-          id: `of:${id}`,
-          label: `Add ${state.cards[id]?.title ?? id} to top of R&D`,
-          effect: fx.do({ kind: "open_forum_hq_to_rd_top", cardId: id }),
-        })),
-      });
       return { ok: true };
     }
 

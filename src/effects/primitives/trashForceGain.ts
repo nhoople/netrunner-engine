@@ -149,16 +149,6 @@ export function applyFlashpoint23sPrimitive(
       return { ok: true };
     }
 
-    case "expose_then_run": {
-      return evalEffect(ctx, {
-        op: "seq",
-        effects: [
-          fx.do({ kind: "expose", pick: "choose" }),
-          fx.do({ kind: "may_start_run", servers: "any" }),
-        ],
-      });
-    }
-
     case "choose_breaker_run": {
       const bonus = action.strengthBonus ?? 2;
       const breakers = state.runner.installed.filter((id) => {

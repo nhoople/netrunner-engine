@@ -1,16 +1,14 @@
-/** Democracy and Dogma (dag) Mumbad pack primitives — v1.118.0. */
-import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
-import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -73,33 +71,6 @@ export function applyMumbadDagPrimitive(
         state,
         `Political Graffiti — host on ${agenda.title} (−1 agenda point while hosted; trash on virus purge).`,
       );
-      return { ok: true };
-    }
-
-    case "look_top_x_stack_arrange": {
-      const copies = state.runner.installed.filter(
-        (id) => state.cards[id]?.defId === (source?.defId ?? "spy-camera"),
-      ).length;
-      const n = Math.max(0, copies);
-      if (n === 0) {
-        log(state, `Spy Camera — no copies installed.`);
-        return { ok: true };
-      }
-      return (
-        applySansanOhPrimitive(ctx, {
-          kind: "look_top_n_stack_arrange",
-          n,
-        }) ?? { ok: true }
-      );
-    }
-
-    case "look_top_1_rd": {
-      const top = state.corp.deck[0];
-      if (!top) {
-        log(state, `${source?.title ?? "Spy Camera"} — R&D empty.`);
-        return { ok: true };
-      }
-      lookAtCards(state, [top], sourceId);
       return { ok: true };
     }
 

@@ -42,7 +42,7 @@ import { facedownInstalledRunnerCard } from "../../state/continuous/active.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { runnerPrograms } from "../primitives/breachResolveRfg.js";
-import { installedRunnerIds } from "../primitives/playDrawSearch.js";
+import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 
 const FORBIDDEN_PANCHATANTRA = new Set(["barrier", "code gate", "sentry"]);
 

@@ -9,7 +9,7 @@ import { applyForbidKinds } from "../continuous/forbidKinds.js";
 import { applyGainKinds } from "./gainKinds.js";
 import { applyHostKinds } from "./hostKinds.js";
 import { applyInstallKinds } from "./installKinds.js";
-import { applyLookKinds } from "./lookKinds.js";
+import { applyLookKinds } from "../visibility/lookKinds.js";
 import { applyMoveKinds } from "./moveKinds.js";
 import { applyOtherKinds } from "./otherKinds.js";
 import { applyPayKinds } from "./payKinds.js";
@@ -18,7 +18,7 @@ import { applyPlayKinds } from "./playKinds.js";
 import { applyRemoveKinds } from "./removeKinds.js";
 import { applyResolveKinds } from "../triggers/resolveKinds.js";
 import { applyReturnKinds } from "./returnKinds.js";
-import { applyRevealKinds } from "./revealKinds.js";
+import { applyRevealKinds } from "../visibility/revealKinds.js";
 import { applyRezKinds } from "../rez/rezKinds.js";
 import { applySearchKinds } from "./searchKinds.js";
 import { applySetKinds } from "./setKinds.js";
@@ -32,6 +32,10 @@ import {
 import { applyAccessKinds } from "../access/accessKinds.js";
 import { applyRezKindsWhenSourceExists } from "../rez/rezKinds.js";
 import { applySwapKindsWhenSourceExists } from "../swap/swapKinds.js";
+import {
+  applyVisibilityKinds,
+  applyVisibilityKindsWhenSourceExists,
+} from "../visibility/visibilityKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -63,6 +67,8 @@ const HANDLERS = [
   applyAccessKinds,
   applyRezKindsWhenSourceExists,
   applySwapKindsWhenSourceExists,
+  applyVisibilityKinds,
+  applyVisibilityKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

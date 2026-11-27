@@ -1,6 +1,5 @@
 /** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
-import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   legalRebirthIdentityIds,
@@ -189,24 +188,6 @@ export function applyMumbadTlmPrimitive(
       }
       switchRunnerIdentity(state, cardId);
       recomputeRunnerLink(state);
-      return { ok: true };
-    }
-
-    case "reveal_grip_trash_cost_lte_excess": {
-      const excess = state.turn.lastTraceExcess ?? 0;
-      const hand = [...state.runner.hand];
-      for (const id of hand) {
-        const card = state.cards[id];
-        if (!card) continue;
-        const cost = card.playCost ?? card.installCost ?? Infinity;
-        revealCards(state, [card.id], sourceId);
-        log(state, `Waiver — reveal ${card.title} (cost ${cost}).`);
-        if (typeof cost === "number" && cost <= excess) {
-          state.runner.hand = state.runner.hand.filter((x) => x !== id);
-          trashCard(state, id);
-          log(state, `Waiver — trash ${card.title} (cost ≤ ${excess}).`);
-        }
-      }
       return { ok: true };
     }
 

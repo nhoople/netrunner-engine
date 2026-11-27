@@ -164,6 +164,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
     rez/                  # rezzing and derezzing (CR 8.1): the rez and derez kinds
     swap/                 # swapping cards (CR 8.8): the swap kinds
     triggers/             # choices and conditional abilities (CR 9.6): choose_card and choose_cards, the choose and resolve kinds, first- and second-time-each-turn triggers (firstTimeEachTurnTriggers.ts)
+    visibility/           # what a seat may see (CR 1.21, 10.2): the reveal, look and expose kinds, faceup and facedown, the card names a player may choose (cardNames.ts)
   legality/               # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
   state/                  # ids.ts, rng.ts, zones.ts: shared plumbing; types.ts: points to types/. Every other file is in a folder: one per CR audit area, plus continuous/ and triggers/ for the rules no single area owns
     access/               # accessing cards (CR ch. 7): access candidates and filters, access-step abilities, abilities that replace a breach

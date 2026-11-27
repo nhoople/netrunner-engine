@@ -1,6 +1,4 @@
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
-/** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
-import { lookAtCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
@@ -123,47 +121,6 @@ export function applyFlashpointQuPrimitive(
     case "schedule_additional_runner_turn": {
       state.pendingExtraRunnerTurns = (state.pendingExtraRunnerTurns ?? 0) + 1;
       log(state, `Encore — take an additional turn after this one.`);
-      return { ok: true };
-    }
-
-    case "look_top5_may_install_remote": {
-      if (state.turn.rdLookedCards.length > 0) {
-        return {
-          ok: false,
-          error: "R&D look already in progress.",
-          cites: [],
-        };
-      }
-      const n = 5;
-      const taken = state.corp.deck.splice(
-        0,
-        Math.min(n, state.corp.deck.length),
-      );
-      state.turn.rdLookedCards = taken;
-      lookAtCards(state, taken, sourceId);
-      const installable = taken.filter((id) => {
-        const t = state.cards[id].type;
-        return t === "agenda" || t === "asset" || t === "upgrade";
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "decline",
-            label: "Decline to install",
-            effect: fx.do({ kind: "return_looked" }),
-          },
-          ...installable.map((id) => ({
-            id: `psychokinesis-install:${id}`,
-            label: `Install ${state.cards[id].title} in a remote`,
-            effect: fx.do({
-              kind: "install_remote",
-              cardId: id,
-            }),
-          })),
-        ],
-      });
       return { ok: true };
     }
 

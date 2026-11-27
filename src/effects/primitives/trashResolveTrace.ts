@@ -3,88 +3,15 @@ import { emptyRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
-import type { GameState, RuleCite, ServerId } from "../../state/types.js";
-import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
-import { evalEffect } from "../eval.js";
-import { chooseCards } from "../triggers/chooseCards.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { shiftEncounterBreaks } from "../../state/turnAndActions/break.js";
+import type { RuleCite, ServerId } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-/** Ask the Corp where the next granted subroutine goes (CR 9.8.2c). */
-function offerSubroutineInsertChoice(state: GameState): void {
-  const run = state.run;
-  const next = run?.pendingSubroutineInserts?.[0];
-  const iceId = run?.encounter?.iceId;
-  const ice = iceId ? state.cards[iceId] : undefined;
-  if (!run || !next || !ice) {
-    if (run) run.pendingSubroutineInserts = undefined;
-    return;
-  }
-  const subs = ice.subroutines ?? [];
-  openPendingChoose(state, {
-    sourceId: ice.id,
-    chooser: "corp",
-    options: Array.from({ length: subs.length + 1 }, (_, index) => {
-      const place =
-        index === 0
-          ? "before the other subroutines"
-          : index === subs.length
-            ? "after the other subroutines"
-            : `after "${subs[index - 1]!.text}"`;
-      return {
-        id: `grail-at:${index}`,
-        label: `Place "${next.text}" ${place}`,
-        effect: fx.do({
-          kind: "gain_credits",
-          side: "corp",
-          amount: 0,
-        }),
-      };
-    }),
-  });
-  log(
-    state,
-    `${ice.title} — choose where "${next.text}" is placed (CR ${CR.subroutineOrderChoice.number}).`,
-  );
-}
-
-/** Insert the next granted subroutine at the chosen index (CR 9.8.2c). */
-export function chooseSubroutinePosition(
-  state: GameState,
-  index: number,
-): void {
-  const run = state.run;
-  const queue = run?.pendingSubroutineInserts ?? [];
-  const sub = queue[0];
-  const iceId = run?.encounter?.iceId;
-  const ice = iceId ? state.cards[iceId] : undefined;
-  if (!run?.encounter || !sub || !ice) {
-    if (run) run.pendingSubroutineInserts = undefined;
-    return;
-  }
-  const subs = [...(ice.subroutines ?? [])];
-  const at = Math.max(0, Math.min(index, subs.length));
-  subs.splice(at, 0, sub);
-  ice.subroutines = subs;
-  const broken = [...run.encounter.broken];
-  broken.splice(at, 0, false);
-  run.encounter.broken = broken;
-  shiftEncounterBreaks(run.encounter, at, 1);
-  const rest = queue.slice(1);
-  run.pendingSubroutineInserts = rest.length > 0 ? rest : undefined;
-  log(
-    state,
-    `${ice.title} gains "${sub.text}" at position ${at + 1} (CR ${CR.subroutineOrderChoice.number}).`,
-  );
-  if (rest.length > 0) offerSubroutineInsertChoice(state);
-}
 
 export function applyLunarUpPrimitive(
   ctx: EffectCtx,
@@ -201,55 +128,6 @@ export function applyLunarUpPrimitive(
       });
       const r = autoResolveTrace(state, sourceId, 2, fx.seq(trash, kick), kick);
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
-      return { ok: true };
-    }
-    case "reveal_grail_gain_subroutines": {
-      const max = (action as { maxReveal?: number }).maxReveal ?? 2;
-      const hq = state.corp.hand.filter(
-        (id) =>
-          (state.cards[id]?.subtypes ?? []).some((s) =>
-            s.toLowerCase().includes("grail"),
-          ) && state.cards[id]?.type === "ice",
-      );
-      if (hq.length === 0 || !state.run?.encounter) {
-        log(state, `Grail reveal — no grail ice in HQ to reveal.`);
-        return { ok: true };
-      }
-      // "Reveal up to 2 grail ice from HQ": the Corp says which (CR 1.15.2).
-      const chosen = (action as { cardIds?: string[] }).cardIds;
-      if (!chosen) {
-        return evalEffect(
-          ctx,
-          chooseCards({
-            chooser: "corp",
-            candidates: hq,
-            count: max,
-            upTo: true,
-            purpose: "resume",
-            label: "reveal",
-            resume: { kind: "reveal_grail_gain_subroutines", maxReveal: max },
-          }),
-        );
-      }
-      const pick = chosen.filter((id) => hq.includes(id)).slice(0, max);
-      revealCards(state, pick, sourceId);
-      const ice = state.cards[state.run.encounter.iceId];
-      if (!ice) return { ok: true };
-      const extra = pick.flatMap((id) => {
-        const def = state.cards[id]!;
-        return (def.subroutines ?? []).map((sub, i) => ({
-          id: `${ice.defId}-grail-${id}-${i}`,
-          text: sub.text,
-          effect: structuredClone(sub.effect!),
-        }));
-      });
-      log(
-        state,
-        `Grail — ${ice.title} gains subroutines from ${pick.map((id) => state.cards[id]!.title).join(", ")}.`,
-      );
-      if (extra.length === 0) return { ok: true };
-      state.run.pendingSubroutineInserts = extra;
-      offerSubroutineInsertChoice(state);
       return { ok: true };
     }
     case "cyber_threat": {

@@ -1,5 +1,4 @@
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
-import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
@@ -62,31 +61,6 @@ export function applyMumbadBfPrimitive(
       card.faceup = false;
       log(state, `CBI Raid — ${card.title} to top of R&D.`);
       return offerCbiRaidHqToRd(ctx);
-    }
-
-    case "reveal_lakshmi_agenda_resolve": {
-      if (!source) return { ok: true };
-      const id = action.cardId;
-      if (!state.corp.hand.includes(id)) return { ok: true };
-      const card = state.cards[id]!;
-      const x = card.agendaPoints ?? 0;
-      const power = source.powerCounters ?? 0;
-      if (power < x) {
-        log(state, `Lakshmi Smartfabrics — not enough power counters.`);
-        return { ok: true };
-      }
-      source.powerCounters = power - x;
-      const defId = card.defId ?? id;
-      state.turn.bfCannotStealAgendaDefIds = [
-        ...(state.turn.bfCannotStealAgendaDefIds ?? []),
-        defId,
-      ];
-      revealCards(state, [card.id], sourceId);
-      log(
-        state,
-        `Lakshmi Smartfabrics — reveal ${card.title} (${x}); Runner cannot steal copies this turn.`,
-      );
-      return { ok: true };
     }
 
     case "trash_rezzed_gain_trash_cost": {

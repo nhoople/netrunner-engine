@@ -122,30 +122,6 @@ export function applyLunarUaoPrimitive(
       });
       return { ok: true };
     }
-    case "reveal_top_four": {
-      // Deck top is index 0 (commitDraw shifts).
-      const revealed: string[] = state.runner.deck.splice(0, 4);
-      revealCards(state, revealed, sourceId);
-      for (const id of revealed) state.cards[id]!.faceup = true;
-      let gained = 0;
-      const toGrip: string[] = [];
-      for (const id of revealed) {
-        if (state.cards[id]?.type === "program") {
-          trashCard(state, id);
-          gained += 1;
-        } else {
-          toGrip.push(id);
-        }
-      }
-      state.runner.hand.push(...toGrip);
-      for (const id of toGrip) state.cards[id]!.zone = "runner:grip";
-      state.runner.credits += gained;
-      log(
-        state,
-        `Inject — trash ${gained} program(s), gain ${gained}¢, ${toGrip.length} to grip.`,
-      );
-      return { ok: true };
-    }
     case "corp_lose_two_if_can": {
       if (state.corp.credits >= 2) {
         state.corp.credits -= 2;
@@ -248,31 +224,6 @@ export function applyLunarUaoPrimitive(
       payCost(state, "runner", { credits: amount }, "angel-arena", source);
       source!.powerCounters = (source!.powerCounters ?? 0) + amount;
       log(state, `Angel Arena — place ${amount} power counter(s).`);
-      return { ok: true };
-    }
-    case "reveal_top_may_bottom": {
-      if (state.runner.deck.length === 0) {
-        log(state, `Angel Arena — stack empty.`);
-        return { ok: true };
-      }
-      const top = state.runner.deck[0]!; // deck top is index 0 (commitDraw shifts)
-      revealCards(state, [top], sourceId);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "angel-keep",
-            label: `Keep ${state.cards[top]!.title} on top`,
-            effect: fx.gainCredits("runner", 0),
-          },
-          {
-            id: "angel-bottom",
-            label: `Add ${state.cards[top]!.title} to bottom of stack`,
-            effect: fx.do({ kind: "bottom_top", cardId: top }),
-          },
-        ],
-      });
       return { ok: true };
     }
     case "bottom_top": {

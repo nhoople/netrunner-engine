@@ -27,7 +27,7 @@ import {
 } from "../eval.js";
 import { iceStrength } from "../continuous/iceStrength.js";
 import { fx } from "../ir.js";
-import { catalogCardNames } from "../cardNames.js";
+import { catalogCardNames } from "../visibility/cardNames.js";
 import {
   canInstallHeapCard,
   gripInstallCostAfterDiscount,

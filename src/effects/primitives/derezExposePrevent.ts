@@ -1,5 +1,3 @@
-/** Daedalus Complex (dc) Red Sand pack primitives — v1.128.0. */
-import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { revealCards } from "../../state/visibility/reveal.js";
@@ -36,38 +34,6 @@ export function applyRedsandDcPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "expose_non_ice_then_run": {
-      const candidates = Object.values(state.cards).filter((c) => {
-        if (c.side !== "corp" || c.type === "ice") return false;
-        // Installed Corp cards live at server:<id>:root (see corpInstall).
-        const parts = c.zone.split(":");
-        return parts[0] === "server" && parts[2] === "root";
-      });
-      if (candidates.length === 0) {
-        log(state, `Spot the Prey — no non-ice card to expose; still run.`);
-        return evalEffect(
-          ctx,
-          fx.do({ kind: "may_start_run", servers: "any" }),
-        );
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: candidates.map((c) => ({
-          id: `expose:${c.id}`,
-          label: `Expose ${openCardName(state, c.id, "runner")}`,
-          effect: {
-            op: "seq",
-            effects: [
-              fx.do({ kind: "expose", pick: "choose", cardId: c.id }),
-              fx.do({ kind: "may_start_run", servers: "any" }),
-            ],
-          },
-        })),
-      });
-      return { ok: true };
-    }
-
     case "prevent_all_but_n_pending_damage": {
       const leave = action.leave ?? 1;
       const pending = state.pendingDamage;

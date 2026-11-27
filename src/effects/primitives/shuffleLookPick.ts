@@ -1,6 +1,5 @@
 /** Old Hollywood (oh) SanSan pack primitives. */
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
-import { lookAtCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { fireOnAgendaAddedToRunnerScore } from "../../state/hostingAndTrash/trashHooks.js";
@@ -112,22 +111,6 @@ export function applySansanOhPrimitive(
         })),
       });
       return { ok: true };
-    }
-
-    case "look_top_n_stack_arrange": {
-      const n = action.n ?? 5;
-      const taken = state.runner.deck.splice(
-        0,
-        Math.min(n, state.runner.deck.length),
-      );
-      if (taken.length === 0) {
-        log(state, `${source.title} — stack empty.`);
-        return { ok: true };
-      }
-      state.turn.ohStackLookedCards = taken;
-      state.turn.ohStackArrangePlaced = [];
-      lookAtCards(state, taken, sourceId);
-      return offerStackArrangeChoice(ctx);
     }
 
     case "pick_stack_arrange": {
@@ -538,7 +521,7 @@ export function applySansanOhPrimitive(
   }
 }
 
-function offerStackArrangeChoice(ctx: EffectCtx): PrimResult {
+export function offerStackArrangeChoice(ctx: EffectCtx): PrimResult {
   const { state, sourceId } = ctx;
   const looked = state.turn.ohStackLookedCards ?? [];
   if (looked.length === 0) {

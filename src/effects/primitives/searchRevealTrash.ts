@@ -102,22 +102,6 @@ export function applySansanValPrimitive(
       return { ok: true };
     }
 
-    case "reveal_random_hq_card": {
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) {
-        log(state, `Enhanced Vision — HQ empty.`);
-        return { ok: true };
-      }
-      const pick = hq[Math.floor(random(state) * hq.length)]!;
-      const card = state.cards[pick];
-      revealCards(state, [pick], sourceId);
-      log(
-        state,
-        `Enhanced Vision — Corp reveals ${card?.title ?? pick} from HQ.`,
-      );
-      return { ok: true };
-    }
-
     case "next_gold_net_damage": {
       const x = countRezzedNextIce(state);
       if (x <= 0) {
