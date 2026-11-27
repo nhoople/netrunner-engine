@@ -747,7 +747,6 @@ export const KNOWN_PRIMITIVE_KINDS = new Set([
   "search_rd_copies_to_hq",
   "may_swap_drawn",
   "swap_raman_rai_resolve",
-  "bottom_drawn_card",
   "choose_patron_server",
   "patron_set_named_server",
   "trash_all_cards_from_grip",

@@ -20,8 +20,6 @@ Card counts are from cards `v1.147.29` (2016 cards).
 | Verb groups | 74 |
 | Kinds with no standard verb | 210 |
 
-`KNOWN_PRIMITIVE_KINDS` has 1527 entries; `bottom_drawn_card` appears twice, so it names 1526 distinct kinds.
-
 ## How to read this
 
 - **Fields** come from the kind's member of the `Primitive` union, one file per kind family in `src/effects/ir/` (`Effect` reaches it through `{ op: "do"; action: Primitive }`). `?` marks an optional field. A kind with more than one member lists each, numbered.
@@ -173,7 +171,7 @@ Card counts are from cards `v1.147.29` (2016 cards).
 
 | Kind | Fields | Cards | Built by |
 | --- | --- | ---: | --- |
-| `bottom_drawn_card` | (1) `cardId: string`<br>(2) `cardId: string` | 0 | engine |
+| `bottom_drawn_card` | `cardId: string` | 0 | engine |
 | `bottom_top` | `cardId: string` | 0 | engine |
 
 <a id="verb-brain"></a>
