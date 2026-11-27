@@ -18,7 +18,7 @@ import { iceAtRunnerPosition } from "../src/state/runPosition.js";
 import { removeCardFromCurrentZone } from "../src/state/scoring.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

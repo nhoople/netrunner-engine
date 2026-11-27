@@ -59,7 +59,7 @@ import {
   firePowerOnHarmonicIceRez,
   syncEtrPerPowerCounterSubs,
 } from "../src/state/counters/powerCounters.js";
-import { purgeVirusCounters } from "../src/state/trashHooks.js";
+import { purgeVirusCounters } from "../src/state/hostingAndTrash/trashHooks.js";
 import { beginCorpTurnFlags } from "../src/state/turn.js";
 import { noteInstalledCardCreditSpend } from "../src/state/costs.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
@@ -69,7 +69,7 @@ import {
   type AbilityRecord,
 } from "../src/effects/abilityRecord.js";
 import { passIdle } from "../src/demo/passIdle.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 describe("midnight-sun", () => {
   describe("midnight-sun-add-power-counter", () => {

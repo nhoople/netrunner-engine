@@ -23,9 +23,9 @@ import type { Action, GameState, ServerId } from "../src/state/types.js";
 import {
   maybeOpenTrashPrevent,
   triggerPendingTrashInterrupt,
-} from "../src/state/trashPrevent.js";
+} from "../src/state/hostingAndTrash/trashPrevent.js";
 import { passIdle } from "../src/demo/passIdle.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

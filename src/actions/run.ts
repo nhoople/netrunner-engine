@@ -27,7 +27,7 @@ import { CR } from "../timing/labels.js";
 import { fireOnRunDeclaredOnThisServerIfTagged } from "../state/triggers/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { random } from "../state/rng.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { settleDeferredPlayedEvent } from "./play.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {

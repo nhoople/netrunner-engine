@@ -12,7 +12,7 @@ import {
   effectiveIceSubtypes,
   instantiateCard,
 } from "../src/index.js";
-import { recomputeRunnerLink } from "../src/state/trashHooks.js";
+import { recomputeRunnerLink } from "../src/state/hostingAndTrash/trashHooks.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_GRANTED_SUBTYPES,

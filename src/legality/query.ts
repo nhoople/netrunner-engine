@@ -1,7 +1,7 @@
 import {
   trashInterruptRelevantToActor,
   trashInterruptRelevantToCard,
-} from "../state/trashPrevent.js";
+} from "../state/hostingAndTrash/trashPrevent.js";
 import type { Action, GameState, RuleCite, Side } from "../state/types.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
 import { costBeginsWithClick } from "../state/costs.js";

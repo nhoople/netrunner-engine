@@ -12,7 +12,7 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { chooseCards } from "../chooseCards.js";
 import {
   addFoundStackCardAfterSearch,

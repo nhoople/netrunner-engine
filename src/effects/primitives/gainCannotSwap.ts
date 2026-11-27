@@ -21,7 +21,7 @@ import {
   hostCard,
   unhostAllFrom,
   unhostCard,
-} from "../../state/procedures/host.js";
+} from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

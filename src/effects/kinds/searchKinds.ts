@@ -40,7 +40,7 @@ import {
 import { fireOnInstall, fireHostRezStateTriggers, fireOnRez } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { hostCard } from "../../state/procedures/host.js";
+import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 
 export function applySearchKinds(

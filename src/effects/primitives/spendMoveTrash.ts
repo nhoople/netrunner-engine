@@ -13,7 +13,7 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

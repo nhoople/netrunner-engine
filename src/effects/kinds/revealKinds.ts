@@ -13,7 +13,7 @@ import { chooseCards } from "../chooseCards.js";
 import { noteCardRevealed, evalEffect, applyPrimitive } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 export function applyRevealKinds(
   ctx: EffectCtx,

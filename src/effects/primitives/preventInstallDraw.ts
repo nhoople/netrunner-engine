@@ -9,7 +9,7 @@ import { evalEffect } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { uninstallCard } from "../../state/procedures/uninstall.js";
 

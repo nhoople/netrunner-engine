@@ -13,7 +13,7 @@ import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { CR } from "../../timing/labels.js";
 import { applyPrimitive, evalEffect } from "../eval.js";
 import { chooseCards } from "../chooseCards.js";
-import { hostCard } from "../../state/procedures/host.js";
+import { hostCard } from "../../state/hostingAndTrash/host.js";
 
 export function applyHostKinds(
   ctx: EffectCtx,

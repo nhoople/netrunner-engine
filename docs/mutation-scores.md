@@ -35,7 +35,7 @@ A score is killed ÷ (killed + survived + no coverage). "Covered" leaves out the
 
 ## 1. Hosting and trash (2026-11-19)
 
-Files mutated: `src/state/procedures/host.ts` (`hostCard`, `unhostCard`, `unhostAllFrom`) and `src/state/procedures/trash.ts` (`trashCard`, `discardCard`, the checkpoint trash and Skorpios). The area had no shared helper before, so the start score is the first draft of the new modules against the area's tests. Adding the branch tests in `tests/hosting-and-trash.test.ts` raised it from 57.37% to 88.96%.
+Files mutated: `src/state/hostingAndTrash/host.ts` (`hostCard`, `unhostCard`, `unhostAllFrom`) and `src/state/hostingAndTrash/trash.ts` (`trashCard`, `discardCard`, the checkpoint trash and Skorpios). The area had no shared helper before, so the start score is the first draft of the new modules against the area's tests. Adding the branch tests in `tests/hosting-and-trash.test.ts` raised it from 57.37% to 88.96%.
 
 | File | Score | Covered | Killed | Survived | No coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |

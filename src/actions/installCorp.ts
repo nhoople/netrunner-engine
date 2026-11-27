@@ -23,7 +23,7 @@ import {
   noteFirstCorpRootInstallEachTurn,
   noteFirstInstallInServerRootThisTurn,
   noteFirstRemoteInstallThisTurn,
-} from "../state/trashHooks.js";
+} from "../state/hostingAndTrash/trashHooks.js";
 import { fireTdatd419OnFirstCorpInstall } from "../effects/primitives/resolveExposePay.js";
 import type {
   ApplyResult,
@@ -40,8 +40,8 @@ import { installBlockReason } from "../state/cardFlags/staticFlags.js";
 import { onCorpCardInstalledInRemote } from "../state/cardFlags/cardDeclarations.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { fireOnInstallFromNonHq } from "../state/triggers/miscConditionalHooks.js";
-import { trashCard } from "../state/procedures/trash.js";
-import { hostCard } from "../state/procedures/host.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
+import { hostCard } from "../state/hostingAndTrash/host.js";
 import { addOutermostIce } from "../state/runPosition.js";
 
 /** How an install differs from the basic action. */

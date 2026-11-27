@@ -5,7 +5,7 @@ import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingering
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
-import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
+import { fireOnAgendaAddedToRunnerScore } from "../../state/hostingAndTrash/trashHooks.js";
 import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";

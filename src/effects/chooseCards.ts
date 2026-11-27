@@ -17,7 +17,7 @@ import { CR } from "../timing/labels.js";
 import { deferContinuationAfter } from "./continuation.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { revealCards } from "../state/visibility/reveal.js";
 
 type PrimResult =

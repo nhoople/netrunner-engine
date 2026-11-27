@@ -1,13 +1,13 @@
 /** Trash-interrupt helpers for Sacrificial Construct and Harbinger (CR 9.9.4c). */
 
-import { log } from "./createGame.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
+import { log } from "../createGame.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "./triggers/replacements.js";
+} from "../triggers/replacements.js";
 
 export type TrashInterruptResult =
   | { ok: true }

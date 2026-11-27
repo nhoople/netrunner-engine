@@ -14,7 +14,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { enterSetAside } from "../../state/zones.js";
 import { corpCanInstallByAbility } from "../corpAbilityInstall.js";

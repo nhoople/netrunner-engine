@@ -24,7 +24,10 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const areas = {
   "hosting-trash": {
     title: "1. Hosting and trash",
-    mutate: ["src/state/procedures/host.ts", "src/state/procedures/trash.ts"],
+    mutate: [
+      "src/state/hostingAndTrash/host.ts",
+      "src/state/hostingAndTrash/trash.ts",
+    ],
     tests: ["tests/*trash*.test.ts", "tests/*host*.test.ts"],
     grep: /\btrashCard\(|\bhostCard\(|\bunhostCard\(|\b10\.3\.1g\b|\b1\.13\.1[23]\b|\b4\.4\.6b\b|Off-Campus Apartment|Personal Workshop|Street Peddler|Sacrificial Construct|Skorpios|Marilyn Campaign|Director Haas/,
   },

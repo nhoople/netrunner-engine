@@ -49,6 +49,16 @@ const ALLOWLIST: Array<{
     why: "Phase 3 procedure helpers (one per area)",
   },
   {
+    path: "src/state/hostingAndTrash/host.ts",
+    properties: "*",
+    why: "the hosting helper (area 1)",
+  },
+  {
+    path: "src/state/hostingAndTrash/trash.ts",
+    properties: "*",
+    why: "the trash helper (area 1)",
+  },
+  {
     path: "src/state/runPosition.ts",
     properties: ["position", "attackedServerId"],
     why: "setRunnerPosition / noteIceUninstalled / addOutermostIce (CR 6.2.4, 6.2.6)",

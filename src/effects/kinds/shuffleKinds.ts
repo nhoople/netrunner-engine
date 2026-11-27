@@ -22,7 +22,7 @@ import {
 import { random } from "../../state/rng.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../chooseCards.js";
-import { unhostAllFrom, unhostCard } from "../../state/procedures/host.js";
+import { unhostAllFrom, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/procedures/uninstall.js";
 
 export function applyShuffleKinds(

@@ -6,7 +6,7 @@ import { log } from "../createGame.js";
 import {
   beginGripOrStackTrashBatch,
   endGripOrStackTrashBatch,
-} from "../trashHooks.js";
+} from "../hostingAndTrash/trashHooks.js";
 import type { DamageType, GameState, PaidAbility } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";
@@ -21,7 +21,7 @@ import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
 } from "../triggers/replacements.js";
-import { controllerOf, trashCard } from "../procedures/trash.js";
+import { controllerOf, trashCard } from "../hostingAndTrash/trash.js";
 
 function noteAndCheckpointStored(
   state: GameState,

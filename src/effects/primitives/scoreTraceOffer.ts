@@ -10,7 +10,7 @@ import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { discardCard, trashCard } from "../../state/procedures/trash.js";
+import { discardCard, trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

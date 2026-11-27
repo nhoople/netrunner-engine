@@ -3,14 +3,14 @@ import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
-import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
+import { fireOnAgendaAddedToRunnerScore } from "../../state/hostingAndTrash/trashHooks.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { trashCard } from "../../state/procedures/trash.js";
-import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
+import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

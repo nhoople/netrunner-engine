@@ -2,7 +2,7 @@
  * Static declarations the loader copies onto a card. Each function runs at
  * the moment that declaration names.
  */
-import { trashCard } from "../procedures/trash.js";
+import { trashCard } from "../hostingAndTrash/trash.js";
 import { log } from "../createGame.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { agendaPointsFor } from "../scoring.js";

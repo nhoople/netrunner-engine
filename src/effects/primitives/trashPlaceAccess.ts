@@ -10,7 +10,7 @@ import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import {
   fireOnAgendaAddedToRunnerScore,
   recomputeRunnerLink,
-} from "../../state/trashHooks.js";
+} from "../../state/hostingAndTrash/trashHooks.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import { noteCorpOperationPlayed } from "../../state/triggers/cardLifecycleHooks.js";
 import { CR } from "../../timing/labels.js";
@@ -20,7 +20,7 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { trashCard } from "../../state/procedures/trash.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 
 type PrimResult =

@@ -2,7 +2,7 @@
  * Paid abilities on installed cards and identities.
  */
 import { deferContinuationAfter } from "../effects/continuation.js";
-import { trashInterruptRelevant } from "../state/trashPrevent.js";
+import { trashInterruptRelevant } from "../state/hostingAndTrash/trashPrevent.js";
 import {
   paidAbilityBreakBlock,
   subroutinesBrokenByRunnerCount,

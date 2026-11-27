@@ -30,7 +30,7 @@ import {
   endLooksAndReveals,
   revealCards,
 } from "../src/state/visibility/reveal.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { stealOrTrashBlocked } from "../src/actions/access.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
 import { fireIceRezDuringRunHooks } from "../src/effects/eval.js";

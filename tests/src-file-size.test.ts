@@ -36,9 +36,9 @@ const STARTING_SIZES: Readonly<Record<string, number>> = {
   "src/legality/checkpoints.ts": 4763,
   "src/cards/load.ts": 4484,
   "src/effects/kinds/installKinds.ts": 4170,
-  "src/actions/apply.ts": 3917,
+  "src/actions/apply.ts": 3920,
   "src/effects/kinds/trashKinds.ts": 2690,
-  "src/state/costs.ts": 2228,
+  "src/state/costs.ts": 2231,
   "src/effects/eval.ts": 2163,
 };
 

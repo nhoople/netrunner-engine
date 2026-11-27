@@ -20,7 +20,7 @@ import {
 } from "../src/state/access/access.js";
 import { applyRunAccessRestrictions } from "../src/state/access/accessFilter.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

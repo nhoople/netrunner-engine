@@ -1,8 +1,8 @@
 /**
  * Hosting and trash (CR audit Phase 3, area 1).
  *
- * One trash procedure (`trashCard`, src/state/procedures/trash.ts) and one
- * hosting procedure (`hostCard` / `unhostCard`, src/state/procedures/host.ts).
+ * One trash procedure (`trashCard`, src/state/hostingAndTrash/trash.ts) and one
+ * hosting procedure (`hostCard` / `unhostCard`, src/state/hostingAndTrash/host.ts).
  *
  * CR 1.13.12: moving a hosted card ends the host relationship.
  * CR 1.13.13: when a host changes zones, its hosted cards are trashed during
@@ -30,15 +30,15 @@ import {
   hostCard,
   unhostAllFrom,
   unhostCard,
-} from "../src/state/procedures/host.js";
+} from "../src/state/hostingAndTrash/host.js";
 import {
   controllerOf,
   discardCard,
   resolveSkorpiosTrash,
   trashCard,
-} from "../src/state/procedures/trash.js";
+} from "../src/state/hostingAndTrash/trash.js";
 import { createPendingAbilityInstance } from "../src/state/triggers/pendingAbilities.js";
-import { recomputeRunnerLink } from "../src/state/trashHooks.js";
+import { recomputeRunnerLink } from "../src/state/hostingAndTrash/trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { CR } from "../src/timing/labels.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";

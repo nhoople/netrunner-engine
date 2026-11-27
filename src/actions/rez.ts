@@ -57,7 +57,7 @@ import { CR } from "../timing/labels.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { fireOnFirstIceRezEachTurn } from "../state/triggers/miscConditionalHooks.js";
 import { random } from "../state/rng.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

@@ -33,7 +33,7 @@ import {
 import { passIdle } from "../src/demo/passIdle.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { effectiveIceStrength } from "../src/cards/stubs.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";
 

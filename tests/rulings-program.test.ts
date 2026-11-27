@@ -18,7 +18,7 @@ import {
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
 import type { Action, ServerId } from "../src/state/types.js";
-import { trashCard } from "../src/state/procedures/trash.js";
+import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { resolveIceSubtypes } from "../src/state/continuous/continuousEffects.js";

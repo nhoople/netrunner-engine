@@ -6,7 +6,7 @@
 import { log } from "../state/createGame.js";
 import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";
-import { trashCard } from "../state/procedures/trash.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { allSubroutinesBrokenByRunner } from "../state/procedures/break.js";
 import { effectiveIceSubtypes } from "../cards/stubs.js";
 

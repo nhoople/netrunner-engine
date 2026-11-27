@@ -224,8 +224,8 @@ import {
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
 } from "../state/triggers/pendingAbilities.js";
-import { trashCard } from "../state/procedures/trash.js";
-import { unhostCard } from "../state/procedures/host.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
+import { unhostCard } from "../state/hostingAndTrash/host.js";
 import {
   removeCardFromGame,
   uninstallCard,

@@ -1,13 +1,13 @@
 /** First Contact (fc) Lunar pack primitives. */
 import { log } from "../../state/createGame.js";
-import { recomputeRunnerLink } from "../../state/trashHooks.js";
+import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { canPayCost, payCost } from "../../state/costs.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { trashCard } from "../../state/procedures/trash.js";
-import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
+import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { setAttackedServer } from "../../state/runPosition.js";
 
 type PrimResult =

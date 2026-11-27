@@ -63,8 +63,8 @@ import { finishRunReturnToAction, startRun } from "./run.js";
 import { spendClick } from "./spendClick.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { agendaPointsFor } from "../state/scoring.js";
-import { trashCard } from "../state/procedures/trash.js";
-import { unhostCard } from "../state/procedures/host.js";
+import { trashCard } from "../state/hostingAndTrash/trash.js";
+import { unhostCard } from "../state/hostingAndTrash/host.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

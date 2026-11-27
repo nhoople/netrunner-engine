@@ -19,8 +19,8 @@ import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { trashCard } from "../../state/procedures/trash.js";
-import { hostCard, unhostCard } from "../../state/procedures/host.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
+import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/procedures/uninstall.js";
 import { moveIce } from "../../state/procedures/rearrange.js";
 

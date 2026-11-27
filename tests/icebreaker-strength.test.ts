@@ -29,7 +29,7 @@ import {
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
 import type { Action, PaidAbility } from "../src/state/types.js";
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import {
   breakActionCost,
   paidAbilityBreakBlock,

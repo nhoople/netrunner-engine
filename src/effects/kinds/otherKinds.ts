@@ -79,8 +79,8 @@ import {
   stealAgenda,
 } from "../../state/scoring.js";
 import { effectiveRunnerTags } from "../../state/tags.js";
-import { recomputeRunnerLink } from "../../state/trashHooks.js";
-import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
+import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
+import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
 import { enterSetAside } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { drawCards } from "../draw.js";
@@ -109,8 +109,8 @@ import {
 } from "../runnerInstall.js";
 
 import { fireOnFullyBreak, fireOnForfeit, fireOnAccess } from "../eval.js";
-import { controllerOf, trashCard } from "../../state/procedures/trash.js";
-import { hostCard } from "../../state/procedures/host.js";
+import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
+import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { openFace } from "../../state/visibility/seatVisibility.js";
 import { serverLabel } from "../corpAbilityInstall.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";

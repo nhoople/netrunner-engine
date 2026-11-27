@@ -42,7 +42,7 @@ import { collectBadPublicityGainedSubs } from "../src/state/continuous/continuou
 import { psiCorpBid, psiRunnerBid, startPsiGame } from "../src/state/psi.js";
 import { effectiveIceSubtypes } from "../src/cards/stubs.js";
 import { stealDecision } from "../src/legality/candidatePending.js";
-import { hostCard } from "../src/state/procedures/host.js";
+import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { usedMemory } from "../src/state/turn.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
 import {

@@ -101,9 +101,9 @@ import { acceptPendingExpose } from "../state/visibility/expose.js";
 import {
   acceptPendingInstalledTrash,
   triggerPendingTrashInterrupt,
-} from "../state/trashPrevent.js";
+} from "../state/hostingAndTrash/trashPrevent.js";
 import { acceptPendingEndTheRun } from "../state/run/endTheRun.js";
-import { purgeVirusCounters } from "../state/trashHooks.js";
+import { purgeVirusCounters } from "../state/hostingAndTrash/trashHooks.js";
 import {
   currentMark,
   offerSabotagePick,
@@ -119,7 +119,7 @@ import {
 import {
   noteAccessTrash,
   fireMeatDamageWhenRunnerTakesTags,
-} from "../state/trashHooks.js";
+} from "../state/hostingAndTrash/trashHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import { boostTrace, resolveTrace, spendLink } from "../state/trace.js";
 import { psiCorpBid, psiRunnerBid } from "../state/psi.js";
@@ -234,7 +234,10 @@ import {
 } from "../state/triggers/miscConditionalHooks.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
-import { trashCard, resolveSkorpiosTrash } from "../state/procedures/trash.js";
+import {
+  trashCard,
+  resolveSkorpiosTrash,
+} from "../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../state/procedures/uninstall.js";
 
 /** The payer's pick for a one-card cost, or the last card when not asked. */
