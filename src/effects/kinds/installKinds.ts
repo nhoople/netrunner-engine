@@ -54,7 +54,7 @@ import {
   applyPrimitive,
 } from "../eval.js";
 import { fx } from "../ir.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import {
   canInstallHeapCard,
   gripInstallCostAfterDiscount,

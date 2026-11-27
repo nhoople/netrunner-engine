@@ -114,7 +114,7 @@ import {
   resolveSabotageAmount,
   sabotageHqBounds,
 } from "../state/keywordsAndCredits/keywords.js";
-import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
+import { fireRunnerValTrigger } from "../effects/triggers/firstTimeEachTurnTriggers.js";
 import {
   abandonExtraDifferentAction,
   noteCorpActionType,

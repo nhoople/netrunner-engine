@@ -7,7 +7,7 @@ import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
 import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
 import type { RuleCite } from "../../state/types.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";

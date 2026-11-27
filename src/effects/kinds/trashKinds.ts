@@ -15,7 +15,7 @@ import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { pickRandomSubset } from "../../state/rng.js";
 import { drawCards } from "../draw.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import {
   serverHostingCard,
   offerCultivateHqChoice,

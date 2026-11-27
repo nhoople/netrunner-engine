@@ -81,7 +81,7 @@
       "hand": 1,
       "zone": 1
     },
-    "src/effects/chooseCards.ts": {
+    "src/effects/triggers/chooseCards.ts": {
       "deck": 2,
       "hand": 1,
       "zone": 3
@@ -169,7 +169,7 @@
     "src/effects/kinds/playKinds.ts": {
       "discardPile": 2
     },
-    "src/effects/kinds/resolveKinds.ts": {
+    "src/effects/triggers/resolveKinds.ts": {
       "deck": 6,
       "discardPile": 2,
       "rezzed": 1,

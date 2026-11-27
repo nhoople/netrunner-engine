@@ -160,6 +160,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
     ir/                   # the Effect IR types: one Primitive file per kind family (matching kinds/), conditions, effect tree, known kinds, fx builders, validation
     kinds/                # one file per procedure in the kind switch
     primitives/           # printed procedures grouped by verb, not by pack
+    triggers/             # choices and conditional abilities (CR 9.6): choose_card and choose_cards, the choose and resolve kinds, first- and second-time-each-turn triggers (firstTimeEachTurnTriggers.ts)
   legality/               # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
   state/                  # ids.ts, rng.ts, zones.ts: shared plumbing; types.ts: points to types/. Every other file is in a folder: one per CR audit area, plus continuous/ and triggers/ for the rules no single area owns
     access/               # accessing cards (CR ch. 7): access candidates and filters, access-step abilities, abilities that replace a breach

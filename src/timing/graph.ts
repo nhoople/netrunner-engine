@@ -66,7 +66,7 @@ import {
   wasAbilityUsedThisRun,
 } from "../state/turnAndActions/turn.js";
 import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
-import { noteValSuccessfulRunTrigger } from "../effects/sansanValHooks.js";
+import { noteValSuccessfulRunTrigger } from "../effects/triggers/firstTimeEachTurnTriggers.js";
 import {
   noteDaredevilFirstRun,
   noteFirstArchivesRunBegin,

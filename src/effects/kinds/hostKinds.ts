@@ -15,7 +15,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { CR } from "../../timing/labels.js";
 import { applyPrimitive, evalEffect } from "../eval.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 
 export function applyHostKinds(

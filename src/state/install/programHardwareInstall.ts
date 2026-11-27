@@ -9,13 +9,13 @@ import { log } from "../setupAndEnd/createGame.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "../triggers/companionHooks.js";
 import { noteJobConnectionOrHardwareInstalled } from "./firstInstallDiscount.js";
 import type { GameState } from "../types.js";
-import { fireRunnerValTrigger } from "../../effects/sansanValHooks.js";
+import { fireRunnerValTrigger } from "../../effects/triggers/firstTimeEachTurnTriggers.js";
 import { onRunnerInstalledProgramOrHardware } from "../cardFlags/staticFlags.js";
 import {
   activeCorpCurrentIds,
   noteTargetedMarketing,
 } from "../continuous/currents.js";
-import { chooseCards } from "../../effects/chooseCards.js";
+import { chooseCards } from "../../effects/triggers/chooseCards.js";
 import {
   deferContinuationAfter,
   effectResolutionBlocked,

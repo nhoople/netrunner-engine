@@ -10,7 +10,7 @@ import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { fireOnAgendaAccessedOrScored } from "../../state/triggers/miscConditionalHooks.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 

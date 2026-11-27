@@ -20,7 +20,7 @@ import type {
   ServerId,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { chooseCards } from "./chooseCards.js";
+import { chooseCards } from "./triggers/chooseCards.js";
 import type { EffectCtx, EvalResult } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
 

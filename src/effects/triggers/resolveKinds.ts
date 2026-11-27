@@ -30,7 +30,7 @@ import {
   applyPrimitive,
 } from "../eval.js";
 import { fx } from "../ir.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "./chooseCards.js";
 import {
   canInstallSetAsideProgram,
   shuffleRunnerSetAsideIntoStack,
