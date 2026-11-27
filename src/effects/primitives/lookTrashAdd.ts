@@ -3,7 +3,6 @@ import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { GameState, RuleCite } from "../../state/types.js";
-import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
@@ -15,59 +14,6 @@ import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-/**
- * While drawn cards are still set aside, Raman Rai may swap one of them
- * with a same-type card in Archives (CR 8.4.3b / 8.8.4d).
- */
-export function offerRamanRaiSwapWhileSetAside(
-  state: GameState,
-  setAside: string[],
-): boolean {
-  if (state.pendingChoice) return false;
-  if (state.turn.siRamanRaiUsedThisTurn) return false;
-  if ((state.corp.clicks ?? 0) < 1) return false;
-  const raman = Object.values(state.cards).find(
-    (card) =>
-      card.rezzed &&
-      card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
-  );
-  if (!raman) return false;
-  const options = [];
-  for (const drawnId of setAside) {
-    const drawn = state.cards[drawnId];
-    if (!drawn) continue;
-    const archives = state.corp.discardPile.filter(
-      (id) => state.cards[id]?.type === drawn.type,
-    );
-    for (const archId of archives) {
-      const arch = state.cards[archId]!;
-      const archName = arch.faceup ? arch.title : "a facedown Archives card";
-      options.push({
-        id: `raman:${drawnId}:${archId}`,
-        label: `Lose [click]: reveal ${drawn.title} and swap with ${archName}`,
-        effect: fx.do({
-          kind: "swap_raman_rai_resolve" as const,
-          drawnId,
-          archivesId: archId,
-        }),
-      });
-    }
-  }
-  if (options.length === 0) return false;
-  options.push({
-    id: "raman:decline",
-    label: "Decline",
-    effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-  });
-  openPendingChoose(state, {
-    sourceId: raman.id,
-    chooser: "corp",
-    options,
-    logLine: `Reaction window (CR ${CR.checkpointReaction.number}); ${raman.title} may swap a drawn card.`,
-  });
-  return true;
-}
 
 export function applyMumbadSiPrimitive(
   ctx: EffectCtx,
@@ -275,93 +221,6 @@ export function applyMumbadSiPrimitive(
       return { ok: true };
     }
 
-    case "may_swap_drawn": {
-      const drawnId = action.cardId;
-      const drawn = state.cards[drawnId];
-      if (!drawn || !state.corp.hand.includes(drawnId)) return { ok: true };
-      if ((state.corp.clicks ?? 0) < 1) {
-        log(state, `Raman Rai — no click to lose.`);
-        return { ok: true };
-      }
-      const archives = state.corp.discardPile.filter(
-        (id) => state.cards[id]?.type === drawn.type,
-      );
-      if (archives.length === 0) {
-        log(state, `Raman Rai — no same-type card in Archives.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...archives.map((archId) => ({
-            id: `raman:${archId}`,
-            label: `Lose [click]: swap with ${state.cards[archId]!.title}`,
-            effect: fx.do({
-              kind: "swap_raman_rai_resolve",
-              drawnId,
-              archivesId: archId,
-            }),
-          })),
-          {
-            id: "raman:decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "swap_raman_rai_resolve": {
-      if ((state.corp.clicks ?? 0) < 1) return { ok: true };
-      const drawnId = action.drawnId;
-      const archivesId = action.archivesId;
-      const pending = state.pendingDrawSetAside;
-      const inSetAside = pending?.cardIds.includes(drawnId) ?? false;
-      if (
-        (!inSetAside && !state.corp.hand.includes(drawnId)) ||
-        !state.corp.discardPile.includes(archivesId)
-      ) {
-        return { ok: true };
-      }
-      state.corp.clicks -= 1;
-      const drawn = state.cards[drawnId]!;
-      const arch = state.cards[archivesId]!;
-      revealCards(state, [drawn.id, arch.id], sourceId);
-      log(
-        state,
-        `Raman Rai — reveal ${drawn.title} and ${arch.title}; lose [click].`,
-      );
-      state.corp.discardPile = state.corp.discardPile.filter(
-        (id) => id !== archivesId,
-      );
-      if (inSetAside && pending) {
-        const idx = pending.cardIds.indexOf(drawnId);
-        pending.cardIds[idx] = archivesId;
-        state.corp.discardPile.push(drawnId);
-        drawn.zone = "corp:archives";
-        drawn.faceup = true;
-        arch.zone = "corp:set-aside";
-        arch.faceup = true;
-        log(
-          state,
-          `${arch.title} joins the set-aside cards (CR ${CR.swapToSetAside.number}).`,
-        );
-      } else {
-        state.corp.hand = state.corp.hand.filter((id) => id !== drawnId);
-        state.corp.hand.push(archivesId);
-        state.corp.discardPile.push(drawnId);
-        arch.zone = "corp:hq";
-        arch.faceup = false;
-        drawn.zone = "corp:archives";
-        drawn.faceup = true;
-      }
-      state.turn.siRamanRaiUsedThisTurn = true;
-      log(state, `Raman Rai — swap ${drawn.title} ↔ ${arch.title}.`);
-      return { ok: true };
-    }
-
     case "choose_patron_server": {
       const servers = Object.keys(state.servers);
       openPendingChoose(state, {
@@ -478,32 +337,6 @@ export function trashRandomGripForPersonalityProfiles(
     state,
     `${card.title} — Runner trashes ${state.cards[trashId]!.title} from grip at random.`,
   );
-}
-
-/** True when Raman Rai has at least one legal set-aside ↔ Archives swap. */
-export function ramanRaiCanOfferSwap(
-  state: GameState,
-  setAside: string[],
-): boolean {
-  if (state.pendingChoice) return false;
-  if (state.turn.siRamanRaiUsedThisTurn) return false;
-  if ((state.corp.clicks ?? 0) < 1) return false;
-  const raman = Object.values(state.cards).find(
-    (card) =>
-      card.rezzed &&
-      card.onDrawMayLoseClickRevealSwapArchivesSameTypeOncePerTurn,
-  );
-  if (!raman) return false;
-  for (const drawnId of setAside) {
-    const drawn = state.cards[drawnId];
-    if (!drawn) continue;
-    if (
-      state.corp.discardPile.some((id) => state.cards[id]?.type === drawn.type)
-    ) {
-      return true;
-    }
-  }
-  return false;
 }
 
 function offerSiStackTrashOrArrange(ctx: EffectCtx): PrimResult {

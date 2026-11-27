@@ -145,10 +145,6 @@ import {
 } from "../state/triggers/pendingAbilities.js";
 import { resolvePendingInWindowOrder } from "../state/triggers/storedTriggers.js";
 import { expireLingeringEffects } from "../state/continuous/lingeringEffects.js";
-import {
-  offerRamanRaiSwapWhileSetAside,
-  ramanRaiCanOfferSwap,
-} from "../effects/primitives/lookTrashAdd.js";
 import type { PendingAbilityPayload } from "../state/types.js";
 import {
   returnHostedIdentityToOutsideGame,
@@ -158,6 +154,10 @@ import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { markStaticHostTrashConditions } from "../effects/corpTrash.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { nextId } from "../state/ids.js";
+import {
+  offerRamanRaiSwapWhileSetAside,
+  ramanRaiCanOfferSwap,
+} from "../effects/swap/swapKinds.js";
 
 export function pushCheckpoint(
   state: GameState,

@@ -14,7 +14,6 @@ import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import { fx, type Primitive } from "../ir.js";
-import { installedIce } from "../rez/rezKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -36,36 +35,6 @@ function canAdvance(state: EffectCtx["state"], cardId: string): boolean {
   if (c.canAdvance) return true;
   const def = c.defId ? getCardDef(c.defId) : undefined;
   return Boolean(def?.canAdvance);
-}
-
-function swapTwoInstalledIce(
-  state: EffectCtx["state"],
-  a: string,
-  b: string,
-): void {
-  let aServer: ServerId | null = null;
-  let bServer: ServerId | null = null;
-  let aIdx = -1;
-  let bIdx = -1;
-  for (const [sid, server] of Object.entries(state.servers)) {
-    const ai = server.ice.indexOf(a);
-    if (ai >= 0) {
-      aServer = sid as ServerId;
-      aIdx = ai;
-    }
-    const bi = server.ice.indexOf(b);
-    if (bi >= 0) {
-      bServer = sid as ServerId;
-      bIdx = bi;
-    }
-  }
-  if (!aServer || !bServer || aIdx < 0 || bIdx < 0) return;
-  state.servers[aServer]!.ice[aIdx] = b;
-  state.servers[bServer]!.ice[bIdx] = a;
-  const ca = state.cards[a]!;
-  const cb = state.cards[b]!;
-  ca.zone = `server:${aServer}:ice`;
-  cb.zone = `server:${bServer}:ice`;
 }
 
 export function applyRedsandEasPrimitive(
@@ -228,52 +197,6 @@ export function applyRedsandEasPrimitive(
       log(
         state,
         `Rosetta 2.0 — install ${card.title} for ${cost}¢ (−${discount}).`,
-      );
-      return { ok: true };
-    }
-
-    case "may_swap_passed_ice": {
-      const iceId = action.iceId ?? state.run?.encounter?.iceId;
-      if (!iceId || !state.cards[iceId]) {
-        log(state, `Inversificator — no ice to swap.`);
-        return { ok: true };
-      }
-      const others = installedIce(state).filter((id) => id !== iceId);
-      if (others.length === 0) {
-        log(state, `Inversificator — no other installed ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-          ...others.map((id) => ({
-            id: `swap:${id}`,
-            label: `Swap with ${state.cards[id]!.title}`,
-            effect: fx.do({
-              kind: "swap_inversificator_resolve",
-              iceId,
-              otherId: id,
-            }),
-          })),
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "swap_inversificator_resolve": {
-      const a = action.iceId;
-      const b = action.otherId;
-      if (!a || !b) return { ok: true };
-      swapTwoInstalledIce(state, a, b);
-      log(
-        state,
-        `Inversificator — swap ${state.cards[a]?.title} with ${state.cards[b]?.title}.`,
       );
       return { ok: true };
     }

@@ -5,12 +5,6 @@
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { catalogCardNames } from "../cardNames.js";
-import {
-  iceAtRunnerPosition,
-  moveRunnerToIce,
-  setAttackedServer,
-  setRunnerPosition,
-} from "../../state/uninstallAndPosition/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
@@ -95,6 +89,11 @@ import {
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
+import {
+  moveRunnerToIce,
+  setAttackedServer,
+  setRunnerPosition,
+} from "../../state/uninstallAndPosition/runPosition.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -2442,62 +2441,6 @@ export function applyOtherKinds(
           })),
         ],
         logLine: `Peer Review — may install 1 card from HQ in a remote root.`,
-      });
-      return { ok: true };
-    }
-
-    case "mitra_aman_approach_ice": {
-      // Its own ability trashes it, so the Corp does (CR 1.14.5).
-      trashCard(state, sourceId, { by: "corp", cause: "cost" });
-      state.corp.credits += 3;
-      log(state, `Mitra Aman trashed → gain 3¢ (${state.corp.credits}¢).`);
-      const run = state.run;
-      if (!run || run.position === null) {
-        log(state, `Mitra Aman — no approached ice.`);
-        return { ok: true };
-      }
-      const approachedId = iceAtRunnerPosition(state);
-      if (!approachedId) {
-        log(state, `Mitra Aman — no approached ice.`);
-        return { ok: true };
-      }
-      const candidates: string[] = [];
-      for (const id of state.corp.hand) {
-        if (state.cards[id]?.type === "ice") candidates.push(id);
-      }
-      for (const id of state.corp.discardPile) {
-        if (state.cards[id]?.type === "ice") candidates.push(id);
-      }
-      if (candidates.length === 0) {
-        log(state, `Mitra Aman — no ice in HQ or Archives to swap.`);
-        return { ok: true };
-      }
-      const options: Array<{ id: string; label: string; effect: Effect }> = [
-        {
-          id: "decline",
-          label: "Decline swap",
-          effect: {
-            op: "do",
-            action: { kind: "gain_credits", side: "corp", amount: 0 },
-          },
-        },
-        ...candidates.map((iceId) => ({
-          id: `mitra-swap:${iceId}`,
-          label: `Swap with ${state.cards[iceId]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "swap_approached_ice_with_hq_or_archives" as const,
-              replacementIceId: iceId,
-            },
-          },
-        })),
-      ];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-        logLine: `Mitra Aman — may swap approached ice.`,
       });
       return { ok: true };
     }

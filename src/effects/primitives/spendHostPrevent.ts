@@ -493,27 +493,6 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "swap_nihongai_resolve": {
-      const rdCardId = action.rdCardId;
-      const hqCardId = action.hqCardId;
-      if (!rdCardId || !hqCardId) return { ok: true };
-      const rdIdx = state.corp.deck.indexOf(rdCardId);
-      const hqIdx = state.corp.hand.indexOf(hqCardId);
-      if (rdIdx < 0 || hqIdx < 0) {
-        log(state, `Nihongai Grid — cards no longer available.`);
-        return { ok: true };
-      }
-      state.corp.deck[rdIdx] = hqCardId;
-      state.corp.hand[hqIdx] = rdCardId;
-      state.cards[hqCardId]!.zone = "corp:rd";
-      state.cards[rdCardId]!.zone = "corp:hq";
-      log(
-        state,
-        `Nihongai Grid — swap ${state.cards[rdCardId]!.title} ↔ ${state.cards[hqCardId]!.title}.`,
-      );
-      return { ok: true };
-    }
-
     case "give_tags_if_runner_has_installed_subtype": {
       const subtype = (action.subtype ?? "ai").toLowerCase();
       const amount = action.amount ?? 1;

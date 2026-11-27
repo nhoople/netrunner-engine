@@ -49,7 +49,7 @@ export const areas = {
   swap: {
     title: "3. Swap",
     mutate: [
-      "src/effects/kinds/swapKinds.ts",
+      "src/effects/swap/swapKinds.ts",
       "src/effects/primitives/swapNetBreach.ts",
     ],
     tests: ["tests/*swap*.test.ts"],

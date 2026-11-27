@@ -1,10 +1,7 @@
-/** The Universe of Tomorrow (uot) SanSan pack primitives. */
-import { openCardName } from "../../state/visibility/seatVisibility.js";
 import {
   resolveChronosFirstNetPick,
   resolveRibsPick,
 } from "../../state/damageAndPrevention/damage.js";
-import { setRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { EffectCtx } from "../eval.js";
@@ -35,78 +32,6 @@ export function applySansanUotPrimitive(
       log(
         state,
         `${source.title} — first agenda access this turn gains ${action.amount}¢.`,
-      );
-      return { ok: true };
-    }
-
-    case "swap_encounter_barrier_adjacent": {
-      const run = state.run;
-      const iceId = run?.encounter?.iceId;
-      if (!run || !iceId) {
-        log(state, `Surfer — not encountering ice.`);
-        return { ok: true };
-      }
-      const ice = state.cards[iceId];
-      if (
-        !ice ||
-        !(ice.subtypes ?? []).some((s) => s.toLowerCase() === "barrier")
-      ) {
-        log(state, `Surfer — not encountering barrier.`);
-        return { ok: true };
-      }
-      const sid = run.attackedServerId;
-      const server = state.servers[sid];
-      if (!server) return { ok: true };
-      const pos = server.ice.indexOf(iceId);
-      if (pos < 0) return { ok: true };
-      const neighbors: number[] = [];
-      if (pos > 0) neighbors.push(pos - 1);
-      if (pos < server.ice.length - 1) neighbors.push(pos + 1);
-      if (neighbors.length === 0) {
-        log(state, `Surfer — no adjacent ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: neighbors.map((nPos) => {
-          const otherId = server.ice[nPos]!;
-          return {
-            id: `surfer-swap:${otherId}`,
-            label: `Swap with ${openCardName(state, otherId, "runner")}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "swap_surfer_resolve" as const,
-                otherIceId: otherId,
-              },
-            },
-          };
-        }),
-        logLine: `Surfer — choose adjacent ice to swap.`,
-      });
-      return { ok: true };
-    }
-
-    case "swap_surfer_resolve": {
-      const run = state.run;
-      const iceId = run?.encounter?.iceId;
-      if (!run || !iceId) return { ok: true };
-      const otherId = action.otherIceId;
-      const sid = run.attackedServerId;
-      const server = state.servers[sid];
-      if (!server) return { ok: true };
-      const a = server.ice.indexOf(iceId);
-      const b = server.ice.indexOf(otherId);
-      if (a < 0 || b < 0) return { ok: true };
-      server.ice[a] = otherId;
-      server.ice[b] = iceId;
-      setRunnerPosition(run, b);
-      // Printed: still encountering that ice (the barrier), from its new
-      // position — do not switch the encounter onto the other ice (CR 1.2.1).
-      log(
-        state,
-        `Surfer — swap ${state.cards[iceId]!.title} with ${state.cards[otherId]!.title}; still encountering.`,
       );
       return { ok: true };
     }
