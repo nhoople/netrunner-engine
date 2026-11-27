@@ -32,12 +32,12 @@ import {
   facedownInstalledRunnerCard,
   isCardActive,
 } from "../continuous/active.js";
-import { effectHasKind } from "../costs.js";
+import { effectHasKind } from "../keywordsAndCredits/costs.js";
 import {
   cannotBreakExceptIcebreakerActive,
   cardHasIcebreakerSubtype,
 } from "../continuous/lockdowns.js";
-import { currentMark } from "../msKeywords.js";
+import { currentMark } from "../keywordsAndCredits/keywords.js";
 import {
   effectiveBreakerStrength,
   effectiveIceStrength,

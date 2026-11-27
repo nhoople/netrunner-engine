@@ -9,7 +9,7 @@ import { revealCards } from "../../state/visibility/reveal.js";
 import {
   corpInstallCost,
   subtractRunnerCreditPool,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

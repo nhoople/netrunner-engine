@@ -35,7 +35,7 @@ import { join } from "node:path";
 import { setStepHook, stateToken } from "../../src/debug/stepHook.js";
 import type { StepRecord } from "../../src/debug/stepHook.js";
 import { currentPriorityWindow } from "../../src/legality/priority.js";
-import { costBeginsWithClick } from "../../src/state/costs.js";
+import { costBeginsWithClick } from "../../src/state/keywordsAndCredits/costs.js";
 import type { Action, GameState } from "../../src/state/types.js";
 import { STEPS } from "../../src/timing/graph.js";
 import { loadOwnerTable, ownerOf } from "../cr-owners.js";

@@ -9,7 +9,7 @@ import { occurCheckpoint } from "../../legality/checkpoints.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";

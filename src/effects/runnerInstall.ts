@@ -10,7 +10,7 @@ import {
   creditsAvailableForInstall,
   payInstallCost,
   subtractRunnerCreditPool,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,

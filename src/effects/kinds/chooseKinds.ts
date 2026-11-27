@@ -8,7 +8,7 @@ import type { Effect, Primitive } from "../ir.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

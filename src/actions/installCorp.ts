@@ -12,7 +12,7 @@ import {
   corpInstallCost,
   creditsAvailableForInstall,
   payInstallCost,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import { noteStoredConditional } from "../state/triggers/storedConditionalHooks.js";
 import { noteInstalledThisTurn } from "../state/install/programHardwareInstall.js";

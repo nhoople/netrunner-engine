@@ -2,7 +2,7 @@
 
 import type { Effect } from "../../effects/ir.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { currentMark } from "../msKeywords.js";
+import { currentMark } from "../keywordsAndCredits/keywords.js";
 import { agendaPointsFor } from "../scoring.js";
 import { isRunTargetAllowed } from "./runLegality.js";
 import type { GameState, ServerId, StartsRunSpec } from "../types.js";

@@ -18,7 +18,7 @@ import {
   canPayCost,
   costBeginsWithClick,
   payCost,
-} from "../src/state/costs.js";
+} from "../src/state/keywordsAndCredits/costs.js";
 import type { GameState, PaidAbility } from "../src/state/types.js";
 
 beforeAll(() => {

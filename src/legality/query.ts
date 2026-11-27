@@ -4,7 +4,7 @@ import {
 } from "../state/hostingAndTrash/trashPrevent.js";
 import type { Action, GameState, RuleCite, Side } from "../state/types.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../cards/stubs.js";
-import { costBeginsWithClick } from "../state/costs.js";
+import { costBeginsWithClick } from "../state/keywordsAndCredits/costs.js";
 import { extraDifferentActionRefusal } from "../state/corpActionHooks.js";
 import { actionAllowedHere, getStep } from "../timing/machine.js";
 import { CR } from "../timing/labels.js";
@@ -22,7 +22,7 @@ import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,
 } from "../state/damageAndPrevention/damage.js";
-import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
+import { conditionalInterruptRequiresActiveAtOpen } from "../state/keywordsAndCredits/tags.js";
 
 interface WindowInfo {
   key: string;

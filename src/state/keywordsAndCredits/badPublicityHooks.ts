@@ -1,8 +1,8 @@
 /** Bad publicity take hooks (The Outfit; Editorial Division). */
 
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./setupAndEnd/createGame.js";
-import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../setupAndEnd/createGame.js";
+import type { GameState } from "../types.js";
 
 /**
  * After Corp takes ≥1 bad publicity:

@@ -33,8 +33,8 @@ import {
   mayAdvanceInstalledCard,
   printsCanBeAdvanced,
 } from "../src/state/counters/advanceable.js";
-import { paidAbilityOpenIn } from "../src/state/costs.js";
-import { operationAndEventPlayCostIncreaseTotal } from "../src/state/costs.js";
+import { paidAbilityOpenIn } from "../src/state/keywordsAndCredits/costs.js";
+import { operationAndEventPlayCostIncreaseTotal } from "../src/state/keywordsAndCredits/costs.js";
 import { firePowerCounterOnAnyCorpInstall } from "../src/state/counters/powerCounters.js";
 import { computeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { effectiveAdvancementRequirement } from "../src/state/scoring.js";

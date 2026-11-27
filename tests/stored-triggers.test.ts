@@ -18,7 +18,7 @@ import {
   resolveTrace,
 } from "../src/index.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
-import { payCost } from "../src/state/costs.js";
+import { payCost } from "../src/state/keywordsAndCredits/costs.js";
 import { psiCorpBid, psiRunnerBid } from "../src/state/psi.js";
 import { completeExpose } from "../src/state/visibility/expose.js";
 import { CR } from "../src/timing/labels.js";

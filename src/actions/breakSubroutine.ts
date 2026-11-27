@@ -36,7 +36,7 @@ import {
   runnerAvailableCreditsForBreaker,
   spendRunnerCredits,
   subtractRunnerCreditPool,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import { noteHardwareUsedDuringRun } from "./paidAbility.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";

@@ -3063,7 +3063,7 @@
       "abilities": [
         "1[recurring-credit] Use this credit to pay for using icebreakers or for installing virus programs."
       ],
-      "note": "Area 15 (credit spending): recurringSpendFor use_program is read as any program (src/state/costs.ts, recurringCreditsForProgramOrHardware), so the credit pays non-icebreaker program abilities such as Djinn's search. No icebreaker spend purpose exists; The Toolbox, Spinal Modem and Cloak need it too. The install_virus purpose matches.",
+      "note": "Area 15 (credit spending): recurringSpendFor use_program is read as any program (src/state/keywordsAndCredits/costs.ts, recurringCreditsForProgramOrHardware), so the credit pays non-icebreaker program abilities such as Djinn's search. No icebreaker spend purpose exists; The Toolbox, Spinal Modem and Cloak need it too. The install_virus purpose matches.",
       "cr": [
         "1.10.4b"
       ]
@@ -4755,7 +4755,7 @@
       "abilities": [
         "Use these credits to pay for using hosted program. When a turn ends in which you used credits on Flame-out, trash hosted program."
       ],
-      "note": "payCost (src/state/costs.ts) spends Flame-out's credits automatically, with no choice of where to pay from (1.10.3c); turn.hostedCreditsUsedCardIds, read in onRunnerTurnEnds, is never written, so the hosted program is never trashed, and the reader runs only at the Runner's turn end. Unique, hosts one program, 9 credits on install match.",
+      "note": "payCost (src/state/keywordsAndCredits/costs.ts) spends Flame-out's credits automatically, with no choice of where to pay from (1.10.3c); turn.hostedCreditsUsedCardIds, read in onRunnerTurnEnds, is never written, so the hosted program is never trashed, and the reader runs only at the Runner's turn end. Unique, hosts one program, 9 credits on install match.",
       "cr": [
         "1.2.1",
         "1.10.3c"
@@ -8456,7 +8456,7 @@
     "moon-pool": {
       "cycle": "borealis",
       "result": "matches",
-      "note": "Remove from the game: trash up to 2 HQ cards, reveal up to 2 facedown Archives cards and shuffle them into R&D, may place 1 advancement per agenda revealed. Usable in any paid ability window (src/state/costs.ts unrestrictedPaidAbility)."
+      "note": "Remove from the game: trash up to 2 HQ cards, reveal up to 2 facedown Archives cards and shuffle them into R&D, may place 1 advancement per agenda revealed. Usable in any paid ability window (src/state/keywordsAndCredits/costs.ts unrestrictedPaidAbility)."
     },
     "morning-star": {
       "cycle": "genesis",
@@ -8584,7 +8584,7 @@
       "abilities": [
         "Interface → Any virus counter: Break sentry subroutine. Any virus counter: +1 strength."
       ],
-      "note": "The cost virusCounters is checked and paid only from Musaazi (src/state/costs.ts); 'Any virus counter' lets the Runner spend one hosted on any card they control (1.14.3, 9.1.6c, card text 1.2.1), Hivemind's included. Placing a counter on a successful run and strength 1 match.",
+      "note": "The cost virusCounters is checked and paid only from Musaazi (src/state/keywordsAndCredits/costs.ts); 'Any virus counter' lets the Runner spend one hosted on any card they control (1.14.3, 9.1.6c, card text 1.2.1), Hivemind's included. Placing a counter on a successful run and strength 1 match.",
       "cr": [
         "1.2.1",
         "1.14.3",
@@ -9093,12 +9093,12 @@
     "nisei-mk-ii": {
       "cycle": "core-set",
       "result": "matches",
-      "note": "On score 1 agenda counter; hosted agenda counter: end the run, open in every run paid ability window (approach and encounter windows make it run-wide, src/state/costs.ts)."
+      "note": "On score 1 agenda counter; hosted agenda counter: end the run, open in every run paid ability window (approach and encounter windows make it run-wide, src/state/keywordsAndCredits/costs.ts)."
     },
     "no-free-lunch": {
       "cycle": "borealis",
       "result": "matches",
-      "note": "Trash: gain 3. Trash: remove 1 tag. Both usable in any paid ability window (src/state/costs.ts unrestrictedPaidAbility)."
+      "note": "Trash: gain 3. Trash: remove 1 tag. Both usable in any paid ability window (src/state/keywordsAndCredits/costs.ts unrestrictedPaidAbility)."
     },
     "no-one-home": {
       "cycle": "kitara",
@@ -12205,7 +12205,7 @@
     "spin-doctor": {
       "cycle": "system-gateway",
       "result": "matches",
-      "note": "Unique; draw 2 on rez; remove from the game: shuffle up to 2 from Archives into R&D. The IR's windows list only corp_action_paw, but the engine opens a no-click paid ability in every regular paid-ability window (paidAbilityOpenIn in src/state/costs.ts; checked: Runner action, run initiation, approach and encounter windows all open), as CR 9.2.7b requires."
+      "note": "Unique; draw 2 on rez; remove from the game: shuffle up to 2 from Archives into R&D. The IR's windows list only corp_action_paw, but the engine opens a no-click paid ability in every regular paid-ability window (paidAbilityOpenIn in src/state/keywordsAndCredits/costs.ts; checked: Runner action, run initiation, approach and encounter windows all open), as CR 9.2.7b requires."
     },
     "spinal-modem": {
       "cycle": "genesis",

@@ -6,7 +6,10 @@
  * pending cost until the picks are in, and nothing is paid before then.
  */
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { costCardNeed, type CostCardNeed } from "../state/costs.js";
+import {
+  costCardNeed,
+  type CostCardNeed,
+} from "../state/keywordsAndCredits/costs.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { agendaPointsFor } from "../state/scoring.js";

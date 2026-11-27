@@ -15,7 +15,7 @@ import {
   spendRunnerCreditsFor,
 } from "../src/index.js";
 import { applyRezIceRecurringTowardCorpRez } from "../src/cards/stubs.js";
-import { creditsAvailableForInstall } from "../src/state/costs.js";
+import { creditsAvailableForInstall } from "../src/state/keywordsAndCredits/costs.js";
 import { firstClickMustIsActive } from "../src/state/firstClickMust.js";
 import { corpCreditsForTrace } from "../src/state/trace.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";

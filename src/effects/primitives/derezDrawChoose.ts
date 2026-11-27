@@ -21,7 +21,7 @@ import {
   programUseRecurringCreditsAvailable,
   spendProgramUseRecurringCredits,
   subtractRunnerCreditPool,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

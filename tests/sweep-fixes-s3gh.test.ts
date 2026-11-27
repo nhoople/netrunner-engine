@@ -24,8 +24,11 @@ import type { GameState } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
 import type { Effect } from "../src/effects/ir.js";
 import { fx } from "../src/effects/ir.js";
-import { paidAbilityOpenIn } from "../src/state/costs.js";
-import { effectiveRunnerTags, runnerIsTagged } from "../src/state/tags.js";
+import { paidAbilityOpenIn } from "../src/state/keywordsAndCredits/costs.js";
+import {
+  effectiveRunnerTags,
+  runnerIsTagged,
+} from "../src/state/keywordsAndCredits/tags.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { trashCorpCardSet } from "../src/effects/kinds/trashKinds.js";
 import { stealForbiddenThisAccess } from "../src/actions/access.js";

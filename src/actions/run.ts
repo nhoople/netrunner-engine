@@ -3,7 +3,7 @@
  * Approaching ice and encounters are driven by the timing machine.
  */
 import { revealCards } from "../state/visibility/reveal.js";
-import { subtractRunnerCreditPool } from "../state/costs.js";
+import { subtractRunnerCreditPool } from "../state/keywordsAndCredits/costs.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../state/continuous/lingeringEffects.js";
 import { evalEffect } from "../effects/eval.js";

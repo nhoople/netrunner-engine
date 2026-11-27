@@ -508,7 +508,7 @@
       "scoreArea": 1,
       "zone": 7
     },
-    "src/state/costs.ts": {
+    "src/state/keywordsAndCredits/costs.ts": {
       "zone": 1
     },
     "src/state/setupAndEnd/createGame.ts": {
@@ -524,7 +524,7 @@
       "removedFromGame": 1,
       "zone": 4
     },
-    "src/state/msKeywords.ts": {
+    "src/state/keywordsAndCredits/keywords.ts": {
       "deck": 1
     },
     "src/state/uninstallAndPosition/runPosition.ts": {

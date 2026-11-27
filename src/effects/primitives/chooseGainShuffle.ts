@@ -2,7 +2,7 @@
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
-import { subtractRunnerCreditPool } from "../../state/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { runnerWinsOnEmptyRnd } from "../../state/setupAndEnd/emptyRnd.js";
 import type { RuleCite } from "../../state/types.js";

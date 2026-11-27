@@ -4,7 +4,7 @@ import {
   iceAtRunnerPosition,
   moveRunnerToOutermost,
 } from "../../state/uninstallAndPosition/runPosition.js";
-import { subtractRunnerCreditPool } from "../../state/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";

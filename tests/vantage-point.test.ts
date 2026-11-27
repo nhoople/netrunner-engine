@@ -814,7 +814,7 @@ describe("vantage-point", () => {
         const { createInitialState, instantiateCard, occurCheckpoint, CR } =
           await import("../src/index.js");
         const { fireFirstBadPublicityTake } =
-          await import("../src/state/badPublicityHooks.js");
+          await import("../src/state/keywordsAndCredits/badPublicityHooks.js");
         const s = createInitialState();
         const id = instantiateCard(
           "editorial-division-ad-nihilum",

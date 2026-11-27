@@ -741,7 +741,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/tags.ts#additionalTagsDuringOutermostIceEncounter",
+          "site": "src/state/keywordsAndCredits/tags.ts#additionalTagsDuringOutermostIceEncounter",
           "kinds": []
         }
       ],
@@ -756,7 +756,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/tags.ts#effectiveRunnerTags",
+          "site": "src/state/keywordsAndCredits/tags.ts#effectiveRunnerTags",
           "kinds": []
         }
       ],
@@ -1586,7 +1586,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#basicRemoveTagCreditCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#basicRemoveTagCreditCost",
           "kinds": []
         }
       ],
@@ -1605,7 +1605,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#wirelessNetPavilionExtra",
+          "site": "src/state/keywordsAndCredits/costs.ts#wirelessNetPavilionExtra",
           "kinds": []
         }
       ],
@@ -1624,7 +1624,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#basicTrashResourceCreditCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#basicTrashResourceCreditCost",
           "kinds": []
         }
       ],
@@ -3264,7 +3264,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#operationAndEventPlayCostIncreaseTotal",
+          "site": "src/state/keywordsAndCredits/costs.ts#operationAndEventPlayCostIncreaseTotal",
           "kinds": []
         }
       ],
@@ -3302,7 +3302,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/tags.ts#runnerIsTagged",
+          "site": "src/state/keywordsAndCredits/tags.ts#runnerIsTagged",
           "kinds": []
         }
       ],
@@ -4082,7 +4082,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#eventPlayCostDiscountTotal",
+          "site": "src/state/keywordsAndCredits/costs.ts#eventPlayCostDiscountTotal",
           "kinds": []
         }
       ],
@@ -4101,7 +4101,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#effectiveEventPlayCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#effectiveEventPlayCost",
           "kinds": []
         }
       ],
@@ -4255,7 +4255,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#firstDoubleOperationClickDiscountAvailable",
+          "site": "src/state/keywordsAndCredits/costs.ts#firstDoubleOperationClickDiscountAvailable",
           "kinds": []
         }
       ],
@@ -4510,7 +4510,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#maybeFireNetMercur",
+          "site": "src/state/keywordsAndCredits/costs.ts#maybeFireNetMercur",
           "kinds": []
         }
       ],
@@ -4867,7 +4867,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/badPublicityHooks.ts#fireFirstBadPublicityTake",
+          "site": "src/state/keywordsAndCredits/badPublicityHooks.ts#fireFirstBadPublicityTake",
           "kinds": []
         }
       ],
@@ -5042,7 +5042,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#noteCorpSpentAgendaCounters",
+          "site": "src/state/keywordsAndCredits/costs.ts#noteCorpSpentAgendaCounters",
           "kinds": []
         }
       ],
@@ -6083,11 +6083,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#hostedInstallSpendCards",
+          "site": "src/state/keywordsAndCredits/costs.ts#hostedInstallSpendCards",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#runnerCardsForHostedSpend",
+          "site": "src/state/keywordsAndCredits/costs.ts#runnerCardsForHostedSpend",
           "kinds": []
         }
       ],
@@ -6106,7 +6106,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#runnerCardsForHostedSpend",
+          "site": "src/state/keywordsAndCredits/costs.ts#runnerCardsForHostedSpend",
           "kinds": []
         }
       ],
@@ -6125,7 +6125,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#runnerCardsForHostedSpend",
+          "site": "src/state/keywordsAndCredits/costs.ts#runnerCardsForHostedSpend",
           "kinds": []
         }
       ],
@@ -6144,7 +6144,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#runnerCardsForHostedSpend",
+          "site": "src/state/keywordsAndCredits/costs.ts#runnerCardsForHostedSpend",
           "kinds": []
         }
       ],
@@ -6773,10 +6773,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#effectiveEventPlayCost",
-          "kinds": []
-        },
-        {
           "site": "src/state/counters/powerCounters.ts#syncEtrPerPowerCounterSubs",
           "kinds": []
         },
@@ -6786,6 +6782,10 @@
         },
         {
           "site": "src/state/damageAndPrevention/damage.ts#resolveDamage",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#effectiveEventPlayCost",
           "kinds": []
         },
         {
@@ -7156,15 +7156,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#corpInstallCost",
-          "kinds": [],
-          "mirrors": [
-            "src/state/costs.ts#{card}"
-          ]
-        },
-        {
           "site": "src/state/install/programHardwareInstall.ts#fireRemainderOfTurnOnInstallPrintedCostGte",
           "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#corpInstallCost",
+          "kinds": [],
+          "mirrors": [
+            "src/state/keywordsAndCredits/costs.ts#{card}"
+          ]
         },
         {
           "site": "src/state/rez/iceRezHooks.ts#noteJeitinhoHeapInstallOnBypass",
@@ -10117,7 +10117,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/gamenet.ts#noteCorpAbilityCausedRunnerCreditLossOrSpend",
+          "site": "src/state/keywordsAndCredits/corpCausedCreditLoss.ts#noteCorpAbilityCausedRunnerCreditLossOrSpend",
           "kinds": []
         },
         {
@@ -10446,7 +10446,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/badPublicityHooks.ts#fireFirstBadPublicityTake",
+          "site": "src/state/keywordsAndCredits/badPublicityHooks.ts#fireFirstBadPublicityTake",
           "kinds": []
         }
       ],
@@ -10843,7 +10843,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/badPublicityHooks.ts#fireFirstBadPublicityTake",
+          "site": "src/state/keywordsAndCredits/badPublicityHooks.ts#fireFirstBadPublicityTake",
           "kinds": []
         }
       ],
@@ -11715,7 +11715,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/costs.ts#forfeitAgendaAsCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#forfeitAgendaAsCost",
           "kinds": []
         },
         {
@@ -12022,7 +12022,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/hostedCredits.ts#maybeFireHostedCreditsGte",
+          "site": "src/state/keywordsAndCredits/hostedCredits.ts#maybeFireHostedCreditsGte",
           "kinds": []
         }
       ],
@@ -12879,7 +12879,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/outsidePoolSpend.ts#noteOutsidePoolSpendTriggers",
+          "site": "src/state/keywordsAndCredits/outsidePoolSpend.ts#noteOutsidePoolSpendTriggers",
           "kinds": []
         }
       ],
@@ -13711,7 +13711,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#operationAndEventPlayCostIncreaseTotal",
+          "site": "src/state/keywordsAndCredits/costs.ts#operationAndEventPlayCostIncreaseTotal",
           "kinds": []
         }
       ],
@@ -13819,6 +13819,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/keywordsAndCredits/tags.ts#hasPayableTagInterrupt",
+          "kinds": []
+        },
+        {
           "site": "src/state/run/endTheRun.ts#hasPayableEndTheRunInterrupt",
           "kinds": []
         },
@@ -13828,10 +13832,6 @@
         },
         {
           "site": "src/state/run/onEncounter.ts#securityNexusTraceOffered",
-          "kinds": []
-        },
-        {
-          "site": "src/state/tags.ts#hasPayableTagInterrupt",
           "kinds": []
         },
         {
@@ -13904,7 +13904,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#abilityCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#abilityCost",
           "kinds": []
         },
         {
@@ -13927,7 +13927,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#abilityCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#abilityCost",
           "kinds": []
         },
         {
@@ -13950,7 +13950,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#abilityCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#abilityCost",
           "kinds": []
         }
       ],
@@ -14329,7 +14329,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#effectiveOperationExtraClicks",
+          "site": "src/state/keywordsAndCredits/costs.ts#effectiveOperationExtraClicks",
           "kinds": []
         }
       ],
@@ -14362,7 +14362,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#effectiveOperationExtraClicks",
+          "site": "src/state/keywordsAndCredits/costs.ts#effectiveOperationExtraClicks",
           "kinds": []
         }
       ],
@@ -14518,7 +14518,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#effectiveEventPlayCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#effectiveEventPlayCost",
           "kinds": []
         }
       ],
@@ -14537,7 +14537,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#effectiveEventPlayCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#effectiveEventPlayCost",
           "kinds": []
         }
       ],
@@ -15945,7 +15945,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#noteInstalledCardCreditSpend",
+          "site": "src/state/keywordsAndCredits/costs.ts#noteInstalledCardCreditSpend",
           "kinds": []
         }
       ],
@@ -16237,14 +16237,14 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits",
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits.hasRecurringPool",
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits.hasRecurringPool",
           "kinds": [],
           "mirrors": [
-            "src/state/costs.ts#{c}"
+            "src/state/keywordsAndCredits/costs.ts#{c}"
           ]
         }
       ],
@@ -16275,14 +16275,14 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits",
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits.hasRecurringPool",
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits.hasRecurringPool",
           "kinds": [],
           "mirrors": [
-            "src/state/costs.ts#{c}"
+            "src/state/keywordsAndCredits/costs.ts#{c}"
           ]
         }
       ],
@@ -16313,14 +16313,14 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits",
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits.hasRecurringPool",
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits.hasRecurringPool",
           "kinds": [],
           "mirrors": [
-            "src/state/costs.ts#{c}"
+            "src/state/keywordsAndCredits/costs.ts#{c}"
           ]
         }
       ],
@@ -16347,14 +16347,14 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits",
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits.hasRecurringPool",
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits.hasRecurringPool",
           "kinds": [],
           "mirrors": [
-            "src/state/costs.ts#{c}"
+            "src/state/keywordsAndCredits/costs.ts#{c}"
           ]
         }
       ],
@@ -16389,19 +16389,19 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#refillRecurringCredits",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#refillRecurringCredits.hasRecurringPool",
-          "kinds": [],
-          "mirrors": [
-            "src/state/costs.ts#{c}"
-          ]
-        },
-        {
           "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled.considerEvery",
           "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits.hasRecurringPool",
+          "kinds": [],
+          "mirrors": [
+            "src/state/keywordsAndCredits/costs.ts#{c}"
+          ]
         }
       ],
       "kinds": []
@@ -16479,39 +16479,39 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#creditsAvailableForInstall",
+          "site": "src/state/keywordsAndCredits/costs.ts#creditsAvailableForInstall",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#programUseRecurringCreditsAvailable",
+          "site": "src/state/keywordsAndCredits/costs.ts#programUseRecurringCreditsAvailable",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#recurringCreditsForCentralRun",
+          "site": "src/state/keywordsAndCredits/costs.ts#recurringCreditsForCentralRun",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#recurringCreditsForProgramOrHardware",
+          "site": "src/state/keywordsAndCredits/costs.ts#recurringCreditsForProgramOrHardware",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#recurringMatchesPurpose",
+          "site": "src/state/keywordsAndCredits/costs.ts#recurringMatchesPurpose",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#spendCreditsForInstall",
+          "site": "src/state/keywordsAndCredits/costs.ts#spendCreditsForInstall",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#spendRunnerCreditsFor",
+          "site": "src/state/keywordsAndCredits/costs.ts#spendRunnerCreditsFor",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#takeFromCentralRunRecurring",
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromCentralRunRecurring",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#takeFromProgramOrHardwareRecurring",
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromProgramOrHardwareRecurring",
           "kinds": []
         },
         {
@@ -16538,7 +16538,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#recurringMatchesPurpose",
+          "site": "src/state/keywordsAndCredits/costs.ts#recurringMatchesPurpose",
           "kinds": []
         }
       ],
@@ -17404,7 +17404,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#payCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#payCost",
           "kinds": []
         }
       ],
@@ -17508,15 +17508,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#abilityCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#activeCreditLockEvent",
-          "kinds": []
-        },
-        {
           "site": "src/state/firstClickMust.ts#actionMeetsFirstClickMust",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#abilityCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#activeCreditLockEvent",
           "kinds": []
         },
         {
@@ -18427,22 +18427,6 @@
           ]
         },
         {
-          "site": "src/state/costs.ts#hostedInstallSpendCards",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#noteCorpSpentAgendaCounters",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#payCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#refillRecurringCredits",
-          "kinds": []
-        },
-        {
           "site": "src/state/counters/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
           "kinds": []
         },
@@ -18456,10 +18440,6 @@
         },
         {
           "site": "src/state/damageAndPrevention/damage.ts#resolveDamage",
-          "kinds": []
-        },
-        {
-          "site": "src/state/gamenet.ts#noteCorpAbilityCausedRunnerCreditLossOrSpend",
           "kinds": []
         },
         {
@@ -18492,6 +18472,26 @@
         },
         {
           "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/corpCausedCreditLoss.ts#noteCorpAbilityCausedRunnerCreditLossOrSpend",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#hostedInstallSpendCards",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#noteCorpSpentAgendaCounters",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#payCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#refillRecurringCredits",
           "kinds": []
         },
         {
@@ -18668,15 +18668,15 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#hostedCreditsSpendableDuringRuns",
+          "site": "src/state/keywordsAndCredits/costs.ts#hostedCreditsSpendableDuringRuns",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#spendHostedCreditsDuringRuns",
+          "site": "src/state/keywordsAndCredits/costs.ts#spendHostedCreditsDuringRuns",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#takeFromHostedCreditsDuringRuns",
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromHostedCreditsDuringRuns",
           "kinds": []
         },
         {
@@ -18699,11 +18699,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#hostedCreditsSpendableForAnything",
+          "site": "src/state/keywordsAndCredits/costs.ts#hostedCreditsSpendableForAnything",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#takeFromHostedCreditsForAnything",
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromHostedCreditsForAnything",
           "kinds": []
         }
       ],
@@ -18722,7 +18722,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#payCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#payCost",
           "kinds": []
         }
       ],
@@ -18741,11 +18741,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/costs.ts#hostedCreditsSpendableToUseProgramsDuringRuns",
+          "site": "src/state/keywordsAndCredits/costs.ts#hostedCreditsSpendableToUseProgramsDuringRuns",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#takeFromHostedCreditsToUseProgramsDuringRuns",
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromHostedCreditsToUseProgramsDuringRuns",
           "kinds": []
         }
       ],
@@ -19797,10 +19797,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#abilityCost",
-          "kinds": []
-        },
-        {
           "site": "src/state/counters/powerCounters.ts#syncEtrPerPowerCounterSubs",
           "kinds": []
         },
@@ -19810,6 +19806,10 @@
         },
         {
           "site": "src/state/counters/powerCounters.ts#syncNextSubtypeEtrSubs",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#abilityCost",
           "kinds": []
         },
         {
@@ -20438,46 +20438,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#abilityCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#approachedIceMissesStipulation",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#creditsAvailableForInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#noteInstalledCardCreditSpend",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#payCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#recurringMatchesPurpose",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#runnerCardsForHostedSpend",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#spendCreditsForInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#stealthHostedCreditsAvailable",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#takeFromStealthHostedCredits",
-          "kinds": []
-        },
-        {
           "site": "src/state/counters/powerCounters.ts#firePowerOnHarmonicIceRez",
           "kinds": []
         },
@@ -20507,6 +20467,46 @@
         },
         {
           "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#abilityCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#approachedIceMissesStipulation",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#creditsAvailableForInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#noteInstalledCardCreditSpend",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#payCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#recurringMatchesPurpose",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#runnerCardsForHostedSpend",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#spendCreditsForInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#stealthHostedCreditsAvailable",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromStealthHostedCredits",
           "kinds": []
         },
         {
@@ -22033,10 +22033,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/badPublicityHooks.ts#fireFirstBadPublicityTake",
-          "kinds": []
-        },
-        {
           "site": "src/state/cardFlags/cardDeclarations.ts#ensureConditionalSubroutine",
           "kinds": []
         },
@@ -22221,66 +22217,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#forfeitAgendaAsCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#noteCorpSpentAgendaCounters",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#noteInstalledCardCreditSpend",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#payCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#returnSetAsideAdvancements",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#returnSetAsideVirusCounters",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#spendCreditsForInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#spendHostedCreditsDuringRuns",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#spendRunnerCreditsFor",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#takeFromCentralRunRecurring",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#takeFromHostedCreditsDuringRuns",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#takeFromHostedCreditsForAnything",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#takeFromHostedCreditsToUseProgramsDuringRuns",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#takeFromProgramOrHardwareRecurring",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#takeFromStealthHostedCredits",
-          "kinds": []
-        },
-        {
           "site": "src/state/counters/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
           "kinds": []
         },
@@ -22322,10 +22258,6 @@
         },
         {
           "site": "src/state/damageAndPrevention/damage.ts#sufferPickedDamage",
-          "kinds": []
-        },
-        {
-          "site": "src/state/hostedCredits.ts#maybeFireHostedCreditsGte",
           "kinds": []
         },
         {
@@ -22453,23 +22385,91 @@
           "kinds": []
         },
         {
-          "site": "src/state/msKeywords.ts#chargeCard",
+          "site": "src/state/keywordsAndCredits/badPublicityHooks.ts#fireFirstBadPublicityTake",
           "kinds": []
         },
         {
-          "site": "src/state/msKeywords.ts#identifyMark",
+          "site": "src/state/keywordsAndCredits/costs.ts#forfeitAgendaAsCost",
           "kinds": []
         },
         {
-          "site": "src/state/msKeywords.ts#offerSabotagePick",
+          "site": "src/state/keywordsAndCredits/costs.ts#noteCorpSpentAgendaCounters",
           "kinds": []
         },
         {
-          "site": "src/state/msKeywords.ts#resolveSabotageAmount",
+          "site": "src/state/keywordsAndCredits/costs.ts#noteInstalledCardCreditSpend",
           "kinds": []
         },
         {
-          "site": "src/state/outsidePoolSpend.ts#noteOutsidePoolSpendTriggers",
+          "site": "src/state/keywordsAndCredits/costs.ts#payCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#returnSetAsideAdvancements",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#returnSetAsideVirusCounters",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#spendCreditsForInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#spendHostedCreditsDuringRuns",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#spendRunnerCreditsFor",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromCentralRunRecurring",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromHostedCreditsDuringRuns",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromHostedCreditsForAnything",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromHostedCreditsToUseProgramsDuringRuns",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromProgramOrHardwareRecurring",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromStealthHostedCredits",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/hostedCredits.ts#maybeFireHostedCreditsGte",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/keywords.ts#chargeCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/keywords.ts#identifyMark",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/keywords.ts#offerSabotagePick",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/keywords.ts#resolveSabotageAmount",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/outsidePoolSpend.ts#noteOutsidePoolSpendTriggers",
           "kinds": []
         },
         {
@@ -23490,7 +23490,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#payCost",
+          "site": "src/state/keywordsAndCredits/costs.ts#payCost",
           "kinds": []
         }
       ],
@@ -24204,10 +24204,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/badPublicityHooks.ts#fireFirstBadPublicityTake",
-          "kinds": []
-        },
-        {
           "site": "src/state/cardFlags/cardDeclarations.ts#consideredAdvancement",
           "kinds": []
         },
@@ -24311,46 +24307,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#abilityCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#canPayCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#costCardNeed",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#creditsAvailableForInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#gripCardsOfPendingTrashType",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#installedProgramsForSimulchipCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#payCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#runnerCardsForHostedSpend",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#spendCreditsForInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/state/costs.ts#takeFromProgramOrHardwareRecurring",
-          "kinds": []
-        },
-        {
           "site": "src/state/counters/advanceable.ts#mayAdvanceInstalledCard",
           "kinds": []
         },
@@ -24412,6 +24368,50 @@
         },
         {
           "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/badPublicityHooks.ts#fireFirstBadPublicityTake",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#abilityCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#canPayCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#costCardNeed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#creditsAvailableForInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#gripCardsOfPendingTrashType",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#installedProgramsForSimulchipCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#payCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#runnerCardsForHostedSpend",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#spendCreditsForInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/keywordsAndCredits/costs.ts#takeFromProgramOrHardwareRecurring",
           "kinds": []
         },
         {

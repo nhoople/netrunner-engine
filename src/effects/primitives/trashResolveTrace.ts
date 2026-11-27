@@ -3,7 +3,7 @@ import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
-import { emptyRunnerCreditPool } from "../../state/costs.js";
+import { emptyRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   addLingeringEffect,

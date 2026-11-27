@@ -7,7 +7,7 @@ import {
   emptyRunnerCreditPool,
   payCost,
   subtractRunnerCreditPool,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";

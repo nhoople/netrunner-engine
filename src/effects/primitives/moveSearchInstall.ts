@@ -4,7 +4,7 @@ import {
   subroutineBreakBlock,
 } from "../../state/procedures/break.js";
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
-import { subtractRunnerCreditPool } from "../../state/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removePendingDamageEntirely } from "../../state/damageAndPrevention/damage.js";
 import type { RuleCite } from "../../state/types.js";

@@ -24,7 +24,10 @@ import type { GameState } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
 import type { Effect } from "../src/effects/ir.js";
 import { fx } from "../src/effects/ir.js";
-import { paidAbilityOpenIn, payCost } from "../src/state/costs.js";
+import {
+  paidAbilityOpenIn,
+  payCost,
+} from "../src/state/keywordsAndCredits/costs.js";
 import {
   trashCorpCurrentsOnAgendaStolen,
   trashCurrentsOnAgendaScored,

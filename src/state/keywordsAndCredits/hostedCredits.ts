@@ -2,11 +2,11 @@
  * Static-condition hosted-credit thresholds (Side Hustle-class).
  */
 
-import { evalEffect } from "../effects/eval.js";
-import { CR } from "../timing/labels.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./setupAndEnd/createGame.js";
-import type { GameState } from "./types.js";
+import { evalEffect } from "../../effects/eval.js";
+import { CR } from "../../timing/labels.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../setupAndEnd/createGame.js";
+import type { GameState } from "../types.js";
 
 /**
  * After hosted credits on `cardId` increase, if the card declares

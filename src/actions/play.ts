@@ -2,7 +2,7 @@
  * Playing an operation or an event, including the Patchwork discount.
  */
 import { log } from "../state/setupAndEnd/createGame.js";
-import { currentMark } from "../state/msKeywords.js";
+import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
   evalEffect,
@@ -36,10 +36,13 @@ import {
   operationAndEventPlayCostIncreaseTotal,
   runnerCreditsFor,
   spendRunnerCreditsFor,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import { forfeitSpecificAgenda } from "./rez.js";
 import { hasActiveLockdown } from "../state/continuous/lockdowns.js";
-import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
+import {
+  effectiveRunnerTags,
+  runnerIsTagged,
+} from "../state/keywordsAndCredits/tags.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import {
   enterLingeringPlayArea,

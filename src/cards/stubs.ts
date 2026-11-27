@@ -28,7 +28,7 @@ import {
 } from "../state/continuous/lingeringEffects.js";
 import { allIceStrengthBonusFromLockdowns } from "../state/continuous/lockdowns.js";
 import { agendaPointsFor } from "../state/scoring.js";
-import { runnerIsTagged } from "../state/tags.js";
+import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";
 import { applyCardDef, getCardDef } from "./load.js";
 

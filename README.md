@@ -168,6 +168,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
     damageAndPrevention/# damage and its prevention (CR 10.4)
     hostingAndTrash/ # hosting and trashing (CR 1.13, 1.19): hostCard and trashCard, trash-triggered abilities, trash interrupts
     install/         # installing cards (CR 8.5): install-triggered abilities and install discounts
+    keywordsAndCredits/# keywords and credits (CR 10.5–10.7, 10.9–10.13, 1.10): tags, bad publicity, sabotage, mark and charge (keywords.ts), spending credits, recurring and hosted credits, the cost model (costs.ts)
     procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break
     rez/             # rezzing and derezzing (CR 8.1): rez-triggered abilities
     run/             # run flow (CR ch. 6): starting a run and its legality and taxes, the hooks each run step fires (run begin, approach, encounter, pass, bypass, success, end), end the run

@@ -21,7 +21,7 @@ import {
   secretIdsFrom,
   stringsIn,
 } from "../state/visibility/seatVisibility.js";
-import { currentMark } from "../state/msKeywords.js";
+import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
 import type {
   Action,

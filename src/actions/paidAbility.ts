@@ -8,7 +8,7 @@ import {
   subroutinesBrokenByRunnerCount,
 } from "../state/procedures/break.js";
 import { log } from "../state/setupAndEnd/createGame.js";
-import { currentMark } from "../state/msKeywords.js";
+import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import { drawCards } from "../effects/draw.js";
 import {
   abilitiesSuppressed,
@@ -19,7 +19,7 @@ import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,
 } from "../state/damageAndPrevention/damage.js";
-import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
+import { directHostedTakeFromEmpty } from "../state/keywordsAndCredits/hostedCredits.js";
 import {
   currentWindow,
   effectiveIceSubtypes,
@@ -44,10 +44,10 @@ import {
   releaseSetAsideHostedCards,
   returnSetAsideAdvancements,
   returnSetAsideVirusCounters,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { beginBreachAccess } from "../state/access/access.js";
-import { runnerIsTagged } from "../state/tags.js";
+import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import {
   hasAbilityFlag,

@@ -3,24 +3,24 @@
  * Sabotage, mark, and charge — used by Effect IR eval / host intents.
  */
 
-import { log } from "./setupAndEnd/createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_MARK,
   removeLingeringEffectsOfKind,
-} from "./continuous/lingeringEffects.js";
-import { openPendingChoose } from "./triggers/pendingChoice.js";
-import { maybeFirePowerCountersGte } from "./counters/powerCounters.js";
-import { random } from "./rng.js";
+} from "../continuous/lingeringEffects.js";
+import { openPendingChoose } from "../triggers/pendingChoice.js";
+import { maybeFirePowerCountersGte } from "../counters/powerCounters.js";
+import { random } from "../rng.js";
 import type {
   CentralServerId,
   GameState,
   RuleCite,
   Side,
   ServerId,
-} from "./types.js";
-import { CR } from "../timing/labels.js";
-import { trashCard } from "./hostingAndTrash/trash.js";
+} from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { trashCard } from "../hostingAndTrash/trash.js";
 
 const CENTRAL_SERVERS: CentralServerId[] = ["hq", "rd", "archives"];
 

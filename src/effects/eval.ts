@@ -11,7 +11,7 @@ import {
   addBreakerStrengthBoostThisRun,
   addIceStrengthBoostThisRun,
 } from "../state/continuous/lingeringEffects.js";
-import { currentMark } from "../state/msKeywords.js";
+import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
 import { exposeLegalTargets } from "../state/visibility/expose.js";
 
@@ -21,13 +21,16 @@ import {
 } from "../state/install/programHardwareInstall.js";
 
 import { syncGainsSubroutinesPerAdvancement } from "../state/counters/powerCounters.js";
-import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
+import {
+  effectiveRunnerTags,
+  runnerIsTagged,
+} from "../state/keywordsAndCredits/tags.js";
 
 import {
   creditsAvailableForInstall,
   installAndRezPaid,
   payInstallCost,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import {
   canScoreAgenda,
   agendaPointsFor,

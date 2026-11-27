@@ -3,7 +3,7 @@
  */
 import { moveForfeitedAgendaOutOfGame } from "../state/scoring.js";
 import { iceAtRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
-import { subtractRunnerCreditPool } from "../state/costs.js";
+import { subtractRunnerCreditPool } from "../state/keywordsAndCredits/costs.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { onCardRezzed } from "../state/cardFlags/staticFlags.js";
 import { getCardDef } from "../cards/load.js";
@@ -51,7 +51,7 @@ import {
 } from "../state/counters/powerCounters.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
-import { runnerIsTagged } from "../state/tags.js";
+import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";

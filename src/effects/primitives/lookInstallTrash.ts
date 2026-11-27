@@ -1,7 +1,7 @@
 /** Intervention (in) Flashpoint pack primitives — v1.125.0. */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
-import { subtractRunnerCreditPool } from "../../state/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite } from "../../state/types.js";

@@ -11,7 +11,10 @@ import { startRun } from "../src/actions/run.js";
 import { corpMayRez, corpMayScore, currentWindow } from "../src/cards/stubs.js";
 import { createInitialState } from "../src/state/setupAndEnd/createGame.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
-import { costBeginsWithClick, paidAbilityOpenIn } from "../src/state/costs.js";
+import {
+  costBeginsWithClick,
+  paidAbilityOpenIn,
+} from "../src/state/keywordsAndCredits/costs.js";
 import type {
   Action,
   GameState,
