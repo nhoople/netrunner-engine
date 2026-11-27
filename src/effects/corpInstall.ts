@@ -1,10 +1,10 @@
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 /**
  * Corp basic install from HQ or Archives, paying costs or ignoring them.
  * Card sequences that install and then advance, rez, or lock stay in eval.ts.
  */
 import { log } from "../state/createGame.js";
-import { fireOnInstall } from "../state/cardLifecycleHooks.js";
+import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
@@ -17,7 +17,7 @@ import type { GameState, ServerId } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { type EffectCtx, type EvalResult } from "./eval.js";
 import type { Primitive } from "./ir.js";
-import { fireOnInstallFromNonHq } from "../state/miscConditionalHooks.js";
+import { fireOnInstallFromNonHq } from "../state/triggers/miscConditionalHooks.js";
 
 export function corpCardInstallable(type: string): boolean {
   return (

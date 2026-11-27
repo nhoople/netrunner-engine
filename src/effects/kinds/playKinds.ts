@@ -11,7 +11,7 @@ import {
 } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../../state/identityFlipHooks.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { fireOnAfterOperationOrExpendable } from "../eval.js";

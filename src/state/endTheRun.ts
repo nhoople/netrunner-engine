@@ -7,7 +7,7 @@ import { CR } from "../timing/labels.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "./replacements.js";
+} from "./triggers/replacements.js";
 
 /** True when Runner has a payable `end_the_run_interrupt` ability. */
 export function hasPayableEndTheRunInterrupt(state: GameState): boolean {

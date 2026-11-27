@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { hostedPlayableAsGrip } from "../src/actions/installRunner.js";
-import { maybeFireCompanionInstallOrSpendCredits } from "../src/state/companionHooks.js";
+import { maybeFireCompanionInstallOrSpendCredits } from "../src/state/triggers/companionHooks.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

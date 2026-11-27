@@ -7,7 +7,7 @@ import { agendaPointsFor } from "./scoring.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 import { syncMauiRecurringCredits } from "../effects/primitives/chooseGainShuffle.js";
 import { noteBypassTriggers } from "./bypassHooks.js";
-import { noteInlineConditional } from "./inlineConditionalHooks.js";
+import { noteInlineConditional } from "./triggers/inlineConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 type IceRezAbilityPendingMark = {

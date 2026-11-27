@@ -42,7 +42,7 @@ import {
   resolveRestrictionChoice,
   withCostCheckpoint,
 } from "../legality/checkpoints.js";
-import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
+import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
 import { nestPriorityAfterAbility } from "../legality/priority.js";
 import { stealDecision } from "../legality/candidatePending.js";
 import { playRestrictionOk } from "../legality/candidateClicks.js";
@@ -64,7 +64,7 @@ import {
   fireOnAccess,
   fireOnRez,
   fireOnScore,
-} from "../state/cardLifecycleHooks.js";
+} from "../state/triggers/cardLifecycleHooks.js";
 import {
   abilityCost,
   canPayCost,
@@ -152,7 +152,7 @@ import {
 import {
   resumePendingOnCorpDrawCard,
   resumePendingStoredConditionals,
-} from "../state/storedTriggers.js";
+} from "../state/triggers/storedTriggers.js";
 import { resolveDelayedRunEndOrder } from "../effects/primitives/resolveMoveInstall.js";
 import { installCorp, likeCardsAtDestination } from "./installCorp.js";
 import {
@@ -225,8 +225,8 @@ import {
 import {
   fireOnAccessFaceupInstalledAgenda,
   fireOnCorpBasicClickForCreditOrDraw,
-} from "../state/miscConditionalHooks.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+} from "../state/triggers/miscConditionalHooks.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
 import { trashCard, resolveSkorpiosTrash } from "../state/procedures/trash.js";
 import { removeCardFromGame } from "../state/procedures/uninstall.js";

@@ -9,7 +9,7 @@ import {
   type EffectCtx,
   type EvalResult,
 } from "./eval.js";
-import { fireOnEncounterEnd } from "../state/cardLifecycleHooks.js";
+import { fireOnEncounterEnd } from "../state/triggers/cardLifecycleHooks.js";
 import type { Primitive } from "./ir.js";
 import { markRemainingSubroutinesNotBrokenByRunner } from "../state/procedures/break.js";
 

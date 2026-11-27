@@ -9,7 +9,7 @@ import {
   LINGERING_KIND_MARK,
   removeLingeringEffectsOfKind,
 } from "./continuous/lingeringEffects.js";
-import { openPendingChoose } from "./pendingChoice.js";
+import { openPendingChoose } from "./triggers/pendingChoice.js";
 import { maybeFirePowerCountersGte } from "./powerCounters.js";
 import { random } from "./rng.js";
 import type {

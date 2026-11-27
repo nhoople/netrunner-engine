@@ -35,7 +35,7 @@ import { CR } from "../../timing/labels.js";
 import type { CardInstance, GameState, RuleCite } from "../types.js";
 import { removeCardFromCurrentZone } from "../scoring.js";
 import { endEffectsOnPreviousObject } from "../turn.js";
-import { cancelPendingIfSourceInactive } from "../pendingAbilities.js";
+import { cancelPendingIfSourceInactive } from "../triggers/pendingAbilities.js";
 import { maybeOpenTrashPrevent } from "../trashPrevent.js";
 import { onInstalledProgramTrashed } from "../staticFlags.js";
 import {
@@ -50,10 +50,10 @@ import {
   maybeFireThreatOnTrash,
   noteCorpCardTrashedToArchives,
 } from "../../effects/corpTrash.js";
-import { noteStoredConditional } from "../storedConditionalHooks.js";
-import { noteInlineConditional } from "../inlineConditionalHooks.js";
+import { noteStoredConditional } from "../triggers/storedConditionalHooks.js";
+import { noteInlineConditional } from "../triggers/inlineConditionalHooks.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { noteStoredConditionals } from "../storedConditionalHooks.js";
+import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { shuffleInPlace } from "../rng.js";
 import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";

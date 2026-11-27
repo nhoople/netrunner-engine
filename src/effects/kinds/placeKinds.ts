@@ -8,7 +8,7 @@ import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/createGame.js";
 import { CR } from "../../timing/labels.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   finishPlaceAdvancementsOnTarget,
   evalEffect,

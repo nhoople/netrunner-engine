@@ -13,9 +13,9 @@ import {
 import { dealDamage } from "../state/damage.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import { onCardAdvanced } from "../state/cardDeclarations.js";
-import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
-import { noteStoredConditional } from "../state/storedConditionalHooks.js";
-import { fireFirstAdvancementOnServer } from "../state/storedTriggers.js";
+import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
+import { noteStoredConditional } from "../state/triggers/storedConditionalHooks.js";
+import { fireFirstAdvancementOnServer } from "../state/triggers/storedTriggers.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/agendaHooks.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import {
@@ -45,7 +45,7 @@ import { spendClick } from "./spendClick.js";
 import {
   fireOnAgendaScoredFromThisServer,
   fireOnAgendaScoredOrStolen,
-} from "../state/miscConditionalHooks.js";
+} from "../state/triggers/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

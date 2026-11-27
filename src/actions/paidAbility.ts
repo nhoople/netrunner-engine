@@ -74,7 +74,7 @@ import {
   openReactionWindow,
   closeReactionWindow,
   pruneSettledPendingAbilities,
-} from "../state/pendingAbilities.js";
+} from "../state/triggers/pendingAbilities.js";
 import {
   isServerAllowedForSpec,
   modifiersFromStartsRun,
@@ -99,7 +99,7 @@ import {
 import {
   fireOnFirstHardwareUseDuringRunEachTurn,
   fireOnFirstResourcePaidAbilityEachTurn,
-} from "../state/miscConditionalHooks.js";
+} from "../state/triggers/miscConditionalHooks.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

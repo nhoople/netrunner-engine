@@ -16,7 +16,7 @@ import {
   collectTourGuideEtrSubs,
   firstDecl,
 } from "../../state/continuous/continuousSubs.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   hostCard,
   unhostAllFrom,

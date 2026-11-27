@@ -37,7 +37,10 @@ import {
   fireIceRezDuringRunHooks,
   fireOnAnyIceRez,
 } from "../effects/eval.js";
-import { fireOnForfeit, fireOnRez } from "../state/cardLifecycleHooks.js";
+import {
+  fireOnForfeit,
+  fireOnRez,
+} from "../state/triggers/cardLifecycleHooks.js";
 import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
 import { fireDagAfterCorpRez } from "../effects/primitives/hostResolveLook.js";
 import { fireSiAfterCorpRezOrPlay } from "../effects/primitives/lookTrashAdd.js";
@@ -51,8 +54,8 @@ import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
-import { fireOnFirstIceRezEachTurn } from "../state/miscConditionalHooks.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
+import { fireOnFirstIceRezEachTurn } from "../state/triggers/miscConditionalHooks.js";
 import { random } from "../state/rng.js";
 import { trashCard } from "../state/procedures/trash.js";
 

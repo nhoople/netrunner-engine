@@ -9,7 +9,7 @@
  */
 import { openCardName } from "../state/seatVisibility.js";
 import { log } from "../state/createGame.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";
 import type { GameState, RuleCite } from "../state/types.js";

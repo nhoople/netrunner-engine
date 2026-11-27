@@ -41,7 +41,7 @@ import {
   toCorpTurn,
   toHand,
 } from "./rulings-helpers.js";
-import { openReactionWindow } from "../src/state/pendingAbilities.js";
+import { openReactionWindow } from "../src/state/triggers/pendingAbilities.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

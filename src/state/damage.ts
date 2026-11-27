@@ -1,4 +1,4 @@
-import { openPendingChoose } from "./pendingChoice.js";
+import { openPendingChoose } from "./triggers/pendingChoice.js";
 /** Damage types + prevention hooks (CR 10.4). */
 
 import type { Effect } from "../effects/ir.js";
@@ -14,13 +14,13 @@ import { scoredAgendaMeatDamageIncrease } from "./continuous/breakerMods.js";
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { pickRandomSubset } from "./rng.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
-import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
-import type { StoredConditionalMark } from "./storedTriggers.js";
+import type { StoredConditionalMark } from "./triggers/storedTriggers.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "./replacements.js";
+} from "./triggers/replacements.js";
 import { controllerOf, trashCard } from "./procedures/trash.js";
 
 function noteAndCheckpointStored(

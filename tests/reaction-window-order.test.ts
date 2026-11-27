@@ -15,8 +15,8 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/index.js";
-import { createPendingAbilityInstance } from "../src/state/pendingAbilities.js";
-import { resolveStoredConditionalPendings } from "../src/state/storedTriggers.js";
+import { createPendingAbilityInstance } from "../src/state/triggers/pendingAbilities.js";
+import { resolveStoredConditionalPendings } from "../src/state/triggers/storedTriggers.js";
 
 function must(state: GameState, action: Action): GameState {
   const result = applyAction(state, action);

@@ -23,7 +23,7 @@ import {
 } from "../src/index.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
-import { resumePendingStoredConditionals } from "../src/state/storedTriggers.js";
+import { resumePendingStoredConditionals } from "../src/state/triggers/storedTriggers.js";
 import { whenScoredEffect } from "../src/state/whenScored.js";
 import { resumeRunnerTurnBeginAbilities } from "../src/timing/graph.js";
 import type { Effect } from "../src/effects/ir.js";

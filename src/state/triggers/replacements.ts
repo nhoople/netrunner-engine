@@ -11,9 +11,9 @@
  * - **9.9.9c** — each replacement applies at most once to a single effect.
  */
 
-import { log } from "./createGame.js";
-import type { ExpectedEffects, GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
+import { log } from "../createGame.js";
+import type { ExpectedEffects, GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
 
 /** Allocate a unique identity for one imminent effect occurrence. */
 export function allocateEffectIdentity(

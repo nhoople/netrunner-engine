@@ -2,8 +2,8 @@
  * Remaining card-field conditionals outside run-timing / lifecycle
  * helpers — marked onto the pending bag (CR 9.6.2).
  */
-import type { GameState, Side, StoredConditionalEffectKey } from "./types.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
+import type { GameState, Side, StoredConditionalEffectKey } from "../types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
 import {
   fireCardConditional,
   type StoredConditionalMark,
@@ -12,7 +12,7 @@ import {
   noteStoredConditional,
   noteStoredConditionals,
 } from "./storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 
 function fire(
   state: GameState,

@@ -12,17 +12,17 @@
  * duration" for the rest of that run (lingering; independent of the current).
  */
 
-import { log } from "./createGame.js";
+import { log } from "../createGame.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_BREAKER_STRENGTH,
   LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
-} from "./continuous/lingeringEffects.js";
+} from "../continuous/lingeringEffects.js";
 import { tryApplyReplacement } from "./replacements.js";
-import type { GameState, LingeringDuration } from "./types.js";
-import { CR } from "../timing/labels.js";
+import type { GameState, LingeringDuration } from "../types.js";
+import { CR } from "../../timing/labels.js";
 
 export type HostDurationOriginal = "encounter" | "run";
 

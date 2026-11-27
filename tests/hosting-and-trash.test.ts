@@ -37,7 +37,7 @@ import {
   resolveSkorpiosTrash,
   trashCard,
 } from "../src/state/procedures/trash.js";
-import { createPendingAbilityInstance } from "../src/state/pendingAbilities.js";
+import { createPendingAbilityInstance } from "../src/state/triggers/pendingAbilities.js";
 import { recomputeRunnerLink } from "../src/state/trashHooks.js";
 import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { CR } from "../src/timing/labels.js";

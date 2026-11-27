@@ -8,7 +8,7 @@ import { chooseCards } from "../chooseCards.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { uninstallCard } from "../../state/procedures/uninstall.js";
 

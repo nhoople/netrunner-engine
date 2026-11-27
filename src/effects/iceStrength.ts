@@ -3,7 +3,7 @@
  * in stubs (`effectiveBreakerStrength` / `effectiveIceStrength`). Breaker
  * path syncs Gebrselassie host-duration replacements first (CR 9.9.9a).
  */
-import { syncHostDurationReplacements } from "../state/hostDuration.js";
+import { syncHostDurationReplacements } from "../state/triggers/hostDuration.js";
 import type { GameState } from "../state/types.js";
 import {
   effectiveBreakerStrength,

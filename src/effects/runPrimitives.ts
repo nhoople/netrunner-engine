@@ -14,7 +14,7 @@ import { CR } from "../timing/labels.js";
 import { evalEffect, type EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

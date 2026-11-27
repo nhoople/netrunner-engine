@@ -15,7 +15,10 @@ import type { CardInstance, GameState, Side } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { noteIceUninstalled } from "./runPosition.js";
 import { onAgendaScored, runnerHeapLocked } from "./cardDeclarations.js";
-import { allocateEffectIdentity, tryApplyReplacement } from "./replacements.js";
+import {
+  allocateEffectIdentity,
+  tryApplyReplacement,
+} from "./triggers/replacements.js";
 
 /**
  * The Board: "Each agenda in the Runner's score area is worth 1 less agenda

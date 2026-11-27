@@ -22,11 +22,11 @@ import {
 } from "../state/cardDeclarations.js";
 import { evalEffect, maybeFireNuvemFirstRdTrash } from "./eval.js";
 import { iceStrength } from "./iceStrength.js";
-import { createPendingAbilityInstance } from "../state/pendingAbilities.js";
+import { createPendingAbilityInstance } from "../state/triggers/pendingAbilities.js";
 import {
   fireOnRezzedCardTrashed,
   fireOnRunnerTrashFromThisServerRootOrProtecting,
-} from "../state/miscConditionalHooks.js";
+} from "../state/triggers/miscConditionalHooks.js";
 
 /**
  * Ronald Five: "Whenever the Runner trashes a Corp card (including this

@@ -8,11 +8,11 @@ import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import { fireOnPlay } from "../../state/cardLifecycleHooks.js";
+import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 

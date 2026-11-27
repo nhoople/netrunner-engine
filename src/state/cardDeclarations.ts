@@ -13,7 +13,7 @@ import { CR } from "../timing/labels.js";
 import { fx } from "../effects/ir.js";
 import { startTrace } from "./trace.js";
 import { memoryLimit, usedMemory } from "./turn.js";
-import { openPendingChoose } from "./pendingChoice.js";
+import { openPendingChoose } from "./triggers/pendingChoice.js";
 import { pickRandomSubset } from "./rng.js";
 import { trashCard } from "./procedures/trash.js";
 import { unhostCard } from "./procedures/host.js";

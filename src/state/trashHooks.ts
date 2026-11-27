@@ -9,10 +9,10 @@ import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
 import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { type StoredConditionalMark } from "./storedTriggers.js";
-import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { type StoredConditionalMark } from "./triggers/storedTriggers.js";
+import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
-import { openPendingChoose } from "./pendingChoice.js";
+import { openPendingChoose } from "./triggers/pendingChoice.js";
 
 function noteAndCheckpointStored(
   state: GameState,

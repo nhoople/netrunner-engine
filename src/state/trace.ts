@@ -14,7 +14,7 @@ import {
 } from "./costs.js";
 import { traceBaseBonus } from "./staticFlags.js";
 import { prepareTraceSpendOrder } from "./cardDeclarations.js";
-import { fireOnSuccessfulTraceDuringRun } from "./miscConditionalHooks.js";
+import { fireOnSuccessfulTraceDuringRun } from "./triggers/miscConditionalHooks.js";
 import { nextId } from "./ids.js";
 
 /** Credits available for Corp trace boosts (bank + Making News-class recurring). */

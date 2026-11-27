@@ -16,7 +16,7 @@ import {
 import { chooseCards } from "../chooseCards.js";
 import { shuffleRunnerStack } from "../runnerInstall.js";
 import { fx, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/procedures/trash.js";
 
 type PrimResult =

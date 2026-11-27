@@ -2,13 +2,13 @@
 
 import { log } from "./createGame.js";
 import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { noteFirstTagThisTurn } from "./miscConditionalHooks.js";
+import { noteFirstTagThisTurn } from "./triggers/miscConditionalHooks.js";
 import type { GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "./replacements.js";
+} from "./triggers/replacements.js";
 
 /**
  * Acme Consulting: while encountering the outermost ice protecting any server,

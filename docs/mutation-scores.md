@@ -73,7 +73,7 @@ No survivor changes a zone, a face, a host link, the Runner's position, the atta
 
 ## RA-2 Continuous effects (2026-11-19)
 
-Files mutated: `src/state/continuous/continuousEffects.ts` (the 9.12 blanking solver and subtype layer), `src/state/continuous/lingeringEffects.ts` (the 9.10 registry and its 10.3.1b expiry), `src/state/continuous/abilities.ts` and `src/state/pendingChoice.ts` (the S4 choice helper). Killed counts include timeouts. The re-audit writes tests only (`tests/continuous-effects-reaudit.test.ts`); RF fixes the paths it found wrong.
+Files mutated: `src/state/continuous/continuousEffects.ts` (the 9.12 blanking solver and subtype layer), `src/state/continuous/lingeringEffects.ts` (the 9.10 registry and its 10.3.1b expiry), `src/state/continuous/abilities.ts` and `src/state/triggers/pendingChoice.ts` (the S4 choice helper). Killed counts include timeouts. The re-audit writes tests only (`tests/continuous-effects-reaudit.test.ts`); RF fixes the paths it found wrong.
 
 | File | Start | With RA-2 tests | Covered | Survived | No coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -135,7 +135,7 @@ The kinds with high no-coverage counts (`swap_pick`, `swap_this_root_with_other_
 
 ## RA-1 timing re-audit (2026-11-19)
 
-Files mutated: `src/state/pendingAbilities.ts`, `replacements.ts`, `checkpointSnapshot.ts`, `storedConditionalHooks.ts` and `inlineConditionalHooks.ts`. `src/legality/checkpoints.ts` (4,800 lines) is left out; a run over it would take hours. Killed includes 7 timeouts. Survivors worth a test, for the RF session:
+Files mutated: `src/state/triggers/pendingAbilities.ts`, `replacements.ts`, `checkpointSnapshot.ts`, `storedConditionalHooks.ts` and `inlineConditionalHooks.ts`. `src/legality/checkpoints.ts` (4,800 lines) is left out; a run over it would take hours. Killed includes 7 timeouts. Survivors worth a test, for the RF session:
 
 - **The note path** (CR 10.3.1a): emptying `noteStoredConditional` or `noteInlineConditional` survives, as do their duplicate checks. No selected test fails when a noted trigger never reaches the checkpoint, and none notes the same trigger twice between checkpoints (CR 9.6.4b).
 - **Losing pending status** (CR 9.6.10): the identity and accessed-card exceptions in `pendingAbilitySourceStillActive`, and its zone list, survive.

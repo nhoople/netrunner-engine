@@ -57,7 +57,7 @@ import {
   iceHasWinchesterFamilyDecl,
 } from "../state/continuous/continuousSubs.js";
 import { resolveIceSubtypes } from "../state/continuous/continuousEffects.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { currentMark } from "../state/msKeywords.js";
 import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
 import {
@@ -126,8 +126,8 @@ import {
   noteCorpActionPhaseEnd,
   noteRunnerActionPhaseEnd,
 } from "../state/phaseEndHooks.js";
-import { resumePendingStoredConditionals } from "../state/storedTriggers.js";
-import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
+import { resumePendingStoredConditionals } from "../state/triggers/storedTriggers.js";
+import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
 import {
   noteCompileFirstEncounter,
   noteEncounterAnyIceOncePerTurn,
@@ -223,7 +223,7 @@ import {
   openReactionWindow,
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
-} from "../state/pendingAbilities.js";
+} from "../state/triggers/pendingAbilities.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { unhostCard } from "../state/procedures/host.js";
 import {

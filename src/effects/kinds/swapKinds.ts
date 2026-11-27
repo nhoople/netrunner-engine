@@ -8,10 +8,10 @@ import { iceAtRunnerPosition } from "../../state/runPosition.js";
 import type { GameState, Server } from "../../state/types.js";
 import type { Effect, Primitive } from "../ir.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
-import { commitCheckpointSnapshot } from "../../state/checkpointSnapshot.js";
+import { commitCheckpointSnapshot } from "../../state/triggers/checkpointSnapshot.js";
 import { log } from "../../state/createGame.js";
-import { fireOnFirstRemoteInstallThisTurn } from "../../state/miscConditionalHooks.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { fireOnFirstRemoteInstallThisTurn } from "../../state/triggers/miscConditionalHooks.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { evalEffect, applyPrimitive } from "../eval.js";
 

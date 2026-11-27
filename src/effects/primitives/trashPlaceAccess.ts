@@ -12,13 +12,13 @@ import {
   recomputeRunnerLink,
 } from "../../state/trashHooks.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
-import { noteCorpOperationPlayed } from "../../state/cardLifecycleHooks.js";
+import { noteCorpOperationPlayed } from "../../state/triggers/cardLifecycleHooks.js";
 import { CR } from "../../timing/labels.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { playEffectFromCard } from "../abilityRecord.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";

@@ -1,5 +1,5 @@
 import { runnerIsTagged } from "./tags.js";
-import { openPendingChoose } from "./pendingChoice.js";
+import { openPendingChoose } from "./triggers/pendingChoice.js";
 /** Central / remote breach access candidate building (CR 7.3–7.4). */
 
 import { log } from "./createGame.js";
@@ -9,9 +9,9 @@ import type { Effect } from "../effects/ir.js";
 import type { GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { maybeRipDeal } from "./cardDeclarations.js";
-import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
-import { fireOnArchivesFacedownTurnedFaceupGte } from "./miscConditionalHooks.js";
+import { fireOnArchivesFacedownTurnedFaceupGte } from "./triggers/miscConditionalHooks.js";
 import { shuffleInPlace } from "./rng.js";
 import { setAttackedServer } from "./runPosition.js";
 

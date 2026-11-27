@@ -8,7 +8,7 @@ import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { startPsiGame } from "../../state/psi.js";
-import { fireOnPlay } from "../../state/cardLifecycleHooks.js";
+import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import {
   agendaPointsFor,
   effectiveAdvancementRequirement,
@@ -17,7 +17,7 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { serverIdForIce } from "../../cards/stubs.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { moveRunnerToOutermost } from "../../state/runPosition.js";

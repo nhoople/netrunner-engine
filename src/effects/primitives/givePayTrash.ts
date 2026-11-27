@@ -5,7 +5,7 @@ import { corpInstallCost } from "../../state/costs.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";
 

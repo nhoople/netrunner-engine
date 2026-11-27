@@ -7,7 +7,7 @@ import { log } from "../state/createGame.js";
 import type { Effect } from "../effects/ir.js";
 import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 
 export type BreachReplacementMode =
   | "security_testing"
