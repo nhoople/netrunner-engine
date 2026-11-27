@@ -1,6 +1,10 @@
 /**
  * Effect IR: the effect tree (seq, do, if, prevent, choose) and its ops.
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * The IR is a hand-authored AST for card data, not a CR / nodes.json compiler.
+ * A printed ability is classified under CR 9.3 before it is written
+ * (`abilityRecord.ts`). The effect tree is the instructions.
+ * Unknown IR nodes fail closed at load/eval time.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 import type { Cond } from "./cond.js";
 import type { Primitive } from "./primitive.js";

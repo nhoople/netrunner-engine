@@ -24,7 +24,8 @@ import {
   rearrangeIce,
   moveIce,
 } from "../../state/uninstallAndPosition/rearrange.js";
-import { fx, type Primitive } from "../ir.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";

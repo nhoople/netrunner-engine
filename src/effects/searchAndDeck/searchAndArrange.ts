@@ -14,7 +14,7 @@ import { CR } from "../../timing/labels.js";
 import { trashRandomGripForPersonalityProfiles } from "../hostingAndTrash/runnerHandAndDeckTrashKinds.js";
 import { shuffleRunnerStack } from "../install/runnerInstall.js";
 import { enterSetAside } from "../../state/zones.js";
-import type { Effect } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { type EvalResult, hostServerUnprotectedByIce } from "../eval.js";
 import { random, shuffleInPlace } from "../../state/rng.js";

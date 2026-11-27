@@ -4,7 +4,8 @@
  */
 import { revealCards } from "../../state/visibility/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
@@ -14,7 +15,7 @@ import {
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
-import { fx } from "../ir.js";
+import { fx } from "../ir/fx.js";
 import { random } from "../../state/rng.js";
 
 export function applyPlaceKinds(

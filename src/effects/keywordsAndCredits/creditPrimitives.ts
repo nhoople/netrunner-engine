@@ -17,7 +17,9 @@ import {
   effectResolutionBlocked,
 } from "../continuation.js";
 import type { EffectCtx } from "../eval.js";
-import type { Effect, Primitive, SideRef } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
+import type { SideRef } from "../ir/shared.js";
 import { abilityCreditTally } from "./creditTally.js";
 
 type PrimResult =

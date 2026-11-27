@@ -21,7 +21,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir.js";
+import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir/knownKinds.js";
 
 const ROOT = process.cwd();
 const BASELINE_PATH = join(ROOT, "tests/baselines/kind-effect-coverage.json");

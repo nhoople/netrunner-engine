@@ -2,7 +2,7 @@
  * Card format counts may only shrink (CR audit Phase 2, guard 4).
  *
  * Three numbers measure how much of the card format is one-off:
- *   - knownPrimitiveKinds: kinds in KNOWN_PRIMITIVE_KINDS (src/effects/ir.ts);
+ *   - knownPrimitiveKinds: kinds in KNOWN_PRIMITIVE_KINDS (src/effects/ir/knownKinds.ts);
  *   - oneCardKinds: kinds that exactly one card's JSON uses;
  *   - cardDefFlags: optional boolean and number fields on CardDef, as tool
  *     1.10 counts them (tests/baselines/card-flags.json, which
@@ -26,7 +26,7 @@ import {
   cardsDataPresent,
   crDataPresent,
 } from "../src/index.js";
-import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir.js";
+import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir/knownKinds.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

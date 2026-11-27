@@ -3,7 +3,7 @@ import type { GameState } from "../../state/types.js";
 import { fireOnFirstRevealEachTurn } from "../../state/triggers/miscConditionalHooks.js";
 import { exposeLegalTargets } from "../../state/visibility/expose.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import type { Effect } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";

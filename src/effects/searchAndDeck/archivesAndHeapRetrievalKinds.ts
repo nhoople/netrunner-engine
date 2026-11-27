@@ -15,7 +15,9 @@ import {
   type EvalResult,
 } from "../eval.js";
 import { chooseCards } from "../triggers/chooseCards.js";
-import { type Effect, fx, type Primitive } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleRunnerStack } from "../install/runnerInstall.js";
 import { revealCards } from "../../state/visibility/reveal.js";

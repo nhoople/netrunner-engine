@@ -4,7 +4,8 @@
  */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
@@ -13,7 +14,7 @@ import {
   checkWinConditions,
 } from "../../state/turnAndActions/scoring.js";
 import { returnRdLookedToDeckTop } from "../searchAndDeck/searchAndArrange.js";
-import { fx } from "../ir.js";
+import { fx } from "../ir/fx.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 

@@ -5,7 +5,7 @@ import type {
   BreakerAbility,
   PaidAbility,
 } from "../state/types.js";
-import type { Effect } from "../effects/ir.js";
+import type { Effect } from "../effects/ir/effect.js";
 import type { AbilityRecord } from "../effects/abilityRecord.js";
 
 export interface CardDef {

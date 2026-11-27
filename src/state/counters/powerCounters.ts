@@ -9,7 +9,7 @@ import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { isCardActive } from "../continuous/active.js";
 import { log } from "../setupAndEnd/createGame.js";
 import type { CardInstance, GameState } from "../types.js";
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 
 /**
  * After power counters on `cardId` increase, if the card declares

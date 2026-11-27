@@ -11,7 +11,7 @@ import {
 import type { GameState } from "../src/index.js";
 import type { Action, ServerId } from "../src/state/types.js";
 import { passIdle } from "../src/demo/passIdle.js";
-import type { Effect } from "../src/effects/ir.js";
+import type { Effect } from "../src/effects/ir/effect.js";
 import { openPendingChoose } from "../src/state/triggers/pendingChoice.js";
 
 /** The default board with no Runner card marked rezzed (CR 8.1.4f). */

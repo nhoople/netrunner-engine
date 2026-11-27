@@ -14,7 +14,9 @@ import {
 } from "../eval.js";
 import { trashInstalledLegalTargets } from "./trashTargetsAndHooks.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { type Effect, fx, type Primitive } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import { trashCard, controllerOf } from "../../state/hostingAndTrash/trash.js";
 import { catalogCardNames } from "../visibility/cardNames.js";
 import { unhostAllFrom, unhostCard } from "../../state/hostingAndTrash/host.js";
@@ -1079,42 +1081,44 @@ export function applyCorpInstalledTrashKinds(
         log(state, `${source.title} — no other installed cards to trash.`);
         return { ok: true };
       }
-      const options: import("../ir.js").ChoiceOption[] = targets.map((id) => {
-        const c = state.cards[id]!;
-        const printed = c.installCost ?? 0;
-        return {
-          id: `trash:${id}`,
-          label: `Trash ${c.title} (gain ${printed}¢, draw 1)`,
-          effect: {
-            op: "seq" as const,
-            effects: [
-              {
-                op: "do" as const,
-                action: {
-                  kind: "trash_runner_rig_card" as const,
-                  cardId: id,
+      const options: import("../ir/effect.js").ChoiceOption[] = targets.map(
+        (id) => {
+          const c = state.cards[id]!;
+          const printed = c.installCost ?? 0;
+          return {
+            id: `trash:${id}`,
+            label: `Trash ${c.title} (gain ${printed}¢, draw 1)`,
+            effect: {
+              op: "seq" as const,
+              effects: [
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "trash_runner_rig_card" as const,
+                    cardId: id,
+                  },
                 },
-              },
-              {
-                op: "do" as const,
-                action: {
-                  kind: "gain_credits" as const,
-                  side: "runner" as const,
-                  amount: printed,
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "gain_credits" as const,
+                    side: "runner" as const,
+                    amount: printed,
+                  },
                 },
-              },
-              {
-                op: "do" as const,
-                action: {
-                  kind: "draw" as const,
-                  side: "runner" as const,
-                  amount: 1,
+                {
+                  op: "do" as const,
+                  action: {
+                    kind: "draw" as const,
+                    side: "runner" as const,
+                    amount: 1,
+                  },
                 },
-              },
-            ],
-          },
-        };
-      });
+              ],
+            },
+          };
+        },
+      );
       options.push({
         id: "decline",
         label: "Decline",

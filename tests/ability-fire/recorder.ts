@@ -24,7 +24,8 @@
  * Nothing is recorded unless a sink is open, so outside a recording the
  * wrappers cost one check per call.
  */
-import type { Effect, Primitive } from "../../src/effects/ir.js";
+import type { Effect } from "../../src/effects/ir/effect.js";
+import type { Primitive } from "../../src/effects/ir/primitive.js";
 import type { GameState } from "../../src/state/types.js";
 import { canonical, supportedAbilities } from "./abilities.js";
 

@@ -7,12 +7,9 @@
  * declaration is written back onto that object. A card that still has only
  * the old hook is left alone.
  */
-import {
-  validateCond,
-  validateEffectTree,
-  type Cond,
-  type Effect,
-} from "./ir.js";
+import { validateCond, validateEffectTree } from "./ir/validate.js";
+import { type Cond } from "./ir/cond.js";
+import { type Effect } from "./ir/effect.js";
 
 const ABILITY_CLASSES = [
   "static",

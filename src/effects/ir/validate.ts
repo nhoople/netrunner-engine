@@ -1,6 +1,6 @@
 /**
  * Effect IR: walking and fail-closed validation of effect trees.
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 import { KNOWN_COND_OPS } from "./cond.js";
 import { KNOWN_EFFECT_OPS } from "./effect.js";

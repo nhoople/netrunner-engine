@@ -2,7 +2,7 @@
  * Card runtime helpers — definitions live in vendored `vendor/cards-data/`.
  * Applies defs onto instances and computes effective strengths for demos/tests.
  */
-import type { Effect } from "../effects/ir.js";
+import type { Effect } from "../effects/ir/effect.js";
 import type {
   BreakerAbility,
   CardInstance,

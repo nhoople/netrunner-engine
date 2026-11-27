@@ -27,7 +27,9 @@ import {
   resolveSabotageAmount,
   identifyMark,
 } from "../../state/keywordsAndCredits/keywords.js";
-import { type Effect, fx, type Primitive } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";

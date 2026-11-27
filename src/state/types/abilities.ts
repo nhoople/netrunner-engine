@@ -1,6 +1,6 @@
 /** Ability shapes a card carries: subroutines, breaker abilities, paid abilities and their costs. */
 
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type { CardType, DamageType } from "./shared.js";
 
 /** Gained-subroutine continuous declaration (L2 / W1 payload shape). */

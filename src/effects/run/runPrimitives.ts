@@ -13,7 +13,8 @@ import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { abilityCreditTally } from "../keywordsAndCredits/creditTally.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 
 type PrimResult =

@@ -10,7 +10,7 @@ import { log } from "../setupAndEnd/createGame.js";
 import type { CardInstance, GameState, ServerId, Side } from "../types.js";
 import { runnerWinsOnEmptyRnd } from "../setupAndEnd/emptyRnd.js";
 import { CR } from "../../timing/labels.js";
-import { fx } from "../../effects/ir.js";
+import { fx } from "../../effects/ir/fx.js";
 import { startTrace } from "../turnAndActions/trace.js";
 import { memoryLimit, usedMemory } from "../turnAndActions/turn.js";
 import { openPendingChoose } from "../triggers/pendingChoice.js";

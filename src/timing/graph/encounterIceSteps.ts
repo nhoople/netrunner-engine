@@ -950,7 +950,7 @@ export const ENCOUNTER_ICE_STEP_DEFS: Record<string, TimingStepDef> = {
             const options: Array<{
               id: string;
               label: string;
-              effect: import("../../effects/ir.js").Effect;
+              effect: import("../../effects/ir/effect.js").Effect;
             }> = (ice.subroutines ?? []).map((sub, i) => ({
               id: `zato:${i}`,
               label: `Trash ${ice.title} to resolve "${sub.text}"`,

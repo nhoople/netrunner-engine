@@ -3,7 +3,8 @@
  * The effect switch in eval.ts dispatches here.
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import {
   subtractRunnerCreditPool,
   hostedCreditsSpendableDuringRuns,

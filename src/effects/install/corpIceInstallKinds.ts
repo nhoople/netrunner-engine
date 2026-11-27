@@ -14,7 +14,9 @@ import {
   fireOnRez,
 } from "../eval.js";
 import { fireIceRezDuringRunHooks } from "../rez/rezDuringRunHooks.js";
-import { type Effect, type Primitive, fx } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import { serverIdForIce } from "../../cards/stubs.js";
 import {
   corpInstallCost,

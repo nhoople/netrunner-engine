@@ -17,7 +17,9 @@ import {
   finishExposeUpTo,
   resumeExposeUpTo,
 } from "./exposeAndReveal.js";
-import { type Effect, type Primitive, fx } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";

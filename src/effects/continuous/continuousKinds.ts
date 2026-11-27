@@ -13,7 +13,9 @@ import {
   resolveSide,
   applyPrimitive,
 } from "../eval.js";
-import { type Effect, type Primitive, fx } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
+import { fx } from "../ir/fx.js";
 import type { ServerId } from "../../state/types.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { iceStrengthCannotBeLowered } from "../../cards/stubs.js";
@@ -98,7 +100,7 @@ export function applyContinuousKinds(
       }
       // Requested duration before 9.9.9 replacements (Gebrselassie / System
       // Seizure / hosted run-extend). Replacements apply inside the add helpers.
-      let duration: import("../ir.js").PumpDuration =
+      let duration: import("../ir/shared.js").PumpDuration =
         action.duration ?? "encounter";
       if (duration === "encounter" && !state.run?.encounter) {
         duration = "checkpoint";
@@ -150,7 +152,7 @@ export function applyContinuousKinds(
           amount,
         });
       }
-      const applied: import("../ir.js").PumpDuration =
+      const applied: import("../ir/shared.js").PumpDuration =
         sumKind("breaker_strength_turn") > beforeTurn
           ? "turn"
           : sumKind("breaker_strength_run") > beforeRun

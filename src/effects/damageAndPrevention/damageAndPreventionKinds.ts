@@ -21,7 +21,9 @@ import {
 } from "../../state/damageAndPrevention/damage.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
+import { fx } from "../ir/fx.js";
+import { type Effect } from "../ir/effect.js";
+import { type Primitive } from "../ir/primitive.js";
 import { random } from "../../state/rng.js";
 import { CR } from "../../timing/labels.js";
 import { rezzedIceIds } from "../rez/rezKinds.js";

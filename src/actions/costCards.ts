@@ -14,7 +14,7 @@ import { log } from "../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
-import type { Effect } from "../effects/ir.js";
+import type { Effect } from "../effects/ir/effect.js";
 import type { Action, GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { paidAbilityCostAndPayer } from "./paidAbility.js";

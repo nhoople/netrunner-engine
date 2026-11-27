@@ -213,7 +213,7 @@ export const RUN_INITIATION_STEP_DEFS: Record<string, TimingStepDef> = {
         const options: Array<{
           id: string;
           label: string;
-          effect: import("../../effects/ir.js").Effect;
+          effect: import("../../effects/ir/effect.js").Effect;
         }> = [];
         if (canPay) {
           for (const sid of ["hq", "rd"] as const) {

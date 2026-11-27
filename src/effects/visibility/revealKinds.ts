@@ -4,7 +4,8 @@
  */
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
@@ -317,7 +318,7 @@ export function applyRevealKinds(
         log(state, `${source.title} — nothing to reveal.`);
         return { ok: true };
       }
-      const options: import("../ir.js").ChoiceOption[] = [];
+      const options: import("../ir/effect.js").ChoiceOption[] = [];
       if (gripOk) {
         options.push({
           id: "reveal-grip",

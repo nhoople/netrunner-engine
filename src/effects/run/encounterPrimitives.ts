@@ -10,7 +10,7 @@ import {
   type EvalResult,
 } from "../eval.js";
 import { fireOnEncounterEnd } from "../../state/triggers/cardLifecycleHooks.js";
-import type { Primitive } from "../ir.js";
+import type { Primitive } from "../ir/primitive.js";
 import { markRemainingSubroutinesNotBrokenByRunner } from "../../state/turnAndActions/break.js";
 
 export function applyEncounterPrimitive(

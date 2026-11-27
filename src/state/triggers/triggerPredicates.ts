@@ -820,7 +820,7 @@ export type TriggerPredicateMatch =
         abilityKey: string;
         controller: "corp" | "runner";
         mandatory: boolean;
-        effect: import("../../effects/ir.js").Effect;
+        effect: import("../../effects/ir/effect.js").Effect;
         logLine: string;
         independentOfSource?: boolean;
       }>;

@@ -33,7 +33,7 @@ import type {
   Server,
   ServerId,
 } from "../state/types.js";
-import { fx } from "../effects/ir.js";
+import { fx } from "../effects/ir/fx.js";
 import { CR } from "../timing/labels.js";
 import { installBlockReason } from "../state/cardFlags/staticFlags.js";
 import { onCorpCardInstalledInRemote } from "../state/cardFlags/cardDeclarations.js";

@@ -9,7 +9,9 @@ import {
   unhostCard,
   unhostAllFrom,
 } from "../../state/hostingAndTrash/host.js";
-import { type Effect, fx, type Primitive } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import {
   evalEffect,
   applyPrimitive,

@@ -4,7 +4,8 @@
  */
 import { revealCards } from "../../state/visibility/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
@@ -26,7 +27,7 @@ import { drawCards } from "../searchAndDeck/draw.js";
 import { offerBurnerMoves } from "../searchAndDeck/searchAndArrange.js";
 import { grantAbilityCredits } from "../keywordsAndCredits/abilityCreditGain.js";
 import { evalEffect, applyPrimitive } from "../eval.js";
-import { fx } from "../ir.js";
+import { fx } from "../ir/fx.js";
 import { chooseCards } from "./chooseCards.js";
 import {
   canInstallSetAsideProgram,
@@ -546,22 +547,24 @@ export function applyResolveKinds(
       }
       // The subroutine resolves as its own ice's, so "this ice" in it is
       // that ice, not the source.
-      const options: import("../ir.js").ChoiceOption[] = picks.map((p) => {
-        const ice = state.cards[p.iceId]!;
-        const sub = ice.subroutines![p.subIndex]!;
-        return {
-          id: `sub:${p.iceId}:${p.subIndex}`,
-          label: `Resolve "${sub.text}" on ${ice.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "resolve_ice_subroutine" as const,
-              iceId: p.iceId,
-              subIndex: p.subIndex,
+      const options: import("../ir/effect.js").ChoiceOption[] = picks.map(
+        (p) => {
+          const ice = state.cards[p.iceId]!;
+          const sub = ice.subroutines![p.subIndex]!;
+          return {
+            id: `sub:${p.iceId}:${p.subIndex}`,
+            label: `Resolve "${sub.text}" on ${ice.title}`,
+            effect: {
+              op: "do" as const,
+              action: {
+                kind: "resolve_ice_subroutine" as const,
+                iceId: p.iceId,
+                subIndex: p.subIndex,
+              },
             },
-          },
-        };
-      });
+          };
+        },
+      );
       openPendingChoose(state, {
         sourceId,
         chooser: "corp",

@@ -37,7 +37,7 @@ import type {
   RuleCite,
   ServerId,
 } from "../state/types.js";
-import { fx } from "../effects/ir.js";
+import { fx } from "../effects/ir/fx.js";
 import { mayAdvanceInstalledCard } from "../state/counters/advanceable.js";
 import { CR } from "../timing/labels.js";
 import { spendClick } from "./spendClick.js";

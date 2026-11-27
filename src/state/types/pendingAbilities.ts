@@ -1,6 +1,6 @@
 /** Pending conditional ability instances and their payloads. */
 
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type { ServerId } from "./servers.js";
 import type { Side } from "./shared.js";
 

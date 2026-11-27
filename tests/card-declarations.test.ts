@@ -21,7 +21,7 @@ import {
   startIdentitySetup,
 } from "../src/state/cardFlags/cardDeclarations.js";
 import { startTrace } from "../src/state/turnAndActions/trace.js";
-import { fx } from "../src/effects/ir.js";
+import { fx } from "../src/effects/ir/fx.js";
 
 describe("remaining static declarations", () => {
   beforeAll(() => {

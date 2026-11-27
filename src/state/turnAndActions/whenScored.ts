@@ -4,7 +4,7 @@
  * so an effect that resolves the ability gets everything the score would
  * (CR 9.6.14d). Some of it is stored in card fields rather than `onScore`.
  */
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type { CardInstance } from "../types.js";
 
 export function whenScoredEffect(

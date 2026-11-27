@@ -4236,7 +4236,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     s: ReturnType<typeof createInitialState>,
     args: {
       sourceId: string;
-      effect: import("../src/effects/ir.js").Effect;
+      effect: import("../src/effects/ir/effect.js").Effect;
       abilityKey: string;
       logLine: string;
       controller?: "corp" | "runner";

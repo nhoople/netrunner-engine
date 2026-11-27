@@ -23,10 +23,8 @@ import {
   cardsDataPresent,
   crDataPresent,
 } from "../src/index.js";
-import {
-  KNOWN_PRIMITIVE_KINDS,
-  validateEffectTree,
-} from "../src/effects/ir.js";
+import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir/knownKinds.js";
+import { validateEffectTree } from "../src/effects/ir/validate.js";
 import { primitiveNameFollowsStandard } from "../src/effects/primitiveNames.js";
 
 beforeAll(() => {

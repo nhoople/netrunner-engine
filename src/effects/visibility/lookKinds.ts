@@ -4,7 +4,7 @@
  */
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Primitive } from "../ir.js";
+import type { Primitive } from "../ir/primitive.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import { creditsAvailableForInstall } from "../../state/keywordsAndCredits/runnerCredits.js";

@@ -101,7 +101,7 @@ import {
   CARD_STORAGE_DIRS,
   loadCardCatalog,
 } from "../src/cards/load.js";
-import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir.js";
+import { KNOWN_PRIMITIVE_KINDS } from "../src/effects/ir/knownKinds.js";
 
 const CARDS_PIN = "v1.147.29";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");

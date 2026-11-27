@@ -1,6 +1,6 @@
 /** Open decisions the game waits on: traces, psi games, costs to pick, damage, tags and card choices. */
 
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type { Action } from "./actions.js";
 import type { DamageType, Side } from "./shared.js";
 import type { ExpectedEffects } from "./windows.js";
@@ -105,7 +105,7 @@ export interface PendingEffectContinuation {
   sourceId: string;
   /** Who pays and controls the effects, when not the source's side (a paid ability). */
   payerSide?: Side;
-  effects: import("../../effects/ir.js").Effect[];
+  effects: import("../../effects/ir/effect.js").Effect[];
   /** Runs after `effects`, including when this segment pauses again. */
   followedBy?: PendingEffectContinuation;
   /**

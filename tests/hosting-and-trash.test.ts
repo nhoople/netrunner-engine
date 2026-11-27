@@ -23,7 +23,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import { fx } from "../src/effects/ir.js";
+import { fx } from "../src/effects/ir/fx.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { checkInvariants } from "../src/debug/invariants.js";
 import {

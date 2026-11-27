@@ -17,7 +17,7 @@
  * ruling on which procedure the ability uses.
  */
 import { getCardDef, supportedCardIds } from "../../src/index.js";
-import type { Effect } from "../../src/effects/ir.js";
+import type { Effect } from "../../src/effects/ir/effect.js";
 import { loadOwnerTable, ownerOf } from "../cr-owners.js";
 
 type AbilityClass = "paid" | "conditional" | "play" | "subroutine";

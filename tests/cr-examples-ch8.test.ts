@@ -18,7 +18,7 @@ import {
   occurCheckpoint,
   CR,
 } from "../src/index.js";
-import { fx } from "../src/effects/ir.js";
+import { fx } from "../src/effects/ir/fx.js";
 import type { Action, GameState, ServerId } from "../src/state/types.js";
 import {
   maybeOpenTrashPrevent,

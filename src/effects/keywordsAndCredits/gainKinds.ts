@@ -3,7 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Primitive } from "../ir.js";
+import type { Primitive } from "../ir/primitive.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

@@ -190,8 +190,8 @@ export interface PublicView {
     bypassFirstEncounterForClicks?: number;
     bonusAccess?: number;
     skipBreach?: boolean;
-    onSuccessfulRunEffect?: import("../../effects/ir.js").Effect;
-    onRunEndEffect?: import("../../effects/ir.js").Effect;
+    onSuccessfulRunEffect?: import("../../effects/ir/effect.js").Effect;
+    onRunEndEffect?: import("../../effects/ir/effect.js").Effect;
     hiredHelpAgendaTaxPaid?: boolean;
     forbidCorpRezIceDuringRun?: boolean;
     preventAllTagsThisRun?: boolean;

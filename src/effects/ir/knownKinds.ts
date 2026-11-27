@@ -1,6 +1,6 @@
 /**
  * Effect IR: every primitive kind the card loader accepts, in one list.
- * Part of the split of `../ir.ts`, which re-exports the public names.
+ * Part of the Effect IR in `effects/ir/`: import each name from the file that declares it.
  */
 /** Known primitive kinds — used by card loader fail-closed checks. */
 export const KNOWN_PRIMITIVE_KINDS = new Set([

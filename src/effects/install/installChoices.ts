@@ -24,7 +24,7 @@ import {
 import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import { noteVirusProgramInstalled } from "../../state/install/virusInstall.js";
 import type { EvalResult } from "../eval.js";
-import type { Effect } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 
 export function museZoneCards(

@@ -2,7 +2,7 @@
  * Shared pending-choice helper (standardization S4).
  * Prefer this over inventing new `state.pendingChoice =` shapes in the graph.
  */
-import type { Effect } from "../../effects/ir.js";
+import type { Effect } from "../../effects/ir/effect.js";
 import type { GameState, Side } from "../types.js";
 
 export type PendingChoiceOption = {

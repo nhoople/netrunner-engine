@@ -9,7 +9,7 @@ import { checkWinConditions } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { abilityCreditTally } from "./creditTally.js";
-import type { Primitive } from "../ir.js";
+import type { Primitive } from "../ir/primitive.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 
 type PrimResult =

@@ -26,7 +26,7 @@ import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { resumePendingStoredConditionals } from "../src/state/triggers/storedTriggers.js";
 import { whenScoredEffect } from "../src/state/turnAndActions/whenScored.js";
 import { resumeRunnerTurnBeginAbilities } from "../src/timing/graph.js";
-import type { Effect } from "../src/effects/ir.js";
+import type { Effect } from "../src/effects/ir/effect.js";
 import type { Action, GameState, Side } from "../src/state/types.js";
 
 beforeAll(() => {

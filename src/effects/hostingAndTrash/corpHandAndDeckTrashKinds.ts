@@ -19,7 +19,9 @@ import {
 } from "../eval.js";
 import { offerCultivateHqChoice } from "../searchAndDeck/searchAndArrange.js";
 import { chooseCards } from "../triggers/chooseCards.js";
-import { type Effect, fx, type Primitive } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { syncCorpHandSizeSubroutines } from "../../state/continuous/handSizeSubroutines.js";
 import type { RuleCite } from "../../state/types.js";

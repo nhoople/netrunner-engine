@@ -4,7 +4,8 @@
  */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import { creditsAvailableForInstall } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
@@ -305,18 +306,20 @@ export function applyChooseKinds(
 
     case "choose_type_shuffle_grip": {
       const types = ["program", "hardware", "resource", "event"] as const;
-      const options: import("../ir.js").ChoiceOption[] = types.map((t) => ({
-        id: `type:${t}`,
-        label: `Choose ${t}`,
-        effect: {
-          op: "do" as const,
-          action: {
-            kind: "shuffle_grip_of_type" as const,
-            cardType: t,
-            maxCards: action.maxCards,
+      const options: import("../ir/effect.js").ChoiceOption[] = types.map(
+        (t) => ({
+          id: `type:${t}`,
+          label: `Choose ${t}`,
+          effect: {
+            op: "do" as const,
+            action: {
+              kind: "shuffle_grip_of_type" as const,
+              cardType: t,
+              maxCards: action.maxCards,
+            },
           },
-        },
-      }));
+        }),
+      );
       options.push({
         id: "decline",
         label: "Decline",

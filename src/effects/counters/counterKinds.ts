@@ -2,7 +2,9 @@
  * Primitive kinds for placing, moving and removing counters and advancement
  * tokens. The kind registry (`applyCoreKinds`) dispatches here.
  */
-import { type Effect, fx, type Primitive } from "../ir.js";
+import { type Effect } from "../ir/effect.js";
+import { fx } from "../ir/fx.js";
+import { type Primitive } from "../ir/primitive.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import type { ServerId } from "../../state/types.js";
 import { log } from "../../state/setupAndEnd/createGame.js";

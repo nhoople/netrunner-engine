@@ -30,7 +30,7 @@ import type {
   RuleCite,
   ServerId,
 } from "../state/types.js";
-import type { Effect } from "../effects/ir.js";
+import type { Effect } from "../effects/ir/effect.js";
 import { CR } from "../timing/labels.js";
 import { fireScoreOrStealSideEffects } from "./score.js";
 import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";

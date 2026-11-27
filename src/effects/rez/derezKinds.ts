@@ -3,13 +3,14 @@
  * The effect switch in eval.ts dispatches here.
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
+import type { Effect } from "../ir/effect.js";
+import type { Primitive } from "../ir/primitive.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addIceStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { maybeFireKerosMcintyreOnDerez, applyPrimitive } from "../eval.js";
-import { fx } from "../ir.js";
+import { fx } from "../ir/fx.js";
 
 import { fireHostRezStateTriggers } from "../eval.js";
 import { syncMauiRecurringCredits } from "../keywordsAndCredits/keywordAndCreditKinds.js";
