@@ -49,30 +49,6 @@ export function applyRedsandTdPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "corp_draw_syn_attack_discard_2_or_4": {
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "draw4",
-          label: "Draw 4 cards",
-          effect: fx.draw("corp", 4),
-        },
-      ];
-      if (state.corp.hand.length >= 2) {
-        options.unshift({
-          id: "discard2",
-          label: "Discard 2 cards",
-          effect: fx.do({ kind: "choose_syn_attack_discard", remaining: 2 }),
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-        logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
-      });
-      return { ok: true };
-    }
-
     case "charlatan_run_any_server": {
       state.pendingStartRun = {
         sourceId,
@@ -155,22 +131,6 @@ export function applyRedsandTdPrimitive(
       }
       // Both subtypes: choose 1 sentry or up to 2 code gate — treat as 1 break for simplicity
       return breakOneSub(state, sourceId, "Savant");
-    }
-
-    case "levy_take_program_rest_bottom": {
-      const takeId = action.cardId;
-      const restIds = action.restIds ?? [];
-      if (takeId && state.cards[takeId]) {
-        state.runner.hand.push(takeId);
-        state.cards[takeId]!.zone = "runner:grip";
-        log(state, `Levy — add ${state.cards[takeId]!.title} to grip.`);
-      }
-      for (const id of restIds) {
-        if (!state.cards[id]) continue;
-        state.runner.deck.push(id);
-        state.cards[id]!.zone = "runner:stack";
-      }
-      return { ok: true };
     }
 
     case "play_event_from_heap": {

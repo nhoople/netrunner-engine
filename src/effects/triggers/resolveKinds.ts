@@ -22,7 +22,7 @@ import {
   deferContinuationBefore,
   effectResolutionBlocked,
 } from "../continuation.js";
-import { drawCards } from "../draw.js";
+import { drawCards } from "../searchAndDeck/draw.js";
 import {
   offerBurnerMoves,
   grantAbilityCredits,

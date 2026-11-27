@@ -41,8 +41,10 @@ import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { random } from "../../state/rng.js";
 import { loadCardCatalog } from "../../cards/load.js";
 import { effectiveAdvancementRequirement } from "../../state/turnAndActions/scoring.js";
-import { offerSiStackTrashOrArrange } from "../primitives/lookTrashAdd.js";
-import { offerStackArrangeChoice } from "../primitives/shuffleLookPick.js";
+import {
+  offerSiStackTrashOrArrange,
+  offerStackArrangeChoice,
+} from "../searchAndDeck/deckOrderKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

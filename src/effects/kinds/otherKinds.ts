@@ -3,7 +3,6 @@ import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { noteInlineConditional } from "../../state/triggers/inlineConditionalHooks.js";
-import { chooseCards } from "../triggers/chooseCards.js";
 import {
   breakableCount,
   markSubroutineBroken,
@@ -26,7 +25,6 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { CR } from "../../timing/labels.js";
-import { drawCards } from "../draw.js";
 import { fx } from "../ir.js";
 import { iceStrength } from "../continuous/iceStrength.js";
 import {
@@ -42,7 +40,6 @@ import {
   subtractRunnerCreditPool,
 } from "../../state/keywordsAndCredits/costs.js";
 import { allSubroutinesBrokenByRunner } from "../../state/turnAndActions/break.js";
-import { shuffleRunnerStack } from "../install/runnerInstall.js";
 import { effectiveIceSubtypes } from "../../cards/stubs.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import {
@@ -51,9 +48,7 @@ import {
   fireAfterBreakSubroutineHooks,
   maybeFireFluxFirstBreakCharge,
   offerMayChargeCard,
-  offerBurnerMoves,
   startExclusiveChoicesPerPassedIce,
-  offerRdArrangeChoice,
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
@@ -92,124 +87,6 @@ export function applyOtherKinds(
         state,
         `${source.title} — hosted credits spendable for ${action.purposes.join(", ")}.`,
       );
-      return { ok: true };
-    }
-
-    case "draw_n_then_bottom_one_of_drawn": {
-      const amount = Math.max(0, action.amount ?? 0);
-      const before = [...state.runner.hand];
-      const drawR = applyPrimitive(ctx, {
-        kind: "draw",
-        side: "runner",
-        amount,
-      });
-      if (!drawR.ok) return drawR;
-      const drawn = state.runner.hand.filter((id) => !before.includes(id));
-      if (drawn.length === 0) {
-        log(state, `${source.title} — drew no cards to bottom.`);
-        return { ok: true };
-      }
-      if (drawn.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "bottom_drawn_card",
-          cardId: drawn[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: drawn.map((id) => ({
-          id: `bottom:${id}`,
-          label: `Put ${state.cards[id]!.title} on bottom of stack`,
-          effect: {
-            op: "do" as const,
-            action: { kind: "bottom_drawn_card" as const, cardId: id },
-          },
-        })),
-        logLine: `${source.title} — choose 1 of ${drawn.length} drawn cards to bottom.`,
-      });
-      return { ok: true };
-    }
-
-    case "draw_class_act_bottom_one_then": {
-      const looked = state.turn.rdLookedCards ?? [];
-      const bottomId = action.cardId;
-      const keep: string[] = [];
-      for (const id of looked) {
-        if (id === bottomId) continue;
-        keep.push(id);
-      }
-      for (let i = keep.length - 1; i >= 0; i--) {
-        const id = keep[i]!;
-        state.cards[id]!.faceup = false;
-        state.runner.deck.unshift(id);
-      }
-      if (looked.includes(bottomId)) {
-        state.cards[bottomId]!.faceup = false;
-        state.runner.deck.push(bottomId);
-        log(
-          state,
-          `Class Act — ${state.cards[bottomId]!.title} to bottom of stack.`,
-        );
-      }
-      state.turn.rdLookedCards = [];
-      const amount = state.turn.pendingWouldDrawAmount ?? 0;
-      state.turn.pendingWouldDrawAmount = null;
-      if (amount > 0) {
-        const n = drawCards(state, "runner", amount);
-        log(state, `Class Act — draw ${n} (requested ${amount}).`);
-      }
-      return { ok: true };
-    }
-
-    case "draw_until_hq_has": {
-      const target = Math.max(0, action.amount);
-      const n = Math.max(0, target - state.corp.hand.length);
-      const drawn = drawCards(state, "corp", n);
-      log(
-        state,
-        `Corp draws ${drawn} until HQ has ${target} card(s) (HQ now ${state.corp.hand.length}).`,
-      );
-      return { ok: true };
-    }
-
-    case "draw_top_rd_to_hand": {
-      if (state.corp.deck.length === 0) return { ok: true };
-      const id = state.corp.deck.shift()!;
-      state.corp.hand.push(id);
-      const card = state.cards[id]!;
-      card.zone = "corp:hq";
-      card.faceup = false;
-      log(state, `Corp draws ${card.title}.`);
-      return { ok: true };
-    }
-
-    case "bottom_drawn_card": {
-      const cardId = action.cardId;
-      if (!state.runner.hand.includes(cardId)) {
-        log(state, `bottom_drawn_card — card not in grip.`);
-        return { ok: true };
-      }
-      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      state.runner.deck.push(cardId);
-      state.cards[cardId]!.zone = "runner:stack";
-      state.cards[cardId]!.faceup = false;
-      log(
-        state,
-        `${source.title} — put ${state.cards[cardId]!.title} on bottom of stack.`,
-      );
-      return { ok: true };
-    }
-
-    case "arrange_looked": {
-      const order = action.order ?? [];
-      for (let i = order.length - 1; i >= 0; i--) {
-        const id = order[i]!;
-        state.cards[id]!.faceup = false;
-        state.runner.deck.unshift(id);
-      }
-      state.turn.rdLookedCards = [];
-      log(state, `Arrange ${order.length} card(s) on top of stack.`);
       return { ok: true };
     }
 
@@ -696,83 +573,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "cultivate_hq_looked": {
-      const cardId = action.cardId;
-      const idx = state.turn.rdLookedCards.indexOf(cardId);
-      if (idx < 0) {
-        log(state, `Cultivate HQ — card not in look zone.`);
-        return { ok: true };
-      }
-      state.turn.rdLookedCards.splice(idx, 1);
-      const card = state.cards[cardId]!;
-      card.zone = "corp:hq";
-      card.faceup = false;
-      state.corp.hand.push(cardId);
-      log(state, `Cultivate — add a looked card to HQ.`);
-      if (state.turn.rdLookedCards.length === 0) {
-        return { ok: true };
-      }
-      return offerRdArrangeChoice(state, sourceId);
-    }
-
-    case "pick_rd_arrange": {
-      const cardId = action.cardId;
-      const idx = state.turn.rdLookedCards.indexOf(cardId);
-      if (idx < 0) {
-        log(state, `Arrange R&D — card not in look zone.`);
-        return { ok: true };
-      }
-      state.turn.rdLookedCards.splice(idx, 1);
-      state.turn.rdArrangePlaced.push(cardId);
-      return offerRdArrangeChoice(state, sourceId);
-    }
-
-    case "pick_revealed": {
-      const pick = action.cardId;
-      const revealed = action.revealedIds ?? [];
-      if (!revealed.includes(pick)) {
-        log(state, `${source.title} — Loot Box pick not in revealed set.`);
-        return { ok: true };
-      }
-      const card = state.cards[pick]!;
-      const cost = card.playCost ?? card.installCost ?? 0;
-      state.runner.hand.push(pick);
-      card.zone = "runner:grip";
-      card.faceup = true;
-      state.corp.credits += cost;
-      log(
-        state,
-        `Add ${card.title} to grip; Corp gains ${cost}¢ → ${state.corp.credits}.`,
-      );
-      const rest = revealed.filter((id) => id !== pick);
-      for (const id of rest) {
-        state.cards[id]!.faceup = false;
-        state.runner.deck.push(id);
-      }
-      // Loot Box: "The Runner shuffles the stack", whatever is left in it.
-      shuffleRunnerStack(state);
-      log(state, `Shuffle ${rest.length} remaining card(s) into stack.`);
-      return { ok: true };
-    }
-
-    case "archives_to_hq": {
-      // The Corp may look at every card in Archives (CR 4.4.6c) and
-      // chooses which to add (CR 1.15.2).
-      if (state.corp.discardPile.length === 0) {
-        log(state, `Add a card from Archives to HQ — Archives is empty.`);
-        return { ok: true };
-      }
-      return evalEffect(
-        ctx,
-        chooseCards({
-          chooser: "corp",
-          candidates: [...state.corp.discardPile],
-          count: action.amount,
-          purpose: "archives_to_hq",
-        }),
-      );
-    }
-
     case "may_give_runner_credits_then": {
       openPendingChoose(state, {
         sourceId,
@@ -1202,55 +1002,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "hq_to_top_rd": {
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) {
-        log(state, `HQ to top of R&D — HQ empty.`);
-        return { ok: true };
-      }
-      if (action.pick === "choose" && hq.length > 1) {
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "corp",
-          options: hq.map((id) => ({
-            id,
-            label: `Top R&D: ${state.cards[id]?.title ?? id}`,
-            effect: {
-              op: "do",
-              action: { kind: "hq_card_to_top_rd", cardId: id },
-            },
-          })),
-          logLine: `HQ to top of R&D — Corp chooses among ${hq.length}.`,
-        });
-        return { ok: true };
-      }
-      const id = action.pick === "first" ? hq[0]! : hq[hq.length - 1]!;
-      removeCardFromCurrentZone(state, id);
-      // Index 0 is the top of R&D.
-      state.corp.deck.unshift(id);
-      state.cards[id].zone = "corp:rd";
-      state.cards[id].faceup = false;
-      log(state, `${state.cards[id].title} moved from HQ to top of R&D.`);
-      return { ok: true };
-    }
-
-    case "hq_card_to_top_rd": {
-      const id = action.cardId;
-      if (!state.corp.hand.includes(id)) {
-        return {
-          ok: false,
-          error: "Chosen card is not in HQ.",
-          cites: [CR.gainCredits],
-        };
-      }
-      removeCardFromCurrentZone(state, id);
-      state.corp.deck.unshift(id);
-      state.cards[id].zone = "corp:rd";
-      state.cards[id].faceup = false;
-      log(state, `${state.cards[id].title} moved from HQ to top of R&D.`);
-      return { ok: true };
-    }
-
     case "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice": {
       if (!state.run) {
         log(state, `${source.title} — no run for Backup Plan.`);
@@ -1540,68 +1291,6 @@ export function applyOtherKinds(
 
     case "store_ip_enforcement_tags_removed": {
       state.turn.ipEnforcementTagsRemoved = action.amount;
-      return { ok: true };
-    }
-
-    case "deja_vu_from_heap": {
-      const heap = [...state.runner.discardPile];
-      if (heap.length === 0) {
-        log(state, `${source.title} — heap empty.`);
-        return { ok: true };
-      }
-      const viruses = heap.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("virus"),
-      );
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      for (const id of heap) {
-        options.push({
-          id: `deja1:${id}`,
-          label: `Add ${state.cards[id]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "deja_vu_add_heap_cards" as const,
-              cardIds: [id],
-            },
-          },
-        });
-      }
-      for (let i = 0; i < viruses.length; i++) {
-        for (let j = i + 1; j < viruses.length; j++) {
-          const a = viruses[i]!;
-          const b = viruses[j]!;
-          options.push({
-            id: `deja2:${a}:${b}`,
-            label: `Add ${state.cards[a]!.title} and ${state.cards[b]!.title}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "deja_vu_add_heap_cards" as const,
-                cardIds: [a, b],
-              },
-            },
-          });
-        }
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `${source.title} — add 1 card (or up to 2 virus cards) from heap to grip.`,
-      });
-      return { ok: true };
-    }
-
-    case "deja_vu_add_heap_cards": {
-      for (const id of action.cardIds) {
-        const idx = state.runner.discardPile.indexOf(id);
-        if (idx < 0) continue;
-        state.runner.discardPile.splice(idx, 1);
-        state.runner.hand.push(id);
-        state.cards[id]!.zone = "runner:grip";
-        state.cards[id]!.faceup = false;
-        log(state, `Add ${state.cards[id]!.title} from heap to grip.`);
-      }
       return { ok: true };
     }
 
@@ -1926,134 +1615,6 @@ export function applyOtherKinds(
       });
     }
 
-    case "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd": {
-      const withVirus = state.runner.installed.filter(
-        (id) => (state.cards[id]?.virusCounters ?? 0) > 0,
-      );
-      const total = withVirus.reduce(
-        (sum, id) => sum + (state.cards[id]?.virusCounters ?? 0),
-        0,
-      );
-      if (total < 2) {
-        log(
-          state,
-          `${source.title} — fewer than 2 virus counters on installed cards; decline.`,
-        );
-        return { ok: true };
-      }
-      const removeOptions: Array<{
-        id: string;
-        label: string;
-        effect: Effect;
-      }> = [];
-      for (const id of withVirus) {
-        const card = state.cards[id]!;
-        const have = card.virusCounters ?? 0;
-        const maxTake = Math.min(2, have);
-        for (let take = 1; take <= maxTake; take++) {
-          removeOptions.push({
-            id: `nihilist-rm:${id}:${take}`,
-            label: `Remove ${take} virus from ${card.title}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "remove_nihilist_virus_from" as const,
-                cardId: id,
-                amount: take,
-                remaining: 2 - take,
-              },
-            },
-          });
-        }
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: { kind: "gain_credits", side: "runner", amount: 0 },
-            },
-          },
-          ...removeOptions,
-        ],
-        logLine: `${source.title} — may remove any 2 virus counters from installed cards.`,
-      });
-      return { ok: true };
-    }
-
-    case "nihilist_corp_trash_top_rd_or_runner_draws_2": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "trash-top-rd",
-            label: "Trash the top card of R&D",
-            effect: {
-              op: "do" as const,
-              action: { kind: "trash_top_of_rd" as const },
-            },
-          },
-          {
-            id: "allow-draw",
-            label: "Allow Runner to draw 2",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "draw" as const,
-                side: "runner" as const,
-                amount: 2,
-              },
-            },
-          },
-        ],
-        logLine: `${source.title} — Corp may trash top of R&D or Runner draws 2.`,
-      });
-      return { ok: true };
-    }
-
-    case "meeting_of_minds_fetch": {
-      const card = state.cards[action.cardId];
-      if (!card || !state.runner.deck.includes(action.cardId)) {
-        shuffleRunnerStack(state);
-        return applyPrimitive(ctx, {
-          kind: "reveal_gain",
-          subtype: action.subtype,
-        });
-      }
-      state.runner.deck = state.runner.deck.filter(
-        (id) => id !== action.cardId,
-      );
-      state.runner.hand.push(action.cardId);
-      card.zone = "runner:grip";
-      card.faceup = true;
-      shuffleRunnerStack(state);
-      revealCards(state, [card.id], sourceId);
-      log(state, `Meeting of Minds — reveal ${card.title} and add to grip.`);
-      return applyPrimitive(ctx, {
-        kind: "reveal_gain",
-        subtype: action.subtype,
-      });
-    }
-
-    case "rd_top_to_bottom": {
-      if (state.corp.deck.length === 0) {
-        log(state, `R&D top to bottom — empty.`);
-        return { ok: true };
-      }
-      const topId = state.corp.deck.shift()!;
-      state.corp.deck.push(topId);
-      log(
-        state,
-        `Add ${state.cards[topId]?.title ?? topId} to the bottom of R&D.`,
-      );
-      return { ok: true };
-    }
-
     case "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity": {
       const amount = Math.max(0, action.amount);
       const continueFx: Effect = {
@@ -2088,37 +1649,6 @@ export function applyOtherKinds(
         logLine: `${source.title} — may take ${amount} bad publicity, then place agenda counters equal to bad publicity.`,
       });
       return { ok: true };
-    }
-
-    case "burner_place": {
-      const id = action.cardId;
-      if (!state.corp.hand.includes(id)) {
-        log(state, `Burner place — card not in HQ.`);
-        return offerBurnerMoves(
-          state,
-          sourceId,
-          action.revealed,
-          action.movesLeft,
-        );
-      }
-      removeCardFromCurrentZone(state, id);
-      state.cards[id]!.faceup = false;
-      if (action.position === "top") {
-        state.corp.deck.unshift(id);
-      } else {
-        state.corp.deck.push(id);
-      }
-      state.cards[id]!.zone = "corp:rd";
-      log(
-        state,
-        `${state.cards[id]!.title} moved from HQ to ${action.position} of R&D.`,
-      );
-      return offerBurnerMoves(
-        state,
-        sourceId,
-        action.revealed,
-        action.movesLeft,
-      );
     }
 
     case "check_assassination_win": {

@@ -28,7 +28,7 @@ import {
 } from "../src/state/continuous/lingeringEffects.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 
-import { drawCards } from "../src/effects/draw.js";
+import { drawCards } from "../src/effects/searchAndDeck/draw.js";
 import type { GameState } from "../src/state/types.js";
 import { onRunnerEventPlayed } from "../src/state/cardFlags/cardDeclarations.js";
 import { beginRunnerTurnFlags } from "../src/state/turnAndActions/turn.js";

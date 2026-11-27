@@ -167,26 +167,6 @@ export function applySpinHapPrimitive(
       }
       return { ok: true };
     }
-    case "express_delivery_finish": {
-      const { pickId, restIds } = action;
-      state.runner.hand.push(pickId);
-      state.cards[pickId]!.zone = "runner:grip";
-      state.cards[pickId]!.faceup = true;
-      for (const id of restIds ?? []) {
-        state.runner.deck.push(id);
-        state.cards[id]!.faceup = false;
-      }
-      // shuffle
-      for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        [state.runner.deck[i], state.runner.deck[j]] = [
-          state.runner.deck[j]!,
-          state.runner.deck[i]!,
-        ];
-      }
-      log(state, `Express Delivery — took 1 card; shuffled stack.`);
-      return { ok: true };
-    }
     case "play_run_event_from_stack": {
       const cands = state.runner.deck.filter((id) => {
         const c = state.cards[id];
@@ -237,42 +217,6 @@ export function applySpinHapPrimitive(
       fireOnPlay(state, cardId);
       return { ok: true };
     }
-    case "search_stack_take_to_grip": {
-      const cands = [...state.runner.deck];
-      if (cands.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: cands.slice(0, 20).map((id) => ({
-          id: `st:${id}`,
-          label: `Take ${state.cards[id]!.title} to grip`,
-          effect: fx.do({ kind: "take_runner_deck_card_to_grip", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "take_runner_deck_card_to_grip": {
-      const cardId = action.cardId;
-      const idx = state.runner.deck.indexOf(cardId);
-      if (idx < 0) return { ok: true };
-      state.runner.deck.splice(idx, 1);
-      state.runner.hand.push(cardId);
-      state.cards[cardId]!.zone = "runner:grip";
-      log(state, `Search stack — ${state.cards[cardId]!.title} to grip.`);
-      return { ok: true };
-    }
-    case "draw_from_stack_bottom": {
-      const side = action.side === "corp" ? "corp" : "runner";
-      const p = side === "corp" ? state.corp : state.runner;
-      const amount = action.amount ?? 1;
-      for (let i = 0; i < amount && p.deck.length > 0; i++) {
-        const id = p.deck.pop()!;
-        p.hand.push(id);
-        state.cards[id]!.zone = side === "corp" ? "corp:hq" : "runner:grip";
-      }
-      log(state, `Draw ${amount} from bottom of stack.`);
-      return { ok: true };
-    }
     case "break_all_but_n_subroutines_on_encounter": {
       return offerSparedSubroutineChoice(state, sourceId, action.leave ?? 1);
     }
@@ -294,19 +238,6 @@ export function applySpinHapPrimitive(
       const spent = state.turn.lastRevealedRunnerSecretSpend ?? 0;
       state.runner.credits += 2 * spent;
       log(state, `Push Your Luck — Corp guessed wrong; gain ${2 * spent}¢.`);
-      return { ok: true };
-    }
-    case "choose_card_type_reveal_stack_top": {
-      const types = ["event", "program", "resource", "hardware"];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: types.map((t) => ({
-          id: `om:${t}`,
-          label: `Choose ${t}`,
-          effect: fx.do({ kind: "reveal_oracle_top_match", cardType: t }),
-        })),
-      });
       return { ok: true };
     }
     case "score_agenda_from_hq": {

@@ -12,7 +12,6 @@ export function applyRedsandFmPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
     case "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks": {
@@ -41,76 +40,6 @@ export function applyRedsandFmPrimitive(
         state,
         `O₂ Shortage — Corp gains [click][click] → ${state.corp.clicks}.`,
       );
-      return { ok: true };
-    }
-
-    case "choose_n_grip_to_stack_top": {
-      const n = action.count ?? 2;
-      const grip = [...state.runner.hand];
-      if (grip.length === 0) {
-        log(state, `${source?.title ?? "Data Loop"} — grip empty.`);
-        return { ok: true };
-      }
-      const take = Math.min(n, grip.length);
-      // Sequential choose: pick cards one-by-one onto stack top.
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: grip.map((id) => ({
-          id: `dl:${id}`,
-          label: `Add ${state.cards[id]?.title ?? id} to top of stack`,
-          effect: fx.do({
-            kind: "choose_n_grip_to_stack_top_continue",
-            selected: [id],
-            remaining: take - 1,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "choose_n_grip_to_stack_top_continue": {
-      const selected = action.selected ?? [];
-      const remaining = action.remaining ?? 0;
-      // Apply already-selected moves lazily at the end.
-      if (remaining <= 0 || state.runner.hand.length === 0) {
-        for (const id of selected) {
-          if (!state.runner.hand.includes(id)) continue;
-          state.runner.hand = state.runner.hand.filter((x) => x !== id);
-          state.runner.deck.unshift(id);
-          const c = state.cards[id];
-          if (c) c.zone = "runner:stack";
-        }
-        log(
-          state,
-          `${source?.title ?? "Data Loop"} — add ${selected.length} card(s) from grip to top of stack.`,
-        );
-        return { ok: true };
-      }
-      const grip = state.runner.hand.filter((id) => !selected.includes(id));
-      if (grip.length === 0) {
-        for (const id of selected) {
-          if (!state.runner.hand.includes(id)) continue;
-          state.runner.hand = state.runner.hand.filter((x) => x !== id);
-          state.runner.deck.unshift(id);
-          const c = state.cards[id];
-          if (c) c.zone = "runner:stack";
-        }
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: grip.map((id) => ({
-          id: `dl:${id}`,
-          label: `Add ${state.cards[id]?.title ?? id} to top of stack`,
-          effect: fx.do({
-            kind: "choose_n_grip_to_stack_top_continue",
-            selected: [...selected, id],
-            remaining: remaining - 1,
-          }),
-        })),
-      });
       return { ok: true };
     }
 
@@ -171,20 +100,6 @@ export function applyRedsandFmPrimitive(
         state,
         `Biased Reporting — Corp gains ${gainAmt}¢ (${remaining} ${t}(s) remain) → ${state.corp.credits}¢.`,
       );
-      return { ok: true };
-    }
-
-    case "open_forum_hq_to_rd_top": {
-      const id = action.cardId;
-      if (!state.corp.hand.includes(id)) return { ok: true };
-      state.corp.hand = state.corp.hand.filter((x) => x !== id);
-      state.corp.deck.unshift(id);
-      const c = state.cards[id];
-      if (c) {
-        c.zone = "corp:rd";
-        c.faceup = false;
-      }
-      log(state, `Open Forum — add ${c?.title ?? id} to top of R&D.`);
       return { ok: true };
     }
 

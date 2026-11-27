@@ -9,7 +9,7 @@ import {
 } from "../state/turnAndActions/break.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { currentMark } from "../state/keywordsAndCredits/keywords.js";
-import { drawCards } from "../effects/draw.js";
+import { drawCards } from "../effects/searchAndDeck/draw.js";
 import {
   abilitiesSuppressed,
   runnerCannotUseProgram,

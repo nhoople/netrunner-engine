@@ -6,7 +6,6 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect, grantAbilityCredits } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
@@ -168,50 +167,6 @@ export function applyFlashpoint23sPrimitive(
         chooser: "runner",
         options,
       });
-      return { ok: true };
-    }
-
-    case "add_installed_program_to_stack_bottom": {
-      const programs = state.runner.installed.filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      if (programs.length === 0) {
-        log(state, `Add program to stack bottom — none installed.`);
-        return { ok: true };
-      }
-      if (programs.length === 1) {
-        return evalEffect(
-          ctx,
-          fx.do({
-            kind: "add_installed_program_to_stack_bottom_resolve",
-            cardId: programs[0]!,
-          }),
-        );
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: programs.map((id) => ({
-          id: `stack-bottom:${id}`,
-          label: `Add ${state.cards[id]!.title} to bottom of stack`,
-          effect: fx.do({
-            kind: "add_installed_program_to_stack_bottom_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "add_installed_program_to_stack_bottom_resolve": {
-      const cardId = action.cardId;
-      if (!state.runner.installed.includes(cardId)) return { ok: true };
-      const card = state.cards[cardId];
-      uninstallCard(state, cardId, "deck-bottom");
-      log(
-        state,
-        `Add ${card?.title ?? cardId} to bottom of the Runner's stack.`,
-      );
       return { ok: true };
     }
 

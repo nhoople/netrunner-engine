@@ -63,13 +63,13 @@ import { applyLunarTsPrimitive } from "./primitives/boostRezTrace.js";
 import { applyOacPrimitive } from "./primitives/gainMoveMark.js";
 import { applySansanValPrimitive } from "./primitives/searchRevealTrash.js";
 import { applySansanBbPrimitive } from "./primitives/preventInstallDraw.js";
-import { applySansanCcPrimitive } from "./primitives/swapNetBreach.js";
+
 import { applySansanUwPrimitive } from "./primitives/hostInstallExpose.js";
 import { applySansanOhPrimitive } from "./primitives/shuffleLookPick.js";
 import { applySansanUotPrimitive } from "./primitives/gainCannotSwap.js";
 import { applyDadPrimitive } from "./primitives/playDrawSearch.js";
 import { applyMumbadKgPrimitive } from "./primitives/preventMoveChoose.js";
-import { applyMumbadBfPrimitive } from "./primitives/rezBreachPlace.js";
+
 import { applyMumbadDagPrimitive } from "./primitives/hostResolveLook.js";
 import {
   closeReactionWindow,
@@ -93,7 +93,7 @@ import { applyFlashpointQuPrimitive } from "./primitives/preventGainSpend.js";
 import { applyRedsandDcPrimitive } from "./primitives/derezExposePrevent.js";
 import { applyRedsandSoPrimitive } from "./primitives/trashChooseAccess.js";
 import { applyRedsandTdPrimitive } from "./primitives/derezDrawChoose.js";
-import { applyRedsandEasPrimitive } from "./primitives/trashResolveDerez.js";
+
 import { applyRedsandBawPrimitive } from "./primitives/chooseGainShuffle.js";
 import { applyRedsandFmPrimitive } from "./primitives/derezRfgTrash.js";
 import { applyRedsandCdPrimitive } from "./primitives/givePayTrash.js";
@@ -113,7 +113,7 @@ import {
   applyTagPrimitive,
   canPayTakeTagsNestedCost,
 } from "./tagPrimitives.js";
-import { applyDrawPrimitive, drawCards } from "./draw.js";
+import { applyDrawPrimitive, drawCards } from "./searchAndDeck/draw.js";
 import { applyCreditPrimitive } from "./creditPrimitives.js";
 import {
   deferContinuationAfter,
@@ -1742,8 +1742,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   if (val) return val;
   const bb = applySansanBbPrimitive(ctx, action);
   if (bb) return bb;
-  const cc = applySansanCcPrimitive(ctx, action);
-  if (cc) return cc;
   const uw = applySansanUwPrimitive(ctx, action);
   if (uw) return uw;
   const oh = applySansanOhPrimitive(ctx, action);
@@ -1754,8 +1752,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   if (dad) return dad;
   const kg = applyMumbadKgPrimitive(ctx, action);
   if (kg) return kg;
-  const bf = applyMumbadBfPrimitive(ctx, action);
-  if (bf) return bf;
   const dag = applyMumbadDagPrimitive(ctx, action);
   if (dag) return dag;
   const si = applyMumbadSiPrimitive(ctx, action);
@@ -1782,8 +1778,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   if (redsandSo) return redsandSo;
   const redsandTd = applyRedsandTdPrimitive(ctx, action);
   if (redsandTd) return redsandTd;
-  const redsandEas = applyRedsandEasPrimitive(ctx, action);
-  if (redsandEas) return redsandEas;
   const redsandBaw = applyRedsandBawPrimitive(ctx, action);
   if (redsandBaw) return redsandBaw;
   const redsandFm = applyRedsandFmPrimitive(ctx, action);

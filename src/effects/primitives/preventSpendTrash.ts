@@ -1,23 +1,13 @@
-/** Up and Over (uao) Lunar pack primitives. */
-import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { fx, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { chooseCards } from "../triggers/chooseCards.js";
-import {
-  addFoundStackCardAfterSearch,
-  evalEffect,
-  noteSearchConditionalAbilities,
-} from "../eval.js";
-import { shuffleRunnerStack } from "../install/runnerInstall.js";
 import {
   emptyRunnerCreditPool,
   subtractRunnerCreditPool,
 } from "../../state/keywordsAndCredits/costs.js";
+import type { Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -63,94 +53,11 @@ export function applyLunarUaoPrimitive(
       );
       return { ok: true };
     }
-    case "may_add_archives_card_to_rd_bottom_only": {
-      const archives = [...state.corp.discardPile];
-      if (archives.length === 0) {
-        log(state, `Hades Fragment — Archives empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "decline-hades",
-            label: "Decline",
-            effect: fx.gainCredits("corp", 0),
-          },
-          ...archives.map((id) => ({
-            id: `hades-bottom:${id}`,
-            label: `Add ${state.cards[id]!.title} to bottom of R&D`,
-            effect: fx.do({
-              kind: "add_archives_card_to_rd",
-              cardId: id,
-              position: "bottom",
-            }),
-          })),
-        ],
-      });
-      return { ok: true };
-    }
     case "corp_lose_two_if_can": {
       if (state.corp.credits >= 2) {
         state.corp.credits -= 2;
         log(state, `Fester — Corp loses 2¢.`);
       }
-      return { ok: true };
-    }
-    case "trade_in_record_hw": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      if (!card || card.type !== "hardware") return { ok: true };
-      const half = Math.floor((card.installCost ?? 0) / 2);
-      trashCard(state, cardId);
-      state.turn.tradeInCredits = half;
-      log(state, `Trade-In — trashed ${card.title} for ${half}¢ (recorded).`);
-      return { ok: true };
-    }
-    case "resolve_trade_in": {
-      if (!action.cardIds) {
-        const half = state.turn.tradeInCredits ?? 0;
-        state.runner.credits += half;
-        state.turn.tradeInCredits = undefined;
-        log(state, `Trade-In — gain ${half}¢; search the stack for hardware.`);
-        // A search of the stack: the Runner may find nothing, and the Corp
-        // does not learn how many match (CR 8.7.2e, 10.2.2b).
-        return evalEffect(
-          ctx,
-          chooseCards({
-            chooser: "runner",
-            candidates: state.runner.deck.filter(
-              (id) => state.cards[id]?.type === "hardware",
-            ),
-            count: 1,
-            search: true,
-            purpose: "resume",
-            label: "reveal and add to the grip",
-            resume: { kind: "resolve_trade_in" },
-          }),
-        );
-      }
-      // "Shuffle your stack" whether or not a card was found (CR 8.7.3).
-      const id = action.cardIds.find((cid) => state.runner.deck.includes(cid));
-      if (!id) {
-        shuffleRunnerStack(state);
-        noteSearchConditionalAbilities(state);
-        log(state, `Trade-In — no hardware found; shuffle the stack.`);
-        return { ok: true };
-      }
-      addFoundStackCardAfterSearch(state, id);
-      revealCards(state, [id], sourceId);
-      return { ok: true };
-    }
-    case "bottom_top": {
-      const cardId = (action as { cardId: string }).cardId;
-      state.runner.deck = state.runner.deck.filter((x) => x !== cardId);
-      state.runner.deck.push(cardId);
-      log(
-        state,
-        `Angel Arena — ${state.cards[cardId]!.title} to bottom of stack.`,
-      );
       return { ok: true };
     }
     default:

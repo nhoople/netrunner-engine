@@ -3,25 +3,25 @@
   "raised": [
     {
       "date": "2026-11-22",
-      "file": "src/effects/kinds/searchKinds.ts",
+      "file": "src/effects/searchAndDeck/searchKinds.ts",
       "property": "hand",
       "reason": "PF-S3d moved the R&D searches of The Future is Now, Localized Product Line, Recruiting Trip and Mumbad City Hall here from four primitive files, so they can use chooseCards' search mode (CR 8.7.2e, 8.7.3). Those files' writes leave the baseline; the deck helper is area 13's."
     },
     {
       "date": "2026-11-22",
-      "file": "src/effects/kinds/searchKinds.ts",
+      "file": "src/effects/searchAndDeck/searchKinds.ts",
       "property": "zone",
       "reason": "PF-S3d moved the R&D searches of The Future is Now, Localized Product Line, Recruiting Trip and Mumbad City Hall here from four primitive files, so they can use chooseCards' search mode (CR 8.7.2e, 8.7.3). Those files' writes leave the baseline; the deck helper is area 13's."
     },
     {
       "date": "2026-11-22",
-      "file": "src/effects/kinds/shuffleKinds.ts",
+      "file": "src/effects/searchAndDeck/shuffleKinds.ts",
       "property": "deck",
       "reason": "PF-S3d moved Disposable HQ's add-to-bottom-of-R&D here from rezBreachPlace.ts, so the Corp chooses the cards through chooseCards (CR 1.14.5). rezBreachPlace.ts's writes leave the baseline; the deck helper is area 13's."
     },
     {
       "date": "2026-11-22",
-      "file": "src/effects/kinds/shuffleKinds.ts",
+      "file": "src/effects/searchAndDeck/shuffleKinds.ts",
       "property": "zone",
       "reason": "PF-S3d moved Disposable HQ's add-to-bottom-of-R&D here from rezBreachPlace.ts, so the Corp chooses the cards through chooseCards (CR 1.14.5). rezBreachPlace.ts's writes leave the baseline; the deck helper is area 13's."
     }
@@ -104,12 +104,6 @@
       "deck": 2,
       "hand": 1,
       "zone": 1
-    },
-    "src/effects/draw.ts": {
-      "deck": 3,
-      "discardPile": 1,
-      "hand": 3,
-      "zone": 4
     },
     "src/effects/eval.ts": {
       "deck": 4,
@@ -222,178 +216,49 @@
       "rezzed": 1,
       "zone": 16
     },
-    "src/effects/kinds/addKinds.ts": {
-      "deck": 8,
-      "discardPile": 6,
-      "hand": 6,
-      "rezzed": 4,
-      "scoreArea": 4,
-      "zone": 13
-    },
     "src/effects/kinds/otherKinds.ts": {
-      "deck": 14,
-      "discardPile": 2,
-      "hand": 8,
+      "deck": 1,
+      "discardPile": 1,
+      "hand": 2,
       "installed": 1,
       "removedFromGame": 2,
       "rezzed": 2,
       "scoreArea": 3,
-      "zone": 13
+      "zone": 4
     },
     "src/effects/kinds/playKinds.ts": {
       "discardPile": 2
     },
-    "src/effects/kinds/searchKinds.ts": {
-      "deck": 17,
-      "hand": 13,
-      "ice": 1,
-      "installed": 1,
-      "rezzed": 1,
-      "root": 1,
-      "zone": 17
-    },
     "src/effects/kinds/setKinds.ts": {
       "deck": 1
     },
-    "src/effects/kinds/shuffleKinds.ts": {
-      "deck": 12,
-      "discardPile": 4,
-      "hand": 4,
-      "rezzed": 2,
-      "zone": 12
-    },
-    "src/effects/primitives/chooseGainShuffle.ts": {
-      "deck": 6,
-      "discardPile": 1,
-      "hand": 5,
-      "zone": 6
-    },
     "src/effects/primitives/derezDrawChoose.ts": {
-      "deck": 1,
-      "discardPile": 1,
-      "hand": 1,
-      "zone": 2
-    },
-    "src/effects/primitives/derezExposePrevent.ts": {
-      "hand": 1,
-      "zone": 1
-    },
-    "src/effects/primitives/derezRfgTrash.ts": {
-      "deck": 3,
-      "hand": 3,
-      "zone": 3
-    },
-    "src/effects/primitives/gainExposeSearch.ts": {
-      "deck": 3,
-      "discardPile": 1,
-      "hand": 2,
-      "zone": 4
-    },
-    "src/effects/primitives/hostResolveLook.ts": {
-      "deck": 1,
-      "discardPile": 1,
-      "hand": 2,
-      "zone": 2
-    },
-    "src/effects/primitives/lookInstallTrash.ts": {
-      "deck": 2,
-      "hand": 1,
-      "zone": 2
-    },
-    "src/effects/primitives/lookTrashAdd.ts": {
-      "deck": 2,
-      "hand": 1,
-      "zone": 2
+      "discardPile": 1
     },
     "src/effects/primitives/moveSearchInstall.ts": {
-      "deck": 3,
-      "discardPile": 2,
-      "hand": 4,
-      "zone": 4
-    },
-    "src/effects/primitives/playDrawSearch.ts": {
-      "deck": 6,
+      "discardPile": 1,
+      "hand": 1,
       "zone": 1
     },
     "src/effects/primitives/preventGainSpend.ts": {
-      "deck": 1,
       "removedFromGame": 2,
-      "zone": 2
+      "zone": 1
     },
     "src/effects/primitives/preventInstallDraw.ts": {
-      "deck": 1,
-      "hand": 1,
-      "rezzed": 1,
-      "zone": 1
-    },
-    "src/effects/primitives/preventMoveChoose.ts": {
-      "deck": 3,
-      "discardPile": 2,
-      "zone": 3
-    },
-    "src/effects/primitives/preventSpendTrash.ts": {
-      "deck": 2
-    },
-    "src/effects/primitives/redirectSpendName.ts": {
-      "deck": 2,
-      "hand": 2,
-      "zone": 2
-    },
-    "src/effects/primitives/resolveExposePay.ts": {
-      "deck": 1,
-      "discardPile": 1,
-      "hand": 1,
-      "rezzed": 1,
-      "zone": 1
-    },
-    "src/effects/primitives/rezBreachPlace.ts": {
-      "deck": 2,
-      "hand": 2,
-      "zone": 2
-    },
-    "src/effects/primitives/searchRevealTrash.ts": {
-      "deck": 2,
-      "discardPile": 1,
-      "zone": 1
-    },
-    "src/effects/primitives/searchScoreName.ts": {
-      "deck": 2,
-      "hand": 1,
-      "zone": 2
+      "rezzed": 1
     },
     "src/effects/primitives/shuffleInstall.ts": {
-      "deck": 3,
-      "discardPile": 1,
-      "zone": 1
+      "deck": 2
     },
     "src/effects/primitives/shuffleLookPick.ts": {
-      "deck": 3,
-      "discardPile": 2,
       "rezzed": 1,
       "scoreArea": 1,
-      "zone": 4
+      "zone": 1
     },
     "src/effects/primitives/spendInstallAdd.ts": {
-      "deck": 4,
-      "hand": 4,
-      "scoreArea": 1,
-      "zone": 5
-    },
-    "src/effects/primitives/spendMoveTrash.ts": {
       "deck": 1,
       "hand": 1,
-      "zone": 1
-    },
-    "src/effects/primitives/swapNetBreach.ts": {
-      "deck": 1,
-      "rezzed": 1,
-      "root": 1,
-      "zone": 1
-    },
-    "src/effects/primitives/trashGiveSwap.ts": {
-      "deck": 1,
-      "discardPile": 1,
-      "hand": 2,
+      "scoreArea": 1,
       "zone": 2
     },
     "src/effects/primitives/trashPlaceAccess.ts": {
@@ -403,11 +268,6 @@
       "scoreArea": 1,
       "zone": 2
     },
-    "src/effects/primitives/trashResolveDerez.ts": {
-      "deck": 3,
-      "hand": 1,
-      "zone": 1
-    },
     "src/effects/rez/derezKinds.ts": {
       "rezzed": 8
     },
@@ -415,6 +275,57 @@
       "hand": 1,
       "rezzed": 21,
       "zone": 1
+    },
+    "src/effects/searchAndDeck/addKinds.ts": {
+      "deck": 8,
+      "discardPile": 6,
+      "hand": 6,
+      "rezzed": 4,
+      "scoreArea": 4,
+      "zone": 13
+    },
+    "src/effects/searchAndDeck/archivesAndHeapRetrievalKinds.ts": {
+      "deck": 3,
+      "discardPile": 5,
+      "hand": 10,
+      "rezzed": 1,
+      "zone": 10
+    },
+    "src/effects/searchAndDeck/deckOrderKinds.ts": {
+      "deck": 43,
+      "discardPile": 1,
+      "hand": 19,
+      "zone": 31
+    },
+    "src/effects/searchAndDeck/draw.ts": {
+      "deck": 3,
+      "discardPile": 1,
+      "hand": 3,
+      "zone": 4
+    },
+    "src/effects/searchAndDeck/searchAndShuffleKinds.ts": {
+      "deck": 23,
+      "discardPile": 7,
+      "hand": 10,
+      "rezzed": 1,
+      "root": 1,
+      "zone": 19
+    },
+    "src/effects/searchAndDeck/searchKinds.ts": {
+      "deck": 17,
+      "hand": 13,
+      "ice": 1,
+      "installed": 1,
+      "rezzed": 1,
+      "root": 1,
+      "zone": 17
+    },
+    "src/effects/searchAndDeck/shuffleKinds.ts": {
+      "deck": 12,
+      "discardPile": 4,
+      "hand": 4,
+      "rezzed": 2,
+      "zone": 12
     },
     "src/effects/swap/swapKinds.ts": {
       "discardPile": 7,

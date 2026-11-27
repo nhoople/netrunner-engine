@@ -3,14 +3,11 @@ import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { runnerWinsOnEmptyRnd } from "../../state/setupAndEnd/emptyRnd.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -67,125 +64,6 @@ export function applyRedsandBawPrimitive(
       const n = (state.runner.tags ?? 0) + 3;
       source.powerCounters = n;
       log(state, `${source.title} — load ${n} power (tags+3).`);
-      return { ok: true };
-    }
-
-    case "shuffle_all_grip_into_stack": {
-      const grip = [...state.runner.hand];
-      state.runner.hand = [];
-      for (const id of grip) {
-        const c = state.cards[id];
-        if (!c) continue;
-        c.zone = "runner:stack";
-        state.runner.deck.push(id);
-      }
-      for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.runner.deck[i]!;
-        state.runner.deck[i] = state.runner.deck[j]!;
-        state.runner.deck[j] = tmp;
-      }
-      log(state, `Runner shuffles grip into stack (${grip.length} card(s)).`);
-      return { ok: true };
-    }
-
-    case "reeducation_hq_bottom_rd_draw_runner_grip_to_stack": {
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) {
-        log(state, `Reeducation — HQ empty.`);
-        return { ok: true };
-      }
-      // Corp chooses any number (including 0) from HQ to bottom of R&D.
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "none",
-          label: "Add 0 cards",
-          effect: fx.do({ kind: "resolve_reeducation", cardIds: [] }),
-        },
-      ];
-      // Offer choosing a subset via sequential picks; start by picking first card or done.
-      options.push(
-        ...hq.map((id) => ({
-          id: `add:${id}`,
-          label: `Add ${state.cards[id]!.title} (continue selecting)`,
-          effect: fx.do({
-            kind: "pick_continue",
-            selected: [id],
-            remaining: hq.filter((x) => x !== id),
-          }),
-        })),
-      );
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "pick_continue": {
-      const selected = (action as { selected: string[] }).selected ?? [];
-      const remaining = (action as { remaining: string[] }).remaining ?? [];
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "done",
-          label: `Done (${selected.length} card(s))`,
-          effect: fx.do({ kind: "resolve_reeducation", cardIds: selected }),
-        },
-      ];
-      for (const id of remaining) {
-        options.push({
-          id: `add:${id}`,
-          label: `Also add ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "pick_continue",
-            selected: [...selected, id],
-            remaining: remaining.filter((x) => x !== id),
-          }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "resolve_reeducation": {
-      const cardIds = (action as { cardIds: string[] }).cardIds ?? [];
-      const x = cardIds.length;
-      for (const id of cardIds) {
-        if (!state.corp.hand.includes(id)) continue;
-        state.corp.hand = state.corp.hand.filter((h) => h !== id);
-        const c = state.cards[id]!;
-        c.zone = "corp:rd";
-        state.corp.deck.push(id);
-      }
-      let drawn = 0;
-      for (let i = 0; i < x; i++) {
-        if (state.corp.deck.length === 0) break;
-        const top = state.corp.deck.shift()!;
-        const c = state.cards[top]!;
-        c.zone = "corp:hq";
-        state.corp.hand.push(top);
-        drawn += 1;
-      }
-      log(state, `Reeducation — Corp adds ${x} to R&D bottom and draws ${x}.`);
-      if (drawn < x) runnerWinsOnEmptyRnd(state);
-      if (x > 0 && state.runner.hand.length >= x) {
-        // Runner adds X random grip to bottom of stack.
-        const grip = [...state.runner.hand];
-        for (let i = grip.length - 1; i > 0; i--) {
-          const j = Math.floor(random(state) * (i + 1));
-          const tmp = grip[i]!;
-          grip[i] = grip[j]!;
-          grip[j] = tmp;
-        }
-        const picks = grip.slice(0, x);
-        for (const id of picks) {
-          state.runner.hand = state.runner.hand.filter((h) => h !== id);
-          const c = state.cards[id]!;
-          c.zone = "runner:stack";
-          state.runner.deck.push(id);
-        }
-        log(
-          state,
-          `Reeducation — Runner adds ${x} random grip card(s) to stack bottom.`,
-        );
-      }
       return { ok: true };
     }
 
@@ -246,20 +124,6 @@ export function applyRedsandBawPrimitive(
       return { ok: true };
     }
 
-    case "whampoa_archives_to_rd_bottom": {
-      const cardId = (action as { cardId: string }).cardId;
-      if (!state.corp.discardPile.includes(cardId)) return { ok: true };
-      state.corp.discardPile = state.corp.discardPile.filter(
-        (id) => id !== cardId,
-      );
-      const c = state.cards[cardId]!;
-      c.zone = "corp:rd";
-      c.faceup = false;
-      state.corp.deck.push(cardId);
-      log(state, `Whampoa Reclamation — ${c.title} to R&D bottom.`);
-      return { ok: true };
-    }
-
     case "choose_x_and_load_power": {
       const source = state.cards[sourceId];
       if (!source) return { ok: true };
@@ -293,24 +157,6 @@ export function applyRedsandBawPrimitive(
         state,
         `Bug-Out Bag — pay ${amount}¢, load ${amount} power → ${state.runner.credits}¢.`,
       );
-      return { ok: true };
-    }
-
-    case "draw_per_power_then_trash": {
-      const source = state.cards[sourceId];
-      if (!source) return { ok: true };
-      const n = source.powerCounters ?? 0;
-      for (let i = 0; i < n; i++) {
-        if (state.runner.deck.length === 0) break;
-        const top = state.runner.deck.shift()!;
-        const c = state.cards[top]!;
-        c.zone = "runner:grip";
-        state.runner.hand.push(top);
-      }
-      log(state, `Bug-Out Bag — draw ${n}, then trash.`);
-      if (state.runner.installed.includes(sourceId)) {
-        trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
-      }
       return { ok: true };
     }
 

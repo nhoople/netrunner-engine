@@ -36,18 +36,6 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "return_looked": {
-      const looked = [...state.turn.rdLookedCards];
-      state.turn.rdLookedCards = [];
-      for (const id of looked.reverse()) {
-        state.cards[id].faceup = false;
-        state.corp.deck.unshift(id);
-        state.cards[id].zone = "corp:rd";
-      }
-      log(state, `Psychokinesis — return looked cards to R&D.`);
-      return { ok: true };
-    }
-
     case "play_archives_transaction": {
       const txs = state.corp.discardPile.filter((id) => {
         const c = state.cards[id];

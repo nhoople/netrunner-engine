@@ -29,14 +29,17 @@ import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.j
 import { revealCards, lookAtCards } from "../../state/visibility/reveal.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 import { random } from "../../state/rng.js";
-import { bmCounter, setBmCounter } from "../primitives/spendMoveTrash.js";
 import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import type { ServerId, GameState } from "../../state/types.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { noteInlineConditional } from "../../state/triggers/inlineConditionalHooks.js";
 import { noteStoredConditional } from "../../state/triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
-import { applyKitaraDtwnPrimitive } from "../primitives/gainExposeSearch.js";
+import {
+  bmCounter,
+  setBmCounter,
+  applyDeckOrderKinds,
+} from "../searchAndDeck/deckOrderKinds.js";
 
 /**
  * Trash a set of Corp cards together, as one instruction (CR 9.12.2a). Each
@@ -1407,7 +1410,7 @@ export function applyCorpInstalledTrashKinds(
       trashCard(state, id, { by: "corp", faceup: false });
       log(state, `Bacterial Programming — trash 1 card.`);
       return (
-        applyKitaraDtwnPrimitive(ctx, {
+        applyDeckOrderKinds(ctx, {
           kind: "dtwn_bacterial_partition",
         }) ?? { ok: true }
       );

@@ -175,38 +175,6 @@ export function applyMumbadTlmPrimitive(
       return { ok: true };
     }
 
-    case "search_rd_play_operation": {
-      const ops = state.corp.deck.filter(
-        (id) => state.cards[id]?.type === "operation",
-      );
-      if (ops.length === 0) {
-        for (let i = state.corp.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(random(state) * (i + 1));
-          const tmp = state.corp.deck[i]!;
-          state.corp.deck[i] = state.corp.deck[j]!;
-          state.corp.deck[j] = tmp;
-        }
-        log(state, `Consulting Visit — no operation in R&D.`);
-        return { ok: true };
-      }
-      if (ops.length === 1) {
-        return applyMumbadTlmPrimitive(ctx, {
-          kind: "play_resolve",
-          cardId: ops[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: ops.map((cardId) => ({
-          id: `cv:${cardId}`,
-          label: `Play ${state.cards[cardId]!.title}`,
-          effect: fx.do({ kind: "play_resolve", cardId }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "play_resolve": {
       const cardId = action.cardId;
       const card = state.cards[cardId];

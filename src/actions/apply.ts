@@ -224,7 +224,7 @@ import {
   stealNetOrMeatPrevented,
   stealOrTrashBlocked,
 } from "./access.js";
-import { finishPendingDraw } from "../effects/draw.js";
+import { finishPendingDraw } from "../effects/searchAndDeck/draw.js";
 import { discardPhase, drawN, drawOne, passWindow } from "./phase.js";
 import {
   actionAllowedHere,
