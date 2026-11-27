@@ -13652,28 +13652,28 @@
           "site": "src/actions/access.ts#carnivoreAvailable",
           "kinds": [],
           "mirrors": [
-            "src/state/types.ts#{accessTrashFromGrip}"
+            "src/state/types/card.ts#{accessTrashFromGrip}"
           ]
         },
         {
           "site": "src/actions/apply.ts#applyResolved",
           "kinds": [],
           "mirrors": [
-            "src/state/types.ts#{accessTrashFromGrip}"
+            "src/state/types/card.ts#{accessTrashFromGrip}"
           ]
         },
         {
           "site": "src/actions/costCards.ts#accessTrashFromGripSource",
           "kinds": [],
           "mirrors": [
-            "src/state/types.ts#{accessTrashFromGrip}"
+            "src/state/types/card.ts#{accessTrashFromGrip}"
           ]
         },
         {
           "site": "src/legality/candidatePending.ts#collectPendingCandidates",
           "kinds": [],
           "mirrors": [
-            "src/state/types.ts#{accessTrashFromGrip}"
+            "src/state/types/card.ts#{accessTrashFromGrip}"
           ]
         }
       ],
@@ -18455,7 +18455,7 @@
           "site": "src/state/lingeringEffects.ts#expireLingeringEffects",
           "kinds": [],
           "mirrors": [
-            "src/state/types.ts#{LingeringDuration}"
+            "src/state/types/lingering.ts#{LingeringDuration}"
           ]
         },
         {

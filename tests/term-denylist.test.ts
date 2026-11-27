@@ -111,7 +111,11 @@ describe("CR term denylist", () => {
   });
 
   it("PlayerState uses coreDamage / discardPile / scoreArea / installed", () => {
-    const types = readFileSync(join(root, "src/state/types.ts"), "utf8");
+    const dir = join(root, "src/state/types");
+    const types = readdirSync(dir)
+      .filter((f) => f.endsWith(".ts"))
+      .map((f) => readFileSync(join(dir, f), "utf8"))
+      .join("\n");
     expect(types).toMatch(/coreDamage:\s*number/);
     expect(types).toMatch(/discardPile:\s*string\[\]/);
     expect(types).toMatch(/scoreArea:\s*string\[\]/);

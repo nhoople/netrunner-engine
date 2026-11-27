@@ -17,7 +17,7 @@ Rule: 1 Game Concepts › 1.16 Costs › 1.16.1b
 | File | Via | Code topic | Sites |
 | --- | --- | --- | --- |
 | `src/state/runInitiateTax.ts` | literal | visibility | 1 |
-| `src/state/types.ts` | literal | visibility | 1 |
+| `src/state/types/card.ts` | literal | visibility | 1 |
 
 ## 2. CR 1.18.1 — 2 sites
 
@@ -26,7 +26,7 @@ Rule: 1 Game Concepts › 1.18 Advancing Cards › 1.18.1
 | File | Via | Code topic | Sites |
 | --- | --- | --- | --- |
 | `src/api/library.ts` | literal | visibility | 1 |
-| `src/state/types.ts` | literal | visibility | 1 |
+| `src/state/types/publicView.ts` | literal | visibility | 1 |
 
 ## 3. CR 1.18 — 1 site
 

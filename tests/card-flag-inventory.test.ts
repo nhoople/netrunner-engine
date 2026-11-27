@@ -10,7 +10,7 @@
  * This test lists every entry of two kinds:
  *   - each optional boolean or number field on `CardDef` (`src/cards/load.ts`;
  *     the loader copies it onto the `CardInstance` field of the same name in
- *     `src/state/types.ts`, except where `instantiateCard` renames it), and
+ *     `src/state/types/card.ts` and the two files it extends, except where `instantiateCard` renames it), and
  *   - each top-level property of the pinned `vendor/cards-data/schema.json`.
  *
  * For each entry it records the cards that set it, the sites in `src/` (outside `src/debug/`) that read
@@ -661,13 +661,24 @@ function buildInventory(): Inventory {
   const program = createProgram();
   const checker = program.getTypeChecker();
   const loadSf = program.getSourceFile(join(ROOT, "src/cards/load.ts"));
-  const typesSf = program.getSourceFile(join(ROOT, "src/state/types.ts"));
+  // `CardInstance` extends its trigger hooks and its costs and requirements,
+  // each in its own file; together they are the card instance's members.
+  const cardSfs = ["card.ts", "cardHooks.ts", "cardCosts.ts"].map((f) =>
+    program.getSourceFile(join(ROOT, "src/state/types", f)),
+  );
   const fxSf = program.getSourceFile(join(ROOT, "src/effects/ir/fx.ts"));
-  if (!loadSf || !typesSf || !fxSf)
+  if (!loadSf || cardSfs.some((sf) => !sf) || !fxSf)
     throw new Error("engine sources missing from program");
 
   const cardDef = findInterface(loadSf, "CardDef");
-  const cardInstance = findInterface(typesSf, "CardInstance");
+  const cardInstanceParts = (
+    [
+      [cardSfs[0], "CardInstance"],
+      [cardSfs[1], "CardTriggerHooks"],
+      [cardSfs[2], "CardCostsAndRequirements"],
+    ] as const
+  ).map(([sf, name]) => findInterface(sf!, name));
+  const cardInstanceMembers = cardInstanceParts.flatMap((i) => [...i.members]);
 
   const defFields = new Map<string, FieldKind>();
   for (const m of cardDef.members) {
@@ -700,7 +711,7 @@ function buildInventory(): Inventory {
     sorted(targets.get(field) ?? [field]);
   const owners = new Map<ts.Declaration, string>();
   for (const m of cardDef.members) owners.set(m, "CardDef");
-  for (const m of cardInstance.members) owners.set(m, "CardInstance");
+  for (const m of cardInstanceMembers) owners.set(m, "CardInstance");
 
   // Mirror types: an interface or type literal in src/ that restates card fields
   // structurally (deck checks take `DeckEntry`, the opening hand takes
@@ -731,7 +742,11 @@ function buildInventory(): Inventory {
     const visit = (n: ts.Node): void => {
       let members: ts.NodeArray<ts.TypeElement> | undefined;
       let label = "";
-      if (ts.isInterfaceDeclaration(n) && n !== cardDef && n !== cardInstance) {
+      if (
+        ts.isInterfaceDeclaration(n) &&
+        n !== cardDef &&
+        !cardInstanceParts.includes(n)
+      ) {
         members = n.members;
         label = n.name.text;
       } else if (ts.isTypeLiteralNode(n)) {
@@ -774,7 +789,7 @@ function buildInventory(): Inventory {
     findFunction(loadSf, "applyCardDef"),
   ]);
   const cardKeys = new Set<string>();
-  for (const m of [...cardDef.members, ...cardInstance.members]) {
+  for (const m of [...cardDef.members, ...cardInstanceMembers]) {
     const n = memberName(m);
     if (n) cardKeys.add(n);
   }

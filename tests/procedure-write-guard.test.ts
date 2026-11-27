@@ -133,8 +133,14 @@ describe("procedure write guard (CR audit Phase 2)", () => {
   });
 
   it("does not count a public-view object's fields", () => {
-    // src/state/types.ts PublicView ice/root entries carry `rezzed`; api/library builds them.
-    expect(writes.every((w) => w.file !== "src/state/types.ts")).toBe(true);
+    // src/state/types/publicView.ts PublicView ice/root entries carry `rezzed`; api/library builds them.
+    expect(
+      writes.every(
+        (w) =>
+          w.file !== "src/state/types.ts" &&
+          !w.file.startsWith("src/state/types/"),
+      ),
+    ).toBe(true);
   });
 
   it("writes outside the helper modules are at most the recorded counts", () => {
