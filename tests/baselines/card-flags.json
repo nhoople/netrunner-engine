@@ -4140,11 +4140,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
+          "site": "src/effects/searchAndDeck/addKinds.ts#applyAddKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/searchAndDeck/addKinds.ts#applyAddKinds",
+          "site": "src/effects/setupAndEnd/setupAndEndKinds.ts#applySetupAndEndKinds",
           "kinds": []
         },
         {
@@ -6807,7 +6807,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/searchRevealTrash.ts#applySansanValPrimitive",
+          "site": "src/effects/setupAndEnd/setupAndEndKinds.ts#applySetupAndEndKinds",
           "kinds": []
         },
         {
@@ -6869,7 +6869,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/effects/setupAndEnd/setupAndEndKinds.ts#applySetupAndEndKinds",
           "kinds": []
         },
         {
@@ -18205,10 +18205,6 @@
           ]
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -18230,6 +18226,10 @@
         },
         {
           "site": "src/effects/searchAndDeck/shuffleKinds.ts#applyShuffleKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/setupAndEnd/setupAndEndKinds.ts#applySetupAndEndKinds",
           "kinds": []
         },
         {
@@ -20100,10 +20100,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
@@ -20137,6 +20133,10 @@
         },
         {
           "site": "src/effects/searchAndDeck/searchKinds.ts#applySearchKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/setupAndEnd/setupAndEndKinds.ts#applySetupAndEndKinds",
           "kinds": []
         },
         {
@@ -21317,14 +21317,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -21438,6 +21430,10 @@
         },
         {
           "site": "src/effects/searchAndDeck/shuffleKinds.ts#applyShuffleKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/setupAndEnd/setupAndEndKinds.ts#applySetupAndEndKinds",
           "kinds": []
         },
         {
@@ -23852,10 +23848,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -23905,6 +23897,10 @@
         },
         {
           "site": "src/effects/searchAndDeck/shuffleKinds.ts#applyShuffleKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/setupAndEnd/setupAndEndKinds.ts#applySetupAndEndKinds",
           "kinds": []
         },
         {

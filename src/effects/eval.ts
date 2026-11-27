@@ -51,9 +51,7 @@ import {
   type Primitive,
   type SideRef,
 } from "./ir.js";
-import { applyCoreKinds } from "./kinds/index.js";
-
-import { applySansanValPrimitive } from "./primitives/searchRevealTrash.js";
+import { applyCoreKinds } from "./coreKinds.js";
 
 import {
   closeReactionWindow,
@@ -66,7 +64,6 @@ import {
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
 } from "../state/triggers/pendingAbilities.js";
-import { applyMumbadTlmPrimitive } from "./primitives/trashPlaceAccess.js";
 
 import { applyHostedCreditPrimitive } from "./keywordsAndCredits/hostedCreditPrimitives.js";
 import { applyDamagePrimitive } from "./damageAndPrevention/damagePrimitives.js";
@@ -1690,10 +1687,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   const core = applyCoreKinds(ctx, action);
   if (core) return core;
 
-  const val = applySansanValPrimitive(ctx, action);
-  if (val) return val;
-  const tlm = applyMumbadTlmPrimitive(ctx, action);
-  if (tlm) return tlm;
   const _a = action;
   return {
     ok: false,

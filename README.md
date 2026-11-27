@@ -155,20 +155,19 @@ src/                      # index.ts: the package entry; cli.ts: the development
   cr/                     # reads the pinned CR data in vendor/cr-data/
   debug/                  # hooks tests set: invariants after each action, timing steps, legality agreement
   demo/                   # scripted games and test drivers for the demos
-  effects/                # eval.ts: the evaluator; ir.ts: points to ir/; shared rules (credits, damage, tags, runs, counters, …)
+  effects/                # eval.ts: the evaluator; coreKinds.ts: the kind registry; ir.ts: points to ir/; abilityRecord.ts, continuation.ts, primitiveNames.ts. Every other file is in a folder: one per CR audit area, plus continuous/ and triggers/ for the rules no single area owns
     access/               # accessing and breaching (CR ch. 7): the breach-replacement kinds and the other access kinds
     continuous/           # effects for a duration (CR 9.10, 9.12): ice and breaker strength (iceStrength.ts), can't-restrictions (forbidKinds.ts), and the boost, grant, blank, hand-size and memory kinds
     counters/             # counters and advancement: counterPrimitives.ts, the place and remove kinds, and the other counter kinds
     damageAndPrevention/  # damage and its prevention (CR 10.4): damagePrimitives.ts and the prevent kinds
     hostingAndTrash/      # hosting and trashing (CR 1.13, 1.19): corpTrash.ts, the host kinds, and the trash kinds by side and zone
     install/              # installing cards (CR 8.5): corpInstall.ts, runnerInstall.ts, installs by ability (corpAbilityInstall.ts), and the install kinds by side and zone
-    ir/                   # the Effect IR types: one Primitive file per kind family (matching kinds/), conditions, effect tree, known kinds, fx builders, validation
+    ir/                   # the Effect IR types: one Primitive file per kind family, conditions, effect tree, known kinds, fx builders, validation
     keywordsAndCredits/   # keywords and credits (CR 10.5–10.7, 10.9–10.13, 1.10): the credit, tag, bad publicity and hosted-credit primitives, credit tallies, the gain and pay kinds
-    kinds/                # one file per procedure in the kind switch
-    primitives/           # printed procedures grouped by verb, not by pack
     rez/                  # rezzing and derezzing (CR 8.1): the rez and derez kinds
     run/                  # run flow (CR ch. 6): runPrimitives.ts, encounterPrimitives.ts, the set kinds and the other run kinds
     searchAndDeck/        # drawing (draw.ts), searching and shuffling (CR 8.7), deck order, and adding cards from Archives or the heap
+    setupAndEnd/          # game setup and end (CR 1.4–1.7): identity changes and winning the game
     swap/                 # swapping cards (CR 8.8): the swap kinds
     triggers/             # choices and conditional abilities (CR 9.6): choose_card and choose_cards, the choose and resolve kinds, first- and second-time-each-turn triggers (firstTimeEachTurnTriggers.ts)
     turnAndActions/       # turn structure and actions (CR ch. 5): clicks, psi games, traces, playing cards, breaking subroutines, scoring and forfeiting
