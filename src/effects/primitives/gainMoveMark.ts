@@ -1,5 +1,3 @@
-/** Order and Chaos (oac) deluxe primitives. */
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { effectiveCorpMaxHandSize } from "../../state/continuous/handSize.js";
 import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import {
@@ -18,7 +16,6 @@ import { CR } from "../../timing/labels.js";
 import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
@@ -408,51 +405,6 @@ export function applyOacPrimitive(
           state,
           `The Twins — force re-encounter of ${state.cards[iceId]?.title} (CR ${CR.forcedEncounterDuringRun.number}).`,
         );
-      }
-      return { ok: true };
-    }
-
-    case "breach_instead_wanton_destruction": {
-      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      const clicks = state.runner.clicks;
-      // "You may": declining leaves the breach of HQ as normal; only the
-      // replacement skips it (CR 6.7.4c, 9.6.9).
-      const opts: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "wanton-decline",
-          label: "Breach HQ",
-          effect: fx.gainCredits("runner", 0),
-        },
-      ];
-      for (let n = 1; n <= clicks; n++) {
-        opts.push({
-          id: `wanton:${n}`,
-          label: `Instead of breaching: spend ${n} [click], the Corp trashes ${n} from HQ at random`,
-          effect: fx.seq(
-            fx.do({ kind: "set_skip_breach" }),
-            fx.do({ kind: "spend_wanton_clicks_trash_hq", amount: n }),
-          ),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "runner", options: opts });
-      return { ok: true };
-    }
-
-    case "spend_wanton_clicks_trash_hq": {
-      const amount = (action as { amount: number }).amount;
-      if (state.runner.clicks < amount) {
-        return { ok: false, error: "Not enough clicks.", cites: [] };
-      }
-      state.runner.clicks -= amount;
-      const hq = [...state.corp.hand];
-      for (let i = 0; i < amount && hq.length > 0; i++) {
-        const idx = Math.floor(random(state) * hq.length);
-        const id = hq.splice(idx, 1)[0]!;
-        const card = state.cards[id]!;
-        // "Force the Corp to trash": the Corp carries it out (CR 1.14.5).
-        // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-        trashCard(state, id, { by: "corp" });
-        log(state, `Wanton Destruction — trash ${card.title} from HQ.`);
       }
       return { ok: true };
     }

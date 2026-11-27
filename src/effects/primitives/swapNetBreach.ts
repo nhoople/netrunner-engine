@@ -1,13 +1,11 @@
-/** Chrome City (cc) SanSan pack primitives. */
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fireOnAgendaAddedToRunnerScore } from "../../state/hostingAndTrash/trashHooks.js";
-import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
+import type { Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -78,62 +76,6 @@ export function applySansanCcPrimitive(
         state,
         `Turntable — swap ${stolen?.title ?? stolenId} with ${corpAg?.title ?? corpId}.`,
       );
-      return { ok: true };
-    }
-
-    case "analog_dreamers_run_rd": {
-      state.turn.ccAnalogDreamersRun = true;
-      state.pendingStartRun = { sourceId, serverId: "rd" };
-      log(state, `Analog Dreamers — run R&D.`);
-      return { ok: true };
-    }
-
-    case "may_breach_instead_analog_dreamers": {
-      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      if (!state.run || state.run.attackedServerId !== "rd") {
-        log(state, `Analog Dreamers — not a successful R&D run.`);
-        return { ok: true };
-      }
-      const candidates: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.root) {
-          const c = state.cards[id];
-          if (!c) continue;
-          if (c.rezzed) continue;
-          if (c.type === "ice") continue;
-          if ((c.advancementCounters ?? 0) > 0) continue;
-          candidates.push(id);
-        }
-      }
-      const options: Array<{ id: string; label: string; effect: Effect }> = [
-        {
-          id: "breach",
-          label: "Breach R&D",
-          effect: {
-            op: "do",
-            action: { kind: "gain_credits", side: "runner", amount: 0 },
-          },
-        },
-      ];
-      for (const id of candidates) {
-        options.push({
-          id: `ad-shuffle:${id}`,
-          label: `Shuffle ${state.cards[id]!.title} into R&D`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "shuffle_into_rd" as const,
-              cardId: id,
-            },
-          },
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `Analog Dreamers — may instead of breaching R&D.`,
-      });
       return { ok: true };
     }
 

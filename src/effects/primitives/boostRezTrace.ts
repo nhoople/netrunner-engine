@@ -1,5 +1,3 @@
-/** The Source (ts) Lunar pack primitives. */
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
@@ -7,16 +5,10 @@ import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { chargeCard } from "../../state/keywordsAndCredits/keywords.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import {
-  evalEffect,
-  noteSearchConditionalAbilities,
-  type EffectCtx,
-} from "../eval.js";
-import { chooseCards } from "../triggers/chooseCards.js";
-import { shuffleRunnerStack } from "../runnerInstall.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
+import { evalEffect, type EffectCtx } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -281,73 +273,6 @@ export function applyLunarTsPrimitive(
       }
       state.turn.incubatorMoveAmount = undefined;
       return { ok: true };
-    }
-    case "may_breach_instead_code_siphon": {
-      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "code-siphon-decline",
-            label: "Breach R&D normally",
-            effect: fx.gainCredits("runner", 0),
-          },
-          {
-            id: "code-siphon-search",
-            label: "Instead of breaching: search stack for a program",
-            effect: fx.do({ kind: "breach_instead_code_siphon" }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-    case "breach_instead_code_siphon": {
-      // "Search your stack for 1 program. Install it, paying 3[credit] less
-      // for each piece of ice protecting R&D, and then take 1 tag." Only a
-      // program the Runner can pay for can be found (CR 8.7.2b); the search
-      // may find nothing (CR 8.7.2e); the stack is shuffled once the search
-      // is complete, before the install (CR 8.7.3). The install itself is
-      // inline (area 6).
-      const discount = (state.servers.rd?.ice.length ?? 0) * 3;
-      if (!action.cardIds) {
-        if (state.run) state.run.skipBreach = true;
-        return evalEffect(
-          ctx,
-          chooseCards({
-            chooser: "runner",
-            candidates: state.runner.deck.filter((id) => {
-              const c = state.cards[id];
-              return (
-                c?.type === "program" &&
-                state.runner.credits >=
-                  Math.max(0, (c.installCost ?? 0) - discount)
-              );
-            }),
-            count: 1,
-            search: true,
-            purpose: "resume",
-            label: "install",
-            resume: { kind: "breach_instead_code_siphon" },
-          }),
-        );
-      }
-      const id = action.cardIds.find((cid) => state.runner.deck.includes(cid));
-      if (id) state.runner.deck = state.runner.deck.filter((x) => x !== id);
-      shuffleRunnerStack(state);
-      noteSearchConditionalAbilities(state);
-      if (!id) {
-        // "Install it ... and then take 1 tag" has no "if able": with no
-        // program found the install is skipped and the tag is still taken
-        // (CR 1.2.4).
-        log(state, `Code Siphon — no program found; shuffle the stack.`);
-        return evalEffect(ctx, fx.do({ kind: "give_tags", amount: 1 }));
-      }
-      return applyLunarTsPrimitive(ctx, {
-        kind: "install_program",
-        cardId: id,
-        discount,
-      });
     }
     case "install_program": {
       const cardId = (action as { cardId: string }).cardId;

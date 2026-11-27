@@ -326,54 +326,6 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "dtwn_rng_key": {
-      // Name a number 0..20 (practical bound).
-      const options = Array.from({ length: 21 }, (_, n) => ({
-        id: `rng:${n}`,
-        label: `Name ${n}`,
-        effect: fx.do({ kind: "dtwn_rng_key_set_number", named: n }),
-      }));
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `RNG Key — name a number.`,
-      });
-      return { ok: true };
-    }
-
-    case "dtwn_rng_key_set_number": {
-      if (!state.run) return { ok: true };
-      state.run.dtwnRngKeyNamedNumber = action.named;
-      state.run.dtwnRngKeySourceId = sourceId;
-      state.run.dtwnRngKeyPendingReveal = true;
-      log(
-        state,
-        `RNG Key — named ${action.named}; reveal next access this run.`,
-      );
-      return { ok: true };
-    }
-
-    case "dtwn_rng_key_reward": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "credits",
-            label: "Gain 3¢",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 3 }),
-          },
-          {
-            id: "draw",
-            label: "Draw 2 cards",
-            effect: fx.do({ kind: "draw", side: "runner", amount: 2 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
     case "corp_additional_click_next_turn": {
       state.corpAllottedClicksDeltaNextTurn =
         (state.corpAllottedClicksDeltaNextTurn ?? 0) + 1;

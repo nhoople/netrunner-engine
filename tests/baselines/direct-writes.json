@@ -81,10 +81,11 @@
       "hand": 1,
       "zone": 1
     },
-    "src/effects/triggers/chooseCards.ts": {
-      "deck": 2,
+    "src/effects/access/accessKinds.ts": {
+      "deck": 4,
       "hand": 1,
-      "zone": 3
+      "rezzed": 1,
+      "zone": 2
     },
     "src/effects/corpAbilityInstall.ts": {
       "rezzed": 1
@@ -150,14 +151,14 @@
       "zone": 2
     },
     "src/effects/kinds/otherKinds.ts": {
-      "deck": 18,
+      "deck": 17,
       "discardPile": 3,
       "hand": 9,
       "installed": 1,
       "removedFromGame": 6,
       "rezzed": 5,
       "scoreArea": 3,
-      "zone": 18
+      "zone": 17
     },
     "src/effects/kinds/placeKinds.ts": {
       "deck": 2,
@@ -168,12 +169,6 @@
     },
     "src/effects/kinds/playKinds.ts": {
       "discardPile": 2
-    },
-    "src/effects/triggers/resolveKinds.ts": {
-      "deck": 6,
-      "discardPile": 2,
-      "rezzed": 1,
-      "zone": 3
     },
     "src/effects/kinds/returnKinds.ts": {
       "discardPile": 2,
@@ -230,7 +225,6 @@
       "zone": 2
     },
     "src/effects/primitives/boostRezTrace.ts": {
-      "deck": 1,
       "installed": 1,
       "rezzed": 1,
       "zone": 1
@@ -251,7 +245,7 @@
       "zone": 2
     },
     "src/effects/primitives/breachTrashTurn.ts": {
-      "deck": 2
+      "deck": 1
     },
     "src/effects/primitives/chooseGainShuffle.ts": {
       "deck": 6,
@@ -344,7 +338,7 @@
     "src/effects/primitives/playDrawSearch.ts": {
       "deck": 7,
       "installed": 2,
-      "rezzed": 2,
+      "rezzed": 1,
       "root": 1,
       "zone": 4
     },
@@ -395,12 +389,12 @@
       "zone": 2
     },
     "src/effects/primitives/rezBreachPlace.ts": {
-      "deck": 3,
-      "hand": 4,
+      "deck": 2,
+      "hand": 3,
       "ice": 1,
       "rezzed": 2,
       "root": 1,
-      "zone": 5
+      "zone": 4
     },
     "src/effects/primitives/searchRevealTrash.ts": {
       "deck": 2,
@@ -495,6 +489,17 @@
       "installed": 7,
       "zone": 8
     },
+    "src/effects/triggers/chooseCards.ts": {
+      "deck": 2,
+      "hand": 1,
+      "zone": 3
+    },
+    "src/effects/triggers/resolveKinds.ts": {
+      "deck": 6,
+      "discardPile": 2,
+      "rezzed": 1,
+      "zone": 3
+    },
     "src/legality/checkpoints.ts": {
       "rezzed": 1
     },
@@ -508,14 +513,13 @@
       "scoreArea": 1,
       "zone": 7
     },
+    "src/state/damageAndPrevention/damage.ts": {
+      "deck": 1
+    },
     "src/state/keywordsAndCredits/costs.ts": {
       "zone": 1
     },
-    "src/state/setupAndEnd/createGame.ts": {
-      "deck": 2,
-      "hand": 2
-    },
-    "src/state/damageAndPrevention/damage.ts": {
+    "src/state/keywordsAndCredits/keywords.ts": {
       "deck": 1
     },
     "src/state/setupAndEnd/additionalIdentities.ts": {
@@ -524,11 +528,9 @@
       "removedFromGame": 1,
       "zone": 4
     },
-    "src/state/keywordsAndCredits/keywords.ts": {
-      "deck": 1
-    },
-    "src/state/uninstallAndPosition/runPosition.ts": {
-      "ice": 1
+    "src/state/setupAndEnd/createGame.ts": {
+      "deck": 2,
+      "hand": 2
     },
     "src/state/turnAndActions/scoring.ts": {
       "deck": 2,
@@ -541,6 +543,9 @@
       "root": 2,
       "scoreArea": 6,
       "zone": 3
+    },
+    "src/state/uninstallAndPosition/runPosition.ts": {
+      "ice": 1
     },
     "src/state/zones.ts": {
       "zone": 2

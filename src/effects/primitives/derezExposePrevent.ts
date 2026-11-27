@@ -255,21 +255,6 @@ export function applyRedsandDcPrimitive(
       return { ok: true };
     }
 
-    case "breach_reduce_access_remainder_of_run": {
-      const amount = action.amount ?? 1;
-      if (!state.run) {
-        log(state, `SYNC BRE — no active run.`);
-        return { ok: true };
-      }
-      state.run.breachAccessReduction =
-        (state.run.breachAccessReduction ?? 0) + amount;
-      log(
-        state,
-        `SYNC BRE — Runner accesses ${amount} fewer card(s) on each breach this run.`,
-      );
-      return { ok: true };
-    }
-
     case "rez_up_to_3_ice_discount": {
       const forfeitedAp = state.lastForfeitedAgendaPoints ?? 1;
       const discountPer = 2 * forfeitedAp;

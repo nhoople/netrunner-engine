@@ -184,36 +184,6 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "force_encounter_accessed_ice": {
-      const iceId = state.run?.accessingCardId ?? sourceId;
-      const ice = state.cards[iceId];
-      if (!ice || ice.type !== "ice") {
-        log(state, `force_encounter — no ice to encounter.`);
-        return { ok: true };
-      }
-      ice.rezzed = true;
-      ice.faceup = true;
-      if (state.run) {
-        const parent = state.run.encounter;
-        if (parent && parent.iceId !== iceId) {
-          state.run.suspendedEncounter = structuredClone(parent);
-          state.run.resumeEncounterIceId = parent.iceId;
-          log(
-            state,
-            `After ${ice.title}, return to ${state.cards[parent.iceId]?.title ?? parent.iceId}'s subroutines (CR ${CR.forcedEncounter.number}).`,
-          );
-        } else {
-          state.run.resumeAccessAfterReencounter = true;
-        }
-        state.run.forceEncounterIceId = iceId;
-        state.run.reencounterIceId = iceId;
-        state.run.pendingReencounterIceId = undefined;
-        state.run.encounter = null;
-      }
-      log(state, `Runner encounters ${ice.title} (Archangel access).`);
-      return { ok: true };
-    }
-
     case "resolve_when_scored_on_scored_agenda": {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const id of state.corp.scoreArea) {

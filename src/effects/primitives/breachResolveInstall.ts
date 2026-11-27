@@ -1,5 +1,3 @@
-/** Kampala Ascendent (ka) Kitara pack primitives — v1.141.0. */
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { setRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
@@ -24,46 +22,6 @@ export function applyKitaraKaPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "may_breach_instead_diversion_funds_ka": {
-      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      if (!state.run || state.run.attackedServerId !== "hq") {
-        log(state, `Diversion of Funds — not a successful HQ run.`);
-        return { ok: true };
-      }
-      const maxLose = Math.min(5, state.corp.credits);
-      const options: Array<{
-        id: string;
-        label: string;
-        effect: ReturnType<typeof fx.do>;
-      }> = [
-        {
-          id: "breach",
-          label: "Breach HQ",
-          effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-        },
-      ];
-      for (let n = 0; n <= maxLose; n++) {
-        options.push({
-          id: `divert:${n}`,
-          label:
-            n === 0
-              ? "Force Corp to lose 0¢"
-              : `Force Corp to lose ${n}¢; gain ${n}¢`,
-          effect: fx.do({
-            kind: "resolve_diversion_of_funds",
-            loseAmount: n,
-          }),
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `Diversion of Funds — may instead of breaching HQ.`,
-      });
-      return { ok: true };
-    }
-
     case "resolve_diversion_of_funds": {
       if (state.run) state.run.skipBreach = true;
       const lose = Math.min(action.loseAmount, state.corp.credits);
@@ -114,15 +72,6 @@ export function applyKitaraKaPrimitive(
       unhostCard(state, card.id);
       state.runner.installed.push(action.cardId);
       log(state, `Reclaim — install ${card.title} for ${cost}¢.`);
-      return { ok: true };
-    }
-
-    case "ka_black_hat_bonus_access": {
-      state.turn.kaBlackHatBonusAccess = 2;
-      log(
-        state,
-        `Black Hat — +2 access whenever you breach HQ or R&D remainder of turn.`,
-      );
       return { ok: true };
     }
 

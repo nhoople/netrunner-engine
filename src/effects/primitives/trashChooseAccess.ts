@@ -222,33 +222,6 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "access_n": {
-      const amount = action.amount ?? 0;
-      if (amount <= 0 || !state.run) {
-        log(state, `Counter Surveillance — access 0.`);
-        return { ok: true };
-      }
-      state.run.bonusAccess = Math.max(0, amount - 1);
-      state.run.skipBreach = false;
-      log(
-        state,
-        `Counter Surveillance — access ${amount} in/at attacked server.`,
-      );
-      // Re-arm breach via clearing skipBreach; host will breach normally with bonus.
-      // For exact X access, set bonus so HQ/RD base+bonus ≈ amount.
-      if (state.run.attackedServerId === "archives") {
-        state.run.bonusAccess = amount;
-      } else {
-        // HQ/RD base access is 1; bonusAccess adds (amount - 1).
-        state.run.bonusAccess = Math.max(0, amount - 1);
-      }
-      state.pendingStandaloneBreach = {
-        sourceId,
-        serverId: state.run.attackedServerId,
-      };
-      return { ok: true };
-    }
-
     case "mobius_on_run_end": {
       if (!state.run?.successful) {
         if (state.turn.mobiusSecondRun) {

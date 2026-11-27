@@ -17,7 +17,6 @@ import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.
 import { noteStoredConditional } from "../state/triggers/storedConditionalHooks.js";
 import { fireFirstAdvancementOnServer } from "../state/triggers/storedTriggers.js";
 import { fireFirstAgendaScoredOrStolenThisTurn } from "../state/turnAndActions/agendaHooks.js";
-import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import {
   canScoreAgenda,
   checkWinConditions,
@@ -46,6 +45,7 @@ import {
   fireOnAgendaScoredFromThisServer,
   fireOnAgendaScoredOrStolen,
 } from "../state/triggers/miscConditionalHooks.js";
+import { fireTdatdOnAgendaAccessedOrScored } from "../effects/access/accessKinds.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

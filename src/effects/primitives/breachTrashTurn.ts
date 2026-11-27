@@ -1,5 +1,3 @@
-/** True Colors (tc) Spin pack primitives. */
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { chooseCards } from "../triggers/chooseCards.js";
@@ -7,7 +5,6 @@ import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { lookAtCards } from "../../state/visibility/reveal.js";
 import type { RuleCite } from "../../state/types.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 
@@ -20,59 +17,6 @@ export function applySpinTcPrimitive(
 ): PrimResult | null {
   const { state, sourceId } = ctx;
   switch (action.kind) {
-    case "may_breach_instead_keyhole": {
-      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      // Printed: "If successful, instead of breaching R&D, look at the top
-      // 3 cards of R&D." There is no "may": the Runner does not breach.
-      if (!state.run || state.run.attackedServerId !== "rd") {
-        log(state, `Keyhole — not a successful R&D run.`);
-        return { ok: true };
-      }
-      return (
-        applySpinTcPrimitive(ctx, { kind: "breach_instead_keyhole" }) ?? {
-          ok: true,
-        }
-      );
-    }
-    case "breach_instead_keyhole": {
-      if (state.run) state.run.skipBreach = true;
-      // Deck top is index 0 (commitDraw shifts).
-      const looked: string[] = state.corp.deck.splice(0, 3);
-      // Only the Runner looks (CR 1.21.2): the cards are not turned faceup,
-      // and the log does not name them.
-      lookAtCards(state, looked, sourceId, "runner");
-      state.turn.rdLookedCards = looked;
-      log(
-        state,
-        `Keyhole — the Runner looks at the top ${looked.length} card(s) of R&D instead of breaching.`,
-      );
-      // The Runner trashes 1 of the looked cards, whatever its type, then
-      // R&D is shuffled.
-      if (looked.length === 0) {
-        state.turn.rdLookedCards = [];
-        shuffleInPlace(state, state.corp.deck);
-        log(state, `Keyhole — R&D is empty; shuffle R&D.`);
-        return { ok: true };
-      }
-      if (looked.length === 1) {
-        return (
-          applySpinTcPrimitive(ctx, {
-            kind: "trash_looked_program",
-            cardId: looked[0]!,
-          }) ?? { ok: true }
-        );
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: looked.map((id) => ({
-          id: `keyhole-trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_looked_program", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
     case "trash_looked_program": {
       const id = action.cardId;
       const rest = (state.turn.rdLookedCards ?? []).filter((x) => x !== id);

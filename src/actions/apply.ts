@@ -124,7 +124,6 @@ import {
   noteAccessTrash,
   fireMeatDamageWhenRunnerTakesTags,
 } from "../state/hostingAndTrash/trashHooks.js";
-import { fireTdatdOnAgendaAccessedOrScored } from "../effects/primitives/resolveExposePay.js";
 import {
   boostTrace,
   resolveTrace,
@@ -247,6 +246,7 @@ import {
   resolveSkorpiosTrash,
 } from "../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../state/uninstallAndPosition/uninstall.js";
+import { fireTdatdOnAgendaAccessedOrScored } from "../effects/access/accessKinds.js";
 
 /** The payer's pick for a one-card cost, or the last card when not asked. */
 function chosenCostCard(state: GameState, pool: readonly string[]): string {

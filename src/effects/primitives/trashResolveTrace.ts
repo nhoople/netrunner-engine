@@ -1,6 +1,5 @@
 /** Upstalk (up) Lunar pack primitives. */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { emptyRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
@@ -372,37 +371,6 @@ export function applyLunarUpPrimitive(
       const iceId = (action as { iceId: string }).iceId;
       state.turn.socialEngineeringMarkedIce = iceId;
       log(state, `Social Engineering — marked ${state.cards[iceId]!.title}.`);
-      return { ok: true };
-    }
-    case "may_breach_instead_eden_shard": {
-      if (breachAlreadyReplaced(state, sourceId)) return { ok: true };
-      if (!state.run || state.run.attackedServerId !== "rd")
-        return { ok: true };
-      const inGrip = state.runner.hand.includes(sourceId);
-      if (!inGrip) {
-        log(state, `Eden Shard — not in grip; breach R&D.`);
-        return { ok: true };
-      }
-      if (
-        !openPendingChoose(state, {
-          sourceId,
-          chooser: "runner",
-          options: [
-            {
-              id: "breach",
-              label: "Breach R&D",
-              effect: fx.gainCredits("runner", 0),
-            },
-            {
-              id: "eden",
-              label: "Install Eden Shard from grip ignoring all costs",
-              effect: fx.do({ kind: "install_instead" }),
-            },
-          ],
-        })
-      )
-        return { ok: true };
-      state.run.skipBreach = true;
       return { ok: true };
     }
     case "install_instead": {
