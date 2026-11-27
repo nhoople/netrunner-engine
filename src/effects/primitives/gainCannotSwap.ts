@@ -1,4 +1,5 @@
 /** The Universe of Tomorrow (uot) SanSan pack primitives. */
+import { openCardName } from "../../state/seatVisibility.js";
 import {
   resolveChronosFirstNetPick,
   resolveRibsPick,
@@ -97,7 +98,7 @@ export function applySansanUotPrimitive(
           const otherId = server.ice[nPos]!;
           return {
             id: `surfer-swap:${otherId}`,
-            label: `Swap with ${state.cards[otherId]!.title}`,
+            label: `Swap with ${openCardName(state, otherId, "runner")}`,
             effect: {
               op: "do" as const,
               action: {

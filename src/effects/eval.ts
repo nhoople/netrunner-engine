@@ -1,3 +1,4 @@
+import { openCardName } from "../state/seatVisibility.js";
 import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
 
 import { abilitiesSuppressed } from "../state/abilities.js";
@@ -1849,7 +1850,7 @@ export function openExposeUpTo(
   const options: Array<{ id: string; label: string; effect: Effect }> =
     targets.map((id) => ({
       id: `expose-up:${id}`,
-      label: `Expose ${state.cards[id]!.title}`,
+      label: `Expose ${openCardName(state, id, "runner")}`,
       effect: {
         op: "do" as const,
         action: {

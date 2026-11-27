@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is other.
  * The effect switch in eval.ts dispatches here.
  */
+import { openCardName } from "../../state/seatVisibility.js";
 import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { catalogCardNames } from "../cardNames.js";
 import {
@@ -739,7 +740,7 @@ export function applyOtherKinds(
         chooser: "runner",
         options: iceIds.map((id) => ({
           id: `tinker:${id}`,
-          label: `${state.cards[id]!.title} gains ${subtypes.join(", ")} until end of turn`,
+          label: `Give ${openCardName(state, id, "runner")} ${subtypes.join(", ")} until end of turn`,
           effect: {
             op: "do" as const,
             action: {
@@ -1446,13 +1447,8 @@ export function applyOtherKinds(
       }
       // An unrezzed ice is named by where it is, not by its title: the
       // Runner may not see its face (CR 1.21.1, 10.2.2a).
-      const iceName = (iceId: string): string => {
-        const ice = state.cards[iceId]!;
-        if (iceFaceVisible(ice, "runner")) return ice.title;
-        const sid = serverIdForIce(state, iceId);
-        const at = sid ? state.servers[sid].ice.indexOf(iceId) + 1 : 0;
-        return `the unrezzed ice at ${sid}, position ${at} from the outermost`;
-      };
+      const iceName = (iceId: string): string =>
+        openCardName(state, iceId, "runner");
       if (pickFrom.length === 1) {
         return applyPrimitive(ctx, {
           kind: "host_program_on_ice",
@@ -1524,7 +1520,7 @@ export function applyOtherKinds(
         chooser: "runner",
         options: candidates.map((iceId) => ({
           id: `host:${iceId}`,
-          label: `Host on ${state.cards[iceId]!.title}`,
+          label: `Host on ${openCardName(state, iceId, "runner")}`,
           effect: {
             op: "do",
             action: {
@@ -1757,7 +1753,7 @@ export function applyOtherKinds(
         options: [
           {
             id: "hangeki-access",
-            label: `Access ${card.title}`,
+            label: `Access ${openCardName(state, action.cardId, "runner")}`,
             effect: {
               op: "do" as const,
               action: {
@@ -3356,7 +3352,7 @@ export function applyOtherKinds(
         chooser: "runner",
         options: targets.map((id) => ({
           id: `expose:${id}`,
-          label: `Expose ${state.cards[id]!.title}`,
+          label: `Expose ${openCardName(state, id, "runner")}`,
           effect: {
             op: "do" as const,
             action: {
@@ -3699,7 +3695,7 @@ export function applyOtherKinds(
         chooser: "runner",
         options: targets.map((id) => ({
           id: `fao:${id}`,
-          label: `Choose ${state.cards[id]!.title}`,
+          label: `Choose ${openCardName(state, id, "runner")}`,
           effect: fx.do({
             kind: "offer_forged_activation_orders_rez",
             cardId: id,
@@ -3774,7 +3770,7 @@ export function applyOtherKinds(
         chooser: "runner",
         options: others.map((iceId) => ({
           id: `rehost:${iceId}`,
-          label: `Host on ${state.cards[iceId]!.title}`,
+          label: `Host on ${openCardName(state, iceId, "runner")}`,
           effect: {
             op: "do" as const,
             action: { kind: "rehost_to_ice" as const, iceId },

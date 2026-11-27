@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is install.
  * The effect switch in eval.ts dispatches here.
  */
+import { openCardName } from "../../state/seatVisibility.js";
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
 import { revealCards } from "../../state/reveal.js";
 import {
@@ -4080,7 +4081,7 @@ export function applyInstallKinds(
           chooser: "runner",
           options: iceIds.map((iceId) => ({
             id: `muse-ice:${iceId}`,
-            label: `Host on ${state.cards[iceId]!.title}`,
+            label: `Host on ${openCardName(state, iceId, "runner")}`,
             effect: {
               op: "do" as const,
               action: {

@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is return.
  * The effect switch in eval.ts dispatches here.
  */
+import { openCardName } from "../../state/seatVisibility.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
@@ -128,7 +129,7 @@ export function applyReturnKinds(
           chooser: "runner",
           options: installed.map((id) => ({
             id: `corp-hq:${id}`,
-            label: `Add ${state.cards[id].title} to HQ`,
+            label: `Add ${openCardName(state, id, "runner")} to HQ`,
             effect: {
               op: "do" as const,
               action: {

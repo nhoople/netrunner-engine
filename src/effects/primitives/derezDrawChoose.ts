@@ -1,3 +1,4 @@
+import { openCardName } from "../../state/seatVisibility.js";
 import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { revealCards } from "../../state/reveal.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
@@ -281,7 +282,7 @@ export function applyRedsandTdPrimitive(
         chooser: "runner",
         options: candidates.map((id) => ({
           id: `forbid:${id}`,
-          label: `Cannot rez ${state.cards[id]!.title} this turn`,
+          label: `Cannot rez ${openCardName(state, id, "runner")} this turn`,
           effect: fx.do({
             kind: "forbid_rez",
             cardId: id,

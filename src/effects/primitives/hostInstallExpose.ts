@@ -1,4 +1,5 @@
 /** The Underway (uw) SanSan pack primitives. */
+import { openCardName } from "../../state/seatVisibility.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { exposeLegalTargets } from "../../state/expose.js";
@@ -126,7 +127,7 @@ export function applySansanUwPrimitive(
         // Labelled by place: the cards are facedown (CR 10.2.2a).
         options: targets.map((id) => ({
           id: `driveby:${id}`,
-          label: `Expose the card in the root of ${state.cards[id]!.zone.split(":")[1]}`,
+          label: `Expose ${openCardName(state, id, "runner")}`,
           // The expose may wait on the Corp (an interrupt, a rez first);
           // the trash follows only once it has happened.
           effect: {

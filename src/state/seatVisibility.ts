@@ -197,6 +197,58 @@ export function secretIdsFrom(state: GameState, viewer: Side): string[] {
   return [...hidden, ...hiddenCard, ...hiddenFace];
 }
 
+/** A server's name as both players read it. */
+export function serverName(serverId: string): string {
+  if (serverId === "hq") return "HQ";
+  if (serverId === "rd") return "R&D";
+  if (serverId === "archives") return "Archives";
+  return serverId.replace(/^remote-/, "Remote ");
+}
+
+/**
+ * How a choice label names a card to `viewer`: its title when the viewer
+ * may see its face, otherwise only where it is, which is open information
+ * (CR 4.6.3, 10.2.2a, 10.2.3a). An unrezzed ice is named by the server it
+ * protects and its position from the outermost (CR 4.6.9a), a facedown card
+ * in a root by its server, a facedown hosted card by its host, and a card in
+ * R&D by its place from the top (CR 4.2.3). The chooser's own cards keep their titles
+ * (CR 1.21.2a), so a Corp choice over its facedown cards still names them.
+ */
+export function openCardName(
+  state: GameState,
+  cardId: string,
+  viewer: Side,
+): string {
+  const card = state.cards[cardId];
+  if (!card) return "a card";
+  const hidden = idsHiddenNow(state, viewer);
+  if (!hidden.has(cardId)) return card.title;
+  for (const [sid, server] of Object.entries(state.servers)) {
+    const position = server.ice.indexOf(cardId);
+    if (position >= 0) {
+      return `the unrezzed ice protecting ${serverName(sid)}, position ${position + 1} from the outermost`;
+    }
+    if (server.root.includes(cardId)) {
+      const facedown = server.root.filter((id) => hidden.has(id));
+      const where = `in the root of ${serverName(sid)}`;
+      return facedown.length > 1
+        ? `facedown card ${facedown.indexOf(cardId) + 1} ${where}`
+        : `the facedown card ${where}`;
+    }
+  }
+  const host = card.hostId ? state.cards[card.hostId] : undefined;
+  if (host) {
+    const facedown = (host.hostedCardIds ?? []).filter((id) => hidden.has(id));
+    const on = `hosted on ${openCardName(state, host.id, viewer)}`;
+    return facedown.length > 1
+      ? `facedown card ${facedown.indexOf(cardId) + 1} ${on}`
+      : `a facedown card ${on}`;
+  }
+  const fromTop = state.corp.deck.indexOf(cardId);
+  if (fromTop >= 0) return `the card ${fromTop + 1} from the top of R&D`;
+  return "a hidden card";
+}
+
 /**
  * True for an installed card or a card hosted on one: where it is is open
  * information even when its face is not (CR 4.6.5, 10.2.3a).

@@ -1,4 +1,5 @@
 /** Upstalk (up) Lunar pack primitives. */
+import { openCardName } from "../../state/seatVisibility.js";
 import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { revealCards } from "../../state/reveal.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
@@ -389,7 +390,7 @@ export function applyLunarUpPrimitive(
         chooser: "runner",
         options: unrezzed.map((id) => ({
           id: `soc:${id}`,
-          label: `Choose ${state.cards[id]!.title}`,
+          label: `Choose ${openCardName(state, id, "runner")}`,
           effect: fx.do({ kind: "social_engineering_mark", iceId: id }),
         })),
       });

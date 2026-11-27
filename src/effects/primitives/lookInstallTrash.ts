@@ -1,4 +1,5 @@
 /** Intervention (in) Flashpoint pack primitives — v1.125.0. */
+import { openCardName } from "../../state/seatVisibility.js";
 import { lookAtCards } from "../../state/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
@@ -296,9 +297,9 @@ export function applyFlashpointInPrimitive(
         sourceId,
         chooser: "runner",
         options: [
-          ...ordered.map((id, i) => ({
+          ...ordered.map((id) => ({
             id: `top-hat-access:${id}`,
-            label: `Access ${state.cards[id]!.title} (top ${i + 1})`,
+            label: `Access ${openCardName(state, id, "runner")}`,
             effect: fx.do({
               kind: "top_hat_access_instead_of_breach",
               cardId: id,
