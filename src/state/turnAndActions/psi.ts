@@ -13,7 +13,7 @@ import { dealDamage } from "../damageAndPrevention/damage.js";
 import {
   hostedCreditsSpendableDuringRuns,
   subtractRunnerCreditPool,
-} from "../keywordsAndCredits/costs.js";
+} from "../keywordsAndCredits/runnerCredits.js";
 import type { GameState } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import { nextId } from "../ids.js";

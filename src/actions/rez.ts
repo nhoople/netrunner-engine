@@ -3,7 +3,7 @@
  */
 import { moveForfeitedAgendaOutOfGame } from "../state/turnAndActions/scoring.js";
 import { iceAtRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
-import { subtractRunnerCreditPool } from "../state/keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../state/setupAndEnd/createGame.js";
 import { onCardRezzed } from "../state/cardFlags/staticFlags.js";
 import { getCardDef } from "../cards/load.js";

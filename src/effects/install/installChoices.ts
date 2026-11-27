@@ -11,8 +11,8 @@ import {
   usedMemory,
   memoryLimit,
 } from "../../state/turnAndActions/turn.js";
+import { creditsAvailableForInstall } from "../../state/keywordsAndCredits/runnerCredits.js";
 import {
-  creditsAvailableForInstall,
   payInstallCost,
   installAndRezPaid,
 } from "../../state/keywordsAndCredits/costs.js";

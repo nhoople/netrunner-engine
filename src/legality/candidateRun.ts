@@ -14,8 +14,8 @@ import {
   canPayCost,
   costBeginsWithClick,
   paidAbilityOpenIn,
-  runnerAvailableCredits,
 } from "../state/keywordsAndCredits/costs.js";
+import { runnerAvailableCredits } from "../state/keywordsAndCredits/runnerCredits.js";
 import { directHostedTakeFromEmpty } from "../state/keywordsAndCredits/hostedCredits.js";
 import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import { accessLimitEndsBreach } from "../state/access/access.js";

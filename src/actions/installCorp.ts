@@ -10,9 +10,9 @@ import { runnerWinsOnEmptyRnd } from "../state/setupAndEnd/emptyRnd.js";
 import { evalEffect } from "../effects/eval.js";
 import {
   corpInstallCost,
-  creditsAvailableForInstall,
   payInstallCost,
 } from "../state/keywordsAndCredits/costs.js";
+import { creditsAvailableForInstall } from "../state/keywordsAndCredits/runnerCredits.js";
 import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import { noteStoredConditional } from "../state/triggers/storedConditionalHooks.js";
 import { noteInstalledThisTurn } from "../state/install/programHardwareInstall.js";

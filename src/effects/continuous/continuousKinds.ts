@@ -17,7 +17,7 @@ import { type Effect, type Primitive, fx } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { iceStrengthCannotBeLowered } from "../../cards/stubs.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   addBreakerStrengthBoostThisEncounter,

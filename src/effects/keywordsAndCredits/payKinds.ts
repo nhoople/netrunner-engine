@@ -8,7 +8,7 @@ import {
   subtractRunnerCreditPool,
   hostedCreditsSpendableDuringRuns,
   spendHostedCreditsDuringRuns,
-} from "../../state/keywordsAndCredits/costs.js";
+} from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../../state/keywordsAndCredits/corpCausedCreditLoss.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

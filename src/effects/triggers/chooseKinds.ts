@@ -5,10 +5,8 @@
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
-import {
-  corpInstallCost,
-  creditsAvailableForInstall,
-} from "../../state/keywordsAndCredits/costs.js";
+import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
+import { creditsAvailableForInstall } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

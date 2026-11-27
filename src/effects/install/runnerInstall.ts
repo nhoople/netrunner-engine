@@ -8,9 +8,9 @@ import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import {
   creditsAvailableForInstall,
-  payInstallCost,
   subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
+} from "../../state/keywordsAndCredits/runnerCredits.js";
+import { payInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,

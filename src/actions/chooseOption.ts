@@ -48,8 +48,8 @@ import {
   operationAndEventPlayCostIncreaseTotal,
   releaseSetAsideHostedCards,
   returnSetAsideAdvancements,
-  activeCreditLockEvent,
 } from "../state/keywordsAndCredits/costs.js";
+import { activeCreditLockEvent } from "../state/keywordsAndCredits/runnerCredits.js";
 import { forfeitSpecificAgenda, rezIce } from "./rez.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import {

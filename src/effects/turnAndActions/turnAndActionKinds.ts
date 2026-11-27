@@ -31,7 +31,7 @@ import { playEffectFromCard } from "../abilityRecord.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { placeCurrentAfterPlay } from "../../state/continuous/currents.js";
 import { markAbilityUsed } from "../../state/turnAndActions/turn.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { random } from "../../state/rng.js";
 import type { GameState } from "../../state/types.js";
 

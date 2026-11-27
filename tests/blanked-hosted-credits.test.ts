@@ -17,7 +17,7 @@ import {
   creditsAvailableForInstall,
   hostedCreditsSpendableToUseProgramsDuringRuns,
   spendHostedCreditsDuringRuns,
-} from "../src/state/keywordsAndCredits/costs.js";
+} from "../src/state/keywordsAndCredits/runnerCredits.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

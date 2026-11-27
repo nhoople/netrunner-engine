@@ -9,7 +9,7 @@ import type { Effect, Primitive } from "../ir.js";
 import {
   creditsAvailableForInstall,
   subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
+} from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { noteInstalledThisTurn } from "../../state/install/programHardwareInstall.js";

@@ -21,7 +21,7 @@ import { applyEncounterPrimitive } from "./encounterPrimitives.js";
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { revealCards } from "../../state/visibility/reveal.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { addCompileInstalledToBottom } from "../install/runnerInstallFromOtherZonesKinds.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 

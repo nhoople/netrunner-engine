@@ -6,7 +6,7 @@ import {
   pendingTurnBeginIds,
   sweepDerezAtAnyTurnEnd,
 } from "./stepHelpers.js";
-import { refillRecurringCredits } from "../../state/keywordsAndCredits/costs.js";
+import { refillRecurringCredits } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import {
   noteCorpTenninTurnBegin,

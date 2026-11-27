@@ -22,7 +22,7 @@ import { CR } from "../../timing/labels.js";
 import { moveIce } from "../../state/uninstallAndPosition/rearrange.js";
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { rezInstalledIgnoringCosts } from "../install/corpAbilityInstall.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import type { ServerId, RuleCite, GameState } from "../../state/types.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";

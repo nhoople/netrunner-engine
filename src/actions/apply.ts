@@ -51,10 +51,12 @@ import {
   basicTrashResourceCreditCost,
   basicRemoveTagCreditCost,
   wirelessNetPavilionExtra,
+} from "../state/keywordsAndCredits/costs.js";
+import {
   runnerCreditsFor,
   spendRunnerCreditsFor,
   subtractRunnerCreditPool,
-} from "../state/keywordsAndCredits/costs.js";
+} from "../state/keywordsAndCredits/runnerCredits.js";
 import {
   acceptPendingDamage,
   preventPendingDamage,

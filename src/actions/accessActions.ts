@@ -43,9 +43,8 @@ import {
   subtractRunnerCreditPool,
   runnerCreditsFor,
   spendRunnerCreditsFor,
-  canPayCost,
-  payCost,
-} from "../state/keywordsAndCredits/costs.js";
+} from "../state/keywordsAndCredits/runnerCredits.js";
+import { canPayCost, payCost } from "../state/keywordsAndCredits/costs.js";
 import { evalEffect } from "../effects/eval.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";

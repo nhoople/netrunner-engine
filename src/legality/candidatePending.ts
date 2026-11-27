@@ -1,11 +1,8 @@
 import { trashInterruptRelevant } from "../state/hostingAndTrash/trashPrevent.js";
 import type { Action, GameState } from "../state/types.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
-import {
-  abilityCost,
-  canPayCost,
-  runnerCreditsFor,
-} from "../state/keywordsAndCredits/costs.js";
+import { abilityCost, canPayCost } from "../state/keywordsAndCredits/costs.js";
+import { runnerCreditsFor } from "../state/keywordsAndCredits/runnerCredits.js";
 import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,

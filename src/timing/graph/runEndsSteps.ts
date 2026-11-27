@@ -37,7 +37,7 @@ import {
 } from "../../state/triggers/pendingAbilities.js";
 import { CR } from "../labels.js";
 import { firstDecl } from "../../state/continuous/continuousSubs.js";
-import { activeCreditLockEvent } from "../../state/keywordsAndCredits/costs.js";
+import { activeCreditLockEvent } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import type { TimingStepDef } from "../graph.js";

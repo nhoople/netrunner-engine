@@ -12,13 +12,15 @@ import {
   canPayCost,
   corpInstallCost,
   costBeginsWithClick,
-  creditsAvailableForInstall,
-  runnerCreditsFor,
-  runnerAvailableCredits,
   effectiveEventPlayCost,
   effectiveOperationExtraClicks,
   wirelessNetPavilionExtra,
 } from "../state/keywordsAndCredits/costs.js";
+import {
+  creditsAvailableForInstall,
+  runnerCreditsFor,
+  runnerAvailableCredits,
+} from "../state/keywordsAndCredits/runnerCredits.js";
 import { runnerInstallCost } from "../actions/installRunner.js";
 import { eventClicksToPlay } from "../actions/play.js";
 import {

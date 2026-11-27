@@ -25,7 +25,7 @@ import {
 } from "../eval.js";
 import { fireAfterBreakSubroutineHooks } from "./breakAndPlayHooks.js";
 import { iceStrength } from "../continuous/iceStrength.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/runnerCredits.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { noteInlineConditional } from "../../state/triggers/inlineConditionalHooks.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";

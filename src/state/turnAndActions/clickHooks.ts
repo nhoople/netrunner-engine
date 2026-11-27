@@ -4,7 +4,7 @@
  */
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
-import { emptyRunnerCreditPool } from "../keywordsAndCredits/costs.js";
+import { emptyRunnerCreditPool } from "../keywordsAndCredits/runnerCredits.js";
 import type { GameState } from "../types.js";
 import { fireRunnerValTrigger } from "../../effects/triggers/firstTimeEachTurnTriggers.js";
 

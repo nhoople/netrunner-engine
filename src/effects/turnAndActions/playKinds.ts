@@ -4,11 +4,11 @@
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
+import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import {
-  corpInstallCost,
   creditsAvailableForInstall,
   subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
+} from "../../state/keywordsAndCredits/runnerCredits.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../../state/setupAndEnd/identityFlipHooks.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
