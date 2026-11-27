@@ -155,7 +155,8 @@ src/                 # index.ts: the package entry; cli.ts: the development host
   cr/                # reads the pinned CR data in vendor/cr-data/
   debug/             # hooks tests set: invariants after each action, timing steps, legality agreement
   demo/              # scripted games and test drivers for the demos
-  effects/           # ir.ts: Effect IR kinds and types; eval.ts: the evaluator; shared rules (credits, damage, tags, runs, counters, …)
+  effects/           # eval.ts: the evaluator; ir.ts: points to ir/; shared rules (credits, damage, tags, runs, counters, …)
+    ir/              # the Effect IR types: one Primitive file per kind family (matching kinds/), conditions, effect tree, known kinds, fx builders, validation
     kinds/           # one file per procedure in the kind switch
     primitives/      # printed procedures grouped by verb, not by pack
   legality/          # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries

@@ -12,7 +12,7 @@
  * CR 8.7.1: the player searching a zone looks at all the cards in it.
  * CR 1.15.2: a player chooses the cards their instruction names.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   applyAction,
@@ -389,9 +389,15 @@ describe("every look and search kind", () => {
   const kinds = [
     ...new Set(
       [
-        ...readFileSync("src/effects/ir.ts", "utf8").matchAll(
-          /"((?:look|search)_[a-z0-9_]+)"/g,
-        ),
+        ...[
+          "src/effects/ir.ts",
+          ...readdirSync("src/effects/ir")
+            .filter((f) => f.endsWith(".ts"))
+            .map((f) => `src/effects/ir/${f}`),
+        ]
+          .map((f) => readFileSync(f, "utf8"))
+          .join("\n")
+          .matchAll(/"((?:look|search)_[a-z0-9_]+)"/g),
       ].map((match) => match[1]!),
     ),
   ];
