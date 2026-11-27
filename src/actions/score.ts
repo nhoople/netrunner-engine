@@ -24,7 +24,7 @@ import {
   effectiveAdvancementRequirement,
   scoreAgenda,
 } from "../state/scoring.js";
-import { syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
+import { syncGainsSubroutinesPerAdvancement } from "../state/counters/powerCounters.js";
 import {
   applyAdvanceIceRecurringTowardAdvance,
   applyAdvanceThisServerRecurringTowardAdvance,
@@ -39,7 +39,7 @@ import type {
   ServerId,
 } from "../state/types.js";
 import { fx } from "../effects/ir.js";
-import { mayAdvanceInstalledCard } from "../state/advanceable.js";
+import { mayAdvanceInstalledCard } from "../state/counters/advanceable.js";
 import { CR } from "../timing/labels.js";
 import { spendClick } from "./spendClick.js";
 import {

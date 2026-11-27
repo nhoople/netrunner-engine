@@ -42,7 +42,7 @@ import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { hasActiveLockdown } from "../state/continuous/lockdowns.js";
 import { corpMayScore } from "../cards/stubs.js";
 import { corpIceInstallBlockReason } from "../state/cardFlags/staticFlags.js";
-import { mayAdvanceInstalledCard } from "../state/advanceable.js";
+import { mayAdvanceInstalledCard } from "../state/counters/advanceable.js";
 import { isForbidden } from "./checkpoints.js";
 import type { TimingStepDef } from "../timing/graph.js";
 import { hasAbilityFlag } from "../effects/abilityRecord.js";

@@ -10,7 +10,7 @@ import {
   removeLingeringEffectsOfKind,
 } from "./continuous/lingeringEffects.js";
 import { openPendingChoose } from "./triggers/pendingChoice.js";
-import { maybeFirePowerCountersGte } from "./powerCounters.js";
+import { maybeFirePowerCountersGte } from "./counters/powerCounters.js";
 import { random } from "./rng.js";
 import type {
   CentralServerId,

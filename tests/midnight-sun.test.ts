@@ -58,7 +58,7 @@ import { isCoreDamageType } from "../src/state/damage.js";
 import {
   firePowerOnHarmonicIceRez,
   syncEtrPerPowerCounterSubs,
-} from "../src/state/powerCounters.js";
+} from "../src/state/counters/powerCounters.js";
 import { purgeVirusCounters } from "../src/state/trashHooks.js";
 import { beginCorpTurnFlags } from "../src/state/turn.js";
 import { noteInstalledCardCreditSpend } from "../src/state/costs.js";

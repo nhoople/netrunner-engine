@@ -1,5 +1,5 @@
 /** Old Hollywood (oh) SanSan pack primitives. */
-import { printsCanBeAdvanced } from "../../state/advanceable.js";
+import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";

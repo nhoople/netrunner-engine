@@ -20,7 +20,7 @@ import {
   noteProgramOrHardwareInstalled,
 } from "../state/install/programHardwareInstall.js";
 
-import { syncGainsSubroutinesPerAdvancement } from "../state/powerCounters.js";
+import { syncGainsSubroutinesPerAdvancement } from "../state/counters/powerCounters.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 
 import {

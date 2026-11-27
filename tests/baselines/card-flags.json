@@ -2296,10 +2296,10 @@
           "kinds": []
         },
         {
-          "site": "src/state/advanceable.ts#printsCanBeAdvanced",
+          "site": "src/state/counters/advanceable.ts#printsCanBeAdvanced",
           "kinds": [],
           "mirrors": [
-            "src/state/advanceable.ts#{card}"
+            "src/state/counters/advanceable.ts#{card}"
           ]
         }
       ],
@@ -2320,7 +2320,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/advanceable.ts#mayAdvanceInstalledCard",
+          "site": "src/state/counters/advanceable.ts#mayAdvanceInstalledCard",
           "kinds": []
         }
       ],
@@ -2887,7 +2887,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/powerCounters.ts#syncGainsSubroutinesPerAdvancement",
+          "site": "src/state/counters/powerCounters.ts#syncGainsSubroutinesPerAdvancement",
           "kinds": []
         }
       ],
@@ -3987,7 +3987,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/powerCounters.ts#syncNextSubtypeEtrSubs",
+          "site": "src/state/counters/powerCounters.ts#syncNextSubtypeEtrSubs",
           "kinds": []
         },
         {
@@ -4059,7 +4059,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/powerCounters.ts#syncEtrPerPowerCounterSubs",
+          "site": "src/state/counters/powerCounters.ts#syncEtrPerPowerCounterSubs",
           "kinds": [
             "end_the_run"
           ]
@@ -5909,7 +5909,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
+          "site": "src/state/counters/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
           "kinds": []
         }
       ],
@@ -6777,15 +6777,15 @@
           "kinds": []
         },
         {
+          "site": "src/state/counters/powerCounters.ts#syncEtrPerPowerCounterSubs",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#syncNextSubtypeEtrSubs",
+          "kinds": []
+        },
+        {
           "site": "src/state/damage.ts#resolveDamage",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#syncEtrPerPowerCounterSubs",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#syncNextSubtypeEtrSubs",
           "kinds": []
         },
         {
@@ -12394,7 +12394,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/powerCounters.ts#maybeFirePowerCountersGte",
+          "site": "src/state/counters/powerCounters.ts#maybeFirePowerCountersGte",
           "kinds": []
         }
       ],
@@ -15716,7 +15716,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/powerCounters.ts#firePowerCounterOnAnyCardRez",
+          "site": "src/state/counters/powerCounters.ts#firePowerCounterOnAnyCardRez",
           "kinds": []
         }
       ],
@@ -15735,7 +15735,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/powerCounters.ts#firePowerCounterOnAnyCorpInstall",
+          "site": "src/state/counters/powerCounters.ts#firePowerCounterOnAnyCorpInstall",
           "kinds": []
         }
       ],
@@ -15777,7 +15777,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/powerCounters.ts#firePowerOnHarmonicIceRez",
+          "site": "src/state/counters/powerCounters.ts#firePowerOnHarmonicIceRez",
           "kinds": []
         }
       ],
@@ -18443,6 +18443,18 @@
           "kinds": []
         },
         {
+          "site": "src/state/counters/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#firePowerCounterOnAnyCardRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#firePowerCounterOnAnyCorpInstall",
+          "kinds": []
+        },
+        {
           "site": "src/state/damage.ts#resolveDamage",
           "kinds": []
         },
@@ -18456,18 +18468,6 @@
         },
         {
           "site": "src/state/install/programHardwareInstall.ts#noteInstalledThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#firePowerCounterOnAnyCardRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#firePowerCounterOnAnyCorpInstall",
           "kinds": []
         },
         {
@@ -19801,15 +19801,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/powerCounters.ts#syncEtrPerPowerCounterSubs",
+          "site": "src/state/counters/powerCounters.ts#syncEtrPerPowerCounterSubs",
           "kinds": []
         },
         {
-          "site": "src/state/powerCounters.ts#syncGainsSubroutinesPerAdvancement",
+          "site": "src/state/counters/powerCounters.ts#syncGainsSubroutinesPerAdvancement",
           "kinds": []
         },
         {
-          "site": "src/state/powerCounters.ts#syncNextSubtypeEtrSubs",
+          "site": "src/state/counters/powerCounters.ts#syncNextSubtypeEtrSubs",
           "kinds": []
         },
         {
@@ -20478,6 +20478,14 @@
           "kinds": []
         },
         {
+          "site": "src/state/counters/powerCounters.ts#firePowerOnHarmonicIceRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#syncNextSubtypeEtrSubs",
+          "kinds": []
+        },
+        {
           "site": "src/state/damage.ts#chromeParlorPreventsInstallDamage",
           "kinds": []
         },
@@ -20503,14 +20511,6 @@
         },
         {
           "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#firePowerOnHarmonicIceRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#syncNextSubtypeEtrSubs",
           "kinds": []
         },
         {
@@ -22285,6 +22285,26 @@
           "kinds": []
         },
         {
+          "site": "src/state/counters/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#firePowerCounterOnAnyCardRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#firePowerCounterOnAnyCorpInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#firePowerOnHarmonicIceRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#maybeFirePowerCountersGte",
+          "kinds": []
+        },
+        {
           "site": "src/state/createGame.ts#fireOnGameStartSetup",
           "kinds": []
         },
@@ -22402,26 +22422,6 @@
         },
         {
           "site": "src/state/phaseEndHooks.ts#noteRunnerActionPhaseEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#firePowerCounterOnAnyCardRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#firePowerCounterOnAnyCorpInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#firePowerOnHarmonicIceRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#maybeFirePowerCountersGte",
           "kinds": []
         },
         {
@@ -24204,10 +24204,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/advanceable.ts#mayAdvanceInstalledCard",
-          "kinds": []
-        },
-        {
           "site": "src/state/badPublicityHooks.ts#fireFirstBadPublicityTake",
           "kinds": []
         },
@@ -24355,6 +24351,14 @@
           "kinds": []
         },
         {
+          "site": "src/state/counters/advanceable.ts#mayAdvanceInstalledCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/counters/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
+          "kinds": []
+        },
+        {
           "site": "src/state/damage.ts#chromeParlorPreventsInstallDamage",
           "kinds": []
         },
@@ -24396,10 +24400,6 @@
         },
         {
           "site": "src/state/install/virusInstall.ts#noteVirusProgramInstalled",
-          "kinds": []
-        },
-        {
-          "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
           "kinds": []
         },
         {

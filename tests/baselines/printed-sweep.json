@@ -3935,7 +3935,7 @@
     "echo": {
       "cycle": "borealis",
       "result": "matches",
-      "note": "Power counter whenever harmonic ice is rezzed; gains one ETR subroutine per counter (src/state/powerCounters.ts)."
+      "note": "Power counter whenever harmonic ice is rezzed; gains one ETR subroutine per counter (src/state/counters/powerCounters.ts)."
     },
     "echo-chamber": {
       "cycle": "kitara",
@@ -4268,7 +4268,7 @@
     "envelopment": {
       "cycle": "borealis",
       "result": "matches",
-      "note": "4 power counters on rez; remove 1 at turn begin; one ETR per counter before the printed subroutine (src/state/powerCounters.ts prepends them); trash this ice."
+      "note": "4 power counters on rez; remove 1 at turn begin; one ETR per counter before the printed subroutine (src/state/counters/powerCounters.ts prepends them); trash this ice."
     },
     "environmental-testing": {
       "cycle": "borealis",
