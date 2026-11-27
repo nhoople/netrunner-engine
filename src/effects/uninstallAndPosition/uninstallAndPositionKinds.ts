@@ -26,9 +26,9 @@ import {
 } from "../../state/uninstallAndPosition/rearrange.js";
 import { fx, type Primitive } from "../ir.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
-import { serverIdForCard } from "../primitives/gainMoveMark.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
+import { serverIdForCard } from "../counters/counterKinds.js";
 
 function addInstalledToGrip(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];

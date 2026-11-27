@@ -10,25 +10,6 @@ import type { RuleCite } from "../../state/types.js";
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-export function installedCorpCards(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of [...server.root, ...server.ice]) {
-      if (state.cards[id]) out.push(id);
-    }
-  }
-  return out;
-}
-
-export function canAdvance(state: EffectCtx["state"], cardId: string): boolean {
-  const c = state.cards[cardId];
-  if (!c) return false;
-  if (c.type === "agenda") return true;
-  if (c.canAdvance) return true;
-  const def = c.defId ? getCardDef(c.defId) : undefined;
-  return Boolean(def?.canAdvance);
-}
-
 export function applyRedsandEasPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -167,74 +148,6 @@ export function applyRedsandEasPrimitive(
             kind: "bamboo_dome_order_rest",
             ordered: [...ordered, id],
             remaining: remaining.filter((x) => x !== id),
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "place_one_then_choose": {
-      const first = action.cardId;
-      if (first && state.cards[first]) {
-        state.cards[first]!.advancementCounters =
-          (state.cards[first]!.advancementCounters ?? 0) + 1;
-        log(
-          state,
-          `Audacity — place 1 advancement on ${state.cards[first]!.title}.`,
-        );
-      }
-      const advanceable = installedCorpCards(state).filter((id) =>
-        canAdvance(state, id),
-      );
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: advanceable.map((id) => ({
-          id: `adv:${id}`,
-          label: `Place 1 advancement on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "place_advancements_on",
-            cardId: id,
-            amount: 1,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "move_all_advancements": {
-      const withAdv = installedCorpCards(state).filter(
-        (id) => (state.cards[id]?.advancementCounters ?? 0) > 0,
-      );
-      let total = 0;
-      for (const id of withAdv) {
-        total += state.cards[id]!.advancementCounters ?? 0;
-        state.cards[id]!.advancementCounters = 0;
-      }
-      if (total === 0) {
-        log(state, `Red Planet Couriers — no advancement counters.`);
-        return { ok: true };
-      }
-      const targets = installedCorpCards(state).filter((id) =>
-        canAdvance(state, id),
-      );
-      if (targets.length === 0) {
-        log(
-          state,
-          `Red Planet Couriers — no advanceable target; counters lost.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `move:${id}`,
-          label: `Move ${total} advancements onto ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "place_advancements_on",
-            cardId: id,
-            amount: total,
           }),
         })),
       });

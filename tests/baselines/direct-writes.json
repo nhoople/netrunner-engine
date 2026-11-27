@@ -87,8 +87,18 @@
       "rezzed": 1,
       "zone": 2
     },
-    "src/effects/counterPrimitives.ts": {
+    "src/effects/counters/counterKinds.ts": {
+      "deck": 1
+    },
+    "src/effects/counters/counterPrimitives.ts": {
       "rezzed": 1
+    },
+    "src/effects/counters/placeKinds.ts": {
+      "deck": 2,
+      "discardPile": 1,
+      "hand": 2,
+      "root": 1,
+      "zone": 2
     },
     "src/effects/damageAndPrevention/damageAndPreventionKinds.ts": {
       "deck": 2,
@@ -230,13 +240,6 @@
       "scoreArea": 3,
       "zone": 13
     },
-    "src/effects/kinds/placeKinds.ts": {
-      "deck": 2,
-      "discardPile": 1,
-      "hand": 2,
-      "root": 1,
-      "zone": 2
-    },
     "src/effects/kinds/playKinds.ts": {
       "discardPile": 2
     },
@@ -303,7 +306,7 @@
       "zone": 2
     },
     "src/effects/primitives/moveSearchInstall.ts": {
-      "deck": 4,
+      "deck": 3,
       "discardPile": 2,
       "hand": 4,
       "zone": 4

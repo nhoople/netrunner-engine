@@ -1,7 +1,6 @@
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { revealCards } from "../../state/visibility/reveal.js";
-import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
@@ -112,37 +111,6 @@ export function applyRedsandDcPrimitive(
           ? `Reveal ${card.title} and add it from Archives to HQ (CR ${CR.reveal.number}).`
           : `${state.cards[sourceId]?.title ?? sourceId} — add a card from Archives to HQ.`,
       );
-      return { ok: true };
-    }
-
-    case "place_advancements_on_forfeit": {
-      const ap = action.agendaPoints ?? state.lastForfeitedAgendaPoints ?? 0;
-      const x = ap + 1;
-      if (x <= 0) return { ok: true };
-      const targets = Object.values(state.cards).filter((c) => {
-        if (c.side !== "corp") return false;
-        // Installed Corp cards live at server:<id>:ice|root (see corpInstall);
-        // Jemison places the counters on a card that can be advanced (CR 1.18.3).
-        if (!c.zone.startsWith("server:")) return false;
-        return mayAdvanceInstalledCard(c);
-      });
-      if (targets.length === 0) {
-        log(state, `Jemison — no installed card for advancements.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((c) => ({
-          id: `adv:${c.id}`,
-          label: `Place ${x} advancement(s) on ${c.title}`,
-          effect: fx.do({
-            kind: "place_advancements_on",
-            cardId: c.id,
-            amount: x,
-          }),
-        })),
-      });
       return { ok: true };
     }
 

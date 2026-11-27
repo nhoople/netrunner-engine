@@ -2,46 +2,16 @@ import { effectiveCorpMaxHandSize } from "../../state/continuous/handSize.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { noteCorpSpentAgendaCounters } from "../../state/keywordsAndCredits/costs.js";
-import { dealDamage } from "../../state/damageAndPrevention/damage.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-export function serverIdForCard(
-  state: EffectCtx["state"],
-  cardId: string,
-): ServerId | null {
-  const zone = state.cards[cardId]?.zone ?? "";
-  if (!zone.startsWith("server:")) return null;
-  const parts = zone.split(":");
-  return (parts[1] as ServerId) ?? null;
-}
-
-function installedIceIds(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) out.push(id);
-  }
-  return out;
-}
-
-function advanceableInstalled(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of [...server.root, ...server.ice]) {
-      const c = state.cards[id];
-      if (c?.side === "corp" && c.canAdvance) out.push(id);
-    }
-  }
-  return out;
-}
 
 export function applyOacPrimitive(
   ctx: EffectCtx,
@@ -51,84 +21,9 @@ export function applyOacPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "firmware_place_advancement_on_advanceable_ice": {
-      const cands = installedIceIds(state).filter(
-        (id) => state.cards[id]?.canAdvance,
-      );
-      if (cands.length === 0) {
-        log(state, `Firmware Updates — no advanceable ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: cands.map((id) => ({
-          id: `fw:${id}`,
-          label: `Place 1 advancement on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "place_advancements_on",
-            cardId: id,
-            amount: 1,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "gain_credits_equal_to_runner_credits": {
       const n = state.runner.credits;
       return grantAbilityCredits(ctx, "corp", n);
-    }
-
-    case "move_constellation_advancement_between_ice": {
-      const from = installedIceIds(state).filter(
-        (id) => (state.cards[id]?.advancementCounters ?? 0) > 0,
-      );
-      const to = installedIceIds(state).filter(
-        (id) => state.cards[id]?.canAdvance,
-      );
-      if (from.length === 0 || to.length === 0) {
-        log(state, `Constellation Protocol — no valid ice.`);
-        return { ok: true };
-      }
-      const opts: { id: string; label: string; effect: Effect }[] = [];
-      for (const a of from) {
-        for (const b of to) {
-          if (a === b) continue;
-          opts.push({
-            id: `const:${a}:${b}`,
-            label: `Move advancement ${state.cards[a]!.title} → ${state.cards[b]!.title}`,
-            effect: fx.do({
-              kind: "move_constellation_apply",
-              fromId: a,
-              toId: b,
-            }),
-          });
-        }
-      }
-      if (opts.length === 0) {
-        log(state, `Constellation Protocol — no distinct targets.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
-      return { ok: true };
-    }
-
-    case "move_constellation_apply": {
-      const fromId = (action as { fromId: string }).fromId;
-      const toId = (action as { toId: string }).toId;
-      const from = state.cards[fromId];
-      const to = state.cards[toId];
-      if (!from || !to || (from.advancementCounters ?? 0) < 1) {
-        return { ok: false, error: "Constellation move invalid.", cites: [] };
-      }
-      from.advancementCounters = (from.advancementCounters ?? 0) - 1;
-      to.advancementCounters = (to.advancementCounters ?? 0) + 1;
-      log(
-        state,
-        `Constellation Protocol — move advancement ${from.title} → ${to.title}.`,
-      );
-      return { ok: true };
     }
 
     case "mark_yale_spend_any_agenda_counter_gain_2": {
@@ -169,54 +64,6 @@ export function applyOacPrimitive(
       state.corp.credits += 2;
       noteCorpSpentAgendaCounters(state, 1);
       log(state, `Mark Yale — spend agenda counter on ${card.title}; gain 2¢.`);
-      return { ok: true };
-    }
-
-    case "place_advancement_on_advanceable_installed": {
-      const cands = advanceableInstalled(state);
-      if (cands.length === 0) {
-        log(state, `Space Camp — no advanceable installed card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: cands.map((id) => ({
-          id: `sc:${id}`,
-          label: `Place 1 advancement on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "place_advancements_on",
-            cardId: id,
-            amount: 1,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "place_advancement_on_advanceable_ice_protecting_this_server": {
-      const sid = serverIdForCard(state, sourceId);
-      if (!sid) return { ok: true };
-      const cands = (state.servers[sid]?.ice ?? []).filter(
-        (id) => state.cards[id]?.canAdvance,
-      );
-      if (cands.length === 0) {
-        log(state, `Builder — no advanceable ice on this server.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: cands.map((id) => ({
-          id: `badv:${id}`,
-          label: `Place 1 advancement on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "place_advancements_on",
-            cardId: id,
-            amount: 1,
-          }),
-        })),
-      });
       return { ok: true };
     }
 
@@ -265,56 +112,6 @@ export function applyOacPrimitive(
         .lastScoredOrStolenAgendaId;
       const pts = agendaId ? (state.cards[agendaId]?.agendaPoints ?? 0) : 0;
       return grantAbilityCredits(ctx, "runner", pts);
-    }
-
-    case "stim_dealer_turn_begin": {
-      const power = source?.powerCounters ?? 0;
-      if (power >= 2) {
-        source!.powerCounters = 0;
-        dealDamage(state, "core", 1, sourceId, { cannotPrevent: true });
-        log(state, `Stim Dealer — remove power; suffer 1 unpreventable core.`);
-      } else {
-        source!.powerCounters = power + 1;
-        state.runner.clicks += 1;
-        log(state, `Stim Dealer — place power; gain [click].`);
-      }
-      return { ok: true };
-    }
-
-    case "move_counter": {
-      if ((source?.virusCounters ?? 0) < 1) {
-        log(state, `Virus Breeding Ground — no virus counters.`);
-        return { ok: true };
-      }
-      const cands = state.runner.installed.filter(
-        (id) => id !== sourceId && (state.cards[id]?.virusCounters ?? 0) >= 1,
-      );
-      if (cands.length === 0) {
-        log(state, `Virus Breeding Ground — no other card with virus.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: cands.map((id) => ({
-          id: `vbg:${id}`,
-          label: `Move virus to ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "move_vbg_apply", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "move_vbg_apply": {
-      const cardId = (action as { cardId: string }).cardId;
-      if ((source?.virusCounters ?? 0) < 1) {
-        return { ok: false, error: "No virus to move.", cites: [] };
-      }
-      source!.virusCounters = (source!.virusCounters ?? 0) - 1;
-      const t = state.cards[cardId]!;
-      t.virusCounters = (t.virusCounters ?? 0) + 1;
-      log(state, `Virus Breeding Ground — move virus to ${t.title}.`);
-      return { ok: true };
     }
 
     case "lose_qianju_click_prevent_tag_until_next_turn": {

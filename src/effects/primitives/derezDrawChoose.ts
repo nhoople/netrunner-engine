@@ -8,11 +8,6 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
-import {
-  programUseRecurringCreditsAvailable,
-  spendProgramUseRecurringCredits,
-  subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
@@ -75,53 +70,6 @@ export function applyRedsandTdPrimitive(
         options,
         logLine: `SYN Attack — Corp must discard 2 or draw 4.`,
       });
-      return { ok: true };
-    }
-
-    case "spend_credits_place_power_counters": {
-      const title = source?.title ?? sourceId;
-      // A program's own ability: credits for using programs may pay it
-      // (CR 1.10.3c: Cyberfeeder pays for Atman's first ability; Mammon).
-      const useRecurring =
-        action.includeProgramRecurring ?? source?.type === "program";
-      const recurring = useRecurring
-        ? programUseRecurringCreditsAvailable(state)
-        : 0;
-      const max = Math.max(0, state.runner.credits) + recurring;
-      if (typeof action.amount === "number") {
-        const n = Math.min(action.amount, max);
-        if (n <= 0 || !source) return { ok: true };
-        const fromRecurring = useRecurring
-          ? spendProgramUseRecurringCredits(state, n)
-          : 0;
-        subtractRunnerCreditPool(state, n - fromRecurring);
-        source.powerCounters = (source.powerCounters ?? 0) + n;
-        log(state, `${title} — spend ${n}¢ for ${n} power counter(s).`);
-        return { ok: true };
-      }
-      if (max <= 0 || !source) {
-        log(state, `${title} — no credits to spend.`);
-        return { ok: true };
-      }
-      // "You may spend any number": 0 is a choice (CR 9.6.9c).
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (let n = 1; n <= max; n++) {
-        options.push({
-          id: `spend-power:${n}`,
-          label: `Spend ${n}¢ → place ${n} power`,
-          effect: fx.do({
-            kind: "spend_credits_place_power_counters",
-            amount: n,
-            includeProgramRecurring: useRecurring,
-          }),
-        });
-      }
-      options.push({
-        id: "spend-power:0",
-        label: "Spend nothing",
-        effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-      });
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
       return { ok: true };
     }
 

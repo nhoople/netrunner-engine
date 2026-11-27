@@ -97,7 +97,7 @@ import { applyRedsandEasPrimitive } from "./primitives/trashResolveDerez.js";
 import { applyRedsandBawPrimitive } from "./primitives/chooseGainShuffle.js";
 import { applyRedsandFmPrimitive } from "./primitives/derezRfgTrash.js";
 import { applyRedsandCdPrimitive } from "./primitives/givePayTrash.js";
-import { applyKitaraSsPrimitive } from "./primitives/addResolveInstall.js";
+
 import { applyKitaraDtwnPrimitive } from "./primitives/gainExposeSearch.js";
 import { applyKitaraCotcPrimitive } from "./primitives/moveSearchInstall.js";
 import { applyKitaraTdatdPrimitive } from "./primitives/resolveExposePay.js";
@@ -124,7 +124,7 @@ import { applyClickPrimitive } from "./clickPrimitives.js";
 import { applyPsiPrimitive } from "./psiPrimitives.js";
 import { applyBadPublicityPrimitive } from "./badPublicityPrimitives.js";
 import { applyCorpInstallPrimitive } from "./install/corpInstall.js";
-import { applyCounterPrimitive } from "./counterPrimitives.js";
+import { applyCounterPrimitive } from "./counters/counterPrimitives.js";
 import { applyEncounterPrimitive } from "./encounterPrimitives.js";
 import { iceStrength } from "./continuous/iceStrength.js";
 import {
@@ -1790,8 +1790,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   if (redsandFm) return redsandFm;
   const redsandCd = applyRedsandCdPrimitive(ctx, action);
   if (redsandCd) return redsandCd;
-  const kitaraSs = applyKitaraSsPrimitive(ctx, action);
-  if (kitaraSs) return kitaraSs;
   const kitaraDtwn = applyKitaraDtwnPrimitive(ctx, action);
   if (kitaraDtwn) return kitaraDtwn;
   const kitaraCotc = applyKitaraCotcPrimitive(ctx, action);

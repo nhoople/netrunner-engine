@@ -2,7 +2,6 @@ import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
-import { chargeCard } from "../../state/keywordsAndCredits/keywords.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import type { EffectCtx } from "../eval.js";
@@ -16,55 +15,8 @@ export function applyLunarTsPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "helium3_place_up_to_2_power": {
-      // "a card with at least 1 power counter on it": any card, either
-      // side's, installed, scored or an identity (CR 1.2.1).
-      const cands = Object.keys(state.cards).filter(
-        (id) => (state.cards[id]!.powerCounters ?? 0) >= 1,
-      );
-      if (cands.length === 0) {
-        log(state, `Helium-3 Deposit — no card with a power counter.`);
-        return { ok: true };
-      }
-      const options: {
-        id: string;
-        label: string;
-        effect: ReturnType<typeof fx.do>;
-      }[] = [
-        {
-          id: "helium3-decline",
-          label: "Decline",
-          effect: fx.gainCredits("corp", 0),
-        },
-      ];
-      for (const id of cands) {
-        const title = state.cards[id]!.title;
-        options.push({
-          id: `helium3-1:${id}`,
-          label: `Place 1 power on ${title}`,
-          effect: fx.do({ kind: "helium3_place_n", cardId: id, amount: 1 }),
-        });
-        options.push({
-          id: `helium3-2:${id}`,
-          label: `Place 2 power on ${title}`,
-          effect: fx.do({ kind: "helium3_place_n", cardId: id, amount: 2 }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-    case "helium3_place_n": {
-      const cardId = (action as { cardId: string }).cardId;
-      const amount = (action as { amount: number }).amount;
-      for (let i = 0; i < amount; i++) {
-        const r = chargeCard(state, cardId, sourceId);
-        if (!r.ok) return r;
-      }
-      return { ok: true };
-    }
     case "trace_troll_encounter": {
       const r = autoResolveTrace(
         state,
@@ -115,55 +67,6 @@ export function applyLunarTsPrimitive(
     }
     case "trace_self_destruct_success": {
       dealDamage(state, "net", 3, sourceId);
-      return { ok: true };
-    }
-    case "move_virus_counters": {
-      const n = source?.virusCounters ?? 0;
-      // Source may already be trashed; read counters before trash if possible.
-      const viruses = state.runner.installed.filter((id) => {
-        if (id === sourceId) return false;
-        const c = state.cards[id];
-        return c?.type === "program" && (c.subtypes ?? []).includes("virus");
-      });
-      if (viruses.length === 0 || n <= 0) {
-        log(state, `Incubator — no virus counters to move or no target.`);
-        return { ok: true };
-      }
-      if (
-        !openPendingChoose(state, {
-          sourceId,
-          chooser: "runner",
-          options: viruses.map((id) => ({
-            id: `incubator-move:${id}`,
-            label: `Move ${n} virus to ${state.cards[id]!.title}`,
-            effect: fx.do({
-              kind: "move_incubator_apply",
-              cardId: id,
-              amount: n,
-            }),
-          })),
-        })
-      )
-        return { ok: true };
-      // Capture amount on turn so trash-self cost still works.
-      state.turn.incubatorMoveAmount = n;
-      return { ok: true };
-    }
-    case "move_incubator_apply": {
-      const cardId = (action as { cardId: string }).cardId;
-      const amount =
-        (action as { amount?: number }).amount ??
-        state.turn.incubatorMoveAmount ??
-        0;
-      const target = state.cards[cardId];
-      if (target) {
-        target.virusCounters = (target.virusCounters ?? 0) + amount;
-        log(
-          state,
-          `Incubator — move ${amount} virus counter(s) to ${target.title} → ${target.virusCounters}.`,
-        );
-      }
-      state.turn.incubatorMoveAmount = undefined;
       return { ok: true };
     }
     case "break_code_gate_or_barrier": {
