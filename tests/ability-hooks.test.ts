@@ -22,6 +22,8 @@ import { RESTRICTION_FIELDS } from "../src/effects/abilityRecord.js";
 import type { AbilityRecord } from "../src/effects/abilityRecord.js";
 
 const WRITERS = new Set(["abilityRecord.ts", "load.ts", "types.ts"]);
+/** The state types `types.ts` re-exports, which declare the hooks too. */
+const WRITER_DIRS = new Set([join(process.cwd(), "src/state/types")]);
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");
@@ -35,7 +37,7 @@ function walk(dir: string, out: string[]): void {
     if (name === "node_modules" || name.startsWith(".")) continue;
     const path = join(dir, name);
     if (statSync(path).isDirectory()) {
-      walk(path, out);
+      if (!WRITER_DIRS.has(path)) walk(path, out);
       continue;
     }
     if (!name.endsWith(".ts") && !name.endsWith(".tsx")) continue;

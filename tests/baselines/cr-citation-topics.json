@@ -6,8 +6,8 @@
     "src/state/cardLifecycleHooks.ts CR 9.3.7d [checkpoint]",
     "src/state/runInitiateTax.ts CR 1.16.1b [visibility]",
     "src/state/seatVisibility.ts CR 1.18 [visibility]",
-    "src/state/types.ts CR 1.16.1b [visibility]",
-    "src/state/types.ts CR 1.18.1 [visibility]",
+    "src/state/types/card.ts CR 1.16.1b [visibility]",
+    "src/state/types/publicView.ts CR 1.18.1 [visibility]",
     "src/timing/graph.ts CR 9.3.7e [position]"
   ],
   "reviewed": {
@@ -16,8 +16,8 @@
     "src/state/cardLifecycleHooks.ts CR 9.3.7d [checkpoint]": "right: 9.3.7d defines play abilities, which the function notes; the checkpoint is carried by the 8.6.7e cite. 9.7.1 would be a better companion than 10.3.1a.",
     "src/state/runInitiateTax.ts CR 1.16.1b [visibility]": "wrong: Earth Station's additional cost to run is CR 6.3.2b (with 1.16.10); 1.16.1b is unpayable costs and 4.6.8f is the remote-server limit (area 4 citation fixes).",
     "src/state/seatVisibility.ts CR 1.18 [visibility]": "partly: 1.18 is Advancing Cards at v26.03; visibility is CR 1.21 (1.21.1, 1.21.2a). 4.6 and 4.8 are right (area 4).",
-    "src/state/types.ts CR 1.16.1b [visibility]": "wrong at the Earth Station additionalRunInitiateCredits doc: CR 6.3.2b (with 1.16.10). The other 1.16.1b cite in the file (Jesminder preventFirstTagThisTurn) is right (area 4).",
-    "src/state/types.ts CR 1.18.1 [visibility]": "partly: drop 1.18.1 (advancing) from the ice-counter visibility doc; 10.2.3a stands, add 4.6.3 (area 4).",
+    "src/state/types/card.ts CR 1.16.1b [visibility]": "wrong at the Earth Station additionalRunInitiateCredits doc: CR 6.3.2b (with 1.16.10). The other 1.16.1b cite in the file (Jesminder preventFirstTagThisTurn) is right (area 4).",
+    "src/state/types/publicView.ts CR 1.18.1 [visibility]": "partly: drop 1.18.1 (advancing) from the ice-counter visibility doc; 10.2.3a stands, add 4.6.3 (area 4).",
     "src/timing/graph.ts CR 9.3.7e [position]": "right: 9.3.7e is the subroutine ability record the code refreshes from; 9.8.2/9.8.3 would add the order rule but the cite is not wrong."
   }
 }

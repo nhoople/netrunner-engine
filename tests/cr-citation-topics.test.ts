@@ -185,7 +185,7 @@ describe("CR citation topics (CR audit 1.5b)", () => {
     expect(visibility.map((c) => `${c.file} ${c.number}`).sort()).toEqual([
       "src/api/library.ts 1.18.1",
       "src/state/seatVisibility.ts 1.18",
-      "src/state/types.ts 1.18.1",
+      "src/state/types/publicView.ts 1.18.1",
     ]);
     expect(flagged.map((m) => `${m.file}:${m.line}`).sort()).toEqual(
       visibility.map((c) => `${c.file}:${c.line}`).sort(),
