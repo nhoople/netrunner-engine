@@ -1,5 +1,3 @@
-/** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
-import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import {
   markSubroutineBroken,
@@ -23,27 +21,6 @@ import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function exposeIceAndMaybeBounce(
-  state: EffectCtx["state"],
-  _sourceId: string,
-  iceId: string,
-  namedSubtype: string,
-): PrimResult {
-  const ice = state.cards[iceId];
-  if (!ice) return { ok: true };
-  ice.faceup = true;
-  log(state, `Wari — expose ${ice.title}.`);
-  const subs = (ice.subtypes ?? []).map((s) => s.toLowerCase());
-  if (!subs.includes(namedSubtype.toLowerCase())) {
-    log(state, `Wari — ${ice.title} is not ${namedSubtype}; leave installed.`);
-    return { ok: true };
-  }
-  // Bounce to HQ
-  uninstallCard(state, iceId, "hand");
-  log(state, `Wari — add ${ice.title} to HQ (${namedSubtype}).`);
-  return { ok: true };
-}
-
 export function applyKitaraDtwnPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -60,57 +37,6 @@ export function applyKitaraDtwnPrimitive(
         `${source?.title ?? "Acacia"} — gain ${n}¢ (virus counters purged) → ${state.runner.credits}¢.`,
       );
       return { ok: true };
-    }
-
-    case "dtwn_wari": {
-      // Trash self first, then name subtype + choose ice to expose.
-      trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
-      const subtypes = ["sentry", "code gate", "barrier"];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: subtypes.map((sub) => ({
-          id: `wari-sub:${sub}`,
-          label: `Name ${sub}`,
-          effect: fx.do({ kind: "dtwn_wari_name_subtype", subtype: sub }),
-        })),
-        logLine: `Wari — trash self; name sentry, code gate, or barrier.`,
-      });
-      return { ok: true };
-    }
-
-    case "dtwn_wari_name_subtype": {
-      const iceIds: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) iceIds.push(id);
-      }
-      if (iceIds.length === 0) {
-        log(state, `Wari — no ice to expose.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: iceIds.map((id) => ({
-          id: `wari-ice:${id}`,
-          label: `Expose ${openCardName(state, id, "runner")}`,
-          effect: fx.do({
-            kind: "expose_wari_resolve",
-            iceId: id,
-            subtype: action.subtype,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "expose_wari_resolve": {
-      return exposeIceAndMaybeBounce(
-        state,
-        sourceId,
-        action.iceId,
-        action.subtype,
-      );
     }
 
     case "search_kabonesa_install": {

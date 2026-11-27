@@ -1,5 +1,4 @@
 import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
-import { revealCards } from "../../state/visibility/reveal.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
 import { log } from "../../state/setupAndEnd/createGame.js";
@@ -248,49 +247,6 @@ export function applyRedsandTdPrimitive(
       }
       // Both subtypes: choose 1 sentry or up to 2 code gate — treat as 1 break for simplicity
       return breakOneSub(state, sourceId, "Savant");
-    }
-
-    case "reveal_levy_advanced_research_lab": {
-      const top = state.runner.deck.slice(0, 4);
-      if (top.length === 0) {
-        log(state, `Levy Advanced Research Lab — stack empty.`);
-        return { ok: true };
-      }
-      revealCards(state, top, sourceId);
-      const programs = top.filter((id) => state.cards[id]?.type === "program");
-      const rest = top.filter((id) => !programs.includes(id));
-      // Remove revealed from deck temporarily
-      state.runner.deck = state.runner.deck.slice(top.length);
-      if (programs.length === 0) {
-        // All to bottom in any order — put back
-        state.runner.deck.push(...top);
-        log(state, `Levy — no programs among top 4; add to bottom.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...programs.map((id) => ({
-            id: `take:${id}`,
-            label: `Add ${state.cards[id]!.title} to grip`,
-            effect: fx.do({
-              kind: "levy_take_program_rest_bottom",
-              cardId: id,
-              restIds: [...programs.filter((x) => x !== id), ...rest],
-            }),
-          })),
-          {
-            id: "decline",
-            label: "Add all to bottom",
-            effect: fx.do({
-              kind: "levy_take_program_rest_bottom",
-              restIds: top,
-            }),
-          },
-        ],
-      });
-      return { ok: true };
     }
 
     case "levy_take_program_rest_bottom": {

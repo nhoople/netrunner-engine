@@ -1,5 +1,3 @@
-/** Earth's Scion (eas) Red Sand pack primitives — v1.131.0. */
-import { revealCards } from "../../state/visibility/reveal.js";
 import {
   iceAtRunnerPosition,
   moveRunnerToOutermost,
@@ -261,29 +259,6 @@ export function applyRedsandEasPrimitive(
       return { ok: true };
     }
 
-    case "reveal_top_3": {
-      const top = state.corp.deck.slice(0, 3);
-      if (top.length === 0) {
-        log(state, `Bamboo Dome — R&D empty.`);
-        return { ok: true };
-      }
-      revealCards(state, top, sourceId);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: top.map((id) => ({
-          id: `hq:${id}`,
-          label: `Add ${state.cards[id]!.title} to HQ`,
-          effect: fx.do({
-            kind: "choose_hq",
-            cardId: id,
-            restIds: top.filter((x) => x !== id),
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "choose_hq": {
       const cardId = action.cardId;
       const rest = action.restIds ?? [];
@@ -460,45 +435,6 @@ export function applyRedsandEasPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "may_reveal_aeneas_gain_one": {
-      const cardId = action.cardId;
-      const card = cardId ? state.cards[cardId] : null;
-      if (!card) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "accept",
-            label: `Reveal ${card.title} and gain 1¢`,
-            effect: fx.do({
-              kind: "reveal_aeneas_gain_resolve",
-              cardId,
-            }),
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "reveal_aeneas_gain_resolve": {
-      const cardId = action.cardId;
-      const card = cardId ? state.cards[cardId] : null;
-      if (card) {
-        card.faceup = true;
-        revealCards(state, [card.id], sourceId);
-        log(state, `Aeneas Informant — reveal ${card.title}.`);
-      }
-      state.runner.credits += 1;
-      log(state, `Aeneas Informant — gain 1¢ → ${state.runner.credits}¢.`);
       return { ok: true };
     }
 

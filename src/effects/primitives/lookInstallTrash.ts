@@ -1,13 +1,12 @@
-import { lookAtCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite } from "../../state/types.js";
 import { grantAbilityCredits, type EffectCtx } from "../eval.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
+import { fx, type Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -20,46 +19,6 @@ export function applyFlashpointInPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "look_top_install": {
-      const n = Math.max(0, action.n ?? 10);
-      const discount = Math.max(0, action.discount ?? 5);
-      const looked = state.runner.deck.slice(0, n);
-      if (looked.length === 0) {
-        log(state, `Frantic Coding — stack empty.`);
-        return { ok: true };
-      }
-      lookAtCards(state, looked, sourceId);
-      const programs = looked.filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      const options: { id: string; label: string; effect: Effect }[] =
-        programs.map((id) => ({
-          id: `frantic-install:${id}`,
-          label: `Install ${state.cards[id]!.title} (−${discount}¢)`,
-          effect: fx.do({
-            kind: "install_resolve",
-            cardId: id,
-            lookedIds: looked,
-            discount,
-          }),
-        }));
-      options.push({
-        id: "frantic-decline",
-        label: "Decline install (trash looked cards)",
-        effect: fx.do({
-          kind: "trash_frantic_coding_looked",
-          lookedIds: looked,
-        }),
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `Frantic Coding — look at top ${looked.length}; ${programs.length} program(s).`,
-      });
-      return { ok: true };
-    }
-
     case "install_resolve": {
       const cardId = action.cardId;
       const lookedIds = action.lookedIds ?? [];

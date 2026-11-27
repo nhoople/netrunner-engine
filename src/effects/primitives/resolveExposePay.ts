@@ -1,10 +1,6 @@
-import { openCardName } from "../../state/visibility/seatVisibility.js";
-import { lookAtCards } from "../../state/visibility/reveal.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** The Devil and the Dragon (tdatd) Kitara pack primitives — v1.139.0. */
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { beginExpose } from "../../state/visibility/expose.js";
-import type { GameState, RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
@@ -12,6 +8,7 @@ import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -162,40 +159,6 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "expose_419_or_pay": {
-      const cardId = (action as { cardId: string }).cardId;
-      const cost =
-        (action as { credits?: number }).credits ??
-        state.cards[state.runner.identityId]
-          ?.mayExposeFirstCorpInstallEachTurnUnlessCorpPays ??
-        1;
-      const target = state.cards[cardId];
-      if (!target) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "pay",
-            label: `Pay ${cost}¢ to prevent expose`,
-            effect: fx.do({
-              kind: "pay_419",
-              credits: cost,
-            }),
-          },
-          {
-            id: "expose",
-            label: `Allow expose of ${target.title}`,
-            effect: fx.do({
-              kind: "expose_419",
-              cardId,
-            }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
     case "pay_419": {
       const credits = (action as { credits?: number }).credits ?? 1;
       if (state.corp.credits < credits) {
@@ -210,90 +173,6 @@ export function applyKitaraTdatdPrimitive(
         state,
         `419 — Corp pays ${credits}¢ to prevent expose → ${state.corp.credits}¢.`,
       );
-      return { ok: true };
-    }
-
-    case "expose_419": {
-      const cardId = (action as { cardId: string }).cardId;
-      beginExpose(state, cardId);
-      log(state, `419 — expose ${state.cards[cardId]?.title}.`);
-      return { ok: true };
-    }
-
-    case "tdatd_falsified_credentials": {
-      const types = ["agenda", "asset", "ice", "upgrade"];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: types.map((t) => ({
-          id: `falsified:${t}`,
-          label: `Name ${t}`,
-          effect: fx.do({
-            kind: "tdatd_falsified_set_type",
-            cardType: t,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "tdatd_falsified_set_type": {
-      const cardType = (action as { cardType: string }).cardType;
-      state.turn.tdatdFalsifiedNamedType = cardType;
-      // Expose a card in a remote server.
-      const remotes: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        if (server.kind !== "remote") continue;
-        for (const id of [...server.root, ...server.ice]) {
-          const c = state.cards[id];
-          if (c && !c.rezzed && !c.faceup) remotes.push(id);
-          else if (c && !c.rezzed) remotes.push(id);
-        }
-      }
-      // Also allow faceup/rezzed? Expose typically targets unrezzed. Prefer unrezzed.
-      const targets =
-        remotes.length > 0
-          ? remotes
-          : Object.values(state.servers)
-              .filter((s) => s.kind === "remote")
-              .flatMap((s) => [...s.root, ...s.ice]);
-      if (targets.length === 0) {
-        log(state, `Falsified Credentials — no remote card to expose.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: targets.map((id) => ({
-          id: `falsified-expose:${id}`,
-          label: `Expose ${openCardName(state, id, "runner")}`,
-          effect: fx.do({
-            kind: "expose_falsified",
-            cardId: id,
-            cardType,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "expose_falsified": {
-      const cardId = (action as { cardId: string }).cardId;
-      const cardType = (action as { cardType: string }).cardType;
-      beginExpose(state, cardId);
-      const c = state.cards[cardId];
-      if (c?.type === cardType) {
-        state.runner.credits += 5;
-        log(
-          state,
-          `Falsified Credentials — expose ${c.title} (${cardType}); gain 5¢ → ${state.runner.credits}¢.`,
-        );
-      } else {
-        log(
-          state,
-          `Falsified Credentials — expose ${c?.title}; not ${cardType}.`,
-        );
-      }
       return { ok: true };
     }
 
@@ -342,41 +221,6 @@ export function applyKitaraTdatdPrimitive(
         state,
         `Tempus — Runner loses ${lose} click(s) → ${state.runner.clicks}.`,
       );
-      return { ok: true };
-    }
-
-    case "look_sadaka_top_3": {
-      const top: string[] = [];
-      for (let i = 0; i < 3 && state.corp.deck.length > 0; i++) {
-        top.push(state.corp.deck.shift()!);
-      }
-      if (top.length === 0) {
-        log(state, `Sadaka — R&D empty.`);
-        return { ok: true };
-      }
-      lookAtCards(state, top, sourceId);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "arrange",
-            label: "Arrange them in any order",
-            effect: fx.do({
-              kind: "tdatd_sadaka_arrange",
-              cardIds: top,
-            }),
-          },
-          {
-            id: "shuffle",
-            label: "Shuffle R&D",
-            effect: fx.do({
-              kind: "shuffle_sadaka",
-              cardIds: top,
-            }),
-          },
-        ],
-      });
       return { ok: true };
     }
 
@@ -618,46 +462,4 @@ export function applyKitaraTdatdPrimitive(
     default:
       return null;
   }
-}
-
-/** 419: first Corp install each turn — Runner may expose unless Corp pays. */
-export function fireTdatd419OnFirstCorpInstall(
-  state: GameState,
-  installedId: string,
-): void {
-  if (state.turn.tdatd419FiredThisTurn) return;
-  const idCard = state.cards[state.runner.identityId];
-  const cost = idCard?.mayExposeFirstCorpInstallEachTurnUnlessCorpPays;
-  if (!cost || !idCard) return;
-  const installed = state.cards[installedId];
-  if (!installed || installed.side !== "corp") return;
-  state.turn.tdatd419FiredThisTurn = true;
-  openPendingChoose(state, {
-    sourceId: idCard.id,
-    chooser: "runner",
-    options: [
-      {
-        id: "accept",
-        label: `Expose ${openCardName(state, installedId, "runner")} unless Corp pays ${cost}¢`,
-        effect: fx.do({
-          kind: "expose_419_or_pay",
-          cardId: installedId,
-          credits: cost,
-        }),
-      },
-      {
-        id: "decline",
-        label: "Decline",
-        effect: fx.do({
-          kind: "gain_credits",
-          side: "runner",
-          amount: 0,
-        }),
-      },
-    ],
-  });
-  log(
-    state,
-    `419 — first Corp install (${installed.title}); Runner may expose unless Corp pays ${cost}¢.`,
-  );
 }

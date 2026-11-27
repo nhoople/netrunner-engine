@@ -1,5 +1,3 @@
-/** Kala Ghoda (kg) Mumbad pack primitives — v1.116.0. */
-import { lookAtCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite } from "../../state/types.js";
@@ -167,16 +165,6 @@ export function applyMumbadKgPrimitive(
         state,
         `Chatterjee University — install ${card.title} for ${cost}¢; remove 1 power.`,
       );
-      return { ok: true };
-    }
-
-    case "look_at_top_of_stack": {
-      const top = state.runner.deck[0];
-      if (!top) {
-        log(state, `${source?.title ?? "Look"} — stack empty.`);
-        return { ok: true };
-      }
-      lookAtCards(state, [top], sourceId);
       return { ok: true };
     }
 

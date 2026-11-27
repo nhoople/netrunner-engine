@@ -3,7 +3,6 @@ import {
   markSubroutineBroken,
   subroutineBreakBlock,
 } from "../../state/turnAndActions/break.js";
-import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removePendingDamageEntirely } from "../../state/damageAndPrevention/damage.js";
@@ -14,6 +13,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import { lookAtCards } from "../../state/visibility/reveal.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -297,35 +297,6 @@ export function applyKitaraCotcPrimitive(
 
     case "trace_white_hat": {
       return applyKitaraCotcPrimitive(ctx, { kind: "cotc_white_hat" });
-    }
-
-    case "reveal_white_hat": {
-      revealCards(state, state.corp.hand, sourceId);
-      log(state, `White Hat — reveal all cards in HQ.`);
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) return { ok: true };
-      const opts: { id: string; label: string; effect: Effect }[] = hq.map(
-        (id) => ({
-          id: `wh-shuffle:${id}`,
-          label: `Shuffle ${state.cards[id]!.title} into R&D`,
-          effect: fx.do({
-            kind: "shuffle_white_hat_one",
-            cardId: id,
-            remaining: 1,
-          }),
-        }),
-      );
-      opts.push({
-        id: "wh-done",
-        label: "Done (shuffle 0)",
-        effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: opts,
-      });
-      return { ok: true };
     }
 
     case "shuffle_white_hat_one": {

@@ -15,7 +15,6 @@ import {
   takeCostPick,
   validateCostCards,
 } from "./costCards.js";
-import { chooseSubroutinePosition } from "../effects/primitives/trashResolveTrace.js";
 import { chooseSparedSubroutine } from "../effects/primitives/spendInstallAdd.js";
 import { chooseNextSubroutineToResolve } from "../timing/subroutineOrder.js";
 import {
@@ -247,6 +246,7 @@ import {
 } from "../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../state/uninstallAndPosition/uninstall.js";
 import { fireTdatdOnAgendaAccessedOrScored } from "../effects/access/accessKinds.js";
+import { chooseSubroutinePosition } from "../effects/visibility/visibilityKinds.js";
 
 /** The payer's pick for a one-card cost, or the last card when not asked. */
 function chosenCostCard(state: GameState, pool: readonly string[]): string {

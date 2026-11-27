@@ -1,77 +1,26 @@
 /** Fear the Masses (ftm) Mumbad pack primitives — v1.121.0. */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
-import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import { lookAtCards } from "../../state/visibility/reveal.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function trashTopOfRd(
-  state: EffectCtx["state"],
-  n: number,
-  label: string,
-): void {
-  let trashed = 0;
-  for (let i = 0; i < n; i++) {
-    const top = state.corp.deck[0];
-    if (!top) break;
-    // "Force the Corp to trash": the Corp carries it out (CR 1.14.5).
-    // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-    trashCard(state, top, { by: "corp" });
-    trashed += 1;
-  }
-  log(state, `${label} — trash ${trashed} card(s) from top of R&D.`);
-}
 
 export function applyMumbadFtmPrimitive(
   ctx: EffectCtx,
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "reveal_copies_trash_rd": {
-      if (!state.run) return { ok: true };
-      state.run.skipBreach = true;
-      const copies = state.runner.hand.filter(
-        (id) => state.cards[id]?.defId === "fear-the-masses",
-      );
-      // "Reveal any number of copies": the Runner says how many (CR 1.15.2).
-      if (!action.cardIds && copies.length > 0) {
-        return evalEffect(
-          ctx,
-          chooseCards({
-            chooser: "runner",
-            candidates: copies,
-            count: copies.length,
-            upTo: true,
-            purpose: "resume",
-            label: "reveal from the grip",
-            resume: { kind: "reveal_copies_trash_rd" },
-          }),
-        );
-      }
-      const shown = (action.cardIds ?? []).filter((id) => copies.includes(id));
-      const x = 1 + shown.length;
-      revealCards(state, shown, sourceId);
-      trashTopOfRd(state, x, source?.title ?? "Fear the Masses");
-      log(
-        state,
-        `Fear the Masses — revealed ${shown.length} copy(ies); trash ${x} from R&D.`,
-      );
-      return { ok: true };
-    }
-
     case "trash_own_resource_with_subtype": {
       const subtype = action.subtype;
       const resources = state.runner.installed.filter((id) => {

@@ -4,7 +4,7 @@
  */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
-import { catalogCardNames } from "../cardNames.js";
+import { catalogCardNames } from "../visibility/cardNames.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
@@ -17,22 +17,9 @@ import {
   nextBreakableSubroutine,
   runnerBreakBlock,
 } from "../../state/turnAndActions/break.js";
-import {
-  corpInstallCost,
-  creditsAvailableForInstall,
-  stealthHostedCreditsAvailable,
-  takeFromStealthHostedCredits,
-  subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { beginExtraDifferentAction } from "../../state/turnAndActions/corpActionHooks.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
-import {
-  beginExpose,
-  exposeLegalTargets,
-  openExposeInterruptOrComplete,
-  preventPendingExpose,
-} from "../../state/visibility/expose.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
 import { fireOnFlipToBackIfRunMatchesFace } from "../../state/triggers/miscConditionalHooks.js";
 import {
@@ -61,10 +48,6 @@ import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import { iceFaceVisible } from "../../state/visibility/seatVisibility.js";
-import {
-  allSubroutinesBrokenByRunner,
-  resetEncounterBreaks,
-} from "../../state/turnAndActions/break.js";
 import { effectiveIceSubtypes, serverIdForIce } from "../../cards/stubs.js";
 import { iceStrength } from "../continuous/iceStrength.js";
 import {
@@ -75,6 +58,18 @@ import {
   scoreAgenda,
 } from "../../state/turnAndActions/scoring.js";
 import {
+  moveRunnerToIce,
+  setAttackedServer,
+  setRunnerPosition,
+} from "../../state/uninstallAndPosition/runPosition.js";
+import {
+  stealthHostedCreditsAvailable,
+  takeFromStealthHostedCredits,
+  subtractRunnerCreditPool,
+} from "../../state/keywordsAndCredits/costs.js";
+import { preventPendingExpose } from "../../state/visibility/expose.js";
+import { allSubroutinesBrokenByRunner } from "../../state/turnAndActions/break.js";
+import {
   fireOnFullyBreak,
   fireOnForfeit,
   fireAfterBreakSubroutineHooks,
@@ -83,17 +78,10 @@ import {
   offerBurnerMoves,
   startExclusiveChoicesPerPassedIce,
   offerRdArrangeChoice,
-  openExposeUpTo,
-  finishExposeUpTo,
   resumeExposeUpTo,
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
-import {
-  moveRunnerToIce,
-  setAttackedServer,
-  setRunnerPosition,
-} from "../../state/uninstallAndPosition/runPosition.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -478,91 +466,6 @@ export function applyOtherKinds(
       log(
         state,
         `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
-      );
-      return { ok: true };
-    }
-
-    case "turn_all_archives_facedown": {
-      let n = 0;
-      for (const id of state.corp.discardPile) {
-        const c = state.cards[id];
-        if (c && c.faceup) {
-          c.faceup = false;
-          n += 1;
-        }
-      }
-      log(
-        state,
-        `${source.title} — turn all Archives cards facedown (${n} flipped).`,
-      );
-      return { ok: true };
-    }
-
-    case "may_turn_facedown_archives_faceup_then": {
-      const facedown = state.corp.discardPile.filter(
-        (id) => state.cards[id] && !state.cards[id]!.faceup,
-      );
-      if (facedown.length === 0) {
-        log(state, `${source.title} — no facedown Archives cards.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do",
-              action: { kind: "gain_credits", side: "corp", amount: 0 },
-            },
-          },
-          ...facedown.map((id) => ({
-            id: `faceup:${id}`,
-            label: `Turn ${state.cards[id]!.title} faceup`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "turn_archives_card_faceup" as const,
-                cardId: id,
-                then: structuredClone(action.then),
-              },
-            },
-          })),
-        ],
-        logLine: `${source.title} — may turn a facedown Archives card faceup.`,
-      });
-      return { ok: true };
-    }
-
-    case "turn_archives_card_faceup": {
-      const card = state.cards[action.cardId];
-      if (!card || !state.corp.discardPile.includes(action.cardId)) {
-        log(state, `Turn Archives faceup — card not in Archives.`);
-        return { ok: true };
-      }
-      card.faceup = true;
-      log(state, `Turn ${card.title} in Archives faceup.`);
-      if (action.then) return evalEffect(ctx, action.then);
-      return { ok: true };
-    }
-
-    case "turn_hosted_cards_faceup": {
-      let n = 0;
-      for (const id of source.hostedCardIds ?? []) {
-        const c = state.cards[id];
-        if (!c) continue;
-        if (!c.faceup) {
-          c.faceup = true;
-          n += 1;
-        }
-      }
-      log(
-        state,
-        n > 0
-          ? `${source.title} — turn ${n} hosted card(s) faceup.`
-          : `${source.title} — no facedown hosted cards.`,
       );
       return { ok: true };
     }
@@ -1287,87 +1190,6 @@ export function applyOtherKinds(
           },
         })),
       });
-      return { ok: true };
-    }
-
-    case "invasion_of_privacy": {
-      return applyPrimitive(ctx, {
-        kind: "trace",
-        strength: action.traceStrength ?? 2,
-        onSuccess: {
-          op: "do",
-          action: { kind: "invasion_of_privacy_success" },
-        },
-        onFailure: {
-          op: "do",
-          action: { kind: "give_bad_publicity", amount: 1 },
-        },
-      });
-    }
-
-    case "invasion_of_privacy_success": {
-      const max = Math.max(0, state.turn.lastTraceExcess ?? 0);
-      // "reveal the grip": shown to both players until the ability ends,
-      // without turning the cards faceup (CR 1.21.3, 1.21.6).
-      revealCards(state, state.runner.hand, sourceId);
-      state.turn.invasionPrivacyTrashRemaining = max;
-      if (max <= 0) return { ok: true };
-      return applyPrimitive(ctx, { kind: "trash_next" });
-    }
-
-    case "invasion_of_privacy_finish": {
-      state.turn.invasionPrivacyTrashRemaining = 0;
-      return { ok: true };
-    }
-
-    case "peeping_tom_apply_type": {
-      const ice = state.cards[sourceId];
-      const run = state.run;
-      if (!ice || !run?.encounter || run.encounter.iceId !== sourceId) {
-        log(state, `Peeping Tom apply — no encounter.`);
-        return { ok: true };
-      }
-      const grip = [...state.runner.hand];
-      revealCards(state, grip, sourceId);
-      log(state, `${ice.title} — reveal grip (${grip.length}).`);
-      const n = grip.filter(
-        (id) => state.cards[id]?.type === action.cardType,
-      ).length;
-      if (!ice.baseSubroutines) {
-        ice.baseSubroutines = ice.subroutines
-          ? structuredClone(ice.subroutines)
-          : [];
-      }
-      const subEffect = {
-        op: "do" as const,
-        action: {
-          kind: "unless" as const,
-          payer: "runner" as const,
-          cost: {
-            op: "do" as const,
-            action: { kind: "give_tags" as const, amount: 1 },
-          },
-          instruction: {
-            op: "do" as const,
-            action: { kind: "end_the_run" as const },
-          },
-        },
-      };
-      const gained = Array.from({ length: n }, (_, i) => ({
-        id: `${ice.defId}-peeping-${i}`,
-        text: "End the run unless the Runner takes 1 tag.",
-        effect: structuredClone(subEffect),
-      }));
-      ice.subroutines = [...gained];
-      resetEncounterBreaks(run.encounter, ice.subroutines.length);
-      if (!run.peepingTomIceIds) run.peepingTomIceIds = [];
-      if (!run.peepingTomIceIds.includes(sourceId)) {
-        run.peepingTomIceIds.push(sourceId);
-      }
-      log(
-        state,
-        `${ice.title} — gains ${n} ETR-unless-tag subroutine(s) for the remainder of this run (${action.cardType}).`,
-      );
       return { ok: true };
     }
 
@@ -2375,76 +2197,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "peer_review": {
-      // "Reveal all but 1 card in HQ": the Corp picks the card that stays
-      // hidden (CR 1.15.2).
-      if (!action.cardIds && state.corp.hand.length > 1) {
-        return evalEffect(
-          ctx,
-          chooseCards({
-            chooser: "corp",
-            candidates: [...state.corp.hand],
-            count: 1,
-            purpose: "resume",
-            label: "keep hidden (the rest of HQ is revealed)",
-            resume: { kind: "peer_review" },
-          }),
-        );
-      }
-      const kept = action.cardIds?.[0] ?? state.corp.hand[0];
-      // Revealed cards are shown to both players and stay hidden in HQ
-      // afterwards (CR 1.21.3).
-      const revealed = state.corp.hand.filter((id) => id !== kept);
-      state.corp.credits += 7;
-      revealCards(state, revealed, sourceId);
-      log(
-        state,
-        revealed.length > 0
-          ? `Peer Review — the rest of HQ is revealed; gain 7¢ → ${state.corp.credits}¢.`
-          : `Peer Review — no card in HQ to reveal; gain 7¢ → ${state.corp.credits}¢.`,
-      );
-      const hqCards = state.corp.hand.filter((id) => {
-        const t = state.cards[id]?.type;
-        return t === "agenda" || t === "asset" || t === "upgrade";
-      });
-      const affordable = hqCards.filter(
-        (id) =>
-          creditsAvailableForInstall(state, "corp") >=
-          corpInstallCost(state.cards[id]!, 0),
-      );
-      if (affordable.length === 0) {
-        log(state, `Peer Review — no affordable root install from HQ.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "decline",
-            label: "Decline install",
-            effect: {
-              op: "do",
-              action: { kind: "gain_credits", side: "corp", amount: 0 },
-            },
-          },
-          ...affordable.map((id) => ({
-            id: `peer-install:${id}`,
-            label: `Install ${state.cards[id]!.title} in a new remote root for ${corpInstallCost(state.cards[id]!, 0)}¢`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "install_hq_card_paying_costs" as const,
-                cardId: id,
-              },
-            },
-          })),
-        ],
-        logLine: `Peer Review — may install 1 card from HQ in a remote root.`,
-      });
-      return { ok: true };
-    }
-
     case "store_ip_enforcement_tags_removed": {
       state.turn.ipEnforcementTagsRemoved = action.amount;
       return { ok: true };
@@ -2559,74 +2311,6 @@ export function applyOtherKinds(
         state.cards[id]!.faceup = false;
         log(state, `Add ${state.cards[id]!.title} from heap to grip.`);
       }
-      return { ok: true };
-    }
-
-    case "expose": {
-      if (action.cardId) {
-        beginExpose(state, action.cardId);
-        return { ok: true };
-      }
-      const targets = exposeLegalTargets(state);
-      if (targets.length === 0) {
-        log(
-          state,
-          `${source.title} — no installed unrezzed Corp cards to expose.`,
-        );
-        return { ok: true };
-      }
-      if (targets.length === 1) {
-        beginExpose(state, targets[0]!);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: targets.map((id) => ({
-          id: `expose:${id}`,
-          label: `Expose ${openCardName(state, id, "runner")}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "expose" as const,
-              pick: "choose" as const,
-              cardId: id,
-            },
-          },
-        })),
-        logLine: `${source.title} — choose a card to expose.`,
-      });
-      return { ok: true };
-    }
-
-    case "expose_up_to": {
-      const remaining =
-        typeof action.remaining === "number" ? action.remaining : action.max;
-      openExposeUpTo(state, sourceId, action.max, remaining);
-      return { ok: true };
-    }
-
-    case "expose_one_of_up_to": {
-      state.turn.exposeUpToAfter = {
-        sourceId,
-        max: action.max,
-        remaining: action.remaining,
-      };
-      const status = beginExpose(state, action.cardId);
-      if (status === "done") resumeExposeUpTo(state);
-      return { ok: true };
-    }
-
-    case "may_expose_after_rez_continue": {
-      const pending = state.pendingExpose;
-      if (!pending) return { ok: true };
-      openExposeInterruptOrComplete(state, pending.cardId);
-      resumeExposeUpTo(state);
-      return { ok: true };
-    }
-
-    case "end_expose_up_to": {
-      finishExposeUpTo(state, sourceId);
       return { ok: true };
     }
 
@@ -2925,45 +2609,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "ayla_set_aside_to_grip": {
-      const setAside = state.runner.setAside ?? [];
-      if (setAside.length === 0) {
-        log(state, `Ayla — set-aside empty.`);
-        return { ok: true };
-      }
-      // Printed: "Add 1 card set aside with this identity to your grip" —
-      // the Runner chooses which set-aside card.
-      const picked = action.cardId;
-      if (!picked) {
-        if (setAside.length === 1) {
-          return applyPrimitive(ctx, {
-            kind: "ayla_set_aside_to_grip",
-            cardId: setAside[0]!,
-          });
-        }
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "runner",
-          options: setAside.map((id) => ({
-            id: `ayla:${id}`,
-            label: `Add ${state.cards[id]!.title} to grip`,
-            effect: fx.do({ kind: "ayla_set_aside_to_grip", cardId: id }),
-          })),
-        });
-        return { ok: true };
-      }
-      if (!setAside.includes(picked)) return { ok: true };
-      state.runner.setAside = setAside.filter((x) => x !== picked);
-      state.runner.hand.push(picked);
-      state.cards[picked].zone = "runner:grip";
-      state.cards[picked].faceup = true;
-      log(
-        state,
-        `Ayla — add ${state.cards[picked].title} from set-aside to grip.`,
-      );
-      return { ok: true };
-    }
-
     case "sabotage": {
       // The Corp chooses which HQ cards go (CR 10.12.2). With nothing in
       // HQ, or fewer than N cards in HQ and R&D together (CR 10.12.3b),
@@ -3190,40 +2835,6 @@ export function applyOtherKinds(
         used: [],
         mustPick: otherRezzedAsset,
       });
-    }
-
-    case "focus_group_after_type": {
-      const grip = [...state.runner.hand];
-      revealCards(state, grip, sourceId);
-      log(state, `${source.title} — reveal grip (${grip.length}).`);
-      const count = grip.filter(
-        (id) => state.cards[id]?.type === action.cardType,
-      ).length;
-      if (count <= 0) {
-        log(
-          state,
-          `${source.title} — 0 revealed ${action.cardType} cards; X=0.`,
-        );
-        return { ok: true };
-      }
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      for (let x = 0; x <= count; x++) {
-        options.push({
-          id: `fg-x:${x}`,
-          label: `X=${x}`,
-          effect: {
-            op: "do",
-            action: { kind: "may_pay_place", amount: x },
-          },
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-        logLine: `${source.title} — choose X ≤ ${count} revealed ${action.cardType}.`,
-      });
-      return { ok: true };
     }
 
     case "nihilist_may_remove_2_virus_draw_unless_corp_trash_top_rd": {

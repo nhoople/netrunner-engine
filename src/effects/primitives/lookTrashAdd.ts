@@ -1,5 +1,3 @@
-/** Salsette Island (si) Mumbad pack primitives — v1.119.0. */
-import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { GameState, RuleCite } from "../../state/types.js";
@@ -9,8 +7,8 @@ import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { catalogCardNames } from "../cardNames.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -23,22 +21,6 @@ export function applyMumbadSiPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "look_top_n_stack_trash_any_arrange_rest": {
-      const n = action.n ?? 6;
-      const taken = state.runner.deck.splice(
-        0,
-        Math.min(n, state.runner.deck.length),
-      );
-      if (taken.length === 0) {
-        log(state, `${source?.title ?? "Making an Entrance"} — stack empty.`);
-        return { ok: true };
-      }
-      state.turn.siStackLookedCards = taken;
-      state.turn.siStackArrangePlaced = [];
-      lookAtCards(state, taken, sourceId);
-      return offerSiStackTrashOrArrange(ctx);
-    }
-
     case "trash_stack_pick": {
       const cardId = action.cardId;
       const looked = state.turn.siStackLookedCards ?? [];
@@ -115,26 +97,6 @@ export function applyMumbadSiPrimitive(
       }
       uninstallCard(state, cardId, "deck-top");
       log(state, `Brahman — add ${card.title} to the top of the stack.`);
-      return { ok: true };
-    }
-
-    case "name_reveal_trash_grip_copies": {
-      // Salem's Hospitality: "Choose a card name" (CR 1.15.1b). Any Runner
-      // card name may be named; the list comes from the catalog, not from the
-      // game's cards, which would show the Corp the titles in the Runner's
-      // grip and stack (CR 10.2.2a, 10.2.2b).
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: catalogCardNames((def) => def.side === "runner").map(
-          (title) => ({
-            id: `salem:${title}`,
-            label: `Name ${title}`,
-            effect: fx.do({ kind: "trash_named", title }),
-          }),
-        ),
-        logLine: `${source?.title ?? "Salem's Hospitality"} — choose a card name.`,
-      });
       return { ok: true };
     }
 
@@ -339,7 +301,7 @@ export function trashRandomGripForPersonalityProfiles(
   );
 }
 
-function offerSiStackTrashOrArrange(ctx: EffectCtx): PrimResult {
+export function offerSiStackTrashOrArrange(ctx: EffectCtx): PrimResult {
   const { state, sourceId } = ctx;
   const looked = state.turn.siStackLookedCards ?? [];
   if (looked.length === 0) {

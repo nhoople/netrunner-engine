@@ -1,7 +1,6 @@
 /** Sovereign Sight (ss) Kitara pack primitives — v1.136.0. */
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
-import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
@@ -63,44 +62,6 @@ export function applyKitaraSsPrimitive(
         options,
         logLine: `${source?.title ?? "Puffer"} — add or remove 1 power counter.`,
       });
-      return { ok: true };
-    }
-
-    case "ss_assimilator_turn_facedown_faceup": {
-      const facedown = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c && c.faceup === false;
-      });
-      if (facedown.length === 0) {
-        log(
-          state,
-          `${source?.title ?? "Assimilator"} — no facedown installed cards.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: facedown.map((id) => ({
-          id: `faceup:${id}`,
-          label: `Turn ${state.cards[id]!.title} faceup`,
-          effect: fx.do({ kind: "resolve_assimilator_faceup", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_assimilator_faceup": {
-      const card = state.cards[action.cardId];
-      if (!card || !state.runner.installed.includes(action.cardId)) {
-        return { ok: true };
-      }
-      card.faceup = true;
-      log(state, `Assimilator — turn ${card.title} faceup.`);
-      if (card.type === "event") {
-        trashCard(state, action.cardId, { by: controllerOf(state, sourceId) });
-        log(state, `Assimilator — trash event ${card.title}.`);
-      }
       return { ok: true };
     }
 
@@ -455,35 +416,5 @@ export function applyKitaraSsPrimitive(
 
     default:
       return null;
-  }
-}
-
-/** Zamba-class: may gain credits when a Corp card is exposed. */
-export function maybeOfferGainCreditsOnExpose(state: EffectCtx["state"]): void {
-  for (const id of state.runner.installed) {
-    if (abilitiesSuppressed(state, id)) continue;
-    const c = state.cards[id];
-    const n = c?.mayGainCreditsOnCorpCardExposed;
-    if (!c || typeof n !== "number" || n <= 0) continue;
-    // If a choice is already pending, skip (expose continues).
-    if (state.pendingChoice) return;
-    openPendingChoose(state, {
-      sourceId: id,
-      chooser: "runner",
-      options: [
-        {
-          id: "accept",
-          label: `Gain ${n}¢`,
-          effect: fx.do({ kind: "gain_credits", side: "runner", amount: n }),
-        },
-        {
-          id: "decline",
-          label: "Decline",
-          effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-        },
-      ],
-      logLine: `${c.title} — may gain ${n}¢ (Corp card exposed).`,
-    });
-    return;
   }
 }

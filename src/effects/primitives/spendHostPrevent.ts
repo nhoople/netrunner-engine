@@ -5,7 +5,6 @@ import {
   interfaceBlock,
   runnerBreakBlock,
 } from "../../state/turnAndActions/break.js";
-import { revealCards } from "../../state/visibility/reveal.js";
 import {
   corpInstallCost,
   subtractRunnerCreditPool,
@@ -181,56 +180,6 @@ export function applyFlashpointMlPrimitive(
         state,
         `Cold Read — trash ${state.cards[cardId]!.title} (cannot prevent).`,
       );
-      return { ok: true };
-    }
-
-    case "may_reveal_force_draw": {
-      if (state.corp.deck.length === 0) {
-        log(state, `Equivocation — R&D empty.`);
-        return { ok: true };
-      }
-      // The Runner has not seen the card yet, so the offer does not name it.
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "reveal",
-            label: "Reveal the top card of R&D",
-            effect: fx.do({ kind: "reveal_then_may_force_draw" }),
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "reveal_then_may_force_draw": {
-      if (state.corp.deck.length === 0) return { ok: true };
-      const topId = state.corp.deck[0]!; // deck top is index 0 (commitDraw shifts)
-      const top = state.cards[topId]!;
-      revealCards(state, [top.id], sourceId);
-      log(state, `Equivocation — reveal top of R&D: ${top.title}.`);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "force-draw",
-            label: `Force Corp to draw ${top.title}`,
-            effect: fx.do({ kind: "draw", side: "corp", amount: 1 }),
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-      });
       return { ok: true };
     }
 
@@ -424,73 +373,6 @@ export function applyFlashpointMlPrimitive(
           : `Mind Game — the Runner cannot move to a position now (CR ${CR.ineffectiveMove.number}); jack out costs +1 installed to stack bottom.`,
       );
       return evalEffect(ctx, fx.do({ kind: "offer_jack_out" }));
-    }
-
-    case "may_look_nihongai_top5_swap_hq": {
-      const grip = state.runner.hand.length;
-      const credits = state.runner.credits;
-      if (grip >= 2 && credits >= 6) {
-        log(state, `Nihongai Grid — Runner has ≥2 grip and ≥6¢; no effect.`);
-        return { ok: true };
-      }
-      // Deck top is index 0 (commitDraw shifts). Printed: top 5 of R&D.
-      const top = state.corp.deck.slice(0, 5);
-      if (top.length === 0 || state.corp.hand.length === 0) {
-        log(state, `Nihongai Grid — nothing to swap.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "accept",
-            label: "Look at top 5 of R&D and swap 1 with HQ",
-            effect: fx.do({
-              kind: "look_nihongai_swap_continue",
-              lookedIds: top,
-            }),
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "look_nihongai_swap_continue": {
-      const lookedIds = action.lookedIds ?? [];
-      const hq = [...state.corp.hand];
-      if (lookedIds.length === 0 || hq.length === 0) return { ok: true };
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (const rdId of lookedIds) {
-        for (const hqId of hq) {
-          options.push({
-            id: `swap:${rdId}:${hqId}`,
-            label: `Swap ${state.cards[rdId]?.title} (R&D) ↔ ${state.cards[hqId]?.title} (HQ)`,
-            effect: fx.do({
-              kind: "swap_nihongai_resolve",
-              rdCardId: rdId,
-              hqCardId: hqId,
-            }),
-          });
-        }
-      }
-      options.push({
-        id: "decline",
-        label: "Decline swap",
-        effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-        logLine: `Nihongai Grid — choose R&D↔HQ swap.`,
-      });
-      return { ok: true };
     }
 
     case "give_tags_if_runner_has_installed_subtype": {

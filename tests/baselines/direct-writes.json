@@ -140,9 +140,6 @@
       "scoreArea": 1,
       "zone": 38
     },
-    "src/effects/kinds/lookKinds.ts": {
-      "deck": 14
-    },
     "src/effects/kinds/moveKinds.ts": {
       "root": 4,
       "zone": 2
@@ -150,12 +147,12 @@
     "src/effects/kinds/otherKinds.ts": {
       "deck": 17,
       "discardPile": 3,
-      "hand": 9,
+      "hand": 8,
       "installed": 1,
       "removedFromGame": 6,
       "rezzed": 5,
       "scoreArea": 3,
-      "zone": 17
+      "zone": 16
     },
     "src/effects/kinds/placeKinds.ts": {
       "deck": 2,
@@ -172,12 +169,6 @@
       "hand": 5,
       "rezzed": 2,
       "scoreArea": 1,
-      "zone": 5
-    },
-    "src/effects/kinds/revealKinds.ts": {
-      "deck": 7,
-      "hand": 2,
-      "rezzed": 2,
       "zone": 5
     },
     "src/effects/kinds/searchKinds.ts": {
@@ -241,7 +232,7 @@
       "zone": 6
     },
     "src/effects/primitives/derezDrawChoose.ts": {
-      "deck": 4,
+      "deck": 2,
       "discardPile": 1,
       "hand": 2,
       "zone": 3
@@ -251,9 +242,9 @@
       "zone": 1
     },
     "src/effects/primitives/derezRfgTrash.ts": {
-      "deck": 4,
-      "hand": 5,
-      "zone": 5
+      "deck": 3,
+      "hand": 4,
+      "zone": 4
     },
     "src/effects/primitives/gainCannotSwap.ts": {
       "hand": 3,
@@ -303,7 +294,7 @@
       "zone": 3
     },
     "src/effects/primitives/lookTrashAdd.ts": {
-      "deck": 3,
+      "deck": 2,
       "hand": 1,
       "zone": 2
     },
@@ -322,7 +313,7 @@
       "zone": 4
     },
     "src/effects/primitives/preventGainSpend.ts": {
-      "deck": 3,
+      "deck": 2,
       "removedFromGame": 2,
       "root": 1,
       "zone": 4
@@ -342,9 +333,7 @@
       "zone": 5
     },
     "src/effects/primitives/preventSpendTrash.ts": {
-      "deck": 3,
-      "hand": 1,
-      "zone": 1
+      "deck": 2
     },
     "src/effects/primitives/redirectSpendName.ts": {
       "deck": 2,
@@ -354,7 +343,7 @@
       "zone": 3
     },
     "src/effects/primitives/resolveExposePay.ts": {
-      "deck": 2,
+      "deck": 1,
       "discardPile": 1,
       "hand": 1,
       "rezzed": 1,
@@ -394,7 +383,7 @@
       "zone": 3
     },
     "src/effects/primitives/shuffleLookPick.ts": {
-      "deck": 4,
+      "deck": 3,
       "discardPile": 2,
       "hand": 1,
       "rezzed": 2,
@@ -403,7 +392,7 @@
       "zone": 6
     },
     "src/effects/primitives/spendInstallAdd.ts": {
-      "deck": 5,
+      "deck": 4,
       "hand": 5,
       "rezzed": 1,
       "scoreArea": 1,
@@ -421,7 +410,7 @@
       "zone": 1
     },
     "src/effects/primitives/trashChooseAccess.ts": {
-      "deck": 4,
+      "deck": 2,
       "hand": 3,
       "ice": 1,
       "rezzed": 3,
@@ -436,7 +425,7 @@
     "src/effects/primitives/trashPlaceAccess.ts": {
       "deck": 1,
       "discardPile": 1,
-      "hand": 2,
+      "hand": 1,
       "rezzed": 1,
       "scoreArea": 1,
       "zone": 2
@@ -487,6 +476,20 @@
       "deck": 6,
       "discardPile": 2,
       "rezzed": 1,
+      "zone": 3
+    },
+    "src/effects/visibility/lookKinds.ts": {
+      "deck": 14
+    },
+    "src/effects/visibility/revealKinds.ts": {
+      "deck": 7,
+      "hand": 2,
+      "rezzed": 2,
+      "zone": 5
+    },
+    "src/effects/visibility/visibilityKinds.ts": {
+      "deck": 11,
+      "hand": 4,
       "zone": 3
     },
     "src/legality/checkpoints.ts": {

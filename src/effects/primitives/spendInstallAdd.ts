@@ -3,23 +3,18 @@ import {
   markSubroutineBroken,
   subroutineBreakBlock,
 } from "../../state/turnAndActions/break.js";
-import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
-import {
-  agendaPointsFor,
-  effectiveAdvancementRequirement,
-} from "../../state/turnAndActions/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
+import { agendaPointsFor } from "../../state/turnAndActions/scoring.js";
+import type { EffectCtx } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -344,34 +339,6 @@ export function applySpinHapPrimitive(
       }
       return { ok: true };
     }
-    case "look_top_n_stack_add_one_to_grip_shuffle": {
-      const n = action.n ?? 4;
-      const deck = state.runner.deck;
-      const taken: string[] = [];
-      for (let i = 0; i < Math.min(n, deck.length); i++) {
-        taken.push(deck[i]!); // deck top is index 0 (commitDraw shifts)
-      }
-      for (const id of taken) {
-        const idx = deck.lastIndexOf(id);
-        if (idx >= 0) deck.splice(idx, 1);
-      }
-      if (taken.length === 0) return { ok: true };
-      lookAtCards(state, taken, sourceId);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: taken.map((id) => ({
-          id: `ed:${id}`,
-          label: `Add ${state.cards[id]!.title} to grip`,
-          effect: fx.do({
-            kind: "express_delivery_finish",
-            pickId: id,
-            restIds: taken.filter((x) => x !== id),
-          }),
-        })),
-      });
-      return { ok: true };
-    }
     case "express_delivery_finish": {
       const { pickId, restIds } = action;
       state.runner.hand.push(pickId);
@@ -481,42 +448,6 @@ export function applySpinHapPrimitive(
     case "break_all_but_n_subroutines_on_encounter": {
       return offerSparedSubroutineChoice(state, sourceId, action.leave ?? 1);
     }
-    case "may_pay_reveal_top": {
-      // Printed Bug: whenever the Corp draws a card, you may pay 2¢ to
-      // reveal that card (CR 1.2.1). The drawn id is on the turn bookkeeping.
-      // The Runner has not seen the card yet, so the offer does not name it.
-      const title = "the card the Corp drew";
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "bug-pay",
-            label: `Pay 2¢ to reveal ${title}`,
-            effect: fx.do({ kind: "reveal_top_paid" }),
-          },
-          {
-            id: "bug-skip",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-    case "reveal_top_paid": {
-      if (state.runner.credits < 2) return { ok: true };
-      subtractRunnerCreditPool(state, 2);
-      const id = state.turn.pendingCorpDrawnCardId;
-      if (id && state.cards[id]) {
-        state.cards[id]!.faceup = true;
-        revealCards(state, [id], sourceId);
-        log(state, `Bug — reveal ${state.cards[id]!.title}.`);
-      } else {
-        log(state, `Bug — no drawn Corp card to reveal.`);
-      }
-      return { ok: true };
-    }
     case "spend_push_your_luck_secret_guess": {
       // Printed: Runner secretly spends any number of credits; the Corp
       // guesses even or odd. Wrong guess → Runner gains twice the spend.
@@ -547,73 +478,6 @@ export function applySpinHapPrimitive(
           label: `Choose ${t}`,
           effect: fx.do({ kind: "reveal_oracle_top_match", cardType: t }),
         })),
-      });
-      return { ok: true };
-    }
-    case "reveal_oracle_top_match": {
-      const top = state.runner.deck[0]; // deck top is index 0 (commitDraw shifts)
-      if (!top) return { ok: true };
-      state.cards[top]!.faceup = true;
-      const match = state.cards[top]!.type === action.cardType;
-      revealCards(state, [top], sourceId);
-      log(
-        state,
-        `Oracle May — reveal ${state.cards[top]!.title} (${match ? "match" : "no match"}).`,
-      );
-      // Printed Oracle May: on a match, draw the card and gain 2¢; on a
-      // miss, trash it. (Card text wins, CR 1.2.1.) That card is the top
-      // of the stack, so the draw procedure draws it (CR 8.4.2).
-      if (match) {
-        log(state, `Oracle May — draw ${state.cards[top]!.title} and gain 2¢.`);
-        const r = evalEffect(
-          ctx,
-          fx.seq(
-            fx.do({ kind: "draw", side: "runner", amount: 1 }),
-            fx.do({ kind: "gain_credits", side: "runner", amount: 2 }),
-          ),
-        );
-        // A revealed card goes back to its previous state if it is not
-        // drawn (CR 1.21.3).
-        if (state.runner.deck.includes(top)) state.cards[top]!.faceup = false;
-        return r;
-      } else {
-        state.runner.deck.shift();
-        trashCard(state, top, { by: "runner" });
-        log(state, `Oracle May — trash ${state.cards[top]!.title}.`);
-      }
-      return { ok: true };
-    }
-    case "may_reveal_score_from_hq": {
-      // Printed: score an HQ agenda whose advancement requirement is ≤ the
-      // number of advancement tokens on Plan B (CR 1.2.1: card text wins).
-      const planBAdv = state.cards[sourceId]?.advancementCounters ?? 0;
-      const agendas = state.corp.hand.filter((id) => {
-        const c = state.cards[id];
-        return (
-          c?.type === "agenda" &&
-          effectiveAdvancementRequirement(state, c) <= planBAdv
-        );
-      });
-      if (agendas.length === 0) {
-        log(state, `Plan B — no scoreable agenda in HQ.`);
-        return { ok: true };
-      }
-      // "You may reveal and score": the Corp may decline (CR 9.6.9).
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...agendas.map((id) => ({
-            id: `pb:${id}`,
-            label: `Score ${state.cards[id]!.title}`,
-            effect: fx.do({ kind: "score_agenda_from_hq", cardId: id }),
-          })),
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.gainCredits("corp", 0),
-          },
-        ],
       });
       return { ok: true };
     }

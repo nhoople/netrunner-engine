@@ -1111,14 +1111,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds.finish",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
           "kinds": [],
           "mirrors": [
@@ -1134,11 +1126,19 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/rezBreachPlace.ts#applyMumbadBfPrimitive",
+          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds.finish",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
           "kinds": []
         },
         {
@@ -6669,10 +6669,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/hostResolveLook.ts#applyMumbadDagPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/preventInstallDraw.ts#applySansanBbPrimitive",
           "kinds": []
         },
@@ -6685,23 +6681,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/revealTrashCannot.ts#applyMumbadFtmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/rezBreachPlace.ts#applyMumbadBfPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/searchRevealTrash.ts#applySansanValPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/searchScoreName.ts#applyLunarTsbPrimitive",
           "kinds": []
         },
         {
@@ -6721,15 +6705,15 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/rezKinds.ts#icePrintedRezCost",
           "kinds": []
         },
         {
           "site": "src/effects/triggers/chooseCards.ts#sameForChoice",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
           "kinds": []
         },
         {
@@ -7060,10 +7044,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
           "kinds": []
         },
@@ -7124,10 +7104,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/trashResolveDerez.ts#applyRedsandEasPrimitive",
           "kinds": []
         },
@@ -7149,6 +7125,14 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
           "kinds": []
         },
         {
@@ -8257,11 +8241,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/resolveExposePay.ts#applyKitaraTdatdPrimitive",
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/resolveExposePay.ts#fireTdatd419OnFirstCorpInstall",
+          "site": "src/effects/visibility/visibilityKinds.ts#fireTdatd419OnFirstCorpInstall",
           "kinds": []
         }
       ],
@@ -8345,7 +8329,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/addResolveInstall.ts#maybeOfferGainCreditsOnExpose",
+          "site": "src/effects/visibility/visibilityKinds.ts#maybeOfferGainCreditsOnExpose",
           "kinds": []
         },
         {
@@ -14481,10 +14465,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
           "kinds": []
         },
@@ -14493,7 +14473,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
           "kinds": []
         },
         {
@@ -18190,10 +18174,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/shuffleKinds.ts#applyShuffleKinds",
           "kinds": []
         },
@@ -18226,10 +18206,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#applyMumbadSiPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/moveSearchInstall.ts#installedRunnerCardIds",
           "kinds": []
         },
@@ -18239,10 +18215,6 @@
           "mirrors": [
             "src/effects/ir/otherPrimitive.ts#{OtherPrimitive}"
           ]
-        },
-        {
-          "site": "src/effects/primitives/resolveExposePay.ts#fireTdatd419OnFirstCorpInstall",
-          "kinds": []
         },
         {
           "site": "src/effects/primitives/searchRevealTrash.ts#applySansanValPrimitive",
@@ -18301,6 +18273,18 @@
         },
         {
           "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#fireTdatd419OnFirstCorpInstall",
           "kinds": []
         },
         {
@@ -19737,23 +19721,23 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveTrace.ts#chooseSubroutinePosition",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveTrace.ts#offerSubroutineInsertChoice",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#chooseSubroutinePosition",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#offerSubroutineInsertChoice",
           "kinds": []
         },
         {
@@ -20024,10 +20008,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/lookKinds.ts#applyLookKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
           "kinds": []
         },
@@ -20041,10 +20021,6 @@
         },
         {
           "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds",
           "kinds": []
         },
         {
@@ -20085,10 +20061,6 @@
         },
         {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainExposeSearch.ts#exposeIceAndMaybeBounce",
           "kinds": []
         },
         {
@@ -20188,10 +20160,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
@@ -20288,6 +20256,22 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/lookKinds.ts#applyLookKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#exposeIceAndMaybeBounce",
           "kinds": []
         },
         {
@@ -21021,10 +21005,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/cardNames.ts#catalogCardNames",
-          "kinds": []
-        },
-        {
           "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
@@ -21229,10 +21209,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/lookKinds.ts#applyLookKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
           "kinds": []
         },
@@ -21269,18 +21245,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds.finish",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds.offer",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/searchKinds.ts#applySearchKinds",
           "kinds": []
         },
@@ -21314,10 +21278,6 @@
         },
         {
           "site": "src/effects/primitives/addResolveInstall.ts#applyKitaraSsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/addResolveInstall.ts#maybeOfferGainCreditsOnExpose",
           "kinds": []
         },
         {
@@ -21374,10 +21334,6 @@
         },
         {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainExposeSearch.ts#exposeIceAndMaybeBounce",
           "kinds": []
         },
         {
@@ -21466,10 +21422,6 @@
         },
         {
           "site": "src/effects/primitives/resolveExposePay.ts#applyKitaraTdatdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveExposePay.ts#fireTdatd419OnFirstCorpInstall",
           "kinds": []
         },
         {
@@ -21570,14 +21522,6 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveTrace.ts#chooseSubroutinePosition",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveTrace.ts#offerSubroutineInsertChoice",
           "kinds": []
         },
         {
@@ -21682,6 +21626,54 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/cardNames.ts#catalogCardNames",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/lookKinds.ts#applyLookKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds.finish",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds.offer",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#chooseSubroutinePosition",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#exposeIceAndMaybeBounce",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#fireTdatd419OnFirstCorpInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#maybeOfferGainCreditsOnExpose",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#offerSubroutineInsertChoice",
           "kinds": []
         },
         {
@@ -23684,10 +23676,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/cardNames.ts#catalogCardNames",
-          "kinds": []
-        },
-        {
           "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
@@ -23788,10 +23776,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/lookKinds.ts#applyLookKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/moveKinds.ts#applyMoveKinds",
           "kinds": []
         },
@@ -23809,14 +23793,6 @@
         },
         {
           "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/revealKinds.ts#applyRevealKinds.finish",
           "kinds": []
         },
         {
@@ -23861,10 +23837,6 @@
         },
         {
           "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
           "kinds": []
         },
         {
@@ -23977,10 +23949,6 @@
         },
         {
           "site": "src/effects/primitives/searchRevealTrash.ts#installedPrograms",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/searchScoreName.ts#applyLunarTsbPrimitive",
           "kinds": []
         },
         {
@@ -24157,6 +24125,30 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/cardNames.ts#catalogCardNames",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/lookKinds.ts#applyLookKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds.finish",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/visibility/visibilityKinds.ts#applyVisibilityKindsWhenSourceExists",
           "kinds": []
         },
         {
