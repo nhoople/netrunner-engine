@@ -1099,7 +1099,7 @@
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
           "kinds": [],
           "mirrors": [
-            "src/effects/ir.ts#{Primitive}"
+            "src/effects/ir/otherPrimitive.ts#{OtherPrimitive}"
           ]
         },
         {
@@ -1118,7 +1118,7 @@
           "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
           "kinds": [],
           "mirrors": [
-            "src/effects/ir.ts#{Primitive}"
+            "src/effects/ir/placePrimitive.ts#{PlacePrimitive}"
           ]
         },
         {
@@ -18277,7 +18277,7 @@
           "site": "src/effects/primitives/preventSpendTrash.ts#applyLunarUaoPrimitive",
           "kinds": [],
           "mirrors": [
-            "src/effects/ir.ts#{Primitive}"
+            "src/effects/ir/otherPrimitive.ts#{OtherPrimitive}"
           ]
         },
         {
@@ -18304,7 +18304,7 @@
           "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
           "kinds": [],
           "mirrors": [
-            "src/effects/ir.ts#{Primitive}"
+            "src/effects/ir/gainPrimitive.ts#{GainPrimitive}"
           ]
         },
         {

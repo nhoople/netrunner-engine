@@ -108,40 +108,37 @@ function deadKinds(): string[] {
 
   const allSrc = [...srcText.values()].join("\n");
   const built = new Set<string>();
-  // kind -> fx helper names whose body builds it (ir.ts `export const fx`).
+  // kind -> fx helper names whose body builds it (src/effects/ir/fx.ts
+  // `export const fx`).
   const fxBuilders = new Map<string, Set<string>>();
 
   for (const [file, text] of srcText) {
     const lines = text.split("\n");
     let fxStart = -1;
     let fxEnd = -1;
-    if (file === "src/effects/ir.ts") {
+    // The Primitive union, one alias per kind family file: names, not builds.
+    if (/^src\/effects\/ir\/[a-z]+Primitive\.ts$/.test(file)) {
       const typeStart = lines.findIndex((l) =>
-        l.startsWith("export type Primitive ="),
+        /^export type [A-Za-z]+Primitive =/.test(l),
       );
-      const typeEnd = lines.findIndex(
-        (l, i) => i > typeStart && l.startsWith("export type Cond ="),
-      );
+      expect(typeStart, `${file} layout: Primitive union`).toBeGreaterThan(0);
+      for (let i = typeStart; i < lines.length; i++) lines[i] = "";
+    }
+    if (file === "src/effects/ir/knownKinds.ts") {
       const setStart = lines.findIndex((l) =>
         l.startsWith("export const KNOWN_PRIMITIVE_KINDS"),
       );
       const setEnd = lines.findIndex(
         (l, i) => i > setStart && l.startsWith("]);"),
       );
-      expect(typeStart, "ir.ts layout: Primitive union").toBeGreaterThan(0);
-      expect(typeEnd, "ir.ts layout: Cond union").toBeGreaterThan(typeStart);
-      expect(setStart, "ir.ts layout: KNOWN_PRIMITIVE_KINDS").toBeGreaterThan(
-        0,
-      );
-      expect(setEnd, "ir.ts layout: end of set").toBeGreaterThan(setStart);
-      for (let i = 0; i < lines.length; i++) {
-        if ((i >= typeStart && i < typeEnd) || (i >= setStart && i <= setEnd)) {
-          lines[i] = "";
-        }
-      }
+      expect(setStart, "ir layout: KNOWN_PRIMITIVE_KINDS").toBeGreaterThan(0);
+      expect(setEnd, "ir layout: end of set").toBeGreaterThan(setStart);
+      for (let i = setStart; i <= setEnd; i++) lines[i] = "";
+    }
+    if (file === "src/effects/ir/fx.ts") {
       fxStart = lines.findIndex((l) => l.startsWith("export const fx = {"));
       fxEnd = lines.findIndex((l, i) => i > fxStart && l.startsWith("};"));
-      expect(fxStart, "ir.ts layout: fx helpers").toBeGreaterThan(0);
+      expect(fxStart, "ir layout: fx helpers").toBeGreaterThan(0);
     }
     let helper = "";
     lines.forEach((line, i) => {

@@ -8,14 +8,15 @@
  * tests/kind-reference.test.ts fails when the committed file is stale.
  *
  * Sources:
- * - kinds: `KNOWN_PRIMITIVE_KINDS` in src/effects/ir.ts;
- * - fields: the members of the `Primitive` union in src/effects/ir.ts, the
- *   type `Effect` runs through `{ op: "do"; action: Primitive }`;
+ * - kinds: `KNOWN_PRIMITIVE_KINDS` in src/effects/ir/knownKinds.ts;
+ * - fields: the members of the `Primitive` union, one alias per kind family
+ *   in src/effects/ir/, the type `Effect` runs through
+ *   `{ op: "do"; action: Primitive }`;
  * - verbs: `PROCEDURE_VERBS` in src/effects/primitiveNames.ts;
  * - card use: every `kind` nested in the card JSON under vendor/cards-data;
- * - engine builds: a `kind: "<name>"` object property in src/ outside
- *   ir.ts, or a call from outside ir.ts to an `fx` helper in ir.ts that
- *   builds the kind.
+ * - engine builds: a `kind: "<name>"` object property in src/ outside the
+ *   IR files (src/effects/ir.ts and src/effects/ir/), or a call from outside
+ *   them to an `fx` helper (src/effects/ir/fx.ts) that builds the kind.
  *
  * The output depends only on those files, so it is deterministic.
  */
@@ -62,11 +63,17 @@ function findVariable(sf, name) {
   throw new Error(`${name} not found in ${sf.fileName}`);
 }
 
-function findTypeAlias(sf, name) {
-  for (const stmt of sf.statements) {
-    if (ts.isTypeAliasDeclaration(stmt) && stmt.name.text === name) return stmt;
+/** The type alias `name`, looked up in each of `sfs`. */
+function findTypeAlias(sfs, name) {
+  for (const sf of sfs) {
+    for (const stmt of sf.statements) {
+      if (ts.isTypeAliasDeclaration(stmt) && stmt.name.text === name)
+        return stmt;
+    }
   }
-  throw new Error(`type ${name} not found in ${sf.fileName}`);
+  throw new Error(
+    `type ${name} not found in ${sfs.map((sf) => sf.fileName).join(", ")}`,
+  );
 }
 
 /** String elements of `new Set([...])`. */
@@ -109,9 +116,24 @@ function literalStrings(typeNode) {
   return [];
 }
 
+/**
+ * Members of a type alias's union, in order, following references to other
+ * aliases in `sfs` (`Primitive` is a union of one alias per kind family).
+ */
+function unionMembers(sfs, alias) {
+  const expand = (type) => {
+    if (ts.isUnionTypeNode(type)) return type.types.flatMap(expand);
+    if (ts.isTypeReferenceNode(type) && !type.typeArguments) {
+      return expand(findTypeAlias(sfs, type.typeName.getText()).type);
+    }
+    return [type];
+  };
+  return expand(alias.type);
+}
+
 /** kind -> list of field lists (one per union member naming that kind). */
-function readPrimitiveFields(irSf) {
-  const alias = findTypeAlias(irSf, "Effect");
+function readPrimitiveFields(irSfs) {
+  const alias = findTypeAlias(irSfs, "Effect");
   const doMember = ts.isUnionTypeNode(alias.type)
     ? alias.type.types.find(
         (m) =>
@@ -130,12 +152,13 @@ function readPrimitiveFields(irSf) {
   if (!actionType || !ts.isTypeReferenceNode(actionType)) {
     throw new Error('Effect has no { op: "do"; action: <type> } member');
   }
-  const primitive = findTypeAlias(irSf, actionType.typeName.getText());
+  const primitive = findTypeAlias(irSfs, actionType.typeName.getText());
   if (!ts.isUnionTypeNode(primitive.type)) {
     throw new Error(`${primitive.name.text} is not a union`);
   }
   const byKind = new Map();
-  for (const member of primitive.type.types) {
+  for (const member of unionMembers(irSfs, primitive)) {
+    const irSf = member.getSourceFile();
     if (!ts.isTypeLiteralNode(member)) {
       throw new Error(`unsupported Primitive member: ${member.getText()}`);
     }
@@ -205,10 +228,10 @@ function builtKinds(node, known) {
 
 /**
  * fx helper name -> kinds it builds, following calls to other fx helpers
- * and to top-level functions in ir.ts.
+ * and to top-level functions in the fx file (src/effects/ir/fx.ts).
  */
-function readFxHelpers(irSf, known) {
-  const fxDecl = findVariable(irSf, "fx");
+function readFxHelpers(fxSf, known) {
+  const fxDecl = findVariable(fxSf, "fx");
   if (
     !fxDecl.initializer ||
     !ts.isObjectLiteralExpression(fxDecl.initializer)
@@ -219,7 +242,7 @@ function readFxHelpers(irSf, known) {
   for (const prop of fxDecl.initializer.properties) {
     if (prop.name) bodies.set(`fx.${prop.name.getText()}`, prop);
   }
-  for (const stmt of irSf.statements) {
+  for (const stmt of fxSf.statements) {
     if (ts.isFunctionDeclaration(stmt) && stmt.name)
       bodies.set(stmt.name.text, stmt);
   }
@@ -257,14 +280,15 @@ function readFxHelpers(irSf, known) {
   return fxKinds;
 }
 
-function readEngineBuilt(root, irPath, known, fxKinds) {
+/** Kinds built in src/ outside the IR files (`irPaths`), and where. */
+function readEngineBuilt(root, irPaths, known, fxKinds) {
   const built = new Map();
   const add = (kind, file) => {
     if (!built.has(kind)) built.set(kind, new Set());
     built.get(kind).add(file);
   };
   for (const path of listFiles(join(root, "src"), ".ts")) {
-    if (path === irPath) continue;
+    if (irPaths.has(path)) continue;
     const sf = parse(path);
     const file = relative(root, path).split(sep).join("/");
     for (const k of builtKinds(sf, known)) add(k, file);
@@ -335,12 +359,20 @@ function fieldsCell(variants) {
 
 /** Build the Markdown text of docs/effect-ir-kinds.md. */
 export function buildKindReference(root = defaultRoot) {
-  const irPath = join(root, "src/effects/ir.ts");
-  const irSf = parse(irPath);
+  // The IR: the pointer src/effects/ir.ts and the files it re-exports.
+  const irDir = join(root, "src/effects/ir");
+  const irDirPaths = listFiles(irDir, ".ts");
+  const irPaths = new Set([join(root, "src/effects/ir.ts"), ...irDirPaths]);
+  const irSfs = irDirPaths.map(parse);
+  const irFile = (name) => {
+    const sf = irSfs.find((s) => s.fileName === join(irDir, name));
+    if (!sf) throw new Error(`${name} not found in ${irDir}`);
+    return sf;
+  };
   const namesSf = parse(join(root, "src/effects/primitiveNames.ts"));
 
   const entries = setLiteralStrings(
-    findVariable(irSf, "KNOWN_PRIMITIVE_KINDS"),
+    findVariable(irFile("knownKinds.ts"), "KNOWN_PRIMITIVE_KINDS"),
   );
   const known = new Set(entries);
   const duplicates = [
@@ -353,9 +385,9 @@ export function buildKindReference(root = defaultRoot) {
     setLiteralStrings(findVariable(namesSf, "PACK_CODE_PREFIXES")),
   );
 
-  const fields = readPrimitiveFields(irSf);
-  const fxKinds = readFxHelpers(irSf, known);
-  const engine = readEngineBuilt(root, irPath, known, fxKinds);
+  const fields = readPrimitiveFields(irSfs);
+  const fxKinds = readFxHelpers(irFile("fx.ts"), known);
+  const engine = readEngineBuilt(root, irPaths, known, fxKinds);
   const cardUse = readCardUse(root, known);
 
   const kinds = [...known].sort();
@@ -440,7 +472,7 @@ export function buildKindReference(root = defaultRoot) {
   L.push("## How to read this");
   L.push("");
   L.push(
-    "- **Fields** come from the kind's member of the `Primitive` union in `src/effects/ir.ts` " +
+    "- **Fields** come from the kind's member of the `Primitive` union, one file per kind family in `src/effects/ir/` " +
       '(`Effect` reaches it through `{ op: "do"; action: Primitive }`). `?` marks an optional field. ' +
       "A kind with more than one member lists each, numbered.",
   );
@@ -450,9 +482,9 @@ export function buildKindReference(root = defaultRoot) {
   );
   L.push(
     "- **Built by** says where the kind comes from. *card*: card JSON names it. " +
-      '*engine*: code in `src/` outside `ir.ts` builds it, either as a `kind: "…"` object property ' +
+      '*engine*: code in `src/` outside the IR files (`ir.ts` and `ir/`) builds it, either as a `kind: "…"` object property ' +
       "(continuations, flag-driven effects, `applyPrimitive` calls) or through an `fx` helper. " +
-      "*none*: nothing builds it, but `ir.ts` still declares it.",
+      "*none*: nothing builds it, but the IR still declares it.",
   );
   L.push(
     "- The engine scan reads string literals only. A kind built from a variable or a computed string is missed.",

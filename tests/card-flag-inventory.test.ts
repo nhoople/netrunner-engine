@@ -311,7 +311,7 @@ function fxCallName(n: ts.Node): string | undefined {
   return undefined;
 }
 
-/** Map each `fx` builder in src/effects/ir.ts to the kinds it builds (transitively). */
+/** Map each `fx` builder in src/effects/ir/fx.ts to the kinds it builds (transitively). */
 function fxBuilderKinds(sf: ts.SourceFile): Map<string, Set<string>> {
   let fxObj: ts.ObjectLiteralExpression | undefined;
   ts.forEachChild(sf, (n) => {
@@ -323,7 +323,7 @@ function fxBuilderKinds(sf: ts.SourceFile): Map<string, Set<string>> {
     }
   });
   if (!fxObj)
-    throw new Error("fx builder object not found in src/effects/ir.ts");
+    throw new Error("fx builder object not found in src/effects/ir/fx.ts");
   const direct = new Map<string, Set<string>>();
   const calls = new Map<string, Set<string>>();
   for (const p of fxObj.properties) {
@@ -662,8 +662,8 @@ function buildInventory(): Inventory {
   const checker = program.getTypeChecker();
   const loadSf = program.getSourceFile(join(ROOT, "src/cards/load.ts"));
   const typesSf = program.getSourceFile(join(ROOT, "src/state/types.ts"));
-  const irSf = program.getSourceFile(join(ROOT, "src/effects/ir.ts"));
-  if (!loadSf || !typesSf || !irSf)
+  const fxSf = program.getSourceFile(join(ROOT, "src/effects/ir/fx.ts"));
+  if (!loadSf || !typesSf || !fxSf)
     throw new Error("engine sources missing from program");
 
   const cardDef = findInterface(loadSf, "CardDef");
@@ -778,7 +778,7 @@ function buildInventory(): Inventory {
     const n = memberName(m);
     if (n) cardKeys.add(n);
   }
-  const fxKinds = fxBuilderKinds(irSf);
+  const fxKinds = fxBuilderKinds(fxSf);
   const reads = collectReads(program, owners, cardKeys, fxKinds, skip);
 
   // A read resolves to a member; map it back to entries. A CardInstance member
