@@ -3006,7 +3006,15 @@ function applyResolved(next: GameState, action: Action): ApplyResult {
         card.type === "agenda" &&
         card.faceup &&
         (card.zone ?? "").includes(":root");
-      card.faceup = true;
+      // Accessing lets the Runner, and the Corp outside R&D, look at the
+      // card; it does not turn the card faceup (CR 7.1.2, 4.6.3). The seat
+      // view opens it to the Runner for the rest of the breach (CR 7.3.1a,
+      // `runnerSeesAccessedCard`). A card in HQ or R&D keeps the flag while
+      // it is accessed and loses it when the access ends
+      // (`endAccessVisibility`, CR 1.21.1a).
+      if (card.zone === "corp:hq" || card.zone === "corp:rd") {
+        card.faceup = true;
+      }
       if (faceupInstalledAgenda) {
         const idCard = next.cards[next.corp.identityId];
         if (idCard?.onAccessFaceupInstalledAgenda) {
