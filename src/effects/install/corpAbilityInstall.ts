@@ -7,22 +7,25 @@
  * basic action uses (CR 8.5.16). An ability that names a destination that
  * cannot be used installs nothing (CR 8.5.14).
  */
-import { installCorp, likeCardsAtDestination } from "../actions/installCorp.js";
-import { occurCheckpoint } from "../legality/checkpoints.js";
-import { fireOnRez } from "../state/triggers/cardLifecycleHooks.js";
-import { cloneState, log } from "../state/setupAndEnd/createGame.js";
-import { openPendingChoose } from "../state/triggers/pendingChoice.js";
-import { revealCards } from "../state/visibility/reveal.js";
-import { serverName } from "../state/visibility/seatVisibility.js";
+import {
+  installCorp,
+  likeCardsAtDestination,
+} from "../../actions/installCorp.js";
+import { occurCheckpoint } from "../../legality/checkpoints.js";
+import { fireOnRez } from "../../state/triggers/cardLifecycleHooks.js";
+import { cloneState, log } from "../../state/setupAndEnd/createGame.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
+import { revealCards } from "../../state/visibility/reveal.js";
+import { serverName } from "../../state/visibility/seatVisibility.js";
 import type {
   GameState,
   InstallDestination,
   ServerId,
-} from "../state/types.js";
-import { CR } from "../timing/labels.js";
-import { chooseCards } from "./triggers/chooseCards.js";
-import type { EffectCtx, EvalResult } from "./eval.js";
-import type { Effect, Primitive } from "./ir.js";
+} from "../../state/types.js";
+import { CR } from "../../timing/labels.js";
+import { chooseCards } from "../triggers/chooseCards.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 
 export type InstallCorpCard = Extract<Primitive, { kind: "install_corp_card" }>;
 

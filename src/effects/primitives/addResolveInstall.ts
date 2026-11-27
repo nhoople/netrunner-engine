@@ -1,7 +1,5 @@
 /** Sovereign Sight (ss) Kitara pack primitives — v1.136.0. */
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
-import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
-import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
@@ -13,18 +11,6 @@ import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function serverIdForInstalledCorpCard(
-  state: EffectCtx["state"],
-  cardId: string,
-): ServerId | null {
-  for (const [sid, server] of Object.entries(state.servers)) {
-    if (server.root.includes(cardId) || server.ice.includes(cardId)) {
-      return sid as ServerId;
-    }
-  }
-  return null;
-}
 
 function addInstalledToGrip(state: EffectCtx["state"], cardId: string): void {
   const card = state.cards[cardId];
@@ -62,89 +48,6 @@ export function applyKitaraSsPrimitive(
         options,
         logLine: `${source?.title ?? "Puffer"} — add or remove 1 power counter.`,
       });
-      return { ok: true };
-    }
-
-    case "install_asa_non_agenda_same_server": {
-      const lastId = state.turn.installedThisTurn.at(-1);
-      if (!lastId) {
-        log(state, `Asa Group — no install to match.`);
-        return { ok: true };
-      }
-      const serverId = serverIdForInstalledCorpCard(state, lastId);
-      if (!serverId) {
-        log(state, `Asa Group — last install has no server.`);
-        return { ok: true };
-      }
-      const hq = state.corp.hand.filter((id) => {
-        const t = state.cards[id]?.type;
-        return t === "asset" || t === "upgrade" || t === "ice";
-      });
-      if (hq.length === 0) {
-        log(state, `Asa Group — no non-agenda in HQ.`);
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (const cardId of hq) {
-        const card = state.cards[cardId]!;
-        if (card.type === "ice") {
-          options.push({
-            id: `asa-ice:${cardId}`,
-            label: `Install ${card.title} protecting ${serverId}`,
-            effect: fx.do({
-              kind: "install_asa_resolve",
-              cardId,
-              serverId,
-              asIce: true,
-            }),
-          });
-        } else {
-          options.push({
-            id: `asa-root:${cardId}`,
-            label: `Install ${card.title} in root of ${serverId}`,
-            effect: fx.do({
-              kind: "install_asa_resolve",
-              cardId,
-              serverId,
-              asIce: false,
-            }),
-          });
-        }
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-        logLine: `${source?.title ?? "Asa Group"} — may install non-agenda same server (${serverId}).`,
-      });
-      return { ok: true };
-    }
-
-    case "install_asa_resolve": {
-      const card = state.cards[action.cardId];
-      const server = state.servers[action.serverId as ServerId];
-      if (!card || !server) return { ok: true };
-      const handIdx = state.corp.hand.indexOf(action.cardId);
-      if (handIdx < 0) return { ok: true };
-      if (action.asIce && iceInstallCapRefuses(state, card))
-        return { ok: true };
-      state.corp.hand.splice(handIdx, 1);
-      card.rezzed = false;
-      card.faceup = false;
-      card.advancementCounters = card.advancementCounters ?? 0;
-      if (action.asIce) {
-        // Outermost, as the text names no other position (CR 6.2.2a).
-        addOutermostIce(state, action.serverId as ServerId, action.cardId);
-        card.zone = `server:${action.serverId}:ice`;
-      } else {
-        server.root.push(action.cardId);
-        card.zone = `server:${action.serverId}:root`;
-      }
-      state.turn.installedThisTurn.push(action.cardId);
-      log(
-        state,
-        `Asa Group — install ${card.title} on ${action.serverId} (${action.asIce ? "ice" : "root"}).`,
-      );
       return { ok: true };
     }
 

@@ -1,11 +1,9 @@
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite } from "../../state/types.js";
-import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import type { EffectCtx } from "../eval.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import type { Primitive } from "../ir.js";
+import { hostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -34,68 +32,6 @@ export function applySansanUwPrimitive(
         card.zone = `hosted:${sourceId}`;
         log(state, `${source.title} hosts a card facedown from stack.`);
       }
-      return { ok: true };
-    }
-
-    case "install_hosted": {
-      const discount = action.discount ?? 1;
-      const hosted = (source.hostedCardIds ?? []).filter((id) => {
-        const t = state.cards[id]?.type;
-        return t === "program" || t === "hardware" || t === "resource";
-      });
-      if (hosted.length === 0) {
-        log(state, `${source.title} — no hosted installable card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: hosted.map((cardId) => ({
-          id: `peddler:${cardId}`,
-          label: `Install ${state.cards[cardId]!.title} (−${discount}¢)`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "install_street_peddler_hosted_card" as const,
-              cardId,
-              discount,
-            },
-          },
-        })),
-        logLine: `${source.title} — choose a hosted card to install.`,
-      });
-      return { ok: true };
-    }
-
-    case "install_street_peddler_hosted_card": {
-      const cardId = action.cardId;
-      const discount = action.discount ?? 1;
-      const card = state.cards[cardId];
-      if (
-        !card ||
-        !(source.hostedCardIds ?? []).includes(cardId) ||
-        (card.type !== "program" &&
-          card.type !== "hardware" &&
-          card.type !== "resource")
-      ) {
-        log(state, `Street Peddler — invalid hosted card.`);
-        return { ok: true };
-      }
-      const cost = Math.max(0, (card.installCost ?? 0) - discount);
-      if (state.runner.credits < cost) {
-        log(state, `Street Peddler — insufficient credits (${cost}¢).`);
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.setAside = (state.runner.setAside ?? []).filter(
-        (id) => id !== cardId,
-      );
-      unhostCard(state, card.id);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      state.runner.installed.push(cardId);
-      log(state, `Street Peddler — install ${card.title} for ${cost}¢.`);
-      fireOnInstall(state, cardId);
       return { ok: true };
     }
 

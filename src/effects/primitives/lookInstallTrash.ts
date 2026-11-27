@@ -1,4 +1,3 @@
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite } from "../../state/types.js";
@@ -19,47 +18,6 @@ export function applyFlashpointInPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "install_resolve": {
-      const cardId = action.cardId;
-      const lookedIds = action.lookedIds ?? [];
-      const discount = action.discount ?? 5;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.deck.includes(cardId)) {
-        log(state, `Frantic Coding — program not in looked cards.`);
-        return applyFlashpointInPrimitive(ctx, {
-          kind: "trash_frantic_coding_looked",
-          lookedIds,
-        });
-      }
-      const cost = Math.max(0, (card.installCost ?? 0) - discount);
-      if (state.runner.credits < cost) {
-        log(state, `Frantic Coding — cannot afford ${card.title}.`);
-        return applyFlashpointInPrimitive(ctx, {
-          kind: "trash_frantic_coding_looked",
-          lookedIds,
-        });
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      state.runner.installed.push(cardId);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      log(state, `Frantic Coding — install ${card.title} for ${cost}¢.`);
-      const rest = lookedIds.filter((id) => id !== cardId);
-      for (const id of rest) {
-        if (!state.runner.deck.includes(id)) continue;
-        state.runner.deck = state.runner.deck.filter((x) => x !== id);
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-      }
-      if (rest.length > 0) {
-        log(
-          state,
-          `Frantic Coding — trash ${rest.length} other looked card(s).`,
-        );
-      }
-      return { ok: true };
-    }
-
     case "trash_frantic_coding_looked": {
       const lookedIds = action.lookedIds ?? [];
       for (const id of lookedIds) {

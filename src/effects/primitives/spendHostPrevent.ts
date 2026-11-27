@@ -5,10 +5,6 @@ import {
   interfaceBlock,
   runnerBreakBlock,
 } from "../../state/turnAndActions/break.js";
-import {
-  corpInstallCost,
-  subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
@@ -18,6 +14,7 @@ import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -224,107 +221,6 @@ export function applyFlashpointMlPrimitive(
         state,
         `Misdirection — spend ${x}¢ → remove ${removed} tag(s) (${state.runner.tags} remain).`,
       );
-      return { ok: true };
-    }
-
-    case "install_up_to_n_from_archives_paying": {
-      const max = Math.max(0, action.max ?? 2);
-      return applyFlashpointMlPrimitive(ctx, {
-        kind: "install_up_to_n_from_archives_paying_continue",
-        remaining: max,
-      });
-    }
-
-    case "install_up_to_n_from_archives_paying_continue": {
-      const remaining = action.remaining ?? 0;
-      if (remaining <= 0) return { ok: true };
-      const installable = state.corp.discardPile.filter((id) => {
-        const t = state.cards[id]?.type;
-        return (
-          t === "agenda" || t === "asset" || t === "ice" || t === "upgrade"
-        );
-      });
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "done",
-          label: "Done installing",
-          effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-        },
-      ];
-      for (const cardId of installable) {
-        const card = state.cards[cardId]!;
-        const cost = corpInstallCost(card, 0);
-        if (card.type === "ice") {
-          for (const server of Object.values(state.servers)) {
-            const iceCost = corpInstallCost(card, server.ice.length);
-            if (state.corp.credits < iceCost) continue;
-            options.push({
-              id: `arch:${cardId}:${server.id}`,
-              label: `Install ${card.title} protecting ${server.id} (${iceCost}¢)`,
-              effect: {
-                op: "seq",
-                effects: [
-                  fx.do({
-                    kind: "install_archives_card_paying",
-                    cardId,
-                    serverId: server.id,
-                  }),
-                  fx.do({
-                    kind: "install_up_to_n_from_archives_paying_continue",
-                    remaining: remaining - 1,
-                  }),
-                ],
-              },
-            });
-          }
-        } else {
-          for (const server of Object.values(state.servers)) {
-            if (server.kind !== "remote") continue;
-            options.push({
-              id: `arch:${cardId}:${server.id}`,
-              label: `Install ${card.title} on ${server.id} (${cost}¢)`,
-              effect: {
-                op: "seq",
-                effects: [
-                  fx.do({
-                    kind: "install_archives_card_paying",
-                    cardId,
-                    serverId: server.id,
-                  }),
-                  fx.do({
-                    kind: "install_up_to_n_from_archives_paying_continue",
-                    remaining: remaining - 1,
-                  }),
-                ],
-              },
-            });
-          }
-          options.push({
-            id: `arch:${cardId}:new`,
-            label: `Install ${card.title} on new remote (${cost}¢)`,
-            effect: {
-              op: "seq",
-              effects: [
-                fx.do({
-                  kind: "install_archives_card_paying",
-                  cardId,
-                  serverId: "__new_remote__",
-                }),
-                fx.do({
-                  kind: "install_up_to_n_from_archives_paying_continue",
-                  remaining: remaining - 1,
-                }),
-              ],
-            },
-          });
-        }
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-        logLine: `Friends in High Places — install up to ${remaining} from Archives (paying).`,
-      });
       return { ok: true };
     }
 

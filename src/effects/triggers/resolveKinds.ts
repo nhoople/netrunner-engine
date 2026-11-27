@@ -36,7 +36,7 @@ import {
   shuffleRunnerSetAsideIntoStack,
   shuffleRunnerStack,
   stackCardInstallCost,
-} from "../runnerInstall.js";
+} from "../install/runnerInstall.js";
 
 import { fireHostRezStateTriggers } from "../eval.js";
 import { pickRandomSubset, shuffleInPlace } from "../../state/rng.js";

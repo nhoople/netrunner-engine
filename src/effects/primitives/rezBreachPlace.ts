@@ -1,6 +1,4 @@
-import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
@@ -10,15 +8,10 @@ import {
   trashCard,
 } from "../../state/hostingAndTrash/trash.js";
 import { offerCbiRaidHqToRd } from "../access/accessKinds.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function nextRemoteId(state: EffectCtx["state"]): ServerId {
-  let n = 1;
-  while (state.servers[`remote-${n}` as ServerId]) n += 1;
-  return `remote-${n}` as ServerId;
-}
 
 /**
  * Printed: "discards down to their maximum hand size" — the Runner chooses
@@ -136,81 +129,6 @@ export function applyMumbadBfPrimitive(
       discardCard(state, cardId);
       log(state, `Harvester — Runner discards ${state.cards[cardId]!.title}.`);
       return offerDiscardDownToHandSize(ctx);
-    }
-
-    case "install_from_hq_new_remote": {
-      // New Construction: "install 1 card from HQ in the root of a new
-      // server". Ice is not installed in the root of a server (CR 3.4.2), so
-      // it is not offered.
-      const eligible = state.corp.hand.filter((id) => {
-        const t = state.cards[id]?.type;
-        return t === "asset" || t === "agenda" || t === "upgrade";
-      });
-      if (eligible.length === 0) {
-        log(state, `New Construction — no installable HQ card.`);
-        return { ok: true };
-      }
-      const adv = source?.advancementCounters ?? 0;
-      const rezIgnore = adv >= 5;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: eligible.map((id) => ({
-          id: `nc-install:${id}`,
-          label: `Install ${state.cards[id]!.title} in new remote${
-            rezIgnore ? " (rez ignoring costs)" : ""
-          }`,
-          effect: fx.do({
-            kind: "install_new_construction_resolve",
-            cardId: id,
-            rezIgnoringCosts: rezIgnore,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "install_new_construction_resolve": {
-      const id = action.cardId;
-      if (!state.corp.hand.includes(id)) return { ok: true };
-      const card = state.cards[id]!;
-      if (iceInstallCapRefuses(state, card)) return { ok: true };
-      const serverId = nextRemoteId(state);
-      state.servers[serverId] = {
-        id: serverId,
-        kind: "remote",
-        root: [],
-        ice: [],
-      };
-      state.nextRemoteNumber = Math.max(
-        state.nextRemoteNumber,
-        Number(serverId.replace("remote-", "")) + 1,
-      );
-      state.corp.hand = state.corp.hand.filter((x) => x !== id);
-      if (card.type === "ice") {
-        state.servers[serverId]!.ice.push(id);
-        card.zone = `server:${serverId}:ice`;
-      } else {
-        state.servers[serverId]!.root.push(id);
-        card.zone = `server:${serverId}:root`;
-      }
-      card.faceup = Boolean(card.installFaceup);
-      card.rezzed = false;
-      if (
-        action.rezIgnoringCosts &&
-        card.type !== "agenda" &&
-        card.type !== "ice"
-      ) {
-        card.rezzed = true;
-        card.faceup = true;
-        log(
-          state,
-          `New Construction — install and rez ${card.title} in ${serverId} (ignoring costs).`,
-        );
-      } else {
-        log(state, `New Construction — install ${card.title} in ${serverId}.`);
-      }
-      return { ok: true };
     }
 
     case "bf_place_advancement_on_self": {

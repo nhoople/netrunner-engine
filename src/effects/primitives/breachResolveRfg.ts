@@ -1,13 +1,11 @@
 /** First Contact (fc) Lunar pack primitives. */
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
-import { canPayCost, payCost } from "../../state/keywordsAndCredits/costs.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
+import { hostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -111,46 +109,6 @@ export function applyLunarFcPrimitive(
       state.runner.hand = state.runner.hand.filter((x) => x !== cardId);
       hostCard(state, card.id, sourceId, { installed: true });
       log(state, `The Supplier — host ${card.title}.`);
-      return { ok: true };
-    }
-    case "install_supplier_turn_begin": {
-      const host = state.cards[sourceId];
-      const hosted = host?.hostedCardIds ?? [];
-      if (hosted.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "decline",
-            label: "Do not install hosted card",
-            effect: fx.gainCredits("runner", 0),
-          },
-          ...hosted.map((id) => ({
-            id: `install:${id}`,
-            label: `Install ${state.cards[id]!.title} (-2¢)`,
-            effect: fx.do({ kind: "install_supplier_hosted", cardId: id }),
-          })),
-        ],
-      });
-      return { ok: true };
-    }
-    case "install_supplier_hosted": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      const host = state.cards[sourceId];
-      if (!card || !host?.hostedCardIds?.includes(cardId)) return { ok: true };
-      const cost = Math.max(0, (card.installCost ?? 0) - 2);
-      if (!canPayCost(state, "runner", { credits: cost })) {
-        return { ok: false, error: "Cannot pay install cost.", cites: [] };
-      }
-      payCost(state, "runner", { credits: cost }, "supplier-install", card);
-      unhostCard(state, card.id);
-      state.runner.installed.push(cardId);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      recomputeRunnerLink(state);
-      log(state, `The Supplier — install ${card.title} for ${cost}¢.`);
       return { ok: true };
     }
     default:

@@ -34,16 +34,10 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
-import { enterSetAside } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { drawCards } from "../draw.js";
 import { fx } from "../ir.js";
 import { rearrangeIce } from "../../state/uninstallAndPosition/rearrange.js";
-import {
-  canInstallSetAsideIgnoringCosts,
-  shuffleRunnerSetAsideIntoStack,
-  shuffleRunnerStack,
-} from "../runnerInstall.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
@@ -82,6 +76,7 @@ import {
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
+import { shuffleRunnerStack } from "../install/runnerInstall.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -2314,137 +2309,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "accelerated_beta_test": {
-      const n = action.n ?? 3;
-      // "You may look at the top 3 cards of R&D": the Corp may decline, and
-      // then nothing is looked at or trashed (CR 9.6.9c, 1.2.1).
-      if (!action.look) {
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "corp",
-          options: [
-            {
-              id: "abt-look",
-              label: `Look at the top ${n} cards of R&D`,
-              effect: fx.do({ kind: "accelerated_beta_test", n, look: true }),
-            },
-            {
-              id: "abt-decline",
-              label: "Decline",
-              effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-            },
-          ],
-          logLine: `${source?.title ?? "Accelerated Beta Test"} — the Corp may look at the top ${n} cards of R&D.`,
-        });
-        return { ok: true };
-      }
-      if (state.turn.rdLookedCards.length > 0) {
-        return {
-          ok: false,
-          error: "R&D look already in progress.",
-          cites: [],
-        };
-      }
-      const taken = state.corp.deck.splice(
-        0,
-        Math.min(n, state.corp.deck.length),
-      );
-      state.turn.rdLookedCards = taken;
-      lookAtCards(state, taken, sourceId);
-      return applyPrimitive(ctx, { kind: "accelerated_beta_test_continue" });
-    }
-
-    case "accelerated_beta_test_continue": {
-      const iceLeft = state.turn.rdLookedCards.filter(
-        (id) => state.cards[id]?.type === "ice",
-      );
-      if (iceLeft.length === 0) {
-        for (const id of [...state.turn.rdLookedCards]) {
-          state.turn.rdLookedCards = state.turn.rdLookedCards.filter(
-            (x) => x !== id,
-          );
-          trashCard(state, id, { by: source.side });
-          log(state, `ABT — trash ${state.cards[id]!.title}.`);
-        }
-        state.turn.rdLookedCards = [];
-        return { ok: true };
-      }
-      const iceId = iceLeft[0]!;
-      const options: Array<{ id: string; label: string; effect: Effect }> = [
-        {
-          id: `abt-skip:${iceId}`,
-          label: `Decline ${state.cards[iceId]!.title} (will trash)`,
-          effect: {
-            op: "seq",
-            effects: [
-              {
-                op: "do",
-                action: {
-                  kind: "trash_looked",
-                  cardId: iceId,
-                },
-              },
-              {
-                op: "do",
-                action: { kind: "accelerated_beta_test_continue" },
-              },
-            ],
-          },
-        },
-      ];
-      for (const server of Object.values(state.servers)) {
-        options.push({
-          id: `abt-ice:${iceId}:${server.id}`,
-          label: `Install and rez ${state.cards[iceId]!.title} protecting ${server.id}`,
-          effect: {
-            op: "seq",
-            effects: [
-              {
-                op: "do" as const,
-                action: {
-                  kind: "install_ice" as const,
-                  cardId: iceId,
-                  serverId: server.id,
-                },
-              },
-              {
-                op: "do" as const,
-                action: { kind: "accelerated_beta_test_continue" as const },
-              },
-            ],
-          },
-        });
-      }
-      options.push({
-        id: `abt-ice:${iceId}:new`,
-        label: `Install and rez ${state.cards[iceId]!.title} protecting a new remote`,
-        effect: {
-          op: "seq",
-          effects: [
-            {
-              op: "do" as const,
-              action: {
-                kind: "install_ice" as const,
-                cardId: iceId,
-                serverId: "__new_remote__",
-              },
-            },
-            {
-              op: "do" as const,
-              action: { kind: "accelerated_beta_test_continue" as const },
-            },
-          ],
-        },
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-        logLine: `ABT — may install and rez ${state.cards[iceId]!.title}.`,
-      });
-      return { ok: true };
-    }
-
     case "accelerated_diagnostics": {
       // "Look at the top 3 cards of R&D. If any of those cards are
       // operations, you may play them (paying their play cost), ignoring any
@@ -2733,21 +2597,6 @@ export function applyOtherKinds(
       };
       log(state, `Pending run on ${action.serverId} (from ${source.title}).`);
       return { ok: true };
-    }
-
-    case "haas_pet_project_setup": {
-      const remaining = Math.max(0, action.remaining);
-      if (remaining <= 0) return { ok: true };
-      const remoteNum = state.nextRemoteNumber++;
-      const sid =
-        `remote-${remoteNum}` as import("../../state/types.js").ServerId;
-      state.servers[sid] = { id: sid, kind: "remote", ice: [], root: [] };
-      log(state, `${source.title} — create ${sid} for Pet Project installs.`);
-      return applyPrimitive(ctx, {
-        kind: "install_haas_pet_project_continue",
-        remaining,
-        serverId: sid,
-      });
     }
 
     case "fully_operational_step": {
@@ -3229,65 +3078,6 @@ export function applyOtherKinds(
         action.revealed,
         action.movesLeft,
       );
-    }
-
-    case "wizard_chest_for_type": {
-      const aside: string[] = [];
-      const matches: string[] = [];
-      while (
-        state.runner.deck.length > 0 &&
-        matches.length < action.untilCount
-      ) {
-        const id = state.runner.deck.shift()!;
-        aside.push(id);
-        if (state.cards[id]!.type === action.cardType) {
-          matches.push(id);
-        }
-      }
-      enterSetAside(state, aside, {
-        side: "runner",
-        faceup: true,
-        replace: true,
-      });
-      log(
-        state,
-        `${source.title} — set aside ${aside.length} card(s); ${matches.length} ${action.cardType}(s).`,
-      );
-      if (matches.length === 0) {
-        shuffleRunnerSetAsideIntoStack(state);
-        return { ok: true };
-      }
-      const installable = matches.filter((id) =>
-        canInstallSetAsideIgnoringCosts(state, id),
-      );
-      const options: Array<{ id: string; label: string; effect: Effect }> = [
-        ...installable.map((id) => ({
-          id: `wizard-install:${id}`,
-          label: `Install ${state.cards[id]!.title} ignoring all costs`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "install_wizard_chest" as const,
-              cardId: id,
-            },
-          },
-        })),
-        {
-          id: "decline",
-          label: "Decline",
-          effect: {
-            op: "do" as const,
-            action: { kind: "shuffle_runner_set_aside_into_stack" as const },
-          },
-        },
-      ];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `${source.title} — may install 1 of ${matches.length} ${action.cardType}(s) ignoring costs.`,
-      });
-      return { ok: true };
     }
 
     case "check_assassination_win": {

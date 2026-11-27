@@ -1,13 +1,9 @@
-import { revealCards } from "../../state/visibility/reveal.js";
 import { emptyRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
-import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random } from "../../state/rng.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 
 type PrimResult =
@@ -44,76 +40,6 @@ export function applyLunarUpPrimitive(
           effect: fx.do({ kind: "mutate_record_trashed_ice", iceId: id }),
         })),
       });
-      return { ok: true };
-    }
-    case "mutate_record_trashed_ice": {
-      const iceId = (action as { iceId: string }).iceId;
-      const serverId = Object.entries(state.servers).find(([, s]) =>
-        s.ice.includes(iceId),
-      )?.[0] as ServerId;
-      const index = state.servers[serverId].ice.indexOf(iceId);
-      state.turn.mutateTrashedIce = { iceId, serverId, index };
-      trashCard(state, iceId, { by: "corp", cause: "cost" });
-      log(
-        state,
-        `Mutate — trashed ${state.cards[iceId]!.title} as additional cost.`,
-      );
-      return { ok: true };
-    }
-    case "resolve_mutate_operation": {
-      const slot = state.turn.mutateTrashedIce;
-      if (!slot) {
-        return {
-          ok: false,
-          error: "Mutate additional cost not paid.",
-          cites: [],
-        };
-      }
-      const revealed: string[] = [];
-      let found: string | null = null;
-      while (state.corp.deck.length > 0) {
-        const id = state.corp.deck.shift()!; // reveal from the top (index 0)
-        revealed.push(id);
-        state.cards[id]!.faceup = true;
-        if (state.cards[id]!.type === "ice") {
-          found = id;
-          break;
-        }
-      }
-      revealCards(state, revealed, sourceId);
-      const shuffleRd = () => {
-        for (const id of state.corp.deck) {
-          state.cards[id]!.faceup = false;
-        }
-        for (let i = state.corp.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(random(state) * (i + 1));
-          [state.corp.deck[i], state.corp.deck[j]] = [
-            state.corp.deck[j]!,
-            state.corp.deck[i]!,
-          ];
-        }
-      };
-      if (!found) {
-        // Printed: shuffle R&D after revealing (CR 1.2.1).
-        state.corp.deck.unshift(...revealed);
-        shuffleRd();
-        log(state, `Mutate — no ice revealed; shuffle R&D.`);
-        return { ok: true };
-      }
-      const rest = revealed.filter((x) => x !== found);
-      state.corp.deck.unshift(...rest);
-      const server = state.servers[slot.serverId];
-      server.ice.splice(slot.index, 0, found);
-      state.cards[found]!.zone = `server:${slot.serverId}:ice`;
-      state.cards[found]!.rezzed = true;
-      state.cards[found]!.faceup = true;
-      // Printed: shuffle R&D after install/rez (CR 1.2.1).
-      shuffleRd();
-      log(
-        state,
-        `Mutate — install and rez ${state.cards[found]!.title} in trashed ice's position; shuffle R&D.`,
-      );
-      state.turn.mutateTrashedIce = undefined;
       return { ok: true };
     }
     case "trace_taurus_subroutine": {
@@ -203,14 +129,6 @@ export function applyLunarUpPrimitive(
         state.runner.credits += gain;
         log(state, `Nasir Meidan — Runner gains ${gain}¢.`);
       }
-      return { ok: true };
-    }
-    case "install_instead": {
-      if (state.run) state.run.skipBreach = true;
-      removeCardFromCurrentZone(state, sourceId);
-      state.runner.installed.push(sourceId);
-      state.cards[sourceId]!.zone = "runner:installed";
-      log(state, `Eden Shard — installed from grip instead of breaching R&D.`);
       return { ok: true };
     }
     default:

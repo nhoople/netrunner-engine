@@ -10,8 +10,6 @@ import { applyEncounterPrimitive } from "../encounterPrimitives.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { placeCurrentAfterPlay } from "../../state/continuous/currents.js";
 import { markAbilityUsed } from "../../state/turnAndActions/turn.js";
-import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import { playEffectFromCard } from "../abilityRecord.js";
 import type { EffectCtx } from "../eval.js";
@@ -23,6 +21,7 @@ import { trashCorpCardSet } from "../kinds/trashKinds.js";
 import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -33,12 +32,6 @@ function installedCorpIds(state: EffectCtx["state"]): string[] {
     for (const id of [...server.root, ...server.ice]) out.push(id);
   }
   return out;
-}
-
-function nextRemoteId(state: EffectCtx["state"]): ServerId {
-  let n = 1;
-  while (state.servers[`remote${n}` as ServerId]) n += 1;
-  return `remote${n}` as ServerId;
 }
 
 export function applyDadPrimitive(
@@ -217,69 +210,6 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "install_and_rez_x_advertisements_from_hq_or_archives": {
-      const x = state.turn.lastPlayCostX ?? 0;
-      const ads = [...state.corp.hand, ...state.corp.discardPile].filter(
-        (id) => {
-          const card = state.cards[id];
-          if (!card || !(card.subtypes ?? []).includes("advertisement"))
-            return false;
-          if (card.type === "agenda") return false;
-          const cost = corpInstallCost(card, 0) + (card.rezCost ?? 0);
-          return state.corp.credits >= cost;
-        },
-      );
-      if (x <= 0 || ads.length === 0) {
-        log(state, `Ad Blitz — nothing to install (X=${x}).`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: ads.map((id) => ({
-          id: `adblitz:${id}`,
-          label: `Install+rez ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "install_rez_advertisement",
-            cardId: id,
-            remaining: x - 1,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "install_rez_advertisement": {
-      const card = state.cards[action.cardId];
-      if (!card) return { ok: true };
-      const cost = corpInstallCost(card, 0) + (card.rezCost ?? 0);
-      if (state.corp.credits >= cost) {
-        state.corp.credits -= cost;
-        removeCardFromCurrentZone(state, action.cardId);
-        const remoteKey = nextRemoteId(state);
-        state.servers[remoteKey] = {
-          id: remoteKey,
-          kind: "remote",
-          ice: [],
-          root: [],
-        };
-        state.servers[remoteKey]!.root.push(action.cardId);
-        card.zone = `server:${remoteKey}:root`;
-        card.rezzed = true;
-        card.faceup = true;
-        log(state, `Ad Blitz — install and rez ${card.title}.`);
-      } else {
-        log(state, `Cannot afford install+rez ${card.title}.`);
-      }
-      if (action.remaining > 0) {
-        state.turn.lastPlayCostX = action.remaining;
-        return applyDadPrimitive(ctx, {
-          kind: "install_and_rez_x_advertisements_from_hq_or_archives",
-        });
-      }
-      return { ok: true };
-    }
-
     case "gain_text_of_runner_scored_agenda": {
       const agendas = state.runner.scoreArea.filter(
         (id) => state.cards[id]?.type === "agenda",
@@ -334,35 +264,6 @@ export function applyDadPrimitive(
         (state.corp.badPublicity ?? 0) - action.amount,
       );
       log(state, `Remove ${action.amount} bad publicity.`);
-      return { ok: true };
-    }
-
-    case "install_from_grip_facedown": {
-      const grip = [...state.runner.hand];
-      if (grip.length === 0) {
-        log(state, `Apex — grip empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: grip.map((id) => ({
-          id: `apex-fd:${id}`,
-          label: `Install ${state.cards[id]!.title} facedown`,
-          effect: fx.do({ kind: "install_facedown", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "install_facedown": {
-      const card = state.cards[action.cardId];
-      if (!card) return { ok: true };
-      removeCardFromCurrentZone(state, action.cardId);
-      state.runner.installed.push(action.cardId);
-      card.zone = "runner:installed";
-      card.faceup = false;
-      log(state, `Install ${card.title} facedown.`);
       return { ok: true };
     }
 
@@ -482,20 +383,6 @@ export function applyDadPrimitive(
         }
         markSubroutineBroken(state, sourceId, action.index);
         log(state, `Break subroutine on ${state.cards[action.iceId]?.title}.`);
-      }
-      return { ok: true };
-    }
-
-    case "install_top_n_of_stack_facedown": {
-      const n = action.amount ?? 3;
-      for (let i = 0; i < n; i++) {
-        const id = state.runner.deck.shift();
-        if (!id) break;
-        const card = state.cards[id]!;
-        state.runner.installed.push(id);
-        card.zone = "runner:installed";
-        card.faceup = false;
-        log(state, `Install ${card.title} facedown from stack.`);
       }
       return { ok: true };
     }

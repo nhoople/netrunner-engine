@@ -25,15 +25,15 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { stealAgenda } from "../../state/turnAndActions/scoring.js";
 import { CR } from "../../timing/labels.js";
-import { shuffleRunnerStack } from "../runnerInstall.js";
+import { shuffleRunnerStack } from "../install/runnerInstall.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { serverLabel } from "../corpAbilityInstall.js";
+import { serverLabel } from "../install/corpAbilityInstall.js";
 import type { RuleCite, GameState } from "../../state/types.js";
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { shuffleInPlace, random } from "../../state/rng.js";
 import { fireOnAgendaAccessedOrScored } from "../../state/triggers/miscConditionalHooks.js";
 import { applySpinTcPrimitive } from "../primitives/breachTrashTurn.js";
-import { applyLunarTsPrimitive } from "../primitives/boostRezTrace.js";
+import { applyRunnerInstallFromGripKinds } from "../install/runnerInstallFromGripKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -598,7 +598,7 @@ export function applyAccessKinds(
         log(state, `Code Siphon — no program found; shuffle the stack.`);
         return evalEffect(ctx, fx.do({ kind: "give_tags", amount: 1 }));
       }
-      return applyLunarTsPrimitive(ctx, {
+      return applyRunnerInstallFromGripKinds(ctx, {
         kind: "install_program",
         cardId: id,
         discount,

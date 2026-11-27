@@ -136,68 +136,6 @@ export function applyFlashpointQuPrimitive(
       return { ok: true };
     }
 
-    case "install_remote": {
-      const cardId = action.cardId;
-      if (!cardId || !state.turn.rdLookedCards.includes(cardId)) {
-        log(state, `Psychokinesis — card not in looked set.`);
-        return { ok: true };
-      }
-      const remotes = (Object.keys(state.servers) as ServerId[]).filter(
-        (sid) => state.servers[sid]?.kind === "remote",
-      );
-      let targets = [...remotes];
-      if (targets.length === 0) {
-        let n = 1;
-        while (state.servers[`remote-${n}` as ServerId]) n += 1;
-        const sid = `remote-${n}` as ServerId;
-        state.servers[sid] = {
-          id: sid,
-          kind: "remote",
-          root: [],
-          ice: [],
-        };
-        targets = [sid];
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((serverId) => ({
-          id: `psychokinesis-server:${serverId}`,
-          label: `Install into ${serverId}`,
-          effect: fx.do({
-            kind: "install_remote_resolve",
-            cardId,
-            serverId,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "install_remote_resolve": {
-      const cardId = action.cardId;
-      const serverId = action.serverId as ServerId | undefined;
-      if (!cardId || !serverId || !state.servers[serverId]) {
-        return evalEffect(ctx, fx.do({ kind: "return_looked" }));
-      }
-      const looked = state.turn.rdLookedCards.filter((id) => id !== cardId);
-      state.turn.rdLookedCards = [];
-      const card = state.cards[cardId]!;
-      card.faceup = card.type === "agenda" ? false : true;
-      card.zone = `server:${serverId}:root`;
-      state.servers[serverId]!.root.push(cardId);
-      for (const id of looked.reverse()) {
-        state.cards[id].faceup = false;
-        state.corp.deck.unshift(id);
-        state.cards[id].zone = "corp:rd";
-      }
-      log(
-        state,
-        `Psychokinesis — install ${card.title} in ${serverId}; return rest to R&D.`,
-      );
-      return { ok: true };
-    }
-
     case "pay_up_to_place_advancements": {
       const max = Math.max(0, action.max ?? 2);
       const credits = state.corp.credits;

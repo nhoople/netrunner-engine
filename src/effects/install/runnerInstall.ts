@@ -1,42 +1,42 @@
-import { openPendingChoose } from "../state/triggers/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /**
  * Runner install from grip, heap, stack, and set-aside.
  * Helpers moved out of eval.ts; the switch still calls them.
  */
-import { log } from "../state/setupAndEnd/createGame.js";
-import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
+import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import {
   creditsAvailableForInstall,
   payInstallCost,
   subtractRunnerCreditPool,
-} from "../state/keywordsAndCredits/costs.js";
-import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
+} from "../../state/keywordsAndCredits/costs.js";
+import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
-} from "../state/install/firstInstallDiscount.js";
+} from "../../state/install/firstInstallDiscount.js";
 import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
-} from "../state/install/programHardwareInstall.js";
+} from "../../state/install/programHardwareInstall.js";
 import {
   memoryLimit,
   memoryNeededToInstall,
   usedMemory,
-} from "../state/turnAndActions/turn.js";
-import type { GameState } from "../state/types.js";
-import { noteVirusProgramInstalled } from "../state/install/virusInstall.js";
+} from "../../state/turnAndActions/turn.js";
+import type { GameState } from "../../state/types.js";
+import { noteVirusProgramInstalled } from "../../state/install/virusInstall.js";
 import {
   daemonInstallDiscount,
   hostLimitReason,
-} from "../state/cardFlags/cardDeclarations.js";
-import { CR } from "../timing/labels.js";
-import { type EvalResult } from "./eval.js";
-import { fireOnInstallProgramFromHeap } from "../state/triggers/miscConditionalHooks.js";
-import { shuffleInPlace } from "../state/rng.js";
-import { hostCard } from "../state/hostingAndTrash/host.js";
-import { trashCard } from "../state/hostingAndTrash/trash.js";
+} from "../../state/cardFlags/cardDeclarations.js";
+import { CR } from "../../timing/labels.js";
+import { type EvalResult } from "../eval.js";
+import { fireOnInstallProgramFromHeap } from "../../state/triggers/miscConditionalHooks.js";
+import { shuffleInPlace } from "../../state/rng.js";
+import { hostCard } from "../../state/hostingAndTrash/host.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 function countInstalledIcebreakersForCost(state: GameState): number {
   return state.runner.installed.filter(

@@ -31,7 +31,7 @@ import { catalogCardNames } from "../visibility/cardNames.js";
 import {
   canInstallHeapCard,
   gripInstallCostAfterDiscount,
-} from "../runnerInstall.js";
+} from "../install/runnerInstall.js";
 
 import { fireHostRezStateTriggers } from "../eval.js";
 import { CR } from "../../timing/labels.js";

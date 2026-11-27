@@ -14,7 +14,7 @@ import { applyPrimitive, evalEffect } from "../eval.js";
 import {
   canInstallHeapCard,
   gripInstallCostAfterDiscount,
-} from "../runnerInstall.js";
+} from "../install/runnerInstall.js";
 
 /** A discount that brings a heap card's install cost to 0: "ignoring all costs". */
 function heapCostIgnored(state: EffectCtx["state"], cardId: string): number {

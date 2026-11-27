@@ -1,15 +1,8 @@
-import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import {
   markSubroutineBroken,
   subroutineBreakBlock,
 } from "../../state/turnAndActions/break.js";
-import {
-  corpInstallCost,
-  subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
-import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { offerRdArrangeChoice } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
@@ -17,6 +10,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -70,40 +64,6 @@ export function applyKitaraDtwnPrimitive(
       return { ok: true };
     }
 
-    case "install_kabonesa_resolve": {
-      const id = action.cardId;
-      if (!state.runner.deck.includes(id)) return { ok: true };
-      state.runner.deck = state.runner.deck.filter((x) => x !== id);
-      for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.runner.deck[i]!;
-        state.runner.deck[i] = state.runner.deck[j]!;
-        state.runner.deck[j] = tmp;
-      }
-      const card = state.cards[id]!;
-      const printed = card.installCost ?? 0;
-      const cost = Math.max(0, printed - 1);
-      if (state.runner.credits < cost) {
-        // Put back and shuffle — cannot afford.
-        state.runner.deck.push(id);
-        log(state, `Kabonesa Wu — cannot afford ${card.title}.`);
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.installed.push(id);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      if (!state.turn.dtwnKabonesaTrackedInstallIds) {
-        state.turn.dtwnKabonesaTrackedInstallIds = [];
-      }
-      state.turn.dtwnKabonesaTrackedInstallIds.push(id);
-      log(
-        state,
-        `Kabonesa Wu — install ${card.title} for ${cost}¢ (track RFG at turn end).`,
-      );
-      return { ok: true };
-    }
-
     case "break_first_subroutine": {
       const enc = state.run?.encounter;
       if (!enc) {
@@ -125,25 +85,6 @@ export function applyKitaraDtwnPrimitive(
         state,
         `${source?.title ?? "Kongamato"} — break first subroutine (index ${idx}).`,
       );
-      return { ok: true };
-    }
-
-    case "dtwn_emergent_creativity": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "begin",
-            label: "Trash programs/hardware from grip (0 or more), then search",
-            effect: fx.do({
-              kind: "trash_emergent_continue",
-              trashedCost: 0,
-            }),
-          },
-        ],
-        logLine: `Emergent Creativity — trash from grip then search stack.`,
-      });
       return { ok: true };
     }
 
@@ -221,34 +162,6 @@ export function applyKitaraDtwnPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "install_emergent_resolve": {
-      const id = action.cardId;
-      if (!state.runner.deck.includes(id)) return { ok: true };
-      state.runner.deck = state.runner.deck.filter((x) => x !== id);
-      for (let i = state.runner.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = state.runner.deck[i]!;
-        state.runner.deck[i] = state.runner.deck[j]!;
-        state.runner.deck[j] = tmp;
-      }
-      const card = state.cards[id]!;
-      const cost = Math.max(0, (card.installCost ?? 0) - action.discount);
-      if (state.runner.credits < cost) {
-        state.runner.deck.push(id);
-        log(state, `Emergent Creativity — cannot afford ${card.title}.`);
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, cost);
-      state.runner.installed.push(id);
-      card.zone = "runner:installed";
-      card.faceup = true;
-      log(
-        state,
-        `Emergent Creativity — install ${card.title} for ${cost}¢ (−${action.discount}).`,
-      );
       return { ok: true };
     }
 
@@ -631,46 +544,6 @@ export function applyKitaraDtwnPrimitive(
           }) ?? { ok: true }
         );
       }
-      return { ok: true };
-    }
-
-    case "install_jinja_drawn_ice": {
-      const iceId = action.cardId;
-      const serverId = action.serverId as ServerId;
-      const server = state.servers[serverId];
-      const ice = state.cards[iceId];
-      const setAside =
-        state.pendingDrawSetAside?.cardIds.includes(iceId) ?? false;
-      if (!server || !ice || (!state.corp.hand.includes(iceId) && !setAside)) {
-        return { ok: true };
-      }
-      const discount = action.discount ?? 4;
-      const cost = Math.max(
-        0,
-        corpInstallCost(ice, server.ice.length) - discount,
-      );
-      if (state.corp.credits < cost) {
-        log(state, `Jinja City Grid — cannot afford to install ${ice.title}.`);
-        return { ok: true };
-      }
-      state.corp.credits -= cost;
-      if (state.corp.hand.includes(iceId)) {
-        state.corp.hand = state.corp.hand.filter((x) => x !== iceId);
-      } else if (state.pendingDrawSetAside) {
-        state.pendingDrawSetAside.cardIds =
-          state.pendingDrawSetAside.cardIds.filter((id) => id !== iceId);
-        // It leaves the set-aside zone for the server (CR 4.1.1c).
-        removeCardFromCurrentZone(state, iceId);
-      }
-      // Outermost, as the text names no other position (CR 6.2.2a).
-      addOutermostIce(state, serverId, iceId);
-      ice.zone = `server:${serverId}:ice`;
-      ice.rezzed = false;
-      ice.faceup = false;
-      log(
-        state,
-        `Jinja City Grid — install ${ice.title} protecting ${serverId} for ${cost}¢.`,
-      );
       return { ok: true };
     }
 

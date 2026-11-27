@@ -1,23 +1,23 @@
-import { openPendingChoose } from "../state/triggers/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /**
  * Corp basic install from HQ or Archives, paying costs or ignoring them.
  * Card sequences that install and then advance, rez, or lock stay in eval.ts.
  */
-import { log } from "../state/setupAndEnd/createGame.js";
-import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,
   payInstallCost,
-} from "../state/keywordsAndCredits/costs.js";
-import { noteInstalledThisTurn } from "../state/install/programHardwareInstall.js";
-import { iceInstallCapRefuses } from "../state/cardFlags/staticFlags.js";
-import { cardBecameNewObject } from "../state/turnAndActions/turn.js";
-import type { GameState, ServerId } from "../state/types.js";
-import { CR } from "../timing/labels.js";
-import { type EffectCtx, type EvalResult } from "./eval.js";
-import type { Primitive } from "./ir.js";
-import { fireOnInstallFromNonHq } from "../state/triggers/miscConditionalHooks.js";
+} from "../../state/keywordsAndCredits/costs.js";
+import { noteInstalledThisTurn } from "../../state/install/programHardwareInstall.js";
+import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
+import { cardBecameNewObject } from "../../state/turnAndActions/turn.js";
+import type { GameState, ServerId } from "../../state/types.js";
+import { CR } from "../../timing/labels.js";
+import { type EffectCtx, type EvalResult } from "../eval.js";
+import type { Primitive } from "../ir.js";
+import { fireOnInstallFromNonHq } from "../../state/triggers/miscConditionalHooks.js";
 
 export function corpCardInstallable(type: string): boolean {
   return (
