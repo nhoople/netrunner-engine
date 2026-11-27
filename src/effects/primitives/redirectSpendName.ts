@@ -8,8 +8,7 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { fx, type Primitive } from "../ir.js";
+import type { Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -19,7 +18,6 @@ export function applyFlashpointEsPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
     case "spend_pump_and_break": {
@@ -53,32 +51,6 @@ export function applyFlashpointEsPrimitive(
           `Black Orchestra — break ${toBreak.length} code gate subroutine(s).`,
         );
       }
-      return { ok: true };
-    }
-
-    case "net_mercur_place_or_draw": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "place",
-            label: "Place 1¢ on Net Mercur",
-            effect: fx.do({ kind: "net_mercur_place_credit" }),
-          },
-          {
-            id: "draw",
-            label: "Draw 1 card",
-            effect: fx.do({ kind: "draw", side: "runner", amount: 1 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "net_mercur_place_credit": {
-      source.hostedCredits = (source.hostedCredits ?? 0) + 1;
-      log(state, `Net Mercur — place 1¢ → ${source.hostedCredits} hosted.`);
       return { ok: true };
     }
 

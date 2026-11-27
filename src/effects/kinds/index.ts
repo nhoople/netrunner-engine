@@ -6,13 +6,13 @@ import { applyBreachKinds } from "../access/breachKinds.js";
 import { applyChooseKinds } from "../triggers/chooseKinds.js";
 import { applyDerezKinds } from "../rez/derezKinds.js";
 import { applyForbidKinds } from "../continuous/forbidKinds.js";
-import { applyGainKinds } from "./gainKinds.js";
+import { applyGainKinds } from "../keywordsAndCredits/gainKinds.js";
 import { applyHostKinds } from "../hostingAndTrash/hostKinds.js";
 
 import { applyLookKinds } from "../visibility/lookKinds.js";
 import { applyMoveKinds } from "../uninstallAndPosition/moveKinds.js";
 import { applyOtherKinds } from "./otherKinds.js";
-import { applyPayKinds } from "./payKinds.js";
+import { applyPayKinds } from "../keywordsAndCredits/payKinds.js";
 import { applyPlaceKinds } from "../counters/placeKinds.js";
 import { applyPlayKinds } from "./playKinds.js";
 import { applyRemoveKinds } from "../counters/removeKinds.js";
@@ -93,6 +93,10 @@ import {
   applyRunKinds,
   applyRunKindsWhenSourceExists,
 } from "../run/runKinds.js";
+import {
+  applyKeywordAndCreditKinds,
+  applyKeywordAndCreditKindsWhenSourceExists,
+} from "../keywordsAndCredits/keywordAndCreditKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -155,6 +159,8 @@ const HANDLERS = [
   applySearchAndShuffleKindsWhenSourceExists,
   applyRunKinds,
   applyRunKindsWhenSourceExists,
+  applyKeywordAndCreditKinds,
+  applyKeywordAndCreditKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

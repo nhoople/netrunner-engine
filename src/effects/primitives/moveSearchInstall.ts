@@ -109,42 +109,6 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_azmari_name_card_type": {
-      const types = ["event", "hardware", "program", "resource"];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: types.map((t) => ({
-          id: `azmari:${t}`,
-          label: `Name ${t}`,
-          effect: fx.do({ kind: "cotc_azmari_set_named_type", cardType: t }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "cotc_azmari_set_named_type": {
-      const cardType = (action as { cardType: string }).cardType;
-      // Printed text pays on "the type you last named this way" — the name
-      // persists across turns until renamed, so it lives on the identity
-      // instance, not turn bookkeeping (which resets each turn).
-      if (source) source.azmariNamedType = cardType;
-      state.turn.cotcAzmariNamedTypeFired = false;
-      log(state, `${source?.title ?? "Azmari EdTech"} — name ${cardType}.`);
-      return { ok: true };
-    }
-
-    case "gain_personalized_portal": {
-      const grip = state.runner.hand.length;
-      const n = Math.floor(grip / 2);
-      state.corp.credits += n;
-      log(
-        state,
-        `${source?.title ?? "Personalized Portal"} — gain ${n}¢ (${grip} in grip).`,
-      );
-      return { ok: true };
-    }
-
     default:
       return null;
   }

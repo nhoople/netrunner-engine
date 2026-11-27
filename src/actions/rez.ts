@@ -41,7 +41,6 @@ import {
   fireOnForfeit,
   fireOnRez,
 } from "../state/triggers/cardLifecycleHooks.js";
-import { fireSiAfterCorpRezOrPlay } from "../effects/primitives/lookTrashAdd.js";
 import {
   fireHostedCreditsOnAnyIceRez,
   firePowerCounterOnAnyCardRez,
@@ -60,6 +59,7 @@ import {
   syncAllTourGuideSubs,
   fireDagAfterCorpRez,
 } from "../effects/rez/rezKinds.js";
+import { fireSiAfterCorpRezOrPlay } from "../effects/keywordsAndCredits/keywordAndCreditKinds.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

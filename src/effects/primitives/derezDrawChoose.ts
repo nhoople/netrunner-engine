@@ -4,10 +4,10 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import type { EffectCtx } from "../eval.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import type { RuleCite } from "../../state/types.js";
+import { fx, type Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -45,7 +45,6 @@ export function applyRedsandTdPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
     case "break_sentry_or_barrier": {
@@ -135,44 +134,6 @@ export function applyRedsandTdPrimitive(
       // Events go to heap after play unless otherwise stated
       trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(state, `The Shadow Net — play ${card.title} from heap.`);
-      return { ok: true };
-    }
-
-    case "tag_or_end_the_run": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "tag",
-            label: "Take 1 tag",
-            effect: fx.do({ kind: "give_tags", amount: 1 }),
-          },
-          {
-            id: "etr",
-            label: "End the run",
-            effect: fx.etr(),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "take_any_hosted_credits": {
-      const hosted = source?.hostedCredits ?? 0;
-      if (!source || hosted < 8) {
-        log(state, `Long-Term Investment — need ≥8 hosted credits.`);
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (let n = 1; n <= hosted; n++) {
-        options.push({
-          id: `take:${n}`,
-          label: `Take ${n}¢`,
-          effect: fx.do({ kind: "take_hosted_credits", amount: n }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 

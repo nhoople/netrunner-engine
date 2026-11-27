@@ -9,7 +9,6 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 
@@ -21,7 +20,6 @@ export function applyFlashpointBmPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
     case "spend_x_pump_and_break": {
@@ -86,104 +84,6 @@ export function applyFlashpointBmPrimitive(
           `Paperclip — break ${toBreak.length} barrier subroutine(s).`,
         );
       }
-      return { ok: true };
-    }
-
-    case "may_move_up_to_credits_from_pool_to_self": {
-      const max = action.amount ?? 3;
-      const side = source.side;
-      const pool = side === "corp" ? state.corp : state.runner;
-      const available = Math.min(max, pool.credits);
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "decline",
-          label: "Decline",
-          effect: fx.do({ kind: "gain_credits", side, amount: 0 }),
-        },
-      ];
-      for (let n = 1; n <= available; n++) {
-        options.push({
-          id: `move:${n}`,
-          label: `Move ${n}¢ onto ${source.title}`,
-          effect: fx.do({
-            kind: "move_credits_from_pool_to_self_resolve",
-            amount: n,
-          }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: side, options });
-      return { ok: true };
-    }
-
-    case "move_credits_from_pool_to_self_resolve": {
-      const n = action.amount ?? 0;
-      const side = source.side;
-      const pool = side === "corp" ? state.corp : state.runner;
-      const taken = Math.min(n, pool.credits);
-      pool.credits -= taken;
-      source.hostedCredits = (source.hostedCredits ?? 0) + taken;
-      log(
-        state,
-        `Move ${taken}¢ from ${side} pool onto ${source.title} → ${source.hostedCredits}.`,
-      );
-      return { ok: true };
-    }
-
-    case "beth_kilrain_corp_credit_tiers": {
-      const c = state.corp.credits;
-      if (c >= 5 && c <= 9) {
-        return evalEffect(
-          ctx,
-          fx.do({ kind: "gain_credits", side: "runner", amount: 1 }),
-        );
-      }
-      if (c >= 10 && c <= 14) {
-        return evalEffect(
-          ctx,
-          fx.do({ kind: "draw", side: "runner", amount: 1 }),
-        );
-      }
-      if (c >= 15) {
-        state.runner.clicks += 1;
-        log(state, `Beth Kilrain-Chang — Corp ≥15¢: gain [click].`);
-        return { ok: true };
-      }
-      log(state, `Beth Kilrain-Chang — Corp ${c}¢: no effect.`);
-      return { ok: true };
-    }
-
-    case "lose_2_per_resource_or_trash": {
-      const resources = state.runner.installed.filter(
-        (id) => state.cards[id]?.type === "resource",
-      );
-      const lose = resources.length * 2;
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "lose",
-          label: `Lose ${lose}¢ (${resources.length} resources × 2)`,
-          effect: fx.do({
-            kind: "lose_credits",
-            side: "runner",
-            amount: lose,
-          }),
-        },
-      ];
-      for (const id of resources) {
-        options.push({
-          id: `trash:${id}`,
-          label: `Trash ${state.cards[id]!.title} to prevent`,
-          effect: fx.do({
-            kind: "trash_installed_runner_card",
-            cardId: id,
-          }),
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `Financial Collapse — Runner loses ${lose}¢ or trashes a resource to prevent.`,
-      });
       return { ok: true };
     }
 

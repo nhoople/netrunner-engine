@@ -2,22 +2,22 @@
  * Credit pool gain and loss. Card formulas that compute an amount
  * and then add credits stay in eval.ts.
  */
-import { log } from "../state/setupAndEnd/createGame.js";
-import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../state/keywordsAndCredits/corpCausedCreditLoss.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../../state/keywordsAndCredits/corpCausedCreditLoss.js";
 import {
   emptyRunnerCreditPool,
   runnerCreditPoolLocked,
   subtractRunnerCreditPool,
-} from "../state/keywordsAndCredits/costs.js";
-import { onCorpAbilityGainedCredits } from "../state/cardFlags/cardDeclarations.js";
-import type { GameState, RuleCite, Side } from "../state/types.js";
-import { CR } from "../timing/labels.js";
+} from "../../state/keywordsAndCredits/costs.js";
+import { onCorpAbilityGainedCredits } from "../../state/cardFlags/cardDeclarations.js";
+import type { GameState, RuleCite, Side } from "../../state/types.js";
+import { CR } from "../../timing/labels.js";
 import {
   deferContinuationBefore,
   effectResolutionBlocked,
-} from "./continuation.js";
-import type { EffectCtx } from "./eval.js";
-import type { Effect, Primitive, SideRef } from "./ir.js";
+} from "../continuation.js";
+import type { EffectCtx } from "../eval.js";
+import type { Effect, Primitive, SideRef } from "../ir.js";
 import { abilityCreditTally } from "./creditTally.js";
 
 type PrimResult =

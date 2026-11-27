@@ -4,9 +4,9 @@
  * `base` is added before count × per.
  * A total of 0 or less does not happen; the caller skips it.
  */
-import type { GameState, Side } from "../state/types.js";
-import { badPublicityConsidered } from "../state/cardFlags/cardDeclarations.js";
-import type { CreditTally } from "./ir.js";
+import type { GameState, Side } from "../../state/types.js";
+import { badPublicityConsidered } from "../../state/cardFlags/cardDeclarations.js";
+import type { CreditTally } from "../ir.js";
 
 export function abilityCreditTally(
   state: GameState,

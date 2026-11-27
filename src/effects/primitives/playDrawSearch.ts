@@ -76,17 +76,6 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "gain_reality_threedee_credits": {
-      const tagged = (state.runner.tags ?? 0) > 0;
-      const amount = tagged ? 2 : 1;
-      state.corp.credits += amount;
-      log(
-        state,
-        `Reality Threedee — gain ${amount}¢ (${tagged ? "tagged" : "untagged"}).`,
-      );
-      return { ok: true };
-    }
-
     case "resolve_when_scored_on_scored_agenda": {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const id of state.corp.scoreArea) {
@@ -140,15 +129,6 @@ export function applyDadPrimitive(
           effect: fx.do({ kind: "dad_media_blitz_copy", cardId: id }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "remove_bad_publicity_instead": {
-      state.corp.badPublicity = Math.max(
-        0,
-        (state.corp.badPublicity ?? 0) - action.amount,
-      );
-      log(state, `Remove ${action.amount} bad publicity.`);
       return { ok: true };
     }
 

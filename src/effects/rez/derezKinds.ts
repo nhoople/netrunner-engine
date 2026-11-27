@@ -10,9 +10,9 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { maybeFireKerosMcintyreOnDerez, applyPrimitive } from "../eval.js";
 import { fx } from "../ir.js";
-import { syncMauiRecurringCredits } from "../primitives/chooseGainShuffle.js";
 
 import { fireHostRezStateTriggers } from "../eval.js";
+import { syncMauiRecurringCredits } from "../keywordsAndCredits/keywordAndCreditKinds.js";
 
 export function applyDerezKinds(
   ctx: EffectCtx,

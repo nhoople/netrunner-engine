@@ -56,7 +56,7 @@ import { applySpinFalDtPrimitive } from "./primitives/trashGiveSwap.js";
 import { applySpinHapPrimitive } from "./primitives/spendInstallAdd.js";
 import { applyLunarUpPrimitive } from "./primitives/trashResolveTrace.js";
 import { applyLunarTsbPrimitive } from "./primitives/searchScoreName.js";
-import { applyLunarFcPrimitive } from "./primitives/breachResolveRfg.js";
+
 import { applyLunarUaoPrimitive } from "./primitives/preventSpendTrash.js";
 import { applyLunarAtrPrimitive } from "./primitives/scoreTraceOffer.js";
 import { applyLunarTsPrimitive } from "./primitives/boostRezTrace.js";
@@ -65,11 +65,10 @@ import { applySansanValPrimitive } from "./primitives/searchRevealTrash.js";
 import { applySansanBbPrimitive } from "./primitives/preventInstallDraw.js";
 
 import { applySansanOhPrimitive } from "./primitives/shuffleLookPick.js";
-import { applySansanUotPrimitive } from "./primitives/gainCannotSwap.js";
+
 import { applyDadPrimitive } from "./primitives/playDrawSearch.js";
 import { applyMumbadKgPrimitive } from "./primitives/preventMoveChoose.js";
 
-import { applyMumbadDagPrimitive } from "./primitives/hostResolveLook.js";
 import {
   closeReactionWindow,
   completePendingAbility,
@@ -83,27 +82,24 @@ import {
 } from "../state/triggers/pendingAbilities.js";
 import { applyMumbadTlmPrimitive } from "./primitives/trashPlaceAccess.js";
 import { applyMumbadFtmPrimitive } from "./primitives/revealTrashCannot.js";
-import { applyFlashpoint23sPrimitive } from "./primitives/trashForceGain.js";
+
 import { applyFlashpointBmPrimitive } from "./primitives/spendMoveTrash.js";
 import { applyFlashpointEsPrimitive } from "./primitives/redirectSpendName.js";
-import { applyFlashpointInPrimitive } from "./primitives/lookInstallTrash.js";
+
 import { applyFlashpointMlPrimitive } from "./primitives/spendHostPrevent.js";
 import { applyFlashpointQuPrimitive } from "./primitives/preventGainSpend.js";
-import { applyRedsandDcPrimitive } from "./primitives/derezExposePrevent.js";
-import { applyRedsandSoPrimitive } from "./primitives/trashChooseAccess.js";
+
 import { applyRedsandTdPrimitive } from "./primitives/derezDrawChoose.js";
 
 import { applyRedsandBawPrimitive } from "./primitives/chooseGainShuffle.js";
-import { applyRedsandFmPrimitive } from "./primitives/derezRfgTrash.js";
-import { applyRedsandCdPrimitive } from "./primitives/givePayTrash.js";
 
 import { applyKitaraDtwnPrimitive } from "./primitives/gainExposeSearch.js";
 import { applyKitaraCotcPrimitive } from "./primitives/moveSearchInstall.js";
 import { applyKitaraTdatdPrimitive } from "./primitives/resolveExposePay.js";
 import { applyKitaraWinPrimitive } from "./primitives/resolveMoveInstall.js";
 import { applyKitaraKaPrimitive } from "./primitives/breachResolveInstall.js";
-import { applyMagnumOpusPrimitive } from "./primitives/shuffleInstall.js";
-import { applyHostedCreditPrimitive } from "./hostedCreditPrimitives.js";
+
+import { applyHostedCreditPrimitive } from "./keywordsAndCredits/hostedCreditPrimitives.js";
 import { applyDamagePrimitive } from "./damageAndPrevention/damagePrimitives.js";
 import { applyChooseCard } from "./triggers/chooseCard.js";
 import { applyChooseCards } from "./triggers/chooseCards.js";
@@ -111,9 +107,9 @@ import { applyRunPrimitive } from "./run/runPrimitives.js";
 import {
   applyTagPrimitive,
   canPayTakeTagsNestedCost,
-} from "./tagPrimitives.js";
+} from "./keywordsAndCredits/tagPrimitives.js";
 import { applyDrawPrimitive, drawCards } from "./searchAndDeck/draw.js";
-import { applyCreditPrimitive } from "./creditPrimitives.js";
+import { applyCreditPrimitive } from "./keywordsAndCredits/creditPrimitives.js";
 import {
   deferContinuationAfter,
   effectResolutionBlocked,
@@ -121,7 +117,7 @@ import {
 import { applyTracePrimitive } from "./tracePrimitives.js";
 import { applyClickPrimitive } from "./clickPrimitives.js";
 import { applyPsiPrimitive } from "./psiPrimitives.js";
-import { applyBadPublicityPrimitive } from "./badPublicityPrimitives.js";
+import { applyBadPublicityPrimitive } from "./keywordsAndCredits/badPublicityPrimitives.js";
 import { applyCorpInstallPrimitive } from "./install/corpInstall.js";
 import { applyCounterPrimitive } from "./counters/counterPrimitives.js";
 import { applyEncounterPrimitive } from "./run/encounterPrimitives.js";
@@ -1727,8 +1723,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
 
   const lunarTsb = applyLunarTsbPrimitive(ctx, action);
   if (lunarTsb) return lunarTsb;
-  const lunarFc = applyLunarFcPrimitive(ctx, action);
-  if (lunarFc) return lunarFc;
   const lunarUao = applyLunarUaoPrimitive(ctx, action);
   if (lunarUao) return lunarUao;
   const lunarAtr = applyLunarAtrPrimitive(ctx, action);
@@ -1743,42 +1737,26 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   if (bb) return bb;
   const oh = applySansanOhPrimitive(ctx, action);
   if (oh) return oh;
-  const uot = applySansanUotPrimitive(ctx, action);
-  if (uot) return uot;
   const dad = applyDadPrimitive(ctx, action);
   if (dad) return dad;
   const kg = applyMumbadKgPrimitive(ctx, action);
   if (kg) return kg;
-  const dag = applyMumbadDagPrimitive(ctx, action);
-  if (dag) return dag;
   const tlm = applyMumbadTlmPrimitive(ctx, action);
   if (tlm) return tlm;
   const ftm = applyMumbadFtmPrimitive(ctx, action);
   if (ftm) return ftm;
-  const flash23s = applyFlashpoint23sPrimitive(ctx, action);
-  if (flash23s) return flash23s;
   const flashBm = applyFlashpointBmPrimitive(ctx, action);
   if (flashBm) return flashBm;
   const flashEs = applyFlashpointEsPrimitive(ctx, action);
   if (flashEs) return flashEs;
-  const flashIn = applyFlashpointInPrimitive(ctx, action);
-  if (flashIn) return flashIn;
   const flashMl = applyFlashpointMlPrimitive(ctx, action);
   if (flashMl) return flashMl;
   const flashQu = applyFlashpointQuPrimitive(ctx, action);
   if (flashQu) return flashQu;
-  const redsandDc = applyRedsandDcPrimitive(ctx, action);
-  if (redsandDc) return redsandDc;
-  const redsandSo = applyRedsandSoPrimitive(ctx, action);
-  if (redsandSo) return redsandSo;
   const redsandTd = applyRedsandTdPrimitive(ctx, action);
   if (redsandTd) return redsandTd;
   const redsandBaw = applyRedsandBawPrimitive(ctx, action);
   if (redsandBaw) return redsandBaw;
-  const redsandFm = applyRedsandFmPrimitive(ctx, action);
-  if (redsandFm) return redsandFm;
-  const redsandCd = applyRedsandCdPrimitive(ctx, action);
-  if (redsandCd) return redsandCd;
   const kitaraDtwn = applyKitaraDtwnPrimitive(ctx, action);
   if (kitaraDtwn) return kitaraDtwn;
   const kitaraCotc = applyKitaraCotcPrimitive(ctx, action);
@@ -1789,8 +1767,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   if (kitaraWin) return kitaraWin;
   const kitaraKa = applyKitaraKaPrimitive(ctx, action);
   if (kitaraKa) return kitaraKa;
-  const magnumOpus = applyMagnumOpusPrimitive(ctx, action);
-  if (magnumOpus) return magnumOpus;
   const lunar = applyLunarUpPrimitive(ctx, action);
   if (lunar) return lunar;
   const fal = applySpinFalDtPrimitive(ctx, action);
