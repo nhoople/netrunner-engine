@@ -20,7 +20,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { trashCorpCardSet } from "../kinds/trashKinds.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
 
 type PrimResult =

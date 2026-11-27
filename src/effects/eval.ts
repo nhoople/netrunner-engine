@@ -110,8 +110,8 @@ import { applyKitaraKaPrimitive } from "./primitives/breachResolveInstall.js";
 import { applyMagnumOpusPrimitive } from "./primitives/shuffleInstall.js";
 import { applyHostedCreditPrimitive } from "./hostedCreditPrimitives.js";
 import { applyDamagePrimitive } from "./damagePrimitives.js";
-import { applyChooseCard } from "./chooseCard.js";
-import { applyChooseCards } from "./chooseCards.js";
+import { applyChooseCard } from "./triggers/chooseCard.js";
+import { applyChooseCards } from "./triggers/chooseCards.js";
 import { applyRunPrimitive } from "./runPrimitives.js";
 import {
   applyTagPrimitive,

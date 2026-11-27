@@ -2,7 +2,7 @@
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

@@ -35,16 +35,19 @@ vi.mock(import("../../src/effects/eval.js"), async (importOriginal) => {
   };
 });
 
-vi.mock(import("../../src/effects/chooseCard.js"), async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    applyChooseCard: (ctx, action) => {
-      hooks.primitive?.(ctx, action);
-      return actual.applyChooseCard(ctx, action);
-    },
-  };
-});
+vi.mock(
+  import("../../src/effects/triggers/chooseCard.js"),
+  async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+      ...actual,
+      applyChooseCard: (ctx, action) => {
+        hooks.primitive?.(ctx, action);
+        return actual.applyChooseCard(ctx, action);
+      },
+    };
+  },
+);
 
 vi.mock(import("../../src/legality/candidates.js"), async (importOriginal) => {
   const actual = await importOriginal();

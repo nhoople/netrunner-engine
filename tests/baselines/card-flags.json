@@ -2093,10 +2093,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/chooseKinds.ts#applyChooseKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
@@ -2122,6 +2118,10 @@
         },
         {
           "site": "src/effects/runnerInstall.ts#countInstalledIcebreakersForCost",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
           "kinds": []
         },
         {
@@ -5229,7 +5229,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/sansanValHooks.ts#geneticsTriggerThreshold",
+          "site": "src/effects/triggers/firstTimeEachTurnTriggers.ts#geneticsTriggerThreshold",
           "kinds": []
         }
       ],
@@ -6641,10 +6641,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/chooseCards.ts#sameForChoice",
-          "kinds": []
-        },
-        {
           "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
@@ -6730,6 +6726,10 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseCards.ts#sameForChoice",
           "kinds": []
         },
         {
@@ -7040,10 +7040,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/chooseKinds.ts#applyChooseKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/hostKinds.ts#applyHostKinds",
           "kinds": []
         },
@@ -7057,10 +7053,6 @@
         },
         {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/resolveKinds.ts#applyResolveKinds",
           "kinds": []
         },
         {
@@ -7145,6 +7137,14 @@
         },
         {
           "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
           "kinds": []
         },
         {
@@ -11601,11 +11601,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/sansanValHooks.ts#valSuccessfulRunSourceIds",
+          "site": "src/effects/triggers/firstTimeEachTurnTriggers.ts#valSuccessfulRunSourceIds",
           "kinds": []
         },
         {
-          "site": "src/effects/sansanValHooks.ts#valSuccessfulRunSourceIds.consider",
+          "site": "src/effects/triggers/firstTimeEachTurnTriggers.ts#valSuccessfulRunSourceIds.consider",
           "kinds": []
         },
         {
@@ -17029,10 +17029,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/resolveKinds.ts#applyResolveKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/returnKinds.ts#applyReturnKinds",
           "kinds": []
         },
@@ -17081,6 +17077,10 @@
           "kinds": [
             "corp_rez"
           ]
+        },
+        {
+          "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
         },
         {
           "site": "src/legality/checkpoints.ts#resolveBlackguardPendingInstance",
@@ -18158,10 +18158,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/chooseCard.ts#seenBy",
-          "kinds": []
-        },
-        {
           "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
@@ -18183,10 +18179,6 @@
         },
         {
           "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/chooseKinds.ts#applyChooseKinds",
           "kinds": []
         },
         {
@@ -18313,6 +18305,14 @@
         },
         {
           "site": "src/effects/runPrimitives.ts#endTheRun",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseCard.ts#seenBy",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
           "kinds": []
         },
         {
@@ -19697,10 +19697,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/resolveKinds.ts#applyResolveKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
@@ -19766,6 +19762,10 @@
         },
         {
           "site": "src/effects/primitives/trashResolveTrace.ts#offerSubroutineInsertChoice",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
           "kinds": []
         },
         {
@@ -19984,10 +19984,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/chooseCard.ts#applyChooseCard",
-          "kinds": []
-        },
-        {
           "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
@@ -20028,10 +20024,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/chooseKinds.ts#applyChooseKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/gainKinds.ts#applyGainKinds",
           "kinds": []
         },
@@ -20057,10 +20049,6 @@
         },
         {
           "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/resolveKinds.ts#applyResolveKinds",
           "kinds": []
         },
         {
@@ -20296,11 +20284,23 @@
           "kinds": []
         },
         {
-          "site": "src/effects/sansanValHooks.ts#isGenetics",
+          "site": "src/effects/triggers/chooseCard.ts#applyChooseCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/firstTimeEachTurnTriggers.ts#isGenetics",
           "kinds": [],
           "mirrors": [
-            "src/effects/sansanValHooks.ts#{card}"
+            "src/effects/triggers/firstTimeEachTurnTriggers.ts#{card}"
           ]
+        },
+        {
+          "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
         },
         {
           "site": "src/legality/candidateClicks.ts#addClickActions",
@@ -21017,14 +21017,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/chooseCards.ts#applyChooseCards",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/chooseCards.ts#finish",
-          "kinds": []
-        },
-        {
           "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
@@ -21213,10 +21205,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/chooseKinds.ts#applyChooseKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -21274,10 +21262,6 @@
         },
         {
           "site": "src/effects/kinds/removeKinds.ts#applyRemoveKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/resolveKinds.ts#applyResolveKinds",
           "kinds": []
         },
         {
@@ -21682,6 +21666,22 @@
         },
         {
           "site": "src/effects/tracePrimitives.ts#applyTracePrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseCards.ts#applyChooseCards",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseCards.ts#finish",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
           "kinds": []
         },
         {
@@ -23676,10 +23676,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/chooseCard.ts#applyChooseCard",
-          "kinds": []
-        },
-        {
           "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
@@ -23768,10 +23764,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/chooseKinds.ts#applyChooseKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -23817,10 +23809,6 @@
         },
         {
           "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/resolveKinds.ts#applyResolveKinds",
           "kinds": []
         },
         {
@@ -24149,6 +24137,18 @@
         },
         {
           "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseCard.ts#applyChooseCard",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
           "kinds": []
         },
         {

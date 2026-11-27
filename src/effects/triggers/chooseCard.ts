@@ -5,19 +5,19 @@
 import {
   openCardName,
   runnerSeesAccessedCard,
-} from "../state/visibility/seatVisibility.js";
-import { log } from "../state/setupAndEnd/createGame.js";
-import { isCentral } from "../state/access/access.js";
+} from "../../state/visibility/seatVisibility.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { isCentral } from "../../state/access/access.js";
 import type {
   CardInstance,
   GameState,
   RuleCite,
   ServerId,
-} from "../state/types.js";
-import { CR } from "../timing/labels.js";
-import type { EffectCtx } from "./eval.js";
-import type { Effect, Primitive } from "./ir.js";
-import { openPendingChoose } from "../state/triggers/pendingChoice.js";
+} from "../../state/types.js";
+import { CR } from "../../timing/labels.js";
+import type { EffectCtx } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

@@ -3,7 +3,7 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import {

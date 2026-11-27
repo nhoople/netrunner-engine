@@ -5,7 +5,7 @@
  */
 import type { CheckpointDiff } from "./checkpointSnapshot.js";
 import type { GameState, ServerId, Side } from "../types.js";
-import type { ValRunnerTriggerFamily } from "../../effects/sansanValHooks.js";
+import type { ValRunnerTriggerFamily } from "../../effects/triggers/firstTimeEachTurnTriggers.js";
 
 export type { ValRunnerTriggerFamily };
 

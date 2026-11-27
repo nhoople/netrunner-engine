@@ -330,7 +330,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Valley first damage at 10.3.1a (phase 3 scanner)", async () => {
     const { noteValDamageTrigger } =
-      await import("../src/effects/sansanValHooks.js");
+      await import("../src/effects/triggers/firstTimeEachTurnTriggers.js");
     const s = createInitialState();
     const blood = instantiateCard(
       "synthetic-blood",
@@ -365,7 +365,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Valley first install at 10.3.1a (phase 3 scanner)", async () => {
     const { noteValRunnerTrigger } =
-      await import("../src/effects/sansanValHooks.js");
+      await import("../src/effects/triggers/firstTimeEachTurnTriggers.js");
     const s = createInitialState();
     const hayley = instantiateCard(
       "hayley-kaplan-universal-scholar",
@@ -394,7 +394,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Valley first click-loss at 10.3.1a (phase 3 scanner)", async () => {
     const { noteValRunnerTrigger } =
-      await import("../src/effects/sansanValHooks.js");
+      await import("../src/effects/triggers/firstTimeEachTurnTriggers.js");
     const s = createInitialState();
     const chrono = instantiateCard(
       "adjusted-chronotype",
@@ -427,7 +427,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Valley first basic click-draw at 10.3.1a (phase 3 scanner)", async () => {
     const { noteValRunnerTrigger } =
-      await import("../src/effects/sansanValHooks.js");
+      await import("../src/effects/triggers/firstTimeEachTurnTriggers.js");
     const s = createInitialState();
     const visage = instantiateCard(
       "symmetrical-visage",
@@ -512,7 +512,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Valley first successful run at 10.3.1a (phase 3 scanner)", async () => {
     const { noteValSuccessfulRunTrigger } =
-      await import("../src/effects/sansanValHooks.js");
+      await import("../src/effects/triggers/firstTimeEachTurnTriggers.js");
     const s = createInitialState();
     const id = s.cards[s.corp.identityId];
     id.onFirstSuccessfulRunThisTurn = fx.gainCredits("corp", 1);

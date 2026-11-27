@@ -4,7 +4,7 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite, Server, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";

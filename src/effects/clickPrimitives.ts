@@ -8,7 +8,7 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive, SideRef } from "./ir.js";
-import { fireRunnerValTrigger } from "./sansanValHooks.js";
+import { fireRunnerValTrigger } from "./triggers/firstTimeEachTurnTriggers.js";
 import {
   maybeFireSeidrOnClickSpendOrLose,
   noteRunnerClickDuringRun,

@@ -29,7 +29,7 @@ import {
   VAL_RUNNER_TRIGGER_CONFIG,
   valSuccessfulRunSourceIds,
   type ValRunnerTriggerFamily,
-} from "../effects/sansanValHooks.js";
+} from "../effects/triggers/firstTimeEachTurnTriggers.js";
 import { firstUnsuccessfulRunSourceIds } from "../state/run/unsuccessfulRunHooks.js";
 import { firstSuccessfulRunSourceIds } from "../state/run/firstSuccessfulRunHooks.js";
 import {

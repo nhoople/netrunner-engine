@@ -30,7 +30,7 @@ import {
   fireOnRunnerDiscardOverMaxHand,
   fireOnRunnerDiscardPhaseEndFlipped,
 } from "../state/triggers/miscConditionalHooks.js";
-import { chooseCards } from "../effects/chooseCards.js";
+import { chooseCards } from "../effects/triggers/chooseCards.js";
 import { evalEffect } from "../effects/eval.js";
 import { discardCard } from "../state/hostingAndTrash/trash.js";
 

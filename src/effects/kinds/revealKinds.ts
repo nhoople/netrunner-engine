@@ -9,7 +9,7 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { CR } from "../../timing/labels.js";
-import { chooseCards } from "../chooseCards.js";
+import { chooseCards } from "../triggers/chooseCards.js";
 import { noteCardRevealed, evalEffect, applyPrimitive } from "../eval.js";
 import { random } from "../../state/rng.js";
 import { shuffleInPlace } from "../../state/rng.js";

@@ -6,7 +6,7 @@ import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { log } from "../setupAndEnd/createGame.js";
 import { emptyRunnerCreditPool } from "../keywordsAndCredits/costs.js";
 import type { GameState } from "../types.js";
-import { fireRunnerValTrigger } from "../../effects/sansanValHooks.js";
+import { fireRunnerValTrigger } from "../../effects/triggers/firstTimeEachTurnTriggers.js";
 
 /** Sundew: first Runner click-spend this turn → Corp gains credits. */
 function maybeFireSundewOnClickSpend(state: GameState): void {

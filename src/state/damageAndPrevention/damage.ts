@@ -13,7 +13,7 @@ import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";
 import { scoredAgendaMeatDamageIncrease } from "../continuous/breakerMods.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { pickRandomSubset } from "../rng.js";
-import { fireRunnerValTrigger } from "../../effects/sansanValHooks.js";
+import { fireRunnerValTrigger } from "../../effects/triggers/firstTimeEachTurnTriggers.js";
 import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import type { StoredConditionalMark } from "../triggers/storedTriggers.js";
