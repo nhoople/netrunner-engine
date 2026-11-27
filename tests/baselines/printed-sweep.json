@@ -11598,7 +11598,7 @@
     "security-testing": {
       "cycle": "honor-and-profit",
       "result": "matches",
-      "note": "At turn begin may name a server; the first successful run there each turn gains 2 instead of breaching (src/timing/breachReplacement.ts)."
+      "note": "At turn begin may name a server; the first successful run there each turn gains 2 instead of breaching (src/timing/breachReplacementOrder.ts)."
     },
     "see-how-they-run": {
       "cycle": "liberation",

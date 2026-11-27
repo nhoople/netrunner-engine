@@ -31,7 +31,7 @@ import { shuffleRunnerStack } from "../install/runnerInstall.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { serverLabel } from "../install/corpAbilityInstall.js";
 import type { RuleCite, GameState } from "../../state/types.js";
-import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
+import { breachAlreadyReplaced } from "../../state/access/breachAlreadyReplaced.js";
 import { shuffleInPlace, random } from "../../state/rng.js";
 import { fireOnAgendaAccessedOrScored } from "../../state/triggers/miscConditionalHooks.js";
 import { applyRunnerInstallFromGripKinds } from "../install/runnerInstallFromGripKinds.js";

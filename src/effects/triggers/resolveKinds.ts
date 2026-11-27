@@ -15,7 +15,7 @@ import {
   memoryNeededToInstall,
 } from "../../state/turnAndActions/turn.js";
 import { enterSetAside } from "../../state/zones.js";
-import { resolveBreachReplacement } from "../../timing/breachReplacement.js";
+import { resolveBreachReplacement } from "../../timing/breachReplacementOrder.js";
 import { CR } from "../../timing/labels.js";
 import { resolveStoredOrInlineConditionalInstance } from "../../state/triggers/storedTriggers.js";
 import {

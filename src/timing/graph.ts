@@ -114,7 +114,7 @@ import {
   accountSiphonReplacesBreach,
   hasCompetingBreachReplacement,
   openBreachReplacementChoice,
-} from "./breachReplacement.js";
+} from "./breachReplacementOrder.js";
 import {
   chosenIceBypassOffered,
   resolvePendingOnEncounter,
