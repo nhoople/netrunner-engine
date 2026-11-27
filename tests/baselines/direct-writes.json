@@ -215,10 +215,6 @@
       "scoreArea": 4,
       "zone": 13
     },
-    "src/effects/kinds/moveKinds.ts": {
-      "root": 4,
-      "zone": 2
-    },
     "src/effects/kinds/otherKinds.ts": {
       "deck": 14,
       "discardPile": 2,
@@ -238,13 +234,6 @@
     },
     "src/effects/kinds/playKinds.ts": {
       "discardPile": 2
-    },
-    "src/effects/kinds/returnKinds.ts": {
-      "discardPile": 2,
-      "hand": 5,
-      "rezzed": 2,
-      "scoreArea": 1,
-      "zone": 5
     },
     "src/effects/kinds/searchKinds.ts": {
       "deck": 17,
@@ -269,7 +258,6 @@
       "deck": 6,
       "discardPile": 1,
       "hand": 5,
-      "rezzed": 1,
       "zone": 6
     },
     "src/effects/primitives/derezDrawChoose.ts": {
@@ -326,9 +314,9 @@
     },
     "src/effects/primitives/preventInstallDraw.ts": {
       "deck": 1,
-      "hand": 2,
+      "hand": 1,
       "rezzed": 1,
-      "zone": 2
+      "zone": 1
     },
     "src/effects/primitives/preventMoveChoose.ts": {
       "deck": 4,
@@ -394,12 +382,6 @@
       "root": 1,
       "zone": 1
     },
-    "src/effects/primitives/trashChooseAccess.ts": {
-      "deck": 1,
-      "hand": 1,
-      "rezzed": 1,
-      "zone": 2
-    },
     "src/effects/primitives/trashGiveSwap.ts": {
       "deck": 1,
       "discardPile": 1,
@@ -444,6 +426,23 @@
       "deck": 6,
       "discardPile": 2,
       "rezzed": 1,
+      "zone": 3
+    },
+    "src/effects/uninstallAndPosition/moveKinds.ts": {
+      "root": 4,
+      "zone": 2
+    },
+    "src/effects/uninstallAndPosition/returnKinds.ts": {
+      "discardPile": 2,
+      "hand": 5,
+      "rezzed": 2,
+      "scoreArea": 1,
+      "zone": 5
+    },
+    "src/effects/uninstallAndPosition/uninstallAndPositionKinds.ts": {
+      "deck": 1,
+      "hand": 2,
+      "rezzed": 2,
       "zone": 3
     },
     "src/effects/visibility/lookKinds.ts": {

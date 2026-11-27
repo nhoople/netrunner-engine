@@ -1,9 +1,8 @@
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -43,21 +42,6 @@ export function applyRedsandFmPrimitive(
         `O₂ Shortage — Corp gains [click][click] → ${state.corp.clicks}.`,
       );
       return { ok: true };
-    }
-
-    case "rearrange_ice_protecting_all_servers": {
-      // Mandatory Seed Replacement: "rearrange any number of ice protecting
-      // all servers". Arranging is repositioning among the current
-      // positions, by swaps, so each server keeps its number of ice
-      // (CR 8.3.1, 8.3.2).
-      return evalEffect(
-        ctx,
-        fx.do({
-          kind: "rearrange_ice",
-          chooser: "corp",
-          serverIds: Object.keys(state.servers) as ServerId[],
-        }),
-      );
     }
 
     case "choose_n_grip_to_stack_top": {

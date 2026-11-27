@@ -2,12 +2,12 @@
 import { CR } from "../../timing/labels.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { startTrace } from "../../state/turnAndActions/trace.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect, grantAbilityCredits } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -17,7 +17,6 @@ export function applyFlashpoint23sPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
     case "force_trace_then_gain_credits": {
@@ -213,38 +212,6 @@ export function applyFlashpoint23sPrimitive(
         state,
         `Add ${card?.title ?? cardId} to bottom of the Runner's stack.`,
       );
-      return { ok: true };
-    }
-
-    case "move_source_upgrade_to_another_server_root": {
-      if (source?.type !== "upgrade") {
-        log(state, `Move upgrade — source is not an upgrade.`);
-        return { ok: true };
-      }
-      const zone = source.zone ?? "";
-      if (!zone.endsWith(":root")) {
-        log(state, `Move upgrade — source not in a server root.`);
-        return { ok: true };
-      }
-      const currentSid = zone
-        .replace(/^server:/, "")
-        .replace(/:root$/, "") as ServerId;
-      const targets = (Object.keys(state.servers) as ServerId[]).filter(
-        (sid) => sid !== currentSid,
-      );
-      if (targets.length === 0) {
-        log(state, `Move upgrade — no other servers.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((sid) => ({
-          id: `move-root:${sid}`,
-          label: `Move to ${sid} root`,
-          effect: fx.do({ kind: "move_upgrade_to_server_root", serverId: sid }),
-        })),
-      });
       return { ok: true };
     }
 

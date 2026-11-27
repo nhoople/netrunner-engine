@@ -172,30 +172,6 @@ export function applyFlashpointBmPrimitive(
       return { ok: true };
     }
 
-    case "add_installed_non_virtual_runner_to_grip": {
-      const targets = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c && !(c.subtypes ?? []).includes("virtual");
-      });
-      if (targets.length === 0) {
-        log(state, `Hatchet Job — no installed non-virtual Runner card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `grip:${id}`,
-          label: `Add ${state.cards[id]!.title} to grip`,
-          effect: fx.do({
-            kind: "add_installed_runner_card_to_grip",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "shuffle_any_hq_draw": {
       const hand = [...state.corp.hand];
       const shuffled = bmCounter(source, "bmShuffled");

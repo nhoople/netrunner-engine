@@ -7,10 +7,8 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import type { Primitive } from "../ir.js";
-import { unhostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -51,29 +49,6 @@ export function applySansanBbPrimitive(
         op: "do",
         action: { kind: "draw", side: "runner", amount: need },
       });
-    }
-
-    case "return_program": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card || card.hostId !== sourceId) {
-        return {
-          ok: false,
-          error: "London Library — program not hosted.",
-          cites: [],
-        };
-      }
-      // An installed program is uninstalled (CR 8.5.1b); one hosted
-      // without being installed just moves (CR 1.13.12).
-      if (!uninstallCard(state, cardId, "hand")) {
-        unhostCard(state, cardId);
-        removeCardFromCurrentZone(state, cardId);
-        state.runner.hand.push(cardId);
-        card.zone = "runner:grip";
-        card.faceup = true;
-      }
-      log(state, `London Library — add ${card.title} to grip.`);
-      return { ok: true };
     }
 
     case "search_stack_type_add_to_grip": {

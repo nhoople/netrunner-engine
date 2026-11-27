@@ -5,7 +5,6 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { applySansanOhPrimitive } from "./shuffleLookPick.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
@@ -66,18 +65,6 @@ export function applyMumbadSiPrimitive(
         }),
         logLine: `Brahman — choose an installed non-virus program for stack top.`,
       });
-      return { ok: true };
-    }
-
-    case "move_program_to_stack_top": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.installed.includes(cardId)) {
-        log(state, `Brahman — program not installed.`);
-        return { ok: true };
-      }
-      uninstallCard(state, cardId, "deck-top");
-      log(state, `Brahman — add ${card.title} to the top of the stack.`);
       return { ok: true };
     }
 

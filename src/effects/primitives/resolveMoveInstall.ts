@@ -8,8 +8,6 @@ import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
-import { moveRunnerToIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { addCompileInstalledToBottom } from "../install/runnerInstallFromOtherZonesKinds.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
@@ -66,19 +64,6 @@ function installedRunnerCardsWithNoVirus(state: EffectCtx["state"]): string[] {
   });
 }
 
-function installedProgramsOrVirtualResources(
-  state: EffectCtx["state"],
-): string[] {
-  // Printed Intake: any installed program or virtual resource (hosted cards
-  // remain installed — CR 1.2.1 / card text).
-  return state.runner.installed.filter((id) => {
-    const c = state.cards[id];
-    if (!c) return false;
-    if (c.type === "program") return true;
-    return c.type === "resource" && (c.subtypes ?? []).includes("virtual");
-  });
-}
-
 export function applyKitaraWinPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -116,75 +101,6 @@ export function applyKitaraWinPrimitive(
       if (!c) return { ok: true };
       c.virusCounters = (c.virusCounters ?? 0) + 3;
       log(state, `Contaminate — place 3 virus on ${c.title}.`);
-      return { ok: true };
-    }
-
-    case "win_slipstream": {
-      if (!state.run?.lastPassedRezzedIceId) {
-        log(state, `Slipstream — no passed ice context.`);
-        return { ok: true };
-      }
-      trashCard(state, sourceId);
-      const passedId = state.run.lastPassedRezzedIceId;
-      let passedPos = -1;
-      let passedServer: import("../../state/types.js").ServerId | null = null;
-      for (const [sid, server] of Object.entries(state.servers)) {
-        const idx = server.ice.indexOf(passedId);
-        if (idx >= 0) {
-          passedPos = idx;
-          passedServer = sid as import("../../state/types.js").ServerId;
-          break;
-        }
-      }
-      if (passedPos < 0 || !passedServer) return { ok: true };
-      const passedInward =
-        state.servers[passedServer]!.ice.length - 1 - passedPos;
-      const options: {
-        id: string;
-        label: string;
-        effect: ReturnType<typeof fx.do>;
-      }[] = [];
-      for (const sid of ["hq", "rd", "archives"] as const) {
-        if (sid === passedServer) continue;
-        const iceRow = state.servers[sid]?.ice ?? [];
-        const matchIndex = iceRow.length - 1 - passedInward;
-        const iceId = iceRow[matchIndex];
-        if (!iceId) continue;
-        const ice = state.cards[iceId];
-        if (!ice) continue;
-        options.push({
-          id: `slip:${iceId}`,
-          label: `Move to ${ice.title} protecting ${sid}`,
-          effect: fx.do({ kind: "move_slipstream", iceId, serverId: sid }),
-        });
-      }
-      if (options.length === 0) {
-        log(state, `Slipstream — no matching central ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-      });
-      return { ok: true };
-    }
-
-    case "move_slipstream": {
-      if (!state.run) return { ok: true };
-      const serverId =
-        action.serverId as import("../../state/types.js").ServerId;
-      const server = state.servers[serverId];
-      if (!server) return { ok: true };
-      if (!moveRunnerToIce(state, action.iceId)) return { ok: true };
-      state.run.encounter = {
-        iceId: action.iceId,
-        broken: (state.cards[action.iceId]?.subroutines ?? []).map(() => false),
-      };
-      log(
-        state,
-        `Slipstream — approach ${state.cards[action.iceId]?.title} on ${action.serverId}.`,
-      );
       return { ok: true };
     }
 
@@ -314,42 +230,6 @@ export function applyKitaraWinPrimitive(
         state,
         `Standard Procedure — gain ${gainAmt}¢ (${n} ${action.cardType}).`,
       );
-      return { ok: true };
-    }
-
-    case "win_intake_bounce": {
-      const targets = installedProgramsOrVirtualResources(state);
-      if (targets.length === 0) {
-        log(state, `Intake — no program or virtual resource.`);
-        return { ok: true };
-      }
-      if (targets.length === 1) {
-        return evalEffect(
-          ctx,
-          fx.do({
-            kind: "resolve_intake_bounce",
-            cardId: targets[0]!,
-          }),
-        );
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `intake:${id}`,
-          label: `Bounce ${state.cards[id]!.title} to grip`,
-          effect: fx.do({ kind: "resolve_intake_bounce", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_intake_bounce": {
-      const card = state.cards[action.cardId];
-      if (!card) return { ok: true };
-      uninstallCard(state, action.cardId, "hand", {
-        logLine: `Intake — add ${card.title} to grip.`,
-      });
       return { ok: true };
     }
 

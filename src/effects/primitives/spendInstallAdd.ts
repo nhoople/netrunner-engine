@@ -11,7 +11,6 @@ import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
 import { agendaPointsFor } from "../../state/turnAndActions/scoring.js";
 import type { EffectCtx } from "../eval.js";
 import type { RuleCite } from "../../state/types.js";
@@ -254,15 +253,6 @@ export function applySpinHapPrimitive(
         state,
         `Inazuma — next encounter cannot break subroutines on encountered ice.`,
       );
-      return { ok: true };
-    }
-    case "redirect_susanoo_to_archives": {
-      if (!state.run || state.run.attackedServerId === "archives") {
-        return { ok: true };
-      }
-      // The Runner's position becomes Archives' outermost (CR 6.2.8b).
-      moveRunnerToOutermost(state, "archives");
-      log(state, `Susanoo-no-Mikoto — Runner moves to outermost Archives.`);
       return { ok: true };
     }
     case "corp_gain_iain_if_ahead_on_agenda": {

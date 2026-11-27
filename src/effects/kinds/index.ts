@@ -10,14 +10,14 @@ import { applyGainKinds } from "./gainKinds.js";
 import { applyHostKinds } from "../hostingAndTrash/hostKinds.js";
 
 import { applyLookKinds } from "../visibility/lookKinds.js";
-import { applyMoveKinds } from "./moveKinds.js";
+import { applyMoveKinds } from "../uninstallAndPosition/moveKinds.js";
 import { applyOtherKinds } from "./otherKinds.js";
 import { applyPayKinds } from "./payKinds.js";
 import { applyPlaceKinds } from "./placeKinds.js";
 import { applyPlayKinds } from "./playKinds.js";
 import { applyRemoveKinds } from "./removeKinds.js";
 import { applyResolveKinds } from "../triggers/resolveKinds.js";
-import { applyReturnKinds } from "./returnKinds.js";
+import { applyReturnKinds } from "../uninstallAndPosition/returnKinds.js";
 import { applyRevealKinds } from "../visibility/revealKinds.js";
 import { applyRezKinds } from "../rez/rezKinds.js";
 import { applySearchKinds } from "./searchKinds.js";
@@ -71,6 +71,7 @@ import {
   applyRunnerInstalledTrashKinds,
   applyRunnerInstalledTrashKindsWhenSourceExists,
 } from "../hostingAndTrash/runnerInstalledTrashKinds.js";
+import { applyUninstallAndPositionKinds } from "../uninstallAndPosition/uninstallAndPositionKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -121,6 +122,7 @@ const HANDLERS = [
   applyCorpHandAndDeckTrashKinds,
   applyRunnerInstalledTrashKinds,
   applyRunnerInstalledTrashKindsWhenSourceExists,
+  applyUninstallAndPositionKinds,
 ] as const;
 
 export function applyCoreKinds(

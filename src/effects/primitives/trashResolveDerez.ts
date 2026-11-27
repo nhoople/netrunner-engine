@@ -1,12 +1,11 @@
 import { log } from "../../state/setupAndEnd/createGame.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import { fx, type Primitive } from "../ir.js";
-import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -102,32 +101,6 @@ export function applyRedsandEasPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "redirect_aginfusion_resolve": {
-      const run = state.run;
-      const sid = action.serverId as ServerId | undefined;
-      if (!run || !sid || !state.servers[sid]) {
-        log(state, `AgInfusion — invalid redirect server.`);
-        return { ok: true };
-      }
-      // "The Runner moves to the outermost position of that server and
-      // encounters any ice there" (CR 6.2.8b). Index 0 is outermost.
-      if (!moveRunnerToOutermost(state, sid)) return { ok: true };
-      run.encounter = null;
-      const outer = state.servers[sid]!.ice[0];
-      if (outer) {
-        run.forceEncounterIceId = outer;
-        // Unrezzed ice is not named: the log goes to both players (CR 1.21.1).
-        const ice = state.cards[outer];
-        log(
-          state,
-          `AgInfusion — Runner moves to outermost of ${sid} (${ice?.rezzed ? ice.title : "unrezzed ice"}).`,
-        );
-      } else {
-        log(state, `AgInfusion — Runner moves to ${sid} (no ice).`);
-      }
       return { ok: true };
     }
 

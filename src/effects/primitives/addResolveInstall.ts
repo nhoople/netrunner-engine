@@ -6,16 +6,9 @@ import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function addInstalledToGrip(state: EffectCtx["state"], cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card || !state.runner.installed.includes(cardId)) return;
-  uninstallCard(state, cardId, "hand");
-}
 
 export function applyKitaraSsPrimitive(
   ctx: EffectCtx,
@@ -46,60 +39,6 @@ export function applyKitaraSsPrimitive(
         chooser: "runner",
         options,
         logLine: `${source?.title ?? "Puffer"} — add or remove 1 power counter.`,
-      });
-      return { ok: true };
-    }
-
-    case "add_n_installed_runner_to_grip": {
-      const n = Math.max(1, action.amount ?? 2);
-      const targets = [...state.runner.installed];
-      if (targets.length === 0) {
-        log(
-          state,
-          `${source?.title ?? "Self-Growth Program"} — no installed Runner cards.`,
-        );
-        return { ok: true };
-      }
-      // Offer choosing up to n cards; if fewer exist, take all via sequential choices.
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `sgp:${id}`,
-          label: `Add ${state.cards[id]!.title} to grip`,
-          effect: fx.do({
-            kind: "add_n_installed_runner_to_grip_pick",
-            cardId: id,
-            remaining: n - 1,
-          }),
-        })),
-        logLine: `${source?.title ?? "Self-Growth Program"} — add ${n} installed Runner card(s) to grip.`,
-      });
-      return { ok: true };
-    }
-
-    case "add_n_installed_runner_to_grip_pick": {
-      addInstalledToGrip(state, action.cardId);
-      log(
-        state,
-        `Add ${state.cards[action.cardId]?.title ?? action.cardId} to the grip.`,
-      );
-      const remaining = action.remaining ?? 0;
-      if (remaining <= 0) return { ok: true };
-      const targets = [...state.runner.installed];
-      if (targets.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `sgp:${id}`,
-          label: `Add ${state.cards[id]!.title} to grip`,
-          effect: fx.do({
-            kind: "add_n_installed_runner_to_grip_pick",
-            cardId: id,
-            remaining: remaining - 1,
-          }),
-        })),
       });
       return { ok: true };
     }

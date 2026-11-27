@@ -8,7 +8,6 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import type { RuleCite } from "../../state/types.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
@@ -244,116 +243,6 @@ export function applyKitaraDtwnPrimitive(
       }
       delete (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked;
       log(state, `Bacterial Programming — finish arrange.`);
-      return { ok: true };
-    }
-
-    case "choose_jua_two_bounce_one": {
-      const installed = [...state.runner.installed];
-      if (installed.length === 0) {
-        log(state, `Jua — Runner has no installed cards.`);
-        return { ok: true };
-      }
-      if (installed.length === 1) {
-        // Choose the only card; Runner must bounce it.
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "runner",
-          options: [
-            {
-              id: `bounce:${installed[0]}`,
-              label: `Add ${state.cards[installed[0]!]!.title} to top of stack`,
-              effect: fx.do({
-                kind: "resolve_jua_bounce",
-                cardId: installed[0]!,
-              }),
-            },
-          ],
-        });
-        return { ok: true };
-      }
-      // Corp chooses 2; then Runner picks which to bounce.
-      const pairs: [string, string][] = [];
-      for (let i = 0; i < installed.length; i++) {
-        for (let j = i + 1; j < installed.length; j++) {
-          pairs.push([installed[i]!, installed[j]!]);
-        }
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: pairs.map(([a, b]) => ({
-          id: `pair:${a}:${b}`,
-          label: `Choose ${state.cards[a]!.title} and ${state.cards[b]!.title}`,
-          effect: fx.do({
-            kind: "dtwn_jua_runner_pick_bounce",
-            cardIds: [a, b],
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "dtwn_jua_runner_pick_bounce": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: action.cardIds.map((id) => ({
-          id: `bounce:${id}`,
-          label: `Add ${state.cards[id]!.title} to top of stack`,
-          effect: fx.do({ kind: "resolve_jua_bounce", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_jua_bounce": {
-      const id = action.cardId;
-      if (!state.runner.installed.includes(id)) return { ok: true };
-      const card = state.cards[id]!;
-      uninstallCard(state, id, "deck-top", {
-        logLine: `Jua — add ${card.title} to top of the stack.`,
-      });
-      return { ok: true };
-    }
-
-    case "dtwn_threat_assessment": {
-      const installed = [...state.runner.installed];
-      if (installed.length === 0) {
-        log(state, `Threat Assessment — no installed Runner cards.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: installed.map((id) => ({
-          id: `threat:${id}`,
-          label: `Choose ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "resolve_threat_assessment", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_threat_assessment": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "tags",
-            label: "Take 2 tags",
-            effect: fx.do({ kind: "give_tags", amount: 2 }),
-          },
-          {
-            id: "bounce",
-            label: `Add ${state.cards[action.cardId]?.title ?? "card"} to top of stack`,
-            effect: fx.do({
-              kind: "resolve_jua_bounce",
-              cardId: action.cardId,
-            }),
-          },
-        ],
-      });
       return { ok: true };
     }
 

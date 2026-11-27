@@ -1,26 +1,13 @@
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
-import { unhostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function installedCorpCards(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of [...server.root, ...server.ice]) {
-      if (state.cards[id]) out.push(id);
-    }
-  }
-  return out;
-}
 
 export function applyRedsandSoPrimitive(
   ctx: EffectCtx,
@@ -194,54 +181,6 @@ export function applyRedsandSoPrimitive(
         onRunEndEffect: fx.do({ kind: "mobius_on_run_end" }),
       };
       log(state, `Möbius — pending second R&D run.`);
-      return { ok: true };
-    }
-
-    case "return_to_stack": {
-      for (const id of action.cardIds ?? []) {
-        const card = state.cards[id];
-        if (!card) continue;
-        card.zone = "runner:stack";
-        unhostCard(state, card.id);
-        state.runner.deck.push(id);
-      }
-      return { ok: true };
-    }
-
-    case "add_installed_to_hq": {
-      const installed = installedCorpCards(state);
-      if (installed.length === 0) {
-        log(state, `Replanting — no installed card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: installed.map((id) => ({
-          id: `hq:${id}`,
-          label: `Add ${state.cards[id]!.title} to HQ`,
-          effect: fx.do({ kind: "move_to_hq", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "move_to_hq": {
-      const cardId = action.cardId;
-      if (!cardId || !state.cards[cardId]) return { ok: true };
-      const card = state.cards[cardId]!;
-      if (uninstallCard(state, cardId, "hand")) {
-        log(state, `Replanting — add ${card.title} to HQ.`);
-        return { ok: true };
-      }
-      removeCardFromCurrentZone(state, cardId);
-      card.zone = "corp:hq";
-      card.rezzed = false;
-      card.faceup = false;
-      unhostCard(state, card.id);
-      card.advancementCounters = 0;
-      state.corp.hand.push(cardId);
-      log(state, `Replanting — add ${card.title} to HQ.`);
       return { ok: true };
     }
 
