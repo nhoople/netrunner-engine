@@ -1,108 +1,106 @@
 /** Dispatch for the procedure files split out of the effect switch. */
-import type { EffectCtx, EvalResult } from "../eval.js";
-import type { Primitive } from "../ir.js";
-import { applyAddKinds } from "../searchAndDeck/addKinds.js";
-import { applyBreachKinds } from "../access/breachKinds.js";
-import { applyChooseKinds } from "../triggers/chooseKinds.js";
-import { applyDerezKinds } from "../rez/derezKinds.js";
-import { applyForbidKinds } from "../continuous/forbidKinds.js";
-import { applyGainKinds } from "../keywordsAndCredits/gainKinds.js";
-import { applyHostKinds } from "../hostingAndTrash/hostKinds.js";
-
-import { applyLookKinds } from "../visibility/lookKinds.js";
-import { applyMoveKinds } from "../uninstallAndPosition/moveKinds.js";
-import { applyOtherKinds } from "./otherKinds.js";
-import { applyPayKinds } from "../keywordsAndCredits/payKinds.js";
-import { applyPlaceKinds } from "../counters/placeKinds.js";
-import { applyPlayKinds } from "../turnAndActions/playKinds.js";
-import { applyRemoveKinds } from "../counters/removeKinds.js";
-import { applyResolveKinds } from "../triggers/resolveKinds.js";
-import { applyReturnKinds } from "../uninstallAndPosition/returnKinds.js";
-import { applyRevealKinds } from "../visibility/revealKinds.js";
-import { applyRezKinds } from "../rez/rezKinds.js";
-import { applySearchKinds } from "../searchAndDeck/searchKinds.js";
-import { applySetKinds } from "../run/setKinds.js";
-import { applyShuffleKinds } from "../searchAndDeck/shuffleKinds.js";
-import { applySwapKinds } from "../swap/swapKinds.js";
-
+import type { EffectCtx, EvalResult } from "./eval.js";
+import type { Primitive } from "./ir.js";
+import { applyAddKinds } from "./searchAndDeck/addKinds.js";
+import { applyBreachKinds } from "./access/breachKinds.js";
+import { applyChooseKinds } from "./triggers/chooseKinds.js";
+import { applyDerezKinds } from "./rez/derezKinds.js";
+import { applyForbidKinds } from "./continuous/forbidKinds.js";
+import { applyGainKinds } from "./keywordsAndCredits/gainKinds.js";
+import { applyHostKinds } from "./hostingAndTrash/hostKinds.js";
+import { applyLookKinds } from "./visibility/lookKinds.js";
+import { applyMoveKinds } from "./uninstallAndPosition/moveKinds.js";
+import { applyPayKinds } from "./keywordsAndCredits/payKinds.js";
+import { applyPlaceKinds } from "./counters/placeKinds.js";
+import { applyPlayKinds } from "./turnAndActions/playKinds.js";
+import { applyRemoveKinds } from "./counters/removeKinds.js";
+import { applyResolveKinds } from "./triggers/resolveKinds.js";
+import { applyReturnKinds } from "./uninstallAndPosition/returnKinds.js";
+import { applyRevealKinds } from "./visibility/revealKinds.js";
+import { applyRezKinds } from "./rez/rezKinds.js";
+import { applySearchKinds } from "./searchAndDeck/searchKinds.js";
+import { applySetKinds } from "./run/setKinds.js";
+import { applyShuffleKinds } from "./searchAndDeck/shuffleKinds.js";
+import { applySwapKinds } from "./swap/swapKinds.js";
 import {
   applyContinuousKinds,
   applyContinuousKindsWhenSourceExists,
-} from "../continuous/continuousKinds.js";
-import { applyAccessKinds } from "../access/accessKinds.js";
-import { applyRezKindsWhenSourceExists } from "../rez/rezKinds.js";
-import { applySwapKindsWhenSourceExists } from "../swap/swapKinds.js";
+} from "./continuous/continuousKinds.js";
+import { applyAccessKinds } from "./access/accessKinds.js";
+import { applyRezKindsWhenSourceExists } from "./rez/rezKinds.js";
+import { applySwapKindsWhenSourceExists } from "./swap/swapKinds.js";
 import {
   applyVisibilityKinds,
   applyVisibilityKindsWhenSourceExists,
-} from "../visibility/visibilityKinds.js";
-import { applyCorpInstallFromHqKinds } from "../install/corpInstallFromHqKinds.js";
+} from "./visibility/visibilityKinds.js";
+import { applyCorpInstallFromHqKinds } from "./install/corpInstallFromHqKinds.js";
 import {
   applyCorpInstallFromArchivesAndRdKinds,
   applyCorpInstallFromArchivesAndRdKindsWhenSourceExists,
-} from "../install/corpInstallFromArchivesAndRdKinds.js";
+} from "./install/corpInstallFromArchivesAndRdKinds.js";
 import {
   applyRunnerInstallFromOtherZonesKinds,
   applyRunnerInstallFromOtherZonesKindsWhenSourceExists,
-} from "../install/runnerInstallFromOtherZonesKinds.js";
-import { applyCorpIceInstallKinds } from "../install/corpIceInstallKinds.js";
+} from "./install/runnerInstallFromOtherZonesKinds.js";
+import { applyCorpIceInstallKinds } from "./install/corpIceInstallKinds.js";
 import {
   applyCorpInstallThenRezOrAdvanceKinds,
   applyCorpInstallThenRezOrAdvanceKindsWhenSourceExists,
-} from "../install/corpInstallThenRezOrAdvanceKinds.js";
+} from "./install/corpInstallThenRezOrAdvanceKinds.js";
 import {
   applyRunnerInstallFromGripKinds,
   applyRunnerInstallFromGripKindsWhenSourceExists,
-} from "../install/runnerInstallFromGripKinds.js";
+} from "./install/runnerInstallFromGripKinds.js";
 import {
   applyHostedCardKinds,
   applyHostedCardKindsWhenSourceExists,
-} from "../hostingAndTrash/hostedCardKinds.js";
+} from "./hostingAndTrash/hostedCardKinds.js";
 import {
   applyCorpInstalledTrashKinds,
   applyCorpInstalledTrashKindsWhenSourceExists,
-} from "../hostingAndTrash/corpInstalledTrashKinds.js";
+} from "./hostingAndTrash/corpInstalledTrashKinds.js";
 import {
   applyRunnerHandAndDeckTrashKinds,
   applyRunnerHandAndDeckTrashKindsWhenSourceExists,
-} from "../hostingAndTrash/runnerHandAndDeckTrashKinds.js";
-import { applyCorpHandAndDeckTrashKinds } from "../hostingAndTrash/corpHandAndDeckTrashKinds.js";
+} from "./hostingAndTrash/runnerHandAndDeckTrashKinds.js";
+import { applyCorpHandAndDeckTrashKinds } from "./hostingAndTrash/corpHandAndDeckTrashKinds.js";
 import {
   applyRunnerInstalledTrashKinds,
   applyRunnerInstalledTrashKindsWhenSourceExists,
-} from "../hostingAndTrash/runnerInstalledTrashKinds.js";
-import { applyUninstallAndPositionKinds } from "../uninstallAndPosition/uninstallAndPositionKinds.js";
+} from "./hostingAndTrash/runnerInstalledTrashKinds.js";
+import { applyUninstallAndPositionKinds } from "./uninstallAndPosition/uninstallAndPositionKinds.js";
 import {
   applyDamageAndPreventionKinds,
   applyDamageAndPreventionKindsWhenSourceExists,
-} from "../damageAndPrevention/damageAndPreventionKinds.js";
+} from "./damageAndPrevention/damageAndPreventionKinds.js";
 import {
   applyCounterKinds,
   applyCounterKindsWhenSourceExists,
-} from "../counters/counterKinds.js";
+} from "./counters/counterKinds.js";
 import {
   applyDeckOrderKinds,
   applyDeckOrderKindsWhenSourceExists,
-} from "../searchAndDeck/deckOrderKinds.js";
-import { applyArchivesAndHeapRetrievalKinds } from "../searchAndDeck/archivesAndHeapRetrievalKinds.js";
+} from "./searchAndDeck/deckOrderKinds.js";
+import { applyArchivesAndHeapRetrievalKinds } from "./searchAndDeck/archivesAndHeapRetrievalKinds.js";
 import {
   applySearchAndShuffleKinds,
   applySearchAndShuffleKindsWhenSourceExists,
-} from "../searchAndDeck/searchAndShuffleKinds.js";
+} from "./searchAndDeck/searchAndShuffleKinds.js";
 import {
   applyRunKinds,
   applyRunKindsWhenSourceExists,
-} from "../run/runKinds.js";
+} from "./run/runKinds.js";
 import {
   applyKeywordAndCreditKinds,
   applyKeywordAndCreditKindsWhenSourceExists,
-} from "../keywordsAndCredits/keywordAndCreditKinds.js";
-import { applyTurnAndActionKinds } from "../turnAndActions/turnAndActionKinds.js";
+} from "./keywordsAndCredits/keywordAndCreditKinds.js";
+import { applyTurnAndActionKinds } from "./turnAndActions/turnAndActionKinds.js";
 import {
   applyScoreAndForfeitKinds,
   applyScoreAndForfeitKindsWhenSourceExists,
-} from "../turnAndActions/scoreAndForfeitKinds.js";
-import { applyBreakKinds } from "../turnAndActions/breakKinds.js";
+} from "./turnAndActions/scoreAndForfeitKinds.js";
+import { applyBreakKinds } from "./turnAndActions/breakKinds.js";
+import { applySetupAndEndKinds } from "./setupAndEnd/setupAndEndKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -114,7 +112,6 @@ const HANDLERS = [
   applyHostKinds,
   applyLookKinds,
   applyMoveKinds,
-  applyOtherKinds,
   applyPayKinds,
   applyPlaceKinds,
   applyPlayKinds,
@@ -171,6 +168,7 @@ const HANDLERS = [
   applyScoreAndForfeitKinds,
   applyScoreAndForfeitKindsWhenSourceExists,
   applyBreakKinds,
+  applySetupAndEndKinds,
 ] as const;
 
 export function applyCoreKinds(

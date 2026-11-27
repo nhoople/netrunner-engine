@@ -1,13 +1,22 @@
-import type { EffectCtx, EvalResult } from "../eval.js";
+/**
+ * Primitive kinds for identity changes and winning the game. The kind registry
+ * (`applyCoreKinds`) dispatches here.
+ */
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
+import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { fireOnFlipToBackIfRunMatchesFace } from "../../state/triggers/miscConditionalHooks.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
-import type { Primitive } from "../ir.js";
 import { checkWinConditions } from "../../state/turnAndActions/scoring.js";
+import {
+  legalRebirthIdentityIds,
+  switchRunnerIdentity,
+} from "../../state/setupAndEnd/additionalIdentities.js";
+import { CR } from "../../timing/labels.js";
+import { fx, type Primitive } from "../ir.js";
+import type { EffectCtx, EvalResult } from "../eval.js";
 
-export function applyOtherKinds(
+export function applySetupAndEndKinds(
   ctx: EffectCtx,
   action: Primitive,
 ): EvalResult | null {
@@ -113,6 +122,98 @@ export function applyOtherKinds(
         );
       }
       checkWinConditions(state);
+      return { ok: true };
+    }
+    case "jinteki_biotech_flip": {
+      if (!source) {
+        return {
+          ok: false,
+          error: "Jinteki Biotech flip — no source.",
+          cites: [],
+        };
+      }
+      const faceId = source.chosenIdentityFaceId;
+      const faces = source.identityFaceOptions ?? [];
+      const face = faces.find((f) => f.id === faceId) ?? faces[0];
+      if (!face) {
+        log(state, `Jinteki Biotech — no face chosen.`);
+        return { ok: true };
+      }
+      source.identityFlipped = !source.identityFlipped;
+      // The newly faceup face is the active one (CR 3.1.1a).
+      applyIdentityFace(source);
+      log(state, `Jinteki Biotech flips (${face.label}).`);
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "corp",
+        options: [
+          {
+            id: "jinteki-flip-resolve",
+            label: face.label,
+            effect: face.onFlip,
+          },
+        ],
+      });
+      return { ok: true };
+    }
+
+    case "choose_jinteki_biotech_face": {
+      if (!source) {
+        return {
+          ok: false,
+          error: "Jinteki Biotech choose — no source.",
+          cites: [],
+        };
+      }
+      const faceId = (action as { faceId: string }).faceId;
+      source.chosenIdentityFaceId = faceId;
+      const face = (source.identityFaceOptions ?? []).find(
+        (f) => f.id === faceId,
+      );
+      log(state, `Jinteki Biotech — choose face ${face?.label ?? faceId}.`);
+      return { ok: true };
+    }
+    case "rebirth_switch_identity_same_faction": {
+      const candidates = legalRebirthIdentityIds(state);
+      const current = state.cards[state.runner.identityId];
+      if (candidates.length === 0) {
+        log(
+          state,
+          `Rebirth — no same-faction identity in the outside-game pile (CR ${CR.additionalIdentitiesPile.number}).`,
+        );
+        return { ok: true };
+      }
+      if (candidates.length === 1) {
+        switchRunnerIdentity(state, candidates[0]!);
+        recomputeRunnerLink(state);
+        return { ok: true };
+      }
+      openPendingChoose(state, {
+        sourceId,
+        chooser: "runner",
+        options: candidates.map((cardId) => ({
+          id: `rebirth:${cardId}`,
+          label: `Switch to ${state.cards[cardId]!.title}`,
+          effect: fx.do({
+            kind: "rebirth_switch_to_identity",
+            cardId,
+          }),
+        })),
+        logLine: `Rebirth — choose a ${current?.faction ?? "same-faction"} identity from outside the game (CR ${CR.additionalIdentity.number}).`,
+      });
+      return { ok: true };
+    }
+    case "rebirth_switch_to_identity": {
+      const cardId = (action as { cardId: string }).cardId;
+      if (!legalRebirthIdentityIds(state).includes(cardId)) {
+        return {
+          ok: false,
+          error: `${cardId} is not a legal Rebirth identity.`,
+          cites: [CR.additionalIdentity, CR.additionalIdentitiesPile],
+        };
+      }
+      switchRunnerIdentity(state, cardId);
+      recomputeRunnerLink(state);
       return { ok: true };
     }
     default:
