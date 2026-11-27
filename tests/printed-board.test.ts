@@ -16,7 +16,7 @@ import {
   STEPS,
 } from "../src/index.js";
 import { cursorFrom } from "../src/timing/graph.js";
-import type { CardDef } from "../src/cards/load.js";
+import type { CardDef } from "../src/cards/cardDef.js";
 import type { GameState } from "../src/state/types.js";
 
 beforeAll(() => {

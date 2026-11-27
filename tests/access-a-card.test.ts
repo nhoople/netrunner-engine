@@ -11,7 +11,7 @@ import {
   legalActions,
   BREACH_STEPS,
 } from "../src/index.js";
-import { instantiateCard } from "../src/cards/load.js";
+import { instantiateCard } from "../src/cards/instantiateCard.js";
 import type { Action, GameState } from "../src/state/types.js";
 
 beforeAll(() => {

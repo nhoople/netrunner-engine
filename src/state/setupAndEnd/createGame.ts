@@ -1,5 +1,5 @@
 import { applyBreakerDef, applyIceDef } from "../../cards/stubs.js";
-import { instantiateCard } from "../../cards/load.js";
+import { instantiateCard } from "../../cards/instantiateCard.js";
 import { START_STEP, STEPS, cursorFrom } from "../../timing/graph.js";
 import { emptyTurnBookkeeping } from "../turnAndActions/turn.js";
 import { recomputeRunnerLink } from "../hostingAndTrash/trashHooks.js";
