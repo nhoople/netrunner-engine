@@ -511,6 +511,7 @@ export {
   openHostedCredits,
   iceFaceVisible,
   hostedCardViews,
+  runnerSeesAccessedCard,
 } from "./state/seatVisibility.js";
 export {
   serversMatchingSpec,

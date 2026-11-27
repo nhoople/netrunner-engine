@@ -58,6 +58,7 @@ import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { shuffleInPlace } from "../rng.js";
 import { recomputeRunnerMaxHandSize } from "../handSize.js";
 import { unhostCard } from "./host.js";
+import { runnerSeesAccessedCard } from "../seatVisibility.js";
 
 export type TrashBy = "corp" | "runner";
 
@@ -177,15 +178,15 @@ function placeInDiscardPile(
 }
 
 /**
- * The Runner sees a card they are accessing, a rezzed card, and a faceup
- * card outside HQ and R&D. A card in HQ or R&D is hidden even if it was
- * revealed earlier (CR 1.21.3, 4.4.6b).
+ * The Runner sees a card they are accessing or accessed this breach, a
+ * rezzed card, and a faceup card outside HQ and R&D. A card in HQ or R&D is
+ * hidden even if it was revealed earlier (CR 1.21.3, 4.4.6b, 7.1.2, 7.3.1a).
  */
 function visibleToRunnerBeforeMove(
   state: GameState,
   card: CardInstance,
 ): boolean {
-  if (state.run?.accessingCardId === card.id) return true;
+  if (runnerSeesAccessedCard(state, card.id)) return true;
   // A card still revealed by the resolving ability, or one the Runner is
   // looking at, is visible to them (CR 1.21.6, 1.21.2).
   if (card.revealing || card.lookedBy === "runner") return true;
@@ -389,7 +390,10 @@ function trashByCheckpoint(
   // CR 4.4.6b: a Corp card the Runner could see goes to Archives faceup.
   // A Runner card is faceup in the heap (CR 4.4.7b, 8.1.4c).
   const faceup =
-    card.side === "runner" || Boolean(card.rezzed) || Boolean(card.faceup);
+    card.side === "runner" ||
+    Boolean(card.rezzed) ||
+    Boolean(card.faceup) ||
+    runnerSeesAccessedCard(state, id);
   const wasInstalled = state.runner.installed.includes(id);
   const wasInstalledCorp =
     card.side === "corp" && /^server:[^:]+:(root|ice)$/.test(card.zone);

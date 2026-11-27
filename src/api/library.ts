@@ -16,6 +16,7 @@ import {
   openAdvancement,
   openFace,
   openHostedCredits,
+  runnerSeesAccessedCard,
   seatPendingView,
   secretIdsFrom,
   stringsIn,
@@ -333,8 +334,14 @@ export function getPublicView(state: GameState, side: Side): PublicView {
         const hostedPublic = (card.hostedCardIds ?? []).some(
           (hid) => state.cards[hid]?.hostAgendaGainsPublic,
         );
+        // The Runner sees a card they access for the rest of the breach;
+        // access does not turn it faceup (CR 7.1.2, 7.3.1a).
         const visible =
-          card.rezzed || card.faceup || side === "corp" || hostedPublic;
+          card.rezzed ||
+          card.faceup ||
+          side === "corp" ||
+          hostedPublic ||
+          (side === "runner" && runnerSeesAccessedCard(state, id));
         return {
           id,
           title: visible ? card.title : null,

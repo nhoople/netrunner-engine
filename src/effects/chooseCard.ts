@@ -2,7 +2,10 @@
  * Choose one card the player can already see and bind it into one effect
  * (CR 1.15.2, 1.15.4). Hidden zones stay out of this primitive (CR 1.21.2).
  */
-import { openCardName } from "../state/seatVisibility.js";
+import {
+  openCardName,
+  runnerSeesAccessedCard,
+} from "../state/seatVisibility.js";
 import { log } from "../state/createGame.js";
 import { isCentral } from "../state/access.js";
 import type {
@@ -79,8 +82,15 @@ function visibleIds(
   return { ids: ids.filter((id) => state.cards[id]) };
 }
 
-function seenBy(card: CardInstance, chooser: "corp" | "runner"): boolean {
-  return card.side === chooser || Boolean(card.rezzed || card.faceup);
+function seenBy(
+  state: GameState,
+  card: CardInstance,
+  chooser: "corp" | "runner",
+): boolean {
+  if (card.side === chooser || card.rezzed || card.faceup) return true;
+  // A card the Runner accessed this breach is not faceup, but they may
+  // look at it (CR 7.1.2, 7.3.1a).
+  return chooser === "runner" && runnerSeesAccessedCard(state, card.id);
 }
 
 export function applyChooseCard(
@@ -105,7 +115,7 @@ export function applyChooseCard(
     if (!want && !subtypes?.length) return true;
     // A type or subtype filter matches only a card the chooser can see, so
     // the choice does not reveal a facedown card (CR 1.21.2).
-    if (!seenBy(card, action.chooser)) return false;
+    if (!seenBy(state, card, action.chooser)) return false;
     if (want && card.type.toLowerCase() !== want) return false;
     if (
       subtypes?.length &&

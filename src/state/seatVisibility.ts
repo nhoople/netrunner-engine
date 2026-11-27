@@ -46,6 +46,43 @@ export function openFace(
   };
 }
 
+/**
+ * True when the Runner may look at this Corp card because they accessed it.
+ * The Runner looks at the card they are accessing (CR 7.1.2), and an
+ * installed card they accessed stays visible to them for the rest of the
+ * breach (CR 7.3.1a), as does one accessed facedown in Archives (CR 7.3.2a).
+ * Accessing does not turn a card faceup, so the other seats and the
+ * spectator never see it this way (CR 4.6.3, 10.2.2a). A card accessed in
+ * HQ or R&D keeps its own path (`endAccessVisibility`): it is open only
+ * while it is being accessed.
+ */
+export function runnerSeesAccessedCard(
+  state: GameState,
+  cardId: string,
+): boolean {
+  const run = state.run;
+  if (!run) return false;
+  if (run.accessingCardId === cardId) return true;
+  // The breach is over once the run is ended (CR 6.1.4a). An encounter forced
+  // during an access (Ganked!) is inside the breach, which goes on after it
+  // (CR 6.1.4b), though the timing structure is the run's meanwhile.
+  if (run.endedTheRun) return false;
+  const inBreach =
+    state.timing.structure === "breach" ||
+    Boolean(run.resumeAccessAfterReencounter);
+  if (!inBreach) return false;
+  if (!run.accessedCardIds?.includes(cardId)) return false;
+  // The same object (CR 1.12.1): still installed, or, in a breach of
+  // Archives, a card added there facedown that stays facedown after it is
+  // accessed (CR 7.3.2a).
+  const zone = state.cards[cardId]?.zone ?? "";
+  return (
+    zone.startsWith("server:") ||
+    zone.startsWith("hosted:") ||
+    (zone === "corp:archives" && run.attackedServerId === "archives")
+  );
+}
+
 /** True when the viewer may see an ice face (rezzed or Corp). */
 export function iceFaceVisible(card: CardInstance, viewer: Side): boolean {
   return card.rezzed || viewer === "corp";
@@ -63,7 +100,10 @@ export function hostedCardViews(
   for (const hid of host.hostedCardIds ?? []) {
     const card = state.cards[hid];
     if (!card) continue;
-    const face = openFace(card, viewer);
+    const face =
+      viewer === "runner" && runnerSeesAccessedCard(state, hid)
+        ? { title: card.title, type: card.type }
+        : openFace(card, viewer);
     out.push({
       id: hid,
       title: face.title,
@@ -134,16 +174,20 @@ export function stringsIn(value: unknown, out: Set<string>): void {
 
 /**
  * `idsHiddenFrom` less the cards this viewer sees for now: the card the
- * Runner is accessing (CR 7.1.2) and a card being revealed (CR 1.21.3,
- * 1.21.6).
+ * Runner is accessing (CR 7.1.2), the installed cards they accessed this
+ * breach (CR 7.3.1a), and a card being revealed (CR 1.21.3, 1.21.6).
  */
 function idsHiddenNow(state: GameState, viewer: Side): Set<string> {
   const hidden = new Set(idsHiddenFrom(state, viewer));
   for (const id of [...hidden]) {
     if (state.cards[id]?.revealing) hidden.delete(id);
   }
-  const accessing = state.run?.accessingCardId;
-  if (viewer === "runner" && accessing) hidden.delete(accessing);
+  const run = state.run;
+  if (viewer === "runner" && run) {
+    for (const id of [run.accessingCardId, ...(run.accessedCardIds ?? [])]) {
+      if (id && runnerSeesAccessedCard(state, id)) hidden.delete(id);
+    }
+  }
   return hidden;
 }
 
@@ -192,7 +236,17 @@ function pendingHiddenFrom(
  * label.
  */
 export function secretIdsFrom(state: GameState, viewer: Side): string[] {
-  const hidden = idsHiddenFrom(state, viewer);
+  // An installed card the Runner is accessing, or accessed this breach, is
+  // not faceup but is open to them (CR 7.1.2, 7.3.1a). One in HQ or R&D
+  // stays a secret here, as it was before access stopped turning cards
+  // faceup.
+  const hidden = idsHiddenFrom(state, viewer).filter(
+    (id) =>
+      viewer !== "runner" ||
+      !runnerSeesAccessedCard(state, id) ||
+      state.cards[id]?.zone === "corp:hq" ||
+      state.cards[id]?.zone === "corp:rd",
+  );
   const { hiddenCard, hiddenFace } = pendingHiddenFrom(state, viewer);
   return [...hidden, ...hiddenCard, ...hiddenFace];
 }

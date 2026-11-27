@@ -22593,6 +22593,10 @@
           "kinds": []
         },
         {
+          "site": "src/state/seatVisibility.ts#hostedCardViews",
+          "kinds": []
+        },
+        {
           "site": "src/state/seatVisibility.ts#openCardName",
           "kinds": []
         },
@@ -24401,6 +24405,10 @@
         },
         {
           "site": "src/state/scoring.ts#canScoreAgenda",
+          "kinds": []
+        },
+        {
+          "site": "src/state/seatVisibility.ts#hostedCardViews",
           "kinds": []
         },
         {
