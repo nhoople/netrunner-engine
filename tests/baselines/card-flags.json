@@ -297,7 +297,7 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -324,7 +324,7 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -352,7 +352,7 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -406,7 +406,7 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -433,7 +433,7 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -464,7 +464,7 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -510,7 +510,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -791,7 +791,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -1408,7 +1408,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -5583,7 +5583,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -8344,7 +8344,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -8409,7 +8409,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {
@@ -8611,7 +8611,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {
@@ -9135,7 +9135,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -9179,7 +9179,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -9394,7 +9394,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -9415,7 +9415,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -9477,7 +9477,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -9496,7 +9496,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -9532,7 +9532,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -13636,7 +13636,7 @@
           ]
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": [],
           "mirrors": [
             "src/state/types/card.ts#{accessTrashFromGrip}"
@@ -13724,11 +13724,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/apply.ts#resumeAfterEncounterStartTrace",
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#resumeAfterEncounterStartTrace",
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {
@@ -14408,7 +14408,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {
@@ -14435,11 +14435,11 @@
           ]
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {
@@ -16985,7 +16985,7 @@
           ]
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -17472,7 +17472,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {
@@ -18005,7 +18005,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {
@@ -18075,6 +18075,10 @@
         },
         {
           "site": "src/actions/access.ts#hasInteractiveMidAccess",
+          "kinds": []
+        },
+        {
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -18598,7 +18602,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -18778,7 +18782,7 @@
       ],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -20710,11 +20714,11 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/apply.ts#applyResolved",
           "kinds": []
         },
         {
@@ -20751,6 +20755,10 @@
         },
         {
           "site": "src/actions/breakSubroutine.ts#resolveTyrsHandRezDuringBreakInterrupt",
+          "kinds": []
+        },
+        {
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {
@@ -22837,7 +22845,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         }
       ],
@@ -22896,7 +22904,7 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
@@ -23520,11 +23528,11 @@
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#applyResolved",
+          "site": "src/actions/accessActions.ts#applyAccessAction",
           "kinds": []
         },
         {
-          "site": "src/actions/apply.ts#chooseOption",
+          "site": "src/actions/apply.ts#applyResolved",
           "kinds": []
         },
         {
@@ -23533,6 +23541,10 @@
         },
         {
           "site": "src/actions/breakSubroutine.ts#resolveTyrsHandRezDuringBreakInterrupt",
+          "kinds": []
+        },
+        {
+          "site": "src/actions/chooseOption.ts#chooseOption",
           "kinds": []
         },
         {

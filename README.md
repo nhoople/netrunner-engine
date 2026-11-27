@@ -149,7 +149,7 @@ docs/                     # Effect IR grammar and generated kind reference, CR a
 scripts/                  # fetch the pinned data, seeded playouts, generators for baselines and the kind reference
 stryker/                  # mutation-test configs, one per CR audit area (local runs only)
 src/                      # index.ts: the package entry; cli.ts: the development host
-  actions/                # apply.ts: applyAction and choice dispatch; install, run, rez, break, play, score, access, phase
+  actions/                # apply.ts: applyAction; chooseOption.ts: choice dispatch; accessActions.ts: the access and breach actions; install, run, rez, break, play, score, access, phase
   api/                    # library.ts: createGame / queryLegality / applyIntent / getPublicView
   cards/                  # load.ts: the card loader; cardDef.ts: the CardDef type; instantiateCard.ts and copyOptionalCardFields.ts: building a card from its definition; short-game setup and runtime helpers
   cr/                     # reads the pinned CR data in vendor/cr-data/
