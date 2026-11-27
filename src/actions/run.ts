@@ -2,7 +2,7 @@
  * Run initiation, automatic advance, jack out, and return to the action phase.
  * Approaching ice and encounters are driven by the timing machine.
  */
-import { revealCards } from "../state/reveal.js";
+import { revealCards } from "../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../state/continuous/lingeringEffects.js";

@@ -19,7 +19,7 @@ import {
   beginExpose,
   acceptPendingExpose,
   preventPendingExpose,
-} from "../src/state/expose.js";
+} from "../src/state/visibility/expose.js";
 import {
   maybeOpenTrashPrevent,
   preventPendingInstalledTrash,

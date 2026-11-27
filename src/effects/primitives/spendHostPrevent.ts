@@ -5,7 +5,7 @@ import {
   interfaceBlock,
   runnerBreakBlock,
 } from "../../state/procedures/break.js";
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import {
   corpInstallCost,
   subtractRunnerCreditPool,

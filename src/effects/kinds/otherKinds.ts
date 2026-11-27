@@ -2,8 +2,8 @@
  * Primitive kinds whose procedure is other.
  * The effect switch in eval.ts dispatches here.
  */
-import { openCardName } from "../../state/seatVisibility.js";
-import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
+import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { catalogCardNames } from "../cardNames.js";
 import {
   iceAtRunnerPosition,
@@ -45,7 +45,7 @@ import {
   exposeLegalTargets,
   openExposeInterruptOrComplete,
   preventPendingExpose,
-} from "../../state/expose.js";
+} from "../../state/visibility/expose.js";
 import { applyIdentityFace } from "../../state/identityFace.js";
 import {
   addBreakerStrengthBoostThisEncounter,
@@ -111,10 +111,10 @@ import {
 import { fireOnFullyBreak, fireOnForfeit, fireOnAccess } from "../eval.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { hostCard } from "../../state/procedures/host.js";
-import { openFace } from "../../state/seatVisibility.js";
+import { openFace } from "../../state/visibility/seatVisibility.js";
 import { serverLabel } from "../corpAbilityInstall.js";
 import { removeCardFromGame } from "../../state/procedures/uninstall.js";
-import { iceFaceVisible } from "../../state/seatVisibility.js";
+import { iceFaceVisible } from "../../state/visibility/seatVisibility.js";
 import {
   allSubroutinesBrokenByRunner,
   resetEncounterBreaks,

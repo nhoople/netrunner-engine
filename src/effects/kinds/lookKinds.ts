@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is look.
  * The effect switch in eval.ts dispatches here.
  */
-import { lookAtCards } from "../../state/reveal.js";
+import { lookAtCards } from "../../state/visibility/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";

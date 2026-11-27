@@ -2,8 +2,8 @@
  * Seat visibility policy (standardization S5).
  * What a seat may see for faces, counters, and hosted cards (CR 1.18 / 4.6 / 4.8).
  */
-import { consideredAdvancement, gripRevealed } from "./cardDeclarations.js";
-import { isInstalled } from "./procedures/uninstall.js";
+import { consideredAdvancement, gripRevealed } from "../cardDeclarations.js";
+import { isInstalled } from "../procedures/uninstall.js";
 import type {
   CardInstance,
   GameState,
@@ -12,7 +12,7 @@ import type {
   PublicHostedCardView,
   ReactionWindowFrame,
   Side,
-} from "./types.js";
+} from "../types.js";
 
 /** Advancement counters hosted on an installed card. Zero stays unset. */
 export function openAdvancement(

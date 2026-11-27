@@ -1,7 +1,7 @@
 /** Upstalk (up) Lunar pack primitives. */
-import { openCardName } from "../../state/seatVisibility.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { emptyRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";

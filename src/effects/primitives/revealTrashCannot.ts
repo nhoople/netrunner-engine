@@ -1,6 +1,6 @@
 /** Fear the Masses (ftm) Mumbad pack primitives — v1.121.0. */
-import { openCardName } from "../../state/seatVisibility.js";
-import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
+import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/createGame.js";
 import { startPsiGame } from "../../state/psi.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

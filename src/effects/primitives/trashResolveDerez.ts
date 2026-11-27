@@ -1,5 +1,5 @@
 /** Earth's Scion (eas) Red Sand pack primitives — v1.131.0. */
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import {
   iceAtRunnerPosition,
   moveRunnerToOutermost,

@@ -12,8 +12,8 @@ import { occurCheckpoint } from "../legality/checkpoints.js";
 import { fireOnRez } from "../state/triggers/cardLifecycleHooks.js";
 import { cloneState, log } from "../state/createGame.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
-import { revealCards } from "../state/reveal.js";
-import { serverName } from "../state/seatVisibility.js";
+import { revealCards } from "../state/visibility/reveal.js";
+import { serverName } from "../state/visibility/seatVisibility.js";
 import type {
   GameState,
   InstallDestination,

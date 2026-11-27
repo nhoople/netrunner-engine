@@ -20,7 +20,7 @@ import {
   seatPendingView,
   secretIdsFrom,
   stringsIn,
-} from "../state/seatVisibility.js";
+} from "../state/visibility/seatVisibility.js";
 import { currentMark } from "../state/msKeywords.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
 import type {

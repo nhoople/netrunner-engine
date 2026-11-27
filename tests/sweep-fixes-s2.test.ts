@@ -26,7 +26,10 @@ import {
 import type { GameState } from "../src/index.js";
 import type { Action, ServerId } from "../src/state/types.js";
 import { fx, type Effect } from "../src/effects/ir.js";
-import { endLooksAndReveals, revealCards } from "../src/state/reveal.js";
+import {
+  endLooksAndReveals,
+  revealCards,
+} from "../src/state/visibility/reveal.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 import { stealOrTrashBlocked } from "../src/actions/access.js";
 import { beginBreachAccess } from "../src/state/access/access.js";

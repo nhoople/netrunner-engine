@@ -1,6 +1,6 @@
 /** Station One (so) Red Sand pack primitives — v1.129.0. */
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";

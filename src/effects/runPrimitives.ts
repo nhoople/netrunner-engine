@@ -2,7 +2,7 @@
  * End-the-run primitives. The subroutine and its nested "unless" costs
  * live here; the rest of the run flow stays in eval.ts.
  */
-import { revealCards } from "../state/reveal.js";
+import { revealCards } from "../state/visibility/reveal.js";
 import { pickRandomSubset } from "../state/rng.js";
 import { log } from "../state/createGame.js";
 import {

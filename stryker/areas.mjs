@@ -53,7 +53,7 @@ export const areas = {
   },
   visibility: {
     title: "4. Visibility",
-    mutate: ["src/state/seatVisibility.ts", "src/api/library.ts"],
+    mutate: ["src/state/visibility/seatVisibility.ts", "src/api/library.ts"],
     tests: [
       "tests/*public-view*.test.ts",
       "tests/*visib*.test.ts",

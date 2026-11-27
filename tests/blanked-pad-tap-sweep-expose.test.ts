@@ -18,7 +18,7 @@ import {
   prepareTraceSpendOrder,
 } from "../src/state/cardDeclarations.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { completeExpose } from "../src/state/expose.js";
+import { completeExpose } from "../src/state/visibility/expose.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

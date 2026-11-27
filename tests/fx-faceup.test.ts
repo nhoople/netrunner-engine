@@ -30,12 +30,12 @@ import {
   legalActions,
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
-import { completeExpose } from "../src/state/expose.js";
+import { completeExpose } from "../src/state/visibility/expose.js";
 import { openPendingChoose } from "../src/state/triggers/pendingChoice.js";
 import {
   openCardName,
   runnerSeesAccessedCard,
-} from "../src/state/seatVisibility.js";
+} from "../src/state/visibility/seatVisibility.js";
 import type { Action, ServerId, Side } from "../src/state/types.js";
 import {
   fresh,

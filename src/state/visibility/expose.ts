@@ -1,16 +1,16 @@
-import { openPendingChoose } from "./triggers/pendingChoice.js";
+import { openPendingChoose } from "../triggers/pendingChoice.js";
 /** Expose interrupt helpers (CR 1.21.4). */
 
-import { log } from "./createGame.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { occurCheckpoint } from "../legality/checkpoints.js";
-import { fireExposeWhileInstalled } from "./triggers/storedTriggers.js";
+import { log } from "../createGame.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { occurCheckpoint } from "../../legality/checkpoints.js";
+import { fireExposeWhileInstalled } from "../triggers/storedTriggers.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "./triggers/replacements.js";
+} from "../triggers/replacements.js";
 
 /** Installed, unrezzed Corp cards legal as expose targets. */
 export function exposeLegalTargets(state: GameState): string[] {

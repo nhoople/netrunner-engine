@@ -34,7 +34,7 @@ Rule: 1 Game Concepts › 1.18 Advancing Cards
 
 | File | Via | Code topic | Sites |
 | --- | --- | --- | --- |
-| `src/state/seatVisibility.ts` | literal | visibility | 1 |
+| `src/state/visibility/seatVisibility.ts` | literal | visibility | 1 |
 
 ## 4. CR 9.3.7d — 1 site
 

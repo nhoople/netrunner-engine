@@ -1,6 +1,9 @@
 import { noteRunnerClickDuringRun } from "../state/clickHooks.js";
 import type { Effect } from "../effects/ir.js";
-import { endLooksAndReveals, lookAtChoiceCards } from "../state/reveal.js";
+import {
+  endLooksAndReveals,
+  lookAtChoiceCards,
+} from "../state/visibility/reveal.js";
 import { setRunnerPosition } from "../state/runPosition.js";
 import { runApplyHook } from "../debug/applyHook.js";
 import { pendingOptionHiddenFromOpponent } from "../api/library.js";
@@ -91,7 +94,7 @@ import {
   acceptPendingTags,
   conditionalInterruptRequiresActiveAtOpen,
 } from "../state/tags.js";
-import { acceptPendingExpose } from "../state/expose.js";
+import { acceptPendingExpose } from "../state/visibility/expose.js";
 import {
   acceptPendingInstalledTrash,
   triggerPendingTrashInterrupt,

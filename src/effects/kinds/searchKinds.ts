@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is search.
  * The effect switch in eval.ts dispatches here.
  */
-import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { chooseCards } from "../chooseCards.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";

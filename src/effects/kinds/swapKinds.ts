@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is swap.
  * The effect switch in eval.ts dispatches here.
  */
-import { openCardName } from "../../state/seatVisibility.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import { iceAtRunnerPosition } from "../../state/runPosition.js";
 import type { GameState, Server } from "../../state/types.js";

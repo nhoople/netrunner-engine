@@ -7,16 +7,16 @@
  * and not card ids, so a card that goes back to a hidden zone cannot be
  * followed there.
  */
-import { CR } from "../timing/labels.js";
-import { log } from "./createGame.js";
-import { noteFirstRevealThisTurn } from "./triggers/miscConditionalHooks.js";
+import { CR } from "../../timing/labels.js";
+import { log } from "../createGame.js";
+import { noteFirstRevealThisTurn } from "../triggers/miscConditionalHooks.js";
 import type {
   GameState,
   LookEvent,
   RevealEvent,
   RuleCite,
   Side,
-} from "./types.js";
+} from "../types.js";
 
 const KEPT = 30;
 

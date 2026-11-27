@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is reveal.
  * The effect switch in eval.ts dispatches here.
  */
-import { lookAtCards, revealCards } from "../../state/reveal.js";
+import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";

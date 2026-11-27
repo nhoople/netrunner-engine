@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is resolve.
  * The effect switch in eval.ts dispatches here.
  */
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";

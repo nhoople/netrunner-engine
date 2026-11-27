@@ -2,7 +2,7 @@
  * Primitive kinds whose procedure is shuffle.
  * The effect switch in eval.ts dispatches here.
  */
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";

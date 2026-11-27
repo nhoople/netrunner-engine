@@ -2,9 +2,9 @@
  * Primitive kinds whose procedure is install.
  * The effect switch in eval.ts dispatches here.
  */
-import { openCardName } from "../../state/seatVisibility.js";
+import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
-import { revealCards } from "../../state/reveal.js";
+import { revealCards } from "../../state/visibility/reveal.js";
 import {
   applyInstallCorpCard,
   chooseCorpCardToInstall,
