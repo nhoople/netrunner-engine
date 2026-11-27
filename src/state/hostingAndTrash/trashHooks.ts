@@ -146,7 +146,7 @@ export function offerSkorpiosRfgInsteadOfHeap(
 /**
  * Bookkeeping when an installed Runner card is about to be trashed (Death and
  * Taxes, per-encounter trash limits). Called by `trashCard` before the card
- * moves (`src/state/procedures/trash.ts`).
+ * moves (`src/state/hostingAndTrash/trash.ts`).
  */
 export function noteRunnerInstalledCardTrashing(
   state: GameState,

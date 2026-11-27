@@ -29,7 +29,7 @@ interface EncounterState {
   /**
    * Indexes marked in `broken` that the Runner did not break: they resolved,
    * were prevented from resolving, or were skipped. Read through
-   * `encounterFullyBrokenByRunner` (`procedures/break.ts`).
+   * `encounterFullyBrokenByRunner` (`turnAndActions/break.ts`).
    */
   notBrokenByRunner?: number[];
   /** Breaker ids that broke a subroutine this encounter (Crypsis). */

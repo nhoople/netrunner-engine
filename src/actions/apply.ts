@@ -1074,7 +1074,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
       ]);
     }
     // The whole when-scored ability, its requirements checked as it
-    // resolves (CR 9.6.14d; state/whenScored.ts).
+    // resolves (CR 9.6.14d; state/turnAndActions/whenScored.ts).
     fireOnScore(state, agendaId);
   } else {
     const r = evalEffect(

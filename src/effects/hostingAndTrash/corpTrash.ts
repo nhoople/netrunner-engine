@@ -1,6 +1,6 @@
 /**
  * The hooks that fire when a Corp card is trashed to Archives. The trash
- * itself is `trashCard` in `src/state/procedures/trash.ts`.
+ * itself is `trashCard` in `src/state/hostingAndTrash/trash.ts`.
  */
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { isCardActive } from "../../state/continuous/active.js";
@@ -217,7 +217,7 @@ export interface CorpTrashOrigin {
 
 /**
  * Trash triggers for a Corp card that has just arrived in Archives
- * (CR 1.19.1). `trashCard` (`src/state/procedures/trash.ts`) places the card,
+ * (CR 1.19.1). `trashCard` (`src/state/hostingAndTrash/trash.ts`) places the card,
  * then calls this. Conditions that care who trashed a card read `trashedBy`,
  * not whose turn it is (CR 1.14.5a).
  */

@@ -1,7 +1,7 @@
 /**
  * Uninstalling (CR 8.5.1b, 8.5.10). The one procedure that moves an
  * installed card out of play to somewhere other than its owner's discard
- * pile. Trashing an installed card is `trashCard` (`procedures/trash.ts`).
+ * pile. Trashing an installed card is `trashCard` (`hostingAndTrash/trash.ts`).
  *
  * `uninstallCard(state, id, destination)`:
  *
@@ -27,7 +27,7 @@
  *   zone until it resolves (CR 9.1.8g).
  *
  * Moving installed ice to another position is not an uninstall (CR 6.2.2);
- * that is `moveIce` in `procedures/rearrange.ts`.
+ * that is `moveIce` in `uninstallAndPosition/rearrange.ts`.
  */
 import { log } from "../setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
