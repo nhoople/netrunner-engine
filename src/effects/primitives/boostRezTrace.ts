@@ -76,27 +76,6 @@ export function applyLunarTsPrimitive(
       }
       return { ok: true };
     }
-    case "runner_trashes_one_installed": {
-      const installed = [...state.runner.installed];
-      if (installed.length === 0) {
-        log(state, `Markus 1.0 — Runner has no installed cards.`);
-        return { ok: true };
-      }
-      if (installed.length === 1) {
-        trashCard(state, installed[0]!);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: installed.map((id) => ({
-          id: `trash-installed:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
     case "trace_troll_encounter": {
       const r = autoResolveTrace(
         state,

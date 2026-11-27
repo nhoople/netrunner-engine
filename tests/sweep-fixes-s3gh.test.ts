@@ -30,7 +30,6 @@ import {
   runnerIsTagged,
 } from "../src/state/keywordsAndCredits/tags.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
-import { trashCorpCardSet } from "../src/effects/kinds/trashKinds.js";
 import { stealForbiddenThisAccess } from "../src/actions/access.js";
 import { usePaidAbility } from "../src/actions/paidAbility.js";
 import { breakSubroutine } from "../src/actions/breakSubroutine.js";
@@ -56,6 +55,7 @@ import {
   stackRd,
   toHand,
 } from "./rulings-helpers.js";
+import { trashCorpCardSet } from "../src/effects/hostingAndTrash/corpInstalledTrashKinds.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

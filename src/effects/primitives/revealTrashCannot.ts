@@ -3,13 +3,10 @@ import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
-import { lookAtCards } from "../../state/visibility/reveal.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -21,49 +18,6 @@ export function applyMumbadFtmPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "trash_own_resource_with_subtype": {
-      const subtype = action.subtype;
-      const resources = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c?.type === "resource" && (c.subtypes ?? []).includes(subtype);
-      });
-      if (resources.length === 0) {
-        return {
-          ok: false,
-          error: `Must trash an installed ${subtype} resource — none available.`,
-          cites: [],
-        };
-      }
-      if (resources.length === 1) {
-        const resId = resources[0]!;
-        const title = state.cards[resId]!.title;
-        trashCard(state, resId);
-        log(state, `Trash own ${subtype} resource ${title}.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: resources.map((id) => ({
-          id: `trash-own-sub:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_own_resource_with_subtype_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_own_resource_with_subtype_resolve": {
-      const cardId = action.cardId;
-      if (!state.runner.installed.includes(cardId)) return { ok: true };
-      trashCard(state, cardId);
-      log(state, `Trash own resource ${state.cards[cardId]!.title}.`);
-      return { ok: true };
-    }
-
     case "add_fully_broken_barrier_to_hq": {
       const iceId = state.run?.encounter?.iceId;
       if (!iceId) return { ok: true };
@@ -136,79 +90,6 @@ export function applyMumbadFtmPrimitive(
         `Rigged Results — run ${action.serverId}; first encounter of chosen ice bypasses.`,
       );
       return { ok: true };
-    }
-
-    case "name_type_trash_from_grip": {
-      const types = ["event", "hardware", "program", "resource"];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: types.map((t) => ({
-          id: `ibrahim-type:${t}`,
-          label: `Name ${t}`,
-          effect: fx.do({
-            kind: "trash_named_type",
-            cardType: t,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_named_type": {
-      // Ibrahim Salem: "Look at the Runner's grip and trash 1 card in it of
-      // the named type." The Corp looks; nothing is revealed (CR 1.21.2).
-      lookAtCards(state, [...state.runner.hand], sourceId, "corp");
-      const matches = state.runner.hand.filter(
-        (id) => state.cards[id]?.type === action.cardType,
-      );
-      if (matches.length === 0) {
-        log(state, `Ibrahim Salem — no ${action.cardType} in grip.`);
-        return { ok: true };
-      }
-      if (matches.length === 1) {
-        trashCard(state, matches[0]!, { by: "corp" });
-        log(state, `Ibrahim Salem — trash ${state.cards[matches[0]!]!.title}.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: matches.map((id) => ({
-          id: `ibrahim-trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_resolve": {
-      if (!state.runner.hand.includes(action.cardId)) return { ok: true };
-      trashCard(state, action.cardId, { by: "corp" });
-      log(state, `Ibrahim Salem — trash ${state.cards[action.cardId]!.title}.`);
-      return { ok: true };
-    }
-
-    case "trash_hq_draw": {
-      const hq = [...state.corp.hand];
-      if (hq.length < 1) {
-        return {
-          ok: false,
-          error: "Election Day requires at least 1 card in HQ.",
-          cites: [],
-        };
-      }
-      for (const id of hq) {
-        trashCard(state, id, { by: "corp" });
-      }
-      log(state, `Election Day — trash ${hq.length} card(s) from HQ.`);
-      // The draw procedure: cards are set aside, draw triggers act on them,
-      // then they go to HQ; an empty R&D at the draw loses (CR 8.4.2, 1.7.2c).
-      return evalEffect(ctx, fx.draw("corp", action.amount ?? 5));
     }
 
     case "play_ops_from_hq": {

@@ -1,8 +1,3 @@
-/**
- * Primitive kinds whose procedure is other.
- * The effect switch in eval.ts dispatches here.
- */
-import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { catalogCardNames } from "../visibility/cardNames.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
@@ -39,10 +34,7 @@ import { drawCards } from "../draw.js";
 import { fx } from "../ir.js";
 import { rearrangeIce } from "../../state/uninstallAndPosition/rearrange.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { hostCard } from "../../state/hostingAndTrash/host.js";
-import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import { iceFaceVisible } from "../../state/visibility/seatVisibility.js";
-import { effectiveIceSubtypes, serverIdForIce } from "../../cards/stubs.js";
 import { iceStrength } from "../continuous/iceStrength.js";
 import {
   moveForfeitedAgendaOutOfGame,
@@ -77,6 +69,7 @@ import {
   applyPrimitive,
 } from "../eval.js";
 import { shuffleRunnerStack } from "../install/runnerInstall.js";
+import { effectiveIceSubtypes } from "../../cards/stubs.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -443,28 +436,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "oversight_ai_host_on_ice": {
-      const ice = state.cards[action.iceId];
-      if (!ice || ice.type !== "ice") {
-        log(state, `Oversight AI — invalid ice.`);
-        return { ok: true };
-      }
-      ice.rezzed = true;
-      ice.faceup = true;
-      // Move source onto ice as hosted condition.
-      removeCardFromCurrentZone(state, sourceId);
-      hostCard(state, source.id, action.iceId, { installed: true });
-      source.zone = `hosted:${action.iceId}`;
-      source.faceup = true;
-      source.rezzed = true;
-      source.convertedInto = "counter";
-      log(
-        state,
-        `Rez ${ice.title} ignoring costs; host ${source.title} as condition counter.`,
-      );
-      return { ok: true };
-    }
-
     case "turn_begin_continue": {
       if (action.remaining <= 0) return { ok: true };
       const used = new Set(action.used);
@@ -557,165 +528,6 @@ export function applyOtherKinds(
         options,
         logLine: `${source.title} — resolve ${action.mustPick ? "1" : `up to ${action.remaining}`} option(s).`,
       });
-      return { ok: true };
-    }
-
-    case "rfg_self": {
-      removeCardFromGame(state, sourceId);
-      log(
-        state,
-        `${source.title} is removed from the game (CR ${CR.playOperation.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "rfg_heap_card": {
-      const heap = [...state.runner.discardPile];
-      if (heap.length === 0) {
-        log(state, `RFG heap card — heap empty.`);
-        return { ok: true };
-      }
-      if (heap.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "rfg_specific_heap_card",
-          cardId: heap[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: heap.map((id) => ({
-          id: `rfg-heap:${id}`,
-          label: `Remove ${state.cards[id]!.title} from the game`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "rfg_specific_heap_card" as const,
-              cardId: id,
-            },
-          },
-        })),
-        logLine: `${source.title} — choose a heap card to remove from the game.`,
-      });
-      return { ok: true };
-    }
-
-    case "rfg_specific_heap_card": {
-      const cardId = action.cardId;
-      if (!state.runner.discardPile.includes(cardId)) {
-        log(state, `RFG heap card — ${cardId} not in heap.`);
-        return { ok: true };
-      }
-      const card = state.cards[cardId]!;
-      state.runner.discardPile = state.runner.discardPile.filter(
-        (id) => id !== cardId,
-      );
-      card.zone = "removed-from-game";
-      card.faceup = true;
-      if (!state.removedFromGame) state.removedFromGame = [];
-      if (!state.removedFromGame.includes(cardId)) {
-        state.removedFromGame.push(cardId);
-      }
-      log(
-        state,
-        `Remove ${card.title} in the heap from the game (CR ${CR.playOperation.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "rfg_installed_card": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.installed.includes(cardId)) {
-        log(state, `RFG installed — ${cardId} not in Runner installed.`);
-        return { ok: true };
-      }
-      removeCardFromGame(state, cardId);
-      log(
-        state,
-        `Remove ${card.title} from the game (CR ${CR.playOperation.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "rfg_installed_with_any_subtype": {
-      const wanted = new Set(action.subtypes);
-      const candidates = state.runner.installed.filter((id) => {
-        const subs = state.cards[id]?.subtypes ?? [];
-        return subs.some((s) => wanted.has(s));
-      });
-      if (candidates.length === 0) {
-        log(
-          state,
-          `${source.title} — RFG installed (${action.subtypes.join("/")}): none.`,
-        );
-        return { ok: true };
-      }
-      if (action.pick === "first" || candidates.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "rfg_installed_card",
-          cardId: candidates[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: candidates.map((id) => ({
-          id: `rfg-installed:${id}`,
-          label: `Remove ${state.cards[id]!.title} from the game`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "rfg_installed_card" as const,
-              cardId: id,
-            },
-          },
-        })),
-        logLine: `${source.title} — choose an installed ${action.subtypes.join("/")} to remove from the game.`,
-      });
-      return { ok: true };
-    }
-
-    case "rfg_self_then_derez_bypassed_ice": {
-      const bypassed = state.run?.bypassedIceIds ?? [];
-      const targetId = bypassed[bypassed.length - 1];
-      const rfg = applyPrimitive(ctx, { kind: "rfg_self" });
-      if (!rfg.ok) return rfg;
-      if (!targetId) {
-        log(state, `${source.title} — RFG; no bypassed ice to derez.`);
-        return { ok: true };
-      }
-      const ice = state.cards[targetId];
-      if (!ice?.rezzed) {
-        log(
-          state,
-          `${source.title} — RFG; ${ice?.title ?? targetId} already unrezzed.`,
-        );
-        return { ok: true };
-      }
-      ice.rezzed = false;
-      ice.faceup = false;
-      log(
-        state,
-        `${source.title} — RFG and derez ${ice.title} (CR ${CR.derez.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "rfg_top_of_stack": {
-      const n = Math.max(0, action.amount);
-      const removed: string[] = [];
-      for (let i = 0; i < n && state.runner.deck.length > 0; i++) {
-        const id = state.runner.deck.shift()!;
-        removed.push(id);
-        state.cards[id].zone = "removed-from-game";
-        state.cards[id].faceup = true;
-        if (!state.removedFromGame) state.removedFromGame = [];
-        if (!state.removedFromGame.includes(id)) {
-          state.removedFromGame.push(id);
-        }
-      }
-      log(state, `Remove top ${removed.length} of stack from the game.`);
       return { ok: true };
     }
 
@@ -889,179 +701,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "caissa_pawn_host_outermost_central": {
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (server.kind !== "central" || server.ice.length === 0) continue;
-        const iceId = server.ice[0]!;
-        options.push({
-          id: `host:${iceId}`,
-          label: `Host on ${state.cards[iceId]!.title} (${sid})`,
-          effect: {
-            op: "do",
-            action: {
-              kind: "host_program_on_ice",
-              programId: sourceId,
-              iceId,
-            },
-          },
-        });
-      }
-      if (options.length === 0) {
-        log(state, `${source.title} — no outermost ice on a central server.`);
-        return { ok: true };
-      }
-      if (options.length === 1) return evalEffect(ctx, options[0]!.effect);
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "caissa_rook_host": {
-      const isCaissa = (id: string) => {
-        const subs = (state.cards[id]?.subtypes ?? []).map((s) =>
-          s.toLowerCase(),
-        );
-        return subs.includes("caïssa") || subs.includes("caissa");
-      };
-      const candidates: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const iceId of server.ice) {
-          const taken = state.runner.installed.some(
-            (rid) => state.cards[rid]?.hostId === iceId && isCaissa(rid),
-          );
-          if (!taken) candidates.push(iceId);
-        }
-      }
-      if (candidates.length === 0) {
-        log(state, `${source.title} — no valid host ice.`);
-        return { ok: true };
-      }
-      const currentHost = source.hostId;
-      const currentServer = currentHost
-        ? serverIdForIce(state, currentHost)
-        : null;
-      const inwardFromInnermost = (
-        serverIce: string[],
-        iceId: string,
-      ): number => serverIce.length - 1 - serverIce.indexOf(iceId);
-      const currentInward =
-        currentHost && currentServer
-          ? inwardFromInnermost(state.servers[currentServer].ice, currentHost)
-          : -1;
-      // Once hosted on ice, the printed limit on where it may move next:
-      // Rook to ice protecting the same server or in the same position
-      // (counted from the innermost); Knight anywhere but the next ice
-      // inward or outward (CR 1.2.1).
-      const filtered = candidates.filter((iceId) => {
-        if (iceId === currentHost) return false;
-        if (!currentHost) return true;
-        const sid = serverIdForIce(state, iceId);
-        if (!sid) return false;
-        const position = inwardFromInnermost(state.servers[sid].ice, iceId);
-        if (action.move === "not_adjacent") {
-          return !(
-            sid === currentServer && Math.abs(position - currentInward) === 1
-          );
-        }
-        return sid === currentServer || position === currentInward;
-      });
-      const pickFrom = currentHost ? filtered : candidates;
-      if (pickFrom.length === 0) {
-        log(
-          state,
-          `${source.title} — no ice it may move to (CR ${CR.countPositions.number}).`,
-        );
-        return { ok: true };
-      }
-      // An unrezzed ice is named by where it is, not by its title: the
-      // Runner may not see its face (CR 1.21.1, 10.2.2a).
-      const iceName = (iceId: string): string =>
-        openCardName(state, iceId, "runner");
-      if (pickFrom.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "host_program_on_ice",
-          programId: sourceId,
-          iceId: pickFrom[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: pickFrom.map((iceId) => ({
-          id: `host:${iceId}`,
-          label: `Host on ${iceName(iceId)}`,
-          effect: {
-            op: "do",
-            action: {
-              kind: "host_program_on_ice",
-              programId: sourceId,
-              iceId,
-            },
-          },
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "caissa_bishop_host": {
-      const isCaissa = (id: string) => {
-        const subs = (state.cards[id]?.subtypes ?? []).map((s) =>
-          s.toLowerCase(),
-        );
-        return subs.includes("caïssa") || subs.includes("caissa");
-      };
-      const hostId = source.hostId;
-      let requireCentral: boolean | null = null;
-      if (hostId) {
-        const sid = serverIdForIce(state, hostId);
-        if (sid) {
-          requireCentral = state.servers[sid].kind === "central";
-        }
-      }
-      const candidates: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        if (requireCentral !== null) {
-          const isCentral = server.kind === "central";
-          if (requireCentral && isCentral) continue;
-          if (!requireCentral && !isCentral) continue;
-        }
-        for (const iceId of server.ice) {
-          const taken = state.runner.installed.some(
-            (rid) => state.cards[rid]?.hostId === iceId && isCaissa(rid),
-          );
-          if (!taken) candidates.push(iceId);
-        }
-      }
-      if (candidates.length === 0) {
-        log(state, `${source.title} — no valid host ice.`);
-        return { ok: true };
-      }
-      if (candidates.length === 1) {
-        return applyPrimitive(ctx, {
-          kind: "host_program_on_ice",
-          programId: sourceId,
-          iceId: candidates[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: candidates.map((iceId) => ({
-          id: `host:${iceId}`,
-          label: `Host on ${openCardName(state, iceId, "runner")}`,
-          effect: {
-            op: "do",
-            action: {
-              kind: "host_program_on_ice",
-              programId: sourceId,
-              iceId,
-            },
-          },
-        })),
-      });
-      return { ok: true };
-    }
-
     case "copycat_jump_to_rezzed_copy": {
       if (!state.run?.lastPassedRezzedIceId) {
         log(state, `Copycat — no passed ice.`);
@@ -1137,54 +776,6 @@ export function applyOtherKinds(
         state,
         `Copycat — continue the run as if passing ${ice.title} on ${hostServer}.`,
       );
-      return { ok: true };
-    }
-
-    case "advance_caissa_host_inward_or_install": {
-      const hostId = source.hostId;
-      if (!hostId) return { ok: true };
-      const sid = serverIdForIce(state, hostId);
-      if (!sid) return { ok: true };
-      const iceList = state.servers[sid].ice;
-      const pos = iceList.indexOf(hostId);
-      const nextId =
-        pos >= 0 && pos + 1 < iceList.length ? iceList[pos + 1]! : null;
-      if (nextId) {
-        return applyPrimitive(ctx, {
-          kind: "host_program_on_ice",
-          programId: sourceId,
-          iceId: nextId,
-        });
-      }
-      trashCard(state, sourceId);
-      const isCaissa = (id: string) => {
-        const c = state.cards[id];
-        return (
-          c?.type === "program" &&
-          ((c.subtypes ?? []).some((s) => s.toLowerCase().includes("caissa")) ||
-            (c.subtypes ?? []).some((s) => s.toLowerCase().includes("caïssa")))
-        );
-      };
-      const caissaIds = [
-        ...state.runner.hand,
-        ...state.runner.discardPile,
-      ].filter((id) => isCaissa(id) && id !== sourceId);
-      if (caissaIds.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: caissaIds.map((cardId) => ({
-          id: `install:${cardId}`,
-          label: `Install ${state.cards[cardId]!.title} ignoring all costs`,
-          effect: {
-            op: "do",
-            action: {
-              kind: "install_caissa_from_zone_ignore_costs",
-              cardId,
-            },
-          },
-        })),
-      });
       return { ok: true };
     }
 
@@ -2197,56 +1788,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "gamedragon_may_host_on_icebreaker": {
-      const allowAi = Boolean(action.allowAi);
-      const requireHost = Boolean(action.requireHost);
-      const breakers = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        if (!c?.breaker && !(c?.subtypes ?? []).includes("icebreaker")) {
-          return false;
-        }
-        if (!allowAi && (c.subtypes ?? []).includes("ai")) return false;
-        return true;
-      });
-      if (breakers.length === 0) {
-        log(
-          state,
-          allowAi
-            ? `${source.title} — no icebreaker to host on.`
-            : `${source.title} — no non-AI icebreaker to host on.`,
-        );
-        return { ok: true };
-      }
-      const options: Array<{ id: string; label: string; effect: Effect }> =
-        breakers.map((icebreakerId) => ({
-          id: icebreakerId,
-          label: `Host on ${state.cards[icebreakerId]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "host_hardware_on_icebreaker" as const,
-              icebreakerId,
-            },
-          },
-        }));
-      if (!requireHost) {
-        options.push({
-          id: "decline",
-          label: "Decline",
-          effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: requireHost
-          ? `${source.title} — host on an icebreaker.`
-          : `${source.title} — may host on a${allowAi ? "" : " non-AI"} icebreaker.`,
-      });
-      return { ok: true };
-    }
-
     case "deja_vu_from_heap": {
       const heap = [...state.runner.discardPile];
       if (heap.length === 0) {
@@ -2415,62 +1956,6 @@ export function applyOtherKinds(
         pick: "choose",
         amount: 1,
       });
-    }
-
-    case "rehost_on_other_ice": {
-      const currentHost = source.hostId;
-      const others: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const iceId of server.ice) {
-          if (iceId !== currentHost) others.push(iceId);
-        }
-      }
-      if (others.length === 0) {
-        log(state, `${source.title} — no other installed ice to host on.`);
-        return { ok: true };
-      }
-      if (others.length === 1) {
-        const iceId = others[0]!;
-        hostCard(state, source.id, iceId, { installed: true });
-        log(state, `${source.title} hosts on ${state.cards[iceId]!.title}.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: others.map((iceId) => ({
-          id: `rehost:${iceId}`,
-          label: `Host on ${openCardName(state, iceId, "runner")}`,
-          effect: {
-            op: "do" as const,
-            action: { kind: "rehost_to_ice" as const, iceId },
-          },
-        })),
-        logLine: `${source.title} — choose another installed ice to host on.`,
-      });
-      return { ok: true };
-    }
-
-    case "rehost_to_ice": {
-      const ice = state.cards[action.iceId];
-      if (!ice || ice.type !== "ice") {
-        log(state, `Rehost — ${action.iceId} is not ice.`);
-        return { ok: true };
-      }
-      let installed = false;
-      for (const server of Object.values(state.servers)) {
-        if (server.ice.includes(action.iceId)) {
-          installed = true;
-          break;
-        }
-      }
-      if (!installed) {
-        log(state, `Rehost — ${ice.title} is not installed.`);
-        return { ok: true };
-      }
-      hostCard(state, source.id, action.iceId, { installed: true });
-      log(state, `${source.title} hosts on ${ice.title}.`);
-      return { ok: true };
     }
 
     case "sabotage": {
@@ -2776,111 +2261,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "game_over_after_type": {
-      const targets = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        if (!c || c.type !== action.cardType) return false;
-        if (c.breaker) return false;
-        if ((c.subtypes ?? []).includes("icebreaker")) return false;
-        return true;
-      });
-      if (targets.length === 0) {
-        log(
-          state,
-          `${source.title} — no installed non-icebreaker ${action.cardType} cards.`,
-        );
-        return { ok: true };
-      }
-      return applyPrimitive(ctx, {
-        kind: "game_over_continue",
-        remaining: targets,
-      });
-    }
-
-    case "game_over_continue": {
-      const remaining = [...action.remaining];
-      const next = remaining.shift();
-      if (!next) {
-        log(state, `${source.title} — Game Over trash queue complete.`);
-        return { ok: true };
-      }
-      return applyPrimitive(ctx, {
-        kind: "game_over_process_card",
-        cardId: next,
-        remaining,
-      });
-    }
-
-    case "game_over_process_card": {
-      const card = state.cards[action.cardId];
-      if (!card || !state.runner.installed.includes(action.cardId)) {
-        return applyPrimitive(ctx, {
-          kind: "game_over_continue",
-          remaining: action.remaining,
-        });
-      }
-      const canPay = state.runner.credits >= 3;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...(canPay
-            ? [
-                {
-                  id: `go-prevent:${action.cardId}`,
-                  label: `Pay 3¢ to prevent trashing ${card.title}`,
-                  effect: {
-                    op: "seq" as const,
-                    effects: [
-                      {
-                        op: "do" as const,
-                        action: {
-                          kind: "lose_credits" as const,
-                          side: "runner" as const,
-                          amount: 3,
-                        },
-                      },
-                      {
-                        op: "do" as const,
-                        action: {
-                          kind: "game_over_continue" as const,
-                          remaining: action.remaining,
-                        },
-                      },
-                    ],
-                  },
-                },
-              ]
-            : []),
-          {
-            id: `go-trash:${action.cardId}`,
-            label: `Trash ${card.title}`,
-            effect: {
-              op: "seq" as const,
-              effects: [
-                {
-                  op: "do" as const,
-                  action: {
-                    kind: "trash_runner_rig_card" as const,
-                    cardId: action.cardId,
-                  },
-                },
-                {
-                  op: "do" as const,
-                  action: {
-                    kind: "game_over_continue" as const,
-                    remaining: action.remaining,
-                  },
-                },
-              ],
-            },
-          },
-        ],
-        logLine: `${source.title} — Runner may pay 3¢ to prevent trashing ${card.title}.`,
-      });
-      return { ok: true };
-    }
-
     case "meeting_of_minds_fetch": {
       const card = state.cards[action.cardId];
       if (!card || !state.runner.deck.includes(action.cardId)) {
@@ -3108,41 +2488,6 @@ export function applyOtherKinds(
         state,
         `Unorthodox Predictions — cannot break ${action.subtype} subroutines until start of Corp next turn.`,
       );
-      return { ok: true };
-    }
-
-    case "power_shutdown": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "trash-0",
-            label: "Trash 0 from top of R&D",
-            effect: {
-              op: "do" as const,
-              action: { kind: "trash_rd", amount: 0 },
-            },
-          },
-          // Printed: "Trash any number of cards from the top of R&D" —
-          // any number up to the whole deck, not a capped range.
-          ...Array.from({ length: state.corp.deck.length }, (_, i) => {
-            const amount = i + 1;
-            return {
-              id: `trash-${amount}`,
-              label: `Trash ${amount} from top of R&D`,
-              effect: {
-                op: "do" as const,
-                action: {
-                  kind: "trash_rd" as const,
-                  amount,
-                },
-              },
-            };
-          }),
-        ],
-        logLine: `${source.title} — choose how many cards to trash from top of R&D.`,
-      });
       return { ok: true };
     }
     default:

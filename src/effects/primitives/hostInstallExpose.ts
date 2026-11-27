@@ -3,7 +3,6 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import type { Primitive } from "../ir.js";
-import { hostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -17,24 +16,6 @@ export function applySansanUwPrimitive(
   if (!source) return null;
 
   switch (action.kind) {
-    case "host_top_n_of_stack_facedown": {
-      const n = action.amount;
-      for (let i = 0; i < n; i++) {
-        const top = state.runner.deck[0];
-        if (!top) {
-          log(state, `${source.title} — stack empty while hosting.`);
-          break;
-        }
-        state.runner.deck.shift();
-        const card = state.cards[top]!;
-        hostCard(state, card.id, sourceId, { installed: true });
-        card.faceup = false;
-        card.zone = `hosted:${sourceId}`;
-        log(state, `${source.title} hosts a card facedown from stack.`);
-      }
-      return { ok: true };
-    }
-
     case "resolve_subroutine_on_rezzed_ice_protecting_this_server": {
       let serverIce: string[] = [];
       for (const server of Object.values(state.servers)) {

@@ -18,20 +18,6 @@ import { setAttackedServer } from "../../state/uninstallAndPosition/runPosition.
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function rfgFromHeap(state: EffectCtx["state"], cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  state.runner.discardPile = state.runner.discardPile.filter(
-    (id) => id !== cardId,
-  );
-  card.zone = "removed-from-game";
-  card.faceup = true;
-  state.removedFromGame = state.removedFromGame ?? [];
-  if (!state.removedFromGame.includes(cardId)) {
-    state.removedFromGame.push(cardId);
-  }
-}
-
 export function applyFlashpointEsPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -80,106 +66,6 @@ export function applyFlashpointEsPrimitive(
           `Black Orchestra — break ${toBreak.length} code gate subroutine(s).`,
         );
       }
-      return { ok: true };
-    }
-
-    case "name_and_rfg_heap_copies": {
-      const titles = new Map<string, string>();
-      for (const id of state.runner.discardPile) {
-        const c = state.cards[id];
-        if (!c) continue;
-        titles.set(c.defId ?? c.id, c.title);
-      }
-      if (titles.size === 0) {
-        log(state, `Ark Lockdown — heap empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [...titles.entries()].map(([defId, title]) => ({
-          id: `ark:${defId}`,
-          label: `Name ${title}`,
-          effect: fx.do({
-            kind: "rfg_named",
-            defId,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "rfg_named": {
-      const defId = action.defId;
-      if (!defId) return { ok: true };
-      const matches = state.runner.discardPile.filter(
-        (id) =>
-          state.cards[id]?.defId === defId || state.cards[id]?.id === defId,
-      );
-      for (const id of [...matches]) {
-        rfgFromHeap(state, id);
-      }
-      log(
-        state,
-        `Ark Lockdown — remove ${matches.length} copy(ies) of ${defId} from the heap.`,
-      );
-      return { ok: true };
-    }
-
-    case "trash_hellion_beta_two_installed_non_program": {
-      const targets = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c && c.type !== "program";
-      });
-      if (targets.length === 0) {
-        log(state, `Hellion Beta Test — no installed non-program cards.`);
-        return { ok: true };
-      }
-      const count = Math.min(2, targets.length);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `hellion:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_hellion_beta_pick",
-            cardId: id,
-            remaining: count - 1,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_hellion_beta_pick": {
-      const cardId = action.cardId;
-      const remaining = action.remaining ?? 0;
-      if (cardId)
-        trashCard(state, cardId, { by: controllerOf(state, sourceId) });
-      log(
-        state,
-        `Hellion Beta Test — trash ${state.cards[cardId!]?.title ?? cardId}.`,
-      );
-      if (remaining <= 0) return { ok: true };
-      const targets = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c && c.type !== "program" && id !== cardId;
-      });
-      if (targets.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `hellion:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_hellion_beta_pick",
-            cardId: id,
-            remaining: remaining - 1,
-          }),
-        })),
-      });
       return { ok: true };
     }
 

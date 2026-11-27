@@ -6,10 +6,8 @@ import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random } from "../../state/rng.js";
-import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
+import { unhostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -24,48 +22,13 @@ function installedCorpCards(state: EffectCtx["state"]): string[] {
   return out;
 }
 
-function connectionResources(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => {
-    const c = state.cards[id];
-    return (
-      c &&
-      c.type === "resource" &&
-      (c.subtypes ?? []).some((s) => s.toLowerCase() === "connection")
-    );
-  });
-}
-
 export function applyRedsandSoPrimitive(
   ctx: EffectCtx,
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "trash_severnius_grip_run_hq_or_rd": {
-      const grip = [...state.runner.hand];
-      if (grip.length < 2) {
-        log(state, `Severnius Stim Implant — need ≥2 cards in grip.`);
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (let n = 2; n <= grip.length; n++) {
-        options.push({
-          id: `trash-n:${n}`,
-          label: `Trash ${n} from grip (+${Math.floor(n / 2)} access)`,
-          effect: fx.do({
-            kind: "choose_severnius_grip_cards",
-            remaining: n,
-            trashed: 0,
-            cardIds: grip,
-          }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
     case "choose_severnius_grip_cards": {
       const remaining = action.remaining ?? 0;
       const trashed = action.trashed ?? 0;
@@ -116,16 +79,6 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "trash_severnius_one_grip": {
-      const cardId = action.cardId;
-      if (!cardId || !state.runner.hand.includes(cardId)) {
-        return { ok: true };
-      }
-      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
-      log(state, `Severnius — trash ${state.cards[cardId]?.title ?? cardId}.`);
-      return { ok: true };
-    }
-
     case "severnius_start_run": {
       const serverId = action.serverId as ServerId;
       const bonusAccess = action.bonusAccess ?? 0;
@@ -138,23 +91,6 @@ export function applyRedsandSoPrimitive(
         state,
         `Severnius — pending run on ${serverId} (+${bonusAccess} access).`,
       );
-      return { ok: true };
-    }
-
-    case "trash_random_hq_per_power_on_self": {
-      const n = source?.powerCounters ?? 0;
-      if (n <= 0 || state.corp.hand.length === 0) {
-        log(state, `Clan Vengeance — no power / empty HQ.`);
-        return { ok: true };
-      }
-      let trashed = 0;
-      for (let i = 0; i < n && state.corp.hand.length > 0; i++) {
-        const idx = Math.floor(random(state) * state.corp.hand.length);
-        const id = state.corp.hand[idx]!;
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-        trashed += 1;
-      }
-      log(state, `Clan Vengeance — trash ${trashed} from HQ at random.`);
       return { ok: true };
     }
 
@@ -261,76 +197,6 @@ export function applyRedsandSoPrimitive(
       return { ok: true };
     }
 
-    case "host_continue": {
-      const cardIds = (action.cardIds ?? []).filter((id) => state.cards[id]);
-      if (cardIds.length === 0) {
-        for (let i = state.runner.deck.length - 1; i > 0; i--) {
-          const j = Math.floor(random(state) * (i + 1));
-          [state.runner.deck[i], state.runner.deck[j]] = [
-            state.runner.deck[j]!,
-            state.runner.deck[i]!,
-          ];
-        }
-        log(state, `Customized Secretary — shuffle stack.`);
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] =
-        cardIds.map((id) => ({
-          id: `host:${id}`,
-          label: `Host ${state.cards[id]!.title}`,
-          effect: {
-            op: "seq",
-            effects: [
-              fx.do({ kind: "host_one", cardId: id }),
-              fx.do({
-                kind: "host_continue",
-                cardIds: cardIds.filter((x) => x !== id),
-              }),
-            ],
-          },
-        }));
-      options.push({
-        id: "done",
-        label: "Done hosting",
-        effect: fx.do({
-          kind: "host_continue",
-          cardIds: [],
-          returnRest: cardIds,
-        }),
-      });
-      // When declining further hosts, return remaining to stack then shuffle.
-      const doneOpt = options[options.length - 1]!;
-      doneOpt.effect = {
-        op: "seq",
-        effects: [
-          fx.do({
-            kind: "return_to_stack",
-            cardIds,
-          }),
-          fx.do({
-            kind: "host_continue",
-            cardIds: [],
-          }),
-        ],
-      };
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "host_one": {
-      const cardId = action.cardId;
-      if (!cardId || !source) return { ok: true };
-      const card = state.cards[cardId];
-      if (!card) return { ok: true };
-      // Remove from deck if still there
-      state.runner.deck = state.runner.deck.filter((id) => id !== cardId);
-      hostCard(state, card.id, sourceId, { installed: true });
-      card.faceup = true;
-      card.zone = `hosted:${sourceId}`;
-      log(state, `Customized Secretary hosts ${card.title}.`);
-      return { ok: true };
-    }
-
     case "return_to_stack": {
       for (const id of action.cardIds ?? []) {
         const card = state.cards[id];
@@ -376,60 +242,6 @@ export function applyRedsandSoPrimitive(
       card.advancementCounters = 0;
       state.corp.hand.push(cardId);
       log(state, `Replanting — add ${card.title} to HQ.`);
-      return { ok: true };
-    }
-
-    case "host_on_connection": {
-      const hosts = connectionResources(state);
-      if (hosts.length === 0) {
-        log(state, `MCA Informant — no installed connection resource.`);
-        // Operation already played; linger in play-area as condition without host?
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: hosts.map((id) => ({
-          id: `host:${id}`,
-          label: `Host on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "host_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "host_resolve": {
-      const hostId = action.cardId;
-      if (!hostId || !source) return { ok: true };
-      const host = state.cards[hostId];
-      if (!host) return { ok: true };
-      // Remove MCA from play-area / wherever
-      removeCardFromCurrentZone(state, sourceId);
-      hostCard(state, source.id, hostId, { installed: true });
-      source.zone = `hosted:${hostId}`;
-      source.faceup = true;
-      source.mcaInformantCondition = true;
-      source.additionalTagsWhileHosted = 1;
-      host.mcaInformantHosted = true;
-      // Host gains [click], 2¢: trash this resource.
-      if (!host.paidAbilities) host.paidAbilities = [];
-      host.paidAbilities.push({
-        id: "mca-informant-host-trash",
-        label: "[click], 2¢: Trash this resource",
-        clickCost: 1,
-        creditCost: 2,
-        cost: { clicks: 1, credits: 2, trashSelf: true },
-        windows: ["runner_action_paw"],
-        effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-        usableByRunnerOnSelfIce: true,
-      });
-      log(
-        state,
-        `MCA Informant — host on ${host.title} as condition (+1 tag; host trash ability).`,
-      );
       return { ok: true };
     }
 

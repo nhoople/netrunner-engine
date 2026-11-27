@@ -6,7 +6,6 @@ import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 
 type PrimResult =
@@ -154,67 +153,6 @@ export function applyKitaraSsPrimitive(
       log(
         state,
         `Place ${action.amount ?? 1} advancement on ${card.title} → ${card.advancementCounters}.`,
-      );
-      return { ok: true };
-    }
-
-    case "ss_wake_up_call": {
-      const targets = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        if (!c) return false;
-        if (c.type === "hardware") return true;
-        if (c.type === "resource" && !(c.subtypes ?? []).includes("virtual")) {
-          return true;
-        }
-        return false;
-      });
-      if (targets.length === 0) {
-        log(state, `${source?.title ?? "Wake Up Call"} — no legal targets.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `wuc:${id}`,
-          label: `Choose ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "resolve_wake_up_call", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_wake_up_call": {
-      const card = state.cards[action.cardId];
-      if (!card) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "trash",
-            label: `Trash ${card.title}`,
-            effect: fx.do({
-              kind: "trash_wake_up_call",
-              cardId: action.cardId,
-            }),
-          },
-          {
-            id: "meat",
-            label: "Suffer 4 meat damage",
-            effect: fx.do({ kind: "meat_damage", amount: 4 }),
-          },
-        ],
-        logLine: `${source?.title ?? "Wake Up Call"} — Runner chooses trash ${card.title} or 4 meat.`,
-      });
-      return { ok: true };
-    }
-
-    case "trash_wake_up_call": {
-      trashCard(state, action.cardId, { by: controllerOf(state, sourceId) });
-      log(
-        state,
-        `Wake Up Call — trash ${state.cards[action.cardId]?.title ?? action.cardId}.`,
       );
       return { ok: true };
     }

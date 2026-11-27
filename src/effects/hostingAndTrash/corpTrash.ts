@@ -2,31 +2,31 @@
  * The hooks that fire when a Corp card is trashed to Archives. The trash
  * itself is `trashCard` in `src/state/procedures/trash.ts`.
  */
-import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { isCardActive } from "../state/continuous/active.js";
-import { log } from "../state/setupAndEnd/createGame.js";
-import { CR } from "../timing/labels.js";
-import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
+import { isCardActive } from "../../state/continuous/active.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { CR } from "../../timing/labels.js";
+import { agendaPointsFor } from "../../state/turnAndActions/scoring.js";
 import {
   fireCorpOnTrash,
   fireCotcOnCorpCardTrashed,
   noteCorpCardAddedToArchives,
   noteFirstCorpCardTrashEachTurn,
   noteTrashMatchingRunnerIdentityFaction,
-} from "../state/hostingAndTrash/trashHooks.js";
-import type { GameState } from "../state/types.js";
-import { onInstalledCorpCardTrashed } from "../state/cardFlags/staticFlags.js";
+} from "../../state/hostingAndTrash/trashHooks.js";
+import type { GameState } from "../../state/types.js";
+import { onInstalledCorpCardTrashed } from "../../state/cardFlags/staticFlags.js";
 import {
   onRunnerTrashedFromServer,
   runnerCannotTrashWhileRezzed,
-} from "../state/cardFlags/cardDeclarations.js";
-import { evalEffect, maybeFireNuvemFirstRdTrash } from "./eval.js";
-import { iceStrength } from "./continuous/iceStrength.js";
-import { createPendingAbilityInstance } from "../state/triggers/pendingAbilities.js";
+} from "../../state/cardFlags/cardDeclarations.js";
+import { evalEffect, maybeFireNuvemFirstRdTrash } from "../eval.js";
+import { iceStrength } from "../continuous/iceStrength.js";
+import { createPendingAbilityInstance } from "../../state/triggers/pendingAbilities.js";
 import {
   fireOnRezzedCardTrashed,
   fireOnRunnerTrashFromThisServerRootOrProtecting,
-} from "../state/triggers/miscConditionalHooks.js";
+} from "../../state/triggers/miscConditionalHooks.js";
 
 /**
  * Ronald Five: "Whenever the Runner trashes a Corp card (including this
@@ -263,14 +263,14 @@ export function noteCorpCardTrashedToArchives(
     if (trashedBy === "runner") {
       const serverId = zoneBefore.split(
         ":",
-      )[1] as import("../state/types.js").ServerId;
+      )[1] as import("../../state/types.js").ServerId;
       if (serverId) onRunnerTrashedFromServer(state, serverId);
     }
   }
   // Capture host server for onTrash effects (Vaporframe Fabricator).
   const zoneMatch = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
   state.turn.onTrashSourceServerId = zoneMatch
-    ? (zoneMatch[1] as import("../state/types.js").ServerId)
+    ? (zoneMatch[1] as import("../../state/types.js").ServerId)
     : null;
   // Every Corp "trash" trigger reads "When the Runner trashes this card"
   // (Hostile Infrastructure: "...a Corp card (including Hostile
@@ -415,7 +415,7 @@ function maybeFireYakovCredits(
   const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
   if (!m) return;
   const sid = m[1]!;
-  const server = state.servers[sid as import("../state/types.js").ServerId];
+  const server = state.servers[sid as import("../../state/types.js").ServerId];
   const candidates = new Set<string>([trashedId]);
   if (server) {
     for (const id of [...server.root, ...server.ice]) candidates.add(id);
@@ -446,7 +446,7 @@ function maybeFireWarroidTracker(
   const m = /^server:([^:]+):(root|ice)$/.exec(zoneBefore);
   if (!m) return;
   const sid = m[1]!;
-  const server = state.servers[sid as import("../state/types.js").ServerId];
+  const server = state.servers[sid as import("../../state/types.js").ServerId];
   if (!server) return;
   for (const id of [...server.root]) {
     if (state.pendingChoice) break;

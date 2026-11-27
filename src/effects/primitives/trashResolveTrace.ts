@@ -16,32 +16,6 @@ export function applyLunarUpPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "trash_rezzed_ice_additional_cost": {
-      const rezzed: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          const c = state.cards[id];
-          if (c?.rezzed) rezzed.push(id);
-        }
-      }
-      if (rezzed.length === 0) {
-        return {
-          ok: false,
-          error: "No rezzed ice to trash for Mutate.",
-          cites: [],
-        };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: rezzed.map((id) => ({
-          id: `mutate-trash:${id}`,
-          label: `Trash ${state.cards[id]!.title} (additional cost)`,
-          effect: fx.do({ kind: "mutate_record_trashed_ice", iceId: id }),
-        })),
-      });
-      return { ok: true };
-    }
     case "trace_taurus_subroutine": {
       // "If successful, trash 1 piece of hardware. If your trace strength is
       // 5 or greater, trash 1 piece of hardware": the second part does not

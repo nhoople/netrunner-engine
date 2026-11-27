@@ -8,7 +8,6 @@ import type { EffectCtx } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { unhostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
@@ -127,39 +126,6 @@ export function applySansanOhPrimitive(
       placed.push(cardId);
       state.turn.ohStackArrangePlaced = placed;
       return offerStackArrangeChoice(ctx);
-    }
-
-    case "trash_hardware_with_subtype": {
-      const want = action.subtype.toLowerCase();
-      const targets = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        if (!c || c.type !== "hardware") return false;
-        return (c.subtypes ?? []).some((s) => s.toLowerCase() === want);
-      });
-      if (targets.length === 0) {
-        log(state, `Trash ${action.subtype} — none installed.`);
-        return { ok: true };
-      }
-      if (action.pick === "choose" && targets.length > 1) {
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "corp",
-          options: targets.map((id) => ({
-            id: `trash-hw-sub:${id}`,
-            label: `Trash ${state.cards[id]!.title}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "trash_installed_runner_card" as const,
-                cardId: id,
-              },
-            },
-          })),
-        });
-        return { ok: true };
-      }
-      trashCard(state, targets[0]!);
-      return { ok: true };
     }
 
     case "place_up_to_n_advancements_on_advanceable_installed": {
@@ -336,52 +302,6 @@ export function applySansanOhPrimitive(
       };
       state.turn.ohForcedRunCannotJackOut = true;
       log(state, `An Offer — Runner runs ${serverId} (cannot jack out).`);
-      return { ok: true };
-    }
-
-    case "trash_remote_root": {
-      const targets: string[] = [];
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (sid === "hq" || sid === "rd" || sid === "archives") continue;
-        for (const id of server.root) {
-          if (state.cards[id]) targets.push(id);
-        }
-      }
-      if (targets.length === 0) {
-        log(state, `Back Channels — no remote root card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((cardId) => ({
-          id: `back-ch:${cardId}`,
-          label: `Trash ${state.cards[cardId]!.title} (3¢ × adv)`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "resolve_back_channels" as const,
-              cardId,
-            },
-          },
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_back_channels": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card) return { ok: true };
-      const adv = card.advancementCounters ?? 0;
-      const gain = 3 * adv;
-      state.corp.credits += gain;
-      // The Corp's operation trashes the card (CR 1.14.5).
-      trashCard(state, cardId, { by: "corp" });
-      log(
-        state,
-        `Back Channels — trash ${card.title} (${adv} adv) → gain ${gain}¢.`,
-      );
       return { ok: true };
     }
 

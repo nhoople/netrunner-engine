@@ -13,13 +13,12 @@ import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 /** Ephemeral counters on source for multi-step BM paid choices. */
-function bmCounter(
+export function bmCounter(
   source: EffectCtx["state"]["cards"][string],
   key: "bmShuffled" | "bmLiquidated",
 ): number {
@@ -27,7 +26,7 @@ function bmCounter(
   return bag?.[key] ?? 0;
 }
 
-function setBmCounter(
+export function setBmCounter(
   source: EffectCtx["state"]["cards"][string],
   key: "bmShuffled" | "bmLiquidated",
   n: number,
@@ -173,31 +172,6 @@ export function applyFlashpointBmPrimitive(
       return { ok: true };
     }
 
-    case "trash_installed_not_matching_runner_identity_faction": {
-      const idFaction = state.cards[state.runner.identityId]?.faction;
-      const targets = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c && c.faction && c.faction !== idFaction;
-      });
-      if (targets.length === 0) {
-        log(
-          state,
-          `Enforcing Loyalty — no installed card not matching Runner ID faction.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "add_installed_non_virtual_runner_to_grip": {
       const targets = state.runner.installed.filter((id) => {
         const c = state.cards[id];
@@ -275,56 +249,6 @@ export function applyFlashpointBmPrimitive(
         );
       }
       return { ok: true };
-    }
-
-    case "trash_any_rezzed_gain_3_each": {
-      const targets: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of [...server.ice, ...server.root]) {
-          const c = state.cards[id];
-          if (c?.rezzed) targets.push(id);
-        }
-      }
-      const trashed = bmCounter(source, "bmLiquidated");
-      if (targets.length === 0) {
-        log(state, `Liquidation — no rezzed cards.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...targets.map((id) => ({
-            id: `liq:${id}`,
-            label: `Trash ${state.cards[id]!.title} (+3¢)`,
-            effect: fx.do({
-              kind: "trash_rezzed_card",
-              cardId: id,
-            }),
-          })),
-          {
-            id: "done",
-            label: `Done (gained ${trashed * 3}¢)`,
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "trash_rezzed_card": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card?.rezzed) return { ok: true };
-      trashCard(state, cardId, { by: controllerOf(state, sourceId) });
-      state.corp.credits += 3;
-      setBmCounter(
-        source,
-        "bmLiquidated",
-        bmCounter(source, "bmLiquidated") + 1,
-      );
-      log(state, `Liquidation — trash ${card.title}; gain 3¢.`);
-      return evalEffect(ctx, fx.do({ kind: "trash_any_rezzed_gain_3_each" }));
     }
 
     case "lose_2_per_resource_or_trash": {

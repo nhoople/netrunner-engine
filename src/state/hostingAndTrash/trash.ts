@@ -49,7 +49,7 @@ import {
   corpTrashRefused,
   maybeFireThreatOnTrash,
   noteCorpCardTrashedToArchives,
-} from "../../effects/corpTrash.js";
+} from "../../effects/hostingAndTrash/corpTrash.js";
 import { noteStoredConditional } from "../triggers/storedConditionalHooks.js";
 import { noteInlineConditional } from "../triggers/inlineConditionalHooks.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";

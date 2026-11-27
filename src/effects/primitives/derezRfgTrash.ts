@@ -1,21 +1,12 @@
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random } from "../../state/rng.js";
-import { hostCard } from "../../state/hostingAndTrash/host.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function rfgCard(state: EffectCtx["state"], cardId: string): void {
-  removeCardFromGame(state, cardId);
-}
 
 export function applyRedsandFmPrimitive(
   ctx: EffectCtx,
@@ -25,40 +16,6 @@ export function applyRedsandFmPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "rfg_heap_gain_credits": {
-      const heap = [...state.runner.discardPile];
-      if (heap.length === 0) {
-        log(state, `Bloo Moose — heap empty.`);
-        return { ok: true };
-      }
-      const credits = action.credits ?? 2;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: heap.map((id) => ({
-          id: `bloo:${id}`,
-          label: `RFG ${state.cards[id]?.title ?? id}`,
-          effect: fx.do({
-            kind: "rfg_resolve",
-            cardId: id,
-            credits,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "rfg_resolve": {
-      rfgCard(state, action.cardId);
-      const n = action.credits ?? 2;
-      state.runner.credits += n;
-      log(
-        state,
-        `Bloo Moose — RFG ${state.cards[action.cardId]?.title ?? action.cardId}; gain ${n}¢ → ${state.runner.credits}¢.`,
-      );
-      return { ok: true };
-    }
-
     case "o2_shortage_runner_may_trash_random_grip_or_corp_gains_clicks": {
       openPendingChoose(state, {
         sourceId,
@@ -76,22 +33,6 @@ export function applyRedsandFmPrimitive(
           },
         ],
       });
-      return { ok: true };
-    }
-
-    case "trash_shortage_random_grip": {
-      if (state.runner.hand.length === 0) {
-        log(state, `O₂ Shortage — grip empty; no trash.`);
-        return { ok: true };
-      }
-      const idx = Math.floor(random(state) * state.runner.hand.length);
-      const id = state.runner.hand[idx]!;
-      state.runner.hand.splice(idx, 1);
-      trashCard(state, id, { by: controllerOf(state, sourceId) });
-      log(
-        state,
-        `O₂ Shortage — Runner trashes ${state.cards[id]?.title ?? id} at random.`,
-      );
       return { ok: true };
     }
 
@@ -235,50 +176,6 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "runner_trash_continue": {
-      const trashed = [...(action.trashed ?? [])];
-      const remaining = action.remaining ?? [];
-      // Trash the newly chosen ones already in trashed that are still installed.
-      for (const id of trashed) {
-        if (!state.runner.installed.includes(id)) continue;
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-        state.runner.credits += 1;
-      }
-      if (remaining.length === 0) {
-        return applyRedsandFmPrimitive(ctx, {
-          kind: "corp_gain",
-          cardType: action.cardType,
-          trashed,
-        })!;
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "br:done",
-            label: "Done trashing",
-            effect: fx.do({
-              kind: "corp_gain",
-              cardType: action.cardType,
-              trashed,
-            }),
-          },
-          ...remaining.map((id) => ({
-            id: `br:trash:${id}`,
-            label: `Trash ${state.cards[id]?.title ?? id}`,
-            effect: fx.do({
-              kind: "runner_trash_continue",
-              cardType: action.cardType,
-              trashed: [...trashed, id],
-              remaining: remaining.filter((x) => x !== id),
-            }),
-          })),
-        ],
-      });
-      return { ok: true };
-    }
-
     case "corp_gain": {
       const t = action.cardType;
       const remaining = state.runner.installed.filter(
@@ -304,82 +201,6 @@ export function applyRedsandFmPrimitive(
         c.faceup = false;
       }
       log(state, `Open Forum — add ${c?.title ?? id} to top of R&D.`);
-      return { ok: true };
-    }
-
-    case "host_on_agenda": {
-      // Faceup agendas in remote roots (installed).
-      const agendas: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.root) {
-          const c = state.cards[id];
-          if (c?.type === "agenda") agendas.push(id);
-        }
-      }
-      // Also allow turning a facedown agenda faceup — include all installed agendas.
-      if (agendas.length === 0) {
-        log(state, `Transparency Initiative — no installed agenda.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: agendas.map((id) => ({
-          id: `ti:${id}`,
-          label: `Host on ${state.cards[id]?.title ?? id}`,
-          effect: fx.do({
-            kind: "resolve_transparency_initiative_host",
-            agendaId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_transparency_initiative_host": {
-      const agendaId = action.agendaId;
-      const agenda = state.cards[agendaId];
-      if (!agenda || !source) return { ok: true };
-      agenda.faceup = true;
-      if (!(agenda.subtypes ?? []).includes("public")) {
-        agenda.subtypes = [...(agenda.subtypes ?? []), "public"];
-      }
-      removeCardFromCurrentZone(state, sourceId);
-      hostCard(state, source.id, agendaId, { installed: true });
-      source.zone = `hosted:${agendaId}`;
-      source.faceup = true;
-      // Copy onAdvance onto host path via hosted cards; also set gainCreditsOnAdvance.
-      agenda.gainCreditsOnAdvance = (agenda.gainCreditsOnAdvance ?? 0) + 1;
-      log(
-        state,
-        `Transparency Initiative — host on ${agenda.title} (public; +1¢ on advance).`,
-      );
-      return { ok: true };
-    }
-
-    case "host_on_rezzed_ice_as_condition": {
-      const iceIds: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (state.cards[id]?.rezzed) iceIds.push(id);
-        }
-      }
-      if (iceIds.length === 0) {
-        log(state, `Rover Algorithm — no rezzed ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: iceIds.map((id) => ({
-          id: `rover:${id}`,
-          label: `Host on ${state.cards[id]?.title ?? id}`,
-          effect: fx.do({
-            kind: "host_self_as_condition",
-            hostId: id,
-          }),
-        })),
-      });
       return { ok: true };
     }
 

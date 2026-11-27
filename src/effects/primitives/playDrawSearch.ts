@@ -16,23 +16,13 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { trashCorpCardSet } from "../kinds/trashKinds.js";
-import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 import type { RuleCite } from "../../state/types.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function installedCorpIds(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of [...server.root, ...server.ice]) out.push(id);
-  }
-  return out;
-}
 
 export function applyDadPrimitive(
   ctx: EffectCtx,
@@ -230,81 +220,12 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "trash_all_resources_unless_remove_bad_publicity": {
-      const bp = state.corp.badPublicity ?? 0;
-      const opts: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "trash-resources",
-          label: "Trash all installed resources",
-          effect: fx.do({ kind: "trash_all_resources" }),
-        },
-      ];
-      if (bp >= 1) {
-        opts.unshift({
-          id: "remove-bp",
-          label: "Remove 1 bad publicity",
-          effect: fx.do({ kind: "remove_bad_publicity_instead", amount: 1 }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "runner", options: opts });
-      return { ok: true };
-    }
-
-    case "trash_all_resources": {
-      for (const id of [...state.runner.installed]) {
-        if (state.cards[id]?.type === "resource") trashCard(state, id);
-      }
-      log(state, `The All-Seeing I — trash all resources.`);
-      return { ok: true };
-    }
-
     case "remove_bad_publicity_instead": {
       state.corp.badPublicity = Math.max(
         0,
         (state.corp.badPublicity ?? 0) - action.amount,
       );
       log(state, `Remove ${action.amount} bad publicity.`);
-      return { ok: true };
-    }
-
-    case "trash_all_installed_corp_cards": {
-      // One instruction trashes the whole set (CR 9.12.2a): Hostile
-      // Infrastructure has one instance per card, pending with the set's
-      // other trash triggers in one reaction window (CR 9.6.4b, 9.2.8d).
-      log(state, `Apocalypse — trash all installed Corp cards.`);
-      trashCorpCardSet(state, installedCorpIds(state), {
-        by: controllerOf(state, sourceId),
-        instruction: "trash_all_installed_corp_cards",
-      });
-      return { ok: true };
-    }
-
-    case "trash_installed_prevent_damage": {
-      // Heartbeat: "Trash 1 of your installed cards", Heartbeat included.
-      const cands = installedRunnerIds(state);
-      if (cands.length === 0) {
-        log(state, `Heartbeat — no installed card to trash.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: cands.map((id) => ({
-          id: `hb:${id}`,
-          label: `Trash ${state.cards[id]!.title} to prevent 1 damage`,
-          effect: fx.seq(
-            fx.do({ kind: "trash_own_installed", cardId: id }),
-            fx.do({ kind: "prevent_pending_damage", amount: action.amount }),
-          ),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_own_installed": {
-      // The Runner trashes their own card (Heartbeat, Endless Hunger), which
-      // Wasteland counts (`noteRunnerInstalledCardTrashing`, CR 1.14.5).
-      trashCard(state, action.cardId, { by: "runner" });
       return { ok: true };
     }
 
@@ -385,46 +306,6 @@ export function applyDadPrimitive(
         log(state, `Break subroutine on ${state.cards[action.iceId]?.title}.`);
       }
       return { ok: true };
-    }
-
-    case "trash_draw": {
-      // Independent Thinking: "Trash up to 5 of your installed cards. Draw 1
-      // card for each card trashed (or 2 ... if you trashed at least 1
-      // directive)." The Runner picks up to 5, they are trashed together
-      // (CR 9.12.2a), then the Runner draws through the draw procedure
-      // (CR 8.4.5).
-      if (!action.cardIds) {
-        return evalEffect(
-          ctx,
-          chooseCards({
-            chooser: "runner",
-            candidates: installedRunnerIds(state),
-            count: 5,
-            upTo: true,
-            purpose: "resume",
-            label: "trash",
-            resume: { kind: "trash_draw" },
-          }),
-        );
-      }
-      const picked = action.cardIds.filter((id) =>
-        state.runner.installed.includes(id),
-      );
-      const hasDirective = picked.some((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("directive"),
-      );
-      const trashed = picked.filter((id) => {
-        const before = state.cards[id]!.zone;
-        trashCard(state, id, { by: "runner", simultaneousSet: true });
-        return state.cards[id]?.zone !== before;
-      });
-      const draws = trashed.length * (hasDirective ? 2 : 1);
-      log(
-        state,
-        `Independent Thinking — trashed ${trashed.length}, draw ${draws}.`,
-      );
-      if (draws === 0) return { ok: true };
-      return evalEffect(ctx, fx.draw("runner", draws));
     }
 
     case "trace_bypass_or_tag_etr": {

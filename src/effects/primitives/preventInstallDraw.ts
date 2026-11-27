@@ -7,10 +7,10 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import type { Primitive } from "../ir.js";
+import { unhostCard } from "../../state/hostingAndTrash/host.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -51,108 +51,6 @@ export function applySansanBbPrimitive(
         op: "do",
         action: { kind: "draw", side: "runner", amount: need },
       });
-    }
-
-    case "host_non_virus_program_ignore_cost": {
-      const grip = state.runner.hand.filter((id) => {
-        const c = state.cards[id];
-        return c?.type === "program" && !(c.subtypes ?? []).includes("virus");
-      });
-      if (grip.length === 0) {
-        log(state, `London Library — no non-virus program in grip.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...grip.map((id) => ({
-            id: `ll-host:${id}`,
-            label: `Host ${state.cards[id]!.title}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "host_program" as const,
-                cardId: id,
-              },
-            },
-          })),
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "runner" as const,
-                amount: 0,
-              },
-            },
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "host_program": {
-      const cardId = action.cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.hand.includes(cardId)) {
-        return {
-          ok: false,
-          error: "London Library — program not in grip.",
-          cites: [],
-        };
-      }
-      state.runner.hand = state.runner.hand.filter((id) => id !== cardId);
-      hostCard(state, card.id, sourceId, { installed: true });
-      card.zone = `hosted:${sourceId}`;
-      card.faceup = true;
-      // Still counts as installed for MU — add to rig while hosted.
-      if (!state.runner.installed.includes(cardId))
-        state.runner.installed.push(cardId);
-      log(state, `London Library — host ${card.title} (ignore install cost).`);
-      return { ok: true };
-    }
-
-    case "add_hosted_program_to_grip": {
-      const hosted = (source.hostedCardIds ?? []).filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      if (hosted.length === 0) {
-        log(state, `London Library — no hosted program.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...hosted.map((id) => ({
-            id: `ll-grip:${id}`,
-            label: `Add ${state.cards[id]!.title} to grip`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "return_program" as const,
-                cardId: id,
-              },
-            },
-          })),
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "runner" as const,
-                amount: 0,
-              },
-            },
-          },
-        ],
-      });
-      return { ok: true };
     }
 
     case "return_program": {

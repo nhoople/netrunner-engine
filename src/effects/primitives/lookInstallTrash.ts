@@ -4,7 +4,6 @@ import type { RuleCite } from "../../state/types.js";
 import { grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { fx, type Primitive } from "../ir.js";
 
 type PrimResult =
@@ -18,17 +17,6 @@ export function applyFlashpointInPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "trash_frantic_coding_looked": {
-      const lookedIds = action.lookedIds ?? [];
-      for (const id of lookedIds) {
-        if (!state.runner.deck.includes(id)) continue;
-        state.runner.deck = state.runner.deck.filter((x) => x !== id);
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-      }
-      log(state, `Frantic Coding — trash ${lookedIds.length} looked card(s).`);
-      return { ok: true };
-    }
-
     case "shuffle_one_grip_into_stack": {
       const grip = [...state.runner.hand];
       if (grip.length === 0) {
@@ -57,40 +45,6 @@ export function applyFlashpointInPrimitive(
             cardId: id,
           }),
         })),
-      });
-      return { ok: true };
-    }
-
-    case "host_on_rezzed_bioroid_ice_as_condition": {
-      const targets: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          const ice = state.cards[id];
-          if (
-            ice?.type === "ice" &&
-            ice.rezzed &&
-            (ice.subtypes ?? []).includes("bioroid")
-          ) {
-            targets.push(id);
-          }
-        }
-      }
-      if (targets.length === 0) {
-        log(state, `${source?.title ?? "Wetwork"} — no rezzed bioroid ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `wetwork-host:${id}`,
-          label: `Host on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "host_self_as_condition",
-            hostId: id,
-          }),
-        })),
-        logLine: `${source?.title ?? "Wetwork"} — choose rezzed bioroid ice to host on.`,
       });
       return { ok: true };
     }
@@ -146,33 +100,6 @@ export function applyFlashpointInPrimitive(
               }),
             ],
           },
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_installed_with_install_cost_lte_tags": {
-      const tags = state.runner.tags;
-      const targets = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        if (!c) return false;
-        const cost = c.installCost ?? 0;
-        return cost <= tags;
-      });
-      if (targets.length === 0) {
-        log(
-          state,
-          `Best Defense — no installed card with install cost ≤ ${tags} tag(s).`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `best-defense:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_installed_runner_card", cardId: id }),
         })),
       });
       return { ok: true };

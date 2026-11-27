@@ -151,7 +151,7 @@ import {
   runnerAbilityCarrierIds,
 } from "../state/setupAndEnd/additionalIdentities.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
-import { markStaticHostTrashConditions } from "../effects/corpTrash.js";
+import { markStaticHostTrashConditions } from "../effects/hostingAndTrash/corpTrash.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { nextId } from "../state/ids.js";
 import {

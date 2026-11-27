@@ -10,9 +10,9 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -527,23 +527,6 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "cotc_code_replicator": {
-      const iceId =
-        state.run?.encounter?.iceId ?? state.turn.cotcLastPassedIceId;
-      if (!iceId || !state.run) {
-        log(state, `Code Replicator — no passed ice.`);
-        return { ok: true };
-      }
-      trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
-      state.run.reencounterIceId = iceId;
-      state.run.cotcCodeReplicatorMayJackOut = true;
-      log(
-        state,
-        `Code Replicator — trash self; Runner approaches ${state.cards[iceId]?.title} again (may jack out).`,
-      );
-      return { ok: true };
-    }
-
     case "cotc_reverse_infection_purge": {
       // Count viruses before purge, then purge, then mill stack.
       let before = 0;
@@ -653,38 +636,6 @@ export function applyKitaraCotcPrimitive(
         state,
         `${source?.title ?? "Personalized Portal"} — gain ${n}¢ (${grip} in grip).`,
       );
-      return { ok: true };
-    }
-
-    case "trash_trojan_horse": {
-      const maxCost = state.turn.lastTraceExcess ?? 0;
-      const progs = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c?.type === "program" && (c.installCost ?? 0) <= maxCost;
-      });
-      if (progs.length === 0) {
-        log(state, `Trojan Horse — no program with install cost ≤ ${maxCost}.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: progs.map((id) => ({
-          id: `trojan:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "trash_trojan_horse_resolve", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_trojan_horse_resolve": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.runner.installed.includes(cardId))
-        return { ok: true };
-      trashCard(state, cardId, { by: "corp" });
-      log(state, `Trojan Horse — trash ${card.title}.`);
       return { ok: true };
     }
 

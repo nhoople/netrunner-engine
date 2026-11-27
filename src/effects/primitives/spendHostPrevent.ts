@@ -12,7 +12,6 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 
@@ -57,29 +56,6 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "host_on_installed_resource_as_condition": {
-      const resources = state.runner.installed.filter(
-        (id) => state.cards[id]?.type === "resource",
-      );
-      if (resources.length === 0) {
-        log(state, `On the Lam — no installed resource to host on.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: resources.map((id) => ({
-          id: `host:${id}`,
-          label: `Host on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "host_self_as_condition",
-            hostId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "prevent_tags_or_damage": {
       const max = Math.max(0, action.max ?? 3);
       const pendingTags = state.pendingTags?.remaining ?? 0;
@@ -109,74 +85,6 @@ export function applyFlashpointMlPrimitive(
         return evalEffect(ctx, options[0]!.effect);
       }
       openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "trash_one_program_used_this_run_cannot_prevent": {
-      // Printed: trash 1 installed program you used during that run (CR 1.2.1).
-      // Prefer explicit programsUsedThisRun; also count breakers that broke.
-      const bag = state.run as
-        | {
-            programsUsedThisRun?: string[];
-            breakersThatBroke?: string[];
-          }
-        | null
-        | undefined;
-      const fromBag = bag?.programsUsedThisRun ?? [];
-      const fromBreakers = bag?.breakersThatBroke ?? [];
-      const candidates = [...new Set([...fromBag, ...fromBreakers])].filter(
-        (id) => {
-          const c = state.cards[id];
-          return (
-            c && c.type === "program" && state.runner.installed.includes(id)
-          );
-        },
-      );
-      if (candidates.length === 0) {
-        log(state, `Cold Read — no program used this run to trash.`);
-        return { ok: true };
-      }
-      if (candidates.length === 1) {
-        const id = candidates[0]!;
-        trashCard(state, id, {
-          by: controllerOf(state, sourceId),
-          preventable: false,
-        });
-        log(
-          state,
-          `Cold Read — trash ${state.cards[id]!.title} (cannot prevent).`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: candidates.map((id) => ({
-          id: `trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_program_cannot_prevent",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_program_cannot_prevent": {
-      const cardId = action.cardId;
-      if (!cardId || !state.runner.installed.includes(cardId)) {
-        log(state, `Cold Read — program not installed.`);
-        return { ok: true };
-      }
-      trashCard(state, cardId, {
-        by: controllerOf(state, sourceId),
-        preventable: false,
-      });
-      log(
-        state,
-        `Cold Read — trash ${state.cards[cardId]!.title} (cannot prevent).`,
-      );
       return { ok: true };
     }
 

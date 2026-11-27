@@ -32,8 +32,8 @@ import type { ServerId } from "../../state/types.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { applyFlashpointInPrimitive } from "../primitives/lookInstallTrash.js";
 import { applyCorpInstallFromArchivesAndRdKinds } from "./corpInstallFromArchivesAndRdKinds.js";
+import { applyRunnerHandAndDeckTrashKinds } from "../hostingAndTrash/runnerHandAndDeckTrashKinds.js";
 
 function nextRemoteId(state: EffectCtx["state"]): ServerId {
   let n = 1;
@@ -1084,7 +1084,7 @@ export function applyCorpInstallFromHqKinds(
       const card = state.cards[cardId];
       if (!card || !state.runner.deck.includes(cardId)) {
         log(state, `Frantic Coding — program not in looked cards.`);
-        return applyFlashpointInPrimitive(ctx, {
+        return applyRunnerHandAndDeckTrashKinds(ctx, {
           kind: "trash_frantic_coding_looked",
           lookedIds,
         });
@@ -1092,7 +1092,7 @@ export function applyCorpInstallFromHqKinds(
       const cost = Math.max(0, (card.installCost ?? 0) - discount);
       if (state.runner.credits < cost) {
         log(state, `Frantic Coding — cannot afford ${card.title}.`);
-        return applyFlashpointInPrimitive(ctx, {
+        return applyRunnerHandAndDeckTrashKinds(ctx, {
           kind: "trash_frantic_coding_looked",
           lookedIds,
         });

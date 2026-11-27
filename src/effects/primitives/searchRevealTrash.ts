@@ -21,7 +21,7 @@ import { corpCanInstallByAbility } from "../install/corpAbilityInstall.js";
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function countRezzedNextIce(state: EffectCtx["state"]): number {
+export function countRezzedNextIce(state: EffectCtx["state"]): number {
   let n = 0;
   for (const server of Object.values(state.servers)) {
     for (const id of server.ice) {
@@ -30,12 +30,6 @@ function countRezzedNextIce(state: EffectCtx["state"]): number {
     }
   }
   return n;
-}
-
-function installedPrograms(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter(
-    (id) => state.cards[id]?.type === "program",
-  );
 }
 
 export function applySansanValPrimitive(
@@ -110,72 +104,6 @@ export function applySansanValPrimitive(
       }
       dealDamage(state, "net", x, sourceId);
       log(state, `NEXT Gold — do ${x} net damage (rezzed NEXT ice).`);
-      return { ok: true };
-    }
-
-    case "trash_programs": {
-      const x = countRezzedNextIce(state);
-      if (x <= 0) {
-        log(state, `NEXT Gold — X=0, trash no programs.`);
-        return { ok: true };
-      }
-      const progs = installedPrograms(state);
-      if (progs.length === 0) {
-        log(state, `NEXT Gold — no installed programs.`);
-        return { ok: true };
-      }
-      const n = Math.min(x, progs.length);
-      // Offer Corp choice iteratively via pendingChoice for first batch.
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: progs.map((id) => ({
-          id: `next-gold-trash:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_program_pick",
-            cardId: id,
-            remaining: n - 1,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_program_pick": {
-      const cardId = (action as { cardId: string }).cardId;
-      const remaining = (action as { remaining: number }).remaining;
-      const card = state.cards[cardId];
-      if (
-        !card ||
-        card.type !== "program" ||
-        !state.runner.installed.includes(cardId)
-      ) {
-        return {
-          ok: false,
-          error: "NEXT Gold trash target invalid.",
-          cites: [],
-        };
-      }
-      trashCard(state, cardId);
-      log(state, `NEXT Gold — trash ${card.title}.`);
-      if (remaining > 0) {
-        const progs = installedPrograms(state);
-        if (progs.length === 0) return { ok: true };
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "corp",
-          options: progs.map((id) => ({
-            id: `next-gold-trash:${id}`,
-            label: `Trash ${state.cards[id]!.title}`,
-            effect: fx.do({
-              kind: "trash_program_pick",
-              cardId: id,
-              remaining: remaining - 1,
-            }),
-          })),
-        });
-      }
       return { ok: true };
     }
 

@@ -8,9 +8,9 @@ import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import type { RuleCite } from "../../state/types.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -86,52 +86,6 @@ export function applyKitaraDtwnPrimitive(
         `${source?.title ?? "Kongamato"} — break first subroutine (index ${idx}).`,
       );
       return { ok: true };
-    }
-
-    case "trash_emergent_continue": {
-      const candidates = state.runner.hand.filter((id) => {
-        const t = state.cards[id]?.type;
-        return t === "program" || t === "hardware";
-      });
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "done-trash",
-          label: `Done trashing (X=${action.trashedCost}) — search stack`,
-          effect: fx.do({
-            kind: "search_emergent_install",
-            discount: action.trashedCost,
-          }),
-        },
-      ];
-      for (const id of candidates) {
-        const c = state.cards[id]!;
-        const cost = c.installCost ?? 0;
-        options.push({
-          id: `trash:${id}`,
-          label: `Trash ${c.title} (install cost ${cost})`,
-          effect: fx.do({
-            kind: "trash_emergent_one",
-            cardId: id,
-            trashedCost: action.trashedCost + cost,
-          }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "trash_emergent_one": {
-      const id = action.cardId;
-      if (!state.runner.hand.includes(id)) return { ok: true };
-      const card = state.cards[id]!;
-      trashCard(state, id, { by: "runner" });
-      log(state, `Emergent Creativity — trash ${card.title} from grip.`);
-      return (
-        applyKitaraDtwnPrimitive(ctx, {
-          kind: "trash_emergent_continue",
-          trashedCost: action.trashedCost,
-        }) ?? { ok: true }
-      );
     }
 
     case "search_emergent_install": {
@@ -256,24 +210,6 @@ export function applyKitaraDtwnPrimitive(
       state.cards[id]!.zone = "corp:hq";
       state.cards[id]!.faceup = false;
       log(state, `Bacterial Programming — add 1 card to HQ.`);
-      return (
-        applyKitaraDtwnPrimitive(ctx, {
-          kind: "dtwn_bacterial_partition",
-        }) ?? { ok: true }
-      );
-    }
-
-    case "trash_bacterial_one": {
-      const looked =
-        (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked ??
-        [];
-      const id = action.cardId;
-      (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked =
-        looked.filter((x) => x !== id);
-      // The Corp's agenda trashes it (CR 1.14.5).
-      // Trashed from R&D: facedown, and not named (CR 4.4.6b).
-      trashCard(state, id, { by: "corp", faceup: false });
-      log(state, `Bacterial Programming — trash 1 card.`);
       return (
         applyKitaraDtwnPrimitive(ctx, {
           kind: "dtwn_bacterial_partition",
@@ -419,78 +355,6 @@ export function applyKitaraDtwnPrimitive(
         ],
       });
       return { ok: true };
-    }
-
-    case "trash_distract_hq_shuffle_archives": {
-      // Offer trash 0-2 from HQ, then shuffle 0-2 from Archives.
-      const hq = [...state.corp.hand];
-      const options: { id: string; label: string; effect: Effect }[] = [
-        {
-          id: "trash-0",
-          label: "Trash 0 from HQ",
-          effect: fx.do({
-            kind: "shuffle_distract_archives",
-            remaining: 2,
-          }),
-        },
-      ];
-      for (const id of hq) {
-        options.push({
-          id: `trash1:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_distract_hq_one",
-            cardId: id,
-            remainingAfter: 1,
-          }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "trash_distract_hq_one": {
-      const id = action.cardId;
-      if (state.corp.hand.includes(id)) {
-        // Facedown from HQ (CR 4.4.6b).
-        trashCard(state, id, { by: controllerOf(state, sourceId) });
-        log(
-          state,
-          `Distract the Masses — trash ${state.cards[id]!.title} from HQ.`,
-        );
-      }
-      if (action.remainingAfter > 0) {
-        const hq = [...state.corp.hand];
-        const options: { id: string; label: string; effect: Effect }[] = [
-          {
-            id: "done-hq",
-            label: "Done trashing from HQ",
-            effect: fx.do({
-              kind: "shuffle_distract_archives",
-              remaining: 2,
-            }),
-          },
-        ];
-        for (const hid of hq) {
-          options.push({
-            id: `trash2:${hid}`,
-            label: `Trash ${state.cards[hid]!.title}`,
-            effect: fx.do({
-              kind: "trash_distract_hq_one",
-              cardId: hid,
-              remainingAfter: 0,
-            }),
-          });
-        }
-        openPendingChoose(state, { sourceId, chooser: "corp", options });
-        return { ok: true };
-      }
-      return (
-        applyKitaraDtwnPrimitive(ctx, {
-          kind: "shuffle_distract_archives",
-          remaining: 2,
-        }) ?? { ok: true }
-      );
     }
 
     case "shuffle_distract_archives": {

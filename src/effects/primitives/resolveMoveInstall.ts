@@ -7,12 +7,11 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { moveRunnerToIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { addCompileInstalledToBottom } from "../install/runnerInstallFromOtherZonesKinds.js";
+import { shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -67,15 +66,6 @@ function installedRunnerCardsWithNoVirus(state: EffectCtx["state"]): string[] {
   });
 }
 
-function installedNonAiIcebreakers(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => {
-    const c = state.cards[id];
-    if (!c || c.type !== "program") return false;
-    if ((c.subtypes ?? []).includes("ai")) return false;
-    return Boolean(c.breaker) || (c.subtypes ?? []).includes("icebreaker");
-  });
-}
-
 function installedProgramsOrVirtualResources(
   state: EffectCtx["state"],
 ): string[] {
@@ -126,48 +116,6 @@ export function applyKitaraWinPrimitive(
       if (!c) return { ok: true };
       c.virusCounters = (c.virusCounters ?? 0) + 3;
       log(state, `Contaminate — place 3 virus on ${c.title}.`);
-      return { ok: true };
-    }
-
-    case "win_embezzle": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: ["asset", "ice", "operation", "upgrade"].map((t) => ({
-          id: `embezzle:${t}`,
-          label: `Name ${t}`,
-          effect: fx.do({ kind: "win_embezzle_named", cardType: t }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "win_embezzle_named": {
-      const hq = [...state.corp.hand];
-      for (let i = hq.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        const tmp = hq[i]!;
-        hq[i] = hq[j]!;
-        hq[j] = tmp;
-      }
-      const revealed = hq.slice(0, Math.min(2, hq.length));
-      let trashed = 0;
-      for (const id of revealed) {
-        const c = state.cards[id];
-        if (!c) continue;
-        revealCards(state, [c.id], sourceId);
-        log(state, `Embezzle — reveal ${c.title} from HQ.`);
-        if (c.type === action.cardType) {
-          // Revealed, so faceup (CR 1.21.6, 4.4.6b).
-          trashCard(state, id, { by: "runner" });
-          trashed += 1;
-          log(state, `Embezzle — trash ${c.title}.`);
-        }
-      }
-      if (trashed > 0) {
-        state.runner.credits += trashed * 4;
-        log(state, `Embezzle — gain ${trashed * 4}¢.`);
-      }
       return { ok: true };
     }
 
@@ -237,42 +185,6 @@ export function applyKitaraWinPrimitive(
         state,
         `Slipstream — approach ${state.cards[action.iceId]?.title} on ${action.serverId}.`,
       );
-      return { ok: true };
-    }
-
-    case "win_gebrselassie_host": {
-      const targets = installedNonAiIcebreakers(state);
-      if (targets.length === 0) {
-        log(state, `Gebrselassie — no installed non-AI icebreaker.`);
-        return { ok: true };
-      }
-      if (targets.length === 1) {
-        return evalEffect(
-          ctx,
-          fx.do({
-            kind: "resolve_gebrselassie_host",
-            cardId: targets[0]!,
-          }),
-        );
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: targets.map((id) => ({
-          id: `geb:${id}`,
-          label: `Host on ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "resolve_gebrselassie_host", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_gebrselassie_host": {
-      const host = state.cards[action.cardId];
-      const mod = state.cards[sourceId];
-      if (!host || !mod) return { ok: true };
-      hostCard(state, mod.id, action.cardId, { installed: true });
-      log(state, `Gebrselassie — host on ${host.title}.`);
       return { ok: true };
     }
 

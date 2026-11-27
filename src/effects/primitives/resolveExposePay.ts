@@ -262,64 +262,6 @@ export function applyKitaraTdatdPrimitive(
       return { ok: true };
     }
 
-    case "trash_sadaka_hq_then_resource": {
-      if (state.corp.hand.length === 0) {
-        log(state, `Sadaka — HQ empty.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: state.corp.hand.map((id) => ({
-          id: `sadaka-hq:${id}`,
-          label: `Trash ${state.cards[id]!.title} from HQ`,
-          effect: fx.do({
-            kind: "trash_sadaka_hq_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_sadaka_hq_resolve": {
-      const cardId = (action as { cardId: string }).cardId;
-      const idx = state.corp.hand.indexOf(cardId);
-      if (idx < 0) return { ok: true };
-      const c = state.cards[cardId]!;
-      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-      trashCard(state, cardId, { by: "corp" });
-      log(state, `Sadaka — trash ${c.title} from HQ.`);
-      const resources = state.runner.installed.filter(
-        (id) => state.cards[id]?.type === "resource",
-      );
-      if (resources.length === 0) {
-        log(state, `Sadaka — no resource to trash.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: resources.map((id) => ({
-          id: `sadaka-res:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "trash_sadaka_resource",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "trash_sadaka_resource": {
-      const cardId = (action as { cardId: string }).cardId;
-      if (!state.runner.installed.includes(cardId)) return { ok: true };
-      trashCard(state, cardId);
-      log(state, `Sadaka — trash resource ${state.cards[cardId]?.title}.`);
-      return { ok: true };
-    }
-
     case "trace_amani": {
       const x = lastAgendaAdvancementRequirement(state);
       log(state, `Amani Senai — Trace[${x}].`);
