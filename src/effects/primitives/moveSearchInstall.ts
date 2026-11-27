@@ -11,7 +11,6 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -64,53 +63,6 @@ export function applyKitaraCotcPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "move_friday_chip_virus": {
-      const have = source?.virusCounters ?? 0;
-      if (have < 1) {
-        log(state, `${source?.title ?? "Friday Chip"} — no virus counters.`);
-        return { ok: true };
-      }
-      const viruses = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return (
-          c?.type === "program" &&
-          (c.subtypes ?? []).includes("virus") &&
-          id !== sourceId
-        );
-      });
-      if (viruses.length === 0) {
-        log(state, `${source?.title ?? "Friday Chip"} — no virus programs.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: viruses.map((id) => ({
-          id: `friday-move:${id}`,
-          label: `Move virus to ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "move_friday_chip_virus_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "move_friday_chip_virus_resolve": {
-      const destId = (action as { cardId: string }).cardId;
-      const src = state.cards[sourceId];
-      const dest = state.cards[destId];
-      if (!src || !dest || (src.virusCounters ?? 0) < 1) return { ok: true };
-      src.virusCounters = (src.virusCounters ?? 0) - 1;
-      dest.virusCounters = (dest.virusCounters ?? 0) + 1;
-      log(
-        state,
-        `Friday Chip — move 1 virus to ${dest.title} (${src.virusCounters} left).`,
-      );
-      return { ok: true };
-    }
-
     case "search_crypt_install": {
       const candidates = state.runner.deck.filter((id) => {
         const c = state.cards[id];
@@ -480,33 +432,6 @@ export function applyKitaraCotcPrimitive(
           effect: fx.do({ kind: "pick_rd_arrange", cardId: id }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "cotc_reverse_infection_purge": {
-      // Count viruses before purge, then purge, then mill stack.
-      let before = 0;
-      for (const card of Object.values(state.cards)) {
-        before += card.virusCounters ?? 0;
-      }
-      // Delegate purge via nested — set flag and use eval's purge.
-      // Inline purge:
-      for (const card of Object.values(state.cards)) {
-        if ((card.virusCounters ?? 0) > 0) {
-          card.virusCounters = 0;
-        }
-      }
-      state.turn.lastVirusCountersPurged = before;
-      const mill = Math.floor(before / 3);
-      for (let i = 0; i < mill; i++) {
-        const top = state.runner.deck.shift();
-        if (!top) break;
-        trashCard(state, top);
-      }
-      log(
-        state,
-        `Reverse Infection — purge ${before} virus; trash ${mill} from stack.`,
-      );
       return { ok: true };
     }
 

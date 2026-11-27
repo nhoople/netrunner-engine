@@ -13,39 +13,6 @@ import type { RuleCite } from "../../state/types.js";
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function installedVirusProgramIds(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => {
-    const c = state.cards[id];
-    return c?.type === "program" && (c.subtypes ?? []).includes("virus");
-  });
-}
-
-function iceWithNoAdvancement(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) {
-      const c = state.cards[id];
-      if (!c) continue;
-      if ((c.advancementCounters ?? 0) === 0) out.push(id);
-    }
-  }
-  return out;
-}
-
-function faceupAgendaPoints(state: EffectCtx["state"]): number {
-  // Printed: "agenda point on all installed faceup agendas" — installed
-  // (in a server root) and faceup. Scored agendas are not installed.
-  let n = 0;
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.root) {
-      const c = state.cards[id];
-      if (!c || c.type !== "agenda" || !c.faceup) continue;
-      n += c.agendaPoints ?? 0;
-    }
-  }
-  return n;
-}
-
 function lastAgendaAdvancementRequirement(state: EffectCtx["state"]): number {
   const id = state.turn.lastScoredOrStolenAgendaId;
   if (id) {
@@ -60,7 +27,6 @@ export function applyKitaraTdatdPrimitive(
   action: Primitive,
 ): PrimResult | null {
   const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
 
   switch (action.kind) {
     case "tdatd_glut_cipher": {
@@ -110,48 +76,6 @@ export function applyKitaraTdatdPrimitive(
         trashCard(state, id, { by: "corp" });
       }
       log(state, `Glut Cipher — trash ${trash.length} from HQ at random.`);
-      return { ok: true };
-    }
-
-    case "tdatd_knobkierie_place_virus": {
-      const viruses = installedVirusProgramIds(state);
-      if (viruses.length === 0) {
-        log(state, `Knobkierie — no installed virus program.`);
-        return { ok: true };
-      }
-      if (viruses.length === 1) {
-        const c = state.cards[viruses[0]!]!;
-        c.virusCounters = (c.virusCounters ?? 0) + 1;
-        log(
-          state,
-          `Knobkierie — place 1 virus on ${c.title} → ${c.virusCounters}.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: viruses.map((id) => ({
-          id: `knob:${id}`,
-          label: `Place 1 virus on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "resolve_knobkierie_place_virus",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_knobkierie_place_virus": {
-      const cardId = (action as { cardId: string }).cardId;
-      const c = state.cards[cardId];
-      if (!c) return { ok: true };
-      c.virusCounters = (c.virusCounters ?? 0) + 1;
-      log(
-        state,
-        `Knobkierie — place 1 virus on ${c.title} → ${c.virusCounters}.`,
-      );
       return { ok: true };
     }
 
@@ -249,102 +173,6 @@ export function applyKitaraTdatdPrimitive(
           onSuccess: fx.do({ kind: "tdatd_amani_bounce" }),
         },
       });
-    }
-
-    case "advance_sso_ice": {
-      const targets = iceWithNoAdvancement(state);
-      const ap = faceupAgendaPoints(state);
-      if (targets.length === 0 || ap <= 0) {
-        log(
-          state,
-          `SSO Industries — no eligible ice or no faceup agenda points.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `sso:${id}`,
-          label: `Place ${ap} advancement on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "advance_sso_resolve",
-            cardId: id,
-            amount: ap,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "advance_sso_resolve": {
-      const cardId = (action as { cardId: string }).cardId;
-      const amount = (action as { amount?: number }).amount ?? 0;
-      const c = state.cards[cardId];
-      if (!c) return { ok: true };
-      c.advancementCounters = (c.advancementCounters ?? 0) + amount;
-      log(
-        state,
-        `SSO Industries — place ${amount} advancement on ${c.title} → ${c.advancementCounters}.`,
-      );
-      return { ok: true };
-    }
-
-    case "tdatd_oduduwa_encounter": {
-      if (source) {
-        source.advancementCounters = (source.advancementCounters ?? 0) + 1;
-        log(
-          state,
-          `Oduduwa — place 1 advancement → ${source.advancementCounters}.`,
-        );
-      }
-      const x = source?.advancementCounters ?? 0;
-      const others: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (id === sourceId) continue;
-          others.push(id);
-        }
-      }
-      if (others.length === 0 || x <= 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...others.map((id) => ({
-            id: `oduduwa:${id}`,
-            label: `Place ${x} advancement on ${state.cards[id]!.title}`,
-            effect: fx.do({
-              kind: "tdatd_oduduwa_place",
-              cardId: id,
-              amount: x,
-            }),
-          })),
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({
-              kind: "gain_credits",
-              side: "corp",
-              amount: 0,
-            }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "tdatd_oduduwa_place": {
-      const cardId = (action as { cardId: string }).cardId;
-      const amount = (action as { amount?: number }).amount ?? 0;
-      const c = state.cards[cardId];
-      if (!c) return { ok: true };
-      c.advancementCounters = (c.advancementCounters ?? 0) + amount;
-      log(
-        state,
-        `Oduduwa — place ${amount} advancement on ${c.title} → ${c.advancementCounters}.`,
-      );
-      return { ok: true };
     }
 
     default:

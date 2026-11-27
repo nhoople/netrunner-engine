@@ -2,20 +2,20 @@
  * Power, virus, and agenda counters. Formulas that derive a count
  * from another number stay in eval.ts.
  */
-import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { log } from "../state/setupAndEnd/createGame.js";
-import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import {
   maybeFirePowerCountersGte,
   syncEtrPerPowerCounterSubs,
-} from "../state/counters/powerCounters.js";
-import { purgeVirusCounters } from "../state/hostingAndTrash/trashHooks.js";
-import { CR } from "../timing/labels.js";
-import { evalEffect, type EffectCtx, type EvalResult } from "./eval.js";
-import type { Primitive } from "./ir.js";
-import { fireOnPowerCountersEmpty } from "../state/triggers/miscConditionalHooks.js";
-import { trashCard } from "../state/hostingAndTrash/trash.js";
-import { removeCardFromGame } from "../state/uninstallAndPosition/uninstall.js";
+} from "../../state/counters/powerCounters.js";
+import { purgeVirusCounters } from "../../state/hostingAndTrash/trashHooks.js";
+import { CR } from "../../timing/labels.js";
+import { evalEffect, type EffectCtx, type EvalResult } from "../eval.js";
+import type { Primitive } from "../ir.js";
+import { fireOnPowerCountersEmpty } from "../../state/triggers/miscConditionalHooks.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
+import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
 
 export function applyCounterPrimitive(
   ctx: EffectCtx,

@@ -1092,6 +1092,17 @@
           "kinds": []
         },
         {
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKinds",
+          "kinds": [],
+          "mirrors": [
+            "src/effects/ir/placePrimitive.ts#{PlacePrimitive}"
+          ]
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#faceupAgendaPoints",
+          "kinds": []
+        },
+        {
           "site": "src/effects/install/corpInstallFromHqKinds.ts#applyCorpInstallFromHqKinds",
           "kinds": []
         },
@@ -1107,18 +1118,7 @@
           ]
         },
         {
-          "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
-          "kinds": [],
-          "mirrors": [
-            "src/effects/ir/placePrimitive.ts#{PlacePrimitive}"
-          ]
-        },
-        {
           "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveExposePay.ts#faceupAgendaPoints",
           "kinds": []
         },
         {
@@ -2276,23 +2276,19 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/placeKinds.ts#applyPlaceKinds",
+          "site": "src/effects/counters/counterKinds.ts#advanceableInstalled",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/gainMoveMark.ts#advanceableInstalled",
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKinds",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
+          "site": "src/effects/counters/counterKinds.ts#canAdvance",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/rezBreachPlace.ts#applyMumbadBfPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveDerez.ts#canAdvance",
+          "site": "src/effects/counters/placeKinds.ts#applyPlaceKinds",
           "kinds": []
         },
         {
@@ -3737,7 +3733,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         }
       ],
@@ -5459,7 +5455,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
         {
@@ -6653,6 +6649,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/counters/counterKinds.ts#canAdvance",
+          "kinds": []
+        },
+        {
           "site": "src/effects/creditTally.ts#tallyCount",
           "kinds": []
         },
@@ -6706,10 +6706,6 @@
         },
         {
           "site": "src/effects/primitives/trashResolveDerez.ts#applyRedsandEasPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveDerez.ts#canAdvance",
           "kinds": []
         },
         {
@@ -12357,7 +12353,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
         {
@@ -16377,11 +16373,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/placeKinds.ts#applyPlaceKinds",
+          "site": "src/effects/counters/placeKinds.ts#applyPlaceKinds",
           "kinds": []
         },
         {
@@ -17380,7 +17376,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
         {
@@ -17726,7 +17722,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
         {
@@ -17927,7 +17923,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         }
       ],
@@ -18142,7 +18138,19 @@
           "kinds": []
         },
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterKinds.ts#advanceableInstalled",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
         {
@@ -18214,14 +18222,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainMoveMark.ts#advanceableInstalled",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
           "kinds": []
         },
@@ -18237,18 +18237,6 @@
           ]
         },
         {
-          "site": "src/effects/primitives/searchRevealTrash.ts#applySansanValPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/shuffleLookPick.ts#applySansanOhPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
           "kinds": []
         },
@@ -18258,10 +18246,6 @@
           "mirrors": [
             "src/effects/ir/gainPrimitive.ts#{GainPrimitive}"
           ]
-        },
-        {
-          "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
-          "kinds": []
         },
         {
           "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
@@ -19545,7 +19529,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         }
       ],
@@ -19984,6 +19968,14 @@
           "kinds": []
         },
         {
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#installedVirusProgramIds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/creditTally.ts#tallyCount",
           "kinds": []
         },
@@ -20201,10 +20193,6 @@
         },
         {
           "site": "src/effects/primitives/redirectSpendName.ts#applyFlashpointEsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveExposePay.ts#installedVirusProgramIds",
           "kinds": []
         },
         {
@@ -21041,7 +21029,23 @@
           "kinds": []
         },
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/placeKinds.ts#applyPlaceKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/removeKinds.ts#applyRemoveKinds",
           "kinds": []
         },
         {
@@ -21393,15 +21397,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/placeKinds.ts#applyPlaceKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/removeKinds.ts#applyRemoveKinds",
           "kinds": []
         },
         {
@@ -21422,10 +21418,6 @@
         },
         {
           "site": "src/effects/kinds/shuffleKinds.ts#applyShuffleKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/addResolveInstall.ts#applyKitaraSsPrimitive",
           "kinds": []
         },
         {
@@ -23546,7 +23538,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
           "kinds": []
         },
         {
@@ -23768,7 +23760,31 @@
           "kinds": []
         },
         {
-          "site": "src/effects/counterPrimitives.ts#applyCounterPrimitive",
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#applyCounterKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#canAdvance",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#faceupAgendaPoints",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterKinds.ts#installedVirusProgramIds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/counterPrimitives.ts#applyCounterPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/counters/placeKinds.ts#applyPlaceKinds",
           "kinds": []
         },
         {
@@ -24016,10 +24032,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/placeKinds.ts#applyPlaceKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
           "kinds": []
         },
@@ -24033,14 +24045,6 @@
         },
         {
           "site": "src/effects/kinds/shuffleKinds.ts#applyShuffleKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/addResolveInstall.ts#applyKitaraSsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/boostRezTrace.ts#applyLunarTsPrimitive",
           "kinds": []
         },
         {
@@ -24100,23 +24104,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/resolveExposePay.ts#faceupAgendaPoints",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveExposePay.ts#installedVirusProgramIds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/resolveMoveInstall.ts#applyKitaraWinPrimitive",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/revealTrashCannot.ts#applyMumbadFtmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/rezBreachPlace.ts#applyMumbadBfPrimitive",
           "kinds": []
         },
         {
@@ -24153,10 +24145,6 @@
         },
         {
           "site": "src/effects/primitives/trashResolveDerez.ts#applyRedsandEasPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashResolveDerez.ts#canAdvance",
           "kinds": []
         },
         {

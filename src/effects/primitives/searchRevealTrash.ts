@@ -2,7 +2,6 @@
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
-import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
 import type { RuleCite } from "../../state/types.js";
 import { chooseCards } from "../triggers/chooseCards.js";
@@ -152,77 +151,6 @@ export function applySansanValPrimitive(
       log(
         state,
         `Jinteki Biotech (Agriculture) — shuffle ${arch.length} Archives card(s) into R&D.`,
-      );
-      return { ok: true };
-    }
-
-    case "jinteki_biotech_place_4_advancement": {
-      const cands: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of [...server.root, ...server.ice]) {
-          const c = state.cards[id];
-          // Agendas can always be advanced (CR 1.18.3); other cards only
-          // when they say so — defs do not set canAdvance on agendas.
-          if (c?.side === "corp" && mayAdvanceInstalledCard(c)) cands.push(id);
-        }
-      }
-      if (cands.length === 0) {
-        log(state, `Jinteki Biotech (Warehouse) — no advanceable card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: cands.map((id) => ({
-          id: `jb-adv:${id}`,
-          label: `Place 4 advancement on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "place_advancements_on",
-            cardId: id,
-            amount: 4,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "place_agenda_counter": {
-      const scored = state.corp.scoreArea.filter(
-        (id) => state.cards[id]?.type === "agenda",
-      );
-      if (scored.length === 0) {
-        log(state, `Genetic Resequencing — no scored agenda.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: scored.map((id) => ({
-          id: `gr-counter:${id}`,
-          label: `Place 1 agenda counter on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "add_counter",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "add_counter": {
-      const cardId = (action as { cardId: string }).cardId;
-      const card = state.cards[cardId];
-      if (!card || !state.corp.scoreArea.includes(cardId)) {
-        return {
-          ok: false,
-          error: "Genetic Resequencing target not in score area.",
-          cites: [],
-        };
-      }
-      card.agendaCounters = (card.agendaCounters ?? 0) + 1;
-      log(
-        state,
-        `Genetic Resequencing — place 1 agenda counter on ${card.title} → ${card.agendaCounters}.`,
       );
       return { ok: true };
     }

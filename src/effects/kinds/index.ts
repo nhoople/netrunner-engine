@@ -13,9 +13,9 @@ import { applyLookKinds } from "../visibility/lookKinds.js";
 import { applyMoveKinds } from "../uninstallAndPosition/moveKinds.js";
 import { applyOtherKinds } from "./otherKinds.js";
 import { applyPayKinds } from "./payKinds.js";
-import { applyPlaceKinds } from "./placeKinds.js";
+import { applyPlaceKinds } from "../counters/placeKinds.js";
 import { applyPlayKinds } from "./playKinds.js";
-import { applyRemoveKinds } from "./removeKinds.js";
+import { applyRemoveKinds } from "../counters/removeKinds.js";
 import { applyResolveKinds } from "../triggers/resolveKinds.js";
 import { applyReturnKinds } from "../uninstallAndPosition/returnKinds.js";
 import { applyRevealKinds } from "../visibility/revealKinds.js";
@@ -76,6 +76,10 @@ import {
   applyDamageAndPreventionKinds,
   applyDamageAndPreventionKindsWhenSourceExists,
 } from "../damageAndPrevention/damageAndPreventionKinds.js";
+import {
+  applyCounterKinds,
+  applyCounterKindsWhenSourceExists,
+} from "../counters/counterKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -129,6 +133,8 @@ const HANDLERS = [
   applyUninstallAndPositionKinds,
   applyDamageAndPreventionKinds,
   applyDamageAndPreventionKindsWhenSourceExists,
+  applyCounterKinds,
+  applyCounterKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

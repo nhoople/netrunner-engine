@@ -53,16 +53,6 @@ export function resolveDelayedRunEndOrder(
   run.resumeAfterDelayedOrder = true;
 }
 
-function installedRunnerCardsWithNoVirus(state: EffectCtx["state"]): string[] {
-  // Printed Contaminate: any installed Runner card with no virus counters
-  // (hosted cards remain installed — CR 1.2.1 / card text).
-  return state.runner.installed.filter((id) => {
-    const c = state.cards[id];
-    if (!c) return false;
-    return (c.virusCounters ?? 0) === 0;
-  });
-}
-
 export function applyKitaraWinPrimitive(
   ctx: EffectCtx,
   action: Primitive,
@@ -71,38 +61,6 @@ export function applyKitaraWinPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "win_contaminate": {
-      const targets = installedRunnerCardsWithNoVirus(state);
-      if (targets.length === 0) {
-        log(state, `Contaminate — no installed Runner card without virus.`);
-        return { ok: true };
-      }
-      if (targets.length === 1) {
-        const c = state.cards[targets[0]!]!;
-        c.virusCounters = (c.virusCounters ?? 0) + 3;
-        log(state, `Contaminate — place 3 virus on ${c.title}.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: targets.map((id) => ({
-          id: `contaminate:${id}`,
-          label: `Place 3 virus on ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "resolve_contaminate", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "resolve_contaminate": {
-      const c = state.cards[action.cardId];
-      if (!c) return { ok: true };
-      c.virusCounters = (c.virusCounters ?? 0) + 3;
-      log(state, `Contaminate — place 3 virus on ${c.title}.`);
-      return { ok: true };
-    }
-
     case "search_compile": {
       const zoneIds =
         action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
@@ -219,17 +177,6 @@ export function applyKitaraWinPrimitive(
       log(
         state,
         `Standard Procedure — gain ${gainAmt}¢ (${n} ${action.cardType}).`,
-      );
-      return { ok: true };
-    }
-
-    case "place_advancement_on_self": {
-      if (!source) return { ok: true };
-      const amount = action.amount ?? 1;
-      source.advancementCounters = (source.advancementCounters ?? 0) + amount;
-      log(
-        state,
-        `Masvingo — place ${amount} advancement → ${source.advancementCounters}.`,
       );
       return { ok: true };
     }

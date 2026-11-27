@@ -2,12 +2,6 @@
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
-import {
-  canPayCost,
-  emptyRunnerCreditPool,
-  payCost,
-  subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
@@ -20,6 +14,10 @@ import {
   noteSearchConditionalAbilities,
 } from "../eval.js";
 import { shuffleRunnerStack } from "../install/runnerInstall.js";
+import {
+  emptyRunnerCreditPool,
+  subtractRunnerCreditPool,
+} from "../../state/keywordsAndCredits/costs.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -143,36 +141,6 @@ export function applyLunarUaoPrimitive(
       }
       addFoundStackCardAfterSearch(state, id);
       revealCards(state, [id], sourceId);
-      return { ok: true };
-    }
-    case "place_x_counters": {
-      // The printed card places X counters for X paid, with no cap beyond
-      // what the Runner can pay (CR 1.2.1: card text wins).
-      const max = state.runner.credits;
-      const amounts = Array.from({ length: max + 1 }, (_, i) => i);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: amounts.map((x) => ({
-          id: `angel-x:${x}`,
-          label: `Place ${x} power counter(s) (pay ${x}¢)`,
-          effect: fx.do({ kind: "place_x_resolve", amount: x }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "place_x_resolve": {
-      const amount = (action as { amount: number }).amount;
-      if (!canPayCost(state, "runner", { credits: amount })) {
-        return {
-          ok: false,
-          error: "Cannot pay for Angel Arena counters.",
-          cites: [],
-        };
-      }
-      payCost(state, "runner", { credits: amount }, "angel-arena", source);
-      source!.powerCounters = (source!.powerCounters ?? 0) + amount;
-      log(state, `Angel Arena — place ${amount} power counter(s).`);
       return { ok: true };
     }
     case "bottom_top": {

@@ -22,12 +22,9 @@ import { chooseCards } from "../triggers/chooseCards.js";
 import { type Effect, fx, type Primitive } from "../ir.js";
 import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { syncCorpHandSizeSubroutines } from "../../state/continuous/handSizeSubroutines.js";
-import {
-  installedCorpCards,
-  canAdvance,
-} from "../primitives/trashResolveDerez.js";
 import type { RuleCite } from "../../state/types.js";
 import { applyKitaraDtwnPrimitive } from "../primitives/gainExposeSearch.js";
+import { installedCorpCards, canAdvance } from "../counters/counterKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

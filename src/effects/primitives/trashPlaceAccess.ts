@@ -1,5 +1,3 @@
-/** The Liberated Mind (tlm) Mumbad pack primitives — v1.120.0. */
-import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   legalRebirthIdentityIds,
@@ -259,55 +257,6 @@ export function applyMumbadTlmPrimitive(
         })),
         logLine: `Out of the Ashes — remove from game; make a run.`,
       });
-      return { ok: true };
-    }
-
-    case "tlm_puppet_master_place_advancement": {
-      const targets: string[] = [];
-      for (const sid of Object.keys(state.servers) as ServerId[]) {
-        const server = state.servers[sid];
-        for (const id of [...server.root, ...server.ice]) {
-          const card = state.cards[id];
-          if (!card) continue;
-          if (card.side === "corp" && printsCanBeAdvanced(card)) {
-            targets.push(id);
-          }
-        }
-      }
-      if (targets.length === 0) {
-        log(state, `Puppet Master — no card that can be advanced.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...targets.map((cardId) => ({
-            id: `adv:${cardId}`,
-            label: `Place 1 advancement on ${state.cards[cardId]!.title}`,
-            effect: fx.do({
-              kind: "resolve_puppet_master_place",
-              cardId,
-            }),
-          })),
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.gainCredits("corp", 0),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "resolve_puppet_master_place": {
-      const card = state.cards[action.cardId];
-      if (!card) return { ok: true };
-      card.advancementCounters = (card.advancementCounters ?? 0) + 1;
-      log(
-        state,
-        `Puppet Master — place 1 advancement on ${card.title} → ${card.advancementCounters}.`,
-      );
       return { ok: true };
     }
 

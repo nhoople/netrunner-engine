@@ -36,8 +36,7 @@ export function applyMumbadBfPrimitive(
   ctx: EffectCtx,
   action: Primitive,
 ): PrimResult | null {
-  const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
+  const { state } = ctx;
 
   switch (action.kind) {
     case "place_hq_on_top_rd_continue": {
@@ -72,124 +71,6 @@ export function applyMumbadBfPrimitive(
       discardCard(state, cardId);
       log(state, `Harvester — Runner discards ${state.cards[cardId]!.title}.`);
       return offerDiscardDownToHandSize(ctx);
-    }
-
-    case "bf_place_advancement_on_self": {
-      if (!source) return { ok: true };
-      const amount = action.amount ?? 1;
-      source.advancementCounters = (source.advancementCounters ?? 0) + amount;
-      log(
-        state,
-        `${source.title} — place ${amount} advancement → ${source.advancementCounters}.`,
-      );
-      return { ok: true };
-    }
-
-    case "move_mumbad_construction_advancement_to_faceup": {
-      if (!source || (source.advancementCounters ?? 0) < 1) {
-        log(state, `Mumbad Construction Co. — no advancement to move.`);
-        return { ok: true };
-      }
-      const faceup: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of [...server.root, ...server.ice]) {
-          const c = state.cards[id];
-          if (c && id !== sourceId && (c.faceup || c.rezzed)) {
-            faceup.push(id);
-          }
-        }
-      }
-      for (const id of state.corp.scoreArea) {
-        if (state.cards[id]) faceup.push(id);
-      }
-      if (faceup.length === 0) {
-        log(state, `Mumbad Construction Co. — no faceup destination.`);
-        return { ok: true };
-      }
-      if (faceup.length === 1) {
-        const id = faceup[0]!;
-        source.advancementCounters = (source.advancementCounters ?? 0) - 1;
-        const dest = state.cards[id]!;
-        dest.advancementCounters = (dest.advancementCounters ?? 0) + 1;
-        log(
-          state,
-          `Mumbad Construction Co. — move 1 advancement to ${dest.title}.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: faceup.map((id) => ({
-          id: `mcc-move:${id}`,
-          label: `Move advancement to ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "move_mumbad_construction_advancement_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "move_mumbad_construction_advancement_resolve": {
-      if (!source || (source.advancementCounters ?? 0) < 1) return { ok: true };
-      const id = action.cardId;
-      const dest = state.cards[id];
-      if (!dest) return { ok: true };
-      source.advancementCounters = (source.advancementCounters ?? 0) - 1;
-      dest.advancementCounters = (dest.advancementCounters ?? 0) + 1;
-      log(
-        state,
-        `Mumbad Construction Co. — move 1 advancement to ${dest.title}.`,
-      );
-      return { ok: true };
-    }
-
-    case "place_advancement_cannot_score_until_next_turn": {
-      const targets: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of [...server.root, ...server.ice]) {
-          const c = state.cards[id];
-          if (c && (c.type === "agenda" || c.canAdvance)) targets.push(id);
-        }
-      }
-      if (targets.length === 0) {
-        log(state, `PAD Factory — no advanceable card.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `pad-adv:${id}`,
-          label: `Advance ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "place_advancement_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "place_advancement_resolve": {
-      const id = action.cardId;
-      const card = state.cards[id];
-      if (!card) return { ok: true };
-      card.advancementCounters = (card.advancementCounters ?? 0) + 1;
-      // "You cannot score that card until your next turn begins": scoring
-      // only, read by the score action and its legality (CR 1.2.2); the
-      // list clears when the Corp's next turn begins.
-      state.bfCannotScoreUntilNextCorpTurn = [
-        ...(state.bfCannotScoreUntilNextCorpTurn ?? []),
-        id,
-      ];
-      log(
-        state,
-        `PAD Factory — place 1 advancement on ${card.title}; cannot score until next Corp turn.`,
-      );
-      return { ok: true };
     }
 
     default:
