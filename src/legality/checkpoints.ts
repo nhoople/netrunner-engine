@@ -26,8 +26,8 @@ import {
   valSuccessfulRunSourceIds,
   type ValRunnerTriggerFamily,
 } from "../effects/sansanValHooks.js";
-import { firstUnsuccessfulRunSourceIds } from "../state/unsuccessfulRunHooks.js";
-import { firstSuccessfulRunSourceIds } from "../state/firstSuccessfulRunHooks.js";
+import { firstUnsuccessfulRunSourceIds } from "../state/run/unsuccessfulRunHooks.js";
+import { firstSuccessfulRunSourceIds } from "../state/run/firstSuccessfulRunHooks.js";
 import { agendaPointsFor, checkWinConditions } from "../state/scoring.js";
 import { trashDurationPassedCurrents } from "../state/continuous/currents.js";
 import { removeRevertedHostDurations } from "../state/triggers/hostDuration.js";
@@ -125,7 +125,7 @@ import {
   PREDICATE_INLINE_CONDITIONAL,
   PREDICATE_STORED_CONDITIONAL_NOTE,
 } from "../state/triggers/triggerPredicates.js";
-import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
+import { firstEncounterEachRunSourceIds } from "../state/run/firstEncounterPassHooks.js";
 import {
   cancelPendingIfSourceInactive,
   completePendingAbility,

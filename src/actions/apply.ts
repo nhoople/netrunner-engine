@@ -96,7 +96,7 @@ import {
   acceptPendingInstalledTrash,
   triggerPendingTrashInterrupt,
 } from "../state/trashPrevent.js";
-import { acceptPendingEndTheRun } from "../state/endTheRun.js";
+import { acceptPendingEndTheRun } from "../state/run/endTheRun.js";
 import { purgeVirusCounters } from "../state/trashHooks.js";
 import {
   currentMark,
@@ -124,7 +124,7 @@ import {
   wasAbilityUsed,
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { resolvePendingOnEncounter } from "../state/onEncounter.js";
+import { resolvePendingOnEncounter } from "../state/run/onEncounter.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import {
   accessLimitEndsBreach,
@@ -133,8 +133,8 @@ import {
   spendAccessLimitOnChoice,
 } from "../state/access.js";
 import { applyRunAccessRestrictions } from "../state/accessFilter.js";
-import { isRunTargetAllowed } from "../state/runLegality.js";
-import { modifiersFromStartsRun } from "../state/runStart.js";
+import { isRunTargetAllowed } from "../state/run/runLegality.js";
+import { modifiersFromStartsRun } from "../state/run/runStart.js";
 import type {
   Action,
   ApplyResult,
@@ -1302,7 +1302,7 @@ function chooseOption(state: GameState, optionId: string): ApplyResult {
     state.pendingStartRun = null;
     state.deferAfterBasicAction = false;
     if (state.servers[pending.serverId]) {
-      const mods: import("../state/runStart.js").RunModifiers = {
+      const mods: import("../state/run/runStart.js").RunModifiers = {
         runSourceId: pending.sourceId,
       };
       if (pending.bypassFirstEncounterForClicks !== undefined) {

@@ -48,7 +48,7 @@ import {
 import {
   isServerAllowedForSpec,
   modifiersFromStartsRun,
-} from "../state/runStart.js";
+} from "../state/run/runStart.js";
 import { afterBasicAction } from "../timing/machine.js";
 import type {
   ApplyResult,

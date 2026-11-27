@@ -2,7 +2,7 @@
  * Encounter-end conditionals (rezzed / rezzed-this-turn / not-fully-broken /
  * printed-subroutine-broken). Notes queues for 10.3.1a (phase 3).
  */
-import type { GameState } from "./types.js";
+import type { GameState } from "../types.js";
 
 function pushPendingIceId(
   state: GameState,

@@ -78,7 +78,7 @@ import {
 import {
   isServerAllowedForSpec,
   modifiersFromStartsRun,
-} from "../state/runStart.js";
+} from "../state/run/runStart.js";
 import { afterBasicAction, autoWalk, enterStep } from "../timing/machine.js";
 import type {
   ApplyResult,

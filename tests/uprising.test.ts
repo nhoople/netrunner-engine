@@ -27,7 +27,7 @@ import { beginCorpTurnFlags, beginRunnerTurnFlags } from "../src/state/turn.js";
 import { dealDamage } from "../src/state/damage.js";
 import { agendaPointsFor } from "../src/state/scoring.js";
 import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../src/state/identityFlipHooks.js";
-import { additionalRunInitiateCredits } from "../src/state/runInitiateTax.js";
+import { additionalRunInitiateCredits } from "../src/state/run/runInitiateTax.js";
 
 describe("uprising", () => {
   describe("ur-v135-kickoff", () => {

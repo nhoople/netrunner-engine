@@ -3,8 +3,8 @@
  * first pass rezzed code gate/sentry (Sisyphus). Notes MetPending for
  * 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
 
 /** Baklan-class sources on the Runner rig. */
 export function firstEncounterEachRunSourceIds(state: GameState): string[] {

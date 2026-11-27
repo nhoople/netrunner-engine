@@ -1,12 +1,12 @@
 /** Deferred onEncounter (when-encountered interrupt window). */
 
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./createGame.js";
-import type { GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { wasAbilityUsed } from "./turn.js";
-import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../createGame.js";
+import type { GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { wasAbilityUsed } from "../turn.js";
+import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 
 /** True if Runner has a when_encountered_interrupt paid ability (e.g. AirbladeX). */
 export function runnerHasWhenEncounteredInterrupt(state: GameState): boolean {

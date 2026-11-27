@@ -22,12 +22,12 @@ import {
 import { runnerInstallCost } from "../actions/installRunner.js";
 import { eventClicksToPlay } from "../actions/play.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
-import { isRunTargetAllowed } from "../state/runLegality.js";
-import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
+import { isRunTargetAllowed } from "../state/run/runLegality.js";
+import { additionalRunInitiateTax } from "../state/run/runInitiateTax.js";
 import {
   isServerAllowedForSpec,
   serversMatchingSpec,
-} from "../state/runStart.js";
+} from "../state/run/runStart.js";
 import { trashInstalledLegalTargets } from "../effects/eval.js";
 import { syncLongTermInvestment } from "../state/cardDeclarations.js";
 import {

@@ -8,7 +8,7 @@ import { log } from "../state/createGame.js";
 import {
   hasPayableEndTheRunInterrupt,
   openPendingEndTheRun,
-} from "../state/endTheRun.js";
+} from "../state/run/endTheRun.js";
 import type { GameState, RuleCite } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { evalEffect, type EffectCtx } from "./eval.js";

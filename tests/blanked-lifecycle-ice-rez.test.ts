@@ -15,7 +15,7 @@ import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import {
   chosenIceBypassOffered,
   securityNexusTraceOffered,
-} from "../src/state/onEncounter.js";
+} from "../src/state/run/onEncounter.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

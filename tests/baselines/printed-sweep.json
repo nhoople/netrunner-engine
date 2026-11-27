@@ -1353,7 +1353,7 @@
       "abilities": [
         "Run a remote server. If successful, instead of breaching that server, you may force the Corp to shuffle all cards in the root of that server into R&D."
       ],
-      "note": "runEvent skipBreach is set when the run starts (src/state/runStart.ts), so declining the optional replacement still skips the breach. The decision is made when the breach would begin (6.7.4c). The shuffle itself matches.",
+      "note": "runEvent skipBreach is set when the run starts (src/state/run/runStart.ts), so declining the optional replacement still skips the breach. The decision is made when the breach would begin (6.7.4c). The shuffle itself matches.",
       "cr": [
         "1.2.1",
         "6.7.4c"
@@ -7111,7 +7111,7 @@
       "abilities": [
         "[interrupt] → Hosted power counter: Prevent the Runner from jacking out. The Runner cannot jack out for the remainder of this run."
       ],
-      "note": "Area 14 (run flow): there is no jack-out interrupt window. The ability is in end_the_run_interrupt, which is scanned only on the Runner's installed cards (src/state/endTheRun.ts, src/legality/candidatePending.ts), so the Corp can never use it. Already an area 14 example. 2 power counters on score match.",
+      "note": "Area 14 (run flow): there is no jack-out interrupt window. The ability is in end_the_run_interrupt, which is scanned only on the Runner's installed cards (src/state/run/endTheRun.ts, src/legality/candidatePending.ts), so the Corp can never use it. Already an area 14 example. 2 power counters on score match.",
       "cr": [
         "6.1.5",
         "9.5.2b",
@@ -11141,7 +11141,7 @@
     "ruhr-valley": {
       "cycle": "genesis",
       "result": "matches",
-      "note": "Region; running this server costs 1 more click while it is rezzed (src/state/runInitiateTax.ts reads the attacked server's root)."
+      "note": "Region; running this server costs 1 more click while it is rezzed (src/state/run/runInitiateTax.ts reads the attacked server's root)."
     },
     "rumor-mill": {
       "cycle": "flashpoint",

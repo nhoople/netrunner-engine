@@ -16,7 +16,7 @@ Rule: 1 Game Concepts › 1.16 Costs › 1.16.1b
 
 | File | Via | Code topic | Sites |
 | --- | --- | --- | --- |
-| `src/state/runInitiateTax.ts` | literal | visibility | 1 |
+| `src/state/run/runInitiateTax.ts` | literal | visibility | 1 |
 | `src/state/types/card.ts` | literal | visibility | 1 |
 
 ## 2. CR 1.18.1 — 2 sites

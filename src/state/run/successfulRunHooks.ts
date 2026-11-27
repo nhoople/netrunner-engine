@@ -2,8 +2,8 @@
  * Successful-run conditionals (onSuccessfulRun). Notes queues for 10.3.1a
  * (phase 3). Caller tracks once-per-turn fired ids.
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
 
 /** Queue a card id whose onSuccessfulRun met. */
 export function noteOnSuccessfulRun(state: GameState, cardId: string): void {

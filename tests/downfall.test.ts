@@ -39,7 +39,7 @@ import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import {
   openPendingEndTheRun,
   preventPendingEndTheRun,
-} from "../src/state/endTheRun.js";
+} from "../src/state/run/endTheRun.js";
 
 describe("downfall", () => {
   describe("df-v147-kickoff", () => {
