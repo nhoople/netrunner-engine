@@ -13,7 +13,7 @@ import { setAttackedServer } from "../../state/uninstallAndPosition/runPosition.
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function runnerPrograms(state: EffectCtx["state"]): string[] {
+export function runnerPrograms(state: EffectCtx["state"]): string[] {
   return state.runner.installed.filter(
     (id) => state.cards[id]?.type === "program",
   );
@@ -63,36 +63,6 @@ export function applyLunarFcPrimitive(
       log(
         state,
         `Kitsune — breach HQ; first access ${state.cards[cardId]!.title}.`,
-      );
-      return { ok: true };
-    }
-    case "wendigo_ban_program": {
-      const progs = runnerPrograms(state);
-      if (progs.length === 0) {
-        log(state, `Wendigo — no programs to ban.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: progs.map((id) => ({
-          id: `ban:${id}`,
-          label: `Ban ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "resolve_wendigo_ban_program", programId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "resolve_wendigo_ban_program": {
-      const programId = (action as { programId: string }).programId;
-      if (!state.run) return { ok: true };
-      if (!state.run.bannedProgramInstanceIds) {
-        state.run.bannedProgramInstanceIds = [];
-      }
-      state.run.bannedProgramInstanceIds.push(programId);
-      log(
-        state,
-        `Wendigo — Runner cannot use ${state.cards[programId]!.title} this run.`,
       );
       return { ok: true };
     }

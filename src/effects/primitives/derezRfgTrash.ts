@@ -154,29 +154,6 @@ export function applyRedsandFmPrimitive(
       return { ok: true };
     }
 
-    case "helheim_ice_protecting_this_server_strength_until_end_of_run": {
-      if (!state.run) return { ok: true };
-      let serverId: ServerId | null = null;
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (server.root.includes(sourceId) || server.ice.includes(sourceId)) {
-          serverId = sid as ServerId;
-          break;
-        }
-      }
-      if (!serverId) return { ok: true };
-      const amount = action.amount ?? 2;
-      if (!state.run.helheimServerStrengthBonus) {
-        state.run.helheimServerStrengthBonus = {};
-      }
-      state.run.helheimServerStrengthBonus[serverId] =
-        (state.run.helheimServerStrengthBonus[serverId] ?? 0) + amount;
-      log(
-        state,
-        `Helheim Servers — ice protecting ${serverId} has +${amount} strength until end of run.`,
-      );
-      return { ok: true };
-    }
-
     case "rearrange_ice_protecting_all_servers": {
       // Mandatory Seed Replacement: "rearrange any number of ice protecting
       // all servers". Arranging is repositioning among the current

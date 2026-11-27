@@ -4,7 +4,6 @@ import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
-import { addIceStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { chargeCard } from "../../state/keywordsAndCredits/keywords.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
@@ -84,48 +83,6 @@ export function applyLunarTsPrimitive(
         const r = chargeCard(state, cardId, sourceId);
         if (!r.ok) return r;
       }
-      return { ok: true };
-    }
-    case "boost_ice": {
-      // Cost already spent 1 power; bonus = remaining + 1 (the spent one).
-      const bonus = (source?.powerCounters ?? 0) + 1;
-      const rezzed: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (state.cards[id]?.rezzed) rezzed.push(id);
-        }
-      }
-      if (rezzed.length === 0) {
-        log(state, `IT Department — no rezzed ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: rezzed.map((id) => ({
-          id: `it-boost:${id}`,
-          label: `${state.cards[id]!.title} +${bonus} strength this turn`,
-          effect: fx.do({
-            kind: "boost_it_department_apply",
-            cardId: id,
-            amount: bonus,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-    case "boost_it_department_apply": {
-      const cardId = (action as { cardId: string }).cardId;
-      const amount = (action as { amount: number }).amount;
-      addIceStrengthBoostThisTurn(state, {
-        createdBy: sourceId,
-        iceId: cardId,
-        amount,
-      });
-      log(
-        state,
-        `IT Department — ${state.cards[cardId]?.title ?? cardId} +${amount} strength this turn.`,
-      );
       return { ok: true };
     }
     case "runner_trashes_one_installed": {

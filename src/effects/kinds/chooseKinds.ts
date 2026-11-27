@@ -18,7 +18,7 @@ import {
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
-import { breakerStrength } from "../iceStrength.js";
+import { breakerStrength } from "../continuous/iceStrength.js";
 
 export function applyChooseKinds(
   ctx: EffectCtx,

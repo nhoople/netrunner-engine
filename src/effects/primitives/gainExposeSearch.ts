@@ -11,7 +11,6 @@ import {
 } from "../../state/keywordsAndCredits/costs.js";
 import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { offerRdArrangeChoice } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
@@ -176,48 +175,6 @@ export function applyKitaraDtwnPrimitive(
         state,
         `Kabonesa Wu — install ${card.title} for ${cost}¢ (track RFG at turn end).`,
       );
-      return { ok: true };
-    }
-
-    case "pump_takobi_breaker": {
-      const amount = action.amount ?? 3;
-      const breakers = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return (
-          c?.breaker && !(c.subtypes ?? []).includes("ai") && id !== sourceId
-        );
-      });
-      // Also allow pumping other breakers; include self if non-AI (Takobi is not a breaker).
-      if (breakers.length === 0) {
-        log(state, `Takobi — no installed non-AI icebreaker.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: breakers.map((id) => ({
-          id: `takobi:${id}`,
-          label: `${state.cards[id]!.title} +${amount} strength`,
-          effect: fx.do({
-            kind: "pump_takobi_resolve",
-            cardId: id,
-            amount,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "pump_takobi_resolve": {
-      const card = state.cards[action.cardId];
-      if (!card || !state.run) return { ok: true };
-      const amount = action.amount ?? 3;
-      addBreakerStrengthBoostThisEncounter(state, {
-        createdBy: sourceId,
-        breakerId: action.cardId,
-        amount,
-      });
-      log(state, `Takobi — ${card.title} +${amount} strength this encounter.`);
       return { ok: true };
     }
 
@@ -560,15 +517,6 @@ export function applyKitaraDtwnPrimitive(
       }
       delete (source as { dtwnBacterialLooked?: string[] }).dtwnBacterialLooked;
       log(state, `Bacterial Programming — finish arrange.`);
-      return { ok: true };
-    }
-
-    case "forbid_install_remainder_of_turn": {
-      state.turn.dtwnRunnerCannotInstall = true;
-      log(
-        state,
-        `Jua — Runner cannot install cards for the remainder of the turn.`,
-      );
       return { ok: true };
     }
 

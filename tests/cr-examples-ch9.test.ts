@@ -35,7 +35,7 @@ import {
   lingeringIceStrengthOfKind,
 } from "../src/state/continuous/lingeringEffects.js";
 
-import { breakerStrength } from "../src/effects/iceStrength.js";
+import { breakerStrength } from "../src/effects/continuous/iceStrength.js";
 import { noteProgramOrHardwareInstalled } from "../src/state/install/programHardwareInstall.js";
 import { onRunnerTurnEnds } from "../src/state/cardFlags/staticFlags.js";
 import { beginRunnerTurnFlags } from "../src/state/turnAndActions/turn.js";

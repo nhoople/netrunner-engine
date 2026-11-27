@@ -1,15 +1,9 @@
 /** Fear and Loathing / Double Time Spin pack primitives. */
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { CR } from "../../timing/labels.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { startTrace } from "../../state/turnAndActions/trace.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
-import {
-  addLingeringEffect,
-  LINGERING_KIND_GRANTED_SUBTYPES,
-} from "../../state/continuous/lingeringEffects.js";
-import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
@@ -248,82 +242,6 @@ export function applySpinFalDtPrimitive(
       log(state, `Fall Guy — prevent trash of another resource.`);
       return { ok: true };
     }
-    case "choose_ice_gain_subtype": {
-      const cands: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const iceId of server.ice) {
-          const ice = state.cards[iceId];
-          if (ice?.rezzed) cands.push(iceId);
-        }
-      }
-      if (cands.length === 0) {
-        log(state, `Paintbrush — no rezzed ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: cands.map((id) => ({
-          id: `paintbrush:${id}`,
-          label: `Paint ${state.cards[id]!.title} (gain subtype until end of next run)`,
-          effect: fx.do({
-            kind: "paintbrush_apply_subtype",
-            iceId: id,
-          }),
-        })),
-        logLine: `Paintbrush — choose rezzed ice to paint.`,
-      });
-      return { ok: true };
-    }
-    case "paintbrush_apply_subtype": {
-      const ice = state.cards[action.iceId];
-      if (!ice) return { ok: true };
-      if (!action.subtype) {
-        // "That ice gains sentry, code gate or barrier": the Runner chooses
-        // which (CR 1.15.2).
-        const subtypes = ["sentry", "code gate", "barrier"] as const;
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "runner",
-          options: subtypes.map((subtype) => ({
-            id: `paintbrush-subtype:${subtype}`,
-            label: `${ice.title} gains ${subtype}`,
-            effect: fx.do({
-              kind: "paintbrush_apply_subtype",
-              iceId: action.iceId,
-              subtype,
-            }),
-          })),
-          logLine: `Paintbrush — choose the subtype ${ice.title} gains.`,
-        });
-        return { ok: true };
-      }
-      // A lingering effect, not a run: it lasts until the end of the next
-      // run this turn (CR 9.10.1).
-      addLingeringEffect(state, {
-        createdBy: sourceId,
-        duration: { kind: "next_run_this_turn" },
-        kind: LINGERING_KIND_GRANTED_SUBTYPES,
-        payload: { cardId: ice.id, subtypes: [action.subtype] },
-      });
-      log(
-        state,
-        `Paintbrush — ${ice.title} gains ${action.subtype} until the end of the next run this turn (CR ${CR.lingeringEffect.number}).`,
-      );
-      return { ok: true };
-    }
-    case "gyri_labyrinth_reduce_max_hand": {
-      // Each resolution lowers it by 2 more, and all of it ends when the
-      // Corp's next turn begins (CR 9.10.1).
-      state.runner.handSizePenaltyUntilCorpTurn =
-        (state.runner.handSizePenaltyUntilCorpTurn ?? 0) + 2;
-      recomputeRunnerMaxHandSize(state);
-      log(
-        state,
-        `Gyri Labyrinth — Runner max hand size −2 until Corp next turn (${state.runner.maxHandSize}).`,
-      );
-      return { ok: true };
-    }
     case "reclamation_order_archives_to_hq": {
       // Printed: name a card, then add any number of copies of it from
       // Archives to HQ — not the whole Archives.
@@ -425,18 +343,6 @@ export function applySpinFalDtPrimitive(
       };
       startPsiGame(state, sourceId, 2, fx.do({ kind: "end_the_run" }), noop);
       log(state, `Caprice Nisei — secret spend / psi.`);
-      return { ok: true };
-    }
-    case "add_etr_to_next_ice": {
-      if (!state.run) {
-        log(state, `Marker — no active run.`);
-        return { ok: true };
-      }
-      state.run.markerExtraEtrNextIce = true;
-      log(
-        state,
-        `Marker — next ice encountered gains ETR after its subroutines.`,
-      );
       return { ok: true };
     }
     default:

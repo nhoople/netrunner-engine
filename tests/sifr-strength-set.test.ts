@@ -16,7 +16,7 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import { iceStrength } from "../src/effects/iceStrength.js";
+import { iceStrength } from "../src/effects/continuous/iceStrength.js";
 import { addIceStrengthBoostThisEncounter } from "../src/state/continuous/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/index.js";
 

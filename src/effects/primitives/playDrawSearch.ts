@@ -21,17 +21,12 @@ import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { trashCorpCardSet } from "../kinds/trashKinds.js";
 import { chooseCards } from "../chooseCards.js";
-import { facedownInstalledRunnerCard } from "../../state/continuous/active.js";
-import {
-  addLingeringEffect,
-  LINGERING_KIND_BREAKER_STRENGTH_RUN,
-} from "../../state/continuous/lingeringEffects.js";
 import { evalEffect } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function installedRunnerIds(state: EffectCtx["state"]): string[] {
+export function installedRunnerIds(state: EffectCtx["state"]): string[] {
   return [...state.runner.installed];
 }
 
@@ -219,12 +214,6 @@ export function applyDadPrimitive(
       return { ok: true };
     }
 
-    case "arm_duplicate_subs_on_next_ice_encounter": {
-      state.turn.dadDuplicateSubsOnNextIceEncounter = true;
-      log(state, `TL;DR — next ice encounter this run duplicates subroutines.`);
-      return { ok: true };
-    }
-
     case "resolve_when_scored_on_scored_agenda": {
       const options: Array<{ id: string; label: string; effect: Effect }> = [];
       for (const id of state.corp.scoreArea) {
@@ -341,26 +330,6 @@ export function applyDadPrimitive(
           effect: fx.do({ kind: "dad_media_blitz_copy", cardId: id }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "dad_media_blitz_copy": {
-      const agenda = state.cards[action.cardId];
-      if (!source || !agenda) return { ok: true };
-      if (agenda.onScore) source.onScore = structuredClone(agenda.onScore);
-      if (agenda.iceStrengthBonusForSubtype) {
-        source.iceStrengthBonusForSubtype = {
-          ...agenda.iceStrengthBonusForSubtype,
-        };
-      }
-      if (agenda.subroutineTraceBaseStrengthBonus != null) {
-        source.subroutineTraceBaseStrengthBonus =
-          agenda.subroutineTraceBaseStrengthBonus;
-      }
-      if (agenda.assetsGainSubtype) {
-        source.assetsGainSubtype = agenda.assetsGainSubtype;
-      }
-      log(state, `Media Blitz gains text of ${agenda.title}.`);
       return { ok: true };
     }
 
@@ -611,109 +580,6 @@ export function applyDadPrimitive(
       );
       if (draws === 0) return { ok: true };
       return evalEffect(ctx, fx.draw("runner", draws));
-    }
-
-    case "blank_installed_abilities": {
-      const cands = installedRunnerIds(state);
-      if (cands.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: cands.map((id) => ({
-          id: `love:${id}`,
-          label: `Blank ${state.cards[id]!.title} this turn`,
-          effect: fx.do({ kind: "blank_card_this_turn", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "blank_card_this_turn": {
-      state.turn.dadBlankedCardIds = state.turn.dadBlankedCardIds ?? [];
-      state.turn.dadBlankedCardIds.push(action.cardId);
-      log(
-        state,
-        `Dr. Lovegood — ${state.cards[action.cardId]?.title} blanked this turn.`,
-      );
-      return { ok: true };
-    }
-
-    case "boost_breakers_per_link": {
-      // Security Chip: "Choose an icebreaker (or any number of cloud
-      // icebreakers). Each chosen icebreaker has +1 strength for each [link]
-      // you have for the remainder of this run." The boost is a lingering
-      // effect that ends with the run (CR 9.10.1); its amount is the link
-      // when it resolves.
-      const link = state.runner.link ?? 0;
-      // A facedown card has no characteristics, so it is no icebreaker
-      // (CR 8.1.4a).
-      const breakers = installedRunnerIds(state).filter((id) => {
-        const c = state.cards[id];
-        if (facedownInstalledRunnerCard(state, id)) return false;
-        return (
-          Boolean(c?.breaker) || (c?.subtypes ?? []).includes("icebreaker")
-        );
-      });
-      const clouds = breakers.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("cloud"),
-      );
-      if (breakers.length === 0) {
-        log(state, `Security Chip — no icebreaker installed.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...(clouds.length > 1
-            ? [
-                {
-                  id: "sc-clouds",
-                  label: `Choose any number of cloud icebreakers: +${link} strength each`,
-                  effect: chooseCards({
-                    chooser: "runner",
-                    candidates: clouds,
-                    count: clouds.length,
-                    upTo: true,
-                    purpose: "resume",
-                    label: "boost",
-                    resume: {
-                      kind: "boost_breakers",
-                      cardIds: [],
-                      amount: link,
-                    },
-                  }),
-                },
-              ]
-            : []),
-          ...breakers.map((id) => ({
-            id: `sc:${id}`,
-            label: `Boost ${state.cards[id]!.title} +${link}`,
-            effect: fx.do({
-              kind: "boost_breakers",
-              cardIds: [id],
-              amount: link,
-            }),
-          })),
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "boost_breakers": {
-      for (const id of action.cardIds) {
-        addLingeringEffect(state, {
-          createdBy: sourceId,
-          duration: { kind: "run" },
-          kind: LINGERING_KIND_BREAKER_STRENGTH_RUN,
-          payload: { breakerId: id, amount: action.amount },
-        });
-      }
-      log(
-        state,
-        `Security Chip — ${action.cardIds.length} icebreaker(s) +${action.amount} strength for the remainder of this run.`,
-      );
-      return { ok: true };
     }
 
     case "trace_bypass_or_tag_etr": {

@@ -219,11 +219,6 @@ export function applySpinTcPrimitive(
       });
       return { ok: true };
     }
-    case "forbid_runner_spend_credits_for_run": {
-      if (state.run) state.run.runnerCannotSpendCreditsForRun = true;
-      log(state, `RSVP — Runner cannot spend credits for remainder of run.`);
-      return { ok: true };
-    }
     case "remove_bad_publicity_up_to": {
       const max = action.max ?? 0;
       const have = state.corp.badPublicity ?? 0;

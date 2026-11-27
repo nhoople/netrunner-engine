@@ -13,7 +13,7 @@ import {
   effectiveIceStrength,
   instantiateCard,
 } from "../src/index.js";
-import { iceStrength } from "../src/effects/iceStrength.js";
+import { iceStrength } from "../src/effects/continuous/iceStrength.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

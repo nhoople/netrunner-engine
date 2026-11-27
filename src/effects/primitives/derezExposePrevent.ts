@@ -373,19 +373,6 @@ export function applyRedsandDcPrimitive(
       );
     }
 
-    case "forbid_installs_until_run_end": {
-      if (!state.run) {
-        log(state, `Signal Jamming — no active run.`);
-        return { ok: true };
-      }
-      state.run.forbidInstallsUntilRunEnd = true;
-      log(
-        state,
-        `Signal Jamming — cards cannot be installed until the run ends.`,
-      );
-      return { ok: true };
-    }
-
     case "place_advancements_on_forfeit": {
       const ap = action.agendaPoints ?? state.lastForfeitedAgendaPoints ?? 0;
       const x = ap + 1;

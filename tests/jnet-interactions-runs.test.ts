@@ -18,7 +18,7 @@ import {
   legalActions,
 } from "../src/index.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
-import { breakerStrength } from "../src/effects/iceStrength.js";
+import { breakerStrength } from "../src/effects/continuous/iceStrength.js";
 import type { GameState, ServerId } from "../src/state/types.js";
 import {
   approaching,

@@ -1,7 +1,6 @@
 /** Chrome City (cc) SanSan pack primitives. */
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
@@ -78,71 +77,6 @@ export function applySansanCcPrimitive(
       log(
         state,
         `Turntable — swap ${stolen?.title ?? stolenId} with ${corpAg?.title ?? corpId}.`,
-      );
-      return { ok: true };
-    }
-
-    case "net_ready_eyes_choose_icebreaker_strength": {
-      const amount = action.amount;
-      const breakers = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c?.breaker || (c?.subtypes ?? []).includes("icebreaker");
-      });
-      if (breakers.length === 0) {
-        log(state, `Net-Ready Eyes — no installed icebreaker.`);
-        return { ok: true };
-      }
-      if (breakers.length === 1) {
-        const id = breakers[0]!;
-        if (state.run) {
-          addBreakerStrengthBoostThisRun(state, {
-            createdBy: sourceId,
-            breakerId: id,
-            amount,
-          });
-        }
-        log(
-          state,
-          `Net-Ready Eyes — ${state.cards[id]!.title} +${amount} strength this run.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: breakers.map((id) => ({
-          id: `nre:${id}`,
-          label: `${state.cards[id]!.title} +${amount} strength`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "net_ready_eyes_apply_strength" as const,
-              cardId: id,
-              amount,
-            },
-          },
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "net_ready_eyes_apply_strength": {
-      if (!state.run) {
-        return {
-          ok: false,
-          error: "Net-Ready Eyes — no active run.",
-          cites: [],
-        };
-      }
-      const id = action.cardId;
-      addBreakerStrengthBoostThisRun(state, {
-        createdBy: sourceId,
-        breakerId: id,
-        amount: action.amount,
-      });
-      log(
-        state,
-        `Net-Ready Eyes — ${state.cards[id]?.title ?? id} +${action.amount} strength this run.`,
       );
       return { ok: true };
     }
@@ -225,15 +159,6 @@ export function applySansanCcPrimitive(
       card.rezzed = false;
       shuffleInPlace(state, state.corp.deck);
       log(state, `Analog Dreamers — shuffle ${card.title} into R&D.`);
-      return { ok: true };
-    }
-
-    case "runner_cannot_draw_remainder_of_turn": {
-      state.turn.ccRunnerCannotDraw = true;
-      log(
-        state,
-        `Lockdown — Runner cannot draw for the remainder of this turn.`,
-      );
       return { ok: true };
     }
 

@@ -156,6 +156,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
   debug/                  # hooks tests set: invariants after each action, timing steps, legality agreement
   demo/                   # scripted games and test drivers for the demos
   effects/                # eval.ts: the evaluator; ir.ts: points to ir/; shared rules (credits, damage, tags, runs, counters, …)
+    continuous/           # effects for a duration (CR 9.10, 9.12): ice and breaker strength (iceStrength.ts), can't-restrictions (forbidKinds.ts), and the boost, grant, blank, hand-size and memory kinds
     ir/                   # the Effect IR types: one Primitive file per kind family (matching kinds/), conditions, effect tree, known kinds, fx builders, validation
     kinds/                # one file per procedure in the kind switch
     primitives/           # printed procedures grouped by verb, not by pack

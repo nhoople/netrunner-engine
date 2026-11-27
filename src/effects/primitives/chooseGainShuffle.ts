@@ -12,7 +12,6 @@ import { getCardDef } from "../../cards/load.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
-import { resetEncounterBreaks } from "../../state/turnAndActions/break.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -73,74 +72,6 @@ export function applyRedsandBawPrimitive(
       const n = (state.runner.tags ?? 0) + 3;
       source.powerCounters = n;
       log(state, `${source.title} — load ${n} power (tags+3).`);
-      return { ok: true };
-    }
-
-    case "choose_rezzed_ice_gain_subs_subtypes_for_run": {
-      if (!state.run) return { ok: true };
-      const self = state.cards[sourceId];
-      if (!self) return { ok: true };
-      const candidates: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) {
-          if (id === sourceId) continue;
-          const ice = state.cards[id];
-          if (ice?.rezzed) candidates.push(id);
-        }
-      }
-      if (candidates.length === 0) {
-        log(state, `Loki — no other rezzed ice.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: candidates.map((id) => ({
-          id: `loki:${id}`,
-          label: `Copy ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "gain_from_ice", iceId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "gain_from_ice": {
-      const iceId = (action as { iceId: string }).iceId;
-      const self = state.cards[sourceId];
-      const other = state.cards[iceId];
-      if (!self || !other || !state.run) return { ok: true };
-      if (!self.baseSubroutines) {
-        self.baseSubroutines = structuredClone(self.subroutines ?? []);
-      }
-      if (!self.baseSubtypes) {
-        self.baseSubtypes = [...(self.subtypes ?? [])];
-      }
-      const gainedSubs = structuredClone(other.subroutines ?? []).map(
-        (sub, i) => ({
-          ...sub,
-          id: `loki-copy-${iceId}-${i}`,
-        }),
-      );
-      const subtypeSet = new Set(
-        [...(self.baseSubtypes ?? []), ...(other.subtypes ?? [])].map((s) =>
-          s.toLowerCase(),
-        ),
-      );
-      self.subtypes = [...subtypeSet];
-      self.subroutines = [
-        ...gainedSubs,
-        ...structuredClone(self.baseSubroutines),
-      ];
-      if (state.run.encounter?.iceId === sourceId) {
-        resetEncounterBreaks(
-          state.run.encounter,
-          (self.subroutines ?? []).length,
-        );
-      }
-      log(
-        state,
-        `Loki — gains subtypes/subs of ${other.title} for remainder of run.`,
-      );
       return { ok: true };
     }
 

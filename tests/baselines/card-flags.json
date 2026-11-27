@@ -1088,6 +1088,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/addKinds.ts#applyAddKinds",
           "kinds": []
         },
@@ -1442,7 +1446,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         }
       ],
@@ -2077,6 +2081,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/eval.ts#evalCond",
           "kinds": []
         },
@@ -2105,19 +2113,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/resolveMoveInstall.ts#installedNonAiIcebreakers",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/swapNetBreach.ts#applySansanCcPrimitive",
           "kinds": []
         },
         {
@@ -6563,7 +6559,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         }
       ],
@@ -6649,6 +6645,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/creditTally.ts#tallyCount",
           "kinds": []
         },
@@ -6706,10 +6706,6 @@
         },
         {
           "site": "src/effects/primitives/searchScoreName.ts#applyLunarTsbPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
           "kinds": []
         },
         {
@@ -12802,7 +12798,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
         {
@@ -19632,7 +19628,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
         {
@@ -19685,6 +19681,10 @@
           ]
         },
         {
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/encounterPrimitives.ts#applyEncounterPrimitive",
           "kinds": []
         },
@@ -19717,10 +19717,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/chooseGainShuffle.ts#applyRedsandBawPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
           "kinds": []
         },
@@ -19741,15 +19737,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/redirectSpendName.ts#applyFlashpointEsPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/resolveMoveInstall.ts#applyKitaraWinPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
           "kinds": []
         },
         {
@@ -20000,6 +19988,14 @@
           "kinds": []
         },
         {
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/continuous/continuousKinds.ts#installedNonVirtualResourceIds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/creditTally.ts#tallyCount",
           "kinds": []
         },
@@ -20108,10 +20104,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/chooseGainShuffle.ts#applyRedsandBawPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
           "kinds": []
         },
@@ -20172,15 +20164,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/preventMoveChoose.ts#applyMumbadKgPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/redirectSpendName.ts#applyFlashpointEsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveExposePay.ts#installedNonVirtualResourceIds",
           "kinds": []
         },
         {
@@ -20225,10 +20209,6 @@
         },
         {
           "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/swapNetBreach.ts#applySansanCcPrimitive",
           "kinds": []
         },
         {
@@ -21045,6 +21025,18 @@
           "kinds": []
         },
         {
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/continuous/forbidKinds.ts#applyForbidKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/corpAbilityInstall.ts#rezAfterInstall",
           "kinds": []
         },
@@ -21226,10 +21218,6 @@
         },
         {
           "site": "src/effects/kinds/derezKinds.ts#applyDerezKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/forbidKinds.ts#applyForbidKinds",
           "kinds": []
         },
         {
@@ -23692,6 +23680,14 @@
           "kinds": []
         },
         {
+          "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/continuous/continuousKinds.ts#installedNonVirtualResourceIds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/corpAbilityInstall.ts#applyInstallCorpCard",
           "kinds": []
         },
@@ -23989,10 +23985,6 @@
         },
         {
           "site": "src/effects/primitives/resolveExposePay.ts#faceupAgendaPoints",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveExposePay.ts#installedNonVirtualResourceIds",
           "kinds": []
         },
         {

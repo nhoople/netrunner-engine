@@ -3,7 +3,6 @@ import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
-import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { mayAdvanceInstalledCard } from "../../state/counters/advanceable.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
 import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
@@ -348,17 +347,6 @@ export function applySansanValPrimitive(
       }
       dealDamage(state, "net", unused, sourceId);
       log(state, `Cortex Lock — do ${unused} net damage (unused MU).`);
-      return { ok: true };
-    }
-
-    case "valley_grid_hand_size_penalty_until_next_corp_turn": {
-      state.runner.handSizePenaltyUntilCorpTurn =
-        (state.runner.handSizePenaltyUntilCorpTurn ?? 0) + 1;
-      recomputeRunnerMaxHandSize(state);
-      log(
-        state,
-        `Valley Grid — Runner max hand size −1 until beginning of Corp's next turn (penalty=${state.runner.handSizePenaltyUntilCorpTurn}).`,
-      );
       return { ok: true };
     }
 

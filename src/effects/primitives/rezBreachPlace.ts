@@ -125,58 +125,6 @@ export function applyMumbadBfPrimitive(
       return offerCbiRaidHqToRd(ctx);
     }
 
-    case "cannot_steal_copies_of_revealed_agenda": {
-      if (!source) return { ok: true };
-      const power = source.powerCounters ?? 0;
-      const agendas = state.corp.hand.filter((id) => {
-        const c = state.cards[id];
-        return (
-          c?.type === "agenda" &&
-          typeof c.agendaPoints === "number" &&
-          c.agendaPoints > 0 &&
-          c.agendaPoints <= power
-        );
-      });
-      if (agendas.length === 0) {
-        log(state, `Lakshmi Smartfabrics — no eligible agenda in HQ.`);
-        return { ok: true };
-      }
-      if (agendas.length === 1) {
-        const id = agendas[0]!;
-        const card = state.cards[id]!;
-        const x = card.agendaPoints ?? 0;
-        source.powerCounters = power - x;
-        const defId = card.defId ?? id;
-        state.turn.bfCannotStealAgendaDefIds = [
-          ...(state.turn.bfCannotStealAgendaDefIds ?? []),
-          defId,
-        ];
-        revealCards(state, [card.id], sourceId);
-        log(
-          state,
-          `Lakshmi Smartfabrics — reveal ${card.title} (${x}); Runner cannot steal copies this turn.`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: agendas.map((id) => {
-          const card = state.cards[id]!;
-          const x = card.agendaPoints ?? 0;
-          return {
-            id: `lakshmi:${id}`,
-            label: `Reveal ${card.title} (${x} pts)`,
-            effect: fx.do({
-              kind: "reveal_lakshmi_agenda_resolve",
-              cardId: id,
-            }),
-          };
-        }),
-      });
-      return { ok: true };
-    }
-
     case "reveal_lakshmi_agenda_resolve": {
       if (!source) return { ok: true };
       const id = action.cardId;
