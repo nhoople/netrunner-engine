@@ -31,7 +31,6 @@ import {
   serverHostingCard,
   validatePaidEffect,
 } from "../effects/eval.js";
-import { fireSiAfterPaidAbilityClicks } from "../effects/primitives/lookTrashAdd.js";
 import {
   abilityCost,
   abilityNeedsEncounter,
@@ -100,6 +99,7 @@ import {
   fireOnFirstHardwareUseDuringRunEachTurn,
   fireOnFirstResourcePaidAbilityEachTurn,
 } from "../state/triggers/miscConditionalHooks.js";
+import { fireSiAfterPaidAbilityClicks } from "../effects/turnAndActions/turnAndActionKinds.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

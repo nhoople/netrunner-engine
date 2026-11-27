@@ -1,10 +1,10 @@
 /**
  * Psi game. Card-specific bid outcomes stay with their packs.
  */
-import { startPsiGame } from "../state/turnAndActions/psi.js";
-import type { RuleCite } from "../state/types.js";
-import type { EffectCtx } from "./eval.js";
-import type { Effect, Primitive } from "./ir.js";
+import { startPsiGame } from "../../state/turnAndActions/psi.js";
+import type { RuleCite } from "../../state/types.js";
+import type { EffectCtx } from "../eval.js";
+import type { Effect, Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

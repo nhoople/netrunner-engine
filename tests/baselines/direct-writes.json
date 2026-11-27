@@ -216,47 +216,6 @@
       "rezzed": 1,
       "zone": 16
     },
-    "src/effects/kinds/otherKinds.ts": {
-      "deck": 1,
-      "discardPile": 1,
-      "hand": 2,
-      "installed": 1,
-      "removedFromGame": 2,
-      "rezzed": 2,
-      "scoreArea": 3,
-      "zone": 4
-    },
-    "src/effects/kinds/playKinds.ts": {
-      "discardPile": 2
-    },
-    "src/effects/primitives/derezDrawChoose.ts": {
-      "discardPile": 1
-    },
-    "src/effects/primitives/preventGainSpend.ts": {
-      "removedFromGame": 2,
-      "zone": 1
-    },
-    "src/effects/primitives/preventInstallDraw.ts": {
-      "rezzed": 1
-    },
-    "src/effects/primitives/shuffleLookPick.ts": {
-      "rezzed": 1,
-      "scoreArea": 1,
-      "zone": 1
-    },
-    "src/effects/primitives/spendInstallAdd.ts": {
-      "deck": 1,
-      "hand": 1,
-      "scoreArea": 1,
-      "zone": 2
-    },
-    "src/effects/primitives/trashPlaceAccess.ts": {
-      "deck": 1,
-      "discardPile": 1,
-      "rezzed": 1,
-      "scoreArea": 1,
-      "zone": 2
-    },
     "src/effects/rez/derezKinds.ts": {
       "rezzed": 8
     },
@@ -343,6 +302,25 @@
       "deck": 6,
       "discardPile": 2,
       "rezzed": 1,
+      "zone": 3
+    },
+    "src/effects/turnAndActions/playKinds.ts": {
+      "discardPile": 2
+    },
+    "src/effects/turnAndActions/scoreAndForfeitKinds.ts": {
+      "discardPile": 2,
+      "hand": 2,
+      "installed": 1,
+      "removedFromGame": 2,
+      "rezzed": 5,
+      "scoreArea": 6,
+      "zone": 7
+    },
+    "src/effects/turnAndActions/turnAndActionKinds.ts": {
+      "deck": 3,
+      "discardPile": 1,
+      "hand": 1,
+      "removedFromGame": 2,
       "zone": 3
     },
     "src/effects/uninstallAndPosition/moveKinds.ts": {

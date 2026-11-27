@@ -803,7 +803,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/resolveExposePay.ts#lastAgendaAdvancementRequirement",
+          "site": "src/effects/turnAndActions/turnAndActionKinds.ts#lastAgendaAdvancementRequirement",
           "kinds": []
         },
         {
@@ -1111,15 +1111,15 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/effects/searchAndDeck/addKinds.ts#applyAddKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#applyScoreAndForfeitKinds",
           "kinds": [],
           "mirrors": [
             "src/effects/ir/otherPrimitive.ts#{OtherPrimitive}"
           ]
-        },
-        {
-          "site": "src/effects/searchAndDeck/addKinds.ts#applyAddKinds",
-          "kinds": []
         },
         {
           "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds",
@@ -4031,7 +4031,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
+          "site": "src/effects/turnAndActions/playKinds.ts#applyPlayKinds",
           "kinds": []
         }
       ],
@@ -4630,7 +4630,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#fireSiAfterPaidAbilityClicks",
+          "site": "src/effects/turnAndActions/turnAndActionKinds.ts#fireSiAfterPaidAbilityClicks",
           "kinds": []
         }
       ],
@@ -4672,7 +4672,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/effects/turnAndActions/breakKinds.ts#applyBreakKinds",
           "kinds": [
             "gain_credits"
           ]
@@ -6677,18 +6677,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/chooseGainShuffle.ts#canAdvance",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventInstallDraw.ts#applySansanBbPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/rezKinds.ts#icePrintedRezCost",
           "kinds": []
         },
@@ -6706,6 +6694,14 @@
         },
         {
           "site": "src/effects/triggers/chooseCards.ts#sameForChoice",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#applyScoreAndForfeitKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#canAdvance",
           "kinds": []
         },
         {
@@ -10849,7 +10845,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/clickPrimitives.ts#applyClickPrimitive",
+          "site": "src/effects/turnAndActions/clickPrimitives.ts#applyClickPrimitive",
           "kinds": []
         },
         {
@@ -11718,7 +11714,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/effects/turnAndActions/breakKinds.ts#applyBreakKinds",
           "kinds": []
         },
         {
@@ -12805,7 +12801,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#applyScoreAndForfeitKinds",
           "kinds": []
         },
         {
@@ -14439,26 +14435,18 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/effects/searchAndDeck/deckOrderKinds.ts#applyDeckOrderKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/playKinds.ts#applyPlayKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/turnAndActionKinds.ts#applyTurnAndActionKinds",
           "kinds": [
             "accelerated_diagnostics"
           ]
-        },
-        {
-          "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/searchAndDeck/deckOrderKinds.ts#applyDeckOrderKinds",
-          "kinds": []
         },
         {
           "site": "src/effects/visibility/revealKinds.ts#applyRevealKinds",
@@ -14962,7 +14950,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
+          "site": "src/effects/turnAndActions/playKinds.ts#applyPlayKinds",
           "kinds": []
         },
         {
@@ -18221,13 +18209,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/preventSpendTrash.ts#applyLunarUaoPrimitive",
-          "kinds": [],
-          "mirrors": [
-            "src/effects/ir/otherPrimitive.ts#{OtherPrimitive}"
-          ]
-        },
-        {
           "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -18262,6 +18243,13 @@
         {
           "site": "src/effects/triggers/chooseKinds.ts#applyChooseKinds",
           "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/turnAndActionKinds.ts#applyTurnAndActionKinds",
+          "kinds": [],
+          "mirrors": [
+            "src/effects/ir/otherPrimitive.ts#{OtherPrimitive}"
+          ]
         },
         {
           "site": "src/effects/uninstallAndPosition/returnKinds.ts#applyReturnKinds",
@@ -19661,46 +19649,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/boostRezTrace.ts#applyLunarTsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezDrawChoose.ts#breakOneSub",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/moveSearchInstall.ts#applyKitaraCotcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#breakUnbrokenExcept",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#chooseSparedSubroutine",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#offerSparedSubroutineChoice",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#openSpareSubroutineChoice",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
@@ -19718,6 +19666,30 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#applyBreakKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#breakOneSub",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#breakUnbrokenExcept",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#chooseSparedSubroutine",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#offerSparedSubroutineChoice",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#openSpareSubroutineChoice",
           "kinds": []
         },
         {
@@ -20132,54 +20104,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/boostRezTrace.ts#applyLunarTsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/breachTrashTurn.ts#applySpinTcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventGainSpend.ts#applyFlashpointQuPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/redirectSpendName.ts#applyFlashpointEsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/searchScoreName.ts#applyLunarTsbPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendHostPrevent.ts#applyFlashpointMlPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/rezKinds.ts#applyRezKinds",
           "kinds": []
         },
@@ -20244,6 +20168,22 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#applyBreakKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/playKinds.ts#applyPlayKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#applyScoreAndForfeitKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/turnAndActionKinds.ts#applyTurnAndActionKinds",
           "kinds": []
         },
         {
@@ -21381,86 +21321,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/boostRezTrace.ts#applyLunarTsPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/breachResolveInstall.ts#applyKitaraKaPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/breachTrashTurn.ts#applySpinTcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/chooseGainShuffle.ts#applyRedsandBawPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezDrawChoose.ts#breakOneSub",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookTrashAdd.ts#fireSiAfterPaidAbilityClicks",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/moveSearchInstall.ts#applyKitaraCotcPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventGainSpend.ts#applyFlashpointQuPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventInstallDraw.ts#applySansanBbPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventMoveChoose.ts#applyMumbadKgPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventSpendTrash.ts#applyLunarUaoPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/revealTrashCannot.ts#applyMumbadFtmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/shuffleLookPick.ts#applySansanOhPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#breakUnbrokenExcept",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
           "kinds": []
         },
@@ -21597,10 +21457,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/tracePrimitives.ts#applyTracePrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/triggers/chooseCards.ts#applyChooseCards",
           "kinds": []
         },
@@ -21614,6 +21470,42 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#applyBreakKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#breakOneSub",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/breakKinds.ts#breakUnbrokenExcept",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/playKinds.ts#applyPlayKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#applyScoreAndForfeitKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#applyScoreAndForfeitKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/tracePrimitives.ts#applyTracePrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/turnAndActionKinds.ts#applyTurnAndActionKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/turnAndActionKinds.ts#fireSiAfterPaidAbilityClicks",
           "kinds": []
         },
         {
@@ -23964,50 +23856,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/playKinds.ts#applyPlayKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/chooseGainShuffle.ts#canAdvance",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/playDrawSearch.ts#applyDadPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventGainSpend.ts#applyFlashpointQuPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventInstallDraw.ts#applySansanBbPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/revealTrashCannot.ts#applyMumbadFtmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/shuffleLookPick.ts#applySansanOhPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashPlaceAccess.ts#applyMumbadTlmPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/rez/derezKinds.ts#applyDerezKinds",
           "kinds": []
         },
@@ -24089,6 +23937,26 @@
         },
         {
           "site": "src/effects/triggers/resolveKinds.ts#applyResolveKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/playKinds.ts#applyPlayKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#applyScoreAndForfeitKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#applyScoreAndForfeitKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/scoreAndForfeitKinds.ts#canAdvance",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/turnAndActions/turnAndActionKinds.ts#applyTurnAndActionKinds",
           "kinds": []
         },
         {

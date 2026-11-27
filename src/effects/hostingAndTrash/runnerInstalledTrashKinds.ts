@@ -17,10 +17,10 @@ import {
 } from "../eval.js";
 import { type Effect, fx, type Primitive } from "../ir.js";
 import { shuffleInPlace } from "../../state/rng.js";
-import { installedCorpCards } from "../primitives/chooseGainShuffle.js";
 import type { GameState } from "../../state/types.js";
 import { countRezzedNextIce } from "../damageAndPrevention/damageAndPreventionKinds.js";
 import { applyKeywordAndCreditKinds } from "../keywordsAndCredits/keywordAndCreditKinds.js";
+import { installedCorpCards } from "../turnAndActions/scoreAndForfeitKinds.js";
 
 /**
  * Who chooses and carries out a "trash 1 program/hardware" subroutine:

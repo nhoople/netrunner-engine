@@ -34,7 +34,6 @@ import { stealForbiddenThisAccess } from "../src/actions/access.js";
 import { usePaidAbility } from "../src/actions/paidAbility.js";
 import { breakSubroutine } from "../src/actions/breakSubroutine.js";
 import { onRunnerTurnEnds } from "../src/state/cardFlags/staticFlags.js";
-import { fireSiAfterPaidAbilityClicks } from "../src/effects/primitives/lookTrashAdd.js";
 import { blankAbilitiesUntilCorpTurnEnd } from "../src/state/continuous/lingeringEffects.js";
 import { iceAtRunnerPosition } from "../src/state/uninstallAndPosition/runPosition.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
@@ -56,6 +55,7 @@ import {
   toHand,
 } from "./rulings-helpers.js";
 import { trashCorpCardSet } from "../src/effects/hostingAndTrash/corpInstalledTrashKinds.js";
+import { fireSiAfterPaidAbilityClicks } from "../src/effects/turnAndActions/turnAndActionKinds.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

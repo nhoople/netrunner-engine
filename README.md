@@ -171,6 +171,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
     searchAndDeck/        # drawing (draw.ts), searching and shuffling (CR 8.7), deck order, and adding cards from Archives or the heap
     swap/                 # swapping cards (CR 8.8): the swap kinds
     triggers/             # choices and conditional abilities (CR 9.6): choose_card and choose_cards, the choose and resolve kinds, first- and second-time-each-turn triggers (firstTimeEachTurnTriggers.ts)
+    turnAndActions/       # turn structure and actions (CR ch. 5): clicks, psi games, traces, playing cards, breaking subroutines, scoring and forfeiting
     uninstallAndPosition/ # uninstalling and moving cards, and the Runner's position in a run (CR 8.5.10, 6.2): the move and return kinds
     visibility/           # what a seat may see (CR 1.21, 10.2): the reveal, look and expose kinds, faceup and facedown, the card names a player may choose (cardNames.ts)
   legality/               # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries

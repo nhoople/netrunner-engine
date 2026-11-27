@@ -27,7 +27,7 @@ import { CR } from "../../timing/labels.js";
 import { bmCounter, setBmCounter } from "./deckOrderKinds.js";
 import { getCardDef } from "../../cards/load.js";
 import type { RuleCite } from "../../state/types.js";
-import { applyMumbadTlmPrimitive } from "../primitives/trashPlaceAccess.js";
+import { applyTurnAndActionKinds } from "../turnAndActions/turnAndActionKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -1156,7 +1156,7 @@ export function applySearchAndShuffleKinds(
         return { ok: true };
       }
       if (ops.length === 1) {
-        return applyMumbadTlmPrimitive(ctx, {
+        return applyTurnAndActionKinds(ctx, {
           kind: "play_resolve",
           cardId: ops[0]!,
         });
