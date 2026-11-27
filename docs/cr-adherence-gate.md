@@ -81,7 +81,7 @@ Run for each card (or tightly related group) in the slice. Record outcomes in th
 | Card text contradicts general CR | Prefer card text (**1.2.1**); cite both the card and **1.2.1** in notes/tests |
 | Only a subset of printed text is mapped | Explicit `unsupported` entries for the rest — never empty-IR + host hardcode without a tracked follow-up |
 
-Fail-closed means: **wrong play is worse than “not yet playable.”** Pool `supported` / clear status requires the gate, not only green unit tests. Waves marked `supported` must keep every card’s `unsupported` empty unless the card is listed with a reason in cards-data `data/supported-unsupported-allowlist.json` (CI: cards `validate-cards.py`, engine `tests/pool-supported-invariant.test.ts`).
+Fail-closed means: **wrong play is worse than “not yet playable.”** Pool `supported` / clear status requires the gate, not only green unit tests. Waves marked `supported` must keep every card’s `unsupported` empty unless the card is listed with a reason in cards-data `data/supported-unsupported-allowlist.json` (CI: cards `scripts/validate_cards.py`, engine `tests/pool-supported-invariant.test.ts`).
 
 ### 8. Slice exit (before bumping semver / clearing cards)
 
