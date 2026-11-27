@@ -3,7 +3,10 @@
  * Drawing one card is shared with the basic draw action.
  */
 import { effectiveMaxHandSize } from "../state/continuous/handSize.js";
-import { commitDraw, holdCorpDrawForDbs } from "../effects/draw.js";
+import {
+  commitDraw,
+  holdCorpDrawForDbs,
+} from "../effects/searchAndDeck/draw.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { activePlayer, log } from "../state/setupAndEnd/createGame.js";
 import { geneticsPavilionDrawLimit } from "../state/cardFlags/staticFlags.js";

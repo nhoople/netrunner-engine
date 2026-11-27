@@ -13,16 +13,16 @@ import {
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { trashCard, controllerOf } from "../../state/hostingAndTrash/trash.js";
-import { drawCards } from "../draw.js";
+import { drawCards } from "../searchAndDeck/draw.js";
 import { type Effect, fx, type Primitive } from "../ir.js";
 import { pickRandomSubset, random } from "../../state/rng.js";
 import { chooseCards } from "../triggers/chooseCards.js";
-import { offerSiStackTrashOrArrange } from "../primitives/lookTrashAdd.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 import { addIceStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { resolveChronosFirstNetPick } from "../../state/damageAndPrevention/damage.js";
 import type { RuleCite, GameState } from "../../state/types.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
+import { offerSiStackTrashOrArrange } from "../searchAndDeck/deckOrderKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

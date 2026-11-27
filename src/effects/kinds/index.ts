@@ -1,7 +1,7 @@
 /** Dispatch for the procedure files split out of the effect switch. */
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
-import { applyAddKinds } from "./addKinds.js";
+import { applyAddKinds } from "../searchAndDeck/addKinds.js";
 import { applyBreachKinds } from "../access/breachKinds.js";
 import { applyChooseKinds } from "../triggers/chooseKinds.js";
 import { applyDerezKinds } from "../rez/derezKinds.js";
@@ -20,9 +20,9 @@ import { applyResolveKinds } from "../triggers/resolveKinds.js";
 import { applyReturnKinds } from "../uninstallAndPosition/returnKinds.js";
 import { applyRevealKinds } from "../visibility/revealKinds.js";
 import { applyRezKinds } from "../rez/rezKinds.js";
-import { applySearchKinds } from "./searchKinds.js";
+import { applySearchKinds } from "../searchAndDeck/searchKinds.js";
 import { applySetKinds } from "./setKinds.js";
-import { applyShuffleKinds } from "./shuffleKinds.js";
+import { applyShuffleKinds } from "../searchAndDeck/shuffleKinds.js";
 import { applySwapKinds } from "../swap/swapKinds.js";
 
 import {
@@ -80,6 +80,15 @@ import {
   applyCounterKinds,
   applyCounterKindsWhenSourceExists,
 } from "../counters/counterKinds.js";
+import {
+  applyDeckOrderKinds,
+  applyDeckOrderKindsWhenSourceExists,
+} from "../searchAndDeck/deckOrderKinds.js";
+import { applyArchivesAndHeapRetrievalKinds } from "../searchAndDeck/archivesAndHeapRetrievalKinds.js";
+import {
+  applySearchAndShuffleKinds,
+  applySearchAndShuffleKindsWhenSourceExists,
+} from "../searchAndDeck/searchAndShuffleKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -135,6 +144,11 @@ const HANDLERS = [
   applyDamageAndPreventionKindsWhenSourceExists,
   applyCounterKinds,
   applyCounterKindsWhenSourceExists,
+  applyDeckOrderKinds,
+  applyDeckOrderKindsWhenSourceExists,
+  applyArchivesAndHeapRetrievalKinds,
+  applySearchAndShuffleKinds,
+  applySearchAndShuffleKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

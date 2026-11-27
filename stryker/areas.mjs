@@ -48,10 +48,7 @@ export const areas = {
   },
   swap: {
     title: "3. Swap",
-    mutate: [
-      "src/effects/swap/swapKinds.ts",
-      "src/effects/primitives/swapNetBreach.ts",
-    ],
+    mutate: ["src/effects/swap/swapKinds.ts"],
     tests: ["tests/*swap*.test.ts"],
     grep: /\b8\.8\.[1-4]|Yagi-Uda|Daruma|Sakai|Surfer|Inversificator|Allele|Nihongai|Turntable|Midori|Mitra Aman|Tāo Salonga|\bswap_/,
   },

@@ -16,7 +16,7 @@ import {
   findCupellationHost,
 } from "../src/actions/access.js";
 import { patchworkDiscountSource } from "../src/actions/play.js";
-import { classActWouldDrawSource } from "../src/effects/draw.js";
+import { classActWouldDrawSource } from "../src/effects/searchAndDeck/draw.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

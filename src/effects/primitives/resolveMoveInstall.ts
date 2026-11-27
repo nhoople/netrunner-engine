@@ -8,7 +8,6 @@ import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { addCompileInstalledToBottom } from "../install/runnerInstallFromOtherZonesKinds.js";
-import { shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -61,33 +60,6 @@ export function applyKitaraWinPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "search_compile": {
-      const zoneIds =
-        action.zone === "stack" ? state.runner.deck : state.runner.discardPile;
-      const programs = zoneIds.filter(
-        (id) => state.cards[id]?.type === "program",
-      );
-      if (programs.length === 0) {
-        log(state, `Compile — no program in ${action.zone}.`);
-        if (action.zone === "stack") shuffleInPlace(state, state.runner.deck);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: programs.map((id) => ({
-          id: `compile:${id}`,
-          label: `Install ${state.cards[id]!.title} ignoring costs`,
-          effect: fx.do({
-            kind: "install_compile_resolve",
-            cardId: id,
-            zone: action.zone,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "bypass_current_encounter": {
       if (!state.run?.encounter) {
         log(state, `Logic Bomb — not encountering ice.`);

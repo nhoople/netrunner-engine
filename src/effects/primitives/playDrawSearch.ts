@@ -15,11 +15,8 @@ import { playEffectFromCard } from "../abilityRecord.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { random } from "../../state/rng.js";
-import { evalEffect } from "../eval.js";
 import { installedRunnerIds } from "../visibility/visibilityKinds.js";
 import type { RuleCite } from "../../state/types.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -77,79 +74,6 @@ export function applyDadPrimitive(
       removeCardFromCurrentZone(state, action.cardId);
       placeCurrentAfterPlay(state, action.cardId, "corp");
       log(state, `Play current ${card.title} for ${cost}¢.`);
-      return { ok: true };
-    }
-
-    case "draw_from_bottom_of_rd": {
-      // Shannon Claire: "Draw 1 card from the bottom of R&D" is a draw, so it
-      // goes through the draw procedure (CR 8.4.5): the bottom card moves to
-      // the top, then the Corp draws it (Jinja City Grid, Political Dealings).
-      // With R&D empty the draw still happens, so the Runner wins
-      // (CR 1.7.2c).
-      const n = action.amount ?? 1;
-      for (let i = 0; i < Math.min(n, state.corp.deck.length); i++) {
-        const id = state.corp.deck.pop()!;
-        state.corp.deck.unshift(id);
-      }
-      return evalEffect(ctx, fx.draw("corp", n));
-    }
-
-    case "search_rd_or_archives_agenda_to_bottom_rd": {
-      const fromRd = state.corp.deck.filter(
-        (id) => state.cards[id]?.type === "agenda",
-      );
-      const fromArch = state.corp.discardPile.filter(
-        (id) => state.cards[id]?.type === "agenda",
-      );
-      const opts: { id: string; label: string; effect: Effect }[] = [];
-      for (const id of fromRd) {
-        opts.push({
-          id: `shannon-rd:${id}`,
-          label: `R&D: ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "move_agenda_to_bottom_rd",
-            cardId: id,
-            shuffledRd: true,
-          }),
-        });
-      }
-      for (const id of fromArch) {
-        opts.push({
-          id: `shannon-arch:${id}`,
-          label: `Archives: ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "move_agenda_to_bottom_rd",
-            cardId: id,
-            shuffledRd: false,
-          }),
-        });
-      }
-      if (opts.length === 0) {
-        log(state, `${source?.title ?? "Shannon Claire"} — no agenda found.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
-      return { ok: true };
-    }
-
-    case "move_agenda_to_bottom_rd": {
-      const card = state.cards[action.cardId];
-      if (!card) return { ok: true };
-      removeCardFromCurrentZone(state, action.cardId);
-      if (action.shuffledRd) {
-        const rest = state.corp.deck.filter((id) => id !== action.cardId);
-        for (let i = rest.length - 1; i > 0; i--) {
-          const j = Math.floor(random(state) * (i + 1));
-          [rest[i], rest[j]] = [rest[j]!, rest[i]!];
-        }
-        // top = index 0; bottom = end
-        state.corp.deck = [...rest, action.cardId];
-      } else {
-        state.corp.deck.push(action.cardId);
-      }
-      card.zone = "corp:rd";
-      card.faceup = false;
-      log(state, `${card.title} added to bottom of R&D.`);
       return { ok: true };
     }
 
@@ -342,29 +266,6 @@ export function applyDadPrimitive(
       // Flag only — run is initiated via standard action UI after choice;
       // arm a marker that first run this window forbids programs.
       log(state, `Jak Sinclair — next run cannot use programs.`);
-      return { ok: true };
-    }
-
-    case "shuffle_trash_top_gain_install_cost": {
-      const deck = [...state.runner.deck];
-      for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(random(state) * (i + 1));
-        [deck[i], deck[j]] = [deck[j]!, deck[i]!];
-      }
-      state.runner.deck = deck;
-      const top = state.runner.deck.shift();
-      if (!top) {
-        log(state, `Windfall — stack empty.`);
-        return { ok: true };
-      }
-      const card = state.cards[top]!;
-      const gainAmt = card.installCost ?? 0;
-      trashCard(state, top, { by: "runner" });
-      state.runner.credits += gainAmt;
-      log(
-        state,
-        `Windfall — trash ${card.title}, gain ${gainAmt}¢ (install cost).`,
-      );
       return { ok: true };
     }
 

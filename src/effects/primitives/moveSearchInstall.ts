@@ -6,54 +6,11 @@ import {
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { shuffleInPlace } from "../../state/rng.js";
-import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
-import { lookAtCards } from "../../state/visibility/reveal.js";
+import { fx, type Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function countRezzedNextIce(state: EffectCtx["state"]): number {
-  let n = 0;
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) {
-      const c = state.cards[id];
-      if (c?.rezzed && (c.subtypes ?? []).includes("next")) n += 1;
-    }
-  }
-  return n;
-}
-
-function installedRunnerCardIds(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const id of state.runner.installed) {
-    if (!state.cards[id]?.hostId) out.push(id);
-  }
-  for (const card of Object.values(state.cards)) {
-    if (
-      card.side === "runner" &&
-      card.hostId &&
-      !out.includes(card.id) &&
-      state.runner.installed.includes(card.id)
-    ) {
-      out.push(card.id);
-    }
-  }
-  return out;
-}
-
-function shuffleRunnerCardIntoStack(
-  state: EffectCtx["state"],
-  cardId: string,
-): void {
-  const card = state.cards[cardId];
-  if (!card) return;
-  uninstallCard(state, cardId, "deck-shuffle", {
-    logLine: `Shuffle ${card.title} into the stack.`,
-  });
-}
 
 export function applyKitaraCotcPrimitive(
   ctx: EffectCtx,
@@ -63,31 +20,6 @@ export function applyKitaraCotcPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "search_crypt_install": {
-      const candidates = state.runner.deck.filter((id) => {
-        const c = state.cards[id];
-        return c?.type === "program" && (c.subtypes ?? []).includes("virus");
-      });
-      if (candidates.length === 0) {
-        shuffleInPlace(state, state.runner.deck);
-        log(state, `Crypt — no virus program in stack; shuffle.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: candidates.map((id) => ({
-          id: `crypt-install:${id}`,
-          label: `Install ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "install_crypt_resolve",
-            cardId: id,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "resolve_marathon": {
       state.runner.clicks += 1;
       const serverId = state.run?.attackedServerId;
@@ -183,45 +115,6 @@ export function applyKitaraCotcPrimitive(
       return applyKitaraCotcPrimitive(ctx, { kind: "cotc_white_hat" });
     }
 
-    case "shuffle_white_hat_one": {
-      const cardId = (action as { cardId: string }).cardId;
-      const remaining = (action as { remaining?: number }).remaining ?? 0;
-      const card = state.cards[cardId];
-      if (card && state.corp.hand.includes(cardId)) {
-        state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-        card.zone = "corp:rd";
-        card.faceup = false;
-        state.corp.deck.push(cardId);
-        shuffleInPlace(state, state.corp.deck);
-        log(state, `White Hat — shuffle ${card.title} into R&D.`);
-      }
-      if (remaining <= 0) return { ok: true };
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) return { ok: true };
-      const opts: { id: string; label: string; effect: Effect }[] = hq.map(
-        (id) => ({
-          id: `wh-shuffle:${id}`,
-          label: `Shuffle ${state.cards[id]!.title} into R&D`,
-          effect: fx.do({
-            kind: "shuffle_white_hat_one",
-            cardId: id,
-            remaining: remaining - 1,
-          }),
-        }),
-      );
-      opts.push({
-        id: "wh-done",
-        label: "Done",
-        effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: opts,
-      });
-      return { ok: true };
-    }
-
     case "trace_kuwinda": {
       const x = source?.powerCounters ?? 0;
       openPendingChoose(state, {
@@ -249,192 +142,6 @@ export function applyKitaraCotcPrimitive(
       return { ok: true };
     }
 
-    case "draw_next_sapphire": {
-      const x = countRezzedNextIce(state);
-      const opts: { id: string; label: string; effect: Effect }[] = [];
-      for (let n = 0; n <= x; n++) {
-        opts.push({
-          id: `sapphire-draw:${n}`,
-          label: n === 0 ? "Draw 0" : `Draw ${n}`,
-          effect: fx.do({ kind: "draw", side: "corp", amount: n }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
-      return { ok: true };
-    }
-
-    case "cotc_next_sapphire_archives_to_hq": {
-      const x = countRezzedNextIce(state);
-      const archives = [...state.corp.discardPile];
-      if (x <= 0 || archives.length === 0) {
-        log(state, `NEXT Sapphire — add 0 from Archives (X=${x}).`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...archives.map((id) => ({
-            id: `sapphire-arch:${id}`,
-            label: `Add ${state.cards[id]!.title} to HQ`,
-            effect: fx.do({
-              kind: "pick_next_sapphire_archives",
-              cardId: id,
-              remaining: Math.min(x, archives.length) - 1,
-            }),
-          })),
-          {
-            id: "sapphire-arch-done",
-            label: "Done",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "pick_next_sapphire_archives": {
-      const cardId = (action as { cardId: string }).cardId;
-      const remaining = (action as { remaining?: number }).remaining ?? 0;
-      const card = state.cards[cardId];
-      if (card && state.corp.discardPile.includes(cardId)) {
-        state.corp.discardPile = state.corp.discardPile.filter(
-          (id) => id !== cardId,
-        );
-        state.corp.hand.push(cardId);
-        card.zone = "corp:hq";
-        // Not revealed: a card in HQ is neither faceup nor facedown (CR 1.21.1a).
-        card.faceup = false;
-        log(state, `NEXT Sapphire — add ${card.title} from Archives to HQ.`);
-      }
-      if (remaining <= 0) return { ok: true };
-      const archives = [...state.corp.discardPile];
-      if (archives.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...archives.map((id) => ({
-            id: `sapphire-arch:${id}`,
-            label: `Add ${state.cards[id]!.title} to HQ`,
-            effect: fx.do({
-              kind: "pick_next_sapphire_archives",
-              cardId: id,
-              remaining: remaining - 1,
-            }),
-          })),
-          {
-            id: "sapphire-arch-done",
-            label: "Done",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "cotc_next_sapphire_hq_to_rd": {
-      const x = countRezzedNextIce(state);
-      const hq = [...state.corp.hand];
-      if (x <= 0 || hq.length === 0) {
-        log(state, `NEXT Sapphire — shuffle 0 from HQ (X=${x}).`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...hq.map((id) => ({
-            id: `sapphire-hq:${id}`,
-            label: `Shuffle ${state.cards[id]!.title} into R&D`,
-            effect: fx.do({
-              kind: "pick_next_sapphire_hq",
-              cardId: id,
-              remaining: Math.min(x, hq.length) - 1,
-            }),
-          })),
-          {
-            id: "sapphire-hq-done",
-            label: "Done",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "pick_next_sapphire_hq": {
-      const cardId = (action as { cardId: string }).cardId;
-      const remaining = (action as { remaining?: number }).remaining ?? 0;
-      const card = state.cards[cardId];
-      if (card && state.corp.hand.includes(cardId)) {
-        state.corp.hand = state.corp.hand.filter((id) => id !== cardId);
-        card.zone = "corp:rd";
-        card.faceup = false;
-        state.corp.deck.push(cardId);
-        shuffleInPlace(state, state.corp.deck);
-        log(state, `NEXT Sapphire — shuffle ${card.title} into R&D.`);
-      }
-      if (remaining <= 0) return { ok: true };
-      const hq = [...state.corp.hand];
-      if (hq.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...hq.map((id) => ({
-            id: `sapphire-hq:${id}`,
-            label: `Shuffle ${state.cards[id]!.title} into R&D`,
-            effect: fx.do({
-              kind: "pick_next_sapphire_hq",
-              cardId: id,
-              remaining: remaining - 1,
-            }),
-          })),
-          {
-            id: "sapphire-hq-done",
-            label: "Done",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "cotc_anansi_arrange_rd": {
-      // Printed: look at the top N of R&D and arrange them in any order.
-      // Reuse the shared pick_rd_arrange flow (same as look_top_n_rd_arrange).
-      const amount = (action as { amount?: number }).amount ?? 5;
-      if (state.turn.rdLookedCards.length > 0) {
-        return {
-          ok: false,
-          error: "R&D look already in progress.",
-          cites: [],
-        };
-      }
-      const taken = state.corp.deck.splice(
-        0,
-        Math.min(amount, state.corp.deck.length),
-      );
-      if (taken.length === 0) {
-        log(state, `Anansi — R&D empty.`);
-        return { ok: true };
-      }
-      state.turn.rdLookedCards = taken;
-      state.turn.rdArrangePlaced = [];
-      lookAtCards(state, taken, sourceId);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: taken.map((id) => ({
-          id: `rd-arrange:${id}`,
-          label: `Place ${state.cards[id]!.title} on top next`,
-          effect: fx.do({ kind: "pick_rd_arrange", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
     case "cotc_azmari_name_card_type": {
       const types = ["event", "hardware", "program", "resource"];
       openPendingChoose(state, {
@@ -457,55 +164,6 @@ export function applyKitaraCotcPrimitive(
       if (source) source.azmariNamedType = cardType;
       state.turn.cotcAzmariNamedTypeFired = false;
       log(state, `${source?.title ?? "Azmari EdTech"} — name ${cardType}.`);
-      return { ok: true };
-    }
-
-    case "shuffle_n_installed_runner_into_stack": {
-      const amount = (action as { amount?: number }).amount ?? 2;
-      const installed = installedRunnerCardIds(state);
-      if (installed.length < amount) {
-        return {
-          ok: false,
-          error: `Degree Mill steal requires ${amount} installed Runner cards.`,
-          cites: [],
-        };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: installed.map((id) => ({
-          id: `degree:${id}`,
-          label: `Shuffle ${state.cards[id]!.title} into the stack`,
-          effect: fx.do({
-            kind: "shuffle_installed_pick",
-            cardId: id,
-            remaining: amount - 1,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "shuffle_installed_pick": {
-      const cardId = (action as { cardId: string }).cardId;
-      const remaining = (action as { remaining?: number }).remaining ?? 0;
-      shuffleRunnerCardIntoStack(state, cardId);
-      if (remaining <= 0) return { ok: true };
-      const installed = installedRunnerCardIds(state);
-      if (installed.length === 0) return { ok: true };
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: installed.map((id) => ({
-          id: `degree:${id}`,
-          label: `Shuffle ${state.cards[id]!.title} into the stack`,
-          effect: fx.do({
-            kind: "shuffle_installed_pick",
-            cardId: id,
-            remaining: remaining - 1,
-          }),
-        })),
-      });
       return { ok: true };
     }
 

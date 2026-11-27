@@ -23,8 +23,8 @@ import { type Effect, fx, type Primitive } from "../ir.js";
 import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import { syncCorpHandSizeSubroutines } from "../../state/continuous/handSizeSubroutines.js";
 import type { RuleCite } from "../../state/types.js";
-import { applyKitaraDtwnPrimitive } from "../primitives/gainExposeSearch.js";
 import { installedCorpCards, canAdvance } from "../counters/counterKinds.js";
+import { applySearchAndShuffleKinds } from "../searchAndDeck/searchAndShuffleKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -574,7 +574,7 @@ export function applyCorpHandAndDeckTrashKinds(
         return { ok: true };
       }
       return (
-        applyKitaraDtwnPrimitive(ctx, {
+        applySearchAndShuffleKinds(ctx, {
           kind: "shuffle_distract_archives",
           remaining: 2,
         }) ?? { ok: true }

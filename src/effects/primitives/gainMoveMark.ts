@@ -1,14 +1,13 @@
-import { effectiveCorpMaxHandSize } from "../../state/continuous/handSize.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
 import { CR } from "../../timing/labels.js";
-import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { noteCorpSpentAgendaCounters } from "../../state/keywordsAndCredits/costs.js";
 import type { RuleCite } from "../../state/types.js";
+import { grantAbilityCredits, type EffectCtx } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -93,16 +92,6 @@ export function applyOacPrimitive(
           state,
           `The Twins — force re-encounter of ${state.cards[iceId]?.title} (CR ${CR.forcedEncounterDuringRun.number}).`,
         );
-      }
-      return { ok: true };
-    }
-
-    case "draw_if_hq_full": {
-      const max = effectiveCorpMaxHandSize(state);
-      if (state.corp.hand.length === max) {
-        // Vigil: a draw, through the draw procedure (CR 8.4.5).
-        log(state, `Vigil — HQ is at the Corp's maximum hand size; draw 1.`);
-        return evalEffect(ctx, fx.draw("runner", 1));
       }
       return { ok: true };
     }

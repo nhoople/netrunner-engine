@@ -12,29 +12,9 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-/** Ephemeral counters on source for multi-step BM paid choices. */
-export function bmCounter(
-  source: EffectCtx["state"]["cards"][string],
-  key: "bmShuffled" | "bmLiquidated",
-): number {
-  const bag = (source as { bmCounters?: Record<string, number> }).bmCounters;
-  return bag?.[key] ?? 0;
-}
-
-export function setBmCounter(
-  source: EffectCtx["state"]["cards"][string],
-  key: "bmShuffled" | "bmLiquidated",
-  n: number,
-): void {
-  const card = source as { bmCounters?: Record<string, number> };
-  card.bmCounters = card.bmCounters ?? {};
-  card.bmCounters[key] = n;
-}
 
 export function applyFlashpointBmPrimitive(
   ctx: EffectCtx,
@@ -169,61 +149,6 @@ export function applyFlashpointBmPrimitive(
         return { ok: true };
       }
       log(state, `Beth Kilrain-Chang — Corp ${c}¢: no effect.`);
-      return { ok: true };
-    }
-
-    case "shuffle_any_hq_draw": {
-      const hand = [...state.corp.hand];
-      const shuffled = bmCounter(source, "bmShuffled");
-      if (hand.length === 0) {
-        return evalEffect(ctx, fx.do({ kind: "draw_shuffled" }));
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...hand.map((id) => ({
-            id: `shuffle:${id}`,
-            label: `Shuffle ${state.cards[id]!.title} into R&D`,
-            effect: fx.do({
-              kind: "shuffle_hq_card",
-              cardId: id,
-            }),
-          })),
-          {
-            id: "done",
-            label: `Done (draw ${shuffled})`,
-            effect: fx.do({ kind: "draw_shuffled" }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "shuffle_hq_card": {
-      const cardId = action.cardId;
-      const idx = state.corp.hand.indexOf(cardId);
-      if (idx < 0) return { ok: true };
-      state.corp.hand.splice(idx, 1);
-      state.corp.deck.push(cardId);
-      const card = state.cards[cardId]!;
-      card.zone = "corp:rd";
-      card.faceup = false;
-      shuffleInPlace(state, state.corp.deck);
-      setBmCounter(source, "bmShuffled", bmCounter(source, "bmShuffled") + 1);
-      log(state, `Special Report — shuffle ${card.title} into R&D.`);
-      return evalEffect(ctx, fx.do({ kind: "shuffle_any_hq_draw" }));
-    }
-
-    case "draw_shuffled": {
-      const n = bmCounter(source, "bmShuffled");
-      setBmCounter(source, "bmShuffled", 0);
-      if (n > 0) {
-        return evalEffect(
-          ctx,
-          fx.do({ kind: "draw", side: "corp", amount: n }),
-        );
-      }
       return { ok: true };
     }
 

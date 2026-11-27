@@ -1,14 +1,9 @@
-/** The Spaces Between (tsb) Lunar pack primitives. */
-import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import type { RuleCite } from "../../state/types.js";
-import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { chooseCards } from "../triggers/chooseCards.js";
-import { evalEffect, shuffleCorpRdAfterSearch } from "../eval.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -20,99 +15,6 @@ export function applyLunarTsbPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "search_foundry_copy_to_hq": {
-      if (state.turn.rdLookedCards.length > 0) {
-        for (const id of [...state.turn.rdLookedCards]) {
-          const card = state.cards[id];
-          if (!card) continue;
-          card.zone = "corp:rd";
-          card.faceup = false;
-          state.corp.deck.push(id);
-        }
-        state.turn.rdLookedCards = [];
-        log(
-          state,
-          `Looked cards return to R&D and can no longer be acted on (CR ${CR.objectMoveLocation.number}).`,
-        );
-      }
-      if ((state.turn.iceRezzedThisTurn ?? 0) !== 1) return { ok: true };
-      const lastId = state.turn.rezzedThisTurnIds?.at(-1);
-      if (!lastId) return { ok: true };
-      const title = state.cards[lastId]?.title;
-      if (!title) return { ok: true };
-      // "You may search": the Corp may decline (CR 9.6.9c).
-      if (!action.chosen) {
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "corp",
-          options: [
-            {
-              id: "search",
-              label: `Search R&D for another ${title}`,
-              effect: fx.do({
-                kind: "search_foundry_copy_to_hq",
-                chosen: true,
-              }),
-            },
-            {
-              id: "decline",
-              label: "Do not search",
-              effect: fx.do({
-                kind: "search_foundry_copy_to_hq",
-                chosen: true,
-                declined: true,
-                cardIds: [],
-              }),
-            },
-          ],
-        });
-        return { ok: true };
-      }
-      // The Corp searches with the shared deck search: it may find nothing
-      // even when R&D holds a copy, and the Runner cannot tell which
-      // (CR 8.7.2e, 10.2.2b).
-      if (!action.cardIds) {
-        return evalEffect(
-          ctx,
-          chooseCards({
-            chooser: "corp",
-            candidates: state.corp.deck.filter(
-              (id) => state.cards[id]?.title === title,
-            ),
-            count: 1,
-            search: true,
-            purpose: "resume",
-            label: `add to HQ (another ${title})`,
-            resume: { kind: "search_foundry_copy_to_hq", chosen: true },
-          }),
-        );
-      }
-      const found = action.cardIds.filter((id) => state.corp.deck.includes(id));
-      for (const id of found) {
-        state.corp.deck = state.corp.deck.filter((x) => x !== id);
-        state.corp.hand.push(id);
-        state.cards[id]!.zone = "corp:hq";
-        state.cards[id]!.faceup = false;
-      }
-      // "Shuffle R&D." is its own sentence: R&D is shuffled whether or not
-      // the Corp searched or found a copy (decided 2026-11-21; CR 8.7.3).
-      shuffleCorpRdAfterSearch(state);
-      if (found.length > 0) {
-        revealCards(state, found, sourceId);
-        log(
-          state,
-          `The Foundry — reveal ${title} from R&D and add to HQ; shuffle R&D (CR ${CR.shuffleDeckAfterSearch.number}).`,
-        );
-      } else {
-        log(
-          state,
-          action.declined
-            ? `The Foundry — the Corp does not search; shuffle R&D.`
-            : `The Foundry — no card found; shuffle R&D (CR ${CR.failToFind.number}, ${CR.shuffleDeckAfterSearch.number}).`,
-        );
-      }
-      return { ok: true };
-    }
     case "score_encrypted_portals_on": {
       let n = 0;
       for (const server of Object.values(state.servers)) {
