@@ -130,7 +130,7 @@ import { applyBadPublicityPrimitive } from "./badPublicityPrimitives.js";
 import { applyCorpInstallPrimitive } from "./corpInstall.js";
 import { applyCounterPrimitive } from "./counterPrimitives.js";
 import { applyEncounterPrimitive } from "./encounterPrimitives.js";
-import { iceStrength } from "./iceStrength.js";
+import { iceStrength } from "./continuous/iceStrength.js";
 import {
   gripInstallCostAfterDiscount,
   shuffleRunnerStack,

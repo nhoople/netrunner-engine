@@ -12,7 +12,7 @@ import {
   effectiveBreakerStrength,
   instantiateCard,
 } from "../src/index.js";
-import { breakerStrength } from "../src/effects/iceStrength.js";
+import { breakerStrength } from "../src/effects/continuous/iceStrength.js";
 import {
   addBreakerStrengthBoostThisEncounter,
   suppressAbilities,

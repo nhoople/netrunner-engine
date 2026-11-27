@@ -55,15 +55,6 @@ export function applySansanUotPrimitive(
       return { ok: true };
     }
 
-    case "cannot_arm_rez_outermost_ice_this_turn": {
-      state.turn.uotCannotRezOutermostIce = true;
-      log(
-        state,
-        `${source.title} — Corp cannot rez outermost ice during a run this turn.`,
-      );
-      return { ok: true };
-    }
-
     case "swap_encounter_barrier_adjacent": {
       const run = state.run;
       const iceId = run?.encounter?.iceId;

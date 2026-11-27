@@ -15,7 +15,7 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import { iceStrength } from "../src/effects/iceStrength.js";
+import { iceStrength } from "../src/effects/continuous/iceStrength.js";
 import type { GameState, ServerId } from "../src/index.js";
 
 beforeAll(() => {

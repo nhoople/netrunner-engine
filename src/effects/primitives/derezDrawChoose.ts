@@ -4,7 +4,6 @@ import { revealCards } from "../../state/visibility/reveal.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
@@ -292,20 +291,6 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "forbid_rez": {
-      const cardId = action.cardId;
-      if (!cardId) return { ok: true };
-      if (!state.turn.carefulPlanningCannotRezIds) {
-        state.turn.carefulPlanningCannotRezIds = [];
-      }
-      state.turn.carefulPlanningCannotRezIds.push(cardId);
-      log(
-        state,
-        `Careful Planning — ${state.cards[cardId]?.title ?? cardId} cannot be rezzed this turn.`,
-      );
-      return { ok: true };
-    }
-
     case "break_sentry_or_barrier": {
       const enc = state.run?.encounter;
       if (!enc) return { ok: true };
@@ -415,48 +400,6 @@ export function applyRedsandTdPrimitive(
       return { ok: true };
     }
 
-    case "boost_icebreaker": {
-      const breakers = state.runner.installed.filter((id) => {
-        const c = state.cards[id];
-        return c && (c.subtypes ?? []).some((s) => s === "icebreaker");
-      });
-      if (breakers.length === 0) {
-        log(state, `Dean Lister — no icebreakers.`);
-        return { ok: true };
-      }
-      const bonus = state.runner.hand.length;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: breakers.map((id) => ({
-          id: `boost:${id}`,
-          label: `+${bonus} strength on ${state.cards[id]!.title}`,
-          effect: fx.do({
-            kind: "boost_dean_lister_apply",
-            cardId: id,
-            amount: bonus,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "boost_dean_lister_apply": {
-      const cardId = action.cardId;
-      const amount = action.amount ?? 0;
-      if (!cardId || !state.run) return { ok: true };
-      addBreakerStrengthBoostThisRun(state, {
-        createdBy: sourceId,
-        breakerId: cardId,
-        amount,
-      });
-      log(
-        state,
-        `Dean Lister — ${state.cards[cardId]?.title} +${amount} strength this run.`,
-      );
-      return { ok: true };
-    }
-
     case "play_event_from_heap": {
       const events = state.runner.discardPile.filter(
         (id) => state.cards[id]?.type === "event",
@@ -546,18 +489,6 @@ export function applyRedsandTdPrimitive(
       state.corp.credits += 2 * n;
       log(state, `Estelle Moon — gain ${2 * n}¢ and draw ${n}.`);
       return evalEffect(ctx, fx.draw("corp", n));
-    }
-
-    case "forbid_access_and_breach_this_run": {
-      if (state.run) {
-        state.run.holmegaardForbidAccessBreach = true;
-        state.run.skipBreach = true;
-      }
-      log(
-        state,
-        `Holmegaard — Runner cannot access or breach for the remainder of this run.`,
-      );
-      return { ok: true };
     }
 
     case "trash_installed_icebreaker": {

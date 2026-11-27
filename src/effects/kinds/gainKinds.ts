@@ -8,7 +8,7 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { grantAbilityCredits } from "../eval.js";
-import { breakerStrength } from "../iceStrength.js";
+import { breakerStrength } from "../continuous/iceStrength.js";
 
 export function applyGainKinds(
   ctx: EffectCtx,

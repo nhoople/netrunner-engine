@@ -3,12 +3,12 @@
  * in stubs (`effectiveBreakerStrength` / `effectiveIceStrength`). Breaker
  * path syncs Gebrselassie host-duration replacements first (CR 9.9.9a).
  */
-import { syncHostDurationReplacements } from "../state/triggers/hostDuration.js";
-import type { GameState } from "../state/types.js";
+import { syncHostDurationReplacements } from "../../state/triggers/hostDuration.js";
+import type { GameState } from "../../state/types.js";
 import {
   effectiveBreakerStrength,
   effectiveIceStrength,
-} from "../cards/stubs.js";
+} from "../../cards/stubs.js";
 
 /** Shared breaker strength (CR 9.12.1a), after host-duration sync (CR 9.9.9a). */
 export function breakerStrength(state: GameState, breakerId: string): number {

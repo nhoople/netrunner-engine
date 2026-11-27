@@ -21,7 +21,6 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { moveRunnerToOutermost } from "../../state/uninstallAndPosition/runPosition.js";
-import { resetEncounterBreaks } from "../../state/turnAndActions/break.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -308,33 +307,6 @@ export function applySpinHapPrimitive(
       );
       return { ok: true };
     }
-    case "add_net_subs_for_rezzed_ice": {
-      const sid = state.run?.attackedServerId;
-      if (!sid) return { ok: true };
-      // Printed: X is the number of cards in the Runner's grip.
-      const n = state.runner.hand.length;
-      const ice = state.cards[sourceId]!;
-      if (!ice.baseSubroutines) {
-        ice.baseSubroutines = structuredClone(ice.subroutines ?? []);
-      }
-      // "It gains X subroutines for the remainder of this run": each
-      // encounter adds X more, and the run's end removes them (CR 9.10.1).
-      const run = state.run!;
-      const restored = (run.thunderboltGrantedIceIds ??= []);
-      if (!restored.includes(sourceId)) restored.push(sourceId);
-      const have = (ice.subroutines ?? []).length;
-      const extras = Array.from({ length: n }, (_, i) => ({
-        id: `${ice.defId}-komainu-${have + i}`,
-        text: "Do 1 net damage.",
-        effect: fx.do({ kind: "net_damage", amount: 1 }),
-      }));
-      ice.subroutines = [...(ice.subroutines ?? []), ...extras];
-      if (run.encounter?.iceId === sourceId) {
-        resetEncounterBreaks(run.encounter, ice.subroutines.length);
-      }
-      log(state, `Komainu — gains ${n} net damage subroutine(s).`);
-      return { ok: true };
-    }
     case "pay_or_net": {
       const amt = action.amount ?? 1;
       openPendingChoose(state, {
@@ -438,16 +410,6 @@ export function applySpinHapPrimitive(
       log(
         state,
         `Inazuma — next encounter cannot break subroutines on encountered ice.`,
-      );
-      return { ok: true };
-    }
-    case "forbid_jack_out_until_next_encounter": {
-      if (!state.run) return { ok: true };
-      state.run.cannotJackOut = true;
-      state.run.clearCannotJackOutOnNextEncounterBegin = true;
-      log(
-        state,
-        `${state.cards[sourceId]?.title ?? sourceId} — the Runner cannot jack out this run until after they encounter a piece of ice.`,
       );
       return { ok: true };
     }

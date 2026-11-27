@@ -2,13 +2,8 @@
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { revealCards } from "../../state/visibility/reveal.js";
-import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { emptyRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import {
-  addLingeringEffect,
-  LINGERING_KIND_RUNNER_MU,
-} from "../../state/continuous/lingeringEffects.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { GameState, RuleCite, ServerId } from "../../state/types.js";
@@ -258,29 +253,6 @@ export function applyLunarUpPrimitive(
       if (extra.length === 0) return { ok: true };
       state.run.pendingSubroutineInserts = extra;
       offerSubroutineInsertChoice(state);
-      return { ok: true };
-    }
-    case "runner_mu_modifier_until_turn_end": {
-      const delta = (action as { delta: number }).delta;
-      addLingeringEffect(state, {
-        createdBy: sourceId,
-        // "until the end of the turn": the turn in progress, whoever's it is
-        // (Bad Times is played on the Corp's turn; CR 1.2.1, 9.10.1).
-        duration: { kind: "turn" },
-        kind: LINGERING_KIND_RUNNER_MU,
-        payload: { delta },
-      });
-      log(
-        state,
-        `Runner memory limit ${delta >= 0 ? "+" : ""}${delta} until turn end (CR ${CR.lingeringEffect.number}).`,
-      );
-      occurCheckpoint(
-        state,
-        "instruction",
-        "Memory limit changed",
-        [CR.checkpointCardRestrictions],
-        sourceId,
-      );
       return { ok: true };
     }
     case "cyber_threat": {

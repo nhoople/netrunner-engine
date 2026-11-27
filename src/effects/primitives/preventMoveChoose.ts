@@ -4,33 +4,15 @@ import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.j
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
+import { fx, type Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-const FORBIDDEN_PANCHATANTRA = new Set(["barrier", "code gate", "sentry"]);
-
-const COMMON_ICE_SUBTYPES = [
-  "ap",
-  "destroyer",
-  "tracer",
-  "observer",
-  "advertisement",
-  "illusory",
-  "deflector",
-  "bioroid",
-  "mythic",
-  "next",
-  "grail",
-  "morph",
-  "expendable",
-];
 
 export function applyMumbadKgPrimitive(
   ctx: EffectCtx,
@@ -86,62 +68,6 @@ export function applyMumbadKgPrimitive(
       }
       if (state.run) state.run.accessingCardId = null;
       log(state, `Maya — ${card.title} to bottom of R&D.`);
-      return { ok: true };
-    }
-
-    case "choose_subtype_for_encounter": {
-      const iceId = state.run?.encounter?.iceId;
-      if (!iceId) {
-        log(state, `Panchatantra — not encountering ice.`);
-        return { ok: true };
-      }
-      const ice = state.cards[iceId];
-      if (!ice) return { ok: true };
-      const options = COMMON_ICE_SUBTYPES.filter(
-        (s) => !FORBIDDEN_PANCHATANTRA.has(s),
-      ).map((subtype) => ({
-        id: `pancha:${subtype}`,
-        label: `Gain ${subtype}`,
-        effect: fx.do({
-          kind: "panchatantra_apply_subtype",
-          iceId,
-          subtype,
-        }) as Effect,
-      }));
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: fx.do({
-          kind: "gain_credits",
-          side: "runner",
-          amount: 0,
-        }) as Effect,
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `Panchatantra — choose subtype for ${ice.title}.`,
-      });
-      return { ok: true };
-    }
-
-    case "panchatantra_apply_subtype": {
-      const ice = state.cards[action.iceId];
-      if (!ice) return { ok: true };
-      const run = state.run;
-      if (!run) return { ok: true };
-      run.kgEncounterBonusSubtypes = run.kgEncounterBonusSubtypes ?? {};
-      const list = run.kgEncounterBonusSubtypes[action.iceId] ?? [];
-      if (!list.includes(action.subtype)) list.push(action.subtype);
-      run.kgEncounterBonusSubtypes[action.iceId] = list;
-      if (!(ice.subtypes ?? []).includes(action.subtype)) {
-        ice.subtypes = [...(ice.subtypes ?? []), action.subtype];
-      }
-      log(
-        state,
-        `Panchatantra — ${ice.title} gains ${action.subtype} this run.`,
-      );
       return { ok: true };
     }
 
@@ -240,19 +166,6 @@ export function applyMumbadKgPrimitive(
       log(
         state,
         `Chatterjee University — install ${card.title} for ${cost}¢; remove 1 power.`,
-      );
-      return { ok: true };
-    }
-
-    case "cannot_use_programs_this_run_kg": {
-      // Read by runnerCannotUseProgram (paid abilities and breaks); it ends
-      // with the run (CR 9.10.1).
-      if (state.run) {
-        state.run.kgCannotUsePrograms = true;
-      }
-      log(
-        state,
-        `${source?.title ?? "Vikram"} — Runner cannot use programs this run.`,
       );
       return { ok: true };
     }

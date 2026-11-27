@@ -5,7 +5,7 @@ import { applyAddKinds } from "./addKinds.js";
 import { applyBreachKinds } from "./breachKinds.js";
 import { applyChooseKinds } from "./chooseKinds.js";
 import { applyDerezKinds } from "./derezKinds.js";
-import { applyForbidKinds } from "./forbidKinds.js";
+import { applyForbidKinds } from "../continuous/forbidKinds.js";
 import { applyGainKinds } from "./gainKinds.js";
 import { applyHostKinds } from "./hostKinds.js";
 import { applyInstallKinds } from "./installKinds.js";
@@ -25,6 +25,10 @@ import { applySetKinds } from "./setKinds.js";
 import { applyShuffleKinds } from "./shuffleKinds.js";
 import { applySwapKinds } from "./swapKinds.js";
 import { applyTrashKinds } from "./trashKinds.js";
+import {
+  applyContinuousKinds,
+  applyContinuousKindsWhenSourceExists,
+} from "../continuous/continuousKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -51,6 +55,8 @@ const HANDLERS = [
   applyShuffleKinds,
   applySwapKinds,
   applyTrashKinds,
+  applyContinuousKinds,
+  applyContinuousKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

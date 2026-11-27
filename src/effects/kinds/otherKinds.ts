@@ -12,17 +12,11 @@ import {
   setRunnerPosition,
 } from "../../state/uninstallAndPosition/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
-import { serverHostingCard } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { noteInlineConditional } from "../../state/triggers/inlineConditionalHooks.js";
 import { chooseCards } from "../chooseCards.js";
-import {
-  effectiveIceSubtypes,
-  iceStrengthCannotBeLowered,
-  serverIdForIce,
-} from "../../cards/stubs.js";
 import {
   breakableCount,
   markSubroutineBroken,
@@ -47,19 +41,6 @@ import {
   preventPendingExpose,
 } from "../../state/visibility/expose.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
-import {
-  addBreakerStrengthBoostThisEncounter,
-  addBreakerStrengthBoostThisRun,
-  addBreakerStrengthBoostThisTurn,
-  addBreakerStrengthBoostUntilCheckpoint,
-  addAllIceStrengthBoostThisRun,
-  addIceStrengthBoostThisEncounter,
-  addIceStrengthBoostThisRun,
-  addIceStrengthBoostThisTurn,
-  addLingeringEffect,
-  blankAbilitiesUntilCorpTurnEnd,
-  LINGERING_KIND_GRANTED_SUBTYPES,
-} from "../../state/continuous/lingeringEffects.js";
 import { fireOnFlipToBackIfRunMatchesFace } from "../../state/triggers/miscConditionalHooks.js";
 import {
   chargeableInstalledIds,
@@ -84,22 +65,6 @@ import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashP
 import { enterSetAside } from "../../state/zones.js";
 import { CR } from "../../timing/labels.js";
 import { drawCards } from "../draw.js";
-import {
-  fireAfterBreakSubroutineHooks,
-  resolveSide,
-  maybeFireFluxFirstBreakCharge,
-  offerMayChargeCard,
-  offerBurnerMoves,
-  startExclusiveChoicesPerPassedIce,
-  offerRdArrangeChoice,
-  shuffleCorpRdAfterSearch,
-  openExposeUpTo,
-  finishExposeUpTo,
-  resumeExposeUpTo,
-  evalEffect,
-  applyPrimitive,
-} from "../eval.js";
-import { breakerStrength, iceStrength } from "../iceStrength.js";
 import { fx } from "../ir.js";
 import { rearrangeIce } from "../../state/uninstallAndPosition/rearrange.js";
 import {
@@ -119,6 +84,22 @@ import {
   allSubroutinesBrokenByRunner,
   resetEncounterBreaks,
 } from "../../state/turnAndActions/break.js";
+import { effectiveIceSubtypes, serverIdForIce } from "../../cards/stubs.js";
+import {
+  fireAfterBreakSubroutineHooks,
+  maybeFireFluxFirstBreakCharge,
+  offerMayChargeCard,
+  offerBurnerMoves,
+  startExclusiveChoicesPerPassedIce,
+  offerRdArrangeChoice,
+  shuffleCorpRdAfterSearch,
+  openExposeUpTo,
+  finishExposeUpTo,
+  resumeExposeUpTo,
+  evalEffect,
+  applyPrimitive,
+} from "../eval.js";
+import { iceStrength } from "../continuous/iceStrength.js";
 
 export function applyOtherKinds(
   ctx: EffectCtx,
@@ -127,204 +108,6 @@ export function applyOtherKinds(
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-    case "pump_strength": {
-      if (!source.breaker) {
-        return {
-          ok: false,
-          error: "Pump requires an icebreaker.",
-          cites: [CR.programStrength],
-        };
-      }
-      let amount = action.amount;
-      if (source.breaker.pumpUsesIcebreakerCount) {
-        amount = state.runner.installed.filter(
-          (id) =>
-            Boolean(state.cards[id].breaker) ||
-            (state.cards[id].subtypes ?? []).includes("icebreaker"),
-        ).length;
-      }
-      // Requested duration before 9.9.9 replacements (Gebrselassie / System
-      // Seizure / hosted run-extend). Replacements apply inside the add helpers.
-      let duration: import("../ir.js").PumpDuration =
-        action.duration ?? "encounter";
-      if (duration === "encounter" && !state.run?.encounter) {
-        duration = "checkpoint";
-      }
-      if (duration === "run" && !state.run) {
-        return {
-          ok: false,
-          error: "A run-duration pump requires an active run.",
-          cites: [CR.icebreakerStrengthImplicit],
-        };
-      }
-      const sumKind = (kind: string): number => {
-        let n = 0;
-        for (const e of state.lingeringEffects) {
-          if (e.expired || e.kind !== kind) continue;
-          const p = e.payload as
-            { breakerId?: string; amount?: number } | undefined;
-          if (p?.breakerId !== sourceId) continue;
-          n += p.amount ?? 0;
-        }
-        return n;
-      };
-      const beforeTurn = sumKind("breaker_strength_turn");
-      const beforeRun = sumKind("breaker_strength_run");
-      const beforeEnc = sumKind("breaker_strength_encounter");
-      const beforeCp = sumKind("breaker_strength_checkpoint");
-      if (duration === "turn") {
-        addBreakerStrengthBoostThisTurn(state, {
-          createdBy: sourceId,
-          breakerId: sourceId,
-          amount,
-        });
-      } else if (duration === "run") {
-        addBreakerStrengthBoostThisRun(state, {
-          createdBy: sourceId,
-          breakerId: sourceId,
-          amount,
-        });
-      } else if (duration === "encounter") {
-        addBreakerStrengthBoostThisEncounter(state, {
-          createdBy: sourceId,
-          breakerId: sourceId,
-          amount,
-        });
-      } else {
-        addBreakerStrengthBoostUntilCheckpoint(state, {
-          createdBy: sourceId,
-          breakerId: sourceId,
-          amount,
-        });
-      }
-      const applied: import("../ir.js").PumpDuration =
-        sumKind("breaker_strength_turn") > beforeTurn
-          ? "turn"
-          : sumKind("breaker_strength_run") > beforeRun
-            ? "run"
-            : sumKind("breaker_strength_encounter") > beforeEnc
-              ? "encounter"
-              : sumKind("breaker_strength_checkpoint") > beforeCp
-                ? "checkpoint"
-                : duration;
-      const eff = breakerStrength(state, sourceId);
-      log(
-        state,
-        `Pump ${source.title} +${amount} (${applied}) → strength ${eff} (CR ${
-          applied === "checkpoint"
-            ? CR.icebreakerStrengthOutsideEncounter.number
-            : CR.icebreakerStrengthImplicit.number
-        }, ${CR.paidAbility.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "pump_blackat_strength": {
-      const stealthPaid = (state.turn.stealthCreditsOnLastPaidAbility ?? 0) > 0;
-      const amount = stealthPaid ? 2 : 1;
-      return applyPrimitive(ctx, {
-        kind: "pump_strength",
-        amount,
-      });
-    }
-
-    case "fortify_ice": {
-      // Stavka: "this ice gets +5 strength for the remainder of the run"
-      // (CR 9.10.1). With no run the duration has already ended and
-      // nothing happens (CR 9.10.4).
-      if (!state.run || source.type !== "ice") {
-        log(state, `${source.title} — no run; no strength bonus.`);
-        return { ok: true };
-      }
-      addIceStrengthBoostThisRun(state, {
-        createdBy: sourceId,
-        iceId: sourceId,
-        amount: action.amount,
-      });
-      const eff = iceStrength(state, sourceId);
-      log(
-        state,
-        `Fortify ${source.title} +${action.amount} → strength ${eff} (CR ${CR.iceStrength.number}, ${CR.paidAbility.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "fortify_ice_spend_x_resolve": {
-      const iceId = action.iceId;
-      const x = action.amount;
-      const ice = state.cards[iceId];
-      if (!ice?.rezzed || state.corp.credits < x) return { ok: true };
-      state.corp.credits -= x;
-      addIceStrengthBoostThisTurn(state, {
-        createdBy: sourceId,
-        iceId,
-        amount: x,
-      });
-      log(
-        state,
-        `Corporate Troubleshooter — spend ${x}¢, ${ice.title} +${x} strength this turn.`,
-      );
-      return { ok: true };
-    }
-
-    case "fortify_all_ice": {
-      // "Each piece of ice gets +N strength for the remainder of this run"
-      // (ezaM, Red Tape, Tributary): one run-duration lingering effect
-      // that every piece of ice reads (CR 9.10.1, 9.10.4).
-      if (!state.run) {
-        log(state, `Fortify all ice — no run.`);
-        return { ok: true };
-      }
-      addAllIceStrengthBoostThisRun(state, {
-        createdBy: sourceId,
-        amount: action.amount,
-      });
-      log(
-        state,
-        `Each piece of ice gets +${action.amount} strength for the remainder of this run.`,
-      );
-      return { ok: true };
-    }
-
-    case "weaken_ice": {
-      if (!state.run) {
-        return {
-          ok: false,
-          error: "Weaken ice requires an active run/encounter.",
-          cites: [CR.iceStrength],
-        };
-      }
-      const iceId = state.run.encounter?.iceId;
-      if (!iceId) {
-        return {
-          ok: false,
-          error: "Weaken ice requires an encounter.",
-          cites: [CR.iceStrength],
-        };
-      }
-      const ice = state.cards[iceId];
-      if (iceStrengthCannotBeLowered(state, iceId)) {
-        log(
-          state,
-          `Weaken ${ice.title} prevented — strength cannot be lowered.`,
-        );
-        return { ok: true };
-      }
-      addIceStrengthBoostThisEncounter(state, {
-        createdBy: sourceId,
-        iceId,
-        amount: -action.amount,
-      });
-      const eff = iceStrength(state, iceId);
-      log(
-        state,
-        `Weaken ${ice.title} −${action.amount} → strength ${eff} (CR ${CR.iceStrength.number}).`,
-      );
-      // Parasite's static condition is checked at the next checkpoint
-      // (CR 9.6.7a).
-      return { ok: true };
-    }
-
     case "spend_stealth_credits": {
       const need = action.amount;
       if (need <= 0) return { ok: true };
@@ -533,17 +316,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "increase_hand_size": {
-      const side = resolveSide(ctx, action.side);
-      const p = side === "corp" ? state.corp : state.runner;
-      p.maxHandSize += action.amount;
-      log(
-        state,
-        `${side} max hand size +${action.amount} → ${p.maxHandSize} (CR ${CR.maxHandSize.number}).`,
-      );
-      return { ok: true };
-    }
-
     case "skip_discard_this_turn": {
       state.turn.skipDiscardThisTurn = true;
       log(state, `Skip discard step this turn.`);
@@ -722,111 +494,6 @@ export function applyOtherKinds(
         })),
         logLine: `${source.title} — choose ice subtype to lock breaks until your next turn.`,
       });
-      return { ok: true };
-    }
-
-    case "grant_chosen_ice_subtypes_until_end_of_turn": {
-      const iceIds: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        iceIds.push(...server.ice);
-      }
-      if (iceIds.length === 0) {
-        log(state, `${source.title} — no ice to grant subtypes.`);
-        return { ok: true };
-      }
-      const subtypes = action.subtypes ?? [];
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: iceIds.map((id) => ({
-          id: `tinker:${id}`,
-          label: `Give ${openCardName(state, id, "runner")} ${subtypes.join(", ")} until end of turn`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "grant_ice_subtypes_until_end_of_turn" as const,
-              cardId: id,
-              subtypes,
-            },
-          },
-        })),
-        logLine: `${source.title} — choose ice to gain ${subtypes.join(", ")} until end of turn.`,
-      });
-      return { ok: true };
-    }
-
-    case "grant_ice_subtypes_until_end_of_turn": {
-      const ice = state.cards[action.cardId];
-      if (!ice) {
-        log(state, `Grant subtypes — unknown ice ${action.cardId}.`);
-        return { ok: true };
-      }
-      const subtypes = [...new Set(action.subtypes ?? [])];
-      addLingeringEffect(state, {
-        createdBy: sourceId,
-        duration: { kind: "turn" },
-        kind: LINGERING_KIND_GRANTED_SUBTYPES,
-        payload: { cardId: ice.id, subtypes },
-      });
-      log(
-        state,
-        `${ice.title} gains ${subtypes.join(", ")} until end of turn (CR ${CR.lingeringEffect.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "grant_approached_rezzed_bioroid_etr_subroutine_this_run": {
-      const run = state.run;
-      if (!run || run.position === null) {
-        log(state, `${source.title} — no approached ice.`);
-        return { ok: true };
-      }
-      const iceId = iceAtRunnerPosition(state);
-      const ice = iceId ? state.cards[iceId] : undefined;
-      if (!ice || !ice.rezzed || !(ice.subtypes ?? []).includes("bioroid")) {
-        log(state, `${source.title} — approached ice is not a rezzed bioroid.`);
-        return { ok: true };
-      }
-      if (!ice.baseSubroutines) {
-        ice.baseSubroutines = ice.subroutines
-          ? structuredClone(ice.subroutines)
-          : [];
-      }
-      const granted = {
-        id: `${ice.defId}-wotan-etr-${iceId}`,
-        text: "End the run.",
-        effect: { op: "do" as const, action: { kind: "end_the_run" as const } },
-      };
-      ice.subroutines = [...(ice.subroutines ?? []), granted];
-      if (!run.thunderboltGrantedIceIds) run.thunderboltGrantedIceIds = [];
-      if (!run.thunderboltGrantedIceIds.includes(iceId!)) {
-        run.thunderboltGrantedIceIds.push(iceId!);
-      }
-      if (run.encounter?.iceId === iceId) {
-        run.encounter.broken.push(false);
-      }
-      log(
-        state,
-        `${source.title} — ${ice.title} gains an ETR subroutine for the remainder of this run.`,
-      );
-      return { ok: true };
-    }
-
-    case "grant_encounter_ice_subtype": {
-      const enc = state.run?.encounter;
-      if (!enc) {
-        log(state, `${source.title} — grant subtype: no encounter.`);
-        return { ok: true };
-      }
-      if (!enc.grantedSubtypes) enc.grantedSubtypes = [];
-      if (!enc.grantedSubtypes.includes(action.subtype)) {
-        enc.grantedSubtypes.push(action.subtype);
-      }
-      const ice = state.cards[enc.iceId];
-      log(
-        state,
-        `${ice?.title ?? enc.iceId} gains ${action.subtype} this encounter.`,
-      );
       return { ok: true };
     }
 
@@ -2096,67 +1763,6 @@ export function applyOtherKinds(
         ],
         logLine: `${source.title} — may have the Runner gain ${action.amount}¢.`,
       });
-      return { ok: true };
-    }
-
-    case "blank_installed_resource_until_corp_turn_end": {
-      const resources = state.runner.installed.filter(
-        (id) => state.cards[id]?.type === "resource",
-      );
-      if (resources.length === 0) {
-        log(state, `${source.title} — no installed resource to blank.`);
-        return { ok: true };
-      }
-      if (resources.length === 1) {
-        const id = resources[0]!;
-        const card = state.cards[id]!;
-        blankAbilitiesUntilCorpTurnEnd(state, {
-          createdBy: sourceId,
-          cardId: id,
-        });
-        log(
-          state,
-          `${card.title} — abilities blanked until Corp turn ends (CR ${CR.lingeringEffect.number}).`,
-        );
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: resources.map((id) => ({
-          id: `blank-res:${id}`,
-          label: `Blank ${state.cards[id]!.title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "blank_resource_until_corp_turn_end" as const,
-              cardId: id,
-            },
-          },
-        })),
-        logLine: `${source.title} — choose installed resource to blank.`,
-      });
-      return { ok: true };
-    }
-
-    case "blank_resource_until_corp_turn_end": {
-      const card = state.cards[action.cardId];
-      if (
-        !card ||
-        card.type !== "resource" ||
-        !state.runner.installed.includes(action.cardId)
-      ) {
-        log(state, `Blank resource — not an installed resource.`);
-        return { ok: true };
-      }
-      blankAbilitiesUntilCorpTurnEnd(state, {
-        createdBy: sourceId,
-        cardId: action.cardId,
-      });
-      log(
-        state,
-        `${card.title} — abilities blanked until Corp turn ends (CR ${CR.lingeringEffect.number}).`,
-      );
       return { ok: true };
     }
 
@@ -3619,39 +3225,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "chum_register_next_ice": {
-      if (!state.run) {
-        log(state, `Chum — no run.`);
-        return { ok: true };
-      }
-      state.run.chumNextIce = {
-        strengthBonus: action.strengthBonus,
-        netDamageIfNotFullyBroken: action.netDamageIfNotFullyBroken,
-        chumSourceId: sourceId,
-      };
-      log(
-        state,
-        `${source.title} — next ice +${action.strengthBonus} strength; ${action.netDamageIfNotFullyBroken} net if not fully broken.`,
-      );
-      return { ok: true };
-    }
-
-    case "sensei_register_etr_on_other_ice_for_run": {
-      if (!state.run) {
-        log(state, `Sensei — no run.`);
-        return { ok: true };
-      }
-      if (!state.run.senseiEtrSourceIds) state.run.senseiEtrSourceIds = [];
-      if (!state.run.senseiEtrSourceIds.includes(sourceId)) {
-        state.run.senseiEtrSourceIds.push(sourceId);
-      }
-      log(
-        state,
-        `${source.title} — other ice gains End the run after printed for remainder of run.`,
-      );
-      return { ok: true };
-    }
-
     case "ryo_phoenix_on_successful_run": {
       if (!state.run?.subroutineResolvedThisRun) {
         return { ok: true };
@@ -3702,48 +3275,6 @@ export function applyOtherKinds(
           }),
         })),
       });
-      return { ok: true };
-    }
-
-    case "troubleshooter_fortify": {
-      // Printed: X¢, trash — choose 1 rezzed ice protecting this server;
-      // that ice gets +X strength for the remainder of the turn (CR 1.2.1).
-      const maxX = state.corp.credits;
-      if (maxX <= 0) {
-        log(state, `Corporate Troubleshooter — no credits to spend.`);
-        return { ok: true };
-      }
-      // The [trash] cost has already moved the card: "this server" is the
-      // server it was in (CR 4.6.6i).
-      const serverId = (source.thisServerWhileResolving ??
-        serverHostingCard(state, sourceId)?.id) as ServerId | undefined;
-      const server = serverId ? state.servers[serverId] : undefined;
-      const iceTargets = (server?.ice ?? []).filter((id: string) => {
-        const c = state.cards[id];
-        return c?.type === "ice" && c.rezzed;
-      });
-      if (iceTargets.length === 0) {
-        log(
-          state,
-          `Corporate Troubleshooter — no rezzed ice protecting this server.`,
-        );
-        return { ok: true };
-      }
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (const id of iceTargets) {
-        for (let x = 1; x <= maxX; x++) {
-          options.push({
-            id: `ct:${id}:${x}`,
-            label: `Spend ${x}¢: ${state.cards[id]!.title} +${x} strength this turn`,
-            effect: fx.do({
-              kind: "fortify_ice_spend_x_resolve",
-              iceId: id,
-              amount: x,
-            }),
-          });
-        }
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
       return { ok: true };
     }
 

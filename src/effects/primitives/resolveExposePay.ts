@@ -24,17 +24,6 @@ function installedVirusProgramIds(state: EffectCtx["state"]): string[] {
   });
 }
 
-function installedNonVirtualResourceIds(state: EffectCtx["state"]): string[] {
-  return state.runner.installed.filter((id) => {
-    const c = state.cards[id];
-    return (
-      c?.type === "resource" &&
-      !(c.subtypes ?? []).includes("virtual") &&
-      !c.hostId
-    );
-  });
-}
-
 function installedRunnerCardIds(state: EffectCtx["state"]): string[] {
   return state.runner.installed.filter((id) => !state.cards[id]?.hostId);
 }
@@ -324,35 +313,6 @@ export function applyKitaraTdatdPrimitive(
         state,
         `Because I Can — shuffle ${root.length} card(s) from ${serverId} root into R&D.`,
       );
-      return { ok: true };
-    }
-
-    case "choose_malia_resource": {
-      // A new rez makes a new choice; an earlier one is forgotten.
-      if (source) delete source.tdatdMaliaBlankTargetId;
-      const targets = installedNonVirtualResourceIds(state);
-      if (targets.length === 0) {
-        log(state, `Malia Z0L0K4 — no installed non-virtual resource.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: targets.map((id) => ({
-          id: `malia:${id}`,
-          label: `Blank ${state.cards[id]!.title}`,
-          effect: fx.do({ kind: "blank_malia", cardId: id }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "blank_malia": {
-      const cardId = (action as { cardId: string }).cardId;
-      const target = state.cards[cardId];
-      if (!target) return { ok: true };
-      if (source) source.tdatdMaliaBlankTargetId = cardId;
-      log(state, `Malia Z0L0K4 — ${target.title} loses printed abilities.`);
       return { ok: true };
     }
 

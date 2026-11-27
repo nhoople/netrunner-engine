@@ -24,7 +24,7 @@ import type { Action, ServerId } from "../src/state/types.js";
 import { fx, type Effect } from "../src/effects/ir.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
-import { iceStrength } from "../src/effects/iceStrength.js";
+import { iceStrength } from "../src/effects/continuous/iceStrength.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
 import { applyRunAccessRestrictions } from "../src/state/access/accessFilter.js";
 import { runnerCreditPoolLocked } from "../src/state/keywordsAndCredits/costs.js";

@@ -20,7 +20,7 @@ import {
   lingeringBreakerStrengthOfKind,
 } from "../src/state/continuous/lingeringEffects.js";
 
-import { breakerStrength } from "../src/effects/iceStrength.js";
+import { breakerStrength } from "../src/effects/continuous/iceStrength.js";
 import { CR } from "../src/timing/labels.js";
 import type { GameState } from "../src/index.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";

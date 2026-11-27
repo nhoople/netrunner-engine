@@ -1,11 +1,8 @@
-import { iceStrengthCannotBeLowered } from "../../cards/stubs.js";
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
-import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
@@ -126,53 +123,6 @@ export function applyFlashpointQuPrimitive(
     case "schedule_additional_runner_turn": {
       state.pendingExtraRunnerTurns = (state.pendingExtraRunnerTurns ?? 0) + 1;
       log(state, `Encore — take an additional turn after this one.`);
-      return { ok: true };
-    }
-
-    case "spend_x_pump": {
-      const credits = state.runner.credits;
-      if (credits <= 0) {
-        log(state, `Fawkes — no credits to spend.`);
-        return { ok: true };
-      }
-      const maxX = Math.min(credits, 20);
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (let x = 1; x <= maxX; x++) {
-        options.push({
-          id: `fawkes-x:${x}`,
-          label: `Spend ${x}¢ (≥1 stealth): +${x} strength this run`,
-          effect: fx.do({
-            kind: "spend_x_pump_resolve",
-            amount: x,
-          }),
-        });
-      }
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-      });
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "spend_x_pump_resolve": {
-      const x = action.amount ?? 1;
-      if (state.runner.credits < x) {
-        log(state, `Fawkes — cannot afford ${x}¢.`);
-        return { ok: true };
-      }
-      // Stealth spend is enforced by paid ability cost.minCreditsFromStealth when
-      // the ability is paid normally; this leaf is also used from pendingChoice
-      // after the ability opened — deduct from pool (stealth accounting approx).
-      subtractRunnerCreditPool(state, x);
-      if (!state.run) return { ok: true };
-      addBreakerStrengthBoostThisRun(state, {
-        createdBy: sourceId,
-        breakerId: sourceId,
-        amount: x,
-      });
-      log(state, `Fawkes — spend ${x}¢ → +${x} strength this run.`);
       return { ok: true };
     }
 
@@ -564,32 +514,6 @@ export function applyFlashpointQuPrimitive(
       state.corp.credits -= n;
       nasx.powerCounters = (nasx.powerCounters ?? 0) + n;
       log(state, `NASX — spend ${n}¢ → ${nasx.powerCounters} power.`);
-      return { ok: true };
-    }
-
-    case "sifr_zero_encounter_ice_strength": {
-      // CR 9.12.1a set layer: strength is lowered to 0 for the encounter
-      // (UFAQ: Wraparound stays 0 after a later fracter; cannot raise; Lotus
-      // Field cannot be lowered).
-      const enc = state.run?.encounter;
-      const iceId = enc?.iceId;
-      if (!iceId || !enc) {
-        log(state, `Şifr — no encounter.`);
-        return { ok: true };
-      }
-      const ice = state.cards[iceId]!;
-      if (iceStrengthCannotBeLowered(state, iceId)) {
-        log(state, `Şifr — ${ice.title} strength cannot be lowered.`);
-        return { ok: true };
-      }
-      enc.strengthLoweredTo = 0;
-      state.turn.sifrHandSizePenaltyActive = true;
-      state.turn.sifrUsedThisTurn = true;
-      recomputeRunnerMaxHandSize(state);
-      log(
-        state,
-        `Şifr — −1 max hand size until next turn; ${ice.title} strength → 0 this encounter.`,
-      );
       return { ok: true };
     }
 

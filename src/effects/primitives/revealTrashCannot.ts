@@ -115,15 +115,6 @@ export function applyMumbadFtmPrimitive(
       return { ok: true };
     }
 
-    case "corp_cannot_advance_cards_next_turn": {
-      state.corpCannotAdvanceCardsNextTurn = true;
-      log(
-        state,
-        `${source?.title ?? "The Price of Freedom"} — Corp cannot advance cards during their next turn.`,
-      );
-      return { ok: true };
-    }
-
     case "add_fully_broken_barrier_to_hq": {
       const iceId = state.run?.encounter?.iceId;
       if (!iceId) return { ok: true };

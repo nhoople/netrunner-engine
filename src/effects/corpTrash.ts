@@ -21,7 +21,7 @@ import {
   runnerCannotTrashWhileRezzed,
 } from "../state/cardFlags/cardDeclarations.js";
 import { evalEffect, maybeFireNuvemFirstRdTrash } from "./eval.js";
-import { iceStrength } from "./iceStrength.js";
+import { iceStrength } from "./continuous/iceStrength.js";
 import { createPendingAbilityInstance } from "../state/triggers/pendingAbilities.js";
 import {
   fireOnRezzedCardTrashed,

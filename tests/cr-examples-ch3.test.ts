@@ -14,7 +14,10 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import { breakerStrength, iceStrength } from "../src/effects/iceStrength.js";
+import {
+  breakerStrength,
+  iceStrength,
+} from "../src/effects/continuous/iceStrength.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 
 beforeAll(() => {
