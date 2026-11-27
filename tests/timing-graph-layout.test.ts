@@ -11,7 +11,7 @@
  *     constant that is not set yet. Import STEPS from graph.ts.
  */
 import { readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 // graph.ts first: it must load before the step files (see above).
 import { STEPS } from "../src/timing/graph.js";
@@ -100,12 +100,17 @@ describe("timing step table layout (CR 11)", () => {
   });
 
   it("only src/timing/graph.ts imports the step files", () => {
-    const stepFile = /from "[./]*(?:graph\/)?(\w+Steps)\.js"/g;
+    const stepPaths = new Set(
+      PARTS.map((p) => join(ROOT, "src/timing/graph", p.file)),
+    );
+    // Every relative module path: import, export … from, and import().
+    const spec = /(?:\bfrom\s*|\bimport\s*\(\s*)["'](\.{1,2}\/[^"']+)["']/g;
     const importers: string[] = [];
     for (const path of srcFiles()) {
       const text = readFileSync(path, "utf8");
-      for (const m of text.matchAll(stepFile)) {
-        if (PARTS.some((p) => p.file === `${m[1]}.ts`)) {
+      for (const m of text.matchAll(spec)) {
+        const target = join(dirname(path), m[1]!).replace(/\.js$/, ".ts");
+        if (stepPaths.has(target)) {
           importers.push(relative(ROOT, path).split("\\").join("/"));
         }
       }
