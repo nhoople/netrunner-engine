@@ -799,7 +799,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKinds",
           "kinds": []
         },
         {
@@ -1107,19 +1107,15 @@
           "kinds": []
         },
         {
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
           "kinds": [],
           "mirrors": [
             "src/effects/ir/otherPrimitive.ts#{OtherPrimitive}"
           ]
-        },
-        {
-          "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
-          "kinds": []
         },
         {
           "site": "src/effects/searchAndDeck/addKinds.ts#applyAddKinds",
@@ -2820,7 +2816,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
+          "site": "src/effects/keywordsAndCredits/hostedCreditPrimitives.ts#takeHostedCredits",
           "kinds": []
         }
       ],
@@ -3857,7 +3853,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
+          "site": "src/effects/keywordsAndCredits/hostedCreditPrimitives.ts#takeHostedCredits",
           "kinds": []
         }
       ],
@@ -4140,7 +4136,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#fireSiAfterCorpRezOrPlay",
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#fireSiAfterCorpRezOrPlay",
           "kinds": []
         },
         {
@@ -5095,7 +5091,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/creditPrimitives.ts#applyCreditPrimitive",
+          "site": "src/effects/keywordsAndCredits/creditPrimitives.ts#applyCreditPrimitive",
           "kinds": []
         }
       ],
@@ -5968,10 +5964,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
-          "kinds": []
-        },
-        {
           "site": "src/effects/install/corpAbilityInstall.ts#rezInstalledIgnoringCosts",
           "kinds": []
         },
@@ -6013,6 +6005,10 @@
         },
         {
           "site": "src/effects/install/runnerInstallFromOtherZonesKinds.ts#applyRunnerInstallFromOtherZonesKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/hostedCreditPrimitives.ts#takeHostedCredits",
           "kinds": []
         },
         {
@@ -6653,10 +6649,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/creditTally.ts#tallyCount",
-          "kinds": []
-        },
-        {
           "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
           "kinds": []
         },
@@ -6678,6 +6670,10 @@
         },
         {
           "site": "src/effects/install/corpInstallThenRezOrAdvanceKinds.ts#applyCorpInstallThenRezOrAdvanceKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/creditTally.ts#tallyCount",
           "kinds": []
         },
         {
@@ -8672,7 +8668,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
+          "site": "src/effects/keywordsAndCredits/hostedCreditPrimitives.ts#takeHostedCredits",
           "kinds": []
         },
         {
@@ -9236,7 +9232,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/creditPrimitives.ts#applyCreditPrimitive",
+          "site": "src/effects/keywordsAndCredits/creditPrimitives.ts#applyCreditPrimitive",
           "kinds": [
             "may_spend_to_place_power"
           ]
@@ -12504,7 +12500,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#fireSiAfterCorpRezOrPlay",
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#fireSiAfterCorpRezOrPlay",
           "kinds": []
         }
       ],
@@ -16020,7 +16016,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/tagPrimitives.ts#findPreventFirstTagEachRun",
+          "site": "src/effects/keywordsAndCredits/tagPrimitives.ts#findPreventFirstTagEachRun",
           "kinds": []
         }
       ],
@@ -16259,7 +16255,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/chooseGainShuffle.ts#syncMauiRecurringCredits",
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#syncMauiRecurringCredits",
           "kinds": []
         },
         {
@@ -16297,7 +16293,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKinds",
           "kinds": []
         },
         {
@@ -17029,7 +17025,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/trashResolveTrace.ts#applyLunarUpPrimitive",
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKinds",
           "kinds": []
         },
         {
@@ -18154,10 +18150,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/creditTally.ts#tallySide",
-          "kinds": []
-        },
-        {
           "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
           "kinds": []
         },
@@ -18171,10 +18163,6 @@
         },
         {
           "site": "src/effects/eval.ts#trashInstalledLegalTargets",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
           "kinds": []
         },
         {
@@ -18214,11 +18202,22 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
+          "site": "src/effects/keywordsAndCredits/creditTally.ts#tallySide",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
+          "site": "src/effects/keywordsAndCredits/hostedCreditPrimitives.ts#takeHostedCredits",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKinds",
+          "kinds": [],
+          "mirrors": [
+            "src/effects/ir/gainPrimitive.ts#{GainPrimitive}"
+          ]
+        },
+        {
+          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
           "kinds": []
         },
         {
@@ -18226,17 +18225,6 @@
           "kinds": [],
           "mirrors": [
             "src/effects/ir/otherPrimitive.ts#{OtherPrimitive}"
-          ]
-        },
-        {
-          "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/trashForceGain.ts#applyFlashpoint23sPrimitive",
-          "kinds": [],
-          "mirrors": [
-            "src/effects/ir/gainPrimitive.ts#{GainPrimitive}"
           ]
         },
         {
@@ -19980,10 +19968,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/creditTally.ts#tallyCount",
-          "kinds": []
-        },
-        {
           "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
           "kinds": []
         },
@@ -20132,7 +20116,15 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/gainKinds.ts#applyGainKinds",
+          "site": "src/effects/keywordsAndCredits/creditTally.ts#tallyCount",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/gainKinds.ts#applyGainKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKinds",
           "kinds": []
         },
         {
@@ -20153,10 +20145,6 @@
         },
         {
           "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookInstallTrash.ts#applyFlashpointInPrimitive",
           "kinds": []
         },
         {
@@ -21013,10 +21001,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/badPublicityPrimitives.ts#applyBadPublicityPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/continuous/continuousKinds.ts#applyContinuousKinds",
           "kinds": []
         },
@@ -21046,10 +21030,6 @@
         },
         {
           "site": "src/effects/counters/removeKinds.ts#applyRemoveKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/creditPrimitives.ts#applyCreditPrimitive",
           "kinds": []
         },
         {
@@ -21138,14 +21118,6 @@
         },
         {
           "site": "src/effects/eval.ts#pendingTrashAmong",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/hostedCreditPrimitives.ts#applyHostedCreditPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
           "kinds": []
         },
         {
@@ -21361,15 +21333,51 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/gainKinds.ts#applyGainKinds",
+          "site": "src/effects/keywordsAndCredits/badPublicityPrimitives.ts#applyBadPublicityPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/creditPrimitives.ts#applyCreditPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/gainKinds.ts#applyGainKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/hostedCreditPrimitives.ts#applyHostedCreditPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/hostedCreditPrimitives.ts#takeHostedCredits",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#fireSiAfterCorpRezOrPlay",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/payKinds.ts#applyPayKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/tagPrimitives.ts#applyTagPrimitive",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/tagPrimitives.ts#giveTags",
           "kinds": []
         },
         {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/payKinds.ts#applyPayKinds",
           "kinds": []
         },
         {
@@ -21382,10 +21390,6 @@
         },
         {
           "site": "src/effects/primitives/breachResolveInstall.ts#applyKitaraKaPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/breachResolveRfg.ts#applyLunarFcPrimitive",
           "kinds": []
         },
         {
@@ -21405,31 +21409,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezRfgTrash.ts#applyRedsandFmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/givePayTrash.ts#applyRedsandCdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookInstallTrash.ts#applyFlashpointInPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookTrashAdd.ts#fireSiAfterCorpRezOrPlay",
           "kinds": []
         },
         {
@@ -21461,10 +21441,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#applyKitaraWinPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/revealTrashCannot.ts#applyMumbadFtmPrimitive",
           "kinds": []
         },
@@ -21482,10 +21458,6 @@
         },
         {
           "site": "src/effects/primitives/spendInstallAdd.ts#breakUnbrokenExcept",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
           "kinds": []
         },
         {
@@ -21622,14 +21594,6 @@
         },
         {
           "site": "src/effects/swap/swapKinds.ts#trashHostedOnSwapOut",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/tagPrimitives.ts#applyTagPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/tagPrimitives.ts#giveTags",
           "kinds": []
         },
         {
@@ -23325,7 +23289,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/tagPrimitives.ts#giveTags",
+          "site": "src/effects/keywordsAndCredits/tagPrimitives.ts#giveTags",
           "kinds": []
         }
       ],
@@ -23433,7 +23397,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/hostedCreditPrimitives.ts#takeHostedCredits",
+          "site": "src/effects/keywordsAndCredits/hostedCreditPrimitives.ts#takeHostedCredits",
           "kinds": []
         }
       ],
@@ -23752,10 +23716,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/creditTally.ts#tallyCount",
-          "kinds": []
-        },
-        {
           "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
           "kinds": []
         },
@@ -23984,7 +23944,19 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/gainKinds.ts#applyGainKinds",
+          "site": "src/effects/keywordsAndCredits/creditTally.ts#tallyCount",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/gainKinds.ts#applyGainKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/keywordsAndCredits/keywordAndCreditKinds.ts#applyKeywordAndCreditKindsWhenSourceExists",
           "kinds": []
         },
         {
@@ -23996,23 +23968,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/breachResolveRfg.ts#applyLunarFcPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/chooseGainShuffle.ts#canAdvance",
           "kinds": []
         },
         {
           "site": "src/effects/primitives/derezDrawChoose.ts#applyRedsandTdPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/derezRfgTrash.ts#applyRedsandFmPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive",
           "kinds": []
         },
         {
@@ -24025,14 +23985,6 @@
         },
         {
           "site": "src/effects/primitives/preventInstallDraw.ts#applySansanBbPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventSpendTrash.ts#applyLunarUaoPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/resolveMoveInstall.ts#applyKitaraWinPrimitive",
           "kinds": []
         },
         {
@@ -24049,10 +24001,6 @@
         },
         {
           "site": "src/effects/primitives/spendInstallAdd.ts#applySpinHapPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/spendMoveTrash.ts#applyFlashpointBmPrimitive",
           "kinds": []
         },
         {

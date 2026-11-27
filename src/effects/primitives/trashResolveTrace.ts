@@ -1,5 +1,3 @@
-import { emptyRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
-import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
@@ -27,20 +25,6 @@ export function applyLunarUpPrimitive(
       });
       const r = autoResolveTrace(state, sourceId, 2, fx.seq(trash, kick), kick);
       if (!r.ok) return { ok: false, error: r.error, cites: [] };
-      return { ok: true };
-    }
-    case "lose_nasir_all_credits": {
-      emptyRunnerCreditPool(state);
-      log(state, `Nasir Meidan — Runner loses all credits in pool.`);
-      // "Gain credits equal to the rez cost of that ice": the ice being
-      // encountered. Its printed rez cost: the rez procedure's modified
-      // value is not exposed outside a rez yet (area 7).
-      const iceId = state.run?.encounter?.iceId;
-      const gain = iceId ? (state.cards[iceId]?.rezCost ?? 0) : 0;
-      if (gain > 0) {
-        state.runner.credits += gain;
-        log(state, `Nasir Meidan — Runner gains ${gain}¢.`);
-      }
       return { ok: true };
     }
     default:

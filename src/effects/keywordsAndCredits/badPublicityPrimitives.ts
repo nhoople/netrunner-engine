@@ -2,15 +2,15 @@
  * Bad publicity on the Corp and hosted on a card.
  * Choices that spend bad publicity for another effect stay in eval.ts.
  */
-import { log } from "../state/setupAndEnd/createGame.js";
-import { fireFirstBadPublicityTake } from "../state/keywordsAndCredits/badPublicityHooks.js";
-import { fireWouldTakeBadPublicity } from "../state/triggers/storedTriggers.js";
-import { checkWinConditions } from "../state/turnAndActions/scoring.js";
-import type { RuleCite } from "../state/types.js";
-import type { EffectCtx } from "./eval.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { fireFirstBadPublicityTake } from "../../state/keywordsAndCredits/badPublicityHooks.js";
+import { fireWouldTakeBadPublicity } from "../../state/triggers/storedTriggers.js";
+import { checkWinConditions } from "../../state/turnAndActions/scoring.js";
+import type { RuleCite } from "../../state/types.js";
+import type { EffectCtx } from "../eval.js";
 import { abilityCreditTally } from "./creditTally.js";
-import type { Primitive } from "./ir.js";
-import { openPendingChoose } from "../state/triggers/pendingChoice.js";
+import type { Primitive } from "../ir.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

@@ -5,10 +5,10 @@
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { agendaPointsFor } from "../turnAndActions/scoring.js";
 import type { GameState, StoredConditionalEffectKey } from "../types.js";
-import { syncMauiRecurringCredits } from "../../effects/primitives/chooseGainShuffle.js";
 import { noteBypassTriggers } from "../run/bypassHooks.js";
 import { noteInlineConditional } from "../triggers/inlineConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
+import { syncMauiRecurringCredits } from "../../effects/keywordsAndCredits/keywordAndCreditKinds.js";
 
 type IceRezAbilityPendingMark = {
   cardId: string;

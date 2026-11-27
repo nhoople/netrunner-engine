@@ -8746,7 +8746,7 @@
       "abilities": [
         "Whenever you gain credits through a card ability other than from NASX, you may spend up to 2[credit] to place that many power counters on NASX."
       ],
-      "note": "src/effects/creditPrimitives.ts offers the spend on every Corp card-ability gain, including NASX's own turn-begin gain (its comment says the reverse of the printed text). Gain 1 at turn begin and the click-trash cash-out match.",
+      "note": "src/effects/keywordsAndCredits/creditPrimitives.ts offers the spend on every Corp card-ability gain, including NASX's own turn-begin gain (its comment says the reverse of the printed text). Gain 1 at turn begin and the click-trash cash-out match.",
       "cr": [
         "1.2.1"
       ]

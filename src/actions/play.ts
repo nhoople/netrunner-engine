@@ -18,10 +18,6 @@ import { resumePendingStoredConditionals } from "../state/triggers/storedTrigger
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/setupAndEnd/identityFlipHooks.js";
 import { onRunnerEventPlayed } from "../state/cardFlags/cardDeclarations.js";
 import {
-  fireSiAfterCorpRezOrPlay,
-  fireSiAfterPaidAbilityClicks,
-} from "../effects/primitives/lookTrashAdd.js";
-import {
   occurCheckpoint,
   withCostCheckpoint,
 } from "../legality/checkpoints.js";
@@ -68,6 +64,8 @@ import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { agendaPointsFor } from "../state/turnAndActions/scoring.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";
 import { unhostCard } from "../state/hostingAndTrash/host.js";
+import { fireSiAfterCorpRezOrPlay } from "../effects/keywordsAndCredits/keywordAndCreditKinds.js";
+import { fireSiAfterPaidAbilityClicks } from "../effects/primitives/lookTrashAdd.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {
   return { ok: false, error, cites };

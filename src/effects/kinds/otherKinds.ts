@@ -25,27 +25,15 @@ import {
   checkWinConditions,
   scoreAgenda,
 } from "../../state/turnAndActions/scoring.js";
-import {
-  stealthHostedCreditsAvailable,
-  takeFromStealthHostedCredits,
-  subtractRunnerCreditPool,
-} from "../../state/keywordsAndCredits/costs.js";
 import { allSubroutinesBrokenByRunner } from "../../state/turnAndActions/break.js";
 import { effectiveIceSubtypes } from "../../cards/stubs.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import {
-  chargeableInstalledIds,
-  chargeCard,
-  identifyMark,
-  offerSabotagePick,
-  resolveSabotageAmount,
-} from "../../state/keywordsAndCredits/keywords.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import {
   fireOnFullyBreak,
   fireOnForfeit,
   fireAfterBreakSubroutineHooks,
   maybeFireFluxFirstBreakCharge,
-  offerMayChargeCard,
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
@@ -57,36 +45,6 @@ export function applyOtherKinds(
   const { state, sourceId } = ctx;
   const source = state.cards[sourceId];
   switch (action.kind) {
-    case "spend_stealth_credits": {
-      const need = action.amount;
-      if (need <= 0) return { ok: true };
-      if (stealthHostedCreditsAvailable(state) < need) {
-        return {
-          ok: false,
-          error: "Insufficient stealth credits.",
-          cites: [CR.paidAbility],
-        };
-      }
-      const left = takeFromStealthHostedCredits(state, need);
-      if (left > 0) {
-        return {
-          ok: false,
-          error: "Insufficient stealth credits.",
-          cites: [CR.paidAbility],
-        };
-      }
-      return { ok: true };
-    }
-
-    case "spend_enable_hosted_credits_for": {
-      source.hostedCreditsSpendFor = [...action.purposes];
-      log(
-        state,
-        `${source.title} — hosted credits spendable for ${action.purposes.join(", ")}.`,
-      );
-      return { ok: true };
-    }
-
     case "skip_discard_this_turn": {
       state.turn.skipDiscardThisTurn = true;
       log(state, `Skip discard step this turn.`);
@@ -533,47 +491,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "may_give_runner_credits_then": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "give-credits",
-            label: `Runner gains ${action.amount}¢`,
-            effect: {
-              op: "seq" as const,
-              effects: [
-                {
-                  op: "do" as const,
-                  action: {
-                    kind: "gain_credits" as const,
-                    side: "runner" as const,
-                    amount: action.amount,
-                  },
-                },
-                structuredClone(action.then),
-              ],
-            },
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "corp" as const,
-                amount: 0,
-              },
-            },
-          },
-        ],
-        logLine: `${source.title} — may have the Runner gain ${action.amount}¢.`,
-      });
-      return { ok: true };
-    }
-
     case "limit_printed_breaks_on_source_for_run": {
       source.maxPrintedSubsBreakablePerEncounter = action.max;
       log(
@@ -906,77 +823,8 @@ export function applyOtherKinds(
       });
     }
 
-    case "dividends": {
-      // CR 10.13.1 / 10.13.2 — use score-begin snapshot when present.
-      const adv =
-        source.scoreBeginAdvancementCounters ?? source.advancementCounters ?? 0;
-      const req =
-        source.scoreBeginAdvancementRequirement ??
-        source.advancementRequirement ??
-        0;
-      const excess = Math.max(0, adv - req);
-      const n = excess * action.n;
-      source.agendaCounters = (source.agendaCounters ?? 0) + n;
-      log(
-        state,
-        `Dividends ${action.n} — place ${n} agenda counter(s) (${adv}−${req}) → ${source.agendaCounters} (CR ${CR.dividends.number}).`,
-      );
-      return { ok: true };
-    }
-
     case "take_different_action_paying_click_less": {
       beginExtraDifferentAction(state, sourceId);
-      return { ok: true };
-    }
-
-    case "may_charge_card": {
-      return offerMayChargeCard(state, action.cardId, sourceId);
-    }
-
-    case "charge": {
-      if (action.pick === "self") {
-        return chargeCard(state, sourceId, sourceId);
-      }
-      if (action.pick === "card") {
-        if (!action.cardId) {
-          return {
-            ok: false,
-            error: "charge pick=card requires cardId.",
-            cites: [CR.charge],
-          };
-        }
-        return chargeCard(state, action.cardId, sourceId);
-      }
-      // choose among controller's installed chargeable cards
-      const side = source.side;
-      const cands = chargeableInstalledIds(state, side);
-      if (cands.length === 0) {
-        log(
-          state,
-          `Charge — no installed card with power counters (CR ${CR.chargeTargets.number}).`,
-        );
-        return { ok: true };
-      }
-      if (cands.length === 1) {
-        return chargeCard(state, cands[0]!, sourceId);
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: side,
-        options: cands.map((id) => ({
-          id: `charge-${id}`,
-          label: `Charge ${state.cards[id].title}`,
-          effect: {
-            op: "do" as const,
-            action: {
-              kind: "charge" as const,
-              pick: "card" as const,
-              cardId: id,
-            },
-          },
-        })),
-        logLine: `Charge — ${side} chooses among ${cands.length} cards (CR ${CR.chargeTargets.number}).`,
-      });
       return { ok: true };
     }
 
@@ -1057,11 +905,6 @@ export function applyOtherKinds(
         state,
         `${source.title} secretly sets face to ${action.face} (front faceup).`,
       );
-      return { ok: true };
-    }
-
-    case "store_ip_enforcement_tags_removed": {
-      state.turn.ipEnforcementTagsRemoved = action.amount;
       return { ok: true };
     }
 
@@ -1155,94 +998,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "sabotage": {
-      // The Corp chooses which HQ cards go (CR 10.12.2). With nothing in
-      // HQ, or fewer than N cards in HQ and R&D together (CR 10.12.3b),
-      // there is nothing to choose.
-      const total = state.corp.hand.length + state.corp.deck.length;
-      const forced =
-        action.amount <= 0 ||
-        state.corp.hand.length === 0 ||
-        total < action.amount;
-      if (action.interactive || !forced) {
-        state.pendingSabotage = { sourceId, amount: action.amount, picked: [] };
-        log(
-          state,
-          `Sabotage ${action.amount} pending — Corp chooses HQ cards (CR ${CR.sabotageResolution.number}).`,
-        );
-        offerSabotagePick(state);
-        return { ok: true };
-      }
-      return resolveSabotageAmount(state, sourceId, action.amount);
-    }
-
-    case "identify_mark": {
-      identifyMark(state, sourceId);
-      return { ok: true };
-    }
-
-    case "fully_operational_step": {
-      const remaining = Math.max(0, action.remaining ?? 0);
-      if (remaining <= 0) return { ok: true };
-      const nextRemaining = remaining - 1;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: `fo-gain:${remaining}`,
-            label: "Gain 2¢",
-            effect: {
-              op: "seq" as const,
-              effects: [
-                {
-                  op: "do" as const,
-                  action: {
-                    kind: "gain_credits" as const,
-                    side: "corp" as const,
-                    amount: 2,
-                  },
-                },
-                {
-                  op: "do" as const,
-                  action: {
-                    kind: "fully_operational_step" as const,
-                    remaining: nextRemaining,
-                  },
-                },
-              ],
-            },
-          },
-          {
-            id: `fo-draw:${remaining}`,
-            label: "Draw 2 cards",
-            effect: {
-              op: "seq" as const,
-              effects: [
-                {
-                  op: "do" as const,
-                  action: {
-                    kind: "draw" as const,
-                    side: "corp" as const,
-                    amount: 2,
-                  },
-                },
-                {
-                  op: "do" as const,
-                  action: {
-                    kind: "fully_operational_step" as const,
-                    remaining: nextRemaining,
-                  },
-                },
-              ],
-            },
-          },
-        ],
-        logLine: `${source.title} — choose gain 2¢ or draw 2 (${remaining} remaining).`,
-      });
-      return { ok: true };
-    }
-
     case "wall_to_wall_turn_begin": {
       let otherRezzedAsset = false;
       for (const server of Object.values(state.servers)) {
@@ -1262,42 +1017,6 @@ export function applyOtherKinds(
         used: [],
         mustPick: otherRezzedAsset,
       });
-    }
-
-    case "may_take_bad_publicity_then_add_agenda_counters_equal_to_bad_publicity": {
-      const amount = Math.max(0, action.amount);
-      const continueFx: Effect = {
-        op: "do",
-        action: { kind: "add_agenda_counters_equal_to_bad_publicity" },
-      };
-      if (amount <= 0) return evalEffect(ctx, continueFx);
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "take-bp",
-            label: `Take ${amount} bad publicity`,
-            effect: {
-              op: "seq",
-              effects: [
-                {
-                  op: "do",
-                  action: { kind: "give_bad_publicity", amount },
-                },
-                continueFx,
-              ],
-            },
-          },
-          {
-            id: "decline-bp",
-            label: "Decline",
-            effect: continueFx,
-          },
-        ],
-        logLine: `${source.title} — may take ${amount} bad publicity, then place agenda counters equal to bad publicity.`,
-      });
-      return { ok: true };
     }
 
     case "check_assassination_win": {

@@ -16,20 +16,6 @@ export function applyFlashpointQuPrimitive(
   const { state, sourceId } = ctx;
 
   switch (action.kind) {
-    case "gain_credits_per_corp_credits": {
-      const gainAmt = Math.floor((state.corp.credits ?? 0) / 5);
-      if (gainAmt <= 0) {
-        log(state, `Tapwrm — Corp has <5¢; gain 0.`);
-        return { ok: true };
-      }
-      state.runner.credits += gainAmt;
-      log(
-        state,
-        `Tapwrm — gain ${gainAmt}¢ (Corp has ${state.corp.credits}¢).`,
-      );
-      return { ok: true };
-    }
-
     case "schedule_additional_runner_turn": {
       state.pendingExtraRunnerTurns = (state.pendingExtraRunnerTurns ?? 0) + 1;
       log(state, `Encore — take an additional turn after this one.`);

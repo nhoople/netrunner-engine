@@ -18,10 +18,9 @@ import {
 import { type Effect, fx, type Primitive } from "../ir.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { installedCorpCards } from "../primitives/chooseGainShuffle.js";
-import { applySpinTcPrimitive } from "../primitives/breachTrashTurn.js";
 import type { GameState } from "../../state/types.js";
-import { applyRedsandFmPrimitive } from "../primitives/derezRfgTrash.js";
 import { countRezzedNextIce } from "../damageAndPrevention/damageAndPreventionKinds.js";
+import { applyKeywordAndCreditKinds } from "../keywordsAndCredits/keywordAndCreditKinds.js";
 
 /**
  * Who chooses and carries out a "trash 1 program/hardware" subroutine:
@@ -1208,7 +1207,7 @@ export function applyRunnerInstalledTrashKinds(
         state.runner.credits += 1;
       }
       if (remaining.length === 0) {
-        return applyRedsandFmPrimitive(ctx, {
+        return applyKeywordAndCreditKinds(ctx, {
           kind: "corp_gain",
           cardType: action.cardType,
           trashed,
@@ -1797,7 +1796,7 @@ export function applyRunnerInstalledTrashKinds(
         // "Reveal and trash": revealed, so faceup (CR 1.21.6, 4.4.6b).
         trashCard(state, id, { by: "corp", faceup: true });
         log(state, `Restoring Face — trash ${state.cards[id]!.title}.`);
-        return applySpinTcPrimitive(ctx, {
+        return applyKeywordAndCreditKinds(ctx, {
           kind: "remove_bad_publicity_up_to",
           max: 2,
         });

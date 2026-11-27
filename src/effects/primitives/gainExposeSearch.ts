@@ -18,16 +18,6 @@ export function applyKitaraDtwnPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "gain_credits_equal_to_last_purged_viruses": {
-      const n = state.turn.lastVirusCountersPurged ?? 0;
-      state.runner.credits += n;
-      log(
-        state,
-        `${source?.title ?? "Acacia"} — gain ${n}¢ (virus counters purged) → ${state.runner.credits}¢.`,
-      );
-      return { ok: true };
-    }
-
     case "break_first_subroutine": {
       const enc = state.run?.encounter;
       if (!enc) {

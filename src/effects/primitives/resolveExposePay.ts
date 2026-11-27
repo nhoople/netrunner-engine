@@ -24,23 +24,6 @@ export function applyKitaraTdatdPrimitive(
   const { state } = ctx;
 
   switch (action.kind) {
-    case "pay_419": {
-      const credits = (action as { credits?: number }).credits ?? 1;
-      if (state.corp.credits < credits) {
-        return {
-          ok: false,
-          error: `Corp cannot pay ${credits}¢.`,
-          cites: [],
-        };
-      }
-      state.corp.credits -= credits;
-      log(
-        state,
-        `419 — Corp pays ${credits}¢ to prevent expose → ${state.corp.credits}¢.`,
-      );
-      return { ok: true };
-    }
-
     case "lose_tempus_clicks": {
       const lose = Math.min(2, state.runner.clicks);
       state.runner.clicks -= lose;

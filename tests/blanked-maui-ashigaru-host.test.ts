@@ -12,10 +12,10 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { syncMauiRecurringCredits } from "../src/effects/primitives/chooseGainShuffle.js";
 import { syncCorpHandSizeSubroutines } from "../src/state/continuous/handSizeSubroutines.js";
 import { syncNextSubtypeEtrSubs } from "../src/state/counters/powerCounters.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
+import { syncMauiRecurringCredits } from "../src/effects/keywordsAndCredits/keywordAndCreditKinds.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

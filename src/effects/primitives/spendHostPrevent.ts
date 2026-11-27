@@ -6,11 +6,9 @@ import {
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { EffectCtx } from "../eval.js";
-import { evalEffect } from "../eval.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import type { RuleCite } from "../../state/types.js";
+import { fx, type Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -53,50 +51,6 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "spend_x_remove_tags": {
-      const tags = state.runner.tags;
-      const credits = state.runner.credits;
-      if (tags <= 0 || credits <= 0) {
-        log(state, `Misdirection — no tags or credits.`);
-        return { ok: true };
-      }
-      const maxX = Math.min(tags, credits);
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      for (let x = 1; x <= maxX; x++) {
-        options.push({
-          id: `misdirection-x:${x}`,
-          label: `Spend ${x}¢: remove ${x} tag(s)`,
-          effect: fx.do({
-            kind: "spend_x_remove_tags_resolve",
-            amount: x,
-          }),
-        });
-      }
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-      });
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
-    case "spend_x_remove_tags_resolve": {
-      const x = action.amount ?? 0;
-      if (x <= 0 || state.runner.credits < x) {
-        log(state, `Misdirection — cannot afford ${x}¢.`);
-        return { ok: true };
-      }
-      subtractRunnerCreditPool(state, x);
-      const removed = Math.min(x, state.runner.tags);
-      state.runner.tags -= removed;
-      log(
-        state,
-        `Misdirection — spend ${x}¢ → remove ${removed} tag(s) (${state.runner.tags} remain).`,
-      );
-      return { ok: true };
-    }
-
     case "psi_differ_redirect": {
       const current = state.run?.attackedServerId;
       const servers = Object.values(state.servers).filter(
@@ -119,21 +73,6 @@ export function applyFlashpointMlPrimitive(
         })),
       });
       return { ok: true };
-    }
-
-    case "give_tags_if_runner_has_installed_subtype": {
-      const subtype = (action.subtype ?? "ai").toLowerCase();
-      const amount = action.amount ?? 1;
-      const has = state.runner.installed.some((id) =>
-        (state.cards[id]?.subtypes ?? [])
-          .map((s) => s.toLowerCase())
-          .includes(subtype),
-      );
-      if (!has) {
-        log(state, `IP Block — no installed ${subtype}; no tag.`);
-        return { ok: true };
-      }
-      return evalEffect(ctx, fx.do({ kind: "give_tags", amount }));
     }
 
     default:

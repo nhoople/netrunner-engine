@@ -1,11 +1,7 @@
-/** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
-import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import type { EffectCtx } from "../eval.js";
-import { fx, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import type { RuleCite } from "../../state/types.js";
+import type { Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -14,88 +10,13 @@ export function applyKitaraWinPrimitive(
   ctx: EffectCtx,
   action: Primitive,
 ): PrimResult | null {
-  const { state, sourceId } = ctx;
-  const source = state.cards[sourceId];
+  const { state } = ctx;
 
   switch (action.kind) {
     case "lose_remaining_clicks": {
       const lost = state.runner.clicks;
       state.runner.clicks = 0;
       log(state, `Logic Bomb — lose ${lost} remaining click(s).`);
-      return { ok: true };
-    }
-
-    case "win_jackpot_place_credit": {
-      if (!source) return { ok: true };
-      source.hostedCredits = (source.hostedCredits ?? 0) + 1;
-      log(state, `Jackpot! — place 1¢ → ${source.hostedCredits}.`);
-      return { ok: true };
-    }
-
-    case "win_jackpot_take_credits": {
-      if (!source) return { ok: true };
-      const n = source.hostedCredits ?? 0;
-      if (n <= 0) {
-        log(state, `Jackpot! — no credits.`);
-        return { ok: true };
-      }
-      // Printed: "take any number of credits from Jackpot!. If you do,
-      // trash Jackpot!" — the Runner chooses how many.
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: Array.from({ length: n }, (_, i) => i + 1).map((x) => ({
-          id: `jackpot-take:${x}`,
-          label: `Take ${x}¢ from Jackpot! and trash it`,
-          effect: fx.do({ kind: "take_jackpot_credits_resolve", amount: x }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "take_jackpot_credits_resolve": {
-      if (!source) return { ok: true };
-      const take = Math.min(action.amount, source.hostedCredits ?? 0);
-      if (take <= 0) return { ok: true };
-      state.runner.credits += take;
-      source.hostedCredits = 0;
-      trashCard(state, sourceId);
-      log(state, `Jackpot! — take ${take}¢ and trash.`);
-      return { ok: true };
-    }
-
-    case "win_standard_procedure": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: ["event", "hardware", "program", "resource", "identity"].map(
-          (t) => ({
-            id: `sp:${t}`,
-            label: `Name ${t}`,
-            effect: fx.do({
-              kind: "win_standard_procedure_named",
-              cardType: t,
-            }),
-          }),
-        ),
-      });
-      return { ok: true };
-    }
-
-    case "win_standard_procedure_named": {
-      let n = 0;
-      for (const id of state.runner.hand) {
-        const c = state.cards[id];
-        if (c?.type === action.cardType) n += 1;
-        if (c) revealCards(state, [c.id], sourceId);
-        log(state, `Standard Procedure — reveal ${c.title}.`);
-      }
-      const gainAmt = n * 2;
-      state.corp.credits += gainAmt;
-      log(
-        state,
-        `Standard Procedure — gain ${gainAmt}¢ (${n} ${action.cardType}).`,
-      );
       return { ok: true };
     }
 

@@ -11,7 +11,7 @@ import {
 } from "../../state/damageAndPrevention/damage.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { abilityCreditTally } from "../creditTally.js";
+import { abilityCreditTally } from "../keywordsAndCredits/creditTally.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 

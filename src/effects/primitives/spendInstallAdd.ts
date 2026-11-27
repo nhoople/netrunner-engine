@@ -6,11 +6,9 @@ import {
 import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
-import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { agendaPointsFor } from "../../state/turnAndActions/scoring.js";
 import type { EffectCtx } from "../eval.js";
 import type { RuleCite } from "../../state/types.js";
 import { fx, type Primitive } from "../ir.js";
@@ -158,15 +156,6 @@ export function applySpinHapPrimitive(
       );
       return { ok: true };
     }
-    case "corp_gain_iain_if_ahead_on_agenda": {
-      const corp = agendaPointsFor(state, "corp");
-      const run = agendaPointsFor(state, "runner");
-      if (corp > run) {
-        state.runner.credits += 2;
-        log(state, `Iain Stirling — gain 2¢ (Corp ahead on agenda).`);
-      }
-      return { ok: true };
-    }
     case "play_run_event_from_stack": {
       const cands = state.runner.deck.filter((id) => {
         const c = state.cards[id];
@@ -220,26 +209,6 @@ export function applySpinHapPrimitive(
     case "break_all_but_n_subroutines_on_encounter": {
       return offerSparedSubroutineChoice(state, sourceId, action.leave ?? 1);
     }
-    case "spend_push_your_luck_secret_guess": {
-      // Printed: Runner secretly spends any number of credits; the Corp
-      // guesses even or odd. Wrong guess → Runner gains twice the spend.
-      // The Corp's psi bid is a parity guess (0=even, 1=odd), not a spend.
-      startPsiGame(
-        state,
-        sourceId,
-        999,
-        fx.do({ kind: "gain_credits_twice_secret_spend" }),
-        fx.do({ kind: "gain_credits", side: "runner", amount: 0 }),
-        { corpGuess: "parity" },
-      );
-      return { ok: true };
-    }
-    case "gain_credits_twice_secret_spend": {
-      const spent = state.turn.lastRevealedRunnerSecretSpend ?? 0;
-      state.runner.credits += 2 * spent;
-      log(state, `Push Your Luck — Corp guessed wrong; gain ${2 * spent}¢.`);
-      return { ok: true };
-    }
     case "score_agenda_from_hq": {
       const cardId = action.cardId;
       const idx = state.corp.hand.indexOf(cardId);
@@ -250,16 +219,6 @@ export function applySpinHapPrimitive(
       card.zone = "corp:score";
       card.faceup = true;
       log(state, `Plan B — score ${card.title} from HQ.`);
-      return { ok: true };
-    }
-    case "corp_pay_credits": {
-      const n = Math.min(action.amount ?? 0, state.corp.credits);
-      state.corp.credits -= n;
-      return { ok: true };
-    }
-    case "runner_pay_credits": {
-      const n = Math.min(action.amount ?? 0, state.runner.credits);
-      subtractRunnerCreditPool(state, n);
       return { ok: true };
     }
     default:

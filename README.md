@@ -163,6 +163,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
     hostingAndTrash/      # hosting and trashing (CR 1.13, 1.19): corpTrash.ts, the host kinds, and the trash kinds by side and zone
     install/              # installing cards (CR 8.5): corpInstall.ts, runnerInstall.ts, installs by ability (corpAbilityInstall.ts), and the install kinds by side and zone
     ir/                   # the Effect IR types: one Primitive file per kind family (matching kinds/), conditions, effect tree, known kinds, fx builders, validation
+    keywordsAndCredits/   # keywords and credits (CR 10.5–10.7, 10.9–10.13, 1.10): the credit, tag, bad publicity and hosted-credit primitives, credit tallies, the gain and pay kinds
     kinds/                # one file per procedure in the kind switch
     primitives/           # printed procedures grouped by verb, not by pack
     rez/                  # rezzing and derezzing (CR 8.1): the rez and derez kinds

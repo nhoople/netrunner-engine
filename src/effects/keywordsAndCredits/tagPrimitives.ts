@@ -2,27 +2,27 @@
  * Tag primitives. Give, remove, and prevent tags. Card-specific tag
  * abilities stay in eval.ts.
  */
-import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { log } from "../state/setupAndEnd/createGame.js";
-import { onTagsRemoved } from "../state/cardFlags/cardDeclarations.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { onTagsRemoved } from "../../state/cardFlags/cardDeclarations.js";
 import {
   hasPayableTagInterrupt,
   openPendingTags,
   preventPendingTags,
-} from "../state/keywordsAndCredits/tags.js";
+} from "../../state/keywordsAndCredits/tags.js";
 import {
   fireOnFirstAvoidOrRemoveTagThisTurn,
   fireOnRemoveTags,
   fireOnTakeTagsWhenUntagged,
   fireMeatDamageWhenRunnerTakesTags,
-} from "../state/hostingAndTrash/trashHooks.js";
-import type { GameState, RuleCite } from "../state/types.js";
-import { CR } from "../timing/labels.js";
-import type { EffectCtx } from "./eval.js";
+} from "../../state/hostingAndTrash/trashHooks.js";
+import type { GameState, RuleCite } from "../../state/types.js";
+import { CR } from "../../timing/labels.js";
+import type { EffectCtx } from "../eval.js";
 import { abilityCreditTally } from "./creditTally.js";
-import type { Effect, Primitive } from "./ir.js";
-import { fireOnFirstTagThisTurn } from "../state/triggers/miscConditionalHooks.js";
-import { trashCard } from "../state/hostingAndTrash/trash.js";
+import type { Effect, Primitive } from "../ir.js";
+import { fireOnFirstTagThisTurn } from "../../state/triggers/miscConditionalHooks.js";
+import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

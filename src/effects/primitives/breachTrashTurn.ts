@@ -1,9 +1,8 @@
 import { breakNextSubroutines } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
+import type { Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -14,42 +13,6 @@ export function applySpinTcPrimitive(
 ): PrimResult | null {
   const { state, sourceId } = ctx;
   switch (action.kind) {
-    case "lawyer_up": {
-      const max = Math.min(2, state.runner.tags);
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      for (let n = 0; n <= max; n++) {
-        options.push({
-          id: `lawyer-tags-${n}`,
-          label: n === 0 ? "Remove 0 tags" : `Remove ${n} tag(s)`,
-          effect: fx.seq(
-            fx.do({ kind: "remove_tags", amount: n }),
-            fx.draw("runner", 3),
-          ),
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options,
-        logLine: `Lawyer Up — remove up to ${max} tag(s), draw 3.`,
-      });
-      return { ok: true };
-    }
-    case "remove_bad_publicity_up_to": {
-      const max = action.max ?? 0;
-      const have = state.corp.badPublicity ?? 0;
-      const cap = Math.min(max, have);
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      for (let n = 0; n <= cap; n++) {
-        options.push({
-          id: `rbp-${n}`,
-          label: `Remove ${n} bad publicity`,
-          effect: fx.do({ kind: "remove_bad_publicity", amount: n }),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
     case "break_all_destroyer_subroutines_on_encounter": {
       const enc = state.run?.encounter;
       if (!enc) return { ok: true };
