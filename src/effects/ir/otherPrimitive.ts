@@ -754,7 +754,6 @@ export type OtherPrimitive =
   | { kind: "si_stack_done_trashing" }
   | { kind: "si_stack_arrange_pick"; cardId: string }
   | { kind: "name_reveal_trash_grip_copies" }
-  | { kind: "bottom_drawn_card"; cardId: string }
   | { kind: "patron_set_named_server"; serverId: string }
   | { kind: "information_sifting_corp_split_hq" }
   | { kind: "access_pile"; pile: "a" | "b" }

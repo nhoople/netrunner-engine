@@ -221,8 +221,55 @@ describe("effect IR names", () => {
     ).not.toBeNull();
   });
 
+  it("lists each kind once, and declares each kind's Primitive member once", () => {
+    const listed = [
+      ...readFileSync(
+        join(process.cwd(), "src/effects/ir/knownKinds.ts"),
+        "utf8",
+      ).matchAll(/^ {2}"([a-z0-9_]+)",$/gm),
+    ].map((m) => m[1]!);
+    expect(listed.length).toBe(
+      KNOWN_PRIMITIVE_KINDS.size + twice(listed).length,
+    );
+    expect(twice(listed), "listed twice in KNOWN_PRIMITIVE_KINDS").toEqual([]);
+    // every `kind: "..."` property of an object type in the IR family files
+    const irDir = join(process.cwd(), "src/effects/ir");
+    const members: string[] = [];
+    for (const f of readdirSync(irDir).filter((n) =>
+      n.endsWith("Primitive.ts"),
+    )) {
+      const sf = ts.createSourceFile(
+        f,
+        readFileSync(join(irDir, f), "utf8"),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+      const visit = (node: ts.Node): void => {
+        if (
+          ts.isPropertySignature(node) &&
+          node.name.getText(sf) === "kind" &&
+          node.type &&
+          ts.isLiteralTypeNode(node.type) &&
+          ts.isStringLiteral(node.type.literal)
+        ) {
+          members.push(node.type.literal.text);
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sf);
+    }
+    expect(members.length).toBeGreaterThan(1000);
+    expect(twice(members), "declared twice in the Primitive union").toEqual([]);
+  });
+
   it("rejects a new pack-code prefix", () => {
     expect(primitiveNameFollowsStandard("dtwn_new_procedure")).toBe(false);
     expect(legacy).not.toContain("dtwn_new_procedure");
   });
 });
+
+/** Names that occur more than once in a list. */
+function twice(names: readonly string[]): string[] {
+  const seen = new Set<string>();
+  return names.filter((n) => seen.has(n) || !seen.add(n));
+}
