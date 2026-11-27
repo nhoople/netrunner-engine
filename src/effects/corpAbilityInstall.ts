@@ -13,6 +13,7 @@ import { fireOnRez } from "../state/cardLifecycleHooks.js";
 import { cloneState, log } from "../state/createGame.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { revealCards } from "../state/reveal.js";
+import { serverName } from "../state/seatVisibility.js";
 import type {
   GameState,
   InstallDestination,
@@ -49,10 +50,7 @@ function destinationFor(
 
 /** A server's printed name for a choice label: HQ, R&D, Archives, Remote N. */
 export function serverLabel(serverId: string): string {
-  if (serverId === "hq") return "HQ";
-  if (serverId === "rd") return "R&D";
-  if (serverId === "archives") return "Archives";
-  return serverId.replace(/^remote-/, "Remote ");
+  return serverName(serverId);
 }
 
 /** Cards in the destination the Corp may trash first but need not. */

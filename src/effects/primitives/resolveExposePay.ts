@@ -1,3 +1,4 @@
+import { openCardName } from "../../state/seatVisibility.js";
 import { lookAtCards } from "../../state/reveal.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 /** The Devil and the Dragon (tdatd) Kitara pack primitives — v1.139.0. */
@@ -277,7 +278,7 @@ export function applyKitaraTdatdPrimitive(
         chooser: "runner",
         options: targets.map((id) => ({
           id: `falsified-expose:${id}`,
-          label: `Expose ${state.cards[id]!.title}`,
+          label: `Expose ${openCardName(state, id, "runner")}`,
           effect: fx.do({
             kind: "expose_falsified",
             cardId: id,
@@ -695,7 +696,7 @@ export function fireTdatd419OnFirstCorpInstall(
     options: [
       {
         id: "accept",
-        label: `Expose ${installed.title} unless Corp pays ${cost}¢`,
+        label: `Expose ${openCardName(state, installedId, "runner")} unless Corp pays ${cost}¢`,
         effect: fx.do({
           kind: "expose_419_or_pay",
           cardId: installedId,

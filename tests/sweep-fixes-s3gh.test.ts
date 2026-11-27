@@ -297,7 +297,7 @@ describe("Drive By", () => {
     // The Runner's labels name the place, not the facedown card (CR 10.2.2a).
     const labels = JSON.stringify(getPublicView(s, "runner").pendingChoice);
     expect(labels).not.toContain("PAD Campaign");
-    expect(labels).toContain("root of remote-a");
+    expect(labels).toContain("root of Remote a");
   });
 
   it('trashes the card only once it is exposed: an expose the Corp prevents trashes nothing, even for a card an earlier expose left faceup ("If you do", CR 1.21.4)', () => {

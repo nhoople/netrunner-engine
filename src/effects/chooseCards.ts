@@ -7,6 +7,7 @@
  * possible. CR 5.5.4c: cards discarded to hand size are chosen by the
  * discarding player and discarded simultaneously.
  */
+import { openCardName } from "../state/seatVisibility.js";
 import { log } from "../state/createGame.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
@@ -247,7 +248,12 @@ export function applyChooseCards(
   const options: Array<{ id: string; label: string; effect: Effect }> =
     left.map((id) => ({
       id: `choose-card:${id}`,
-      label: state.cards[id]!.title,
+      // A candidate out of play is one the chooser looks at or searches
+      // (CR 1.21.2, 8.7.1); an installed or hosted one is named as the
+      // chooser sees it.
+      label: /^(server|hosted):/.test(state.cards[id]!.zone)
+        ? openCardName(state, id, action.chooser)
+        : state.cards[id]!.title,
       effect: {
         op: "do",
         action: { ...structuredClone(action), picked: [...action.picked, id] },

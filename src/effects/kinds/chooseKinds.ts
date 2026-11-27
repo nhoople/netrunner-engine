@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is choose.
  * The effect switch in eval.ts dispatches here.
  */
+import { openCardName } from "../../state/seatVisibility.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import {
@@ -289,7 +290,7 @@ export function applyChooseKinds(
         chooser: "runner",
         options: candidates.map((id) => ({
           id: `romp-card:${id}`,
-          label: `Remove advancements from ${state.cards[id]!.title}`,
+          label: `Remove advancements from ${openCardName(state, id, "runner")}`,
           effect: {
             op: "do" as const,
             action: {
@@ -583,7 +584,7 @@ export function applyChooseKinds(
         chooser: "runner",
         options: targets.map((id) => ({
           id: `ice-rez-bump:${id}`,
-          label: `+${action.amount}¢ rez to ${state.cards[id]!.title}`,
+          label: `+${action.amount}¢ rez to ${openCardName(state, id, "runner")}`,
           effect: {
             op: "do" as const,
             action: {

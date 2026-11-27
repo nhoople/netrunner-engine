@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is trash.
  * The effect switch in eval.ts dispatches here.
  */
+import { openCardName } from "../../state/seatVisibility.js";
 import { facedownInstalledRunnerCard } from "../../state/active.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
@@ -1952,7 +1953,7 @@ export function applyTrashKinds(
         chooser: "runner",
         options: ids.map((id) => ({
           id: `en-passant:${id}`,
-          label: `Trash ${state.cards[id]!.title}`,
+          label: `Trash ${openCardName(state, id, "runner")}`,
           effect: fx.do({
             kind: "trash_passed_unrezzed_ice_resolve",
             cardId: id,

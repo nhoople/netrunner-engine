@@ -1,4 +1,5 @@
 /** Down the White Nile (dtwn) Kitara pack primitives — v1.137.0. */
+import { openCardName } from "../../state/seatVisibility.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import {
   markSubroutineBroken,
@@ -93,7 +94,7 @@ export function applyKitaraDtwnPrimitive(
         chooser: "runner",
         options: iceIds.map((id) => ({
           id: `wari-ice:${id}`,
-          label: `Expose ${state.cards[id]!.title}`,
+          label: `Expose ${openCardName(state, id, "runner")}`,
           effect: fx.do({
             kind: "expose_wari_resolve",
             iceId: id,

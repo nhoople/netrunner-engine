@@ -1,4 +1,5 @@
 /** Fear the Masses (ftm) Mumbad pack primitives — v1.121.0. */
+import { openCardName } from "../../state/seatVisibility.js";
 import { lookAtCards, revealCards } from "../../state/reveal.js";
 import { log } from "../../state/createGame.js";
 import { startPsiGame } from "../../state/psi.js";
@@ -166,14 +167,13 @@ export function applyMumbadFtmPrimitive(
         sourceId,
         chooser: "runner",
         options: iceIds.map((id) => {
-          const ice = state.cards[id]!;
           const serverId =
             (Object.entries(state.servers).find(([, s]) =>
               s.ice.includes(id),
             )?.[0] as ServerId | undefined) ?? "hq";
           return {
             id: `rr-ice:${id}`,
-            label: `Run past ${ice.title}`,
+            label: `Run past ${openCardName(state, id, "runner")}`,
             effect: fx.do({
               kind: "bypass_rigged_results_run_ice",
               iceId: id,

@@ -2,6 +2,7 @@
  * Choose one card the player can already see and bind it into one effect
  * (CR 1.15.2, 1.15.4). Hidden zones stay out of this primitive (CR 1.21.2).
  */
+import { openCardName } from "../state/seatVisibility.js";
 import { log } from "../state/createGame.js";
 import { isCentral } from "../state/access.js";
 import type {
@@ -124,7 +125,7 @@ export function applyChooseCard(
   const options: Array<{ id: string; label: string; effect: Effect }> = ids.map(
     (id) => ({
       id: `choose-card:${id}`,
-      label: state.cards[id]!.title,
+      label: openCardName(state, id, action.chooser),
       effect: bindChosen(structuredClone(action.then), id) as Effect,
     }),
   );

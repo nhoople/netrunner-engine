@@ -1,4 +1,5 @@
 /** Daedalus Complex (dc) Red Sand pack primitives — v1.128.0. */
+import { openCardName } from "../../state/seatVisibility.js";
 import { abilitiesSuppressed } from "../../state/abilities.js";
 import { log } from "../../state/createGame.js";
 import { revealCards } from "../../state/reveal.js";
@@ -115,7 +116,7 @@ export function applyRedsandDcPrimitive(
         chooser: "runner",
         options: candidates.map((c) => ({
           id: `expose:${c.id}`,
-          label: `Expose ${c.title}`,
+          label: `Expose ${openCardName(state, c.id, "runner")}`,
           effect: {
             op: "seq",
             effects: [

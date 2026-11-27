@@ -21037,10 +21037,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/chooseCard.ts#applyChooseCard",
-          "kinds": []
-        },
-        {
           "site": "src/effects/chooseCards.ts#applyChooseCards",
           "kinds": []
         },
@@ -21270,10 +21266,6 @@
         },
         {
           "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/otherKinds.ts#applyOtherKinds.iceName",
           "kinds": []
         },
         {
@@ -22598,6 +22590,10 @@
         },
         {
           "site": "src/state/scoring.ts#stealAgenda",
+          "kinds": []
+        },
+        {
+          "site": "src/state/seatVisibility.ts#openCardName",
           "kinds": []
         },
         {

@@ -2,6 +2,7 @@
  * Primitive kinds whose procedure is swap.
  * The effect switch in eval.ts dispatches here.
  */
+import { openCardName } from "../../state/seatVisibility.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import { iceAtRunnerPosition } from "../../state/runPosition.js";
 import type { GameState, Server } from "../../state/types.js";
@@ -624,7 +625,7 @@ export function applySwapKinds(
           },
           ...others.map((id) => ({
             id: `swap-ice:${id}`,
-            label: `Swap with ${state.cards[id]!.title}`,
+            label: `Swap with ${openCardName(state, id, chooser)}`,
             effect: {
               op: "do" as const,
               action: {
@@ -679,7 +680,7 @@ export function applySwapKinds(
           },
           ...eligibleProtecting.map((pid) => ({
             id: `swap-protecting:${pid}`,
-            label: `Swap ${state.cards[pid]!.title} (protecting)`,
+            label: `Swap ${openCardName(state, pid, "runner")} (protecting)`,
             effect: {
               op: "do" as const,
               action: {
@@ -718,7 +719,7 @@ export function applySwapKinds(
         chooser: "runner",
         options: others.map((id) => ({
           id: `swap-other:${id}`,
-          label: `Swap with ${state.cards[id]!.title}`,
+          label: `Swap with ${openCardName(state, id, "runner")}`,
           effect: {
             op: "do" as const,
             action: {
