@@ -175,7 +175,7 @@ describe("an accessed card is not turned faceup (CR 7.1.2, 4.6.3, 10.2.2a)", () 
   });
 
   it("the Runner's view hides the accessed PAD Campaign after the breach (CR 7.3.1a, 10.2.2a)", () => {
-    let s = toRunEnd(access(runOnRemote(padAndAshBoard()), "pad-1"));
+    const s = toRunEnd(access(runOnRemote(padAndAshBoard()), "pad-1"));
     expect(rootTitle(s, "runner", "pad-1")).toBeNull();
     expect(rootTitle(s, "runner", "ash-1")).toBeNull();
     expect(openCardName(s, "pad-1", "runner")).not.toContain("PAD Campaign");
