@@ -163,6 +163,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
   state/             # types.ts: points to types/; costs, run position, seat visibility, and the hooks each timing point fires
     continuous/      # continuous effects (CR 9.12): whether a card is active (1.8), blanking, lingering effects (9.10), currents and lockdowns in the play area, continuous cost, subroutine, strength and hand-size modifiers
     procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break
+    run/             # run flow (CR ch. 6): starting a run and its legality and taxes, the hooks each run step fires (run begin, approach, encounter, pass, bypass, success, end), end the run
     triggers/        # conditional abilities and their machinery (CR 9.6): pending abilities, stored triggers, trigger predicates over checkpoint facts, the conditional collectors that span several areas; interrupts and replacements (9.9); pending choices
     types/           # the game state types, one file per thing they describe: shared words, card (with its hooks and costs), abilities, servers, players, turn, run, restrictions, checkpoints, pending abilities, windows, lingering effects, pending choices, game, actions, public view
   timing/            # graph.ts: the timing step graph (CR 11.2–11.5); machine.ts: stepping through it

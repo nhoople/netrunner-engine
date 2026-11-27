@@ -37,7 +37,7 @@ import {
   spendCreditsForInstall,
 } from "../src/state/costs.js";
 import { fireHostedCreditsOnAnyIceRez } from "../src/state/powerCounters.js";
-import { modifiersFromStartsRun } from "../src/state/runStart.js";
+import { modifiersFromStartsRun } from "../src/state/run/runStart.js";
 import type { GameState } from "../src/state/types.js";
 import { noteRunnerClickSpend } from "../src/state/clickHooks.js";
 

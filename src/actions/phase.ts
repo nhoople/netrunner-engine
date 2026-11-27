@@ -7,7 +7,7 @@ import { commitDraw, holdCorpDrawForDbs } from "../effects/draw.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { activePlayer, log } from "../state/createGame.js";
 import { geneticsPavilionDrawLimit } from "../state/staticFlags.js";
-import { resolvePendingOnEncounter } from "../state/onEncounter.js";
+import { resolvePendingOnEncounter } from "../state/run/onEncounter.js";
 import { recordPriorityPass } from "../legality/priority.js";
 import {
   actionAllowedHere,

@@ -11,11 +11,11 @@ import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { isForbidden } from "../legality/checkpoints.js";
 import { ensurePriorityWindow } from "../legality/priority.js";
 import { dealDamage } from "../state/damage.js";
-import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
+import { additionalRunInitiateTax } from "../state/run/runInitiateTax.js";
 import {
   collectPersistentAmazeTags,
   type RunModifiers,
-} from "../state/runStart.js";
+} from "../state/run/runStart.js";
 import { afterBasicAction, enterStep, getStep } from "../timing/machine.js";
 import type {
   ApplyResult,

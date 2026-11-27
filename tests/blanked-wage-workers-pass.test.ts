@@ -16,7 +16,7 @@ import { noteCorpActionType } from "../src/state/corpActionHooks.js";
 import {
   fireOnPassRezzedIceProtectingThisServer,
   fireOnPassUnrezzedIce,
-} from "../src/state/runTimingHooks.js";
+} from "../src/state/run/runTimingHooks.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {

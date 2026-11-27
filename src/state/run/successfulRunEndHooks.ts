@@ -2,8 +2,8 @@
  * Successful-run-end conditionals (Doppelgänger / Dedicated Response Team).
  * Notes queues for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
 
 /**
  * Queue a Runner-installed onSuccessfulRunEndOncePerTurn card id.

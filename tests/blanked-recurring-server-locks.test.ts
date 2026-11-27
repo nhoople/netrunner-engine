@@ -18,7 +18,7 @@ import {
   runnerCannotTrashWhileRezzed,
   virusCountersAvailable,
 } from "../src/state/cardDeclarations.js";
-import { offTheGridBlocksServer } from "../src/state/runLegality.js";
+import { offTheGridBlocksServer } from "../src/state/run/runLegality.js";
 import type { ServerId } from "../src/index.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

@@ -534,7 +534,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks first run begin at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteFirstRunBegin } = await import("../src/state/runBeginHooks.js");
+    const { noteFirstRunBegin } =
+      await import("../src/state/run/runBeginHooks.js");
     const s = createInitialState();
     const tiered = instantiateCard(
       "tiered-subscription",
@@ -567,7 +568,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first unsuccessful run at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstUnsuccessfulRun } =
-      await import("../src/state/unsuccessfulRunHooks.js");
+      await import("../src/state/run/unsuccessfulRunHooks.js");
     const s = createInitialState();
     const john = instantiateCard("john-masanori", "jm-1", "runner:installed");
     s.cards["jm-1"] = john;
@@ -593,7 +594,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first successful HQ run at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstSuccessfulHqRun } =
-      await import("../src/state/firstSuccessfulRunHooks.js");
+      await import("../src/state/run/firstSuccessfulRunHooks.js");
     const s = createInitialState();
     const pw = instantiateCard("pan-weave", "pw-1", "runner:installed");
     s.cards["pw-1"] = pw;
@@ -621,7 +622,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first encounter each run at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstEncounterEachRun } =
-      await import("../src/state/firstEncounterPassHooks.js");
+      await import("../src/state/run/firstEncounterPassHooks.js");
     const s = createInitialState();
     const bak = instantiateCard("baklan-bochkin", "bak-1", "runner:installed");
     s.cards["bak-1"] = bak;
@@ -659,7 +660,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks pass rezzed ice at 10.3.1a (phase 3 scanner)", async () => {
-    const { notePassRezzedIce } = await import("../src/state/passIceHooks.js");
+    const { notePassRezzedIce } =
+      await import("../src/state/run/passIceHooks.js");
     const s = createInitialState();
     const slip = instantiateCard("slipstream", "ss-1", "runner:installed");
     s.cards["ss-1"] = slip;
@@ -683,7 +685,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks encounter-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteEncounterEndIfRezzed } =
-      await import("../src/state/encounterEndHooks.js");
+      await import("../src/state/run/encounterEndHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("knowledge-seeker", "ks-1", "server:hq:ice");
     ice.rezzed = true;
@@ -706,7 +708,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks host-encounter at 10.3.1a (phase 3 scanner)", async () => {
     const { noteHostEncounter } =
-      await import("../src/state/hostEncounterHooks.js");
+      await import("../src/state/run/hostEncounterHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -735,7 +737,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks approach-server at 10.3.1a (phase 3 scanner)", async () => {
     const { noteApproachServer } =
-      await import("../src/state/approachServerHooks.js");
+      await import("../src/state/run/approachServerHooks.js");
     const s = createInitialState();
     const grid = instantiateCard("nanisivik-grid", "ng-1", "server:hq:root");
     grid.rezzed = true;
@@ -759,7 +761,8 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks bypass at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteBypassTriggers } = await import("../src/state/bypassHooks.js");
+    const { noteBypassTriggers } =
+      await import("../src/state/run/bypassHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     ice.rezzed = true;
@@ -785,7 +788,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks approach-ice at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnApproachIce } =
-      await import("../src/state/approachIceHooks.js");
+      await import("../src/state/run/approachIceHooks.js");
     const s = createInitialState();
     const midori = instantiateCard("midori", "mid-1", "server:hq:root");
     midori.rezzed = true;
@@ -808,7 +811,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first successful R&D run end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstSuccessfulRunOnRdEnds } =
-      await import("../src/state/approachIceHooks.js");
+      await import("../src/state/run/approachIceHooks.js");
     const s = createInitialState();
     const mike = instantiateCard("psych-mike", "pm-1", "runner:installed");
     s.cards["pm-1"] = mike;
@@ -835,7 +838,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks successful-run-on-RD at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSuccessfulRunOnRd } =
-      await import("../src/state/successfulRunOnRdHooks.js");
+      await import("../src/state/run/successfulRunOnRdHooks.js");
     const s = createInitialState();
     const chakana = instantiateCard("chakana", "ch-1", "runner:installed");
     s.cards["ch-1"] = chakana;
@@ -859,7 +862,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks successful-run-end-once at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSuccessfulRunEndOncePerTurn } =
-      await import("../src/state/successfulRunEndHooks.js");
+      await import("../src/state/run/successfulRunEndHooks.js");
     const s = createInitialState();
     const dop = instantiateCard("doppelganger", "dop-1", "runner:installed");
     s.cards["dop-1"] = dop;
@@ -883,7 +886,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks successful-run-end at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSuccessfulRunEnd } =
-      await import("../src/state/successfulRunEndHooks.js");
+      await import("../src/state/run/successfulRunEndHooks.js");
     const s = createInitialState();
     const drt = instantiateCard(
       "dedicated-response-team",
@@ -1486,7 +1489,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks encounter-any-ice once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteEncounterAnyIceOncePerTurn } =
-      await import("../src/state/encounterAbilityHooks.js");
+      await import("../src/state/run/encounterAbilityHooks.js");
     const s = createInitialState();
     const pancha = instantiateCard("panchatantra", "pan-1", "runner:installed");
     s.cards["pan-1"] = pancha;
@@ -1530,7 +1533,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Compile first-encounter at 10.3.1a (phase 3 scanner)", async () => {
     const { noteCompileFirstEncounter } =
-      await import("../src/state/encounterAbilityHooks.js");
+      await import("../src/state/run/encounterAbilityHooks.js");
     const s = createInitialState();
     const compile = instantiateCard("compile", "cmp-1", "runner:play-area");
     s.cards["cmp-1"] = compile;
@@ -1718,7 +1721,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks successful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSuccessfulRunServerAbilities } =
-      await import("../src/state/successfulRunServerHooks.js");
+      await import("../src/state/run/successfulRunServerHooks.js");
     const s = createInitialState();
     const wisp = instantiateCard("will-o-the-wisp", "wisp-1", "server:hq:root");
     wisp.rezzed = true;
@@ -1761,7 +1764,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks unsuccessful-run server abilities at 10.3.1a (phase 3 scanner)", async () => {
     const { noteUnsuccessfulRunServerAbilities } =
-      await import("../src/state/unsuccessfulRunServerHooks.js");
+      await import("../src/state/run/unsuccessfulRunServerHooks.js");
     const s = createInitialState();
     const georgia = instantiateCard(
       "georgia-emelyov",
@@ -1942,7 +1945,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks run-begin at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnRunBegin } =
-      await import("../src/state/runBeginEffectHooks.js");
+      await import("../src/state/run/runBeginEffectHooks.js");
     const s = createInitialState();
     const card = instantiateCard("methuselah", "meth-1", "runner:installed");
     s.cards["meth-1"] = card;
@@ -1964,7 +1967,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks successful-run at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOnSuccessfulRun } =
-      await import("../src/state/successfulRunHooks.js");
+      await import("../src/state/run/successfulRunHooks.js");
     const s = createInitialState();
     const card = instantiateCard("paragon", "pg-1", "runner:installed");
     s.cards["pg-1"] = card;
@@ -1986,7 +1989,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks other-server success at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSuccessfulRunOtherServer } =
-      await import("../src/state/otherServerSuccessHooks.js");
+      await import("../src/state/run/otherServerSuccessHooks.js");
     const s = createInitialState();
     const zone = instantiateCard(
       "sacrifice-zone-expansion",
@@ -2020,7 +2023,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Sisyphus first-pass rezzed CG/sentry at 10.3.1a (phase 3 scanner)", async () => {
     const { noteSisyphusFirstPass } =
-      await import("../src/state/firstEncounterPassHooks.js");
+      await import("../src/state/run/firstEncounterPassHooks.js");
     const s = createInitialState();
     const sp = instantiateCard("sisyphus-protocol", "sp-1", "corp:score");
     s.cards["sp-1"] = sp;
@@ -2066,7 +2069,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first pass ice at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstPassIce } =
-      await import("../src/state/firstEncounterPassHooks.js");
+      await import("../src/state/run/firstEncounterPassHooks.js");
     const s = createInitialState();
     const khan = instantiateCard(
       "khan-savvy-skiptracer",
@@ -2096,7 +2099,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Daredevil first-run ice-gte at 10.3.1a (phase 3 scanner)", async () => {
     const { noteDaredevilFirstRun } =
-      await import("../src/state/runBeginHooks.js");
+      await import("../src/state/run/runBeginHooks.js");
     const s = createInitialState();
     const dd = instantiateCard("daredevil", "dd-1", "runner:installed");
     s.cards["dd-1"] = dd;
@@ -3564,7 +3567,7 @@ describe("storedTriggers pending bag (CR 9.6.2)", () => {
 
   it("marks onEncounter pending when resolving a deferred encounter", async () => {
     const { resolvePendingOnEncounter } =
-      await import("../src/state/onEncounter.js");
+      await import("../src/state/run/onEncounter.js");
     const s = createInitialState();
     const ice = instantiateCard("pop-up-window", "pop-1", "server:hq:ice");
     ice.rezzed = true;
@@ -5045,7 +5048,7 @@ describe("run-timing conditionals pending (CR 9.6.2)", () => {
       fireOnFirstEncounterEachRun,
       fireOnFirstSuccessfulHqRunThisTurn,
       fireOnPassRezzedIce,
-    } = await import("../src/state/runTimingHooks.js");
+    } = await import("../src/state/run/runTimingHooks.js");
 
     const s = createInitialState();
     const a = instantiateCard("corroder", "a-1", "runner:installed");

@@ -2,8 +2,8 @@
  * First unsuccessful run this turn (John Masanori-class). Notes MetPending
  * for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
 
 /**
  * Sources that may mark for first unsuccessful run this turn (Runner rig /

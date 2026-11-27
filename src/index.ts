@@ -304,7 +304,7 @@ export { createShortGameState } from "./cards/shortGame.js";
 export {
   isRunTargetAllowed,
   replicatingPerfectionBlocksRemote,
-} from "./state/runLegality.js";
+} from "./state/run/runLegality.js";
 export {
   fx,
   effectContains,
@@ -517,12 +517,12 @@ export {
   serversMatchingSpec,
   isServerAllowedForSpec,
   modifiersFromStartsRun,
-} from "./state/runStart.js";
+} from "./state/run/runStart.js";
 export {
   additionalRunInitiateCredits,
   additionalRunInitiateTax,
-} from "./state/runInitiateTax.js";
-export type { RunInitiateTax } from "./state/runInitiateTax.js";
+} from "./state/run/runInitiateTax.js";
+export type { RunInitiateTax } from "./state/run/runInitiateTax.js";
 export { checkInvariants, PROBLEM_RULES } from "./debug/invariants.js";
 export type { Problem, ProblemCode } from "./debug/invariants.js";
 export { setApplyHook } from "./debug/applyHook.js";

@@ -72,26 +72,26 @@ import {
   noteFirstArchivesRunBegin,
   noteFirstRdRunBegin,
   noteFirstRunBegin,
-} from "../state/runBeginHooks.js";
+} from "../state/run/runBeginHooks.js";
 import {
   noteFirstEncounterEachRun,
   noteFirstPassIce,
   noteSisyphusFirstPass,
-} from "../state/firstEncounterPassHooks.js";
+} from "../state/run/firstEncounterPassHooks.js";
 import {
   noteIceOnPass,
   notePassHost,
   notePassRezzedIce,
   notePassRezzedIceProtectingServer,
   notePassUnrezzedIce,
-} from "../state/passIceHooks.js";
-import { noteFirstUnsuccessfulRun } from "../state/unsuccessfulRunHooks.js";
+} from "../state/run/passIceHooks.js";
+import { noteFirstUnsuccessfulRun } from "../state/run/unsuccessfulRunHooks.js";
 import {
   noteFirstSuccessfulCentralRun,
   noteFirstSuccessfulHqOrRdRun,
   noteFirstSuccessfulHqRun,
   noteFirstSuccessfulMarkRun,
-} from "../state/firstSuccessfulRunHooks.js";
+} from "../state/run/firstSuccessfulRunHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 import { log } from "../state/createGame.js";
 import {
@@ -100,7 +100,7 @@ import {
   addLingeringEffect,
   LINGERING_KIND_GRANTED_SUBTYPES,
 } from "../state/continuous/lingeringEffects.js";
-import { serversMatchingSpec } from "../state/runStart.js";
+import { serversMatchingSpec } from "../state/run/runStart.js";
 import { CR } from "./labels.js";
 import {
   moveRunnerInward,
@@ -121,7 +121,7 @@ import {
   resolvePendingOnEncounter,
   securityNexusTraceOffered,
   runnerHasWhenEncounteredInterrupt,
-} from "../state/onEncounter.js";
+} from "../state/run/onEncounter.js";
 import {
   noteCorpActionPhaseEnd,
   noteRunnerActionPhaseEnd,
@@ -131,39 +131,39 @@ import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.
 import {
   noteCompileFirstEncounter,
   noteEncounterAnyIceOncePerTurn,
-} from "../state/encounterAbilityHooks.js";
+} from "../state/run/encounterAbilityHooks.js";
 import {
   noteAccessedCardAbilities,
   noteFinishAccessRdOncePerTurn,
 } from "../state/accessAbilityHooks.js";
-import { noteSuccessfulRunServerAbilities } from "../state/successfulRunServerHooks.js";
-import { noteUnsuccessfulRunServerAbilities } from "../state/unsuccessfulRunServerHooks.js";
+import { noteSuccessfulRunServerAbilities } from "../state/run/successfulRunServerHooks.js";
+import { noteUnsuccessfulRunServerAbilities } from "../state/run/unsuccessfulRunServerHooks.js";
 import {
   noteEncounterEndIfNotFullyBroken,
   noteEncounterEndIfPrintedSubroutineBroken,
   noteEncounterEndIfRezzed,
   noteEncounterEndIfRezzedThisTurn,
-} from "../state/encounterEndHooks.js";
+} from "../state/run/encounterEndHooks.js";
 import {
   noteEncounterRezzedAfterApproach,
   noteHostEncounter,
-} from "../state/hostEncounterHooks.js";
+} from "../state/run/hostEncounterHooks.js";
 import {
   noteApproachServer,
   notePassAllIceProtectingServer,
-} from "../state/approachServerHooks.js";
+} from "../state/run/approachServerHooks.js";
 import {
   noteFirstSuccessfulRunOnRdEnds,
   noteOnApproachIce,
-} from "../state/approachIceHooks.js";
-import { noteSuccessfulRunOnRd } from "../state/successfulRunOnRdHooks.js";
+} from "../state/run/approachIceHooks.js";
+import { noteSuccessfulRunOnRd } from "../state/run/successfulRunOnRdHooks.js";
 import {
   noteSuccessfulRunEnd,
   noteSuccessfulRunEndOncePerTurn,
-} from "../state/successfulRunEndHooks.js";
-import { noteSuccessfulRunOtherServer } from "../state/otherServerSuccessHooks.js";
-import { noteOnSuccessfulRun } from "../state/successfulRunHooks.js";
-import { noteOnRunBegin } from "../state/runBeginEffectHooks.js";
+} from "../state/run/successfulRunEndHooks.js";
+import { noteSuccessfulRunOtherServer } from "../state/run/otherServerSuccessHooks.js";
+import { noteOnSuccessfulRun } from "../state/run/successfulRunHooks.js";
+import { noteOnRunBegin } from "../state/run/runBeginEffectHooks.js";
 import {
   noteOnCorpTurnEnd,
   noteOnScoreTurnEnd,

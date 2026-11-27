@@ -17,7 +17,7 @@ import {
   playEffectFromCard,
 } from "../src/index.js";
 import type { GameState } from "../src/state/types.js";
-import { additionalRunInitiateTax } from "../src/state/runInitiateTax.js";
+import { additionalRunInitiateTax } from "../src/state/run/runInitiateTax.js";
 
 describe("future-proof", () => {
   describe("fp-primitives", () => {

@@ -1,13 +1,13 @@
 /** End-the-run interrupt window helpers (Lucky Charm-class; CR 9.9.3a). */
 
-import { log } from "./createGame.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
+import { log } from "../createGame.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "./triggers/replacements.js";
+} from "../triggers/replacements.js";
 
 /** True when Runner has a payable `end_the_run_interrupt` ability. */
 export function hasPayableEndTheRunInterrupt(state: GameState): boolean {

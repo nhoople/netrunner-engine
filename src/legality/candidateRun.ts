@@ -19,11 +19,11 @@ import {
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { accessLimitEndsBreach } from "../state/access.js";
-import { additionalRunInitiateTax } from "../state/runInitiateTax.js";
+import { additionalRunInitiateTax } from "../state/run/runInitiateTax.js";
 import {
   isServerAllowedForSpec,
   serversMatchingSpec,
-} from "../state/runStart.js";
+} from "../state/run/runStart.js";
 import {
   wasAbilityUsed,
   wasAbilityUsedThisEncounter,

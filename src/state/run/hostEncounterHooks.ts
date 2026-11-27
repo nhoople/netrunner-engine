@@ -2,8 +2,8 @@
  * Host-encounter and encounter-rezzed-after-approach conditionals.
  * Notes queues / MetPending for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState } from "../types.js";
 
 /** Chisel / Eavesdrop: hosted onHostEncounter — queue host ice id. */
 export function noteHostEncounter(state: GameState, iceId: string): void {

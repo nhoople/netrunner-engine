@@ -664,7 +664,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/runInitiateTax.ts#additionalRunInitiateTax",
+          "site": "src/state/run/runInitiateTax.ts#additionalRunInitiateTax",
           "kinds": []
         }
       ],
@@ -683,7 +683,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/runInitiateTax.ts#additionalRunInitiateTax",
+          "site": "src/state/run/runInitiateTax.ts#additionalRunInitiateTax",
           "kinds": []
         }
       ],
@@ -702,7 +702,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/runInitiateTax.ts#additionalRunInitiateTax",
+          "site": "src/state/run/runInitiateTax.ts#additionalRunInitiateTax",
           "kinds": []
         }
       ],
@@ -722,7 +722,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/runInitiateTax.ts#additionalRunInitiateTax",
+          "site": "src/state/run/runInitiateTax.ts#additionalRunInitiateTax",
           "kinds": []
         }
       ],
@@ -1805,7 +1805,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runStart.ts#modifiersFromStartsRun",
+          "site": "src/state/run/runStart.ts#modifiersFromStartsRun",
           "kinds": []
         },
         {
@@ -1908,7 +1908,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/runLegality.ts#offTheGridBlocksServer",
+          "site": "src/state/run/runLegality.ts#offTheGridBlocksServer",
           "kinds": []
         }
       ],
@@ -2534,7 +2534,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runLegality.ts#replicatingPerfectionBlocksRemote",
+          "site": "src/state/run/runLegality.ts#replicatingPerfectionBlocksRemote",
           "kinds": []
         }
       ],
@@ -3798,7 +3798,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runBeginHooks.ts#noteDaredevilFirstRun",
+          "site": "src/state/run/runBeginHooks.ts#noteDaredevilFirstRun",
           "kinds": []
         }
       ],
@@ -4472,7 +4472,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/runLegality.ts#firstRunCannotTargetRemoteActive",
+          "site": "src/state/run/runLegality.ts#firstRunCannotTargetRemoteActive",
           "kinds": []
         }
       ],
@@ -9832,7 +9832,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/approachIceHooks.ts#noteOnApproachIce",
+          "site": "src/state/run/approachIceHooks.ts#noteOnApproachIce",
           "kinds": []
         },
         {
@@ -9883,7 +9883,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/approachServerHooks.ts#noteApproachServer",
+          "site": "src/state/run/approachServerHooks.ts#noteApproachServer",
           "kinds": []
         },
         {
@@ -10081,7 +10081,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/bypassHooks.ts#noteBypassTriggers",
+          "site": "src/state/run/bypassHooks.ts#noteBypassTriggers",
           "kinds": []
         }
       ],
@@ -10501,7 +10501,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/onEncounter.ts#resolvePendingOnEncounter",
+          "site": "src/state/run/onEncounter.ts#resolvePendingOnEncounter",
           "kinds": []
         },
         {
@@ -10523,7 +10523,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/encounterAbilityHooks.ts#noteEncounterAnyIceOncePerTurn",
+          "site": "src/state/run/encounterAbilityHooks.ts#noteEncounterAnyIceOncePerTurn",
           "kinds": []
         }
       ],
@@ -10544,7 +10544,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfRezzed",
+          "site": "src/state/run/encounterEndHooks.ts#noteEncounterEndIfRezzed",
           "kinds": []
         },
         {
@@ -10590,7 +10590,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfNotFullyBroken",
+          "site": "src/state/run/encounterEndHooks.ts#noteEncounterEndIfNotFullyBroken",
           "kinds": []
         },
         {
@@ -10615,7 +10615,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfPrintedSubroutineBroken",
+          "site": "src/state/run/encounterEndHooks.ts#noteEncounterEndIfPrintedSubroutineBroken",
           "kinds": []
         },
         {
@@ -10640,7 +10640,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfRezzedThisTurn",
+          "site": "src/state/run/encounterEndHooks.ts#noteEncounterEndIfRezzedThisTurn",
           "kinds": []
         },
         {
@@ -10685,7 +10685,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/hostEncounterHooks.ts#noteEncounterRezzedAfterApproach",
+          "site": "src/state/run/hostEncounterHooks.ts#noteEncounterRezzedAfterApproach",
           "kinds": []
         },
         {
@@ -10805,7 +10805,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runBeginHooks.ts#noteFirstArchivesRunBegin",
+          "site": "src/state/run/runBeginHooks.ts#noteFirstArchivesRunBegin",
           "kinds": []
         }
       ],
@@ -11017,11 +11017,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstEncounterPassHooks.ts#firstEncounterEachRunSourceIds",
+          "site": "src/state/run/firstEncounterPassHooks.ts#firstEncounterEachRunSourceIds",
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstEncounterEachRun",
+          "site": "src/state/run/runTimingHooks.ts#fireOnFirstEncounterEachRun",
           "kinds": []
         }
       ],
@@ -11216,7 +11216,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstEncounterPassHooks.ts#noteFirstPassIce",
+          "site": "src/state/run/firstEncounterPassHooks.ts#noteFirstPassIce",
           "kinds": []
         }
       ],
@@ -11237,7 +11237,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstEncounterPassHooks.ts#noteSisyphusFirstPass",
+          "site": "src/state/run/firstEncounterPassHooks.ts#noteSisyphusFirstPass",
           "kinds": []
         }
       ],
@@ -11301,7 +11301,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runBeginHooks.ts#noteFirstRdRunBegin",
+          "site": "src/state/run/runBeginHooks.ts#noteFirstRdRunBegin",
           "kinds": []
         }
       ],
@@ -11402,7 +11402,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runBeginHooks.ts#anyFirstRunBeginSource",
+          "site": "src/state/run/runBeginHooks.ts#anyFirstRunBeginSource",
           "kinds": []
         }
       ],
@@ -11489,7 +11489,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstSuccessfulRunHooks.ts#noteFirstSuccessfulCentralRun",
+          "site": "src/state/run/firstSuccessfulRunHooks.ts#noteFirstSuccessfulCentralRun",
           "kinds": []
         }
       ],
@@ -11510,7 +11510,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstSuccessfulRunHooks.ts#noteFirstSuccessfulHqOrRdRun",
+          "site": "src/state/run/firstSuccessfulRunHooks.ts#noteFirstSuccessfulHqOrRdRun",
           "kinds": []
         }
       ],
@@ -11536,11 +11536,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstSuccessfulRunHooks.ts#noteFirstSuccessfulHqRun",
+          "site": "src/state/run/firstSuccessfulRunHooks.ts#noteFirstSuccessfulHqRun",
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#fireOnFirstSuccessfulHqRunThisTurn",
+          "site": "src/state/run/runTimingHooks.ts#fireOnFirstSuccessfulHqRunThisTurn",
           "kinds": []
         }
       ],
@@ -11561,7 +11561,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstSuccessfulRunHooks.ts#noteFirstSuccessfulMarkRun",
+          "site": "src/state/run/firstSuccessfulRunHooks.ts#noteFirstSuccessfulMarkRun",
           "kinds": []
         }
       ],
@@ -11582,7 +11582,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/approachIceHooks.ts#noteFirstSuccessfulRunOnRdEnds",
+          "site": "src/state/run/approachIceHooks.ts#noteFirstSuccessfulRunOnRdEnds",
           "kinds": []
         }
       ],
@@ -11676,7 +11676,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/unsuccessfulRunHooks.ts#firstUnsuccessfulRunSourceIds",
+          "site": "src/state/run/unsuccessfulRunHooks.ts#firstUnsuccessfulRunSourceIds",
           "kinds": []
         }
       ],
@@ -11965,7 +11965,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/hostEncounterHooks.ts#noteHostEncounter",
+          "site": "src/state/run/hostEncounterHooks.ts#noteHostEncounter",
           "kinds": []
         }
       ],
@@ -12209,7 +12209,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/approachServerHooks.ts#notePassAllIceProtectingServer",
+          "site": "src/state/run/approachServerHooks.ts#notePassAllIceProtectingServer",
           "kinds": []
         }
       ],
@@ -12232,7 +12232,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/passIceHooks.ts#notePassHost",
+          "site": "src/state/run/passIceHooks.ts#notePassHost",
           "kinds": []
         }
       ],
@@ -12274,11 +12274,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/passIceHooks.ts#notePassRezzedIce",
+          "site": "src/state/run/passIceHooks.ts#notePassRezzedIce",
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#fireOnPassRezzedIce",
+          "site": "src/state/run/runTimingHooks.ts#fireOnPassRezzedIce",
           "kinds": []
         }
       ],
@@ -12300,11 +12300,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/passIceHooks.ts#notePassRezzedIceProtectingServer",
+          "site": "src/state/run/passIceHooks.ts#notePassRezzedIceProtectingServer",
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#fireOnPassRezzedIceProtectingThisServer",
+          "site": "src/state/run/runTimingHooks.ts#fireOnPassRezzedIceProtectingThisServer",
           "kinds": []
         }
       ],
@@ -12325,11 +12325,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/passIceHooks.ts#notePassUnrezzedIce",
+          "site": "src/state/run/passIceHooks.ts#notePassUnrezzedIce",
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#fireOnPassUnrezzedIce",
+          "site": "src/state/run/runTimingHooks.ts#fireOnPassUnrezzedIce",
           "kinds": []
         }
       ],
@@ -12593,7 +12593,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runBeginEffectHooks.ts#noteOnRunBegin",
+          "site": "src/state/run/runBeginEffectHooks.ts#noteOnRunBegin",
           "kinds": []
         }
       ],
@@ -13013,7 +13013,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/successfulRunHooks.ts#noteOnSuccessfulRun",
+          "site": "src/state/run/successfulRunHooks.ts#noteOnSuccessfulRun",
           "kinds": []
         },
         {
@@ -13042,7 +13042,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/successfulRunEndHooks.ts#noteSuccessfulRunEnd",
+          "site": "src/state/run/successfulRunEndHooks.ts#noteSuccessfulRunEnd",
           "kinds": []
         }
       ],
@@ -13067,7 +13067,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/successfulRunEndHooks.ts#noteSuccessfulRunEndOncePerTurn",
+          "site": "src/state/run/successfulRunEndHooks.ts#noteSuccessfulRunEndOncePerTurn",
           "kinds": []
         }
       ],
@@ -13113,7 +13113,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/successfulRunOnRdHooks.ts#noteSuccessfulRunOnRd",
+          "site": "src/state/run/successfulRunOnRdHooks.ts#noteSuccessfulRunOnRd",
           "kinds": []
         }
       ],
@@ -13131,7 +13131,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/successfulRunServerHooks.ts#noteSuccessfulRunServerAbilities",
+          "site": "src/state/run/successfulRunServerHooks.ts#noteSuccessfulRunServerAbilities",
           "kinds": []
         }
       ],
@@ -13177,7 +13177,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/otherServerSuccessHooks.ts#noteSuccessfulRunOtherServer",
+          "site": "src/state/run/otherServerSuccessHooks.ts#noteSuccessfulRunOtherServer",
           "kinds": []
         }
       ],
@@ -13194,7 +13194,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/successfulRunServerHooks.ts#noteSuccessfulRunServerAbilities",
+          "site": "src/state/run/successfulRunServerHooks.ts#noteSuccessfulRunServerAbilities",
           "kinds": []
         }
       ],
@@ -13512,7 +13512,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/unsuccessfulRunServerHooks.ts#noteUnsuccessfulRunServerAbilities",
+          "site": "src/state/run/unsuccessfulRunServerHooks.ts#noteUnsuccessfulRunServerAbilities",
           "kinds": []
         }
       ],
@@ -13815,19 +13815,19 @@
           "kinds": []
         },
         {
-          "site": "src/state/endTheRun.ts#hasPayableEndTheRunInterrupt",
-          "kinds": []
-        },
-        {
           "site": "src/state/expose.ts#hasPayableExposeInterrupt",
           "kinds": []
         },
         {
-          "site": "src/state/onEncounter.ts#runnerHasWhenEncounteredInterrupt",
+          "site": "src/state/run/endTheRun.ts#hasPayableEndTheRunInterrupt",
           "kinds": []
         },
         {
-          "site": "src/state/onEncounter.ts#securityNexusTraceOffered",
+          "site": "src/state/run/onEncounter.ts#runnerHasWhenEncounteredInterrupt",
+          "kinds": []
+        },
+        {
+          "site": "src/state/run/onEncounter.ts#securityNexusTraceOffered",
           "kinds": []
         },
         {
@@ -17516,11 +17516,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/encounterAbilityHooks.ts#noteCompileFirstEncounter",
+          "site": "src/state/firstClickMust.ts#actionMeetsFirstClickMust",
           "kinds": []
         },
         {
-          "site": "src/state/firstClickMust.ts#actionMeetsFirstClickMust",
+          "site": "src/state/run/encounterAbilityHooks.ts#noteCompileFirstEncounter",
           "kinds": []
         },
         {
@@ -19801,10 +19801,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/onEncounter.ts#chosenIceBypassOffered",
-          "kinds": []
-        },
-        {
           "site": "src/state/powerCounters.ts#syncEtrPerPowerCounterSubs",
           "kinds": []
         },
@@ -19822,6 +19818,10 @@
         },
         {
           "site": "src/state/procedures/break.ts#printedTest",
+          "kinds": []
+        },
+        {
+          "site": "src/state/run/onEncounter.ts#chosenIceBypassOffered",
           "kinds": []
         },
         {
@@ -20490,10 +20490,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/firstEncounterPassHooks.ts#noteSisyphusFirstPass",
-          "kinds": []
-        },
-        {
           "site": "src/state/powerCounters.ts#firePowerOnHarmonicIceRez",
           "kinds": []
         },
@@ -20523,6 +20519,10 @@
         },
         {
           "site": "src/state/programHardwareInstall.ts#noteProgramOrHardwareInstalled",
+          "kinds": []
+        },
+        {
+          "site": "src/state/run/firstEncounterPassHooks.ts#noteSisyphusFirstPass",
           "kinds": []
         },
         {
@@ -20638,7 +20638,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runStart.ts#collectPersistentAmazeTags",
+          "site": "src/state/run/runStart.ts#collectPersistentAmazeTags",
           "kinds": []
         },
         {
@@ -22269,14 +22269,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/encounterAbilityHooks.ts#noteCompileFirstEncounter",
-          "kinds": []
-        },
-        {
-          "site": "src/state/encounterAbilityHooks.ts#noteEncounterAnyIceOncePerTurn",
-          "kinds": []
-        },
-        {
           "site": "src/state/expose.ts#beginExpose",
           "kinds": []
         },
@@ -22342,10 +22334,6 @@
         },
         {
           "site": "src/state/msKeywords.ts#resolveSabotageAmount",
-          "kinds": []
-        },
-        {
-          "site": "src/state/onEncounter.ts#resolvePendingOnEncounter",
           "kinds": []
         },
         {
@@ -22465,7 +22453,23 @@
           "kinds": []
         },
         {
-          "site": "src/state/runTimingHooks.ts#mark",
+          "site": "src/state/run/encounterAbilityHooks.ts#noteCompileFirstEncounter",
+          "kinds": []
+        },
+        {
+          "site": "src/state/run/encounterAbilityHooks.ts#noteEncounterAnyIceOncePerTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/run/onEncounter.ts#resolvePendingOnEncounter",
+          "kinds": []
+        },
+        {
+          "site": "src/state/run/runTimingHooks.ts#mark",
+          "kinds": []
+        },
+        {
+          "site": "src/state/run/successfulRunServerHooks.ts#noteSuccessfulRunServerAbilities",
           "kinds": []
         },
         {
@@ -22554,10 +22558,6 @@
         },
         {
           "site": "src/state/staticFlags.ts#onRunnerTurnEnds",
-          "kinds": []
-        },
-        {
-          "site": "src/state/successfulRunServerHooks.ts#noteSuccessfulRunServerAbilities",
           "kinds": []
         },
         {
@@ -24388,7 +24388,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/runLegality.ts#offTheGridBlocksServer",
+          "site": "src/state/run/runLegality.ts#offTheGridBlocksServer",
           "kinds": []
         },
         {
