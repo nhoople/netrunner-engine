@@ -5,7 +5,7 @@
  * set of cards would pay it, the payer says which. The action waits as a
  * pending cost until the picks are in, and nothing is paid before then.
  */
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { costCardNeed, type CostCardNeed } from "../state/costs.js";
 import { log } from "../state/createGame.js";
 import { openPendingChoose } from "../state/pendingChoice.js";

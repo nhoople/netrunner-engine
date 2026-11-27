@@ -18,7 +18,7 @@ import { applyRezIceRecurringTowardCorpRez } from "../src/cards/stubs.js";
 import { creditsAvailableForInstall } from "../src/state/costs.js";
 import { firstClickMustIsActive } from "../src/state/firstClickMust.js";
 import { corpCreditsForTrace } from "../src/state/trace.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

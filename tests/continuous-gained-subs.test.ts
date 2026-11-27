@@ -12,8 +12,8 @@ import {
   collectFatumaGainedSubs,
   collectHostedConditionSubsBeforePrinted,
   collectSubBoostEtrSubs,
-} from "../src/state/continuousSubs.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/continuousSubs.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 describe("continuous gained-sub collectors (M1)", () => {
   it("Sub Boost grants barrier via the subtype layer, not ice.subtypes mutation", () => {

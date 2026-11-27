@@ -33,7 +33,7 @@ import { usePaidAbility } from "../src/actions/paidAbility.js";
 import { breakSubroutine } from "../src/actions/breakSubroutine.js";
 import { onRunnerTurnEnds } from "../src/state/staticFlags.js";
 import { fireSiAfterPaidAbilityClicks } from "../src/effects/primitives/lookTrashAdd.js";
-import { blankAbilitiesUntilCorpTurnEnd } from "../src/state/lingeringEffects.js";
+import { blankAbilitiesUntilCorpTurnEnd } from "../src/state/continuous/lingeringEffects.js";
 import { iceAtRunnerPosition } from "../src/state/runPosition.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
 import {

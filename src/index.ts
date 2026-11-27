@@ -222,7 +222,7 @@ export {
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
   LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
-} from "./state/lingeringEffects.js";
+} from "./state/continuous/lingeringEffects.js";
 export {
   CR,
   CORP_STEPS,
@@ -390,7 +390,7 @@ export {
   stealAdditionalCreditsFromActiveLockdowns,
   cannotBreakExceptIcebreakerActive,
   trashActiveLockdownsAtCorpTurnBegin,
-} from "./state/lockdowns.js";
+} from "./state/continuous/lockdowns.js";
 export {
   dealDamage,
   resolveDamage,
@@ -445,7 +445,7 @@ export type {
   DeckbuildingReport,
 } from "./state/staticFlags.js";
 export type { RecurringSpendPurpose } from "./state/types.js";
-export { abilitiesSuppressed } from "./state/abilities.js";
+export { abilitiesSuppressed } from "./state/continuous/abilities.js";
 export {
   effectiveRunnerTags,
   runnerIsTagged,
@@ -466,18 +466,18 @@ export {
   orderByDependency,
   unsettledSubtypeLoops,
   iceCannotGainAbilities,
-} from "./state/continuousEffects.js";
+} from "./state/continuous/continuousEffects.js";
 export type {
   BlankingEffect,
   DependencyOrder,
   LayeredEffect,
   SubtypeGrantEffect,
-} from "./state/continuousEffects.js";
+} from "./state/continuous/continuousEffects.js";
 export {
   facedownInstalledRunnerCard,
   installedCardActive,
   isCardActive,
-} from "./state/active.js";
+} from "./state/continuous/active.js";
 export {
   applyContinuousGainedSubs,
   collectAdvancementGainedSubs,
@@ -489,8 +489,8 @@ export {
   collectSubBoostEtrSubs,
   collectTourGuideEtrSubs,
   collectWinchesterHqSubs,
-} from "./state/continuousSubs.js";
-export type { ContinuousGainedSub } from "./state/continuousSubs.js";
+} from "./state/continuous/continuousSubs.js";
+export type { ContinuousGainedSub } from "./state/continuous/continuousSubs.js";
 export {
   collectIceRezCostIncreases,
   collectIceRezCostReductions,
@@ -498,11 +498,11 @@ export {
   resolveIceRezCostIncrease,
   resolveIceRezCostReduction,
   resolveRunnerInstallCostDelta,
-} from "./state/continuousCosts.js";
+} from "./state/continuous/continuousCosts.js";
 export type {
   ContinuousInstallCostMod,
   ContinuousRezCostMod,
-} from "./state/continuousCosts.js";
+} from "./state/continuous/continuousCosts.js";
 export { openPendingChoose } from "./state/pendingChoice.js";
 export type { PendingChoiceOption } from "./state/pendingChoice.js";
 export {

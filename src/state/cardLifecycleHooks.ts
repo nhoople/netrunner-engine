@@ -4,7 +4,7 @@
  */
 import { whenScoredEffect } from "./whenScored.js";
 import { playEffectFromCard } from "../effects/abilityRecord.js";
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState } from "./types.js";
 import {
   fireCardConditional,

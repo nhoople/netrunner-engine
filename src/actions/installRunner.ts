@@ -3,9 +3,9 @@
  * Effect-driven installs stay in the effect evaluator.
  */
 import { log } from "../state/createGame.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
-import { addBreakerStrengthBoostThisTurn } from "../state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisTurn } from "../state/continuous/lingeringEffects.js";
 import { creditsAvailableForInstall, payInstallCost } from "../state/costs.js";
 import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
@@ -23,7 +23,7 @@ import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,
 } from "../state/azInstallDiscount.js";
-import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
+import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
 import { recomputeRunnerLink } from "../state/trashHooks.js";
 import {
   cardBecameNewObject,
@@ -41,7 +41,7 @@ import type {
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { fireOnInstallWithoutSpendingCredits } from "../state/miscConditionalHooks.js";
-import { resolveRunnerInstallCostDelta } from "../state/continuousCosts.js";
+import { resolveRunnerInstallCostDelta } from "../state/continuous/continuousCosts.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { hostCard, unhostCard } from "../state/procedures/host.js";

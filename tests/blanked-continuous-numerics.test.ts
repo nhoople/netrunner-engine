@@ -12,14 +12,14 @@ import {
   instantiateCard,
   resolveAndAdvance,
 } from "../src/index.js";
-import { computeRunnerMaxHandSize } from "../src/state/handSize.js";
+import { computeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { memoryLimit } from "../src/state/turn.js";
 import { runnerInstallCost } from "../src/actions/installRunner.js";
 import {
   agendaPointMu,
   agendaPointHandSize,
 } from "../src/state/staticFlags.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

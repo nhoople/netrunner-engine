@@ -19,8 +19,8 @@ import {
   dealDamage,
   titaniumRibsChoosesGripTrash,
 } from "../src/state/damage.js";
-import { runnerCannotPlayCurrentEvents } from "../src/state/currents.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { runnerCannotPlayCurrentEvents } from "../src/state/continuous/currents.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

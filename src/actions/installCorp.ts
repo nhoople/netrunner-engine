@@ -5,7 +5,7 @@
  * Archives and may ignore the install cost.
  */
 import { log } from "../state/createGame.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { evalEffect } from "../effects/eval.js";
 import {

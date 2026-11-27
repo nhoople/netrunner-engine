@@ -13,8 +13,8 @@ import { drawCards } from "../effects/draw.js";
 import {
   abilitiesSuppressed,
   runnerCannotUseProgram,
-} from "../state/abilities.js";
-import { facedownInstalledRunnerCard } from "../state/active.js";
+} from "../state/continuous/abilities.js";
+import { facedownInstalledRunnerCard } from "../state/continuous/active.js";
 import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,

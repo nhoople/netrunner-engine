@@ -4,7 +4,7 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { CR } from "../timing/labels.js";
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 

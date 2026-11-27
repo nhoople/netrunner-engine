@@ -14,7 +14,7 @@ import {
 import { beginBreachAccess } from "../src/state/access.js";
 import { breachCreditGain } from "../src/state/staticFlags.js";
 import type { GameState, ServerId } from "../src/index.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

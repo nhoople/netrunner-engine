@@ -2188,7 +2188,7 @@
     "cerebral-imaging-infinite-frontiers": {
       "cycle": "creation-and-control",
       "result": "matches",
-      "note": "Corp maximum hand size equals credits in the pool (src/state/handSize.ts)."
+      "note": "Corp maximum hand size equals credits in the pool (src/state/continuous/handSize.ts)."
     },
     "cerebral-overwriter": {
       "cycle": "ashes",
@@ -3082,7 +3082,7 @@
       "abilities": [
         "Each player's maximum hand size is reduced by 1."
       ],
-      "note": "Area 10 (declaration readers), fix-now: neither -1 applies (probe: both stay 5). No setup path reads an identity's handSizeBonus, and runnerHandSizeBonus is read only from rezzed root and ice cards (src/state/handSize.ts), not identities, score areas or currents."
+      "note": "Area 10 (declaration readers), fix-now: neither -1 applies (probe: both stay 5). No setup path reads an identity's handSizeBonus, and runnerHandSizeBonus is read only from rezzed root and ice cards (src/state/continuous/handSize.ts), not identities, score areas or currents."
     },
     "cybersand-harvester": {
       "cycle": "liberation",
@@ -6087,7 +6087,7 @@
     "hush": {
       "cycle": "borealis",
       "result": "matches",
-      "note": "Installs only on ice; host ice loses all abilities but its printed subroutines (blanking effect, src/state/continuousEffects.ts); [click]: host on another installed ice."
+      "note": "Installs only on ice; host ice loses all abilities but its printed subroutines (blanking effect, src/state/continuous/continuousEffects.ts); [click]: host on another installed ice."
     },
     "hybrid-release": {
       "cycle": "borealis",
@@ -11149,7 +11149,7 @@
       "abilities": [
         "Each unique non-region asset and upgrade loses its printed abilities."
       ],
-      "note": "src/state/continuousEffects.ts treats every card with the flag as a source, in any zone (grip, stack, heap), not only the active current. RA-2 recorded it (RF fix-now candidate). The current's lifetime matches.",
+      "note": "src/state/continuous/continuousEffects.ts treats every card with the flag as a source, in any zone (grip, stack, heap), not only the active current. RA-2 recorded it (RF fix-now candidate). The current's lifetime matches.",
       "cr": [
         "3.7.1b",
         "8.6.6c"

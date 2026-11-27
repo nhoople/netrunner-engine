@@ -3,11 +3,11 @@
  * The effect switch in eval.ts dispatches here.
  */
 import { openCardName } from "../../state/seatVisibility.js";
-import { facedownInstalledRunnerCard } from "../../state/active.js";
+import { facedownInstalledRunnerCard } from "../../state/continuous/active.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { GameState } from "../../state/types.js";
-import { abilitiesSuppressed } from "../../state/abilities.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/createGame.js";
 import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
 import { noteStoredConditional } from "../../state/storedConditionalHooks.js";

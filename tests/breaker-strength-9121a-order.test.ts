@@ -16,7 +16,7 @@ import { breakerStrength } from "../src/effects/iceStrength.js";
 import {
   addBreakerStrengthBoostThisEncounter,
   suppressAbilities,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/index.js";
 
 beforeAll(() => {

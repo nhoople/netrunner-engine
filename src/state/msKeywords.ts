@@ -8,7 +8,7 @@ import {
   addLingeringEffect,
   LINGERING_KIND_MARK,
   removeLingeringEffectsOfKind,
-} from "./lingeringEffects.js";
+} from "./continuous/lingeringEffects.js";
 import { openPendingChoose } from "./pendingChoice.js";
 import { maybeFirePowerCountersGte } from "./powerCounters.js";
 import { random } from "./rng.js";

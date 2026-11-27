@@ -19,7 +19,7 @@ import {
   LINGERING_KIND_BREAKER_STRENGTH_CHECKPOINT,
   LINGERING_KIND_BREAKER_STRENGTH_ENCOUNTER,
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
-} from "./lingeringEffects.js";
+} from "./continuous/lingeringEffects.js";
 import { tryApplyReplacement } from "./replacements.js";
 import type { GameState, LingeringDuration } from "./types.js";
 import { CR } from "../timing/labels.js";

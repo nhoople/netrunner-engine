@@ -3,7 +3,7 @@
  */
 import { log } from "../state/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
   evalEffect,
   fireGrayBlackOpsTrashedHooks,
@@ -29,7 +29,7 @@ import {
   isCurrentCard,
   placeCurrentAfterPlay,
   runnerCannotPlayCurrentEvents,
-} from "../state/currents.js";
+} from "../state/continuous/currents.js";
 import {
   effectiveEventPlayCost,
   firstDoubleOperationClickDiscountAvailable,
@@ -38,7 +38,7 @@ import {
   spendRunnerCreditsFor,
 } from "../state/costs.js";
 import { forfeitSpecificAgenda } from "./rez.js";
-import { hasActiveLockdown } from "../state/lockdowns.js";
+import { hasActiveLockdown } from "../state/continuous/lockdowns.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
 import { noteCorpActionType } from "../state/corpActionHooks.js";
 import {

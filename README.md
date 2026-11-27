@@ -161,6 +161,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
     primitives/      # printed procedures grouped by verb, not by pack
   legality/          # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
   state/             # types.ts: points to types/; costs, run position, seat visibility, and the hooks each timing point fires
+    continuous/      # continuous effects (CR 9.12): whether a card is active (1.8), blanking, lingering effects (9.10), currents and lockdowns in the play area, continuous cost, subroutine, strength and hand-size modifiers
     procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break
     types/           # the game state types, one file per thing they describe: shared words, card (with its hooks and costs), abilities, servers, players, turn, run, restrictions, checkpoints, pending abilities, windows, lingering effects, pending choices, game, actions, public view
   timing/            # graph.ts: the timing step graph (CR 11.2–11.5); machine.ts: stepping through it

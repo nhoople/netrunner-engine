@@ -3,11 +3,11 @@
  * Corp-turn-begin trash, and helpers for continuous/hook iteration.
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { log } from "./createGame.js";
-import type { CardInstance, GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { leaveLingeringPlayAreaBag, lingeringPlayAreaIds } from "./zones.js";
-import { trashCard } from "./procedures/trash.js";
+import { log } from "../createGame.js";
+import type { CardInstance, GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { leaveLingeringPlayAreaBag, lingeringPlayAreaIds } from "../zones.js";
+import { trashCard } from "../procedures/trash.js";
 
 /** True when the card is a lockdown subtype. */
 function isLockdownCard(card: CardInstance | undefined): boolean {

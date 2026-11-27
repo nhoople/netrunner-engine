@@ -21,7 +21,7 @@ import type { Action, ServerId } from "../src/state/types.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
-import { resolveIceSubtypes } from "../src/state/continuousEffects.js";
+import { resolveIceSubtypes } from "../src/state/continuous/continuousEffects.js";
 import {
   atRunnerAction,
   clearCorpHand,

@@ -3,17 +3,17 @@
  * Graph applies the lists; collectors own the continuous math.
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { badPublicityConsidered } from "./cardDeclarations.js";
+import { badPublicityConsidered } from "../cardDeclarations.js";
 import {
   iceCannotGainAbilities,
   resolveIceSubtypes,
 } from "./continuousEffects.js";
-import type { Effect } from "../effects/ir.js";
+import type { Effect } from "../../effects/ir.js";
 import type {
   ContinuousGainedSubDecl,
   GameState,
   Subroutine,
-} from "./types.js";
+} from "../types.js";
 
 export type ContinuousGainedSub = {
   sourceId: string;

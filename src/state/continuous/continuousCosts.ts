@@ -6,9 +6,9 @@ import {
   continuousIceRezCostIncrease,
   continuousIceRezCostReduction,
   iceRezCostReductionFromScoredAgendaCounters,
-} from "../cards/stubs.js";
+} from "../../cards/stubs.js";
 import { abilitiesSuppressed } from "./abilities.js";
-import type { GameState } from "./types.js";
+import type { GameState } from "../types.js";
 
 export type ContinuousRezCostMod = {
   kind: "ice_rez_cost_increase" | "ice_rez_cost_reduction";

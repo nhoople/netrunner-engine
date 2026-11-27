@@ -1,12 +1,12 @@
 /** Agenda scoring / stealing and game-end checks. */
 
-import { abilitiesSuppressed } from "./abilities.js";
-import { isCardActive } from "./active.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
+import { isCardActive } from "./continuous/active.js";
 import { log } from "./createGame.js";
 import {
   trashCorpCurrentsOnAgendaStolen,
   trashCurrentsOnAgendaScored,
-} from "./currents.js";
+} from "./continuous/currents.js";
 import {
   fireOnAgendaAddedToRunnerScore,
   noteRunnerStoleOrTrashedCorpCard,

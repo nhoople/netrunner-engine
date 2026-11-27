@@ -2,7 +2,7 @@
  * Breach access, mid-access choices, and stealing an agenda.
  */
 import { log } from "../state/createGame.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { evalEffect } from "../effects/eval.js";
 import { canPayCost, runnerCreditsFor } from "../state/costs.js";
 import { dealDamage } from "../state/damage.js";
@@ -14,7 +14,7 @@ import {
 import { noteAccessTrash } from "../state/trashHooks.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
 import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
-import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
+import { stealAdditionalCreditsFromActiveLockdowns } from "../state/continuous/lockdowns.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
 import { autoWalk, enterStep } from "../timing/machine.js";
 import type {

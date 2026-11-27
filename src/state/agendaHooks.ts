@@ -1,6 +1,6 @@
 /** First agenda scored/stolen this turn (Phật Gioan-class). */
 
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState } from "./types.js";
 
 /**

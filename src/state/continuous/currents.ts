@@ -3,15 +3,15 @@
  * agenda stolen/scored per card flags.
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { log } from "./createGame.js";
-import type { CardInstance, GameState } from "./types.js";
-import { CR } from "../timing/labels.js";
+import { log } from "../createGame.js";
+import type { CardInstance, GameState } from "../types.js";
+import { CR } from "../../timing/labels.js";
 import {
   enterLingeringPlayArea,
   leaveLingeringPlayAreaBag,
   lingeringPlayAreaIds,
-} from "./zones.js";
-import { trashCard } from "./procedures/trash.js";
+} from "../zones.js";
+import { trashCard } from "../procedures/trash.js";
 
 export function isCurrentCard(card: CardInstance | undefined): boolean {
   return Boolean(card?.lingerAsCurrent || card?.subtypes?.includes("current"));

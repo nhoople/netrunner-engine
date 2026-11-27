@@ -39,11 +39,11 @@ import {
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
 import type { Action, RunState } from "../src/state/types.js";
-import { addIceStrengthBoostThisRun } from "../src/state/lingeringEffects.js";
+import { addIceStrengthBoostThisRun } from "../src/state/continuous/lingeringEffects.js";
 import { hostCard } from "../src/state/procedures/host.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 import { memoryLimit } from "../src/state/turn.js";
-import { collectSubBoostEtrSubs } from "../src/state/continuousSubs.js";
+import { collectSubBoostEtrSubs } from "../src/state/continuous/continuousSubs.js";
 import { dealDamage } from "../src/state/damage.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";
 

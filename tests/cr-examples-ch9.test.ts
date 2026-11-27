@@ -33,7 +33,7 @@ import {
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
   LINGERING_KIND_RUNNER_MU,
   lingeringIceStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import { noteProgramOrHardwareInstalled } from "../src/state/programHardwareInstall.js";

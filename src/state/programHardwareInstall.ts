@@ -4,14 +4,17 @@
  */
 
 import { evalEffect } from "../effects/eval.js";
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
 import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
 import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { onRunnerInstalledProgramOrHardware } from "./staticFlags.js";
-import { activeCorpCurrentIds, noteTargetedMarketing } from "./currents.js";
+import {
+  activeCorpCurrentIds,
+  noteTargetedMarketing,
+} from "./continuous/currents.js";
 import { chooseCards } from "../effects/chooseCards.js";
 import {
   deferContinuationAfter,

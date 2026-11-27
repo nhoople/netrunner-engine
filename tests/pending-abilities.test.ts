@@ -38,9 +38,9 @@ import {
   PREDICATE_RUNNER_TAGS_FROM_ZERO,
   preventPendingTags,
 } from "../src/index.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { dealDamage, preventPendingDamage } from "../src/state/damage.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 import { currentMark } from "../src/state/msKeywords.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 
@@ -2803,7 +2803,7 @@ describe("pending ability instances (CR 9.6.2 / 9.6.12)", () => {
 
   it("cancels still-pending instances when the source is blanked (CR 9.6.10)", async () => {
     const { blankAbilitiesUntilCorpTurnEnd } =
-      await import("../src/state/lingeringEffects.js");
+      await import("../src/state/continuous/lingeringEffects.js");
     const s = createInitialState();
     const dealer = instantiateCard("drug-dealer", "dd-1", "runner:installed");
     s.cards["dd-1"] = dealer;
@@ -2990,7 +2990,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   it("registers mark designation as a turn-duration lingering (CR 10.11.4)", async () => {
     const { identifyMark } = await import("../src/state/msKeywords.js");
     const { LINGERING_KIND_MARK, lingeringEffectsOfKind } =
-      await import("../src/state/lingeringEffects.js");
+      await import("../src/state/continuous/lingeringEffects.js");
     let s = createInitialState();
     identifyMark(s, s.runner.identityId);
     expect(currentMark(s)).toBeTruthy();
@@ -3024,7 +3024,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       addBreakerStrengthBoostThisRun,
       addBreakerStrengthBoostThisEncounter,
       addIceStrengthBoostThisEncounter,
-    } = await import("../src/state/lingeringEffects.js");
+    } = await import("../src/state/continuous/lingeringEffects.js");
     const s = createInitialState();
     s.run = {
       attackedServerId: "hq",
@@ -3119,7 +3119,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       lingeringEffectsOfKind,
       lingeringBreakerStrengthOfKind,
       addBreakerStrengthBoostUntilCheckpoint,
-    } = await import("../src/state/lingeringEffects.js");
+    } = await import("../src/state/continuous/lingeringEffects.js");
     const s = createInitialState();
     addBreakerStrengthBoostUntilCheckpoint(s, {
       createdBy: s.runner.identityId,
@@ -3148,7 +3148,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       LINGERING_KIND_ABILITY_BLANK,
       lingeringEffectsOfKind,
       blankAbilitiesUntilCorpTurnEnd,
-    } = await import("../src/state/lingeringEffects.js");
+    } = await import("../src/state/continuous/lingeringEffects.js");
     let s = createInitialState();
     const res = instantiateCard("aesops-pawnshop", "res-1", "runner:installed");
     s.cards["res-1"] = res;
@@ -3191,7 +3191,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       lingeringIceStrengthOfKind,
       addBreakerStrengthBoostThisTurn,
       addIceStrengthBoostThisTurn,
-    } = await import("../src/state/lingeringEffects.js");
+    } = await import("../src/state/continuous/lingeringEffects.js");
     let s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     s.cards["ice-1"] = ice;
@@ -3258,7 +3258,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
       LINGERING_KIND_RUNNER_MU,
       lingeringEffectsOfKind,
       lingeringRunnerMuModifier,
-    } = await import("../src/state/lingeringEffects.js");
+    } = await import("../src/state/continuous/lingeringEffects.js");
     let s = createInitialState();
     const r = evalEffect(
       { state: s, sourceId: s.corp.identityId },
@@ -3287,7 +3287,7 @@ describe("lingering effect registry (CR 9.10.1)", () => {
 
   it("registers granted ice subtypes as a turn-duration lingering (CR 9.10.1)", async () => {
     const { LINGERING_KIND_GRANTED_SUBTYPES, lingeringEffectsOfKind } =
-      await import("../src/state/lingeringEffects.js");
+      await import("../src/state/continuous/lingeringEffects.js");
     let s = createInitialState();
     const ice = instantiateCard("ice-wall", "ice-1", "server:hq:ice");
     s.cards["ice-1"] = ice;

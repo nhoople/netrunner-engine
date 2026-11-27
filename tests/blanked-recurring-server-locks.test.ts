@@ -20,7 +20,7 @@ import {
 } from "../src/state/cardDeclarations.js";
 import { offTheGridBlocksServer } from "../src/state/runLegality.js";
 import type { ServerId } from "../src/index.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

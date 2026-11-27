@@ -25,8 +25,8 @@ import {
   lingeringEffectsOfKind,
   lingeringIceStrengthOfKind,
   lingeringRunnerMuModifier,
-} from "../src/state/lingeringEffects.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
+} from "../src/state/continuous/lingeringEffects.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 
 import { drawCards } from "../src/effects/draw.js";
 import type { GameState } from "../src/state/types.js";

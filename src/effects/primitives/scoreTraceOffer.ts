@@ -4,7 +4,7 @@ import { CR } from "../../timing/labels.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
 import { autoResolveTrace } from "../../state/trace.js";
-import { syncCorpHandSizeSubroutines } from "../../state/handSizeSubroutines.js";
+import { syncCorpHandSizeSubroutines } from "../../state/continuous/handSizeSubroutines.js";
 import type { RuleCite } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";

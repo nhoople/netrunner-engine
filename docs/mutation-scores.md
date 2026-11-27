@@ -73,7 +73,7 @@ No survivor changes a zone, a face, a host link, the Runner's position, the atta
 
 ## RA-2 Continuous effects (2026-11-19)
 
-Files mutated: `src/state/continuousEffects.ts` (the 9.12 blanking solver and subtype layer), `src/state/lingeringEffects.ts` (the 9.10 registry and its 10.3.1b expiry), `src/state/abilities.ts` and `src/state/pendingChoice.ts` (the S4 choice helper). Killed counts include timeouts. The re-audit writes tests only (`tests/continuous-effects-reaudit.test.ts`); RF fixes the paths it found wrong.
+Files mutated: `src/state/continuous/continuousEffects.ts` (the 9.12 blanking solver and subtype layer), `src/state/continuous/lingeringEffects.ts` (the 9.10 registry and its 10.3.1b expiry), `src/state/continuous/abilities.ts` and `src/state/pendingChoice.ts` (the S4 choice helper). Killed counts include timeouts. The re-audit writes tests only (`tests/continuous-effects-reaudit.test.ts`); RF fixes the paths it found wrong.
 
 | File | Start | With RA-2 tests | Covered | Survived | No coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |

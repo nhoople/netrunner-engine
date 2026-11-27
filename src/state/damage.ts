@@ -9,9 +9,9 @@ import {
 } from "./trashHooks.js";
 import type { DamageType, GameState, PaidAbility } from "./types.js";
 import { CR } from "../timing/labels.js";
-import { recomputeRunnerMaxHandSize } from "./handSize.js";
-import { scoredAgendaMeatDamageIncrease } from "./breakerMods.js";
-import { abilitiesSuppressed } from "./abilities.js";
+import { recomputeRunnerMaxHandSize } from "./continuous/handSize.js";
+import { scoredAgendaMeatDamageIncrease } from "./continuous/breakerMods.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { pickRandomSubset } from "./rng.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";

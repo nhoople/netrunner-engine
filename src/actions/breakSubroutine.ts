@@ -3,7 +3,7 @@
  */
 import { noteRunnerClickDuringRun } from "../state/clickHooks.js";
 import { log } from "../state/createGame.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { onFullBreak } from "../state/cardDeclarations.js";
 import { noteVacuousFullBreak } from "../timing/vacuousBreak.js";
 import { withCostCheckpoint } from "../legality/checkpoints.js";

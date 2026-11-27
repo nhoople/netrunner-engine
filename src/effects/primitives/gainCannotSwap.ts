@@ -15,7 +15,7 @@ import {
   applyContinuousGainedSubs,
   collectTourGuideEtrSubs,
   firstDecl,
-} from "../../state/continuousSubs.js";
+} from "../../state/continuous/continuousSubs.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import {
   hostCard,

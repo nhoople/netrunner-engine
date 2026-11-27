@@ -2,9 +2,9 @@
  * Priority windows, passing priority, and the discard phase.
  * Drawing one card is shared with the basic draw action.
  */
-import { effectiveMaxHandSize } from "../state/handSize.js";
+import { effectiveMaxHandSize } from "../state/continuous/handSize.js";
 import { commitDraw, holdCorpDrawForDbs } from "../effects/draw.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { activePlayer, log } from "../state/createGame.js";
 import { geneticsPavilionDrawLimit } from "../state/staticFlags.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";

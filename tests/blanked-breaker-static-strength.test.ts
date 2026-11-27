@@ -14,7 +14,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { breakerStrength } from "../src/effects/iceStrength.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

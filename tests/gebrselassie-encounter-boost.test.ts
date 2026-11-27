@@ -17,7 +17,7 @@ import {
 import {
   LINGERING_KIND_BREAKER_STRENGTH,
   lingeringBreakerStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 
 import { breakerStrength } from "../src/effects/iceStrength.js";
 import type { GameState } from "../src/index.js";

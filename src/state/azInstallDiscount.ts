@@ -3,7 +3,7 @@
  * costs N¢ less.
  */
 
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { CardInstance, GameState } from "./types.js";
 
 /** True when the card is hardware or a job/connection resource. */

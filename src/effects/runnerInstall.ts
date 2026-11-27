@@ -4,14 +4,14 @@ import { openPendingChoose } from "../state/pendingChoice.js";
  * Helpers moved out of eval.ts; the switch still calls them.
  */
 import { log } from "../state/createGame.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { fireOnInstall } from "../state/cardLifecycleHooks.js";
 import {
   creditsAvailableForInstall,
   payInstallCost,
   subtractRunnerCreditPool,
 } from "../state/costs.js";
-import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
+import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
 import {
   azJobConnectionOrHardwareInstallDiscount,
   noteJobConnectionOrHardwareInstalled,

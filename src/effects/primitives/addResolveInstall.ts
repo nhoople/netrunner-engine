@@ -1,7 +1,7 @@
 /** Sovereign Sight (ss) Kitara pack primitives — v1.136.0. */
 import { printsCanBeAdvanced } from "../../state/advanceable.js";
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
-import { abilitiesSuppressed } from "../../state/abilities.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { addOutermostIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

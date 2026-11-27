@@ -5,9 +5,9 @@
 import { revealCards } from "../state/reveal.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
 import { log } from "../state/createGame.js";
-import { addBreakerStrengthBoostThisRun } from "../state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisRun } from "../state/continuous/lingeringEffects.js";
 import { evalEffect } from "../effects/eval.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { isForbidden } from "../legality/checkpoints.js";
 import { ensurePriorityWindow } from "../legality/priority.js";
 import { dealDamage } from "../state/damage.js";

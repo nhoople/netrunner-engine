@@ -4,7 +4,7 @@ import type {
   TimingCursor,
   TurnPhase,
 } from "../state/types.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import {
   approachServerAbility,
@@ -29,7 +29,7 @@ import {
   refreshRdDeckCandidate,
 } from "../state/access.js";
 import { syncNextSubtypeEtrSubs } from "../state/powerCounters.js";
-import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
+import { syncCorpHandSizeSubroutines } from "../state/continuous/handSizeSubroutines.js";
 import { getCardDef } from "../cards/load.js";
 import { iceStrengthCannotBeLowered } from "../cards/stubs.js";
 import {
@@ -55,8 +55,8 @@ import {
   applyContinuousGainedSubs,
   firstDecl,
   iceHasWinchesterFamilyDecl,
-} from "../state/continuousSubs.js";
-import { resolveIceSubtypes } from "../state/continuousEffects.js";
+} from "../state/continuous/continuousSubs.js";
+import { resolveIceSubtypes } from "../state/continuous/continuousEffects.js";
 import { openPendingChoose } from "../state/pendingChoice.js";
 import { currentMark } from "../state/msKeywords.js";
 import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
@@ -99,7 +99,7 @@ import {
   addIceStrengthBoostThisEncounter,
   addLingeringEffect,
   LINGERING_KIND_GRANTED_SUBTYPES,
-} from "../state/lingeringEffects.js";
+} from "../state/continuous/lingeringEffects.js";
 import { serversMatchingSpec } from "../state/runStart.js";
 import { CR } from "./labels.js";
 import {
@@ -203,17 +203,17 @@ import { noteOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
 import {
   activeLockdownIds,
   trashActiveLockdownsAtCorpTurnBegin,
-} from "../state/lockdowns.js";
+} from "../state/continuous/lockdowns.js";
 import {
   activeCorpCurrentIds,
   activeRunnerCurrentIds,
-} from "../state/currents.js";
+} from "../state/continuous/currents.js";
 import { lingeringPlayAreaIds } from "../state/zones.js";
 import { noteRunnerClickLose } from "../state/clickHooks.js";
 import {
   computeRunnerMaxHandSize,
   recomputeRunnerMaxHandSize,
-} from "../state/handSize.js";
+} from "../state/continuous/handSize.js";
 import {
   cancelPendingIfSourceInactive,
   closeReactionWindow,

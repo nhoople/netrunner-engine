@@ -14,7 +14,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import type { GameState, ServerId } from "../src/index.js";
-import { recomputeRunnerMaxHandSize } from "../src/state/handSize.js";
+import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
 
 beforeAll(() => {

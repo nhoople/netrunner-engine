@@ -1,7 +1,7 @@
 /** Chrome City (cc) SanSan pack primitives. */
 import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
 import { log } from "../../state/createGame.js";
-import { addBreakerStrengthBoostThisRun } from "../../state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";

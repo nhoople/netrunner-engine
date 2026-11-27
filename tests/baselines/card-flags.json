@@ -1276,11 +1276,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#allIceStrengthBonusFromCurrents",
+          "site": "src/state/continuous/currents.ts#allIceStrengthBonusFromCurrents",
           "kinds": []
         },
         {
-          "site": "src/state/lockdowns.ts#allIceStrengthBonusFromLockdowns",
+          "site": "src/state/continuous/lockdowns.ts#allIceStrengthBonusFromLockdowns",
           "kinds": []
         }
       ],
@@ -1778,7 +1778,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#currentsBlankingCorpIdentity",
+          "site": "src/state/continuous/currents.ts#currentsBlankingCorpIdentity",
           "kinds": []
         }
       ],
@@ -1801,7 +1801,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#collectBlankingEffects",
+          "site": "src/state/continuous/continuousEffects.ts#collectBlankingEffects",
           "kinds": []
         },
         {
@@ -1828,7 +1828,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#currentsBlankingRunnerIdentity",
+          "site": "src/state/continuous/currents.ts#currentsBlankingRunnerIdentity",
           "kinds": []
         }
       ],
@@ -1847,7 +1847,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousEffects.ts#collectBlankingEffects",
+          "site": "src/state/continuous/continuousEffects.ts#collectBlankingEffects",
           "kinds": []
         }
       ],
@@ -1866,11 +1866,11 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousEffects.ts#collectBlankingEffects",
+          "site": "src/state/continuous/continuousEffects.ts#collectBlankingEffects",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#iceCannotGainAbilities",
+          "site": "src/state/continuous/continuousEffects.ts#iceCannotGainAbilities",
           "kinds": []
         }
       ],
@@ -2149,7 +2149,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#countInstalledIcebreakers",
+          "site": "src/state/continuous/continuousCosts.ts#countInstalledIcebreakers",
           "kinds": []
         },
         {
@@ -2377,7 +2377,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/lockdowns.ts#cannotBreakExceptIcebreakerActive",
+          "site": "src/state/continuous/lockdowns.ts#cannotBreakExceptIcebreakerActive",
           "kinds": []
         }
       ],
@@ -2883,7 +2883,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousSubs.ts#gainedSubDecls",
+          "site": "src/state/continuous/continuousSubs.ts#gainedSubDecls",
           "kinds": []
         },
         {
@@ -2913,7 +2913,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#collectSubtypeGrantEffects",
+          "site": "src/state/continuous/continuousEffects.ts#collectSubtypeGrantEffects",
           "kinds": []
         }
       ],
@@ -3146,7 +3146,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#corpHandSizeFromCurrents",
+          "site": "src/state/continuous/currents.ts#corpHandSizeFromCurrents",
           "kinds": []
         }
       ],
@@ -3245,7 +3245,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#corpMaxIceInstallsPerTurnFromCurrents",
+          "site": "src/state/continuous/currents.ts#corpMaxIceInstallsPerTurnFromCurrents",
           "kinds": []
         }
       ],
@@ -3457,7 +3457,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#trashCurrentsOnAgendaScored",
+          "site": "src/state/continuous/currents.ts#trashCurrentsOnAgendaScored",
           "kinds": []
         }
       ],
@@ -3495,7 +3495,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#trashCorpCurrentsOnAgendaStolen",
+          "site": "src/state/continuous/currents.ts#trashCorpCurrentsOnAgendaStolen",
           "kinds": []
         }
       ],
@@ -3960,7 +3960,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/handSizeSubroutines.ts#syncCorpHandSizeSubroutines",
+          "site": "src/state/continuous/handSizeSubroutines.ts#syncCorpHandSizeSubroutines",
           "kinds": []
         },
         {
@@ -4415,7 +4415,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -4434,7 +4434,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -5328,7 +5328,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
           "kinds": []
         }
       ],
@@ -5351,7 +5351,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
           "kinds": []
         }
       ],
@@ -5370,7 +5370,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
           "kinds": []
         }
       ],
@@ -5389,7 +5389,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
           "kinds": []
         }
       ],
@@ -5432,11 +5432,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
           "kinds": []
         },
         {
-          "site": "src/state/handSize.ts#effectiveCorpMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#effectiveCorpMaxHandSize",
           "kinds": []
         }
       ],
@@ -5491,7 +5491,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
           "kinds": []
         }
       ],
@@ -5520,7 +5520,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -6219,7 +6219,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousEffects.ts#collectBlankingEffects",
+          "site": "src/state/continuous/continuousEffects.ts#collectBlankingEffects",
           "kinds": []
         }
       ],
@@ -6753,11 +6753,23 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousSubs.ts#collectTourGuideEtrSubs",
+          "site": "src/state/continuous/continuousSubs.ts#collectTourGuideEtrSubs",
           "kinds": []
         },
         {
-          "site": "src/state/continuousSubs.ts#looksLikeContinuousGainedSubId",
+          "site": "src/state/continuous/continuousSubs.ts#looksLikeContinuousGainedSubId",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#noteTargetedMarketing",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/handSizeSubroutines.ts#syncCorpHandSizeSubroutines",
           "kinds": []
         },
         {
@@ -6765,19 +6777,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/currents.ts#noteTargetedMarketing",
-          "kinds": []
-        },
-        {
           "site": "src/state/damage.ts#resolveDamage",
-          "kinds": []
-        },
-        {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
-          "kinds": []
-        },
-        {
-          "site": "src/state/handSizeSubroutines.ts#syncCorpHandSizeSubroutines",
           "kinds": []
         },
         {
@@ -7194,7 +7194,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -7221,7 +7221,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -7248,7 +7248,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -7271,7 +7271,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -7831,7 +7831,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/currents.ts#isCurrentCard",
+          "site": "src/state/continuous/currents.ts#isCurrentCard",
           "kinds": []
         }
       ],
@@ -9041,7 +9041,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousEffects.ts#collectSubtypeLayerSteps",
+          "site": "src/state/continuous/continuousEffects.ts#collectSubtypeLayerSteps",
           "kinds": []
         }
       ],
@@ -9371,7 +9371,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -16124,7 +16124,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -16690,7 +16690,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -17604,7 +17604,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#runnerCannotPlayCurrentEvents",
+          "site": "src/state/continuous/currents.ts#runnerCannotPlayCurrentEvents",
           "kinds": []
         }
       ],
@@ -17704,7 +17704,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#sumRunnerFirstRunAdditionalCost",
+          "site": "src/state/continuous/currents.ts#sumRunnerFirstRunAdditionalCost",
           "kinds": []
         }
       ],
@@ -17727,7 +17727,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
           "kinds": []
         }
       ],
@@ -17750,7 +17750,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
           "kinds": []
         }
       ],
@@ -18384,23 +18384,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/abilities.ts#runnerCannotUseProgram",
-          "kinds": []
-        },
-        {
           "site": "src/state/access.ts#offerCupellationHqBreach",
-          "kinds": []
-        },
-        {
-          "site": "src/state/active.ts#facedownInstalledRunnerCard",
-          "kinds": []
-        },
-        {
-          "site": "src/state/active.ts#installedCardActive",
-          "kinds": []
-        },
-        {
-          "site": "src/state/active.ts#isCardActive",
           "kinds": []
         },
         {
@@ -18410,6 +18394,37 @@
         {
           "site": "src/state/cardLifecycleHooks.ts#fireOnPlay",
           "kinds": []
+        },
+        {
+          "site": "src/state/continuous/abilities.ts#runnerCannotUseProgram",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/active.ts#facedownInstalledRunnerCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/active.ts#installedCardActive",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/active.ts#isCardActive",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#corpIceInstalledThisTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#trashCurrent",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/lingeringEffects.ts#expireLingeringEffects",
+          "kinds": [],
+          "mirrors": [
+            "src/state/types/lingering.ts#{LingeringDuration}"
+          ]
         },
         {
           "site": "src/state/costs.ts#hostedInstallSpendCards",
@@ -18428,14 +18443,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/currents.ts#corpIceInstalledThisTurn",
-          "kinds": []
-        },
-        {
-          "site": "src/state/currents.ts#trashCurrent",
-          "kinds": []
-        },
-        {
           "site": "src/state/damage.ts#resolveDamage",
           "kinds": []
         },
@@ -18450,13 +18457,6 @@
         {
           "site": "src/state/gamenet.ts#noteCorpAbilityCausedRunnerCreditLossOrSpend",
           "kinds": []
-        },
-        {
-          "site": "src/state/lingeringEffects.ts#expireLingeringEffects",
-          "kinds": [],
-          "mirrors": [
-            "src/state/types/lingering.ts#{LingeringDuration}"
-          ]
         },
         {
           "site": "src/state/miscConditionalHooks.ts#fireOnAgendaScoredOrStolen",
@@ -18893,7 +18893,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/lockdowns.ts#stealAdditionalCreditsFromActiveLockdowns",
+          "site": "src/state/continuous/lockdowns.ts#stealAdditionalCreditsFromActiveLockdowns",
           "kinds": []
         }
       ],
@@ -19789,15 +19789,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousSubs.ts#applyContinuousGainedSubs",
+          "site": "src/state/continuous/continuousSubs.ts#applyContinuousGainedSubs",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/handSizeSubroutines.ts#syncCorpHandSizeSubroutines",
           "kinds": []
         },
         {
           "site": "src/state/costs.ts#abilityCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/handSizeSubroutines.ts#syncCorpHandSizeSubroutines",
           "kinds": []
         },
         {
@@ -20391,34 +20391,50 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#countInstalledIcebreakers",
+          "site": "src/state/continuous/continuousCosts.ts#countInstalledIcebreakers",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#collectBlankingEffects",
+          "site": "src/state/continuous/continuousEffects.ts#collectBlankingEffects",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#collectSubtypeLayerSteps",
+          "site": "src/state/continuous/continuousEffects.ts#collectSubtypeLayerSteps",
           "kinds": [],
           "mirrors": [
-            "src/state/continuousEffects.ts#{}"
+            "src/state/continuous/continuousEffects.ts#{}"
           ]
         },
         {
-          "site": "src/state/continuousEffects.ts#resolveIceSubtypeMap",
+          "site": "src/state/continuous/continuousEffects.ts#resolveIceSubtypeMap",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#resolveIceSubtypes",
+          "site": "src/state/continuous/continuousEffects.ts#resolveIceSubtypes",
           "kinds": []
         },
         {
-          "site": "src/state/continuousSubs.ts#collectBlockchainArchivesSubs",
+          "site": "src/state/continuous/continuousSubs.ts#collectBlockchainArchivesSubs",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#isCurrentCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/handSize.ts#computeRunnerMaxHandSize",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/lockdowns.ts#cardHasIcebreakerSubtype",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/lockdowns.ts#isLockdownCard",
           "kinds": []
         },
         {
@@ -20462,10 +20478,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/currents.ts#isCurrentCard",
-          "kinds": []
-        },
-        {
           "site": "src/state/damage.ts#chromeParlorPreventsInstallDamage",
           "kinds": []
         },
@@ -20479,18 +20491,6 @@
         },
         {
           "site": "src/state/firstEncounterPassHooks.ts#noteSisyphusFirstPass",
-          "kinds": []
-        },
-        {
-          "site": "src/state/handSize.ts#computeRunnerMaxHandSize",
-          "kinds": []
-        },
-        {
-          "site": "src/state/lockdowns.ts#cardHasIcebreakerSubtype",
-          "kinds": []
-        },
-        {
-          "site": "src/state/lockdowns.ts#isLockdownCard",
           "kinds": []
         },
         {
@@ -20661,7 +20661,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/currents.ts#noteTargetedMarketing",
+          "site": "src/state/continuous/currents.ts#noteTargetedMarketing",
           "kinds": []
         }
       ],
@@ -22177,6 +22177,38 @@
           "kinds": []
         },
         {
+          "site": "src/state/continuous/currents.ts#enhancedLoginProtocolClick",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#noteTargetedMarketing",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#placeCurrentAfterPlay",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#sumRunnerFirstRunAdditionalCost",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#trashCurrent",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/handSizeSubroutines.ts#syncCorpHandSizeSubroutines",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/lingeringEffects.ts#endLingeringEffectsOnCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/lockdowns.ts#trashActiveLockdownsAtCorpTurnBegin",
+          "kinds": []
+        },
+        {
           "site": "src/state/corpActionHooks.ts#abandonExtraDifferentAction",
           "kinds": []
         },
@@ -22269,26 +22301,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/currents.ts#enhancedLoginProtocolClick",
-          "kinds": []
-        },
-        {
-          "site": "src/state/currents.ts#noteTargetedMarketing",
-          "kinds": []
-        },
-        {
-          "site": "src/state/currents.ts#placeCurrentAfterPlay",
-          "kinds": []
-        },
-        {
-          "site": "src/state/currents.ts#sumRunnerFirstRunAdditionalCost",
-          "kinds": []
-        },
-        {
-          "site": "src/state/currents.ts#trashCurrent",
-          "kinds": []
-        },
-        {
           "site": "src/state/damage.ts#dealDamage",
           "kinds": []
         },
@@ -22349,10 +22361,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/handSizeSubroutines.ts#syncCorpHandSizeSubroutines",
-          "kinds": []
-        },
-        {
           "site": "src/state/hostDuration.ts#maybeGrantSystemSeizureRunDuration",
           "kinds": []
         },
@@ -22382,14 +22390,6 @@
         },
         {
           "site": "src/state/identityFlipHooks.ts#fireCorpIdentityFlippedSuccessfulHqOrRdRun",
-          "kinds": []
-        },
-        {
-          "site": "src/state/lingeringEffects.ts#endLingeringEffectsOnCard",
-          "kinds": []
-        },
-        {
-          "site": "src/state/lockdowns.ts#trashActiveLockdownsAtCorpTurnBegin",
           "kinds": []
         },
         {
@@ -24204,22 +24204,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/abilities.ts#runnerCannotUseProgram",
-          "kinds": []
-        },
-        {
-          "site": "src/state/active.ts#facedownInstalledRunnerCard",
-          "kinds": []
-        },
-        {
-          "site": "src/state/active.ts#installedCardActive",
-          "kinds": []
-        },
-        {
-          "site": "src/state/active.ts#isCardActive",
-          "kinds": []
-        },
-        {
           "site": "src/state/advanceable.ts#mayAdvanceInstalledCard",
           "kinds": []
         },
@@ -24260,39 +24244,59 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/abilities.ts#runnerCannotUseProgram",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#collectBlankingEffects",
+          "site": "src/state/continuous/active.ts#facedownInstalledRunnerCard",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#collectSubtypeGrantEffects",
+          "site": "src/state/continuous/active.ts#installedCardActive",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#collectSubtypeLayerSteps",
+          "site": "src/state/continuous/active.ts#isCardActive",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#iceCannotGainAbilities",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#resolveIceSubtypeMap",
+          "site": "src/state/continuous/continuousEffects.ts#collectBlankingEffects",
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#resolveIceSubtypes",
+          "site": "src/state/continuous/continuousEffects.ts#collectSubtypeGrantEffects",
           "kinds": []
         },
         {
-          "site": "src/state/continuousSubs.ts#collectBlockchainArchivesSubs",
+          "site": "src/state/continuous/continuousEffects.ts#collectSubtypeLayerSteps",
           "kinds": []
         },
         {
-          "site": "src/state/continuousSubs.ts#collectTourGuideEtrSubs",
+          "site": "src/state/continuous/continuousEffects.ts#iceCannotGainAbilities",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/continuousEffects.ts#resolveIceSubtypeMap",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/continuousEffects.ts#resolveIceSubtypes",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/continuousSubs.ts#collectBlockchainArchivesSubs",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/continuousSubs.ts#collectTourGuideEtrSubs",
+          "kinds": []
+        },
+        {
+          "site": "src/state/continuous/currents.ts#corpIceInstalledThisTurn",
           "kinds": []
         },
         {
@@ -24333,10 +24337,6 @@
         },
         {
           "site": "src/state/costs.ts#takeFromProgramOrHardwareRecurring",
-          "kinds": []
-        },
-        {
-          "site": "src/state/currents.ts#corpIceInstalledThisTurn",
           "kinds": []
         },
         {
@@ -24523,7 +24523,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/continuousEffects.ts#collectBlankingEffects",
+          "site": "src/state/continuous/continuousEffects.ts#collectBlankingEffects",
           "kinds": []
         }
       ],
@@ -24582,7 +24582,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/continuousCosts.ts#collectRunnerInstallCostDeltas",
+          "site": "src/state/continuous/continuousCosts.ts#collectRunnerInstallCostDeltas",
           "kinds": []
         }
       ],
@@ -24631,7 +24631,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/breakerMods.ts#scoredAgendaBreakerPenaltyIfIceDerezzed",
+          "site": "src/state/continuous/breakerMods.ts#scoredAgendaBreakerPenaltyIfIceDerezzed",
           "kinds": []
         }
       ],
@@ -24652,7 +24652,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/breakerMods.ts#scoredAgendaIceSubtypeStrengthBonus",
+          "site": "src/state/continuous/breakerMods.ts#scoredAgendaIceSubtypeStrengthBonus",
           "kinds": []
         }
       ],
@@ -24671,7 +24671,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/breakerMods.ts#scoredAgendaMeatDamageIncrease",
+          "site": "src/state/continuous/breakerMods.ts#scoredAgendaMeatDamageIncrease",
           "kinds": []
         }
       ],

@@ -1,11 +1,11 @@
 /** Per-turn bookkeeping for Gateway abilities (successful runs, once-per-turn, etc.). */
 
-import { abilitiesSuppressed } from "./abilities.js";
-import { recomputeRunnerMaxHandSize } from "./handSize.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
+import { recomputeRunnerMaxHandSize } from "./continuous/handSize.js";
 import {
   endLingeringEffectsOnCard,
   lingeringRunnerMuModifier,
-} from "./lingeringEffects.js";
+} from "./continuous/lingeringEffects.js";
 import type { GameState, TurnBookkeeping } from "./types.js";
 import { agendaPointMu } from "./staticFlags.js";
 

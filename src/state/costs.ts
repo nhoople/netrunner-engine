@@ -1,6 +1,6 @@
 /** Richer cost model + recurring credit refill (CR 1.10 / 1.16). */
 
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { noteRunnerClickDuringRun } from "./clickHooks.js";
 import { iceAtRunnerPosition } from "./runPosition.js";
 import { log } from "./createGame.js";

@@ -4,7 +4,7 @@
  */
 import { trashCard } from "./procedures/trash.js";
 import { log } from "./createGame.js";
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { agendaPointsFor } from "./scoring.js";
 import type { CardInstance, GameState, ServerId } from "./types.js";
 import { CR } from "../timing/labels.js";
@@ -14,7 +14,7 @@ import { onIceRezzed } from "./cardDeclarations.js";
 import {
   corpIceInstalledThisTurn,
   corpMaxIceInstallsPerTurnFromCurrents,
-} from "./currents.js";
+} from "./continuous/currents.js";
 
 function rezzedWith<K extends keyof CardInstance>(
   state: GameState,

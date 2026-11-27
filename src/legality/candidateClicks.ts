@@ -36,10 +36,10 @@ import {
   effectiveMemoryCost,
   wasAbilityUsed,
 } from "../state/turn.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
-import { hasActiveLockdown } from "../state/lockdowns.js";
+import { hasActiveLockdown } from "../state/continuous/lockdowns.js";
 import { corpMayScore } from "../cards/stubs.js";
 import { corpIceInstallBlockReason } from "../state/staticFlags.js";
 import { mayAdvanceInstalledCard } from "../state/advanceable.js";

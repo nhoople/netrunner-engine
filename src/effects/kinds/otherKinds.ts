@@ -15,7 +15,7 @@ import type { EffectCtx, EvalResult } from "../eval.js";
 import { serverHostingCard } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
-import { abilitiesSuppressed } from "../../state/abilities.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
 import { chooseCards } from "../chooseCards.js";
 import {
@@ -59,7 +59,7 @@ import {
   addLingeringEffect,
   blankAbilitiesUntilCorpTurnEnd,
   LINGERING_KIND_GRANTED_SUBTYPES,
-} from "../../state/lingeringEffects.js";
+} from "../../state/continuous/lingeringEffects.js";
 import { fireOnFlipToBackIfRunMatchesFace } from "../../state/miscConditionalHooks.js";
 import {
   chargeableInstalledIds,

@@ -26,9 +26,9 @@ import {
 } from "../src/index.js";
 import { canScoreAgenda } from "../src/state/scoring.js";
 import type { ServerId } from "../src/state/types.js";
-import { recomputeRunnerMaxHandSize } from "../src/state/handSize.js";
+import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { resolveAndAdvance } from "../src/timing/machine.js";
-import { addBreakerStrengthBoostThisRun } from "../src/state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisRun } from "../src/state/continuous/lingeringEffects.js";
 import { clearMark, placeMark } from "../src/state/msKeywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import { trashCard } from "../src/state/procedures/trash.js";

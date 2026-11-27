@@ -45,7 +45,7 @@ import {
   addIceStrengthBoostThisEncounter,
   LINGERING_KIND_ICE_STRENGTH,
   lingeringIceStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 
 import type {
   ServerId,

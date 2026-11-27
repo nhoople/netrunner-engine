@@ -1,7 +1,7 @@
 /**
  * Successful R&D run conditionals (Chakana). Notes queues for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState } from "./types.js";
 
 /** Queue a Runner-installed onSuccessfulRunOnRd card id. */

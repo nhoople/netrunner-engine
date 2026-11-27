@@ -2,8 +2,8 @@
  * The hooks that fire when a Corp card is trashed to Archives. The trash
  * itself is `trashCard` in `src/state/procedures/trash.ts`.
  */
-import { abilitiesSuppressed } from "../state/abilities.js";
-import { isCardActive } from "../state/active.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
+import { isCardActive } from "../state/continuous/active.js";
 import { log } from "../state/createGame.js";
 import { CR } from "../timing/labels.js";
 import { agendaPointsFor } from "../state/scoring.js";

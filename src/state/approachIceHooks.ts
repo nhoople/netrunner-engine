@@ -2,7 +2,7 @@
  * Approach-ice root conditionals (Midori / Mitra Aman) and first successful
  * R&D run-end (Psych Mike). Notes queues / MetPending for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState } from "./types.js";
 
 /** Queue a rezzed root onApproachIce card id for 10.3.1a. */
