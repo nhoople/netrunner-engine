@@ -8,7 +8,7 @@
  * (b) No-op choices: a choice builder whose every option effect is the
  *     placeholder `gain_credits 0` or an empty `seq`. The printed ability then
  *     does nothing through the IR. Some of these are resolved by option id in
- *     `src/actions/apply.ts` instead (Tāo Salonga's `swap-a-b` ids); that is
+ *     `src/actions/chooseOption.ts` instead (Tāo Salonga's `swap-a-b` ids); that is
  *     still a procedure hidden from the IR, so they are reported too, with
  *     the dispatch literal in the failure message.
  * (c) Card flags whose consumer builds a no-op kind. Reads the flag-to-kind

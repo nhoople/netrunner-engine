@@ -33,15 +33,18 @@
     },
     "src/actions/apply.ts": {
       "deck": 2,
-      "discardPile": 1,
       "hand": 2,
-      "removedFromGame": 1,
-      "rezzed": 1,
-      "zone": 5
+      "zone": 2
     },
     "src/actions/breakSubroutine.ts": {
       "deck": 1,
       "rezzed": 1
+    },
+    "src/actions/chooseOption.ts": {
+      "discardPile": 1,
+      "removedFromGame": 1,
+      "rezzed": 1,
+      "zone": 3
     },
     "src/actions/installCorp.ts": {
       "deck": 2,
