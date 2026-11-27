@@ -1,7 +1,7 @@
 /**
  * Off-graph stored Effect-key conditionals. Notes for 10.3.1a (phase 3).
  */
-import type { GameState, Side, StoredConditionalEffectKey } from "./types.js";
+import type { GameState, Side, StoredConditionalEffectKey } from "../types.js";
 import type { StoredConditionalMark } from "./storedTriggers.js";
 
 export type StoredConditionalPendingMark = {

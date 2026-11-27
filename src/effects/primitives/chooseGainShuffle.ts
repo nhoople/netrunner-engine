@@ -9,7 +9,7 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { getCardDef } from "../../cards/load.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 import { resetEncounterBreaks } from "../../state/procedures/break.js";

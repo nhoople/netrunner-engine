@@ -21,7 +21,7 @@ import {
   allIceStrengthBonusFromCurrents,
 } from "../state/continuous/currents.js";
 import { log } from "../state/createGame.js";
-import { syncHostDurationReplacements } from "../state/hostDuration.js";
+import { syncHostDurationReplacements } from "../state/triggers/hostDuration.js";
 import {
   lingeringBreakerStrengthBoost,
   lingeringIceStrengthBoost,

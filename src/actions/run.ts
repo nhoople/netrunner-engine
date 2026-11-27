@@ -24,8 +24,8 @@ import type {
   ServerId,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { fireOnRunDeclaredOnThisServerIfTagged } from "../state/miscConditionalHooks.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { fireOnRunDeclaredOnThisServerIfTagged } from "../state/triggers/miscConditionalHooks.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { random } from "../state/rng.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { settleDeferredPlayedEvent } from "./play.js";

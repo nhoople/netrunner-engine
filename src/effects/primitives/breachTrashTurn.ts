@@ -5,7 +5,7 @@ import { log } from "../../state/createGame.js";
 import { chooseCards } from "../chooseCards.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { lookAtCards } from "../../state/reveal.js";
 import type { RuleCite } from "../../state/types.js";

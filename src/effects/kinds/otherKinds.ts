@@ -16,7 +16,7 @@ import { serverHostingCard } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import type { ServerId } from "../../state/types.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
-import { noteInlineConditional } from "../../state/inlineConditionalHooks.js";
+import { noteInlineConditional } from "../../state/triggers/inlineConditionalHooks.js";
 import { chooseCards } from "../chooseCards.js";
 import {
   effectiveIceSubtypes,
@@ -60,7 +60,7 @@ import {
   blankAbilitiesUntilCorpTurnEnd,
   LINGERING_KIND_GRANTED_SUBTYPES,
 } from "../../state/continuous/lingeringEffects.js";
-import { fireOnFlipToBackIfRunMatchesFace } from "../../state/miscConditionalHooks.js";
+import { fireOnFlipToBackIfRunMatchesFace } from "../../state/triggers/miscConditionalHooks.js";
 import {
   chargeableInstalledIds,
   chargeCard,
@@ -69,7 +69,7 @@ import {
   offerSabotagePick,
   resolveSabotageAmount,
 } from "../../state/msKeywords.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   moveForfeitedAgendaOutOfGame,
   removeCardFromCurrentZone,

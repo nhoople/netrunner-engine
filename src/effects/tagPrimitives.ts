@@ -21,7 +21,7 @@ import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Effect, Primitive } from "./ir.js";
-import { fireOnFirstTagThisTurn } from "../state/miscConditionalHooks.js";
+import { fireOnFirstTagThisTurn } from "../state/triggers/miscConditionalHooks.js";
 import { trashCard } from "../state/procedures/trash.js";
 
 type PrimResult =

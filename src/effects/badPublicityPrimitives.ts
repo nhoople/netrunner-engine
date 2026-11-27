@@ -4,13 +4,13 @@
  */
 import { log } from "../state/createGame.js";
 import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
-import { fireWouldTakeBadPublicity } from "../state/storedTriggers.js";
+import { fireWouldTakeBadPublicity } from "../state/triggers/storedTriggers.js";
 import { checkWinConditions } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";
 import type { EffectCtx } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import type { Primitive } from "./ir.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

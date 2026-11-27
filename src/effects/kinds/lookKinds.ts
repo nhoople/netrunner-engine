@@ -11,7 +11,7 @@ import {
   creditsAvailableForInstall,
 } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { offerRdArrangeChoice, offerCultivateTrashChoice } from "../eval.js";
 

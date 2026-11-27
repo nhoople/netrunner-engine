@@ -4,10 +4,10 @@
  */
 import { log } from "../state/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { noteInlineConditional } from "../state/inlineConditionalHooks.js";
+import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
 import { addBreakerStrengthBoostThisTurn } from "../state/continuous/lingeringEffects.js";
 import { creditsAvailableForInstall, payInstallCost } from "../state/costs.js";
-import { fireOnInstall } from "../state/cardLifecycleHooks.js";
+import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { installBlockReason } from "../state/staticFlags.js";
 import {
@@ -40,9 +40,9 @@ import type {
   ServerId,
 } from "../state/types.js";
 import { CR } from "../timing/labels.js";
-import { fireOnInstallWithoutSpendingCredits } from "../state/miscConditionalHooks.js";
+import { fireOnInstallWithoutSpendingCredits } from "../state/triggers/miscConditionalHooks.js";
 import { resolveRunnerInstallCostDelta } from "../state/continuous/continuousCosts.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { hostCard, unhostCard } from "../state/procedures/host.js";
 

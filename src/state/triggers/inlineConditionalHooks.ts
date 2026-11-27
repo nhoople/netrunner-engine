@@ -1,8 +1,8 @@
 /**
  * Flag-driven / synthesized Effect conditionals. Notes for 10.3.1a (phase 3).
  */
-import type { Effect } from "../effects/ir.js";
-import type { GameState, Side } from "./types.js";
+import type { Effect } from "../../effects/ir.js";
+import type { GameState, Side } from "../types.js";
 
 export type InlineConditionalPendingMark = {
   cardId: string;

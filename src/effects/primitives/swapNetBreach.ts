@@ -7,7 +7,7 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
 import type { Effect, Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 
 type PrimResult =

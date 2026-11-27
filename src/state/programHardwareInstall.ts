@@ -6,7 +6,7 @@
 import { evalEffect } from "../effects/eval.js";
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
-import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
+import { maybeFireCompanionInstallOrSpendCredits } from "./triggers/companionHooks.js";
 import { noteJobConnectionOrHardwareInstalled } from "./azInstallDiscount.js";
 import type { GameState } from "./types.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
@@ -20,7 +20,7 @@ import {
   deferContinuationAfter,
   effectResolutionBlocked,
 } from "../effects/continuation.js";
-import { noteStoredConditional } from "./storedConditionalHooks.js";
+import { noteStoredConditional } from "./triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 /**

@@ -84,8 +84,8 @@ export {
   captureCheckpointSnapshot,
   commitCheckpointSnapshot,
   diffAgainstPreviousCheckpoint,
-} from "./state/checkpointSnapshot.js";
-export type { CheckpointDiff } from "./state/checkpointSnapshot.js";
+} from "./state/triggers/checkpointSnapshot.js";
+export type { CheckpointDiff } from "./state/triggers/checkpointSnapshot.js";
 export {
   breachedRootEntriesFromZoneDiff,
   drawnSetAsideFromZoneDiff,
@@ -176,12 +176,12 @@ export {
   PREDICATE_STORED_CONDITIONAL_NOTE,
   predicateValRunnerTriggers,
   remoteInstallEntriesFromZoneDiff,
-} from "./state/triggerPredicates.js";
+} from "./state/triggers/triggerPredicates.js";
 export type {
   TriggerPredicate,
   TriggerPredicateMatch,
   ValRunnerTriggerFamily,
-} from "./state/triggerPredicates.js";
+} from "./state/triggers/triggerPredicates.js";
 export {
   createPendingAbilityInstance,
   pendingAbilitiesWithStatus,
@@ -195,7 +195,7 @@ export {
   openReactionWindow,
   closeReactionWindow,
   currentReactionWindow,
-} from "./state/pendingAbilities.js";
+} from "./state/triggers/pendingAbilities.js";
 export {
   addLingeringEffect,
   lingeringEffectsOfKind,
@@ -358,9 +358,9 @@ export {
   noteReplacementApplied,
   replacementAlreadyApplied,
   tryApplyReplacement,
-} from "./state/replacements.js";
-export type { ActiveExpectedReplacement } from "./state/replacements.js";
-export { applyBreakerStrengthIncrease } from "./state/strengthIncrease.js";
+} from "./state/triggers/replacements.js";
+export type { ActiveExpectedReplacement } from "./state/triggers/replacements.js";
+export { applyBreakerStrengthIncrease } from "./state/triggers/strengthIncrease.js";
 export type { PendingStrengthIncrease } from "./state/types.js";
 export { purgeVirusCounters } from "./state/trashHooks.js";
 export {
@@ -503,8 +503,8 @@ export type {
   ContinuousInstallCostMod,
   ContinuousRezCostMod,
 } from "./state/continuous/continuousCosts.js";
-export { openPendingChoose } from "./state/pendingChoice.js";
-export type { PendingChoiceOption } from "./state/pendingChoice.js";
+export { openPendingChoose } from "./state/triggers/pendingChoice.js";
+export type { PendingChoiceOption } from "./state/triggers/pendingChoice.js";
 export {
   openAdvancement,
   openFace,

@@ -11,9 +11,9 @@ import {
 } from "./scoring.js";
 import { enterSetAside } from "./zones.js";
 import { fireOnRemoveTags, fireOnTakeTagsWhenUntagged } from "./trashHooks.js";
-import { maybeFireCompanionInstallOrSpendCredits } from "./companionHooks.js";
-import { fireRunnerCreditPoolEmpty } from "./storedTriggers.js";
-import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { maybeFireCompanionInstallOrSpendCredits } from "./triggers/companionHooks.js";
+import { fireRunnerCreditPoolEmpty } from "./triggers/storedTriggers.js";
+import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
 
 /**
  * Reduce the Runner's credit pool. The first time it becomes empty each

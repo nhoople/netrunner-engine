@@ -1007,7 +1007,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireAfterMandatoryDraw",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireAfterMandatoryDraw",
           "kinds": []
         }
       ],
@@ -4120,7 +4120,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/hostDuration.ts#hostedRunStrengthReplacementId",
+          "site": "src/state/triggers/hostDuration.ts#hostedRunStrengthReplacementId",
           "kinds": []
         }
       ],
@@ -4886,7 +4886,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/companionHooks.ts#maybeFireCompanionInstallOrSpendCredits",
+          "site": "src/state/triggers/companionHooks.ts#maybeFireCompanionInstallOrSpendCredits",
           "kinds": []
         }
       ],
@@ -5768,7 +5768,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/hostDuration.ts#hostedTurnStrengthReplacementId",
+          "site": "src/state/triggers/hostDuration.ts#hostedTurnStrengthReplacementId",
           "kinds": []
         }
       ],
@@ -6808,7 +6808,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/storedTriggers.ts#sameAbility",
+          "site": "src/state/triggers/storedTriggers.ts#sameAbility",
           "kinds": []
         },
         {
@@ -6909,15 +6909,15 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFlipToBackIfRunMatchesFace",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFlipToBackIfRunMatchesFace",
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnRunnerDiscardPhaseEndFlipped",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnRunnerDiscardPhaseEndFlipped",
           "kinds": []
         },
         {
-          "site": "src/state/storedTriggers.ts#effectFromKey",
+          "site": "src/state/triggers/storedTriggers.ts#effectFromKey",
           "kinds": []
         }
       ],
@@ -9418,7 +9418,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnAccess",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnAccess",
           "kinds": []
         }
       ],
@@ -9439,7 +9439,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnAccessFaceupInstalledAgenda",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnAccessFaceupInstalledAgenda",
           "kinds": []
         }
       ],
@@ -9630,7 +9630,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnAfterOperationOrExpendable",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnAfterOperationOrExpendable",
           "kinds": []
         }
       ],
@@ -9651,7 +9651,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnAgendaAccessedOrScored",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnAgendaAccessedOrScored",
           "kinds": []
         }
       ],
@@ -9720,7 +9720,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnAgendaScoredFromThisServer",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnAgendaScoredFromThisServer",
           "kinds": []
         }
       ],
@@ -9754,7 +9754,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnAgendaScoredOrStolen",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnAgendaScoredOrStolen",
           "kinds": []
         }
       ],
@@ -9773,7 +9773,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireAfterAgendaStolenHooks",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireAfterAgendaStolenHooks",
           "kinds": []
         }
       ],
@@ -9948,11 +9948,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnArchivesFacedownTurnedFaceupGte",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnArchivesFacedownTurnedFaceupGte",
           "kinds": []
         },
         {
-          "site": "src/state/storedTriggers.ts#effectFromKey",
+          "site": "src/state/triggers/storedTriggers.ts#effectFromKey",
           "kinds": []
         }
       ],
@@ -10040,7 +10040,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnBreakSubroutineTriggers",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnBreakSubroutineTriggers",
           "kinds": []
         }
       ],
@@ -10121,7 +10121,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun",
           "kinds": []
         }
       ],
@@ -10161,7 +10161,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnCorpBasicClickForCreditOrDraw",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnCorpBasicClickForCreditOrDraw",
           "kinds": []
         }
       ],
@@ -10178,11 +10178,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/storedTriggers.ts#fireCorpDrewCards",
+          "site": "src/state/triggers/storedTriggers.ts#fireCorpDrewCards",
           "kinds": []
         },
         {
-          "site": "src/state/storedTriggers.ts#resolveOnCorpDrawCardPendings",
+          "site": "src/state/triggers/storedTriggers.ts#resolveOnCorpDrawCardPendings",
           "kinds": []
         }
       ],
@@ -10326,7 +10326,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnCreditsGainedFromAgendaOrOperationAbility",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnCreditsGainedFromAgendaOrOperationAbility",
           "kinds": []
         }
       ],
@@ -10356,7 +10356,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnDiscardPhaseEnd",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnDiscardPhaseEnd",
           "kinds": []
         }
       ],
@@ -10544,11 +10544,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnEncounterEnd",
+          "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfRezzed",
           "kinds": []
         },
         {
-          "site": "src/state/encounterEndHooks.ts#noteEncounterEndIfRezzed",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnEncounterEnd",
           "kinds": []
         }
       ],
@@ -10707,7 +10707,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/storedTriggers.ts#fireExposeWhileInstalled",
+          "site": "src/state/triggers/storedTriggers.ts#fireExposeWhileInstalled",
           "kinds": []
         }
       ],
@@ -10762,7 +10762,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/storedTriggers.ts#fireFirstAdvancementOnServer",
+          "site": "src/state/triggers/storedTriggers.ts#fireFirstAdvancementOnServer",
           "kinds": []
         }
       ],
@@ -11124,7 +11124,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFirstHardwareUseDuringRunEachTurn",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFirstHardwareUseDuringRunEachTurn",
           "kinds": []
         }
       ],
@@ -11150,7 +11150,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFirstIceRezEachTurn",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFirstIceRezEachTurn",
           "kinds": []
         }
       ],
@@ -11330,11 +11330,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFirstRemoteInstallThisTurn",
+          "site": "src/state/trashHooks.ts#noteFirstRemoteInstallThisTurn",
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#noteFirstRemoteInstallThisTurn",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFirstRemoteInstallThisTurn",
           "kinds": []
         }
       ],
@@ -11355,7 +11355,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFirstResourcePaidAbilityEachTurn",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFirstResourcePaidAbilityEachTurn",
           "kinds": []
         }
       ],
@@ -11376,7 +11376,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#noteFirstRevealThisTurn",
+          "site": "src/state/triggers/miscConditionalHooks.ts#noteFirstRevealThisTurn",
           "kinds": []
         }
       ],
@@ -11444,7 +11444,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/storedTriggers.ts#noteFirstCreditPoolEmpty",
+          "site": "src/state/triggers/storedTriggers.ts#noteFirstCreditPoolEmpty",
           "kinds": []
         }
       ],
@@ -11634,7 +11634,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#noteFirstTagThisTurn",
+          "site": "src/state/triggers/miscConditionalHooks.ts#noteFirstTagThisTurn",
           "kinds": []
         }
       ],
@@ -11715,11 +11715,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnForfeit",
+          "site": "src/state/costs.ts#forfeitAgendaAsCost",
           "kinds": []
         },
         {
-          "site": "src/state/costs.ts#forfeitAgendaAsCost",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnForfeit",
           "kinds": []
         }
       ],
@@ -11750,7 +11750,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnFullyBreak",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnFullyBreak",
           "kinds": []
         }
       ],
@@ -11775,7 +11775,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFullyBreakOncePerTurn",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFullyBreakOncePerTurn",
           "kinds": []
         }
       ],
@@ -11796,7 +11796,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFullyBreakProtectingIce",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFullyBreakProtectingIce",
           "kinds": []
         }
       ],
@@ -11835,7 +11835,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnGrayOrBlackOpsTrashedAfterResolve",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnGrayOrBlackOpsTrashedAfterResolve",
           "kinds": []
         }
       ],
@@ -11986,7 +11986,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnHostFullyBrokenThisEncounter",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnHostFullyBrokenThisEncounter",
           "kinds": []
         }
       ],
@@ -12036,7 +12036,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnInstall",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnInstall",
           "kinds": []
         }
       ],
@@ -12061,7 +12061,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnInstallFromNonHq",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnInstallFromNonHq",
           "kinds": []
         }
       ],
@@ -12105,7 +12105,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnInstallProgramFromHeap",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnInstallProgramFromHeap",
           "kinds": []
         }
       ],
@@ -12126,7 +12126,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnInstallWithoutSpendingCredits",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnInstallWithoutSpendingCredits",
           "kinds": []
         }
       ],
@@ -12143,7 +12143,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnMovedToServerRoot",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnMovedToServerRoot",
           "kinds": []
         }
       ],
@@ -12160,7 +12160,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireAfterAgendaStolenHooks",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireAfterAgendaStolenHooks",
           "kinds": []
         }
       ],
@@ -12351,7 +12351,7 @@
           ]
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnPlay",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnPlay",
           "kinds": []
         }
       ],
@@ -12373,7 +12373,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnPowerCountersEmpty",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnPowerCountersEmpty",
           "kinds": []
         }
       ],
@@ -12428,7 +12428,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/storedTriggers.ts#firePsiCreditsRevealed",
+          "site": "src/state/triggers/storedTriggers.ts#firePsiCreditsRevealed",
           "kinds": []
         }
       ],
@@ -12469,7 +12469,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnRez",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnRez",
           "kinds": []
         }
       ],
@@ -12568,7 +12568,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnRezzedCardTrashed",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnRezzedCardTrashed",
           "kinds": []
         }
       ],
@@ -12633,7 +12633,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnRunDeclaredOnThisServerIfTagged",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnRunDeclaredOnThisServerIfTagged",
           "kinds": []
         }
       ],
@@ -12673,7 +12673,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnRunnerDiscardOverMaxHand",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnRunnerDiscardOverMaxHand",
           "kinds": []
         }
       ],
@@ -12725,7 +12725,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnRunnerTrashFromThisServerRootOrProtecting",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnRunnerTrashFromThisServerRootOrProtecting",
           "kinds": []
         }
       ],
@@ -12806,7 +12806,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnScore",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnScore",
           "kinds": []
         },
         {
@@ -12907,7 +12907,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnSteal",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnSteal",
           "kinds": []
         }
       ],
@@ -12931,7 +12931,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireAfterAgendaStolenHooks",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireAfterAgendaStolenHooks",
           "kinds": []
         }
       ],
@@ -13212,11 +13212,11 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnSuccessfulTraceDuringRun",
+          "site": "src/state/trace.ts#resolveTrace.fireTraceHook",
           "kinds": []
         },
         {
-          "site": "src/state/trace.ts#resolveTrace.fireTraceHook",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnSuccessfulTraceDuringRun",
           "kinds": []
         }
       ],
@@ -13613,7 +13613,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fireOnWouldDrawOncePerTurn",
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnWouldDrawOncePerTurn",
           "kinds": []
         }
       ],
@@ -13630,7 +13630,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/storedTriggers.ts#fireWouldTakeBadPublicity",
+          "site": "src/state/triggers/storedTriggers.ts#fireWouldTakeBadPublicity",
           "kinds": []
         }
       ],
@@ -17524,7 +17524,7 @@
           "kinds": []
         },
         {
-          "site": "src/state/storedTriggers.ts#effectFromKey",
+          "site": "src/state/triggers/storedTriggers.ts#effectFromKey",
           "kinds": []
         }
       ],
@@ -18392,10 +18392,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnPlay",
-          "kinds": []
-        },
-        {
           "site": "src/state/continuous/abilities.ts#runnerCannotUseProgram",
           "kinds": []
         },
@@ -18456,18 +18452,6 @@
         },
         {
           "site": "src/state/gamenet.ts#noteCorpAbilityCausedRunnerCreditLossOrSpend",
-          "kinds": []
-        },
-        {
-          "site": "src/state/miscConditionalHooks.ts#fireOnAgendaScoredOrStolen",
-          "kinds": []
-        },
-        {
-          "site": "src/state/miscConditionalHooks.ts#fireOnDiscardPhaseEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFirstIceRezEachTurn",
           "kinds": []
         },
         {
@@ -18559,11 +18543,27 @@
           "kinds": []
         },
         {
-          "site": "src/state/storedTriggers.ts#fireCardConditional",
+          "site": "src/state/trashHooks.ts#purgeVirusCounters",
           "kinds": []
         },
         {
-          "site": "src/state/trashHooks.ts#purgeVirusCounters",
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnPlay",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnAgendaScoredOrStolen",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnDiscardPhaseEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFirstIceRezEachTurn",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#fireCardConditional",
           "kinds": []
         },
         {
@@ -20615,7 +20615,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/hostDuration.ts#systemSeizureInPlay",
+          "site": "src/state/triggers/hostDuration.ts#systemSeizureInPlay",
           "kinds": []
         }
       ],
@@ -22113,67 +22113,11 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#fireAfterAgendaStolenHooks",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnAccess",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnBreakSubroutineTriggers",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnEncounterEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnForfeit",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnFullyBreak",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnInstall",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnMovedToServerRoot",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnPlay",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnScore",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#fireOnSteal",
-          "kinds": []
-        },
-        {
-          "site": "src/state/cardLifecycleHooks.ts#noteCheckpointAndResolvePlay",
-          "kinds": []
-        },
-        {
           "site": "src/state/clickHooks.ts#maybeFireSundewOnClickSpend",
           "kinds": []
         },
         {
           "site": "src/state/clickHooks.ts#noteRunnerClickDuringRun",
-          "kinds": []
-        },
-        {
-          "site": "src/state/companionHooks.ts#maybeFireCompanionInstallOrSpendCredits",
           "kinds": []
         },
         {
@@ -22361,14 +22305,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/hostDuration.ts#maybeGrantSystemSeizureRunDuration",
-          "kinds": []
-        },
-        {
-          "site": "src/state/hostDuration.ts#syncHostDurationReplacements",
-          "kinds": []
-        },
-        {
           "site": "src/state/hostedCredits.ts#maybeFireHostedCreditsGte",
           "kinds": []
         },
@@ -22393,26 +22329,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/miscConditionalHooks.ts#fire",
-          "kinds": []
-        },
-        {
-          "site": "src/state/miscConditionalHooks.ts#fireOnAgendaScoredOrStolen",
-          "kinds": []
-        },
-        {
-          "site": "src/state/miscConditionalHooks.ts#fireOnDiscardPhaseEnd",
-          "kinds": []
-        },
-        {
-          "site": "src/state/miscConditionalHooks.ts#fireOnFlipToBackIfRunMatchesFace",
-          "kinds": []
-        },
-        {
-          "site": "src/state/miscConditionalHooks.ts#fireOnRunnerDiscardPhaseEndFlipped",
-          "kinds": []
-        },
-        {
           "site": "src/state/msKeywords.ts#chargeCard",
           "kinds": []
         },
@@ -22434,10 +22350,6 @@
         },
         {
           "site": "src/state/outsidePoolSpend.ts#noteOutsidePoolSpendTriggers",
-          "kinds": []
-        },
-        {
-          "site": "src/state/pendingAbilities.ts#cancelPendingIfSourceInactive",
           "kinds": []
         },
         {
@@ -22545,10 +22457,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/replacements.ts#applyActiveReplacementsAtInterruptOpen",
-          "kinds": []
-        },
-        {
           "site": "src/state/reveal.ts#lookAtCards",
           "kinds": []
         },
@@ -22649,42 +22557,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/storedTriggers.ts#fireCorpDrewCards",
-          "kinds": []
-        },
-        {
-          "site": "src/state/storedTriggers.ts#fireExposeWhileInstalled",
-          "kinds": []
-        },
-        {
-          "site": "src/state/storedTriggers.ts#fireFirstAdvancementOnServer",
-          "kinds": []
-        },
-        {
-          "site": "src/state/storedTriggers.ts#firePsiCreditsRevealed",
-          "kinds": []
-        },
-        {
-          "site": "src/state/storedTriggers.ts#fireWouldTakeBadPublicity",
-          "kinds": []
-        },
-        {
-          "site": "src/state/storedTriggers.ts#resolveOnCorpDrawCardPendings",
-          "kinds": []
-        },
-        {
-          "site": "src/state/storedTriggers.ts#resolvePendingInWindowOrder",
-          "kinds": []
-        },
-        {
-          "site": "src/state/storedTriggers.ts#resolveStoredOrInlineConditionalInstance",
-          "kinds": []
-        },
-        {
-          "site": "src/state/strengthIncrease.ts#applyBreakerStrengthIncrease",
-          "kinds": []
-        },
-        {
           "site": "src/state/successfulRunServerHooks.ts#noteSuccessfulRunServerAbilities",
           "kinds": []
         },
@@ -22774,6 +22646,134 @@
         },
         {
           "site": "src/state/trashPrevent.ts#triggerPendingTrashInterrupt",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireAfterAgendaStolenHooks",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnAccess",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnBreakSubroutineTriggers",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnEncounterEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnForfeit",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnFullyBreak",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnInstall",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnMovedToServerRoot",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnPlay",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnScore",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#fireOnSteal",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#noteCheckpointAndResolvePlay",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/companionHooks.ts#maybeFireCompanionInstallOrSpendCredits",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/hostDuration.ts#maybeGrantSystemSeizureRunDuration",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/hostDuration.ts#syncHostDurationReplacements",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/miscConditionalHooks.ts#fire",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnAgendaScoredOrStolen",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnDiscardPhaseEnd",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnFlipToBackIfRunMatchesFace",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/miscConditionalHooks.ts#fireOnRunnerDiscardPhaseEndFlipped",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/pendingAbilities.ts#cancelPendingIfSourceInactive",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/replacements.ts#applyActiveReplacementsAtInterruptOpen",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#fireCorpDrewCards",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#fireExposeWhileInstalled",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#fireFirstAdvancementOnServer",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#firePsiCreditsRevealed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#fireWouldTakeBadPublicity",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#resolveOnCorpDrawCardPendings",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#resolvePendingInWindowOrder",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/storedTriggers.ts#resolveStoredOrInlineConditionalInstance",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/strengthIncrease.ts#applyBreakerStrengthIncrease",
           "kinds": []
         },
         {
@@ -24240,10 +24240,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/cardLifecycleHooks.ts#noteCorpOperationPlayed",
-          "kinds": []
-        },
-        {
           "site": "src/state/continuous/abilities.ts#runnerCannotUseProgram",
           "kinds": []
         },
@@ -24368,10 +24364,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/pendingAbilities.ts#pendingAbilitySourceStillActive",
-          "kinds": []
-        },
-        {
           "site": "src/state/powerCounters.ts#fireHostedCreditsOnAnyIceRez",
           "kinds": []
         },
@@ -24460,6 +24452,14 @@
         },
         {
           "site": "src/state/trashPrevent.ts#trashInterruptRelevantToCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/cardLifecycleHooks.ts#noteCorpOperationPlayed",
+          "kinds": []
+        },
+        {
+          "site": "src/state/triggers/pendingAbilities.ts#pendingAbilitySourceStillActive",
           "kinds": []
         },
         {

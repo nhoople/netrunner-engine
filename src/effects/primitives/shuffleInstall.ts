@@ -1,13 +1,13 @@
 import { revealCards } from "../../state/reveal.js";
 import { iceInstallCapRefuses } from "../../state/staticFlags.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** Magnum Opus (mo) primitives — v1.142.0. */
 import { log } from "../../state/createGame.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import { fireOnInstall } from "../../state/cardLifecycleHooks.js";
+import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { unhostCard } from "../../state/procedures/host.js";
 

@@ -42,7 +42,7 @@ Rule: 9 Abilities › 9.3 Interpreting Card Text › 9.3.7d
 
 | File | Via | Code topic | Sites |
 | --- | --- | --- | --- |
-| `src/state/cardLifecycleHooks.ts` | literal | checkpoint | 1 |
+| `src/state/triggers/cardLifecycleHooks.ts` | literal | checkpoint | 1 |
 
 ## 5. CR 9.3.7e — 1 site
 

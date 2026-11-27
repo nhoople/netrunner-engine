@@ -41,7 +41,7 @@ export default tseslint.config(
     // overwrite a pending choice or open one with no options. Clears
     // (`= null`) stay raw.
     files: ["src/**/*.ts"],
-    ignores: ["src/state/pendingChoice.ts"],
+    ignores: ["src/state/triggers/pendingChoice.ts"],
     rules: {
       "no-restricted-syntax": [
         "error",
@@ -49,7 +49,7 @@ export default tseslint.config(
           selector:
             "AssignmentExpression[left.type='MemberExpression'][left.property.name='pendingChoice'][right.type='ObjectExpression']",
           message:
-            "Open a choice with openPendingChoose (src/state/pendingChoice.ts), not a raw pendingChoice object.",
+            "Open a choice with openPendingChoose (src/state/triggers/pendingChoice.ts), not a raw pendingChoice object.",
         },
       ],
     },

@@ -9,7 +9,7 @@
  */
 import { CR } from "../timing/labels.js";
 import { log } from "./createGame.js";
-import { noteFirstRevealThisTurn } from "./miscConditionalHooks.js";
+import { noteFirstRevealThisTurn } from "./triggers/miscConditionalHooks.js";
 import type {
   GameState,
   LookEvent,

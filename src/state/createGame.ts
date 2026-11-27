@@ -12,7 +12,7 @@ import type {
   Server,
   ServerId,
 } from "./types.js";
-import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {

@@ -30,14 +30,14 @@ import { firstUnsuccessfulRunSourceIds } from "../state/unsuccessfulRunHooks.js"
 import { firstSuccessfulRunSourceIds } from "../state/firstSuccessfulRunHooks.js";
 import { agendaPointsFor, checkWinConditions } from "../state/scoring.js";
 import { trashDurationPassedCurrents } from "../state/continuous/currents.js";
-import { removeRevertedHostDurations } from "../state/hostDuration.js";
-import { clearAppliedReplacements } from "../state/replacements.js";
+import { removeRevertedHostDurations } from "../state/triggers/hostDuration.js";
+import { clearAppliedReplacements } from "../state/triggers/replacements.js";
 import { getCardDef } from "../cards/load.js";
 import {
   commitCheckpointSnapshot,
   diffAgainstPreviousCheckpoint,
   type CheckpointDiff,
-} from "../state/checkpointSnapshot.js";
+} from "../state/triggers/checkpointSnapshot.js";
 import {
   evaluateTriggerPredicate,
   PREDICATE_ADVANCEMENT_FROM_ZERO,
@@ -124,7 +124,7 @@ import {
   PREDICATE_ICE_REZ_ABILITY,
   PREDICATE_INLINE_CONDITIONAL,
   PREDICATE_STORED_CONDITIONAL_NOTE,
-} from "../state/triggerPredicates.js";
+} from "../state/triggers/triggerPredicates.js";
 import { firstEncounterEachRunSourceIds } from "../state/firstEncounterPassHooks.js";
 import {
   cancelPendingIfSourceInactive,
@@ -135,8 +135,8 @@ import {
   closeReactionWindow,
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
-} from "../state/pendingAbilities.js";
-import { resolvePendingInWindowOrder } from "../state/storedTriggers.js";
+} from "../state/triggers/pendingAbilities.js";
+import { resolvePendingInWindowOrder } from "../state/triggers/storedTriggers.js";
 import { expireLingeringEffects } from "../state/continuous/lingeringEffects.js";
 import {
   offerRamanRaiSwapWhileSetAside,
@@ -149,7 +149,7 @@ import {
 } from "../state/fenris.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { markStaticHostTrashConditions } from "../effects/corpTrash.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { nextId } from "../state/ids.js";
 
 export function pushCheckpoint(

@@ -8,7 +8,7 @@ import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random, shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { hostCard } from "../../state/procedures/host.js";

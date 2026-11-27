@@ -11,7 +11,7 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/procedures/trash.js";
 

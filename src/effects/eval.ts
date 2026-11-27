@@ -3,7 +3,7 @@ import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
 
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { iceCannotGainAbilities } from "../state/continuous/continuousEffects.js";
-import { diffAgainstPreviousCheckpoint } from "../state/checkpointSnapshot.js";
+import { diffAgainstPreviousCheckpoint } from "../state/triggers/checkpointSnapshot.js";
 
 import { log } from "../state/createGame.js";
 import { lookAtChoiceCards } from "../state/reveal.js";
@@ -82,7 +82,7 @@ import {
   openReactionWindow,
   pendingAbilitiesWithStatus,
   pruneSettledPendingAbilities,
-} from "../state/pendingAbilities.js";
+} from "../state/triggers/pendingAbilities.js";
 import { applyMumbadTlmPrimitive } from "./primitives/trashPlaceAccess.js";
 import { applyMumbadFtmPrimitive } from "./primitives/revealTrashCannot.js";
 import { applyFlashpoint23sPrimitive } from "./primitives/trashForceGain.js";
@@ -138,8 +138,8 @@ import {
   fireOnCreditsGainedFromAgendaOrOperationAbility,
   fireOnFirstRevealEachTurn,
   fireOnGrayOrBlackOpsTrashedAfterResolve,
-} from "../state/miscConditionalHooks.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+} from "../state/triggers/miscConditionalHooks.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 
 export interface EffectCtx {
   state: GameState;
@@ -171,7 +171,7 @@ import {
   fireOnMovedToServerRoot,
   noteCheckpointAndResolvePlay,
   fireOnRez,
-} from "../state/cardLifecycleHooks.js";
+} from "../state/triggers/cardLifecycleHooks.js";
 import { random, shuffleInPlace } from "../state/rng.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { hostCard } from "../state/procedures/host.js";

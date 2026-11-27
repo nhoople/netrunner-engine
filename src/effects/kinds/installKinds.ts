@@ -26,8 +26,8 @@ import { log } from "../../state/createGame.js";
 import {
   fireOnFirstIceRezEachTurn,
   fireOnInstallProgramFromHeap,
-} from "../../state/miscConditionalHooks.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+} from "../../state/triggers/miscConditionalHooks.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,

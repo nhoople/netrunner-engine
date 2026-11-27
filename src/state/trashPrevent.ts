@@ -7,7 +7,7 @@ import { CR } from "../timing/labels.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "./replacements.js";
+} from "./triggers/replacements.js";
 
 export type TrashInterruptResult =
   | { ok: true }

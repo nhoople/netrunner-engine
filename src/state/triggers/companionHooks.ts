@@ -2,9 +2,9 @@
  * Keiko-class companion install / companion credit-spend triggers.
  */
 
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./createGame.js";
-import type { GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../createGame.js";
+import type { GameState } from "../types.js";
 
 /**
  * First companion install or companion credit-spend this turn gains credits

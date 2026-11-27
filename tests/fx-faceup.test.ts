@@ -31,7 +31,7 @@ import {
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
 import { completeExpose } from "../src/state/expose.js";
-import { openPendingChoose } from "../src/state/pendingChoice.js";
+import { openPendingChoose } from "../src/state/triggers/pendingChoice.js";
 import {
   openCardName,
   runnerSeesAccessedCard,

@@ -10,7 +10,7 @@ import { runnerTrashCostForCard } from "../cards/stubs.js";
 import {
   fireAfterAgendaStolenHooks,
   fireOnSteal,
-} from "../state/cardLifecycleHooks.js";
+} from "../state/triggers/cardLifecycleHooks.js";
 import { noteAccessTrash } from "../state/trashHooks.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
 import { removeCardFromCurrentZone, stealAgenda } from "../state/scoring.js";
@@ -28,7 +28,7 @@ import { CR } from "../timing/labels.js";
 import { fireScoreOrStealSideEffects } from "./score.js";
 import { advanceRunUntilStop, finishRunReturnToAction } from "./run.js";
 import { applyActionCore } from "./apply.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { hostCard } from "../state/procedures/host.js";
 import { trashCard } from "../state/procedures/trash.js";
 

@@ -4,8 +4,8 @@
  * passed. Coexists with ad-hoc turn/run fields until those migrate here.
  */
 import { CR } from "../../timing/labels.js";
-import { cancelPendingIfSourceInactive } from "../pendingAbilities.js";
-import { applyBreakerStrengthIncrease } from "../strengthIncrease.js";
+import { cancelPendingIfSourceInactive } from "../triggers/pendingAbilities.js";
+import { applyBreakerStrengthIncrease } from "../triggers/strengthIncrease.js";
 import type {
   GameState,
   LingeringDuration,

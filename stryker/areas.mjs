@@ -110,11 +110,11 @@ export const areas = {
   timing: {
     title: "RA-1. Timing re-audit (9.1–9.3, 9.6, 9.9, 9.11, 10.3)",
     mutate: [
-      "src/state/pendingAbilities.ts",
-      "src/state/replacements.ts",
-      "src/state/checkpointSnapshot.ts",
-      "src/state/storedConditionalHooks.ts",
-      "src/state/inlineConditionalHooks.ts",
+      "src/state/triggers/pendingAbilities.ts",
+      "src/state/triggers/replacements.ts",
+      "src/state/triggers/checkpointSnapshot.ts",
+      "src/state/triggers/storedConditionalHooks.ts",
+      "src/state/triggers/inlineConditionalHooks.ts",
     ],
     tests: [
       "tests/timing-reaudit.test.ts",
@@ -139,7 +139,7 @@ export const areas = {
       "src/state/continuous/continuousEffects.ts",
       "src/state/continuous/lingeringEffects.ts",
       "src/state/continuous/abilities.ts",
-      "src/state/pendingChoice.ts",
+      "src/state/triggers/pendingChoice.ts",
     ],
     tests: [
       "tests/blank*.test.ts",

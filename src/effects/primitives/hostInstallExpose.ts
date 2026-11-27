@@ -4,10 +4,10 @@ import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { exposeLegalTargets } from "../../state/expose.js";
 import type { RuleCite } from "../../state/types.js";
-import { fireOnInstall } from "../../state/cardLifecycleHooks.js";
+import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import type { EffectCtx } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { hostCard, unhostCard } from "../../state/procedures/host.js";
 import { trashCard } from "../../state/procedures/trash.js";
 

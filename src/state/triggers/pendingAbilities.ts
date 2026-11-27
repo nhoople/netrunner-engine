@@ -3,9 +3,9 @@
  * (CR 10.3.2 / 9.2.8 / 9.2.8a). Lifecycle: pending → imminent → resolving →
  * done/cancelled; independence at imminent (CR 9.6.12 / 9.1.4).
  */
-import { CR } from "../timing/labels.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { installedCardActive } from "./continuous/active.js";
+import { CR } from "../../timing/labels.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { installedCardActive } from "../continuous/active.js";
 import type {
   GameState,
   PendingAbilityInstance,
@@ -13,8 +13,8 @@ import type {
   PendingAbilityStatus,
   ReactionWindowFrame,
   Side,
-} from "./types.js";
-import { nextId } from "./ids.js";
+} from "../types.js";
+import { nextId } from "../ids.js";
 
 export function createPendingAbilityInstance(
   state: GameState,

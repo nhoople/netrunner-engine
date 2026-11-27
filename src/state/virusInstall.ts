@@ -7,7 +7,7 @@
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
-import { noteStoredConditional } from "./storedConditionalHooks.js";
+import { noteStoredConditional } from "./triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 /**

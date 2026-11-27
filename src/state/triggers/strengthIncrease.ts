@@ -6,7 +6,7 @@
  * icebreaker gains a duration rewrite (CR 9.9.5a / 9.9.9 / 1.2.1).
  */
 
-import { log } from "./createGame.js";
+import { log } from "../createGame.js";
 import {
   maybeGrantSystemSeizureRunDuration,
   noteHostDurationReplacement,
@@ -17,9 +17,9 @@ import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
 } from "./replacements.js";
-import type { GameState, LingeringEffect } from "./types.js";
-import { CR } from "../timing/labels.js";
-import { nextId } from "./ids.js";
+import type { GameState, LingeringEffect } from "../types.js";
+import { CR } from "../../timing/labels.js";
+import { nextId } from "../ids.js";
 
 // Kind strings match lingeringEffects.ts (avoid circular import).
 const KIND_TURN = "breaker_strength_turn";

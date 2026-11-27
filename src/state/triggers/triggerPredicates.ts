@@ -4,8 +4,8 @@
  * names. Expand kinds as families migrate onto the scanner.
  */
 import type { CheckpointDiff } from "./checkpointSnapshot.js";
-import type { GameState, ServerId, Side } from "./types.js";
-import type { ValRunnerTriggerFamily } from "../effects/sansanValHooks.js";
+import type { GameState, ServerId, Side } from "../types.js";
+import type { ValRunnerTriggerFamily } from "../../effects/sansanValHooks.js";
 
 export type { ValRunnerTriggerFamily };
 
@@ -820,7 +820,7 @@ export type TriggerPredicateMatch =
         abilityKey: string;
         controller: "corp" | "runner";
         mandatory: boolean;
-        effect: import("../effects/ir.js").Effect;
+        effect: import("../../effects/ir.js").Effect;
         logLine: string;
         independentOfSource?: boolean;
       }>;

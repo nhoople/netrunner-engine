@@ -13,8 +13,8 @@ import {
   creditsAvailableForInstall,
   payInstallCost,
 } from "../state/costs.js";
-import { fireOnInstall } from "../state/cardLifecycleHooks.js";
-import { noteStoredConditional } from "../state/storedConditionalHooks.js";
+import { fireOnInstall } from "../state/triggers/cardLifecycleHooks.js";
+import { noteStoredConditional } from "../state/triggers/storedConditionalHooks.js";
 import { noteInstalledThisTurn } from "../state/programHardwareInstall.js";
 import { cardBecameNewObject } from "../state/turn.js";
 import { firePowerCounterOnAnyCorpInstall } from "../state/powerCounters.js";
@@ -38,8 +38,8 @@ import { fx } from "../effects/ir.js";
 import { CR } from "../timing/labels.js";
 import { installBlockReason } from "../state/staticFlags.js";
 import { onCorpCardInstalledInRemote } from "../state/cardDeclarations.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
-import { fireOnInstallFromNonHq } from "../state/miscConditionalHooks.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
+import { fireOnInstallFromNonHq } from "../state/triggers/miscConditionalHooks.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { hostCard } from "../state/procedures/host.js";
 import { addOutermostIce } from "../state/runPosition.js";

@@ -1,4 +1,4 @@
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 /**
  * Drawing cards. Pavilion limits, Class Act's would-draw interrupt,
  * and the on-draw hooks for Political Dealings and Jinja City Grid.
@@ -6,12 +6,12 @@ import { openPendingChoose } from "../state/pendingChoice.js";
 import { occurCheckpoint } from "../legality/checkpoints.js";
 import { syncCorpHandSizeSubroutines } from "../state/continuous/handSizeSubroutines.js";
 import { log } from "../state/createGame.js";
-import { commitCheckpointSnapshot } from "../state/checkpointSnapshot.js";
+import { commitCheckpointSnapshot } from "../state/triggers/checkpointSnapshot.js";
 import type { GameState, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
-import { fireCorpDrewCards } from "../state/storedTriggers.js";
+import { fireCorpDrewCards } from "../state/triggers/storedTriggers.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
@@ -20,7 +20,7 @@ import {
   onRunnerDrew,
 } from "../state/staticFlags.js";
 import type { Primitive, SideRef } from "./ir.js";
-import { fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn } from "../state/miscConditionalHooks.js";
+import { fireOnWouldDrawOncePerTurn as markOnWouldDrawOncePerTurn } from "../state/triggers/miscConditionalHooks.js";
 
 /** Class Act-class: installed unblanked would-draw interrupt source. */
 export function classActWouldDrawSource(state: GameState): string | null {

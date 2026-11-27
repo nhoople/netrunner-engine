@@ -8,7 +8,7 @@ import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";
 import type { Effect, Primitive } from "./ir.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { trashCard } from "../state/procedures/trash.js";
 
 type PrimResult =

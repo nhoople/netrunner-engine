@@ -5,7 +5,7 @@
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 
 export function applyForbidKinds(

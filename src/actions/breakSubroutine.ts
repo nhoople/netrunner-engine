@@ -16,7 +16,10 @@ import {
   fireAfterBreakSubroutineHooks,
   maybeFireFluxFirstBreakCharge,
 } from "../effects/eval.js";
-import { fireOnFullyBreak, fireOnRez } from "../state/cardLifecycleHooks.js";
+import {
+  fireOnFullyBreak,
+  fireOnRez,
+} from "../state/triggers/cardLifecycleHooks.js";
 import { effectiveBreakerStrength } from "../cards/stubs.js";
 import {
   allSubroutinesBrokenByRunner,
@@ -41,11 +44,11 @@ import {
   fireOnFullyBreakOncePerTurn,
   fireOnFullyBreakProtectingIce,
   fireOnHostFullyBrokenThisEncounter,
-} from "../state/miscConditionalHooks.js";
+} from "../state/triggers/miscConditionalHooks.js";
 import {
   allocateEffectIdentity,
   applyActiveReplacementsAtInterruptOpen,
-} from "../state/replacements.js";
+} from "../state/triggers/replacements.js";
 import { trashCard } from "../state/procedures/trash.js";
 
 function fail(error: string, cites: RuleCite[]): ApplyResult {

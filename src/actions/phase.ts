@@ -29,7 +29,7 @@ import {
   fireOnDiscardPhaseEnd,
   fireOnRunnerDiscardOverMaxHand,
   fireOnRunnerDiscardPhaseEndFlipped,
-} from "../state/miscConditionalHooks.js";
+} from "../state/triggers/miscConditionalHooks.js";
 import { chooseCards } from "../effects/chooseCards.js";
 import { evalEffect } from "../effects/eval.js";
 import { discardCard } from "../state/procedures/trash.js";

@@ -2,12 +2,12 @@
  * Conditional abilities whose card data is loaded and whose moment is a
  * shared procedure: the ability becomes pending when that moment happens.
  */
-import { whenScoredEffect } from "./whenScored.js";
-import { playEffectFromCard } from "../effects/abilityRecord.js";
-import { evalEffect } from "../effects/eval.js";
-import type { Effect } from "../effects/ir.js";
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./createGame.js";
+import { whenScoredEffect } from "../whenScored.js";
+import { playEffectFromCard } from "../../effects/abilityRecord.js";
+import { evalEffect } from "../../effects/eval.js";
+import type { Effect } from "../../effects/ir.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../createGame.js";
 import type {
   CardInstance,
   GameState,
@@ -16,8 +16,8 @@ import type {
   ServerId,
   Side,
   StoredConditionalEffectKey,
-} from "./types.js";
-import { CR } from "../timing/labels.js";
+} from "../types.js";
+import { CR } from "../../timing/labels.js";
 import { openPendingChoose } from "./pendingChoice.js";
 import {
   cancelPendingIfSourceInactive,
@@ -32,7 +32,7 @@ import {
   pruneSettledPendingAbilities,
 } from "./pendingAbilities.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 
 /** The effect a card stores under `key`, or undefined when it has none. */
 export function effectFromKey(

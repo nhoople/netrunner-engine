@@ -13,8 +13,8 @@ import { hasPlayEffect } from "../effects/abilityRecord.js";
 import {
   fireOnPlay,
   noteCorpOperationPlayed,
-} from "../state/cardLifecycleHooks.js";
-import { resumePendingStoredConditionals } from "../state/storedTriggers.js";
+} from "../state/triggers/cardLifecycleHooks.js";
+import { resumePendingStoredConditionals } from "../state/triggers/storedTriggers.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../state/identityFlipHooks.js";
 import { onRunnerEventPlayed } from "../state/cardDeclarations.js";
 import {
@@ -61,7 +61,7 @@ import { CR } from "../timing/labels.js";
 import { hostedPlayableAsGrip } from "./installRunner.js";
 import { finishRunReturnToAction, startRun } from "./run.js";
 import { spendClick } from "./spendClick.js";
-import { openPendingChoose } from "../state/pendingChoice.js";
+import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { trashCard } from "../state/procedures/trash.js";
 import { unhostCard } from "../state/procedures/host.js";

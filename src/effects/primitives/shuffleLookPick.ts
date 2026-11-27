@@ -7,7 +7,7 @@ import { fireOnAgendaAddedToRunnerScore } from "../../state/trashHooks.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import type { Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { trashCard } from "../../state/procedures/trash.js";
 import { hostCard, unhostCard } from "../../state/procedures/host.js";

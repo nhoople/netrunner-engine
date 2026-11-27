@@ -8,7 +8,7 @@ import { syncCorpHandSizeSubroutines } from "../../state/continuous/handSizeSubr
 import type { RuleCite } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
-import { openPendingChoose } from "../../state/pendingChoice.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { discardCard, trashCard } from "../../state/procedures/trash.js";
 

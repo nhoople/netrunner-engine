@@ -939,7 +939,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Builder of Nations encounter-end meat inline at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } =
-      await import("../src/state/inlineConditionalHooks.js");
+      await import("../src/state/triggers/inlineConditionalHooks.js");
     const s = createInitialState();
     const id = instantiateCard(
       "weyland-consortium-builder-of-nations",
@@ -981,7 +981,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Out of the Ashes turn-begin inline at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } =
-      await import("../src/state/inlineConditionalHooks.js");
+      await import("../src/state/triggers/inlineConditionalHooks.js");
     const s = createInitialState();
     const ashes = instantiateCard("out-of-the-ashes", "ash-1", "runner:heap");
     s.cards["ash-1"] = ashes;
@@ -1039,7 +1039,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks encounter-begin heap-install inline at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } =
-      await import("../src/state/inlineConditionalHooks.js");
+      await import("../src/state/triggers/inlineConditionalHooks.js");
     const s = createInitialState();
     const paper = instantiateCard("paperclip", "pc-1", "runner:heap");
     s.cards["pc-1"] = paper;
@@ -1102,7 +1102,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks Runner turn-end inline conditionals at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } =
-      await import("../src/state/inlineConditionalHooks.js");
+      await import("../src/state/triggers/inlineConditionalHooks.js");
     const s = createInitialState();
     const alg = instantiateCard("algernon", "alg-1", "runner:installed");
     s.cards["alg-1"] = alg;
@@ -1140,7 +1140,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks stored on-advance / on-score notes at 10.3.1a (phase 3 scanner)", async () => {
     const { noteStoredConditional } =
-      await import("../src/state/storedConditionalHooks.js");
+      await import("../src/state/triggers/storedConditionalHooks.js");
     const s = createInitialState();
     const pad = instantiateCard("pad-campaign", "pad-1", "server:remote1:root");
     const agenda = instantiateCard(
@@ -1192,7 +1192,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks score/steal and advance inlines at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } =
-      await import("../src/state/inlineConditionalHooks.js");
+      await import("../src/state/triggers/inlineConditionalHooks.js");
     const s = createInitialState();
     const pe = instantiateCard(
       "jinteki-personal-evolution",
@@ -1251,7 +1251,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks successful-run / run-end / access inlines at 10.3.1a (phase 3 scanner)", async () => {
     const { noteInlineConditional } =
-      await import("../src/state/inlineConditionalHooks.js");
+      await import("../src/state/triggers/inlineConditionalHooks.js");
     const s = createInitialState();
     const hat = instantiateCard("top-hat", "th-1", "runner:installed");
     const boom = instantiateCard("boomerang", "boom-1", "runner:heap");
@@ -2146,7 +2146,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first credit pool empty at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstCreditPoolEmpty } =
-      await import("../src/state/storedTriggers.js");
+      await import("../src/state/triggers/storedTriggers.js");
     const s = createInitialState();
     const sol = instantiateCard("order-of-sol", "sol-1", "runner:installed");
     s.cards["sol-1"] = sol;
@@ -2178,7 +2178,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first reveal this turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstRevealThisTurn } =
-      await import("../src/state/miscConditionalHooks.js");
+      await import("../src/state/triggers/miscConditionalHooks.js");
     const s = createInitialState();
     const id = instantiateCard(
       "hyoubu-institute-absolute-clarity",
@@ -2213,7 +2213,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks first tag this turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFirstTagThisTurn } =
-      await import("../src/state/miscConditionalHooks.js");
+      await import("../src/state/triggers/miscConditionalHooks.js");
     const s = createInitialState();
     const id = instantiateCard("nbn-reality-plus", "nbn-1", "corp:identity");
     s.cards["nbn-1"] = id;
@@ -4060,7 +4060,7 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
       fireOnInstall,
       fireOnRez,
       noteCheckpointAndResolvePlay,
-    } = await import("../src/state/cardLifecycleHooks.js");
+    } = await import("../src/state/triggers/cardLifecycleHooks.js");
     const { fireOnBypassTriggers } =
       await import("../src/state/iceRezHooks.js");
 
@@ -4152,7 +4152,7 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
       fireOnFullyBreak,
       fireOnScore,
       fireOnSteal,
-    } = await import("../src/state/cardLifecycleHooks.js");
+    } = await import("../src/state/triggers/cardLifecycleHooks.js");
 
     const s = createInitialState();
     const agenda = instantiateCard("hostile-takeover", "ht-1", "runner:score");
@@ -4236,7 +4236,7 @@ describe("inline flag conditionals pending (CR 9.6.2)", () => {
     },
   ): Promise<void> {
     const { noteInlineConditional } =
-      await import("../src/state/inlineConditionalHooks.js");
+      await import("../src/state/triggers/inlineConditionalHooks.js");
     const card = s.cards[args.sourceId];
     noteInlineConditional(s, {
       cardId: args.sourceId,
@@ -4685,7 +4685,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
       fireAfterMandatoryDraw,
       fireOnCorpAbilityCausesRunnerSpendOrLoseCreditsDuringRun,
       fireOnFirstHardwareUseDuringRunEachTurn,
-    } = await import("../src/state/miscConditionalHooks.js");
+    } = await import("../src/state/triggers/miscConditionalHooks.js");
     const { noteOnBeforeFirstTurn } =
       await import("../src/state/beforeFirstTurnHooks.js");
     const { maybeFireSeidrOnClickSpendOrLose } =
@@ -4933,7 +4933,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
       fireOnFullyBreakOncePerTurn,
       fireOnInstallFromNonHq,
       fireOnWouldDrawOncePerTurn,
-    } = await import("../src/state/miscConditionalHooks.js");
+    } = await import("../src/state/triggers/miscConditionalHooks.js");
 
     const s = createInitialState();
     const discard = instantiateCard("diesel", "d-1", "runner:installed");

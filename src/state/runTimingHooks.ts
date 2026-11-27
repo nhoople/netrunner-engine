@@ -4,8 +4,11 @@
  */
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
-import { effectFromKey, type StoredConditionalMark } from "./storedTriggers.js";
-import { noteStoredConditionals } from "./storedConditionalHooks.js";
+import {
+  effectFromKey,
+  type StoredConditionalMark,
+} from "./triggers/storedTriggers.js";
+import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
 
 function noteAndCheckpointStored(

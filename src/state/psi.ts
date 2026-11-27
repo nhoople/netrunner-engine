@@ -1,7 +1,7 @@
 /** Psi games (CR 10.14.6) — v0 sequential bids like trace boost. */
 
 import { evalEffect } from "../effects/eval.js";
-import { firePsiCreditsRevealed } from "./storedTriggers.js";
+import { firePsiCreditsRevealed } from "./triggers/storedTriggers.js";
 import type { Effect } from "../effects/ir.js";
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
