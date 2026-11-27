@@ -7163,11 +7163,11 @@
           ]
         },
         {
-          "site": "src/state/iceRezHooks.ts#noteJeitinhoHeapInstallOnBypass",
+          "site": "src/state/install/programHardwareInstall.ts#fireRemainderOfTurnOnInstallPrintedCostGte",
           "kinds": []
         },
         {
-          "site": "src/state/install/programHardwareInstall.ts#fireRemainderOfTurnOnInstallPrintedCostGte",
+          "site": "src/state/rez/iceRezHooks.ts#noteJeitinhoHeapInstallOnBypass",
           "kinds": []
         }
       ],
@@ -9791,7 +9791,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/iceRezHooks.ts#noteOnAnyIceRez.note",
+          "site": "src/state/rez/iceRezHooks.ts#noteOnAnyIceRez.note",
           "kinds": []
         }
       ],
@@ -10100,7 +10100,7 @@
       ],
       "readers": [
         {
-          "site": "src/state/iceRezHooks.ts#noteJeitinhoHeapInstallOnBypass",
+          "site": "src/state/rez/iceRezHooks.ts#noteJeitinhoHeapInstallOnBypass",
           "kinds": []
         }
       ],
@@ -11943,7 +11943,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/iceRezHooks.ts#noteHostRezStateTriggers",
+          "site": "src/state/rez/iceRezHooks.ts#noteHostRezStateTriggers",
           "kinds": []
         }
       ],
@@ -12003,7 +12003,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/iceRezHooks.ts#noteHostRezStateTriggers",
+          "site": "src/state/rez/iceRezHooks.ts#noteHostRezStateTriggers",
           "kinds": []
         }
       ],
@@ -12505,7 +12505,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/state/iceRezHooks.ts#noteOnAnyIceRez",
+          "site": "src/state/rez/iceRezHooks.ts#noteOnAnyIceRez",
           "kinds": []
         }
       ],
@@ -22349,22 +22349,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/iceRezHooks.ts#noteHostRezStateTriggers",
-          "kinds": []
-        },
-        {
-          "site": "src/state/iceRezHooks.ts#noteJeitinhoHeapInstallOnBypass",
-          "kinds": []
-        },
-        {
-          "site": "src/state/iceRezHooks.ts#noteOnAnyIceRez",
-          "kinds": []
-        },
-        {
-          "site": "src/state/iceRezHooks.ts#noteOnAnyIceRez.note",
-          "kinds": []
-        },
-        {
           "site": "src/state/identityFlipHooks.ts#fireCorpIdentityFlippedSuccessfulHqOrRdRun",
           "kinds": []
         },
@@ -22474,6 +22458,22 @@
         },
         {
           "site": "src/state/psi.ts#spendRunnerPsiBid",
+          "kinds": []
+        },
+        {
+          "site": "src/state/rez/iceRezHooks.ts#noteHostRezStateTriggers",
+          "kinds": []
+        },
+        {
+          "site": "src/state/rez/iceRezHooks.ts#noteJeitinhoHeapInstallOnBypass",
+          "kinds": []
+        },
+        {
+          "site": "src/state/rez/iceRezHooks.ts#noteOnAnyIceRez",
+          "kinds": []
+        },
+        {
+          "site": "src/state/rez/iceRezHooks.ts#noteOnAnyIceRez.note",
           "kinds": []
         },
         {
@@ -24379,10 +24379,6 @@
           "kinds": []
         },
         {
-          "site": "src/state/iceRezHooks.ts#noteOnAnyIceRez",
-          "kinds": []
-        },
-        {
           "site": "src/state/install/firstInstallDiscount.ts#isJobConnectionOrHardware",
           "kinds": []
         },
@@ -24408,6 +24404,10 @@
         },
         {
           "site": "src/state/procedures/trash.ts#trashRunnerCard",
+          "kinds": []
+        },
+        {
+          "site": "src/state/rez/iceRezHooks.ts#noteOnAnyIceRez",
           "kinds": []
         },
         {

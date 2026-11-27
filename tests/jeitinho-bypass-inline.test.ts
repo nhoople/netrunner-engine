@@ -11,7 +11,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { fireOnBypassTriggers } from "../src/state/iceRezHooks.js";
+import { fireOnBypassTriggers } from "../src/state/rez/iceRezHooks.js";
 import { CR } from "../src/timing/labels.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 

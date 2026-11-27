@@ -168,6 +168,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
     damageAndPrevention/# damage and its prevention (CR 10.4)
     install/         # installing cards (CR 8.5): install-triggered abilities and install discounts
     procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break
+    rez/             # rezzing and derezzing (CR 8.1): rez-triggered abilities
     run/             # run flow (CR ch. 6): starting a run and its legality and taxes, the hooks each run step fires (run begin, approach, encounter, pass, bypass, success, end), end the run
     triggers/        # conditional abilities and their machinery (CR 9.6): pending abilities, stored triggers, trigger predicates over checkpoint facts, the conditional collectors that span several areas; interrupts and replacements (9.9); pending choices
     types/           # the game state types, one file per thing they describe: shared words, card (with its hooks and costs), abilities, servers, players, turn, run, restrictions, checkpoints, pending abilities, windows, lingering effects, pending choices, game, actions, public view
