@@ -161,7 +161,7 @@ import {
   fireOnBypassTriggers,
   fireHostRezStateTriggers,
   fireOnAnyIceRez,
-} from "../state/iceRezHooks.js";
+} from "../state/rez/iceRezHooks.js";
 import {
   fireOnAccess,
   fireOnBreakSubroutineTriggers,

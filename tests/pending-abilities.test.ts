@@ -1343,7 +1343,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks host-rez-state at 10.3.1a (phase 3 scanner)", async () => {
     const { noteHostRezStateTriggers } =
-      await import("../src/state/iceRezHooks.js");
+      await import("../src/state/rez/iceRezHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
@@ -1374,7 +1374,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
   });
 
   it("marks any-ice-rez at 10.3.1a (phase 3 scanner)", async () => {
-    const { noteOnAnyIceRez } = await import("../src/state/iceRezHooks.js");
+    const { noteOnAnyIceRez } = await import("../src/state/rez/iceRezHooks.js");
     const s = createInitialState();
     const ice = instantiateCard("ice-wall", "iw-1", "server:hq:ice");
     ice.rezzed = true;
@@ -4068,7 +4068,7 @@ describe("card lifecycle conditionals pending (CR 9.6.2)", () => {
       noteCheckpointAndResolvePlay,
     } = await import("../src/state/triggers/cardLifecycleHooks.js");
     const { fireOnBypassTriggers } =
-      await import("../src/state/iceRezHooks.js");
+      await import("../src/state/rez/iceRezHooks.js");
 
     const s = createInitialState();
     const asset = instantiateCard("pad-campaign", "pad-1", "server:hq:root");

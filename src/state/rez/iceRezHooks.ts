@@ -2,13 +2,13 @@
  * Ice bypass / host rez-state / any-ice-rez conditionals (CR 9.6.2).
  * Host / any-ice / protecting-server notes for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { agendaPointsFor } from "./scoring.js";
-import type { GameState, StoredConditionalEffectKey } from "./types.js";
-import { syncMauiRecurringCredits } from "../effects/primitives/chooseGainShuffle.js";
-import { noteBypassTriggers } from "./run/bypassHooks.js";
-import { noteInlineConditional } from "./triggers/inlineConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { agendaPointsFor } from "../scoring.js";
+import type { GameState, StoredConditionalEffectKey } from "../types.js";
+import { syncMauiRecurringCredits } from "../../effects/primitives/chooseGainShuffle.js";
+import { noteBypassTriggers } from "../run/bypassHooks.js";
+import { noteInlineConditional } from "../triggers/inlineConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 
 type IceRezAbilityPendingMark = {
   cardId: string;

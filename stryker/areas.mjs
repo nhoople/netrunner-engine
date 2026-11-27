@@ -87,7 +87,7 @@ export const areas = {
   },
   rez: {
     title: "7. Rez and derez",
-    mutate: ["src/actions/rez.ts", "src/state/iceRezHooks.ts"],
+    mutate: ["src/actions/rez.ts", "src/state/rez/iceRezHooks.ts"],
     tests: ["tests/*rez*.test.ts"],
     grep: /\brez_card\b|\bderez_card\b|Surat|Sensor Net|Worlds Plaza|Keros|Brasília/,
   },
