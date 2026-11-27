@@ -1,4 +1,4 @@
-/** Install choices the effect kinds share: installing from a zone a card names, and dividing an install-and-rez discount (CR 1.16.2f). */
+/** Install choices the effect kinds share: Muse installing a non-daemon program from the stack, heap or grip, and dividing an install-and-rez discount (CR 1.16.2f). */
 import type { GameState } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
