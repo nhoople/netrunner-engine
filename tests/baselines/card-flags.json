@@ -7531,7 +7531,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/swapKinds.ts#canSwapIntoPlaceOf",
+          "site": "src/effects/swap/swapKinds.ts#canSwapIntoPlaceOf",
           "kinds": []
         }
       ],
@@ -7750,7 +7750,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/swapKinds.ts#canSwapIntoPlaceOf.oneOfAKind",
+          "site": "src/effects/swap/swapKinds.ts#canSwapIntoPlaceOf.oneOfAKind",
           "kinds": []
         }
       ],
@@ -9859,7 +9859,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/kinds/swapKinds.ts#applySwapKinds",
+          "site": "src/effects/swap/swapKinds.ts#applySwapKinds",
           "kinds": []
         },
         {
@@ -10421,11 +10421,11 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#offerRamanRaiSwapWhileSetAside",
+          "site": "src/effects/swap/swapKinds.ts#offerRamanRaiSwapWhileSetAside",
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/lookTrashAdd.ts#ramanRaiCanOfferSwap",
+          "site": "src/effects/swap/swapKinds.ts#ramanRaiCanOfferSwap",
           "kinds": []
         },
         {
@@ -11322,7 +11322,7 @@
       "setVia": [],
       "readers": [
         {
-          "site": "src/effects/kinds/swapKinds.ts#occurSwapCheckpoint",
+          "site": "src/effects/swap/swapKinds.ts#occurSwapCheckpoint",
           "kinds": []
         },
         {
@@ -16618,7 +16618,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/swapKinds.ts#canSwapIntoPlaceOf",
+          "site": "src/effects/swap/swapKinds.ts#canSwapIntoPlaceOf",
           "kinds": []
         }
       ],
@@ -18198,10 +18198,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/swapKinds.ts#applySwapKinds",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
           "kinds": []
         },
@@ -18293,6 +18289,10 @@
         },
         {
           "site": "src/effects/runPrimitives.ts#endTheRun",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#applySwapKinds",
           "kinds": []
         },
         {
@@ -20052,10 +20052,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/swapKinds.ts#canSwapIntoPlaceOf.oneOfAKind",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
           "kinds": []
         },
@@ -20088,10 +20084,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
           "kinds": []
         },
@@ -20101,10 +20093,6 @@
         },
         {
           "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/hostResolveLook.ts#applyMumbadDagPrimitive",
           "kinds": []
         },
         {
@@ -20269,6 +20257,18 @@
         },
         {
           "site": "src/effects/runnerInstall.ts#trashOtherConsoles",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#applySwapKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#applySwapKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#canSwapIntoPlaceOf.oneOfAKind",
           "kinds": []
         },
         {
@@ -21301,14 +21301,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/swapKinds.ts#applySwapKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/swapKinds.ts#trashHostedOnSwapOut",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
           "kinds": []
         },
@@ -21422,10 +21414,6 @@
         },
         {
           "site": "src/effects/primitives/lookTrashAdd.ts#fireSiAfterPaidAbilityClicks",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookTrashAdd.ts#offerRamanRaiSwapWhileSetAside",
           "kinds": []
         },
         {
@@ -21650,6 +21638,22 @@
         },
         {
           "site": "src/effects/runnerInstall.ts#trashOtherConsoles",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#applySwapKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#applySwapKindsWhenSourceExists",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#offerRamanRaiSwapWhileSetAside",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#trashHostedOnSwapOut",
           "kinds": []
         },
         {
@@ -23828,14 +23832,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/kinds/swapKinds.ts#applySwapKinds",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/kinds/swapKinds.ts#canSwapIntoPlaceOf",
-          "kinds": []
-        },
-        {
           "site": "src/effects/kinds/trashKinds.ts#applyTrashKinds",
           "kinds": []
         },
@@ -23876,10 +23872,6 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezRfgTrash.ts#rootCanHold",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainCannotSwap.ts#applySansanUotPrimitive",
           "kinds": []
         },
@@ -23913,14 +23905,6 @@
         },
         {
           "site": "src/effects/primitives/lookTrashAdd.ts#applyMumbadSiPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookTrashAdd.ts#offerRamanRaiSwapWhileSetAside",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/lookTrashAdd.ts#ramanRaiCanOfferSwap",
           "kinds": []
         },
         {
@@ -24141,6 +24125,26 @@
         },
         {
           "site": "src/effects/runnerInstall.ts#stackProgramInstallCost",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#applySwapKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#canSwapIntoPlaceOf",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#offerRamanRaiSwapWhileSetAside",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#ramanRaiCanOfferSwap",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/swap/swapKinds.ts#rootCanHold",
           "kinds": []
         },
         {

@@ -23,7 +23,7 @@ import { applyRezKinds } from "../rez/rezKinds.js";
 import { applySearchKinds } from "./searchKinds.js";
 import { applySetKinds } from "./setKinds.js";
 import { applyShuffleKinds } from "./shuffleKinds.js";
-import { applySwapKinds } from "./swapKinds.js";
+import { applySwapKinds } from "../swap/swapKinds.js";
 import { applyTrashKinds } from "./trashKinds.js";
 import {
   applyContinuousKinds,
@@ -31,6 +31,7 @@ import {
 } from "../continuous/continuousKinds.js";
 import { applyAccessKinds } from "../access/accessKinds.js";
 import { applyRezKindsWhenSourceExists } from "../rez/rezKinds.js";
+import { applySwapKindsWhenSourceExists } from "../swap/swapKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -61,6 +62,7 @@ const HANDLERS = [
   applyContinuousKindsWhenSourceExists,
   applyAccessKinds,
   applyRezKindsWhenSourceExists,
+  applySwapKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

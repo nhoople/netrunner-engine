@@ -15,7 +15,6 @@ import {
 } from "../../state/turnAndActions/scoring.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
-import { serverIdForIce } from "../../cards/stubs.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
@@ -148,14 +147,6 @@ export function chooseSparedSubroutine(
   state.run.pendingSpareSubroutines = undefined;
   breakUnbrokenExcept(state, sourceId, spared);
   return { ok: true };
-}
-
-function installedIceIds(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    for (const id of server.ice) out.push(id);
-  }
-  return out;
 }
 
 export function applySpinHapPrimitive(
@@ -661,49 +652,6 @@ export function applySpinHapPrimitive(
         `Tori Hanzō — replace net damage with 1 core damage (CR ${CR.ordinalWould.number}).`,
       );
       return { ok: true };
-    }
-    case "may_swap_two_installed_ice": {
-      const ice = installedIceIds(state);
-      if (ice.length < 2) {
-        log(state, `Tenma Line — need 2 installed ice.`);
-        return { ok: true };
-      }
-      // The Corp makes the choices of its own ability: any 2 pieces of
-      // installed ice, one at a time (CR 1.15.2).
-      //
-      // Two copies of the same ice in different places are different picks.
-      const picked = action.cardIds ?? [];
-      if (picked.length < 2) {
-        const left = ice.filter((id) => !picked.includes(id));
-        openPendingChoose(state, {
-          sourceId,
-          chooser: "corp",
-          options: left.map((id) => {
-            const sid = serverIdForIce(state, id);
-            const at = sid ? state.servers[sid]!.ice.indexOf(id) + 1 : 0;
-            return {
-              id: `tenma:${id}`,
-              label: `${picked.length === 0 ? "Swap" : "With"} ${state.cards[id]!.title} (${sid}, position ${at} from the outermost)`,
-              effect: fx.do({
-                kind: "may_swap_two_installed_ice",
-                cardIds: [...picked, id],
-              }),
-            };
-          }),
-          hiddenFromOpponent: left.some((id) => !state.cards[id]?.rezzed),
-          logLine:
-            picked.length === 0
-              ? `Tenma Line — the Corp chooses 2 pieces of installed ice to swap.`
-              : undefined,
-        });
-        return { ok: true };
-      }
-      const [a, b] = picked;
-      if (!a || !b) return { ok: true };
-      return evalEffect(
-        ctx,
-        fx.do({ kind: "swap_two_installed_ice", iceId: a, otherIceId: b }),
-      );
     }
     case "corp_pay_credits": {
       const n = Math.min(action.amount ?? 0, state.corp.credits);

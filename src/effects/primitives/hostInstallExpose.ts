@@ -6,10 +6,10 @@ import { exposeLegalTargets } from "../../state/visibility/expose.js";
 import type { RuleCite } from "../../state/types.js";
 import { fireOnInstall } from "../../state/triggers/cardLifecycleHooks.js";
 import type { EffectCtx } from "../eval.js";
-import type { Effect, Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { hostCard, unhostCard } from "../../state/hostingAndTrash/host.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
+import type { Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -179,98 +179,6 @@ export function applySansanUwPrimitive(
         log(state, `Drive By — trash exposed ${card.title}.`);
       } else {
         log(state, `Drive By — exposed ${card.title} (not asset/upgrade).`);
-      }
-      return { ok: true };
-    }
-
-    case "swap_hq_archives_per_advancement_on_self": {
-      // Printed: swap 1 HQ ↔ Archives card for each advancement (CR 1.2.1) —
-      // no optional decline after the [trash] cost.
-      const n = source.advancementCounters ?? 0;
-      if (n <= 0) {
-        log(state, `${source.title} — no advancements.`);
-        return { ok: true };
-      }
-      log(
-        state,
-        `${source.title} — swap HQ↔Archives for each of ${n} advancement(s).`,
-      );
-      return applySansanUwPrimitive(ctx, {
-        kind: "swap_allele_step",
-        remaining: n,
-      });
-    }
-
-    case "swap_allele_step": {
-      const remaining = action.remaining;
-      if (remaining <= 0) return { ok: true };
-      const hq = [...state.corp.hand];
-      const archives = [...state.corp.discardPile];
-      if (hq.length === 0 || archives.length === 0) {
-        log(state, `Allele Repression — HQ or Archives empty.`);
-        return { ok: true };
-      }
-      const options: Array<{ id: string; label: string; effect: Effect }> = [];
-      for (const hqId of hq) {
-        for (const archId of archives) {
-          options.push({
-            id: `allele:${hqId}:${archId}`,
-            label: `Swap ${state.cards[hqId]!.title} ↔ ${state.cards[archId]!.title}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "swap_allele_resolve" as const,
-                hqCardId: hqId,
-                archivesCardId: archId,
-                remaining: remaining - 1,
-              },
-            },
-          });
-        }
-      }
-      options.push({
-        id: "stop",
-        label: "Stop swapping",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
-        },
-      });
-      openPendingChoose(state, { sourceId, chooser: "corp", options });
-      return { ok: true };
-    }
-
-    case "swap_allele_resolve": {
-      const hqId = action.hqCardId;
-      const archId = action.archivesCardId;
-      if (
-        !state.corp.hand.includes(hqId) ||
-        !state.corp.discardPile.includes(archId)
-      ) {
-        return { ok: true };
-      }
-      state.corp.hand = state.corp.hand.filter((id) => id !== hqId);
-      state.corp.discardPile = state.corp.discardPile.filter(
-        (id) => id !== archId,
-      );
-      state.corp.hand.push(archId);
-      state.corp.discardPile.push(hqId);
-      const hqCard = state.cards[hqId]!;
-      const archCard = state.cards[archId]!;
-      hqCard.zone = "corp:archives";
-      // Not visible to the Runner when trashed: facedown (CR 4.4.6b).
-      hqCard.faceup = false;
-      archCard.zone = "corp:hq";
-      archCard.faceup = false;
-      log(
-        state,
-        `Allele Repression — swap ${hqCard.title} (HQ) ↔ ${archCard.title} (Archives).`,
-      );
-      if (action.remaining > 0) {
-        return applySansanUwPrimitive(ctx, {
-          kind: "swap_allele_step",
-          remaining: action.remaining,
-        });
       }
       return { ok: true };
     }

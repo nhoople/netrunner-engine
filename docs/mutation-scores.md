@@ -92,7 +92,7 @@ Files mutated: `src/state/continuous/continuousEffects.ts` (the 9.12 blanking so
 
 ## 3. Swap (baseline, 2026-11-13)
 
-Files mutated: `src/effects/kinds/swapKinds.ts` and `src/effects/primitives/swapNetBreach.ts`. The run selected 14 test files and 1224 tests; the full run took about 2 minutes on 4 workers.
+Files mutated: `src/effects/swap/swapKinds.ts` and `src/effects/primitives/swapNetBreach.ts`. The run selected 14 test files and 1224 tests; the full run took about 2 minutes on 4 workers.
 
 | File | Score | Covered | Killed | Survived | No coverage |
 | --- | ---: | ---: | ---: | ---: | ---: |

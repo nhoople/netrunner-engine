@@ -12,45 +12,6 @@ import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.j
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
-function installedIceIds(state: EffectCtx["state"]): string[] {
-  const out: string[] = [];
-  for (const server of Object.values(state.servers)) {
-    out.push(...server.ice);
-  }
-  return out;
-}
-
-function swapIcePositions(
-  state: EffectCtx["state"],
-  a: string,
-  b: string,
-): boolean {
-  let aServer: ServerId | null = null;
-  let aIdx = -1;
-  let bServer: ServerId | null = null;
-  let bIdx = -1;
-  for (const server of Object.values(state.servers)) {
-    const ia = server.ice.indexOf(a);
-    if (ia >= 0) {
-      aServer = server.id;
-      aIdx = ia;
-    }
-    const ib = server.ice.indexOf(b);
-    if (ib >= 0) {
-      bServer = server.id;
-      bIdx = ib;
-    }
-  }
-  if (!aServer || aIdx < 0 || !bServer || bIdx < 0) return false;
-  const ca = state.cards[a]!;
-  const cb = state.cards[b]!;
-  state.servers[aServer]!.ice[aIdx] = b;
-  state.servers[bServer]!.ice[bIdx] = a;
-  ca.zone = `server:${bServer}:ice`;
-  cb.zone = `server:${aServer}:ice`;
-  return true;
-}
-
 function trashTopOfRd(
   state: EffectCtx["state"],
   n: number,
@@ -114,52 +75,6 @@ export function applyRedsandCdPrimitive(
       const x = state.turn.damageSufferedThisTurn ?? 0;
       trashTopOfRd(state, x, source?.title ?? "Salvaged Vanadis Armory");
       state.turn.vanadisNextPawArmed = false;
-      return { ok: true };
-    }
-
-    case "swap_2_unrezzed_ice": {
-      const ice = installedIceIds(state).filter(
-        (id) => state.cards[id] && !state.cards[id]!.rezzed,
-      );
-      if (ice.length < 2) {
-        log(state, `Reshape — need 2 unrezzed ice.`);
-        return { ok: true };
-      }
-      const opts: { id: string; label: string; effect: Effect }[] = [];
-      for (let i = 0; i < ice.length; i++) {
-        for (let j = i + 1; j < ice.length; j++) {
-          const a = ice[i]!;
-          const b = ice[j]!;
-          opts.push({
-            id: `reshape:${a}:${b}`,
-            label: `Swap ${state.cards[a]!.title} and ${state.cards[b]!.title}`,
-            effect: fx.do({
-              kind: "swap_2_unrezzed_ice_resolve",
-              iceIdA: a,
-              iceIdB: b,
-            }),
-          });
-        }
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: opts.slice(0, 24),
-      });
-      return { ok: true };
-    }
-
-    case "swap_2_unrezzed_ice_resolve": {
-      const a = action.iceIdA;
-      const b = action.iceIdB;
-      if (!swapIcePositions(state, a, b)) {
-        log(state, `Reshape — swap failed.`);
-        return { ok: true };
-      }
-      log(
-        state,
-        `Reshape — swap ${state.cards[a]?.title ?? a} and ${state.cards[b]?.title ?? b}.`,
-      );
       return { ok: true };
     }
 

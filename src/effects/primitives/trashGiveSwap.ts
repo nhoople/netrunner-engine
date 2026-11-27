@@ -1,15 +1,14 @@
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { startTrace } from "../../state/turnAndActions/trace.js";
-import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { applySpinTcPrimitive } from "./breachTrashTurn.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -130,66 +129,6 @@ export function applySpinFalDtPrimitive(
         faceup: action.revealed ? true : undefined,
       });
       log(state, `Trash installed ${card.title}.`);
-      return { ok: true };
-    }
-    case "may_swap_with_hq": {
-      const hqAgendaAsset = state.corp.hand.filter((id) => {
-        const c = state.cards[id]!;
-        return c.type === "agenda" || c.type === "asset";
-      });
-      if (hqAgendaAsset.length === 0) {
-        log(state, `Toshiyuki Sakai — no agenda/asset in HQ to swap.`);
-        return { ok: true };
-      }
-      // Printed "you may": the Corp may decline (CR 9.6.9).
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          ...hqAgendaAsset.map((id) => ({
-            id: `toshiyuki-swap:${id}`,
-            label: `Swap with ${state.cards[id]!.title} from HQ`,
-            effect: fx.do({
-              kind: "swap_execute",
-              hqCardId: id,
-            }),
-          })),
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.gainCredits("corp", 0),
-          },
-        ],
-        logLine: `Toshiyuki Sakai — may swap with agenda/asset from HQ.`,
-      });
-      return { ok: true };
-    }
-    case "swap_execute": {
-      const hqId = action.hqCardId;
-      const sakai = state.cards[sourceId];
-      const incoming = state.cards[hqId];
-      if (!sakai || !incoming) return { ok: true };
-      const zoneParts = sakai.zone.split(":");
-      const serverId = zoneParts[1] as ServerId;
-      const server = state.servers[serverId];
-      if (!server) return { ok: true };
-      const adv = sakai.advancementCounters ?? 0;
-      removeCardFromCurrentZone(state, sourceId);
-      removeCardFromCurrentZone(state, hqId);
-      state.corp.hand = state.corp.hand.filter((x: string) => x !== hqId);
-      server.root = server.root.filter((x: string) => x !== sourceId);
-      incoming.zone = sakai.zone;
-      incoming.rezzed = false;
-      incoming.faceup = false;
-      incoming.advancementCounters = adv;
-      server.root.push(incoming.id);
-      state.corp.hand.push(sourceId);
-      state.cards[sourceId]!.zone = "corp:hq";
-      state.cards[sourceId]!.faceup = false;
-      log(
-        state,
-        `Toshiyuki Sakai — swap with ${incoming.title}; new card installed unrezzed with ${adv} advancement(s).`,
-      );
       return { ok: true };
     }
     case "install_program_from_grip": {

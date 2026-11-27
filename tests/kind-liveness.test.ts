@@ -347,11 +347,11 @@ describe("kind liveness (CR audit 1.2)", () => {
     // Tāo Salonga's flag maySwapIceOnAgendaScoredOrStolen builds this kind
     // from src/actions/score.ts; no card JSON names it. Keep the sweep honest.
     expect(
-      builders.has("src/effects/kinds/swapKinds.ts#case swap_two_ice"),
+      builders.has("src/effects/swap/swapKinds.ts#case swap_two_ice"),
       "sweep no longer sees swap_two_ice; check the matcher before trusting it",
     ).toBe(
       readBaseline().noOpChoices.includes(
-        "src/effects/kinds/swapKinds.ts#case swap_two_ice",
+        "src/effects/swap/swapKinds.ts#case swap_two_ice",
       ),
     );
     const found = [...builders.keys(), ...noOpCardChoices()].sort();

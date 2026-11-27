@@ -247,32 +247,6 @@ export function applyMumbadKgPrimitive(
       return { ok: true };
     }
 
-    case "swap_mumbad_passed_ice": {
-      const iceId = action.iceId;
-      const otherId = action.otherIceId;
-      const ice = state.cards[iceId];
-      const other = state.cards[otherId];
-      if (!ice || !other) return { ok: true };
-      let serverId: string | null = null;
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (server.ice.includes(iceId) && server.ice.includes(otherId)) {
-          serverId = sid;
-          const a = server.ice.indexOf(iceId);
-          const b = server.ice.indexOf(otherId);
-          server.ice[a] = otherId;
-          server.ice[b] = iceId;
-          break;
-        }
-      }
-      if (serverId) {
-        log(
-          state,
-          `Mumbad City Grid — swap ${ice.title} with ${other.title} on ${serverId}.`,
-        );
-      }
-      return { ok: true };
-    }
-
     default:
       return null;
   }

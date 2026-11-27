@@ -159,61 +159,6 @@ export function applyMumbadDagPrimitive(
       return { ok: true };
     }
 
-    case "swap_with_grip_subtype": {
-      const subtype = action.subtype;
-      if (!source || !state.runner.installed.includes(sourceId)) {
-        return { ok: true };
-      }
-      const grip = state.runner.hand.filter((id) =>
-        (state.cards[id]?.subtypes ?? []).includes(subtype),
-      );
-      if (grip.length === 0) {
-        log(state, `${source.title} — no ${subtype} in grip.`);
-        return { ok: true };
-      }
-      if (grip.length === 1) {
-        return applyMumbadDagPrimitive(ctx, {
-          kind: "swap_with_grip_subtype_resolve",
-          cardId: grip[0]!,
-        });
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: grip.map((cardId) => ({
-          id: `swap:${cardId}`,
-          label: `Swap with ${state.cards[cardId]!.title}`,
-          effect: fx.do({
-            kind: "swap_with_grip_subtype_resolve",
-            cardId,
-          }),
-        })),
-      });
-      return { ok: true };
-    }
-
-    case "swap_with_grip_subtype_resolve": {
-      const gripId = action.cardId;
-      if (!source || !state.runner.installed.includes(sourceId))
-        return { ok: true };
-      if (!state.runner.hand.includes(gripId)) return { ok: true };
-      const gripCard = state.cards[gripId]!;
-      // Uninstall source → grip
-      state.runner.installed = state.runner.installed.filter(
-        (id) => id !== sourceId,
-      );
-      state.runner.hand.push(sourceId);
-      source.zone = "runner:grip";
-      source.faceup = true;
-      // Install grip card into rig (same MU slot)
-      state.runner.hand = state.runner.hand.filter((id) => id !== gripId);
-      state.runner.installed.push(gripId);
-      gripCard.zone = "runner:installed";
-      gripCard.faceup = true;
-      log(state, `${source.title} — swap with ${gripCard.title} from grip.`);
-      return { ok: true };
-    }
-
     case "may_spend_voting_machine_lose_click": {
       if (!source) return { ok: true };
       const counters = source.agendaCounters ?? 0;

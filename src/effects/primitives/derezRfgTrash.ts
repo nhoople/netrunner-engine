@@ -2,9 +2,6 @@
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
-import type { RuleCite, Server, ServerId } from "../../state/types.js";
-import { CR } from "../../timing/labels.js";
-import { chooseCards } from "../triggers/chooseCards.js";
 import { evalEffect } from "../eval.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
@@ -13,36 +10,13 @@ import { random } from "../../state/rng.js";
 import { hostCard } from "../../state/hostingAndTrash/host.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
 import { removeCardFromGame } from "../../state/uninstallAndPosition/uninstall.js";
+import type { RuleCite, ServerId } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
 
 function rfgCard(state: EffectCtx["state"], cardId: string): void {
   removeCardFromGame(state, cardId);
-}
-
-function serverHoldingRootCard(
-  state: EffectCtx["state"],
-  cardId: string,
-): Server | undefined {
-  for (const server of Object.values(state.servers)) {
-    if (server.root.includes(cardId)) return server;
-  }
-  return undefined;
-}
-
-/** CR 4.6.6e. A remote root holds one asset or agenda. A central root holds upgrades. */
-function rootCanHold(
-  server: Server,
-  state: EffectCtx["state"],
-  ids: string[],
-): boolean {
-  const types = ids.map((id) => state.cards[id]?.type);
-  if (server.kind === "central") return types.every((t) => t === "upgrade");
-  const agendaOrAsset = types.filter(
-    (t) => t === "agenda" || t === "asset",
-  ).length;
-  return agendaOrAsset <= 1;
 }
 
 export function applyRedsandFmPrimitive(
@@ -145,94 +119,6 @@ export function applyRedsandFmPrimitive(
           serverIds: Object.keys(state.servers) as ServerId[],
         }),
       );
-    }
-
-    case "swap_2_other_ice_or_2_non_ice": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "meta-ice",
-            label: "Swap 2 other installed ice",
-            effect: fx.do({ kind: "may_swap_two_installed_ice" }),
-          },
-          {
-            id: "meta-nonice",
-            label: "Swap 2 installed non-ice cards",
-            effect: fx.do({ kind: "swap_2_non_ice" }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-
-    case "swap_2_non_ice": {
-      const cards: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.root) {
-          const c = state.cards[id];
-          if (c && c.type !== "ice") cards.push(id);
-        }
-      }
-      if (cards.length < 2) {
-        log(state, `Metamorph — fewer than 2 installed non-ice cards.`);
-        return { ok: true };
-      }
-      // The Corp picks the two cards (CR 1.15.2).
-      if (!action.cardIds && cards.length > 2) {
-        return evalEffect(
-          ctx,
-          chooseCards({
-            chooser: "corp",
-            candidates: cards,
-            count: 2,
-            purpose: "resume",
-            label: "swap",
-            resume: { kind: "swap_2_non_ice" },
-          }),
-        );
-      }
-      const chosen = (action.cardIds ?? []).filter((id) => cards.includes(id));
-      const [a, b] = chosen.length === 2 ? chosen : cards;
-      const ca = state.cards[a!]!;
-      const cb = state.cards[b!]!;
-      const serverA = serverHoldingRootCard(state, a!);
-      const serverB = serverHoldingRootCard(state, b!);
-      if (
-        serverA &&
-        serverB &&
-        serverA.id !== serverB.id &&
-        (!rootCanHold(
-          serverA,
-          state,
-          serverA.root.map((id) => (id === a ? b! : id)),
-        ) ||
-          !rootCanHold(
-            serverB,
-            state,
-            serverB.root.map((id) => (id === b ? a! : id)),
-          ))
-      ) {
-        log(
-          state,
-          `Metamorph — that swap does nothing (CR ${CR.swapOnlyToValidLocation.number}).`,
-        );
-        return { ok: true };
-      }
-      const zoneA = ca.zone;
-      const zoneB = cb.zone;
-      // Swap zones and server root membership.
-      for (const server of Object.values(state.servers)) {
-        const ia = server.root.indexOf(a!);
-        const ib = server.root.indexOf(b!);
-        if (ia >= 0) server.root[ia] = b!;
-        if (ib >= 0) server.root[ib] = a!;
-      }
-      ca.zone = zoneB;
-      cb.zone = zoneA;
-      log(state, `Metamorph — swap ${ca.title} and ${cb.title}.`);
-      return { ok: true };
     }
 
     case "choose_n_grip_to_stack_top": {

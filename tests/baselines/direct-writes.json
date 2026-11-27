@@ -199,13 +199,6 @@
       "rezzed": 2,
       "zone": 12
     },
-    "src/effects/kinds/swapKinds.ts": {
-      "discardPile": 2,
-      "hand": 10,
-      "rezzed": 11,
-      "root": 5,
-      "zone": 18
-    },
     "src/effects/kinds/trashKinds.ts": {
       "deck": 2,
       "hand": 2,
@@ -260,7 +253,7 @@
     "src/effects/primitives/derezRfgTrash.ts": {
       "deck": 4,
       "hand": 5,
-      "zone": 7
+      "zone": 5
     },
     "src/effects/primitives/gainCannotSwap.ts": {
       "hand": 3,
@@ -288,23 +281,20 @@
       "installed": 1,
       "rezzed": 2,
       "root": 1,
-      "zone": 6
+      "zone": 4
     },
     "src/effects/primitives/hostInstallExpose.ts": {
       "deck": 1,
-      "discardPile": 2,
-      "hand": 2,
       "installed": 1,
-      "zone": 4
+      "zone": 2
     },
     "src/effects/primitives/hostResolveLook.ts": {
       "deck": 1,
       "discardPile": 1,
-      "hand": 6,
-      "installed": 2,
+      "hand": 4,
       "rezzed": 1,
       "root": 1,
-      "zone": 6
+      "zone": 4
     },
     "src/effects/primitives/lookInstallTrash.ts": {
       "deck": 5,
@@ -314,9 +304,8 @@
     },
     "src/effects/primitives/lookTrashAdd.ts": {
       "deck": 3,
-      "discardPile": 3,
-      "hand": 3,
-      "zone": 6
+      "hand": 1,
+      "zone": 2
     },
     "src/effects/primitives/moveSearchInstall.ts": {
       "deck": 5,
@@ -413,9 +402,6 @@
       "scoreArea": 1,
       "zone": 6
     },
-    "src/effects/primitives/spendHostPrevent.ts": {
-      "zone": 2
-    },
     "src/effects/primitives/spendInstallAdd.ts": {
       "deck": 5,
       "hand": 5,
@@ -432,8 +418,7 @@
       "deck": 1,
       "rezzed": 1,
       "root": 1,
-      "scoreArea": 4,
-      "zone": 3
+      "zone": 1
     },
     "src/effects/primitives/trashChooseAccess.ts": {
       "deck": 4,
@@ -445,24 +430,22 @@
     "src/effects/primitives/trashGiveSwap.ts": {
       "deck": 1,
       "discardPile": 1,
-      "hand": 4,
-      "rezzed": 1,
-      "root": 2,
-      "zone": 4
+      "hand": 2,
+      "zone": 2
     },
     "src/effects/primitives/trashPlaceAccess.ts": {
       "deck": 1,
       "discardPile": 1,
       "hand": 2,
       "rezzed": 1,
-      "scoreArea": 5,
-      "zone": 4
+      "scoreArea": 1,
+      "zone": 2
     },
     "src/effects/primitives/trashResolveDerez.ts": {
       "deck": 6,
       "hand": 2,
       "installed": 1,
-      "zone": 5
+      "zone": 3
     },
     "src/effects/primitives/trashResolveTrace.ts": {
       "deck": 3,
@@ -485,6 +468,15 @@
       "hand": 1,
       "installed": 7,
       "zone": 8
+    },
+    "src/effects/swap/swapKinds.ts": {
+      "discardPile": 7,
+      "hand": 18,
+      "installed": 2,
+      "rezzed": 12,
+      "root": 7,
+      "scoreArea": 8,
+      "zone": 40
     },
     "src/effects/triggers/chooseCards.ts": {
       "deck": 2,
