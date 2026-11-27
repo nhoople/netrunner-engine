@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { basicRemoveTagCreditCost } from "../src/state/costs.js";
+import { basicRemoveTagCreditCost } from "../src/state/keywordsAndCredits/costs.js";
 import { exposeLegalTargets } from "../src/state/visibility/expose.js";
 import { syncAllTourGuideSubs } from "../src/effects/primitives/gainCannotSwap.js";
 import type { GameState, ServerId } from "../src/index.js";

@@ -439,7 +439,7 @@ export {
   runnerAvailableCreditsForBreaker,
   hostedCreditsSpendableDuringRuns,
   hostedCreditsSpendableToUseProgramsDuringRuns,
-} from "./state/costs.js";
+} from "./state/keywordsAndCredits/costs.js";
 export { startingHandSizeFor } from "./state/setupAndEnd/startingHand.js";
 export {
   agendaPointBand,
@@ -460,7 +460,7 @@ export {
   openPendingTags,
   preventPendingTags,
   acceptPendingTags,
-} from "./state/tags.js";
+} from "./state/keywordsAndCredits/tags.js";
 export {
   collectBlankingEffects,
   orderBlankingEffects,

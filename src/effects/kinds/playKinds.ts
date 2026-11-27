@@ -8,7 +8,7 @@ import {
   corpInstallCost,
   creditsAvailableForInstall,
   subtractRunnerCreditPool,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { fireCorpIdentityFlippedFirstOperationPlay } from "../../state/setupAndEnd/identityFlipHooks.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";

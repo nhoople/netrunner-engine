@@ -8,9 +8,9 @@ import {
   subtractRunnerCreditPool,
   hostedCreditsSpendableDuringRuns,
   spendHostedCreditsDuringRuns,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../../state/gamenet.js";
+import { noteCorpAbilityCausedRunnerCreditLossOrSpend } from "../../state/keywordsAndCredits/corpCausedCreditLoss.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { CR } from "../../timing/labels.js";
 import { resolveSide, applyPrimitive } from "../eval.js";

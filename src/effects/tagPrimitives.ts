@@ -9,7 +9,7 @@ import {
   hasPayableTagInterrupt,
   openPendingTags,
   preventPendingTags,
-} from "../state/tags.js";
+} from "../state/keywordsAndCredits/tags.js";
 import {
   fireOnFirstAvoidOrRemoveTagThisTurn,
   fireOnRemoveTags,

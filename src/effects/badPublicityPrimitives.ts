@@ -3,7 +3,7 @@
  * Choices that spend bad publicity for another effect stay in eval.ts.
  */
 import { log } from "../state/setupAndEnd/createGame.js";
-import { fireFirstBadPublicityTake } from "../state/badPublicityHooks.js";
+import { fireFirstBadPublicityTake } from "../state/keywordsAndCredits/badPublicityHooks.js";
 import { fireWouldTakeBadPublicity } from "../state/triggers/storedTriggers.js";
 import { checkWinConditions } from "../state/scoring.js";
 import type { RuleCite } from "../state/types.js";

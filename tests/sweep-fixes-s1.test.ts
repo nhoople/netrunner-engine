@@ -27,7 +27,7 @@ import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { iceStrength } from "../src/effects/iceStrength.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
 import { applyRunAccessRestrictions } from "../src/state/access/accessFilter.js";
-import { runnerCreditPoolLocked } from "../src/state/costs.js";
+import { runnerCreditPoolLocked } from "../src/state/keywordsAndCredits/costs.js";
 import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 import { quoteHostServerRecurringTowardCorpRez } from "../src/cards/stubs.js";

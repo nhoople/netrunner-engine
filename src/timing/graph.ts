@@ -13,7 +13,7 @@ import {
   stealthHostedCreditsAvailable,
   runnerAvailableCredits,
   activeCreditLockEvent,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import {
   evalEffect,
   fireOnBypassTriggers,
@@ -58,7 +58,7 @@ import {
 } from "../state/continuous/continuousSubs.js";
 import { resolveIceSubtypes } from "../state/continuous/continuousEffects.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
-import { currentMark } from "../state/msKeywords.js";
+import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import { syncAllTourGuideSubs } from "../effects/primitives/gainCannotSwap.js";
 import {
   beginCorpTurnFlags,
@@ -199,7 +199,7 @@ import {
   startIdentitySetup,
 } from "../state/cardFlags/cardDeclarations.js";
 import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../state/setupAndEnd/identityFlipHooks.js";
-import { noteOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
+import { noteOutsidePoolSpendTriggers } from "../state/keywordsAndCredits/outsidePoolSpend.js";
 import {
   activeLockdownIds,
   trashActiveLockdownsAtCorpTurnBegin,

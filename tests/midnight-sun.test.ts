@@ -61,9 +61,12 @@ import {
 } from "../src/state/counters/powerCounters.js";
 import { purgeVirusCounters } from "../src/state/hostingAndTrash/trashHooks.js";
 import { beginCorpTurnFlags } from "../src/state/turn.js";
-import { noteInstalledCardCreditSpend } from "../src/state/costs.js";
+import { noteInstalledCardCreditSpend } from "../src/state/keywordsAndCredits/costs.js";
 import { beginBreachAccess } from "../src/state/access/access.js";
-import { currentMark, placeMark } from "../src/state/msKeywords.js";
+import {
+  currentMark,
+  placeMark,
+} from "../src/state/keywordsAndCredits/keywords.js";
 import {
   syncPaidAbilitiesFromRecords,
   type AbilityRecord,

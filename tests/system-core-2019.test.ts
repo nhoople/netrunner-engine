@@ -35,7 +35,7 @@ import { corpCreditsForTrace } from "../src/state/trace.js";
 import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
-} from "../src/state/costs.js";
+} from "../src/state/keywordsAndCredits/costs.js";
 import { fireHostedCreditsOnAnyIceRez } from "../src/state/counters/powerCounters.js";
 import { modifiersFromStartsRun } from "../src/state/run/runStart.js";
 import type { GameState } from "../src/state/types.js";

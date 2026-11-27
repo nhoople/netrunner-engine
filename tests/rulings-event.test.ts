@@ -18,7 +18,7 @@ import {
 } from "../src/index.js";
 import type { GameState } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
-import { currentMark } from "../src/state/msKeywords.js";
+import { currentMark } from "../src/state/keywordsAndCredits/keywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";

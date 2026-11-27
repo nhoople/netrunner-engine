@@ -1,22 +1,22 @@
 /** Richer cost model + recurring credit refill (CR 1.10 / 1.16). */
 
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { noteRunnerClickDuringRun } from "./clickHooks.js";
-import { iceAtRunnerPosition } from "./uninstallAndPosition/runPosition.js";
-import { log } from "./setupAndEnd/createGame.js";
-import { dealDamage } from "./damageAndPrevention/damage.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { noteRunnerClickDuringRun } from "../clickHooks.js";
+import { iceAtRunnerPosition } from "../uninstallAndPosition/runPosition.js";
+import { log } from "../setupAndEnd/createGame.js";
+import { dealDamage } from "../damageAndPrevention/damage.js";
 import {
   moveForfeitedAgendaOutOfGame,
   removeCardFromCurrentZone,
-} from "./scoring.js";
-import { enterSetAside } from "./zones.js";
+} from "../scoring.js";
+import { enterSetAside } from "../zones.js";
 import {
   fireOnRemoveTags,
   fireOnTakeTagsWhenUntagged,
-} from "./hostingAndTrash/trashHooks.js";
-import { maybeFireCompanionInstallOrSpendCredits } from "./triggers/companionHooks.js";
-import { fireRunnerCreditPoolEmpty } from "./triggers/storedTriggers.js";
-import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
+} from "../hostingAndTrash/trashHooks.js";
+import { maybeFireCompanionInstallOrSpendCredits } from "../triggers/companionHooks.js";
+import { fireRunnerCreditPoolEmpty } from "../triggers/storedTriggers.js";
+import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
 
 /**
  * Reduce the Runner's credit pool. The first time it becomes empty each
@@ -36,7 +36,7 @@ export function subtractRunnerCreditPool(
 export function emptyRunnerCreditPool(state: GameState): void {
   subtractRunnerCreditPool(state, state.runner.credits);
 }
-import { onTrashAbility } from "./cardFlags/cardDeclarations.js";
+import { onTrashAbility } from "../cardFlags/cardDeclarations.js";
 import type {
   CardInstance,
   CostSpec,
@@ -45,17 +45,17 @@ import type {
   RecurringSpendPurpose,
   ServerId,
   Side,
-} from "./types.js";
-import { CR } from "../timing/labels.js";
+} from "../types.js";
+import { CR } from "../../timing/labels.js";
 import {
   withCostCheckpoint,
   occurCheckpoint,
-} from "../legality/checkpoints.js";
+} from "../../legality/checkpoints.js";
 import { noteOutsideCreditPoolSpendDuringRun } from "./outsidePoolSpend.js";
-import { effectiveIceStrength } from "../cards/stubs.js";
-import { trashCard } from "./hostingAndTrash/trash.js";
-import { hostCard } from "./hostingAndTrash/host.js";
-import { removeCardFromGame } from "./uninstallAndPosition/uninstall.js";
+import { effectiveIceStrength } from "../../cards/stubs.js";
+import { trashCard } from "../hostingAndTrash/trash.js";
+import { hostCard } from "../hostingAndTrash/host.js";
+import { removeCardFromGame } from "../uninstallAndPosition/uninstall.js";
 
 /**
  * First time each turn the Runner spends credits from an installed card,

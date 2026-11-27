@@ -5,7 +5,7 @@ import {
   moveRunnerToIce,
 } from "../../state/uninstallAndPosition/runPosition.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import { corpInstallCost } from "../../state/costs.js";
+import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import type { GameState, RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";

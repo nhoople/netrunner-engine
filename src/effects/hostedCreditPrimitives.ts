@@ -3,7 +3,7 @@
  * place, or empty-pool trash is readable without the rest of the switch.
  */
 import { log } from "../state/setupAndEnd/createGame.js";
-import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
+import { maybeFireHostedCreditsGte } from "../state/keywordsAndCredits/hostedCredits.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import type { EffectCtx } from "./eval.js";

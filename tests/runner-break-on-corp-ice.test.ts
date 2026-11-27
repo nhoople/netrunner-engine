@@ -22,7 +22,7 @@ import {
 } from "../src/index.js";
 import { findPaidAbility } from "../src/actions/paidAbility.js";
 import { ensurePriorityWindow } from "../src/legality/priority.js";
-import { costBeginsWithClick } from "../src/state/costs.js";
+import { costBeginsWithClick } from "../src/state/keywordsAndCredits/costs.js";
 import type { CardInstance, GameState } from "../src/state/types.js";
 
 beforeAll(() => {

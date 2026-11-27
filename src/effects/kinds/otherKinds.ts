@@ -36,7 +36,7 @@ import {
   stealthHostedCreditsAvailable,
   takeFromStealthHostedCredits,
   subtractRunnerCreditPool,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { beginExtraDifferentAction } from "../../state/corpActionHooks.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
@@ -68,7 +68,7 @@ import {
   identifyMark,
   offerSabotagePick,
   resolveSabotageAmount,
-} from "../../state/msKeywords.js";
+} from "../../state/keywordsAndCredits/keywords.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   moveForfeitedAgendaOutOfGame,
@@ -78,7 +78,7 @@ import {
   scoreAgenda,
   stealAgenda,
 } from "../../state/scoring.js";
-import { effectiveRunnerTags } from "../../state/tags.js";
+import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { preventPendingInstalledTrash } from "../../state/hostingAndTrash/trashPrevent.js";
 import { enterSetAside } from "../../state/zones.js";

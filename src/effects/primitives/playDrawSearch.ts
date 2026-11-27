@@ -10,7 +10,7 @@ import { applyEncounterPrimitive } from "../encounterPrimitives.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { placeCurrentAfterPlay } from "../../state/continuous/currents.js";
 import { markAbilityUsed } from "../../state/turn.js";
-import { corpInstallCost } from "../../state/costs.js";
+import { corpInstallCost } from "../../state/keywordsAndCredits/costs.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";
 import { playEffectFromCard } from "../abilityRecord.js";

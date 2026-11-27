@@ -24,7 +24,7 @@ import { passIdle } from "../src/demo/passIdle.js";
 import { fx } from "../src/effects/ir.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 import { checkpointAfterInstruction } from "../src/legality/checkpoints.js";
-import { currentMark } from "../src/state/msKeywords.js";
+import { currentMark } from "../src/state/keywordsAndCredits/keywords.js";
 import { fireScoreOrStealSideEffects } from "../src/actions/score.js";
 import { hostCard } from "../src/state/hostingAndTrash/host.js";
 import { expectStateDelta, snapshot } from "./kind-coverage.js";

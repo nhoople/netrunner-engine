@@ -90,7 +90,7 @@ import {
   spendRunnerCreditsFor,
   subtractRunnerCreditPool,
   activeCreditLockEvent,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import {
   acceptPendingDamage,
   preventPendingDamage,
@@ -100,7 +100,7 @@ import {
 import {
   acceptPendingTags,
   conditionalInterruptRequiresActiveAtOpen,
-} from "../state/tags.js";
+} from "../state/keywordsAndCredits/tags.js";
 import { acceptPendingExpose } from "../state/visibility/expose.js";
 import {
   acceptPendingInstalledTrash,
@@ -113,7 +113,7 @@ import {
   offerSabotagePick,
   resolveSabotageAmount,
   sabotageHqBounds,
-} from "../state/msKeywords.js";
+} from "../state/keywordsAndCredits/keywords.js";
 import { fireRunnerValTrigger } from "../effects/sansanValHooks.js";
 import {
   abandonExtraDifferentAction,

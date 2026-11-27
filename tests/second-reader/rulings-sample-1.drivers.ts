@@ -7,7 +7,7 @@
  */
 import { cloneState, legalActions } from "../../src/index.js";
 import type { GameState } from "../../src/index.js";
-import { currentMark } from "../../src/state/msKeywords.js";
+import { currentMark } from "../../src/state/keywordsAndCredits/keywords.js";
 import { must, optionIds, pick } from "../rulings-helpers.js";
 import { accepts, Board, hasOption, offered, take } from "./harness.js";
 import type { Report } from "./harness.js";

@@ -70,7 +70,10 @@ import {
   LINGERING_KIND_RUNNER_MU,
 } from "../src/state/continuous/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/state/types.js";
-import { currentMark, placeMark } from "../src/state/msKeywords.js";
+import {
+  currentMark,
+  placeMark,
+} from "../src/state/keywordsAndCredits/keywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {

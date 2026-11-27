@@ -31,7 +31,7 @@ import { fireHostedCreditsOnAnyIceRez } from "../src/state/counters/powerCounter
 import {
   creditsAvailableForInstall,
   spendCreditsForInstall,
-} from "../src/state/costs.js";
+} from "../src/state/keywordsAndCredits/costs.js";
 import type { ServerId } from "../src/state/types.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
 import { isRunTargetAllowed } from "../src/state/run/runLegality.js";

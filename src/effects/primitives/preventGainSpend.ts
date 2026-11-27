@@ -2,7 +2,7 @@ import { iceStrengthCannotBeLowered } from "../../cards/stubs.js";
 import { printsCanBeAdvanced } from "../../state/counters/advanceable.js";
 /** Quorum (qu) Flashpoint pack primitives — v1.127.0. */
 import { lookAtCards } from "../../state/visibility/reveal.js";
-import { subtractRunnerCreditPool } from "../../state/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";

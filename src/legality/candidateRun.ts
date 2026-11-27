@@ -1,6 +1,6 @@
 import type { Action, GameState, Server } from "../state/types.js";
 import { iceAtRunnerPosition } from "../state/uninstallAndPosition/runPosition.js";
-import { currentMark } from "../state/msKeywords.js";
+import { currentMark } from "../state/keywordsAndCredits/keywords.js";
 import {
   corpMayRez,
   iceShareServer,
@@ -15,8 +15,8 @@ import {
   costBeginsWithClick,
   paidAbilityOpenIn,
   runnerAvailableCredits,
-} from "../state/costs.js";
-import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
+} from "../state/keywordsAndCredits/costs.js";
+import { directHostedTakeFromEmpty } from "../state/keywordsAndCredits/hostedCredits.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { accessLimitEndsBreach } from "../state/access/access.js";
 import { additionalRunInitiateTax } from "../state/run/runInitiateTax.js";
@@ -44,7 +44,7 @@ import {
   subroutineBrokenByRunner,
   subroutinesBrokenByRunnerCount,
 } from "../state/procedures/break.js";
-import { runnerIsTagged } from "../state/tags.js";
+import { runnerIsTagged } from "../state/keywordsAndCredits/tags.js";
 import type { PaidAbilityWindow } from "../state/types.js";
 import type { TimingStepDef } from "../timing/graph.js";
 import { hasAbilityFlag, threatValue } from "../effects/abilityRecord.js";

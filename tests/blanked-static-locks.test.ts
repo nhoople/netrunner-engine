@@ -15,7 +15,7 @@ import {
   naviMumbaiBlocksPaidAbilities,
   runnerHeapLocked,
 } from "../src/state/cardFlags/cardDeclarations.js";
-import { wirelessNetPavilionExtra } from "../src/state/costs.js";
+import { wirelessNetPavilionExtra } from "../src/state/keywordsAndCredits/costs.js";
 import { checkWinConditions } from "../src/state/scoring.js";
 import type { ServerId } from "../src/index.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";

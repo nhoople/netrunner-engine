@@ -9,7 +9,7 @@ import { agendaPointsFor } from "../scoring.js";
 import type { CardInstance, GameState, ServerId } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import { fireWouldTakeBadPublicity } from "../triggers/storedTriggers.js";
-import { fireFirstBadPublicityTake } from "../badPublicityHooks.js";
+import { fireFirstBadPublicityTake } from "../keywordsAndCredits/badPublicityHooks.js";
 import { onIceRezzed } from "./cardDeclarations.js";
 import {
   corpIceInstalledThisTurn,

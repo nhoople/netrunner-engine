@@ -11,7 +11,7 @@ import {
   runnerCreditsFor,
   spendRunnerCreditsFor,
   subtractRunnerCreditPool,
-} from "./costs.js";
+} from "./keywordsAndCredits/costs.js";
 import { traceBaseBonus } from "./cardFlags/staticFlags.js";
 import { prepareTraceSpendOrder } from "./cardFlags/cardDeclarations.js";
 import { fireOnSuccessfulTraceDuringRun } from "./triggers/miscConditionalHooks.js";

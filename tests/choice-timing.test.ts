@@ -26,7 +26,7 @@ import { agendaPointsFor } from "../src/state/scoring.js";
 import {
   abilityNeedsEncounter,
   costBeginsWithClick,
-} from "../src/state/costs.js";
+} from "../src/state/keywordsAndCredits/costs.js";
 import type {
   GameState,
   PaidAbility,

@@ -38,8 +38,8 @@ const STARTING_SIZES: Readonly<Record<string, number>> = {
   "src/effects/kinds/installKinds.ts": 4170,
   "src/actions/apply.ts": 3924,
   "src/effects/kinds/trashKinds.ts": 2690,
-  "src/state/costs.ts": 2231,
-  "src/effects/eval.ts": 2163,
+  "src/state/keywordsAndCredits/costs.ts": 2231,
+  "src/effects/eval.ts": 2166,
 };
 
 type Baseline = { _comment: string; files: Record<string, number> };

@@ -44,7 +44,7 @@ import {
   preventPendingDamage,
 } from "../src/state/damageAndPrevention/damage.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
-import { currentMark } from "../src/state/msKeywords.js";
+import { currentMark } from "../src/state/keywordsAndCredits/keywords.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
 
 beforeAll(() => {
@@ -1446,7 +1446,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks outside-pool spend at 10.3.1a (phase 3 scanner)", async () => {
     const { noteOutsidePoolSpendTriggers } =
-      await import("../src/state/outsidePoolSpend.js");
+      await import("../src/state/keywordsAndCredits/outsidePoolSpend.js");
     const s = createInitialState();
     const grid = instantiateCard("shackleton-grid", "sg-1", "server:hq:root");
     grid.rezzed = true;
@@ -2995,7 +2995,8 @@ describe("lingering effect registry (CR 9.10.1)", () => {
   });
 
   it("registers mark designation as a turn-duration lingering (CR 10.11.4)", async () => {
-    const { identifyMark } = await import("../src/state/msKeywords.js");
+    const { identifyMark } =
+      await import("../src/state/keywordsAndCredits/keywords.js");
     const { LINGERING_KIND_MARK, lingeringEffectsOfKind } =
       await import("../src/state/continuous/lingeringEffects.js");
     let s = createInitialState();
@@ -4813,7 +4814,7 @@ describe("misc conditionals pending (CR 9.6.2)", () => {
 
   it("marks first / each bad-publicity take at 10.3.1a (phase 3 scanner)", async () => {
     const { fireFirstBadPublicityTake } =
-      await import("../src/state/badPublicityHooks.js");
+      await import("../src/state/keywordsAndCredits/badPublicityHooks.js");
 
     const s = createInitialState();
     const editorial = instantiateCard(

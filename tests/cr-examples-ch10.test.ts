@@ -31,12 +31,15 @@ import {
   LINGERING_KIND_ICE_STRENGTH_ENCOUNTER,
   seedRng,
 } from "../src/index.js";
-import { pickRandomCentral } from "../src/state/msKeywords.js";
+import { pickRandomCentral } from "../src/state/keywordsAndCredits/keywords.js";
 import type { Action, GameState } from "../src/state/types.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { createGame } from "../src/api/library.js";
 import { createShortGameState } from "../src/cards/shortGame.js";
-import { clearMark, currentMark } from "../src/state/msKeywords.js";
+import {
+  clearMark,
+  currentMark,
+} from "../src/state/keywordsAndCredits/keywords.js";
 import { passIdle } from "../src/demo/passIdle.js";
 
 beforeAll(() => {

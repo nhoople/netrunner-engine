@@ -5,7 +5,7 @@ import { iceAtRunnerPosition } from "../../state/uninstallAndPosition/runPositio
 import {
   emptyRunnerCreditPool,
   noteCorpSpentAgendaCounters,
-} from "../../state/costs.js";
+} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   dealDamage,

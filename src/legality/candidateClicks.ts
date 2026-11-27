@@ -18,7 +18,7 @@ import {
   effectiveEventPlayCost,
   effectiveOperationExtraClicks,
   wirelessNetPavilionExtra,
-} from "../state/costs.js";
+} from "../state/keywordsAndCredits/costs.js";
 import { runnerInstallCost } from "../actions/installRunner.js";
 import { eventClicksToPlay } from "../actions/play.js";
 import { agendaPointsFor, canScoreAgenda } from "../state/scoring.js";
@@ -38,7 +38,10 @@ import {
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
-import { effectiveRunnerTags, runnerIsTagged } from "../state/tags.js";
+import {
+  effectiveRunnerTags,
+  runnerIsTagged,
+} from "../state/keywordsAndCredits/tags.js";
 import { hasActiveLockdown } from "../state/continuous/lockdowns.js";
 import { corpMayScore } from "../cards/stubs.js";
 import { corpIceInstallBlockReason } from "../state/cardFlags/staticFlags.js";

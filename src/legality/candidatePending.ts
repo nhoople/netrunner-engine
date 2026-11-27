@@ -1,7 +1,11 @@
 import { trashInterruptRelevant } from "../state/hostingAndTrash/trashPrevent.js";
 import type { Action, GameState } from "../state/types.js";
 import { runnerTrashCostForCard } from "../cards/stubs.js";
-import { abilityCost, canPayCost, runnerCreditsFor } from "../state/costs.js";
+import {
+  abilityCost,
+  canPayCost,
+  runnerCreditsFor,
+} from "../state/keywordsAndCredits/costs.js";
 import {
   allButNDamageRelevant,
   firstNetDamageWouldAllows,
@@ -11,7 +15,7 @@ import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardFlags/cardDeclarations.js";
-import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
+import { conditionalInterruptRequiresActiveAtOpen } from "../state/keywordsAndCredits/tags.js";
 import { stealAdditionalCreditsFromActiveLockdowns } from "../state/continuous/lockdowns.js";
 import { applyTakes } from "./trial.js";
 import {

@@ -1,6 +1,6 @@
 /** The Underway (uw) SanSan pack primitives. */
 import { openCardName } from "../../state/visibility/seatVisibility.js";
-import { subtractRunnerCreditPool } from "../../state/costs.js";
+import { subtractRunnerCreditPool } from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { exposeLegalTargets } from "../../state/visibility/expose.js";
 import type { RuleCite } from "../../state/types.js";

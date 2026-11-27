@@ -1,4 +1,4 @@
-import { runnerIsTagged } from "../tags.js";
+import { runnerIsTagged } from "../keywordsAndCredits/tags.js";
 import { openPendingChoose } from "../triggers/pendingChoice.js";
 /** Central / remote breach access candidate building (CR 7.3–7.4). */
 
