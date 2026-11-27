@@ -21,7 +21,7 @@
   "noOpChoices": [
     "src/actions/access.ts#function advanceFromMidAccess",
     "src/effects/swap/swapKinds.ts#case swap_two_ice",
-    "src/legality/checkpoints.ts#function offerRootEntry",
+    "src/legality/checkpointRules.ts#function offerRootEntry",
     "src/state/hostingAndTrash/trashHooks.ts#function offerSkorpiosRfgInsteadOfHeap"
   ],
   "noOpFlags": [
