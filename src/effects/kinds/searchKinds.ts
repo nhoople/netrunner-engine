@@ -12,7 +12,7 @@ import {
 } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { noteInstalledThisTurn } from "../../state/programHardwareInstall.js";
+import { noteInstalledThisTurn } from "../../state/install/programHardwareInstall.js";
 import {
   memoryLimit,
   usedMemory,

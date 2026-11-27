@@ -4,11 +4,11 @@
  * Also fires every-install hooks (Noise / Grimoire-class).
  */
 
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import { log } from "./createGame.js";
-import type { GameState } from "./types.js";
-import { noteStoredConditional } from "./triggers/storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import { log } from "../createGame.js";
+import type { GameState } from "../types.js";
+import { noteStoredConditional } from "../triggers/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 
 /**
  * After a virus program is installed, bump the per-turn counter and fire

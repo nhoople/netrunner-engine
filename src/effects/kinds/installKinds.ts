@@ -31,7 +31,7 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import {
   noteInstalledThisTurn,
   noteProgramOrHardwareInstalled,
-} from "../../state/programHardwareInstall.js";
+} from "../../state/install/programHardwareInstall.js";
 import { noteFirstInstallInServerRootThisTurn } from "../../state/trashHooks.js";
 import {
   memoryLimit,
@@ -39,7 +39,7 @@ import {
   memoryNeededToInstall,
   effectiveMemoryCost,
 } from "../../state/turn.js";
-import { noteVirusProgramInstalled } from "../../state/virusInstall.js";
+import { noteVirusProgramInstalled } from "../../state/install/virusInstall.js";
 import { CR } from "../../timing/labels.js";
 import { corpCardInstallable, resolveInstallServerId } from "../corpInstall.js";
 import {

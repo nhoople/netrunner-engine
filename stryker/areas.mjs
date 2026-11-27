@@ -76,8 +76,8 @@ export const areas = {
     mutate: [
       "src/actions/installRunner.ts",
       "src/effects/runnerInstall.ts",
-      "src/state/programHardwareInstall.ts",
-      "src/state/virusInstall.ts",
+      "src/state/install/programHardwareInstall.ts",
+      "src/state/install/virusInstall.ts",
     ],
     tests: [
       "tests/program-install-memory.test.ts",

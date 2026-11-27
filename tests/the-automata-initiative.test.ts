@@ -35,7 +35,7 @@ import {
 import type { ServerId } from "../src/state/types.js";
 import { beginRunnerTurnFlags } from "../src/state/turn.js";
 import { isRunTargetAllowed } from "../src/state/run/runLegality.js";
-import { noteProgramOrHardwareInstalled } from "../src/state/programHardwareInstall.js";
+import { noteProgramOrHardwareInstalled } from "../src/state/install/programHardwareInstall.js";
 import {
   noteRunnerStoleOrTrashedCorpCard,
   noteAccessTrash,

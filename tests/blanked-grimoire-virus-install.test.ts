@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
-import { noteVirusProgramInstalled } from "../src/state/virusInstall.js";
+import { noteVirusProgramInstalled } from "../src/state/install/virusInstall.js";
 import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
