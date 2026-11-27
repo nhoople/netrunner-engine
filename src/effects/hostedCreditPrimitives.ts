@@ -2,7 +2,7 @@
  * Hosted-credit primitives. Common cases extracted from eval.ts so a take,
  * place, or empty-pool trash is readable without the rest of the switch.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { maybeFireHostedCreditsGte } from "../state/hostedCredits.js";
 import type { GameState, RuleCite, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";

@@ -10,7 +10,7 @@ import {
   subtractRunnerCreditPool,
 } from "../../state/costs.js";
 import { addOutermostIce } from "../../state/uninstallAndPosition/runPosition.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { offerRdArrangeChoice } from "../eval.js";

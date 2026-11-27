@@ -3,7 +3,7 @@ import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../../state/continuous/lingeringEffects.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

@@ -12,7 +12,7 @@
  * duration" for the rest of that run (lingering; independent of the current).
  */
 
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_BREAKER_STRENGTH,

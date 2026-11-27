@@ -2,7 +2,7 @@
 import { iceInstallCapRefuses } from "../../state/cardFlags/staticFlags.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import { effectiveRunnerTags } from "../../state/tags.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

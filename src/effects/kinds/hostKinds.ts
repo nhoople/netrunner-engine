@@ -5,8 +5,11 @@
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
 import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
-import { log } from "../../state/createGame.js";
-import { hostFenrisIdentity, legalFenrisHostIds } from "../../state/fenris.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import {
+  hostFenrisIdentity,
+  legalFenrisHostIds,
+} from "../../state/setupAndEnd/additionalIdentities.js";
 import { cancelPendingIfSourceInactive } from "../../state/triggers/pendingAbilities.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";

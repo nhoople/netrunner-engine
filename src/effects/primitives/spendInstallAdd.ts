@@ -5,7 +5,7 @@ import {
 } from "../../state/procedures/break.js";
 import { lookAtCards, revealCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { startPsiGame } from "../../state/psi.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";

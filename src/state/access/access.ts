@@ -2,7 +2,7 @@ import { runnerIsTagged } from "../tags.js";
 import { openPendingChoose } from "../triggers/pendingChoice.js";
 /** Central / remote breach access candidate building (CR 7.3–7.4). */
 
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { applyRunAccessRestrictions } from "./accessFilter.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import type { Effect } from "../../effects/ir.js";

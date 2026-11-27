@@ -1,7 +1,7 @@
 /** Deferred onEncounter (when-encountered interrupt window). */
 
 import { abilitiesSuppressed } from "../continuous/abilities.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import type { GameState } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import { wasAbilityUsed } from "../turn.js";

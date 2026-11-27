@@ -3,7 +3,7 @@
  * agenda stolen/scored per card flags.
  */
 import { abilitiesSuppressed } from "./abilities.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import type { CardInstance, GameState } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import {

@@ -2,7 +2,7 @@
 import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { lookAtCards } from "../../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { RuleCite } from "../../state/types.js";
 import { grantAbilityCredits, type EffectCtx } from "../eval.js";

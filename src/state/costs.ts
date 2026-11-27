@@ -3,7 +3,7 @@
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { noteRunnerClickDuringRun } from "./clickHooks.js";
 import { iceAtRunnerPosition } from "./uninstallAndPosition/runPosition.js";
-import { log } from "./createGame.js";
+import { log } from "./setupAndEnd/createGame.js";
 import { dealDamage } from "./damageAndPrevention/damage.js";
 import {
   moveForfeitedAgendaOutOfGame,

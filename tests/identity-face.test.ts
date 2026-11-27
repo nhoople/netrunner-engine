@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   activeIdentityFace,
   applyIdentityFace,
-} from "../src/state/identityFace.js";
+} from "../src/state/setupAndEnd/identityFace.js";
 import type { CardInstance } from "../src/state/types.js";
 
 function identity(patch: Partial<CardInstance>): CardInstance {

@@ -10,7 +10,7 @@
 import { installCorp, likeCardsAtDestination } from "../actions/installCorp.js";
 import { occurCheckpoint } from "../legality/checkpoints.js";
 import { fireOnRez } from "../state/triggers/cardLifecycleHooks.js";
-import { cloneState, log } from "../state/createGame.js";
+import { cloneState, log } from "../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { revealCards } from "../state/visibility/reveal.js";
 import { serverName } from "../state/visibility/seatVisibility.js";

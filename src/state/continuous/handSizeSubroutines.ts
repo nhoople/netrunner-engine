@@ -4,7 +4,7 @@
  */
 
 import { abilitiesSuppressed } from "./abilities.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import type { GameState } from "../types.js";
 import { CR } from "../../timing/labels.js";
 import { trimEncounterBreaks } from "../procedures/break.js";

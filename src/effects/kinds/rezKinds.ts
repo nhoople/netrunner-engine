@@ -6,7 +6,7 @@ import { moveForfeitedAgendaOutOfGame } from "../../state/scoring.js";
 import { moveRunnerToIce } from "../../state/uninstallAndPosition/runPosition.js";
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { syncEtrPerPowerCounterSubs } from "../../state/counters/powerCounters.js";
 import { CR } from "../../timing/labels.js";

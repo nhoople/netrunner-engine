@@ -5,14 +5,14 @@ import { openPendingChoose } from "../state/triggers/pendingChoice.js";
  */
 import { occurCheckpoint } from "../legality/checkpoints.js";
 import { syncCorpHandSizeSubroutines } from "../state/continuous/handSizeSubroutines.js";
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { commitCheckpointSnapshot } from "../state/triggers/checkpointSnapshot.js";
 import type { GameState, Side } from "../state/types.js";
 import { CR } from "../timing/labels.js";
 import { type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import { fireCorpDrewCards } from "../state/triggers/storedTriggers.js";
-import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
+import { runnerWinsOnEmptyRnd } from "../state/setupAndEnd/emptyRnd.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
   geneticsPavilionDrawLimit,

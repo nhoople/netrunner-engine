@@ -1,7 +1,7 @@
 /** The Spaces Between (tsb) Lunar pack primitives. */
 import { revealCards } from "../../state/visibility/reveal.js";
 import { loadCardCatalog } from "../../cards/load.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import type { RuleCite } from "../../state/types.js";
 import { CR } from "../../timing/labels.js";

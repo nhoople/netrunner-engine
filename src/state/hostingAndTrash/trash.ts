@@ -30,7 +30,7 @@
  * A discard is not a trash (CR 1.19.3): `discardCard` moves a card to the
  * discard pile with no trash triggers and no prevention.
  */
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import type { CardInstance, GameState, RuleCite } from "../types.js";
 import { removeCardFromCurrentZone } from "../scoring.js";

@@ -20,7 +20,7 @@ import type { GameState } from "../src/index.js";
 import type { ServerId } from "../src/state/types.js";
 import { currentMark, placeMark } from "../src/state/msKeywords.js";
 import { trashCard } from "../src/state/hostingAndTrash/trash.js";
-import { RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE } from "../src/state/fenris.js";
+import { RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE } from "../src/state/setupAndEnd/additionalIdentities.js";
 import {
   atRunnerAction,
   clearCorpHand,

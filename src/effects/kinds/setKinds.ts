@@ -5,7 +5,7 @@
 import type { EffectCtx, EvalResult } from "../eval.js";
 import { setRunnerPosition } from "../../state/uninstallAndPosition/runPosition.js";
 import type { Primitive } from "../ir.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { enterSetAside } from "../../state/zones.js";
 import { serverHostingCard } from "../eval.js";

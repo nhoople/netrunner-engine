@@ -1,8 +1,8 @@
 /**
  * Corp identity onBeforeFirstTurn (CR 1.6.7a). Notes for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState, StoredConditionalEffectKey } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState, StoredConditionalEffectKey } from "../types.js";
 
 type BeforeFirstTurnPendingMark = {
   cardId: string;

@@ -3,7 +3,7 @@
  */
 
 import { dealDamage } from "../damageAndPrevention/damage.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { trashCard } from "./trash.js";
 import type { CardInstance, GameState } from "../types.js";
 import { CR } from "../../timing/labels.js";

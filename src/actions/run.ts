@@ -4,7 +4,7 @@
  */
 import { revealCards } from "../state/visibility/reveal.js";
 import { subtractRunnerCreditPool } from "../state/costs.js";
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { addBreakerStrengthBoostThisRun } from "../state/continuous/lingeringEffects.js";
 import { evalEffect } from "../effects/eval.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";

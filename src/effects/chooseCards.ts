@@ -8,7 +8,7 @@
  * discarding player and discarded simultaneously.
  */
 import { openCardName } from "../state/visibility/seatVisibility.js";
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { openPendingChoose } from "../state/triggers/pendingChoice.js";
 import { shuffleInPlace } from "../state/rng.js";
 import { removeCardFromCurrentZone } from "../state/scoring.js";

@@ -2,7 +2,7 @@
  * Runner basic install from grip (and cards hosted as if in grip).
  * Effect-driven installs stay in the effect evaluator.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { noteInlineConditional } from "../state/triggers/inlineConditionalHooks.js";
 import { addBreakerStrengthBoostThisTurn } from "../state/continuous/lingeringEffects.js";

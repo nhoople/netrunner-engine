@@ -1,5 +1,5 @@
 /** First Contact (fc) Lunar pack primitives. */
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { canPayCost, payCost } from "../../state/costs.js";
 import type { RuleCite } from "../../state/types.js";

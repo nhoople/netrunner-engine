@@ -19,7 +19,7 @@ import {
   checkpointAfterInstruction,
   occurCheckpoint,
 } from "../../legality/checkpoints.js";
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 
 function noteAndCheckpointStored(

@@ -1,6 +1,6 @@
 /** Trash-interrupt helpers for Sacrificial Construct and Harbinger (CR 9.9.4c). */
 
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { abilitiesSuppressed } from "../continuous/abilities.js";
 import type { GameState } from "../types.js";
 import { CR } from "../../timing/labels.js";

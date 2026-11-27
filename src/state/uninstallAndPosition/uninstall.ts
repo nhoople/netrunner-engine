@@ -29,7 +29,7 @@
  * Moving installed ice to another position is not an uninstall (CR 6.2.2);
  * that is `moveIce` in `procedures/rearrange.ts`.
  */
-import { log } from "../createGame.js";
+import { log } from "../setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import type { CardInstance, GameState, ServerId } from "../types.js";
 import { removeCardFromCurrentZone } from "../scoring.js";

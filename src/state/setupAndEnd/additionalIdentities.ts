@@ -3,12 +3,12 @@
  * Outside-game pile, g-mod host filter, gains-text sync, ability carriers,
  * and Rebirth same-faction identity switch.
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { CardInstance, GameState } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { CardInstance, GameState } from "../types.js";
 import { log } from "./createGame.js";
 import { applyIdentityFace } from "./identityFace.js";
-import { CR } from "../timing/labels.js";
-import { hostCard, unhostCard } from "./hostingAndTrash/host.js";
+import { CR } from "../../timing/labels.js";
+import { hostCard, unhostCard } from "../hostingAndTrash/host.js";
 
 export const RUNNER_OUTSIDE_GAME_IDENTITIES_ZONE =
   "runner:outside-game-identities" as const;

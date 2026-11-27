@@ -4,7 +4,7 @@ import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { revealCards } from "../../state/visibility/reveal.js";
 import { occurCheckpoint } from "../../legality/checkpoints.js";
 import { emptyRunnerCreditPool } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_RUNNER_MU,

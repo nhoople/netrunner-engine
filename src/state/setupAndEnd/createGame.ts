@@ -1,9 +1,9 @@
-import { applyBreakerDef, applyIceDef } from "../cards/stubs.js";
-import { instantiateCard } from "../cards/load.js";
-import { START_STEP, STEPS, cursorFrom } from "../timing/graph.js";
-import { emptyTurnBookkeeping } from "./turn.js";
-import { recomputeRunnerLink } from "./hostingAndTrash/trashHooks.js";
-import { DEFAULT_RNG_SEED, seedRng } from "./rng.js";
+import { applyBreakerDef, applyIceDef } from "../../cards/stubs.js";
+import { instantiateCard } from "../../cards/load.js";
+import { START_STEP, STEPS, cursorFrom } from "../../timing/graph.js";
+import { emptyTurnBookkeeping } from "../turn.js";
+import { recomputeRunnerLink } from "../hostingAndTrash/trashHooks.js";
+import { DEFAULT_RNG_SEED, seedRng } from "../rng.js";
 import type {
   CardInstance,
   GameConfig,
@@ -11,9 +11,9 @@ import type {
   PlayerState,
   Server,
   ServerId,
-} from "./types.js";
-import { noteStoredConditionals } from "./triggers/storedConditionalHooks.js";
-import { checkpointAfterInstruction } from "../legality/checkpoints.js";
+} from "../types.js";
+import { noteStoredConditionals } from "../triggers/storedConditionalHooks.js";
+import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 
 function player(side: "corp" | "runner", identityId: string): PlayerState {
   return {

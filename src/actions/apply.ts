@@ -18,9 +18,13 @@ import {
 import { chooseSubroutinePosition } from "../effects/primitives/trashResolveTrace.js";
 import { chooseSparedSubroutine } from "../effects/primitives/spendInstallAdd.js";
 import { chooseNextSubroutineToResolve } from "../timing/subroutineOrder.js";
-import { activePlayer, cloneState, log } from "../state/createGame.js";
-import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
-import { startingHandSizeFor } from "../state/startingHand.js";
+import {
+  activePlayer,
+  cloneState,
+  log,
+} from "../state/setupAndEnd/createGame.js";
+import { runnerWinsOnEmptyRnd } from "../state/setupAndEnd/emptyRnd.js";
+import { startingHandSizeFor } from "../state/setupAndEnd/startingHand.js";
 import {
   currentWindow,
   effectiveIceStrength,
@@ -131,7 +135,7 @@ import {
 } from "../state/turn.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { resolvePendingOnEncounter } from "../state/run/onEncounter.js";
-import { runnerAbilityCarrierIds } from "../state/fenris.js";
+import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
 import {
   accessLimitEndsBreach,
   armNestedBreachIfPending,

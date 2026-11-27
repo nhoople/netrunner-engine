@@ -20,7 +20,7 @@ import {
   activeRunnerCurrentIds,
   allIceStrengthBonusFromCurrents,
 } from "../state/continuous/currents.js";
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { syncHostDurationReplacements } from "../state/triggers/hostDuration.js";
 import {
   lingeringBreakerStrengthBoost,

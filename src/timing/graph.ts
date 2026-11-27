@@ -5,7 +5,7 @@ import type {
   TurnPhase,
 } from "../state/types.js";
 import { abilitiesSuppressed } from "../state/continuous/abilities.js";
-import { runnerAbilityCarrierIds } from "../state/fenris.js";
+import { runnerAbilityCarrierIds } from "../state/setupAndEnd/additionalIdentities.js";
 import {
   approachServerAbility,
   refillRecurringCredits,
@@ -93,7 +93,7 @@ import {
   noteFirstSuccessfulMarkRun,
 } from "../state/run/firstSuccessfulRunHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import {
   addBreakerStrengthBoostThisEncounter,
   addIceStrengthBoostThisEncounter,
@@ -182,7 +182,7 @@ import {
   noteRunnerRigTurnBegin,
   noteRunnerScoreOnTurnBegin,
 } from "../state/runnerTurnBeginHooks.js";
-import { noteOnBeforeFirstTurn } from "../state/beforeFirstTurnHooks.js";
+import { noteOnBeforeFirstTurn } from "../state/setupAndEnd/beforeFirstTurnHooks.js";
 import {
   breachCreditGain,
   corpStartsWithBadPublicity,
@@ -198,7 +198,7 @@ import {
   onSuccessfulRunEnded,
   startIdentitySetup,
 } from "../state/cardFlags/cardDeclarations.js";
-import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../state/identityFlipHooks.js";
+import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../state/setupAndEnd/identityFlipHooks.js";
 import { noteOutsidePoolSpendTriggers } from "../state/outsidePoolSpend.js";
 import {
   activeLockdownIds,

@@ -37,7 +37,7 @@ import {
   takeFromStealthHostedCredits,
   subtractRunnerCreditPool,
 } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import { beginExtraDifferentAction } from "../../state/corpActionHooks.js";
 import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 import {
@@ -46,7 +46,7 @@ import {
   openExposeInterruptOrComplete,
   preventPendingExpose,
 } from "../../state/visibility/expose.js";
-import { applyIdentityFace } from "../../state/identityFace.js";
+import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
 import {
   addBreakerStrengthBoostThisEncounter,
   addBreakerStrengthBoostThisRun,

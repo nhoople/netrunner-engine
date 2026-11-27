@@ -2,7 +2,7 @@
  * Encounter primitives that live in the effect evaluator.
  * Approaching ice and resolving the run stay in apply.ts.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { CR } from "../timing/labels.js";
 import {
   fireOnBypassTriggers,

@@ -5398,7 +5398,7 @@
       "abilities": [
         "You start the game with 10 credits and 1 bad publicity"
       ],
-      "note": "Area 16: onGameStart gains 10 on top of the 5 every Corp takes (src/state/createGame.ts), so 15; and the game host places identities after createInitialState (netrunner-game src/decks.ts), so onGameStart never fires there (5 credits, 0 bad publicity). The start amount should replace the 5."
+      "note": "Area 16: onGameStart gains 10 on top of the 5 every Corp takes (src/state/setupAndEnd/createGame.ts), so 15; and the game host places identities after createInitialState (netrunner-game src/decks.ts), so onGameStart never fires there (5 credits, 0 bad publicity). The start amount should replace the 5."
     },
     "grndl-refinery": {
       "cycle": "spin",

@@ -2,7 +2,7 @@
 
 import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { isCardActive } from "./continuous/active.js";
-import { log } from "./createGame.js";
+import { log } from "./setupAndEnd/createGame.js";
 import {
   trashCorpCurrentsOnAgendaStolen,
   trashCurrentsOnAgendaScored,

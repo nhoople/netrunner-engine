@@ -3,7 +3,7 @@
  * Forked trashes the first ice of the named subtype once every subroutine
  * on it is broken, including when it has none.
  */
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import type { GameState } from "../state/types.js";
 import { CR } from "./labels.js";
 import { trashCard } from "../state/hostingAndTrash/trash.js";

@@ -6,7 +6,7 @@ import {
   emptyRunnerCreditPool,
   noteCorpSpentAgendaCounters,
 } from "../../state/costs.js";
-import { log } from "../../state/createGame.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   dealDamage,
   removePendingDamageEntirely,

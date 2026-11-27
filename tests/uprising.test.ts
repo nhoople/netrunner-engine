@@ -26,7 +26,7 @@ import type { Action, GameState } from "../src/state/types.js";
 import { beginCorpTurnFlags, beginRunnerTurnFlags } from "../src/state/turn.js";
 import { dealDamage } from "../src/state/damageAndPrevention/damage.js";
 import { agendaPointsFor } from "../src/state/scoring.js";
-import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../src/state/identityFlipHooks.js";
+import { fireCorpIdentityFlippedSuccessfulHqOrRdRun } from "../src/state/setupAndEnd/identityFlipHooks.js";
 import { additionalRunInitiateCredits } from "../src/state/run/runInitiateTax.js";
 
 describe("uprising", () => {

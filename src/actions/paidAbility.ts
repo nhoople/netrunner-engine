@@ -7,7 +7,7 @@ import {
   paidAbilityBreakBlock,
   subroutinesBrokenByRunnerCount,
 } from "../state/procedures/break.js";
-import { log } from "../state/createGame.js";
+import { log } from "../state/setupAndEnd/createGame.js";
 import { currentMark } from "../state/msKeywords.js";
 import { drawCards } from "../effects/draw.js";
 import {

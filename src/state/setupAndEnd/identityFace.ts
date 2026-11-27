@@ -1,4 +1,4 @@
-import type { CardInstance } from "./types.js";
+import type { CardInstance } from "../types.js";
 
 export type IdentityFace = NonNullable<CardInstance["identityFaces"]>[number];
 
