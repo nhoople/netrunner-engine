@@ -1,5 +1,5 @@
 /** Order and Chaos (oac) deluxe primitives. */
-import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
+import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { effectiveCorpMaxHandSize } from "../../state/continuous/handSize.js";
 import { iceAtRunnerPosition } from "../../state/runPosition.js";
 import {

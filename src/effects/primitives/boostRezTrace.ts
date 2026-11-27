@@ -1,5 +1,5 @@
 /** The Source (ts) Lunar pack primitives. */
-import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
+import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";

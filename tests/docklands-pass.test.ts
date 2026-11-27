@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { createInitialState } from "../src/index.js";
 import { instantiateCard } from "../src/cards/load.js";
-import { beginBreachAccess } from "../src/state/access.js";
+import { beginBreachAccess } from "../src/state/access/access.js";
 
 describe("CR C2 — Docklands Pass field-driven HQ bonus", () => {
   it("grants +1 on first HQ breach only (defId-agnostic field)", () => {

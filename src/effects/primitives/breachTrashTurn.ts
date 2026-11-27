@@ -1,5 +1,5 @@
 /** True Colors (tc) Spin pack primitives. */
-import { breachAlreadyReplaced } from "../../state/breachReplacement.js";
+import { breachAlreadyReplaced } from "../../state/access/breachReplacement.js";
 import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { log } from "../../state/createGame.js";
 import { chooseCards } from "../chooseCards.js";

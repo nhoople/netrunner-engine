@@ -1635,7 +1635,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks accessed-card abilities at 10.3.1a (phase 3 scanner)", async () => {
     const { noteAccessedCardAbilities } =
-      await import("../src/state/accessAbilityHooks.js");
+      await import("../src/state/access/accessAbilityHooks.js");
     const s = createInitialState();
     const field = instantiateCard("psychic-field", "pf-1", "server:hq:root");
     field.rezzed = true;
@@ -1678,7 +1678,7 @@ describe("checkpoint snapshot / diff (CR 10.3.1a / 9.6.6a)", () => {
 
   it("marks finish-access-R&D once-per-turn at 10.3.1a (phase 3 scanner)", async () => {
     const { noteFinishAccessRdOncePerTurn } =
-      await import("../src/state/accessAbilityHooks.js");
+      await import("../src/state/access/accessAbilityHooks.js");
     const s = createInitialState();
     const maya = instantiateCard("maya", "maya-1", "runner:installed");
     s.cards["maya-1"] = maya;

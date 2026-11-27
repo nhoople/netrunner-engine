@@ -15,7 +15,7 @@ import {
   STEPS,
 } from "../src/index.js";
 import { startRun } from "../src/actions/run.js";
-import { beginBreachAccess } from "../src/state/access.js";
+import { beginBreachAccess } from "../src/state/access/access.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

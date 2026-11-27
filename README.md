@@ -161,6 +161,7 @@ src/                 # index.ts: the package entry; cli.ts: the development host
     primitives/      # printed procedures grouped by verb, not by pack
   legality/          # candidates.ts: collectCandidateActions; checkpoints, priority, legality queries
   state/             # types.ts: points to types/; costs, run position, seat visibility, and the hooks each timing point fires
+    access/          # accessing cards (CR ch. 7): access candidates and filters, access-step abilities, abilities that replace a breach
     continuous/      # continuous effects (CR 9.12): whether a card is active (1.8), blanking, lingering effects (9.10), currents and lockdowns in the play area, continuous cost, subroutine, strength and hand-size modifiers
     procedures/      # one shared helper per CR audit procedure: host, trash, uninstall, rearrange, break
     run/             # run flow (CR ch. 6): starting a run and its legality and taxes, the hooks each run step fires (run begin, approach, encounter, pass, bypass, success, end), end the run

@@ -7,7 +7,7 @@ import {
   runnerSeesAccessedCard,
 } from "../state/seatVisibility.js";
 import { log } from "../state/createGame.js";
-import { isCentral } from "../state/access.js";
+import { isCentral } from "../state/access/access.js";
 import type {
   CardInstance,
   GameState,

@@ -29,7 +29,7 @@ import {
   nextBreakableSubroutine,
   runnerBreakBlock,
 } from "../../state/procedures/break.js";
-import { applyRunAccessRestrictions } from "../../state/accessFilter.js";
+import { applyRunAccessRestrictions } from "../../state/access/accessFilter.js";
 import {
   corpInstallCost,
   creditsAvailableForInstall,

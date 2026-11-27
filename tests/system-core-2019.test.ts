@@ -30,7 +30,7 @@ import { memoryLimit, usedMemory } from "../src/state/turn.js";
 import {
   beginBreachAccess,
   refreshRdDeckCandidate,
-} from "../src/state/access.js";
+} from "../src/state/access/access.js";
 import { corpCreditsForTrace } from "../src/state/trace.js";
 import {
   creditsAvailableForInstall,

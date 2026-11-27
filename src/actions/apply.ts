@@ -131,8 +131,8 @@ import {
   armNestedBreachIfPending,
   beginBreachAccess,
   spendAccessLimitOnChoice,
-} from "../state/access.js";
-import { applyRunAccessRestrictions } from "../state/accessFilter.js";
+} from "../state/access/access.js";
+import { applyRunAccessRestrictions } from "../state/access/accessFilter.js";
 import { isRunTargetAllowed } from "../state/run/runLegality.js";
 import { modifiersFromStartsRun } from "../state/run/runStart.js";
 import type {

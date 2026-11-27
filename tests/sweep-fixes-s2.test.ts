@@ -29,7 +29,7 @@ import { fx, type Effect } from "../src/effects/ir.js";
 import { endLooksAndReveals, revealCards } from "../src/state/reveal.js";
 import { trashCard } from "../src/state/procedures/trash.js";
 import { stealOrTrashBlocked } from "../src/actions/access.js";
-import { beginBreachAccess } from "../src/state/access.js";
+import { beginBreachAccess } from "../src/state/access/access.js";
 import { fireIceRezDuringRunHooks } from "../src/effects/eval.js";
 import { placeMark } from "../src/state/msKeywords.js";
 import { passIdle } from "../src/demo/passIdle.js";

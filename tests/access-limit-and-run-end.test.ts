@@ -6,7 +6,7 @@
  *   chooses from the deck; root upgrades are candidates beside it (CR 7.3.5).
  *   A card that enters Archives during a breach of Archives is a candidate
  *   (CR 7.4.6d). One procedure: `spendAccessLimitOnChoice` and
- *   `accessLimitEndsBreach` in `src/state/access.ts`.
+ *   `accessLimitEndsBreach` in `src/state/access/access.ts`.
  * - Run Ends is not skipped when a run-end ability's choice pauses it, so the
  *   run is complete after Boomerang's shuffle (CR 6.9.6d).
  * - The Success Phase resolves once per run, and a rezzed root card's

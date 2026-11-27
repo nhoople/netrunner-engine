@@ -12,7 +12,7 @@ import {
   instantiateCard,
 } from "../src/index.js";
 import { basicDrawBonus, traceBaseBonus } from "../src/state/staticFlags.js";
-import { applyMaxAccessOtherThanSelf } from "../src/state/accessFilter.js";
+import { applyMaxAccessOtherThanSelf } from "../src/state/access/accessFilter.js";
 import { effectiveMemoryCost } from "../src/state/turn.js";
 import type { GameState, ServerId } from "../src/index.js";
 import {

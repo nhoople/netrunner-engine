@@ -18,7 +18,7 @@ import {
 } from "../state/costs.js";
 import { directHostedTakeFromEmpty } from "../state/hostedCredits.js";
 import { agendaPointsFor } from "../state/scoring.js";
-import { accessLimitEndsBreach } from "../state/access.js";
+import { accessLimitEndsBreach } from "../state/access/access.js";
 import { additionalRunInitiateTax } from "../state/run/runInitiateTax.js";
 import {
   isServerAllowedForSpec,

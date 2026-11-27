@@ -1,8 +1,8 @@
 /**
  * Access-step conditionals. Notes queues for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./continuous/abilities.js";
-import type { GameState, StoredConditionalEffectKey } from "./types.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
+import type { GameState, StoredConditionalEffectKey } from "../types.js";
 
 type AccessAbilityPendingMark = {
   cardId: string;
