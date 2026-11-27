@@ -53,38 +53,6 @@ export function applyFlashpointMlPrimitive(
       return { ok: true };
     }
 
-    case "prevent_tags_or_damage": {
-      const max = Math.max(0, action.max ?? 3);
-      const pendingTags = state.pendingTags?.remaining ?? 0;
-      const pendingDmg = state.pendingDamage?.remaining ?? 0;
-      const options: { id: string; label: string; effect: Effect }[] = [];
-      if (pendingTags > 0) {
-        const n = Math.min(max, pendingTags);
-        options.push({
-          id: "prevent-tags",
-          label: `Prevent ${n} tag(s)`,
-          effect: fx.do({ kind: "prevent_pending_tags", amount: n }),
-        });
-      }
-      if (pendingDmg > 0) {
-        const n = Math.min(max, pendingDmg);
-        options.push({
-          id: "prevent-dmg",
-          label: `Prevent ${n} damage`,
-          effect: fx.do({ kind: "prevent_pending_damage", amount: n }),
-        });
-      }
-      if (options.length === 0) {
-        log(state, `On the Lam — nothing to prevent.`);
-        return { ok: true };
-      }
-      if (options.length === 1) {
-        return evalEffect(ctx, options[0]!.effect);
-      }
-      openPendingChoose(state, { sourceId, chooser: "runner", options });
-      return { ok: true };
-    }
-
     case "spend_x_remove_tags": {
       const tags = state.runner.tags;
       const credits = state.runner.credits;

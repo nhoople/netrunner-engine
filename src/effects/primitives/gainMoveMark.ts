@@ -1,13 +1,5 @@
 import { effectiveCorpMaxHandSize } from "../../state/continuous/handSize.js";
-import {
-  emptyRunnerCreditPool,
-  noteCorpSpentAgendaCounters,
-} from "../../state/keywordsAndCredits/costs.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import {
-  dealDamage,
-  removePendingDamageEntirely,
-} from "../../state/damageAndPrevention/damage.js";
 import { autoResolveTrace } from "../../state/turnAndActions/trace.js";
 import { memoryLimit, usedMemory } from "../../state/turnAndActions/turn.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
@@ -16,6 +8,8 @@ import { evalEffect, grantAbilityCredits, type EffectCtx } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
+import { noteCorpSpentAgendaCounters } from "../../state/keywordsAndCredits/costs.js";
+import { dealDamage } from "../../state/damageAndPrevention/damage.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -226,23 +220,6 @@ export function applyOacPrimitive(
       return { ok: true };
     }
 
-    case "checkpoint_schedule_meat_on_successful_run": {
-      // Checkpoint: "do 3 meat damage when this run becomes successful", a
-      // delayed ability that outlives the subroutine (CR 9.6.13c).
-      const amount = (action as { amount?: number }).amount ?? 3;
-      if (state.run) {
-        state.run.delayedMeatDamageOnSuccess = [
-          ...(state.run.delayedMeatDamageOnSuccess ?? []),
-          { sourceId, amount },
-        ];
-        log(
-          state,
-          `${source?.title ?? sourceId} — ${amount} meat damage when this run becomes successful.`,
-        );
-      }
-      return { ok: true };
-    }
-
     case "trace_strength_equal_source_advancements": {
       const strength = source?.advancementCounters ?? 0;
       const onSuccess =
@@ -288,33 +265,6 @@ export function applyOacPrimitive(
         .lastScoredOrStolenAgendaId;
       const pts = agendaId ? (state.cards[agendaId]?.agendaPoints ?? 0) : 0;
       return grantAbilityCredits(ctx, "runner", pts);
-    }
-
-    case "prevent_all_damage": {
-      removePendingDamageEntirely(state, "Sacrificial Clone");
-      // Trash all installed hardware, non-virtual resources, all grip; lose credits; remove tags.
-      for (const id of [...state.runner.installed]) {
-        const c = state.cards[id];
-        if (!c) continue;
-        if (c.type === "hardware") {
-          trashCard(state, id);
-        } else if (
-          c.type === "resource" &&
-          !(c.subtypes ?? []).includes("virtual")
-        ) {
-          trashCard(state, id);
-        }
-      }
-      for (const id of [...state.runner.hand]) {
-        trashCard(state, id);
-      }
-      emptyRunnerCreditPool(state);
-      if (state.runner.tags > 0) {
-        const removed = state.runner.tags;
-        state.runner.tags = 0;
-        log(state, `Sacrificial Clone — remove ${removed} tag(s).`);
-      }
-      return { ok: true };
     }
 
     case "stim_dealer_turn_begin": {

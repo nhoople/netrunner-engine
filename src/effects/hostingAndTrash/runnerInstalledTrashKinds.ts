@@ -18,10 +18,10 @@ import {
 import { type Effect, fx, type Primitive } from "../ir.js";
 import { shuffleInPlace } from "../../state/rng.js";
 import { installedCorpCards } from "../primitives/chooseGainShuffle.js";
-import { countRezzedNextIce } from "../primitives/searchRevealTrash.js";
 import { applySpinTcPrimitive } from "../primitives/breachTrashTurn.js";
 import type { GameState } from "../../state/types.js";
 import { applyRedsandFmPrimitive } from "../primitives/derezRfgTrash.js";
+import { countRezzedNextIce } from "../damageAndPrevention/damageAndPreventionKinds.js";
 
 /**
  * Who chooses and carries out a "trash 1 program/hardware" subroutine:

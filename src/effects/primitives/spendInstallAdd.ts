@@ -8,12 +8,12 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { CR } from "../../timing/labels.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
-import { fx, type Effect, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
 import { agendaPointsFor } from "../../state/turnAndActions/scoring.js";
 import type { EffectCtx } from "../eval.js";
 import type { RuleCite } from "../../state/types.js";
+import { fx, type Primitive } from "../ir.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -182,66 +182,6 @@ export function applySpinHapPrimitive(
             id: "decline",
             label: "Place nothing",
             effect: fx.gainCredits("corp", 0),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-    case "spend_shi_kyu_for_net_damage": {
-      // Printed: spend any number of credits; Runner suffers that much net
-      // unless they add this asset to their score area as −1 AP (CR 1.2.1).
-      const max = state.corp.credits;
-      const opts: { id: string; label: string; effect: Effect }[] = [];
-      for (let n = 0; n <= Math.min(max, 20); n++) {
-        if (n === 0) {
-          opts.push({
-            id: "shi:0",
-            label: "Spend 0¢",
-            effect: fx.gainCredits("corp", 0),
-          });
-          continue;
-        }
-        opts.push({
-          id: `shi:${n}`,
-          label: `Spend ${n}¢`,
-          effect: fx.seq(
-            fx.do({ kind: "corp_pay_credits", amount: n }),
-            fx.choose("runner", [
-              {
-                id: "shi-net",
-                label: `Suffer ${n} net damage`,
-                effect: fx.do({ kind: "net_damage", amount: n }),
-              },
-              {
-                id: "shi-score",
-                label: "Add to score area as −1 agenda",
-                effect: fx.do({
-                  kind: "add_to_runner_score_as_agenda",
-                  agendaPoints: -1,
-                }),
-              },
-            ]),
-          ),
-        });
-      }
-      openPendingChoose(state, { sourceId, chooser: "corp", options: opts });
-      return { ok: true };
-    }
-    case "pay_or_net": {
-      const amt = action.amount ?? 1;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "pup-pay",
-            label: `Pay ${amt}¢`,
-            effect: fx.do({ kind: "runner_pay_credits", amount: amt }),
-          },
-          {
-            id: "pup-net",
-            label: `Take ${amt} net damage`,
-            effect: fx.do({ kind: "net_damage", amount: amt }),
           },
         ],
       });
@@ -416,30 +356,6 @@ export function applySpinHapPrimitive(
       card.zone = "corp:score";
       card.faceup = true;
       log(state, `Plan B — score ${card.title} from HQ.`);
-      return { ok: true };
-    }
-    case "pay_tori_hanzo_instead_net": {
-      // Printed: you may pay 2¢ to do 1 core instead. The may/pay is the
-      // damage_interrupt paid ability (creditCost 2); this leaf only replaces
-      // the imminent expected effect (CR 9.9.10 / 1.2.1).
-      const pending = state.pendingDamage;
-      if (
-        state.run?.netDamageWould !== 1 ||
-        pending?.type !== "net" ||
-        pending.remaining <= 0
-      ) {
-        log(
-          state,
-          `Tori Hanzō — not the first time the Corp would do net damage this run (CR ${CR.ordinalWould.number}).`,
-        );
-        return { ok: true };
-      }
-      pending.type = "core";
-      pending.remaining = 1;
-      log(
-        state,
-        `Tori Hanzō — replace net damage with 1 core damage (CR ${CR.ordinalWould.number}).`,
-      );
       return { ok: true };
     }
     case "corp_pay_credits": {

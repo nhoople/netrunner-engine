@@ -3,7 +3,6 @@ import type { RuleCite } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { random } from "../../state/rng.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import { uninstallCard } from "../../state/uninstallAndPosition/uninstall.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { fx, type Primitive } from "../ir.js";
@@ -19,35 +18,6 @@ export function applyMumbadKgPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "prevent_ramujan_damage_trash_stack": {
-      if (!source) return { ok: true };
-      const copies = state.runner.installed.filter(
-        (id) => id !== sourceId && state.cards[id]?.defId === source.defId,
-      ).length;
-      const x = 1 + copies;
-      const pending = state.pendingDamage;
-      if (!pending || pending.remaining <= 0) {
-        log(state, `${source.title} — no pending damage.`);
-        return { ok: true };
-      }
-      if (pending.type !== "net" && pending.type !== "core") {
-        log(state, `${source.title} — not net/core damage.`);
-        return { ok: true };
-      }
-      const prevent = Math.min(x, pending.remaining);
-      pending.remaining -= prevent;
-      for (let i = 0; i < prevent; i++) {
-        const top = state.runner.deck.shift();
-        if (!top) break;
-        trashCard(state, top);
-      }
-      log(
-        state,
-        `${source.title} — prevent ${prevent} ${pending.type} damage; trash ${prevent} from stack.`,
-      );
-      return { ok: true };
-    }
-
     case "move_accessed_to_bottom_rd": {
       const accessId = state.run?.accessingCardId ?? null;
       if (!accessId) {

@@ -35,34 +35,6 @@ export function applySpinTcPrimitive(
       });
       return { ok: true };
     }
-    case "leverage": {
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options: [
-          {
-            id: "take-bp",
-            label: "Take 2 bad publicity",
-            effect: fx.do({ kind: "give_bad_publicity", amount: 2 }),
-          },
-          {
-            id: "decline",
-            label: "Decline — Runner prevents all damage until their next turn",
-            effect: fx.do({ kind: "leverage_shield_runner" }),
-          },
-        ],
-        logLine: `Leverage — Corp may take 2 bad publicity.`,
-      });
-      return { ok: true };
-    }
-    case "leverage_shield_runner": {
-      state.turn.leveragePreventRunnerDamage = true;
-      log(
-        state,
-        `Leverage — Runner prevents all damage until next turn begins.`,
-      );
-      return { ok: true };
-    }
     case "turn_begin": {
       const card = state.cards[sourceId];
       if ((card?.powerCounters ?? 0) <= 0) return { ok: true };

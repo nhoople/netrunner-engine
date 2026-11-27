@@ -21,22 +21,6 @@ export function applySansanBbPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "prevent_dorm_computer_run_all_tags": {
-      // "Whenever you would take tags during that run": the prevention
-      // lasts for the run this ability makes and ends with it (CR 9.10.1).
-      const r = evalEffect(ctx, {
-        op: "do",
-        action: {
-          kind: "may_start_run",
-          servers: "any",
-          preventAllTagsThisRun: true,
-        },
-      });
-      if (!r.ok) return r;
-      log(state, `Dorm Computer — run; prevent all tags this run.`);
-      return { ok: true };
-    }
-
     case "draw_until_grip_equals_max_hand_size": {
       // Game Day: draw the difference through the draw procedure, so draw
       // limits and draw triggers apply (CR 8.4.2).

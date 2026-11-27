@@ -8,7 +8,6 @@ import type { RuleCite } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { trashCard } from "../../state/hostingAndTrash/trash.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -163,43 +162,6 @@ export function applyLunarAtrPrimitive(
           }),
         })),
       });
-      return { ok: true };
-    }
-    case "offer_prevent": {
-      const cardId = (action as { cardId: string }).cardId;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          {
-            id: "snatch-take-tag",
-            label: "Take 1 tag to prevent trash",
-            effect: fx.do({ kind: "prevent_with_tag" }),
-          },
-          {
-            id: "snatch-allow",
-            label: `Allow trash of ${state.cards[cardId]?.title ?? cardId}`,
-            effect: fx.do({
-              kind: "trash_connection",
-              cardId,
-            }),
-          },
-        ],
-      });
-      return { ok: true };
-    }
-    case "prevent_with_tag": {
-      state.runner.tags += 1;
-      state.turn.tagsGivenThisTurn = (state.turn.tagsGivenThisTurn ?? 0) + 1;
-      log(state, `Snatch and Grab — Runner takes 1 tag to prevent trash.`);
-      if (state.runner.tags > 0) {
-        for (const id of [...state.runner.installed]) {
-          const res = state.cards[id];
-          if (!res?.trashSelfWhenRunnerTagged) continue;
-          trashCard(state, id);
-          log(state, `${res.title} — trashed (Runner is tagged).`);
-        }
-      }
       return { ok: true };
     }
     default:

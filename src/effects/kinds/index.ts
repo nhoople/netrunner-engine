@@ -72,6 +72,10 @@ import {
   applyRunnerInstalledTrashKindsWhenSourceExists,
 } from "../hostingAndTrash/runnerInstalledTrashKinds.js";
 import { applyUninstallAndPositionKinds } from "../uninstallAndPosition/uninstallAndPositionKinds.js";
+import {
+  applyDamageAndPreventionKinds,
+  applyDamageAndPreventionKindsWhenSourceExists,
+} from "../damageAndPrevention/damageAndPreventionKinds.js";
 
 const HANDLERS = [
   applyAddKinds,
@@ -123,6 +127,8 @@ const HANDLERS = [
   applyRunnerInstalledTrashKinds,
   applyRunnerInstalledTrashKindsWhenSourceExists,
   applyUninstallAndPositionKinds,
+  applyDamageAndPreventionKinds,
+  applyDamageAndPreventionKindsWhenSourceExists,
 ] as const;
 
 export function applyCoreKinds(

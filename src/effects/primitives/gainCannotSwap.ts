@@ -2,7 +2,6 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import type { EffectCtx } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
-import { resolveRibsPick } from "../../state/damageAndPrevention/damage.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -46,18 +45,6 @@ export function applySansanUotPrimitive(
       }
       state.corp.credits += 1;
       log(state, `Expo Grid — gain 1¢ → ${state.corp.credits}¢.`);
-      return { ok: true };
-    }
-
-    case "suffer_chosen_damage": {
-      resolveRibsPick(state, {
-        type: action.damage,
-        amount: action.amount,
-        sourceId: action.damageSourceId,
-        beforeCore: action.beforeCore,
-        count: action.count,
-        picked: [...action.picked],
-      });
       return { ok: true };
     }
 

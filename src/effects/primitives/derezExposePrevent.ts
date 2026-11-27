@@ -9,7 +9,6 @@ import type { EffectCtx } from "../eval.js";
 import { evalEffect } from "../eval.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { fx, type Primitive } from "../ir.js";
-import { rezzedIceIds } from "../rez/rezKinds.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -34,24 +33,6 @@ export function applyRedsandDcPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "prevent_all_but_n_pending_damage": {
-      const leave = action.leave ?? 1;
-      const pending = state.pendingDamage;
-      if (!pending || pending.type !== "net" || pending.remaining <= leave) {
-        log(
-          state,
-          `Prevent all but ${leave} is relevant only when net damage is ${leave + 1} or more (CR ${CR.preventAllButOne.number}).`,
-        );
-        return { ok: true };
-      }
-      pending.remaining = leave;
-      log(
-        state,
-        `Expected ${pending.type} damage is set to ${leave} (CR ${CR.preventAllButOne.number}).`,
-      );
-      return { ok: true };
-    }
-
     case "mad_dash_on_run_end": {
       const stole = (state.run?.agendasStolenThisRun ?? 0) > 0;
       if (stole) {
@@ -61,32 +42,6 @@ export function applyRedsandDcPrimitive(
         );
       }
       return evalEffect(ctx, fx.do({ kind: "meat_damage", amount: 1 }));
-    }
-
-    case "may_core_if_rezzed_next_ice": {
-      const hasNext = rezzedIceIds(state).some((id) =>
-        (state.cards[id]?.subtypes ?? []).includes("next"),
-      );
-      if (!hasNext) {
-        log(state, `NEXT Wave 2 — no rezzed NEXT ice.`);
-        return { ok: true };
-      }
-      return evalEffect(ctx, {
-        op: "choose",
-        chooser: "corp",
-        options: [
-          {
-            id: "accept",
-            label: "Do 1 core damage",
-            effect: fx.do({ kind: "core_damage", amount: 1 }),
-          },
-          {
-            id: "decline",
-            label: "Decline",
-            effect: fx.do({ kind: "gain_credits", side: "corp", amount: 0 }),
-          },
-        ],
-      });
     }
 
     case "add_facedown_archives_to_hq_per_advancement": {

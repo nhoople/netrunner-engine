@@ -6657,6 +6657,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/eval.ts#fireIceRezDuringRunHooks",
           "kinds": []
         },
@@ -6686,10 +6690,6 @@
         },
         {
           "site": "src/effects/primitives/preventInstallDraw.ts#applySansanBbPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/preventMoveChoose.ts#applyMumbadKgPrimitive",
           "kinds": []
         },
         {
@@ -18150,6 +18150,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/eval.ts#offerRdArrangeChoice",
           "kinds": []
         },
@@ -19984,6 +19988,14 @@
           "kinds": []
         },
         {
+          "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#countRezzedNextIce",
+          "kinds": []
+        },
+        {
           "site": "src/effects/encounterPrimitives.ts#applyEncounterPrimitive",
           "kinds": []
         },
@@ -20160,15 +20172,7 @@
           "kinds": []
         },
         {
-          "site": "src/effects/primitives/derezExposePrevent.ts#applyRedsandDcPrimitive",
-          "kinds": []
-        },
-        {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
           "kinds": []
         },
         {
@@ -20205,10 +20209,6 @@
         },
         {
           "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/searchRevealTrash.ts#countRezzedNextIce",
           "kinds": []
         },
         {
@@ -21049,7 +21049,11 @@
           "kinds": []
         },
         {
-          "site": "src/effects/damagePrimitives.ts#applyDamagePrimitive",
+          "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
+          "kinds": []
+        },
+        {
+          "site": "src/effects/damageAndPrevention/damagePrimitives.ts#applyDamagePrimitive",
           "kinds": []
         },
         {
@@ -23361,7 +23365,7 @@
       ],
       "readers": [
         {
-          "site": "src/effects/primitives/scoreTraceOffer.ts#applyLunarAtrPrimitive",
+          "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
           "kinds": []
         },
         {
@@ -23772,6 +23776,10 @@
           "kinds": []
         },
         {
+          "site": "src/effects/damageAndPrevention/damageAndPreventionKinds.ts#applyDamageAndPreventionKinds",
+          "kinds": []
+        },
+        {
           "site": "src/effects/eval.ts#evalCond",
           "kinds": []
         },
@@ -24057,10 +24065,6 @@
         },
         {
           "site": "src/effects/primitives/gainExposeSearch.ts#applyKitaraDtwnPrimitive",
-          "kinds": []
-        },
-        {
-          "site": "src/effects/primitives/gainMoveMark.ts#applyOacPrimitive",
           "kinds": []
         },
         {

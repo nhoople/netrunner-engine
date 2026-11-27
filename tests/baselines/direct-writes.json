@@ -90,6 +90,11 @@
     "src/effects/counterPrimitives.ts": {
       "rezzed": 1
     },
+    "src/effects/damageAndPrevention/damageAndPreventionKinds.ts": {
+      "deck": 2,
+      "hand": 1,
+      "zone": 1
+    },
     "src/effects/draw.ts": {
       "deck": 3,
       "discardPile": 1,
@@ -261,10 +266,10 @@
       "zone": 6
     },
     "src/effects/primitives/derezDrawChoose.ts": {
-      "deck": 2,
+      "deck": 1,
       "discardPile": 1,
-      "hand": 2,
-      "zone": 3
+      "hand": 1,
+      "zone": 2
     },
     "src/effects/primitives/derezExposePrevent.ts": {
       "hand": 1,
@@ -319,7 +324,7 @@
       "zone": 1
     },
     "src/effects/primitives/preventMoveChoose.ts": {
-      "deck": 4,
+      "deck": 3,
       "discardPile": 2,
       "zone": 3
     },
