@@ -52,11 +52,11 @@ import {
 } from "../../effects/corpTrash.js";
 import { noteStoredConditional } from "../storedConditionalHooks.js";
 import { noteInlineConditional } from "../inlineConditionalHooks.js";
-import { abilitiesSuppressed } from "../abilities.js";
+import { abilitiesSuppressed } from "../continuous/abilities.js";
 import { noteStoredConditionals } from "../storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../../legality/checkpoints.js";
 import { shuffleInPlace } from "../rng.js";
-import { recomputeRunnerMaxHandSize } from "../handSize.js";
+import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";
 import { unhostCard } from "./host.js";
 import { runnerSeesAccessedCard } from "../seatVisibility.js";
 

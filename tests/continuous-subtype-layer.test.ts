@@ -12,7 +12,7 @@ import {
   effectiveIceSubtypes,
   instantiateCard,
 } from "../src/index.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

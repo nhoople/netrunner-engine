@@ -3,16 +3,16 @@
  * of their source once created and are removed at 10.3.1b when duration has
  * passed. Coexists with ad-hoc turn/run fields until those migrate here.
  */
-import { CR } from "../timing/labels.js";
-import { cancelPendingIfSourceInactive } from "./pendingAbilities.js";
-import { applyBreakerStrengthIncrease } from "./strengthIncrease.js";
+import { CR } from "../../timing/labels.js";
+import { cancelPendingIfSourceInactive } from "../pendingAbilities.js";
+import { applyBreakerStrengthIncrease } from "../strengthIncrease.js";
 import type {
   GameState,
   LingeringDuration,
   LingeringEffect,
   Side,
-} from "./types.js";
-import { nextId } from "./ids.js";
+} from "../types.js";
+import { nextId } from "../ids.js";
 
 /** Mark server designation (CR 10.11.4). Payload: `{ serverId: ServerId }`. */
 export const LINGERING_KIND_MARK = "mark";

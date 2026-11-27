@@ -29,7 +29,7 @@ import { beginBreachAccess } from "../src/state/access.js";
 import { applyRunAccessRestrictions } from "../src/state/accessFilter.js";
 import { runnerCreditPoolLocked } from "../src/state/costs.js";
 import { hostCard } from "../src/state/procedures/host.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 import { quoteHostServerRecurringTowardCorpRez } from "../src/cards/stubs.js";
 import { fireScoreOrStealSideEffects } from "../src/actions/score.js";
 

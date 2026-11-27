@@ -24,13 +24,19 @@
  * - `markSubroutineBroken`: marks a subroutine broken and records who broke it.
  * - `breakActionCost`: what the basic break action costs a declared breaker.
  */
-import { abilitiesSuppressed, runnerCannotUseProgram } from "../abilities.js";
-import { facedownInstalledRunnerCard, isCardActive } from "../active.js";
+import {
+  abilitiesSuppressed,
+  runnerCannotUseProgram,
+} from "../continuous/abilities.js";
+import {
+  facedownInstalledRunnerCard,
+  isCardActive,
+} from "../continuous/active.js";
 import { effectHasKind } from "../costs.js";
 import {
   cannotBreakExceptIcebreakerActive,
   cardHasIcebreakerSubtype,
-} from "../lockdowns.js";
+} from "../continuous/lockdowns.js";
 import { currentMark } from "../msKeywords.js";
 import {
   effectiveBreakerStrength,

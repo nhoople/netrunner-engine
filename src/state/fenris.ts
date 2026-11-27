@@ -3,7 +3,7 @@
  * Outside-game pile, g-mod host filter, gains-text sync, ability carriers,
  * and Rebirth same-faction identity switch.
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { CardInstance, GameState } from "./types.js";
 import { log } from "./createGame.js";
 import { applyIdentityFace } from "./identityFace.js";

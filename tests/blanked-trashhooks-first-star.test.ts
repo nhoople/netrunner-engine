@@ -11,8 +11,8 @@ import {
   crDataPresent,
   instantiateCard,
 } from "../src/index.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

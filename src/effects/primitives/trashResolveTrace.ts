@@ -8,7 +8,7 @@ import { log } from "../../state/createGame.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_RUNNER_MU,
-} from "../../state/lingeringEffects.js";
+} from "../../state/continuous/lingeringEffects.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import type { GameState, RuleCite, ServerId } from "../../state/types.js";

@@ -9,10 +9,10 @@ import {
 import { corpCreditsForTrace } from "../state/trace.js";
 import { corpPsiSpendable, runnerPsiSpendable } from "../state/psi.js";
 import { programBannedThisRun, wasAbilityUsed } from "../state/turn.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerCannotTrashWhileRezzed } from "../state/cardDeclarations.js";
 import { conditionalInterruptRequiresActiveAtOpen } from "../state/tags.js";
-import { stealAdditionalCreditsFromActiveLockdowns } from "../state/lockdowns.js";
+import { stealAdditionalCreditsFromActiveLockdowns } from "../state/continuous/lockdowns.js";
 import { applyTakes } from "./trial.js";
 import {
   basicTrashRefusal,

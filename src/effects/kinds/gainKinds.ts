@@ -5,7 +5,7 @@
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Primitive } from "../ir.js";
 import { log } from "../../state/createGame.js";
-import { addBreakerStrengthBoostThisTurn } from "../../state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { openPendingChoose } from "../../state/pendingChoice.js";
 import { grantAbilityCredits } from "../eval.js";
 import { breakerStrength } from "../iceStrength.js";

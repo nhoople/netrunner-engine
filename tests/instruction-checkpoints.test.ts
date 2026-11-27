@@ -68,7 +68,7 @@ import {
   LINGERING_KIND_GRANTED_SUBTYPES,
   LINGERING_KIND_ICE_STRENGTH,
   LINGERING_KIND_RUNNER_MU,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 import type { GameState, ServerId } from "../src/state/types.js";
 import { currentMark, placeMark } from "../src/state/msKeywords.js";
 import { passIdle } from "../src/demo/passIdle.js";

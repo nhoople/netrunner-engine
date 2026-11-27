@@ -26,7 +26,7 @@ import {
 import {
   enhancedLoginProtocolClick,
   sumRunnerFirstRunAdditionalCost,
-} from "../state/currents.js";
+} from "../state/continuous/currents.js";
 import {
   firstClickMustBlocks,
   firstClickMustIsActive,
@@ -123,7 +123,7 @@ import {
   programBannedThisRun,
   wasAbilityUsed,
 } from "../state/turn.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { resolvePendingOnEncounter } from "../state/onEncounter.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import {

@@ -2,7 +2,7 @@
  * Tag primitives. Give, remove, and prevent tags. Card-specific tag
  * abilities stay in eval.ts.
  */
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { log } from "../state/createGame.js";
 import { onTagsRemoved } from "../state/cardDeclarations.js";
 import {

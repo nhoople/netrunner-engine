@@ -12,21 +12,21 @@ import type {
   ServerId,
   Subroutine,
 } from "../state/types.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
-import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/breakerMods.js";
-import { scoredAgendaIceSubtypeStrengthBonus } from "../state/breakerMods.js";
-import { resolveIceSubtypes } from "../state/continuousEffects.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
+import { scoredAgendaBreakerPenaltyIfIceDerezzed } from "../state/continuous/breakerMods.js";
+import { scoredAgendaIceSubtypeStrengthBonus } from "../state/continuous/breakerMods.js";
+import { resolveIceSubtypes } from "../state/continuous/continuousEffects.js";
 import {
   activeRunnerCurrentIds,
   allIceStrengthBonusFromCurrents,
-} from "../state/currents.js";
+} from "../state/continuous/currents.js";
 import { log } from "../state/createGame.js";
 import { syncHostDurationReplacements } from "../state/hostDuration.js";
 import {
   lingeringBreakerStrengthBoost,
   lingeringIceStrengthBoost,
-} from "../state/lingeringEffects.js";
-import { allIceStrengthBonusFromLockdowns } from "../state/lockdowns.js";
+} from "../state/continuous/lingeringEffects.js";
+import { allIceStrengthBonusFromLockdowns } from "../state/continuous/lockdowns.js";
 import { agendaPointsFor } from "../state/scoring.js";
 import { runnerIsTagged } from "../state/tags.js";
 import { memoryLimit, usedMemory } from "../state/turn.js";

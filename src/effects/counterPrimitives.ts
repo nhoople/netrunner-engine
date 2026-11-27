@@ -2,9 +2,9 @@
  * Power, virus, and agenda counters. Formulas that derive a count
  * from another number stay in eval.ts.
  */
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { log } from "../state/createGame.js";
-import { recomputeRunnerMaxHandSize } from "../state/handSize.js";
+import { recomputeRunnerMaxHandSize } from "../state/continuous/handSize.js";
 import {
   maybeFirePowerCountersGte,
   syncEtrPerPowerCounterSubs,

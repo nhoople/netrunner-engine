@@ -1,6 +1,6 @@
 /** Earth Station / Reduced Service / Cold Site: additional cost to initiate a run. */
 
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState, ServerId } from "./types.js";
 
 export interface RunInitiateTax {

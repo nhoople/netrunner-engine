@@ -16,7 +16,7 @@ import { recomputeRunnerLink } from "../src/state/trashHooks.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_GRANTED_SUBTYPES,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

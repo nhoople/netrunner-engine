@@ -8,7 +8,7 @@ import { trashCard } from "./procedures/trash.js";
 import type { CardInstance, GameState } from "./types.js";
 import { CR } from "../timing/labels.js";
 import { fireHardwareInstallOrTrash } from "./programHardwareInstall.js";
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { type StoredConditionalMark } from "./storedTriggers.js";
 import { noteStoredConditionals } from "./storedConditionalHooks.js";
 import { checkpointAfterInstruction } from "../legality/checkpoints.js";

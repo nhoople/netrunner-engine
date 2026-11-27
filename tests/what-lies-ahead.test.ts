@@ -22,7 +22,7 @@ import {
 import {
   LINGERING_KIND_BREAKER_STRENGTH,
   lingeringBreakerStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 
 import { effectiveMemoryCost, usedMemory } from "../src/state/turn.js";
 import type { Action, GameState } from "../src/state/types.js";

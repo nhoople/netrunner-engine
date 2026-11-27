@@ -29,7 +29,7 @@ import {
   wasAbilityUsedThisEncounter,
   wasAbilityUsedThisRun,
 } from "../state/turn.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
   naviMumbaiBlocksPaidAbilities,
   paidAbilitiesIncludingHosted,

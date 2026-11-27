@@ -3,9 +3,12 @@
 import { evalEffect } from "../effects/eval.js";
 import { firePsiCreditsRevealed } from "./storedTriggers.js";
 import type { Effect } from "../effects/ir.js";
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
-import { activeCorpCurrentIds, activeRunnerCurrentIds } from "./currents.js";
+import {
+  activeCorpCurrentIds,
+  activeRunnerCurrentIds,
+} from "./continuous/currents.js";
 import { dealDamage } from "./damage.js";
 import {
   hostedCreditsSpendableDuringRuns,

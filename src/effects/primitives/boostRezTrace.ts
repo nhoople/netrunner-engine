@@ -4,7 +4,7 @@ import { breakNextSubroutines } from "../../state/procedures/break.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";
 import { dealDamage } from "../../state/damage.js";
-import { addIceStrengthBoostThisTurn } from "../../state/lingeringEffects.js";
+import { addIceStrengthBoostThisTurn } from "../../state/continuous/lingeringEffects.js";
 import { autoResolveTrace } from "../../state/trace.js";
 import { chargeCard } from "../../state/msKeywords.js";
 import type { RuleCite, ServerId } from "../../state/types.js";

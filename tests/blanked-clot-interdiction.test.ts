@@ -22,8 +22,8 @@ import {
   watchdogFirstIceRezReduction,
 } from "../src/actions/rez.js";
 import { clotForbidsScoreAgendaInstalledThisTurn } from "../src/actions/score.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

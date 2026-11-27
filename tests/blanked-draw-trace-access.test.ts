@@ -18,7 +18,7 @@ import type { GameState, ServerId } from "../src/index.js";
 import {
   clearSuppressedAbilities,
   suppressAbilities,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

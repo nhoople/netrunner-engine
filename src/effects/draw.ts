@@ -4,7 +4,7 @@ import { openPendingChoose } from "../state/pendingChoice.js";
  * and the on-draw hooks for Political Dealings and Jinja City Grid.
  */
 import { occurCheckpoint } from "../legality/checkpoints.js";
-import { syncCorpHandSizeSubroutines } from "../state/handSizeSubroutines.js";
+import { syncCorpHandSizeSubroutines } from "../state/continuous/handSizeSubroutines.js";
 import { log } from "../state/createGame.js";
 import { commitCheckpointSnapshot } from "../state/checkpointSnapshot.js";
 import type { GameState, Side } from "../state/types.js";
@@ -13,7 +13,7 @@ import { type EffectCtx, type EvalResult } from "./eval.js";
 import { abilityCreditTally } from "./creditTally.js";
 import { fireCorpDrewCards } from "../state/storedTriggers.js";
 import { runnerWinsOnEmptyRnd } from "../state/emptyRnd.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
   geneticsPavilionDrawLimit,
   onCorpDrew,

@@ -6,7 +6,7 @@ import { whenScoredEffect } from "./whenScored.js";
 import { playEffectFromCard } from "../effects/abilityRecord.js";
 import { evalEffect } from "../effects/eval.js";
 import type { Effect } from "../effects/ir.js";
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
 import type {
   CardInstance,

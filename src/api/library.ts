@@ -2,7 +2,7 @@
  * Pure library API for hosts (CLI, tests, future online Project).
  * No sockets / HTTP / UI — intents in, state out.
  */
-import { effectiveMaxHandSize } from "../state/handSize.js";
+import { effectiveMaxHandSize } from "../state/continuous/handSize.js";
 import { applyAction } from "../actions/apply.js";
 import { queryLegality } from "../legality/query.js";
 import { createInitialState } from "../state/createGame.js";

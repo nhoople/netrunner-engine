@@ -35,7 +35,7 @@ import {
   noteJobConnectionOrHardwareInstalled,
 } from "../src/state/azInstallDiscount.js";
 import { beginBreachAccess } from "../src/state/access.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import {
   openPendingEndTheRun,
   preventPendingEndTheRun,

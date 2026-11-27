@@ -16,7 +16,7 @@ import {
   addBreakerStrengthBoostThisEncounter,
   addBreakerStrengthBoostThisRun,
   addBreakerStrengthBoostThisTurn,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

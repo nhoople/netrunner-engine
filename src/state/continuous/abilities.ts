@@ -1,6 +1,6 @@
 /** Shared ability-suppression checks via practical CR 9.12 blanking solver. */
 
-import type { GameState } from "./types.js";
+import type { GameState } from "../types.js";
 import { resolveBlankedCardIds } from "./continuousEffects.js";
 import { facedownInstalledRunnerCard } from "./active.js";
 

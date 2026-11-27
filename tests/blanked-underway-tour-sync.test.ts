@@ -11,12 +11,12 @@ import {
   crDataPresent,
   instantiateCard,
 } from "../src/index.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { basicRemoveTagCreditCost } from "../src/state/costs.js";
 import { exposeLegalTargets } from "../src/state/expose.js";
 import { syncAllTourGuideSubs } from "../src/effects/primitives/gainCannotSwap.js";
 import type { GameState, ServerId } from "../src/index.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

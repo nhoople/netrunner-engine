@@ -12,10 +12,10 @@ import {
   instantiateCard,
   resolveDamage,
 } from "../src/index.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { maybeFireFirstEmptyGripTriggers } from "../src/state/damage.js";
 import { maybeFireHostedCreditsGte } from "../src/state/hostedCredits.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

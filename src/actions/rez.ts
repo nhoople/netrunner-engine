@@ -21,7 +21,7 @@ import {
 import {
   resolveIceRezCostIncrease,
   resolveIceRezCostReduction,
-} from "../state/continuousCosts.js";
+} from "../state/continuous/continuousCosts.js";
 import {
   addRestriction,
   trashCardsOnForbiddenHosts,
@@ -46,7 +46,7 @@ import {
   firePowerCounterOnAnyCardRez,
   firePowerOnHarmonicIceRez,
 } from "../state/powerCounters.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { runnerAbilityCarrierIds } from "../state/fenris.js";
 import { runnerIsTagged } from "../state/tags.js";
 import type { ApplyResult, GameState, RuleCite } from "../state/types.js";

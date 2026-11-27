@@ -2,7 +2,7 @@
  * Encounter-begin conditionals (any-ice once / Compile first encounter).
  * Notes queues for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 
 type EncounterAbilityPendingMark = {

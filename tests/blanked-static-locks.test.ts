@@ -18,7 +18,7 @@ import {
 import { wirelessNetPavilionExtra } from "../src/state/costs.js";
 import { checkWinConditions } from "../src/state/scoring.js";
 import type { ServerId } from "../src/index.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

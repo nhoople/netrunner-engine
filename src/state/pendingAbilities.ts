@@ -4,8 +4,8 @@
  * done/cancelled; independence at imminent (CR 9.6.12 / 9.1.4).
  */
 import { CR } from "../timing/labels.js";
-import { abilitiesSuppressed } from "./abilities.js";
-import { installedCardActive } from "./active.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
+import { installedCardActive } from "./continuous/active.js";
 import type {
   GameState,
   PendingAbilityInstance,

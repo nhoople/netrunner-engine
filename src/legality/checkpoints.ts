@@ -19,7 +19,7 @@ import type {
 } from "../state/types.js";
 import { memoryLimit, programMemoryCosts, usedMemory } from "../state/turn.js";
 import { CR } from "../timing/labels.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import {
   geneticsTriggerThreshold,
   VAL_RUNNER_TRIGGER_CONFIG,
@@ -29,7 +29,7 @@ import {
 import { firstUnsuccessfulRunSourceIds } from "../state/unsuccessfulRunHooks.js";
 import { firstSuccessfulRunSourceIds } from "../state/firstSuccessfulRunHooks.js";
 import { agendaPointsFor, checkWinConditions } from "../state/scoring.js";
-import { trashDurationPassedCurrents } from "../state/currents.js";
+import { trashDurationPassedCurrents } from "../state/continuous/currents.js";
 import { removeRevertedHostDurations } from "../state/hostDuration.js";
 import { clearAppliedReplacements } from "../state/replacements.js";
 import { getCardDef } from "../cards/load.js";
@@ -137,7 +137,7 @@ import {
   pruneSettledPendingAbilities,
 } from "../state/pendingAbilities.js";
 import { resolvePendingInWindowOrder } from "../state/storedTriggers.js";
-import { expireLingeringEffects } from "../state/lingeringEffects.js";
+import { expireLingeringEffects } from "../state/continuous/lingeringEffects.js";
 import {
   offerRamanRaiSwapWhileSetAside,
   ramanRaiCanOfferSwap,

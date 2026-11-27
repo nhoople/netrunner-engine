@@ -2,9 +2,9 @@
  * Static declarations that name one card's procedure. Each function runs
  * at the moment that declaration describes.
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { subtractRunnerCreditPool } from "./costs.js";
-import { noteTargetedMarketing } from "./currents.js";
+import { noteTargetedMarketing } from "./continuous/currents.js";
 import { noteAzmariNamedTypeMatch } from "./programHardwareInstall.js";
 import { log } from "./createGame.js";
 import type { CardInstance, GameState, ServerId, Side } from "./types.js";

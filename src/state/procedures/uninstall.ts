@@ -36,7 +36,7 @@ import { removeCardFromCurrentZone } from "../scoring.js";
 import { endEffectsOnPreviousObject } from "../turn.js";
 import { cancelPendingIfSourceInactive } from "../pendingAbilities.js";
 import { fireOnUninstall, recomputeRunnerLink } from "../trashHooks.js";
-import { recomputeRunnerMaxHandSize } from "../handSize.js";
+import { recomputeRunnerMaxHandSize } from "../continuous/handSize.js";
 import { shuffleInPlace } from "../rng.js";
 import { notePositionsCeased } from "../runPosition.js";
 import { unhostCard } from "./host.js";

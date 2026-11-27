@@ -1,8 +1,8 @@
 import { openCardName } from "../state/seatVisibility.js";
 import { addRestriction, occurCheckpoint } from "../legality/checkpoints.js";
 
-import { abilitiesSuppressed } from "../state/abilities.js";
-import { iceCannotGainAbilities } from "../state/continuousEffects.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
+import { iceCannotGainAbilities } from "../state/continuous/continuousEffects.js";
 import { diffAgainstPreviousCheckpoint } from "../state/checkpointSnapshot.js";
 
 import { log } from "../state/createGame.js";
@@ -10,7 +10,7 @@ import { lookAtChoiceCards } from "../state/reveal.js";
 import {
   addBreakerStrengthBoostThisRun,
   addIceStrengthBoostThisRun,
-} from "../state/lingeringEffects.js";
+} from "../state/continuous/lingeringEffects.js";
 import { currentMark } from "../state/msKeywords.js";
 import { noteVirusProgramInstalled } from "../state/virusInstall.js";
 import { exposeLegalTargets } from "../state/expose.js";

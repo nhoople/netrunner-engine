@@ -36,9 +36,9 @@ import {
 import { paidAbilityOpenIn } from "../src/state/costs.js";
 import { operationAndEventPlayCostIncreaseTotal } from "../src/state/costs.js";
 import { firePowerCounterOnAnyCorpInstall } from "../src/state/powerCounters.js";
-import { computeRunnerMaxHandSize } from "../src/state/handSize.js";
+import { computeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { effectiveAdvancementRequirement } from "../src/state/scoring.js";
-import { collectBadPublicityGainedSubs } from "../src/state/continuousSubs.js";
+import { collectBadPublicityGainedSubs } from "../src/state/continuous/continuousSubs.js";
 import { psiCorpBid, psiRunnerBid, startPsiGame } from "../src/state/psi.js";
 import { effectiveIceSubtypes } from "../src/cards/stubs.js";
 import { stealDecision } from "../src/legality/candidatePending.js";

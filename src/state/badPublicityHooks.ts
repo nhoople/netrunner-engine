@@ -1,6 +1,6 @@
 /** Bad publicity take hooks (The Outfit; Editorial Division). */
 
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
 import type { GameState } from "./types.js";
 

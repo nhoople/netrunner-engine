@@ -2,7 +2,7 @@
  * Approach-server and pass-all-ice-protecting-server conditionals.
  * Notes queues for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState } from "./types.js";
 
 /** Nanisivik-class: queue a rezzed root onApproachServer card id. */

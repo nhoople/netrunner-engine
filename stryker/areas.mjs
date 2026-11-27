@@ -136,9 +136,9 @@ export const areas = {
   continuous: {
     title: "RA-2. Continuous effects (re-audit of CR 9.4, 9.10, 9.12)",
     mutate: [
-      "src/state/continuousEffects.ts",
-      "src/state/lingeringEffects.ts",
-      "src/state/abilities.ts",
+      "src/state/continuous/continuousEffects.ts",
+      "src/state/continuous/lingeringEffects.ts",
+      "src/state/continuous/abilities.ts",
       "src/state/pendingChoice.ts",
     ],
     tests: [

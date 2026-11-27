@@ -2,7 +2,7 @@
 
 import { abilitiesSuppressed } from "./abilities.js";
 import { resolveIceSubtypes } from "./continuousEffects.js";
-import type { GameState } from "./types.js";
+import type { GameState } from "../types.js";
 
 /** Sum of whileScoredBreakerStrengthPenaltyIfIceDerezzedThisRun from scored agendas. */
 export function scoredAgendaBreakerPenaltyIfIceDerezzed(
@@ -21,7 +21,7 @@ export function scoredAgendaBreakerPenaltyIfIceDerezzed(
 /** Sum of whileScored ice subtype strength bonuses (layered subtypes; M4). */
 export function scoredAgendaIceSubtypeStrengthBonus(
   state: GameState,
-  ice: import("./types.js").CardInstance,
+  ice: import("../types.js").CardInstance,
 ): number {
   let total = 0;
   const layered = resolveIceSubtypes(state, ice.id).map((s) => s.toLowerCase());

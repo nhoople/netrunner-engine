@@ -14,7 +14,7 @@ import {
 import { runnerInstallCost } from "../src/actions/installRunner.js";
 import { recomputeRunnerLink } from "../src/state/trashHooks.js";
 import { installCorp } from "../src/actions/installCorp.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

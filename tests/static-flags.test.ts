@@ -13,11 +13,11 @@ import {
   fx,
   instantiateCard,
 } from "../src/index.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 import type { GameState } from "../src/state/types.js";
 import { occurCheckpoint } from "../src/legality/checkpoints.js";
 import { memoryLimit } from "../src/state/turn.js";
-import { recomputeRunnerMaxHandSize } from "../src/state/handSize.js";
+import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { installBlockReason, onCardRezzed } from "../src/state/staticFlags.js";
 import { CR } from "../src/timing/labels.js";
 

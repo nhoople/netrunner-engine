@@ -39,7 +39,7 @@ import {
 } from "../src/state/procedures/trash.js";
 import { createPendingAbilityInstance } from "../src/state/pendingAbilities.js";
 import { recomputeRunnerLink } from "../src/state/trashHooks.js";
-import { recomputeRunnerMaxHandSize } from "../src/state/handSize.js";
+import { recomputeRunnerMaxHandSize } from "../src/state/continuous/handSize.js";
 import { CR } from "../src/timing/labels.js";
 import { coversKind, expectStateDelta, snapshot } from "./kind-coverage.js";
 

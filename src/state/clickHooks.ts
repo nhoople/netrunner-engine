@@ -2,7 +2,7 @@
  * Runner click spend/lose hooks shared by action apply and encounter graph
  * (Sundew spend credits; Seidr first click during run).
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import { log } from "./createGame.js";
 import { emptyRunnerCreditPool } from "./costs.js";
 import type { GameState } from "./types.js";

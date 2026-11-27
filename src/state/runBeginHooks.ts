@@ -2,7 +2,7 @@
  * First-run-begin conditionals (Stegodon / Tributary / Prognostic Q-Loop /
  * Padma / Front Company / Daredevil). Notes MetPending for 10.3.1a (phase 3).
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState } from "./types.js";
 
 /** Stegodon / Tributary / Prognostic — first run begin this turn. */

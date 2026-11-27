@@ -4,7 +4,7 @@
  */
 import type { EffectCtx, EvalResult } from "../eval.js";
 import type { Effect, Primitive } from "../ir.js";
-import { abilitiesSuppressed } from "../../state/abilities.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { log } from "../../state/createGame.js";
 import { hostFenrisIdentity, legalFenrisHostIds } from "../../state/fenris.js";
 import { cancelPendingIfSourceInactive } from "../../state/pendingAbilities.js";

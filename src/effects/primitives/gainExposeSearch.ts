@@ -11,7 +11,7 @@ import {
 } from "../../state/costs.js";
 import { addOutermostIce } from "../../state/runPosition.js";
 import { log } from "../../state/createGame.js";
-import { addBreakerStrengthBoostThisEncounter } from "../../state/lingeringEffects.js";
+import { addBreakerStrengthBoostThisEncounter } from "../../state/continuous/lingeringEffects.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { offerRdArrangeChoice } from "../eval.js";
 import type { EffectCtx } from "../eval.js";

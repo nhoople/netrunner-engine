@@ -5,8 +5,8 @@
 
 import { evalEffect } from "../effects/eval.js";
 import { CR } from "../timing/labels.js";
-import { abilitiesSuppressed } from "./abilities.js";
-import { isCardActive } from "./active.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
+import { isCardActive } from "./continuous/active.js";
 import { log } from "./createGame.js";
 import type { CardInstance, GameState } from "./types.js";
 import type { Effect } from "../effects/ir.js";

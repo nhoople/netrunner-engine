@@ -4,7 +4,7 @@
  */
 import { whenScoredEffect } from "../state/whenScored.js";
 import { log } from "../state/createGame.js";
-import { abilitiesSuppressed } from "../state/abilities.js";
+import { abilitiesSuppressed } from "../state/continuous/abilities.js";
 import { evalEffect } from "../effects/eval.js";
 import {
   checkpointAfterInstruction,

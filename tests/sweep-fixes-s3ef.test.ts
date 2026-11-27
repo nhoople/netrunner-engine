@@ -28,7 +28,7 @@ import { paidAbilityOpenIn, payCost } from "../src/state/costs.js";
 import {
   trashCorpCurrentsOnAgendaStolen,
   trashCurrentsOnAgendaScored,
-} from "../src/state/currents.js";
+} from "../src/state/continuous/currents.js";
 import {
   memoryLimit,
   memoryNeededToInstall,
@@ -79,7 +79,7 @@ import {
   walkThrough,
 } from "./rulings-helpers.js";
 
-import { enhancedLoginProtocolClick } from "../src/state/currents.js";
+import { enhancedLoginProtocolClick } from "../src/state/continuous/currents.js";
 import { enterLingeringPlayArea } from "../src/state/zones.js";
 import { traceBaseBonus } from "../src/state/staticFlags.js";
 

@@ -24,7 +24,7 @@ import {
 import {
   LINGERING_KIND_BREAKER_STRENGTH_RUN,
   lingeringBreakerStrengthOfKind,
-} from "../src/state/lingeringEffects.js";
+} from "../src/state/continuous/lingeringEffects.js";
 
 import {
   fireAfterBreakSubroutineHooks,

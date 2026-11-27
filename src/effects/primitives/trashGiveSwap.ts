@@ -8,8 +8,8 @@ import { removeCardFromCurrentZone } from "../../state/scoring.js";
 import {
   addLingeringEffect,
   LINGERING_KIND_GRANTED_SUBTYPES,
-} from "../../state/lingeringEffects.js";
-import { recomputeRunnerMaxHandSize } from "../../state/handSize.js";
+} from "../../state/continuous/lingeringEffects.js";
+import { recomputeRunnerMaxHandSize } from "../../state/continuous/handSize.js";
 import { preventPendingInstalledTrash } from "../../state/trashPrevent.js";
 import type { RuleCite, ServerId } from "../../state/types.js";
 import { evalEffect, type EffectCtx } from "../eval.js";

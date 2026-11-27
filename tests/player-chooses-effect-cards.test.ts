@@ -25,7 +25,7 @@ import {
   seedRng,
 } from "../src/index.js";
 import type { Action, GameState } from "../src/index.js";
-import { placeCurrentAfterPlay } from "../src/state/currents.js";
+import { placeCurrentAfterPlay } from "../src/state/continuous/currents.js";
 import { currentMark, pickRandomCentral } from "../src/state/msKeywords.js";
 
 beforeAll(() => {

@@ -1,6 +1,6 @@
 /** Shackleton Grid-class: spend outside credit pool during a run. */
 
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState, StoredConditionalEffectKey } from "./types.js";
 
 type OutsidePoolSpendPendingMark = {

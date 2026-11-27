@@ -11,11 +11,11 @@ import {
   crDataPresent,
   instantiateCard,
 } from "../src/index.js";
-import { abilitiesSuppressed } from "../src/state/abilities.js";
+import { abilitiesSuppressed } from "../src/state/continuous/abilities.js";
 import { syncMauiRecurringCredits } from "../src/effects/primitives/chooseGainShuffle.js";
-import { syncCorpHandSizeSubroutines } from "../src/state/handSizeSubroutines.js";
+import { syncCorpHandSizeSubroutines } from "../src/state/continuous/handSizeSubroutines.js";
 import { syncNextSubtypeEtrSubs } from "../src/state/powerCounters.js";
-import { suppressAbilities } from "../src/state/lingeringEffects.js";
+import { suppressAbilities } from "../src/state/continuous/lingeringEffects.js";
 
 beforeAll(() => {
   if (!crDataPresent()) throw new Error("Run npm run fetch-cr");

@@ -1,6 +1,6 @@
 /** Blood and Water (baw) Red Sand pack primitives — v1.132.0. */
 import { printsCanBeAdvanced } from "../../state/advanceable.js";
-import { abilitiesSuppressed } from "../../state/abilities.js";
+import { abilitiesSuppressed } from "../../state/continuous/abilities.js";
 import { moveRunnerToOutermost } from "../../state/runPosition.js";
 import { subtractRunnerCreditPool } from "../../state/costs.js";
 import { log } from "../../state/createGame.js";

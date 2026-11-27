@@ -3,7 +3,7 @@
  * (phase 3). Jeitinho heap-install-on-bypass is noted separately as an
  * inline conditional by `fireOnBypassTriggers`.
  */
-import { abilitiesSuppressed } from "./abilities.js";
+import { abilitiesSuppressed } from "./continuous/abilities.js";
 import type { GameState } from "./types.js";
 
 /**
