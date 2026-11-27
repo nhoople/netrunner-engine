@@ -64,7 +64,6 @@ import { applyOacPrimitive } from "./primitives/gainMoveMark.js";
 import { applySansanValPrimitive } from "./primitives/searchRevealTrash.js";
 import { applySansanBbPrimitive } from "./primitives/preventInstallDraw.js";
 
-import { applySansanUwPrimitive } from "./primitives/hostInstallExpose.js";
 import { applySansanOhPrimitive } from "./primitives/shuffleLookPick.js";
 import { applySansanUotPrimitive } from "./primitives/gainCannotSwap.js";
 import { applyDadPrimitive } from "./primitives/playDrawSearch.js";
@@ -108,7 +107,7 @@ import { applyHostedCreditPrimitive } from "./hostedCreditPrimitives.js";
 import { applyDamagePrimitive } from "./damageAndPrevention/damagePrimitives.js";
 import { applyChooseCard } from "./triggers/chooseCard.js";
 import { applyChooseCards } from "./triggers/chooseCards.js";
-import { applyRunPrimitive } from "./runPrimitives.js";
+import { applyRunPrimitive } from "./run/runPrimitives.js";
 import {
   applyTagPrimitive,
   canPayTakeTagsNestedCost,
@@ -125,7 +124,7 @@ import { applyPsiPrimitive } from "./psiPrimitives.js";
 import { applyBadPublicityPrimitive } from "./badPublicityPrimitives.js";
 import { applyCorpInstallPrimitive } from "./install/corpInstall.js";
 import { applyCounterPrimitive } from "./counters/counterPrimitives.js";
-import { applyEncounterPrimitive } from "./encounterPrimitives.js";
+import { applyEncounterPrimitive } from "./run/encounterPrimitives.js";
 import { iceStrength } from "./continuous/iceStrength.js";
 import {
   gripInstallCostAfterDiscount,
@@ -178,7 +177,7 @@ import {
   allSubroutinesBrokenByRunner,
   subroutinesBrokenByRunnerCount,
 } from "../state/turnAndActions/break.js";
-import { applyMumbadSiPrimitive } from "./primitives/lookTrashAdd.js";
+
 import { trashRandomGripForPersonalityProfiles } from "./hostingAndTrash/runnerHandAndDeckTrashKinds.js";
 export {
   fireOnBypassTriggers,
@@ -1742,8 +1741,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   if (val) return val;
   const bb = applySansanBbPrimitive(ctx, action);
   if (bb) return bb;
-  const uw = applySansanUwPrimitive(ctx, action);
-  if (uw) return uw;
   const oh = applySansanOhPrimitive(ctx, action);
   if (oh) return oh;
   const uot = applySansanUotPrimitive(ctx, action);
@@ -1754,8 +1751,6 @@ export function applyPrimitive(ctx: EffectCtx, action: Primitive): EvalResult {
   if (kg) return kg;
   const dag = applyMumbadDagPrimitive(ctx, action);
   if (dag) return dag;
-  const si = applyMumbadSiPrimitive(ctx, action);
-  if (si) return si;
   const tlm = applyMumbadTlmPrimitive(ctx, action);
   if (tlm) return tlm;
   const ftm = applyMumbadFtmPrimitive(ctx, action);

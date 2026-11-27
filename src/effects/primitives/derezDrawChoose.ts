@@ -3,12 +3,11 @@ import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 /** Terminal Directive Cards (td) Red Sand deluxe primitives — v1.130.0. */
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { enterLingeringPlayArea } from "../../state/zones.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
-import { evalEffect } from "../eval.js";
 import { fx, type Effect, type Primitive } from "../ir.js";
 import { fireOnPlay } from "../../state/triggers/cardLifecycleHooks.js";
 import { controllerOf, trashCard } from "../../state/hostingAndTrash/trash.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -49,40 +48,6 @@ export function applyRedsandTdPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "charlatan_run_any_server": {
-      state.pendingStartRun = {
-        sourceId,
-        serverId: "hq",
-        // Charlatan: first approached rezzed ice may pay strength to bypass.
-      };
-      state.turn.charlatanArmed = true;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: (["hq", "rd", "archives"] as ServerId[])
-          .concat(
-            Object.keys(state.servers).filter(
-              (s) => s !== "hq" && s !== "rd" && s !== "archives",
-            ) as ServerId[],
-          )
-          .map((sid) => ({
-            id: `run:${sid}`,
-            label: `Run ${sid}`,
-            effect: fx.do({ kind: "charlatan_start_run", serverId: sid }),
-          })),
-      });
-      return { ok: true };
-    }
-
-    case "charlatan_start_run": {
-      const serverId = action.serverId as ServerId;
-      state.pendingStartRun = { sourceId, serverId };
-      state.turn.charlatanArmed = true;
-      state.pendingChoice = null;
-      log(state, `Charlatan — run ${serverId}.`);
-      return { ok: true };
-    }
-
     case "break_sentry_or_barrier": {
       const enc = state.run?.encounter;
       if (!enc) return { ok: true };
@@ -170,29 +135,6 @@ export function applyRedsandTdPrimitive(
       // Events go to heap after play unless otherwise stated
       trashCard(state, cardId, { by: controllerOf(state, sourceId) });
       log(state, `The Shadow Net — play ${card.title} from heap.`);
-      return { ok: true };
-    }
-
-    case "jack_out": {
-      state.corp.credits += 5;
-      if (source)
-        trashCard(state, sourceId, { by: controllerOf(state, sourceId) });
-      if (state.run) {
-        state.run.endedTheRun = true;
-        state.run.successful = false;
-      }
-      log(state, `Black Level Clearance — Runner jacks out; Corp gains 5¢.`);
-      return evalEffect(ctx, fx.draw("corp", 1));
-    }
-
-    case "armored_servers_activate_this_run": {
-      if (state.run) {
-        state.run.armoredServersTrashGripAdditionalCost = true;
-      }
-      log(
-        state,
-        `Armored Servers — trash 1 grip as additional cost to jack out or break a subroutine this run.`,
-      );
       return { ok: true };
     }
 

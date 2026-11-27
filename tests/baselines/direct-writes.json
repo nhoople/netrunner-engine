@@ -229,16 +229,8 @@
     "src/effects/kinds/playKinds.ts": {
       "discardPile": 2
     },
-    "src/effects/kinds/setKinds.ts": {
-      "deck": 1
-    },
     "src/effects/primitives/derezDrawChoose.ts": {
       "discardPile": 1
-    },
-    "src/effects/primitives/moveSearchInstall.ts": {
-      "discardPile": 1,
-      "hand": 1,
-      "zone": 1
     },
     "src/effects/primitives/preventGainSpend.ts": {
       "removedFromGame": 2,
@@ -246,9 +238,6 @@
     },
     "src/effects/primitives/preventInstallDraw.ts": {
       "rezzed": 1
-    },
-    "src/effects/primitives/shuffleInstall.ts": {
-      "deck": 2
     },
     "src/effects/primitives/shuffleLookPick.ts": {
       "rezzed": 1,
@@ -275,6 +264,15 @@
       "hand": 1,
       "rezzed": 21,
       "zone": 1
+    },
+    "src/effects/run/runKinds.ts": {
+      "deck": 2,
+      "discardPile": 1,
+      "hand": 1,
+      "zone": 1
+    },
+    "src/effects/run/setKinds.ts": {
+      "deck": 1
     },
     "src/effects/searchAndDeck/addKinds.ts": {
       "deck": 8,

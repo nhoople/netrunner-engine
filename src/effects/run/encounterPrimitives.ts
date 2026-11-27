@@ -2,16 +2,16 @@
  * Encounter primitives that live in the effect evaluator.
  * Approaching ice and resolving the run stay in apply.ts.
  */
-import { log } from "../state/setupAndEnd/createGame.js";
-import { CR } from "../timing/labels.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
+import { CR } from "../../timing/labels.js";
 import {
   fireOnBypassTriggers,
   type EffectCtx,
   type EvalResult,
-} from "./eval.js";
-import { fireOnEncounterEnd } from "../state/triggers/cardLifecycleHooks.js";
-import type { Primitive } from "./ir.js";
-import { markRemainingSubroutinesNotBrokenByRunner } from "../state/turnAndActions/break.js";
+} from "../eval.js";
+import { fireOnEncounterEnd } from "../../state/triggers/cardLifecycleHooks.js";
+import type { Primitive } from "../ir.js";
+import { markRemainingSubroutinesNotBrokenByRunner } from "../../state/turnAndActions/break.js";
 
 export function applyEncounterPrimitive(
   ctx: EffectCtx,

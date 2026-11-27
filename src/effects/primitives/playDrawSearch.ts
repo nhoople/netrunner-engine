@@ -6,7 +6,6 @@ import {
 } from "../../state/turnAndActions/break.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { startTrace } from "../../state/turnAndActions/trace.js";
-import { applyEncounterPrimitive } from "../encounterPrimitives.js";
 import { removeCardFromCurrentZone } from "../../state/turnAndActions/scoring.js";
 import { placeCurrentAfterPlay } from "../../state/continuous/currents.js";
 import { markAbilityUsed } from "../../state/turnAndActions/turn.js";
@@ -247,25 +246,6 @@ export function applyDadPrimitive(
         ),
         fx.do({ kind: "bypass_encountered_ice" }),
       );
-      return { ok: true };
-    }
-
-    case "bypass_encountered_ice": {
-      // Security Nexus: bypass aborts the encounter (CR 6.5.8a). Nothing to
-      // bypass if the encounter already ended during the trace.
-      if (!state.run?.encounter) return { ok: true };
-      return (
-        applyEncounterPrimitive(ctx, { kind: "bypass_current_ice" }) ?? {
-          ok: true,
-        }
-      );
-    }
-
-    case "jak_sinclair_run_without_programs": {
-      state.turn.dadCannotUseProgramsThisRun = true;
-      // Flag only — run is initiated via standard action UI after choice;
-      // arm a marker that first run this window forbids programs.
-      log(state, `Jak Sinclair — next run cannot use programs.`);
       return { ok: true };
     }
 

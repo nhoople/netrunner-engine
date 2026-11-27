@@ -1,11 +1,9 @@
-/** Fear the Masses (ftm) Mumbad pack primitives — v1.121.0. */
-import { openCardName } from "../../state/visibility/seatVisibility.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
 import { startPsiGame } from "../../state/turnAndActions/psi.js";
-import type { RuleCite, ServerId } from "../../state/types.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
@@ -26,55 +24,6 @@ export function applyMumbadFtmPrimitive(
         fx.do({ kind: "rigged_results_corp_guessed_wrong" }),
         fx.do({ kind: "rigged_results_corp_guessed_right" }),
         { corpGuess: "amount" }, // Corp guesses the amount; spends nothing
-      );
-      return { ok: true };
-    }
-
-    case "rigged_results_corp_guessed_right": {
-      log(state, `Rigged Results — Corp guessed correctly; no run.`);
-      return { ok: true };
-    }
-
-    case "rigged_results_corp_guessed_wrong": {
-      const iceIds: string[] = [];
-      for (const server of Object.values(state.servers)) {
-        for (const id of server.ice) iceIds.push(id);
-      }
-      if (iceIds.length === 0) {
-        log(state, `Rigged Results — no ice to choose.`);
-        return { ok: true };
-      }
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: iceIds.map((id) => {
-          const serverId =
-            (Object.entries(state.servers).find(([, s]) =>
-              s.ice.includes(id),
-            )?.[0] as ServerId | undefined) ?? "hq";
-          return {
-            id: `rr-ice:${id}`,
-            label: `Run past ${openCardName(state, id, "runner")}`,
-            effect: fx.do({
-              kind: "bypass_rigged_results_run_ice",
-              iceId: id,
-              serverId,
-            }),
-          };
-        }),
-      });
-      return { ok: true };
-    }
-
-    case "bypass_rigged_results_run_ice": {
-      state.turn.ftmRiggedResultsBypassIceId = action.iceId;
-      state.pendingRunEventStart = {
-        sourceId,
-        serverId: action.serverId as ServerId,
-      };
-      log(
-        state,
-        `Rigged Results — run ${action.serverId}; first encounter of chosen ice bypasses.`,
       );
       return { ok: true };
     }

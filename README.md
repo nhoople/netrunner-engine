@@ -166,6 +166,7 @@ src/                      # index.ts: the package entry; cli.ts: the development
     kinds/                # one file per procedure in the kind switch
     primitives/           # printed procedures grouped by verb, not by pack
     rez/                  # rezzing and derezzing (CR 8.1): the rez and derez kinds
+    run/                  # run flow (CR ch. 6): runPrimitives.ts, encounterPrimitives.ts, the set kinds and the other run kinds
     searchAndDeck/        # drawing (draw.ts), searching and shuffling (CR 8.7), deck order, and adding cards from Archives or the heap
     swap/                 # swapping cards (CR 8.8): the swap kinds
     triggers/             # choices and conditional abilities (CR 9.6): choose_card and choose_cards, the choose and resolve kinds, first- and second-time-each-turn triggers (firstTimeEachTurnTriggers.ts)

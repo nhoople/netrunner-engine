@@ -2,19 +2,19 @@
  * End-the-run primitives. The subroutine and its nested "unless" costs
  * live here; the rest of the run flow stays in eval.ts.
  */
-import { revealCards } from "../state/visibility/reveal.js";
-import { pickRandomSubset } from "../state/rng.js";
-import { log } from "../state/setupAndEnd/createGame.js";
+import { revealCards } from "../../state/visibility/reveal.js";
+import { pickRandomSubset } from "../../state/rng.js";
+import { log } from "../../state/setupAndEnd/createGame.js";
 import {
   hasPayableEndTheRunInterrupt,
   openPendingEndTheRun,
-} from "../state/run/endTheRun.js";
-import type { GameState, RuleCite } from "../state/types.js";
-import { CR } from "../timing/labels.js";
-import { evalEffect, type EffectCtx } from "./eval.js";
-import { abilityCreditTally } from "./creditTally.js";
-import type { Effect, Primitive } from "./ir.js";
-import { openPendingChoose } from "../state/triggers/pendingChoice.js";
+} from "../../state/run/endTheRun.js";
+import type { GameState, RuleCite } from "../../state/types.js";
+import { CR } from "../../timing/labels.js";
+import { evalEffect, type EffectCtx } from "../eval.js";
+import { abilityCreditTally } from "../creditTally.js";
+import type { Effect, Primitive } from "../ir.js";
+import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };

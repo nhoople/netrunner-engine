@@ -1,56 +1,14 @@
 /** Whispers in Nalubaale (win) Kitara pack primitives — v1.140.0. */
 import { revealCards } from "../../state/visibility/reveal.js";
 import { log } from "../../state/setupAndEnd/createGame.js";
-import type { GameState, RuleCite } from "../../state/types.js";
-import { CR } from "../../timing/labels.js";
 import type { EffectCtx } from "../eval.js";
 import { fx, type Primitive } from "../ir.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
-import { addCompileInstalledToBottom } from "../install/runnerInstallFromOtherZonesKinds.js";
+import type { RuleCite } from "../../state/types.js";
 
 type PrimResult =
   { ok: true } | { ok: false; error: string; cites: RuleCite[] };
-
-function resolveIndependentSourceTrash(state: GameState, cardId: string): void {
-  const card = state.cards[cardId];
-  if (!card?.trashAfterBreakingThisRun) return;
-  const origin = state.run?.delayedRunEndSourceZone?.[cardId];
-  if (
-    (origin !== undefined && card.zone !== origin) ||
-    !state.runner.installed.includes(cardId)
-  ) {
-    log(
-      state,
-      `${card.title}'s ability does nothing — its source changed zones (CR ${CR.abilityIndependent.number}).`,
-    );
-    return;
-  }
-  // Its own ability trashes it, so the Runner does (CR 1.14.5).
-  trashCard(state, cardId, { by: "runner" });
-  log(state, `${card.title} trashed — broke a subroutine this run.`);
-}
-
-/** The Runner chose which run-end delayed ability resolves first (CR 9.1.4). */
-export function resolveDelayedRunEndOrder(
-  state: GameState,
-  optionId: string,
-): void {
-  const run = state.run;
-  if (!run) return;
-  run.delayedRunEndOrderResolved = true;
-  const trashIds = (run.breakersThatBroke ?? []).filter(
-    (id) => state.cards[id]?.trashAfterBreakingThisRun,
-  );
-  if (optionId === "delayed-run-end:compile-first") {
-    addCompileInstalledToBottom(state);
-    for (const id of trashIds) resolveIndependentSourceTrash(state, id);
-  } else {
-    for (const id of trashIds) resolveIndependentSourceTrash(state, id);
-    addCompileInstalledToBottom(state);
-  }
-  run.resumeAfterDelayedOrder = true;
-}
 
 export function applyKitaraWinPrimitive(
   ctx: EffectCtx,
@@ -60,18 +18,6 @@ export function applyKitaraWinPrimitive(
   const source = state.cards[sourceId];
 
   switch (action.kind) {
-    case "bypass_current_encounter": {
-      if (!state.run?.encounter) {
-        log(state, `Logic Bomb — not encountering ice.`);
-        return { ok: true };
-      }
-      const iceTitle = state.cards[state.run.encounter.iceId]?.title;
-      state.run.encounter = null;
-      state.run.bypassCurrentEncounter = true;
-      log(state, `Logic Bomb — bypass ${iceTitle}.`);
-      return { ok: true };
-    }
-
     case "lose_remaining_clicks": {
       const lost = state.runner.clicks;
       state.runner.clicks = 0;

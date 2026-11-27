@@ -13,16 +13,7 @@ import { log } from "../../state/setupAndEnd/createGame.js";
 import { beginExtraDifferentAction } from "../../state/turnAndActions/corpActionHooks.js";
 import { applyIdentityFace } from "../../state/setupAndEnd/identityFace.js";
 import { fireOnFlipToBackIfRunMatchesFace } from "../../state/triggers/miscConditionalHooks.js";
-import {
-  chargeableInstalledIds,
-  chargeCard,
-  currentMark,
-  identifyMark,
-  offerSabotagePick,
-  resolveSabotageAmount,
-} from "../../state/keywordsAndCredits/keywords.js";
 import { openPendingChoose } from "../../state/triggers/pendingChoice.js";
-import { effectiveRunnerTags } from "../../state/keywordsAndCredits/tags.js";
 import { recomputeRunnerLink } from "../../state/hostingAndTrash/trashHooks.js";
 import { CR } from "../../timing/labels.js";
 import { fx } from "../ir.js";
@@ -43,12 +34,18 @@ import { allSubroutinesBrokenByRunner } from "../../state/turnAndActions/break.j
 import { effectiveIceSubtypes } from "../../cards/stubs.js";
 import { trashCard } from "../../state/hostingAndTrash/trash.js";
 import {
+  chargeableInstalledIds,
+  chargeCard,
+  identifyMark,
+  offerSabotagePick,
+  resolveSabotageAmount,
+} from "../../state/keywordsAndCredits/keywords.js";
+import {
   fireOnFullyBreak,
   fireOnForfeit,
   fireAfterBreakSubroutineHooks,
   maybeFireFluxFirstBreakCharge,
   offerMayChargeCard,
-  startExclusiveChoicesPerPassedIce,
   evalEffect,
   applyPrimitive,
 } from "../eval.js";
@@ -536,43 +533,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "etr_subroutines_per_runner_tags_on_encounter": {
-      const ice = state.cards[sourceId];
-      const run = state.run;
-      if (!ice || !run?.encounter || run.encounter.iceId !== sourceId) {
-        return { ok: true };
-      }
-      const n = Math.max(0, effectiveRunnerTags(state));
-      if (n === 0) {
-        log(state, `${ice.title} — 0 tags, no extra ETR subroutines.`);
-        return { ok: true };
-      }
-      if (!ice.baseSubroutines) {
-        ice.baseSubroutines = ice.subroutines
-          ? structuredClone(ice.subroutines)
-          : [];
-      }
-      const etrEffect = {
-        op: "do" as const,
-        action: { kind: "end_the_run" as const },
-      };
-      const printed = structuredClone(ice.baseSubroutines);
-      const etrSubs = Array.from({ length: n }, (_, i) => ({
-        id: `${ice.defId}-etr-tags-${i}`,
-        text: "End the run.",
-        effect: structuredClone(etrEffect),
-      }));
-      ice.subroutines = [...printed, ...etrSubs];
-      for (let i = 0; i < n; i++) {
-        run.encounter.broken.push(false);
-      }
-      log(
-        state,
-        `${ice.title} — gain ${n} ETR subroutine(s) after printed (${state.runner.tags} tag(s)).`,
-      );
-      return { ok: true };
-    }
-
     case "may_give_runner_credits_then": {
       openPendingChoose(state, {
         sourceId,
@@ -946,44 +906,6 @@ export function applyOtherKinds(
       });
     }
 
-    case "offer_jack_out": {
-      if (state.run?.successful === true) {
-        log(
-          state,
-          `Jack out has no effect — the run is already successful (CR ${CR.noPositionAfterApproach.number}).`,
-        );
-        return { ok: true };
-      }
-      if (state.run && !state.run.cannotJackOut) {
-        if (
-          openPendingChoose(state, {
-            sourceId,
-            chooser: "runner",
-            options: [
-              {
-                id: "jack_out",
-                label: "Jack out",
-                effect: { op: "do", action: { kind: "end_the_run" } },
-              },
-              {
-                id: "continue",
-                label: "Continue the run",
-                effect: {
-                  op: "do",
-                  action: { kind: "gain_credits", side: "runner", amount: 0 },
-                },
-              },
-            ],
-          })
-        ) {
-          state.run.pendingJackOutOffer = true;
-          // end_the_run via jack out should mark unsuccessful — handle in choose
-          log(state, `Runner may jack out (Karunā).`);
-        }
-      }
-      return { ok: true };
-    }
-
     case "dividends": {
       // CR 10.13.1 / 10.13.2 — use score-begin snapshot when present.
       const adv =
@@ -998,81 +920,6 @@ export function applyOtherKinds(
       log(
         state,
         `Dividends ${action.n} — place ${n} agenda counter(s) (${adv}−${req}) → ${source.agendaCounters} (CR ${CR.dividends.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "backup_plan_may_rerun_ignore_additional_costs_bypass_last_ice": {
-      if (!state.run) {
-        log(state, `${source.title} — no run for Backup Plan.`);
-        return { ok: true };
-      }
-      const serverId = state.run.attackedServerId;
-      const lastIce = state.run.lastEncounteredIceId;
-      if (
-        !openPendingChoose(state, {
-          sourceId,
-          chooser: "runner",
-          options: [
-            {
-              id: "decline-backup",
-              label: "Decline",
-              effect: {
-                op: "do" as const,
-                action: { kind: "gain_credits", side: "runner", amount: 0 },
-              },
-            },
-            {
-              id: "backup-rerun",
-              label: `Run ${serverId} again (ignore additional costs; bypass last ice)`,
-              effect: {
-                op: "do" as const,
-                action: { kind: "backup_plan_rerun" as const },
-              },
-            },
-          ],
-        })
-      )
-        return { ok: true };
-      // Stash bypass target on the source for the rerun leaf.
-      source.chosenIceId = lastIce;
-      source.chosenServerId = serverId;
-      log(
-        state,
-        `${source.title} — may rerun ${serverId} ignoring additional costs.`,
-      );
-      return { ok: true };
-    }
-
-    case "backup_plan_rerun": {
-      const serverId = source.chosenServerId;
-      if (!serverId || !state.servers[serverId]) {
-        log(state, `${source.title} — Backup Plan rerun: no server.`);
-        return { ok: true };
-      }
-      // Immediate fail-closed leaf: create a new run with the bypass/ignore flags.
-      if (state.run) {
-        log(
-          state,
-          `${source.title} — cannot start Backup Plan rerun while a run is active.`,
-        );
-        return { ok: true };
-      }
-      // The run is over: start the new run once this choice resolves,
-      // through the same path as other follow-up runs (startRun).
-      state.pendingStartRun = {
-        sourceId,
-        serverId,
-        backupPlanIgnoreAdditionalCosts: true,
-        backupPlanBypassIceId: source.chosenIceId,
-      };
-      log(
-        state,
-        `${source.title} — rerun ${serverId} (ignore additional costs` +
-          (source.chosenIceId
-            ? `; bypass ${state.cards[source.chosenIceId]?.title ?? source.chosenIceId}`
-            : "") +
-          `).`,
       );
       return { ok: true };
     }
@@ -1164,82 +1011,6 @@ export function applyOtherKinds(
         }
       }
       return { ok: true };
-    }
-
-    case "may_flip_archives_ice_resolve_subroutine": {
-      const facedownIce = state.corp.discardPile.filter((id) => {
-        const c = state.cards[id];
-        return c.type === "ice" && !c.faceup;
-      });
-      if (facedownIce.length === 0) {
-        log(state, `${source.title} — no facedown ice in Archives.`);
-        return { ok: true };
-      }
-      const options: Array<{
-        id: string;
-        label: string;
-        effect: import("../ir.js").Effect;
-      }> = [];
-      for (const iceId of facedownIce) {
-        const ice = state.cards[iceId]!;
-        const subs = ice.subroutines ?? [];
-        for (let i = 0; i < subs.length; i++) {
-          const sub = subs[i]!;
-          options.push({
-            id: `flip:${iceId}:${i}`,
-            label: `Turn ${ice.title} faceup, resolve "${sub.text}"`,
-            effect: {
-              op: "do",
-              action: {
-                kind: "flip_archives_ice_resolve_subroutine",
-                iceId,
-                subIndex: i,
-              },
-            },
-          });
-        }
-      }
-      options.push({
-        id: "decline",
-        label: "Decline",
-        effect: {
-          op: "do",
-          action: { kind: "gain_credits", side: "corp", amount: 0 },
-        },
-      });
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "corp",
-        options,
-        logLine: `${source.title} — may turn 1 facedown Archives ice faceup and resolve a subroutine.`,
-      });
-      return { ok: true };
-    }
-
-    case "flip_archives_ice_resolve_subroutine": {
-      const ice = state.cards[action.iceId];
-      if (
-        !ice ||
-        ice.type !== "ice" ||
-        !state.corp.discardPile.includes(action.iceId)
-      ) {
-        log(state, `Flip Archives ice — invalid target.`);
-        return { ok: true };
-      }
-      ice.faceup = true;
-      const sub = ice.subroutines?.[action.subIndex];
-      if (!sub) {
-        log(
-          state,
-          `Flip ${ice.title} faceup — no subroutine ${action.subIndex}.`,
-        );
-        return { ok: true };
-      }
-      log(
-        state,
-        `Turn ${ice.title} faceup in Archives; resolve "${sub.text}".`,
-      );
-      return evalEffect({ state, sourceId: action.iceId }, sub.effect);
     }
 
     case "melies_secretly_set_face": {
@@ -1384,24 +1155,6 @@ export function applyOtherKinds(
       return { ok: true };
     }
 
-    case "ryo_phoenix_on_successful_run": {
-      if (!state.run?.subroutineResolvedThisRun) {
-        return { ok: true };
-      }
-      if (state.turn.ryoPhoenixFiredThisTurn) {
-        return { ok: true };
-      }
-      state.turn.ryoPhoenixFiredThisTurn = true;
-      state.runner.credits += 1;
-      log(state, `${source.title} — gain 1¢ (successful run after sub).`);
-      // "The Corp trashes 1 card from HQ": the Corp chooses (CR 1.15.2).
-      return applyPrimitive(ctx, {
-        kind: "trash_hq",
-        pick: "choose",
-        amount: 1,
-      });
-    }
-
     case "sabotage": {
       // The Corp chooses which HQ cards go (CR 10.12.2). With nothing in
       // HQ, or fewer than N cards in HQ and R&D together (CR 10.12.3b),
@@ -1425,106 +1178,6 @@ export function applyOtherKinds(
 
     case "identify_mark": {
       identifyMark(state, sourceId);
-      return { ok: true };
-    }
-
-    case "start_run_on_mark": {
-      const mark = currentMark(state);
-      if (mark === null) {
-        log(
-          state,
-          `Start run on mark — no mark designated (CR ${CR.mark.number}).`,
-        );
-        return { ok: true };
-      }
-      state.pendingStartRunOnMark = { sourceId };
-      log(
-        state,
-        `Pending run on mark ${mark} (from ${source.title}; CR ${CR.mark.number}).`,
-      );
-      return { ok: true };
-    }
-
-    case "may_start_run": {
-      const servers: string[] = [];
-      for (const [sid, server] of Object.entries(state.servers)) {
-        if (action.servers === "remote" && server.kind !== "remote") continue;
-        if (action.servers === "central" && server.kind !== "central") continue;
-        if (action.servers === "hq" && sid !== "hq") continue;
-        if (action.servers === "rd" && sid !== "rd") continue;
-        if (action.servers === "archives" && sid !== "archives") continue;
-        if (action.servers === "hq_rd" && sid !== "hq" && sid !== "rd") {
-          continue;
-        }
-        servers.push(sid);
-      }
-      if (servers.length === 0) {
-        log(state, `may_start_run — no matching servers.`);
-        return { ok: true };
-      }
-      const bypassClicks = action.bypassFirstEncounterForClicks;
-      openPendingChoose(state, {
-        sourceId,
-        chooser: "runner",
-        options: [
-          ...servers.map((sid) => ({
-            id: `run:${sid}`,
-            label: `Run ${sid}`,
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "queue_start_run" as const,
-                serverId: sid,
-                ...(bypassClicks !== undefined
-                  ? { bypassFirstEncounterForClicks: bypassClicks }
-                  : {}),
-                ...(action.preventAllTagsThisRun
-                  ? { preventAllTagsThisRun: true }
-                  : {}),
-              },
-            },
-          })),
-          {
-            id: "decline",
-            label: "Decline",
-            effect: {
-              op: "do" as const,
-              action: {
-                kind: "gain_credits" as const,
-                side: "runner" as const,
-                amount: 0,
-              },
-            },
-          },
-        ],
-        logLine: `${source.title} — may start a run (${action.servers}).`,
-      });
-      return { ok: true };
-    }
-
-    case "queue_start_run": {
-      // Doppelgänger's once per turn is used when the Runner runs, not when
-      // the ability becomes pending (CR 9.6.9d, 9.3.6g).
-      if (
-        source.onSuccessfulRunEndOncePerTurn &&
-        !state.turn.onSuccessfulRunEndFiredIds.includes(sourceId)
-      ) {
-        state.turn.onSuccessfulRunEndFiredIds.push(sourceId);
-      }
-      state.pendingStartRun = {
-        sourceId,
-        serverId: action.serverId as import("../../state/types.js").ServerId,
-        ...(action.bypassFirstEncounterForClicks !== undefined
-          ? {
-              bypassFirstEncounterForClicks:
-                action.bypassFirstEncounterForClicks,
-            }
-          : {}),
-        ...(action.preventAllTagsThisRun
-          ? { preventAllTagsThisRun: true }
-          : {}),
-      };
-      log(state, `Pending run on ${action.serverId} (from ${source.title}).`);
       return { ok: true };
     }
 
@@ -1588,10 +1241,6 @@ export function applyOtherKinds(
         logLine: `${source.title} — choose gain 2¢ or draw 2 (${remaining} remaining).`,
       });
       return { ok: true };
-    }
-
-    case "exclusive_choices_per_passed_ice": {
-      return startExclusiveChoicesPerPassedIce(state, sourceId, action.options);
     }
 
     case "wall_to_wall_turn_begin": {
